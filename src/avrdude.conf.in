@@ -1180,7 +1180,6 @@ programmer
     pgmled                 = ~12;
 ;
 
-
 #------------------------------------------------------------
 # serialupdi
 #------------------------------------------------------------
@@ -3664,7 +3663,7 @@ part parent "2343"
     id                     = "t22";
     mcuid                  = 13;
     stk500_devcode         = 0x20;
-    avr910_devcode         = 0; # Unknown
+    avr910_devcode         = 0x00; # Unknown
     signature              = 0x1e 0x91 0x06;
 ;
 
@@ -8478,61 +8477,931 @@ part parent "m328"
 ;
 
 #------------------------------------------------------------
-# ATmega32m1
+# ATmega64M1
 #------------------------------------------------------------
 
-part parent "m328"
-    desc                   = "ATmega32M1";
-    id                     = "m32m1";
-    mcuid                  = 63;
-    n_interrupts           = 31;
-    bs2                    = 0xe2;
-#   stk500_devcode         = 0x??;
-#   avr910_devcode         = 0x??;
-    signature              = 0x1e 0x95 0x84;
-
-    memory "efuse"
-        write              = "1010.1100--1010.0100--xxxx.xxxx--xxii.iiii";
-    ;
-;
-
-#------------------------------------------------------------
-# ATmega64m1
-#------------------------------------------------------------
-
-part parent "m328"
+part
     desc                   = "ATmega64M1";
     id                     = "m64m1";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 76;
     n_interrupts           = 31;
+    n_boot_sections        = 4;
     boot_section_size      = 1024;
+    chip_erase_delay       = 9000;
+    pagel                  = 0xd7;
     bs2                    = 0xe2;
-#   stk500_devcode         = 0x??;
-#   avr910_devcode         = 0x??;
     signature              = 0x1e 0x96 0x84;
+    reset                  = io;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 3;
+    pollvalue              = 0x53;
+    predelay               = 1;
+    postdelay              = 1;
+    pollmethod             = 1;
+    pp_controlstack        =
+        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
+        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
+        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
+        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    flash_instr            =  0xb6, 0x01, 0x11;
+    eeprom_instr           =
+        0xbd, 0xf2, 0xbd, 0xe1, 0xbb, 0xcf, 0xb4, 0x00,
+        0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
+        0x99, 0xf9, 0xbb, 0xaf;
+    hventerstabdelay       = 100;
+    latchcycles            = 5;
+    togglevtg              = 1;
+    poweroffdelay          = 15;
+    resetdelayms           = 1;
+    hvleavestabdelay       = 15;
+    resetdelay             = 15;
+    chiperasepolltimeout   = 10;
+    programfusepolltimeout = 5;
+    programlockpolltimeout = 5;
+    idr                    = 0x31;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
+    ocdrev                 = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
     memory "eeprom"
         size               = 2048;
         page_size          = 8;
+        min_write_delay    = 3600;
+        max_write_delay    = 3600;
+        mode               = 0x41;
         delay              = 10;
-        read               = "1010.0000--000x.xaaa--aaaa.aaaa--oooo.oooo";
-        write              = "1100.0000--000x.xaaa--aaaa.aaaa--iiii.iiii";
+        blocksize          = 8;
+        readsize           = 256;
+        read               = "1010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.0aaa--aaaa.aaaa--iiii.iiii";
         loadpage_lo        = "1100.0001--0000.0000--0000.0aaa--iiii.iiii";
-        writepage          = "1100.0010--00xx.xaaa--aaaa.a000--xxxx.xxxx";
+        writepage          = "1100.0010--0000.0aaa--aaaa.a000--xxxx.xxxx";
     ;
 
     memory "flash"
+        paged              = yes;
         size               = 0x10000;
         page_size          = 256;
-        read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
-        read_hi            = "0010.1000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
-        loadpage_lo        = "0100.0000--000x.xxxx--xaaa.aaaa--iiii.iiii";
-        loadpage_hi        = "0100.1000--000x.xxxx--xaaa.aaaa--iiii.iiii";
-        writepage          = "0100.1100--aaaa.aaaa--axxx.xxxx--xxxx.xxxx";
+        num_pages          = 256;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 256;
+        readsize           = 256;
+        read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--0aaa.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--0aaa.aaaa--iiii.iiii";
+        writepage          = "0100.1100--0aaa.aaaa--a000.0000--xxxx.xxxx";
+    ;
+
+    memory "lfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "hfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
 
     memory "efuse"
-        write              = "1010.1100--1010.0100--xxxx.xxxx--xxii.iiii";
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--11oo.oooo";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--11ii.iiii";
+    ;
+
+    memory "lock"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "calibration"
+        size               = 1;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega32M1
+#------------------------------------------------------------
+
+part parent "m64m1"
+    desc                   = "ATmega32M1";
+    id                     = "m32m1";
+    mcuid                  = 63;
+    boot_section_size      = 512;
+    signature              = 0x1e 0x95 0x84;
+
+    memory "eeprom"
+        size               = 1024;
+        page_size          = 4;
+        blocksize          = 4;
+        read               = "1010.0000--0000.00aa--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.00aa--aaaa.aaaa--iiii.iiii";
+        loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
+        writepage          = "1100.0010--0000.00aa--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        size               = 0x8000;
+        page_size          = 128;
+        blocksize          = 128;
+        read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--00aa.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--00aa.aaaa--iiii.iiii";
+        writepage          = "0100.1100--00aa.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega16M1
+#------------------------------------------------------------
+
+part parent "m32m1"
+    desc                   = "ATmega16M1";
+    id                     = "m16m1";
+    mcuid                  = 54;
+    signature              = 0x1e 0x94 0x84;
+
+    memory "eeprom"
+        size               = 512;
+        read               = "1010.0000--0000.000a--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.000a--aaaa.aaaa--iiii.iiii";
+        writepage          = "1100.0010--0000.000a--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        size               = 0x4000;
+        num_pages          = 128;
+        read_lo            = "0010.0000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        writepage          = "0100.1100--000a.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega32C1
+#------------------------------------------------------------
+
+part parent "m32m1"
+    desc                   = "ATmega32C1";
+    id                     = "m32c1";
+    mcuid                  = 62;
+    signature              = 0x1e 0x95 0x86;
+;
+
+#------------------------------------------------------------
+# ATmega64C1
+#------------------------------------------------------------
+
+part parent "m64m1"
+    desc                   = "ATmega64C1";
+    id                     = "m64c1";
+    mcuid                  = 75;
+    signature              = 0x1e 0x96 0x86;
+;
+
+#------------------------------------------------------------
+# ATA5505
+#------------------------------------------------------------
+
+part parent "t167"
+    desc                   = "ATA5505";
+    id                     = "ata5505";
+    mcuid                  = 198;
+    chip_erase_delay       = 4000;
+    pagel                  = 0xb3;
+    bs2                    = 0xb2;
+    reset                  = dedicated;
+    poweroffdelay          = 15;
+    resetdelay             = 15;
+    idr                    = 0x31;
+    ocdrev                 = 1;
+
+    memory "eeprom"
+        max_write_delay    = 4000;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.111o";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.111i";
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATA6612C
+#------------------------------------------------------------
+
+part parent "m88"
+    desc                   = "ATA6612C";
+    id                     = "ata6612c";
+    mcuid                  = 216;
+    chip_erase_delay       = 4000;
+    idr                    = 0x31;
+    ocd_base               = 0x1000;
+
+    memory "eeprom"
+        min_write_delay    = 4000;
+        max_write_delay    = 4000;
+    ;
+
+    memory "efuse"
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.1ooo";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.1iii";
+    ;
+
+    memory "lock"
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATA6613C
+#------------------------------------------------------------
+
+part parent "m168"
+    desc                   = "ATA6613C";
+    id                     = "ata6613c";
+    mcuid                  = 217;
+    idr                    = 0x31;
+
+    memory "efuse"
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.1ooo";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.1iii";
+    ;
+
+    memory "lock"
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATA6614Q
+#------------------------------------------------------------
+
+part parent "m328"
+    desc                   = "ATA6614Q";
+    id                     = "ata6614q";
+    mcuid                  = 218;
+    signature              = 0x1e 0x95 0x0f;
+    idr                    = 0x31;
+
+    memory "efuse"
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.1ooo";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.1iii";
+    ;
+
+    memory "lock"
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATA6616C
+#------------------------------------------------------------
+
+part parent "t87"
+    desc                   = "ATA6616C";
+    id                     = "ata6616c";
+    mcuid                  = 219;
+    chip_erase_delay       = 4000;
+    pagel                  = 0xb3;
+    bs2                    = 0xb2;
+    reset                  = dedicated;
+    poweroffdelay          = 15;
+    resetdelay             = 15;
+    idr                    = 0x31;
+    ocdrev                 = 1;
+
+    memory "eeprom"
+        max_write_delay    = 4000;
+    ;
+
+    memory "flash"
+        read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        writepage          = "0100.1100--0000.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.111o";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.111i";
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATA6617C
+#------------------------------------------------------------
+
+part parent "t167"
+    desc                   = "ATA6617C";
+    id                     = "ata6617c";
+    mcuid                  = 220;
+    chip_erase_delay       = 4000;
+    pagel                  = 0xb3;
+    bs2                    = 0xb2;
+    reset                  = dedicated;
+    poweroffdelay          = 15;
+    resetdelay             = 15;
+    idr                    = 0x31;
+    ocdrev                 = 1;
+
+    memory "eeprom"
+        max_write_delay    = 4000;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.111o";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.111i";
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATA664251
+#------------------------------------------------------------
+
+part parent "t167"
+    desc                   = "ATA664251";
+    id                     = "ata664251";
+    mcuid                  = 225;
+    chip_erase_delay       = 4000;
+    pagel                  = 0xb3;
+    bs2                    = 0xb2;
+    reset                  = dedicated;
+    poweroffdelay          = 15;
+    resetdelay             = 15;
+    idr                    = 0x31;
+    ocdrev                 = 1;
+
+    memory "eeprom"
+        max_write_delay    = 4000;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--1111.111o";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.111i";
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
+    ;
+
+    memory "calibration"
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega16HVA
+#------------------------------------------------------------
+
+part
+    desc                   = "ATmega16HVA";
+    id                     = "m16hva";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 51;
+    n_interrupts           = 21;
+    chip_erase_delay       = 4000;
+    signature              = 0x1e 0x94 0x0c;
+    reset                  = io;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 3;
+    pollvalue              = 0x53;
+    predelay               = 1;
+    postdelay              = 1;
+    pollmethod             = 1;
+    hvsp_controlstack      =
+        0x4c, 0x0c, 0x1c, 0x2c, 0x3c, 0x64, 0x74, 0x66,
+        0x68, 0x78, 0x68, 0x68, 0x7a, 0x6a, 0x68, 0x78,
+        0x78, 0x7d, 0x6d, 0x0c, 0x80, 0x40, 0x20, 0x10,
+        0x11, 0x08, 0x04, 0x02, 0x03, 0x08, 0x04, 0x0f;
+    flash_instr            =  0xb6, 0x01, 0x11;
+    eeprom_instr           =
+        0xbd, 0xf2, 0xbd, 0xe1, 0xbb, 0xcf, 0xb4, 0x00,
+        0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
+        0x99, 0xf9, 0xbb, 0xaf;
+    hventerstabdelay       = 100;
+    latchcycles            = 1;
+    togglevtg              = 1;
+    poweroffdelay          = 25;
+    resetdelayms           = 1;
+    resetdelayus           = 70;
+    hvleavestabdelay       = 101;
+    resetdelay             = 26;
+    chiperasepolltimeout   = 40;
+    chiperasetime          = 1;
+    programfusepolltimeout = 25;
+    programlockpolltimeout = 25;
+    synchcycles            = 6;
+    idr                    = 0x31;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
+    ocdrev                 = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
+
+    memory "eeprom"
+        size               = 256;
+        page_size          = 4;
+        min_write_delay    = 4000;
+        max_write_delay    = 4000;
+        mode               = 0x41;
+        delay              = 20;
+        blocksize          = 4;
+        readsize           = 256;
+        read               = "1010.0000--0000.0000--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.0000--aaaa.aaaa--iiii.iiii";
+        loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
+        writepage          = "1100.0010--0000.0000--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        paged              = yes;
+        size               = 0x4000;
+        page_size          = 128;
+        num_pages          = 128;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 128;
+        readsize           = 256;
+        read_lo            = "0010.0000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--00aa.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--00aa.aaaa--iiii.iiii";
+        writepage          = "0100.1100--000a.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "fuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "lock"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "calibration"
+        size               = 1;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega8HVA
+#------------------------------------------------------------
+
+part parent "m16hva"
+    desc                   = "ATmega8HVA";
+    id                     = "m8hva";
+    mcuid                  = 47;
+    signature              = 0x1e 0x93 0x10;
+
+    memory "flash"
+        size               = 8192;
+        num_pages          = 64;
+        read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        writepage          = "0100.1100--0000.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega16HVB
+#------------------------------------------------------------
+
+part
+    desc                   = "ATmega16HVB";
+    id                     = "m16hvb";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 52;
+    n_interrupts           = 29;
+    n_boot_sections        = 4;
+    boot_section_size      = 512;
+    chip_erase_delay       = 4000;
+    pagel                  = 0xa3;
+    bs2                    = 0xa2;
+    signature              = 0x1e 0x94 0x0d;
+    reset                  = io;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 3;
+    pollvalue              = 0x53;
+    predelay               = 1;
+    postdelay              = 1;
+    pollmethod             = 1;
+    pp_controlstack        =
+        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
+        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
+        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
+        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    flash_instr            =  0xb6, 0x01, 0x11;
+    eeprom_instr           =
+        0xbd, 0xf2, 0xbd, 0xe1, 0xbb, 0xcf, 0xb4, 0x00,
+        0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
+        0x99, 0xf9, 0xbb, 0xaf;
+    hventerstabdelay       = 100;
+    latchcycles            = 6;
+    hvleavestabdelay       = 15;
+    resetdelay             = 15;
+    chiperasepolltimeout   = 10;
+    programfusepolltimeout = 5;
+    programlockpolltimeout = 5;
+    idr                    = 0x31;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
+    ocdrev                 = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
+
+    memory "eeprom"
+        size               = 512;
+        page_size          = 4;
+        min_write_delay    = 4000;
+        max_write_delay    = 4000;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 4;
+        readsize           = 256;
+        read               = "1010.0000--0000.000a--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.000a--aaaa.aaaa--iiii.iiii";
+        loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
+        writepage          = "1100.0010--0000.000a--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        paged              = yes;
+        size               = 0x4000;
+        page_size          = 128;
+        num_pages          = 128;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 128;
+        readsize           = 256;
+        read_lo            = "0010.0000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--00aa.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--00aa.aaaa--iiii.iiii";
+        writepage          = "0100.1100--000a.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "lfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "hfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.1000--xxxx.xxxx--111o.oooo";
+        write              = "1010.1100--1010.1000--xxxx.xxxx--111i.iiii";
+    ;
+
+    memory "lock"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "calibration"
+        size               = 1;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega16HVBrevB
+#------------------------------------------------------------
+
+part parent "m16hvb"
+    desc                   = "ATmega16HVBrevB";
+    id                     = "m16hvbrevb";
+    mcuid                  = 53;
+;
+
+#------------------------------------------------------------
+# ATmega32HVB
+#------------------------------------------------------------
+
+part parent "m16hvb"
+    desc                   = "ATmega32HVB";
+    id                     = "m32hvb";
+    mcuid                  = 60;
+    signature              = 0x1e 0x95 0x10;
+
+    memory "eeprom"
+        size               = 1024;
+        read               = "1010.0000--0000.00aa--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.00aa--aaaa.aaaa--iiii.iiii";
+        writepage          = "1100.0010--0000.00aa--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        size               = 0x8000;
+        num_pages          = 256;
+        read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
+        writepage          = "0100.1100--00aa.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega32HVBrevB
+#------------------------------------------------------------
+
+part parent "m32hvb"
+    desc                   = "ATmega32HVBrevB";
+    id                     = "m32hvbrevb";
+    mcuid                  = 61;
+;
+
+#------------------------------------------------------------
+# ATmega64HVE2
+#------------------------------------------------------------
+
+part
+    desc                   = "ATmega64HVE2";
+    id                     = "m64hve2";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
+    mcuid                  = 77;
+    n_interrupts           = 25;
+    n_boot_sections        = 4;
+    boot_section_size      = 1024;
+    chip_erase_delay       = 4000;
+    signature              = 0x1e 0x96 0x10;
+    reset                  = io;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 3;
+    pollvalue              = 0x53;
+    predelay               = 1;
+    postdelay              = 1;
+    pollmethod             = 1;
+    hvsp_controlstack      =
+        0x4c, 0x0c, 0x1c, 0x2c, 0x3c, 0x64, 0x74, 0x66,
+        0x68, 0x78, 0x68, 0x68, 0x7a, 0x6a, 0x68, 0x78,
+        0x78, 0x7d, 0x6d, 0x0c, 0x80, 0x40, 0x20, 0x10,
+        0x11, 0x08, 0x04, 0x02, 0x03, 0x08, 0x04, 0x0f;
+    flash_instr            =  0xb6, 0x01, 0x11;
+    eeprom_instr           =
+        0xbd, 0xf2, 0xbd, 0xe1, 0xbb, 0xcf, 0xb4, 0x00,
+        0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
+        0x99, 0xf9, 0xbb, 0xaf;
+    hventerstabdelay       = 100;
+    latchcycles            = 1;
+    togglevtg              = 1;
+    poweroffdelay          = 25;
+    resetdelayms           = 1;
+    resetdelayus           = 70;
+    hvleavestabdelay       = 101;
+    resetdelay             = 26;
+    chiperasepolltimeout   = 40;
+    chiperasetime          = 1;
+    programfusepolltimeout = 25;
+    programlockpolltimeout = 25;
+    synchcycles            = 6;
+    idr                    = 0x31;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
+    ocdrev                 = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
+
+    memory "eeprom"
+        size               = 1024;
+        page_size          = 4;
+        min_write_delay    = 4000;
+        max_write_delay    = 4000;
+        mode               = 0x41;
+        delay              = 20;
+        blocksize          = 4;
+        readsize           = 256;
+        read               = "1010.0000--0000.00aa--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.00aa--aaaa.aaaa--iiii.iiii";
+        loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
+        writepage          = "1100.0010--0000.00aa--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        paged              = yes;
+        size               = 0x10000;
+        page_size          = 128;
+        num_pages          = 512;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 128;
+        readsize           = 256;
+        read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--00aa.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--00aa.aaaa--iiii.iiii";
+        writepage          = "0100.1100--0aaa.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "lfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "hfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.1000--xxxx.xxxx--1111.oooo";
+        write              = "1010.1100--1010.1000--xxxx.xxxx--1111.iiii";
+    ;
+
+    memory "lock"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "calibration"
+        size               = 1;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# ATmega32HVE2
+#------------------------------------------------------------
+
+part parent "m64hve2"
+    desc                   = "ATmega32HVE2";
+    id                     = "m32hve2";
+    mcuid                  = 379;
+    signature              = 0x1e 0x95 0x13;
+
+    memory "flash"
+        size               = 0x8000;
+        num_pages          = 256;
     ;
 ;
 
@@ -8809,6 +9678,135 @@ part
 ;
 
 #------------------------------------------------------------
+# AT90PWM1
+#------------------------------------------------------------
+
+part
+    desc                   = "AT90PWM1";
+    id                     = "pwm1";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 166;
+    n_interrupts           = 32;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
+    chip_erase_delay       = 9000;
+    pagel                  = 0xd7;
+    bs2                    = 0xe2;
+    signature              = 0x1e 0x93 0x83;
+    reset                  = io;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 3;
+    pollvalue              = 0x53;
+    predelay               = 1;
+    postdelay              = 1;
+    pollmethod             = 1;
+    pp_controlstack        =
+        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
+        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
+        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
+        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    flash_instr            =  0xb6, 0x01, 0x11;
+    eeprom_instr           =
+        0xbd, 0xf2, 0xbd, 0xe1, 0xbb, 0xcf, 0xb4, 0x00,
+        0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
+        0x99, 0xf9, 0xbb, 0xaf;
+    hventerstabdelay       = 100;
+    latchcycles            = 5;
+    togglevtg              = 1;
+    poweroffdelay          = 15;
+    resetdelayms           = 1;
+    hvleavestabdelay       = 15;
+    resetdelay             = 15;
+    chiperasepolltimeout   = 10;
+    programfusepolltimeout = 5;
+    programlockpolltimeout = 5;
+    idr                    = 0x31;
+    spmcr                  = 0x57;
+    eecr                   = 0x3f;
+    ocdrev                 = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
+
+    memory "eeprom"
+        size               = 512;
+        page_size          = 4;
+        min_write_delay    = 3600;
+        max_write_delay    = 3600;
+        mode               = 0x41;
+        delay              = 5;
+        blocksize          = 4;
+        readsize           = 256;
+        read               = "1010.0000--0000.000a--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.000a--aaaa.aaaa--iiii.iiii";
+        loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
+        writepage          = "1100.0010--0000.000a--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        paged              = yes;
+        size               = 8192;
+        page_size          = 64;
+        num_pages          = 128;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 64;
+        readsize           = 256;
+        read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--000a.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--000a.aaaa--iiii.iiii";
+        writepage          = "0100.1100--0000.aaaa--aaa0.0000--xxxx.xxxx";
+    ;
+
+    memory "lfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "hfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "efuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--o1oo.1ooo";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--i1ii.1iii";
+    ;
+
+    memory "lock"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "calibration"
+        size               = 1;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
 # AT90PWM2
 #------------------------------------------------------------
 
@@ -8973,6 +9971,156 @@ part parent "pwm2b"
     desc                   = "AT90PWM3B";
     id                     = "pwm3b";
     mcuid                  = 170;
+;
+
+#------------------------------------------------------------
+# AT90PWM161
+#------------------------------------------------------------
+
+part
+    desc                   = "AT90PWM161";
+    id                     = "pwm161";
+    prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
+    mcuid                  = 177;
+    n_interrupts           = 20;
+    n_boot_sections        = 4;
+    boot_section_size      = 256;
+    chip_erase_delay       = 9000;
+    pagel                  = 0xe2;
+    bs2                    = 0xd6;
+    signature              = 0x1e 0x94 0x8b;
+    reset                  = io;
+    timeout                = 200;
+    stabdelay              = 100;
+    cmdexedelay            = 25;
+    synchloops             = 32;
+    pollindex              = 3;
+    pollvalue              = 0x53;
+    predelay               = 1;
+    postdelay              = 1;
+    pollmethod             = 1;
+    pp_controlstack        =
+        0xc4, 0xe4, 0xc4, 0xe4, 0xcc, 0xec, 0xcc, 0xec,
+        0xd4, 0xf4, 0xd4, 0xf4, 0xdc, 0xfc, 0xdc, 0xfc,
+        0xc8, 0xe8, 0xd8, 0xf8, 0x4c, 0x6c, 0x5c, 0x7c,
+        0xec, 0xbc, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00;
+    flash_instr            =  0xb6, 0x01, 0x11;
+    eeprom_instr           =
+        0xbd, 0xf2, 0xbd, 0xe1, 0xbb, 0xcf, 0xb4, 0x00,
+        0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
+        0x99, 0xf9, 0xbb, 0xaf;
+    hventerstabdelay       = 100;
+    latchcycles            = 5;
+    togglevtg              = 1;
+    poweroffdelay          = 15;
+    resetdelayms           = 1;
+    hvleavestabdelay       = 15;
+    resetdelay             = 15;
+    chiperasepolltimeout   = 10;
+    programfusepolltimeout = 5;
+    programlockpolltimeout = 5;
+    idr                    = 0x31;
+    spmcr                  = 0x57;
+    eecr                   = 0x3c;
+    ocdrev                 = 1;
+    chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
+    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
+
+    memory "eeprom"
+        size               = 512;
+        page_size          = 4;
+        min_write_delay    = 3600;
+        max_write_delay    = 3600;
+        mode               = 0x41;
+        delay              = 5;
+        blocksize          = 4;
+        readsize           = 256;
+        read               = "1010.0000--0000.000a--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--0000.000a--aaaa.aaaa--iiii.iiii";
+        loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
+        writepage          = "1100.0010--0000.000a--aaaa.aa00--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        paged              = yes;
+        size               = 0x4000;
+        page_size          = 128;
+        num_pages          = 128;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 10;
+        blocksize          = 64;
+        readsize           = 256;
+        read_lo            = "0010.0000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--000a.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--00aa.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--00aa.aaaa--iiii.iiii";
+        writepage          = "0100.1100--000a.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "lfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "hfuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "efuse"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "lock"
+        size               = 1;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
+        write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
+    ;
+
+    memory "signature"
+        size               = 3;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "calibration"
+        size               = 1;
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# AT90PWM81
+#------------------------------------------------------------
+
+part parent "pwm161"
+    desc                   = "AT90PWM81";
+    id                     = "pwm81";
+    mcuid                  = 173;
+    signature              = 0x1e 0x93 0x88;
+
+    memory "flash"
+        size               = 8192;
+        page_size          = 64;
+        read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
+        loadpage_lo        = "0100.0000--0000.0000--000a.aaaa--iiii.iiii";
+        loadpage_hi        = "0100.1000--0000.0000--000a.aaaa--iiii.iiii";
+        writepage          = "0100.1100--0000.aaaa--aaa0.0000--xxxx.xxxx";
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12524,6 +13672,29 @@ part parent ".xmega"
 ;
 
 #------------------------------------------------------------
+# ATxmega32C3
+#------------------------------------------------------------
+
+part parent "x32a4u"
+    desc                   = "ATxmega32C3";
+    id                     = "x32c3";
+    mcuid                  = 236;
+    signature              = 0x1e 0x95 0x49;
+;
+
+#------------------------------------------------------------
+# ATxmega32D3
+#------------------------------------------------------------
+
+part parent "x32a4u"
+    desc                   = "ATxmega32D3";
+    id                     = "x32d3";
+    mcuid                  = 237;
+    n_interrupts           = 114;
+    signature              = 0x1e 0x95 0x4a;
+;
+
+#------------------------------------------------------------
 # ATxmega64C3
 #------------------------------------------------------------
 
@@ -14515,6 +15686,18 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+;
+
+#------------------------------------------------------------
+# ATtiny416auto
+#------------------------------------------------------------
+
+part parent "t416"
+    desc                   = "ATtiny416auto";
+    id                     = "t416auto";
+    mcuid                  = 290;
+    boot_section_size      = 256;
+    signature              = 0x1e 0x92 0x28;
 ;
 
 #------------------------------------------------------------
