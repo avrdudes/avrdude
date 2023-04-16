@@ -15087,6 +15087,7 @@ part
     id                     = ".avr8x";
     prog_modes             = PM_SPM | PM_UPDI;
     n_boot_sections        = 1;
+    boot_section_size      = 256;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
 
@@ -15716,7 +15717,6 @@ part parent "t416"
     desc                   = "ATtiny416auto";
     id                     = "t416auto";
     mcuid                  = 290;
-    boot_section_size      = 256;
     signature              = 0x1e 0x92 0x28;
 ;
 
@@ -16478,6 +16478,7 @@ part
     family_id              = "AVR    ";
     prog_modes             = PM_SPM | PM_UPDI;
     n_boot_sections        = 1;
+    boot_section_size      = 512;
     # Dedicated UPDI pin, no HV
     hvupdi_variant         = 1;
     nvm_base               = 0x1000;
