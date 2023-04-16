@@ -574,6 +574,7 @@ AVRPART *avr_new_part(void) {
   p->config_file = nulp;
   p->mem = lcreat(NULL, 0);
   p->mem_alias = lcreat(NULL, 0);
+  p->variants = lcreat(NULL, 0);
 
   // Default values
   p->mcuid = -1;
@@ -597,10 +598,10 @@ AVRPART *avr_dup_part(const AVRPART *d) {
   if(d) {
     *p = *d;
 
-    // Duplicate the memory and alias chains
+    // Leave variants list empty but duplicate the memory and alias chains
+    p->variants = lcreat(NULL, 0);
     p->mem = lcreat(NULL, 0);
     p->mem_alias = lcreat(NULL, 0);
-
     for(LNODEID ln=lfirst(d->mem); ln; ln=lnext(ln)) {
       AVRMEM *m = ldata(ln);
       AVRMEM *m2 = avr_dup_mem(m);
@@ -630,6 +631,9 @@ void avr_free_part(AVRPART * d)
   d->mem = NULL;
   ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
   d->mem_alias = NULL;
+  ldestroy_cb(d->variants, free);
+  d->variants = NULL;
+
   /* do not free d->parent_id and d->config_file */
   for(size_t i=0; i<sizeof(d->op)/sizeof(d->op[0]); i++) {
     if (d->op[i] != NULL) {

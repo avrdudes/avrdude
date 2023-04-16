@@ -2112,8 +2112,9 @@ The following programmer types are currently implemented:
 
 @smallexample
 part
-    desc             = <description> ;        # quoted string
-    id               = <id> ;                 # quoted string
+    desc             = <description> ;        # quoted string, the long part name, eg, "ATmega328p"
+    id               = <id> ;                 # quoted string, normally an abbreviated part name
+    variants         = <str1> [, <str2> ...]; # quoted strings, each starts so "<alt-name>: ..."
     family_id        = <id> ;                 # quoted string, e.g., "megaAVR" or "tinyAVR"
     prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs

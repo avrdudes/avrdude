@@ -213,6 +213,7 @@ spi              { yylval=NULL; return K_SPI; }
 type             { yylval=NULL; ccap(); return K_TYPE; }
 usb              { yylval=NULL; return K_USB; }
 usbpid           { yylval=NULL; ccap(); return K_USBPID; }
+variants         { yylval=NULL; ccap(); return K_VARIANTS; }
 vcc              { yylval=NULL; ccap(); return K_VCC; }
 vfyled           { yylval=NULL; ccap(); return K_VFYLED; }
 write            { yylval=new_token(K_WRITE); ccap(); return K_WRITE; }

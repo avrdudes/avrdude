@@ -236,6 +236,7 @@ typedef struct avrpart {
   const char  * desc;               /* long part name */
   const char  * id;                 /* short part name */
   LISTID        comments;           // Used by developer options -p*/[ASsr...]
+  LISTID        variants;           /* String with variant name and chip properties */
   const char  * parent_id;          /* Used by developer options */
   const char  * family_id;          /* family id in the SIB (avr8x) */
   int           prog_modes;         /* Programming interfaces, see #define PM_... */

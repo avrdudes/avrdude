@@ -111,6 +111,7 @@ static int pin_name;
 %token K_USB
 %token K_USBPID
 %token K_TYPE
+%token K_VARIANTS
 %token K_VCC
 %token K_VFYLED
 
@@ -602,6 +603,18 @@ part_parm :
       current_part->id = cache_string($3->value.string);
       free_token($3);
     } |
+
+  K_VARIANTS TKN_EQUAL string_list {
+    {
+      ldestroy_cb(current_part->variants, free);
+      current_part->variants = lcreat(NULL, 0);
+      while (lsize(string_list)) {
+        TOKEN *t = lrmv_n(string_list, 1);
+        ladd(current_part->variants, cfg_strdup("config_gram.y", t->value.string));
+        free_token(t);
+      }
+    }
+  } |
 
   K_DEVICECODE TKN_EQUAL numexpr {
     {
