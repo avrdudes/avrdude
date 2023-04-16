@@ -12827,14 +12827,14 @@ part
 ;
 
 #------------------------------------------------------------
-# ATmega165
+# ATmega165P
 #------------------------------------------------------------
 
 part
-    desc                   = "ATmega165";
-    id                     = "m165";
+    desc                   = "ATmega165P";
+    id                     = "m165p";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
-    mcuid                  = 95;
+    mcuid                  = 97;
     n_interrupts           = 22;
     n_boot_sections        = 4;
     boot_section_size      = 256;
@@ -12843,7 +12843,7 @@ part
     chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xa0;
-    signature              = 0x1e 0x94 0x10;
+    signature              = 0x1e 0x94 0x07;
     reset                  = io;
     timeout                = 200;
     stabdelay              = 100;
@@ -12954,32 +12954,36 @@ part
 # ATmega165A
 #------------------------------------------------------------
 
-part parent "m165"
+part parent "m165p"
     desc                   = "ATmega165A";
     id                     = "m165a";
     mcuid                  = 96;
+    signature              = 0x1e 0x94 0x10;
 ;
 
 #------------------------------------------------------------
-# ATmega165P
+# ATmega165
 #------------------------------------------------------------
 
-part parent "m165"
-    desc                   = "ATmega165P";
-    id                     = "m165p";
-    mcuid                  = 97;
-    signature              = 0x1e 0x94 0x07;
+part parent "m165p"
+    desc                   = "ATmega165";
+    id                     = "m165";
+    mcuid                  = 95;
+
+    memory "eeprom"
+        min_write_delay    = 9000;
+        max_write_delay    = 9000;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATmega165PA
 #------------------------------------------------------------
 
-part parent "m165"
+part parent "m165p"
     desc                   = "ATmega165PA";
     id                     = "m165pa";
     mcuid                  = 98;
-    signature              = 0x1e 0x94 0x07;
 ;
 
 #------------------------------------------------------------
@@ -13436,9 +13440,9 @@ part parent ".xmega"
     id                     = ".xmega-e";
 
     memory "fuse6"
-       size               = 1;
-       offset             = 0x8f0026;
-   ;
+        size               = 1;
+        offset             = 0x8f0026;
+    ;
 ;
 
 #------------------------------------------------------------
