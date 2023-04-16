@@ -145,7 +145,7 @@
 #       idr              = <num> ;                # IO addr of IDR (OCD) reg
 #       rampz            = <num> ;                # IO addr of RAMPZ reg
 #       spmcr            = <num> ;                # mem addr of SPMC[S]R reg
-#       eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
+#       eecr             = <num> ;                # mem addr of EECR reg
 #       eind             = <num> ;                # mem addr of EIND reg
 #       mcu_base         = <num> ;
 #       nvm_base         = <num> ;
@@ -2964,6 +2964,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x2e;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 0;
@@ -4052,6 +4053,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x22;
     spmcr                  = 0x68;
+    eecr                   = 0x3c;
     ocdrev                 = 2;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -4184,6 +4186,7 @@ part
     idr                    = 0x22;
     rampz                  = 0x3b;
     spmcr                  = 0x68;
+    eecr                   = 0x3c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -4438,7 +4441,6 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
-    rampz                  = 0x3b;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
@@ -4561,7 +4563,6 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
-    rampz                  = 0x3b;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
@@ -4687,6 +4688,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 2;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -4814,6 +4816,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -5011,6 +5014,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -5169,7 +5173,9 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
+    rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -5302,6 +5308,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x04;
     spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 2;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -5531,6 +5538,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 2;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -5694,6 +5702,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -5899,6 +5908,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -6077,6 +6087,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3c;
     ocdrev                 = 2;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -6742,6 +6753,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x20;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -6878,6 +6890,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x20;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -7014,6 +7027,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x20;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -7205,6 +7219,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
@@ -7380,6 +7395,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
@@ -7555,6 +7571,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
@@ -7730,6 +7747,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -7867,6 +7885,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -7995,6 +8014,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -8122,6 +8142,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
@@ -8250,6 +8271,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
@@ -8380,6 +8402,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
@@ -8712,7 +8735,6 @@ part parent "t167"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    idr                    = 0x31;
     ocdrev                 = 1;
 
     memory "eeprom"
@@ -8757,7 +8779,6 @@ part parent "m88"
     id                     = "ata6612c";
     mcuid                  = 216;
     chip_erase_delay       = 4000;
-    idr                    = 0x31;
     ocd_base               = 0x1000;
 
     memory "eeprom"
@@ -8787,7 +8808,6 @@ part parent "m168"
     desc                   = "ATA6613C";
     id                     = "ata6613c";
     mcuid                  = 217;
-    idr                    = 0x31;
 
     memory "efuse"
         read               = "0101.0000--0000.1000--xxxx.xxxx--1111.1ooo";
@@ -8812,7 +8832,6 @@ part parent "m328"
     id                     = "ata6614q";
     mcuid                  = 218;
     signature              = 0x1e 0x95 0x0f;
-    idr                    = 0x31;
 
     memory "efuse"
         read               = "0101.0000--0000.1000--xxxx.xxxx--1111.1ooo";
@@ -8840,7 +8859,6 @@ part parent "t87"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    idr                    = 0x31;
     ocdrev                 = 1;
 
     memory "eeprom"
@@ -8894,7 +8912,6 @@ part parent "t167"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    idr                    = 0x31;
     ocdrev                 = 1;
 
     memory "eeprom"
@@ -8942,7 +8959,6 @@ part parent "t167"
     reset                  = dedicated;
     poweroffdelay          = 15;
     resetdelay             = 15;
-    idr                    = 0x31;
     ocdrev                 = 1;
 
     memory "eeprom"
@@ -9457,6 +9473,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x1f;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 0;
@@ -9553,6 +9570,7 @@ part parent "t2313"
     id                     = "t2313a";
     mcuid                  = 43;
     n_interrupts           = 21;
+    idr                    = 0x27;
 ;
 
 #------------------------------------------------------------
@@ -9601,6 +9619,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 0;
@@ -9952,6 +9971,7 @@ part parent "pwm2"
     desc                   = "AT90PWM3";
     id                     = "pwm3";
     mcuid                  = 169;
+    idr                    = 0x31;
 ;
 
 #------------------------------------------------------------
@@ -9964,6 +9984,7 @@ part parent "pwm2"
     id                     = "pwm2b";
     mcuid                  = 168;
     signature              = 0x1e 0x93 0x83;
+    idr                    = 0x31;
     ocdrev                 = 1;
 ;
 
@@ -10215,6 +10236,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x22;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -10344,6 +10366,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x22;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -10474,6 +10497,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x22;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -10600,8 +10624,8 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
-    rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -10727,6 +10751,7 @@ part
     idr                    = 0x31;
     rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -10864,6 +10889,8 @@ part
     idr                    = 0x31;
     rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
+    eind                   = 0x5c;
     ocdrev                 = 4;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11128,6 +11155,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -11268,6 +11296,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -11408,6 +11437,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
@@ -11600,6 +11630,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -11727,8 +11758,8 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
-    rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11853,8 +11884,8 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
-    rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -11979,8 +12010,8 @@ part
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     idr                    = 0x31;
-    rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -12118,6 +12149,7 @@ part
     idr                    = 0x31;
     rampz                  = 0x3b;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -12255,9 +12287,9 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
-    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -12385,9 +12417,9 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
-    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -12515,9 +12547,9 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
-    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -12645,9 +12677,9 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
-    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -12775,9 +12807,9 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
-    eind                   = 0x5c;
     ocdrev                 = 1;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
@@ -13064,6 +13096,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--0000.0000--0000.0000";
     pgm_enable             = "1010.1100--0101.0011--0000.0000--0000.0000";
@@ -13221,6 +13254,7 @@ part
     programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
+    eecr                   = 0x3f;
     ocdrev                 = 3;
     chip_erase             = "1010.1100--1000.0000--0000.0000--0000.0000";
     pgm_enable             = "1010.1100--0101.0011--0000.0000--0000.0000";
@@ -14763,6 +14797,7 @@ part
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    idr                    = 0x2e;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -15073,7 +15108,7 @@ part
         0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
         0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    idr                    = 0x51;
+    idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
 

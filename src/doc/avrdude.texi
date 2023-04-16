@@ -2182,7 +2182,7 @@ part
     idr              = <num> ;                # IO addr of IDR (OCD) reg
     rampz            = <num> ;                # IO addr of RAMPZ reg
     spmcr            = <num> ;                # mem addr of SPMC[S]R reg
-    eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
+    eecr             = <num> ;                # mem addr of EECR reg
     eind             = <num> ;                # mem addr of EIND reg
     mcu_base         = <num> ;
     nvm_base         = <num> ;
