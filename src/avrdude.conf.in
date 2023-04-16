@@ -97,15 +97,14 @@
 #       is_at90s1200     = <yes/no> ;             # AT90S1200 part
 #       signature        = <num> <num> <num> ;    # signature bytes
 #       usbpid           = <num> ;                # DFU USB PID
-#       chip_erase_delay = <num> ;                # micro-seconds
+#       chip_erase_delay = <num> ;                # microseconds
 #       reset            = dedicated | io ;
 #       retry_pulse      = reset | sck ;
-#       chip_erase_delay = <num> ;                # chip erase delay (us)
 #       # STK500 parameters (parallel programming IO lines)
-#       pagel            = <num> ;                # pin name in hex, i.e., 0xD7
-#       bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+#       pagel            = <num> ;                # page load pin name in hex, eg, 0xD7
+#       bs2              = <num> ;                # byte select 2 pin name in hex, eg, 0xA0
 #       serial           = <yes/no> ;             # can use serial downloading
-#       parallel         = <yes/no/pseudo> ;      # can use par. programming
+#       parallel         = <yes/no/pseudo> ;      # can use parallel programming
 #       # STK500v2 parameters, to be taken from Atmel's ATDF files
 #       timeout          = <num> ;
 #       stabdelay        = <num> ;
