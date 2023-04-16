@@ -212,7 +212,7 @@ static unsigned int bitbang_pad_hvsp(unsigned char byte) {
 
 
 static unsigned char bitbang_unpad_hvsp(unsigned int data) {
-  return (unsigned char)(data >> 3);
+  return (unsigned char)(data >> 2);
 }
 
 
