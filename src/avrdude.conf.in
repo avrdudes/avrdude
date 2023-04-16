@@ -13426,6 +13426,22 @@ part
 ;
 
 #------------------------------------------------------------
+# AVR XMEGA-E family common values
+#------------------------------------------------------------
+
+# Fuse for fault detection action on Px0..5 (unique to XMEGA-E)
+
+part parent ".xmega"
+    desc                   = "AVR XMEGA-E family common values";
+    id                     = ".xmega-e";
+
+    memory "fuse6"
+       size               = 1;
+       offset             = 0x8f0026;
+   ;
+;
+
+#------------------------------------------------------------
 # ATxmega16A4U
 #------------------------------------------------------------
 
@@ -14474,7 +14490,7 @@ part parent "x384c3"
 # ATxmega8E5
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-e"
     desc                   = "ATxmega8E5";
     id                     = "x8e5";
     mcuid                  = 230;
@@ -14529,7 +14545,7 @@ part parent ".xmega"
 # ATxmega16E5
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-e"
     desc                   = "ATxmega16E5";
     id                     = "x16e5";
     mcuid                  = 235;
@@ -14584,7 +14600,7 @@ part parent ".xmega"
 # ATxmega32E5
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-e"
     desc                   = "ATxmega32E5";
     id                     = "x32e5";
     mcuid                  = 242;
