@@ -2788,6 +2788,7 @@ part
     latchcycles            = 1;
     togglevtg              = 1;
     poweroffdelay          = 25;
+    resetdelayms           = 1;
     resetdelayus           = 50;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -2858,6 +2859,7 @@ part
     latchcycles            = 1;
     togglevtg              = 1;
     poweroffdelay          = 25;
+    resetdelayms           = 1;
     resetdelayus           = 50;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -2959,6 +2961,7 @@ part
     latchcycles            = 1;
     togglevtg              = 1;
     poweroffdelay          = 25;
+    resetdelayms           = 1;
     resetdelayus           = 90;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -3082,6 +3085,7 @@ part
     latchcycles            = 16;
     togglevtg              = 1;
     poweroffdelay          = 25;
+    resetdelayms           = 1;
     resetdelayus           = 50;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -5012,6 +5016,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     poweroffdelay          = 15;
+    resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
@@ -5637,6 +5642,7 @@ part parent "m169"
     reset                  = io;
     latchcycles            = 6;
     poweroffdelay          = 0;
+    resetdelayms           = 0;
 ;
 
 #------------------------------------------------------------
@@ -5651,6 +5657,7 @@ part parent "m169"
     reset                  = io;
     latchcycles            = 6;
     poweroffdelay          = 0;
+    resetdelayms           = 0;
 ;
 
 #------------------------------------------------------------
@@ -5665,6 +5672,7 @@ part parent "m169"
     reset                  = io;
     latchcycles            = 6;
     poweroffdelay          = 0;
+    resetdelayms           = 0;
 ;
 
 #------------------------------------------------------------
@@ -5704,7 +5712,6 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     togglevtg              = 1;
-    resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
@@ -6757,7 +6764,7 @@ part
     latchcycles            = 5;
     togglevtg              = 1;
     poweroffdelay          = 15;
-    resetdelayms           = 2;
+    resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
@@ -6894,7 +6901,7 @@ part
     latchcycles            = 5;
     togglevtg              = 1;
     poweroffdelay          = 15;
-    resetdelayms           = 2;
+    resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
@@ -7031,7 +7038,7 @@ part
     latchcycles            = 5;
     togglevtg              = 1;
     poweroffdelay          = 15;
-    resetdelayms           = 2;
+    resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
@@ -11564,6 +11571,7 @@ part parent "t44"
     n_page_erase           = 4;
     signature              = 0x1e 0x92 0x15;
     poweroffdelay          = 25;
+    resetdelayms           = 1;
     hvspcmdexedelay        = 0;
 
     memory "flash"
@@ -11592,6 +11600,7 @@ part parent "t84"
     n_page_erase           = 4;
     signature              = 0x1e 0x93 0x15;
     poweroffdelay          = 25;
+    resetdelayms           = 1;
     hvspcmdexedelay        = 0;
 
     memory "flash"
@@ -13114,7 +13123,6 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     togglevtg              = 1;
-    resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
