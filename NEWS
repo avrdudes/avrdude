@@ -71,6 +71,8 @@ Changes since version 7.1:
     - Add Flyswatter2 programmer #1332
     - Update avrintel.[ch] #1333
     - Improve bitclock, sck and terminal documentation #1331
+    - Add -xhelp to programmers #1338
+    - Move avrintel[.ch] into libavrdude #1341
 
   * Internals:
 
