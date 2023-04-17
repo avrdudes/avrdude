@@ -5633,6 +5633,7 @@ part parent "m169"
     mcuid                  = 105;
     signature              = 0x1e 0x94 0x11;
     reset                  = io;
+    latchcycles            = 6;
 ;
 
 #------------------------------------------------------------
@@ -5645,6 +5646,7 @@ part parent "m169"
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 106;
     reset                  = io;
+    latchcycles            = 6;
 ;
 
 #------------------------------------------------------------
@@ -5657,6 +5659,7 @@ part parent "m169"
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
     mcuid                  = 107;
     reset                  = io;
+    latchcycles            = 6;
 ;
 
 #------------------------------------------------------------
@@ -5694,7 +5697,7 @@ part
         0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
-    latchcycles            = 5;
+    latchcycles            = 6;
     togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
@@ -10879,7 +10882,7 @@ part
         0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02;
     hventerstabdelay       = 100;
-    latchcycles            = 5;
+    latchcycles            = 6;
     togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
@@ -10997,6 +11000,7 @@ part parent "m2561"
     chip_erase_delay       = 55000;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa7 0x01;
+    latchcycles            = 5;
     ocdrev                 = 3;
 
     memory "flash"
@@ -11021,6 +11025,7 @@ part parent "m2561"
     chip_erase_delay       = 18500;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa8 0x02;
+    latchcycles            = 5;
     chiperasepolltimeout   = 20;
 
     memory "eeprom"
@@ -13096,7 +13101,7 @@ part
         0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
-    latchcycles            = 5;
+    latchcycles            = 6;
     togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
@@ -14799,6 +14804,7 @@ part
         0xbe, 0x01, 0xb6, 0x01, 0xbc, 0x00, 0xbb, 0xbf,
         0x99, 0xf9, 0xbb, 0xaf;
     hventerstabdelay       = 100;
+    latchcycles            = 5;
     togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
@@ -15120,6 +15126,7 @@ part
         0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
+    latchcycles            = 6;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     idr                    = 0x31;
