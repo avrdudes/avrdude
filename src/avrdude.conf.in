@@ -4351,7 +4351,6 @@ part
         num_pages          = 512;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
-        readback           = 0xff 0x00;
         mode               = 0x41;
         delay              = 10;
         blocksize          = 256;
