@@ -6315,7 +6315,7 @@ part
     resetdelay             = 15;
     chiperasepolltimeout   = 20;
     programfusepolltimeout = 10;
-    programlockpolltimeout = 5;
+    programlockpolltimeout = 10;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -6648,7 +6648,7 @@ part
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 20;
     programfusepolltimeout = 10;
-    programlockpolltimeout = 5;
+    programlockpolltimeout = 10;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15140,6 +15140,7 @@ part
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
+    programlockpolltimeout = 5;
     idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
