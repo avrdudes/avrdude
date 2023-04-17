@@ -84,6 +84,11 @@ struct pdata
   bool vtarg_switch_set;
   unsigned char vtarg_switch_data[2];
 
+  /* Get/set flags for adjustable target voltage */
+  bool vtarg_get;
+  bool vtarg_set;
+  double vtarg_data;
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
 };
@@ -1144,6 +1149,26 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char buf[2];
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return -1;
+    double vtarg_read = b2_to_u16(buf) / 1000.0;
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", vtarg_read);
+    // Write target voltage value
+    else {
+      u16_to_b2(buf, (unsigned)(PDATA(pgm)->vtarg_data * 1000));
+      msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+        msg_warning("Cannot set target voltage %.2fV\n", PDATA(pgm)->vtarg_data);
+        return -1;
+      }
+    }
+  }
+
   /* set device descriptor data */
   if ((p->prog_modes & PM_PDI)) {
     struct xmega_device_desc xd;
@@ -1524,6 +1549,29 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         // Get Vtarget switch value
         else
           PDATA(pgm)->vtarg_switch_get = true;
+        continue;
+      }
+    }
+
+    else if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg"))
+          PDATA(pgm)->vtarg_get = true;
+        else
+          break;
         continue;
       }
     }
