@@ -2789,7 +2789,6 @@ part
     togglevtg              = 1;
     poweroffdelay          = 25;
     resetdelayms           = 1;
-    resetdelayus           = 50;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -2860,7 +2859,6 @@ part
     togglevtg              = 1;
     poweroffdelay          = 25;
     resetdelayms           = 1;
-    resetdelayus           = 50;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -2962,7 +2960,6 @@ part
     togglevtg              = 1;
     poweroffdelay          = 25;
     resetdelayms           = 1;
-    resetdelayus           = 90;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -3086,7 +3083,6 @@ part
     togglevtg              = 1;
     poweroffdelay          = 25;
     resetdelayms           = 1;
-    resetdelayus           = 50;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -11200,7 +11196,7 @@ part
     latchcycles            = 1;
     togglevtg              = 1;
     poweroffdelay          = 50;
-    resetdelayus           = 70;
+    resetdelayus           = 3;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -11342,7 +11338,7 @@ part
     latchcycles            = 1;
     togglevtg              = 1;
     poweroffdelay          = 50;
-    resetdelayus           = 70;
+    resetdelayus           = 3;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -11484,7 +11480,7 @@ part
     latchcycles            = 1;
     togglevtg              = 1;
     poweroffdelay          = 50;
-    resetdelayus           = 70;
+    resetdelayus           = 3;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
     chiperasepolltimeout   = 40;
@@ -11598,6 +11594,7 @@ part parent "t44"
     signature              = 0x1e 0x92 0x15;
     poweroffdelay          = 25;
     resetdelayms           = 1;
+    resetdelayus           = 0;
     hvspcmdexedelay        = 0;
 
     memory "flash"
@@ -11627,6 +11624,7 @@ part parent "t84"
     signature              = 0x1e 0x93 0x15;
     poweroffdelay          = 25;
     resetdelayms           = 1;
+    resetdelayus           = 0;
     hvspcmdexedelay        = 0;
 
     memory "flash"
