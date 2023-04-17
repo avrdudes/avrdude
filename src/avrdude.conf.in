@@ -4836,7 +4836,7 @@ part
         max_write_delay    = 9000;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 128;
+        blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--00xx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--00xx.xaaa--aaaa.aaaa--iiii.iiii";
@@ -4853,7 +4853,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 256;
+        blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -5039,7 +5039,7 @@ part
         max_write_delay    = 9000;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 128;
+        blocksize          = 8;
         readsize           = 256;
         read               = "1010.0000--00xx.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--00xx.aaaa--aaaa.aaaa--iiii.iiii";
@@ -5201,7 +5201,7 @@ part
         max_write_delay    = 9000;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 128;
+        blocksize          = 8;
         readsize           = 256;
         read               = "1010.0000--00xx.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--00xx.aaaa--aaaa.aaaa--iiii.iiii";
@@ -5218,7 +5218,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 256;
+        blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -5742,7 +5742,7 @@ part
         max_write_delay    = 9000;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 8;
+        blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--xxxx.xxaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xxaa--aaaa.aaaa--iiii.iiii";
@@ -5759,7 +5759,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 256;
+        blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--xaaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--xaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -5949,7 +5949,7 @@ part
         max_write_delay    = 9000;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 8;
+        blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
@@ -5966,7 +5966,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 256;
+        blocksize          = 128;
         readsize           = 256;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
@@ -7814,7 +7814,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 128;
+        blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -10201,7 +10201,6 @@ part parent "pwm3b"
         page_size          = 128;
         readback           = 0x00 0x00;
         delay              = 10;
-        blocksize          = 128;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         loadpage_lo        = "0100.0000--00xx.xxxx--xxaa.aaaa--iiii.iiii";
@@ -10430,7 +10429,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 32;
+        blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0000.0aaa--aaaa.aaaa--oooo.oooo";
@@ -10561,7 +10560,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 32;
+        blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -11380,7 +11379,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 32;
+        blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0000.0aaa--aaaa.aaaa--oooo.oooo";
@@ -11522,7 +11521,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 32;
+        blocksize          = 64;
         readsize           = 256;
         read_lo            = "0010.0000--0000.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0000.aaaa--aaaa.aaaa--oooo.oooo";
@@ -13334,7 +13333,7 @@ part
         max_write_delay    = 9000;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 8;
+        blocksize          = 4;
         readsize           = 256;
         read               = "1010.0000--0000.0aaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--0000.0aaa--aaaa.aaaa--iiii.iiii";
@@ -14897,7 +14896,7 @@ part
         max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 10;
-        blocksize          = 128;
+        blocksize          = 32;
         readsize           = 256;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
