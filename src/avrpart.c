@@ -329,7 +329,8 @@ static char * bittype(int type)
 AVRMEM *avr_new_memtype(void) {
   AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_memtype()", sizeof(*m));
   m->desc = cache_string("");
-  m->page_size = 1; // ensure not 0
+  m->page_size = 1;             // Ensure not 0
+  m->initval = -1;              // Unknown value represented as -1
 
   return m;
 }

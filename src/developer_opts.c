@@ -803,6 +803,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     _if_memout(intcmp, m->size > 8192? "0x%x": "%d", size);
     _if_memout(intcmp, "%d", page_size);
     _if_memout(intcmp, "%d", num_pages);
+    _if_memout(intcmp, m->initval == -1? "%d": "0x%02x", initval);
     _if_memout(intcmp, "%d", n_word_writes);
     _if_memout(intcmp, "0x%x", offset);
     _if_memout(intcmp, "%d", min_write_delay);
