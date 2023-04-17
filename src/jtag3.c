@@ -3100,6 +3100,9 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3134,6 +3137,9 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_DW;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3170,6 +3176,9 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3209,6 +3218,9 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
