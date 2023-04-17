@@ -4280,14 +4280,14 @@ static void stk600_setup_xprog(PROGRAMMER * pgm)
  */
 static void stk600_setup_isp(PROGRAMMER * pgm)
 {
-    pgm->program_enable = stk500v2_program_enable;
-    pgm->disable = stk500v2_disable;
-    pgm->read_byte = stk500isp_read_byte;
-    pgm->write_byte = stk500isp_write_byte;
-    pgm->paged_load = stk500v2_paged_load;
-    pgm->paged_write = stk500v2_paged_write;
-    pgm->page_erase = stk500v2_page_erase;
-    pgm->chip_erase = stk500v2_chip_erase;
+  pgm->program_enable = stk500v2_program_enable;
+  pgm->disable = stk500v2_disable;
+  pgm->read_byte = stk500isp_read_byte;
+  pgm->write_byte = stk500isp_write_byte;
+  pgm->paged_load = stk500v2_paged_load;
+  pgm->paged_write = stk500v2_paged_write;
+  pgm->page_erase = stk500v2_page_erase;
+  pgm->chip_erase = stk500v2_chip_erase;
 }
 
 const char stk500v2_desc[] = "Atmel STK500 Version 2.x firmware";
