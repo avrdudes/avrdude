@@ -15,6 +15,20 @@ Changes since version 7.1:
 
     - AT89S51, AT89S52
     - AT90S2323, ATtiny22
+    - ATmega16M1, ATmega32C1, ATmega64C1
+    - ATA5505
+    - ATA6612C, ATA6613C
+    - ATA6614Q
+    - ATA6616C, ATA6617C
+    - ATA664251
+    - ATmega16HVA, ATmega8HVA
+    - ATmega16HVB, ATmega16HVBrevB, ATmega32HVB, ATmega32HVBrevB
+    - ATmega64HVE2, ATmega32HVE2
+    - AT90PWM1
+    - AT90PWM161, AT90PWM81
+    - ATxmega32C3
+    - ATxmega32D3
+    - ATtiny416auto
 
   * New programmers supported:
 
