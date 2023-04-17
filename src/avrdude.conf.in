@@ -5012,6 +5012,7 @@ part
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02;
     hventerstabdelay       = 100;
     latchcycles            = 6;
+    poweroffdelay          = 15;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
@@ -5636,6 +5637,7 @@ part parent "m169"
     signature              = 0x1e 0x94 0x11;
     reset                  = io;
     latchcycles            = 6;
+    poweroffdelay          = 0;
 ;
 
 #------------------------------------------------------------
@@ -5649,6 +5651,7 @@ part parent "m169"
     mcuid                  = 106;
     reset                  = io;
     latchcycles            = 6;
+    poweroffdelay          = 0;
 ;
 
 #------------------------------------------------------------
@@ -5662,6 +5665,7 @@ part parent "m169"
     mcuid                  = 107;
     reset                  = io;
     latchcycles            = 6;
+    poweroffdelay          = 0;
 ;
 
 #------------------------------------------------------------
@@ -5701,7 +5705,6 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     togglevtg              = 1;
-    poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
@@ -7887,7 +7890,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 5;
     togglevtg              = 1;
-    poweroffdelay          = 20;
+    poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
@@ -8017,7 +8020,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 5;
     togglevtg              = 1;
-    poweroffdelay          = 20;
+    poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
@@ -8743,7 +8746,6 @@ part parent "t167"
     mcuid                  = 198;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    poweroffdelay          = 15;
     resetdelay             = 15;
 
     memory "eeprom"
@@ -8865,7 +8867,6 @@ part parent "t87"
     mcuid                  = 219;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    poweroffdelay          = 15;
     resetdelay             = 15;
 
     memory "eeprom"
@@ -8917,7 +8918,6 @@ part parent "t167"
     mcuid                  = 220;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    poweroffdelay          = 15;
     resetdelay             = 15;
 
     memory "eeprom"
@@ -8963,7 +8963,6 @@ part parent "t167"
     mcuid                  = 225;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    poweroffdelay          = 15;
     resetdelay             = 15;
 
     memory "eeprom"
@@ -11158,7 +11157,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 1;
     togglevtg              = 1;
-    poweroffdelay          = 25;
+    poweroffdelay          = 50;
     resetdelayus           = 70;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -11300,7 +11299,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 1;
     togglevtg              = 1;
-    poweroffdelay          = 25;
+    poweroffdelay          = 50;
     resetdelayus           = 70;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -11442,7 +11441,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 1;
     togglevtg              = 1;
-    poweroffdelay          = 25;
+    poweroffdelay          = 50;
     resetdelayus           = 70;
     hvleavestabdelay       = 100;
     resetdelay             = 25;
@@ -11555,6 +11554,7 @@ part parent "t44"
     n_interrupts           = 30;
     n_page_erase           = 4;
     signature              = 0x1e 0x92 0x15;
+    poweroffdelay          = 25;
     hvspcmdexedelay        = 0;
 
     memory "flash"
@@ -11582,6 +11582,7 @@ part parent "t84"
     n_interrupts           = 30;
     n_page_erase           = 4;
     signature              = 0x1e 0x93 0x15;
+    poweroffdelay          = 25;
     hvspcmdexedelay        = 0;
 
     memory "flash"
@@ -13104,7 +13105,6 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     togglevtg              = 1;
-    poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
     chiperasepolltimeout   = 10;
