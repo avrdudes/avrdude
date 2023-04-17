@@ -4317,14 +4317,21 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500v2_paged_load;
   pgm->page_erase     = stk500v2_page_erase;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = stk500v2_set_vtarget;
+  if (pgm->extra_features & HAS_AREF_ADJ)
+    pgm->set_varef    = stk500v2_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc     = stk500v2_set_fosc;
 }
 
 const char stk500pp_desc[] = "Atmel STK500 V2 in parallel programming mode";
@@ -4352,13 +4359,20 @@ void stk500pp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = stk500v2_set_vtarget;
+  if (pgm->extra_features & HAS_AREF_ADJ)
+    pgm->set_varef    = stk500v2_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc     = stk500v2_set_fosc;
 }
 
 const char stk500hvsp_desc[] = "Atmel STK500 V2 in high-voltage serial programming mode";
@@ -4386,13 +4400,20 @@ void stk500hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500hvsp_paged_write;
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = stk500v2_set_vtarget;
+  if (pgm->extra_features & HAS_AREF_ADJ)
+    pgm->set_varef    = stk500v2_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc     = stk500v2_set_fosc;
 }
 
 const char stk500v2_jtagmkII_desc[] = "Atmel JTAG ICE mkII in ISP mode";
