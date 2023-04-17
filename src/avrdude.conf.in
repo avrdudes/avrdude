@@ -6306,7 +6306,7 @@ part
     resetdelayms           = 2;
     hvleavestabdelay       = 15;
     resetdelay             = 15;
-    chiperasepolltimeout   = 10;
+    chiperasepolltimeout   = 20;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -6639,7 +6639,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 2;
     hvleavestabdelay       = 15;
-    chiperasepolltimeout   = 10;
+    chiperasepolltimeout   = 20;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
@@ -11021,6 +11021,7 @@ part parent "m2561"
     chip_erase_delay       = 18500;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa8 0x02;
+    chiperasepolltimeout   = 20;
 
     memory "eeprom"
         size               = 8192;
@@ -11043,6 +11044,7 @@ part parent "m128rfa1"
     mcuid                  = 88;
     n_interrupts           = 77;
     signature              = 0x1e 0xa7 0x02;
+    chiperasepolltimeout   = 20;
 ;
 
 #------------------------------------------------------------
@@ -11055,6 +11057,7 @@ part parent "m128rfa1"
     mcuid                  = 78;
     n_interrupts           = 77;
     signature              = 0x1e 0xa6 0x02;
+    chiperasepolltimeout   = 20;
 
     memory "eeprom"
         size               = 2048;
@@ -15111,6 +15114,7 @@ part
         0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
         0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
+    chiperasepolltimeout   = 10;
     idr                    = 0x31;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
