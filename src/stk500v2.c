@@ -377,6 +377,13 @@ b2_to_u16(unsigned char *b)
   return l;
 }
 
+static void
+u16_to_b2(unsigned char *b, unsigned short l)
+{
+  b[0] = l & 0xff;
+  b[1] = (l >> 8) & 0xff;
+}
+
 static int stk500v2_send_mk2(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   if (serial_send(&pgm->fd, data, len) != 0) {
     pmsg_error("unable to send command to serial port\n");
@@ -1350,6 +1357,26 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char buf[2];
+    if (jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return -1;
+    double vtarg_read = b2_to_u16(buf) / 1000.0;
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", vtarg_read);
+    // Write target voltage value
+    else {
+      u16_to_b2(buf, (unsigned)(PDATA(pgm)->vtarg_data * 1000));
+      msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      if (jtag3_setparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+        msg_warning("Cannot set target voltage %.2fV\n", PDATA(pgm)->vtarg_data);
+        return -1;
+      }
+    }
+  }
+
   free(pgmcp);
 
   /*
@@ -1615,6 +1642,29 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         // Get Vtarget switch value
         else
           PDATA(pgm)->vtarg_switch_get = true;
+        continue;
+      }
+    }
+
+    else if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg"))
+          PDATA(pgm)->vtarg_get = true;
+        else
+          break;
         continue;
       }
     }
@@ -3206,7 +3256,6 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     PROGRAMMER *pgmcp = pgm_dup(pgm);
     pgmcp->cookie = PDATA(pgm)->chained_pdata;
     jtag3_display(pgmcp, p);
-    msg_info("\n");
     pgm_free(pgmcp);
   }
   stk500v2_print_parms1(pgm, p, stderr);
@@ -3301,7 +3350,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       pgmcp->id = lcreat(NULL, 0);
       // Copy pgm->id contents over to pgmcp->id
       for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
-        ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
+        ladd(pgmcp->id, cfg_strdup("stk500v2_display()", ldata(ln)));
       jtag3_print_parms1(pgmcp, p, fp);
       pgm_free(pgmcp);
     }
