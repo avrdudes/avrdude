@@ -1114,6 +1114,9 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
+  if (verbose && quell_progress < 2)
+    jtag3_print_parms1(pgm, progbuf, stderr);
+
   // Read or write SUFFER register
   if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
     // Read existing SUFFER value
@@ -2545,7 +2548,6 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
   msg_info("%sSerial number   : %s\n", p, sn);
-  jtag3_print_parms1(pgm, progbuf, stderr);
   free(resp);
 }
 
@@ -2553,6 +2555,39 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
 void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char prog_mode[2];
   unsigned char buf[3];
+
+  // Print clocks if programmer typ is not TPI
+  if (strcmp(pgm->type, "JTAGICE3_TPI")) {
+    // Get current programming mode and target type from to determine what data to print
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)
+      return;
+    if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &prog_mode[1], 1) < 0)
+      return;
+    if (prog_mode[0] == PARM3_CONN_JTAG) {
+      if (prog_mode[1] == PARM3_ARCH_XMEGA) {
+        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
+          return;
+        if (b2_to_u16(buf) > 0)
+          fmsg_out(fp, "%sJTAG clk Xmega  : %u kHz\n", p, b2_to_u16(buf));
+      } else {
+        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
+          return;
+        if (b2_to_u16(buf) > 0)
+          fmsg_out(fp, "%sJTAG clk prog.  : %u kHz\n", p, b2_to_u16(buf));
+
+        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
+          return;
+        if (b2_to_u16(buf) > 0)
+          fmsg_out(fp, "%sJTAG clk debug  : %u kHz\n", p, b2_to_u16(buf));
+      }
+    }
+    else if (prog_mode[0] == PARM3_CONN_PDI || prog_mode[0] == PARM3_CONN_UPDI) {
+      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
+        return;
+      if (b2_to_u16(buf) > 0)
+        fmsg_out(fp, "%sPDI/UPDI clk    : %u kHz\n", p, b2_to_u16(buf));
+    }
+  }
 
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
     return;
@@ -2629,38 +2664,6 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
     }
   }
 
-  // Print clocks if programmer typ is not TPI
-  if (strcmp(pgm->type, "JTAGICE3_TPI")) {
-    // Get current programming mode and target type from to determine what data to print
-    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)
-      return;
-    if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &prog_mode[1], 1) < 0)
-      return;
-    if (prog_mode[0] == PARM3_CONN_JTAG) {
-      if (prog_mode[1] == PARM3_ARCH_XMEGA) {
-        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
-          return;
-        if (b2_to_u16(buf) > 0)
-          fmsg_out(fp, "%sJTAG clk Xmega  : %u kHz\n", p, b2_to_u16(buf));
-      } else {
-        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
-          return;
-        if (b2_to_u16(buf) > 0)
-          fmsg_out(fp, "%sJTAG clk prog.  : %u kHz\n", p, b2_to_u16(buf));
-
-        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
-          return;
-        if (b2_to_u16(buf) > 0)
-          fmsg_out(fp, "%sJTAG clk debug  : %u kHz\n", p, b2_to_u16(buf));
-      }
-    }
-    else if (prog_mode[0] == PARM3_CONN_PDI || prog_mode[0] == PARM3_CONN_UPDI) {
-      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
-        return;
-      if (b2_to_u16(buf) > 0)
-        fmsg_out(fp, "%sPDI/UPDI clk    : %u kHz\n", p, b2_to_u16(buf));
-    }
-  }
   fmsg_out(fp, "\n");
 }
 
