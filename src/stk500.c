@@ -576,6 +576,14 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
        continue;
      }
 
+    else if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xattempts=<arg> Specify no. connection retry attempts\n");
+      msg_error("  -xhelp           Show this help menu and exit\n");
+      exit(0);
+    }
+
      pmsg_error("invalid extended parameter '%s'\n", extended_param);
      rv = -1;
    }

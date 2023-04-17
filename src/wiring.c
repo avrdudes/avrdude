@@ -117,7 +117,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strncmp(extended_param, "snooze=", strlen("snooze=")) == 0) {
+    if (str_starts(extended_param, "snooze=")) {
       int newsnooze;
       if (sscanf(extended_param, "snooze=%i", &newsnooze) != 1 ||
           newsnooze < 0) {
@@ -129,6 +129,13 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       WIRINGPDATA(mycookie)->snoozetime = newsnooze;
 
       continue;
+    }
+    if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xsnooze=<arg> Wait <arg> [ms] before protocol sync after port open\n");
+      msg_error("  -xhelp         Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);

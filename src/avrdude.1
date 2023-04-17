@@ -1189,6 +1189,8 @@ GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
 .Bl -tag -offset indent -width indent
 .It Ar hvupdi
 Enable high-voltage UPDI initialization for targets that supports this.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar Xplained Mini (ISP and UPDI)
 .Bl -tag -offset indent -width indent
@@ -1219,6 +1221,8 @@ a 0. The current state can be read by
 alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar AVR910
 .Bl -tag -offset indent -width indent
@@ -1243,7 +1247,9 @@ Use
 .Ar no_blockmode
 only if your
 .Ar AVR910
-programmer creates errors during initial sequence. 
+programmer creates errors during initial sequence.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar Arduino
 .Bl -tag -offset indent -width indent
@@ -1356,11 +1362,11 @@ Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
 with this, and they need the -xstrict option.
 .It Ar help
-Show this help menu and exit
+Show help menu and exit.
 .El
 .It Ar buspirate
 .Bl -tag -offset indent -width indent
-.It Ar reset={cs,aux,aux2}
+.It Ar reset=cs,aux,aux2
 The default setup assumes the BusPirate's CS output pin connected to 
 the RESET pin on AVR side. It is however possible to have multiple AVRs
 connected to the same BP with SDI, SDO and SCK lines common for all of them.
@@ -1435,7 +1441,9 @@ This sets the serial receive timeout to the given value.
 The timeout happens every time avrdude waits for the BusPirate prompt. 
 Especially in ascii mode this happens very often, so setting a smaller value 
 can speed up programming a lot. 
-The default value is 100ms. Using 10ms might work in most cases. 
+The default value is 100ms. Using 10ms might work in most cases.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar Micronucleus bootloader
 .Bl -tag -offset indent -width indent
@@ -1446,6 +1454,8 @@ The optional
 specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar Teensy bootloader
 .Bl -tag -offset indent -width indent
@@ -1456,6 +1466,8 @@ The optional
 specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar Wiring
 When using the Wiring programmer type, the
@@ -1468,6 +1480,8 @@ milliseconds before continuing to the protocol sync phase.
 No toggling of DTR/RTS is performed if
 .Ar snooze
 is greater than 0.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar PICkit2
 Connection to the PICkit2 programmer:
@@ -1479,13 +1493,14 @@ GND  -   GND (3)
 SDI  -   PGD (4)
 SCLK -   PDC (5) 
 SDO  -   AUX (6)
-
 .Ed
 .Bl -tag -offset indent -width indent
 .It Ar clockrate=<rate>
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
 .It Ar timeout=<usb-transaction-timeout>
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar USBasp
 .Bl -tag -offset indent -width indent
@@ -1494,6 +1509,8 @@ Programmer will erase configuration section with option
 .Fl e
 (chip erase), rather than entire chip.
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar xbee
 .Bl -tag -offset indent -width indent
@@ -1510,22 +1527,28 @@ XBee DOUT pin (pin 2) must be connected to the MCU's
 line, and the XBee DIN pin (pin 3) must be connected to the MCU's
 .Ql TXD
 line.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar STK500
 .Bl -tag -offset indent -width indent
 .It Ar attemps[=<1..99>]
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar serialupdi
 .Bl -tag -offset indent -width indent
-.It Ar rtsdtr=low|high
+.It Ar rtsdtr=low,high
 Forces RTS/DTR lines to assume low or high state during the whole
 programming session. Some programmers might use this signal to
 indicate UPDI programming state, but this is strictly hardware
 specific.
 .Pp
 When not provided, driver/OS default value will be used.
+.It Ar help
+Show help menu and exit.
 .El
 .It Ar linuxspi
 .Bl -tag -offset indent -width indent
@@ -1533,7 +1556,8 @@ When not provided, driver/OS default value will be used.
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
 driver. This parameter is useful for kernels that do not support
 the CS line being managed outside the application.
-.El
+.It Ar help
+Show help menu and exit.
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX

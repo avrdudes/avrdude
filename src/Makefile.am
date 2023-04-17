@@ -100,6 +100,8 @@ libavrdude_a_SOURCES = \
 	avrftdi_private.h \
 	avrftdi_tpi.c \
 	avrftdi_tpi.h \
+	avrintel.c \
+	avrintel.h \
 	avrpart.c \
 	bitbang.c \
 	bitbang.h \
@@ -167,6 +169,7 @@ libavrdude_a_SOURCES = \
 	stk500v2_private.h \
 	stk500generic.c \
 	stk500generic.h \
+	strutil.c \
 	teensy.c \
 	teensy.h \
 	tpi.h \
@@ -206,8 +209,6 @@ avrdude_SOURCES = \
 	main.c \
 	whereami.c \
 	whereami.h \
-	avrintel.c \
-	avrintel.h \
 	developer_opts.c \
 	developer_opts.h \
 	developer_opts_private.h \

@@ -358,12 +358,12 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			continue;
 		}
 
-		if (strcmp(extended_param, "nopagedwrite") == 0) {
+		if (str_eq(extended_param, "nopagedwrite")) {
 			PDATA(pgm)->flag |= BP_FLAG_NOPAGEDWRITE;
 			continue;
 		}
 
-		if (strcmp(extended_param, "nopagedread") == 0) {
+		if (str_eq(extended_param, "nopagedread")) {
 			PDATA(pgm)->flag |= BP_FLAG_NOPAGEDREAD;
 			continue;
 		}
@@ -375,6 +375,21 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			}
 			PDATA(pgm)->serial_recv_timeout = serial_recv_timeout;
 			continue;
+		}
+
+		if (str_eq(extended_param, "help")) {
+			char *prg = (char *)ldata(lfirst(pgm->id));
+			msg_error("%s -c %s extended options:\n", progname, prg);
+			msg_error("  -xreset=cs,aux,aux2         Override default reset pin\n");
+			msg_error("  -xspifreq=<0..7>            Set binary SPI mode speed\n");
+			msg_error("  -xrawfreq=<0..3>            Set \"raw-wire\" SPI mode speed\n");
+			msg_error("  -xascii                     Use ASCII protocol between BP and Avrdude\n");
+			msg_error("  -xnopagedwrite              Disable page write functionality\n");
+			msg_error("  -xnopagedread               Disable page read functionality\n");
+			msg_error("  -xcpufreq=<125..4000>       Set the AUX pin to output a frequency to n [kHz]\n");
+			msg_error("  -xserial_recv_timeout=<arg> Set serial receive timeout to <arg> [ms]\n");
+			msg_error("  -xhelp                      Show this help menu and exit\n");
+			exit(0);
 		}
 
 		pmsg_error("do not understand extended param '%s'\n", extended_param);

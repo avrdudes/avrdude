@@ -1394,6 +1394,15 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       continue;
     }
 
+    else if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      if (str_eq(pgm->type, "JTAGMKII") || str_eq(pgm->type, "DRAGON_JTAG"))
+        msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+      msg_error(  "  -xhelp                  Show this help menu and exit\n");
+      exit(0);
+    }
+
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }

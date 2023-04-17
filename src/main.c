@@ -1117,7 +1117,17 @@ int main(int argc, char * argv [])
 
   if (lsize(extended_params) > 0) {
     if (pgm->parseextparams == NULL) {
-      pmsg_error("programmer does not support extended parameters, -x option(s) ignored\n");
+      for (LNODEID ln = lfirst(extended_params); ln; ln = lnext(ln)) {
+        const char *extended_param = ldata(ln);
+        if (str_eq(extended_param, "help")) {
+          char *prg = (char *)ldata(lfirst(pgm->id));
+          msg_error("%s -c %s extended options:\n", progname, prg);
+          msg_error("  -xhelp    Show this help menu and exit\n");
+          exit(0);
+        }
+        else
+          pmsg_error("programmer does not support extended parameter -x %s, option ignored\n", extended_param);
+      }
     } else {
       if (pgm->parseextparams(pgm, extended_params) < 0) {
         pmsg_error("unable to parse extended parameter list\n");

@@ -39,6 +39,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+
 #include "stk500_private.h"
 #include "stk500.h"
 #include "xbee.h"
@@ -1638,8 +1639,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strncmp(extended_param,
-                "xbeeresetpin=", 13 /*strlen("xbeeresetpin=")*/) == 0) {
+    if (str_starts(extended_param, "xbeeresetpin=")) {
       int resetpin;
       if (sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 ||
           resetpin <= 0 || resetpin > 7) {
@@ -1650,6 +1650,13 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
       PDATA(pgm)->xbeeResetPin = resetpin;
       continue;
+    }
+    if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xxbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
+      msg_error("  -xhelp                Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
