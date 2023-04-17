@@ -11159,6 +11159,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    hvspcmdexedelay        = 50;
     idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
@@ -11300,6 +11301,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    hvspcmdexedelay        = 50;
     idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
@@ -11441,6 +11443,7 @@ part
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    hvspcmdexedelay        = 50;
     idr                    = 0x27;
     spmcr                  = 0x57;
     eecr                   = 0x3c;
@@ -11545,6 +11548,7 @@ part parent "t44"
     n_interrupts           = 30;
     n_page_erase           = 4;
     signature              = 0x1e 0x92 0x15;
+    hvspcmdexedelay        = 0;
 
     memory "flash"
         page_size          = 16;
@@ -11571,6 +11575,7 @@ part parent "t84"
     n_interrupts           = 30;
     n_page_erase           = 4;
     signature              = 0x1e 0x93 0x15;
+    hvspcmdexedelay        = 0;
 
     memory "flash"
         page_size          = 16;
