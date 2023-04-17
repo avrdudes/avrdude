@@ -1104,7 +1104,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (PDATA(pgm)->set_sck(pgm, parm) < 0)
       return -1;
   }
-  jtag3_print_parms1(pgm, progbuf, stderr);
+
   if (conn == PARM3_CONN_JTAG) {
     pmsg_notice2("jtag3_initialize(): "
       "trying to set JTAG daisy-chain info to %d,%d,%d,%d\n",
@@ -2544,7 +2544,8 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sICE HW version  : %d\n", p, parms[0]);
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
-  msg_info("%sSerial number   : %s", p, sn);
+  msg_info("%sSerial number   : %s\n", p, sn);
+  jtag3_print_parms1(pgm, progbuf, stderr);
   free(resp);
 }
 
@@ -2832,8 +2833,6 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   if ((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
     return -1;
   free(resp);
-
-  jtag3_print_parms1(pgm, progbuf, stderr);
 
   return 0;
 }
