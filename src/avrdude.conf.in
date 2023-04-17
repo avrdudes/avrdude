@@ -5017,6 +5017,7 @@ part
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x02;
     hventerstabdelay       = 100;
     latchcycles            = 6;
+    togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
@@ -5646,6 +5647,7 @@ part parent "m169"
     signature              = 0x1e 0x94 0x11;
     reset                  = io;
     latchcycles            = 6;
+    togglevtg              = 0;
     poweroffdelay          = 0;
     resetdelayms           = 0;
     resetdelay             = 15;
@@ -5662,6 +5664,7 @@ part parent "m169"
     mcuid                  = 106;
     reset                  = io;
     latchcycles            = 6;
+    togglevtg              = 0;
     poweroffdelay          = 0;
     resetdelayms           = 0;
     resetdelay             = 15;
@@ -5678,6 +5681,7 @@ part parent "m169"
     mcuid                  = 107;
     reset                  = io;
     latchcycles            = 6;
+    togglevtg              = 0;
     poweroffdelay          = 0;
     resetdelayms           = 0;
     resetdelay             = 15;
@@ -5719,7 +5723,6 @@ part
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
     latchcycles            = 6;
-    togglevtg              = 1;
     hvleavestabdelay       = 15;
     resetdelay             = 15;
     chiperasepolltimeout   = 10;
@@ -11809,7 +11812,6 @@ part
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
     latchcycles            = 5;
-    togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
@@ -11936,7 +11938,6 @@ part
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
     latchcycles            = 5;
-    togglevtg              = 1;
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
@@ -13155,7 +13156,6 @@ part
         0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
     hventerstabdelay       = 100;
     latchcycles            = 6;
-    togglevtg              = 1;
     hvleavestabdelay       = 15;
     resetdelay             = 15;
     chiperasepolltimeout   = 10;
