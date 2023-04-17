@@ -5201,7 +5201,7 @@ part
         mode               = 0x41;
         delay              = 10;
         blocksize          = 8;
-        readsize           = 256;
+        readsize           = 128;
         read               = "1010.0000--00xx.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--00xx.aaaa--aaaa.aaaa--iiii.iiii";
         loadpage_lo        = "1100.0001--0000.0000--0000.0aaa--iiii.iiii";
@@ -5218,7 +5218,7 @@ part
         mode               = 0x41;
         delay              = 10;
         blocksize          = 128;
-        readsize           = 256;
+        readsize           = 128;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
         loadpage_lo        = "0100.0000--00xx.xxxx--xaaa.aaaa--iiii.iiii";
@@ -8197,7 +8197,7 @@ part
         mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
-        readsize           = 64;
+        readsize           = 256;
         read               = "1010.0000--000x.xxxx--xaaa.aaaa--oooo.oooo";
         write              = "1100.0000--000x.xxxx--xaaa.aaaa--iiii.iiii";
         loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
@@ -8326,7 +8326,7 @@ part
         mode               = 0x41;
         delay              = 20;
         blocksize          = 4;
-        readsize           = 64;
+        readsize           = 256;
         read               = "1010.0000--000x.xxxx--xaaa.aaaa--oooo.oooo";
         write              = "1100.0000--000x.xxxx--xaaa.aaaa--iiii.iiii";
         loadpage_lo        = "1100.0001--0000.0000--0000.00aa--iiii.iiii";
