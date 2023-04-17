@@ -4054,6 +4054,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -4186,6 +4187,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -4319,6 +4321,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -4443,6 +4446,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -4565,6 +4569,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -4817,6 +4822,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -5018,6 +5024,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -5178,6 +5185,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -5312,6 +5320,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -5643,6 +5652,7 @@ part parent "m169"
     latchcycles            = 6;
     poweroffdelay          = 0;
     resetdelayms           = 0;
+    resetdelay             = 15;
 ;
 
 #------------------------------------------------------------
@@ -5658,6 +5668,7 @@ part parent "m169"
     latchcycles            = 6;
     poweroffdelay          = 0;
     resetdelayms           = 0;
+    resetdelay             = 15;
 ;
 
 #------------------------------------------------------------
@@ -5673,6 +5684,7 @@ part parent "m169"
     latchcycles            = 6;
     poweroffdelay          = 0;
     resetdelayms           = 0;
+    resetdelay             = 15;
 ;
 
 #------------------------------------------------------------
@@ -5713,6 +5725,7 @@ part
     latchcycles            = 6;
     togglevtg              = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -5919,6 +5932,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -6098,6 +6112,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -6438,6 +6453,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -6545,6 +6561,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -6653,6 +6670,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 2;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 20;
     programfusepolltimeout = 10;
     programlockpolltimeout = 10;
@@ -6766,6 +6784,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -6903,6 +6922,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -7040,6 +7060,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -7899,6 +7920,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -8029,6 +8051,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -8752,7 +8775,6 @@ part parent "t167"
     mcuid                  = 198;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    resetdelay             = 15;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -8873,7 +8895,6 @@ part parent "t87"
     mcuid                  = 219;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    resetdelay             = 15;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -8924,7 +8945,6 @@ part parent "t167"
     mcuid                  = 220;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    resetdelay             = 15;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -8969,7 +8989,6 @@ part parent "t167"
     mcuid                  = 225;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
-    resetdelay             = 15;
 
     memory "eeprom"
         max_write_delay    = 4000;
@@ -9480,6 +9499,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -9626,6 +9646,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -9981,6 +10002,7 @@ part parent "pwm2"
     desc                   = "AT90PWM3";
     id                     = "pwm3";
     mcuid                  = 169;
+    resetdelay             = 15;
     idr                    = 0x31;
     ocdrev                 = 1;
 ;
@@ -9995,6 +10017,7 @@ part parent "pwm2"
     id                     = "pwm2b";
     mcuid                  = 168;
     signature              = 0x1e 0x93 0x83;
+    resetdelay             = 15;
     idr                    = 0x31;
     ocdrev                 = 1;
 ;
@@ -10631,6 +10654,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -10756,6 +10780,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -10894,6 +10919,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -11789,6 +11815,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -11915,6 +11942,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12041,6 +12069,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12178,6 +12207,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12319,6 +12349,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12449,6 +12480,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12579,6 +12611,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12709,6 +12742,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -12839,6 +12873,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -13124,6 +13159,7 @@ part
     latchcycles            = 6;
     togglevtg              = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -13282,6 +13318,7 @@ part
     poweroffdelay          = 15;
     resetdelayms           = 1;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
@@ -15146,6 +15183,7 @@ part
     hventerstabdelay       = 100;
     latchcycles            = 6;
     hvleavestabdelay       = 15;
+    resetdelay             = 15;
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
