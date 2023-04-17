@@ -2812,6 +2812,26 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char* resp;
   int status;
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char buf[2];
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return -1;
+    double vtarg_read = b2_to_u16(buf) / 1000.0;
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", vtarg_read);
+    // Write target voltage value
+    else {
+      u16_to_b2(buf, (unsigned)(PDATA(pgm)->vtarg_data * 1000));
+      msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+        msg_warning("Cannot set target voltage %.2fV\n", PDATA(pgm)->vtarg_data);
+        return -1;
+      }
+    }
+  }
+
   if (verbose && quell_progress < 2)
     jtag3_print_parms1(pgm, progbuf, stderr);
 
