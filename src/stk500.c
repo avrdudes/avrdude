@@ -1300,11 +1300,18 @@ void stk500_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500_paged_write;
   pgm->paged_load     = stk500_paged_load;
   pgm->print_parms    = stk500_print_parms;
-  pgm->set_vtarget    = stk500_set_vtarget;
-  pgm->set_varef      = stk500_set_varef;
-  pgm->set_fosc       = stk500_set_fosc;
   pgm->set_sck_period = stk500_set_sck_period;
   pgm->setup          = stk500_setup;
   pgm->teardown       = stk500_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget    = stk500_set_vtarget;
+  if (pgm->extra_features & HAS_AREF_ADJ)
+    pgm->set_varef      = stk500_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc       = stk500_set_fosc;
 }
