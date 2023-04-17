@@ -3180,6 +3180,7 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = jtag3_paged_write;
   pgm->paged_load     = jtag3_paged_load;
   pgm->print_parms    = jtag3_print_parms;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
@@ -3219,6 +3220,7 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
@@ -3240,7 +3242,6 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = jtag3_initialize;
-  pgm->parseextparams = jtag3_parseextparms;
   pgm->display        = jtag3_display;
   pgm->enable         = jtag3_enable;
   pgm->disable        = jtag3_disable;
@@ -3259,6 +3260,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
@@ -3298,6 +3300,7 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = jtag3_paged_write_tpi;
   pgm->paged_load     = jtag3_paged_load_tpi;
   pgm->print_parms    = jtag3_print_parms;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
