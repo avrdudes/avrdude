@@ -1177,7 +1177,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
     {
         extended_param = ldata(ln);
 
-        if (strncmp(extended_param, "clockrate=", strlen("clockrate=")) == 0)
+        if (str_starts(extended_param, "clockrate="))
         {
             int clock_rate;
             if (sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0)
@@ -1196,7 +1196,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             continue;
         }
 
-        if (strncmp(extended_param, "timeout=", strlen("timeout=")) == 0)
+        if (str_starts(extended_param, "timeout="))
         {
             int timeout;
             if (sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0)
@@ -1210,6 +1210,14 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             PDATA(pgm)->transaction_timeout = timeout;
 
             continue;
+        }
+        if (str_eq(extended_param, "help")) {
+            char *prg = (char *)ldata(lfirst(pgm->id));
+            msg_error("%s -c %s extended options:\n", progname, prg);
+            msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
+            msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
+            msg_error("  -xhelp            Show this help menu and exit\n");
+            exit(0);
         }
 
         pmsg_error("invalid extended parameter '%s'\n", extended_param);

@@ -36,6 +36,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+
 #include "serialupdi.h"
 #include "updi_link.h"
 #include "updi_state.h"
@@ -941,6 +942,13 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
         return -1;
       }
       continue;
+    }
+    if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("  -xrtsdtr=low,high Force RTS/DTR lines low or high state during programming\n");
+      msg_error("  -xhelp            Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);

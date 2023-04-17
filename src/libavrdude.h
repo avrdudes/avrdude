@@ -1145,6 +1145,20 @@ char *cfg_escape(const char *s);
 }
 #endif
 
+// Helper functions for more readable string checking
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int str_starts(const char *str, const char *starts);
+int str_eq(const char *str1, const char *str2);
+int str_contains(const char *str, const char *substr);
+int str_ends(const char *str, const char *ends);
+
+#ifdef __cplusplus
+}
+#endif
 
 /* formerly confwin.h */
 

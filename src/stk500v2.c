@@ -1577,10 +1577,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
     // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
     // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
-    if (strncmp(extended_param, "suffer", strlen("suffer")) == 0) {
+    if (str_starts(extended_param, "suffer")) {
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
-        if (strncmp(extended_param, "suffer=", strlen("suffer=")) == 0) {
+        if (str_starts(extended_param, "suffer=")) {
           if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
             pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
             rv = -1;
@@ -1600,10 +1600,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       }
     }
 
-    else if (strncmp(extended_param, "vtarg_switch", strlen("vtarg_switch")) == 0) {
+    else if (str_starts(extended_param, "vtarg_switch")) {
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
-        if (strncmp(extended_param, "vtarg_switch=", strlen("vtarg_switch=")) == 0) {
+        if (str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
             pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
@@ -1617,6 +1617,19 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->vtarg_switch_get = true;
         continue;
       }
+    }
+
+    else if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      if (str_starts(prg, "xplainedmini")) {
+        msg_error("  -xsuffer              Read SUFFER register value\n");
+        msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
+        msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");
+        msg_error("  -xvtarg_switch=<0..1> Set on-board target voltage switch state\n");
+      }
+      msg_error  ("  -xhelp                Show this help menu and exit\n");
+      exit(0);
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
