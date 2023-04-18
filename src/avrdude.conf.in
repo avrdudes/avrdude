@@ -5925,6 +5925,10 @@ part parent "m169"
     poweroffdelay          = 0;
     resetdelayms           = 0;
     resetdelay             = 15;
+
+    memory "flash"
+        delay              = 10;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5949,6 +5953,10 @@ part parent "m169"
     poweroffdelay          = 0;
     resetdelayms           = 0;
     resetdelay             = 15;
+
+    memory "flash"
+        delay              = 10;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5972,6 +5980,10 @@ part parent "m169"
     poweroffdelay          = 0;
     resetdelayms           = 0;
     resetdelay             = 15;
+
+    memory "flash"
+        delay              = 10;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10715,6 +10727,14 @@ part parent "pwm2"
     resetdelay             = 15;
     idr                    = 0x31;
     ocdrev                 = 1;
+
+    memory "eeprom"
+        delay              = 5;
+    ;
+
+    memory "flash"
+        delay              = 10;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10732,6 +10752,14 @@ part parent "pwm2"
     resetdelay             = 15;
     idr                    = 0x31;
     ocdrev                 = 1;
+
+    memory "eeprom"
+        delay              = 5;
+    ;
+
+    memory "flash"
+        delay              = 10;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10925,7 +10953,6 @@ part parent "pwm3b"
         size               = 0x4000;
         page_size          = 128;
         readback           = 0x00 0x00;
-        delay              = 10;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         loadpage_lo        = "0100.0000--00xx.xxxx--xxaa.aaaa--iiii.iiii";
@@ -11856,6 +11883,10 @@ part parent "m2561"
     latchcycles            = 5;
     ocdrev                 = 3;
 
+    memory "eeprom"
+        delay              = 50;
+    ;
+
     memory "flash"
         size               = 0x20000;
         num_pages          = 512;
@@ -11899,6 +11930,10 @@ part parent "m2561"
         read               = "1010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
+    ;
+
+    memory "flash"
+        delay              = 50;
     ;
 
     memory "efuse"
@@ -11949,7 +11984,6 @@ part parent "m128rfa1"
         size               = 2048;
         min_write_delay    = 13000;
         max_write_delay    = 13000;
-        delay              = 50;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xx.xaaa--aaaa.a000--xxxx.xxxx";
