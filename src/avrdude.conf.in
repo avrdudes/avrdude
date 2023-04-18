@@ -2814,10 +2814,12 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xf4;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
     ;
 
     memory "signature"
@@ -2902,6 +2904,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0x52;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--oooo.oooo";
@@ -2910,6 +2913,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xoox";
@@ -3023,6 +3027,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x6a;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -3031,6 +3036,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -3039,6 +3045,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -3152,6 +3159,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0x5c;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--oooo.xxoo";
@@ -3160,6 +3168,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xoox";
@@ -3321,10 +3330,12 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
@@ -3401,10 +3412,12 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
@@ -3481,10 +3494,12 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         write              = "1010.1100--111x.xiix--xxxx.xxxx--xxxx.xxxx";
@@ -3653,6 +3668,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xde;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--ooox.xxxo";
@@ -3661,6 +3677,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--ooox.xxxo";
@@ -3724,6 +3741,14 @@ part parent "2333"
         write_lo           = "0100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         write_hi           = "0100.1000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
     ;
+
+    memory "fuse"
+        initval            = 0xda;
+    ;
+
+    memory "lock"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -3766,6 +3791,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xxoo.oooo";
@@ -3774,6 +3800,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xoox";
@@ -3852,10 +3879,12 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
@@ -3932,6 +3961,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xxxo";
@@ -3940,6 +3970,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--ooxx.xxxx";
@@ -4023,6 +4054,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xxox.o1oo";
@@ -4031,6 +4063,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xoox";
@@ -4134,6 +4167,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4142,6 +4176,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4150,6 +4185,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xfd;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4158,6 +4194,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4282,6 +4319,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4290,6 +4328,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4298,6 +4337,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xfd;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4306,6 +4346,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4424,6 +4465,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4432,6 +4474,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4440,6 +4483,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4448,6 +4492,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4552,6 +4597,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4560,6 +4606,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4568,6 +4615,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4576,6 +4624,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4680,6 +4729,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4688,6 +4738,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4696,6 +4747,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4704,6 +4756,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4812,6 +4865,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4820,6 +4874,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4828,6 +4883,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4957,6 +5013,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4965,6 +5022,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4973,6 +5031,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4981,6 +5040,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5087,6 +5147,10 @@ part parent "m324p"
     mcuid                  = 113;
     n_interrupts           = 51;
     signature              = 0x1e 0x95 0x17;
+
+    memory "efuse"
+        initval            = 0x07;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5215,6 +5279,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5223,6 +5288,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5231,6 +5297,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5239,6 +5306,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5405,6 +5473,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5413,6 +5482,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5421,6 +5491,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5429,6 +5500,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5548,6 +5620,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5556,6 +5629,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5564,6 +5638,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5572,6 +5647,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5662,6 +5738,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--ooxx.oooo";
@@ -5670,6 +5747,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--xxxx.1ooo";
@@ -5678,6 +5756,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.0000--xxxx.0xxx--oooo.oooo";
@@ -5780,6 +5859,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5788,6 +5868,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5796,6 +5877,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5804,6 +5886,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5979,6 +6062,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5987,6 +6071,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5995,6 +6080,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6003,6 +6089,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6216,6 +6303,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6224,6 +6312,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6232,6 +6321,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6240,6 +6330,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6417,6 +6508,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6425,6 +6517,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6433,6 +6526,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6523,6 +6617,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xda;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xoxo.oooo";
@@ -6531,6 +6626,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6652,6 +6748,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6660,6 +6757,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6668,6 +6766,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6779,6 +6878,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6787,6 +6887,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6795,6 +6896,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6889,6 +6991,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6897,6 +7000,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6905,6 +7009,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7000,6 +7105,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xe1;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7008,6 +7114,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xf7;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7016,6 +7123,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xxoo";
@@ -7127,6 +7235,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7135,6 +7244,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7143,6 +7253,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7151,6 +7262,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xxoo";
@@ -7274,6 +7386,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7282,6 +7395,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7290,6 +7404,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7298,6 +7413,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xxoo";
@@ -7421,6 +7537,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7429,6 +7546,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7437,6 +7555,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7445,6 +7564,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xxoo";
@@ -7513,10 +7633,12 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0x12;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0x03;
     ;
 
     memory "signature"
@@ -7627,6 +7749,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7635,6 +7758,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7643,6 +7767,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7651,6 +7776,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7840,6 +7966,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7848,6 +7975,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7856,6 +7984,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7864,6 +7993,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8051,6 +8181,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8059,6 +8190,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8067,6 +8199,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8075,6 +8208,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8256,6 +8390,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x6e;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8264,6 +8399,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8272,6 +8408,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8280,6 +8417,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8398,6 +8536,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8406,6 +8545,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8414,6 +8554,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8422,6 +8563,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -8531,6 +8673,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8539,6 +8682,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8547,6 +8691,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8555,6 +8700,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -8667,6 +8813,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8675,6 +8822,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8683,6 +8831,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8691,6 +8840,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8803,6 +8953,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8811,6 +8962,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8819,6 +8971,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8827,6 +8980,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8939,6 +9093,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8947,6 +9102,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8955,6 +9111,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8963,6 +9120,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9017,6 +9175,7 @@ part parent "m328"
     signature              = 0x1e 0x95 0x16;
 
     memory "efuse"
+        initval            = 0xf7;
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.iiii";
     ;
 ;
@@ -9112,6 +9271,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9120,6 +9280,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9128,6 +9289,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--11oo.oooo";
@@ -9136,6 +9298,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
@@ -9607,6 +9770,7 @@ part
 
     memory "fuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9615,6 +9779,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
@@ -9740,6 +9905,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xdd;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9748,6 +9914,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xe9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--111o.oooo";
@@ -9756,6 +9923,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
@@ -9916,6 +10084,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xd7;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9924,6 +10093,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xf9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--1111.oooo";
@@ -9932,6 +10102,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
@@ -10059,6 +10230,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x64;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10067,6 +10239,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10075,6 +10248,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10083,6 +10257,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10114,6 +10289,10 @@ part parent "t2313"
     mcuid                  = 43;
     n_interrupts           = 21;
     idr                    = 0x27;
+
+    memory "lfuse"
+        initval            = 0x62;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10207,6 +10386,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10215,6 +10395,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10223,6 +10404,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10231,6 +10413,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10338,6 +10521,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10346,6 +10530,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10354,6 +10539,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--o1oo.1ooo";
@@ -10362,6 +10548,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
@@ -10468,6 +10655,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10476,6 +10664,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10484,6 +10673,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf9;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10492,6 +10682,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10647,6 +10838,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10655,6 +10847,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10663,6 +10856,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xfd;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10671,6 +10865,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
@@ -10861,6 +11056,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10869,6 +11065,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10877,6 +11074,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10885,6 +11083,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -11002,6 +11201,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11010,6 +11210,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11018,6 +11219,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11026,6 +11228,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -11142,6 +11345,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11150,6 +11354,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11158,6 +11363,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11166,6 +11372,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -11274,6 +11481,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11282,6 +11490,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11290,6 +11499,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11298,6 +11508,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11406,6 +11617,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11414,6 +11626,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11422,6 +11635,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11430,6 +11644,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11557,6 +11772,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11565,6 +11781,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11573,6 +11790,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11581,6 +11799,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11681,6 +11900,10 @@ part parent "m2561"
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
     ;
+
+    memory "efuse"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11699,6 +11922,10 @@ part parent "m128rfa1"
     n_interrupts           = 77;
     signature              = 0x1e 0xa7 0x02;
     chiperasepolltimeout   = 20;
+
+    memory "efuse"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11734,6 +11961,10 @@ part parent "m128rfa1"
         read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         writepage          = "0100.1100--0aaa.aaaa--axxx.xxxx--xxxx.xxxx";
+    ;
+
+    memory "efuse"
+        initval            = 0xfe;
     ;
 ;
 
@@ -11878,6 +12109,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11886,6 +12118,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11894,6 +12127,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11902,6 +12136,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -12032,6 +12267,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12040,6 +12276,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12048,6 +12285,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12056,6 +12294,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -12185,6 +12424,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12193,6 +12433,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12201,6 +12442,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12209,6 +12451,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
@@ -12404,6 +12647,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12412,6 +12656,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12420,6 +12665,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12428,6 +12674,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12535,6 +12782,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x52;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12543,6 +12791,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12551,6 +12800,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xfb;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12559,6 +12809,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--00oo.oooo";
@@ -12666,6 +12917,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x52;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12674,6 +12926,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12682,6 +12935,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xfb;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12690,6 +12944,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12795,6 +13050,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12803,6 +13059,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x9b;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12811,6 +13068,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf3;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12819,6 +13077,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12938,6 +13197,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12946,6 +13206,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12954,6 +13215,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf3;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12962,6 +13224,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13084,6 +13347,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13092,6 +13356,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13100,6 +13365,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13108,6 +13374,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13217,6 +13484,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13225,6 +13493,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13233,6 +13502,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13241,6 +13511,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13351,6 +13622,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13359,6 +13631,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13367,6 +13640,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13375,6 +13649,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13485,6 +13760,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13493,6 +13769,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13501,6 +13778,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13509,6 +13787,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13619,6 +13898,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x5e;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13627,6 +13907,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xd9;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13635,6 +13916,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xf4;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13643,6 +13925,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13745,6 +14028,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13753,6 +14037,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13761,6 +14046,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13769,6 +14055,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13911,6 +14198,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--0000.0000--oooo.oooo";
@@ -13919,6 +14207,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--0000.0000--oooo.oooo";
@@ -13927,6 +14216,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--0000.0000--oooo.oooo";
@@ -13935,6 +14225,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14078,6 +14369,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--0000.0000--oooo.oooo";
@@ -14086,6 +14378,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0x99;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--0000.0000--oooo.oooo";
@@ -14094,6 +14387,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--0000.0000--oooo.oooo";
@@ -14102,6 +14396,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14257,26 +14552,31 @@ part
 
     memory "fuse1"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x8f0021;
     ;
 
     memory "fuse2"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0022;
     ;
 
     memory "fuse4"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0024;
     ;
 
     memory "fuse5"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0025;
     ;
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0027;
     ;
 
@@ -14310,6 +14610,7 @@ part parent ".xmega"
 
     memory "fuse6"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0026;
     ;
 ;
@@ -14368,6 +14669,10 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -14391,6 +14696,10 @@ part parent "x16a4u"
         "ATxmega16C4-M7: 'VFBGA49', Fmax=32 MHz, temp=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 233;
     signature              = 0x1e 0x94 0x43;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14409,6 +14718,10 @@ part parent "x16a4u"
     mcuid                  = 234;
     n_interrupts           = 91;
     signature              = 0x1e 0x94 0x42;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14426,6 +14739,7 @@ part parent "x16a4u"
 
     memory "fuse0"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0020;
     ;
 ;
@@ -14484,6 +14798,10 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -14507,6 +14825,10 @@ part parent "x32a4u"
         "ATxmega32C4-M7: 'VFBGA49', Fmax=32 MHz, temp=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 240;
     signature              = 0x1e 0x95 0x44;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14525,6 +14847,10 @@ part parent "x32a4u"
     mcuid                  = 241;
     n_interrupts           = 91;
     signature              = 0x1e 0x95 0x42;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14542,6 +14868,7 @@ part parent "x32a4u"
 
     memory "fuse0"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0020;
     ;
 ;
@@ -14600,6 +14927,10 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -14622,6 +14953,10 @@ part parent "x32a4u"
         "ATxmega32C3-M7: 'QFN64',  Fmax=32 MHz, temp=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 236;
     signature              = 0x1e 0x95 0x49;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14639,6 +14974,10 @@ part parent "x32a4u"
     mcuid                  = 237;
     n_interrupts           = 114;
     signature              = 0x1e 0x95 0x4a;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14656,6 +14995,10 @@ part parent "x64a4u"
     mcuid                  = 249;
     signature              = 0x1e 0x96 0x49;
     usbpid                 = 0x2fd6;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14673,6 +15016,10 @@ part parent "x64a4u"
     mcuid                  = 250;
     n_interrupts           = 114;
     signature              = 0x1e 0x96 0x4a;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14691,6 +15038,10 @@ part parent "x64a4u"
     mcuid                  = 253;
     n_interrupts           = 91;
     signature              = 0x1e 0x96 0x47;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14710,6 +15061,7 @@ part parent "x64a4u"
 
     memory "fuse0"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0020;
     ;
 ;
@@ -14788,6 +15140,10 @@ part parent "x64a1"
     n_interrupts           = 81;
     signature              = 0x1e 0x96 0x52;
     usbpid                 = 0x2fe1;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14804,6 +15160,10 @@ part parent "x64a1"
     n_interrupts           = 54;
     signature              = 0x1e 0x96 0x51;
     usbpid                 = 0x2fdf;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14923,7 +15283,12 @@ part parent "x128c3"
 
     memory "fuse0"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0020;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
     ;
 ;
 
@@ -15101,6 +15466,10 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -15164,6 +15533,7 @@ part parent ".xmega"
 
     memory "fuse0"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x8f0020;
     ;
 
@@ -15298,6 +15668,14 @@ part parent "x192a1"
     mcuid                  = 267;
     n_interrupts           = 122;
     signature              = 0x1e 0x97 0x44;
+
+    memory "fuse0"
+        initval            = 0xff;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15315,6 +15693,14 @@ part parent "x192a1"
     mcuid                  = 268;
     signature              = 0x1e 0x97 0x44;
     usbpid                 = 0x2fe7;
+
+    memory "fuse0"
+        initval            = 0xff;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15424,6 +15810,14 @@ part parent "x256a1"
     mcuid                  = 272;
     n_interrupts           = 122;
     signature              = 0x1e 0x98 0x42;
+
+    memory "fuse0"
+        initval            = 0xff;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15441,6 +15835,14 @@ part parent "x256a1"
     mcuid                  = 275;
     signature              = 0x1e 0x98 0x42;
     usbpid                 = 0x2fec;
+
+    memory "fuse0"
+        initval            = 0xff;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15456,6 +15858,14 @@ part parent "x256a1"
     mcuid                  = 273;
     n_interrupts           = 122;
     signature              = 0x1e 0x98 0x43;
+
+    memory "fuse0"
+        initval            = 0xff;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15471,6 +15881,14 @@ part parent "x256a1"
     mcuid                  = 274;
     signature              = 0x1e 0x98 0x43;
     usbpid                 = 0x2fe2;
+
+    memory "fuse0"
+        initval            = 0xff;
+    ;
+
+    memory "fuse4"
+        initval            = 0xfe;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15857,6 +16275,7 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0x62;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -15865,6 +16284,7 @@ part
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xdf;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -15873,6 +16293,7 @@ part
 
     memory "efuse"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -15881,6 +16302,7 @@ part
 
     memory "lock"
         size               = 1;
+        initval            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -15964,6 +16386,14 @@ part parent ".reduced_core_tiny"
         offset             = 0x4000;
         blocksize          = 128;
     ;
+
+    memory "fuse"
+        initval            = 0xff;
+    ;
+
+    memory "lockbits"
+        initval            = 0xff;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16002,6 +16432,14 @@ part parent ".reduced_core_tiny"
         page_size          = 16;
         offset             = 0x4000;
         blocksize          = 128;
+    ;
+
+    memory "fuse"
+        initval            = 0xff;
+    ;
+
+    memory "lockbits"
+        initval            = 0xff;
     ;
 ;
 
@@ -16047,7 +16485,12 @@ part parent ".reduced_core_tiny"
     ;
 
     memory "fuse"
+        initval            = 0xff;
         n_word_writes      = 2;
+    ;
+
+    memory "lockbits"
+        initval            = 0xff;
     ;
 ;
 
@@ -16075,7 +16518,12 @@ part parent ".reduced_core_tiny"
     ;
 
     memory "fuse"
+        initval            = 0xff;
         n_word_writes      = 4;
+    ;
+
+    memory "lockbits"
+        initval            = 0xff;
     ;
 ;
 
@@ -16106,6 +16554,14 @@ part parent ".reduced_core_tiny"
         blocksize          = 128;
     ;
 
+    memory "fuse"
+        initval            = 0xff;
+    ;
+
+    memory "lockbits"
+        initval            = 0xff;
+    ;
+
     memory "sigrow"
         size               = 16;
         page_size          = 16;
@@ -16134,6 +16590,14 @@ part parent ".reduced_core_tiny"
         page_size          = 16;
         offset             = 0x4000;
         blocksize          = 128;
+    ;
+
+    memory "fuse"
+        initval            = 0xff;
+    ;
+
+    memory "lockbits"
+        initval            = 0xff;
     ;
 
     memory "sigrow"
@@ -16200,14 +16664,17 @@ part
 
     memory "lfuse"
         size               = 1;
+        initval            = 0xcd;
     ;
 
     memory "hfuse"
         size               = 1;
+        initval            = 0xfe;
     ;
 
     memory "lockbits"
         size               = 1;
+        initval            = 0xff;
     ;
 
     memory "signature"
@@ -16230,6 +16697,7 @@ part
 
     memory "fuse0"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1280;
         readsize           = 1;
     ;
@@ -16240,6 +16708,7 @@ part
 
     memory "fuse1"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1281;
         readsize           = 1;
     ;
@@ -16250,6 +16719,7 @@ part
 
     memory "fuse2"
         size               = 1;
+        initval            = 0x7e;
         offset             = 0x1282;
         readsize           = 1;
     ;
@@ -16258,18 +16728,9 @@ part
         alias "fuse2";
     ;
 
-    memory "fuse4"
-        size               = 1;
-        offset             = 0x1284;
-        readsize           = 1;
-    ;
-
-    memory "tcd0cfg"
-        alias "fuse4";
-    ;
-
     memory "fuse5"
         size               = 1;
+        initval            = 0xf6;
         offset             = 0x1285;
         readsize           = 1;
     ;
@@ -16280,6 +16741,7 @@ part
 
     memory "fuse6"
         size               = 1;
+        initval            = 0xff;
         offset             = 0x1286;
         readsize           = 1;
     ;
@@ -16290,6 +16752,7 @@ part
 
     memory "fuse7"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1287;
         readsize           = 1;
     ;
@@ -16304,6 +16767,7 @@ part
 
     memory "fuse8"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1288;
         readsize           = 1;
     ;
@@ -16457,6 +16921,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16485,6 +16964,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16515,6 +17009,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16543,6 +17052,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16575,6 +17099,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16603,6 +17142,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16635,6 +17178,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16664,6 +17211,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16692,6 +17243,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16724,6 +17279,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16752,6 +17311,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16782,6 +17345,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16810,6 +17388,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16840,6 +17433,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16868,6 +17476,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16900,6 +17523,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16914,6 +17552,10 @@ part parent "t416"
         "ATtiny416-MBT: 'VQFN20', Fmax=20 MHz, temp=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 290;
     signature              = 0x1e 0x92 0x28;
+
+    memory "fuse2"
+        initval            = 0x7d;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16942,6 +17584,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -16972,6 +17629,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17005,6 +17677,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17035,6 +17722,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17063,6 +17765,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17095,6 +17812,21 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17123,6 +17855,21 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17154,13 +17901,24 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
+    memory "fuse4"
+        size               = 1;
+        initval            = 0x00;
+        offset             = 0x1284;
+        readsize           = 1;
+    ;
+
+    memory "tcd0cfg"
+        alias "fuse4";
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
+
     memory "userrow"
         size               = 64;
         page_size          = 64;
-    ;
-
-    memory "usersig"
-        alias "userrow";
     ;
 ;
 
@@ -17204,6 +17962,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17231,6 +17993,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17260,6 +18026,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17287,6 +18057,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17316,6 +18090,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17343,6 +18121,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17372,6 +18154,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17399,6 +18185,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17428,6 +18218,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17455,6 +18249,10 @@ part parent ".avr8x_tiny"
         page_size          = 128;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17484,6 +18282,10 @@ part parent ".avr8x_tiny"
         offset             = 0x8000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17511,6 +18313,10 @@ part parent ".avr8x_tiny"
         page_size          = 128;
         offset             = 0x8000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17542,6 +18348,10 @@ part parent ".avr8x_tiny"
         offset             = 0x4000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17570,6 +18380,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x4000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17601,6 +18415,10 @@ part parent ".avr8x_tiny"
         offset             = 0x4000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17629,6 +18447,10 @@ part parent ".avr8x_tiny"
         page_size          = 64;
         offset             = 0x4000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17660,6 +18482,10 @@ part parent ".avr8x_mega"
         offset             = 0x4000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17688,6 +18514,10 @@ part parent ".avr8x_mega"
         page_size          = 128;
         offset             = 0x4000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0xc5;
     ;
 ;
 
@@ -17719,6 +18549,10 @@ part parent ".avr8x_mega"
         offset             = 0x4000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17748,6 +18582,10 @@ part parent ".avr8x_mega"
         offset             = 0x4000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0xc5;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17768,6 +18606,7 @@ part
 
     memory "fuse0"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1050;
         readsize           = 1;
     ;
@@ -17778,6 +18617,7 @@ part
 
     memory "fuse1"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1051;
         readsize           = 1;
     ;
@@ -17788,6 +18628,7 @@ part
 
     memory "fuse2"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1052;
         readsize           = 1;
     ;
@@ -17796,18 +18637,9 @@ part
         alias "fuse2";
     ;
 
-    memory "fuse4"
-        size               = 1;
-        offset             = 0x1054;
-        readsize           = 1;
-    ;
-
-    memory "tcd0cfg"
-        alias "fuse4";
-    ;
-
     memory "fuse5"
         size               = 1;
+        initval            = 0xc0;
         offset             = 0x1055;
         readsize           = 1;
     ;
@@ -17818,6 +18650,7 @@ part
 
     memory "fuse6"
         size               = 1;
+        initval            = 0x08;
         offset             = 0x1056;
         readsize           = 1;
     ;
@@ -17828,6 +18661,7 @@ part
 
     memory "fuse7"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1057;
         readsize           = 1;
     ;
@@ -17842,6 +18676,7 @@ part
 
     memory "fuse8"
         size               = 1;
+        initval            = 0x00;
         offset             = 0x1058;
         readsize           = 1;
     ;
@@ -17935,6 +18770,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17962,6 +18805,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -17991,6 +18842,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18018,6 +18877,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18047,6 +18914,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18074,6 +18949,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18103,6 +18986,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18130,6 +19021,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18159,6 +19058,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18186,6 +19093,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18215,6 +19130,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse6"
+        initval            = 0x00;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18241,6 +19164,10 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18269,6 +19196,10 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18295,6 +19226,10 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18323,6 +19258,10 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18349,6 +19288,10 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18377,6 +19320,10 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18403,6 +19350,10 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18431,6 +19382,10 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18457,6 +19412,10 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18485,6 +19444,10 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18511,6 +19474,10 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18540,6 +19507,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18567,6 +19542,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18596,6 +19579,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18623,6 +19614,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18652,6 +19651,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18679,6 +19686,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18708,6 +19723,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18735,6 +19758,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18764,6 +19795,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18791,6 +19830,14 @@ part parent ".avrdx"
         page_size          = 512;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
@@ -18820,6 +19867,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18848,6 +19903,14 @@ part parent ".avrdx"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18864,10 +19927,6 @@ part parent ".avrdx"
         size               = 64;
         page_size          = 64;
         readsize           = 64;
-    ;
-
-    memory "usersig"
-        alias "userrow";
     ;
 ;
 
@@ -19097,6 +20156,18 @@ part parent ".avrex"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "fuse6"
+        initval            = 0x07;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19125,6 +20196,18 @@ part parent ".avrex"
         offset             = 0x800000;
         readsize           = 256;
     ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "fuse6"
+        initval            = 0x07;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19152,6 +20235,18 @@ part parent ".avrex"
         page_size          = 128;
         offset             = 0x800000;
         readsize           = 256;
+    ;
+
+    memory "fuse5"
+        initval            = 0xd0;
+    ;
+
+    memory "fuse6"
+        initval            = 0x07;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
     ;
 ;
 
