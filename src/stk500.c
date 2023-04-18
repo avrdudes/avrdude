@@ -570,11 +570,34 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
    for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
      extended_param = ldata(ln);
 
-     if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
-       PDATA(pgm)->retry_attempts = attempts;
-       pmsg_info("setting number of retry attempts to %d\n", attempts);
-       continue;
-     }
+    if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
+      PDATA(pgm)->retry_attempts = attempts;
+      pmsg_info("setting number of retry attempts to %d\n", attempts);
+      continue;
+    }
+
+    else if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg"))
+          PDATA(pgm)->vtarg_get = true;
+        else
+          break;
+        continue;
+      }
+    }
 
     else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
@@ -966,7 +989,7 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
   }
 
   if (uaref > utarg) {
-    pmsg_error("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
+    pmsg_warning("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
     if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg) != 0)
       return -1;
   }
@@ -1282,7 +1305,6 @@ void stk500_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = stk500_initialize;
-  pgm->parseextparams = stk500_parseextparms;
   pgm->display        = stk500_display;
   pgm->enable         = stk500_enable;
   pgm->disable        = stk500_disable;
@@ -1301,6 +1323,7 @@ void stk500_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500_paged_load;
   pgm->print_parms    = stk500_print_parms;
   pgm->set_sck_period = stk500_set_sck_period;
+  pgm->parseextparams = stk500_parseextparms;
   pgm->setup          = stk500_setup;
   pgm->teardown       = stk500_teardown;
   pgm->page_size      = 256;

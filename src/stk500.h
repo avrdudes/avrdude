@@ -42,6 +42,11 @@ struct pdata {
   unsigned char ext_addr_byte;  // Record ext-addr byte set in the target device (if used)
   int retry_attempts;           // Number of connection attempts provided by the user
   int xbeeResetPin;             // Piggy back variable used by xbee programmmer
+
+  // Get/set flags for adjustable target voltage
+  bool vtarg_get;
+  bool vtarg_set;
+  double vtarg_data;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
