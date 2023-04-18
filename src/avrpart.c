@@ -654,8 +654,7 @@ AVRPART *locate_part(const LISTID parts, const char *partdesc) {
 
   for (LNODEID ln1=lfirst(parts); ln1 && !found; ln1=lnext(ln1)) {
     p = ldata(ln1);
-    if ((strcasecmp(partdesc, p->id) == 0) ||
-        (strcasecmp(partdesc, p->desc) == 0))
+    if(part_eq(p, partdesc, strcase_eq))
       found = 1;
   }
 
@@ -896,6 +895,42 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed) {
   *sp = 0;
 
   return cfg_strdup("opcode2str()", space);
+}
+
+
+int strcase_eq(const char *str1, const char *str2) {
+  return strcasecmp(str1, str2) == 0;
+}
+
+// Returns 1 if the part pointed to by p matches the string or pattern s under the function cmp(s, ...)
+int part_eq(AVRPART *p, const char *s, int (*cmp)(const char *, const char *)) {
+  // Matching id or desc? OK
+  if(cmp(s, p->id) || cmp(s, p->desc))
+    return 1;
+
+  // Check against all variants, either up to colon or up to dash
+  size_t desclen = strlen(p->desc), variantlen, dashlen;
+  char query[1024];
+  for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln)) {
+    const char *q = (const char *) ldata(ln), *qdash = strchr(q, '-'), *qcolon = strchr(q, ':');
+    variantlen = qcolon? (size_t) (qcolon-q): strlen(q);
+    dashlen = qdash? (size_t) (qdash-q): variantlen;
+    if(variantlen < sizeof query) { // Sanity: should not expect such long strings
+      // Variant names should be unique order numbers, but don't check (again) if it's the same as p->desc
+      if(variantlen != desclen || memcmp(q, p->desc, desclen)) {
+        memcpy(query, q, variantlen); query[variantlen] = 0;
+        if(cmp(s, query))
+          return 1;
+        // The name before dash should normally be p->desc and the dash is meant to come before the colon
+        if(dashlen > desclen && dashlen < variantlen) {
+          query[dashlen] = 0;
+          if(cmp(s, query))
+            return 1;
+        }
+      }
+    }
+  }
+  return 0;
 }
 
 

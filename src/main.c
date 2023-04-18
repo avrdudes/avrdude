@@ -405,7 +405,6 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
     }
   }
 
-
   for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
@@ -419,6 +418,9 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
       if(pm != ~0)
         fprintf(f, " via %s",  via_prog_modes(pm & p->prog_modes));
       fprintf(f, "\n");
+      if(verbose)
+        for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln))
+          fprintf(f, "%s%s- %s\n", prefix, prefix, (char *) ldata(ln));
     }
   }
 }

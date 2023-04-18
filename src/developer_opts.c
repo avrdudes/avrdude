@@ -974,7 +974,7 @@ void dev_output_part_defs(char *partdesc) {
         nprinted = dev_nprinted;
       }
 
-    if(!part_match(partdesc, p->desc) && !part_match(partdesc, p->id))
+    if(!part_eq(p, partdesc, part_match))
       continue;
 
     if(astrc || strct || cmpst)
