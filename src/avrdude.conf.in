@@ -5926,7 +5926,12 @@ part parent "m169"
     resetdelayms           = 0;
     resetdelay             = 15;
 
+    memory "eeprom"
+        readback           = 0x00 0x00;
+    ;
+
     memory "flash"
+        readback           = 0x00 0x00;
         delay              = 10;
     ;
 ;
@@ -5954,7 +5959,12 @@ part parent "m169"
     resetdelayms           = 0;
     resetdelay             = 15;
 
+    memory "eeprom"
+        readback           = 0x00 0x00;
+    ;
+
     memory "flash"
+        readback           = 0x00 0x00;
         delay              = 10;
     ;
 ;
@@ -5981,7 +5991,12 @@ part parent "m169"
     resetdelayms           = 0;
     resetdelay             = 15;
 
+    memory "eeprom"
+        readback           = 0x00 0x00;
+    ;
+
     memory "flash"
+        readback           = 0x00 0x00;
         delay              = 10;
     ;
 ;
@@ -10729,10 +10744,12 @@ part parent "pwm2"
     ocdrev                 = 1;
 
     memory "eeprom"
+        readback           = 0x00 0x00;
         delay              = 5;
     ;
 
     memory "flash"
+        readback           = 0x00 0x00;
         delay              = 10;
     ;
 ;
@@ -10754,10 +10771,12 @@ part parent "pwm2"
     ocdrev                 = 1;
 
     memory "eeprom"
+        readback           = 0x00 0x00;
         delay              = 5;
     ;
 
     memory "flash"
+        readback           = 0x00 0x00;
         delay              = 10;
     ;
 ;
@@ -10952,7 +10971,6 @@ part parent "pwm3b"
     memory "flash"
         size               = 0x4000;
         page_size          = 128;
-        readback           = 0x00 0x00;
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         loadpage_lo        = "0100.0000--00xx.xxxx--xxaa.aaaa--iiii.iiii";
