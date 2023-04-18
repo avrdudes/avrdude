@@ -792,8 +792,15 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       bm = avr_new_memtype();
 
     if(!tsv) {
-      if(!memorycmp(bm, m))     // Same memory bit for bit, no need to instantiate
-        continue;
+      if(!memorycmp(bm, m)) {   // Same memory bit for bit, only instantiate on injected parameters
+        int haveinjct = 0;
+        if(injct)
+          for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
+            if(meminj[i].mcu && strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
+              haveinjct = 1;
+        if(!haveinjct)
+          continue;
+      }
 
       dev_cout(m->comments, "*", 0, 1);
       dev_info("    memory \"%s\"\n", m->desc);
@@ -835,6 +842,17 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm)) {
       AVRMEM_ALIAS *ma = ldata(lnm);
       if(ma->aliased_mem && !strcmp(ma->aliased_mem->desc, m->desc)) {
+        // There is a memory that's aliased to the current memory: is it inherited?
+        if(base) {
+          int basehasalias = 0;
+          for(LNODEID lnb=lfirst(base->mem_alias); lnb; lnb=lnext(lnb)) {
+            AVRMEM_ALIAS *mab = ldata(lnb);
+            if(!strcmp(mab->desc, ma->desc) && mab->aliased_mem && !strcmp(mab->aliased_mem->desc, m->desc))
+              basehasalias = 1;
+          }
+          if(basehasalias)
+            continue;
+        }
         if(tsv)
           dev_info(".ptmm\t%s\t%s\talias\t%s\n", p->desc, ma->desc, m->desc);
         else
