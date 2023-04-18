@@ -1302,6 +1302,7 @@ programmer
     desc                   = "Atmel STK500 version 1.x firmware";
     type                   = "stk500";
     prog_modes             = PM_ISP;
+    extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_AREF_ADJ;
     connection_type        = serial;
 ;
 

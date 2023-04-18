@@ -557,6 +557,21 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned int vtarg_read;
+    stk500_getparm(pgm, Parm_STK_VTARGET, &vtarg_read);
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", (vtarg_read / 10.0));
+    // Write target voltage value
+    else {
+      msg_info("Changing target voltage from %.2f to %.2fV\n", (vtarg_read / 10.0), PDATA(pgm)->vtarg_data);
+      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+        return -1;
+    }
+  }
+
   return pgm->program_enable(pgm, p);
 }
 
