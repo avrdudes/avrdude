@@ -384,6 +384,21 @@ u16_to_b2(unsigned char *b, unsigned short l)
   b[1] = (l >> 8) & 0xff;
 }
 
+static double
+f_to_kHz_MHz(double f, const char **unit)
+{
+  if (f > 1e6) {
+    f /= 1e6;
+    *unit = "MHz";
+  } else if (f > 1e3) {
+    f /= 1000;
+    *unit = "kHz";
+  } else
+    *unit = "Hz";
+
+  return f;
+}
+
 static int stk500v2_send_mk2(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   if (serial_send(&pgm->fd, data, len) != 0) {
     pmsg_error("unable to send command to serial port\n");
@@ -1276,6 +1291,63 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write clock generator frequency
+  if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // Read current target voltage set value
+      unsigned char osc_pscale;
+      unsigned char osc_cmatch;
+      const char *unit_get = {"Hz"};
+      double f_get;
+      stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
+      stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+      if(osc_pscale) {
+        int prescale = 1;
+        f_get = STK500V2_XTAL / 2;
+        switch (osc_pscale) {
+          case 2: prescale = 8; break;
+          case 3: prescale = 32; break;
+          case 4: prescale = 64; break;
+          case 5: prescale = 128; break;
+          case 6: prescale = 256; break;
+          case 7: prescale = 1024; break;
+        }
+        f_get /= prescale;
+        f_get /= (osc_cmatch + 1);
+        f_get = f_to_kHz_MHz(f_get, &unit_get);
+      }
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // Read current target voltage set value
+      unsigned int clock_conf;
+      stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+      unsigned int oct = (clock_conf & 0xf000) >> 12u;
+      unsigned int dac = (clock_conf & 0x0ffc) >> 2u;
+      double f_get = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+      const char *unit_get = {"Hz"};
+      f_get = f_to_kHz_MHz(f_get, &unit_get);
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    }
+  }
+
   /*
    * Examine the avrpart's memory definitions, and initialize the page
    * caches.  For devices/memory that are not page oriented, treat
@@ -1534,6 +1606,82 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
     }
   }
 
+  // Read or write clock generator frequency
+  if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // Read current target voltage set value
+      unsigned char osc_pscale;
+      unsigned char osc_cmatch;
+      const char *unit_get = {"Hz"};
+      double f_get;
+      stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
+      stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+      if(osc_pscale) {
+        int prescale = 1;
+        f_get = STK500V2_XTAL / 2;
+        switch (osc_pscale) {
+          case 2: prescale = 8; break;
+          case 3: prescale = 32; break;
+          case 4: prescale = 64; break;
+          case 5: prescale = 128; break;
+          case 6: prescale = 256; break;
+          case 7: prescale = 1024; break;
+        }
+        f_get /= prescale;
+        f_get /= (osc_cmatch + 1);
+        f_get = f_to_kHz_MHz(f_get, &unit_get);
+      }
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // Read current target voltage set value
+      unsigned int clock_conf;
+      stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+      unsigned int oct = (clock_conf & 0xf000) >> 12u;
+      unsigned int dac = (clock_conf & 0x0ffc) >> 2u;
+      double f_get = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+      const char *unit_get = {"Hz"};
+      f_get = f_to_kHz_MHz(f_get, &unit_get);
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    }
+  }
+
+/*
+static int stk600_set_fosc(const PROGRAMMER *pgm, double v) {
+  unsigned int oct, dac;
+
+  oct = 1.443 * log(v / 1039.0);
+  dac = 2048 - (2078.0 * pow(2, (double)(10 + oct))) / v;
+
+  return stk500v2_setparm2(pgm, PARAM2_CLOCK_CONF, (oct << 12) | (dac << 2));
+}
+
+    stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+    oct = (clock_conf & 0xf000) >> 12u;
+    dac = (clock_conf & 0x0ffc) >> 2u;
+    f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+    f = f_to_kHz_MHz(f, &unit);
+    fmsg_out(fp, "%sOscillator      : %.3f %s\n",
+            p, f, unit);
+*/
+
   /*
    * Examine the avrpart's memory definitions, and initialize the page
    * caches.  For devices/memory that are not page oriented, treat
@@ -1757,6 +1905,43 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
             break;
           }
           continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "fosc")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        // Set clock generator frequency
+        if (str_starts(extended_param, "fosc=")) {
+          char fosc_str[16] = {0};
+          int sscanf_success = sscanf(extended_param, "fosc=%10s", fosc_str);
+          if (sscanf_success < 1) {
+            pmsg_error("invalid fosc value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          char *endp;
+          double v = strtod(fosc_str, &endp);
+          if (endp == fosc_str){
+            if (str_eq(fosc_str, "off"))
+              PDATA(pgm)->fosc_data = 0.0;
+            else {
+              pmsg_error("cannot parse fosc value %s\n", fosc_str);
+              rv = -1;
+              break;
+            }
+          }
+          if (*endp == 'm' || *endp == 'M')
+            PDATA(pgm)->fosc_data =  v * 1e6;
+          else if (*endp == 'k' || *endp == 'K')
+            PDATA(pgm)->fosc_data =  v * 1e3;
+          PDATA(pgm)->fosc_set = true;
+          continue;
+        }
+        // Get clock generator frequency
+        else if(str_eq(extended_param, "fosc")) {
+          PDATA(pgm)->fosc_get = true;
+         continue;
         }
       }
     }
@@ -3439,20 +3624,6 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
-static double
-f_to_kHz_MHz(double f, const char **unit)
-{
-  if (f > 1e6) {
-    f /= 1e6;
-    *unit = "MHz";
-  } else if (f > 1e3) {
-    f /= 1000;
-    *unit = "kHz";
-  } else
-    *unit = "Hz";
-
-  return f;
-}
 
 static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char vtarget = 0, vadjust = 0, osc_pscale = 0, osc_cmatch = 0, sck_duration =0; //XXX 0 is not correct, check caller

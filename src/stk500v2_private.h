@@ -291,6 +291,11 @@ struct pdata
   int varef_channel;
   double varef_data;
 
+  /* Get/set flags for programmable clock generator */
+  bool fosc_get;
+  bool fosc_set;
+  double fosc_data;
+
   const AVRPART *lastpart;
 
   /* Start address of Xmega boot area */

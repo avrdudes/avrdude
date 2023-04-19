@@ -45,6 +45,18 @@
 #define STK500_XTAL 7372800U
 #define MAX_SYNC_ATTEMPTS 10
 
+static double f_to_kHz_MHz(double f, const char **unit) {
+  if (f > 1e6) {
+    f /= 1e6;
+    *unit = "MHz";
+  } else if (f > 1e3) {
+    f /= 1000;
+    *unit = "kHz";
+  } else
+    *unit = "Hz";
+  return f;
+}
+
 static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value);
 static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value);
 static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
@@ -586,7 +598,42 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
         return -1;
     }
-    
+  }
+
+  // Read or write clock generator frequency
+  if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+    // Read current target voltage set value
+    unsigned int osc_pscale;
+    unsigned int osc_cmatch;
+    const char *unit_get = {"Hz"};
+    double f_get;
+    stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
+    stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
+    if(osc_pscale) {
+      int prescale = 1;
+      f_get = STK500_XTAL / 2;
+      switch (osc_pscale) {
+        case 2: prescale = 8; break;
+        case 3: prescale = 32; break;
+        case 4: prescale = 64; break;
+        case 5: prescale = 128; break;
+        case 6: prescale = 256; break;
+        case 7: prescale = 1024; break;
+      }
+      f_get /= prescale;
+      f_get /= (osc_cmatch + 1);
+      f_get = f_to_kHz_MHz(f_get, &unit_get);
+    }
+    if (PDATA(pgm)->fosc_get)
+        msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+    // Write target voltage value
+    else {
+      const char *unit_set;
+      double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+      msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+      if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+        return -1;
+    }
   }
 
   return pgm->program_enable(pgm, p);
@@ -660,6 +707,43 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
             break;
           }
           continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "fosc")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        // Set clock generator frequency
+        if (str_starts(extended_param, "fosc=")) {
+          char fosc_str[16] = {0};
+          int sscanf_success = sscanf(extended_param, "fosc=%10s", fosc_str);
+          if (sscanf_success < 1) {
+            pmsg_error("invalid fosc value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          char *endp;
+          double v = strtod(fosc_str, &endp);
+          if (endp == fosc_str){
+            if (str_eq(fosc_str, "off"))
+              PDATA(pgm)->fosc_data = 0.0;
+            else {
+              pmsg_error("cannot parse fosc value %s\n", fosc_str);
+              rv = -1;
+              break;
+            }
+          }
+          if (*endp == 'm' || *endp == 'M')
+            PDATA(pgm)->fosc_data =  v * 1e6;
+          else if (*endp == 'k' || *endp == 'K')
+            PDATA(pgm)->fosc_data =  v * 1e3;
+          PDATA(pgm)->fosc_set = true;
+          continue;
+        }
+        // Get clock generator frequency
+        else if(str_eq(extended_param, "fosc")) {
+          PDATA(pgm)->fosc_get = true;
+         continue;
         }
       }
     }

@@ -52,6 +52,11 @@ struct pdata {
   bool varef_get;
   bool varef_set;
   double varef_data;
+
+  // Get/set flags for programmable clock generator
+  bool fosc_get;
+  bool fosc_set;
+  double fosc_data;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
