@@ -1569,13 +1569,13 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
             break;
           }
           PDATA(pgm)->vtarg_set = true;
+          continue;
         }
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg"))
+        else if(str_eq(extended_param, "vtarg")) {
           PDATA(pgm)->vtarg_get = true;
-        else
-          break;
-        continue;
+          continue;
+        }
       }
     }
 
