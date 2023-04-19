@@ -47,6 +47,11 @@ struct pdata {
   bool vtarg_get;
   bool vtarg_set;
   double vtarg_data;
+
+  // Get/set flags for adjustable analog reference voltage
+  bool varef_get;
+  bool varef_set;
+  double varef_data;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))

@@ -572,6 +572,23 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write analog reference voltage
+  if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+    // Read current analog reference voltage
+    unsigned int varef_read;
+    stk500_getparm(pgm, Parm_STK_VADJUST, &varef_read);
+    if (PDATA(pgm)->varef_get)
+      msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+    // Write analog reference voltage
+    else {
+      msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+        (varef_read / 10.0), PDATA(pgm)->varef_data);
+      if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+        return -1;
+    }
+    
+  }
+
   return pgm->program_enable(pgm, p);
 }
 
@@ -609,6 +626,39 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         // Get target voltage
         else if(str_eq(extended_param, "vtarg")) {
           PDATA(pgm)->vtarg_get = true;
+          continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "varef")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        int sscanf_success;
+        double varef_set_val = 0;
+        // Get new analog reference voltage for channel 0
+        if (str_starts(extended_param, "varef=")) {
+          sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get new analog reference voltage for channel 0
+        else if(str_starts(extended_param, "varef0=")) {
+          sscanf_success = sscanf(extended_param, "varef0=%lf", &varef_set_val);
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get current analog reference voltage for channel 0
+        else if(str_eq(extended_param, "varef") || str_eq(extended_param, "varef0")) {
+          PDATA(pgm)->varef_get = true;
+          continue;
+        }
+        // Set analog reference voltage
+        if (PDATA(pgm)->varef_set) {
+          PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || varef_set_val < 0) {
+            pmsg_error("invalid varef value '%s'\n", extended_param);
+            PDATA(pgm)->varef_set = false;
+            rv = -1;
+            break;
+          }
           continue;
         }
       }

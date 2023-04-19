@@ -1245,6 +1245,37 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write analog reference voltage
+  if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // STK500: Read current analog reference voltage
+      unsigned char varef_read;
+      stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+      // STK500: Write analog reference voltage
+      else {
+        msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+          (varef_read / 10.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // STK600: Read current target voltage set value
+      unsigned int varef_read;
+      stk500v2_getparm2(pgm, PDATA(pgm)->varef_channel == 0 ? PARAM2_AREF0 : PARAM2_AREF1, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference channel %d voltage read as %.2fV\n", PDATA(pgm)->varef_channel, (varef_read / 100.0));
+      // STK600: Write target voltage value for channel n
+      else {
+        msg_info("Changing analog reference channel %d voltage from %.2f to %.2fV\n",
+          PDATA(pgm)->varef_channel, (varef_read / 100.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, PDATA(pgm)->varef_channel, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    }
+  }
+
   /*
    * Examine the avrpart's memory definitions, and initialize the page
    * caches.  For devices/memory that are not page oriented, treat
@@ -1472,6 +1503,37 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
     }
   }
 
+  // Read or write analog reference voltage
+  if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // STK500: Read current analog reference voltage
+      unsigned char varef_read;
+      stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+      // STK500: Write analog reference voltage
+      else {
+        msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+          (varef_read / 10.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // STK600: Read current target voltage set value
+      unsigned int varef_read;
+      stk500v2_getparm2(pgm, PDATA(pgm)->varef_channel == 0 ? PARAM2_AREF0 : PARAM2_AREF1, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference channel %d voltage read as %.2fV\n", PDATA(pgm)->varef_channel, (varef_read / 100.0));
+      // STK600: Write target voltage value for channel n
+      else {
+        msg_info("Changing analog reference channel %d voltage from %.2f to %.2fV\n",
+          PDATA(pgm)->varef_channel, (varef_read / 100.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, PDATA(pgm)->varef_channel, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    }
+  }
+
   /*
    * Examine the avrpart's memory definitions, and initialize the page
    * caches.  For devices/memory that are not page oriented, treat
@@ -1646,6 +1708,54 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         // Get target voltage
         else if(str_eq(extended_param, "vtarg")) {
           PDATA(pgm)->vtarg_get = true;
+          continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "varef")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        int sscanf_success;
+        double varef_set_val = 0;
+        // Get new analog reference voltage for channel 0
+        if (str_starts(extended_param, "varef=")) {
+          sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
+          PDATA(pgm)->varef_channel = 0;
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get new analog reference voltage for channel 0
+        else if(str_starts(extended_param, "varef0=")) {
+          sscanf_success = sscanf(extended_param, "varef0=%lf", &varef_set_val);
+          PDATA(pgm)->varef_channel = 0;
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get new analog reference voltage for channel 1
+        else if (str_starts(extended_param, "varef1=") && str_contains(pgm->type, "STK600")) {
+          sscanf_success = sscanf(extended_param, "varef1=%lf", &varef_set_val);
+          PDATA(pgm)->varef_channel = 1;
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get current analog reference voltage for channel 0
+        else if(str_eq(extended_param, "varef") || str_eq(extended_param, "varef0")) {
+          PDATA(pgm)->varef_get = true;
+          PDATA(pgm)->varef_channel = 0;
+          continue;
+        }
+        // Get current analog reference voltage for channel 1
+        else if(str_eq(extended_param, "varef1") && str_contains(pgm->type, "STK600")) {
+          PDATA(pgm)->varef_get = true;
+          PDATA(pgm)->varef_channel = 1;
+          continue;
+        }
+        // Set analog reference voltage
+        if (PDATA(pgm)->varef_set) {
+          PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || varef_set_val < 0) {
+            pmsg_error("invalid varef value '%s'\n", extended_param);
+            PDATA(pgm)->varef_set = false;
+            rv = -1;
+            break;
+          }
           continue;
         }
       }

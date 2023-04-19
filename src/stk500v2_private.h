@@ -285,6 +285,12 @@ struct pdata
   bool vtarg_set;
   double vtarg_data;
 
+  /* Get/set flags for adjustable analog reference voltage */
+  bool varef_get;
+  bool varef_set;
+  int varef_channel;
+  double varef_data;
+
   const AVRPART *lastpart;
 
   /* Start address of Xmega boot area */
