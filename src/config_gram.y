@@ -604,13 +604,26 @@ part_parm :
       free_token($3);
     } |
 
-  K_VARIANTS TKN_EQUAL string_list {
+  K_VARIANTS TKN_EQUAL K_NULL {
     {
       ldestroy_cb(current_part->variants, free);
       current_part->variants = lcreat(NULL, 0);
+    }
+  } |
+
+  K_VARIANTS TKN_EQUAL string_list {
+    {
       while (lsize(string_list)) {
         TOKEN *t = lrmv_n(string_list, 1);
-        ladd(current_part->variants, cfg_strdup("config_gram.y", t->value.string));
+        int found = 0;
+        for(LNODEID ln = lfirst(current_part->variants); ln; ln = lnext(ln)) {
+          if(!strcmp((char *) ldata(ln), t->value.string)) {
+            found = 1;
+            break;
+          }
+        }
+        if(!found)
+          ladd(current_part->variants, cfg_strdup("config_gram.y", t->value.string));
         free_token(t);
       }
     }
