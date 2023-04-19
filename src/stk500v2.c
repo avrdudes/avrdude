@@ -1663,25 +1663,6 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
     }
   }
 
-/*
-static int stk600_set_fosc(const PROGRAMMER *pgm, double v) {
-  unsigned int oct, dac;
-
-  oct = 1.443 * log(v / 1039.0);
-  dac = 2048 - (2078.0 * pow(2, (double)(10 + oct))) / v;
-
-  return stk500v2_setparm2(pgm, PARAM2_CLOCK_CONF, (oct << 12) | (dac << 2));
-}
-
-    stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
-    oct = (clock_conf & 0xf000) >> 12u;
-    dac = (clock_conf & 0x0ffc) >> 2u;
-    f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
-    f = f_to_kHz_MHz(f, &unit);
-    fmsg_out(fp, "%sOscillator      : %.3f %s\n",
-            p, f, unit);
-*/
-
   /*
    * Examine the avrpart's memory definitions, and initialize the page
    * caches.  For devices/memory that are not page oriented, treat
@@ -1946,6 +1927,35 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
+    else if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg               Read target supply voltage\n");
+        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
+      }
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        if (str_contains(pgm->type, "STK500")) {
+          msg_error("  -xvaref               Read analog reference voltage\n");
+          msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
+        }
+        else if (str_contains(pgm->type, "STK600")) {
+          msg_error("  -xvaref               Read channel 0 analog reference voltage\n");
+          msg_error("  -xvaref0              Alias for -xvaref\n");
+          msg_error("  -xvaref1              Read channel 1 analog reference voltage\n");
+          msg_error("  -xvaref=<arg>         Set channel 0 analog reference voltage\n");
+          msg_error("  -xvaref0=<arg>        Alias for -xvaref=<arg>\n");
+          msg_error("  -xvaref1=<arg>        Set channel 1 analog reference voltage\n");
+        }
+      }
+      if (pgm->extra_features & HAS_FOSC_ADJ) {
+        msg_error("  -xfosc                Read oscillator clock frequency\n");
+        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
+      }
+      msg_error("  -xhelp                Show this help menu and exit\n");
+      exit(0);
+    }
+
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
     rv = -1;
   }
@@ -2039,6 +2049,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
         msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");
         msg_error("  -xvtarg_switch=<0..1> Set on-board target voltage switch state\n");
+      }
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg               Read on-board target supply voltage\n");
+        msg_error("  -xvtarg=<arg>         Set on-board target supply voltage\n");
       }
       msg_error  ("  -xhelp                Show this help menu and exit\n");
       exit(0);

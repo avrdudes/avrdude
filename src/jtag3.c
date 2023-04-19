@@ -1592,6 +1592,10 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
         msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
       }
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg                 Read on-board target supply voltage\n");
+        msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
+      }
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
       exit(0);
     }

@@ -751,8 +751,20 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
-      msg_error("  -xattempts=<arg> Specify no. connection retry attempts\n");
-      msg_error("  -xhelp           Show this help menu and exit\n");
+      msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg               Read target supply voltage\n");
+        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
+      }
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        msg_error("  -xvaref               Read analog reference voltage\n");
+        msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
+      }
+      if (pgm->extra_features & HAS_FOSC_ADJ) {
+        msg_error("  -xfosc                Read oscillator clock frequency\n");
+        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
+      }
+      msg_error("  -xhelp                Show this help menu and exit\n");
       exit(0);
     }
 
