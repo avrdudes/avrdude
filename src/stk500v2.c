@@ -4444,7 +4444,7 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = stk500v2_set_vtarget;
-  if (pgm->extra_features & HAS_AREF_ADJ)
+  if (pgm->extra_features & HAS_VAREF_ADJ)
     pgm->set_varef    = stk500v2_set_varef;
   if (pgm->extra_features & HAS_FOSC_ADJ)
     pgm->set_fosc     = stk500v2_set_fosc;
@@ -4486,7 +4486,7 @@ void stk500pp_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = stk500v2_set_vtarget;
-  if (pgm->extra_features & HAS_AREF_ADJ)
+  if (pgm->extra_features & HAS_VAREF_ADJ)
     pgm->set_varef    = stk500v2_set_varef;
   if (pgm->extra_features & HAS_FOSC_ADJ)
     pgm->set_fosc     = stk500v2_set_fosc;
@@ -4528,7 +4528,7 @@ void stk500hvsp_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = stk500v2_set_vtarget;
-  if (pgm->extra_features & HAS_AREF_ADJ)
+  if (pgm->extra_features & HAS_VAREF_ADJ)
     pgm->set_varef    = stk500v2_set_varef;
   if (pgm->extra_features & HAS_FOSC_ADJ)
     pgm->set_fosc     = stk500v2_set_fosc;

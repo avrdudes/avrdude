@@ -258,8 +258,8 @@ static char *extra_features_str(int m) {
     strcat(mode, " | HAS_VTARG_READ");
   if(m & HAS_FOSC_ADJ)
     strcat(mode, " | HAS_FOSC_ADJ");
-  if(m & HAS_AREF_ADJ)
-    strcat(mode, " | HAS_AREF_ADJ");
+  if(m & HAS_VAREF_ADJ)
+    strcat(mode, " | HAS_VAREF_ADJ");
 
   return mode + (mode[1] == 0? 0: 4);
 }

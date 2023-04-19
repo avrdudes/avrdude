@@ -1348,7 +1348,7 @@ void stk500_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget    = stk500_set_vtarget;
-  if (pgm->extra_features & HAS_AREF_ADJ)
+  if (pgm->extra_features & HAS_VAREF_ADJ)
     pgm->set_varef      = stk500_set_varef;
   if (pgm->extra_features & HAS_FOSC_ADJ)
     pgm->set_fosc       = stk500_set_fosc;
