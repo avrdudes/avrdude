@@ -54,7 +54,8 @@ Changes since version 7.1:
     - Using serialupdi gives mismached help message #1311
     - jtag2updi -U EEPROM write fails for AVR Dx parts #1128
     - Usbtiny initialization never resets the part #1321
-
+    - Parts with *L, *PV and *V suffixes + others are missing in
+      avrdude.conf #1092
 
   * Pull requests:
 
@@ -87,6 +88,7 @@ Changes since version 7.1:
     - Improve bitclock, sck and terminal documentation #1331
     - Add -xhelp to programmers #1338
     - Move avrintel[.ch] into libavrdude #1341
+    - Review avrdude.conf, add variants, reconcile with ATDFs #1343
 
   * Internals:
 
