@@ -2839,7 +2839,7 @@ part
     desc                   = "ATtiny12";
     id                     = "t12";
     variants               =
-        "ATtiny12:       N/A,   Fmax=8 MHz,   T=[N/A,   85 C], Vcc=[N/A,     N/A]",
+        "ATtiny12:       N/A,   Fmax=8 MHz,   T=[N/A,   85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny12-8PU:   PDIP8, Fmax=8 MHz,   T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
         "ATtiny12-8SU:   SOIC8, Fmax=8 MHz,   T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
         "ATtiny12L-4PU:  PDIP8, Fmax=4 MHz,   T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -3755,6 +3755,10 @@ part parent "2343"
     stk500_devcode         = 0x20;
     avr910_devcode         = 0x00; # Unknown
     signature              = 0x1e 0x91 0x06;
+
+    memory "fuse"
+        initval            = -1;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5215,7 +5219,7 @@ part parent "m164p"
         "ATmega164PA-CUR:  VFBGA49, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega164PA-MCH:  QFN44,   Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega164PA-MCHR: QFN44,   Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega164PA-MN:   TQFP44,  Fmax=20 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega164PA-MN:   TQFP44,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega164PA-MNR:  VQFN44,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega164PA-MU:   VQFN44,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega164PA-MUR:  VQFN44,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -5257,11 +5261,11 @@ part parent "m324p"
         "ATmega324PB-AN:  TQFP44, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega324PB-ANR: TQFP44, Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega324PB-AU:  TQFP44, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega324PB-AUR: TQFP44, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
+        "ATmega324PB-AUR: TQFP44, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega324PB-MN:  QFN44,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega324PB-MNR: QFN44,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega324PB-MU:  VQFN44, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega324PB-MUR: VQFN44, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]";
+        "ATmega324PB-MUR: VQFN44, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 113;
     n_interrupts           = 51;
     signature              = 0x1e 0x95 0x17;
@@ -5704,7 +5708,7 @@ part
     desc                   = "ATmega162";
     id                     = "m162";
     variants               =
-        "ATmega162:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega162:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega162-16AU:  TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega162-16AUR: TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega162-16MU:  MLF44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -6393,7 +6397,7 @@ part parent "m329"
     desc                   = "ATmega3290";
     id                     = "m3290";
     variants               =
-        "ATmega3290:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega3290:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega3290-16AU:  TQFP100, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega3290-16AUR: TQFP100, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega3290V-8AU:  TQFP100, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
@@ -6427,7 +6431,7 @@ part parent "m329"
     desc                   = "ATmega3290P";
     id                     = "m3290p";
     variants               =
-        "ATmega3290P:        TQFP100, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega3290P:        TQFP100, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega3290P-20AU:   TQFP100, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega3290P-20AUR:  TQFP100, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega3290PV-10AU:  TQFP100, Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
@@ -6633,7 +6637,7 @@ part parent "m649"
     desc                   = "ATmega6490";
     id                     = "m6490";
     variants               =
-        "ATmega6490:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega6490:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega6490-16AU:  TQFP100, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
         "ATmega6490-16AUR: TQFP100, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega6490V-8AU:  TQFP100, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -7067,23 +7071,17 @@ part parent "m8"
     desc                   = "ATmega8A";
     id                     = "m8a";
     variants               =
-        "ATMEGA8A-AN:  TQFP32, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "ATMEGA8A-AU:  TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATMEGA8A-MN:  PDIP28, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "ATMEGA8A-MU:  QFN32,  Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATMEGA8A-PN:  QFN32,  Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
-        "ATMEGA8A-PU:  PDIP28, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A:     N/A,    Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-AN:  TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-ANR: TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-AU:  TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-AUR: TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-MN:  QFN32,  Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-MNR: VQFN32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-MU:  VQFN32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-MUR: QFN32,  Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-PN:  PDIP28, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega8A-PU:  PDIP28, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]";
+        "ATmega8A:     N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-AN:  TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-ANR: TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-AU:  TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-AUR: TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-MN:  QFN32,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-MNR: VQFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-MU:  VQFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-MUR: QFN32,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-PN:  PDIP28, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega8A-PU:  PDIP28, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 46;
 ;
 
@@ -7095,7 +7093,7 @@ part
     desc                   = "ATmega8515";
     id                     = "m8515";
     variants               =
-        "ATmega8515:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega8515:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega8515-16AU:  TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
         "ATmega8515-16AUR: TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
         "ATmega8515-16JU:  PLCC44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
@@ -7222,7 +7220,7 @@ part
     desc                   = "ATmega8535";
     id                     = "m8535";
     variants               =
-        "ATmega8535:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega8535:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega8535-16AU:  TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
         "ATmega8535-16AUR: TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
         "ATmega8535-16JU:  PLCC44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
@@ -7349,7 +7347,7 @@ part
     desc                   = "ATtiny26";
     id                     = "t26";
     variants               =
-        "ATtiny26:       N/A,    Fmax=16 MHz, T=[N/A,   85 C], Vcc=[N/A,     N/A]",
+        "ATtiny26:       N/A,    Fmax=16 MHz, T=[N/A,   85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny26-16MU:  MLF32,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
         "ATtiny26-16MUR: VQFN32, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[4.5 V, 5.5 V]",
         "ATtiny26-16PU:  PDIP20, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[4.5 V, 5.5 V]",
@@ -10642,7 +10640,7 @@ part
     desc                   = "ATtiny2313";
     id                     = "t2313";
     variants               =
-        "ATtiny2313:        N/A,    Fmax=20 MHz, T=[N/A,   85 C], Vcc=[N/A,     N/A]",
+        "ATtiny2313:        N/A,    Fmax=20 MHz, T=[N/A,   85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny2313-20MU:   MLF20,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny2313-20MUR:  MLF20,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny2313-20PU:   PDIP20, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -12663,7 +12661,7 @@ part
     desc                   = "ATtiny24";
     id                     = "t24";
     variants               =
-        "ATtiny24:         N/A,     Fmax=20 MHz, T=[N/A,   85 C], Vcc=[N/A,     N/A]",
+        "ATtiny24:         N/A,     Fmax=20 MHz, T=[N/A,   85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny24-20MU:    QFN20,   Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny24-20MUR:   WQFN20,  Fmax=20 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATtiny24-20PU:    PDIP14,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -12840,7 +12838,7 @@ part
     desc                   = "ATtiny44";
     id                     = "t44";
     variants               =
-        "ATtiny44:         N/A,     Fmax=20 MHz, T=[N/A,   85 C], Vcc=[N/A,     N/A]",
+        "ATtiny44:         N/A,     Fmax=20 MHz, T=[N/A,   85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44-20MU:    QFN20,   Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny44-20MUR:   WQFN20,  Fmax=20 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATtiny44-20PU:    PDIP14,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -13015,7 +13013,7 @@ part
     desc                   = "ATtiny84";
     id                     = "t84";
     variants               =
-        "ATtiny84:         N/A,     Fmax=20 MHz, T=[N/A,   85 C], Vcc=[N/A,     N/A]",
+        "ATtiny84:         N/A,     Fmax=20 MHz, T=[N/A,   85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny84-15MZ:    MLF20,   Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny84-20MU:    MLF20,   Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATtiny84-20MUR:   WQFN20,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -14130,7 +14128,7 @@ part
     desc                   = "AT90USB82";
     id                     = "usb82";
     variants               =
-        "AT90USB82:       QFN32, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "AT90USB82:       QFN32, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "AT90USB82-16MU:  QFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "AT90USB82-16MUR: QFN32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
@@ -14689,7 +14687,7 @@ part
     desc                   = "ATmega165P";
     id                     = "m165p";
     variants               =
-        "ATmega165P:       N/A,    Fmax=16 MHz, T=[N/A,     N/A], Vcc=[N/A,     N/A]",
+        "ATmega165P:       N/A,    Fmax=16 MHz, T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega165P-16AN:  TQFP64, Fmax=16 MHz, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega165P-16ANR: TQFP64, Fmax=16 MHz, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega165P-16AU:  TQFP64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
@@ -14884,7 +14882,7 @@ part
     desc                   = "ATmega325";
     id                     = "m325";
     variants               =
-        "ATmega325:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega325:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega325-16AU:  TQFP64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega325-16AUR: TQFP64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega325-16MU:  QFN64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -15042,7 +15040,7 @@ part parent "m325"
     desc                   = "ATmega325P";
     id                     = "m325p";
     variants               =
-        "ATmega325P:        N/A,    Fmax=20 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega325P:        N/A,    Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega325P-20AU:   TQFP64, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega325P-20AUR:  TQFP64, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega325P-20MU:   MLF64,  Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -15079,7 +15077,7 @@ part
     desc                   = "ATmega645";
     id                     = "m645";
     variants               =
-        "ATmega645:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega645:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega645-16AU:  TQFP64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega645-16AUR: TQFP64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega645-16MU:  MLF64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
@@ -15287,7 +15285,7 @@ part parent "m325"
     desc                   = "ATmega3250P";
     id                     = "m3250p";
     variants               =
-        "ATmega3250P:        TQFP100, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega3250P:        TQFP100, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega3250P-20AU:   TQFP100, Fmax=20 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega3250P-20AUR:  TQFP100, Fmax=20 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega3250PV-10AU:  TQFP100, Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
@@ -15321,7 +15319,7 @@ part parent "m645"
     desc                   = "ATmega6450";
     id                     = "m6450";
     variants               =
-        "ATmega6450:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega6450:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
         "ATmega6450-16AU:  TQFP100, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega6450-16AUR: TQFP100, Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega6450V-8AU:  TQFP100, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
@@ -15449,7 +15447,8 @@ part parent ".xmega"
     desc                   = "ATxmega16A4U";
     id                     = "x16a4u";
     variants               =
-        "ATxmega16A4U-AN:  TQFP44,  Fmax=32 MHz, T=[N/A,   105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega16A4U-AN:  TQFP44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega16A4U-ANR: N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega16A4U-AU:  TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4U-AUR: TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4U-CU:  BGA49,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15568,15 +15567,14 @@ part parent "x16a4u"
     desc                   = "ATxmega16A4";
     id                     = "x16a4";
     variants               =
-        "ATXMEGA16A4-AU:  TQFP44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA16A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-AU:  TQFP44, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-AUR: TQFP44, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-CU:  BGA49,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-CUR: BGA49,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-MH:  QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega16A4-MHR: QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega16A4-MHR: QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega16A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 231;
     n_interrupts           = 94;
 
@@ -15595,7 +15593,7 @@ part parent ".xmega"
     desc                   = "ATxmega32A4U";
     id                     = "x32a4u";
     variants               =
-        "ATxmega32A4U-AN:  TQFP44,  Fmax=32 MHz, T=[N/A,   105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32A4U-AN:  TQFP44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-ANR: TQFP44,  Fmax=32 MHz, T=[N/A,   105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-AU:  TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-AUR: TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15691,6 +15689,7 @@ part parent "x32a4u"
     variants               =
         "ATxmega32D4:     N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32D4-AN:  TQFP44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32D4-ANR: N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega32D4-AU:  TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32D4-AUR: TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32D4-CU:  VFBGA49, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15715,15 +15714,14 @@ part parent "x32a4u"
     desc                   = "ATxmega32A4";
     id                     = "x32a4";
     variants               =
-        "ATXMEGA32A4-AU:  TQFP44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA32A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-AU:  TQFP44, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-AUR: TQFP44, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-CU:  BGA49,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-CUR: BGA49,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-MH:  QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega32A4-MHR: QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega32A4-MHR: QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 238;
     n_interrupts           = 94;
 
@@ -15811,7 +15809,8 @@ part parent "x32a4u"
     desc                   = "ATxmega32C3";
     id                     = "x32c3";
     variants               =
-        "ATxmega32C3-AN:  N/A,    Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32C3-AN:  TQFP64, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32C3-ANR: N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega32C3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32C3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32C3-M7:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
@@ -15834,6 +15833,7 @@ part parent "x32a4u"
     id                     = "x32d3";
     variants               =
         "ATxmega32D3-AN:  TQFP64, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32D3-ANR: N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega32D3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32D3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32D3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15856,7 +15856,8 @@ part parent "x64a4u"
     desc                   = "ATxmega64C3";
     id                     = "x64c3";
     variants               =
-        "ATxmega64C3-AN:  N/A,    Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega64C3-AN:  TQFP64, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega64C3-ANR: N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega64C3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64C3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64C3-M7:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
@@ -15880,7 +15881,8 @@ part parent "x64a4u"
     id                     = "x64d3";
     variants               =
         "ATxmega64D3:     N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega64D3-AN:  N/A,    Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega64D3-AN:  TQFP64, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega64D3-ANR: N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega64D3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64D3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64D3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15928,8 +15930,6 @@ part parent "x64a4u"
     desc                   = "ATxmega64A1";
     id                     = "x64a1";
     variants               =
-        "ATXMEGA64A1-AU:   TQFP100,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA64A1-CU:   CBGA100,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1:      N/A,      Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-AU:   TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-AUR:  TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15977,13 +15977,12 @@ part parent "x64a1"
     desc                   = "ATxmega64A3";
     id                     = "x64a3";
     variants               =
-        "ATXMEGA64A3-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA64A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A3:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega64A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega64A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega64A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 246;
     n_interrupts           = 122;
     signature              = 0x1e 0x96 0x42;
@@ -16031,7 +16030,7 @@ part parent "x64a1"
     variants               =
         "ATxmega64B1-AU:  TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64B1-AUR: TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega64B1-CU:  VFBGA100, Fmax=N/A,    T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATxmega64B1-CU:  VFBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64B1-CUR: TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 245;
     n_interrupts           = 81;
@@ -16180,8 +16179,6 @@ part parent "x128c3"
     desc                   = "ATxmega128A1";
     id                     = "x128a1";
     variants               =
-        "ATXMEGA128A1-AU:   TQFP100,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA128A1-CU:   CBGA100,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1:      N/A,      Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-AU:   TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-AUR:  TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
@@ -16225,6 +16222,7 @@ part parent "x128a1"
     id                     = "x128a1u";
     variants               =
         "ATxmega128A1U-AN:   TQFP100,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega128A1U-ANR:  N/A,      Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega128A1U-AU:   TQFP100,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1U-AUR:  N/A,      Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1U-C7U:  VFBGA100, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
@@ -16244,13 +16242,12 @@ part parent "x128a1"
     desc                   = "ATxmega128A3";
     id                     = "x128a3";
     variants               =
-        "ATXMEGA128A3-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA128A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A3:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega128A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega128A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega128A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 258;
     n_interrupts           = 122;
     signature              = 0x1e 0x97 0x42;
@@ -16416,7 +16413,7 @@ part parent ".xmega"
         "ATxmega128B1-AN:  TQFP100,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128B1-AU:  TQFP100,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128B1-AUR: TQFP100,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega128B1-CU:  VFBGA100, Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega128B1-CU:  VFBGA100, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128B1-CUR: TFBGA100, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 257;
@@ -16502,8 +16499,6 @@ part parent ".xmega"
     desc                   = "ATxmega192C3";
     id                     = "x192c3";
     variants               =
-        "ATXMEGA192C3-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA192C3-MH:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192C3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192C3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192C3-MH:  VQFN64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
@@ -16602,13 +16597,12 @@ part parent "x192a1"
     desc                   = "ATxmega192A3";
     id                     = "x192a3";
     variants               =
-        "ATXMEGA192A3-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA192A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A3:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega192A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega192A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega192A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 267;
     n_interrupts           = 122;
     signature              = 0x1e 0x97 0x44;
@@ -16757,13 +16751,12 @@ part parent "x256a1"
     desc                   = "ATxmega256A3";
     id                     = "x256a3";
     variants               =
-        "ATXMEGA256A3-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA256A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3-AU:  TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3-AUR: TQFP64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega256A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega256A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega256A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 272;
     n_interrupts           = 122;
     signature              = 0x1e 0x98 0x42;
@@ -16786,6 +16779,7 @@ part parent "x256a1"
     id                     = "x256a3u";
     variants               =
         "ATxmega256A3U-AN:  TQFP64, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega256A3U-ANR: N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega256A3U-AU:  TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3U-AUR: TQFP64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3U-MH:  QFN64,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -16812,11 +16806,11 @@ part parent "x256a1"
     desc                   = "ATxmega256A3B";
     id                     = "x256a3b";
     variants               =
-        "ATXMEGA256A3B-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATXMEGA256A3B-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3B:     N/A,    Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega256A3B-AU:  TQFP64, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3B-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega256A3B-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
+        "ATxmega256A3B-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega256A3B-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 273;
     n_interrupts           = 122;
     signature              = 0x1e 0x98 0x43;
@@ -16945,12 +16939,14 @@ part parent ".xmega-e"
     id                     = "x8e5";
     variants               =
         "ATxmega8E5-AN:   TQFP32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega8E5-ANR:  N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega8E5-AU:   TQFP32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega8E5-AUR:  TQFP32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega8E5-M4N:  UQFN32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega8E5-M4U:  UQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega8E5-M4UR: UQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega8E5-MN:   N/A,    Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega8E5-MN:   VQFN32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega8E5-MNR:  N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega8E5-MU:   VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega8E5-MUR:  VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 230;
@@ -17017,6 +17013,7 @@ part parent ".xmega-e"
         "ATxmega16E5-M4U:  UQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16E5-M4UR: UQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16E5-MN:   VQFN32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega16E5-MNR:  N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega16E5-MU:   VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16E5-MUR:  VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 235;
@@ -17076,12 +17073,14 @@ part parent ".xmega-e"
     id                     = "x32e5";
     variants               =
         "ATxmega32E5-AN:   TQFP32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32E5-ANR:  N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega32E5-AU:   TQFP32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-AUR:  TQFP32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-M4N:  UQFN32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-M4U:  UQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-M4UR: UQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-MN:   VQFN32, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32E5-MNR:  N/A,    Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega32E5-MU:   VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-MUR:  VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 242;
@@ -17531,11 +17530,11 @@ part parent ".reduced_core_tiny"
     id                     = "t102";
     variants               =
         "ATtiny102-M7R:   UDFN8, Fmax=12 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny102-M8R:   UDFN8, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
+        "ATtiny102-M8R:   UDFN8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny102-SSFR:  SOIC8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny102-SSNR:  SOIC8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny102F-M7R:  UDFN8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
-        "ATtiny102F-M8R:  UDFN8, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
+        "ATtiny102F-M8R:  UDFN8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny102F-SSFR: SOIC8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny102F-SSNR: SOIC8, Fmax=12 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 6;
