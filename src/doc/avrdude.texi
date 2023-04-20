@@ -418,19 +418,22 @@ following options are recognized:
 
 @table @code
 @item -p @var{partno}
-This option tells AVRDUDE what part (MCU) is connected to the programmer.
-The @var{partno} parameter is the part's id listed in the configuration file.
-For currently supported MCU types use ? as partno, which will print a list of
-partno ids and official part names on the terminal. Both can be used with the
--p option.  If a part is unknown to AVRDUDE, it means that there is no config
-file entry for that part, but it can be added to the configuration file if
-you have the Atmel datasheet so that you can enter the programming
-specifications. If @code{-p ?} is specified with a specific programmer, see
-@code{-c} below, then only those parts are output that the programmer expects
-to be able to handle, together with the programming interface(s) that can be
-used in that combination. In reality there can be deviations from this list,
-particularly if programming is directly via a bootloader. Currently, the
-following MCU types are understood:
+This option tells AVRDUDE what part (MCU) is connected to the programmer. The
+@var{partno} parameter is the part's id listed in the configuration file. To
+see a list of currently supported MCUs use ? as partno, which will print the
+part ids and official part names. In connection with -v, this will also print a
+list of variant part names followed by an optional colon, the package code and
+some absolute maximum ratings. The part id, their official part name, any of
+the full variant part names or their initial part up to a dash can be used to
+specify a part with the -p option. If a part is unknown to AVRDUDE, it means
+that there is no config file entry for that part, but it can be added to the
+configuration file if you have the Atmel datasheet so that you can enter the
+programming specifications. If @code{-p ?} is specified with a specific
+programmer, see @code{-c} below, then only those parts are output that the
+programmer expects to be able to handle, together with the programming
+interface(s) that can be used in that combination. In reality there can be
+deviations from this list, particularly if programming is directly via a
+bootloader. Currently, the following MCU types are understood:
 
 @cindex Device support
 
@@ -2256,14 +2259,17 @@ that part then, from v7.1, the existing memory definition is extended,
 and components overwritten with new values. Assigning @code{NULL}
 removes an inherited SPI instruction format, memory definition, control
 stack, eeprom or flash instruction, e.g., as in @code{memory "efuse" =
-NULL;}
+NULL;}. The @code{variants} parameter is never inherited as it almost
+always would be a mistake to do so: @code{variants} defines a string
+list detailing variant names of the  part followed by an optional
+colon, the package code and some absolute maximum ratings.
 
 @noindent
 Example format for part inheritance:
 
 @smallexample
-   part parent <id>                              # quoted string
-       id               = <id> ;                 # quoted string
+   part parent <id>                              # String identifying parent
+       id               = <id> ;                 # Id string for new part
        <any set of other parameters from the list above>
      ;
 @end smallexample
