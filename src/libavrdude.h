@@ -403,9 +403,7 @@ typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
 void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
 void sort_avrparts(LISTID avrparts);
 
-int strcase_eq(const char *str1, const char *str2);
-int part_match(const char *pattern, const char *string);
-// cmp can be, eg, strcase_eq or part_match
+// cmp can be, eg, str_caseeq or str_casematch
 int part_eq(AVRPART *p, const char *string, int (*cmp)(const char *, const char *));
 
 int compare_memory_masked(AVRMEM * m, uint8_t buf1, uint8_t buf2);
@@ -1160,6 +1158,11 @@ int str_starts(const char *str, const char *starts);
 int str_eq(const char *str1, const char *str2);
 int str_contains(const char *str, const char *substr);
 int str_ends(const char *str, const char *ends);
+
+int str_casestarts(const char *str, const char *starts);
+int str_caseends(const char *str, const char *ends);
+int str_caseeq(const char *str1, const char *str2);
+int str_casematch(const char *pattern, const char *string);
 
 #ifdef __cplusplus
 }

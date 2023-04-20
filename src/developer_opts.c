@@ -151,18 +151,18 @@ static char *prog_modes_str_flags(const AVRPART *p) {
 
   *type = 0;
 
-  if(!(p->flags & AVRPART_HAS_TPI)  // TPI devices don't have the SPM opcode
-     && strcmp(p->id, "t4")         // Nor have these early ones
-     && strcmp(p->id, "t5")
-     && strcmp(p->id, "t9")
-     && strcmp(p->id, "t10")
-     && strcmp(p->id, "t11")
-     && strcmp(p->id, "t12")
-     && strcmp(p->id, "t15")
-     && strcmp(p->id, "t20")
-     && strcmp(p->id, "t26")
-     && strcmp(p->id, "t28")
-     && strcmp(p->id, "t40"))
+  if(!(p->flags & AVRPART_HAS_TPI) // TPI devices don't have the SPM opcode
+     && !str_eq(p->id, "t4")       // Nor have these early ones
+     && !str_eq(p->id, "t5")
+     && !str_eq(p->id, "t9")
+     && !str_eq(p->id, "t10")
+     && !str_eq(p->id, "t11")
+     && !str_eq(p->id, "t12")
+     && !str_eq(p->id, "t15")
+     && !str_eq(p->id, "t20")
+     && !str_eq(p->id, "t26")
+     && !str_eq(p->id, "t28")
+     && !str_eq(p->id, "t40"))
    strcpy(type, "PM_SPM");
 
   switch(p->flags & (AVRPART_HAS_PDI | AVRPART_AVR32 | AVRPART_HAS_TPI | AVRPART_HAS_UPDI)) {
@@ -273,7 +273,8 @@ static void checkaddr(int memsize, int pagesize, int opnum, const OPCODE *op, co
     if(i < lo || i > hi) {
       if(op->bit[i+8].type != AVR_CMDBIT_IGNORE && !(op->bit[i+8].type == AVR_CMDBIT_VALUE && op->bit[i+8].value == 0)) {
         char *cbs = cmdbitstr(op->bit[i+8]);
-        dev_info(".cmderr\t%s\t%s-%s\tbit %d outside addressable space should be x or 0 but is %s\n", p->desc, m->desc, opstr, i+8, cbs? cbs: "NULL");
+        dev_info(".cmderr\t%s\t%s-%s\tbit %d outside addressable space should be x or 0 but is %s\n",
+          p->desc, m->desc, opstr, i+8, cbs? cbs: "NULL");
         if(cbs)
           free(cbs);
       }
@@ -394,10 +395,10 @@ static int dev_part_strct_entry(bool tsv,               // Print as spreadsheet?
     }
     dev_info("%s\t%s\n", n, c);
   } else {                      // Grammar conform
-    int indent = col2 && strcmp(col2, "part");
-    dev_cout(comms, n, 0, 0); // Print comments before the line
+    int indent = col2 && !str_eq(col2, "part");
+    dev_cout(comms, n, 0, 0);   // Print comments before the line
     dev_info("%*s%-*s = %s;", indent? 8: 4, "", indent? 18: 22, n, c);
-    dev_cout(comms, n, 1, 1);  // Print comments on rhs
+    dev_cout(comms, n, 1, 1);   // Print comments on rhs
   }
 
   if(cont)
@@ -417,7 +418,7 @@ static const char *dev_controlstack_name(const AVRPART *p) {
 
 
 static void dev_stack_out(bool tsv, const AVRPART *p, const char *name, const unsigned char *stack, int ns) {
-  if(!strcmp(name, "NULL")) {
+  if(str_eq(name, "NULL")) {
     name = "pp_controlstack";
     ns = 0;
   }
@@ -506,7 +507,7 @@ typedef struct {
 // Return memory iff its desc matches str exactly
 static AVRMEM *dev_locate_mem(const AVRPART *p, const char *str) {
   AVRMEM *m = p->mem? avr_locate_mem_noalias(p, str): NULL;
-  return m && strcmp(m->desc, str) == 0? m: NULL;
+  return m && str_eq(m->desc, str)? m: NULL;
 }
 
 static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
@@ -804,7 +805,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
         int haveinjct = 0;
         if(injct)
           for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
-            if(meminj[i].mcu && strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
+            if(meminj[i].mcu && str_eq(meminj[i].mcu, p->desc) && str_eq(meminj[i].mem, m->desc))
               haveinjct = 1;
         if(!haveinjct)
           continue;
@@ -838,7 +839,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     if(injct)
       for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
         if(meminj[i].mcu)
-          if(strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
+          if(str_eq(meminj[i].mcu, p->desc) && str_eq(meminj[i].mem, m->desc))
             dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
               meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
 
@@ -849,13 +850,13 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
     for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm)) {
       AVRMEM_ALIAS *ma = ldata(lnm);
-      if(ma->aliased_mem && !strcmp(ma->aliased_mem->desc, m->desc)) {
+      if(ma->aliased_mem && str_eq(ma->aliased_mem->desc, m->desc)) {
         // There is a memory that's aliased to the current memory: is it inherited?
         if(base) {
           int basehasalias = 0;
           for(LNODEID lnb=lfirst(base->mem_alias); lnb; lnb=lnext(lnb)) {
             AVRMEM_ALIAS *mab = ldata(lnb);
-            if(!strcmp(mab->desc, ma->desc) && mab->aliased_mem && !strcmp(mab->aliased_mem->desc, m->desc))
+            if(str_eq(mab->desc, ma->desc) && mab->aliased_mem && str_eq(mab->aliased_mem->desc, m->desc))
               basehasalias = 1;
           }
           if(basehasalias)
@@ -872,7 +873,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   if(injct)
     for(size_t i=0; i<sizeof ptinj/sizeof*ptinj; i++)
       if(ptinj[i].mcu)
-        if(strcmp(ptinj[i].mcu, p->desc) == 0)
+        if(str_eq(ptinj[i].mcu, p->desc))
           dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
             ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
 
@@ -921,7 +922,7 @@ void dev_output_part_defs(char *partdesc) {
   if((flags = strchr(partdesc, '/')))
     *flags++ = 0;
 
-  if(!flags && !strcmp(partdesc, "*")) // Treat -p * as if it was -p */s
+  if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
   if(!*flags || !strchr("cdoASsrw*ti", *flags)) {
@@ -1000,7 +1001,7 @@ void dev_output_part_defs(char *partdesc) {
         nprinted = dev_nprinted;
       }
 
-    if(!part_eq(p, partdesc, part_match))
+    if(!part_eq(p, partdesc, str_casematch))
       continue;
 
     if(astrc || strct || cmpst)
@@ -1019,12 +1020,12 @@ void dev_output_part_defs(char *partdesc) {
     if(p->mem) {
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
         AVRMEM *m = ldata(lnm);
-        if(!flashsize && 0==strcmp(m->desc, "flash")) {
+        if(!flashsize && str_eq(m->desc, "flash")) {
           flashsize = m->size;
           flashpagesize = m->page_size;
           flashoffset = m->offset;
         }
-        if(!eepromsize && 0==strcmp(m->desc, "eeprom")) {
+        if(!eepromsize && str_eq(m->desc, "eeprom")) {
           eepromsize = m->size;
           eepromoffset = m->offset;
           eeprompagesize = m->page_size;
@@ -1191,7 +1192,7 @@ void dev_output_part_defs(char *partdesc) {
         for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
           AVRMEM *m = ldata(lnm);
           // Write delays not needed for read-only calibration and signature memories
-          if(strcmp(m->desc, "calibration") && strcmp(m->desc, "signature")) {
+          if(!str_eq(m->desc, "calibration") && !str_eq(m->desc, "signature")) {
             if(p->prog_modes & PM_ISP) {
               if(m->min_write_delay == m->max_write_delay)
                  dev_info(".wd_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);
@@ -1373,7 +1374,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
   if(base) {
     char *basestr = dev_usbpid_liststr(base);
-    show = strcmp(basestr, pgmstr) != 0;
+    show = !str_eq(basestr, pgmstr);
     free(basestr);
   }
   if(show)
@@ -1389,7 +1390,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   for(int i=0; i<N_PINS; i++) {
     char *str = pins_to_strdup(pgm->pin+i);
     char *bstr = base? pins_to_strdup(base->pin+i): NULL;
-    if(!base || strcmp(bstr, str))
+    if(!base || !str_eq(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
 
     free(str);
@@ -1402,7 +1403,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
   if(base) {
     char *basestr = dev_hvupdi_support_liststr(base);
-    show = strcmp(basestr, pgmstr) != 0;
+    show = !str_eq(basestr, pgmstr);
     free(basestr);
   }
   if(show)
@@ -1414,7 +1415,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)
       if(pgminj[i].pgmid)
         for(LNODEID *ln=lfirst(pgm->id); ln; ln=lnext(ln))
-          if(strcmp(pgminj[i].pgmid, ldata(ln)) == 0)
+          if(str_eq(pgminj[i].pgmid, ldata(ln)))
             dev_part_strct_entry(tsv, ".prog", ldata(ln), NULL,
               pgminj[i].var, cfg_strdup("pgminj", pgminj[i].value), NULL);
 
@@ -1435,7 +1436,7 @@ void dev_output_pgm_defs(char *pgmid) {
   if((flags = strchr(pgmid, '/')))
     *flags++ = 0;
 
-  if(!flags && !strcmp(pgmid, "*")) // Treat -c * as if it was -c */s
+  if(!flags && str_eq(pgmid, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
   if(!*flags || !strchr("ASsrti", *flags)) {
@@ -1482,7 +1483,7 @@ void dev_output_pgm_defs(char *pgmid) {
     PROGRAMMER *pgm = ldata(ln1);
     int matched = 0;
     for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
-      if(part_match(pgmid, ldata(ln2))) {
+      if(str_casematch(pgmid, ldata(ln2))) {
         matched = 1;
         break;
       }

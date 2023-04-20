@@ -537,7 +537,7 @@ static void set_date_filename(const PROGRAMMER *pgm, const char *fname) {
   time_t when;
 
   // Last modification date of file or, if unavailable, current time
-  when = fname && *fname && strcmp(fname, "-") && !stat(fname, &b)? b.st_mtime: time(NULL);
+  when = fname && *fname && !str_eq(fname, "-") && !stat(fname, &b)? b.st_mtime: time(NULL);
   when += 30;                   // Round to minute
   if((t=localtime(& when))) {
     ur.yyyy = t->tm_year + 1900;
@@ -2364,7 +2364,7 @@ int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem
   // Bytewise read only valid for flash and eeprom
   int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
   if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
-    if(!strcmp(mem->desc, "signature") && pgm->read_sig_bytes) {
+    if(str_eq(mem->desc, "signature") && pgm->read_sig_bytes) {
        if((int) addr < 0 || (int) addr >= mem->size) {
          return -1;
        }
