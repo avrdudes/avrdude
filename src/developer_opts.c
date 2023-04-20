@@ -496,7 +496,7 @@ typedef struct {
   char descbuf[64];
   char idbuf[32];
   char family_idbuf[16];
-  char variants[1536-16];
+  char variants[4096-16-32-64];
   AVRPART base;
   OPCODE ops[AVR_OP_MAX];
   AVRMEMdeep mems[40];
@@ -651,7 +651,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout_str(strcmp, descstr, desc);
   _if_partout_str(strcmp, cfg_escape(p->id), id);
 
-  if(lsize(p->variants)) {
+  if(lsize(p->variants)) {      // Variants are never inherited, so print if they exist
     int firstid = 1;
     if(tsv)
       dev_info(".pt\t%s\tvariants\t", p->desc);
@@ -671,6 +671,14 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       dev_info("\n");
     else {
       dev_info(";");
+      dev_cout(p->comments, "variants", 1, 1);
+    }
+  } else if(!base) {            // Print NULL for /S option
+    if(tsv)
+      dev_info(".pt\t%s\tvariants\tNULL\n", p->desc);
+    else {
+      dev_cout(p->comments, "variants", 0, 0);
+      dev_info("    %-22s = NULL;\n", "variants");
       dev_cout(p->comments, "variants", 1, 1);
     }
   }
