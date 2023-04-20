@@ -245,7 +245,7 @@ static void usage(void)
     "  -V                         Do not verify\n"
     "  -t                         Enter terminal mode\n"
     "  -E <exitspec>[,<exitspec>] List programmer exit specifications\n"
-    "  -x <extended_param>        Pass <extended_param> to programmer\n"
+    "  -x <extended_param>        Pass <extended_param> to programmer, see -xhelp\n"
     "  -v                         Verbose output; -v -v for more\n"
     "  -q                         Quell progress output; -q -q for less\n"
     "  -l logfile                 Use logfile rather than stderr for diagnostics\n"
@@ -405,7 +405,6 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
     }
   }
 
-
   for(ln1 = lfirst(avrparts); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
@@ -419,6 +418,9 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
       if(pm != ~0)
         fprintf(f, " via %s",  via_prog_modes(pm & p->prog_modes));
       fprintf(f, "\n");
+      if(verbose)
+        for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln))
+          fprintf(f, "%s%s- %s\n", prefix, prefix, (char *) ldata(ln));
     }
   }
 }
@@ -543,6 +545,7 @@ int main(int argc, char * argv [])
   int     terminal;    /* 1=enter terminal mode, 0=don't */
   const char *exitspecs; /* exit specs string from command line */
   const char *programmer; /* programmer id */
+  int     explicit_c;  /* 1=explicit -c on command line, 0=not spcified  there */
   char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
@@ -633,6 +636,7 @@ int main(int argc, char * argv [])
   exitspecs     = NULL;
   pgm           = NULL;
   programmer    = "";
+  explicit_c    = 0;
   verbose       = 0;
   baudrate      = 0;
   bitclock      = 0.0;
@@ -727,6 +731,7 @@ int main(int argc, char * argv [])
 
       case 'c': /* programmer id */
         programmer = optarg;
+        explicit_c = 1;
         break;
 
       case 'C': /* system wide configuration file */
@@ -1044,7 +1049,7 @@ int main(int argc, char * argv [])
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
-      if(programmer && *programmer) {
+      if(programmer && *programmer && explicit_c) {
         PROGRAMMER *pgm = locate_programmer(programmers, programmer);
         if(!pgm) {
           programmer_not_found(programmer);

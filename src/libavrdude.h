@@ -236,6 +236,7 @@ typedef struct avrpart {
   const char  * desc;               /* long part name */
   const char  * id;                 /* short part name */
   LISTID        comments;           // Used by developer options -p*/[ASsr...]
+  LISTID        variants;           /* String with variant name and chip properties */
   const char  * parent_id;          /* Used by developer options */
   const char  * family_id;          /* family id in the SIB (avr8x) */
   int           prog_modes;         /* Programming interfaces, see #define PM_... */
@@ -324,6 +325,7 @@ typedef struct avrmem {
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
   int num_pages;              /* number of pages (if page addressed) */
+  int initval;                /* factory setting of fuses and lock bits */
   int n_word_writes;          /* TPI only: number words to write at a time */
   unsigned int offset;        /* offset in IO memory (ATxmega) */
   int min_write_delay;        /* microseconds */
@@ -401,7 +403,10 @@ typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
 void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie);
 void sort_avrparts(LISTID avrparts);
 
+int strcase_eq(const char *str1, const char *str2);
 int part_match(const char *pattern, const char *string);
+// cmp can be, eg, strcase_eq or part_match
+int part_eq(AVRPART *p, const char *string, int (*cmp)(const char *, const char *));
 
 int compare_memory_masked(AVRMEM * m, uint8_t buf1, uint8_t buf2);
 

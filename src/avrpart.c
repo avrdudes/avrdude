@@ -329,7 +329,8 @@ static char * bittype(int type)
 AVRMEM *avr_new_memtype(void) {
   AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_memtype()", sizeof(*m));
   m->desc = cache_string("");
-  m->page_size = 1; // ensure not 0
+  m->page_size = 1;             // Ensure not 0
+  m->initval = -1;              // Unknown value represented as -1
 
   return m;
 }
@@ -574,6 +575,7 @@ AVRPART *avr_new_part(void) {
   p->config_file = nulp;
   p->mem = lcreat(NULL, 0);
   p->mem_alias = lcreat(NULL, 0);
+  p->variants = lcreat(NULL, 0);
 
   // Default values
   p->mcuid = -1;
@@ -597,10 +599,10 @@ AVRPART *avr_dup_part(const AVRPART *d) {
   if(d) {
     *p = *d;
 
-    // Duplicate the memory and alias chains
+    // Leave variants list empty but duplicate the memory and alias chains
+    p->variants = lcreat(NULL, 0);
     p->mem = lcreat(NULL, 0);
     p->mem_alias = lcreat(NULL, 0);
-
     for(LNODEID ln=lfirst(d->mem); ln; ln=lnext(ln)) {
       AVRMEM *m = ldata(ln);
       AVRMEM *m2 = avr_dup_mem(m);
@@ -630,6 +632,9 @@ void avr_free_part(AVRPART * d)
   d->mem = NULL;
   ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
   d->mem_alias = NULL;
+  ldestroy_cb(d->variants, free);
+  d->variants = NULL;
+
   /* do not free d->parent_id and d->config_file */
   for(size_t i=0; i<sizeof(d->op)/sizeof(d->op[0]); i++) {
     if (d->op[i] != NULL) {
@@ -649,8 +654,7 @@ AVRPART *locate_part(const LISTID parts, const char *partdesc) {
 
   for (LNODEID ln1=lfirst(parts); ln1 && !found; ln1=lnext(ln1)) {
     p = ldata(ln1);
-    if ((strcasecmp(partdesc, p->id) == 0) ||
-        (strcasecmp(partdesc, p->desc) == 0))
+    if(part_eq(p, partdesc, strcase_eq))
       found = 1;
   }
 
@@ -891,6 +895,42 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed) {
   *sp = 0;
 
   return cfg_strdup("opcode2str()", space);
+}
+
+
+int strcase_eq(const char *str1, const char *str2) {
+  return strcasecmp(str1, str2) == 0;
+}
+
+// Returns 1 if the part pointed to by p matches the string or pattern s under the function cmp(s, ...)
+int part_eq(AVRPART *p, const char *s, int (*cmp)(const char *, const char *)) {
+  // Matching id or desc? OK
+  if(cmp(s, p->id) || cmp(s, p->desc))
+    return 1;
+
+  // Check against all variants, either up to colon or up to dash
+  size_t desclen = strlen(p->desc), variantlen, dashlen;
+  char query[1024];
+  for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln)) {
+    const char *q = (const char *) ldata(ln), *qdash = strchr(q, '-'), *qcolon = strchr(q, ':');
+    variantlen = qcolon? (size_t) (qcolon-q): strlen(q);
+    dashlen = qdash? (size_t) (qdash-q): variantlen;
+    if(variantlen < sizeof query) { // Sanity: should not expect such long strings
+      // Variant names should be unique order numbers, but don't check (again) if it's the same as p->desc
+      if(variantlen != desclen || memcmp(q, p->desc, desclen)) {
+        memcpy(query, q, variantlen); query[variantlen] = 0;
+        if(cmp(s, query))
+          return 1;
+        // The name before dash should normally be p->desc and the dash is meant to come before the colon
+        if(dashlen > desclen && dashlen < variantlen) {
+          query[dashlen] = 0;
+          if(cmp(s, query))
+            return 1;
+        }
+      }
+    }
+  }
+  return 0;
 }
 
 

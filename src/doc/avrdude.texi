@@ -418,19 +418,22 @@ following options are recognized:
 
 @table @code
 @item -p @var{partno}
-This option tells AVRDUDE what part (MCU) is connected to the programmer.
-The @var{partno} parameter is the part's id listed in the configuration file.
-For currently supported MCU types use ? as partno, which will print a list of
-partno ids and official part names on the terminal. Both can be used with the
--p option.  If a part is unknown to AVRDUDE, it means that there is no config
-file entry for that part, but it can be added to the configuration file if
-you have the Atmel datasheet so that you can enter the programming
-specifications. If @code{-p ?} is specified with a specific programmer, see
-@code{-c} below, then only those parts are output that the programmer expects
-to be able to handle, together with the programming interface(s) that can be
-used in that combination. In reality there can be deviations from this list,
-particularly if programming is directly via a bootloader. Currently, the
-following MCU types are understood:
+This option tells AVRDUDE what part (MCU) is connected to the programmer. The
+@var{partno} parameter is the part's id listed in the configuration file. To
+see a list of currently supported MCUs use ? as partno, which will print the
+part ids and official part names. In connection with -v, this will also print a
+list of variant part names followed by an optional colon, the package code and
+some absolute maximum ratings. The part id, their official part name, any of
+the full variant part names or their initial part up to a dash can be used to
+specify a part with the -p option. If a part is unknown to AVRDUDE, it means
+that there is no config file entry for that part, but it can be added to the
+configuration file if you have the Atmel datasheet so that you can enter the
+programming specifications. If @code{-p ?} is specified with a specific
+programmer, see @code{-c} below, then only those parts are output that the
+programmer expects to be able to handle, together with the programming
+interface(s) that can be used in that combination. In reality there can be
+deviations from this list, particularly if programming is directly via a
+bootloader. Currently, the following MCU types are understood:
 
 @cindex Device support
 
@@ -2143,8 +2146,9 @@ The following programmer types are currently implemented:
 
 @smallexample
 part
-    desc             = <description> ;        # quoted string
-    id               = <id> ;                 # quoted string
+    desc             = <description> ;        # quoted string, the long part name, eg, "ATmega328p"
+    id               = <id> ;                 # quoted string, normally an abbreviated part name
+    variants         = <str1> [, <str2> ...]; # quoted strings, each starts so "<alt-name>: ..."
     family_id        = <id> ;                 # quoted string, e.g., "megaAVR" or "tinyAVR"
     prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
@@ -2165,15 +2169,14 @@ part
     is_at90s1200     = <yes/no> ;             # AT90S1200 part
     signature        = <num> <num> <num> ;    # signature bytes
     usbpid           = <num> ;                # DFU USB PID
-    chip_erase_delay = <num> ;                # micro-seconds
+    chip_erase_delay = <num> ;                # microseconds
     reset            = dedicated | io ;
     retry_pulse      = reset | sck ;
-    chip_erase_delay = <num> ;                # chip erase delay (us)
     # STK500 parameters (parallel programming IO lines)
-    pagel            = <num> ;                # pin name in hex, i.e., 0xD7
-    bs2              = <num> ;                # pin name in hex, i.e., 0xA0
+    pagel            = <num> ;                # page load pin name in hex, e.g., 0xD7
+    bs2              = <num> ;                # byte select 2 pin name in hex, e.g., 0xA0
     serial           = <yes/no> ;             # can use serial downloading
-    parallel         = <yes/no/pseudo> ;      # can use par. programming
+    parallel         = <yes/no/pseudo> ;      # can use parallel programming
     # STK500v2 parameters, to be taken from Atmel's ATDF files
     timeout          = <num> ;
     stabdelay        = <num> ;
@@ -2214,12 +2217,12 @@ part
     idr              = <num> ;                # IO addr of IDR (OCD) reg
     rampz            = <num> ;                # IO addr of RAMPZ reg
     spmcr            = <num> ;                # mem addr of SPMC[S]R reg
-    eecr             = <num> ;                # mem addr of EECR reg only when != 0x3f
+    eecr             = <num> ;                # mem addr of EECR reg
     eind             = <num> ;                # mem addr of EIND reg
-    mcu_base         = <num> ;
-    nvm_base         = <num> ;
-    ocd_base         = <num> ;
-    ocdrev           = <num> ;
+    mcu_base         = <num> ;                # MCU control block in ATxmega devices
+    nvm_base         = <num> ;                # NVM controller in ATxmega devices
+    ocd_base         = <num> ;                # OCD module in AVR8X/UPDI devices
+    ocdrev           = <num> ;                # JTAGICE3 parameter from ATDF files
     pgm_enable       = <instruction format> ;
     chip_erase       = <instruction format> ;
     # parameters for bootloaders
@@ -2231,6 +2234,7 @@ part
         size            = <num> ;             # bytes
         page_size       = <num> ;             # bytes
         num_pages       = <num> ;             # numeric
+        initval         = <num> ;             # factory setting of fuses and lockbits
         n_word_writes   = <num> ;             # TPI only: if set, number of words to write
         min_write_delay = <num> ;             # micro-seconds
         max_write_delay = <num> ;             # micro-seconds
@@ -2286,14 +2290,17 @@ that part then, from v7.1, the existing memory definition is extended,
 and components overwritten with new values. Assigning @code{NULL}
 removes an inherited SPI instruction format, memory definition, control
 stack, eeprom or flash instruction, e.g., as in @code{memory "efuse" =
-NULL;}
+NULL;}. The @code{variants} parameter is never inherited as it almost
+always would be a mistake to do so: @code{variants} defines a string
+list detailing variant names of the  part followed by an optional
+colon, the package code and some absolute maximum ratings.
 
 @noindent
 Example format for part inheritance:
 
 @smallexample
-   part parent <id>                              # quoted string
-       id               = <id> ;                 # quoted string
+   part parent <id>                              # String identifying parent
+       id               = <id> ;                 # Id string for new part
        <any set of other parameters from the list above>
      ;
 @end smallexample

@@ -129,7 +129,7 @@ SIGN     [+-]
   chiperasetime | (chiperase|program(fuse|lock))(polltimeout|pulsewidth) | synchcycles | hvspcmdexedelay |
   mcu_base | nvm_base | ocd_base | ocdrev |
   autobaud_sync | idr | rampz | spmcr | eecr | eind |
-  paged | size | num_pages | n_word_writes | offset | min_write_delay | max_write_delay | pwroff_after_write |
+  paged | size | num_pages | initval | n_word_writes | offset | min_write_delay | max_write_delay | pwroff_after_write |
   readback_p1 | readback_p2 | mode | delay | blocksize | readsize ) {
   /* struct components for PROGRAMMER, AVRPART and AVRMEM */
   Component_t *cp = cfg_comp_search(yytext, current_strct);
@@ -213,6 +213,7 @@ spi              { yylval=NULL; return K_SPI; }
 type             { yylval=NULL; ccap(); return K_TYPE; }
 usb              { yylval=NULL; return K_USB; }
 usbpid           { yylval=NULL; ccap(); return K_USBPID; }
+variants         { yylval=NULL; ccap(); return K_VARIANTS; }
 vcc              { yylval=NULL; ccap(); return K_VCC; }
 vfyled           { yylval=NULL; ccap(); return K_VFYLED; }
 write            { yylval=new_token(K_WRITE); ccap(); return K_WRITE; }

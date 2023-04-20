@@ -496,6 +496,7 @@ typedef struct {
   char descbuf[64];
   char idbuf[32];
   char family_idbuf[16];
+  char variants[4096-16-32-64];
   AVRPART base;
   OPCODE ops[AVR_OP_MAX];
   AVRMEMdeep mems[40];
@@ -522,12 +523,16 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   d->base.lineno = 0;
 
   // Copy over desc, id, and family_id
-  memset(d->descbuf, 0, sizeof d->descbuf);
   strncpy(d->descbuf, p->desc, sizeof d->descbuf-1);
-  memset(d->idbuf, 0, sizeof d->idbuf);
   strncpy(d->idbuf, p->id, sizeof d->idbuf-1);
-  memset(d->family_idbuf, 0, sizeof d->family_idbuf);
   strncpy(d->family_idbuf, p->family_id, sizeof d->family_idbuf-1);
+  char *vp = d->variants;
+  for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
+    if(vp < d->variants+sizeof d->variants-2) {
+      strncpy(vp, (char *)ldata(ln), d->variants+sizeof d->variants-vp-1);
+      vp += strlen(vp)+1;
+    }
+  }
 
   // Zap address values
   d->base.desc = NULL;
@@ -535,11 +540,11 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
   d->base.family_id = NULL;
   d->base.mem = NULL;
   d->base.mem_alias = NULL;
+  d->base.variants = NULL;
   for(int i=0; i<AVR_OP_MAX; i++)
     d->base.op[i] = NULL;
 
   // Copy over all used SPI operations
-  memset(d->ops, 0, sizeof d->ops);
   for(int i=0; i<AVR_OP_MAX; i++)
     if(p->op[i])
       d->ops[i] = *p->op[i];
@@ -603,6 +608,7 @@ static void dev_part_raw(const AVRPART *part) {
   AVRPARTdeep dp;
   int di = avrpart_deep_copy(&dp, part);
 
+  dev_raw_dump(&dp, (char *)&dp.base-(char *)&dp, part->desc, "part.intro", 0);
   dev_raw_dump(&dp.base, sizeof dp.base, part->desc, "part", 0);
   for(int i=0; i<AVR_OP_MAX; i++)
     if(!_is_all_zero(dp.ops+i, sizeof*dp.ops))
@@ -644,6 +650,39 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
   _if_partout_str(strcmp, descstr, desc);
   _if_partout_str(strcmp, cfg_escape(p->id), id);
+
+  if(lsize(p->variants)) {      // Variants are never inherited, so print if they exist
+    int firstid = 1;
+    if(tsv)
+      dev_info(".pt\t%s\tvariants\t", p->desc);
+    else {
+      dev_cout(p->comments, "variants", 0, 0);
+      dev_info("    %-22s =\n", "variants");
+    }
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
+      if(!firstid)
+        dev_info(tsv? ", ": ",\n");
+      firstid = 0;
+      char *str = cfg_escape(ldata(ln));
+      dev_info("%*s%s", tsv? 0: 8, "", str);
+      free(str);
+    }
+    if(tsv)
+      dev_info("\n");
+    else {
+      dev_info(";");
+      dev_cout(p->comments, "variants", 1, 1);
+    }
+  } else if(!base) {            // Print NULL for /S option
+    if(tsv)
+      dev_info(".pt\t%s\tvariants\tNULL\n", p->desc);
+    else {
+      dev_cout(p->comments, "variants", 0, 0);
+      dev_info("    %-22s = NULL;\n", "variants");
+      dev_cout(p->comments, "variants", 1, 1);
+    }
+  }
+
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
   _if_partout_str(intcmp, cfg_strdup("dev_part_strct()", prog_modes_str(p->prog_modes)), prog_modes);
   _if_partout(intcmp, "%d", mcuid);
@@ -761,8 +800,15 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       bm = avr_new_memtype();
 
     if(!tsv) {
-      if(!memorycmp(bm, m))     // Same memory bit for bit, no need to instantiate
-        continue;
+      if(!memorycmp(bm, m)) {   // Same memory bit for bit, only instantiate on injected parameters
+        int haveinjct = 0;
+        if(injct)
+          for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
+            if(meminj[i].mcu && strcmp(meminj[i].mcu, p->desc) == 0 && strcmp(meminj[i].mem, m->desc) == 0)
+              haveinjct = 1;
+        if(!haveinjct)
+          continue;
+      }
 
       dev_cout(m->comments, "*", 0, 1);
       dev_info("    memory \"%s\"\n", m->desc);
@@ -772,6 +818,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     _if_memout(intcmp, m->size > 8192? "0x%x": "%d", size);
     _if_memout(intcmp, "%d", page_size);
     _if_memout(intcmp, "%d", num_pages);
+    _if_memout(intcmp, m->initval == -1? "%d": "0x%02x", initval);
     _if_memout(intcmp, "%d", n_word_writes);
     _if_memout(intcmp, "0x%x", offset);
     _if_memout(intcmp, "%d", min_write_delay);
@@ -803,6 +850,17 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm)) {
       AVRMEM_ALIAS *ma = ldata(lnm);
       if(ma->aliased_mem && !strcmp(ma->aliased_mem->desc, m->desc)) {
+        // There is a memory that's aliased to the current memory: is it inherited?
+        if(base) {
+          int basehasalias = 0;
+          for(LNODEID lnb=lfirst(base->mem_alias); lnb; lnb=lnext(lnb)) {
+            AVRMEM_ALIAS *mab = ldata(lnb);
+            if(!strcmp(mab->desc, ma->desc) && mab->aliased_mem && !strcmp(mab->aliased_mem->desc, m->desc))
+              basehasalias = 1;
+          }
+          if(basehasalias)
+            continue;
+        }
         if(tsv)
           dev_info(".ptmm\t%s\t%s\talias\t%s\n", p->desc, ma->desc, m->desc);
         else
@@ -942,7 +1000,7 @@ void dev_output_part_defs(char *partdesc) {
         nprinted = dev_nprinted;
       }
 
-    if(!part_match(partdesc, p->desc) && !part_match(partdesc, p->id))
+    if(!part_eq(p, partdesc, part_match))
       continue;
 
     if(astrc || strct || cmpst)
