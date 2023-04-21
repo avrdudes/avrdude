@@ -21,18 +21,22 @@
 #include <string.h>
 #include "libavrdude.h"
 
+// Return 1 if str starts with starts, 0 otherwise
 int str_starts(const char *str, const char *starts) {
   return strncmp(str, starts, strlen(starts)) == 0;
 }
 
+// Return 1 if str1 and str2 are the same, 0 otherwise
 int str_eq(const char *str1, const char *str2) {
   return strcmp(str1, str2) == 0;
 }
 
+// Return 1 if str contains substr as substring, 0 otherwise
 int str_contains(const char *str, const char *substr) {
   return !!strstr(str, substr);
 }
 
+// Return 1 if str ends in ends, 0 otherwise
 int str_ends(const char *str, const char *ends) {
   size_t str_len  = strlen(str);
   size_t ends_len = strlen(ends);
@@ -43,14 +47,17 @@ int str_ends(const char *str, const char *ends) {
   return str_eq(str + str_len - ends_len, ends);
 }
 
+// Return 1 if str starts with starts irrespective of case, 0 otherwise
 int str_casestarts(const char *str, const char *starts) {
   return strncasecmp(str, starts, strlen(starts)) == 0;
 }
 
+// Return 1 if str1 and str2 are the same irrespective of case, 0 otherwise
 int str_caseeq(const char *str1, const char *str2) {
   return strcasecmp(str1, str2) == 0;
 }
 
+// Return 1 if str ends in ends irrespective of case, 0 otherwise
 int str_caseends(const char *str, const char *ends) {
   size_t str_len  = strlen(str);
   size_t ends_len = strlen(ends);
@@ -63,9 +70,11 @@ int str_caseends(const char *str, const char *ends) {
 
 
 /*
- * Match STRING against the partname pattern PATTERN, returning 1 if it matches,
- * 0 if not. Note: str_casematch() is a modified old copy of !fnmatch() from the
- * GNU C Library (published under GLP v2). Used for portability.
+ * Match string against the partname pattern, returning 1 if it matches, 0 if
+ * not. Note: str_casematch() is a modified old copy of !fnmatch() from the
+ * GNU C Library (published under GLP v2), which uses shell wildcards for
+ * constructing patterns, ie, *, ? and single character classes, eg, [^0-6].
+ * Used for portability.
  */
 
 inline static int fold(int c) {
