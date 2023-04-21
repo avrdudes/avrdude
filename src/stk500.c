@@ -606,7 +606,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned int osc_pscale;
     unsigned int osc_cmatch;
     const char *unit_get = {"Hz"};
-    double f_get;
+    double f_get = 0.0;
     stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
     stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
     if(osc_pscale) {

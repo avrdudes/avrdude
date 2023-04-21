@@ -1298,7 +1298,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       unsigned char osc_pscale;
       unsigned char osc_cmatch;
       const char *unit_get = {"Hz"};
-      double f_get;
+      double f_get = 0.0;
       stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
       stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
       if(osc_pscale) {
@@ -1613,7 +1613,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       unsigned char osc_pscale;
       unsigned char osc_cmatch;
       const char *unit_get = {"Hz"};
-      double f_get;
+      double f_get = 0.0;
       stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
       stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
       if(osc_pscale) {
