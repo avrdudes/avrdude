@@ -680,7 +680,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 
     else if (str_starts(extended_param, "varef")) {
       if (pgm->extra_features & HAS_VAREF_ADJ) {
-        int sscanf_success;
+        int sscanf_success = 0;
         double varef_set_val = 0;
         // Get new analog reference voltage for channel 0
         if (str_starts(extended_param, "varef=")) {
