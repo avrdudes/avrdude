@@ -169,6 +169,9 @@ add_library(libavrdude
     crc16.h
     dfu.c
     dfu.h
+    dryrun.c
+    dryrun.h
+    dryrun_private.h
     fileio.c
     flip1.c
     flip1.h

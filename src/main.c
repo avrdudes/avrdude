@@ -255,41 +255,6 @@ static void usage(void)
 }
 
 
-static char *via_prog_modes(int pm) {
-  static char type[1024];
-
-  strcpy(type, "?");
-  if(pm & PM_SPM)
-    strcat(type, ", bootloader");
-  if(pm & PM_TPI)
-    strcat(type, ", TPI");
-  if(pm & PM_ISP)
-    strcat(type, ", ISP");
-  if(pm & PM_PDI)
-    strcat(type, ", PDI");
-  if(pm & PM_UPDI)
-    strcat(type, ", UPDI");
-  if(pm & PM_HVSP)
-    strcat(type, ", HVSP");
-  if(pm & PM_HVPP)
-    strcat(type, ", HVPP");
-  if(pm & PM_debugWIRE)
-    strcat(type, ", debugWIRE");
-  if(pm & PM_JTAG)
-    strcat(type, ", JTAG");
-  if(pm & PM_JTAGmkI)
-    strcat(type, ", JTAGmkI");
-  if(pm & PM_XMEGAJTAG)
-    strcat(type, ", XMEGAJTAG");
-  if(pm & PM_AVR32JTAG)
-    strcat(type, ", AVR32JTAG");
-  if(pm & PM_aWire)
-    strcat(type, ", aWire");
-
-  return type + (type[1] == 0? 0: 3);
-}
-
-
 // Potentially shorten copy of prog description if it's the suggested mode
 static void pmshorten(char *desc, const char *modes) {
   struct { const char *end, *mode; } pairs[] = {
@@ -347,7 +312,7 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
         char *desc = cfg_strdup("list_programmers()", pgm->desc);
-        const char *modes = via_prog_modes(pm & pgm->prog_modes);
+        const char *modes = avr_prog_modes(pm & pgm->prog_modes);
 
         if(pm != ~0)
           pmshorten(desc, modes);
@@ -416,7 +381,7 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
       else
         fprintf(f, "%s%-*s = %s", prefix, maxlen, p->id, p->desc);
       if(pm != ~0)
-        fprintf(f, " via %s",  via_prog_modes(pm & p->prog_modes));
+        fprintf(f, " via %s", avr_prog_modes(pm & p->prog_modes));
       fprintf(f, "\n");
       if(verbose)
         for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln))
@@ -1043,7 +1008,7 @@ int main(int argc, char * argv [])
       int pm = pgm->prog_modes & p->prog_modes;
       if(pm & (pm-1))
         pmsg_warning("%s and %s share multiple modes (%s)\n",
-          pgm->id? (char *) ldata(lfirst(pgm->id)): "???", p->desc, via_prog_modes(pm));
+          pgm->id? (char *) ldata(lfirst(pgm->id)): "???", p->desc, avr_prog_modes(pm));
     }
   }
 

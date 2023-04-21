@@ -926,6 +926,8 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
 int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
+char *avr_prog_modes(int pm);
+
 void avr_add_mem_order(const char *str);
 
 int avr_memtype_is_flash_type(const char *mem);
