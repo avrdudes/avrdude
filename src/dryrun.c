@@ -164,6 +164,13 @@ static void dryrun_close(PROGRAMMER *pgm) {
 }
 
 
+// Emulate flash NOR-memory
+static void *memand(void *dest, const void *src, size_t n) {
+  for(size_t i=0; i<n; i++)
+    ((char *)dest)[i] &= ((const char *)src)[i];
+  return dest;
+}
+
 static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
@@ -195,7 +202,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     for(; addr < end; addr += chunk) {
       chunk = end-addr < page_size? end-addr: page_size;
-      memcpy(dmem->buf+addr, m->buf+addr, chunk);
+      (mchr == 'F'? memand: memcpy)(dmem->buf+addr, m->buf+addr, chunk);
     }
   }
 
