@@ -564,7 +564,7 @@ void capture_comment_str(const char *com, int lineno) {
 
 // Capture assignments (keywords left of =) and associate comments to them
 void capture_lvalue_kw(const char *kw, int lineno) {
-  if(str_eq(kw, "memory")) {   // Push part comments and start memory comments
+  if(str_eq(kw, "memory")) {    // Push part comments and start memory comments
     if(!cfg_pushed) {           // config_gram.y pops the part comments
       cfg_pushed = 1;
       cfg_pushedcomms = cfg_strctcomms;
