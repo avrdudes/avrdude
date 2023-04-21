@@ -1181,14 +1181,20 @@ bits before, and
 bits after the target AVR, respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
-.El
-.Pp
-The PICkit 4 and the Power Debugger also supports high-voltage UPDI programming.
-This is used to enable a UPDI pin that has previously been set to RESET or
-GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
-.Bl -tag -offset indent -width indent
 .It Ar hvupdi
-Enable high-voltage UPDI initialization for targets that supports this.
+.Nm Power Debugger and Pickit 4 only
+.sp 0.5
+High-voltage UPDI programming is used to enable a UPDI pin that has previously
+been set to RESET or GPIO mode. Use
+.Ar -xhvupdi
+to enable high-voltage UPDI initialization for targets that supports this.
+.It Ar vtarg=VALUE, vtarg
+.Nm Power Debugger only
+.sp 0.5
+The voltage generator can be enabled by setting a target voltage.
+The current set-voltage can be read by
+.Ar -xvtarg
+alone.
 .It Ar help
 Show help menu and exit.
 .El
@@ -1221,6 +1227,49 @@ a 0. The current state can be read by
 alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
+.It Ar help
+Show help menu and exit.
+.El
+.It Ar Curiosity Nano
+.Bl -tag -offset indent -width indent
+.It Ar vtarg=VALUE, vtarg
+The generated on-board target voltage can be changed by specifying a new voltage.
+The current set-voltage can be read by
+.Ar -xvtarg
+alone.
+.El
+.It Ar STK500
+.It Ar STK600
+.Bl -tag -offset indent -width indent
+.It Ar vtarg=VALUE, vtarg
+The generated on-board target voltage can be changed by specifying a new voltage.
+The current set-voltage can be read by
+.Ar -xvtarg
+alone.
+.It Ar fosc=VALUE[MHz|M|kHz|k|Hz], fosc
+Set the programmable oscillator frequency. The current frequency can be read by
+.Ar -xfosc
+alone.
+.It Ar varef=VALUE, varef
+The generated on-board analog reference voltage can be changed by specifying
+a new reference voltage. The current reference voltage can be read by
+.Ar -xvaref
+alone.
+.It Ar varef[0,1]=VALUE, varef[0,1]
+.Nm STK600 only
+.sp 0.5
+The generated on-board analog reference voltage for channel 0 or channel 1 can
+be changed by specifying a new reference voltage.
+The current reference voltage can be read by
+.Ar -xvaref0
+or
+.Ar -xvaref1
+alone.
+.It Ar attemps[=<1..99>]
+.Nm STK500V1 only
+.sp 0.5
+Specify how many connection retry attemps to perform before exiting.
+Defaults to 10 if not specified.
 .It Ar help
 Show help menu and exit.
 .El
@@ -1527,14 +1576,6 @@ XBee DOUT pin (pin 2) must be connected to the MCU's
 line, and the XBee DIN pin (pin 3) must be connected to the MCU's
 .Ql TXD
 line.
-.It Ar help
-Show help menu and exit.
-.El
-.It Ar STK500
-.Bl -tag -offset indent -width indent
-.It Ar attemps[=<1..99>]
-Specify how many connection retry attemps to perform before exiting.
-Defaults to 10 if not specified.
 .It Ar help
 Show help menu and exit.
 .El
