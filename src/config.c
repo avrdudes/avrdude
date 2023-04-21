@@ -832,9 +832,9 @@ char *cfg_escape(const char *s) {
 
 static int cmp_comp(const void *v1, const void *v2) {
   const Component_t *c1 = v1, *c2 = v2;
-  int ret = str_eq(c1->name, c2->name);
+  int ret = strcmp(c1->name, c2->name);
 
-  return ret? c1->strct - c2->strct: ret;
+  return ret? ret: c1->strct - c2->strct;
 }
 
 Component_t *cfg_comp_search(const char *name, int strct) {
