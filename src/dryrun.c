@@ -106,23 +106,39 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
 
 static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if(!dry.dp) {
+    unsigned char inifuses[10]; // For fuses, which is made up from fuse0, fuse1, ...
+    AVRMEM *fusesm = NULL;
     dry.dp = avr_dup_part(p);   // Allocate dryrun part
 
+    memset(inifuses, 0xff, sizeof inifuses);
     // Initialise the device with fuse factory setting and erase flash/EEPROM to 0xff
     for (LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
       AVRMEM *m = ldata(ln);
       if(avr_mem_is_flash_type(m) || avr_mem_is_eeprom_type(m)) {
         memset(m->buf, 0xff, m->size);
+      } else if(str_eq(m->desc, "fuses")) {
+        fusesm = m;
       } else if(str_contains(m->desc, "fuse") || str_contains(m->desc, "lock")) {
-        if(m->initval != -1 && m->size >=1 && m->size <= (int) sizeof(m->initval))
-          memcpy(m->buf, &m->initval, m->size);
-        else
+        // Lock can have 4 bytes: still allow initialisation from initval
+        if(m->initval != -1 && m->size >=1 && m->size <= (int) sizeof(m->initval)) {
+          memcpy(m->buf, &m->initval, m->size); // FIXME: relying on little endian here
+          if(str_starts(m->desc, "fuse") && m->desc[4] && m->size == 1) {
+            int fno = m->desc[4]-'0';
+            if(fno >= 0 && fno < (int) sizeof inifuses)
+              inifuses[fno] = m->initval;
+          }
+        } else {
           memset(m->buf, 0xff, m->size);
+        }
       } else if(str_eq(m->desc, "signature") && (int) sizeof(dry.dp->signature) == m->size) {
         memcpy(m->buf, dry.dp->signature, m->size);
       } else if(str_contains(m->desc, "calibration")) {
         memset(m->buf, 0x55, m->size); // ASCII 0x55 is 'U' for uncalibrated :)
       }
+    }
+    if(fusesm) {
+      size_t fusz = fusesm->size;
+      memcpy(fusesm->buf, inifuses, fusz < sizeof inifuses? fusz: sizeof inifuses);
     }
   }
 
@@ -252,7 +268,7 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned long addr, unsigned char data) {
 
-  AVRMEM *dmem;
+  AVRMEM *dmem, *dfuse;
 
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
@@ -271,6 +287,18 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
       dry.dp->desc, dmem->desc, addr, dmem->size-1);
 
   dmem->buf[addr] = data;
+
+  if(str_eq(dmem->desc, "fuses") && addr < 10) { // Copy the byte to corresponding fuse[0-9]
+    char memtype[64];
+    sprintf(memtype, "fuse%ld", addr);
+    if((dfuse = avr_locate_mem(dry.dp, memtype)) && dfuse->size == 1)
+      dfuse->buf[0] = data;
+  } else if(str_starts(m->desc, "fuse")) {
+    int fno = m->desc[4]-'0';
+    if(fno >= 0 && fno < 10)
+      if((dfuse = avr_locate_mem(dry.dp, "fuses")) && dfuse->size > fno)
+        dfuse->buf[fno] = data;
+  }
 
   return 0;
 }
