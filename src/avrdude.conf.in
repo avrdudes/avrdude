@@ -2772,7 +2772,18 @@ part
     desc                   = "ATtiny11";
     id                     = "t11";
     variants               =
-        "ATtiny11: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[2.7 V, 5.5 V]";
+        "ATtiny11:      N/A,   Fmax=N/A,   T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny11-6PC:  DIP8,  Fmax=6 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATtiny11-6PI:  DIP8,  Fmax=6 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATtiny11-6PU:  DIP8,  Fmax=6 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATtiny11-6SC:  SOIC8, Fmax=6 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATtiny11-6SI:  SOIC8, Fmax=6 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATtiny11-6SU:  SOIC8, Fmax=6 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATtiny11L-2PC: DIP8,  Fmax=2 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny11L-2PI: DIP8,  Fmax=2 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny11L-2SC: SOIC8, Fmax=2 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny11L-2SI: SOIC8, Fmax=2 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny11L-2SU: SOIC8, Fmax=2 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     prog_modes             = PM_HVSP;
     mcuid                  = 8;
     n_interrupts           = 5;
@@ -3123,7 +3134,13 @@ part
     desc                   = "ATtiny15";
     id                     = "t15";
     variants               =
-        "ATtiny15: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[2.7 V, 5.5 V]";
+        "ATtiny15:      N/A,   Fmax=N/A,     T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny15L-1PC: DIP8,  Fmax=1.6 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny15L-1PI: DIP8,  Fmax=1.6 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny15L-1PU: DIP8,  Fmax=1.6 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny15L-1SC: SOIC8, Fmax=1.6 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny15L-1SI: SOIC8, Fmax=1.6 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATtiny15L-1SU: SOIC8, Fmax=1.6 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     prog_modes             = PM_ISP | PM_HVSP;
     mcuid                  = 12;
     n_interrupts           = 9;
@@ -3311,6 +3328,31 @@ part parent "89S51"
 part
     desc                   = "AT90S1200";
     id                     = "1200";
+    variants               =
+        "AT90S1200-12PC:  DIP20,  Fmax=12 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S1200-12PI:  DIP20,  Fmax=12 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S1200-12SC:  SOIC20, Fmax=12 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S1200-12SI:  SOIC20, Fmax=12 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S1200-12YC:  SSOP20, Fmax=12 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S1200-12YI:  SSOP20, Fmax=12 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S1200-4PC:   DIP20,  Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200-4PI:   DIP20,  Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200-4SC:   SOIC20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200-4SI:   SOIC20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200-4YC:   SSOP20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200-4YI:   SSOP20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200A-12PC: DIP20,  Fmax=12 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S1200A-12PI: DIP20,  Fmax=12 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S1200A-12SC: SOIC20, Fmax=12 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S1200A-12SI: SOIC20, Fmax=12 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S1200A-12YC: SSOP20, Fmax=12 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S1200A-12YI: SSOP20, Fmax=12 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S1200A-4PC:  DIP20,  Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200A-4PI:  DIP20,  Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200A-4SC:  SOIC20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200A-4SI:  SOIC20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200A-4YC:  SSOP20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S1200A-4YI:  SSOP20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 183;
     n_interrupts           = 4;
@@ -3395,6 +3437,19 @@ part
 part
     desc                   = "AT90S4414";
     id                     = "4414";
+    variants               =
+        "AT90S4414-4AC: TQFP44, Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S4414-4AI: TQFP44, Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S4414-4JC: LCC44,  Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S4414-4JI: LCC44,  Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S4414-4PC: DIP40,  Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S4414-4PI: DIP40,  Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S4414-8AC: TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S4414-8AI: TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S4414-8JC: LCC44,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S4414-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S4414-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S4414-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 190;
     n_interrupts           = 13;
@@ -3477,6 +3532,15 @@ part
 part
     desc                   = "AT90S2313";
     id                     = "2313";
+    variants               =
+        "AT90S2313-10PC: DIP20,  Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S2313-10PI: DIP20,  Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S2313-10SC: SOIC20, Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V,   6 V]",
+        "AT90S2313-10SI: SOIC20, Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V,   6 V]",
+        "AT90S2313-4PC:  DIP20,  Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S2313-4PI:  DIP20,  Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "AT90S2313-4SC:  SOIC20, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "AT90S2313-4SI:  SOIC20, Fmax=4 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 186;
     n_interrupts           = 11;
@@ -3560,6 +3624,11 @@ part
 ##### WARNING: No XML file for device 'AT90S2333'! #####
     desc                   = "AT90S2333";
     id                     = "2333";
+    variants               =
+        "AT90S2333-8AC: TQFP32, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S2333-8AI: TQFP32, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S2333-8PC: DIP28,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S2333-8PI: DIP28,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 188;
     n_interrupts           = 14;
@@ -3646,6 +3715,11 @@ part
 part
     desc                   = "AT90S2343";
     id                     = "2343";
+    variants               =
+        "AT90S2343-10PC: DIP8,  Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S2343-10PI: DIP8,  Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S2343-10SC: SOIC8, Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S2343-10SI: SOIC8, Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVSP;
     mcuid                  = 189;
     n_interrupts           = 3;
@@ -3738,6 +3812,11 @@ part
 part parent "2343"
     desc                   = "AT90S2323";
     id                     = "2323";
+    variants               =
+        "AT90S2323-10PC: DIP8,  Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S2323-10PI: DIP8,  Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S2323-10SC: SOIC8, Fmax=10 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S2323-10SI: SOIC8, Fmax=10 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
     mcuid                  = 187;
     stk500_devcode         = 0x41;
     avr910_devcode         = 0x48;
@@ -3751,6 +3830,11 @@ part parent "2343"
 part parent "2343"
     desc                   = "ATtiny22";
     id                     = "t22";
+    variants               =
+        "ATtiny22L-1PC: DIP8,  Fmax=1 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "ATtiny22L-1PI: DIP8,  Fmax=1 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]",
+        "ATtiny22L-1SC: SOIC8, Fmax=1 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 6 V]",
+        "ATtiny22L-1SI: SOIC8, Fmax=1 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 6 V]";
     mcuid                  = 13;
     stk500_devcode         = 0x20;
     avr910_devcode         = 0x00; # Unknown
@@ -3768,6 +3852,11 @@ part parent "2343"
 part parent "2333"
     desc                   = "AT90S4433";
     id                     = "4433";
+    variants               =
+        "AT90S4433-8AC: TQFP32, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4433-8AI: TQFP32, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S4433-8PC: DIP28,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4433-8PI: DIP28,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
     mcuid                  = 191;
     stk500_devcode         = 0x51;
     avr910_devcode         = 0x30;
@@ -3804,6 +3893,13 @@ part
 ##### WARNING: No XML file for device 'AT90S4434'! #####
     desc                   = "AT90S4434";
     id                     = "4434";
+    variants               =
+        "AT90S4434-8AC: TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8AI: TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8JC: LCC44,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP;
     mcuid                  = 192;
     n_interrupts           = 17;
@@ -3865,6 +3961,8 @@ part
 part
     desc                   = "AT90S8515";
     id                     = "8515";
+    variants               =
+        "AT90S8515-8PC: DIP40, Fmax=8 MHz, T=[0 C, 70 C], Vcc=[4 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 193;
     n_interrupts           = 13;
@@ -3948,6 +4046,13 @@ part
 part
     desc                   = "AT90S8535";
     id                     = "8535";
+    variants               =
+        "AT90S8535-8AC: TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S8535-8AI: TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S8535-8JC: LCC44,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S8535-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S8535-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S8535-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 195;
     n_interrupts           = 17;
@@ -4035,6 +4140,11 @@ part
 part
     desc                   = "ATmega103";
     id                     = "m103";
+    variants               =
+        "ATmega103-6AC:  TQFP64, Fmax=6 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATmega103-6AI:  TQFP64, Fmax=6 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATmega103L-4AC: TQFP64, Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 3.6 V]",
+        "ATmega103L-4AI: TQFP64, Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 84;
     n_interrupts           = 24;
@@ -5708,17 +5818,41 @@ part
     desc                   = "ATmega162";
     id                     = "m162";
     variants               =
-        "ATmega162:       N/A,    Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
-        "ATmega162-16AU:  TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega162-16AUR: TQFP44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega162-16MU:  MLF44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega162-16MUR: MLF44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega162-16PU:  PDIP40, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega162V-8AU:  TQFP44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega162V-8AUR: TQFP44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega162V-8MU:  QFN44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega162V-8MUR: MLF44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
-        "ATmega162V-8PU:  PDIP40, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+        "ATmega162:       N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162-16AC:  TQFP44,  Fmax=16 MHz, T=[0 C,   70 C], Vcc=[4.5 V, 5.5 V]",
+        "ATmega162-16AI:  TQFP44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16AJ:  TQFP44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16AU:  TQFP44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16AUR: TQFP44,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16MC:  VFQFN44, Fmax=16 MHz, T=[0 C,   70 C], Vcc=[4.5 V, 5.5 V]",
+        "ATmega162-16MI:  VFQFN44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16MJ:  VFQFN44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16MU:  VFQFN44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16MUR: VFQFN44, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16PC:  DIP40,   Fmax=16 MHz, T=[0 C,   70 C], Vcc=[4.5 V, 5.5 V]",
+        "ATmega162-16PI:  DIP40,   Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16PJ:  DIP40,   Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162-16PU:  DIP40,   Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162L-8AC:  TQFP44,  Fmax=8 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162L-8AI:  TQFP44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162L-8MC:  VFQFN44, Fmax=8 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162L-8MI:  VFQFN44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162L-8PC:  DIP40,   Fmax=8 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162L-8PI:  DIP40,   Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega162V-1AC:  TQFP44,  Fmax=1 MHz,  T=[0 C,   70 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega162V-1MC:  VFQFN44, Fmax=1 MHz,  T=[0 C,   70 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega162V-1PC:  DIP40,   Fmax=1 MHz,  T=[0 C,   70 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega162V-8AI:  TQFP44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8AJ:  TQFP44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8AU:  TQFP44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8AUR: TQFP44,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8MI:  VFQFN44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8MJ:  VFQFN44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8MU:  VFQFN44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8MUR: VFQFN44, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8PI:  DIP40,   Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8PJ:  DIP40,   Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega162V-8PU:  DIP40,   Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 90;
     n_interrupts           = 28;
@@ -5846,6 +5980,15 @@ part
 part
     desc                   = "ATmega163";
     id                     = "m163";
+    variants               =
+        "ATmega163-8AC:  TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATmega163-8AI:  TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATmega163-8PC:  DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATmega163-8PI:  DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATmega163L-4AC: TQFP44, Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega163L-4AI: TQFP44, Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega163L-4PC: DIP40,  Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega163L-4PI: DIP40,  Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 91;
     n_interrupts           = 18;
@@ -5956,7 +6099,21 @@ part
     desc                   = "ATmega169";
     id                     = "m169";
     variants               =
-        "ATmega169: N/A, Fmax=16 MHz, T=[N/A, N/A], Vcc=[N/A, N/A]";
+        "ATmega169:      N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega169-16AI: TQFP64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169-16AU: TQFP64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169-16MI: VFQFN64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169-16MU: VFQFN64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169L-4AC: TQFP64,  Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169L-4MC: VFQFN64, Fmax=4 MHz,  T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169L-8AI: TQFP64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169L-8MI: VFQFN64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169V-1AC: TQFP64,  Fmax=1 MHz,  T=[0 C,   70 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega169V-1MC: VFQFN64, Fmax=1 MHz,  T=[0 C,   70 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega169V-8AI: TQFP64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega169V-8AU: TQFP64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega169V-8MI: VFQFN64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega169V-8MU: VFQFN64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG | PM_JTAGmkI;
     mcuid                  = 104;
     n_interrupts           = 23;
@@ -6127,12 +6284,14 @@ part parent "m169"
         "ATmega169P-16AUR:  TQFP64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega169P-16MCH:  QFN64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega169P-16MCHR: QFN64,  Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
+        "ATmega169P-16MCU:  VQFN64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega169P-16MU:   QFN64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
         "ATmega169P-16MUR:  QFN64,  Fmax=16 MHz, T=[N/A,    N/A], Vcc=[2.7 V, 5.5 V]",
         "ATmega169PV-8AU:   TQFP64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega169PV-8AUR:  TQFP64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega169PV-8MCH:  QFN64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega169PV-8MCHR: QFN64,  Fmax=8 MHz,  T=[N/A,    N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATmega169PV-8MCU:  VQFN64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega169PV-8MU:   MLF64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
         "ATmega169PV-8MUR:  QFN64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_JTAG;
@@ -6820,6 +6979,15 @@ part
 part
     desc                   = "ATmega161";
     id                     = "m161";
+    variants               =
+        "ATmega161-8AC:  TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATmega161-8AI:  TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATmega161-8PC:  DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V,   5.5 V]",
+        "ATmega161-8PI:  DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V,   5.5 V]",
+        "ATmega161L-4AC: TQFP44, Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega161L-4AI: TQFP44, Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega161L-4PC: DIP40,  Fmax=4 MHz, T=[0 C,   70 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega161L-4PI: DIP40,  Fmax=4 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP;
     mcuid                  = 89;
     n_interrupts           = 21;
@@ -9885,8 +10053,14 @@ part parent "m32m1"
     desc                   = "ATmega32C1";
     id                     = "m32c1";
     variants               =
-        "ATmega32C1-AU: TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega32C1-MU: QFN32,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
+        "ATmega32C1-15AD: TQFP32, Fmax=16 MHz, T=[-40 C, 150 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-15AZ: TQFP32, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-15MD: VQFN32, Fmax=16 MHz, T=[-40 C, 150 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-15MZ: VQFN32, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-AU:   TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-ESAD: TQFP32, Fmax=16 MHz, T=[-40 C, 150 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-ESMD: VQFN32, Fmax=16 MHz, T=[-40 C, 150 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega32C1-MU:   QFN32,  Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 62;
     signature              = 0x1e 0x95 0x86;
 ;
@@ -9899,8 +10073,14 @@ part parent "m64m1"
     desc                   = "ATmega64C1";
     id                     = "m64c1";
     variants               =
-        "ATmega64C1-AU: TQFP32, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
-        "ATmega64C1-MU: QFN32,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]";
+        "ATmega64C1-15AD: TQFP32, Fmax=16 MHz, T=[-40 C, 150 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-15AZ: TQFP32, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-15MD: VQFN32, Fmax=16 MHz, T=[-40 C, 150 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-15MZ: VQFN32, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-AU:   TQFP32, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-ESAZ: TQFP32, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-ESMZ: VQFN32, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega64C1-MU:   QFN32,  Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 75;
     signature              = 0x1e 0x96 0x86;
 ;
@@ -9913,7 +10093,8 @@ part parent "t167"
     desc                   = "ATA5505";
     id                     = "ata5505";
     variants               =
-        "ATA5505: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[2.7 V, 5.5 V]";
+        "ATA5505:      N/A,     Fmax=N/A, T=[N/A,     N/A], Vcc=[2.7 V, 5.5 V]",
+        "ATA5505-P3QW: VFQFN38, Fmax=N/A, T=[-40 C, 105 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 198;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
@@ -9959,7 +10140,8 @@ part parent "m88"
     desc                   = "ATA6612C";
     id                     = "ata6612c";
     variants               =
-        "ATA6612C-PLQW-1: QFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+        "ATA6612C-PLQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA6612C-PLQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 216;
     chip_erase_delay       = 4000;
 
@@ -9990,7 +10172,8 @@ part parent "m168"
     desc                   = "ATA6613C";
     id                     = "ata6613c";
     variants               =
-        "ATA6613C-PLQW-1: QFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+        "ATA6613C-PLQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA6613C-PLQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 217;
 
     memory "efuse"
@@ -10015,7 +10198,8 @@ part parent "m328"
     desc                   = "ATA6614Q";
     id                     = "ata6614q";
     variants               =
-        "ATA6614Q-PLQW-1: QFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+        "ATA6614Q-PLQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA6614Q-PLQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 218;
     signature              = 0x1e 0x95 0x0f;
 
@@ -10041,7 +10225,9 @@ part parent "t87"
     desc                   = "ATA6616C";
     id                     = "ata6616c";
     variants               =
-        "ATA6616C-P3QW-1: QFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+        "ATA6616C-P3PW:   VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA6616C-P3QW:   VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA6616C-P3QW-1: VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 219;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
@@ -10093,7 +10279,8 @@ part parent "t167"
     desc                   = "ATA6617C";
     id                     = "ata6617c";
     variants               =
-        "ATA6617C-P3QW-1: QFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+        "ATA6617C-P3QW:   VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA6617C-P3QW-1: VFQFN38, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 220;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
@@ -10139,7 +10326,9 @@ part parent "t167"
     desc                   = "ATA664251";
     id                     = "ata664251";
     variants               =
-        "ATA664251: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.8 V, 5.5 V]";
+        "ATA664251:        N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.8 V, 5.5 V]",
+        "ATA664251-WGQW:   VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]",
+        "ATA664251-WGQW-1: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 225;
     chip_erase_delay       = 4000;
     reset                  = dedicated;
@@ -10185,7 +10374,11 @@ part
     desc                   = "ATmega16HVA";
     id                     = "m16hva";
     variants               =
-        "ATmega16HVA: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.8 V, 4.5 V]";
+        "ATmega16HVA:       N/A,     Fmax=N/A,   T=[N/A,    N/A], Vcc=[1.8 V, 4.5 V]",
+        "ATmega16HVA-4CKU:  WFLGA36, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]",
+        "ATmega16HVA-4CKUR: WFLGA36, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]",
+        "ATmega16HVA-4TU:   TSSOP28, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]",
+        "ATmega16HVA-4TUR:  TSSOP28, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
     mcuid                  = 51;
     n_interrupts           = 21;
@@ -10301,7 +10494,11 @@ part parent "m16hva"
     desc                   = "ATmega8HVA";
     id                     = "m8hva";
     variants               =
-        "ATmega8HVA: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.8 V, 4.5 V]";
+        "ATmega8HVA:       N/A,     Fmax=N/A,   T=[N/A,    N/A], Vcc=[1.8 V, 4.5 V]",
+        "ATmega8HVA-4CKU:  WFLGA36, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]",
+        "ATmega8HVA-4CKUR: WFLGA36, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]",
+        "ATmega8HVA-4TU:   TSSOP28, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]",
+        "ATmega8HVA-4TUR:  TSSOP28, Fmax=4 MHz, T=[-20 C, 85 C], Vcc=[1.8 V,   9 V]";
     mcuid                  = 47;
     signature              = 0x1e 0x93 0x10;
 
@@ -10322,7 +10519,9 @@ part
     desc                   = "ATmega16HVB";
     id                     = "m16hvb";
     variants               =
-        "ATmega16HVB: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[4 V, 18 V]";
+        "ATmega16HVB:      N/A,     Fmax=N/A,   T=[N/A,    N/A], Vcc=[4 V, 18 V]",
+        "ATmega16HVB-8X3:  TFSOP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 25 V]",
+        "ATmega16HVB-8X3R: TFSOP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 25 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVPP | PM_debugWIRE;
     mcuid                  = 52;
     n_interrupts           = 29;
@@ -10457,7 +10656,9 @@ part parent "m16hvb"
     desc                   = "ATmega32HVB";
     id                     = "m32hvb";
     variants               =
-        "ATmega32HVB: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[4 V, 18 V]";
+        "ATmega32HVB:      N/A,     Fmax=N/A,   T=[N/A,    N/A], Vcc=[4 V, 18 V]",
+        "ATmega32HVB-8X3:  TFSOP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 25 V]",
+        "ATmega32HVB-8X3R: TFSOP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 25 V]";
     mcuid                  = 60;
     signature              = 0x1e 0x95 0x10;
 
@@ -10497,7 +10698,9 @@ part
     desc                   = "ATmega64HVE2";
     id                     = "m64hve2";
     variants               =
-        "ATmega64HVE2: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[3.0 V, 3.6 V]";
+        "ATmega64HVE2:      N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[3.0 V, 3.6 V]",
+        "ATmega64HVE2-PLPW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V,   3.6 V]",
+        "ATmega64HVE2-PLQW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V,   3.6 V]";
     prog_modes             = PM_SPM | PM_ISP | PM_HVSP | PM_debugWIRE;
     mcuid                  = 77;
     n_interrupts           = 25;
@@ -10623,6 +10826,9 @@ part
 part parent "m64hve2"
     desc                   = "ATmega32HVE2";
     id                     = "m32hve2";
+    variants               =
+        "ATmega32HVE2-PLPW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V, 3.6 V]",
+        "ATmega32HVE2-PLQW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V, 3.6 V]";
     mcuid                  = 379;
     signature              = 0x1e 0x95 0x13;
 
@@ -12472,7 +12678,14 @@ part parent "m2561"
     desc                   = "ATmega128RFA1";
     id                     = "m128rfa1";
     variants               =
-        "ATmega128RFA1: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.8 V, 3.6 V]";
+        "ATmega128RFA1:           N/A,     Fmax=N/A, T=[N/A,     N/A], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZF:        VFQFN64, Fmax=N/A, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZFR:       VFQFN64, Fmax=N/A, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZU:        VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZU00:      VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZUR:       VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZUR-SL514: VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFA1-ZUR00:     VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 87;
     n_interrupts           = 72;
     chip_erase_delay       = 55000;
@@ -12508,10 +12721,10 @@ part parent "m2561"
     desc                   = "ATmega256RFR2";
     id                     = "m256rfr2";
     variants               =
-        "ATmega256RFR2-ZF:  QFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega256RFR2-ZFR: QFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega256RFR2-ZU:  QFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega256RFR2-ZUR: QFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
+        "ATmega256RFR2-ZF:  VFQFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega256RFR2-ZFR: VFQFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega256RFR2-ZU:  VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega256RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 108;
     n_interrupts           = 77;
     chip_erase_delay       = 18500;
@@ -12552,10 +12765,10 @@ part parent "m128rfa1"
     desc                   = "ATmega128RFR2";
     id                     = "m128rfr2";
     variants               =
-        "ATmega128RFR2-ZF:  QFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega128RFR2-ZFR: QFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega128RFR2-ZU:  QFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega128RFR2-ZUR: QFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
+        "ATmega128RFR2-ZF:  VFQFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFR2-ZFR: VFQFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFR2-ZU:  VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega128RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 88;
     n_interrupts           = 77;
     signature              = 0x1e 0xa7 0x02;
@@ -12574,10 +12787,10 @@ part parent "m128rfa1"
     desc                   = "ATmega64RFR2";
     id                     = "m64rfr2";
     variants               =
-        "ATmega64RFR2-ZF:  QFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega64RFR2-ZFR: QFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega64RFR2-ZU:  QFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega64RFR2-ZUR: QFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
+        "ATmega64RFR2-ZF:  VFQFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega64RFR2-ZFR: VFQFN64, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega64RFR2-ZU:  VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega64RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 78;
     n_interrupts           = 77;
     signature              = 0x1e 0xa6 0x02;
@@ -12613,10 +12826,10 @@ part parent "m256rfr2"
     desc                   = "ATmega2564RFR2";
     id                     = "m2564rfr2";
     variants               =
-        "ATmega2564RFR2-ZF:  VQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega2564RFR2-ZFR: VQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega2564RFR2-ZU:  VQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega2564RFR2-ZUR: VQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
+        "ATmega2564RFR2-ZF:  VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega2564RFR2-ZFR: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega2564RFR2-ZU:  VFQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega2564RFR2-ZUR: VFQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 145;
     signature              = 0x1e 0xa8 0x03;
 ;
@@ -12629,10 +12842,10 @@ part parent "m128rfr2"
     desc                   = "ATmega1284RFR2";
     id                     = "m1284rfr2";
     variants               =
-        "ATmega1284RFR2-ZF:  VQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega1284RFR2-ZFR: VQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega1284RFR2-ZU:  VQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega1284RFR2-ZUR: VQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
+        "ATmega1284RFR2-ZF:  VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega1284RFR2-ZFR: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega1284RFR2-ZU:  VFQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega1284RFR2-ZUR: VFQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 142;
     signature              = 0x1e 0xa7 0x03;
 ;
@@ -12645,10 +12858,10 @@ part parent "m64rfr2"
     desc                   = "ATmega644RFR2";
     id                     = "m644rfr2";
     variants               =
-        "ATmega644RFR2-ZF:  VQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega644RFR2-ZFR: VQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega644RFR2-ZU:  VQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
-        "ATmega644RFR2-ZUR: VQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
+        "ATmega644RFR2-ZF:  VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega644RFR2-ZFR: VFQFN48, Fmax=16 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega644RFR2-ZU:  VFQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
+        "ATmega644RFR2-ZUR: VFQFN48, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 131;
     signature              = 0x1e 0xa6 0x03;
 ;
@@ -14848,7 +15061,15 @@ part parent "m165p"
     desc                   = "ATmega165";
     id                     = "m165";
     variants               =
-        "ATmega165: N/A, Fmax=16 MHz, T=[N/A, N/A], Vcc=[N/A, N/A]";
+        "ATmega165:      N/A,     Fmax=16 MHz, T=[N/A,    N/A], Vcc=[N/A,     N/A]",
+        "ATmega165-16AI: TQFP64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega165-16AU: TQFP64,  Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega165-16MI: VFQFN64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega165-16MU: VFQFN64, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[2.7 V, 5.5 V]",
+        "ATmega165V-8AI: TQFP64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega165V-8AU: TQFP64,  Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega165V-8MI: VFQFN64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "ATmega165V-8MU: VFQFN64, Fmax=8 MHz,  T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 95;
 
     memory "eeprom"
@@ -15447,7 +15668,7 @@ part parent ".xmega"
     desc                   = "ATxmega16A4U";
     id                     = "x16a4u";
     variants               =
-        "ATxmega16A4U-AN:  TQFP44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega16A4U-AN:  TQFP44,  Fmax=32 MHz, T=[0 C,   105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4U-ANR: N/A,     Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega16A4U-AU:  TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4U-AUR: TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -15593,8 +15814,8 @@ part parent ".xmega"
     desc                   = "ATxmega32A4U";
     id                     = "x32a4u";
     variants               =
-        "ATxmega32A4U-AN:  TQFP44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega32A4U-ANR: TQFP44,  Fmax=32 MHz, T=[N/A,   105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32A4U-AN:  TQFP44,  Fmax=32 MHz, T=[0 C,   105 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega32A4U-ANR: TQFP44,  Fmax=32 MHz, T=[0 C,   105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-AU:  TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-AUR: TQFP44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-CU:  BGA49,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
@@ -17138,6 +17359,17 @@ part parent ".xmega-e"
 part
     desc                   = "AT32UC3A0512";
     id                     = "uc3a0512";
+    variants               =
+        "AT32UC3A0512-ALTR:    LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-ALTRA:   LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-ALTT:    LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-ALTTA:   LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-ALUR:    LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-ALUT:    LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-CTUR:    TFBGA144, Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512-CTUT:    TFBGA144, Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512AU-ALTRA: LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]",
+        "AT32UC3A0512AU-ALUT:  LQFP144,  Fmax=66 MHz, T=[-40 C, 85 C], Vcc=[1.65 V, 3.6 V]";
     prog_modes             = PM_AVR32JTAG | PM_aWire;
     signature              = 0xed 0xc0 0x3f;
 
