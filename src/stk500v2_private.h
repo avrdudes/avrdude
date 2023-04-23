@@ -280,6 +280,22 @@ struct pdata
   bool vtarg_switch_set;
   unsigned char vtarg_switch_data[2];
 
+  /* Get/set flags for adjustable target voltage */
+  bool vtarg_get;
+  bool vtarg_set;
+  double vtarg_data;
+
+  /* Get/set flags for adjustable analog reference voltage */
+  bool varef_get;
+  bool varef_set;
+  int varef_channel;
+  double varef_data;
+
+  /* Get/set flags for programmable clock generator */
+  bool fosc_get;
+  bool fosc_set;
+  double fosc_data;
+
   const AVRPART *lastpart;
 
   /* Start address of Xmega boot area */

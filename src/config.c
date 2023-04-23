@@ -336,26 +336,28 @@ TOKEN *new_constant(const char *con) {
 
   tkn->value.type = V_NUM;
   tkn->value.number =
-    !strcmp("PM_SPM", con)? PM_SPM:
-    !strcmp("PM_TPI", con)? PM_TPI:
-    !strcmp("PM_ISP", con)? PM_ISP:
-    !strcmp("PM_PDI", con)? PM_PDI:
-    !strcmp("PM_UPDI", con)? PM_UPDI:
-    !strcmp("PM_HVSP", con)? PM_HVSP:
-    !strcmp("PM_HVPP", con)? PM_HVPP:
-    !strcmp("PM_debugWIRE", con)? PM_debugWIRE:
-    !strcmp("PM_JTAG", con)? PM_JTAG:
-    !strcmp("PM_JTAGmkI", con)? PM_JTAGmkI:
-    !strcmp("PM_XMEGAJTAG", con)? PM_XMEGAJTAG:
-    !strcmp("PM_AVR32JTAG", con)? PM_AVR32JTAG:
-    !strcmp("PM_aWire", con)? PM_aWire:
-    !strcmp("HAS_SUFFER", con)? HAS_SUFFER:
-    !strcmp("HAS_VTARG_SWITCH", con)? HAS_VTARG_SWITCH:
-    !strcmp("HAS_VTARG_ADJ", con)? HAS_VTARG_ADJ:
-    !strcmp("HAS_VTARG_READ", con)? HAS_VTARG_READ:
-    !strcmp("pseudo", con)? 2:
-    !strcmp("yes", con) || !strcmp("true", con)? 1:
-    !strcmp("no", con) || !strcmp("false", con)? 0:
+    str_eq(con, "PM_SPM")? PM_SPM:
+    str_eq(con, "PM_TPI")? PM_TPI:
+    str_eq(con, "PM_ISP")? PM_ISP:
+    str_eq(con, "PM_PDI")? PM_PDI:
+    str_eq(con, "PM_UPDI")? PM_UPDI:
+    str_eq(con, "PM_HVSP")? PM_HVSP:
+    str_eq(con, "PM_HVPP")? PM_HVPP:
+    str_eq(con, "PM_debugWIRE")? PM_debugWIRE:
+    str_eq(con, "PM_JTAG")? PM_JTAG:
+    str_eq(con, "PM_JTAGmkI")? PM_JTAGmkI:
+    str_eq(con, "PM_XMEGAJTAG")? PM_XMEGAJTAG:
+    str_eq(con, "PM_AVR32JTAG")? PM_AVR32JTAG:
+    str_eq(con, "PM_aWire")? PM_aWire:
+    str_eq(con, "HAS_SUFFER")? HAS_SUFFER:
+    str_eq(con, "HAS_VTARG_SWITCH")? HAS_VTARG_SWITCH:
+    str_eq(con, "HAS_VTARG_ADJ")? HAS_VTARG_ADJ:
+    str_eq(con, "HAS_VTARG_READ")? HAS_VTARG_READ:
+    str_eq(con, "HAS_FOSC_ADJ")? HAS_FOSC_ADJ:
+    str_eq(con, "HAS_VAREF_ADJ")? HAS_VAREF_ADJ:
+    str_eq(con, "pseudo")? 2:
+    str_eq(con, "yes") || str_eq(con, "true")? 1:
+    str_eq(con, "no") || str_eq(con, "false")? 0:
     (assigned = 0);
 
   if(!assigned) {
@@ -495,7 +497,7 @@ const char *cache_string(const char *p) {
     hs = hstrings[h] = (char **) cfg_realloc("cache_string()", NULL, (16+1)*sizeof**hstrings);
 
   for(k=0; hs[k]; k++)
-    if(*p == *hs[k] && !strcmp(p, hs[k]))
+    if(*p == *hs[k] && str_eq(p, hs[k]))
       return hs[k];
 
   if(k && k%16 == 0)
@@ -520,7 +522,7 @@ COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
   if(comments)
     for(LNODEID ln=lfirst(comments); ln; ln=lnext(ln)) {
       COMMENT *n = ldata(ln);
-      if(n && rhs == n->rhs && n->kw && strcmp(where, n->kw) == 0)
+      if(n && rhs == n->rhs && n->kw && str_eq(where, n->kw))
         return n;
     }
 
@@ -563,7 +565,7 @@ void capture_comment_str(const char *com, int lineno) {
 
 // Capture assignments (keywords left of =) and associate comments to them
 void capture_lvalue_kw(const char *kw, int lineno) {
-  if(!strcmp(kw, "memory")) {   // Push part comments and start memory comments
+  if(str_eq(kw, "memory")) {    // Push part comments and start memory comments
     if(!cfg_pushed) {           // config_gram.y pops the part comments
       cfg_pushed = 1;
       cfg_pushedcomms = cfg_strctcomms;
@@ -571,7 +573,7 @@ void capture_lvalue_kw(const char *kw, int lineno) {
     }
   }
 
-  if(!strcmp(kw, "programmer") || !strcmp(kw, "part") || !strcmp(kw, "memory"))
+  if(str_eq(kw, "programmer") || str_eq(kw, "part") || str_eq(kw, "memory"))
     kw = "*";                   // Show comment before programmer/part/memory
 
   if(lkw)

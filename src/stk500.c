@@ -45,6 +45,18 @@
 #define STK500_XTAL 7372800U
 #define MAX_SYNC_ATTEMPTS 10
 
+static double f_to_kHz_MHz(double f, const char **unit) {
+  if (f > 1e6) {
+    f /= 1e6;
+    *unit = "MHz";
+  } else if (f > 1e3) {
+    f /= 1000;
+    *unit = "kHz";
+  } else
+    *unit = "Hz";
+  return f;
+}
+
 static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value);
 static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value);
 static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
@@ -557,6 +569,73 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned int vtarg_read;
+    stk500_getparm(pgm, Parm_STK_VTARGET, &vtarg_read);
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", (vtarg_read / 10.0));
+    // Write target voltage value
+    else {
+      msg_info("Changing target voltage from %.2f to %.2fV\n", (vtarg_read / 10.0), PDATA(pgm)->vtarg_data);
+      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+        return -1;
+    }
+  }
+
+  // Read or write analog reference voltage
+  if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+    // Read current analog reference voltage
+    unsigned int varef_read;
+    stk500_getparm(pgm, Parm_STK_VADJUST, &varef_read);
+    if (PDATA(pgm)->varef_get)
+      msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+    // Write analog reference voltage
+    else {
+      msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+        (varef_read / 10.0), PDATA(pgm)->varef_data);
+      if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+        return -1;
+    }
+  }
+
+  // Read or write clock generator frequency
+  if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+    // Read current target voltage set value
+    unsigned int osc_pscale;
+    unsigned int osc_cmatch;
+    const char *unit_get = {"Hz"};
+    double f_get = 0.0;
+    stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
+    stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
+    if(osc_pscale) {
+      int prescale = 1;
+      f_get = STK500_XTAL / 2;
+      switch (osc_pscale) {
+        case 2: prescale = 8; break;
+        case 3: prescale = 32; break;
+        case 4: prescale = 64; break;
+        case 5: prescale = 128; break;
+        case 6: prescale = 256; break;
+        case 7: prescale = 1024; break;
+      }
+      f_get /= prescale;
+      f_get /= (osc_cmatch + 1);
+      f_get = f_to_kHz_MHz(f_get, &unit_get);
+    }
+    if (PDATA(pgm)->fosc_get)
+        msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+    // Write target voltage value
+    else {
+      const char *unit_set;
+      double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+      msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+      if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+        return -1;
+    }
+  }
+
   return pgm->program_enable(pgm, p);
 }
 
@@ -570,17 +649,122 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
    for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
      extended_param = ldata(ln);
 
-     if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
-       PDATA(pgm)->retry_attempts = attempts;
-       pmsg_info("setting number of retry attempts to %d\n", attempts);
-       continue;
-     }
+    if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
+      PDATA(pgm)->retry_attempts = attempts;
+      pmsg_info("setting number of retry attempts to %d\n", attempts);
+      continue;
+    }
+
+    else if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+          continue;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg")) {
+          PDATA(pgm)->vtarg_get = true;
+          continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "varef")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        int sscanf_success = 0;
+        double varef_set_val = 0;
+        // Get new analog reference voltage for channel 0
+        if (str_starts(extended_param, "varef=")) {
+          sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get new analog reference voltage for channel 0
+        else if(str_starts(extended_param, "varef0=")) {
+          sscanf_success = sscanf(extended_param, "varef0=%lf", &varef_set_val);
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get current analog reference voltage for channel 0
+        else if(str_eq(extended_param, "varef") || str_eq(extended_param, "varef0")) {
+          PDATA(pgm)->varef_get = true;
+          continue;
+        }
+        // Set analog reference voltage
+        if (PDATA(pgm)->varef_set) {
+          PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || varef_set_val < 0) {
+            pmsg_error("invalid varef value '%s'\n", extended_param);
+            PDATA(pgm)->varef_set = false;
+            rv = -1;
+            break;
+          }
+          continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "fosc")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        // Set clock generator frequency
+        if (str_starts(extended_param, "fosc=")) {
+          char fosc_str[16] = {0};
+          int sscanf_success = sscanf(extended_param, "fosc=%10s", fosc_str);
+          if (sscanf_success < 1) {
+            pmsg_error("invalid fosc value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          char *endp;
+          double v = strtod(fosc_str, &endp);
+          if (endp == fosc_str){
+            if (str_eq(fosc_str, "off"))
+              PDATA(pgm)->fosc_data = 0.0;
+            else {
+              pmsg_error("cannot parse fosc value %s\n", fosc_str);
+              rv = -1;
+              break;
+            }
+          }
+          if (*endp == 'm' || *endp == 'M')
+            PDATA(pgm)->fosc_data =  v * 1e6;
+          else if (*endp == 'k' || *endp == 'K')
+            PDATA(pgm)->fosc_data =  v * 1e3;
+          PDATA(pgm)->fosc_set = true;
+          continue;
+        }
+        // Get clock generator frequency
+        else if(str_eq(extended_param, "fosc")) {
+          PDATA(pgm)->fosc_get = true;
+         continue;
+        }
+      }
+    }
 
     else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
-      msg_error("  -xattempts=<arg> Specify no. connection retry attempts\n");
-      msg_error("  -xhelp           Show this help menu and exit\n");
+      msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg               Read target supply voltage\n");
+        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
+      }
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        msg_error("  -xvaref               Read analog reference voltage\n");
+        msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
+      }
+      if (pgm->extra_features & HAS_FOSC_ADJ) {
+        msg_error("  -xfosc                Read oscillator clock frequency\n");
+        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
+      }
+      msg_error("  -xhelp                Show this help menu and exit\n");
       exit(0);
     }
 
@@ -966,7 +1150,7 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
   }
 
   if (uaref > utarg) {
-    pmsg_error("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
+    pmsg_warning("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
     if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg) != 0)
       return -1;
   }
@@ -1282,7 +1466,6 @@ void stk500_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = stk500_initialize;
-  pgm->parseextparams = stk500_parseextparms;
   pgm->display        = stk500_display;
   pgm->enable         = stk500_enable;
   pgm->disable        = stk500_disable;
@@ -1300,11 +1483,19 @@ void stk500_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500_paged_write;
   pgm->paged_load     = stk500_paged_load;
   pgm->print_parms    = stk500_print_parms;
-  pgm->set_vtarget    = stk500_set_vtarget;
-  pgm->set_varef      = stk500_set_varef;
-  pgm->set_fosc       = stk500_set_fosc;
   pgm->set_sck_period = stk500_set_sck_period;
+  pgm->parseextparams = stk500_parseextparms;
   pgm->setup          = stk500_setup;
   pgm->teardown       = stk500_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget    = stk500_set_vtarget;
+  if (pgm->extra_features & HAS_VAREF_ADJ)
+    pgm->set_varef      = stk500_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc       = stk500_set_fosc;
 }

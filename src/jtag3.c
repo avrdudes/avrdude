@@ -84,6 +84,11 @@ struct pdata
   bool vtarg_switch_set;
   unsigned char vtarg_switch_data[2];
 
+  /* Get/set flags for adjustable target voltage */
+  bool vtarg_get;
+  bool vtarg_set;
+  double vtarg_data;
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
 };
@@ -1099,7 +1104,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (PDATA(pgm)->set_sck(pgm, parm) < 0)
       return -1;
   }
-  jtag3_print_parms1(pgm, progbuf, stderr);
+
   if (conn == PARM3_CONN_JTAG) {
     pmsg_notice2("jtag3_initialize(): "
       "trying to set JTAG daisy-chain info to %d,%d,%d,%d\n",
@@ -1108,6 +1113,9 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_JTAGCHAIN, PDATA(pgm)->jtagchain, 4) < 0)
       return -1;
   }
+
+  if (verbose && quell_progress < 2)
+    jtag3_print_parms1(pgm, progbuf, stderr);
 
   // Read or write SUFFER register
   if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
@@ -1139,6 +1147,26 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       // Exit early is the target power switch is off and print sensible info message
       if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
         imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        return -1;
+      }
+    }
+  }
+
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char buf[2];
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return -1;
+    double vtarg_read = b2_to_u16(buf) / 1000.0;
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", vtarg_read);
+    // Write target voltage value
+    else {
+      u16_to_b2(buf, (unsigned)(PDATA(pgm)->vtarg_data * 1000));
+      msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+        msg_warning("Cannot set target voltage %.2fV\n", PDATA(pgm)->vtarg_data);
         return -1;
       }
     }
@@ -1528,6 +1556,29 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       }
     }
 
+    else if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+          continue;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg")) {
+          PDATA(pgm)->vtarg_get = true;
+          continue;
+        }
+      }
+    }
+
     else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
@@ -1540,6 +1591,10 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
         msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
         msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
+      }
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg                 Read on-board target supply voltage\n");
+        msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
       }
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
       exit(0);
@@ -2496,7 +2551,7 @@ void jtag3_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sICE HW version  : %d\n", p, parms[0]);
   msg_info("%sICE FW version  : %d.%02d (rel. %d)\n", p, parms[1], parms[2],
            (parms[3] | (parms[4] << 8)));
-  msg_info("%sSerial number   : %s", p, sn);
+  msg_info("%sSerial number   : %s\n", p, sn);
   free(resp);
 }
 
@@ -2508,6 +2563,39 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
     return;
   msg_info("%sVtarget         : %.2f V\n", p, b2_to_u16(buf)/1000.0);
+
+  // Print clocks if programmer typ is not TPI
+  if (!str_eq(pgm->type, "JTAGICE3_TPI")) {
+    // Get current programming mode and target type from to determine what data to print
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)
+      return;
+    if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &prog_mode[1], 1) < 0)
+      return;
+    if (prog_mode[0] == PARM3_CONN_JTAG) {
+      if (prog_mode[1] == PARM3_ARCH_XMEGA) {
+        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
+          return;
+        if (b2_to_u16(buf) > 0)
+          fmsg_out(fp, "%sJTAG clk Xmega  : %u kHz\n", p, b2_to_u16(buf));
+      } else {
+        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
+          return;
+        if (b2_to_u16(buf) > 0)
+          fmsg_out(fp, "%sJTAG clk prog.  : %u kHz\n", p, b2_to_u16(buf));
+
+        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
+          return;
+        if (b2_to_u16(buf) > 0)
+          fmsg_out(fp, "%sJTAG clk debug  : %u kHz\n", p, b2_to_u16(buf));
+      }
+    }
+    else if (prog_mode[0] == PARM3_CONN_PDI || prog_mode[0] == PARM3_CONN_UPDI) {
+      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
+        return;
+      if (b2_to_u16(buf) > 0)
+        fmsg_out(fp, "%sPDI/UPDI clk    : %u kHz\n", p, b2_to_u16(buf));
+    }
+  }
 
   // Print features unique to the Power Debugger
   for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
@@ -2577,39 +2665,6 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
         fmsg_out(fp, "%sCh B current    : %.3f mA\n", p, (float) analog_raw_data * 0.555556);
       }
       break;
-    }
-  }
-
-  // Print clocks if programmer typ is not TPI
-  if (strcmp(pgm->type, "JTAGICE3_TPI")) {
-    // Get current programming mode and target type from to determine what data to print
-    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)
-      return;
-    if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &prog_mode[1], 1) < 0)
-      return;
-    if (prog_mode[0] == PARM3_CONN_JTAG) {
-      if (prog_mode[1] == PARM3_ARCH_XMEGA) {
-        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0)
-          return;
-        if (b2_to_u16(buf) > 0)
-          fmsg_out(fp, "%sJTAG clk Xmega  : %u kHz\n", p, b2_to_u16(buf));
-      } else {
-        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0)
-          return;
-        if (b2_to_u16(buf) > 0)
-          fmsg_out(fp, "%sJTAG clk prog.  : %u kHz\n", p, b2_to_u16(buf));
-
-        if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_DEBUG, buf, 2) < 0)
-          return;
-        if (b2_to_u16(buf) > 0)
-          fmsg_out(fp, "%sJTAG clk debug  : %u kHz\n", p, b2_to_u16(buf));
-      }
-    }
-    else if (prog_mode[0] == PARM3_CONN_PDI || prog_mode[0] == PARM3_CONN_UPDI) {
-      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0)
-        return;
-      if (b2_to_u16(buf) > 0)
-        fmsg_out(fp, "%sPDI/UPDI clk    : %u kHz\n", p, b2_to_u16(buf));
     }
   }
   fmsg_out(fp, "\n");
@@ -2761,6 +2816,29 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char* resp;
   int status;
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char buf[2];
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return -1;
+    double vtarg_read = b2_to_u16(buf) / 1000.0;
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", vtarg_read);
+    // Write target voltage value
+    else {
+      u16_to_b2(buf, (unsigned)(PDATA(pgm)->vtarg_data * 1000));
+      msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+        msg_warning("Cannot set target voltage %.2fV\n", PDATA(pgm)->vtarg_data);
+        return -1;
+      }
+    }
+  }
+
+  if (verbose && quell_progress < 2)
+    jtag3_print_parms1(pgm, progbuf, stderr);
+
   pmsg_notice2("jtag3_initialize_tpi() start\n");
 
   cmd[0] = XPRG_CMD_ENTER_PROGMODE;
@@ -2784,8 +2862,6 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   if ((status = jtag3_command_tpi(pgm, cmd, 3, &resp, "Set NVMCSR")) < 0)
     return -1;
   free(resp);
-
-  jtag3_print_parms1(pgm, progbuf, stderr);
 
   return 0;
 }
@@ -3100,6 +3176,9 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3129,11 +3208,15 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = jtag3_paged_write;
   pgm->paged_load     = jtag3_paged_load;
   pgm->print_parms    = jtag3_print_parms;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_DW;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3165,11 +3248,15 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3183,7 +3270,6 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = jtag3_initialize;
-  pgm->parseextparams = jtag3_parseextparms;
   pgm->display        = jtag3_display;
   pgm->enable         = jtag3_enable;
   pgm->disable        = jtag3_disable;
@@ -3202,6 +3288,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
@@ -3209,6 +3296,9 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3238,6 +3328,7 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = jtag3_paged_write_tpi;
   pgm->paged_load     = jtag3_paged_load_tpi;
   pgm->print_parms    = jtag3_print_parms;
+  pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;

@@ -377,6 +377,28 @@ b2_to_u16(unsigned char *b)
   return l;
 }
 
+static void
+u16_to_b2(unsigned char *b, unsigned short l)
+{
+  b[0] = l & 0xff;
+  b[1] = (l >> 8) & 0xff;
+}
+
+static double
+f_to_kHz_MHz(double f, const char **unit)
+{
+  if (f > 1e6) {
+    f /= 1e6;
+    *unit = "MHz";
+  } else if (f > 1e3) {
+    f /= 1000;
+    *unit = "kHz";
+  } else
+    *unit = "Hz";
+
+  return f;
+}
+
 static int stk500v2_send_mk2(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   if (serial_send(&pgm->fd, data, len) != 0) {
     pmsg_error("unable to send command to serial port\n");
@@ -1223,6 +1245,109 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     // stk600_setup_isp(pgm); [moved to pgm->enable()]
   }
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char vtarg_read;
+    stk500v2_getparm(pgm, PARAM_VTARGET, &vtarg_read);
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", (vtarg_read / 10.0));
+    // Write target voltage value
+    else {
+      msg_info("Changing target voltage from %.2f to %.2fV\n", (vtarg_read / 10.0), PDATA(pgm)->vtarg_data);
+      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+        return -1;
+    }
+  }
+
+  // Read or write analog reference voltage
+  if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // STK500: Read current analog reference voltage
+      unsigned char varef_read;
+      stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+      // STK500: Write analog reference voltage
+      else {
+        msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+          (varef_read / 10.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // STK600: Read current target voltage set value
+      unsigned int varef_read;
+      stk500v2_getparm2(pgm, PDATA(pgm)->varef_channel == 0 ? PARAM2_AREF0 : PARAM2_AREF1, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference channel %d voltage read as %.2fV\n", PDATA(pgm)->varef_channel, (varef_read / 100.0));
+      // STK600: Write target voltage value for channel n
+      else {
+        msg_info("Changing analog reference channel %d voltage from %.2f to %.2fV\n",
+          PDATA(pgm)->varef_channel, (varef_read / 100.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, PDATA(pgm)->varef_channel, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    }
+  }
+
+  // Read or write clock generator frequency
+  if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // Read current target voltage set value
+      unsigned char osc_pscale;
+      unsigned char osc_cmatch;
+      const char *unit_get = {"Hz"};
+      double f_get = 0.0;
+      stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
+      stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+      if(osc_pscale) {
+        int prescale = 1;
+        f_get = STK500V2_XTAL / 2;
+        switch (osc_pscale) {
+          case 2: prescale = 8; break;
+          case 3: prescale = 32; break;
+          case 4: prescale = 64; break;
+          case 5: prescale = 128; break;
+          case 6: prescale = 256; break;
+          case 7: prescale = 1024; break;
+        }
+        f_get /= prescale;
+        f_get /= (osc_cmatch + 1);
+        f_get = f_to_kHz_MHz(f_get, &unit_get);
+      }
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // Read current target voltage set value
+      unsigned int clock_conf;
+      stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+      unsigned int oct = (clock_conf & 0xf000) >> 12u;
+      unsigned int dac = (clock_conf & 0x0ffc) >> 2u;
+      double f_get = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+      const char *unit_get = {"Hz"};
+      f_get = f_to_kHz_MHz(f_get, &unit_get);
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    }
+  }
+
   /*
    * Examine the avrpart's memory definitions, and initialize the page
    * caches.  For devices/memory that are not page oriented, treat
@@ -1350,6 +1475,26 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char buf[2];
+    if (jtag3_getparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, 2) < 0)
+      return -1;
+    double vtarg_read = b2_to_u16(buf) / 1000.0;
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", vtarg_read);
+    // Write target voltage value
+    else {
+      u16_to_b2(buf, (unsigned)(PDATA(pgm)->vtarg_data * 1000));
+      msg_info("Changing target voltage from %.2f to %.2fV\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      if (jtag3_setparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
+        msg_warning("Cannot set target voltage %.2fV\n", PDATA(pgm)->vtarg_data);
+        return -1;
+      }
+    }
+  }
+
   free(pgmcp);
 
   /*
@@ -1413,6 +1558,109 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
   if (result < 0) {
     pmsg_error("unable to set control stack\n");
     return -1;
+  }
+
+  // Read or write target voltage
+  if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+    // Read current target voltage set value
+    unsigned char vtarg_read;
+    stk500v2_getparm(pgm, PARAM_VTARGET, &vtarg_read);
+    if (PDATA(pgm)->vtarg_get)
+      msg_info("Target voltage value read as %.2fV\n", (vtarg_read / 10.0));
+    // Write target voltage value
+    else {
+      msg_info("Changing target voltage from %.2f to %.2fV\n", (vtarg_read / 10.0), PDATA(pgm)->vtarg_data);
+      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+        return -1;
+    }
+  }
+
+  // Read or write analog reference voltage
+  if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // STK500: Read current analog reference voltage
+      unsigned char varef_read;
+      stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+      // STK500: Write analog reference voltage
+      else {
+        msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+          (varef_read / 10.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // STK600: Read current target voltage set value
+      unsigned int varef_read;
+      stk500v2_getparm2(pgm, PDATA(pgm)->varef_channel == 0 ? PARAM2_AREF0 : PARAM2_AREF1, &varef_read);
+      if (PDATA(pgm)->varef_get)
+        msg_info("Analog reference channel %d voltage read as %.2fV\n", PDATA(pgm)->varef_channel, (varef_read / 100.0));
+      // STK600: Write target voltage value for channel n
+      else {
+        msg_info("Changing analog reference channel %d voltage from %.2f to %.2fV\n",
+          PDATA(pgm)->varef_channel, (varef_read / 100.0), PDATA(pgm)->varef_data);
+        if(pgm->set_varef(pgm, PDATA(pgm)->varef_channel, PDATA(pgm)->varef_data) < 0)
+          return -1;
+      }
+    }
+  }
+
+  // Read or write clock generator frequency
+  if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+      // Read current target voltage set value
+      unsigned char osc_pscale;
+      unsigned char osc_cmatch;
+      const char *unit_get = {"Hz"};
+      double f_get = 0.0;
+      stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
+      stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+      if(osc_pscale) {
+        int prescale = 1;
+        f_get = STK500V2_XTAL / 2;
+        switch (osc_pscale) {
+          case 2: prescale = 8; break;
+          case 3: prescale = 32; break;
+          case 4: prescale = 64; break;
+          case 5: prescale = 128; break;
+          case 6: prescale = 256; break;
+          case 7: prescale = 1024; break;
+        }
+        f_get /= prescale;
+        f_get /= (osc_cmatch + 1);
+        f_get = f_to_kHz_MHz(f_get, &unit_get);
+      }
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+      // Read current target voltage set value
+      unsigned int clock_conf;
+      stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+      unsigned int oct = (clock_conf & 0xf000) >> 12u;
+      unsigned int dac = (clock_conf & 0x0ffc) >> 2u;
+      double f_get = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+      const char *unit_get = {"Hz"};
+      f_get = f_to_kHz_MHz(f_get, &unit_get);
+      if (PDATA(pgm)->fosc_get)
+          msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
+      // Write target voltage value
+      else {
+        const char *unit_set;
+        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
+        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+          return -1;
+      }
+    }
   }
 
   /*
@@ -1563,6 +1811,157 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
 
+static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  LNODEID ln;
+  const char *extended_param;
+  int rv = 0;
+
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+          continue;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg")) {
+          PDATA(pgm)->vtarg_get = true;
+          continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "varef")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        int sscanf_success = 0;
+        double varef_set_val = 0;
+        // Get new analog reference voltage for channel 0
+        if (str_starts(extended_param, "varef=")) {
+          sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
+          PDATA(pgm)->varef_channel = 0;
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get new analog reference voltage for channel 0
+        else if(str_starts(extended_param, "varef0=")) {
+          sscanf_success = sscanf(extended_param, "varef0=%lf", &varef_set_val);
+          PDATA(pgm)->varef_channel = 0;
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get new analog reference voltage for channel 1
+        else if (str_starts(extended_param, "varef1=") && str_contains(pgm->type, "STK600")) {
+          sscanf_success = sscanf(extended_param, "varef1=%lf", &varef_set_val);
+          PDATA(pgm)->varef_channel = 1;
+          PDATA(pgm)->varef_set = true;
+        }
+        // Get current analog reference voltage for channel 0
+        else if(str_eq(extended_param, "varef") || str_eq(extended_param, "varef0")) {
+          PDATA(pgm)->varef_get = true;
+          PDATA(pgm)->varef_channel = 0;
+          continue;
+        }
+        // Get current analog reference voltage for channel 1
+        else if(str_eq(extended_param, "varef1") && str_contains(pgm->type, "STK600")) {
+          PDATA(pgm)->varef_get = true;
+          PDATA(pgm)->varef_channel = 1;
+          continue;
+        }
+        // Set analog reference voltage
+        if (PDATA(pgm)->varef_set) {
+          PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || varef_set_val < 0) {
+            pmsg_error("invalid varef value '%s'\n", extended_param);
+            PDATA(pgm)->varef_set = false;
+            rv = -1;
+            break;
+          }
+          continue;
+        }
+      }
+    }
+
+    else if (str_starts(extended_param, "fosc")) {
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        // Set clock generator frequency
+        if (str_starts(extended_param, "fosc=")) {
+          char fosc_str[16] = {0};
+          int sscanf_success = sscanf(extended_param, "fosc=%10s", fosc_str);
+          if (sscanf_success < 1) {
+            pmsg_error("invalid fosc value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          char *endp;
+          double v = strtod(fosc_str, &endp);
+          if (endp == fosc_str){
+            if (str_eq(fosc_str, "off"))
+              PDATA(pgm)->fosc_data = 0.0;
+            else {
+              pmsg_error("cannot parse fosc value %s\n", fosc_str);
+              rv = -1;
+              break;
+            }
+          }
+          if (*endp == 'm' || *endp == 'M')
+            PDATA(pgm)->fosc_data =  v * 1e6;
+          else if (*endp == 'k' || *endp == 'K')
+            PDATA(pgm)->fosc_data =  v * 1e3;
+          PDATA(pgm)->fosc_set = true;
+          continue;
+        }
+        // Get clock generator frequency
+        else if(str_eq(extended_param, "fosc")) {
+          PDATA(pgm)->fosc_get = true;
+         continue;
+        }
+      }
+    }
+
+    else if (str_eq(extended_param, "help")) {
+      char *prg = (char *)ldata(lfirst(pgm->id));
+      msg_error("%s -c %s extended options:\n", progname, prg);
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg               Read target supply voltage\n");
+        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
+      }
+      if (pgm->extra_features & HAS_VAREF_ADJ) {
+        if (str_contains(pgm->type, "STK500")) {
+          msg_error("  -xvaref               Read analog reference voltage\n");
+          msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
+        }
+        else if (str_contains(pgm->type, "STK600")) {
+          msg_error("  -xvaref               Read channel 0 analog reference voltage\n");
+          msg_error("  -xvaref0              Alias for -xvaref\n");
+          msg_error("  -xvaref1              Read channel 1 analog reference voltage\n");
+          msg_error("  -xvaref=<arg>         Set channel 0 analog reference voltage\n");
+          msg_error("  -xvaref0=<arg>        Alias for -xvaref=<arg>\n");
+          msg_error("  -xvaref1=<arg>        Set channel 1 analog reference voltage\n");
+        }
+      }
+      if (pgm->extra_features & HAS_FOSC_ADJ) {
+        msg_error("  -xfosc                Read oscillator clock frequency\n");
+        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
+      }
+      msg_error("  -xhelp                Show this help menu and exit\n");
+      exit(0);
+    }
+
+    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    rv = -1;
+  }
+  return rv;
+}
+
 static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
@@ -1619,6 +2018,29 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       }
     }
 
+    else if (str_starts(extended_param, "vtarg")) {
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        // Set target voltage
+        if (str_starts(extended_param, "vtarg=") ) {
+          double vtarg_set_val = 0;
+          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+          if (sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            rv = -1;
+            break;
+          }
+          PDATA(pgm)->vtarg_set = true;
+        }
+        // Get target voltage
+        else if(str_eq(extended_param, "vtarg"))
+          PDATA(pgm)->vtarg_get = true;
+        else
+          break;
+        continue;
+      }
+    }
+
     else if (str_eq(extended_param, "help")) {
       char *prg = (char *)ldata(lfirst(pgm->id));
       msg_error("%s -c %s extended options:\n", progname, prg);
@@ -1627,6 +2049,10 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
         msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");
         msg_error("  -xvtarg_switch=<0..1> Set on-board target voltage switch state\n");
+      }
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
+        msg_error("  -xvtarg               Read on-board target supply voltage\n");
+        msg_error("  -xvtarg=<arg>         Set on-board target supply voltage\n");
       }
       msg_error  ("  -xhelp                Show this help menu and exit\n");
       exit(0);
@@ -2925,7 +3351,6 @@ static int stk600_set_vtarget(const PROGRAMMER *pgm, double v) {
   unsigned char utarg;
   unsigned int uaref;
   int rv;
-
   utarg = (unsigned)((v + 0.049) * 10);
 
   if (stk500v2_getparm2(pgm, PARAM2_AREF0, &uaref) != 0) {
@@ -3206,7 +3631,6 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     PROGRAMMER *pgmcp = pgm_dup(pgm);
     pgmcp->cookie = PDATA(pgm)->chained_pdata;
     jtag3_display(pgmcp, p);
-    msg_info("\n");
     pgm_free(pgmcp);
   }
   stk500v2_print_parms1(pgm, p, stderr);
@@ -3214,20 +3638,6 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
-static double
-f_to_kHz_MHz(double f, const char **unit)
-{
-  if (f > 1e6) {
-    f /= 1e6;
-    *unit = "MHz";
-  } else if (f > 1e3) {
-    f /= 1000;
-    *unit = "kHz";
-  } else
-    *unit = "Hz";
-
-  return f;
-}
 
 static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char vtarget = 0, vadjust = 0, osc_pscale = 0, osc_cmatch = 0, sck_duration =0; //XXX 0 is not correct, check caller
@@ -3301,7 +3711,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       pgmcp->id = lcreat(NULL, 0);
       // Copy pgm->id contents over to pgmcp->id
       for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
-        ladd(pgmcp->id, cfg_strdup("stk500v2_print_parms1()", ldata(ln)));
+        ladd(pgmcp->id, cfg_strdup("stk500v2_display()", ldata(ln)));
       jtag3_print_parms1(pgmcp, p, fp);
       pgm_free(pgmcp);
     }
@@ -4280,14 +4690,14 @@ static void stk600_setup_xprog(PROGRAMMER * pgm)
  */
 static void stk600_setup_isp(PROGRAMMER * pgm)
 {
-    pgm->program_enable = stk500v2_program_enable;
-    pgm->disable = stk500v2_disable;
-    pgm->read_byte = stk500isp_read_byte;
-    pgm->write_byte = stk500isp_write_byte;
-    pgm->paged_load = stk500v2_paged_load;
-    pgm->paged_write = stk500v2_paged_write;
-    pgm->page_erase = stk500v2_page_erase;
-    pgm->chip_erase = stk500v2_chip_erase;
+  pgm->program_enable = stk500v2_program_enable;
+  pgm->disable = stk500v2_disable;
+  pgm->read_byte = stk500isp_read_byte;
+  pgm->write_byte = stk500isp_write_byte;
+  pgm->paged_load = stk500v2_paged_load;
+  pgm->paged_write = stk500v2_paged_write;
+  pgm->page_erase = stk500v2_page_erase;
+  pgm->chip_erase = stk500v2_chip_erase;
 }
 
 const char stk500v2_desc[] = "Atmel STK500 Version 2.x firmware";
@@ -4317,14 +4727,22 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500v2_paged_load;
   pgm->page_erase     = stk500v2_page_erase;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = stk500v2_set_vtarget;
+  if (pgm->extra_features & HAS_VAREF_ADJ)
+    pgm->set_varef    = stk500v2_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc     = stk500v2_set_fosc;
 }
 
 const char stk500pp_desc[] = "Atmel STK500 V2 in parallel programming mode";
@@ -4352,13 +4770,21 @@ void stk500pp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = stk500v2_set_vtarget;
+  if (pgm->extra_features & HAS_VAREF_ADJ)
+    pgm->set_varef    = stk500v2_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc     = stk500v2_set_fosc;
 }
 
 const char stk500hvsp_desc[] = "Atmel STK500 V2 in high-voltage serial programming mode";
@@ -4386,13 +4812,21 @@ void stk500hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500hvsp_paged_write;
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_ADJ)
+    pgm->set_vtarget  = stk500v2_set_vtarget;
+  if (pgm->extra_features & HAS_VAREF_ADJ)
+    pgm->set_varef    = stk500v2_set_varef;
+  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->set_fosc     = stk500v2_set_fosc;
 }
 
 const char stk500v2_jtagmkII_desc[] = "Atmel JTAG ICE mkII in ISP mode";
@@ -4487,9 +4921,6 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500pp_paged_write;
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->setup          = stk500v2_jtagmkII_setup;
   pgm->teardown       = stk500v2_jtagmkII_teardown;
@@ -4521,9 +4952,6 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_write    = stk500hvsp_paged_write;
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
-  pgm->set_vtarget    = stk500v2_set_vtarget;
-  pgm->set_varef      = stk500v2_set_varef;
-  pgm->set_fosc       = stk500v2_set_fosc;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->setup          = stk500v2_jtagmkII_setup;
   pgm->teardown       = stk500v2_jtagmkII_teardown;
@@ -4562,6 +4990,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
   pgm->set_fosc       = stk600_set_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
@@ -4596,6 +5025,7 @@ void stk600pp_initpgm(PROGRAMMER *pgm) {
   pgm->set_varef      = stk600_set_varef;
   pgm->set_fosc       = stk600_set_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
@@ -4630,6 +5060,7 @@ void stk600hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->set_varef      = stk600_set_varef;
   pgm->set_fosc       = stk600_set_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
   pgm->page_size      = 256;
@@ -4644,7 +5075,6 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    * mandatory functions
    */
   pgm->initialize     = stk500v2_jtag3_initialize;
-  pgm->parseextparams = stk500v2_jtag3_parseextparms;
   pgm->display        = stk500v2_display;
   pgm->enable         = stk500v2_enable;
   pgm->disable        = stk500v2_jtag3_disable;
@@ -4665,10 +5095,14 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_jtag3_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
+  pgm->parseextparams = stk500v2_jtag3_parseextparms;
   pgm->setup          = stk500v2_jtag3_setup;
   pgm->teardown       = stk500v2_jtag3_teardown;
   pgm->page_size      = 256;
 
+  /*
+   * hardware dependent functions
+   */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
