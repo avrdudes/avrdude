@@ -1306,6 +1306,42 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 }
 
 
+// Returns a pointer to static memory of list of programming modes
+char *avr_prog_modes(int pm) {
+  static char type[1024];
+
+  strcpy(type, "?");
+  if(pm & PM_SPM)
+    strcat(type, ", bootloader");
+  if(pm & PM_TPI)
+    strcat(type, ", TPI");
+  if(pm & PM_ISP)
+    strcat(type, ", ISP");
+  if(pm & PM_PDI)
+    strcat(type, ", PDI");
+  if(pm & PM_UPDI)
+    strcat(type, ", UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, ", HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, ", HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, ", debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, ", JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, ", JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, ", XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, ", AVR32JTAG");
+  if(pm & PM_aWire)
+    strcat(type, ", aWire");
+
+  return type + (type[1] == 0? 0: 3);
+}
+
+
 // Typical order in which memories show in avrdude.conf, runtime adds unknown ones (if any)
 const char *avr_mem_order[100] = {
   "eeprom",       "flash",        "application",  "apptable",
