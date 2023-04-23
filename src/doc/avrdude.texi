@@ -937,14 +937,19 @@ after, @var{BB} bits before, and @var{BA} bits after the target AVR,
 respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
-@end table
 
-The PICkit 4 and the Power Debugger also supports high-voltage UPDI programming.
-This is used to enable a UPDI pin that has previously been set to RESET or
-GPIO mode. High-voltage UPDI can be utilized by using an extended parameter:
-@table @code
 @item @samp{hvupdi}
-Enable high-voltage UPDI initialization for targets that supports this.
+@var{Power Debugger and Pickit 4 only}
+@*
+High-voltage UPDI programming is used to enable a UPDI pin that has previously
+been set to RESET or GPIO mode. Use @samp{-xhvupdi} to enable high-voltage UPDI
+initialization for supported targets.
+
+@item @samp{vtarg=VALUE, vtarg}
+@var{Power Debugger only}
+@*
+The voltage generator can be enabled by setting a target voltage.
+The current set-voltage can be read by @samp{-xvtarg} alone.
 
 @item @samp{help}
 Show help menu and exit.
@@ -981,6 +986,51 @@ a 0. The current state can be read by @samp{-xvtarg_switch} alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
 
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex @code{-x} Curiosity Nano
+@item Curiosity Nano
+
+The Curiosity Nano board accepts the following extended parameter:
+@table @code
+@item @samp{vtarg=VALUE, vtarg}
+The generated on-board target voltage can be changed by specifying a new voltage.
+The current set-voltage can be read by @samp{-xvtarg} alone.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex @code{-x} STK500
+@cindex @code{-x} STK600
+@item STK500
+@item STK600
+
+The STK500 and STK600 boards accepts the following extended parameters:
+@table @code
+@item @samp{vtarg=VALUE, vtarg}
+The generated on-board target voltage can be changed by specifying a new voltage.
+The current set-voltage can be read by @samp{-xvtarg} alone.
+@item @samp{fosc=VALUE[MHz|M|kHz|k|Hz], fosc}
+Set the programmable oscillator frequency in MHz, kHz or Hz.
+The current frequency can be read by @samp{-xfosc} alone.
+@item @samp{varef=VALUE, varef}
+The generated on-board analog reference voltage can be changed by specifying
+a new reference voltage. The current reference voltage can be read by
+@samp{-xvaref} alone.
+@item @samp{varef[0,1]=VALUE, varef[0,1]}
+@var{STK600 only}
+@*
+The generated on-board analog reference voltage for channel 0 or channel 1 can
+be changed by specifying a new reference voltage.
+The current reference voltage can be read by @samp{-xvaref0} or
+@samp{-xvaref1} alone.
+@item @samp{attemps[=<1..99>]}
+@var{STK500V1 only}
+@*
+Specify how many connection retry attemps to perform before exiting.
+Defaults to 10 if not specified.
 @item @samp{help}
 Show help menu and exit.
 @end table
