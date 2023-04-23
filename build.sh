@@ -26,49 +26,32 @@
 
 usage()
 {
-	echo "Build script for avrdude"
-	echo
-	echo "Syntax: build.sh -h|--help -f|--build_flags <flags>"
-	echo "Options"
-	echo "-h|--help                 Display this usage information"
-	echo "-f|--build_flags <flags>  Extra build flags to pass to cmake"
-	echo
+        echo "Build script for avrdude"
+        echo
+        echo "Syntax: build.sh -h -f <flags>"
+        echo "Options"
+        echo "-h          Display this usage information and exit"
+        echo "-f <flags>  Extra build flags to pass to cmake"
+        echo
 }
 
 ostype=$(uname | tr '[A-Z]' '[a-z]')
 
-OPTARG=$(getopt -o hf: --long help,build_flags: --name "$0" -- "$@")
-
-if [ $? != 0 ]
-then
-    echo "Error processing options - Terminating ..." >&2
-	exit 1
-fi
-
-eval set -- "$OPTARG"
-
 build_flags=""
 
-while true
-do
-    case "$1" in
-	-h | --help )
-	  usage
-	  exit
-	  ;;
-	-f | --build_flags )
-	  build_flags="$2"
-	  shift 2
-	  ;;    
-	-- )
-	  shift
-	  break
-	  ;;
-	* ) 
-	   break
-	   ;; 
-	esac
+while getopts :hf: OPT; do
+  case "$OPT" in
+    f)    
+           build_flags="$OPTARG" 
+           ;;
+    h | *)    
+           usage
+           exit
+           ;;
+  esac
 done
+shift $((OPTIND-1)) # remove parsed options and args from $@ list
+
 
 build_type=RelWithDebInfo
 # build_type=Release # no debug info
@@ -81,22 +64,22 @@ extra_enable=""
 
 case "${ostype}" in
     linux)
-	# try to find out whether this is an Embedded Linux
-	# platform (e.g. Raspberry Pi)
-	machine=$(uname -m)
-	if expr "${machine}" : '^\(arm\|aarch\)' >/dev/null
-	then
-	    extra_enable="${extra_enable} -D HAVE_LINUXGPIO=1 -D HAVE_LINUXSPI=1"
-	fi
-	;;
+        # try to find out whether this is an Embedded Linux
+        # platform (e.g. Raspberry Pi)
+        machine=$(uname -m)
+        if expr "${machine}" : '^\(arm\|aarch\)' >/dev/null
+        then
+            extra_enable="${extra_enable} -D HAVE_LINUXGPIO=1 -D HAVE_LINUXSPI=1"
+        fi
+        ;;
 
     darwin)
-	# determine whether we are running using Mac Ports
-	# if not, assume Mac Brew
-	if [ -f /opt/local/bin/port ]
-	then
-	    build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/opt/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/opt/local/lib"
-	else
+        # determine whether we are running using Mac Ports
+        # if not, assume Mac Brew
+        if [ -f /opt/local/bin/port ]
+        then
+            build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/opt/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/opt/local/lib"
+        else
             # Apple M1 (may be new version of homebrew also)
             if [ -d /opt/homebrew ]
             then
@@ -104,16 +87,16 @@ case "${ostype}" in
             else
                 build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar"
             fi
-	fi
-	;;
+        fi
+        ;;
 
     netbsd)
-	build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/pkg/include -D CMAKE_EXE_LINKER_FLAGS=-R/usr/pkg/lib -D CMAKE_INSTALL_PREFIX:PATH=/usr/pkg"
-	;;
+        build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/pkg/include -D CMAKE_EXE_LINKER_FLAGS=-R/usr/pkg/lib -D CMAKE_INSTALL_PREFIX:PATH=/usr/pkg"
+        ;;
 
     *bsd)
-	build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/lib"
-	;;
+        build_flags="${build_flags} -D CMAKE_C_FLAGS=-I/usr/local/include -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/lib"
+        ;;
 esac
 
 mkdir -p build_${ostype}
@@ -133,4 +116,3 @@ sudo cmake --build build_${ostype} --target install
 
 to install.
 
-EOF
