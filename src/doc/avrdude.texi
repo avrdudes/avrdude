@@ -1007,7 +1007,7 @@ Show help menu and exit.
 @item STK500
 @item STK600
 
-The STK500 and STK600 boards accepts the following extended parameters:
+The STK500 and STK600 boards accept the following extended parameters:
 @table @code
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
