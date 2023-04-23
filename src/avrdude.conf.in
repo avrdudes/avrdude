@@ -16156,7 +16156,7 @@ part parent "x64a4u"
         "ATxmega64A1-AUR:  TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-C7U:  VFBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-C7UR: VFBGA100, Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega64A1-CU:   BGA100,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega64A1-CU:   CBGA100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-CUR:  BGA100,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 243;
@@ -16405,7 +16405,7 @@ part parent "x128c3"
         "ATxmega128A1-AUR:  TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-C7U:  VFBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-C7UR: VFBGA100, Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
-        "ATxmega128A1-CU:   BGA100,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega128A1-CU:   CBGA100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-CUR:  BGA100,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 254;
@@ -16800,6 +16800,9 @@ part parent "x192c3"
 part parent "x192c3"
     desc                   = "ATxmega192A1";
     id                     = "x192a1";
+    variants               =
+        "ATxmega192A1-AU: TQFP100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega192A1-CU: CBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 266;
     signature              = 0x1e 0x97 0x4e;
@@ -16955,6 +16958,9 @@ part parent "x256c3"
 part parent "x256c3"
     desc                   = "ATxmega256A1";
     id                     = "x256a1";
+    variants               =
+        "ATxmega256A1-AU: TQFP100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
+        "ATxmega256A1-CU: CBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 271;
 
