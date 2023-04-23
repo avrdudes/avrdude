@@ -89,6 +89,10 @@ Changes since version 7.1:
     - Add -xhelp to programmers #1338
     - Move avrintel[.ch] into libavrdude #1341
     - Review avrdude.conf, add variants, reconcile with ATDFs #1343
+    - Add -xvtarg, -xvaref and -xfosc extended parameters #1345
+    - Add case-agnostic string comparisons to strutil.c #1346
+    - Provide a programmer dryrun that emulates programming #1347
+    - Add variants of obsolete parts to avrdude.conf #1348
 
   * Internals:
 
