@@ -1112,16 +1112,13 @@ lrmv_d ( LISTID lid, void * data_ptr )
 {
   LIST * l;
   LISTNODE * ln;
-  int i;
 
   l = (LIST *)lid;
 
   CKLMAGIC(l);
 
-  i = 0;
   ln = l->top;
   while (ln && (ln->data != data_ptr)) {
-    i++;
     CKMAGIC(ln);
     ln = ln->next;
   }
