@@ -241,7 +241,7 @@ static void usage(void)
     "                             Memory operation specification\n"
     "                             Multiple -U options are allowed, each request\n"
     "                             is performed in the order specified\n"
-    "  -n                         Do not write anything to the device\n"
+    "  -n                         Do not write to the device whilst processing -U\n"
     "  -V                         Do not verify\n"
     "  -t                         Enter terminal mode\n"
     "  -E <exitspec>[,<exitspec>] List programmer exit specifications\n"
@@ -1471,6 +1471,8 @@ int main(int argc, char * argv [])
     /*
      * terminal mode
      */
+    if (uflags & UF_NOWRITE)
+      pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
     exitrc = terminal_mode(pgm, p);
   }
 

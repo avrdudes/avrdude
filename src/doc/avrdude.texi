@@ -667,8 +667,8 @@ Note that initial diagnostic messages (during option parsing) are still
 written to @var{stderr} anyway.
 
 @item -n
-No-write - disables actually writing data to the MCU (useful for
-debugging AVRDUDE).
+No-write: disables writing data to the MCU whilst processing -U (useful for
+debugging AVRDUDE). The terminal mode continues to write to the device.
 
 @item -O
 Perform a RC oscillator run-time calibration according to Atmel
