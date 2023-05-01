@@ -845,14 +845,18 @@ More
 .Fl v
 options increase verbosity level.
 .It Fl V
-Disable automatic verify check when uploading data.
+Disable automatic verify check when uploading data with -U.
 .It Fl x Ar extended_param
 Pass
 .Ar extended_param
 to the chosen programmer implementation as an extended parameter.
 The interpretation of the extended parameter depends on the
 programmer itself.
-See below for a list of programmers accepting extended parameters.
+See below for a list of programmers accepting extended parameters
+or issue
+.Nm
+-x help ... to see the extended options of the chosen programmer.
+
 .El
 .Ss Terminal mode
 In this mode,

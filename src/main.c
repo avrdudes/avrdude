@@ -242,7 +242,7 @@ static void usage(void)
     "                             Multiple -U options are allowed, each request\n"
     "                             is performed in the order specified\n"
     "  -n                         Do not write to the device whilst processing -U\n"
-    "  -V                         Do not verify\n"
+    "  -V                         Do not automatically verify during -U\n"
     "  -t                         Enter terminal mode\n"
     "  -E <exitspec>[,<exitspec>] List programmer exit specifications\n"
     "  -x <extended_param>        Pass <extended_param> to programmer, see -xhelp\n"
@@ -511,6 +511,7 @@ int main(int argc, char * argv [])
   const char *exitspecs; /* exit specs string from command line */
   const char *programmer; /* programmer id */
   int     explicit_c;  /* 1=explicit -c on command line, 0=not spcified  there */
+  int     explicit_e;  /* 1=explicit -e on command line, 0=not spcified  there */
   char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
@@ -602,6 +603,7 @@ int main(int argc, char * argv [])
   pgm           = NULL;
   programmer    = "";
   explicit_c    = 0;
+  explicit_e    = 0;
   verbose       = 0;
   baudrate      = 0;
   bitclock      = 0.0;
@@ -718,6 +720,7 @@ int main(int argc, char * argv [])
 
       case 'e': /* perform a chip erase */
         erase = 1;
+        explicit_e = 1;
         uflags &= ~UF_AUTO_ERASE;
         break;
 
@@ -1454,7 +1457,7 @@ int main(int argc, char * argv [])
      * before the chip can accept new programming
      */
     if (uflags & UF_NOWRITE) {
-      pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
+      pmsg_warning("%s-n specified, NOT erasing chip\n", explicit_e? "conflicting -e and ": "");
     } else {
       pmsg_info("erasing chip\n");
       exitrc = avr_chip_erase(pgm, p);

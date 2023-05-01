@@ -904,13 +904,14 @@ Enable verbose output.
 More @code{-v} options increase verbosity level.
 
 @item -V
-Disable automatic verify check when uploading data.
+Disable automatic verify check when uploading data with @code{-U}.
 
 @item -x @var{extended_param}
 Pass @var{extended_param} to the chosen programmer implementation as
 an extended parameter.  The interpretation of the extended parameter
 depends on the programmer itself.  See below for a list of programmers
-accepting extended parameters.
+accepting extended parameters or issue @code{avrdude -x help ...} to
+see the extended options of the chosen programmer.
 
 @end table
 
