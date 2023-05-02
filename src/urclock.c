@@ -315,7 +315,8 @@ typedef struct {
       restore,                  // Restore a flash backup exactly as it is trimming the bootloader
       nofilename,               // Don't store application filename when writing the application
       nodate,                   // Don't store application filename and no date either
-      nometadata,               // Don't store any metadata at all (implies no store support)
+      nostore,                  // Don't store metadata except a flag saying so
+      nometadata,               // Don't support metadata at all
       delay,                    // Additional delay [ms] after resetting the board, can be negative
       strict;                   // Use strict synchronisation protocol
 
@@ -334,7 +335,7 @@ static int nmeta(int mcode, int flashsize) {
   // The size of the structure that holds info about metadata (sits just below bootloader)
   int nheader = 2*(flashsize > (1<<16)? 4: 2) + 1;
 
-  return mcode == 0xff? 0:      // No metadata at all
+  return mcode == 0xff? 1:      // No metadata except 0xff byte itself saying no further metadata
     mcode > 1? mcode+6+nheader: // Application filename, app date and structure for pgm store
     mcode? 6+nheader:           // Application date and structure describing pgm store
       nheader;                  // Structure describing pgm store
@@ -610,16 +611,17 @@ static int set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz)
 
 // Called after the input file has been read for writing or verifying flash
 static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
-  const char *fname, int size) {
+  const char *fname, int size) { // size is max memory address + 1
 
   int nmdata, maxsize, firstbeg, firstlen;
   int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large parts need 4-byte jmp
 
   set_date_filename(pgm, fname);
 
-  // Record how extensive the metadata should be, given the command line options (default: all)
-  ur.mcode = ur.nometadata? 0xff: ur.nodate? 0: ur.nofilename? 1: strlen(ur.filename)+1;
-  nmdata = nmeta(ur.mcode, ur.uP.flashsize);
+  // Record extent of metadata, given the command line options (default: max possible)
+  ur.mcode = ur.nometadata || ur.nostore? 0xff:
+    ur.nodate? 0: ur.nofilename? 1: strlen(ur.filename)+1;
+  nmdata = ur.nometadata? 0: nmeta(ur.mcode, ur.uP.flashsize);
 
   maxsize = ur.pfend+1;
 
@@ -652,21 +654,43 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
       ur.blstart, ur.blend, flm->size-1);
 
   // Check size of uploded application and protect bootloader from being overwritten
-  if((ur.boothigh && size > ur.pfend+1) || (!ur.boothigh && firstbeg <= ur.blend))
+  if((ur.boothigh && size > maxsize) || (!ur.boothigh && firstbeg <= ur.blend))
     Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]",
       firstbeg, size-1, ur.blstart, ur.blend);
 
-  if(nmdata >= nmeta(0, ur.uP.flashsize) && size > ur.pfend+1 - nmeta(0, ur.uP.flashsize))
-    Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnometadata",
-      firstbeg, size-1, ur.pfend+1-nmeta(0, ur.uP.flashsize), ur.pfend);
+  if(size > maxsize)
+    Return("input [0x%04x, 0x%04x] extends programmable area [0x%04x, 0x%04x]",
+      firstbeg, size-1, ur.pfstart, ur.pfend);
 
-  if(nmdata >= nmeta(1, ur.uP.flashsize) && size > ur.pfend+1 - nmeta(1, ur.uP.flashsize))
-    Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnodate",
-      firstbeg, size-1, ur.pfend+1-nmeta(1, ur.uP.flashsize), ur.pfend);
+  if(!ur.nometadata) {
+    if(size == maxsize)
+      Return("input [0x%04x, 0x%04x] overlaps metadata code byte at 0x%04x, consider -xnometadata",
+        firstbeg, size-1, ur.pfend);
 
-  if(size > ur.pfend+1 - nmdata)
-    Return("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], consider -xnofilename",
-      firstbeg, size-1, ur.pfend+1-nmdata, ur.pfend);
+    if(nmdata >= nmeta(0, ur.uP.flashsize) && size > maxsize - nmeta(0, ur.uP.flashsize)) {
+      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -xnostore\n",
+       firstbeg, size-1, maxsize-nmdata, ur.pfend);
+      ur.mcode = 0xff;
+      ur.nostore = 1;
+      nmdata = 1;
+    }
+
+    if(nmdata >= nmeta(1, ur.uP.flashsize) && size > maxsize - nmeta(1, ur.uP.flashsize)) {
+      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -xnodate\n",
+        firstbeg, size-1, maxsize-nmdata, ur.pfend);
+      ur.mcode = 0;
+      ur.nodate = 1;
+      nmdata = nmeta(0, ur.uP.flashsize);
+    }
+
+    if(size > maxsize - nmdata) {
+      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -xnofilename\n",
+        firstbeg, size-1, maxsize-nmdata, ur.pfend);
+      ur.mcode = 1;
+      ur.nofilename = 1;
+      nmdata = nmeta(1, ur.uP.flashsize);
+    }
+  }
 
   if(!ur.boothigh)
     goto nopatch;
@@ -736,53 +760,56 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 nopatch:
 
   if(nmdata) {
-    int32_t nfree = ur.pfend+1 - size;
+    int32_t nfree = maxsize - size;
 
     if(nfree >= nmdata) {
-      unsigned char *p = flm->buf + ur.pfend+1 - nmdata;
+      unsigned char *p = flm->buf + maxsize - nmdata;
 
-      if(ur.mcode > 1) {        // Save filename (ur.mcode cannot be 0xff b/c nmdata is non-zero)
-        memcpy(p, ur.filename, ur.mcode);
-        p += ur.mcode;
+      if(ur.mcode != 0xff) {
+        if(ur.mcode > 1) {      // Save filename
+          memcpy(p, ur.filename, ur.mcode);
+          p += ur.mcode;
+        }
+
+        if(ur.mcode >= 1) {     // Save date
+          *p++ = ur.yyyy;
+          *p++ = ur.yyyy>>8;
+          *p++ = ur.mm;
+          *p++ = ur.dd;
+          *p++ = ur.hr;
+          *p++ = ur.mn;
+        }
+
+        *p++ = size;            // Save where the pgm store begins
+        *p++ = size >> 8;
+        if(ur.uP.flashsize > (1<<16)) {
+          *p++ = size >> 16;
+          *p++ = size >> 24;
+        }
+
+        nfree -= nmdata;
+        *p++ = nfree;           // Save how much is free
+        *p++ = nfree >> 8;
+        if(ur.uP.flashsize > (1<<16)) {
+          *p++ = nfree >> 16;
+          *p++ = nfree >> 24;
+        }
       }
 
-      if(ur.mcode >= 1) {       // Save date
-        *p++ = ur.yyyy;
-        *p++ = ur.yyyy>>8;
-        *p++ = ur.mm;
-        *p++ = ur.dd;
-        *p++ = ur.hr;
-        *p++ = ur.mn;
-      }
-
-      *p++ = size;              // Save where the pgm store begins
-      *p++ = size >> 8;
-      if(ur.uP.flashsize > (1<<16)) {
-        *p++ = size >> 16;
-        *p++ = size >> 24;
-      }
-
-      nfree -= nmdata;
-      *p++ = nfree;             // Save how much is free
-      *p++ = nfree >> 8;
-      if(ur.uP.flashsize > (1<<16)) {
-        *p++ = nfree >> 16;
-        *p++ = nfree >> 24;
-      }
-      *p++ = ur.mcode;
+      *p++ = ur.mcode;          // Save metadata code
 
       // Set tags so metadata get burned onto chip
-      memset(flm->tags + ur.pfend+1 - nmdata, TAG_ALLOCATED, nmdata);
+      memset(flm->tags + maxsize - nmdata, TAG_ALLOCATED, nmdata);
 
       if(ur.initstore)          // Zap the pgm store
         memset(flm->tags + size, TAG_ALLOCATED, nfree);
 
-      size = ur.pfend+1;
+      size = maxsize;
     }
   }
 
-  // Storing no metadata: put a 0xff byte just below bootloader
-  if(size < ur.pfend+1 && nmdata == 0) {
+  // Storing no metadata? Still put a 0xff byte just below bootloader if there is space
+  if(size < maxsize && nmdata == 0) {
     flm->buf[ur.pfend] = 0xff;
     flm->tags[ur.pfend] = TAG_ALLOCATED;
     size = ur.pfend+1;
@@ -796,7 +823,7 @@ nopatch_nometa:
     if(ur_readEF(pgm, p, &devmcode, ur.pfend, 1, 'F') == 0) {
       int devnmeta=nmeta(devmcode, ur.uP.flashsize);
       for(int addr=ur.pfend+1-devnmeta; addr < ur.pfend+1; addr++) {
-        if(addr >=0 && addr < flm->size && !(flm->tags[addr] & TAG_ALLOCATED)) {
+        if(addr >= 0 && addr < flm->size && !(flm->tags[addr] & TAG_ALLOCATED)) {
           flm->tags[addr] |= TAG_ALLOCATED;
           flm->buf[addr] = 0xff;
         }
@@ -1523,7 +1550,9 @@ vblvecfound:
   urbootPutVersion(pgm, ur.desc, v16, rjmpwp);
 
   ur.mcode = 0xff;
-  if(ur.pfend >= nmeta(254, flm->size)) {
+  int havemetadata = !ur.nometadata;
+
+  if(havemetadata && ur.pfend >= nmeta(254, flm->size)) {
     int nm = nmeta(1, ur.uP.flashsize); // 6 for date + size of store struct + 1 for mcode byte
     // Showing properties mostly requires examining the bytes below bootloader for metadata
     if(ur.showall || (ur.showid && *ur.iddesc && *ur.iddesc != 'E') || ur.showapp ||
@@ -1540,11 +1569,14 @@ vblvecfound:
         int nmdata = nmeta(mcode, ur.uP.flashsize);
 
         // Check plausibility of metadata header just below bootloader
+        havemetadata = 0;
         if(storestart > 0 && storestart == ur.pfend+1-nmdata-storesize) {
           ur.storestart = storestart;
           ur.storesize = storesize;
           ur.mcode = mcode;
-          if(mcode) {
+          if(!mcode) {
+            havemetadata = 1;
+          } else {
             int16_t  yyyy;
             int8_t mm, dd, hr, mn;
             mn = spc[5];
@@ -1562,6 +1594,7 @@ vblvecfound:
               ur.dd = dd;
               ur.hr = hr;
               ur.mn = mn;
+              havemetadata = 1;
               if(mcode > 1) {   // Copy application name over
                 rc = ur_readEF(pgm, p, spc, ur.pfend+1-nmeta(mcode, ur.uP.flashsize), mcode, 'F');
                 if(rc < 0)
@@ -1577,7 +1610,6 @@ vblvecfound:
     }
   }
 
-
   // Print and exit when option show... was given
   int first=1;
   int single = !ur.showall && (!!ur.showid + !!ur.showapp + !!ur.showstore + !!ur.showmeta +
@@ -1590,23 +1622,41 @@ vblvecfound:
       return rc;
     term_out("%0*lx", 2*ur.idlen, urclockID), first=0;
   }
-  if(ur.showdate || ur.showall)
-    term_out(&" %04d-%02d-%02d %02d.%02d"[first], ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn), first=0;
-  if(ur.showfilename || ur.showall)
-    term_out(&" %s"[first], *ur.filename? ur.filename: ""), first=0;
-  if(ur.showapp || ur.showall)
-    term_out(&" %s%d"[first], single || *ur.filename? "": "application ", ur.storestart), first=0;
-  if(ur.showstore || ur.showall)
-    term_out(&" %s%d"[first], single? "": "store ", ur.storesize), first=0;
-  if(ur.showmeta || ur.showall)
-    term_out(&" %s%d"[first], single? "": "meta ", nmeta(ur.mcode, ur.uP.flashsize)), first=0;
-  if(ur.showboot || ur.showall)
-    term_out(&" %s%d"[first], single? "": "boot ", ur.blend>ur.blstart? ur.blend-ur.blstart+1: 0), first=0;
-  if(ur.showversion || ur.showall)
-    term_out(&" %s"[first], ur.desc+(*ur.desc==' ')), first=0;
+  if(havemetadata) {
+    if(ur.showdate || ur.showall) {
+      term_out(&" %04d-%02d-%02d %02d.%02d"[first], ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn);
+      first=0;
+    }
+    if(ur.showfilename || ur.showall) {
+      term_out(&" %s"[first], *ur.filename? ur.filename: "");
+      first=0;
+    }
+    if(ur.showapp || ur.showall) {
+      term_out(&" %s%d"[first], single || *ur.filename? "": "application ", ur.storestart);
+      first=0;
+    }
+    if(ur.showstore || ur.showall) {
+      term_out(&" %s%d"[first], single? "": "store ", ur.storesize);
+      first=0;
+    }
+  }
+  if(ur.showmeta || ur.showall) {
+    int nmdata = havemetadata? nmeta(ur.mcode, ur.uP.flashsize): 0;
+    term_out(&" %s%d"[first], single? "": "meta ", nmdata);
+    first=0;
+  }
+  if(ur.showboot || ur.showall) {
+    term_out(&" %s%d"[first], single? "": "boot ", ur.blend>ur.blstart? ur.blend-ur.blstart+1: 0);
+    first=0;
+  }
+  if(ur.showversion || ur.showall) {
+    term_out(&" %s"[first], ur.desc+(*ur.desc==' '));
+    first=0;
+  }
   if(ur.showvector || ur.showall) {
     int vnum = ur.vbllevel? ur.vblvectornum & 0x7f: 0;
-    term_out(&" vector %d (%s)"[first], vnum, vblvecname(pgm, vnum)), first=0;
+    term_out(&" vector %d (%s)"[first], vnum, vblvecname(pgm, vnum));
+    first=0;
   }
   if(ur.showall || ur.showpart)
     term_out(&" %s"[first], ur.uP.name);
@@ -2466,7 +2516,8 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     //@@@  {"copystore", &ur.copystore, NA, "Copy over store on writing to flash"},
     {"nofilename", &ur.nofilename, NA,    "Do not store filename on writing to flash"},
     {"nodate", &ur.nodate, NA,            "Do not store application filename and no date either"},
-    {"nometadata", &ur.nometadata, NA,    "Do not store metadata at all (ie, no store support)"},
+    {"nostore", &ur.nostore, NA,          "Do not store metadata except a flag saying so"},
+    {"nometadata", &ur.nometadata, NA,    "Do not support metadata at all"},
     {"delay", &ur.delay, ARG,             "Add delay [ms] after reset, can be negative"},
     {"strict", &ur.strict, NA,            "Use strict synchronisation protocol"},
     {"help", &help, NA,                   "Show this help menu and exit"},
