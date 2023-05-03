@@ -124,6 +124,8 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
     // Reduce effective verbosity level by number of -q above one when printing to stderr
     if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
         if(msgmode & MSG2_PROGNAME) {
+          if(!bols[bi].bol)
+            fprintf(fp, "\n");
           fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
             fprintf(fp, " %s()", func);
