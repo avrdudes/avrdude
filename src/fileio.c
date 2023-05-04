@@ -290,8 +290,8 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  * by outbuf. The size of outbuf, 'bufsize' is honored; if data would
  * fall outsize of the memory buffer outbuf, an error is generated.
  *
- * Return the maximum memory address within 'outbuf' that was written.
- * If an error occurs, return -1.
+ * Return the maximum memory address within 'outbuf' that was written
+ * plus one. If an error occurs, return -1.
  *
  * */
 static int ihex2b(const char *infile, FILE *inf,

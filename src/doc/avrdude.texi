@@ -1167,10 +1167,24 @@ On writing to flash do not store the application input filename (nor a title).
 @item @samp{nodate}
 On writing to flash do not store the application input filename (nor a
 title) and no date either.
-@item @samp{nometadata}
-On writing to flash do not store any metadata. The full flash below the
-bootloader is available for the application. In particular, no data store
+@item @samp{nostore}
+On writing to flash do not store metadata except the metadata code byte
+@code{0xff} saying there are no metadata.  In particular, no data store
 frame is programmed.
+@item @samp{nometadata}
+Do not support any metadata. The full flash besides the bootloader is
+available for the application. If the application is smaller than the
+available space then a metadata code byte @code{0xff} is stored
+nevertheless to indicate there are no further metadata available. In
+absence of @code{-xnometadata}, the default for the urclock programmer is
+to write as much metadata (filename, data and store information) as the
+size of the uploaded application and the other extended options allow. The
+subtle difference between @code{-xnometadata} and @code{-xnostore} is that
+the latter always explicitly stores in flash that no further metadata are
+available, so that a such prepared flash can always be queried with
+@code{avrdude -xshowall}. In contrast to this, it cannot be guaranteed
+that a @code{-xshowall} query on flash prepared with @code{-xnometadata}
+yields useful results.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
