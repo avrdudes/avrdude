@@ -56,6 +56,7 @@ Changes since version 7.1:
     - Usbtiny initialization never resets the part #1321
     - Parts with *L, *PV and *V suffixes + others are missing in
       avrdude.conf #1092
+    - -c urclock should progressively shrink metadata #1352
 
   * Pull requests:
 
@@ -93,6 +94,9 @@ Changes since version 7.1:
     - Add case-agnostic string comparisons to strutil.c #1346
     - Provide a programmer dryrun that emulates programming #1347
     - Add variants of obsolete parts to avrdude.conf #1348
+    - Add option -f to build.sh #1342
+    - Document -n behaviour wrt -U and terminal #1351
+    - Progressively shrink metadata for -c urclock #1357
 
   * Internals:
 
