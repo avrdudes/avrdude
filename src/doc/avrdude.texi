@@ -667,8 +667,8 @@ Note that initial diagnostic messages (during option parsing) are still
 written to @var{stderr} anyway.
 
 @item -n
-No-write - disables actually writing data to the MCU (useful for
-debugging AVRDUDE).
+No-write: disables writing data to the MCU whilst processing -U (useful for
+debugging AVRDUDE). The terminal mode continues to write to the device.
 
 @item -O
 Perform a RC oscillator run-time calibration according to Atmel
@@ -904,13 +904,14 @@ Enable verbose output.
 More @code{-v} options increase verbosity level.
 
 @item -V
-Disable automatic verify check when uploading data.
+Disable automatic verify check when uploading data with @code{-U}.
 
 @item -x @var{extended_param}
 Pass @var{extended_param} to the chosen programmer implementation as
 an extended parameter.  The interpretation of the extended parameter
 depends on the programmer itself.  See below for a list of programmers
-accepting extended parameters.
+accepting extended parameters or issue @code{avrdude -x help ...} to
+see the extended options of the chosen programmer.
 
 @end table
 
