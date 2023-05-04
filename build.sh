@@ -24,7 +24,34 @@
 # On MacOS, an attempt is made to find out whether Mac ports or brew
 # are in place, and are assumed to have install the prerequisites.
 
+usage()
+{
+	echo "Build script for avrdude"
+	echo
+	echo "Syntax: build.sh -h -f <flags>"
+	echo "Options"
+	echo "-h          Display this usage information and exit"
+	echo "-f <flags>  Extra build flags to pass to cmake"
+	echo
+}
+
 ostype=$(uname | tr '[A-Z]' '[a-z]')
+
+build_flags=""
+
+while getopts :hf: OPT; do
+  case "$OPT" in
+    f)    
+	   build_flags="$OPTARG" 
+	   ;;
+    h | *)    
+	   usage
+	   exit
+	   ;;
+  esac
+done
+shift $((OPTIND-1)) # remove parsed options and args from $@ list
+
 
 build_type=RelWithDebInfo
 # build_type=Release # no debug info
@@ -34,8 +61,6 @@ build_type=RelWithDebInfo
 # Use this to enable (historical) parallel-port based programmers:
 #extra_enable="-D HAVE_PARPORT=1"
 extra_enable=""
-
-build_flags=""
 
 case "${ostype}" in
     linux)
