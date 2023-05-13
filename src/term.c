@@ -991,7 +991,7 @@ static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int nquell;
-  char *endp;
+  const char *errptr;
 
   if (argc != 1 && argc != 2) {
     msg_error("Usage: quell [<value>]\n");
@@ -1001,9 +1001,9 @@ static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     msg_error("Quell level: %d\n", quell_progress);
     return 0;
   }
-  nquell = strtol(argv[1], &endp, 0);
-  if (endp == argv[1] || *endp) {
-    pmsg_error("(quell) cannot parse quell level %s\n", argv[1]);
+  nquell = str_int(argv[1], STR_INT32, &errptr);
+  if(errptr) {
+    pmsg_error("(quell) quell level %s: %s\n", argv[1], errptr);
     return -1;
   }
   if (nquell < 0) {
