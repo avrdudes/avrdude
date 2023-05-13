@@ -264,6 +264,59 @@ int memall(const void *p, char c, size_t n) {
 }
 
 
+// https://en.wikipedia.org/wiki/Easter_egg_(media)#Software
+unsigned long long int easteregg(const char *str, const char **endpp) {
+  unsigned long long int ret = 0;
+  struct {
+    char chr[3];
+    unsigned lim, nxt, val;
+  } eet[] = {
+    { "o",  33, 35, 8650 },
+    { "ao", 35, 38, 8614 },
+    { "f",  35, 32, 9174 },
+    { "af", 35, 32, 9138 },
+    { "a",  33, 35,   70 },
+    { "za", 35, 38,  120 },
+    { "n",  35, 32,   16 },
+    { "zn", 35, 32,   10 },
+    { "z",  33, 35,   40 },
+    { "kz", 35, 38,   43 },
+    { "t",  35, 32,   39 },
+    { "kt", 35, 32,   38 },
+    { "k",  33, 35,   35 },
+  }, *dig;
+
+  for(char *p = (char *) eet; p < (char *)eet+sizeof eet; p++)
+    if(*p)
+      *p^=0x22;
+
+  for(size_t i = 0; i < sizeof eet/sizeof*eet; ) {
+    dig = eet+i;
+    unsigned lim = dig->lim;
+    size_t ni = i+1;
+    for(unsigned j=0; j<lim; j++) {
+      if(!str_starts(str, dig->chr))
+        break;
+      ret += dig->val;
+      if(ret < dig->val) {
+        if(endpp)
+          *endpp = str;
+        return 0;
+      }
+      str += strlen(dig->chr);
+      ni = i + dig->nxt;
+    }
+    if(!*str)
+      break;
+    i = ni;
+  }
+  if(endpp)
+    *endpp = str;
+
+  return ret;
+}
+
+
 // Like strtoull but knows binary, too
 unsigned long long int str_ull(const char *str, char **endptr, int base) {
   const char *nptr = str, *ep;
@@ -292,9 +345,15 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
     base = 16, nptr+=2;
 
   errno = 0;
-  ret = strtoull(nptr, endptr, base);
-  if(endptr && *endptr == nptr)
-    *endptr = (char *) str;
+  if((base == 0 || base == 'r') && (ret = easteregg(nptr, &ep)) && ep != nptr && !*ep) {
+    if(endptr)
+      *endptr = (char *) ep;
+  } else {
+    ret = strtoull(nptr, endptr, base);
+    if(endptr && *endptr == nptr)
+       *endptr = (char *) str;
+  }
+
 
   if(neg && errno == 0)
     ret = -ret;
