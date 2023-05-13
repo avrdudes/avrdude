@@ -964,7 +964,7 @@ static int cmd_pgm(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int nverb;
-  char *endp;
+  const char *errptr;
 
   if (argc != 1 && argc != 2) {
     msg_error("Usage: verbose [<value>]\n");
@@ -974,9 +974,9 @@ static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     msg_error("Verbosity level: %d\n", verbose);
     return 0;
   }
-  nverb = strtol(argv[1], &endp, 0);
-  if (endp == argv[1] || *endp) {
-    pmsg_error("(verbose) cannot parse verbosity level %s\n", argv[1]);
+  nverb = str_int(argv[1], STR_INT32, &errptr);
+  if(errptr) {
+    pmsg_error("(verbose) verbosity level %s: %s\n", argv[1], errptr);
     return -1;
   }
   if (nverb < 0) {
