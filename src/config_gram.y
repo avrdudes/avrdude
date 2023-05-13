@@ -1332,13 +1332,13 @@ static int parse_cmdbits(OPCODE * op, int opnum)
       else {
         if (*s == 'a') {
           int sb, bn;
-          char *e, *q;
+          char *q;
+          const char *errstr;
 
           q = s+1;
-          errno = 0;
-          bn = strtol(q, &e, 0); // address line
-          if (e == q || *e != 0 || errno) {
-            yywarning("can't parse bit number from a%s", q);
+          bn = str_int(q, STR_INT32, &errstr); // Address line
+          if(errstr) {
+            yywarning("bit number from a%s: %s", q, errstr);
             bn = 0;
           }
 
