@@ -911,9 +911,10 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       return -1;
     }
   } else {
-    chan = strtoul(argv[1], &endp, 10);
-    if (endp == argv[1]) {
-      pmsg_error("(varef) cannot parse channel %s\n", argv[1]);
+    const char *errptr;
+    chan = str_int(argv[1], STR_UINT32, &errptr);
+    if(errptr) {
+      pmsg_error("(varef) channel %s: %s\n", argv[1], errptr);
       return -1;
     }
     v = strtod(argv[2], &endp);
