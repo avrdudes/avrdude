@@ -441,9 +441,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int maxsize = mem->size;
 
   if (argc == 3 && maxsize > 1) {
-    pmsg_error("(write) no start address specified for memory %s\n"
-      "Please specify a start address for memories greater than 1 byte in size\n",
-      memtype);
+    pmsg_error("(write) no data specified for %s address %s\n", mem->desc, argv[2]);
     return -1;
   }
 
