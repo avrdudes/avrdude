@@ -747,10 +747,10 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   int maxsize = mem->size;
 
-  char *end_ptr;
-  int addr = strtoul(argv[2], &end_ptr, 0);
-  if(*end_ptr || (end_ptr == argv[2])) {
-    pmsg_error("(pgerase) cannot parse address %s\n", argv[2]);
+  const char *errptr;
+  int addr = str_int(argv[2], STR_INT32, &errptr);
+  if(errptr) {
+    pmsg_error("(pgerase) address %s: %s\n", argv[2], errptr);
     return -1;
   }
 
