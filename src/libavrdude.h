@@ -1214,6 +1214,7 @@ int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
 Str2data *str_todata(const char *str, int type);
 void str_freedata(Str2data *sd);
+unsigned long long int str_int(const char *str, int type, const char **errpp);
 
 #ifdef __cplusplus
 }

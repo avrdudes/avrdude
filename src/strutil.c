@@ -263,9 +263,10 @@ int memall(const void *p, char c, size_t n) {
   return n <= 0 || (*q == c && memcmp(q, q+1, n-1) == 0);
 }
 
+
 // Like strtoull but knows binary, too
 unsigned long long int str_ull(const char *str, char **endptr, int base) {
-  const char *nptr = (char *) str;
+  const char *nptr = str, *ep;
   unsigned long long int ret = 0;
   int neg = 0;
 
@@ -285,9 +286,9 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
     }
   }
 
-  if((base == 0 || base == 2) && *nptr && (nptr[1] == 'b' || nptr[1] == 'B'))
+  if((base == 0 || base == 2) && *nptr == '0' && (nptr[1] == 'b' || nptr[1] == 'B'))
     base = 2, nptr+=2;
-  else if((base == 0 || base == 16) && *nptr && (nptr[1] == 'x' || nptr[1] == 'X'))
+  else if((base == 0 || base == 16) && *nptr == '0' && (nptr[1] == 'x' || nptr[1] == 'X'))
     base = 16, nptr+=2;
 
   errno = 0;
@@ -529,4 +530,116 @@ void str_freedata(Str2data *sd) {
       free(sd->errstr);
     free(sd);
   }
+}
+
+
+/*
+ * Generic string to integer routine that conforms to avrdude terminal syntax
+ *
+ * Str points to a string that contains an integer terminal data item. Type can be STR_INTEGER or
+ * a non-zero bitwise-or combination of integer size designators STR_1, STR_2, STR_4 and STR_8 and
+ * sign type STR_SIGNED or, independently, STR_UNSIGNED. A corresponding range check will be done
+ * for the numbers that are encoded in the string. If neither or both of STR_UNSIGNED and
+ * STR_SIGNED was given then the admitted integer can be in either the signed or the unsigned
+ * range of the given size, otherwise only numbers of the requested signedness range will be
+ * admitted. Either way, if the string itself restricts the size through a size suffix (see below)
+ * then any overflow in there will trigger a range error, too. As in C, a sign-changed unsigned
+ * number will yield another unsigned number greater than or equal to zero. As such, the numbers
+ * 0, -255U, -254U, ..., -1U are all valid unsigned representations of one-byte integers 0, 1, ...
+ * 255. At the same time -256U and 256U are not in the one-byte unsigned range [0, 255]. Finally,
+ * in the case of  success str_int() will set the character pointer pointed to by errptr to NULL
+ * and return an integer in the range of the requested type as unsigned long long. In the case of
+ * a conversion error, the pointer pointed to by errptr will be set to a human-readable error
+ * message whilst the returned value has no meaning.
+ *
+ * Integer terminal data items are either a literal C-like character such as '\t' or an integer
+ * string with optional leading white space; optional + or - sign; a binary (leading 0b), octal
+ * (leading 0), decimal or hexadecimal number (leading 0x); optional size suffix LL/L/S/H/HH;
+ * optional unsigned U suffix. All terminal data items can have an optional trailing comma to
+ * allow cutting and pasting lists, and will undergo automated data size and base detection. The
+ * known integer sizes are either 1 (suffix HH), 2 (suffix H or S), 4 (suffix L) or 8 bytes
+ * (suffix LL).
+ *
+ * Usage example:
+ *
+ * #include "libavrdude.h"
+ *
+ * const char *errptr;
+ * int addr = str_int(string, STR_INT32, &errptr);
+ * if(errptr) {
+ *   pmsg_error("(dump) address %s: %s\n", string, errptr);
+ *   return -1;
+ * }
+ */
+
+unsigned long long int str_int(const char *str, int type, const char **errpp) {
+  char *tofree;
+  const char *err = NULL;
+  Str2data *sd = NULL;
+  unsigned long long int ret = 0ULL;
+
+  type &= STR_INTEGER;
+  if(type == 0) {
+    err = "no integral type requested in str_int()";
+    goto finished;
+  }
+
+  sd = str_todata(str, type | STR_STRING);
+  // 1<<lds is number of expected bytes
+  int lds = type&STR_8? 3: type&STR_4? 2: type&STR_2? 1: type&STR_1? 0: 3;
+
+  if(sd->type != STR_INTEGER || sd->errstr) {
+    err = sd->errstr? cache_string(sd->errstr): sd->type != STR_INTEGER? "not an integral type": "str_todata";
+    goto finished;
+  }
+
+  if(sd->warnstr && strstr(sd->warnstr, " out of ")) { // Convert out of range warning into error
+    char *p = strstr(sd->warnstr, "out of ");
+    if(p) {
+      p = cfg_strdup(__func__, p);
+      if(strchr(p, ','))
+       *strchr(p, ',') = 0;
+      err = cache_string(p);
+      free(p);
+    } else {
+      err = "out of range";
+    }
+    goto finished;
+  }
+
+  if(sd->sigsz > (1<<lds)) {    // Check for range if returned size bigger than requested
+    int signd = type & (STR_SIGNED|STR_UNSIGNED);
+    long long int smin[4] = { INT8_MIN, INT16_MIN, INT32_MIN, INT64_MIN };
+    long long int smax[4] = { INT8_MAX, INT16_MAX, INT32_MAX, INT64_MAX };
+    unsigned long long int umax[4] = { UINT8_MAX, UINT16_MAX, UINT32_MAX, UINT64_MAX };
+
+    if(signd == STR_SIGNED) {   // Strictly signed
+      if(sd->ll < smin[lds] || sd->ll > smax[lds]) {
+        err = cache_string(tofree=str_sprintf("out of int%d range", 1<<(3+lds)));
+        free(tofree);
+        goto finished;
+      }
+    } else if(signd == STR_UNSIGNED) { // Strictly unsigned are out of range if u and -u are
+      if(sd->ull > umax[lds] && -sd->ull > umax[lds]) {
+        err = cache_string(tofree=str_sprintf("out of uint%d range", 1<<(3+lds)));
+        free(tofree);
+        goto finished;
+      }
+    } else {                    // Neither strictly signed or unsigned
+      if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && -sd->ull > umax[lds]) {
+        err = cache_string(tofree=str_sprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
+        free(tofree);
+        goto finished;
+      }
+    }
+  }
+
+  ret = sd->ull;
+
+finished:
+  if(errpp)
+    *errpp = err;
+  str_freedata(sd);
+
+  return ret;
 }
