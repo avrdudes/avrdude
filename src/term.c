@@ -447,12 +447,12 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
-  char *end_ptr;
+  const char *errptr;
   int addr = 0;
   if(argc >= 4) {
-    addr = strtol(argv[2], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[2])) {
-      pmsg_error("(write) cannot parse address %s\n", argv[2]);
+    addr = str_int(argv[2], STR_INT32, &errptr);
+    if(errptr) {
+      pmsg_error("(write) address %s: %s\n", argv[2], errptr);
       return -1;
     }
   }
@@ -479,9 +479,9 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if(str_eq(argv[argc - 1], "...")) {
     write_mode = WRITE_MODE_FILL;
     start_offset = 4;
-    len = strtol(argv[3], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[3])) {
-      pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
+    len = str_int(argv[3], STR_INT32, &errptr);
+    if(errptr) {
+      pmsg_error("(write ...) length %s: %s\n", argv[3], errptr);
       free(buf);
       return -1;
     }
