@@ -604,7 +604,7 @@ static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
 
 static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   unsigned char cmd[4], res[4];
-  char *e;
+  const char *errptr;
   int i;
   int len;
 
@@ -626,9 +626,9 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   /* load command bytes */
   for (i=1; i<argc; i++) {
-    cmd[i-1] = strtoul(argv[i], &e, 0);
-    if (*e || (e == argv[i])) {
-      pmsg_error("(send) cannot parse byte %s\n", argv[i]);
+    cmd[i-1] = str_int(argv[i], STR_UINT8, &errptr);
+    if(errptr) {
+      pmsg_error("(send) byte %s: %s\n", argv[i], errptr);
       return -1;
     }
   }
