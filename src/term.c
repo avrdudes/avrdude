@@ -285,11 +285,11 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   // Get start address if present
-  char *end_ptr;
+  const char *errptr;
   if(argc >= 3 && !str_eq(argv[2], "...")) {
-    int addr = strtol(argv[2], &end_ptr, 0);
-    if(*end_ptr || (end_ptr == argv[2])) {
-      pmsg_error("(dump) cannot parse address %s\n", argv[2]);
+    int addr = str_int(argv[2], STR_INT32, &errptr);
+    if(errptr) {
+      pmsg_error("(dump) address %s: %s\n", argv[2], errptr);
       return -1;
     }
 
@@ -313,9 +313,9 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         read_mem[i].addr = 0;
       read_mem[i].len = maxsize - read_mem[i].addr;
     } else if (argc == 4) {
-      int len = strtol(argv[3], &end_ptr, 0);
-      if (*end_ptr || (end_ptr == argv[3])) {
-        pmsg_error("(dump) cannot parse length %s\n", argv[3]);
+      int len = str_int(argv[3], STR_INT32, &errptr);
+      if(errptr) {
+        pmsg_error("(dump) length %s: %s\n", argv[3], errptr);
         return -1;
       }
 
