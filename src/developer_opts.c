@@ -898,6 +898,7 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
     dev_info("default_parallel   = %s;\n", p = cfg_escape(default_parallel)); free(p);
     dev_info("default_serial     = %s;\n", p = cfg_escape(default_serial)); free(p);
     dev_info("default_spi        = %s;\n", p = cfg_escape(default_spi)); free(p);
+    dev_info("default_bitclock   = %7.5f;\n", default_bitclock);
     dev_info("default_linuxgpio  = %s;\n", p = cfg_escape(default_linuxgpio)); free(p);
 
     dev_info("\n#\n# PROGRAMMER DEFINITIONS\n#\n\n");
