@@ -20,7 +20,6 @@
 /* $Id$ */
 
 %{
-/* need this for the call to atof() below */
 #include <math.h>
 #include <string.h>
 #include <errno.h>
@@ -50,9 +49,27 @@ static void adjust_cfg_lineno(const char *p) {
 
 %}
 
-DIGIT    [0-9]
-HEXDIGIT [0-9a-fA-F]
-SIGN     [+-]
+  // AVRDUDE integer size suffix (LL/L/S/H/HH)
+SIZS ([lL][lL]|[lL]|[sS]|[hH]|[hH][hH])
+ // AVRDUDE integer suffix incl unsigned designator
+ISUF ([uU]|[uU]{SIZS}|{SIZS}[uU]|{SIZS})
+ // Non-negative integers
+INUM (0|[1-9][0-9]*){ISUF}?
+ // Octal integers
+ONUM 0[0-7]+{ISUF}?
+ // Binary integers
+BNUM 0[bB][01]+{ISUF}?
+ // Hexadecimal integers - fractional hexadecimals are treated below
+XNUM 0[xX][0-9A-Fa-f]+{ISUF}?
+RNUM (M{0,3})(D?C{0,3}|CM|CD)(L?X{0,3}|XC|XL)(V?I{0,3}|IX|IV)
+
+ // Real numbers (decimal and hexadecimal fractional numbers)
+SIGN [+-]
+DNUM (([0-9]+[eE][-+]?[0-9]+)|([0-9]*\.[0-9]+([eE][-+]?[0-9]+)?))
+HNUM (0[xX](([0-9A-Fa-f]+([pP][-+]?[0-9]+))|([0-9A-Fa-f]*\.[0-9A-Fa-f]+([pP][-+]?[0-9]+)?)))
+NAN  [Nn][Aa][Nn]
+INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
+
 
 %option nounput
 
@@ -63,9 +80,21 @@ SIGN     [+-]
 
 %%
 
-{DIGIT}+                   { yylval = new_number(yytext); return TKN_NUMBER; /* sign is treated in grammar */ }
-{SIGN}?{DIGIT}+"."{DIGIT}* { yylval = new_number_real(yytext); return TKN_NUMBER_REAL; }
-{SIGN}?"."{DIGIT}+         { yylval = new_number_real(yytext); return TKN_NUMBER_REAL; }
+({INUM}|{BNUM}|{ONUM}|{XNUM}|{RNUM}) { /* sign is treated in grammar */
+  yylval = new_number(yytext);
+  if(!yylval)
+    return YYERRCODE;
+
+  return TKN_NUMBER;
+}
+
+{SIGN}?({DNUM}|{HNUM}|{NAN}|{INF}) {
+  yylval = new_number_real(yytext);
+  if(!yylval)
+    return YYERRCODE;
+
+  return TKN_NUMBER_REAL;
+}
 
 ["]([^"\\\n]|\\.|\\\n)*["] {
   char *str= cfg_strdup("lexer.l", yytext);
@@ -77,8 +106,6 @@ SIGN     [+-]
   free(str);
   return TKN_STRING;
 }
-
-0x{HEXDIGIT}+ { yylval = new_hexnumber(yytext); return TKN_NUMBER; }
 
 #\n#\ PROGRAMMER\ DEFINITIONS\n#\n+ { /* Record comments so far as prologue and skip */
   cfg_capture_prologue();
