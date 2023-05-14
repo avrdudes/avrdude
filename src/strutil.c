@@ -224,9 +224,13 @@ char *str_sprintf(const char *fmt, ...) {
 }
 
 
+bool is_bigendian() {
+  union {char a[2]; int16_t i;} u = {.i = 1};
+  return u.a[1] == 1;
+}
 
 // Change data item p of size bytes from big endian to little endian and vice versa
-static void change_endian(void *p, int size) {
+void change_endian(void *p, int size) {
   uint8_t tmp, *w = p;
 
   for(int i=0; i<size/2; i++)
@@ -506,10 +510,13 @@ Str2data *str_todata(const char *s, int type) {
     if(sd->size) {
       if(sd->sigsz < sd->size)
         sd->sigsz = sd->size;
-      if(is_big_endian && sd->size > 1) // Ensure little endian format
-        change_endian(sd->a, sd->size);
-      if(sd->sigsz < 8)                 // Curtail and sign extend the number
+      if(sd->sigsz < 8) {               // Curtail and sign extend the number
+        if(is_big_endian && sd->size > 1)
+          change_endian(sd->a, sd->size);
         memset(sd->a+sd->sigsz, is_signed && (sd->a[sd->sigsz-1] & 0x80)? 0xff: 0, 8-sd->sigsz);
+        if(is_big_endian)
+          change_endian(sd->a, sizeof sd->a);
+      }
 
       if(is_signed && is_out_of_range)
         Warning("%s out of int%d range, interpreted as %d-byte %lld%sU",

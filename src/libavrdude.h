@@ -1210,6 +1210,8 @@ int str_caseends(const char *str, const char *ends);
 int str_caseeq(const char *str1, const char *str2);
 int str_casematch(const char *pattern, const char *string);
 char *str_sprintf(const char *fmt, ...);
+bool is_bigendian();
+void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
 Str2data *str_todata(const char *str, int type);
