@@ -392,18 +392,26 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     msg_error(
       "Usage: write <memory> <addr> <data>[,] {<data>[,]}\n"
       "       write <memory> <addr> <len> <data>[,] {<data>[,]} ...\n"
-      "       write <memory> <data>\n"
+      "       write <memory> <datum> # only for 1-byte memories\n"
+      "       write <memory> <file>  # only for memories with more than 1 byte\n"
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
       "\n"
-      "<data> can be hexadecimal, binary, octal or decimal integers, floating point\n"
-      "numbers or C-style strings and characters. For integers, an optional\n"
-      "case-insensitive suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32\n"
-      "bit, LL 64 bit. Suffix D indicates a 64-bit double, F a 32-bit float, whilst\n"
-      "a floating point number without suffix defaults to 32-bit float. Hexadecimal\n"
-      "floating point notation is supported. An ambiguous trailing suffix, eg,\n"
-      "0x1.8D, is read as no-suffix float where D is part of the mantissa; use a\n"
-      "zero exponent 0x1.8p0D to clarify.\n"
+      "Both the <addr> and <len> can be negative numbers; a negative <addr> starts\n"
+      "an interval from that many bytes below the memory size; a negative <len> ends\n"
+      "the interval at that many bytes below the memory size.\n"
+      "\n"
+      "<data> can be binary, octal, decimal or hexadecimal integers, floating point\n"
+      "numbers or C-style strings and characters. If nothing matches, <data> will be\n"
+      "interpreted as a file name containing data. In absence of a :<f> format\n"
+      "suffix, the terminal will try to auto-detect the file format. \n"
+      "\n"
+      "For integers, an optional case-insensitive suffix specifies the data size: HH\n"
+      "8 bit, H/S 16 bit, L 32 bit, LL 64 bit. Suffix D indicates a 64-bit double, F\n"
+      "a 32-bit float, whilst a floating point number without suffix defaults to\n"
+      "32-bit float. Hexadecimal floating point notation is supported. An ambiguous\n"
+      "trailing suffix, eg, 0x1.8D, is read as no-suffix float where D is part of\n"
+      "the mantissa; use a zero exponent 0x1.8p0D to clarify.\n"
       "\n"
       "An optional U suffix makes integers unsigned. Ordinary 0x hex and 0b binary\n"
       "integers are always treated as unsigned. +0x, -0x, +0b and -0b numbers with\n"
@@ -429,8 +437,8 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   int i;
-  uint8_t write_mode;           // Operation mode, "standard" or "fill"
-  uint8_t start_offset;         // Which argc argument
+  int write_mode;               // Operation mode, "standard" or "fill"
+  int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   char *memtype = argv[1];      // Memory name string
   AVRMEM *mem = avr_locate_mem(p, memtype);
@@ -441,8 +449,18 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int maxsize = mem->size;
 
   if (argc == 3 && maxsize > 1) {
-    pmsg_error("(write) no data specified for %s address %s\n", mem->desc, argv[2]);
-    return -1;
+    // Check whether argv[2] might be anything other than a file
+    Str2data *sd = str_todata(argv[2], STR_ANY & ~STR_FILE, NULL, NULL);
+    if(sd && sd->type) {
+      if(sd->type & STR_INTEGER)
+        pmsg_error("(write) no data specified for %s address %s\n", mem->desc, argv[2]);
+      else
+        pmsg_error("(write) no address specified for %s data %s\n", mem->desc, argv[2]);
+      str_freedata(sd);
+      return -1;
+    }
+    str_freedata(sd);
+    // Argv[2] might be a file --- keep it in the running for address 0
   }
 
   const char *errptr;
@@ -466,9 +484,14 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
-  // Allocate a buffer guaranteed to be large enough
-  uint8_t *buf = calloc(mem->size + 8 + maxstrlen(argc-3, argv+3)+1, sizeof(uint8_t));
-  if (buf == NULL) {
+  // Allocate large enough data and allocation tags space
+  size_t bufsz = mem->size + 8 + maxstrlen(argc-3, argv+3)+1;
+  if(bufsz > INT_MAX) {
+    pmsg_error("(write) too large memory request (%zu)\n", bufsz);
+    return -1;
+  }
+  unsigned char *buf = calloc(bufsz, 1), *tags = calloc(bufsz, 1);
+  if(buf == NULL || tags == NULL) {
     pmsg_error("(write) out of memory\n");
     return -1;
   }
@@ -480,7 +503,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     len = str_int(argv[3], STR_INT32, &errptr);
     if(errptr) {
       pmsg_error("(write ...) length %s: %s\n", argv[3], errptr);
-      free(buf);
+      free(buf); free(tags);
       return -1;
     }
 
@@ -505,17 +528,17 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     len = argc - start_offset;
   }
 
-  int bytes_grown = 0;
+  int bytes_grown = 0, filling = 0, recorded = 0, maxneeded = maxsize-addr;
   Str2data *sd = NULL;
+
   for (i = start_offset; i < len + start_offset; i++) {
     // Handle the next argument
     if (i < argc - start_offset + 3) {
-      if(sd)
-        str_freedata(sd);
-      sd = str_todata(argv[i], STR_ANY);
+      str_freedata(sd);
+      sd = str_todata(argv[i], STR_ANY, p, mem->desc);
       if(!sd->type || sd->errstr) {
         pmsg_error("(write) data %s: %s\n", argv[i], sd->errstr? sd->errstr: "str_todata");
-        free(buf);
+        free(buf); free(tags);
         str_freedata(sd);
         return -1;
       }
@@ -524,36 +547,67 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       // Always write little endian (assume double and int have same endianess)
       if(is_bigendian() && sd->size > 0 && (sd->type & STR_NUMBER))
         change_endian(sd->a, sd->size);
+    } else {
+      filling = 1;
+      if(!sd)
+        break;
     }
+    int n = i - start_offset + bytes_grown;
     if(sd->type == STR_STRING && sd->str_ptr) {
-      for(size_t j = 0; j < strlen(sd->str_ptr); j++)
-        buf[i - start_offset + bytes_grown++] = (uint8_t)sd->str_ptr[j];
-    } else if(sd->size > 0) {
-      for(int k=0; k<sd->size; k++)
-        buf[i - start_offset + bytes_grown + k] = sd->a[k];
+      size_t len = strlen(sd->str_ptr);
+      for(size_t j = 0; j < len; j++, n++) {
+        buf[n] = (uint8_t) sd->str_ptr[j];
+        tags[n] = TAG_ALLOCATED;
+      }
+      buf[n] = 0; tags[n] = 1;  // Terminating nul
+      bytes_grown += (int) len; // Sic: one less than written
+    } else if(sd->type == STR_FILE && sd->mem && sd->size > 0) {
+      int end = bufsz - n;      // Available buffer size
+      if(sd->size < end)
+        end = sd->size;
+      for(int j = 0; j < end; j++, n++) {
+        if(sd->mem->tags[j]) {
+          buf[n] = sd->mem->buf[j];
+          tags[n] = TAG_ALLOCATED;
+        }
+      }
+      if(end > 0)               // Should always be true
+        bytes_grown += end-1;
+    } else if(sd->size > 0 && (sd->type & STR_NUMBER)) {
+      for(int k = 0; k < sd->size; k++, n++) {
+        buf[n] = sd->a[k];
+        tags[n] = TAG_ALLOCATED;
+      }
       bytes_grown += sd->size-1;
+    } else {                    // Nothing written
+      bytes_grown--;            // Sic: stay stagnat as i increases, but break when filling
+      if(write_mode == WRITE_MODE_FILL && filling) {
+        filling = 0;
+        break;
+      }
     }
-
-    // Make sure buf does not overflow
-    if (i - start_offset + bytes_grown > maxsize)
+    recorded = i - start_offset + bytes_grown + 1;
+    if(recorded >= maxneeded)
       break;
   }
   str_freedata(sd);
 
-  // When in "fill" mode, the maximum size is already predefined
-  if (write_mode == WRITE_MODE_FILL)
+  // When in fill mode, the maximum size is already predefined
+  if(write_mode == WRITE_MODE_FILL) {
+    if(recorded < len) {
+      pmsg_warning("(write ...) can only fill %d < %d byte%s as last item has zero bytes\n",
+        recorded, len, update_plural(recorded));
+      len = recorded;
+    }
     bytes_grown = 0;
-
-  if ((addr + len + bytes_grown) > maxsize) {
-    pmsg_error("(write) selected address and # bytes exceed "
-      "range for %s memory\n", memtype);
-    free(buf);
-    return -1;
+  } else if(addr + len + bytes_grown > maxsize) {
+    bytes_grown = maxsize - addr - len;
+    pmsg_warning("(write) clipping data to fit into %s %s memory\n", p->desc, mem->desc);
   }
 
-  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02lx",
-    len + bytes_grown, update_plural(len + bytes_grown), (long) addr);
-  if (write_mode == WRITE_MODE_FILL)
+  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02x",
+    len + bytes_grown, update_plural(len + bytes_grown), addr);
+  if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\v");
 
@@ -561,11 +615,14 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   bool werror = false;
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
   for (i = 0; i < len + bytes_grown; i++) {
+    report_progress(i, len + bytes_grown, NULL);
+    if(!tags[i])
+      continue;
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
     } else if(rc) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05lx, rc=%d\n", buf[i], (long) addr+i, (int) rc);
+      pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
       werror = true;
@@ -573,15 +630,13 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       uint8_t b;
       rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
       if (b != buf[i]) {
-        pmsg_error("(write) verification error writing 0x%02x at 0x%05lx cell=0x%02x\n", buf[i], (long) addr+i, b);
+        pmsg_error("(write) verification error writing 0x%02x at 0x%05x cell=0x%02x\n", buf[i], addr+i, b);
         werror = true;
       }
    }
 
     if (werror)
       pgm->err_led(pgm, ON);
-
-    report_progress(i, len + bytes_grown, NULL);
   }
   report_progress(1, 1, NULL);
 

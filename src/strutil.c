@@ -371,7 +371,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
  * function, but is also used for generic string to integer conversions in str_int() below. Both
  * routines define the "character" of how avrdude understands strings in (most) of its dealings.
  * The granularity of type is an bitwise-or combination of bits making up STR_INTEGER; STR_FLOAT;
- * STR_DOUBLE or STR_STRING.
+ * STR_DOUBLE or STR_STRING. The arguments part and memtype are only needed for input from files.
  */
 
 #define Return(...) do { \
@@ -392,7 +392,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
   (ll) < INT16_MIN || (ll) > INT16_MAX? 4: \
   (ll) < INT8_MIN  || (ll) > INT8_MAX? 2: 1)
 
-Str2data *str_todata(const char *s, int type) {
+Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *memtype) {
   char *end_ptr;
   Str2data *sd = cfg_malloc(__func__, sizeof *sd);
   char *str = cfg_strdup(__func__, s);
@@ -415,7 +415,7 @@ Str2data *str_todata(const char *s, int type) {
 
     sd->ull = 1;
     if(sizeof(long long) != sizeof(int64_t) || (sd->a[0]^sd->a[7]) != 1)
-      Return("assumption on data types not met? Check source and recompile\n");
+      Return("assumption on data types not met? Check source and recompile");
     is_big_endian = sd->a[7];
 
     sd->sigsz = sd->size = 0;
@@ -584,6 +584,46 @@ Str2data *str_todata(const char *s, int type) {
     }
   }
 
+  if(type & STR_FILE && part && memtype) { // File name containing data to be loaded
+    int format = FMT_AUTO;
+    FILE *f;
+
+    if(arglen > 2 && str[arglen-2] == ':') {
+      format = upd_format(str[arglen-1]);
+      if(format == FMT_ERROR)
+        Return("unknown format %c in file name %s", str[arglen-1], str);
+       str[arglen-=2] = 0;
+    }
+    if(format == FMT_AUTO) {
+      f = fileio_fopenr(str);
+      if(f == NULL)
+        Return("unable to read file %s: %s", str, strerror(errno));
+      format = fileio_fmt_autodetect_fp(f);
+      fclose(f);
+
+      if(format < 0)
+        Return("cannot determine format for file %s, specify explicitly", str);
+    }
+    // Obtain a copy of the part incl all memories
+    AVRPART *dp = avr_dup_part(part);
+    AVRMEM *mem = avr_locate_mem(dp, memtype);
+    if(!mem) {
+      avr_free_part(dp);
+      Return("memory type %s not configured for device %s", memtype, part->desc);
+    }
+    int rc = fileio(FIO_READ_FOR_VERIFY, str, format, dp, memtype, -1);
+    if(rc < 0) {
+      avr_free_part(dp);
+      Return("unable to read file %s", str);
+    }
+    sd->mem = avr_dup_mem(mem);
+    sd->size = rc;
+    avr_free_part(dp);
+    sd->type = STR_FILE;
+    free(str);
+    return sd;
+  }
+
   Return("cannot parse");
 }
 
@@ -594,6 +634,8 @@ void str_freedata(Str2data *sd) {
       free(sd->warnstr);
     if(sd->errstr)
       free(sd->errstr);
+    if(sd->mem)
+      avr_free_mem(sd->mem);
     free(sd);
   }
 }
@@ -650,7 +692,7 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
     goto finished;
   }
 
-  sd = str_todata(str, type | STR_STRING);
+  sd = str_todata(str, type | STR_STRING, NULL, NULL);
   // 1<<lds is number of expected bytes
   int lds = type&STR_8? 3: type&STR_4? 2: type&STR_2? 1: type&STR_1? 0: 3;
 

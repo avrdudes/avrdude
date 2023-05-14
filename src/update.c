@@ -32,6 +32,24 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
+
+FILEFMT upd_format(char c) {
+  switch (c) {
+  case 'a': return FMT_AUTO;
+  case 's': return FMT_SREC;
+  case 'i': return FMT_IHEX;
+  case 'I': return FMT_IHXC;
+  case 'r': return FMT_RBIN;
+  case 'e': return FMT_ELF;
+  case 'm': return FMT_IMM;
+  case 'b': return FMT_BIN;
+  case 'd': return FMT_DEC;
+  case 'h': return FMT_HEX;
+  case 'o': return FMT_OCT;
+  default:  return FMT_ERROR;
+  }
+}
+
 UPDATE * parse_op(char * s)
 {
   char buf[1024];
@@ -114,23 +132,12 @@ UPDATE * parse_op(char * s)
     if (c && p[1])
       /* More than one char - force failure below. */
       c = '?';
-    switch (c) {
-      case 'a': upd->format = FMT_AUTO; break;
-      case 's': upd->format = FMT_SREC; break;
-      case 'i': upd->format = FMT_IHEX; break;
-      case 'I': upd->format = FMT_IHXC; break;
-      case 'r': upd->format = FMT_RBIN; break;
-      case 'e': upd->format = FMT_ELF; break;
-      case 'm': upd->format = FMT_IMM; break;
-      case 'b': upd->format = FMT_BIN; break;
-      case 'd': upd->format = FMT_DEC; break;
-      case 'h': upd->format = FMT_HEX; break;
-      case 'o': upd->format = FMT_OCT; break;
-      default:
-        pmsg_error("invalid file format '%s' in update specifier\n", p);
-        free(upd->memtype);
-        free(upd);
-        return NULL;
+    upd->format = upd_format(c);
+    if(upd->format == FMT_ERROR) {
+      pmsg_error("invalid file format '%s' in update specifier\n", p);
+      free(upd->memtype);
+      free(upd);
+      return NULL;
     }
   }
 
@@ -380,8 +387,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
 
   if(!known && upd->format == FMT_AUTO) {
     if(!strcmp(upd->filename, "-")) {
-      pmsg_error("cannot auto detect file format for stdin/out, "
-        "specify explicitly\n");
+      pmsg_error("cannot auto detect file format for stdin/out, specify explicitly\n");
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else if((format_detect = fileio_fmt_autodetect(upd->filename)) < 0) {
       pmsg_error("cannot determine file format for %s, specify explicitly\n", upd->filename);

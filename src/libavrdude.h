@@ -974,6 +974,7 @@ int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 /* formerly fileio.h */
 
 typedef enum {
+  FMT_ERROR = -1,
   FMT_AUTO,
   FMT_SREC,
   FMT_IHEX,
@@ -1006,9 +1007,15 @@ enum {
 extern "C" {
 #endif
 
+FILEFMT upd_format(char c);
+
 char * fileio_fmtstr(FILEFMT format);
 
-int fileio_fmt_autodetect(const char * fname);
+FILE *fileio_fopenr(const char *fname);
+
+int fileio_fmt_autodetect_fp(FILE *f);
+
+int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
       const AVRPART *p, const char *memtype, int size);
@@ -1158,6 +1165,7 @@ char *cfg_escape(const char *s);
 typedef struct {
   int size, sigsz, type;
   char *errstr, *warnstr, *str_ptr;
+  AVRMEM *mem;
   union {
     float f;
     double d;
@@ -1214,7 +1222,7 @@ bool is_bigendian();
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
-Str2data *str_todata(const char *str, int type);
+Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memtype);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 

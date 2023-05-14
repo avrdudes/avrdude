@@ -1306,31 +1306,29 @@ int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM 
 
 
 
-int fileio_fmt_autodetect(const char * fname)
-{
-  FILE * f;
+FILE *fileio_fopenr(const char *fname) {
+#if !defined(WIN32)
+  return fopen(fname, "r");
+#else
+  return fopen(fname, "rb");
+#endif
+}
+
+int fileio_fmt_autodetect_fp(FILE *f) {
+  if(!f)
+    return FMT_ERROR;
+
   unsigned char buf[MAX_LINE_LEN];
   int i;
   int len;
   int found;
   int first = 1;
 
-#if !defined(WIN32)
-  f = fopen(fname, "r");
-#else
-  f = fopen(fname, "rb");
-#endif
-  if (f == NULL) {
-    pmsg_ext_error("unable to open %s: %s\n", fname, strerror(errno));
-    return -1;
-  }
-
   while (fgets((char *)buf, MAX_LINE_LEN, f)!=NULL) {
     /* check for ELF file */
     if (first &&
         (buf[0] == 0177 && buf[1] == 'E' &&
          buf[2] == 'L' && buf[3] == 'F')) {
-      fclose(f);
       return FMT_ELF;
     }
 
@@ -1347,10 +1345,8 @@ int fileio_fmt_autodetect(const char * fname)
         break;
       }
     }
-    if (found) {
-      fclose(f);
+    if (found)
       return FMT_RBIN;
-    }
 
     /* check for lines that look like intel hex */
     if ((buf[0] == ':') && (len >= 11)) {
@@ -1361,10 +1357,8 @@ int fileio_fmt_autodetect(const char * fname)
           break;
         }
       }
-      if (found) {
-        fclose(f);
+      if (found)
         return FMT_IHEX;
-      }
     }
 
     /* check for lines that look like motorola s-record */
@@ -1376,17 +1370,28 @@ int fileio_fmt_autodetect(const char * fname)
           break;
         }
       }
-      if (found) {
-        fclose(f);
+      if (found)
         return FMT_SREC;
-      }
     }
 
     first = 0;
   }
 
-  fclose(f);
   return -1;
+}
+
+int fileio_fmt_autodetect(const char *fname) {
+  FILE *f = fileio_fopenr(fname);
+
+  if (f == NULL) {
+    pmsg_ext_error("unable to open %s: %s\n", fname, strerror(errno));
+    return -1;
+  }
+
+  int format = fileio_fmt_autodetect_fp(f);
+  fclose(f);
+
+  return format;
 }
 
 
