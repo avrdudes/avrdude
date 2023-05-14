@@ -2537,18 +2537,14 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
             break;
           } else if(plen > olen &&  extended_param[olen] == '=' && options[i].assign) {
             const char *arg = extended_param+olen+1;
-            char *end;
-            long ret = strtol(arg, &end, 0);
-            if(*end || end == arg) {
-             pmsg_error("cannot parse -x%s\n", extended_param);
+            const char *errstr;
+            int val = str_int(arg, STR_INT32, &errstr);
+            if(errstr) {
+             pmsg_error("-x%s: %s\n", extended_param, errstr);
              return -1;
             }
-            if((int) ret != ret) {
-             pmsg_error("out of integer range -x%s\n", extended_param);
-             return -1;
-            }
-            *options[i].optionp = ret;
-            pmsg_notice2("%s=%d set\n", options[i].name, (int) ret);
+            *options[i].optionp = val;
+            pmsg_notice2("%s=%d set\n", options[i].name, (int) val);
             break;
           }
         } else if(options[i].nstrbuf > 0) {
