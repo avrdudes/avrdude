@@ -520,7 +520,8 @@ int main(int argc, char * argv [])
   char    executable_dirpath[PATH_MAX]; /* absolute path to folder with executable */
   bool    executable_abspath_found = false; /* absolute path to executable found */
   bool    sys_config_found = false; /* 'avrdude.conf' file found */
-  char  * e;           /* for strtol() error checking */
+  char  * e;           /* for strtod() error checking */
+  const char  *errstr; /* for str_int() error checking */
   int     baudrate;    /* override default programmer baud rate */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
@@ -635,9 +636,9 @@ int main(int argc, char * argv [])
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
-        baudrate = strtol(optarg, &e, 0);
-        if ((e == optarg) || (*e != 0)) {
-          pmsg_error("invalid baud rate specified '%s'\n", optarg);
+        baudrate = str_int(optarg, STR_INT32, &errstr);
+        if(errstr) {
+          pmsg_error("invalid baud rate %s specified: %s\n", optarg, errstr);
           exit(1);
         }
         break;
@@ -691,9 +692,13 @@ int main(int argc, char * argv [])
         break;
 
       case 'i':	/* specify isp clock delay */
-	ispdelay = strtol(optarg, &e,10);
-	if ((e == optarg) || (*e != 0) || ispdelay == 0) {
-	  pmsg_error("invalid isp clock delay specified '%s'\n", optarg);
+	ispdelay = str_int(optarg, STR_INT32, &errstr);
+	if(errstr || ispdelay == 0) {
+	  pmsg_error("invalid isp clock delay %s specified", optarg);
+          if(errstr)
+            msg_error(": %s\n", errstr);
+          else
+            msg_error("\n");
           exit(1);
         }
         break;
