@@ -1058,7 +1058,8 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
  const AVRMEM *mem, int size) {
 
   int rc = 0;
-  char *e, *p, *filename;
+  char *p, *filename;
+  const char *errstr;
   unsigned long b;
   int loc;
 
@@ -1069,13 +1070,9 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
       loc = 0;
       p = strtok(filename, " ,");
       while (p != NULL && loc < size) {
-        b = strtoul(p, &e, 0);
-        /* check for binary formatted (0b10101001) strings */
-        b = (strncmp (p, "0b", 2))?
-            strtoul (p, &e, 0):
-           strtoul (p + 2, &e, 2);
-        if (*e != 0) {
-          pmsg_error("invalid byte value (%s) specified for immediate mode\n", p);
+        b = str_int(p, STR_XINT8, &errstr);
+        if(errstr) {
+          pmsg_error("invalid byte value %s specified for immediate mode: %s\n", p, errstr);
           free(filename);
           return -1;
         }
