@@ -117,43 +117,6 @@ struct command cmd[] = {
 
 static int spi_mode = 0;
 
-static int nexttok(char *buf, char **tok, char **next) {
-  unsigned char *q, *n;
-
-  q = (unsigned char *) buf;
-  while (isspace(*q))
-    q++;
-
-  /* isolate first token */
-  n = q;
-  uint8_t quotes = 0;
-  while (*n && (!isspace(*n) || quotes)) {
-    // Poor man's quote and escape processing
-    if (*n == '"' || *n == '\'')
-      quotes++;
-    else if(*n == '\\' && n[1])
-      n++;
-    else if (isspace(*n) && (n > q+1) && (n[-1] == '"' || n[-1] == '\''))
-      break;
-    n++;
-  }
-
-  if (*n) {
-    *n = 0;
-    n++;
-  }
-
-  /* find start of next token */
-  while (isspace(*n))
-    n++;
-
-  *tok  = (char *) q;
-  *next = (char *) n;
-
-  return 0;
-}
-
-
 static int hexdump_line(char *buffer, unsigned char *p, int n, int pad) {
   char *hexdata = "0123456789abcdef";
   char *b = buffer;
@@ -1074,6 +1037,38 @@ static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     update_progress = NULL;
   else
     terminal_setup_update_progress();
+
+  return 0;
+}
+
+
+static int nexttok(char *buf, char **tok, char **next) {
+  unsigned char *q, *r, *w, inquote;
+
+  q = (unsigned char *) buf;
+  while (isspace(*q))
+    q++;
+
+  // Isolate first token
+  for(inquote = 0, w = r = q; *r && !(isspace(*r) && !inquote); *w++ = *r++) {
+    // Poor man's quote and escape processing
+    if(*r == '"' || *r == '\'')
+      inquote = inquote && *r == inquote? 0: inquote? inquote: *r;
+    else if(*r == '\\' && isspace(r[1])) // Remove \ before space for file names
+      r++;
+    else if(*r == '\\' && r[1])          // Leave other \ to keep C-style, eg, '\n'
+      *w++ = *r++;
+  }
+  if(*r)
+    r++;
+  *w = 0;
+
+  // Find start of next token
+  while (isspace(*r))
+    r++;
+
+  *tok  = (char *) q;
+  *next = (char *) r;
 
   return 0;
 }
