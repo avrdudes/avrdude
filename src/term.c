@@ -114,7 +114,6 @@ struct command cmd[] = {
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
 
 
-
 static int spi_mode = 0;
 
 static int hexdump_line(char *buffer, unsigned char *p, int n, int pad) {
@@ -632,7 +631,6 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
-
   if ((argc > 5) || ((argc < 5) && (!spi_mode))) {
     msg_error(spi_mode?
       "Usage: send <byte1> [<byte2> [<byte3> [<byte4>]]]\n":
@@ -1073,7 +1071,7 @@ static int nexttok(char *buf, char **tok, char **next) {
   return 0;
 }
 
-int tokenize(char *s, char ***argvp) {
+static char *tokenize(char *s, int *argcp, char ***argvp) {
   size_t slen;
   int n, nargs;
   char **argv, *buf, *q, *r;
@@ -1089,23 +1087,31 @@ int tokenize(char *s, char ***argvp) {
 
   // Limit input line to some 186 Megabytes as max nargs is (slen+1)/2
   if(slen > 2*((INT_MAX - 2*sizeof(char *))/(sizeof(char *)+3)))
-    return -1;
+    return NULL;
 
   // Allocate once for pointers and contents, so caller only needs to free(argv)
-  argv = cfg_malloc(__func__, (nargs+1)*sizeof(char *) + slen + nargs);
+  argv = cfg_malloc(__func__, (nargs+2)*sizeof(char *) + slen + nargs);
   buf  = (char *) (argv+nargs+1);
 
   for(n=0, r=s; *r; ) {
     nexttok(r, &q, &r);
-    if(*q == '#')               // Inline comment: ignore rest of line
+    if(*q == '#') {             // Inline comment: ignore rest of line
+      r = q+strlen(q);
       break;
+    }
     strcpy(buf, q);
-    argv[n++] = buf;
+    if(*buf && !str_eq(buf, ";")) // Don't record empty arguments
+      argv[n++] = buf;
     buf += strlen(q) + 1;
+    if(buf[-2] == ';') {        // Command separator
+      buf[-2] = 0;
+      break;
+    }
   }
 
+  *argcp = n;
   *argvp = argv;
-  return n;
+  return r;
 }
 
 
@@ -1152,12 +1158,11 @@ char *terminal_get_input(const char *prompt) {
 }
 
 
-static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
-  int argc, rc;
-  char **argv = NULL, *q;
+static int process_line(char *q, PROGRAMMER *pgm, struct avrpart *p) {
+  int argc, rc = 0;
+  char **argv;
 
   // Find the start of the command, skipping any white space
-  q = cmdbuf;
   while(*q && isspace((unsigned char) *q))
     q++;
 
@@ -1166,14 +1171,17 @@ static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
     return 0;
 
   // Tokenize command line
-  argc = tokenize(q, &argv);
-
-  if(!argv)
-    return -1;
-
-  // Run the command
-  rc = do_cmd(pgm, p, argc, argv);
-  free(argv);
+  do {
+    argc = 0; argv = NULL;
+    q = tokenize(q, &argc, &argv);
+    if(!q)
+      return -1;
+    if(argc <= 0 || !argv)
+      continue;
+    // Run the command
+    rc = do_cmd(pgm, p, argc, argv);
+    free(argv);
+  } while(*q);
 
   return rc;
 }

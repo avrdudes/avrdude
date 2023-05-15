@@ -697,7 +697,7 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
   int lds = type&STR_8? 3: type&STR_4? 2: type&STR_2? 1: type&STR_1? 0: 3;
 
   if(sd->type != STR_INTEGER || sd->errstr) {
-    err = sd->errstr? cache_string(sd->errstr): sd->type != STR_INTEGER? "not an integral type": "str_todata";
+    err = sd->errstr? cache_string(sd->errstr): "not an integral type";
     goto finished;
   }
 
