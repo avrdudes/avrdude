@@ -1097,6 +1097,8 @@ int tokenize(char *s, char ***argvp) {
 
   for(n=0, r=s; *r; ) {
     nexttok(r, &q, &r);
+    if(*q == '#')               // Inline comment: ignore rest of line
+      break;
     strcpy(buf, q);
     argv[n++] = buf;
     buf += strlen(q) + 1;
