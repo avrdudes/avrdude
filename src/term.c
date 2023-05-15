@@ -1073,99 +1073,36 @@ static int nexttok(char *buf, char **tok, char **next) {
   return 0;
 }
 
-static int tokenize(char *s, char ***argv) {
-  int     i, n, l, nargs;
-  int     len, slen;
-  char  *buf;
-  int     bufsize;
-  char **bufv;
-  char  *bufp;
-  char  *q, *r;
-  char  *nbuf;
-  char **av;
+int tokenize(char *s, char ***argvp) {
+  size_t slen;
+  int n, nargs;
+  char **argv, *buf, *q, *r;
 
-  slen = strlen(s);
-
-  /*
-   * initialize allow for 20 arguments, use realloc to grow this if
-   * necessary
-   */
-  nargs   = 20;
-  bufsize = slen + 20;
-  buf     = malloc(bufsize);
-  bufv    = (char **) malloc(nargs*sizeof(char *));
-  for (i=0; i<nargs; i++) {
-    bufv[i] = NULL;
+  // Upper estimate of the number of arguments
+  for(nargs=0, q=s; *q; nargs++) {
+    while(*q && !isspace((unsigned char) *q))
+      q++;
+    while(*q && isspace((unsigned char) *q))
+      q++;
   }
-  buf[0] = 0;
+  slen = q - s;
 
-  n    = 0;
-  l    = 0;
-  nbuf = buf;
-  r    = s;
-  while (*r) {
+  // Limit input line to some 186 Megabytes as max nargs is (slen+1)/2
+  if(slen > 2*((INT_MAX - 2*sizeof(char *))/(sizeof(char *)+3)))
+    return -1;
+
+  // Allocate once for pointers and contents, so caller only needs to free(argv)
+  argv = cfg_malloc(__func__, (nargs+1)*sizeof(char *) + slen + nargs);
+  buf  = (char *) (argv+nargs+1);
+
+  for(n=0, r=s; *r; ) {
     nexttok(r, &q, &r);
-    strcpy(nbuf, q);
-    bufv[n]  = nbuf;
-    len      = strlen(q);
-    l       += len + 1;
-    nbuf    += len + 1;
-    nbuf[0]  = 0;
-    n++;
-    if ((n % 20) == 0) {
-      char *buf_tmp;
-      char **bufv_tmp;
-      /* realloc space for another 20 args */
-      bufsize += 20;
-      nargs   += 20;
-      bufp     = buf;
-      buf_tmp  = realloc(buf, bufsize);
-      if (buf_tmp == NULL) {
-        free(buf);
-        free(bufv);
-        return -1;
-      }
-      buf = buf_tmp;
-      bufv_tmp = realloc(bufv, nargs*sizeof(char *));
-      if (bufv_tmp == NULL) {
-        free(buf);
-        free(bufv);
-        return -1;
-      }
-      bufv = bufv_tmp;
-      nbuf     = &buf[l];
-      /* correct bufv pointers */
-      ptrdiff_t k = buf - bufp;
-      for (i=0; i<n; i++) {
-          bufv[i] = bufv[i] + k;
-      }
-      for (i=n; i<nargs; i++)
-        bufv[i] = NULL;
-    }
+    strcpy(buf, q);
+    argv[n++] = buf;
+    buf += strlen(q) + 1;
   }
 
-  /*
-   * We have parsed all the args, n == argc, bufv contains an array of
-   * pointers to each arg, and buf points to one memory block that
-   * contains all the args, back to back, seperated by a nul
-   * terminator.  Consilidate bufv and buf into one big memory block
-   * so that the code that calls us, will have an easy job of freeing
-   * this memory.
-   */
-  av = (char **) malloc(slen + n + (n+1)*sizeof(char *));
-  q  = (char *)&av[n+1];
-  memcpy(q, buf, l);
-  for (i=0; i<n; i++) {
-    ptrdiff_t offset = bufv[i] - buf;
-    av[i] = q + offset;
-  }
-  av[i] = NULL;
-
-  free(buf);
-  free(bufv);
-
-  *argv = av;
-
+  *argvp = argv;
   return n;
 }
 
