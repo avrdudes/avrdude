@@ -85,14 +85,15 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 struct command cmd[] = {
-  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> | <addr> <len>]" },
+  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <mem> [<addr> | <addr> <len>]" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
-  { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> <data>[,] {<data>[,]}" },
-  { "",      cmd_write, _fo(write_byte_cached), "write <memory> <addr> <len> <data>[,] {<data>[,]} ..." },
+  { "write", cmd_write, _fo(write_byte_cached), "write <mem> <addr> <data>[,] {<data>[,]}" },
+  { "",      cmd_write, _fo(write_byte_cached), "write <mem> <addr> <len> <data>[,] {<data>[,]} ... # verbatim ..." },
+  { "",      cmd_write, _fo(write_byte_cached), "write <mem> <data> # Must be file if memory has more than 1 byte" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
-  { "pgerase", cmd_pgerase, _fo(page_erase),    "pgerase <memory> <addr>" },
+  { "pgerase", cmd_pgerase, _fo(page_erase),    "pgerase <mem> <addr>" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command: %s <b1> <b2> <b3> <b4>" },
@@ -204,9 +205,9 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
     msg_error(
-      "Usage: %s <memory> <addr> <len>\n"
-      "       %s <memory> <addr>\n"
-      "       %s <memory>\n"
+      "Usage: %s <mem> <addr> <len>\n"
+      "       %s <mem> <addr>\n"
+      "       %s <mem>\n"
       "       %s%s\n",
       cmd, cmd, cmd, cmd, argc < 2? " (can only be used for continuation)": "");
     return -1;
@@ -352,10 +353,9 @@ static size_t maxstrlen(int argc, char **argv) {
 static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (argc < 3) {
     msg_error(
-      "Usage: write <memory> <addr> <data>[,] {<data>[,]}\n"
-      "       write <memory> <addr> <len> <data>[,] {<data>[,]} ...\n"
-      "       write <memory> <datum> # only for 1-byte memories\n"
-      "       write <memory> <file>  # only for memories with more than 1 byte\n"
+      "Usage: write <mem> <addr> <data>[,] {<data>[,]}\n"
+      "       write <mem> <addr> <len> <data>[,] {<data>[,]} ...\n"
+      "       write <mem> <data> # Must be file if memory has more than 1 byte\n"
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
       "\n"
@@ -671,8 +671,8 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (argc > 4 || argc == 3) {
-    msg_error("Usage: erase <memory> <addr> <len>\n");
-    msg_error("       erase <memory>\n");
+    msg_error("Usage: erase <mem> <addr> <len>\n");
+    msg_error("       erase <mem>\n");
     msg_error("       erase\n");
     return -1;
   }
@@ -747,7 +747,7 @@ static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if(argc < 3) {
-    msg_error("Usage: pgerase <memory> <addr>\n");
+    msg_error("Usage: pgerase <mem> <addr>\n");
     return -1;
   }
 
