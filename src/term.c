@@ -85,30 +85,28 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 struct command cmd[] = {
-  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <mem> [<addr> | <addr> <len>]" },
+  { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
-  { "write", cmd_write, _fo(write_byte_cached), "write <mem> <addr> <data>[,] {<data>[,]}" },
-  { "",      cmd_write, _fo(write_byte_cached), "write <mem> <addr> <len> <data>[,] {<data>[,]} ... # verbatim ..." },
-  { "",      cmd_write, _fo(write_byte_cached), "write <mem> <data> # Must be file if memory has more than 1 byte" },
-  { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
-  { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
-  { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
-  { "pgerase", cmd_pgerase, _fo(page_erase),    "pgerase <mem> <addr>" },
+  { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
+  { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
+  { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
+  { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
+  { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
-  { "send",  cmd_send,  _fo(cmd),               "send a raw command: %s <b1> <b2> <b3> <b4>" },
+  { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display adjustable parameters" },
-  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set <V[target]>" },
-  { "varef", cmd_varef, _fo(set_varef),         "set <V[aref]>" },
-  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set <oscillator frequency>" },
-  { "sck",   cmd_sck,   _fo(set_sck_period),    "set <SCK period>" },
+  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
+  { "varef", cmd_varef, _fo(set_varef),         "set V[aref]" },
+  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set the oscillator frequency" },
+  { "sck",   cmd_sck,   _fo(set_sck_period),    "set the SCK period" },
   { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
-  { "verbose", cmd_verbose, _fo(open),          "change verbosity" },
-  { "quell", cmd_quell, _fo(open),              "set quell level for progress bars" },
+  { "verbose", cmd_verbose, _fo(open),          "display or set -v verbosity level" },
+  { "quell", cmd_quell, _fo(open),              "display or set -q quell level for progress bars" },
   { "help",  cmd_help,  _fo(open),              "show help message" },
   { "?",     cmd_help,  _fo(open),              "same as help" },
-  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" },
+  { "quit",  cmd_quit,  _fo(open),              "synchronise flash/EEPROM cache with device and quit" },
   { "q",     cmd_quit,  _fo(open),              "abbreviation for quit" },
 };
 
@@ -203,13 +201,22 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   static int i;
   const char *cmd = tolower(**argv) == 'd'? "dump": "read";
 
-  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
+  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
-      "Usage: %s <mem> <addr> <len>\n"
-      "       %s <mem> <addr>\n"
-      "       %s <mem>\n"
-      "       %s%s\n",
-      cmd, cmd, cmd, cmd, argc < 2? " (can only be used for continuation)": "");
+      "Syntax: %s <mem> <addr> <len> # display entire region\n"
+      "        %s <mem> <addr>       # start at <addr>\n"
+      "        %s <mem>              # Continue displaying memory where left off\n"
+      "        %s                    # Continue displaying most recently shown <mem>\n"
+      "Function: display memory section as hex dump\n"
+      "\n"
+      "Both the <addr> and <len> can be negative numbers; a negative <addr> starts\n"
+      "an interval from that many bytes below the memory size; a negative <len> ends\n"
+      "the interval at that many bytes below the memory size.\n"
+      "\n"
+      "The latter two versions of the command page through the memory with a page\n"
+      "size of the last used effective length (256 bytes default)\n",
+      cmd, cmd, cmd, cmd
+    );
     return -1;
   }
 
@@ -351,11 +358,13 @@ static size_t maxstrlen(int argc, char **argv) {
 
 
 static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc < 3) {
+  if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
-      "Usage: write <mem> <addr> <data>[,] {<data>[,]}\n"
-      "       write <mem> <addr> <len> <data>[,] {<data>[,]} ...\n"
-      "       write <mem> <data> # Must be file if memory has more than 1 byte\n"
+      "Syntax: write <mem> <addr> <data>[,] {<data>[,]}\n"
+      "        write <mem> <addr> <len> <data>[,] {<data>[,]} ... # Fill, see below\n"
+      "        write <mem> <data> # Any <data> incl file if memory has only 1 byte\n"
+      "        write <mem> <file> # Must be file if memory has more than 1 byte\n"
+      "Function: write data to memory; flash and EEPROM are normally cached\n"
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
       "\n"
@@ -399,7 +408,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   int i;
-  int write_mode;               // Operation mode, "standard" or "fill"
+  int write_mode;               // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   char *memtype = argv[1];      // Memory name string
@@ -608,13 +617,29 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 }
 
 
-static int cmd_flush(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
+static int cmd_flush(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: flush\n"
+      "Function: synchronise flash and EEPROM cache with the device\n"
+    );
+    return -1;
+  }
+
   pgm->flush_cache(pgm, p);
   return 0;
 }
 
 
-static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
+static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: abort\n"
+      "Function: abort flash and EEPROM writes, ie, reset the r/w cache\n"
+    );
+    return -1;
+  }
+
   pgm->reset_cache(pgm, p);
   return 0;
 }
@@ -626,15 +651,19 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int i;
   int len;
 
-  if (spi_mode && (pgm->spi == NULL)) {
-    pmsg_error("(send) the %s programmer does not support direct SPI transfers\n", pgm->type);
+  if(argc > 5 || (argc < 5 && !spi_mode) || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(spi_mode?
+      "Syntax: send <byte1> [<byte2> [<byte3> [<byte4>]]]\n":
+      "Syntax: send <byte1> <byte2> <byte3> <byte4>\n"
+    );
+    msg_error(
+      "Function: send a raw command to the programmer\n"
+    );
     return -1;
   }
 
-  if ((argc > 5) || ((argc < 5) && (!spi_mode))) {
-    msg_error(spi_mode?
-      "Usage: send <byte1> [<byte2> [<byte3> [<byte4>]]]\n":
-      "Usage: send <byte1> <byte2> <byte3> <byte4>\n");
+  if (spi_mode && (pgm->spi == NULL)) {
+    pmsg_error("(send) the %s programmer does not support direct SPI transfers\n", pgm->type);
     return -1;
   }
 
@@ -670,10 +699,13 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc > 4 || argc == 3) {
-    msg_error("Usage: erase <mem> <addr> <len>\n");
-    msg_error("       erase <mem>\n");
-    msg_error("       erase\n");
+  if (argc > 4 || argc == 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: erase <mem> <addr> <len> # Fill section with 0xff values\n"
+      "        erase <mem>              # Fill with 0xff values\n"
+      "        erase                    # Chip erase (no chache, immediate effect)\n"
+      "Function: perform a chip or memory erase; flash or EEPROM erase is cached\n"
+    );
     return -1;
   }
 
@@ -746,8 +778,11 @@ static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if(argc < 3) {
-    msg_error("Usage: pgerase <mem> <addr>\n");
+  if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: pgerase <mem> <addr>\n"
+      "Function: erase one page of flash or EEPROM memory\n"
+    );
     return -1;
   }
 
@@ -786,6 +821,14 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_part(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: part\n"
+      "Function: display the current part information\n"
+    );
+    return -1;
+  }
+
   term_out("\v");
   avr_display(stdout, p, "", 0);
   term_out("\v");
@@ -798,6 +841,14 @@ static int cmd_sig(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int i;
   int rc;
   AVRMEM *m;
+
+  if(argc > 1) {
+    msg_error(
+      "Syntax: sig\n"
+      "Function: display device signature bytes\n"
+    );
+    return -1;
+  }
 
   rc = avr_signature(pgm, p);
   if (rc != 0) {
@@ -820,6 +871,14 @@ static int cmd_sig(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_quit(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: quit\n"
+      "Function: synchronise flash/EEPROM cache with device and quit\n"
+    );
+    return -1;
+  }
+
   /* FUSE bit verify will fail if left in SPI mode */
   if (spi_mode) {
     cmd_pgm(pgm, p, 0, NULL);
@@ -829,6 +888,14 @@ static int cmd_quit(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_parms(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: parms\n"
+      "Function: display adjustable parameters\n"
+    );
+    return -1;
+  }
+
   pgm->print_parms(pgm, stdout);
   term_out("\v");
   return 0;
@@ -840,8 +907,11 @@ static int cmd_vtarg(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2) {
-    msg_error("Usage: vtarg <value>\n");
+  if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: vtarg <value>\n"
+      "Function: set target voltage\n"
+    );
     return -1;
   }
   v = strtod(argv[1], &endp);
@@ -862,8 +932,11 @@ static int cmd_fosc(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2) {
-    msg_error("Usage: fosc <value>[M|k] | off\n");
+  if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: fosc <value>[M|k] | off\n"
+      "Function: set the oscillator frequency\n"
+    );
     return -1;
   }
   v = strtod(argv[1], &endp);
@@ -892,8 +965,11 @@ static int cmd_sck(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2) {
-    msg_error("Usage: sck <value>\n");
+  if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: sck <value>\n"
+      "Function: set the SCK period\n"
+    );
     return -1;
   }
   v = strtod(argv[1], &endp);
@@ -916,10 +992,14 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2 && argc != 3) {
-    msg_error("Usage: varef [channel] <value>\n");
+  if (argc < 2 || argc > 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: varef [channel] <value>\n"
+      "Function: set <V[aref]>\n"
+    );
     return -1;
   }
+
   if (argc == 2) {
     chan = 0;
     v = strtod(argv[1], &endp);
@@ -949,10 +1029,16 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  int i;
+  if(argc > 1) {
+    msg_error(
+      "Syntax: help\n"
+      "Function: show help message for terminal commands\n"
+    );
+    return -1;
+  }
 
   term_out("Valid commands:\n");
-  for (i=0; i<NCMDS; i++) {
+  for(int i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
     term_out("  %-7s : ", cmd[i].name);
@@ -960,6 +1046,7 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     term_out("\n");
   }
   term_out("\n"
+    "For more details about a terminal command cmd type cmd -?\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
@@ -968,26 +1055,47 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 }
 
 static int cmd_spi(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: spi\n"
+      "Function: enter direct SPI mode\n"
+    );
+    return -1;
+  }
+
   pgm->setpin(pgm, PIN_AVR_RESET, 1);
   spi_mode = 1;
   return 0;
 }
 
 static int cmd_pgm(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: pgm\n"
+      "Function: return to programming mode\n"
+    );
+    return -1;
+  }
+
   pgm->setpin(pgm, PIN_AVR_RESET, 0);
   spi_mode = 0;
   pgm->initialize(pgm, p);
   return 0;
 }
 
+
 static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int nverb;
   const char *errptr;
 
-  if (argc != 1 && argc != 2) {
-    msg_error("Usage: verbose [<value>]\n");
+  if (argc > 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: verbose [<value>]\n"
+      "Function: display or set -v verbosity level\n"
+    );
     return -1;
   }
+
   if (argc == 1) {
     msg_error("Verbosity level: %d\n", verbose);
     return 0;
@@ -1007,12 +1115,16 @@ static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   return 0;
 }
 
+
 static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int nquell;
   const char *errptr;
 
-  if (argc != 1 && argc != 2) {
-    msg_error("Usage: quell [<value>]\n");
+  if (argc > 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: quell [<value>]\n"
+      "Function: display or set -q quell level for progress bars\n"
+    );
     return -1;
   }
   if (argc == 1) {
