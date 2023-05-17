@@ -587,22 +587,24 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
   if(type & STR_FILE && part && memtype) { // File name containing data to be loaded
     int format = FMT_AUTO;
     FILE *f;
+    char fmtstr[4] = { 0 };
 
     if(arglen > 2 && str[arglen-2] == ':') {
+      fmtstr[0] = ' '; strcpy(fmtstr+1, str+arglen-2);
       format = upd_format(str[arglen-1]);
       if(format == FMT_ERROR)
-        Return("unknown format %c in file name %s", str[arglen-1], str);
+        Return("unknown format%s suffix of file name", fmtstr);
        str[arglen-=2] = 0;
     }
     if(format == FMT_AUTO) {
       f = fileio_fopenr(str);
       if(f == NULL)
-        Return("unable to read file %s: %s", str, strerror(errno));
+        Return("unable to read the%s file: %s", fmtstr, strerror(errno));
       format = fileio_fmt_autodetect_fp(f);
       fclose(f);
 
       if(format < 0)
-        Return("cannot determine format for file %s, specify explicitly", str);
+        Return("cannot determine format for the file, specify explicitly");
     }
     // Obtain a copy of the part incl all memories
     AVRPART *dp = avr_dup_part(part);
@@ -614,7 +616,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     int rc = fileio(FIO_READ_FOR_VERIFY, str, format, dp, memtype, -1);
     if(rc < 0) {
       avr_free_part(dp);
-      Return("unable to read file %s", str);
+      Return("unable to read the%s %s file", fmtstr, fileio_fmtstr(format));
     }
     sd->mem = avr_dup_mem(mem);
     sd->size = rc;

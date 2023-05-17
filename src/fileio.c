@@ -104,16 +104,20 @@ static int fileio_num(struct fioparms *fio,
              FILEFMT fmt);
 
 
-char * fileio_fmtstr(FILEFMT format)
-{
+char *fileio_fmtstr(FILEFMT format) {
   switch (format) {
-    case FMT_AUTO : return "auto-detect"; break;
-    case FMT_SREC : return "Motorola S-Record"; break;
-    case FMT_IHEX : return "Intel Hex"; break;
-    case FMT_IHXC : return "Intel Hex with comments"; break;
-    case FMT_RBIN : return "raw binary"; break;
-    case FMT_ELF  : return "ELF"; break;
-    default       : return "invalid format"; break;
+  case FMT_AUTO: return "auto-detect";
+  case FMT_SREC: return "Motorola S-Record";
+  case FMT_IHEX: return "Intel Hex";
+  case FMT_IHXC: return "Intel Hex with comments";
+  case FMT_RBIN: return "raw binary";
+  case FMT_ELF:  return "ELF";
+  case FMT_IMM:  return "in-place immediate";
+  case FMT_BIN:  return "binary-uchar list";
+  case FMT_DEC:  return "decimal-uchar list";
+  case FMT_HEX:  return "hexadecimal-uchar list";
+  case FMT_OCT:  return "octal-uchar list";
+  default:       return "invalid format";
   };
 }
 
