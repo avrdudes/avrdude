@@ -360,7 +360,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
 
 
   if(neg && errno == 0)
-    ret = -ret;
+    ret = ~ret+1;               // Same as -ret but silences overzealous compiler warnings
 
   return ret;
 }
@@ -481,7 +481,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
             sd->size = 1;
             if(is_signed && (sd->ll < INT8_MIN  || sd->ll > INT8_MAX))
               is_out_of_range = 1;                    // out of range if uint64 and -uint64 are
-            else if(!is_signed && sd->ull > UINT8_MAX && -sd->ull > UINT8_MAX)
+            else if(!is_signed && sd->ull > UINT8_MAX && ~sd->ull+1 > UINT8_MAX)
               is_out_of_range = 1;
             if(is_signed)
               sd->sigsz = sizeforsigned(sd->ll);
@@ -489,7 +489,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
             sd->size = 2;
             if(is_signed && (sd->ll < INT16_MIN  || sd->ll > INT16_MAX))
               is_out_of_range = 1;
-            else if(!is_signed && sd->ull > UINT16_MAX && -sd->ull > UINT16_MAX)
+            else if(!is_signed && sd->ull > UINT16_MAX && ~sd->ull+1 > UINT16_MAX)
               is_out_of_range = 1;
             if(is_signed)
               sd->sigsz = sizeforsigned(sd->ll);
@@ -497,7 +497,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
             sd->size = 4;
             if(is_signed && (sd->ll < INT32_MIN  || sd->ll > INT32_MAX))
               is_out_of_range = 1;
-            else if(!is_signed && sd->ull > UINT32_MAX && -sd->ull > UINT32_MAX)
+            else if(!is_signed && sd->ull > UINT32_MAX && ~sd->ull+1 > UINT32_MAX)
               is_out_of_range = 1;
             if(is_signed)
               sd->sigsz = sizeforsigned(sd->ll);
@@ -730,13 +730,13 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
         goto finished;
       }
     } else if(signd == STR_UNSIGNED) { // Strictly unsigned are out of range if u and -u are
-      if(sd->ull > umax[lds] && -sd->ull > umax[lds]) {
+      if(sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
         err = cache_string(tofree=str_sprintf("out of uint%d range", 1<<(3+lds)));
         free(tofree);
         goto finished;
       }
     } else {                    // Neither strictly signed or unsigned
-      if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && -sd->ull > umax[lds]) {
+      if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
         err = cache_string(tofree=str_sprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
         free(tofree);
         goto finished;
