@@ -97,7 +97,7 @@ struct command cmd[] = {
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display adjustable parameters" },
   { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
-  { "varef", cmd_varef, _fo(set_varef),         "set V[aref]" },
+  { "varef", cmd_varef, _fo(set_varef),         "set the analog reference voltage" },
   { "fosc",  cmd_fosc,  _fo(set_fosc),          "set the oscillator frequency" },
   { "sck",   cmd_sck,   _fo(set_sck_period),    "set the SCK period" },
   { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
@@ -995,7 +995,7 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if (argc < 2 || argc > 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: varef [channel] <value>\n"
-      "Function: set <V[aref]>\n"
+      "Function: set the analog reference voltage\n"
     );
     return -1;
   }
