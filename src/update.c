@@ -81,7 +81,7 @@ UPDATE *parse_op(char *s) {
     upd->op =
       fc[1]=='r'? DEVICE_READ:
       fc[1]=='w'? DEVICE_WRITE: DEVICE_VERIFY;
-    fn = fc+2;
+    fn = fc+3;
   }
 
   // Default to AUTO for write and verify, and to raw binary for read
@@ -106,7 +106,7 @@ UPDATE *parse_op(char *s) {
     len -= 2;
   }
 
-  upd->filename = memcpy(cfg_malloc(__func__, len +1), fn, len);
+  upd->filename = memcpy(cfg_malloc(__func__, len+1), fn, len);
 
   return upd;
 }
