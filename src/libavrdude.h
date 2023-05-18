@@ -1139,6 +1139,8 @@ extern "C" {
 
 void *cfg_malloc(const char *funcname, size_t n);
 
+void *cfg_realloc(const char *funcname, void *p, size_t n);
+
 char *cfg_strdup(const char *funcname, const char *s);
 
 int init_config(void);
@@ -1225,6 +1227,8 @@ unsigned long long int str_ull(const char *str, char **endptr, int base);
 Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memtype);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
+int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
+char *str_nexttok(char *buf, const char *delim, char **next);
 
 #ifdef __cplusplus
 }

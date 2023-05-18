@@ -558,7 +558,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     }
   }
 
-  if(type & STR_STRING) {       // Try C-style string or single character
+  if(type & STR_STRING && arglen > 1) { // Try C-style string or single character
     if((*str == '\'' && str[arglen-1] == '\'') || (*str == '\"' && str[arglen-1] == '\"')) {
       char *s = calloc(arglen-1, 1);
       if (s == NULL)
@@ -752,4 +752,84 @@ finished:
   str_freedata(sd);
 
   return ret;
+}
+
+
+// Convert a data string (except STR_FILE) to a memory buffer suitable for AVRMEM use
+int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp) {
+  int n = 0;
+  const char *err = NULL;
+  Str2data *sd = NULL;
+
+  type &= ~STR_FILE;
+  if(type == 0)                 // Nothing requested, nothing gained
+    goto finished;
+
+  sd = str_todata(str, type, NULL, NULL);
+  if(!sd->type || sd->errstr) {
+    err = cache_string(sd->errstr);
+    n = -1;
+    goto finished;
+  }
+
+  if(sd->type == STR_STRING && sd->str_ptr) {
+    size_t len = strlen(sd->str_ptr);
+    for(size_t j = 0; j < len && n < size; j++)
+      buf[n++] = (uint8_t) sd->str_ptr[j];
+    if(n < size)                // Terminating nul
+      buf[n++] = 0;
+  } else if(sd->size > 0 && (sd->type & STR_NUMBER)) {
+     // Always write little endian to AVR memory
+    if(is_bigendian() && sd->size > 0 && (sd->type & STR_NUMBER))
+      change_endian(sd->a, sd->size);
+    for(int k = 0; k < sd->size && n < size; k++)
+      buf[n++] = sd->a[k];
+  }
+
+
+finished:
+  if(errpp)
+    *errpp = err;
+  str_freedata(sd);
+
+  return n;
+}
+
+
+/*
+ * Returns the next space separated token in buf (terminating it) and
+ * places start of next token into pointer pointed to by next. Keeps
+ * single or double quoted strings together and changes backslash-space
+ * sequences to space whilst keeping other backslashed characters.
+ * Used for terminal line parsing and reading files with ASCII numbers.
+ */
+char *str_nexttok(char *buf, const char *delim, char **next) {
+  unsigned char *q, *r, *w, inquote;
+
+  q = (unsigned char *) buf;
+  while(*q && strchr(delim, *q))
+    q++;
+
+  // Isolate first token
+  for(inquote = 0, w = r = q; *r && !(strchr(delim, *r) && !inquote); *w++ = *r++) {
+    // Poor man's quote and escape processing
+    if(*r == '"' || *r == '\'')
+      inquote = inquote && *r == inquote? 0: inquote? inquote: *r;
+    else if(*r == '\\' && r[1] && strchr(delim, r[1])) // Remove \ before space for file names
+      r++;
+    else if(*r == '\\' && r[1])          // Leave other \ to keep C-style, eg, '\n'
+      *w++ = *r++;
+  }
+  if(*r)
+    r++;
+  *w = 0;
+
+  // Find start of next token
+  while(*r && strchr(delim, *r))
+    r++;
+
+  if(next)
+    *next = (char *) r;
+
+  return (char *) q;
 }

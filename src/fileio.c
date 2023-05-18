@@ -113,10 +113,10 @@ char *fileio_fmtstr(FILEFMT format) {
   case FMT_RBIN: return "raw binary";
   case FMT_ELF:  return "ELF";
   case FMT_IMM:  return "in-place immediate";
-  case FMT_BIN:  return "binary-uchar list";
-  case FMT_DEC:  return "decimal-uchar list";
-  case FMT_HEX:  return "hexadecimal-uchar list";
-  case FMT_OCT:  return "octal-uchar list";
+  case FMT_BIN:  return "0b-binary byte list";
+  case FMT_DEC:  return "decimal byte list";
+  case FMT_HEX:  return "0x-hexadecimal byte list";
+  case FMT_OCT:  return "octal byte list";
   default:       return "invalid format";
   };
 }
@@ -1062,50 +1062,47 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
  const AVRMEM *mem, int size) {
 
   int rc = 0;
-  char *p, *filename;
+  char *tok, *p, *line;
   const char *errstr;
-  unsigned long b;
   int loc;
 
-  filename = cfg_strdup(__func__, fname);
+  p = line = cfg_strdup(__func__, fname);
 
   switch (fio->op) {
     case FIO_READ:
       loc = 0;
-      p = strtok(filename, " ,");
-      while (p != NULL && loc < size) {
-        b = str_int(p, STR_XINT8, &errstr);
-        if(errstr) {
-          pmsg_error("invalid byte value %s specified for immediate mode: %s\n", p, errstr);
-          free(filename);
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && loc < size) {
+        int set = str_membuf(tok, STR_ANY, mem->buf+loc, mem->size-loc, &errstr);
+        if(errstr || set < 0) {
+          pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
+          free(line);
           return -1;
         }
-        mem->buf[loc] = b;
-        mem->tags[loc++] = TAG_ALLOCATED;
-        p = strtok(NULL, " ,");
+        memset(mem->tags+loc, TAG_ALLOCATED, set);
+        loc += set;
         rc = loc;
       }
       break;
 
     case FIO_WRITE:
       pmsg_error("invalid file format 'immediate' for output\n");
-      free(filename);
+      free(line);
       return -1;
 
     default:
       pmsg_error("invalid operation=%d\n", fio->op);
-      free(filename);
+      free(line);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
     pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
-      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
-    free(filename);
+      fio->iodesc, fio->dir, line, strerror(errno), fio->rw, rc, size);
+    free(line);
     return -1;
   }
 
-  free(filename);
+  free(line);
   return rc;
 }
 
@@ -1195,62 +1192,42 @@ static int fileio_elf(struct fioparms *fio,
 
 #endif
 
-static int fileio_num(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT fmt)
-{
+
+static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FILEFMT fmt) {
   const char *prefix;
-  const char *name;
-  char cbuf[20];
-  int base, i, num;
+  int base;
 
   switch (fmt) {
     case FMT_HEX:
-      name = "hex";
       prefix = "0x";
       base = 16;
       break;
 
     default:
     case FMT_DEC:
-      name = "decimal";
       prefix = "";
       base = 10;
       break;
 
     case FMT_OCT:
-      name = "octal";
       prefix = "0";
       base = 8;
       break;
 
     case FMT_BIN:
-      name = "binary";
       prefix = "0b";
       base = 2;
       break;
-
   }
 
-  switch (fio->op) {
-    case FIO_WRITE:
-      break;
+  for (int i = 0; i < size; i++) {
+    char cbuf[20];
 
-    case FIO_READ:
-      pmsg_error("invalid file format '%s' for input\n", name);
-      return -1;
-
-    default:
-      pmsg_error("invalid operation=%d\n", fio->op);
-      return -1;
-  }
-
-  for (i = 0; i < size; i++) {
     if (i > 0) {
       if (putc(',', f) == EOF)
         goto writeerr;
     }
-    num = (unsigned int)(mem->buf[i]);
+    int num = (unsigned int) mem->buf[i];
     /*
      * For a base of 8 and a value < 8 to convert, don't write the
      * prefix.  The conversion will be indistinguishable from a
@@ -1272,6 +1249,90 @@ static int fileio_num(struct fioparms *fio,
  writeerr:
   pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
   return -1;
+}
+
+
+// Allocates sufficient memory for a line; returned pointer to be free'd
+char *Nfgets(FILE *fp) {
+  int bs = 1023;                // Must be 2^n - 1
+  char *ret = (char *) cfg_malloc(__func__, bs);
+
+  ret[bs-2] = 0;
+  if(!fgets(ret, bs, fp)) {
+    free(ret);
+    return NULL;
+  }
+
+  while(ret[bs-2] != 0 && ret[bs-2] != '\n') {
+    if(bs >= INT_MAX/2) {
+      pmsg_error("cannot cope with lines longer than %d bytes\n", INT_MAX);
+      free(ret);
+      return NULL;
+    }
+    int was = bs;
+    bs = 2*bs+1;
+    ret = cfg_realloc(__func__, ret, bs);
+    ret[was-1] = ret[bs-2] = 0;
+    if(!fgets(ret+was-1, bs-(was-1), fp)) { // EOF? Error?
+      if(ferror(fp)) {
+        free(ret);
+        return NULL;
+      }
+      break;
+    }
+  }
+
+  return ret;
+}
+
+
+static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
+  char *line;
+  int n = 0;
+
+  while(n < mem->size && (line = Nfgets(f))) {
+    char *p = line, *tok;
+    while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
+      p++;
+    if(*p == '#' || *p == 0)
+      continue;
+
+    while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < mem->size) {
+      const char *errstr;
+
+      if(*tok == '#')           // Ignore rest of line after #
+        break;
+      int set = str_membuf(tok, STR_ANY, mem->buf+n, mem->size-n, &errstr);
+      if(errstr || set < 0) {
+        pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
+        free(line);
+        return -1;
+      }
+      memset(mem->tags+n, TAG_ALLOCATED, set);
+      n += set;
+    }
+    free(line);
+  }
+  return n;
+}
+
+
+static int fileio_num(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size,
+             FILEFMT fmt)
+{
+
+  switch (fio->op) {
+    case FIO_WRITE:
+      return b2num(filename, f, mem, size, fmt);
+
+    case FIO_READ:
+      return num2b(filename, f, mem);
+
+    default:
+      pmsg_error("invalid operation=%d\n", fio->op);
+      return -1;
+  }
 }
 
 
@@ -1307,7 +1368,6 @@ int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM 
 
   return 0;
 }
-
 
 
 FILE *fileio_fopenr(const char *fname) {

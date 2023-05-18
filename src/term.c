@@ -423,7 +423,7 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     // Check whether argv[2] might be anything other than a file
     Str2data *sd = str_todata(argv[2], STR_ANY & ~STR_FILE, NULL, NULL);
     if(sd && sd->type) {
-      if(sd->type & STR_INTEGER)
+      if(sd->type & STR_INTEGER && sd->ll >= -maxsize && sd->ll < maxsize)
         pmsg_error("(write) no data specified for %s address %s\n", mem->desc, argv[2]);
       else
         pmsg_error("(write) no address specified for %s data %s\n", mem->desc, argv[2]);
@@ -530,7 +530,8 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         buf[n] = (uint8_t) sd->str_ptr[j];
         tags[n] = TAG_ALLOCATED;
       }
-      buf[n] = 0; tags[n] = 1;  // Terminating nul
+      buf[n] = 0;               // Terminating nul
+      tags[n] = TAG_ALLOCATED;
       bytes_grown += (int) len; // Sic: one less than written
     } else if(sd->type == STR_FILE && sd->mem && sd->size > 0) {
       int end = bufsz - n;      // Available buffer size
@@ -1152,37 +1153,21 @@ static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 }
 
 
-static int nexttok(char *buf, char **tok, char **next) {
-  unsigned char *q, *r, *w, inquote;
-
-  q = (unsigned char *) buf;
-  while (isspace(*q))
-    q++;
-
-  // Isolate first token
-  for(inquote = 0, w = r = q; *r && !(isspace(*r) && !inquote); *w++ = *r++) {
-    // Poor man's quote and escape processing
-    if(*r == '"' || *r == '\'')
-      inquote = inquote && *r == inquote? 0: inquote? inquote: *r;
-    else if(*r == '\\' && isspace(r[1])) // Remove \ before space for file names
-      r++;
-    else if(*r == '\\' && r[1])          // Leave other \ to keep C-style, eg, '\n'
-      *w++ = *r++;
-  }
-  if(*r)
-    r++;
-  *w = 0;
-
-  // Find start of next token
-  while (isspace(*r))
-    r++;
-
-  *tok  = (char *) q;
-  *next = (char *) r;
-
-  return 0;
-}
-
+/*
+ * Simplified shell-like tokenising of a command line, which is broken up
+ * into an (argc, argv) style pointer array until
+ *   - A token ends with a semicolon, which is set to nul
+ *   - A token starts with a comment character #
+ *   - The end of the string is encountered
+ *
+ * Tokenisation takes single and double quoted strings into consideration. In
+ * the second and third case a pointer to the end-of-string nul is returned
+ * signifying all of the command line has been processed. In the first case a
+ * pointer to the start of the next token after the semicolon is returned,
+ * which can be a pointer to nul if the semicolon was at the end of the
+ * command line. On error NULL is returned.
+ *
+ */
 static char *tokenize(char *s, int *argcp, char ***argvp) {
   size_t slen;
   int n, nargs;
@@ -1206,7 +1191,7 @@ static char *tokenize(char *s, int *argcp, char ***argvp) {
   buf  = (char *) (argv+nargs+1);
 
   for(n=0, r=s; *r; ) {
-    nexttok(r, &q, &r);
+    q = str_nexttok(r, " \t\n\r\v\f", &r);
     if(*q == '#') {             // Inline comment: ignore rest of line
       r = q+strlen(q);
       break;
