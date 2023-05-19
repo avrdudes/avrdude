@@ -756,7 +756,7 @@ Application table flash area
 .It boot
 Boot flash area
 .It fuse0
-Aka jtaguid: JTAG user ID for some devices
+A.k.a. jtaguid: JTAG user ID for some devices
 .It fuse1
 Watchdog configuration
 .It fuse6
@@ -774,21 +774,21 @@ User signature area of ATxmega devices
 Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "calibration" -compact
 .It fuse0
-Aka wdtcfg: watchdog configuration
+A.k.a. wdtcfg: watchdog configuration
 .It fuse1
-Aka bodcfg: brownout detection configuration
+A.k.a. bodcfg: brownout detection configuration
 .It fuse2
-Aka osccfg: oscillator configuration
+A.k.a. osccfg: oscillator configuration
 .It fuse4
-Aka tcd0cfg (not all devices): timer counter type D configuration
+A.k.a. tcd0cfg (not all devices): timer counter type D configuration
 .It fuse5
-Aka syscfg0: system configuration 0
+A.k.a. syscfg0: system configuration 0
 .It fuse6
-Aka syscfg1: system configuration 1
+A.k.a. syscfg1: system configuration 1
 .It fuse7
-Aka append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
+A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
 .It fuse8
-Aka bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
 .It fuses
 A "logical" memory of 9 bytes containing all fuseN of a part, which can be
 used to program all fuses at the same time
@@ -843,43 +843,61 @@ raw binary; little-endian byte order, in the case of the flash ROM data
 .It Ar e
 ELF (Executable and Linkable Format)
 .It Ar m
-immediate; actual byte values specified on the command line, separated
-by commas or spaces.  This is good for programming fuse bytes without
-having to create a single-byte file or enter terminal mode.
+immediate mode; actual byte values are specified on the command line,
+separated by commas or spaces in place of the filename field of the -U
+option.  This is useful for programming fuse bytes without having to
+create a single-byte file or enter terminal mode.
 .It Ar a
 auto detect; valid for input only, and only if the input is not
 provided at
 .Em stdin .
 .It Ar d
-decimal; this and the following formats are only valid on output.
-They generate one line of output for the respective memory section,
-forming a comma-separated list of the values.
-This can be particularly useful for subsequent processing, like for
-fuse bit settings.
+decimal; this and the following formats generate one line of output for
+the respective memory section, forming a comma-separated list of the
+values. This can be particularly useful for subsequent processing, like
+for fuse bit settings.
 .It Ar h
 hexadecimal; each value will get the string
 .Em 0x
 prepended.
-Only valid on output.
 .It Ar o
 octal; each value will get a
 .Em 0
 prepended unless it is less than 8 in which case it gets no prefix.
-Only valid on output.
 .It Ar b
 binary; each value will get the string
 .Em 0b
 prepended.
-Only valid on output.
 .El
 .Pp
-The default is to use auto detection for input files, and raw binary
-format for output files.
-Note that if
+When used as input, the
+.Ar m ,
+.Ar d ,
+.Ar h ,
+.Ar o
+and
+.Ar b
+formats will use the same code for reading lists of numbers separated by
+white space and/or commas. The read routine handles decimal, hexadecimal,
+octal or binary numbers on a number-by-number basis, and the list of
+numbers can therefore be of mixed type. In fact the syntax, is the same as
+for data used by the terminal write command, ie, the file's input data can
+also be 2-byte short integers, 4-byte long integers or 8-byte long long
+integers, 4-byte floating point numbers, 8-byte double precision numbers,
+C-type strings with a terminating nul or C-like characters such as '\t'.
+Numbers are written as little endian to memory. When using 0x hexadecimal
+or 0b binary input leading zeros are used to determine the size of the
+integer, e.g., 0x002a will occupy two bytes and write a 0x2a to memory
+followed by 0x00, and 0x01234 will occupy 4 bytes. See the description of
+the terminal write command for more details.
+.Pp
+In absence of an explicit file format, the default is to use auto
+detection for input files, and raw binary format for output files. Note
+that if a
 .Ar filename
-contains a colon, the
+contains a colon as penultimate character the
 .Ar format
-field is no longer optional since the filename part following the colon
+field is no longer optional since the last character
 would otherwise be misinterpreted as
 .Ar format .
 .Pp
@@ -887,7 +905,8 @@ When reading any kind of flash memory area (including the various sub-areas
 in Xmega devices), the resulting output file will be truncated to not contain
 trailing 0xFF bytes which indicate unprogrammed (erased) memory.
 Thus, if the entire memory is unprogrammed, this will result in an output
-file that has no contents at all.
+file that has no contents at all.  This behaviour can be overridden with
+the -A option.
 .Pp
 As an abbreviation, the form
 .Fl U Ar filename
@@ -895,7 +914,9 @@ is equivalent to specifying
 .Fl U Em flash:w: Ns Ar filename Ns :a .
 This will only work if
 .Ar filename
-does not have a colon in it.
+does not have a pair of colons in it that sandwich a single character
+as otherwise the first part might be interpreted as memory, and the single
+character as memory operation.
 .It Fl v
 Enable verbose output.
 More

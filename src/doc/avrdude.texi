@@ -806,7 +806,7 @@ Application table flash area
 @item boot
 Boot flash area
 @item fuse0
-Aka jtaguid: JTAG user ID for some devices
+A.k.a. jtaguid: JTAG user ID for some devices
 @item fuse1
 Watchdog configuration
 @item fuse6
@@ -823,21 +823,21 @@ Modern 8-bit AVR devices have the following memory types in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item fuse0
-Aka wdtcfg: watchdog configuration
+A.k.a. wdtcfg: watchdog configuration
 @item fuse1
-Aka bodcfg: brownout detection configuration
+A.k.a. bodcfg: brownout detection configuration
 @item fuse2
-Aka osccfg: oscillator configuration
+A.k.a. osccfg: oscillator configuration
 @item fuse4
-Aka tcd0cfg (not all devices): timer counter type D configuration
+A.k.a. tcd0cfg (not all devices): timer counter type D configuration
 @item fuse5
-Aka syscfg0: system configuration 0
+A.k.a. syscfg0: system configuration 0
 @item fuse6
-Aka syscfg1: system configuration 1
+A.k.a. syscfg1: system configuration 1
 @item fuse7
-Aka append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
+A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
 @item fuse8
-Aka bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
 @item fuses
 A "logical" memory of 9 bytes containing all fuseN of a part, which can be used to program all fuses at the same time
 @item osc16err
@@ -896,58 +896,66 @@ ELF (Executable and Linkable Format), the final output file from the
 linker; currently only accepted as an input file
 
 @item m
-immediate mode; actual byte values specified on the command line,
-separated by commas or spaces in place of the @var{filename} field of
-the @option{-U} option.  This is useful
-for programming fuse bytes without having to create a single-byte file
-or enter terminal mode.  If the number specified begins with @code{0x},
-it is treated as a hex value.  If the number otherwise begins with a
-leading zero (@code{0}) it is treated as octal.  Otherwise, the value is
-treated as decimal.
+immediate mode; actual byte values are specified on the command line,
+separated by commas or spaces in place of the @var{filename} field of the
+@option{-U} option.  This is useful for programming fuse bytes without
+having to create a single-byte file or enter terminal mode.
 
 @item a
 auto detect; valid for input only, and only if the input is not provided
 at stdin.
 
 @item d
-decimal; this and the following formats are only valid on output.
-They generate one line of output for the respective memory section,
-forming a comma-separated list of the values.
-This can be particularly useful for subsequent processing, like for
-fuse bit settings.
+decimal; this and the following formats generate one line of output for
+the respective memory section, forming a comma-separated list of the
+values. This can be particularly useful for subsequent processing, like
+for fuse bit settings.
 
 @item h
 hexadecimal; each value will get the string @emph{0x} prepended.
-Only valid on output.
 
 @item o
 octal; each value will get a @emph{0}
 prepended unless it is less than 8 in which case it gets no prefix.
-Only valid on output.
 
 @item b
 binary; each value will get the string @emph{0b} prepended.
-Only valid on output.
-
 @end table
 
-The default is to use auto detection for input files, and raw binary
-format for output files.
+When used as input, the @code{m}, @code{d}, @code{h}, @code{o} and
+@code{b} formats will use the same code for reading lists of numbers
+separated by white space and/or commas. The read routine handles decimal,
+hexadecimal, octal or binary numbers on a number-by-number basis, and the
+list of numbers can therefore be of mixed type. In fact the syntax, is the
+same as for data used by the terminal write command, ie, the file's input
+data can also be 2-byte short integers, 4-byte long integers or 8-byte
+long long integers, 4-byte floating point numbers, 8-byte double precision
+numbers, C-type strings with a terminating nul or C-like characters such
+as @code{'\t'}. Numbers are written as little endian to memory. When using
+@code{0x} hexadecimal or @code{0b} binary input leading zeros are used to
+determine the size of the integer, e.g., @code{0x002a} will occupy two
+bytes and write a @code{0x2a} to memory followed by @code{0x00}, while
+@code{0x01234} will occupy 4 bytes. See the description of the terminal
+write command for more details.
 
-Note that if @var{filename} contains a colon, the @var{format} field is
-no longer optional since the filename part following the colon would
-otherwise be misinterpreted as @var{format}.
+In absence of an explicit file format, the default is to use auto detection
+for input files, and raw binary format for output files. Note that if
+@var{filename} contains a colon as penultimate character the @var{format}
+field is no longer optional since the last character would otherwise be
+misinterpreted as @var{format}.
 
 When reading any kind of flash memory area (including the various sub-areas
 in Xmega devices), the resulting output file will be truncated to not contain
-trailing 0xFF bytes which indicate unprogrammed (erased) memory.
-Thus, if the entire memory is unprogrammed, this will result in an output
-file that has no contents at all.
+trailing 0xFF bytes which indicate unprogrammed (erased) memory. Thus, if the
+entire memory is unprogrammed, this will result in an output file that has no
+contents at all. This behaviour can be overridden with the @code{-A} option.
 
 As an abbreviation, the form @code{-U} @var{filename}
 is equivalent to specifying
 @code{-U} @emph{flash:w:}@var{filename}@emph{:a}.
-This will only work if @var{filename} does not have a colon in it.
+This will only work if @var{filename} does not have a pair of colons in it
+that sandwich a single character as otherwise the first part might be
+interpreted as memory, and the single character as memory operation.
 
 @item -v
 Enable verbose output.
