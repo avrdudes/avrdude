@@ -1336,22 +1336,20 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
     char *p = line, *tok;
     while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
       p++;
-    if(*p == '#' || *p == 0)
-      continue;
-
-    while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < mem->size) {
-      const char *errstr;
-
-      if(*tok == '#')           // Ignore rest of line after #
-        break;
-      int set = str_membuf(tok, STR_ANY, mem->buf+n, mem->size-n, &errstr);
-      if(errstr || set < 0) {
-        pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
-        free(line);
-        return -1;
+    if(*p && *p != '#') {
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < mem->size) {
+        const char *errstr;
+        if(*tok == '#')           // Ignore rest of line after #
+          break;
+        int set = str_membuf(tok, STR_ANY, mem->buf+n, mem->size-n, &errstr);
+        if(errstr || set < 0) {
+          pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
+          free(line);
+          return -1;
+        }
+        memset(mem->tags+n, TAG_ALLOCATED, set);
+        n += set;
       }
-      memset(mem->tags+n, TAG_ALLOCATED, set);
-      n += set;
     }
     free(line);
   }
@@ -1420,70 +1418,87 @@ FILE *fileio_fopenr(const char *fname) {
 #endif
 }
 
-int fileio_fmt_autodetect_fp(FILE *f) {
-  if(!f)
-    return FMT_ERROR;
 
-  unsigned char buf[MAX_LINE_LEN];
-  int i;
-  int len;
+static FILEFMT couldbe(int first, unsigned char *line) {
   int found;
-  int first = 1;
+  size_t i, nxdigs, len;
 
-  while (fgets((char *)buf, MAX_LINE_LEN, f)!=NULL) {
-    /* check for ELF file */
-    if (first &&
-        (buf[0] == 0177 && buf[1] == 'E' &&
-         buf[2] == 'L' && buf[3] == 'F')) {
-      return FMT_ELF;
-    }
+  // Check for ELF file
+  if(first && line[0] == 0177 && str_starts((char *) line+1, "ELF"))
+    return FMT_ELF;
 
-    buf[MAX_LINE_LEN-1] = 0;
-    len = strlen((char *)buf);
-    if (buf[len-1] == '\n')
-      buf[--len] = 0;
+  len = strlen((char *) line);
+  while(len > 0 && line[len-1] && isspace(line[len-1])) // cr/lf etc
+    line[--len] = 0;
 
-    /* check for binary data */
-    found = 0;
-    for (i=0; i<len; i++) {
-      if (buf[i] > 127) {
-        found = 1;
-        break;
-      }
-    }
-    if (found)
+  // Check for binary data
+  for(i=0; i<len; i++)
+    if(line[i] > 127)
       return FMT_RBIN;
 
-    /* check for lines that look like intel hex */
-    if ((buf[0] == ':') && (len >= 11)) {
-      found = 1;
-      for (i=1; i<len; i++) {
-        if (!isxdigit(buf[1])) {
-          found = 0;
-          break;
-        }
-      }
-      if (found)
-        return FMT_IHEX;
-    }
-
-    /* check for lines that look like motorola s-record */
-    if ((buf[0] == 'S') && (len >= 10) && isdigit(buf[1])) {
-      found = 1;
-      for (i=1; i<len; i++) {
-        if (!isxdigit(buf[1])) {
-          found = 0;
-          break;
-        }
-      }
-      if (found)
-        return FMT_SREC;
-    }
-
-    first = 0;
+  // Check for lines that look like Intel HEX
+  if(line[0] == ':' && len >= 11 && isxdigit(line[1]) && isxdigit(line[2])) {
+    nxdigs = sscanf((char *) line+1, "%2zx", &nxdigs) == 1? 2*nxdigs + 8: len;
+    for(found = 3+nxdigs <= len, i=0; found && i<nxdigs; i++)
+      if(!isxdigit(line[3+i]))
+        found = 0;
+    if(found)
+      return FMT_IHEX;
   }
 
-  return -1;
+  // Check for lines that look like Motorola S-record
+  if(line[0] == 'S' && len >= 10 && isdigit(line[1]) && isxdigit(line[2]) && isxdigit(line[3])) {
+    nxdigs = sscanf((char *) line+2, "%2zx", &nxdigs) == 1? 2*nxdigs: len;
+    for(found = 4+nxdigs <= len, i=0; found && i<nxdigs; i++)
+      if(!isxdigit(line[4+i]))
+        found = 0;
+    if(found)
+      return FMT_SREC;
+  }
+
+  // Check for terminal-type data entries
+  char *p = (char *) line, *tok;
+  int failed = 0, idx[4] = {0, 0, 0, 0};
+  while(*p && isspace(*p & 0xff))
+    p++;
+  if(*p && *p != '#') {
+    while(!failed && *(tok = str_nexttok(p, ", \t\n\r\v\f", &p))) {
+      const char *errstr;
+      unsigned char mem[8];
+      if(*tok == '#')
+        break;
+      int set = str_membuf(tok, STR_ANY, mem, sizeof mem, &errstr);
+      if(errstr || set < 0)
+        failed++;
+      else if(set > 0)
+        idx[str_casestarts(tok, "0x")? 0: str_casestarts(tok, "0b")? 1:
+          *tok=='0' && tok[1] && strchr("01234567", tok[1])? 2: 3]++;
+    }
+    if(!failed && idx[0]+idx[1]+idx[2]+idx[3]) {
+      // Doesn't matter which one: they all parse numbers universally
+      int i0 = idx[0] >= idx[1]? 0: 1;
+      int i2 = idx[2] >  idx[3]? 2: 3;
+      const int fmts[4] = {FMT_HEX, FMT_BIN, FMT_OCT, FMT_DEC };
+
+      return fmts[idx[i0] >= idx[i2]? i0: i2];
+    }
+  }
+
+  return FMT_ERROR;
+}
+
+int fileio_fmt_autodetect_fp(FILE *f) {
+  int ret = FMT_ERROR;
+
+  if(f) {
+    unsigned char *buf;
+    for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) Nfgets(f)); first = 0) {
+      ret = couldbe(first, buf);
+      free(buf);
+    }
+  }
+
+  return ret;
 }
 
 int fileio_fmt_autodetect(const char *fname) {
