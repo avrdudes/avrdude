@@ -1741,7 +1741,7 @@ access will also have flash and EEPROM directly accessed without cache.
 
 Items @var{data} can have the following formats:
 
-@multitable @columnfractions .3 .4 .3
+@multitable @columnfractions .25 .4 .25
 @item @strong{Type}
 @tab @strong{Example}
 @tab @strong{Size (bytes)}
@@ -1750,28 +1750,48 @@ Items @var{data} can have the following formats:
 @tab @code{"Hello, world\n"}
 @tab varying
 
+@item File
+@tab @code{C:/My\ projects/blink.hex}
+@tab varying
+
+@item File with format
+@tab @code{blink.hex:i}
+@tab varying
+
 @item Character
 @tab @code{'A'}
 @tab 1
 
-@item Decimal integer
-@tab 12345
+@item Binary integer
+@tab 0b101010
 @tab 1, 2, 4, or 8
 
 @item Octal integer
 @tab 012345
 @tab 1, 2, 4, or 8
 
+@item Decimal integer
+@tab 12345
+@tab 1, 2, 4, or 8
+
 @item Hexadecimal integer
 @tab 0x12345
 @tab 1, 2, 4, or 8
 
-@item Float
+@item Decimal float
 @tab 3.1415926
 @tab 4
 
-@item Double
+@item Hexadecimal float
+@tab 0xA.8p2
+@tab 4
+
+@item Decimal double
 @tab 3.141592653589793D
+@tab 8
+
+@item Hexadecimal double
+@tab  0xA.8p2D
 @tab 8
 
 @end multitable
