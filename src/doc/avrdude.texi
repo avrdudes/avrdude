@@ -543,7 +543,7 @@ and Linux, AVRDUDE looks at @code{/usr/local/etc/avrdude.conf}. See Appendix A
 for the method of searching on Windows.
 
 If @var{config-file} is written as @var{+filename}
-then this file is read after the system wide and user configuration 
+then this file is read after the system wide and user configuration
 files. This can be used to add entries to the configuration
 without patching your system wide configuration file. It can be used 
 several times, the files are read in same order as given on the command 
@@ -770,44 +770,94 @@ multiple memories on the same command-line invocation.  The
 the @option{-v} option on the command line or the @code{part} command from
 terminal mode to display all the memory types supported by a particular
 device.
-Typically, a device's memory configuration at least contains
-the memory types
-@code{flash}
-and
-@code{eeprom}.
-All memory types currently known are:
+
+Typically, a device's memory configuration at least contains the memory
+types @code{flash}, @code{eeprom}, @code{signature} and @code{lock}, which
+is sometimes known as @code{lockbits}. The signature memory contains the
+three device signature bytes, which should be, but not always are, unique
+for the part. The @code{lock} memory of one or four bytes typically
+details whether or not external reading/writing of the flash memory, or
+parts of it, is allowed. Parts will also typically have fuse bytes, which
+are read/write memories for configuration of the device and calibration
+memories that typically contain read-only factory calibration values.
+
+Classic devices may have the following memory types in addition to
+@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item calibration
 One or more bytes of RC oscillator calibration data.
-@item eeprom
-The EEPROM of the device.
 @item efuse
-The extended fuse byte.
-@item flash
-The flash ROM of the device.
+Extended fuse byte
 @item fuse
-The fuse byte in devices that have only a single fuse byte.
+Fuse byte in devices that have only a single fuse byte
 @item hfuse
-The high fuse byte.
+High fuse byte
 @item lfuse
-The low fuse byte.
-@item lock
-The lock byte.
-@item signature
-The three device signature bytes (device ID).
-@item fuse@emph{N}
-The fuse bytes of ATxmega devices, @emph{N} is an integer number
-for each fuse supported by the device.
+Low fuse byte
+@end table
+
+ATxmega devices have the following memory types in addition to
+@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
+@table @code
 @item application
-The application flash area of ATxmega devices.
+Application flash area
 @item apptable
-The application table flash area of ATxmega devices.
+Application table flash area
 @item boot
-The boot flash area of ATxmega devices.
+Boot flash area
+@item fuse0
+Aka jtaguid: JTAG user ID for some devices
+@item fuse1
+Watchdog configuration
+@item fuse6
+Fault detection action configuration TC4/5 for ATxmega E series parts
+@item fuse@emph{N}
+Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system configuration
 @item prodsig
-The production signature (calibration) area of ATxmega devices.
+Production signature (calibration) area of ATxmega devices
 @item usersig
-The user signature area of ATxmega devices.
+User signature area of ATxmega devices
+@end table
+
+Modern 8-bit AVR devices have the following memory types in addition to
+@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
+@table @code
+@item fuse0
+Aka wdtcfg: watchdog configuration
+@item fuse1
+Aka bodcfg: brownout detection configuration
+@item fuse2
+Aka osccfg: oscillator configuration
+@item fuse4
+Aka tcd0cfg (not all devices): timer counter type D configuration
+@item fuse5
+Aka syscfg0: system configuration 0
+@item fuse6
+Aka syscfg1: system configuration 1
+@item fuse7
+Aka append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
+@item fuse8
+Aka bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+@item fuses
+A "logical" memory of 9 bytes containing all fuseN of a part, which can be used to program all fuses at the same time
+@item osc16err
+Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+@item osc20err
+Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+@item osccal16
+Two oscillator calibration bytes for 16 MHz
+@item osccal20
+Two oscillator calibration bytes for 20 MHz
+@item prodsig
+
+@item sernum
+Serial number with a unique ID for the pary (10 bytes)
+@item tempsense
+Temperature sensor calibration values
+@item userrow
+Extra page of EEPROM memory that can be used for firmware settings
+@item usersig
+
 @end table
 
 The @var{op} field specifies what operation to perform:
@@ -1582,7 +1632,7 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides a
 command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
-The @var{addr} and @var{len} parameters of the read, write, and erase
+The @var{addr} and @var{len} parameters of the dump, read, write, and erase
 commands can be negative with the same syntax as substring computations in
 perl or python. The table below details their meaning with respect to an
 example memory of size @code{sz=0x800}.
@@ -1727,9 +1777,17 @@ Items @var{data} can have the following formats:
 @end multitable
 
 @var{data}
-can be hexadecimal, octal or decimal integers, floating point numbers
-or C-style strings and characters. For integers, an optional case-insensitive
-suffix specifies the data size as in the table below:
+can be binary, octal, decimal or hexadecimal integers, floating point
+numbers or C-style strings and characters. If nothing matches, @code{data}
+will be interpreted as a name of a file containing data, which will be
+read and inserted at this point. In order to force the interpretation of a
+data item as file, eg, when the file name would be understood as a number
+otherwise, the file name can be given a @code{:}@emph{f} format specifier.
+In absence of a format suffix, the terminal will try to auto-detect
+the file format.
+
+For integers, an optional case-insensitive suffix specifies the data size
+as in the table below:
 @table @code
 @item LL
 8 bytes / 64 bits
@@ -1747,26 +1805,28 @@ floating point notation is supported. An ambiguous trailing suffix, e.g.,
 @code{0x1.8D}, is read as no-suffix float where @code{D} is part of the
 mantissa; use a zero exponent @code{0x1.8p0D} to clarify.
 
-An optional @code{U} suffix makes integers unsigned. Ordinary @code{0x} hex
-integers are always treated as unsigned. @code{+0x} or @code{-0x} hex
-numbers are treated as signed unless they have a @code{U} suffix. Unsigned
-integers cannot be larger than 2^64-1. If @var{n} is an unsigned integer then @var{-n}
-is also a valid unsigned integer as in C. Signed integers must fall into
-the [-2^63, 2^63-1] range or a correspondingly smaller range when a suffix
-specifies a smaller type.
+An optional U suffix makes integers unsigned. Ordinary @code{0x}
+hexadecimal and @code{0b} binary integers are always treated as unsigned.
+@code{+0x}, @code{-0x}, @code{+0b} and @code{-0b} numbers with an explicit
+sign are treated as signed unless they have a @code{U} suffix. Unsigned
+integers cannot be larger than 2^64-1. If @var{n} is an unsigned integer
+then @var{-n} is also a valid unsigned integer as in C. Signed integers
+must fall into the [-2^63, 2^63-1] range or a correspondingly smaller
+range when a suffix specifies a smaller type.
 
-Ordinary @code{0x} hex integers with @var{n} hex digits (counting leading
-zeros) use the smallest size of one, two, four and eight bytes that can
-accommodate any n-digit hex integer. If an integer suffix specifies a size
-explicitly the corresponding number of least significant bytes are
-written, and a warning shown if the number does not fit into the desired
-representation. Otherwise, unsigned integers occupy the smallest of one,
-two, four or eight bytes needed. Signed numbers are allowed to fit into
-the smallest signed or smallest unsigned representation: For example,
-@code{255} is stored as one byte as @code{255U} would fit in one byte,
-though as a signed number it would not fit into a one-byte interval [-128,
-127]. The number @code{-1} is stored in one byte whilst @code{-1U} needs
-eight bytes as it is the same as @code{0xFFFFffffFFFFffffU}.
+Ordinary @code{0x} hexadecimal and @code{0b} binary integers with @var{n}
+hex digits (counting leading zeros) use the smallest size of one, two,
+four and eight bytes that can accommodate any n-digit hexadecimal/binary
+integer. If an integer suffix specifies a size explicitly the
+corresponding number of least significant bytes are written, and a warning
+shown if the number does not fit into the desired representation.
+Otherwise, unsigned integers occupy the smallest of one, two, four or
+eight bytes needed. Signed numbers are allowed to fit into the smallest
+signed or smallest unsigned representation: For example, @code{255} is
+stored as one byte as @code{255U} would fit in one byte, though as a
+signed number it would not fit into a one-byte interval [-128, 127]. The
+number @code{-1} is stored in one byte whilst @code{-1U} needs eight bytes
+as it is the same as @code{0xFFFFffffFFFFffffU}.
 
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
