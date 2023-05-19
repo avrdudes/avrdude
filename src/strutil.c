@@ -591,7 +591,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
     if(arglen > 2 && str[arglen-2] == ':') {
       fmtstr[0] = ' '; strcpy(fmtstr+1, str+arglen-2);
-      format = upd_format(str[arglen-1]);
+      format = fileio_format(str[arglen-1]);
       if(format == FMT_ERROR)
         Return("unknown format%s suffix of file name", fmtstr);
        str[arglen-=2] = 0;

@@ -33,23 +33,6 @@
 #include "libavrdude.h"
 
 
-FILEFMT upd_format(char c) {
-  switch (c) {
-  case 'a': return FMT_AUTO;
-  case 's': return FMT_SREC;
-  case 'i': return FMT_IHEX;
-  case 'I': return FMT_IHXC;
-  case 'r': return FMT_RBIN;
-  case 'e': return FMT_ELF;
-  case 'm': return FMT_IMM;
-  case 'b': return FMT_BIN;
-  case 'd': return FMT_DEC;
-  case 'h': return FMT_HEX;
-  case 'o': return FMT_OCT;
-  default:  return FMT_ERROR;
-  }
-}
-
 /*
  * Parsing of [<memory>:<op>:<file>[:<fmt>] | <file>[:<fmt>]]
  *
@@ -90,12 +73,12 @@ UPDATE *parse_op(char *s) {
   // Filename: last char is format if the penultimate char is a colon
   size_t len = strlen(fn);
   if(len > 2 && fn[len-2] == ':') { // Assume format specified
-    upd->format = upd_format(fn[len-1]);
+    upd->format = fileio_format(fn[len-1]);
     if(upd->format == FMT_ERROR) {
       pmsg_error("invalid file format :%c in -U %s; known formats are\n", fn[len-1], s);
       for(int f, c, i=0; i<62; i++) {
         c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
-        f = upd_format(c);
+        f = fileio_format(c);
         if(f != FMT_ERROR)
           imsg_error("  :%c %s\n", c, fileio_fmtstr(f));
       }

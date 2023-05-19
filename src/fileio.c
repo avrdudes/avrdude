@@ -106,19 +106,61 @@ static int fileio_num(struct fioparms *fio,
 
 char *fileio_fmtstr(FILEFMT format) {
   switch (format) {
-  case FMT_AUTO: return "auto-detect";
-  case FMT_SREC: return "Motorola S-Record";
-  case FMT_IHEX: return "Intel Hex";
-  case FMT_IHXC: return "Intel Hex with comments";
-  case FMT_RBIN: return "raw binary";
-  case FMT_ELF:  return "ELF";
-  case FMT_IMM:  return "in-place immediate";
-  case FMT_BIN:  return "0b-binary byte list";
-  case FMT_DEC:  return "decimal byte list";
-  case FMT_HEX:  return "0x-hexadecimal byte list";
-  case FMT_OCT:  return "octal byte list";
-  default:       return "invalid format";
-  };
+  case FMT_AUTO:
+    return "auto-detect";
+  case FMT_SREC:
+    return "Motorola S-Record";
+  case FMT_IHEX:
+    return "Intel Hex";
+  case FMT_IHXC:
+    return "Intel Hex with comments";
+  case FMT_RBIN:
+    return "raw binary";
+  case FMT_ELF:
+    return "ELF";
+  case FMT_IMM:
+    return "in-place immediate";
+  case FMT_BIN:
+    return "0b-binary byte list";
+  case FMT_DEC:
+    return "decimal byte list";
+  case FMT_HEX:
+    return "0x-hexadecimal byte list";
+  case FMT_OCT:
+    return "octal byte list";
+  default:
+    return "invalid format";
+ };
+}
+
+
+FILEFMT fileio_format(char c) {
+  switch (c) {
+  case 'a':
+    return FMT_AUTO;
+  case 's':
+    return FMT_SREC;
+  case 'i':
+    return FMT_IHEX;
+  case 'I':
+    return FMT_IHXC;
+  case 'r':
+    return FMT_RBIN;
+  case 'e':
+    return FMT_ELF;
+  case 'm':
+    return FMT_IMM;
+  case 'b':
+    return FMT_BIN;
+  case 'd':
+    return FMT_DEC;
+  case 'h':
+    return FMT_HEX;
+  case 'o':
+    return FMT_OCT;
+  default:
+    return FMT_ERROR;
+  }
 }
 
 

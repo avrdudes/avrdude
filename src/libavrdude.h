@@ -1007,9 +1007,9 @@ enum {
 extern "C" {
 #endif
 
-FILEFMT upd_format(char c);
+FILEFMT fileio_format(char c);
 
-char * fileio_fmtstr(FILEFMT format);
+char *fileio_fmtstr(FILEFMT format);
 
 FILE *fileio_fopenr(const char *fname);
 
