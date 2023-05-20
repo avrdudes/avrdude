@@ -85,74 +85,35 @@ static int cmd_quell  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 #define _fo(x) offsetof(PROGRAMMER, x)
 
 struct command cmd[] = {
-  { "dump",  cmd_dump,  _fo(read_byte_cached),  "%s <memory> [<addr> | <addr> <len>]" },
+  { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
-  { "write", cmd_write, _fo(write_byte_cached), "write <memory> <addr> <data>[,] {<data>[,]}" },
-  { "",      cmd_write, _fo(write_byte_cached), "write <memory> <addr> <len> <data>[,] {<data>[,]} ..." },
-  { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash & EEPROM writes with the device" },
-  { "abort", cmd_abort, _fo(reset_cache),       "abort flash & EEPROM writes (reset the r/w cache)" },
-  { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip erase" },
-  { "pgerase", cmd_pgerase, _fo(page_erase),    "pgerase <memory> <addr>" },
+  { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
+  { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
+  { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
+  { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
+  { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
-  { "send",  cmd_send,  _fo(cmd),               "send a raw command: %s <b1> <b2> <b3> <b4>" },
+  { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display adjustable parameters" },
-  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set <V[target]>" },
-  { "varef", cmd_varef, _fo(set_varef),         "set <V[aref]>" },
-  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set <oscillator frequency>" },
-  { "sck",   cmd_sck,   _fo(set_sck_period),    "set <SCK period>" },
+  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
+  { "varef", cmd_varef, _fo(set_varef),         "set the analog reference voltage" },
+  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set the oscillator frequency" },
+  { "sck",   cmd_sck,   _fo(set_sck_period),    "set the SCK period" },
   { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
-  { "verbose", cmd_verbose, _fo(open),          "change verbosity" },
-  { "quell", cmd_quell, _fo(open),              "set quell level for progress bars" },
+  { "verbose", cmd_verbose, _fo(open),          "display or set -v verbosity level" },
+  { "quell", cmd_quell, _fo(open),              "display or set -q quell level for progress bars" },
   { "help",  cmd_help,  _fo(open),              "show help message" },
   { "?",     cmd_help,  _fo(open),              "same as help" },
-  { "quit",  cmd_quit,  _fo(open),              "quit after writing out cache for flash & EEPROM" },
+  { "quit",  cmd_quit,  _fo(open),              "synchronise flash/EEPROM cache with device and quit" },
   { "q",     cmd_quit,  _fo(open),              "abbreviation for quit" },
 };
 
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
 
 
-
 static int spi_mode = 0;
-
-static int nexttok(char *buf, char **tok, char **next) {
-  unsigned char *q, *n;
-
-  q = (unsigned char *) buf;
-  while (isspace(*q))
-    q++;
-
-  /* isolate first token */
-  n = q;
-  uint8_t quotes = 0;
-  while (*n && (!isspace(*n) || quotes)) {
-    // Poor man's quote and escape processing
-    if (*n == '"' || *n == '\'')
-      quotes++;
-    else if(*n == '\\' && n[1])
-      n++;
-    else if (isspace(*n) && (n > q+1) && (n[-1] == '"' || n[-1] == '\''))
-      break;
-    n++;
-  }
-
-  if (*n) {
-    *n = 0;
-    n++;
-  }
-
-  /* find start of next token */
-  while (isspace(*n))
-    n++;
-
-  *tok  = (char *) q;
-  *next = (char *) n;
-
-  return 0;
-}
-
 
 static int hexdump_line(char *buffer, unsigned char *p, int n, int pad) {
   char *hexdata = "0123456789abcdef";
@@ -240,13 +201,22 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   static int i;
   const char *cmd = tolower(**argv) == 'd'? "dump": "read";
 
-  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4) {
+  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
-      "Usage: %s <memory> <addr> <len>\n"
-      "       %s <memory> <addr>\n"
-      "       %s <memory>\n"
-      "       %s%s\n",
-      cmd, cmd, cmd, cmd, argc < 2? " (can only be used for continuation)": "");
+      "Syntax: %s <mem> <addr> <len> # display entire region\n"
+      "        %s <mem> <addr>       # start at <addr>\n"
+      "        %s <mem>              # Continue displaying memory where left off\n"
+      "        %s                    # Continue displaying most recently shown <mem>\n"
+      "Function: display memory section as hex dump\n"
+      "\n"
+      "Both the <addr> and <len> can be negative numbers; a negative <addr> starts\n"
+      "an interval from that many bytes below the memory size; a negative <len> ends\n"
+      "the interval at that many bytes below the memory size.\n"
+      "\n"
+      "The latter two versions of the command page through the memory with a page\n"
+      "size of the last used effective length (256 bytes default)\n",
+      cmd, cmd, cmd, cmd
+    );
     return -1;
   }
 
@@ -285,11 +255,11 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   // Get start address if present
-  char *end_ptr;
-  if (argc >= 3 && strcmp(argv[2], "...") != 0) {
-    int addr = strtol(argv[2], &end_ptr, 0);
-    if(*end_ptr || (end_ptr == argv[2])) {
-      pmsg_error("(dump) cannot parse address %s\n", argv[2]);
+  const char *errptr;
+  if(argc >= 3 && !str_eq(argv[2], "...")) {
+    int addr = str_int(argv[2], STR_INT32, &errptr);
+    if(errptr) {
+      pmsg_error("(dump) address %s: %s\n", argv[2], errptr);
       return -1;
     }
 
@@ -306,18 +276,19 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     read_mem[i].addr = addr;
   }
 
-  // Get no. bytes to read if present
+  // Get number of bytes to read if present
   if (argc >= 3) {
-    if (strcmp(argv[argc - 1], "...") == 0) {
+    if(str_eq(argv[argc - 1], "...")) {
       if (argc == 3)
         read_mem[i].addr = 0;
       read_mem[i].len = maxsize - read_mem[i].addr;
     } else if (argc == 4) {
-      int len = strtol(argv[3], &end_ptr, 0);
-      if (*end_ptr || (end_ptr == argv[3])) {
-        pmsg_error("(dump) cannot parse length %s\n", argv[3]);
+      int len = str_int(argv[3], STR_INT32, &errptr);
+      if(errptr) {
+        pmsg_error("(dump) length %s: %s\n", argv[3], errptr);
         return -1;
       }
+
       // Turn negative len value (no. bytes from top of memory) into an actual length number
       if (len < 0)
         len = maxsize + len + 1 - read_mem[i].addr;
@@ -386,71 +357,48 @@ static size_t maxstrlen(int argc, char **argv) {
 }
 
 
-// Change data item p of size bytes from big endian to little endian and vice versa
-static void change_endian(void *p, int size) {
-  uint8_t tmp, *w = p;
-
-  for(int i=0; i<size/2; i++)
-    tmp = w[i], w[i] = w[size-i-1], w[size-i-1] = tmp;
-}
-
-
-// Looks like a double mantissa in hex or dec notation
-static int is_mantissa_only(char *p) {
-  char *digs;
-
-  if(*p == '+' || *p == '-')
-    p++;
-
-  if(*p == '0' && (p[1] == 'x' || p[1] == 'X')) {
-    p += 2;
-    digs = "0123456789abcdefABCDEF";
-  } else
-    digs = "0123456789";
-
-  if(!*p)
-    return 0;
-
-  while(*p)
-    if(!strchr(digs, *p++))
-      return 0;
-
-  return 1;
-}
-
-
 static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc < 3) {
+  if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
-      "Usage: write <memory> <addr> <data>[,] {<data>[,]}\n"
-      "       write <memory> <addr> <len> <data>[,] {<data>[,]} ...\n"
-      "       write <memory> <data>\n"
+      "Syntax: write <mem> <addr> <data>[,] {<data>[,]}\n"
+      "        write <mem> <addr> <len> <data>[,] {<data>[,]} ... # Fill, see below\n"
+      "        write <mem> <data> # Any <data> incl file if memory has only 1 byte\n"
+      "        write <mem> <file> # Must be file if memory has more than 1 byte\n"
+      "Function: write data to memory; flash and EEPROM are normally cached\n"
       "\n"
       "Ellipsis ... writes <len> bytes padded by repeating the last <data> item.\n"
       "\n"
-      "<data> can be hexadecimal, octal or decimal integers, floating point numbers\n"
-      "or C-style strings and characters. For integers, an optional case-insensitive\n"
-      "suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.\n"
-      "Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point\n"
-      "number without suffix defaults to 32-bit float. Hexadecimal floating point\n"
-      "notation is supported. An ambiguous trailing suffix, eg, 0x1.8D, is read as\n"
-      "no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D\n"
-      "to clarify.\n"
+      "Both the <addr> and <len> can be negative numbers; a negative <addr> starts\n"
+      "an interval from that many bytes below the memory size; a negative <len> ends\n"
+      "the interval at that many bytes below the memory size.\n"
       "\n"
-      "An optional U suffix makes integers unsigned. Ordinary 0x hex integers are\n"
-      "always treated as unsigned. +0x or -0x hex numbers are treated as signed\n"
-      "unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.\n"
-      "If n is an unsigned integer then -n is also a valid unsigned integer as in C.\n"
-      "Signed integers must fall into the [-2^63, 2^63-1] range or a correspondingly\n"
-      "smaller range when a suffix specifies a smaller type.\n"
+      "<data> can be binary, octal, decimal or hexadecimal integers, floating point\n"
+      "numbers or C-style strings and characters. If nothing matches, <data> will be\n"
+      "interpreted as name of a file containing data. In absence of a :<f> format\n"
+      "suffix, the terminal will try to auto-detect the file format.\n"
       "\n"
-      "Ordinary 0x hex integers with n hex digits (counting leading zeros) use the\n"
-      "smallest size of one, two, four and eight bytes that can accommodate any\n"
-      "n-digit hex integer. If an integer suffix specifies a size explicitly the\n"
-      "corresponding number of least significant bytes are written, and a warning\n"
-      "shown if the number does not fit into the desired representation. Otherwise,\n"
-      "unsigned integers occupy the smallest of one, two, four or eight bytes\n"
-      "needed. Signed numbers are allowed to fit into the smallest signed or\n"
+      "For integers, an optional case-insensitive suffix specifies the data size: HH\n"
+      "8 bit, H/S 16 bit, L 32 bit, LL 64 bit. Suffix D indicates a 64-bit double, F\n"
+      "a 32-bit float, whilst a floating point number without suffix defaults to\n"
+      "32-bit float. Hexadecimal floating point notation is supported. An ambiguous\n"
+      "trailing suffix, eg, 0x1.8D, is read as no-suffix float where D is part of\n"
+      "the mantissa; use a zero exponent 0x1.8p0D to clarify.\n"
+      "\n"
+      "An optional U suffix makes integers unsigned. Ordinary 0x hex and 0b binary\n"
+      "integers are always treated as unsigned. +0x, -0x, +0b and -0b numbers with\n"
+      "an explicit sign are treated as signed unless they have a U suffix. Unsigned\n"
+      "integers cannot be larger than 2^64-1. If n is an unsigned integer then -n is\n"
+      "also a valid unsigned integer as in C. Signed integers must fall into the\n"
+      "[-2^63, 2^63-1] range or a correspondingly smaller range when a suffix\n"
+      "specifies a smaller type.\n"
+      "\n"
+      "Ordinary 0x hex and 0b binary integers with n digits (counting leading zeros)\n"
+      "use the smallest size of one, two, four and eight bytes that can accommodate\n"
+      "any n-digit hex/bin integer. If an integer suffix specifies a size explicitly\n"
+      "the corresponding number of least significant bytes are written, and a\n"
+      "warning shown if the number does not fit into the desired representation.\n"
+      "Otherwise, unsigned integers occupy the smallest of one, two, four or eight\n"
+      "bytes needed. Signed numbers are allowed to fit into the smallest signed or\n"
       "smallest unsigned representation: For example, 255 is stored as one byte as\n"
       "255U would fit in one byte, though as a signed number it would not fit into a\n"
       "one-byte interval [-128, 127]. The number -1 is stored in one byte whilst -1U\n"
@@ -460,8 +408,8 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   int i;
-  uint8_t write_mode;           // Operation mode, "standard" or "fill"
-  uint8_t start_offset;         // Which argc argument
+  int write_mode;               // Operation mode, standard or fill
+  int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   char *memtype = argv[1];      // Memory name string
   AVRMEM *mem = avr_locate_mem(p, memtype);
@@ -472,18 +420,26 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int maxsize = mem->size;
 
   if (argc == 3 && maxsize > 1) {
-    pmsg_error("(write) no start address specified for memory %s\n"
-      "Please specify a start address for memories greater than 1 byte in size\n",
-      memtype);
-    return -1;
+    // Check whether argv[2] might be anything other than a file
+    Str2data *sd = str_todata(argv[2], STR_ANY & ~STR_FILE, NULL, NULL);
+    if(sd && sd->type) {
+      if(sd->type & STR_INTEGER && sd->ll >= -maxsize && sd->ll < maxsize)
+        pmsg_error("(write) no data specified for %s address %s\n", mem->desc, argv[2]);
+      else
+        pmsg_error("(write) no address specified for %s data %s\n", mem->desc, argv[2]);
+      str_freedata(sd);
+      return -1;
+    }
+    str_freedata(sd);
+    // Argv[2] might be a file --- keep it in the running for address 0
   }
 
-  char *end_ptr;
+  const char *errptr;
   int addr = 0;
   if(argc >= 4) {
-    addr = strtol(argv[2], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[2])) {
-      pmsg_error("(write) cannot parse address %s\n", argv[2]);
+    addr = str_int(argv[2], STR_INT32, &errptr);
+    if(errptr) {
+      pmsg_error("(write) address %s: %s\n", argv[2], errptr);
       return -1;
     }
   }
@@ -499,24 +455,30 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     return -1;
   }
 
-  // Allocate a buffer guaranteed to be large enough
-  uint8_t *buf = calloc(mem->size + 8 + maxstrlen(argc-3, argv+3)+1, sizeof(uint8_t));
-  if (buf == NULL) {
+  // Allocate large enough data and allocation tags space
+  size_t bufsz = mem->size + 8 + maxstrlen(argc-3, argv+3)+1;
+  if(bufsz > INT_MAX) {
+    pmsg_error("(write) too large memory request (%zu)\n", bufsz);
+    return -1;
+  }
+  unsigned char *buf = calloc(bufsz, 1), *tags = calloc(bufsz, 1);
+  if(buf == NULL || tags == NULL) {
     pmsg_error("(write) out of memory\n");
     return -1;
   }
 
   // Find the first argument to write to flash and how many arguments to parse and write
-  if (strcmp(argv[argc - 1], "...") == 0) {
+  if(str_eq(argv[argc - 1], "...")) {
     write_mode = WRITE_MODE_FILL;
     start_offset = 4;
-    len = strtol(argv[3], &end_ptr, 0);
-    if (*end_ptr || (end_ptr == argv[3])) {
-      pmsg_error("(write ...) cannot parse length %s\n", argv[3]);
-      free(buf);
+    len = str_int(argv[3], STR_INT32, &errptr);
+    if(errptr) {
+      pmsg_error("(write ...) length %s: %s\n", argv[3], errptr);
+      free(buf); free(tags);
       return -1;
     }
-    // Turn negative len value (no. bytes from top of memory) into an actual length number
+
+    // Turn negative len value (number of bytes from top of memory) into an actual length number
     if (len < 0)
       len = maxsize + len - addr + 1;
     if (len == 0)
@@ -537,224 +499,102 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     len = argc - start_offset;
   }
 
-  // Structure related to data that is being written to memory
-  struct Data {
-    // Data info
-    int bytes_grown;
-    uint8_t size;
-    char *str_ptr;
-    // Data union
-    union {
-      float f;
-      double d;
-      int64_t ll;
-      uint64_t ull;
-      uint8_t a[8];
-    };
-  } data = {
-    .bytes_grown = 0,
-    .size        = 0,
-    .str_ptr     = NULL,
-    .ull         = 1
-  };
-
-  if(sizeof(long long) != sizeof(int64_t) || (data.a[0]^data.a[7]) != 1)
-    pmsg_error("(write) assumption on data types not met? "
-      "Check source and recompile\n");
-  bool is_big_endian = data.a[7];
+  int bytes_grown = 0, filling = 0, recorded = 0, maxneeded = maxsize-addr;
+  Str2data *sd = NULL;
 
   for (i = start_offset; i < len + start_offset; i++) {
     // Handle the next argument
     if (i < argc - start_offset + 3) {
-      char *argi = argv[i];
-      size_t arglen = strlen(argi);
-
-      data.size = 0;
-
-      // Free string pointer if already allocated
-      if(data.str_ptr) {
-        free(data.str_ptr);
-        data.str_ptr = NULL;
-      }
-
-      // Remove trailing comma to allow cut and paste of lists
-      if(arglen > 0 && argi[arglen-1] == ',')
-        argi[--arglen] = 0;
-
-      // Try integers and assign data size
-      errno = 0;
-      data.ull = strtoull(argi, &end_ptr, 0);
-      if (!(end_ptr == argi || errno)) {
-        unsigned int nu=0, nl=0, nh=0, ns=0, nx=0;
-        char *p;
-
-        // Parse suffixes: ULL, LL, UL, L ... UHH, HH
-        for(p=end_ptr; *p; p++)
-          switch(toupper(*p)) {
-          case 'U': nu++; break;
-          case 'L': nl++; break;
-          case 'H': nh++; break;
-          case 'S': ns++; break;
-          default: nx++;
-          }
-
-        if(nx==0 && nu<2 && nl<3 && nh<3 && ns<2) { // Could be valid integer suffix
-          if(nu==0 || toupper(*end_ptr) == 'U' || toupper(p[-1]) == 'U') { // If U, then must be at start or end
-            bool is_hex = strncasecmp(argi, "0x", 2) == 0; // Ordinary hex: 0x... without explicit +/- sign
-            bool is_signed = !(nu || is_hex);              // Neither explicitly unsigned nor ordinary hex
-            bool is_outside_int64_t = 0;
-            bool is_out_of_range = 0;
-            int nhexdigs = p-argi-2;
-
-            if(is_signed) {     // Is input in range for int64_t?
-              errno = 0; (void) strtoll(argi, NULL, 0);
-              is_outside_int64_t = errno == ERANGE;
-            }
-
-            if(nl==0 && ns==0 && nh==0) { // No explicit data size
-              // Ordinary hex numbers have implicit size given by number of hex digits, including leading zeros
-              if(is_hex) {
-                data.size = nhexdigs > 8? 8: nhexdigs > 4? 4: nhexdigs > 2? 2: 1;
-
-              } else if(is_signed) {
-                // Smallest size that fits signed or unsigned (asymmetric to meet user expectation)
-                data.size =
-                  is_outside_int64_t? 8:
-                  data.ll < INT32_MIN || data.ll > (long long) UINT32_MAX? 8:
-                  data.ll < INT16_MIN || data.ll > (long long) UINT16_MAX? 4:
-                  data.ll < INT8_MIN  || data.ll > (long long) UINT8_MAX? 2: 1;
-
-              } else {
-                // Smallest size that fits unsigned representation
-                data.size =
-                  data.ull > UINT32_MAX? 8:
-                  data.ull > UINT16_MAX? 4:
-                  data.ull > UINT8_MAX? 2: 1;
-              }
-            } else if(nl==0 && nh==2 && ns==0) { // HH
-              data.size = 1;
-              if(is_outside_int64_t || (is_signed && (data.ll < INT8_MIN  || data.ll > INT8_MAX))) {
-                is_out_of_range = 1;
-                data.ll = (int8_t) data.ll;
-              }
-            } else if(nl==0 && ((nh==1 && ns==0) || (nh==0 && ns==1))) { // H or S
-              data.size = 2;
-              if(is_outside_int64_t || (is_signed && (data.ll < INT16_MIN  || data.ll > INT16_MAX))) {
-                is_out_of_range = 1;
-                data.ll = (int16_t) data.ll;
-              }
-            } else if(nl==1 && nh==0 && ns==0) { // L
-              data.size = 4;
-              if(is_outside_int64_t || (is_signed && (data.ll < INT32_MIN  || data.ll > INT32_MAX))) {
-                is_out_of_range = 1;
-                data.ll = (int32_t) data.ll;
-              }
-            } else if(nl==2 && nh==0 && ns==0) { // LL
-              data.size = 8;
-              if(is_outside_int64_t || is_signed)
-                is_out_of_range = 1;
-            }
-
-            if(is_out_of_range)
-              pmsg_error("(write) %s out of int%d_t range, "
-                "interpreted as %d-byte %lld; consider 'U' suffix\n", argi, data.size*8, data.size, (long long int) data.ll);
-          }
-        }
-      }
-
-      if(!data.size) {          // Try double now that input was rejected as integer
-        data.d = strtod(argi, &end_ptr);
-        if (end_ptr != argi && toupper(*end_ptr) == 'D' && end_ptr[1] == 0)
-          data.size = 8;
-      }
-
-      if(!data.size) {          // Try float
-        data.f = strtof(argi, &end_ptr);
-        if (end_ptr != argi && toupper(*end_ptr) == 'F' && end_ptr[1] == 0)
-          data.size = 4;
-        if (end_ptr != argi && *end_ptr == 0) // No suffix defaults to float but ...
-          // ... do not accept valid mantissa-only floats that are integer rejects (eg, 078 or ULL overflows)
-          if (!is_mantissa_only(argi))
-            data.size = 4;
-      }
-
-      if(!data.size && arglen > 1) { // Try C-style string or single character
-        if ((*argi == '\'' && argi[arglen-1] == '\'') || (*argi == '\"' && argi[arglen-1] == '\"')) {
-          char *s = calloc(arglen-1, 1);
-          if (s == NULL) {
-            pmsg_error("(write str) out of memory\n");
-            free(buf);
-            return -1;
-          }
-          // Strip start and end quotes, and unescape C string
-          strncpy(s, argi+1, arglen-2);
-          cfg_unescape(s, s);
-          if (*argi == '\'') {  // Single C-style character
-            if(*s && s[1])
-              pmsg_error("(write) only using first character of %s\n", argi);
-            data.ll = *s;
-            data.size = 1;
-            free(s);
-          } else {              // C-style string
-            data.str_ptr = s;
-          }
-        }
-      }
-
-      if(!data.size && !data.str_ptr) {
-        pmsg_error("(write) cannot parse data %s\n", argi);
-        free(buf);
+      str_freedata(sd);
+      sd = str_todata(argv[i], STR_ANY, p, mem->desc);
+      if(!sd->type || sd->errstr) {
+        pmsg_error("(write) data %s: %s\n", argv[i], sd->errstr? sd->errstr: "str_todata");
+        free(buf); free(tags);
+        str_freedata(sd);
         return -1;
       }
-
-      // Assume endianness is the same for double and int, and ensure little endian representation
-      if(is_big_endian && data.size > 1)
-        change_endian(data.a, data.size);
+      if(sd->warnstr)
+        pmsg_warning("(write) %s\n", sd->warnstr);
+      // Always write little endian (assume double and int have same endianess)
+      if(is_bigendian() && sd->size > 0 && (sd->type & STR_NUMBER))
+        change_endian(sd->a, sd->size);
+    } else {
+      filling = 1;
+      if(!sd)
+        break;
     }
-
-    if(data.str_ptr) {
-      for(size_t j = 0; j < strlen(data.str_ptr); j++)
-        buf[i - start_offset + data.bytes_grown++] = (uint8_t)data.str_ptr[j];
-    } else if(data.size > 0) {
-      for(int k=0; k<data.size; k++)
-        buf[i - start_offset + data.bytes_grown + k] = data.a[k];
-      data.bytes_grown += data.size-1;
+    int n = i - start_offset + bytes_grown;
+    if(sd->type == STR_STRING && sd->str_ptr) {
+      size_t len = strlen(sd->str_ptr);
+      for(size_t j = 0; j < len; j++, n++) {
+        buf[n] = (uint8_t) sd->str_ptr[j];
+        tags[n] = TAG_ALLOCATED;
+      }
+      buf[n] = 0;               // Terminating nul
+      tags[n] = TAG_ALLOCATED;
+      bytes_grown += (int) len; // Sic: one less than written
+    } else if(sd->type == STR_FILE && sd->mem && sd->size > 0) {
+      int end = bufsz - n;      // Available buffer size
+      if(sd->size < end)
+        end = sd->size;
+      for(int j = 0; j < end; j++, n++) {
+        if(sd->mem->tags[j]) {
+          buf[n] = sd->mem->buf[j];
+          tags[n] = TAG_ALLOCATED;
+        }
+      }
+      if(end > 0)               // Should always be true
+        bytes_grown += end-1;
+    } else if(sd->size > 0 && (sd->type & STR_NUMBER)) {
+      for(int k = 0; k < sd->size; k++, n++) {
+        buf[n] = sd->a[k];
+        tags[n] = TAG_ALLOCATED;
+      }
+      bytes_grown += sd->size-1;
+    } else {                    // Nothing written
+      bytes_grown--;            // Sic: stay stagnat as i increases, but break when filling
+      if(write_mode == WRITE_MODE_FILL && filling) {
+        filling = 0;
+        break;
+      }
     }
-
-    // Make sure buf does not overflow
-    if (i - start_offset + data.bytes_grown > maxsize)
+    recorded = i - start_offset + bytes_grown + 1;
+    if(recorded >= maxneeded)
       break;
   }
+  str_freedata(sd);
 
-  // When in "fill" mode, the maximum size is already predefined
-  if (write_mode == WRITE_MODE_FILL)
-    data.bytes_grown = 0;
-
-  if ((addr + len + data.bytes_grown) > maxsize) {
-    pmsg_error("(write) selected address and # bytes exceed "
-      "range for %s memory\n", memtype);
-    free(buf);
-    return -1;
+  // When in fill mode, the maximum size is already predefined
+  if(write_mode == WRITE_MODE_FILL) {
+    if(recorded < len) {
+      pmsg_warning("(write ...) can only fill %d < %d byte%s as last item has zero bytes\n",
+        recorded, len, update_plural(recorded));
+      len = recorded;
+    }
+    bytes_grown = 0;
+  } else if(addr + len + bytes_grown > maxsize) {
+    bytes_grown = maxsize - addr - len;
+    pmsg_warning("(write) clipping data to fit into %s %s memory\n", p->desc, mem->desc);
   }
 
-  if(data.str_ptr)
-    free(data.str_ptr);
-
-  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02lx",
-    len + data.bytes_grown, update_plural(len + data.bytes_grown), (long) addr);
-  if (write_mode == WRITE_MODE_FILL)
+  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02x",
+    len + bytes_grown, update_plural(len + bytes_grown), addr);
+  if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\v");
 
   pgm->err_led(pgm, OFF);
   bool werror = false;
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
-  for (i = 0; i < len + data.bytes_grown; i++) {
+  for (i = 0; i < len + bytes_grown; i++) {
+    report_progress(i, len + bytes_grown, NULL);
+    if(!tags[i])
+      continue;
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
     } else if(rc) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05lx, rc=%d\n", buf[i], (long) addr+i, (int) rc);
+      pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
       werror = true;
@@ -762,15 +602,13 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       uint8_t b;
       rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
       if (b != buf[i]) {
-        pmsg_error("(write) verification error writing 0x%02x at 0x%05lx cell=0x%02x\n", buf[i], (long) addr+i, b);
+        pmsg_error("(write) verification error writing 0x%02x at 0x%05x cell=0x%02x\n", buf[i], addr+i, b);
         werror = true;
       }
    }
 
     if (werror)
       pgm->err_led(pgm, ON);
-
-    report_progress(i, len + data.bytes_grown, NULL);
   }
   report_progress(1, 1, NULL);
 
@@ -780,13 +618,29 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 }
 
 
-static int cmd_flush(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
+static int cmd_flush(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: flush\n"
+      "Function: synchronise flash and EEPROM cache with the device\n"
+    );
+    return -1;
+  }
+
   pgm->flush_cache(pgm, p);
   return 0;
 }
 
 
-static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
+static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: abort\n"
+      "Function: abort flash and EEPROM writes, ie, reset the r/w cache\n"
+    );
+    return -1;
+  }
+
   pgm->reset_cache(pgm, p);
   return 0;
 }
@@ -794,20 +648,23 @@ static int cmd_abort(PROGRAMMER *pgm, AVRPART *p, int ac, char *av[]) {
 
 static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   unsigned char cmd[4], res[4];
-  char *e;
+  const char *errptr;
   int i;
   int len;
 
-  if (spi_mode && (pgm->spi == NULL)) {
-    pmsg_error("(send) the %s programmer does not support direct SPI transfers\n", pgm->type);
+  if(argc > 5 || (argc < 5 && !spi_mode) || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(spi_mode?
+      "Syntax: send <byte1> [<byte2> [<byte3> [<byte4>]]]\n":
+      "Syntax: send <byte1> <byte2> <byte3> <byte4>\n"
+    );
+    msg_error(
+      "Function: send a raw command to the programmer\n"
+    );
     return -1;
   }
 
-
-  if ((argc > 5) || ((argc < 5) && (!spi_mode))) {
-    msg_error(spi_mode?
-      "Usage: send <byte1> [<byte2> [<byte3> [<byte4>]]]\n":
-      "Usage: send <byte1> <byte2> <byte3> <byte4>\n");
+  if (spi_mode && (pgm->spi == NULL)) {
+    pmsg_error("(send) the %s programmer does not support direct SPI transfers\n", pgm->type);
     return -1;
   }
 
@@ -816,9 +673,9 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   /* load command bytes */
   for (i=1; i<argc; i++) {
-    cmd[i-1] = strtoul(argv[i], &e, 0);
-    if (*e || (e == argv[i])) {
-      pmsg_error("(send) cannot parse byte %s\n", argv[i]);
+    cmd[i-1] = str_int(argv[i], STR_UINT8, &errptr);
+    if(errptr) {
+      pmsg_error("(send) byte %s: %s\n", argv[i], errptr);
       return -1;
     }
   }
@@ -843,10 +700,13 @@ static int cmd_send(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if (argc > 4 || argc == 3) {
-    msg_error("Usage: erase <memory> <addr> <len>\n");
-    msg_error("       erase <memory>\n");
-    msg_error("       erase\n");
+  if (argc > 4 || argc == 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: erase <mem> <addr> <len> # Fill section with 0xff values\n"
+      "        erase <mem>              # Fill with 0xff values\n"
+      "        erase                    # Chip erase (no chache, immediate effect)\n"
+      "Function: perform a chip or memory erase; flash or EEPROM erase is cached\n"
+    );
     return -1;
   }
 
@@ -919,8 +779,11 @@ static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if(argc < 3) {
-    msg_error("Usage: pgerase <memory> <addr>\n");
+  if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: pgerase <mem> <addr>\n"
+      "Function: erase one page of flash or EEPROM memory\n"
+    );
     return -1;
   }
 
@@ -937,10 +800,10 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   int maxsize = mem->size;
 
-  char *end_ptr;
-  int addr = strtoul(argv[2], &end_ptr, 0);
-  if(*end_ptr || (end_ptr == argv[2])) {
-    pmsg_error("(pgerase) cannot parse address %s\n", argv[2]);
+  const char *errptr;
+  int addr = str_int(argv[2], STR_INT32, &errptr);
+  if(errptr) {
+    pmsg_error("(pgerase) address %s: %s\n", argv[2], errptr);
     return -1;
   }
 
@@ -959,6 +822,14 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_part(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: part\n"
+      "Function: display the current part information\n"
+    );
+    return -1;
+  }
+
   term_out("\v");
   avr_display(stdout, p, "", 0);
   term_out("\v");
@@ -971,6 +842,14 @@ static int cmd_sig(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int i;
   int rc;
   AVRMEM *m;
+
+  if(argc > 1) {
+    msg_error(
+      "Syntax: sig\n"
+      "Function: display device signature bytes\n"
+    );
+    return -1;
+  }
 
   rc = avr_signature(pgm, p);
   if (rc != 0) {
@@ -993,6 +872,14 @@ static int cmd_sig(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_quit(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: quit\n"
+      "Function: synchronise flash/EEPROM cache with device and quit\n"
+    );
+    return -1;
+  }
+
   /* FUSE bit verify will fail if left in SPI mode */
   if (spi_mode) {
     cmd_pgm(pgm, p, 0, NULL);
@@ -1002,6 +889,14 @@ static int cmd_quit(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_parms(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: parms\n"
+      "Function: display adjustable parameters\n"
+    );
+    return -1;
+  }
+
   pgm->print_parms(pgm, stdout);
   term_out("\v");
   return 0;
@@ -1013,8 +908,11 @@ static int cmd_vtarg(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2) {
-    msg_error("Usage: vtarg <value>\n");
+  if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: vtarg <value>\n"
+      "Function: set target voltage\n"
+    );
     return -1;
   }
   v = strtod(argv[1], &endp);
@@ -1035,13 +933,16 @@ static int cmd_fosc(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2) {
-    msg_error("Usage: fosc <value>[M|k] | off\n");
+  if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: fosc <value>[M|k] | off\n"
+      "Function: set the oscillator frequency\n"
+    );
     return -1;
   }
   v = strtod(argv[1], &endp);
   if (endp == argv[1]) {
-    if (strcmp(argv[1], "off") == 0)
+    if(str_eq(argv[1], "off"))
       v = 0.0;
     else {
       pmsg_error("(fosc) cannot parse frequency %s\n", argv[1]);
@@ -1065,8 +966,11 @@ static int cmd_sck(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2) {
-    msg_error("Usage: sck <value>\n");
+  if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: sck <value>\n"
+      "Function: set the SCK period\n"
+    );
     return -1;
   }
   v = strtod(argv[1], &endp);
@@ -1089,10 +993,14 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   double v;
   char *endp;
 
-  if (argc != 2 && argc != 3) {
-    msg_error("Usage: varef [channel] <value>\n");
+  if (argc < 2 || argc > 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: varef [channel] <value>\n"
+      "Function: set the analog reference voltage\n"
+    );
     return -1;
   }
+
   if (argc == 2) {
     chan = 0;
     v = strtod(argv[1], &endp);
@@ -1101,9 +1009,10 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       return -1;
     }
   } else {
-    chan = strtoul(argv[1], &endp, 10);
-    if (endp == argv[1]) {
-      pmsg_error("(varef) cannot parse channel %s\n", argv[1]);
+    const char *errptr;
+    chan = str_int(argv[1], STR_UINT32, &errptr);
+    if(errptr) {
+      pmsg_error("(varef) channel %s: %s\n", argv[1], errptr);
       return -1;
     }
     v = strtod(argv[2], &endp);
@@ -1121,10 +1030,16 @@ static int cmd_varef(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  int i;
+  if(argc > 1) {
+    msg_error(
+      "Syntax: help\n"
+      "Function: show help message for terminal commands\n"
+    );
+    return -1;
+  }
 
   term_out("Valid commands:\n");
-  for (i=0; i<NCMDS; i++) {
+  for(int i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
     term_out("  %-7s : ", cmd[i].name);
@@ -1132,6 +1047,7 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     term_out("\n");
   }
   term_out("\n"
+    "For more details about a terminal command cmd type cmd -?\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
@@ -1140,33 +1056,54 @@ static int cmd_help(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 }
 
 static int cmd_spi(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: spi\n"
+      "Function: enter direct SPI mode\n"
+    );
+    return -1;
+  }
+
   pgm->setpin(pgm, PIN_AVR_RESET, 1);
   spi_mode = 1;
   return 0;
 }
 
 static int cmd_pgm(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: pgm\n"
+      "Function: return to programming mode\n"
+    );
+    return -1;
+  }
+
   pgm->setpin(pgm, PIN_AVR_RESET, 0);
   spi_mode = 0;
   pgm->initialize(pgm, p);
   return 0;
 }
 
+
 static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int nverb;
-  char *endp;
+  const char *errptr;
 
-  if (argc != 1 && argc != 2) {
-    msg_error("Usage: verbose [<value>]\n");
+  if (argc > 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: verbose [<value>]\n"
+      "Function: display or set -v verbosity level\n"
+    );
     return -1;
   }
+
   if (argc == 1) {
     msg_error("Verbosity level: %d\n", verbose);
     return 0;
   }
-  nverb = strtol(argv[1], &endp, 0);
-  if (endp == argv[1] || *endp) {
-    pmsg_error("(verbose) cannot parse verbosity level %s\n", argv[1]);
+  nverb = str_int(argv[1], STR_INT32, &errptr);
+  if(errptr) {
+    pmsg_error("(verbose) verbosity level %s: %s\n", argv[1], errptr);
     return -1;
   }
   if (nverb < 0) {
@@ -1179,21 +1116,25 @@ static int cmd_verbose(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   return 0;
 }
 
+
 static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int nquell;
-  char *endp;
+  const char *errptr;
 
-  if (argc != 1 && argc != 2) {
-    msg_error("Usage: quell [<value>]\n");
+  if (argc > 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: quell [<value>]\n"
+      "Function: display or set -q quell level for progress bars\n"
+    );
     return -1;
   }
   if (argc == 1) {
     msg_error("Quell level: %d\n", quell_progress);
     return 0;
   }
-  nquell = strtol(argv[1], &endp, 0);
-  if (endp == argv[1] || *endp) {
-    pmsg_error("(quell) cannot parse quell level %s\n", argv[1]);
+  nquell = str_int(argv[1], STR_INT32, &errptr);
+  if(errptr) {
+    pmsg_error("(quell) quell level %s: %s\n", argv[1], errptr);
     return -1;
   }
   if (nquell < 0) {
@@ -1211,100 +1152,63 @@ static int cmd_quell(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   return 0;
 }
 
-static int tokenize(char *s, char ***argv) {
-  int     i, n, l, nargs;
-  int     len, slen;
-  char  *buf;
-  int     bufsize;
-  char **bufv;
-  char  *bufp;
-  char  *q, *r;
-  char  *nbuf;
-  char **av;
 
-  slen = strlen(s);
+/*
+ * Simplified shell-like tokenising of a command line, which is broken up
+ * into an (argc, argv) style pointer array until
+ *   - A token ends with a semicolon, which is set to nul
+ *   - A token starts with a comment character #
+ *   - The end of the string is encountered
+ *
+ * Tokenisation takes single and double quoted strings into consideration. In
+ * the second and third case a pointer to the end-of-string nul is returned
+ * signifying all of the command line has been processed. In the first case a
+ * pointer to the start of the next token after the semicolon is returned,
+ * which can be a pointer to nul if the semicolon was at the end of the
+ * command line. On error NULL is returned.
+ *
+ */
+static char *tokenize(char *s, int *argcp, char ***argvp) {
+  size_t slen;
+  int n, nargs;
+  char **argv, *buf, *q, *r;
 
-  /*
-   * initialize allow for 20 arguments, use realloc to grow this if
-   * necessary
-   */
-  nargs   = 20;
-  bufsize = slen + 20;
-  buf     = malloc(bufsize);
-  bufv    = (char **) malloc(nargs*sizeof(char *));
-  for (i=0; i<nargs; i++) {
-    bufv[i] = NULL;
+  // Upper estimate of the number of arguments
+  for(nargs=0, q=s; *q; nargs++) {
+    while(*q && !isspace((unsigned char) *q))
+      q++;
+    while(*q && isspace((unsigned char) *q))
+      q++;
   }
-  buf[0] = 0;
+  slen = q - s;
 
-  n    = 0;
-  l    = 0;
-  nbuf = buf;
-  r    = s;
-  while (*r) {
-    nexttok(r, &q, &r);
-    strcpy(nbuf, q);
-    bufv[n]  = nbuf;
-    len      = strlen(q);
-    l       += len + 1;
-    nbuf    += len + 1;
-    nbuf[0]  = 0;
-    n++;
-    if ((n % 20) == 0) {
-      char *buf_tmp;
-      char **bufv_tmp;
-      /* realloc space for another 20 args */
-      bufsize += 20;
-      nargs   += 20;
-      bufp     = buf;
-      buf_tmp  = realloc(buf, bufsize);
-      if (buf_tmp == NULL) {
-        free(buf);
-        free(bufv);
-        return -1;
-      }
-      buf = buf_tmp;
-      bufv_tmp = realloc(bufv, nargs*sizeof(char *));
-      if (bufv_tmp == NULL) {
-        free(buf);
-        free(bufv);
-        return -1;
-      }
-      bufv = bufv_tmp;
-      nbuf     = &buf[l];
-      /* correct bufv pointers */
-      ptrdiff_t k = buf - bufp;
-      for (i=0; i<n; i++) {
-          bufv[i] = bufv[i] + k;
-      }
-      for (i=n; i<nargs; i++)
-        bufv[i] = NULL;
+  // Limit input line to some 186 Megabytes as max nargs is (slen+1)/2
+  if(slen > 2*((INT_MAX - 2*sizeof(char *))/(sizeof(char *)+3)))
+    return NULL;
+
+  // Allocate once for pointers and contents, so caller only needs to free(argv)
+  argv = cfg_malloc(__func__, (nargs+2)*sizeof(char *) + slen + nargs);
+  buf  = (char *) (argv+nargs+1);
+
+  for(n=0, r=s; *r; ) {
+    q = str_nexttok(r, " \t\n\r\v\f", &r);
+    if(*q == '#') {             // Inline comment: ignore rest of line
+      r = q+strlen(q);
+      break;
+    }
+    strcpy(buf, q);
+    if(*buf && !str_eq(buf, ";")) // Don't record empty arguments
+      argv[n++] = buf;
+    buf += strlen(q) + 1;
+    if(buf[-2] == ';') {        // Command separator
+      buf[-2] = 0;
+      break;
     }
   }
 
-  /*
-   * We have parsed all the args, n == argc, bufv contains an array of
-   * pointers to each arg, and buf points to one memory block that
-   * contains all the args, back to back, seperated by a nul
-   * terminator.  Consilidate bufv and buf into one big memory block
-   * so that the code that calls us, will have an easy job of freeing
-   * this memory.
-   */
-  av = (char **) malloc(slen + n + (n+1)*sizeof(char *));
-  q  = (char *)&av[n+1];
-  memcpy(q, buf, l);
-  for (i=0; i<n; i++) {
-    ptrdiff_t offset = bufv[i] - buf;
-    av[i] = q + offset;
-  }
-  av[i] = NULL;
-
-  free(buf);
-  free(bufv);
-
-  *argv = av;
-
-  return n;
+  *argcp = n;
+  *argvp = argv;
+  return r;
 }
 
 
@@ -1351,12 +1255,11 @@ char *terminal_get_input(const char *prompt) {
 }
 
 
-static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
-  int argc, rc;
-  char **argv = NULL, *q;
+static int process_line(char *q, PROGRAMMER *pgm, struct avrpart *p) {
+  int argc, rc = 0;
+  char **argv;
 
   // Find the start of the command, skipping any white space
-  q = cmdbuf;
   while(*q && isspace((unsigned char) *q))
     q++;
 
@@ -1365,14 +1268,17 @@ static int process_line(char *cmdbuf, PROGRAMMER *pgm, struct avrpart *p) {
     return 0;
 
   // Tokenize command line
-  argc = tokenize(q, &argv);
-
-  if(!argv)
-    return -1;
-
-  // Run the command
-  rc = do_cmd(pgm, p, argc, argv);
-  free(argv);
+  do {
+    argc = 0; argv = NULL;
+    q = tokenize(q, &argc, &argv);
+    if(!q)
+      return -1;
+    if(argc <= 0 || !argv)
+      continue;
+    // Run the command
+    rc = do_cmd(pgm, p, argc, argv);
+    free(argv);
+  } while(*q);
 
   return rc;
 }

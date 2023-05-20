@@ -104,17 +104,63 @@ static int fileio_num(struct fioparms *fio,
              FILEFMT fmt);
 
 
-char * fileio_fmtstr(FILEFMT format)
-{
+char *fileio_fmtstr(FILEFMT format) {
   switch (format) {
-    case FMT_AUTO : return "auto-detect"; break;
-    case FMT_SREC : return "Motorola S-Record"; break;
-    case FMT_IHEX : return "Intel Hex"; break;
-    case FMT_IHXC : return "Intel Hex with comments"; break;
-    case FMT_RBIN : return "raw binary"; break;
-    case FMT_ELF  : return "ELF"; break;
-    default       : return "invalid format"; break;
-  };
+  case FMT_AUTO:
+    return "auto-detect";
+  case FMT_SREC:
+    return "Motorola S-Record";
+  case FMT_IHEX:
+    return "Intel Hex";
+  case FMT_IHXC:
+    return "Intel Hex with comments";
+  case FMT_RBIN:
+    return "raw binary";
+  case FMT_ELF:
+    return "ELF";
+  case FMT_IMM:
+    return "in-place immediate";
+  case FMT_BIN:
+    return "0b-binary byte list";
+  case FMT_DEC:
+    return "decimal byte list";
+  case FMT_HEX:
+    return "0x-hexadecimal byte list";
+  case FMT_OCT:
+    return "octal byte list";
+  default:
+    return "invalid format";
+ };
+}
+
+
+FILEFMT fileio_format(char c) {
+  switch (c) {
+  case 'a':
+    return FMT_AUTO;
+  case 's':
+    return FMT_SREC;
+  case 'i':
+    return FMT_IHEX;
+  case 'I':
+    return FMT_IHXC;
+  case 'r':
+    return FMT_RBIN;
+  case 'e':
+    return FMT_ELF;
+  case 'm':
+    return FMT_IMM;
+  case 'b':
+    return FMT_BIN;
+  case 'd':
+    return FMT_DEC;
+  case 'h':
+    return FMT_HEX;
+  case 'o':
+    return FMT_OCT;
+  default:
+    return FMT_ERROR;
+  }
 }
 
 
@@ -1058,53 +1104,47 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
  const AVRMEM *mem, int size) {
 
   int rc = 0;
-  char *e, *p, *filename;
-  unsigned long b;
+  char *tok, *p, *line;
+  const char *errstr;
   int loc;
 
-  filename = cfg_strdup(__func__, fname);
+  p = line = cfg_strdup(__func__, fname);
 
   switch (fio->op) {
     case FIO_READ:
       loc = 0;
-      p = strtok(filename, " ,");
-      while (p != NULL && loc < size) {
-        b = strtoul(p, &e, 0);
-        /* check for binary formatted (0b10101001) strings */
-        b = (strncmp (p, "0b", 2))?
-            strtoul (p, &e, 0):
-           strtoul (p + 2, &e, 2);
-        if (*e != 0) {
-          pmsg_error("invalid byte value (%s) specified for immediate mode\n", p);
-          free(filename);
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && loc < size) {
+        int set = str_membuf(tok, STR_ANY, mem->buf+loc, mem->size-loc, &errstr);
+        if(errstr || set < 0) {
+          pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
+          free(line);
           return -1;
         }
-        mem->buf[loc] = b;
-        mem->tags[loc++] = TAG_ALLOCATED;
-        p = strtok(NULL, " ,");
+        memset(mem->tags+loc, TAG_ALLOCATED, set);
+        loc += set;
         rc = loc;
       }
       break;
 
     case FIO_WRITE:
       pmsg_error("invalid file format 'immediate' for output\n");
-      free(filename);
+      free(line);
       return -1;
 
     default:
       pmsg_error("invalid operation=%d\n", fio->op);
-      free(filename);
+      free(line);
       return -1;
   }
 
   if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
     pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
-      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
-    free(filename);
+      fio->iodesc, fio->dir, line, strerror(errno), fio->rw, rc, size);
+    free(line);
     return -1;
   }
 
-  free(filename);
+  free(line);
   return rc;
 }
 
@@ -1194,62 +1234,42 @@ static int fileio_elf(struct fioparms *fio,
 
 #endif
 
-static int fileio_num(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT fmt)
-{
+
+static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FILEFMT fmt) {
   const char *prefix;
-  const char *name;
-  char cbuf[20];
-  int base, i, num;
+  int base;
 
   switch (fmt) {
     case FMT_HEX:
-      name = "hex";
       prefix = "0x";
       base = 16;
       break;
 
     default:
     case FMT_DEC:
-      name = "decimal";
       prefix = "";
       base = 10;
       break;
 
     case FMT_OCT:
-      name = "octal";
       prefix = "0";
       base = 8;
       break;
 
     case FMT_BIN:
-      name = "binary";
       prefix = "0b";
       base = 2;
       break;
-
   }
 
-  switch (fio->op) {
-    case FIO_WRITE:
-      break;
+  for (int i = 0; i < size; i++) {
+    char cbuf[20];
 
-    case FIO_READ:
-      pmsg_error("invalid file format '%s' for input\n", name);
-      return -1;
-
-    default:
-      pmsg_error("invalid operation=%d\n", fio->op);
-      return -1;
-  }
-
-  for (i = 0; i < size; i++) {
     if (i > 0) {
       if (putc(',', f) == EOF)
         goto writeerr;
     }
-    num = (unsigned int)(mem->buf[i]);
+    int num = (unsigned int) mem->buf[i];
     /*
      * For a base of 8 and a value < 8 to convert, don't write the
      * prefix.  The conversion will be indistinguishable from a
@@ -1271,6 +1291,88 @@ static int fileio_num(struct fioparms *fio,
  writeerr:
   pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
   return -1;
+}
+
+
+// Allocates sufficient memory for a line; returned pointer to be free'd
+char *Nfgets(FILE *fp) {
+  int bs = 1023;                // Must be 2^n - 1
+  char *ret = (char *) cfg_malloc(__func__, bs);
+
+  ret[bs-2] = 0;
+  if(!fgets(ret, bs, fp)) {
+    free(ret);
+    return NULL;
+  }
+
+  while(ret[bs-2] != 0 && ret[bs-2] != '\n') {
+    if(bs >= INT_MAX/2) {
+      pmsg_error("cannot cope with lines longer than %d bytes\n", INT_MAX);
+      free(ret);
+      return NULL;
+    }
+    int was = bs;
+    bs = 2*bs+1;
+    ret = cfg_realloc(__func__, ret, bs);
+    ret[was-1] = ret[bs-2] = 0;
+    if(!fgets(ret+was-1, bs-(was-1), fp)) { // EOF? Error?
+      if(ferror(fp)) {
+        free(ret);
+        return NULL;
+      }
+      break;
+    }
+  }
+
+  return ret;
+}
+
+
+static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
+  char *line;
+  int n = 0;
+
+  while(n < mem->size && (line = Nfgets(f))) {
+    char *p = line, *tok;
+    while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
+      p++;
+    if(*p && *p != '#') {
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < mem->size) {
+        const char *errstr;
+        if(*tok == '#')           // Ignore rest of line after #
+          break;
+        int set = str_membuf(tok, STR_ANY, mem->buf+n, mem->size-n, &errstr);
+        if(errstr || set < 0) {
+          pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
+          free(line);
+          return -1;
+        }
+        memset(mem->tags+n, TAG_ALLOCATED, set);
+        n += set;
+      }
+    }
+    free(line);
+  }
+  return n;
+}
+
+
+static int fileio_num(struct fioparms *fio,
+             const char *filename, FILE *f, const AVRMEM *mem, int size,
+             FILEFMT fmt)
+{
+
+  switch (fio->op) {
+    case FIO_WRITE:
+      return b2num(filename, f, mem, size, fmt);
+
+    case FIO_READ:
+      return num2b(filename, f, mem);
+
+    default:
+      pmsg_error("invalid operation=%d\n", fio->op);
+      return -1;
+  }
 }
 
 
@@ -1308,88 +1410,109 @@ int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM 
 }
 
 
-
-int fileio_fmt_autodetect(const char * fname)
-{
-  FILE * f;
-  unsigned char buf[MAX_LINE_LEN];
-  int i;
-  int len;
-  int found;
-  int first = 1;
-
+FILE *fileio_fopenr(const char *fname) {
 #if !defined(WIN32)
-  f = fopen(fname, "r");
+  return fopen(fname, "r");
 #else
-  f = fopen(fname, "rb");
+  return fopen(fname, "rb");
 #endif
+}
+
+
+static FILEFMT couldbe(int first, unsigned char *line) {
+  int found;
+  size_t i, nxdigs, len;
+
+  // Check for ELF file
+  if(first && line[0] == 0177 && str_starts((char *) line+1, "ELF"))
+    return FMT_ELF;
+
+  len = strlen((char *) line);
+  while(len > 0 && line[len-1] && isspace(line[len-1])) // cr/lf etc
+    line[--len] = 0;
+
+  // Check for binary data
+  for(i=0; i<len; i++)
+    if(line[i] > 127)
+      return FMT_RBIN;
+
+  // Check for lines that look like Intel HEX
+  if(line[0] == ':' && len >= 11 && isxdigit(line[1]) && isxdigit(line[2])) {
+    nxdigs = sscanf((char *) line+1, "%2zx", &nxdigs) == 1? 2*nxdigs + 8: len;
+    for(found = 3+nxdigs <= len, i=0; found && i<nxdigs; i++)
+      if(!isxdigit(line[3+i]))
+        found = 0;
+    if(found)
+      return FMT_IHEX;
+  }
+
+  // Check for lines that look like Motorola S-record
+  if(line[0] == 'S' && len >= 10 && isdigit(line[1]) && isxdigit(line[2]) && isxdigit(line[3])) {
+    nxdigs = sscanf((char *) line+2, "%2zx", &nxdigs) == 1? 2*nxdigs: len;
+    for(found = 4+nxdigs <= len, i=0; found && i<nxdigs; i++)
+      if(!isxdigit(line[4+i]))
+        found = 0;
+    if(found)
+      return FMT_SREC;
+  }
+
+  // Check for terminal-type data entries
+  char *p = (char *) line, *tok;
+  int failed = 0, idx[4] = {0, 0, 0, 0};
+  while(*p && isspace(*p & 0xff))
+    p++;
+  if(*p && *p != '#') {
+    while(!failed && *(tok = str_nexttok(p, ", \t\n\r\v\f", &p))) {
+      const char *errstr;
+      unsigned char mem[8];
+      if(*tok == '#')
+        break;
+      int set = str_membuf(tok, STR_ANY, mem, sizeof mem, &errstr);
+      if(errstr || set < 0)
+        failed++;
+      else if(set > 0)
+        idx[str_casestarts(tok, "0x")? 0: str_casestarts(tok, "0b")? 1:
+          *tok=='0' && tok[1] && strchr("01234567", tok[1])? 2: 3]++;
+    }
+    if(!failed && idx[0]+idx[1]+idx[2]+idx[3]) {
+      // Doesn't matter which one: they all parse numbers universally
+      int i0 = idx[0] >= idx[1]? 0: 1;
+      int i2 = idx[2] >  idx[3]? 2: 3;
+      const int fmts[4] = {FMT_HEX, FMT_BIN, FMT_OCT, FMT_DEC };
+
+      return fmts[idx[i0] >= idx[i2]? i0: i2];
+    }
+  }
+
+  return FMT_ERROR;
+}
+
+int fileio_fmt_autodetect_fp(FILE *f) {
+  int ret = FMT_ERROR;
+
+  if(f) {
+    unsigned char *buf;
+    for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) Nfgets(f)); first = 0) {
+      ret = couldbe(first, buf);
+      free(buf);
+    }
+  }
+
+  return ret;
+}
+
+int fileio_fmt_autodetect(const char *fname) {
+  FILE *f = fileio_fopenr(fname);
+
   if (f == NULL) {
     pmsg_ext_error("unable to open %s: %s\n", fname, strerror(errno));
     return -1;
   }
 
-  while (fgets((char *)buf, MAX_LINE_LEN, f)!=NULL) {
-    /* check for ELF file */
-    if (first &&
-        (buf[0] == 0177 && buf[1] == 'E' &&
-         buf[2] == 'L' && buf[3] == 'F')) {
-      fclose(f);
-      return FMT_ELF;
-    }
-
-    buf[MAX_LINE_LEN-1] = 0;
-    len = strlen((char *)buf);
-    if (buf[len-1] == '\n')
-      buf[--len] = 0;
-
-    /* check for binary data */
-    found = 0;
-    for (i=0; i<len; i++) {
-      if (buf[i] > 127) {
-        found = 1;
-        break;
-      }
-    }
-    if (found) {
-      fclose(f);
-      return FMT_RBIN;
-    }
-
-    /* check for lines that look like intel hex */
-    if ((buf[0] == ':') && (len >= 11)) {
-      found = 1;
-      for (i=1; i<len; i++) {
-        if (!isxdigit(buf[1])) {
-          found = 0;
-          break;
-        }
-      }
-      if (found) {
-        fclose(f);
-        return FMT_IHEX;
-      }
-    }
-
-    /* check for lines that look like motorola s-record */
-    if ((buf[0] == 'S') && (len >= 10) && isdigit(buf[1])) {
-      found = 1;
-      for (i=1; i<len; i++) {
-        if (!isxdigit(buf[1])) {
-          found = 0;
-          break;
-        }
-      }
-      if (found) {
-        fclose(f);
-        return FMT_SREC;
-      }
-    }
-
-    first = 0;
-  }
-
+  int format = fileio_fmt_autodetect_fp(f);
   fclose(f);
-  return -1;
+
+  return format;
 }
 
 

@@ -713,44 +713,101 @@ configuration can be viewed with the
 command in terminal mode.
 Typically, a device's memory configuration at least contains
 the memory types
-.Ar flash
+.Ar flash ,
+.Ar eeprom ,
+.Ar signature
 and
-.Ar eeprom .
-All memory types currently known are:
+.Ar lock ,
+which is sometimes known as
+.Ar lockbits .
+The
+.Ar signature
+memory contains the three device signature bytes, which should
+be, but not always are, unique for the part. The
+.Ar lock
+memory of one or four bytes typically details whether or not external
+reading/writing of the flash memory, or parts of it, is allowed. Parts
+will also typically have fuse bytes, which are read/write memories for
+configuration of the device and calibration memories that typically
+contain read-only factory calibration values.
+.Pp
+Classic devices may have the following memory types in addition to eeprom, flash, signature and lock:
+.Bl -tag -width "  calibration" -compact
+.It   calibration
+One or more bytes of RC oscillator calibration data
+.It   efuse
+Extended fuse byte
+.It   fuse
+Fuse byte in devices that have only a single fuse byte
+.It   hfuse
+High fuse byte
+.It   lfuse
+Low fuse byte
+.It   lock
+Lock byte
+.El
+.Pp
+ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "calibration" -compact
-.It calibration
-One or more bytes of RC oscillator calibration data.
-.It eeprom
-The EEPROM of the device.
-.It efuse
-The extended fuse byte.
-.It flash
-The flash ROM of the device.
-.It fuse
-The fuse byte in devices that have only a single fuse byte.
-.It hfuse
-The high fuse byte.
-.It lfuse
-The low fuse byte.
-.It lock
-The lock byte.
-.It signature
-The three device signature bytes (device ID).
-.It fuse Ns Em N
-The fuse bytes of ATxmega devices,
-.Em N
-is an integer number
-for each fuse supported by the device.
 .It application
-The application flash area of ATxmega devices.
+Application flash area
 .It apptable
-The application table flash area of ATxmega devices.
+Application table flash area
 .It boot
-The boot flash area of ATxmega devices.
+Boot flash area
+.It fuse0
+A.k.a. jtaguid: JTAG user ID for some devices
+.It fuse1
+Watchdog configuration
+.It fuse6
+Fault detection action configuration TC4/5 for ATxmega E series parts
+.It fuse Ns Em N
+Other fuse bytes of ATxmega devices, where
+.Em N
+is 2, 4 or 5, for system configuration
 .It prodsig
-The production signature (calibration) area of ATxmega devices.
+Production signature (calibration) area of ATxmega devices
 .It usersig
-The user signature area of ATxmega devices.
+User signature area of ATxmega devices
+.El
+.Pp
+Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
+.Bl -tag -width "calibration" -compact
+.It fuse0
+A.k.a. wdtcfg: watchdog configuration
+.It fuse1
+A.k.a. bodcfg: brownout detection configuration
+.It fuse2
+A.k.a. osccfg: oscillator configuration
+.It fuse4
+A.k.a. tcd0cfg (not all devices): timer counter type D configuration
+.It fuse5
+A.k.a. syscfg0: system configuration 0
+.It fuse6
+A.k.a. syscfg1: system configuration 1
+.It fuse7
+A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
+.It fuse8
+A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+.It fuses
+A "logical" memory of 9 bytes containing all fuseN of a part, which can be
+used to program all fuses at the same time
+.It osc16err
+Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+.It osc20err
+Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+.It osccal16
+Two oscillator calibration bytes for 16 MHz
+.It osccal20
+Two oscillator calibration bytes for 20 MHz
+.It prodsig
+.It sernum
+Serial number with a unique ID for the part (10 bytes)
+.It tempsense
+Temperature sensor calibration values
+.It userrow
+Extra page of EEPROM memory that can be used for firmware settings
+.It usersig
 .El
 .Pp
 The
@@ -786,43 +843,61 @@ raw binary; little-endian byte order, in the case of the flash ROM data
 .It Ar e
 ELF (Executable and Linkable Format)
 .It Ar m
-immediate; actual byte values specified on the command line, separated
-by commas or spaces.  This is good for programming fuse bytes without
-having to create a single-byte file or enter terminal mode.
+immediate mode; actual byte values are specified on the command line,
+separated by commas or spaces in place of the filename field of the -U
+option.  This is useful for programming fuse bytes without having to
+create a single-byte file or enter terminal mode.
 .It Ar a
 auto detect; valid for input only, and only if the input is not
 provided at
 .Em stdin .
 .It Ar d
-decimal; this and the following formats are only valid on output.
-They generate one line of output for the respective memory section,
-forming a comma-separated list of the values.
-This can be particularly useful for subsequent processing, like for
-fuse bit settings.
+decimal; this and the following formats generate one line of output for
+the respective memory section, forming a comma-separated list of the
+values. This can be particularly useful for subsequent processing, like
+for fuse bit settings.
 .It Ar h
 hexadecimal; each value will get the string
 .Em 0x
 prepended.
-Only valid on output.
 .It Ar o
 octal; each value will get a
 .Em 0
 prepended unless it is less than 8 in which case it gets no prefix.
-Only valid on output.
 .It Ar b
 binary; each value will get the string
 .Em 0b
 prepended.
-Only valid on output.
 .El
 .Pp
-The default is to use auto detection for input files, and raw binary
-format for output files.
-Note that if
+When used as input, the
+.Ar m ,
+.Ar d ,
+.Ar h ,
+.Ar o
+and
+.Ar b
+formats will use the same code for reading lists of numbers separated by
+white space and/or commas. The read routine handles decimal, hexadecimal,
+octal or binary numbers on a number-by-number basis, and the list of
+numbers can therefore be of mixed type. In fact the syntax, is the same as
+for data used by the terminal write command, ie, the file's input data can
+also be 2-byte short integers, 4-byte long integers or 8-byte long long
+integers, 4-byte floating point numbers, 8-byte double precision numbers,
+C-type strings with a terminating nul or C-like characters such as '\t'.
+Numbers are written as little endian to memory. When using 0x hexadecimal
+or 0b binary input leading zeros are used to determine the size of the
+integer, e.g., 0x002a will occupy two bytes and write a 0x2a to memory
+followed by 0x00, and 0x01234 will occupy 4 bytes. See the description of
+the terminal write command for more details.
+.Pp
+In absence of an explicit file format, the default is to use auto
+detection for input files, and raw binary format for output files. Note
+that if a
 .Ar filename
-contains a colon, the
+contains a colon as penultimate character the
 .Ar format
-field is no longer optional since the filename part following the colon
+field is no longer optional since the last character
 would otherwise be misinterpreted as
 .Ar format .
 .Pp
@@ -830,7 +905,8 @@ When reading any kind of flash memory area (including the various sub-areas
 in Xmega devices), the resulting output file will be truncated to not contain
 trailing 0xFF bytes which indicate unprogrammed (erased) memory.
 Thus, if the entire memory is unprogrammed, this will result in an output
-file that has no contents at all.
+file that has no contents at all.  This behaviour can be overridden with
+the -A option.
 .Pp
 As an abbreviation, the form
 .Fl U Ar filename
@@ -838,7 +914,9 @@ is equivalent to specifying
 .Fl U Em flash:w: Ns Ar filename Ns :a .
 This will only work if
 .Ar filename
-does not have a colon in it.
+does not have a pair of colons in it that sandwich a single character
+as otherwise the first part might be interpreted as memory, and the single
+character as memory operation.
 .It Fl v
 Enable verbose output.
 More
@@ -868,11 +946,11 @@ a command history using
 .Xr readline 3 ,
 so previously entered command lines can be recalled and edited.
 .Pp
-The 
+The
 .Ar addr
 and
 .Ar len
-parameters of the read, write and erase commands can be
+parameters of the dump, read, write and erase commands can be
 negative with the same syntax as substring computations in perl or python.
 The table below details their meaning with respect to an example memory of size
 sz=0x800.
@@ -933,33 +1011,44 @@ older parts without paged access will also have flash and EEPROM directly
 accessed without cache.
 .Pp
 .Ar data
-can be hexadecimal, octal or decimal integers, floating point numbers
-or C-style strings and characters. For integers, an optional case-insensitive
-suffix specifies the data size: HH 8 bit, H/S 16 bit, L 32 bit, LL 64 bit.
-Suffix D indicates a 64-bit double, F a 32-bit float, whilst a floating point
-number without suffix defaults to 32-bit float. Hexadecimal floating point
-notation is supported. An ambiguous trailing suffix, e.g., 0x1.8D, is read as
-no-suffix float where D is part of the mantissa; use a zero exponent 0x1.8p0D
-to clarify.
+can be binary, octal, decimal or hexadecimal integers, floating point numbers
+or C-style strings and characters. If nothing matches,
+.Ar data
+will be interpreted as the name of a file containing data, which will be
+read and inserted at this point. In order to force the interpretation of a
+data item as file, eg, when the file name would be understood as a number
+otherwise, the file name can be given a
+.Ar :f
+format specifier. In absence of a format suffix, the terminal will try
+to auto-detect the file format.
 .Pp
-An optional U suffix makes integers unsigned. Ordinary 0x hex integers are
-always treated as unsigned. +0x or -0x hex numbers are treated as signed
-unless they have a U suffix. Unsigned integers cannot be larger than 2^64-1.
-If n is an unsigned integer then -n is also a valid unsigned integer as in C.
-Signed integers must fall into the [-2^63, 2^63-1] range or a correspondingly
-smaller range when a suffix specifies a smaller type.
+For integers, an optional case-insensitive suffix specifies the data size: HH
+8 bit, H/S 16 bit, L 32 bit, LL 64 bit. Suffix D indicates a 64-bit double, F
+a 32-bit float, whilst a floating point number without suffix defaults to
+32-bit float. Hexadecimal floating point notation is supported. An ambiguous
+trailing suffix, eg, 0x1.8D, is read as no-suffix float where D is part of
+the mantissa; use a zero exponent 0x1.8p0D to clarify.
 .Pp
-Ordinary 0x hex integers with n hex digits (counting leading zeros) use the
-smallest size of one, two, four and eight bytes that can accommodate any
-n-digit hex integer. If an integer suffix specifies a size explicitly the
-corresponding number of least significant bytes are written, and a warning
-shown if the number does not fit into the desired representation. Otherwise,
-unsigned integers occupy the smallest of one, two, four or eight bytes
-needed. Signed numbers are allowed to fit into the smallest signed or
-smallest unsigned representation: For example, 255 is stored as one byte as
-255U would fit in one byte, though as a signed number it would not fit into a
-one-byte interval [-128, 127]. The number -1 is stored in one byte whilst -1U
-needs eight bytes as it is the same as 0xFFFFffffFFFFffffU.
+An optional U suffix makes integers unsigned. Ordinary 0x hexadecimal and 0b
+binary integers are always treated as unsigned. +0x, -0x, +0b and -0b numbers
+with an explicit sign are treated as signed unless they have a U suffix.
+Unsigned integers cannot be larger than 2^64-1. If n is an unsigned integer
+then -n is also a valid unsigned integer as in C. Signed integers must fall
+into the [-2^63, 2^63-1] range or a correspondingly smaller range when a
+suffix specifies a smaller type.
+.Pp
+Ordinary 0x hexadecimal and 0b binary integers with n digits (counting
+leading zeros) use the smallest size of one, two, four and eight bytes that
+can accommodate any n-digit hexadecimal/binary integer. If an integer suffix
+specifies a size explicitly the corresponding number of least significant
+bytes are written, and a warning shown if the number does not fit into the
+desired representation. Otherwise, unsigned integers occupy the smallest of
+one, two, four or eight bytes needed. Signed numbers are allowed to fit into
+the smallest signed or smallest unsigned representation: For example, 255 is
+stored as one byte as 255U would fit in one byte, though as a signed number
+it would not fit into a one-byte interval [-128, 127]. The number -1 is
+stored in one byte whilst -1U needs eight bytes as it is the same as
+0xFFFFffffFFFFffffU.
 .Pp
 One trailing comma at the end of
 .Ar data

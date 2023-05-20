@@ -32,113 +32,68 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-UPDATE * parse_op(char * s)
-{
-  char buf[1024];
-  char * p, * cp, c;
-  UPDATE * upd;
-  int i;
-  size_t fnlen;
 
-  upd = (UPDATE *) cfg_malloc("parse_op()", sizeof(UPDATE));
+/*
+ * Parsing of [<memory>:<op>:<file>[:<fmt>] | <file>[:<fmt>]]
+ *
+ * As memory names don't contain colons and the r/w/v operation <op> is
+ * a single character, check whether the first two colons sandwich one
+ * character. If not, treat the argument as a filename (defaulting to
+ * flash write). This allows colons in filenames other than those for
+ * enclosing <op> and separating <fmt>, eg, C:/some/file.hex
+ */
+UPDATE *parse_op(char *s) {
+  // Assume -U <file>[:<fmt>] first
+  UPDATE *upd = (UPDATE *) cfg_malloc(__func__, sizeof *upd);
+  upd->memtype = NULL;        // Defaults to flash or application
+  upd->op = DEVICE_WRITE;
+  char *fn = s;
 
-  i = 0;
-  p = s;
-  while (i < (int) sizeof(buf)-1 && *p && *p != ':')
-    buf[i++] = *p++;
-  buf[i] = 0;
-
-  if (*p != ':') {
-    upd->memtype = NULL;        /* default memtype, "flash", or "application" */
-    upd->op = DEVICE_WRITE;
-    upd->filename = cfg_strdup("parse_op()", buf);
-    upd->format = FMT_AUTO;
-    return upd;
-  }
-
-  upd->memtype = cfg_strdup("parse_op()", buf);
-
-  p++;
-  if (*p == 'r') {
-    upd->op = DEVICE_READ;
-  }
-  else if (*p == 'w') {
-    upd->op = DEVICE_WRITE;
-  }
-  else if (*p == 'v') {
-    upd->op = DEVICE_VERIFY;
-  }
-  else {
-    pmsg_error("invalid I/O mode '%c' in update specification\n", *p);
-    msg_error("  allowed values are:\n"
-              "    r = read device\n"
-              "    w = write device\n"
-              "    v = verify device\n");
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-
-  p++;
-
-  if (*p != ':') {
-    pmsg_error("invalid update specification\n");
-    free(upd->memtype);
-    free(upd);
-    return NULL;
-  }
-
-  p++;
-
-  /*
-   * Now, parse the filename component.  Instead of looking for the
-   * leftmost possible colon delimiter, we look for the rightmost one.
-   * If we found one, we do have a trailing :format specifier, and
-   * process it.  Otherwise, the remainder of the string is our file
-   * name component.  That way, the file name itself is allowed to
-   * contain a colon itself (e. g. C:/some/file.hex), except the
-   * optional format specifier becomes mandatory then.
-   */
-  cp = p;
-  p = strrchr(cp, ':');
-  if (p == NULL) {
-    // missing format, default to "AUTO" for write and verify,
-    // and to binary for read operations:
-    upd->format = upd->op == DEVICE_READ? FMT_RBIN: FMT_AUTO;
-    fnlen = strlen(cp);
-    upd->filename = (char *) cfg_malloc("parse_op()", fnlen + 1);
-  } else {
-    fnlen = p - cp;
-    upd->filename = (char *) cfg_malloc("parse_op()", fnlen +1);
-    c = *++p;
-    if (c && p[1])
-      /* More than one char - force failure below. */
-      c = '?';
-    switch (c) {
-      case 'a': upd->format = FMT_AUTO; break;
-      case 's': upd->format = FMT_SREC; break;
-      case 'i': upd->format = FMT_IHEX; break;
-      case 'I': upd->format = FMT_IHXC; break;
-      case 'r': upd->format = FMT_RBIN; break;
-      case 'e': upd->format = FMT_ELF; break;
-      case 'm': upd->format = FMT_IMM; break;
-      case 'b': upd->format = FMT_BIN; break;
-      case 'd': upd->format = FMT_DEC; break;
-      case 'h': upd->format = FMT_HEX; break;
-      case 'o': upd->format = FMT_OCT; break;
-      default:
-        pmsg_error("invalid file format '%s' in update specifier\n", p);
-        free(upd->memtype);
-        free(upd);
-        return NULL;
+  // Check for <memory>:c: start in which case override defaults
+  char *fc = strchr(s, ':');
+  if(fc && fc[1] && fc[2] == ':') {
+    if(!strchr("rwv", fc[1])) {
+      pmsg_error("invalid I/O mode :%c: in -U %s\n", fc[1], s);
+      imsg_error("I/O mode can be r, w or v for read, write or verify device\n");
+      free(upd->memtype);
+      free(upd);
+      return NULL;
     }
+
+    upd->memtype = memcpy(cfg_malloc(__func__, fc-s+1), s, fc-s);
+    upd->op =
+      fc[1]=='r'? DEVICE_READ:
+      fc[1]=='w'? DEVICE_WRITE: DEVICE_VERIFY;
+    fn = fc+3;
   }
 
-  memcpy(upd->filename, cp, fnlen);
-  upd->filename[fnlen] = 0;
+  // Default to AUTO for write and verify, and to raw binary for read
+  upd->format = upd->op == DEVICE_READ? FMT_RBIN: FMT_AUTO;
+
+  // Filename: last char is format if the penultimate char is a colon
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // Assume format specified
+    upd->format = fileio_format(fn[len-1]);
+    if(upd->format == FMT_ERROR) {
+      pmsg_error("invalid file format :%c in -U %s; known formats are\n", fn[len-1], s);
+      for(int f, c, i=0; i<62; i++) {
+        c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
+        f = fileio_format(c);
+        if(f != FMT_ERROR)
+          imsg_error("  :%c %s\n", c, fileio_fmtstr(f));
+      }
+      free(upd->memtype);
+      free(upd);
+      return NULL;
+    }
+    len -= 2;
+  }
+
+  upd->filename = memcpy(cfg_malloc(__func__, len+1), fn, len);
 
   return upd;
 }
+
 
 UPDATE * dup_update(UPDATE * upd)
 {
@@ -380,8 +335,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
 
   if(!known && upd->format == FMT_AUTO) {
     if(!strcmp(upd->filename, "-")) {
-      pmsg_error("cannot auto detect file format for stdin/out, "
-        "specify explicitly\n");
+      pmsg_error("cannot auto detect file format for stdin/out, specify explicitly\n");
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else if((format_detect = fileio_fmt_autodetect(upd->filename)) < 0) {
       pmsg_error("cannot determine file format for %s, specify explicitly\n", upd->filename);

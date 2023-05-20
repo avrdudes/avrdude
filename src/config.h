@@ -128,8 +128,6 @@ TOKEN *new_number(const char *text);
 
 TOKEN *new_number_real(const char *text);
 
-TOKEN *new_hexnumber(const char *text);
-
 TOKEN *new_constant(const char *text);
 
 TOKEN *new_string(const char *text);

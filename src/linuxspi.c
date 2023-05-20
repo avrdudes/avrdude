@@ -169,8 +169,14 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
 
     /* optional: override reset pin in configuration */
     reset_pin = strtok(NULL, ":");
-    if (reset_pin)
-        pgm->pinno[PIN_AVR_RESET] = strtoul(reset_pin, NULL, 0);
+    if (reset_pin) {
+        const char *errstr;
+        pgm->pinno[PIN_AVR_RESET] = str_int(reset_pin, STR_UINT32, &errstr);
+        if(errstr) {
+            pmsg_error("pin number %s: %s", reset_pin, errstr);
+            return -1;
+        }
+    }
 
     strcpy(pgm->port, port);
     fd_spidev = open(pgm->port, O_RDWR);

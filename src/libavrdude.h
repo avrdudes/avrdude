@@ -974,6 +974,7 @@ int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 /* formerly fileio.h */
 
 typedef enum {
+  FMT_ERROR = -1,
   FMT_AUTO,
   FMT_SREC,
   FMT_IHEX,
@@ -1006,9 +1007,15 @@ enum {
 extern "C" {
 #endif
 
-char * fileio_fmtstr(FILEFMT format);
+FILEFMT fileio_format(char c);
 
-int fileio_fmt_autodetect(const char * fname);
+char *fileio_fmtstr(FILEFMT format);
+
+FILE *fileio_fopenr(const char *fname);
+
+int fileio_fmt_autodetect_fp(FILE *f);
+
+int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
       const AVRPART *p, const char *memtype, int size);
@@ -1132,6 +1139,8 @@ extern "C" {
 
 void *cfg_malloc(const char *funcname, size_t n);
 
+void *cfg_realloc(const char *funcname, void *p, size_t n);
+
 char *cfg_strdup(const char *funcname, const char *s);
 
 int init_config(void);
@@ -1154,6 +1163,50 @@ char *cfg_escape(const char *s);
 
 // Helper functions for more readable string checking
 
+// Structure for string to data conversions
+typedef struct {
+  int size, sigsz, type;
+  char *errstr, *warnstr, *str_ptr;
+  AVRMEM *mem;
+  union {
+    float f;
+    double d;
+    int64_t ll;
+    uint64_t ull;
+    uint8_t a[8];
+  };
+} Str2data;
+
+// Str2data type bit patterns
+#define STR_1                 1 // 1-byte integer
+#define STR_2                 2 // 2-byte integer
+#define STR_4                 4 // 4-byte integer
+#define STR_8                 8 // 8-byte integer
+#define STR_UNSIGNED         16 // Unsigned integer, eg, 42U, -42U, 0x2a or 0b101010
+#define STR_SIGNED           32 // Signed integer, eg, +42, -42, 42, -0x2a, +0x2a but not 0x2a
+#define STR_INTEGER          63 // Any of above
+#define STR_DOUBLE           64 // Double precision
+#define STR_FLOAT           128 // Floating point
+#define STR_REAL            192 // Float or double
+#define STR_NUMBER          255 // Any of above
+#define STR_STRING          256 // C-type string or character
+#define STR_FILE            512 // File name containing data
+#define STR_ANY            1023 // Any of above
+
+// Abbreviations for specific types
+#define STR_INT8   (STR_1 | STR_SIGNED) // Signed domain [-2^(n-1), 2^(n-1)-1]
+#define STR_INT16  (STR_2 | STR_SIGNED)
+#define STR_INT32  (STR_4 | STR_SIGNED)
+#define STR_INT64  (STR_8 | STR_SIGNED)
+#define STR_UINT8  (STR_1 | STR_UNSIGNED) // Unsigned domain [0, 2^n-1]; -u is same as 2^n-u
+#define STR_UINT16 (STR_2 | STR_UNSIGNED) // Unsigned number u is deemed out of range
+#define STR_UINT32 (STR_4 | STR_UNSIGNED) // if both u and -u are outside unsigned domain
+#define STR_UINT64 (STR_8 | STR_UNSIGNED)
+#define STR_XINT8   STR_1       // Unspecified signedness: numbers can occupy the asymmetric union
+#define STR_XINT16  STR_2       // of signed domain and unsigned domain: [-2^(n-1), 2^n-1]
+#define STR_XINT32  STR_4
+#define STR_XINT64  STR_8
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1166,6 +1219,16 @@ int str_casestarts(const char *str, const char *starts);
 int str_caseends(const char *str, const char *ends);
 int str_caseeq(const char *str1, const char *str2);
 int str_casematch(const char *pattern, const char *string);
+char *str_sprintf(const char *fmt, ...);
+bool is_bigendian();
+void change_endian(void *p, int size);
+int memall(const void *p, char c, size_t n);
+unsigned long long int str_ull(const char *str, char **endptr, int base);
+Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memtype);
+void str_freedata(Str2data *sd);
+unsigned long long int str_int(const char *str, int type, const char **errpp);
+int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
+char *str_nexttok(char *buf, const char *delim, char **next);
 
 #ifdef __cplusplus
 }

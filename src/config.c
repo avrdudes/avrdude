@@ -288,9 +288,15 @@ void free_tokens(int n, ...)
 
 
 TOKEN *new_number(const char *text) {
+  const char *errstr;
   struct token_t *tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM;
-  tkn->value.number = atoi(text);
+  tkn->value.number = str_int(text, STR_INT32, &errstr);
+  if(errstr) {
+    yyerror("integer %s in config file: %s", text, errstr);
+    free_token(tkn);
+    return NULL;
+  }
 
 #if DEBUG
   msg_info("NUMBER(%d)\n", tkn->value.number);
@@ -300,31 +306,18 @@ TOKEN *new_number(const char *text) {
 }
 
 TOKEN *new_number_real(const char *text) {
+  char *endptr;
   struct token_t * tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM_REAL;
-  tkn->value.number_real = atof(text);
-
-#if DEBUG
-  msg_info("NUMBER(%g)\n", tkn->value.number_real);
-#endif
-
-  return tkn;
-}
-
-TOKEN *new_hexnumber(const char *text) {
-  struct token_t *tkn = new_token(TKN_NUMBER);
-  char * e;
-
-  tkn->value.type   = V_NUM;
-  tkn->value.number = strtoul(text, &e, 16);
-  if ((e == text) || (*e != 0)) {
-    yyerror("cannot scan hex number %s", text);
+  tkn->value.number_real = strtod(text, &endptr);
+  if(endptr == text || *endptr) {
+    yyerror("real number in config file %s: parsing error", text);
     free_token(tkn);
     return NULL;
   }
-  
+
 #if DEBUG
-  msg_info("HEXNUMBER(%d)\n", tkn->value.number);
+  msg_info("NUMBER(%g)\n", tkn->value.number_real);
 #endif
 
   return tkn;

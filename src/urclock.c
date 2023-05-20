@@ -1857,8 +1857,9 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
 
 static int parseUrclockID(const PROGRAMMER *pgm) {
   if(*ur.iddesc) {              // User override of ID, eg, -xid=F.-4.2 for penultimate flash word
-    char *idstr = cfg_strdup(__func__, ur.iddesc), *idlenp, *end;
-    unsigned long ad, lg;
+    char *idstr = cfg_strdup(__func__, ur.iddesc), *idlenp;
+    const char *errstr;
+    int ad, lg;
 
     if(!(strchr("EF", *idstr) && idstr[1] == '.')) {
       pmsg_warning("-xid=%s string must start with E. or F.\n", ur.iddesc);
@@ -1872,22 +1873,16 @@ static int parseUrclockID(const PROGRAMMER *pgm) {
       return -1;
     }
     *idlenp++ = 0;
-    ad = strtoul(idstr+2, &end, 0);
-    if(*end || end == idstr+2) {
-      pmsg_warning("cannot parse address %s of -xid=%s\n", idstr+2, ur.iddesc);
-      free(idstr);
-      return -1;
-    }
-    long sad = *(long *) &ad;
-    if(sad < INT_MIN || sad > INT_MAX) {
-      pmsg_warning("address %s of -xid=%s has implausible size\n", idstr+2, ur.iddesc);
+    ad = str_int(idstr+2, STR_INT32, &errstr);
+    if(errstr) {
+      pmsg_warning("address %s of -xid=%s: %s\n", idstr+2, ur.iddesc, errstr);
       free(idstr);
       return -1;
     }
 
-    lg = strtoul(idlenp, &end, 0);
-    if(*end || end == idlenp) {
-      pmsg_warning("cannot parse length %s of -xid=%s string\n", idlenp, ur.iddesc);
+    lg = str_int(idlenp, STR_INT32, &errstr);
+    if(errstr) {
+      pmsg_warning("length %s of -xid=%s string: %s\n", idlenp, ur.iddesc, errstr);
       free(idstr);
       return -1;
     }
@@ -1898,7 +1893,7 @@ static int parseUrclockID(const PROGRAMMER *pgm) {
     }
 
     ur.idmchr = *idstr;
-    ur.idaddr = sad;
+    ur.idaddr = ad;
     ur.idlen = lg;
 
     free(idstr);
@@ -2542,18 +2537,14 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
             break;
           } else if(plen > olen &&  extended_param[olen] == '=' && options[i].assign) {
             const char *arg = extended_param+olen+1;
-            char *end;
-            long ret = strtol(arg, &end, 0);
-            if(*end || end == arg) {
-             pmsg_error("cannot parse -x%s\n", extended_param);
+            const char *errstr;
+            int val = str_int(arg, STR_INT32, &errstr);
+            if(errstr) {
+             pmsg_error("-x%s: %s\n", extended_param, errstr);
              return -1;
             }
-            if((int) ret != ret) {
-             pmsg_error("out of integer range -x%s\n", extended_param);
-             return -1;
-            }
-            *options[i].optionp = ret;
-            pmsg_notice2("%s=%d set\n", options[i].name, (int) ret);
+            *options[i].optionp = val;
+            pmsg_notice2("%s=%d set\n", options[i].name, (int) val);
             break;
           }
         } else if(options[i].nstrbuf > 0) {
