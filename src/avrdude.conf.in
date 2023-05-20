@@ -15681,10 +15681,27 @@ part parent ".xmega"
 ;
 
 #------------------------------------------------------------
+# AVR XMEGA-A family common values
+#------------------------------------------------------------
+
+# JTAG user ID (unique to XMEGA-A and XMEGA-B)
+
+part parent ".xmega"
+    desc                   = "AVR XMEGA-A family common values";
+    id                     = ".xmega-a";
+
+    memory "fuse0"
+        size               = 1;
+        initval            = 0xff;
+        offset             = 0x8f0020;
+    ;
+;
+
+#------------------------------------------------------------
 # ATxmega16A4U
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-a"
     desc                   = "ATxmega16A4U";
     id                     = "x16a4u";
     variants               =
@@ -15769,6 +15786,8 @@ part parent "x16a4u"
     mcuid                  = 233;
     signature              = 0x1e 0x94 0x43;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -15795,6 +15814,8 @@ part parent "x16a4u"
     n_interrupts           = 91;
     signature              = 0x1e 0x94 0x42;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -15818,19 +15839,13 @@ part parent "x16a4u"
         "ATxmega16A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 231;
     n_interrupts           = 94;
-
-    memory "fuse0"
-        size               = 1;
-        initval            = 0xff;
-        offset             = 0x8f0020;
-    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega32A4U
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-a"
     desc                   = "ATxmega32A4U";
     id                     = "x32a4u";
     variants               =
@@ -15915,6 +15930,8 @@ part parent "x32a4u"
     mcuid                  = 240;
     signature              = 0x1e 0x95 0x44;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -15942,6 +15959,8 @@ part parent "x32a4u"
     n_interrupts           = 91;
     signature              = 0x1e 0x95 0x42;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -15965,19 +15984,13 @@ part parent "x32a4u"
         "ATxmega32A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 238;
     n_interrupts           = 94;
-
-    memory "fuse0"
-        size               = 1;
-        initval            = 0xff;
-        offset             = 0x8f0020;
-    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega64A4U
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-a"
     desc                   = "ATxmega64A4U";
     id                     = "x64a4u";
     variants               =
@@ -16060,6 +16073,8 @@ part parent "x32a4u"
     mcuid                  = 236;
     signature              = 0x1e 0x95 0x49;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -16084,6 +16099,8 @@ part parent "x32a4u"
     n_interrupts           = 114;
     signature              = 0x1e 0x95 0x4a;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -16107,6 +16124,8 @@ part parent "x64a4u"
     mcuid                  = 249;
     signature              = 0x1e 0x96 0x49;
     usbpid                 = 0x2fd6;
+
+    memory "fuse0" = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -16133,6 +16152,8 @@ part parent "x64a4u"
     n_interrupts           = 114;
     signature              = 0x1e 0x96 0x4a;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -16158,6 +16179,8 @@ part parent "x64a4u"
     n_interrupts           = 91;
     signature              = 0x1e 0x96 0x47;
 
+    memory "fuse0" = NULL;
+
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -16182,12 +16205,6 @@ part parent "x64a4u"
     mcuid                  = 243;
     n_interrupts           = 125;
     signature              = 0x1e 0x96 0x4e;
-
-    memory "fuse0"
-        size               = 1;
-        initval            = 0xff;
-        offset             = 0x8f0020;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -16579,7 +16596,7 @@ part parent ".xmega"
 # ATxmega128A4U
 #------------------------------------------------------------
 
-part parent ".xmega"
+part parent ".xmega-a"
     desc                   = "ATxmega128A4U";
     id                     = "x128a4u";
     variants               =
