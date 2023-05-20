@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 13.04.2023
+ * 20.05.2023
  *
  */
 
@@ -19,7 +19,7 @@
 typedef struct {
   int value;                    // Value (to be shifted into mask position)
   const char *label;            // Symbolic label for this config item
-  const char *comment;          // Expanded semantic comment
+  const char *vcomment;         // Expanded semantic comment
 } Valueitem_t;
 
 typedef struct {
@@ -31,7 +31,7 @@ typedef struct {
   int mask;                     // Bit mask of fuse/lock memory
   int lsh;                      // Values need shifting left by lsh to be in mask
   int initval;                  // Factory default, to be shifted into mask position
-  const char *configcomment;    // Expanded semantic name for this configuration item
+  const char *ccomment;         // Expanded semantic name for this configuration item
 } Configitem_t;
 
 typedef struct {                // Value of -1 typically means unknown
@@ -64,7 +64,7 @@ typedef struct {                // Value of -1 typically means unknown
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
-extern const uPcore_t uP_table[379];
+extern const uPcore_t uP_table[380];
 
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
@@ -133,6 +133,7 @@ extern const uPcore_t uP_table[379];
 #define id_atmega32hvbrevb  61u
 #define id_atmega32c1       62u
 #define id_atmega32m1       63u
+#define id_atmega32hve2    379u
 #define id_atmega32u2       64u
 #define id_atmega32u4       65u
 #define id_atmega32u6       66u
@@ -488,10 +489,12 @@ extern const uPcore_t uP_table[379];
 #define vts_attiny461        19
 #define vts_attiny461a       19
 #define vts_attiny828        26
+#define vts_attiny828r       26
 #define vts_attiny841        30
 #define vts_attiny861        19
 #define vts_attiny861a       19
 #define vts_attiny1634       28
+#define vts_attiny1634r      28
 #define vts_attiny2313       19
 #define vts_attiny2313a      21
 #define vts_attiny4313       21
@@ -514,6 +517,7 @@ extern const uPcore_t uP_table[379];
 #define vts_atmega32hvbrevb  29
 #define vts_atmega32c1       31
 #define vts_atmega32m1       31
+#define vts_atmega32hve2     25
 #define vts_atmega32u2       29
 #define vts_atmega32u4       43
 #define vts_atmega32u6       38
@@ -623,6 +627,7 @@ extern const uPcore_t uP_table[379];
 #define vts_at90pwm81        20
 #define vts_at90usb82        29
 #define vts_at90scr100       38
+#define vts_at90scr100h      38
 #define vts_at90can128       37
 #define vts_at90pwm161       20
 #define vts_at90usb162       29
@@ -671,6 +676,9 @@ extern const uPcore_t uP_table[379];
 #define vts_ata8510          42
 #define vts_ata8515          42
 #define vts_ata664251        20
+#define vts_lgt8f88p         26
+#define vts_lgt8f168p        26
+#define vts_lgt8f328p        26
 #define vts_atxmega8e5       43
 #define vts_atxmega16a4      94
 #define vts_atxmega16a4u    127
@@ -695,6 +703,7 @@ extern const uPcore_t uP_table[379];
 #define vts_atxmega64a4u    127
 #define vts_atxmega64d4      91
 #define vts_atxmega128a1    125
+#define vts_atxmega128a1revd 125
 #define vts_atxmega128a1u   127
 #define vts_atxmega128b1     81
 #define vts_atxmega128a3    122
@@ -840,10 +849,12 @@ extern const uPcore_t uP_table[379];
 #define vbu_attiny461        19
 #define vbu_attiny461a       19
 #define vbu_attiny828        26
+#define vbu_attiny828r       26
 #define vbu_attiny841        30
 #define vbu_attiny861        19
 #define vbu_attiny861a       19
 #define vbu_attiny1634       28
+#define vbu_attiny1634r      28
 #define vbu_attiny2313       19
 #define vbu_attiny2313a      21
 #define vbu_attiny4313       21
@@ -866,6 +877,7 @@ extern const uPcore_t uP_table[379];
 #define vbu_atmega32hvbrevb  29
 #define vbu_atmega32c1       31
 #define vbu_atmega32m1       31
+#define vbu_atmega32hve2     25
 #define vbu_atmega32u2       29
 #define vbu_atmega32u4        5
 #define vbu_atmega32u6       38
@@ -975,6 +987,7 @@ extern const uPcore_t uP_table[379];
 #define vbu_at90pwm81        20
 #define vbu_at90usb82        29
 #define vbu_at90scr100       24
+#define vbu_at90scr100h      24
 #define vbu_at90can128       37
 #define vbu_at90pwm161       20
 #define vbu_at90usb162       29
@@ -1023,6 +1036,9 @@ extern const uPcore_t uP_table[379];
 #define vbu_ata8510          42
 #define vbu_ata8515          42
 #define vbu_ata664251        20
+#define vbu_lgt8f88p         26
+#define vbu_lgt8f168p        26
+#define vbu_lgt8f328p        26
 #define vbu_atxmega8e5       43
 #define vbu_atxmega16a4      36
 #define vbu_atxmega16a4u     36
@@ -1047,6 +1063,7 @@ extern const uPcore_t uP_table[379];
 #define vbu_atxmega64a4u     36
 #define vbu_atxmega64d4       6
 #define vbu_atxmega128a1    102
+#define vbu_atxmega128a1revd 102
 #define vbu_atxmega128a1u   102
 #define vbu_atxmega128b1      8
 #define vbu_atxmega128a3     75
@@ -1209,7 +1226,8 @@ extern const char * const    vtab_attiny167[20];
 #define vtab_ata6616c        vtab_attiny167
 #define vtab_ata5505         vtab_attiny167
 
-extern const char * const    vtab_attiny828[26];
+extern const char * const    vtab_attiny828r[26];
+#define vtab_attiny828       vtab_attiny828r
 
 extern const char * const    vtab_attiny841[30];
 #define vtab_attiny441       vtab_attiny841
@@ -1221,7 +1239,8 @@ extern const char * const    vtab_attiny861a[19];
 #define vtab_attiny261a      vtab_attiny861a
 #define vtab_attiny261       vtab_attiny861a
 
-extern const char * const    vtab_attiny1634[28];
+extern const char * const    vtab_attiny1634r[28];
+#define vtab_attiny1634      vtab_attiny1634r
 
 extern const char * const    vtab_attiny2313[19];
 
@@ -1267,6 +1286,7 @@ extern const char * const    vtab_atmega64m1[31];
 
 extern const char * const    vtab_atmega64hve2[25];
 #define vtab_atmega64hve     vtab_atmega64hve2
+#define vtab_atmega32hve2    vtab_atmega64hve2
 
 extern const char * const    vtab_atmega103[24];
 
@@ -1311,6 +1331,9 @@ extern const char * const    vtab_atmega328p[26];
 #define vtab_ata6614q        vtab_atmega328p
 #define vtab_ata6613c        vtab_atmega328p
 #define vtab_ata6612c        vtab_atmega328p
+#define vtab_lgt8f328p       vtab_atmega328p
+#define vtab_lgt8f168p       vtab_atmega328p
+#define vtab_lgt8f88p        vtab_atmega328p
 
 extern const char * const    vtab_atmega328pb[45];
 
@@ -1399,7 +1422,8 @@ extern const char * const    vtab_at90pwm3b[32];
 #define vtab_at90pwm3        vtab_at90pwm3b
 #define vtab_at90pwm2b       vtab_at90pwm3b
 
-extern const char * const    vtab_at90scr100[38];
+extern const char * const    vtab_at90scr100h[38];
+#define vtab_at90scr100      vtab_at90scr100h
 
 extern const char * const    vtab_at90can128[37];
 #define vtab_at90can64       vtab_at90can128
@@ -1467,8 +1491,9 @@ extern const char * const    vtab_atxmega32e5[43];
 #define vtab_atxmega16e5     vtab_atxmega32e5
 #define vtab_atxmega8e5      vtab_atxmega32e5
 
-extern const char * const    vtab_atxmega128a1[125];
-#define vtab_atxmega64a1     vtab_atxmega128a1
+extern const char * const    vtab_atxmega128a1revd[125];
+#define vtab_atxmega128a1    vtab_atxmega128a1revd
+#define vtab_atxmega64a1     vtab_atxmega128a1revd
 
 extern const char * const    vtab_atxmega128a1u[127];
 #define vtab_atxmega64a1u    vtab_atxmega128a1u
@@ -1623,5 +1648,484 @@ extern const char * const    vtab_avr128da64[64];
 
 extern const char * const    vtab_avr128db64[65];
 #define vtab_avr64db64       vtab_avr128db64
+
+// Configuration table names
+
+extern const Configitem_t    cfgtab_atmega328[14];
+#define cfgtab_atmega328p    cfgtab_atmega328
+#define cfgtab_ata6614q      cfgtab_atmega328
+
+extern const Configitem_t    cfgtab_atmega16m1[17];
+
+extern const Configitem_t    cfgtab_atmega16hva2[9];
+
+extern const Configitem_t    cfgtab_atmega32hvbrevb[12];
+
+extern const Configitem_t    cfgtab_atmega64hve[13];
+
+extern const Configitem_t    cfgtab_atmega328pb[15];
+
+extern const Configitem_t    cfgtab_atmega8515[13];
+
+extern const Configitem_t    cfgtab_attiny102[5];
+#define cfgtab_attiny104     cfgtab_attiny102
+
+extern const Configitem_t    cfgtab_attiny28[3];
+
+extern const Configitem_t    cfgtab_attiny441[14];
+#define cfgtab_attiny841     cfgtab_attiny441
+
+extern const Configitem_t    cfgtab_at90pwm2[18];
+#define cfgtab_at90pwm3      cfgtab_at90pwm2
+
+extern const Configitem_t    cfgtab_at90pwm81[19];
+#define cfgtab_at90pwm161    cfgtab_at90pwm81
+
+extern const Configitem_t    cfgtab_at90can128[15];
+
+extern const Configitem_t    cfgtab_at90usb162[15];
+#define cfgtab_atmega16u2    cfgtab_at90usb162
+#define cfgtab_at90usb82     cfgtab_at90usb162
+
+extern const Configitem_t    cfgtab_at90s1200[3];
+
+extern const Configitem_t    cfgtab_at90s2313[3];
+#define cfgtab_at90s4414     cfgtab_at90s2313
+#define cfgtab_at90s4434     cfgtab_at90s2313
+#define cfgtab_at90s8515     cfgtab_at90s2313
+#define cfgtab_at90s8535     cfgtab_at90s2313
+
+extern const Configitem_t    cfgtab_ata5700m322[9];
+#define cfgtab_ata5702m322   cfgtab_ata5700m322
+
+extern const Configitem_t    cfgtab_ata5781[11];
+#define cfgtab_ata5782       cfgtab_ata5781
+#define cfgtab_ata5783       cfgtab_ata5781
+#define cfgtab_ata5831       cfgtab_ata5781
+#define cfgtab_ata5832       cfgtab_ata5781
+#define cfgtab_ata5833       cfgtab_ata5781
+#define cfgtab_ata8210       cfgtab_ata5781
+#define cfgtab_ata8215       cfgtab_ata5781
+#define cfgtab_ata8510       cfgtab_ata5781
+#define cfgtab_ata8515       cfgtab_ata5781
+
+extern const Configitem_t    cfgtab_ata5790[11];
+#define cfgtab_ata5791       cfgtab_ata5790
+
+extern const Configitem_t    cfgtab_ata6285[17];
+#define cfgtab_ata6286       cfgtab_ata6285
+
+extern const Configitem_t    cfgtab_atxmega16e5[17];
+#define cfgtab_atxmega8e5    cfgtab_atxmega16e5
+#define cfgtab_atxmega32e5   cfgtab_atxmega16e5
+
+extern const Configitem_t    cfgtab_atxmega128a3[16];
+#define cfgtab_atxmega64a1   cfgtab_atxmega128a3
+#define cfgtab_atxmega64a3   cfgtab_atxmega128a3
+#define cfgtab_atxmega128a1  cfgtab_atxmega128a3
+#define cfgtab_atxmega128a1revd cfgtab_atxmega128a3
+#define cfgtab_atxmega192a3  cfgtab_atxmega128a3
+#define cfgtab_atxmega256a3  cfgtab_atxmega128a3
+#define cfgtab_atxmega256a3b cfgtab_atxmega128a3
+
+extern const Configitem_t    cfgtab_atxmega128a3u[17];
+#define cfgtab_atxmega16a4u  cfgtab_atxmega128a3u
+#define cfgtab_atxmega32a4u  cfgtab_atxmega128a3u
+#define cfgtab_atxmega64a1u  cfgtab_atxmega128a3u
+#define cfgtab_atxmega64a3u  cfgtab_atxmega128a3u
+#define cfgtab_atxmega64a4u  cfgtab_atxmega128a3u
+#define cfgtab_atxmega128a1u cfgtab_atxmega128a3u
+#define cfgtab_atxmega128a4u cfgtab_atxmega128a3u
+#define cfgtab_atxmega192a3u cfgtab_atxmega128a3u
+#define cfgtab_atxmega256a3bu cfgtab_atxmega128a3u
+#define cfgtab_atxmega256a3u cfgtab_atxmega128a3u
+
+extern const Configitem_t    cfgtab_attiny204[23];
+#define cfgtab_attiny202     cfgtab_attiny204
+#define cfgtab_attiny212     cfgtab_attiny204
+#define cfgtab_attiny214     cfgtab_attiny204
+#define cfgtab_attiny402     cfgtab_attiny204
+#define cfgtab_attiny404     cfgtab_attiny204
+#define cfgtab_attiny406     cfgtab_attiny204
+#define cfgtab_attiny412     cfgtab_attiny204
+#define cfgtab_attiny414     cfgtab_attiny204
+#define cfgtab_attiny416     cfgtab_attiny204
+#define cfgtab_attiny417     cfgtab_attiny204
+#define cfgtab_attiny814     cfgtab_attiny204
+#define cfgtab_attiny816     cfgtab_attiny204
+#define cfgtab_attiny817     cfgtab_attiny204
+#define cfgtab_attiny1614    cfgtab_attiny204
+#define cfgtab_attiny1616    cfgtab_attiny204
+#define cfgtab_attiny1617    cfgtab_attiny204
+#define cfgtab_attiny3216    cfgtab_attiny204
+#define cfgtab_attiny3217    cfgtab_attiny204
+
+extern const Configitem_t    cfgtab_attiny1624[16];
+#define cfgtab_attiny424     cfgtab_attiny1624
+#define cfgtab_attiny426     cfgtab_attiny1624
+#define cfgtab_attiny427     cfgtab_attiny1624
+#define cfgtab_attiny824     cfgtab_attiny1624
+#define cfgtab_attiny826     cfgtab_attiny1624
+#define cfgtab_attiny827     cfgtab_attiny1624
+#define cfgtab_attiny1626    cfgtab_attiny1624
+#define cfgtab_attiny1627    cfgtab_attiny1624
+#define cfgtab_attiny3224    cfgtab_attiny1624
+#define cfgtab_attiny3226    cfgtab_attiny1624
+#define cfgtab_attiny3227    cfgtab_attiny1624
+
+extern const Configitem_t    cfgtab_avr32dd14[17];
+#define cfgtab_avr16dd14     cfgtab_avr32dd14
+#define cfgtab_avr16dd20     cfgtab_avr32dd14
+#define cfgtab_avr16dd28     cfgtab_avr32dd14
+#define cfgtab_avr16dd32     cfgtab_avr32dd14
+#define cfgtab_avr32dd20     cfgtab_avr32dd14
+#define cfgtab_avr32dd28     cfgtab_avr32dd14
+#define cfgtab_avr32dd32     cfgtab_avr32dd14
+#define cfgtab_avr64dd14     cfgtab_avr32dd14
+#define cfgtab_avr64dd20     cfgtab_avr32dd14
+#define cfgtab_avr64dd28     cfgtab_avr32dd14
+#define cfgtab_avr64dd32     cfgtab_avr32dd14
+
+extern const Configitem_t    cfgtab_avr64ea48[16];
+#define cfgtab_avr64ea28     cfgtab_avr64ea48
+#define cfgtab_avr64ea32     cfgtab_avr64ea48
+
+extern const Configitem_t    cfgtab_atmega103comp[15];
+
+extern const Configitem_t    cfgtab_at90scr100h[13];
+#define cfgtab_at90scr100    cfgtab_at90scr100h
+
+extern const Configitem_t    cfgtab_atmega161comp[15];
+
+extern const Configitem_t    cfgtab_at90s8535comp[13];
+
+extern const Configitem_t    cfgtab_attiny4[4];
+#define cfgtab_attiny5       cfgtab_attiny4
+#define cfgtab_attiny9       cfgtab_attiny4
+#define cfgtab_attiny10      cfgtab_attiny4
+
+extern const Configitem_t    cfgtab_attiny20[5];
+#define cfgtab_attiny40      cfgtab_attiny20
+
+extern const Configitem_t    cfgtab_attiny11[4];
+
+extern const Configitem_t    cfgtab_attiny12[6];
+
+extern const Configitem_t    cfgtab_attiny13[10];
+#define cfgtab_attiny13a     cfgtab_attiny13
+
+extern const Configitem_t    cfgtab_attiny15[6];
+
+extern const Configitem_t    cfgtab_attiny22[3];
+
+extern const Configitem_t    cfgtab_attiny24[11];
+#define cfgtab_attiny24a     cfgtab_attiny24
+#define cfgtab_attiny44      cfgtab_attiny24
+#define cfgtab_attiny44a     cfgtab_attiny24
+#define cfgtab_attiny84      cfgtab_attiny24
+#define cfgtab_attiny84a     cfgtab_attiny24
+
+extern const Configitem_t    cfgtab_attiny25[11];
+#define cfgtab_attiny45      cfgtab_attiny25
+#define cfgtab_attiny85      cfgtab_attiny25
+
+extern const Configitem_t    cfgtab_attiny26[8];
+
+extern const Configitem_t    cfgtab_attiny43u[11];
+#define cfgtab_attiny261     cfgtab_attiny43u
+#define cfgtab_attiny261a    cfgtab_attiny43u
+#define cfgtab_attiny461     cfgtab_attiny43u
+#define cfgtab_attiny461a    cfgtab_attiny43u
+#define cfgtab_attiny861     cfgtab_attiny43u
+#define cfgtab_attiny861a    cfgtab_attiny43u
+
+extern const Configitem_t    cfgtab_attiny48[11];
+#define cfgtab_attiny88      cfgtab_attiny48
+
+extern const Configitem_t    cfgtab_attiny87[11];
+#define cfgtab_attiny167     cfgtab_attiny87
+#define cfgtab_ata5272       cfgtab_attiny87
+#define cfgtab_ata5505       cfgtab_attiny87
+#define cfgtab_ata6616c      cfgtab_attiny87
+#define cfgtab_ata6617c      cfgtab_attiny87
+#define cfgtab_ata664251     cfgtab_attiny87
+
+extern const Configitem_t    cfgtab_attiny828[16];
+#define cfgtab_attiny828r    cfgtab_attiny828
+
+extern const Configitem_t    cfgtab_attiny1634[13];
+#define cfgtab_attiny1634r   cfgtab_attiny1634
+
+extern const Configitem_t    cfgtab_attiny2313[11];
+
+extern const Configitem_t    cfgtab_attiny2313a[11];
+#define cfgtab_attiny4313    cfgtab_attiny2313a
+
+extern const Configitem_t    cfgtab_atmega8[13];
+#define cfgtab_atmega8a      cfgtab_atmega8
+
+extern const Configitem_t    cfgtab_atmega8hva[7];
+#define cfgtab_atmega16hva   cfgtab_atmega8hva
+
+extern const Configitem_t    cfgtab_atmega8u2[15];
+
+extern const Configitem_t    cfgtab_atmega16[13];
+#define cfgtab_atmega16a     cfgtab_atmega16
+
+extern const Configitem_t    cfgtab_atmega16hvb[12];
+
+extern const Configitem_t    cfgtab_atmega16hvbrevb[12];
+
+extern const Configitem_t    cfgtab_atmega16u4[15];
+
+extern const Configitem_t    cfgtab_atmega32[13];
+#define cfgtab_atmega32a     cfgtab_atmega32
+
+extern const Configitem_t    cfgtab_atmega32hvb[12];
+
+extern const Configitem_t    cfgtab_atmega32c1[17];
+#define cfgtab_atmega32m1    cfgtab_atmega32c1
+
+extern const Configitem_t    cfgtab_atmega32u2[15];
+
+extern const Configitem_t    cfgtab_atmega32u4[15];
+
+extern const Configitem_t    cfgtab_atmega32u6[15];
+
+extern const Configitem_t    cfgtab_atmega48[11];
+#define cfgtab_atmega48a     cfgtab_atmega48
+#define cfgtab_atmega48p     cfgtab_atmega48
+#define cfgtab_atmega48pa    cfgtab_atmega48
+
+extern const Configitem_t    cfgtab_atmega48pb[11];
+
+extern const Configitem_t    cfgtab_atmega64[15];
+#define cfgtab_atmega64a     cfgtab_atmega64
+
+extern const Configitem_t    cfgtab_atmega64c1[17];
+#define cfgtab_atmega64m1    cfgtab_atmega64c1
+
+extern const Configitem_t    cfgtab_atmega64hve2[13];
+#define cfgtab_atmega32hve2  cfgtab_atmega64hve2
+
+extern const Configitem_t    cfgtab_atmega64rfr2[14];
+#define cfgtab_atmega644rfr2 cfgtab_atmega64rfr2
+
+extern const Configitem_t    cfgtab_atmega88[14];
+#define cfgtab_atmega88a     cfgtab_atmega88
+#define cfgtab_atmega88p     cfgtab_atmega88
+#define cfgtab_atmega88pa    cfgtab_atmega88
+#define cfgtab_ata6612c      cfgtab_atmega88
+
+extern const Configitem_t    cfgtab_atmega88pb[14];
+
+extern const Configitem_t    cfgtab_atmega103[4];
+
+extern const Configitem_t    cfgtab_atmega128[15];
+#define cfgtab_atmega128a    cfgtab_atmega128
+
+extern const Configitem_t    cfgtab_atmega128rfa1[14];
+
+extern const Configitem_t    cfgtab_atmega128rfr2[14];
+#define cfgtab_atmega1284rfr2 cfgtab_atmega128rfr2
+
+extern const Configitem_t    cfgtab_atmega161[7];
+
+extern const Configitem_t    cfgtab_atmega162[15];
+
+extern const Configitem_t    cfgtab_atmega163[9];
+
+extern const Configitem_t    cfgtab_atmega164a[14];
+#define cfgtab_atmega164p    cfgtab_atmega164a
+#define cfgtab_atmega164pa   cfgtab_atmega164a
+
+extern const Configitem_t    cfgtab_atmega165[15];
+#define cfgtab_atmega165a    cfgtab_atmega165
+#define cfgtab_atmega165p    cfgtab_atmega165
+#define cfgtab_atmega165pa   cfgtab_atmega165
+#define cfgtab_atmega169     cfgtab_atmega165
+#define cfgtab_atmega169a    cfgtab_atmega165
+#define cfgtab_atmega169p    cfgtab_atmega165
+#define cfgtab_atmega169pa   cfgtab_atmega165
+
+extern const Configitem_t    cfgtab_atmega168[14];
+#define cfgtab_atmega168a    cfgtab_atmega168
+#define cfgtab_atmega168p    cfgtab_atmega168
+#define cfgtab_atmega168pa   cfgtab_atmega168
+#define cfgtab_ata6613c      cfgtab_atmega168
+
+extern const Configitem_t    cfgtab_atmega168pb[14];
+
+extern const Configitem_t    cfgtab_atmega256rfr2[14];
+#define cfgtab_atmega2564rfr2 cfgtab_atmega256rfr2
+
+extern const Configitem_t    cfgtab_atmega323[12];
+
+extern const Configitem_t    cfgtab_atmega324a[14];
+#define cfgtab_atmega324p    cfgtab_atmega324a
+#define cfgtab_atmega324pa   cfgtab_atmega324a
+
+extern const Configitem_t    cfgtab_atmega324pb[15];
+
+extern const Configitem_t    cfgtab_atmega325[15];
+#define cfgtab_atmega325a    cfgtab_atmega325
+#define cfgtab_atmega325p    cfgtab_atmega325
+#define cfgtab_atmega325pa   cfgtab_atmega325
+#define cfgtab_atmega329     cfgtab_atmega325
+#define cfgtab_atmega329a    cfgtab_atmega325
+#define cfgtab_atmega329p    cfgtab_atmega325
+#define cfgtab_atmega329pa   cfgtab_atmega325
+#define cfgtab_atmega3250    cfgtab_atmega325
+#define cfgtab_atmega3250a   cfgtab_atmega325
+#define cfgtab_atmega3250p   cfgtab_atmega325
+#define cfgtab_atmega3250pa  cfgtab_atmega325
+#define cfgtab_atmega3290    cfgtab_atmega325
+#define cfgtab_atmega3290a   cfgtab_atmega325
+#define cfgtab_atmega3290p   cfgtab_atmega325
+#define cfgtab_atmega3290pa  cfgtab_atmega325
+
+extern const Configitem_t    cfgtab_atmega406[10];
+
+extern const Configitem_t    cfgtab_atmega640[14];
+
+extern const Configitem_t    cfgtab_atmega644[14];
+#define cfgtab_atmega644a    cfgtab_atmega644
+#define cfgtab_atmega644p    cfgtab_atmega644
+#define cfgtab_atmega644pa   cfgtab_atmega644
+
+extern const Configitem_t    cfgtab_atmega645[15];
+#define cfgtab_atmega645a    cfgtab_atmega645
+#define cfgtab_atmega645p    cfgtab_atmega645
+#define cfgtab_atmega649     cfgtab_atmega645
+#define cfgtab_atmega649a    cfgtab_atmega645
+#define cfgtab_atmega649p    cfgtab_atmega645
+#define cfgtab_atmega6450    cfgtab_atmega645
+#define cfgtab_atmega6450a   cfgtab_atmega645
+#define cfgtab_atmega6450p   cfgtab_atmega645
+#define cfgtab_atmega6490    cfgtab_atmega645
+#define cfgtab_atmega6490a   cfgtab_atmega645
+#define cfgtab_atmega6490p   cfgtab_atmega645
+
+extern const Configitem_t    cfgtab_atmega1280[14];
+#define cfgtab_atmega1281    cfgtab_atmega1280
+
+extern const Configitem_t    cfgtab_atmega1284[14];
+#define cfgtab_atmega1284p   cfgtab_atmega1284
+
+extern const Configitem_t    cfgtab_atmega2560[14];
+#define cfgtab_atmega2561    cfgtab_atmega2560
+
+extern const Configitem_t    cfgtab_atmega8535[13];
+
+extern const Configitem_t    cfgtab_at90pwm1[17];
+
+extern const Configitem_t    cfgtab_at90pwm2b[18];
+#define cfgtab_at90pwm3b     cfgtab_at90pwm2b
+
+extern const Configitem_t    cfgtab_at90can32[15];
+
+extern const Configitem_t    cfgtab_at90can64[15];
+
+extern const Configitem_t    cfgtab_at90pwm216[18];
+
+extern const Configitem_t    cfgtab_at90pwm316[18];
+
+extern const Configitem_t    cfgtab_at90usb646[15];
+#define cfgtab_at90usb647    cfgtab_at90usb646
+
+extern const Configitem_t    cfgtab_at90usb1286[15];
+#define cfgtab_at90usb1287   cfgtab_at90usb1286
+
+extern const Configitem_t    cfgtab_at90s2323[3];
+
+extern const Configitem_t    cfgtab_at90s2333[5];
+
+extern const Configitem_t    cfgtab_at90s2343[3];
+
+extern const Configitem_t    cfgtab_at90s4433[5];
+
+extern const Configitem_t    cfgtab_at90s8515comp[13];
+
+extern const Configitem_t    cfgtab_ata5787[11];
+#define cfgtab_ata5835       cfgtab_ata5787
+
+extern const Configitem_t    cfgtab_ata5790n[10];
+#define cfgtab_ata5795       cfgtab_ata5790n
+
+extern const Configitem_t    cfgtab_ata6289[17];
+
+extern const Configitem_t    cfgtab_atxmega16a4[16];
+#define cfgtab_atxmega32a4   cfgtab_atxmega16a4
+
+extern const Configitem_t    cfgtab_atxmega16c4[15];
+#define cfgtab_atxmega16d4   cfgtab_atxmega16c4
+#define cfgtab_atxmega32c3   cfgtab_atxmega16c4
+#define cfgtab_atxmega32d3   cfgtab_atxmega16c4
+#define cfgtab_atxmega32c4   cfgtab_atxmega16c4
+#define cfgtab_atxmega32d4   cfgtab_atxmega16c4
+#define cfgtab_atxmega64c3   cfgtab_atxmega16c4
+#define cfgtab_atxmega64d3   cfgtab_atxmega16c4
+#define cfgtab_atxmega64d4   cfgtab_atxmega16c4
+#define cfgtab_atxmega128c3  cfgtab_atxmega16c4
+#define cfgtab_atxmega128d3  cfgtab_atxmega16c4
+#define cfgtab_atxmega128d4  cfgtab_atxmega16c4
+#define cfgtab_atxmega192c3  cfgtab_atxmega16c4
+#define cfgtab_atxmega192d3  cfgtab_atxmega16c4
+#define cfgtab_atxmega256c3  cfgtab_atxmega16c4
+#define cfgtab_atxmega256d3  cfgtab_atxmega16c4
+#define cfgtab_atxmega384c3  cfgtab_atxmega16c4
+#define cfgtab_atxmega384d3  cfgtab_atxmega16c4
+
+extern const Configitem_t    cfgtab_atxmega64b1[17];
+#define cfgtab_atxmega64b3   cfgtab_atxmega64b1
+#define cfgtab_atxmega128b1  cfgtab_atxmega64b1
+#define cfgtab_atxmega128b3  cfgtab_atxmega64b1
+
+extern const Configitem_t    cfgtab_attiny416auto[23];
+
+extern const Configitem_t    cfgtab_attiny804[15];
+#define cfgtab_attiny806     cfgtab_attiny804
+#define cfgtab_attiny807     cfgtab_attiny804
+#define cfgtab_attiny1604    cfgtab_attiny804
+#define cfgtab_attiny1606    cfgtab_attiny804
+#define cfgtab_attiny1607    cfgtab_attiny804
+
+extern const Configitem_t    cfgtab_atmega808[15];
+#define cfgtab_atmega809     cfgtab_atmega808
+#define cfgtab_atmega1608    cfgtab_atmega808
+#define cfgtab_atmega1609    cfgtab_atmega808
+#define cfgtab_atmega3208    cfgtab_atmega808
+#define cfgtab_atmega3209    cfgtab_atmega808
+#define cfgtab_atmega4808    cfgtab_atmega808
+#define cfgtab_atmega4809    cfgtab_atmega808
+
+extern const Configitem_t    cfgtab_avr32da28[15];
+#define cfgtab_avr32da32     cfgtab_avr32da28
+#define cfgtab_avr32da48     cfgtab_avr32da28
+#define cfgtab_avr64da28     cfgtab_avr32da28
+#define cfgtab_avr64da32     cfgtab_avr32da28
+#define cfgtab_avr64da48     cfgtab_avr32da28
+#define cfgtab_avr64da64     cfgtab_avr32da28
+#define cfgtab_avr128da28    cfgtab_avr32da28
+#define cfgtab_avr128da32    cfgtab_avr32da28
+#define cfgtab_avr128da48    cfgtab_avr32da28
+#define cfgtab_avr128da64    cfgtab_avr32da28
+
+extern const Configitem_t    cfgtab_avr32db28[16];
+#define cfgtab_avr32db32     cfgtab_avr32db28
+#define cfgtab_avr32db48     cfgtab_avr32db28
+#define cfgtab_avr64db28     cfgtab_avr32db28
+#define cfgtab_avr64db32     cfgtab_avr32db28
+#define cfgtab_avr64db48     cfgtab_avr32db28
+#define cfgtab_avr64db64     cfgtab_avr32db28
+#define cfgtab_avr128db28    cfgtab_avr32db28
+#define cfgtab_avr128db32    cfgtab_avr32db28
+#define cfgtab_avr128db48    cfgtab_avr32db28
+#define cfgtab_avr128db64    cfgtab_avr32db28
+
+int upidxmcuid(int mcuid);
+int upidxsig(const uint8_t *sigs);
+int upidxname(const char *name);
+int upmatchingsig(uint8_t sigs[3], char *p, size_t n);
 
 #endif
