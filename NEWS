@@ -97,6 +97,8 @@ Changes since version 7.1:
     - Add option -f to build.sh #1342
     - Document -n behaviour wrt -U and terminal #1351
     - Progressively shrink metadata for -c urclock #1357
+    - Extend <data> notion to files in terminal write #1358
+    - Add fuse0 to ATxmega128A4U/64A4U/32A4U/16A4U #1360
 
   * Internals:
 

@@ -13235,7 +13235,7 @@ part parent "t44"
         "ATtiny44A-SSNR: SOIC14,  Fmax=20 MHz, T=[-40 C, 105 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
-    mcuid                  = 21;
+    mcuid                  = XVII + IV; # 21;
 ;
 
 #------------------------------------------------------------
@@ -15786,7 +15786,7 @@ part parent "x16a4u"
     mcuid                  = 233;
     signature              = 0x1e 0x94 0x43;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -15814,7 +15814,7 @@ part parent "x16a4u"
     n_interrupts           = 91;
     signature              = 0x1e 0x94 0x42;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -15930,7 +15930,7 @@ part parent "x32a4u"
     mcuid                  = 240;
     signature              = 0x1e 0x95 0x44;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -15959,7 +15959,7 @@ part parent "x32a4u"
     n_interrupts           = 91;
     signature              = 0x1e 0x95 0x42;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -16073,7 +16073,7 @@ part parent "x32a4u"
     mcuid                  = 236;
     signature              = 0x1e 0x95 0x49;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -16099,7 +16099,7 @@ part parent "x32a4u"
     n_interrupts           = 114;
     signature              = 0x1e 0x95 0x4a;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -16125,7 +16125,7 @@ part parent "x64a4u"
     signature              = 0x1e 0x96 0x49;
     usbpid                 = 0x2fd6;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -16152,7 +16152,7 @@ part parent "x64a4u"
     n_interrupts           = 114;
     signature              = 0x1e 0x96 0x4a;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;
@@ -16179,7 +16179,7 @@ part parent "x64a4u"
     n_interrupts           = 91;
     signature              = 0x1e 0x96 0x47;
 
-    memory "fuse0" = NULL;
+    memory "fuse0"         = NULL;
 
     memory "fuse4"
         initval            = 0xff;

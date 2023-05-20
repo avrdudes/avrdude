@@ -690,7 +690,11 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
   _if_partout_str(intcmp, cfg_strdup("dev_part_strct()", prog_modes_str(p->prog_modes)), prog_modes);
-  _if_partout(intcmp, "%d", mcuid);
+  if(p->mcuid == 21) {
+    _if_partout_str(intcmp, cfg_strdup(__func__, "XVII + IV"), mcuid);
+  } else {
+    _if_partout(intcmp, "%d", mcuid);
+  }
   _if_partout(intcmp, "%d", n_interrupts);
   _if_partout(intcmp, "%d", n_page_erase);
   _if_partout(intcmp, "%d", n_boot_sections);
@@ -796,7 +800,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     bm = base? dev_locate_mem(base, avr_mem_order[mi]): NULL;
 
     if(!m && bm && !tsv)
-      dev_info("\n    memory \"%s\" = NULL;\n", bm->desc);
+      dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13-strlen(bm->desc): 0, "");
 
     if(!m)
       continue;
