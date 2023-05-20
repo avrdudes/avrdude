@@ -15684,7 +15684,7 @@ part parent ".xmega"
 # AVR XMEGA-A family common values
 #------------------------------------------------------------
 
-# JTAG user ID (unique to XMEGA-A)
+# JTAG user ID (unique to XMEGA-A and XMEGA-B)
 
 part parent ".xmega"
     desc                   = "AVR XMEGA-A family common values";
