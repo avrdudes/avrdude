@@ -224,6 +224,33 @@ char *str_sprintf(const char *fmt, ...) {
 }
 
 
+// Changes string to be all lowercase and returns original pointer
+char *str_lc(char *s) {
+  for(char *t = s; *t; t++)
+    *t = tolower(*t & 0xff);
+  return s;
+}
+
+// Changes string to be all uppercase and returns original pointer
+char *str_uc(char *s) {
+  for(char *t = s; *t; t++)
+    *t = toupper(*t & 0xff);
+  return s;
+}
+
+// Changes first character in a string to be lowercase and returns original pointer
+char *str_lcfirst(char *s) {
+  *s = tolower(*s & 0xff);
+  return s;
+}
+
+// Changes first character in a string to be uppercase and returns original pointer
+char *str_ucfirst(char *s) {
+  *s = toupper(*s & 0xff);
+  return s;
+}
+
+
 bool is_bigendian() {
   union {char a[2]; int16_t i;} u = {.i = 1};
   return u.a[1] == 1;
