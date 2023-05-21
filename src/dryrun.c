@@ -148,6 +148,10 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 // Initialise the AVR device and prepare it to accept commands
 static int dryrun_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
+/*
+ * Normally one would select appropriate programming mechanisms here,
+ * but for dryrun ignore discrepancies...
+
   int pm = pgm->prog_modes & p->prog_modes;
 
   if(!pm)
@@ -156,6 +160,7 @@ static int dryrun_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
    if(pm & (pm-1))
       Return("%s and %s share multiple programming modes (%s)",
         (char *) ldata(lfirst(pgm->id)), p->desc, avr_prog_modes(pm));
+*/
 
   return pgm->program_enable(pgm, p);
 }
