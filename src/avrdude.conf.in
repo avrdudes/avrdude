@@ -9261,6 +9261,10 @@ part
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
+        read_hvsp_cmd      = "0100.1100--0110.1000--0110.1100--0100.1100";
+        read_hvsp_data     = "0000.0100--0000.0000--oooo.oooo--0000.0000";
+		# HVSP fuse read command is padded w/ "No Operation" command to
+		# preserve the 4bytes command length
     ;
 
     memory "hfuse"
@@ -9269,6 +9273,10 @@ part
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
+        read_hvsp_cmd      = "0100.1100--0111.1010--0111.1110--0100.1100";
+        read_hvsp_data     = "0000.0100--0000.0000--oooo.oooo--0000.0000";
+		# HVSP fuse read command is padded w/ "No Operation" command to
+		# preserve the 4bytes command length
     ;
 
     memory "efuse"
@@ -9277,6 +9285,10 @@ part
         max_write_delay    = 9000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxxi";
+        read_hvsp_cmd      = "0100.1100--0110.1010--0110.1110--0100.1100";
+        read_hvsp_data     = "0000.0100--0000.0000--0000.000o--0000.0000";
+		# HVSP fuse read command is padded w/ "No Operation" command to
+		# preserve the 4bytes command length
     ;
 
     memory "lock"
