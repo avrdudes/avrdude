@@ -251,6 +251,41 @@ char *str_ucfirst(char *s) {
 }
 
 
+// Convert unsigned to ASCII string; caller needs to allocate enough space for buf
+char *str_utoa(unsigned n, char *buf, int base) {
+  unsigned q;
+  char *cp, *cp2;
+
+  if(base < 2 || base > 36) {
+    *buf = 0;
+    return buf;
+  }
+
+  cp = buf;
+  /*
+   * Divide by base until the number disappeared, but ensure at least
+   * one digit will be emitted.
+   */
+  do {
+    q = n % base;
+    n /= base;
+    *cp++ = q < 10? q + '0': q + 'a'-10;
+  } while(n);
+
+  // Terminate the string
+  *cp-- = 0;
+
+  // Revert the result string
+  for(char *cp2 = buf; cp > cp2; ) {
+    char c = *cp;
+    *cp-- = *cp2;
+    *cp2++ = c;
+  }
+
+  return buf;
+}
+
+
 bool is_bigendian() {
   union {char a[2]; int16_t i;} u = {.i = 1};
   return u.a[1] == 1;

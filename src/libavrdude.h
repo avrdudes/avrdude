@@ -1224,6 +1224,7 @@ char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);
 char *str_ucfirst(char *s);
+char *str_utoa(unsigned n, char *buf, int base);
 bool is_bigendian();
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
