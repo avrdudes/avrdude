@@ -1609,6 +1609,51 @@ avrdude: usbdev_open(): did not find any (matching) USB device "usb:xxx"
 @end cartouche
 @end smallexample
 
+@noindent
+Write data from stdin (standard input) to EEPROM.
+
+@smallexample
+@cartouche
+
+% echo "The quick brown fox" | avrdude -cusbasp -pattiny13 -Ueeprom:w:-:r
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: reading input file <stdin> for eeprom
+         with 20 bytes in 1 section within [0, 0x13]
+         using 5 pages and 0 pad bytes
+avrdude: writing 20 bytes eeprom ...
+Writing | ################################################## | 100% 0.21 s
+avrdude: 20 bytes of eeprom written
+avrdude: verifying eeprom memory against <stdin>
+Reading | ################################################## | 100% 0.01 s
+avrdude: 20 bytes of eeprom verified
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@noindent
+Read EEPROM and write content to stdout (standard output)
+
+@smallexample
+@cartouche
+
+% avrdude -cusbasp -pattiny13 -Ueeprom:r:-:I
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: reading eeprom memory ...
+Reading | ################################################## | 100% 0.02 s
+avrdude: writing output file <stdout>
+:2000000054686520717569636B2062726F776E20666F780AFFFFFFFFFFFFFFFFFFFFFFFFCF // 00000> The_quick_brown_fox.............
+:20002000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0 // 00020> ................................
+:00000001FF
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
 
 @c
 @c Node
@@ -2144,6 +2189,27 @@ avrdude done.  Thank you.
 
 @end cartouche
 @end smallexample
+
+@noindent
+Dump the first 64 bytes of the EEPROM using a "terminal mode one-liner".
+
+@smallexample
+@cartouche
+
+% echo "dump eeprom 0 0x40" | avrdude -cusbasp -patmega328p -t
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+Reading | ################################################## | 100% 0.02 s
+0000  48 65 6c 6c 6f 20 57 6f  72 6c 64 21 00 ff ff ff  |Hello World!....|
+0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+0030  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
 
 @c
 @c Node
