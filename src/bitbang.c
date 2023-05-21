@@ -597,6 +597,9 @@ int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
     pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
     pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
     /* MCU SDO is driven L by the adaptor harware */
+    pgm->setpin(pgm, PIN_AVR_SCK, 0);
+      /* Although not required by HVSP latching, set SCI to L to ensure that the
+	 1st edge to H will happen when shifting out the 1st command bit */
     bitbang_delay(30);
     pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
     bitbang_delay(310);
