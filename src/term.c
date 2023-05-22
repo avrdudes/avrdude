@@ -32,6 +32,9 @@
 #include <unistd.h>
 #include <errno.h>
 
+#include "libavrdude.h"
+#include "avrintel.h"
+
 #if defined(HAVE_LIBREADLINE)
 #include <readline/readline.h>
 #include <readline/history.h>
@@ -67,6 +70,7 @@ static int cmd_flush  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_abort  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_erase  (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
+static int cmd_config (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
 static int cmd_help   (PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]);
@@ -92,6 +96,7 @@ struct command cmd[] = {
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
   { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
+  { "config", cmd_config, _fo(open),            "change or show configuration properties of the part" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
@@ -779,7 +784,7 @@ static int cmd_erase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 
 static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
-  if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: pgerase <mem> <addr>\n"
       "Function: erase one page of flash or EEPROM memory\n"
@@ -818,6 +823,572 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   return 0;
+}
+
+
+// Config command
+
+typedef union {                 // Lock memory can be 1 or 4 bytes
+  uint8_t b[4];
+  uint32_t i;
+} fl_t;
+
+typedef struct {                // Fuses and lock bits
+  uint8_t fuses[16];
+  uint32_t lock;
+  int fread[16], lread;
+  int islock;
+  uint32_t current;
+} Fusel_t;
+
+typedef struct {
+  const Configitem_t *t;        // Configuration bitfield table
+  const char *memstr;           // Could be "lockbits"
+  const char *alt;              // Set when memstr is an alias
+  int match;                    // Matched by user request
+  int ok, val, initval;         // Has value val been read OK? Initval == -1 if not known
+} Cfg_t;
+
+typedef struct {
+  int verb, allscript, flheaders;
+} Cfg_opts_t;
+
+// Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
+static int getfusel(PROGRAMMER *pgm, AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
+  const char *err = NULL;
+  char *tofree;
+  int islock;
+
+  islock = str_starts(cci->memstr, "lock");
+  if((islock && cci->t->memoffset != 0) || (!islock && (cci->t->memoffset < 0 || cci->t->memoffset >= (int) sizeof fl->fuses))) {
+    err = cache_string(tofree = str_sprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
+    free(tofree);
+    goto back;
+  }
+
+  if(islock && fl->lread) {    // Cached lock OK
+    fl->current = fl->lock;
+    fl->islock = 1;
+    goto back;
+  }
+
+  if(!islock && fl->fread[cci->t->memoffset])  { // Cached fuse OK
+    fl->current = fl->fuses[cci->t->memoffset];
+    fl->islock = 0;
+    goto back;
+  }
+
+  AVRMEM *mem = avr_locate_mem(p, cci->memstr);
+  if(!mem) {
+    err = cache_string(tofree = str_sprintf("%s memory type not defined for part %s", cci->memstr, p->desc));
+    free(tofree);
+    goto back;
+  }
+
+  if((islock && mem->size != 4 && mem->size != 1) || (!islock && mem->size != 1)) {
+    err = cache_string(tofree = str_sprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
+    free(tofree);
+    goto back;
+  }
+
+  fl_t m = {.i = 0};
+  for(int i=0; i<mem->size; i++)
+    if(pgm->read_byte(pgm, p, mem, i, m.b+i) < 0) {
+      err = cache_string(tofree = str_sprintf("cannot read %s's %s memory", p->desc, mem->desc));
+      free(tofree);
+      goto back;
+    }
+
+  if(islock) {
+    fl->lock = m.i;
+    fl->lread = 1;
+  } else {
+    fl->fread[cci->t->memoffset] = 1;
+    fl->fuses[cci->t->memoffset] = *m.b;
+  }
+  fl->islock = islock;
+  fl->current = m.i;
+
+back:
+  if(err && errpp)
+    *errpp = err;
+  return err? -1: 0;
+}
+
+static int setmatches(const char *str, int n, Cfg_t *cc) {
+  int matches = 0;
+
+  if(!*str)
+    return 0;
+
+  for(int i=0; i<n; i++) {
+    cc[i].match = 0;
+    if(!cc[i].ok)
+      continue;
+    if(str_starts(cc[i].t->name, str) || str_match(str, cc[i].t->name)) {
+      cc[i].match = 1;
+      matches++;
+      if(str_eq(cc[i].t->name, str)) {
+        for(int j=0; j<i; j++)
+          cc[j].match = 0;
+        matches = 1;
+        break;
+      }
+    }
+  }
+
+  return matches;
+}
+
+static int getvalidx(const char *str, int n, const Valueitem_t *vt) {
+  int hold, matches = 0;
+
+  if(!*str)
+    return 0;
+
+  for(int i=0; i<n; i++) {
+    if(str_starts(vt[i].label, str) || str_match(str, vt[i].label)) {
+      hold = i;
+      matches++;
+      if(str_eq(vt[i].label, str)) {
+        matches = 1;
+        break;
+      }
+    }
+  }
+
+  return matches == 1? hold: matches == 0? -1: -2;
+}
+
+
+typedef struct {
+  const char *memstr;
+  int mask;
+  int value;
+} Flock_t;
+
+
+// Fill in cc record with reference to the actual value of the relevant fuse
+static int gatherval(PROGRAMMER *pgm, AVRPART *p, Cfg_t *cc, int i, Fusel_t *fuselp, Flock_t *fc, int nf) {
+  // Load current value of this config item
+  const char *errstr = NULL;
+  getfusel(pgm, p, fuselp, cc+i, &errstr);
+  if(errstr) {
+    cc[i].ok = 0;
+    if(!str_contains(errstr, "cannot read "))
+      pmsg_error("cannot handle %s in %s: %s\n", cc[i].t->name, cc[i].memstr, errstr);
+    return -1;
+  }
+  // Update fuse intell
+  for(int fj=0; fj<nf; fj++)
+    if(str_eq(cc[i].memstr, fc[fj].memstr))
+      fc[fj].value = fuselp->current;
+
+  cc[i].val = (cc->t[i].mask & fuselp->current) >> cc->t[i].lsh;
+
+  return 0;
+}
+
+static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
+  static char buf[512], bin[129];
+  unsigned u = value;
+  int lsh = cti->lsh;
+
+  if(!vp && cti->vlist)         // No symbolic value despite symbol list?
+    strcpy(buf, "reserved");    // Enter reserved instead of the number
+  else if(u < 256)              // Show as binary
+    sprintf(buf, "%s%s", u > 1? "0b": "", str_utoa(u, bin, 2));
+  else                          // Show as hex
+    sprintf(buf, "0x%04x", u);
+
+  if(u > 1 && u < 256)
+    sprintf(buf+strlen(buf), u<8? " = %d": " = 0x%02x", u);
+  if(lsh && value > 0 && (o.allscript || o.verb > 1)) {
+    u <<= lsh;
+    sprintf(buf+strlen(buf), u<8? " = %d >> %d": " = 0x%02x >> %d", u, lsh);
+  }
+  if((vp || !cti->vlist) && o.verb > 1) {
+    const char *vcom = !cti->vlist? "arbitrary": vp->vcomment;
+    snprintf(buf+strlen(buf), 256, " (%s)", vcom);
+  }
+  return buf;
+}
+
+static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, const char *vstr, Cfg_opts_t o) {
+  int value = vp? vp->value: cc[ii].val;
+  term_out("%sconfig %s=%s # %s\n", vp && cc[ii].val != vp->value? "# ": "",
+    cc[ii].t->name, vstr, valuecomment(cc[ii].t, vp, value, o));
+}
+
+static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
+  const Valueitem_t *vt = cc[ii].t->vlist, *vp;
+  int nv = cc[ii].t->nvalues;
+  char buf[131], bin[129];
+  const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
+
+  if(o.verb > 0) {
+    const char *vcom = !cc[ii].t->vlist? "arbitrary": vp? vp->vcomment: "";
+    // Remove some redundancy in explanations
+    int cclen = col && str_ends(vcom, col+1)? (int) (col-ccom-1): (int) strlen(ccom);
+
+    if(o.verb > 1)
+      term_out("# Mask 0x%02x of %s: %.*s\n", cc->t[ii].mask, cc[ii].memstr, cclen, ccom);
+    else if(*cc[ii].t->ccomment)
+      term_out("# %c%.*s\n", toupper(*cc[ii].t->ccomment), cclen-1, cc[ii].t->ccomment+1);
+    else
+      term_out("# %s\n", cc[ii].t->name);
+  }
+
+  int done = 0;
+  if(allv && vt) {
+    for(int j=0; j<nv; j++) {
+      printoneproperty(cc, ii, vt+j, vt[j].label, o);
+      if(cc[ii].val == vt[j].value)
+        done = 1;
+    }
+  }
+
+  if(done)
+    return;
+
+  // Scan value list for symbolic label and update it
+  vp = NULL;
+  const char *vstr = NULL;
+  if(vt)
+    for(int j=0; j<nv; j++)
+      if(vt[j].value == cc[ii].val) {
+        vstr = vt[j].label;
+        vp = vt+j;
+        break;
+      }
+  if(!vstr) {
+    unsigned u = cc[ii].val;
+    if(u < 256)
+      sprintf(buf, "%s%s", u > 1? "0b": "", str_utoa(u, bin, 2));
+    else
+      sprintf(buf, "0x%04x", u);
+    vstr = buf;
+  }
+  printoneproperty(cc, ii, vp, vstr, o);
+}
+
+static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts_t o) {
+  char buf[512];
+  int fj;
+  for(fj=0; fj<nf; fj++)
+    if(str_eq(cc[ii].memstr, fc[fj].memstr))
+      break;
+  if(fj == nf) {
+    pmsg_error("unexpected failure to find fuse %s\n", cc[ii].memstr);
+    return;
+  }
+  if(printed)
+    term_out("\n");
+  sprintf(buf, "%s %s", str_starts(fc[fj].memstr, "lock")? "Lock bits": "Fuse", fc[fj].memstr);
+  if(cc[ii].alt)
+    sprintf(buf+strlen(buf), "/%s", cc[ii].alt);
+  sprintf(buf+strlen(buf), " value 0x%02x", fc[fj].value);
+  if(cc[ii].initval != -1)
+    sprintf(buf+strlen(buf), " (factory 0x%02x)", cc[ii].initval);
+  if(fc[fj].mask != 0xff && fc[fj].mask != 0xffff)
+    sprintf(buf+strlen(buf), " mask 0x%02x", fc[fj].mask);
+  for(int n = strlen(buf)+2; n; n--)
+    term_out("#");
+  term_out("\n# %s\n", buf);
+  if(o.flheaders && !o.allscript)
+    term_out("#\n");
+}
+
+static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
+  Cfg_opts_t o = { 0 };
+  int help = 0, invalid = 0, itemac=1;
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'v':
+          o.verb++;
+          break;
+        case 'a':
+          o.allscript++;        // Fall through
+        case 'f':
+          o.flheaders++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(config) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(o.allscript && argc > 1)
+    pmsg_error("(config) -a does not allow any further arguments\n");
+
+  if(argc > 2 || help || invalid || (argc >1 && o.allscript)) {
+    msg_error(
+      "Syntax: config {<opts> | <property>[=<value>]}\n"
+      "Function: Show or change configuration properties of the part\n"
+      "Options:\n"
+      "    -f show value of fuse and lock bit memories as well\n"
+      "    -a output an initialisation script with all possible assignments\n"
+      "    -v increase verbosity, show explanations alongside output\n"
+      "    -h show this help message\n"
+      "\n"
+      "Config alone shows all property names and current settings of the part's\n"
+      "hardware configuration in terms of symbolic mnemonics or values. Use\n"
+      "\n"
+      "avrdude> config <property>\n"
+      "\n"
+      "to show that of <property>. Wildcards or initial strings are permitted (but\n"
+      "not both), in which case all settings of matching properties are displayed.\n"
+      "\n"
+      "avrdude> config <property>=\n"
+      "\n"
+      "shows all possible values that <property> can take on with the currently\n"
+      "set one being the only that is not commented out. Assignments\n"
+      "\n"
+      "avrdude> config <property>=<value>\n"
+      "\n"
+      "modify the corresponding fuse or lock bits immediately but will normally only\n"
+      "take effect the next time the part is reset (see the data sheet). Value can\n"
+      "be a valid integer or one of the symbolic mnemonics, if known. Wildcards or\n"
+      "initial strings are permitted for the mnemonic, but an assignment only\n"
+      "happens if both the property and the name can be uniquely resolved.\n"
+      "\n"
+      "It is quite possible, as is with direct writing to the underlying fuse and\n"
+      "lock bits, to brick a part, i.e., make it unresponsive to further programming\n"
+      "with the chosen programmer: here be dragons.\n"
+    );
+    return !help || invalid? -1: 0;
+  }
+
+  int idx = -1;                 // Index in uP_table[]
+  const Configitem_t *ct;       // Configuration bitfield table
+  int nc;                       // Number of config properties, some may not be available
+  Fusel_t fusel;                // Copy of fuses and lock bits
+  const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
+  int nv;                       // Number of symbolic labels
+  Cfg_t *cc;                    // Current configuration; cc[] and ct[] are parallel arrays
+  Flock_t *fc;                  // Current fuse and lock bits memories
+  int nf = 0;                   // Number of involved fuse and lock bits memories
+
+  memset(&fusel, 0, sizeof fusel);
+
+  if(p->mcuid >= 0)
+    idx = upidxmcuid(p->mcuid);
+  if(idx < 0 && p->desc && *p->desc)
+    idx = upidxname(p->desc);
+  if(idx < 0) {
+    pmsg_error("uP_table neither knows mcuid %d nor part %s\n",
+      p->mcuid, p->desc && *p->desc? p->desc: "???");
+    return -1;
+  }
+  nc = uP_table[idx].nconfigs;
+  ct = uP_table[idx].cfgtable;
+  if(nc <= 0 || !ct) {
+    pmsg_error("part %s does not have a configuration table\n", p->desc);
+    return -1;
+  }
+
+  int ret = 0;
+  cc = cfg_malloc(__func__, sizeof *cc*nc);
+  fc = cfg_malloc(__func__, sizeof *fc*nc);
+
+  char *locktype = "lock";
+  if(!avr_locate_mem(p, "lock") && avr_locate_mem(p, "lockbits"))
+    locktype = "lockbits";
+  for(int i=0; i<nc; i++) {
+    cc[i].t = ct+i;
+    const char *mt = str_starts(ct[i].memtype, "lock")? locktype: ct[i].memtype;
+    cc[i].memstr = mt;
+    AVRMEM *mem = avr_locate_mem(p, mt);
+    if(!mem) {
+      pmsg_warning("(config) %s unavailable as memory %s is not defined for %s\n", ct[i].name, mt, p->desc);
+      continue;
+    }
+    cc[i].ok = 1;
+    cc[i].alt = str_eq(mem->desc, mt)? NULL: mem->desc;
+    cc[i].initval = mem->initval;
+    if(!nf || !str_eq(fc[nf-1].memstr, mt))
+      fc[nf++].memstr = mt;
+    if(fc[nf-1].mask & ct[i].mask) { // This should not happen
+      pmsg_error("overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name, ct[i].mask, p->desc, cc[i].memstr);
+      ret = -1;
+      goto finished;
+    }
+    fc[nf-1].mask |= ct[i].mask;
+  }
+
+  char *item = argc < 2? "*": argv[1];
+
+  char *rhs = strchr(item, '=');
+  if(rhs)                       // Right-hand side of assignment
+    *rhs++ = 0;                 // Terminate lhs
+
+  int nm = setmatches(item, nc, cc);
+  if(nm == 0) {
+    pmsg_warning("non-matching %s; known config items are:\n", argv[1]);
+    for(int i=0; i<nc; i++)
+      if(cc[i].ok)
+        imsg_warning(" - %s\n", cc[i].t->name);
+    ret = -1;
+    goto finished;
+  }
+
+  if(!rhs || !*rhs || o.allscript) { // Show (all possible) values
+    const char *lastfuse = "not a fuse";
+    for(int printed = 0, i = 0; i < nc; i++) {
+      if(!cc[i].match || !cc[i].ok)
+        continue;
+      if(gatherval(pgm, p, cc, i, &fusel, fc, nf) < 0) {
+        for(int ii=i+1; ii<nc; ii++)
+          if(str_eq(cc[i].memstr, cc[ii].memstr))
+            cc[ii].ok = 0;
+        continue;
+      }
+      if(!str_eq(lastfuse, cc[i].memstr)) {
+        lastfuse = cc[i].memstr;
+        if(o.flheaders)
+          printfuse(cc, i, fc, nf, printed, o);
+      }
+      if(o.allscript)
+        term_out("#\n# Mask 0x%02x %s\n", ct[i].mask, ct[i].ccomment);
+      else if(printed && (rhs || o.verb > 1))
+        term_out("\n");
+      printproperty(cc, i, o, (rhs && !*rhs) || o.allscript);
+      printed = 1;
+    }
+    goto finished;
+  }
+
+  // Non-empty rhs: attempt assignment
+
+  if(nm > 1) {
+    pmsg_warning("ambiguous %s=...; known config items are:\n", argv[1]);
+    for(int i=0; i<nc; i++)
+      if(cc[i].match)
+        imsg_warning(" - %s\n", cc[i].t->name);
+    ret = -1;
+    goto finished;
+  }
+
+  int ci;
+  for(ci = 0; ci < nc; ci++)
+    if(cc[ci].match)
+      break;
+
+  if(ci == nc) {
+    pmsg_error("unexpected failure to find match index\n");
+    ret = -1;
+    goto finished;
+  }
+
+  // ci is fixed now: save what we have for sanity check
+  Cfg_t safecc = cc[ci];
+
+  nv = ct[ci].nvalues;
+  vt = ct[ci].vlist;
+
+  // Assignment can be an integer or symbolic value
+
+    // Have checked for digit to exclude Roman numbers here
+  const char *errptr;
+  int toassign = str_int(rhs, STR_UINT32, &errptr);
+  if(!errptr) {
+    // All good; on error match against symbols
+  } else if(!vt) {
+    pmsg_error("(config) no symbols known: assign an appropriate number\n");
+    ret = -1;
+    goto finished;
+  } else {                      // Alternatively, assignment can be one of the symbols
+    int vj = getvalidx(rhs, nv, vt);
+    if(vj < 0) {                 // Print error msg to stderr
+      pmsg_warning("%s %s; known %s symbols are:\n", vj == -1? "non-matching": "ambiguous",
+        rhs, cc[ci].t->name);
+      for(int j=0; j<nv; j++)
+        if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label))) {
+          imsg_warning(" - %s=%s # %s\n", cc[ci].t->name, vt[j].label, valuecomment(ct+ci, vt+j, vt[j].value, o));
+        }
+      ret = -1;
+      goto finished;
+    }
+    toassign = vt[vj].value;
+  }
+
+  if((toassign<<ct[ci].lsh) & ~ct[ci].mask) {
+    pmsg_error("(config) attempt to assign bits in 0x%02x outside mask 0x%02x; max value is 0x%02x; not assigned\n",
+      toassign<<ct[ci].lsh, ct[ci].mask, ct[ci].mask>>ct[ci].lsh);
+    ret = -1;
+    goto finished;
+  }
+
+  // Check with safe copies of ct[ci] and cc[ci]
+  if(memcmp(&safecc, cc+ci, sizeof *cc)) {
+    pmsg_error("unexpected data changes (this should never happen)\n");
+    ret = -1;
+    goto finished;
+  }
+
+  if(vt) {
+    int j;
+    for(j=0; j<nv; j++) {
+      if(vt[j].value == toassign)
+        break;
+    }
+    if(j == nv)
+      pmsg_warning("(config) assigning a reserved value (0x%02x) to %s, check data sheet\n", toassign, ct[ci].name);
+  }
+
+  // Reload current value of fuse that the property lives on
+  const char *errstr = NULL;
+  getfusel(pgm, p, &fusel, cc+ci, &errstr);
+  if(errstr) {
+    if(!str_contains(errstr, "cannot read "))
+      pmsg_error("cannot handle %s in %s: %s\n", cc[ci].t->name, cc[ci].memstr, errstr);
+    ret = -1;
+    goto finished;
+  }
+
+  fl_t towrite;
+  towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
+  AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
+  if(!mem) {
+    pmsg_error("%s memory type not defined for part %s\n", cc[ci].memstr, p->desc);
+    ret = -1;
+    goto finished;
+  }
+  if((fusel.islock && mem->size != 4 && mem->size != 1) || (!fusel.islock && mem->size != 1)) {
+    pmsg_error("%s's %s memory has unexpected size %d\n", p->desc, mem->desc, mem->size);
+    ret = -1;
+    goto finished;
+  }
+  for(int i=0; i<mem->size; i++)
+    if(pgm->write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
+      pmsg_error("cannot write to %s's %s memory\n", p->desc, mem->desc);
+      ret = -1;
+      goto finished;
+    }
+
+  const char *av[] = { "confirm", cc[ci].t->name };
+  if(o.verb > 0 && !str_eq(argv[0], "confirm"))
+    cmd_config(pgm, p, 2, (char **) av);
+
+finished:
+  free(cc);
+  free(fc);
+
+  return ret;
 }
 
 
