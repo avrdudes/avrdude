@@ -1157,8 +1157,9 @@ programmer
 
 programmer
     id                     = "digilent-hs2";
-    desc                   = "Digilient JTAG HS2 (MPSSE)";
+    desc                   = "Digilent JTAG HS2 (MPSSE)";
     type                   = "avrftdi";
+    prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
