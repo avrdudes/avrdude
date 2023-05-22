@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 20.05.2023
+ * 22.05.2023
  *
  */
 
@@ -7297,302 +7297,176 @@ const char * const vtab_avr128db64[vts_avr128db64] = {
 
 
 
-// Internal configuration value tables
-
-/*
- * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 ATtiny102
- * ATtiny28 ATtiny441 AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162 AT90S1200 AT90S2313 ATA5700M322
- * ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny4 ATtiny5
- * ATtiny9 ATtiny10 ATtiny20 ATtiny40 ATtiny104 ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny15
- * ATtiny22 ATtiny24 ATtiny24A ATtiny25 ATtiny26 ATtiny43U ATtiny44 ATtiny44A ATtiny45 ATtiny48
- * ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167 ATtiny261 ATtiny261A ATtiny461
- * ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R
- * ATtiny2313 ATtiny2313A ATtiny4313 ATmega8 ATmega8A ATmega8HVA ATmega8U2 ATmega16 ATmega16A
- * ATmega16HVA ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB
- * ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega48 ATmega48A ATmega48P ATmega48PA
- * ATmega48PB ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88
- * ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega103 ATmega128 ATmega128A ATmega128RFA1
- * ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA ATmega165
- * ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB
- * ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A ATmega324P
- * ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329
- * ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
- * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
- * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
- * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
- * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
- * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
- * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S2323
- * AT90S2343 AT90S4414 AT90S4433 AT90S4434 AT90S8515 AT90S8515comp AT90S8535 ATA5272 ATA5505
- * ATA5702M322 ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835
- * ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215 ATA8510 ATA8515
- * ATA664251 ATmega32HVE2
- */
-static const Valueitem_t _values_LB_atmega328[3] = {
-  {0, "PROG_VER_DISABLED", "further programming and verification disabled"},
-  {2, "PROG_DISABLED", "further programming disabled"},
-  {3, "NO_LOCK", "no memory lock features enabled"},
-};
-
-/*
- * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
- * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
- * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
- * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
- * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
- * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
- * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
- */
-static const Valueitem_t _values_LB_atxmega16e5[3] = {
-  {0, "RWLOCK", "read and write not allowed"},
-  {2, "WLOCK", "write not allowed"},
-  {3, "NOLOCK", "no locks"},
-};
-
-/*
- * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
- * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
- * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
- * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
- * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
- * ATmega3209 ATmega4808 ATmega4809
- */
-static const Valueitem_t _values_LB_attiny204[2] = {
-  {0x3a, "RWLOCK", "read and write not allowed"},
-  {0xc5, "NOLOCK", "no locks"},
-};
-
-// AT90S2333
-static const Valueitem_t _values_LB_at90s2333[3] = {
-  {0, "PROG_VER_DISABLED", "further programming and verification disabled"},
-  {1, "PROG_DISABLED", "further programming disabled"},
-  {3, "NO_LOCK", "no memory lock features enabled"},
-};
-
-/*
- * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
- * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
- * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
- * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
- * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
- * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
- * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
- * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
- * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
- * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
- * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
- * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
- * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
- * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
- * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
- * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
- * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
- * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
- * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
- */
-static const Valueitem_t _values_BLB0_atmega328[4] = {
-  {0, "LPM_SPM_DISABLED_IN_APP", "LPM and SPM prohibited in application section"},
-  {1, "LPM_DISABLED_IN_APP", "LPM prohibited in application section"},
-  {2, "SPM_DISABLED_IN_APP", "SPM prohibited in application section"},
-  {3, "NO_LOCK_IN_APP", "no lock on SPM and LPM in application section"},
-};
-
-/*
- * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
- * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
- * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
- * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
- * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
- * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
- * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
- * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
- * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
- * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
- * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
- * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
- * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
- * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
- * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
- * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
- * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
- * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
- * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
- */
-static const Valueitem_t _values_BLB1_atmega328[4] = {
-  {0, "LPM_SPM_DISABLED_IN_BOOT", "LPM and SPM prohibited in boot section"},
-  {1, "LPM_DISABLED_IN_BOOT", "LPM prohibited in boot section"},
-  {2, "SPM_DISABLED_IN_BOOT", "SPM prohibited in boot section"},
-  {3, "NO_LOCK_IN_BOOT", "no lock on SPM and LPM in boot section"},
-};
+// Configuration value tables
 
 /*
  * ATmega328 ATmega48 ATmega48A ATmega48P ATmega48PA ATmega88 ATmega88A ATmega88P ATmega88PA
  * ATmega168 ATmega168A ATmega168P ATmega168PA ATmega328P ATA6612C ATA6613C ATA6614Q
  */
 static const Valueitem_t _values_SUT_CKSEL_atmega328[55] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "INTRCOSC_128KHZ_6CK_14CK_0MS", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_14CK_0MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x05, "EXTLOFXTAL_32KCK_14CK_0MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 0 ms"},
-  {0x06, "EXTFSXTAL_258CK_14CK_4MS1", "ext full-swing crystal; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x07, "EXTFSXTAL_1KCK_14CK_65MS", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x13, "INTRCOSC_128KHZ_6CK_14CK_4MS1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_14CK_4MS1", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x15, "EXTLOFXTAL_32KCK_14CK_4MS1", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 4.1 ms"},
-  {0x16, "EXTFSXTAL_258CK_14CK_65MS", "ext full-swing crystal; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x17, "EXTFSXTAL_16KCK_14CK_0MS", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_65MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x23, "INTRCOSC_128KHZ_6CK_14CK_65MS", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x24, "EXTLOFXTAL_1KCK_14CK_65MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x25, "EXTLOFXTAL_32KCK_14CK_65MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 65 ms"},
-  {0x26, "EXTFSXTAL_1KCK_14CK_0MS", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x27, "EXTFSXTAL_16KCK_14CK_4MS1", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x36, "EXTFSXTAL_1KCK_14CK_4MS1", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x37, "EXTFSXTAL_16KCK_14CK_65MS", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_14ck_0ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 0 ms"},
+  {0x06, "extfsxtal_258ck_14ck_4ms1", "ext full-swing crystal; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x07, "extfsxtal_1kck_14ck_65ms", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_14ck_4ms1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 4.1 ms"},
+  {0x16, "extfsxtal_258ck_14ck_65ms", "ext full-swing crystal; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x17, "extfsxtal_16kck_14ck_0ms", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_14ck_65ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 65 ms"},
+  {0x26, "extfsxtal_1kck_14ck_0ms", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x27, "extfsxtal_16kck_14ck_4ms1", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x36, "extfsxtal_1kck_14ck_4ms1", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x37, "extfsxtal_16kck_14ck_65ms", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1 AT90PWM2B AT90PWM3B AT90PWM316
 static const Valueitem_t _values_SUT_CKSEL_atmega16m1[53] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x01, "PLLCLK_PLLIN_EXTCLK_6KCK_14CK_0MS", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "PLLCLK_16MHZ_1KCK_14CK_0MS", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x04, "EXTXOSC_PLLIN_EXTXOSC_1KCK_14CK_0MS", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x05, "PLLCLK_PLLIN_EXTXOSC_1KCK_14CK_0MS", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x11, "PLLCLK_PLLIN_EXTCLK_6KCK_14CK_4MS", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 4 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x13, "PLLCLK_16MHZ_1KCK_14CK_4MS1", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x14, "EXTXOSC_PLLIN_EXTXOSC_1KCK_14CK_4MS", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x15, "PLLCLK_PLLIN_EXTXOSC_1KCK_14CK_4MS", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x21, "PLLCLK_PLLIN_EXTCLK_6KCK_14CK_64MS", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 64 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_65MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x23, "PLLCLK_16MHZ_1KCK_14CK_65MS", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x24, "EXTXOSC_PLLIN_EXTXOSC_16KCK_14CK_4MS", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
-  {0x25, "PLLCLK_PLLIN_EXTXOSC_16KCK_14CK_4MS", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x33, "PLLCLK_16MHZ_16KCK_14CK_0MS", "PLL clock 16 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x34, "EXTXOSC_PLLIN_EXTXOSC_16KCK_14CK_64MS", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
-  {0x35, "PLLCLK_PLLIN_EXTXOSC_16KCK_14CK_64MS", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_pllin_extclk_6kck_14ck_0ms", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "pllclk_16mhz_1kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x04, "extxosc_pllin_extxosc_1kck_14ck_0ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "pllclk_pllin_extxosc_1kck_14ck_0ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "pllclk_pllin_extclk_6kck_14ck_4ms", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 4 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "pllclk_16mhz_1kck_14ck_4ms1", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x14, "extxosc_pllin_extxosc_1kck_14ck_4ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x15, "pllclk_pllin_extxosc_1kck_14ck_4ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "pllclk_pllin_extclk_6kck_14ck_64ms", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 64 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "pllclk_16mhz_1kck_14ck_65ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x24, "extxosc_pllin_extxosc_16kck_14ck_4ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x25, "pllclk_pllin_extxosc_16kck_14ck_4ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x33, "pllclk_16mhz_16kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x34, "extxosc_pllin_extxosc_16kck_14ck_64ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x35, "pllclk_pllin_extxosc_16kck_14ck_64ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // ATmega328PB ATmega48PB ATmega88PB ATmega168PB ATmega324PB
 static const Valueitem_t _values_SUT_CKSEL_atmega328pb[47] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "INTRCOSC_128KHZ_6CK_14CK_0MS", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_14CK_0MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x05, "EXTLOFXTAL_32KCK_14CK_0MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x13, "INTRCOSC_128KHZ_6CK_14CK_4MS1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_14CK_4MS1", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x15, "EXTLOFXTAL_32KCK_14CK_4MS1", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 4.1 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_65MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x23, "INTRCOSC_128KHZ_6CK_14CK_65MS", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x24, "EXTLOFXTAL_1KCK_14CK_65MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x25, "EXTLOFXTAL_32KCK_14CK_65MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 65 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_14ck_0ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_14ck_4ms1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 4.1 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_14ck_65ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 65 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 /*
@@ -7600,191 +7474,191 @@ static const Valueitem_t _values_SUT_CKSEL_atmega328pb[47] = {
  * ATmega64 ATmega64A ATmega128 ATmega128A ATmega8535 AT90S8515comp
  */
 static const Valueitem_t _values_SUT_CKSEL_atmega8515[58] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x01, "INTRCOSC_1MHZ_6CK_0MS", "int RC osc 1 MHz; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_2MHZ_6CK_0MS", "int RC osc 2 MHz; startup time: 6 CK + 0 ms"},
-  {0x03, "INTRCOSC_4MHZ_6CK_0MS", "int RC osc 4 MHz; startup time: 6 CK + 0 ms"},
-  {0x04, "INTRCOSC_8MHZ_6CK_0MS", "int RC osc 8 MHz; startup time: 6 CK + 0 ms"},
-  {0x05, "EXTRCOSC_XX_0MHZ9_18CK_0MS", "ext RC osc -0.9 MHz; startup time: 18 CK + 0 ms"},
-  {0x06, "EXTRCOSC_0MHZ9_3MHZ_18CK_0MS", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 0 ms"},
-  {0x07, "EXTRCOSC_3MHZ_8MHZ_18CK_0MS", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 0 ms"},
-  {0x08, "EXTRCOSC_8MHZ_12MHZ_18CK_0MS", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 0 ms"},
-  {0x09, "EXTLOFXTAL_1KCK_4MS", "ext low-freq crystal; startup time: 1024 CK + 4 ms"},
-  {0x0a, "EXTLOFXTALRES_258CK_4MS", "ext crystal/resonator low freq; startup time: 258 CK + 4 ms"},
-  {0x0b, "EXTLOFXTALRES_1KCK_64MS", "ext crystal/resonator low freq; startup time: 1024 CK + 64 ms"},
-  {0x0c, "EXTMEDFXTALRES_258CK_4MS", "ext crystal/resonator medium freq; startup time: 258 CK + 4 ms"},
-  {0x0d, "EXTMEDFXTALRES_1KCK_64MS", "ext crystal/resonator medium freq; startup time: 1024 CK + 64 ms"},
-  {0x0e, "EXTHIFXTALRES_258CK_4MS", "ext crystal/resonator high freq; startup time: 258 CK + 4 ms"},
-  {0x0f, "EXTHIFXTALRES_1KCK_64MS", "ext crystal/resonator high freq; startup time: 1024 CK + 64 ms"},
-  {0x10, "EXTCLK_6CK_4MS", "ext clock; startup time: 6 CK + 4 ms"},
-  {0x11, "INTRCOSC_1MHZ_6CK_4MS", "int RC osc 1 MHz; startup time: 6 CK + 4 ms"},
-  {0x12, "INTRCOSC_2MHZ_6CK_4MS", "int RC osc 2 MHz; startup time: 6 CK + 4 ms"},
-  {0x13, "INTRCOSC_4MHZ_6CK_4MS", "int RC osc 4 MHz; startup time: 6 CK + 4 ms"},
-  {0x14, "INTRCOSC_8MHZ_6CK_4MS", "int RC osc 8 MHz; startup time: 6 CK + 4 ms"},
-  {0x15, "EXTRCOSC_XX_0MHZ9_18CK_4MS", "ext RC osc -0.9 MHz; startup time: 18 CK + 4 ms"},
-  {0x16, "EXTRCOSC_0MHZ9_3MHZ_18CK_4MS", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 4 ms"},
-  {0x17, "EXTRCOSC_3MHZ_8MHZ_18CK_4MS", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 4 ms"},
-  {0x18, "EXTRCOSC_8MHZ_12MHZ_18CK_4MS", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 4 ms"},
-  {0x19, "EXTLOFXTAL_1KCK_64MS", "ext low-freq crystal; startup time: 1024 CK + 64 ms"},
-  {0x1a, "EXTLOFXTALRES_258CK_64MS", "ext crystal/resonator low freq; startup time: 258 CK + 64 ms"},
-  {0x1b, "EXTLOFXTALRES_16KCK_0MS", "ext crystal/resonator low freq; startup time: 16384 CK + 0 ms"},
-  {0x1c, "EXTMEDFXTALRES_258CK_64MS", "ext crystal/resonator medium freq; startup time: 258 CK + 64 ms"},
-  {0x1d, "EXTMEDFXTALRES_16KCK_0MS", "ext crystal/resonator medium freq; startup time: 16384 CK + 0 ms"},
-  {0x1e, "EXTHIFXTALRES_258CK_64MS", "ext crystal/resonator high freq; startup time: 258 CK + 64 ms"},
-  {0x1f, "EXTHIFXTALRES_16KCK_0MS", "ext crystal/resonator high freq; startup time: 16384 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_64MS", "ext clock; startup time: 6 CK + 64 ms"},
-  {0x21, "INTRCOSC_1MHZ_6CK_64MS", "int RC osc 1 MHz; startup time: 6 CK + 64 ms"},
-  {0x22, "INTRCOSC_2MHZ_6CK_64MS", "int RC osc 2 MHz; startup time: 6 CK + 64 ms"},
-  {0x23, "INTRCOSC_4MHZ_6CK_64MS", "int RC osc 4 MHz; startup time: 6 CK + 64 ms"},
-  {0x24, "INTRCOSC_8MHZ_6CK_64MS", "int RC osc 8 MHz; startup time: 6 CK + 64 ms"},
-  {0x25, "EXTRCOSC_XX_0MHZ9_18CK_64MS", "ext RC osc -0.9 MHz; startup time: 18 CK + 64 ms"},
-  {0x26, "EXTRCOSC_0MHZ9_3MHZ_18CK_64MS", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 64 ms"},
-  {0x27, "EXTRCOSC_3MHZ_8MHZ_18CK_64MS", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 64 ms"},
-  {0x28, "EXTRCOSC_8MHZ_12MHZ_18CK_64MS", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 64 ms"},
-  {0x29, "EXTLOFXTAL_32KCK_64MS", "ext low-freq crystal; startup time: 32768 CK + 64 ms"},
-  {0x2a, "EXTLOFXTALRES_1KCK_0MS", "ext crystal/resonator low freq; startup time: 1024 CK + 0 ms"},
-  {0x2b, "EXTLOFXTALRES_16KCK_4MS", "ext crystal/resonator low freq; startup time: 16384 CK + 4 ms"},
-  {0x2c, "EXTMEDFXTALRES_1KCK_0MS", "ext crystal/resonator medium freq; startup time: 1024 CK + 0 ms"},
-  {0x2d, "EXTMEDFXTALRES_16KCK_4MS", "ext crystal/resonator medium freq; startup time: 16384 CK + 4 ms"},
-  {0x2e, "EXTHIFXTALRES_1KCK_0MS", "ext crystal/resonator high freq; startup time: 1024 CK + 0 ms"},
-  {0x2f, "EXTHIFXTALRES_16KCK_4MS", "ext crystal/resonator high freq; startup time: 16384 CK + 4 ms"},
-  {0x35, "EXTRCOSC_XX_0MHZ9_6CK_4MS", "ext RC osc -0.9 MHz; startup time: 6 CK + 4 ms"},
-  {0x36, "EXTRCOSC_0MHZ9_3MHZ_6CK_4MS", "ext RC osc 0.9-3.0 MHz; startup time: 6 CK + 4 ms"},
-  {0x37, "EXTRCOSC_3MHZ_8MHZ_6CK_4MS", "ext RC osc 3.0-8.0 MHz; startup time: 6 CK + 4 ms"},
-  {0x38, "EXTRCOSC_8MHZ_12MHZ_6CK_4MS", "ext RC osc 8.0-12.0 MHz; startup time: 6 CK + 4 ms"},
-  {0x3a, "EXTLOFXTALRES_1KCK_4MS", "ext crystal/resonator low freq; startup time: 1024 CK + 4 ms"},
-  {0x3b, "EXTLOFXTALRES_16KCK_64MS", "ext crystal/resonator low freq; startup time: 16384 CK + 64 ms"},
-  {0x3c, "EXTMEDFXTALRES_1KCK_4MS", "ext crystal/resonator medium freq; startup time: 1024 CK + 4 ms"},
-  {0x3d, "EXTMEDFXTALRES_16KCK_64MS", "ext crystal/resonator medium freq; startup time: 16384 CK + 64 ms"},
-  {0x3e, "EXTHIFXTALRES_1KCK_4MS", "ext crystal/resonator high freq; startup time: 1024 CK + 4 ms"},
-  {0x3f, "EXTHIFXTALRES_16KCK_64MS", "ext crystal/resonator high freq; startup time: 16384 CK + 64 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x01, "intrcosc_1mhz_6ck_0ms", "int RC osc 1 MHz; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_2mhz_6ck_0ms", "int RC osc 2 MHz; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_4mhz_6ck_0ms", "int RC osc 4 MHz; startup time: 6 CK + 0 ms"},
+  {0x04, "intrcosc_8mhz_6ck_0ms", "int RC osc 8 MHz; startup time: 6 CK + 0 ms"},
+  {0x05, "extrcosc_xx_0mhz9_18ck_0ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 0 ms"},
+  {0x06, "extrcosc_0mhz9_3mhz_18ck_0ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x07, "extrcosc_3mhz_8mhz_18ck_0ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x08, "extrcosc_8mhz_12mhz_18ck_0ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x09, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time: 1024 CK + 4 ms"},
+  {0x0a, "extlofxtalres_258ck_4ms", "ext crystal/resonator low freq; startup time: 258 CK + 4 ms"},
+  {0x0b, "extlofxtalres_1kck_64ms", "ext crystal/resonator low freq; startup time: 1024 CK + 64 ms"},
+  {0x0c, "extmedfxtalres_258ck_4ms", "ext crystal/resonator medium freq; startup time: 258 CK + 4 ms"},
+  {0x0d, "extmedfxtalres_1kck_64ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 64 ms"},
+  {0x0e, "exthifxtalres_258ck_4ms", "ext crystal/resonator high freq; startup time: 258 CK + 4 ms"},
+  {0x0f, "exthifxtalres_1kck_64ms", "ext crystal/resonator high freq; startup time: 1024 CK + 64 ms"},
+  {0x10, "extclk_6ck_4ms", "ext clock; startup time: 6 CK + 4 ms"},
+  {0x11, "intrcosc_1mhz_6ck_4ms", "int RC osc 1 MHz; startup time: 6 CK + 4 ms"},
+  {0x12, "intrcosc_2mhz_6ck_4ms", "int RC osc 2 MHz; startup time: 6 CK + 4 ms"},
+  {0x13, "intrcosc_4mhz_6ck_4ms", "int RC osc 4 MHz; startup time: 6 CK + 4 ms"},
+  {0x14, "intrcosc_8mhz_6ck_4ms", "int RC osc 8 MHz; startup time: 6 CK + 4 ms"},
+  {0x15, "extrcosc_xx_0mhz9_18ck_4ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 4 ms"},
+  {0x16, "extrcosc_0mhz9_3mhz_18ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x17, "extrcosc_3mhz_8mhz_18ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x18, "extrcosc_8mhz_12mhz_18ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x19, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time: 1024 CK + 64 ms"},
+  {0x1a, "extlofxtalres_258ck_64ms", "ext crystal/resonator low freq; startup time: 258 CK + 64 ms"},
+  {0x1b, "extlofxtalres_16kck_0ms", "ext crystal/resonator low freq; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extmedfxtalres_258ck_64ms", "ext crystal/resonator medium freq; startup time: 258 CK + 64 ms"},
+  {0x1d, "extmedfxtalres_16kck_0ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 0 ms"},
+  {0x1e, "exthifxtalres_258ck_64ms", "ext crystal/resonator high freq; startup time: 258 CK + 64 ms"},
+  {0x1f, "exthifxtalres_16kck_0ms", "ext crystal/resonator high freq; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_64ms", "ext clock; startup time: 6 CK + 64 ms"},
+  {0x21, "intrcosc_1mhz_6ck_64ms", "int RC osc 1 MHz; startup time: 6 CK + 64 ms"},
+  {0x22, "intrcosc_2mhz_6ck_64ms", "int RC osc 2 MHz; startup time: 6 CK + 64 ms"},
+  {0x23, "intrcosc_4mhz_6ck_64ms", "int RC osc 4 MHz; startup time: 6 CK + 64 ms"},
+  {0x24, "intrcosc_8mhz_6ck_64ms", "int RC osc 8 MHz; startup time: 6 CK + 64 ms"},
+  {0x25, "extrcosc_xx_0mhz9_18ck_64ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 64 ms"},
+  {0x26, "extrcosc_0mhz9_3mhz_18ck_64ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 64 ms"},
+  {0x27, "extrcosc_3mhz_8mhz_18ck_64ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 64 ms"},
+  {0x28, "extrcosc_8mhz_12mhz_18ck_64ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 64 ms"},
+  {0x29, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time: 32768 CK + 64 ms"},
+  {0x2a, "extlofxtalres_1kck_0ms", "ext crystal/resonator low freq; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extlofxtalres_16kck_4ms", "ext crystal/resonator low freq; startup time: 16384 CK + 4 ms"},
+  {0x2c, "extmedfxtalres_1kck_0ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extmedfxtalres_16kck_4ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 4 ms"},
+  {0x2e, "exthifxtalres_1kck_0ms", "ext crystal/resonator high freq; startup time: 1024 CK + 0 ms"},
+  {0x2f, "exthifxtalres_16kck_4ms", "ext crystal/resonator high freq; startup time: 16384 CK + 4 ms"},
+  {0x35, "extrcosc_xx_0mhz9_6ck_4ms", "ext RC osc -0.9 MHz; startup time: 6 CK + 4 ms"},
+  {0x36, "extrcosc_0mhz9_3mhz_6ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 6 CK + 4 ms"},
+  {0x37, "extrcosc_3mhz_8mhz_6ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 6 CK + 4 ms"},
+  {0x38, "extrcosc_8mhz_12mhz_6ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 6 CK + 4 ms"},
+  {0x3a, "extlofxtalres_1kck_4ms", "ext crystal/resonator low freq; startup time: 1024 CK + 4 ms"},
+  {0x3b, "extlofxtalres_16kck_64ms", "ext crystal/resonator low freq; startup time: 16384 CK + 64 ms"},
+  {0x3c, "extmedfxtalres_1kck_4ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 4 ms"},
+  {0x3d, "extmedfxtalres_16kck_64ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 64 ms"},
+  {0x3e, "exthifxtalres_1kck_4ms", "ext crystal/resonator high freq; startup time: 1024 CK + 4 ms"},
+  {0x3f, "exthifxtalres_16kck_64ms", "ext crystal/resonator high freq; startup time: 16384 CK + 64 ms"},
 };
 
 // ATtiny441 ATtiny841
 static const Valueitem_t _values_SUT_CKSEL_attiny441[17] = {
-  {0x00, "EXTCLK_6CK_16CK_16MS", "ext clock; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_16CK_16MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
-  {0x04, "INTULPOSC_32KHZ_6CK_16CK_16MS", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
-  {0x06, "EXTLOFXTAL_1KCK_16CK_16MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x08, "EXTCRES_0MHZ4_0MHZ9_258CK_16CK_16MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_16KCK_16CK_16MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
-  {0x0a, "EXTCRES_0MHZ9_3MHZ_258CK_16CK_16MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_16KCK_16CK_16MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
-  {0x0c, "EXTCRES_3MHZ_8MHZ_258CK_16CK_16MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_16KCK_16CK_16MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16K CK/16 CK + 16 ms"},
-  {0x0e, "EXTCRES_8MHZ_XX_258CK_16CK_16MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_16KCK_16CK_16MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
-  {0x16, "EXTLOFXTAL_32KCK_14CK_16MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/16 CK + 16 ms"},
-  {0x18, "EXTCRES_0MHZ4_0MHZ9_1KCK_16CK_16MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x1a, "EXTCRES_0MHZ9_3MHZ_1KCK_16CK_16MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x1c, "EXTCRES_3MHZ_8MHZ_1KCK_16CK_16MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x1e, "EXTCRES_8MHZ_XX_1KCK_16CK_16MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x00, "extclk_6ck_16ck_16ms", "ext clock; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x02, "intrcosc_8mhz_6ck_16ck_16ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x04, "intulposc_32khz_6ck_16ck_16ms", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x06, "extlofxtal_1kck_16ck_16ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_16kck_16ck_16ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_16kck_16ck_16ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_16kck_16ck_16ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16K CK/16 CK + 16 ms"},
+  {0x0e, "extcres_8mhz_xx_258ck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0f, "extxosc_8mhz_xx_16kck_16ck_16ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x16, "extlofxtal_32kck_14ck_16ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/16 CK + 16 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_1kck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_1kck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1c, "extcres_3mhz_8mhz_1kck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1e, "extcres_8mhz_xx_1kck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
 };
 
 // AT90PWM2 AT90PWM1 AT90PWM3 AT90PWM216
 static const Valueitem_t _values_SUT_CKSEL_at90pwm2[42] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "PLLCLK_16MHZ_1KCK_14CK_0MS", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x13, "PLLCLK_16MHZ_1KCK_14CK_4MS1", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_65MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x23, "PLLCLK_16MHZ_1KCK_14CK_65MS", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x33, "PLLCLK_16MHZ_16KCK_14CK_0MS", "PLL clock 16 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "pllclk_16mhz_1kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "pllclk_16mhz_1kck_14ck_4ms1", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "pllclk_16mhz_1kck_14ck_65ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x33, "pllclk_16mhz_16kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // AT90PWM81 AT90PWM161
 static const Valueitem_t _values_SUT_CKSEL_at90pwm81[56] = {
-  {0x00, "EXTCLK_PLLIN_RC_8MHZ_6CK_14CK_0MS", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x01, "PLLCLK_DIV4_PLLIN_RC_8MHZ_1KCK_14CK_0MS", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x02, "RC_8MHZ_PLLIN_RC_8MHZ_6CK_14CK_0MS", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "WDOSC_128KHZ_1KCK_14CK_0MS", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x04, "PLLCLK_DIV4_PLLIN_XOSC_1KCK_14CK_0MS", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x05, "PLLCLK_DIV4_PLLIN_EXTCLK_16KCK_14CK_0MS", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x06, "RC_1MHZ_1KCK_14CK_0MS", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x08, "XOSC_PLLIN_RC_8MHZ_258CK_14CK_4MS1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "XOSC_PLLIN_RC_8MHZ_1KCK_14CK_65MS", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_258CK_14CK_4MS1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_1KCK_14CK_65MS", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_258CK_14CK_4MS1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_1KCK_14CK_65MS", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_258CK_14CK_4MS1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_1KCK_14CK_65MS", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_PLLIN_RC_8MHZ_6CK_14CK_4MS1", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x11, "PLLCLK_DIV4_PLLIN_RC_8MHZ_1KCK_14CK_4MS", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x12, "RC_8MHZ_PLLIN_RC_8MHZ_6CK_14CK_4MS1", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x13, "WDOSC_128KHZ_1KCK_14CK_4MS1", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x14, "PLLCLK_DIV4_PLLIN_XOSC_1KCK_14CK_4MS", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x15, "PLLCLK_DIV4_PLLIN_EXTCLK_16KCK_14CK_4MSx15", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
-  {0x16, "RC_1MHZ_1KCK_14CK_4MS1", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x18, "XOSC_PLLIN_RC_8MHZ_258CK_14CK_65MS", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "XOSC_PLLIN_RC_8MHZ_16KCK_14CK_0MS", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_258CK_14CK_65MS", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_16KCK_14CK_0MS", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_258CK_14CK_65MS", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_16KCK_14CK_0MS", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_258CK_14CK_65MS", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_16KCK_14CK_0MS", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_PLLIN_RC_8MHZ_6CK_14CK_65MS", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x21, "PLLCLK_DIV4_PLLIN_RC_8MHZ_1KCK_14CK_64MS", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
-  {0x22, "RC_8MHZ_PLLIN_RC_8MHZ_6CK_14CK_65MS", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x23, "WDOSC_128KHZ_1KCK_14CK_65MS", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x24, "PLLCLK_DIV4_PLLIN_XOSC_1KCK_14CK_64MS", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
-  {0x25, "PLLCLK_DIV4_PLLIN_EXTCLK_16KCK_14CK_4MSx25", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
-  {0x26, "RC_1MHZ_1KCK_14CK_65MS", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x28, "XOSC_PLLIN_RC_8MHZ_1KCK_14CK_0MS", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "XOSC_PLLIN_RC_8MHZ_16KCK_14CK_4MS1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_1KCK_14CK_0MS", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_16KCK_14CK_4MS1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_1KCK_14CK_0MS", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_16KCK_14CK_4MS1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_1KCK_14CK_0MS", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_16KCK_14CK_4MS1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x33, "WDOSC_128KHZ_16KCK_14CK_0MS", "WD 128 kHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x34, "PLLCLK_DIV4_PLLIN_XOSC_16KCK_14CK_0MS", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x35, "PLLCLK_DIV4_PLLIN_EXTCLK_16KCK_14CK_64MS", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
-  {0x38, "XOSC_PLLIN_RC_8MHZ_1KCK_14CK_4MS1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "XOSC_PLLIN_RC_8MHZ_16KCK_14CK_65MS", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_1KCK_14CK_4MS1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "XOSC_3MHZ_8MHZ_PLLIN_RC_8MHZ_16KCK_14CK_65MS", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_1KCK_14CK_4MS1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "XOSC_3MHZ_8MHZ_PLLIN_XOSC_16KCK_14CK_65MS", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_1KCK_14CK_4MS1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "XOSC_8MHZ_16MHZ_PLLIN_RC_8MHZ_16KCK_14CK_65MS", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_pllin_rc_8mhz_6ck_14ck_0ms", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_div4_pllin_rc_8mhz_1kck_14ck_0ms", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x02, "rc_8mhz_pllin_rc_8mhz_6ck_14ck_0ms", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "wdosc_128khz_1kck_14ck_0ms", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x04, "pllclk_div4_pllin_xosc_1kck_14ck_0ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "pllclk_div4_pllin_extclk_16kck_14ck_0ms", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x06, "rc_1mhz_1kck_14ck_0ms", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "xosc_pllin_rc_8mhz_258ck_14ck_4ms1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "xosc_pllin_rc_8mhz_1kck_14ck_65ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "xosc_3mhz_8mhz_pllin_rc_8mhz_258ck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "xosc_3mhz_8mhz_pllin_rc_8mhz_1kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "xosc_3mhz_8mhz_pllin_xosc_258ck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "xosc_3mhz_8mhz_pllin_xosc_1kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "xosc_8mhz_16mhz_pllin_rc_8mhz_258ck_14ck_4ms1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "xosc_8mhz_16mhz_pllin_rc_8mhz_1kck_14ck_65ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_pllin_rc_8mhz_6ck_14ck_4ms1", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "pllclk_div4_pllin_rc_8mhz_1kck_14ck_4ms", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x12, "rc_8mhz_pllin_rc_8mhz_6ck_14ck_4ms1", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "wdosc_128khz_1kck_14ck_4ms1", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x14, "pllclk_div4_pllin_xosc_1kck_14ck_4ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x15, "pllclk_div4_pllin_extclk_16kck_14ck_4msx15", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x16, "rc_1mhz_1kck_14ck_4ms1", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x18, "xosc_pllin_rc_8mhz_258ck_14ck_65ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "xosc_pllin_rc_8mhz_16kck_14ck_0ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "xosc_3mhz_8mhz_pllin_rc_8mhz_258ck_14ck_65ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "xosc_3mhz_8mhz_pllin_rc_8mhz_16kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "xosc_3mhz_8mhz_pllin_xosc_258ck_14ck_65ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "xosc_3mhz_8mhz_pllin_xosc_16kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "xosc_8mhz_16mhz_pllin_rc_8mhz_258ck_14ck_65ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "xosc_8mhz_16mhz_pllin_rc_8mhz_16kck_14ck_0ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_pllin_rc_8mhz_6ck_14ck_65ms", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "pllclk_div4_pllin_rc_8mhz_1kck_14ck_64ms", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
+  {0x22, "rc_8mhz_pllin_rc_8mhz_6ck_14ck_65ms", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "wdosc_128khz_1kck_14ck_65ms", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x24, "pllclk_div4_pllin_xosc_1kck_14ck_64ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
+  {0x25, "pllclk_div4_pllin_extclk_16kck_14ck_4msx25", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x26, "rc_1mhz_1kck_14ck_65ms", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x28, "xosc_pllin_rc_8mhz_1kck_14ck_0ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "xosc_pllin_rc_8mhz_16kck_14ck_4ms1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "xosc_3mhz_8mhz_pllin_rc_8mhz_1kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "xosc_3mhz_8mhz_pllin_rc_8mhz_16kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "xosc_3mhz_8mhz_pllin_xosc_1kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "xosc_3mhz_8mhz_pllin_xosc_16kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "xosc_8mhz_16mhz_pllin_rc_8mhz_1kck_14ck_0ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "xosc_8mhz_16mhz_pllin_rc_8mhz_16kck_14ck_4ms1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x33, "wdosc_128khz_16kck_14ck_0ms", "WD 128 kHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x34, "pllclk_div4_pllin_xosc_16kck_14ck_0ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x35, "pllclk_div4_pllin_extclk_16kck_14ck_64ms", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x38, "xosc_pllin_rc_8mhz_1kck_14ck_4ms1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "xosc_pllin_rc_8mhz_16kck_14ck_65ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "xosc_3mhz_8mhz_pllin_rc_8mhz_1kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "xosc_3mhz_8mhz_pllin_rc_8mhz_16kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "xosc_3mhz_8mhz_pllin_xosc_1kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "xosc_3mhz_8mhz_pllin_xosc_16kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "xosc_8mhz_16mhz_pllin_rc_8mhz_1kck_14ck_4ms1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "xosc_8mhz_16mhz_pllin_rc_8mhz_16kck_14ck_65ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 /*
@@ -7792,540 +7666,540 @@ static const Valueitem_t _values_SUT_CKSEL_at90pwm81[56] = {
  * ATmega32U6 ATmega162 AT90USB82 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
  */
 static const Valueitem_t _values_SUT_CKSEL_at90can128[50] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_6CK_0MS", "int RC osc; startup time: 6 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_0MS", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
-  {0x05, "EXTLOFXTAL_32KCK_0MS", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
-  {0x06, "EXTLOFXTAL_1KCK_0MS_INTCAP", "ext low-freq crystal; startup time: 1024 CK + 0 ms; int cap"},
-  {0x07, "EXTLOFXTAL_32KCK_0MS_INTCAP", "ext low-freq crystal; startup time: 32768 CK + 0 ms; int cap"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_65MS", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_4MS1", "ext clock; startup time: 6 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_6CK_4MS1", "int RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_4MS1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
-  {0x15, "EXTLOFXTAL_32KCK_4MS1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
-  {0x16, "EXTLOFXTAL_1KCK_4MS1_INTCAP", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms; int cap"},
-  {0x17, "EXTLOFXTAL_32KCK_4MS1_INTCAP", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms; int cap"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_65MS", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_0MS", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_65MS", "ext clock; startup time: 6 CK + 65 ms"},
-  {0x22, "INTRCOSC_6CK_65MS", "int RC osc; startup time: 6 CK + 65 ms"},
-  {0x24, "EXTLOFXTAL_1KCK_65MS", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
-  {0x25, "EXTLOFXTAL_32KCK_65MS", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
-  {0x26, "EXTLOFXTAL_1KCK_65MS_INTCAP", "ext low-freq crystal; startup time: 1024 CK + 65 ms; int cap"},
-  {0x27, "EXTLOFXTAL_32KCK_65MS_INTCAP", "ext low-freq crystal; startup time: 32768 CK + 65 ms; int cap"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_0MS", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_65MS", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_0ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 0 ms; int cap"},
+  {0x07, "extlofxtal_32kck_0ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 0 ms; int cap"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x16, "extlofxtal_1kck_4ms1_intcap", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms; int cap"},
+  {0x17, "extlofxtal_32kck_4ms1_intcap", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms; int cap"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_65ms", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x26, "extlofxtal_1kck_65ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 65 ms; int cap"},
+  {0x27, "extlofxtal_32kck_65ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 65 ms; int cap"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_SUT_CKSEL_ata6285[3] = {
-  {0, "SUT_6CK_14CK_0MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {1, "SUT_6CK_14CK_5MS7", "startup time PWRDWN/RESET: 6 CK/14 CK + 5.7 ms"},
-  {2, "SUT_6CK_14CK_90MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 90 ms"},
+  {0, "sut_6ck_14ck_0ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {1, "sut_6ck_14ck_5ms7", "startup time PWRDWN/RESET: 6 CK/14 CK + 5.7 ms"},
+  {2, "sut_6ck_14ck_90ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 90 ms"},
 };
 
 // AT90SCR100H AT90SCR100
 static const Valueitem_t _values_SUT_CKSEL_at90scr100h[14] = {
-  {0x00, "EXTCLK_BODENx00", "ext clock; brownout detection"},
-  {0x01, "EXTCLK_BODENx01", "ext clock; brownout detection"},
-  {0x08, "CRES_FASTPWRx08", "ceramic res; fast rising power"},
-  {0x09, "CRES_SLOWPWRx09", "ceramic res; slowly rising power"},
-  {0x10, "EXTCLK_FASTPWRx10", "ext clock; fast rising power"},
-  {0x11, "EXTCLK_FASTPWRx11", "ext clock; fast rising power"},
-  {0x18, "CRES_SLOWPWRx18", "ceramic res; slowly rising power"},
-  {0x19, "XOSC_BODEN", "crystal osc; brownout detection"},
-  {0x20, "EXTCLK_SLOWPWRx20", "ext clock; slowly rising power"},
-  {0x21, "EXTCLK_SLOWPWRx21", "ext clock; slowly rising power"},
-  {0x28, "CRES_BODEN", "ceramic res; brownout detection"},
-  {0x29, "XOSC_FASTPWR", "crystal osc; fast rising power"},
-  {0x38, "CRES_FASTPWRx38", "ceramic res; fast rising power"},
-  {0x39, "XOSC_SLOWPWR", "crystal osc; slowly rising power"},
+  {0x00, "extclk_bodenx00", "ext clock; brownout detection"},
+  {0x01, "extclk_bodenx01", "ext clock; brownout detection"},
+  {0x08, "cres_fastpwrx08", "ceramic res; fast rising power"},
+  {0x09, "cres_slowpwrx09", "ceramic res; slowly rising power"},
+  {0x10, "extclk_fastpwrx10", "ext clock; fast rising power"},
+  {0x11, "extclk_fastpwrx11", "ext clock; fast rising power"},
+  {0x18, "cres_slowpwrx18", "ceramic res; slowly rising power"},
+  {0x19, "xosc_boden", "crystal osc; brownout detection"},
+  {0x20, "extclk_slowpwrx20", "ext clock; slowly rising power"},
+  {0x21, "extclk_slowpwrx21", "ext clock; slowly rising power"},
+  {0x28, "cres_boden", "ceramic res; brownout detection"},
+  {0x29, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {0x38, "cres_fastpwrx38", "ceramic res; fast rising power"},
+  {0x39, "xosc_slowpwr", "crystal osc; slowly rising power"},
 };
 
 // ATtiny13 ATtiny13A
 static const Valueitem_t _values_SUT_CKSEL_attiny13[12] = {
-  {0x00, "EXTCLK_14CK_0MS", "ext clock; startup time: 14 CK + 0 ms"},
-  {0x01, "INTRCOSC_4MHZ8_14CK_0MS", "int RC osc 4.8 MHz; startup time: 14 CK + 0 ms"},
-  {0x02, "INTRCOSC_9MHZ6_14CK_0MS", "int RC osc 9.6 MHz; startup time: 14 CK + 0 ms"},
-  {0x03, "INTRCOSC_128KHZ_14CK_0MS", "int RC osc 128 kHz; startup time: 14 CK + 0 ms"},
-  {0x04, "EXTCLK_14CK_4MS", "ext clock; startup time: 14 CK + 4 ms"},
-  {0x05, "INTRCOSC_4MHZ8_14CK_4MS", "int RC osc 4.8 MHz; startup time: 14 CK + 4 ms"},
-  {0x06, "INTRCOSC_9MHZ6_14CK_4MS", "int RC osc 9.6 MHz; startup time: 14 CK + 4 ms"},
-  {0x07, "INTRCOSC_128KHZ_14CK_4MS", "int RC osc 128 kHz; startup time: 14 CK + 4 ms"},
-  {0x08, "EXTCLK_14CK_64MS", "ext clock; startup time: 14 CK + 64 ms"},
-  {0x09, "INTRCOSC_4MHZ8_14CK_64MS", "int RC osc 4.8 MHz; startup time: 14 CK + 64 ms"},
-  {0x0a, "INTRCOSC_9MHZ6_14CK_64MS", "int RC osc 9.6 MHz; startup time: 14 CK + 64 ms"},
-  {0x0b, "INTRCOSC_128KHZ_14CK_64MS", "int RC osc 128 kHz; startup time: 14 CK + 64 ms"},
+  {0x00, "extclk_14ck_0ms", "ext clock; startup time: 14 CK + 0 ms"},
+  {0x01, "intrcosc_4mhz8_14ck_0ms", "int RC osc 4.8 MHz; startup time: 14 CK + 0 ms"},
+  {0x02, "intrcosc_9mhz6_14ck_0ms", "int RC osc 9.6 MHz; startup time: 14 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_14ck_0ms", "int RC osc 128 kHz; startup time: 14 CK + 0 ms"},
+  {0x04, "extclk_14ck_4ms", "ext clock; startup time: 14 CK + 4 ms"},
+  {0x05, "intrcosc_4mhz8_14ck_4ms", "int RC osc 4.8 MHz; startup time: 14 CK + 4 ms"},
+  {0x06, "intrcosc_9mhz6_14ck_4ms", "int RC osc 9.6 MHz; startup time: 14 CK + 4 ms"},
+  {0x07, "intrcosc_128khz_14ck_4ms", "int RC osc 128 kHz; startup time: 14 CK + 4 ms"},
+  {0x08, "extclk_14ck_64ms", "ext clock; startup time: 14 CK + 64 ms"},
+  {0x09, "intrcosc_4mhz8_14ck_64ms", "int RC osc 4.8 MHz; startup time: 14 CK + 64 ms"},
+  {0x0a, "intrcosc_9mhz6_14ck_64ms", "int RC osc 9.6 MHz; startup time: 14 CK + 64 ms"},
+  {0x0b, "intrcosc_128khz_14ck_64ms", "int RC osc 128 kHz; startup time: 14 CK + 64 ms"},
 };
 
 // ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
 static const Valueitem_t _values_SUT_CKSEL_attiny24[44] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x04, "WDOSC_128KHZ_6CK_14CK_0MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x06, "EXTLOFXTAL_1KCK_14CK_0MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x14, "WDOSC_128KHZ_6CK_14CK_4MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x16, "EXTLOFXTAL_1KCK_14CK_4MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_64MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x24, "WDOSC_128KHZ_6CK_14CK_64MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x26, "EXTLOFXTAL_32KCK_14CK_64MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 64 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x16, "extlofxtal_1kck_14ck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x24, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x26, "extlofxtal_32kck_14ck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 64 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // ATtiny25 ATtiny45 ATtiny85
 static const Valueitem_t _values_SUT_CKSEL_attiny25[51] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x01, "PLLCLK_1KCK_14CK_4MS", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "INTRCOSC_6MHZ4_6CK_14CK_64MS", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x04, "WDOSC_128KHZ_6CK_14CK_0MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x06, "EXTLOFXTAL_1KCK_14CK_0MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x11, "PLLCLK_16KCK_14CK_4MS", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x14, "WDOSC_128KHZ_6CK_14CK_4MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x16, "EXTLOFXTAL_1KCK_14CK_4MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x21, "PLLCLK_1KCK_14CK_64MS", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_64MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x23, "INTRCOSC_6MHZ4_6CK_14CK_4MS", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x24, "WDOSC_128KHZ_6CK_14CK_64MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x26, "EXTLOFXTAL_32KCK_14CK_64MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 64 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x31, "PLLCLK_16KCK_14CK_64MS", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
-  {0x33, "INTRCOSC_6MHZ4_1CK_14CK_0MS", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 1 CK/14 CK + 0 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_1kck_14ck_4ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intrcosc_6mhz4_6ck_14ck_64ms", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x04, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "pllclk_16kck_14ck_4ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x16, "extlofxtal_1kck_14ck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "pllclk_1kck_14ck_64ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x23, "intrcosc_6mhz4_6ck_14ck_4ms", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x24, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x26, "extlofxtal_32kck_14ck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 64 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x31, "pllclk_16kck_14ck_64ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x33, "intrcosc_6mhz4_1ck_14ck_0ms", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 1 CK/14 CK + 0 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // ATtiny26
 static const Valueitem_t _values_SUT_CKSEL_attiny26[62] = {
-  {0x01, "PLLCLK_1KCK_0MS", "PLL clock; startup time: 1024 CK + 0 ms"},
-  {0x11, "PLLCLK_1KCK_4MS", "PLL clock; startup time: 1024 CK + 4 ms"},
-  {0x21, "PLLCLK_1KCK_64MS", "PLL clock; startup time: 1024 CK + 64 ms"},
-  {0x31, "PLLCLK_16KCK_64MS", "PLL clock; startup time: 16384 CK + 64 ms"},
-  {0x80, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x81, "INTRCOSC_1MHZ_6CK_0MS", "int RC osc 1 MHz; startup time: 6 CK + 0 ms"},
-  {0x82, "INTRCOSC_2MHZ_6CK_0MS", "int RC osc 2 MHz; startup time: 6 CK + 0 ms"},
-  {0x83, "INTRCOSC_4MHZ_6CK_0MS", "int RC osc 4 MHz; startup time: 6 CK + 0 ms"},
-  {0x84, "INTRCOSC_8MHZ_6CK_0MS", "int RC osc 8 MHz; startup time: 6 CK + 0 ms"},
-  {0x85, "EXTRCOSC_XX_0MHZ9_18CK_0MS", "ext RC osc -0.9 MHz; startup time: 18 CK + 0 ms"},
-  {0x86, "EXTRCOSC_0MHZ9_3MHZ_18CK_0MS", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 0 ms"},
-  {0x87, "EXTRCOSC_3MHZ_8MHZ_18CK_0MS", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 0 ms"},
-  {0x88, "EXTRCOSC_8MHZ_12MHZ_18CK_0MS", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 0 ms"},
-  {0x89, "EXTLOFXTAL_1KCK_4MS", "ext low-freq crystal; startup time: 1024 CK + 4 ms"},
-  {0x8a, "EXTLOFXTALRES_258CK_4MS", "ext crystal/resonator low freq; startup time: 258 CK + 4 ms"},
-  {0x8b, "EXTLOFXTALRES_1KCK_64MS", "ext crystal/resonator low freq; startup time: 1024 CK + 64 ms"},
-  {0x8c, "EXTMEDFXTALRES_258CK_4MS", "ext crystal/resonator medium freq; startup time: 258 CK + 4 ms"},
-  {0x8d, "EXTMEDFXTALRES_1KCK_64MS", "ext crystal/resonator medium freq; startup time: 1024 CK + 64 ms"},
-  {0x8e, "EXTHIFXTALRES_258CK_4MS", "ext crystal/resonator high freq; startup time: 258 CK + 4 ms"},
-  {0x8f, "EXTHIFXTALRES_1KCK_64MS", "ext crystal/resonator high freq; startup time: 1024 CK + 64 ms"},
-  {0x90, "EXTCLK_6CK_4MS", "ext clock; startup time: 6 CK + 4 ms"},
-  {0x91, "INTRCOSC_1MHZ_6CK_4MS", "int RC osc 1 MHz; startup time: 6 CK + 4 ms"},
-  {0x92, "INTRCOSC_2MHZ_6CK_4MS", "int RC osc 2 MHz; startup time: 6 CK + 4 ms"},
-  {0x93, "INTRCOSC_4MHZ_6CK_4MS", "int RC osc 4 MHz; startup time: 6 CK + 4 ms"},
-  {0x94, "INTRCOSC_8MHZ_6CK_4MS", "int RC osc 8 MHz; startup time: 6 CK + 4 ms"},
-  {0x95, "EXTRCOSC_XX_0MHZ9_18CK_4MS", "ext RC osc -0.9 MHz; startup time: 18 CK + 4 ms"},
-  {0x96, "EXTRCOSC_0MHZ9_3MHZ_18CK_4MS", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 4 ms"},
-  {0x97, "EXTRCOSC_3MHZ_8MHZ_18CK_4MS", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 4 ms"},
-  {0x98, "EXTRCOSC_8MHZ_12MHZ_18CK_4MS", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 4 ms"},
-  {0x99, "EXTLOFXTAL_1KCK_64MS", "ext low-freq crystal; startup time: 1024 CK + 64 ms"},
-  {0x9a, "EXTLOFXTALRES_258CK_64MS", "ext crystal/resonator low freq; startup time: 258 CK + 64 ms"},
-  {0x9b, "EXTLOFXTALRES_16KCK_0MS", "ext crystal/resonator low freq; startup time: 16384 CK + 0 ms"},
-  {0x9c, "EXTMEDFXTALRES_258CK_64MS", "ext crystal/resonator medium freq; startup time: 258 CK + 64 ms"},
-  {0x9d, "EXTMEDFXTALRES_16KCK_0MS", "ext crystal/resonator medium freq; startup time: 16384 CK + 0 ms"},
-  {0x9e, "EXTHIFXTALRES_258CK_64MS", "ext crystal/resonator high freq; startup time: 258 CK + 64 ms"},
-  {0x9f, "EXTHIFXTALRES_16KCK_0MS", "ext crystal/resonator high freq; startup time: 16384 CK + 0 ms"},
-  {0xa0, "EXTCLK_6CK_64MS", "ext clock; startup time: 6 CK + 64 ms"},
-  {0xa1, "INTRCOSC_1MHZ_6CK_64MS", "int RC osc 1 MHz; startup time: 6 CK + 64 ms"},
-  {0xa2, "INTRCOSC_2MHZ_6CK_64MS", "int RC osc 2 MHz; startup time: 6 CK + 64 ms"},
-  {0xa3, "INTRCOSC_4MHZ_6CK_64MS", "int RC osc 4 MHz; startup time: 6 CK + 64 ms"},
-  {0xa4, "INTRCOSC_8MHZ_6CK_64MS", "int RC osc 8 MHz; startup time: 6 CK + 64 ms"},
-  {0xa5, "EXTRCOSC_XX_0MHZ9_18CK_64MS", "ext RC osc -0.9 MHz; startup time: 18 CK + 64 ms"},
-  {0xa6, "EXTRCOSC_0MHZ9_3MHZ_18CK_64MS", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 64 ms"},
-  {0xa7, "EXTRCOSC_3MHZ_8MHZ_18CK_64MS", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 64 ms"},
-  {0xa8, "EXTRCOSC_8MHZ_12MHZ_18CK_64MS", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 64 ms"},
-  {0xa9, "EXTLOFXTAL_32KCK_64MS", "ext low-freq crystal; startup time: 32768 CK + 64 ms"},
-  {0xaa, "EXTLOFXTALRES_1KCK_0MS", "ext crystal/resonator low freq; startup time: 1024 CK + 0 ms"},
-  {0xab, "EXTLOFXTALRES_16KCK_4MS", "ext crystal/resonator low freq; startup time: 16384 CK + 4 ms"},
-  {0xac, "EXTMEDFXTALRES_1KCK_0MS", "ext crystal/resonator medium freq; startup time: 1024 CK + 0 ms"},
-  {0xad, "EXTMEDFXTALRES_16KCK_4MS", "ext crystal/resonator medium freq; startup time: 16384 CK + 4 ms"},
-  {0xae, "EXTHIFXTALRES_1KCK_0MS", "ext crystal/resonator high freq; startup time: 1024 CK + 0 ms"},
-  {0xaf, "EXTHIFXTALRES_16KCK_4MS", "ext crystal/resonator high freq; startup time: 16384 CK + 4 ms"},
-  {0xb5, "EXTRCOSC_XX_0MHZ9_6CK_4MS", "ext RC osc -0.9 MHz; startup time: 6 CK + 4 ms"},
-  {0xb6, "EXTRCOSC_0MHZ9_3MHZ_6CK_4MS", "ext RC osc 0.9-3.0 MHz; startup time: 6 CK + 4 ms"},
-  {0xb7, "EXTRCOSC_3MHZ_8MHZ_6CK_4MS", "ext RC osc 3.0-8.0 MHz; startup time: 6 CK + 4 ms"},
-  {0xb8, "EXTRCOSC_8MHZ_12MHZ_6CK_4MS", "ext RC osc 8.0-12.0 MHz; startup time: 6 CK + 4 ms"},
-  {0xba, "EXTLOFXTALRES_1KCK_4MS", "ext crystal/resonator low freq; startup time: 1024 CK + 4 ms"},
-  {0xbb, "EXTLOFXTALRES_16KCK_64MS", "ext crystal/resonator low freq; startup time: 16384 CK + 64 ms"},
-  {0xbc, "EXTMEDFXTALRES_1KCK_4MS", "ext crystal/resonator medium freq; startup time: 1024 CK + 4 ms"},
-  {0xbd, "EXTMEDFXTALRES_16KCK_64MS", "ext crystal/resonator medium freq; startup time: 16384 CK + 64 ms"},
-  {0xbe, "EXTHIFXTALRES_1KCK_4MS", "ext crystal/resonator high freq; startup time: 1024 CK + 4 ms"},
-  {0xbf, "EXTHIFXTALRES_16KCK_64MS", "ext crystal/resonator high freq; startup time: 16384 CK + 64 ms"},
+  {0x01, "pllclk_1kck_0ms", "PLL clock; startup time: 1024 CK + 0 ms"},
+  {0x11, "pllclk_1kck_4ms", "PLL clock; startup time: 1024 CK + 4 ms"},
+  {0x21, "pllclk_1kck_64ms", "PLL clock; startup time: 1024 CK + 64 ms"},
+  {0x31, "pllclk_16kck_64ms", "PLL clock; startup time: 16384 CK + 64 ms"},
+  {0x80, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x81, "intrcosc_1mhz_6ck_0ms", "int RC osc 1 MHz; startup time: 6 CK + 0 ms"},
+  {0x82, "intrcosc_2mhz_6ck_0ms", "int RC osc 2 MHz; startup time: 6 CK + 0 ms"},
+  {0x83, "intrcosc_4mhz_6ck_0ms", "int RC osc 4 MHz; startup time: 6 CK + 0 ms"},
+  {0x84, "intrcosc_8mhz_6ck_0ms", "int RC osc 8 MHz; startup time: 6 CK + 0 ms"},
+  {0x85, "extrcosc_xx_0mhz9_18ck_0ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 0 ms"},
+  {0x86, "extrcosc_0mhz9_3mhz_18ck_0ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x87, "extrcosc_3mhz_8mhz_18ck_0ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x88, "extrcosc_8mhz_12mhz_18ck_0ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x89, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time: 1024 CK + 4 ms"},
+  {0x8a, "extlofxtalres_258ck_4ms", "ext crystal/resonator low freq; startup time: 258 CK + 4 ms"},
+  {0x8b, "extlofxtalres_1kck_64ms", "ext crystal/resonator low freq; startup time: 1024 CK + 64 ms"},
+  {0x8c, "extmedfxtalres_258ck_4ms", "ext crystal/resonator medium freq; startup time: 258 CK + 4 ms"},
+  {0x8d, "extmedfxtalres_1kck_64ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 64 ms"},
+  {0x8e, "exthifxtalres_258ck_4ms", "ext crystal/resonator high freq; startup time: 258 CK + 4 ms"},
+  {0x8f, "exthifxtalres_1kck_64ms", "ext crystal/resonator high freq; startup time: 1024 CK + 64 ms"},
+  {0x90, "extclk_6ck_4ms", "ext clock; startup time: 6 CK + 4 ms"},
+  {0x91, "intrcosc_1mhz_6ck_4ms", "int RC osc 1 MHz; startup time: 6 CK + 4 ms"},
+  {0x92, "intrcosc_2mhz_6ck_4ms", "int RC osc 2 MHz; startup time: 6 CK + 4 ms"},
+  {0x93, "intrcosc_4mhz_6ck_4ms", "int RC osc 4 MHz; startup time: 6 CK + 4 ms"},
+  {0x94, "intrcosc_8mhz_6ck_4ms", "int RC osc 8 MHz; startup time: 6 CK + 4 ms"},
+  {0x95, "extrcosc_xx_0mhz9_18ck_4ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 4 ms"},
+  {0x96, "extrcosc_0mhz9_3mhz_18ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x97, "extrcosc_3mhz_8mhz_18ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x98, "extrcosc_8mhz_12mhz_18ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x99, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time: 1024 CK + 64 ms"},
+  {0x9a, "extlofxtalres_258ck_64ms", "ext crystal/resonator low freq; startup time: 258 CK + 64 ms"},
+  {0x9b, "extlofxtalres_16kck_0ms", "ext crystal/resonator low freq; startup time: 16384 CK + 0 ms"},
+  {0x9c, "extmedfxtalres_258ck_64ms", "ext crystal/resonator medium freq; startup time: 258 CK + 64 ms"},
+  {0x9d, "extmedfxtalres_16kck_0ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 0 ms"},
+  {0x9e, "exthifxtalres_258ck_64ms", "ext crystal/resonator high freq; startup time: 258 CK + 64 ms"},
+  {0x9f, "exthifxtalres_16kck_0ms", "ext crystal/resonator high freq; startup time: 16384 CK + 0 ms"},
+  {0xa0, "extclk_6ck_64ms", "ext clock; startup time: 6 CK + 64 ms"},
+  {0xa1, "intrcosc_1mhz_6ck_64ms", "int RC osc 1 MHz; startup time: 6 CK + 64 ms"},
+  {0xa2, "intrcosc_2mhz_6ck_64ms", "int RC osc 2 MHz; startup time: 6 CK + 64 ms"},
+  {0xa3, "intrcosc_4mhz_6ck_64ms", "int RC osc 4 MHz; startup time: 6 CK + 64 ms"},
+  {0xa4, "intrcosc_8mhz_6ck_64ms", "int RC osc 8 MHz; startup time: 6 CK + 64 ms"},
+  {0xa5, "extrcosc_xx_0mhz9_18ck_64ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 64 ms"},
+  {0xa6, "extrcosc_0mhz9_3mhz_18ck_64ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 64 ms"},
+  {0xa7, "extrcosc_3mhz_8mhz_18ck_64ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 64 ms"},
+  {0xa8, "extrcosc_8mhz_12mhz_18ck_64ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 64 ms"},
+  {0xa9, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time: 32768 CK + 64 ms"},
+  {0xaa, "extlofxtalres_1kck_0ms", "ext crystal/resonator low freq; startup time: 1024 CK + 0 ms"},
+  {0xab, "extlofxtalres_16kck_4ms", "ext crystal/resonator low freq; startup time: 16384 CK + 4 ms"},
+  {0xac, "extmedfxtalres_1kck_0ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 0 ms"},
+  {0xad, "extmedfxtalres_16kck_4ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 4 ms"},
+  {0xae, "exthifxtalres_1kck_0ms", "ext crystal/resonator high freq; startup time: 1024 CK + 0 ms"},
+  {0xaf, "exthifxtalres_16kck_4ms", "ext crystal/resonator high freq; startup time: 16384 CK + 4 ms"},
+  {0xb5, "extrcosc_xx_0mhz9_6ck_4ms", "ext RC osc -0.9 MHz; startup time: 6 CK + 4 ms"},
+  {0xb6, "extrcosc_0mhz9_3mhz_6ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 6 CK + 4 ms"},
+  {0xb7, "extrcosc_3mhz_8mhz_6ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 6 CK + 4 ms"},
+  {0xb8, "extrcosc_8mhz_12mhz_6ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 6 CK + 4 ms"},
+  {0xba, "extlofxtalres_1kck_4ms", "ext crystal/resonator low freq; startup time: 1024 CK + 4 ms"},
+  {0xbb, "extlofxtalres_16kck_64ms", "ext crystal/resonator low freq; startup time: 16384 CK + 64 ms"},
+  {0xbc, "extmedfxtalres_1kck_4ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 4 ms"},
+  {0xbd, "extmedfxtalres_16kck_64ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 64 ms"},
+  {0xbe, "exthifxtalres_1kck_4ms", "ext crystal/resonator high freq; startup time: 1024 CK + 4 ms"},
+  {0xbf, "exthifxtalres_16kck_64ms", "ext crystal/resonator high freq; startup time: 16384 CK + 64 ms"},
 };
 
 // ATtiny43U ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A
 static const Valueitem_t _values_SUT_CKSEL_attiny43u[48] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x01, "PLLCLK_1KCK_14CK_8MS", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 8 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "WDOSC_128KHZ_6CK_14CK_0MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_4MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/4 ms"},
-  {0x08, "EXTCRES_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTCRES_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTCRES_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTCRES_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTCRES_3MHZ_8MHZ_258CK_14CK_4MS1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTCRES_3MHZ_8MHZ_1KCK_14CK_65MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTCRES_8MHZ_XX_258CK_14CK_4MS1", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTCRES_8MHZ_XX_1KCK_14CK_65MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x11, "PLLCLK_16KCK_14CK_8MS", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 8 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x13, "WDOSC_128KHZ_6CK_14CK_4MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_64MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/64 ms"},
-  {0x18, "EXTCRES_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTCRES_0MHZ9_3MHZ_258CK_14CK_65MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTCRES_3MHZ_8MHZ_258CK_14CK_65MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTCRES_8MHZ_XX_258CK_14CK_65MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_14CK_0MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_64MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x21, "PLLCLK_1KCK_14CK_68MS", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 68 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_64MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x23, "WDOSC_128KHZ_6CK_14CK_64MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x24, "EXTLOFXTAL_32KCK_64MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/64 ms"},
-  {0x28, "EXTCRES_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTCRES_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTCRES_3MHZ_8MHZ_1KCK_14CK_0MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTCRES_8MHZ_XX_1KCK_14CK_0MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_14CK_4MS1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x31, "PLLCLK_16KCK_14CK_68MS", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 68 ms"},
-  {0x38, "EXTCRES_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTCRES_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTCRES_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTCRES_8MHZ_XX_1KCK_14CK_4MS1", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_14CK_65MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_1kck_14ck_8ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 8 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/4 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extcres_0mhz4_0mhz9_1kck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extcres_0mhz9_3mhz_1kck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extcres_3mhz_8mhz_1kck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extcres_8mhz_xx_258ck_14ck_4ms1", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extcres_8mhz_xx_1kck_14ck_65ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x11, "pllclk_16kck_14ck_8ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 8 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x13, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/64 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_258ck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_258ck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extcres_3mhz_8mhz_258ck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extcres_8mhz_xx_258ck_14ck_65ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_64ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x21, "pllclk_1kck_14ck_68ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 68 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x23, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x24, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/64 ms"},
+  {0x28, "extcres_0mhz4_0mhz9_1kck_14ck_0ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extcres_0mhz9_3mhz_1kck_14ck_0ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extcres_3mhz_8mhz_1kck_14ck_0ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extcres_8mhz_xx_1kck_14ck_0ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x31, "pllclk_16kck_14ck_68ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 68 ms"},
+  {0x38, "extcres_0mhz4_0mhz9_1kck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extcres_0mhz9_3mhz_1kck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extcres_3mhz_8mhz_1kck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extcres_8mhz_xx_1kck_14ck_4ms1", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // ATtiny48 ATtiny88
 static const Valueitem_t _values_SUT_CKSEL_attiny48[9] = {
-  {0x0c, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x0e, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x0f, "INTRCOSC_128KHZ_6CK_14CK_0MS", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x1c, "EXTCLK_6CK_14CK_4MS1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x1e, "INTRCOSC_8MHZ_6CK_14CK_4MS1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x1f, "INTRCOSC_128KHZ_6CK_14CK_4MS1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTCLK_6CK_14CK_65MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x2e, "INTRCOSC_8MHZ_6CK_14CK_65MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x2f, "INTRCOSC_128KHZ_6CK_14CK_65MS", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x0c, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x0e, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x0f, "intrcosc_128khz_6ck_14ck_0ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x1c, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x1e, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x1f, "intrcosc_128khz_6ck_14ck_4ms1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x2c, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x2e, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x2f, "intrcosc_128khz_6ck_14ck_65ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
 };
 
 // ATtiny87 ATtiny167 ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
 static const Valueitem_t _values_SUT_CKSEL_attiny87[44] = {
-  {0x00, "EXTCLK_6CK_14CK_0MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "WDOSC_128KHZ_6CK_14CK_0MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_4MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/4 ms"},
-  {0x08, "EXTCRES_0MHZ4_0MHZ9_258CK_14CK_4MS1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x09, "EXTCRES_0MHZ4_0MHZ9_1KCK_14CK_65MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0a, "EXTCRES_0MHZ9_3MHZ_258CK_14CK_4MS1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0b, "EXTCRES_0MHZ9_3MHZ_1KCK_14CK_65MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0c, "EXTCRES_3MHZ_8MHZ_258CK_14CK_4MS1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0d, "EXTCRES_3MHZ_8MHZ_1KCK_14CK_65MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x0e, "EXTCRES_8MHZ_16MHZ_258CK_14CK_4MS1", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
-  {0x0f, "EXTCRES_8MHZ_16MHZ_1KCK_14CK_65MS", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x13, "WDOSC_128KHZ_6CK_14CK_4MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_64MS", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/64 ms"},
-  {0x18, "EXTCRES_0MHZ4_0MHZ9_258CK_14CK_65MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1a, "EXTCRES_0MHZ9_3MHZ_258CK_14CK_65MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1c, "EXTCRES_3MHZ_8MHZ_258CK_14CK_65MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x1e, "EXTCRES_8MHZ_16MHZ_258CK_14CK_65MS", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_16MHZ_16KCK_14CK_0MS", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_14CK_64MS", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_64MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x23, "WDOSC_128KHZ_6CK_14CK_64MS", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {0x24, "EXTLOFXTAL_32KCK_64MS", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/64 ms"},
-  {0x28, "EXTCRES_0MHZ4_0MHZ9_1KCK_14CK_0MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2a, "EXTCRES_0MHZ9_3MHZ_1KCK_14CK_0MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2c, "EXTCRES_3MHZ_8MHZ_1KCK_14CK_0MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x2e, "EXTCRES_8MHZ_16MHZ_1KCK_14CK_0MS", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_16MHZ_16KCK_14CK_4MS1", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
-  {0x38, "EXTCRES_0MHZ4_0MHZ9_1KCK_14CK_4MS1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_14CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3a, "EXTCRES_0MHZ9_3MHZ_1KCK_14CK_4MS1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_14CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3c, "EXTCRES_3MHZ_8MHZ_1KCK_14CK_4MS1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_14CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
-  {0x3e, "EXTCRES_8MHZ_16MHZ_1KCK_14CK_4MS1", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_16MHZ_16KCK_14CK_65MS", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/4 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extcres_0mhz4_0mhz9_1kck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extcres_0mhz9_3mhz_1kck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extcres_3mhz_8mhz_1kck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extcres_8mhz_16mhz_258ck_14ck_4ms1", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extcres_8mhz_16mhz_1kck_14ck_65ms", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x13, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/64 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_258ck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_258ck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extcres_3mhz_8mhz_258ck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extcres_8mhz_16mhz_258ck_14ck_65ms", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_16mhz_16kck_14ck_0ms", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_64ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x23, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x24, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/64 ms"},
+  {0x28, "extcres_0mhz4_0mhz9_1kck_14ck_0ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extcres_0mhz9_3mhz_1kck_14ck_0ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extcres_3mhz_8mhz_1kck_14ck_0ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extcres_8mhz_16mhz_1kck_14ck_0ms", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_16mhz_16kck_14ck_4ms1", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x38, "extcres_0mhz4_0mhz9_1kck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extcres_0mhz9_3mhz_1kck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extcres_3mhz_8mhz_1kck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extcres_8mhz_16mhz_1kck_14ck_4ms1", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_16mhz_16kck_14ck_65ms", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
 };
 
 // ATtiny828 ATtiny828R
 static const Valueitem_t _values_SUT_CKSEL_attiny828[16] = {
-  {0x00, "EXTCLK_6CK_14CK_0MSx00", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x01, "EXTCLK_6CK_14CK_0MSx01", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_14CK_0MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x03, "INTULPOSC_32KHZ_6CK_14CK_0MS", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
-  {0x10, "EXTCLK_6CK_14CK_4MS1x10", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x11, "EXTCLK_6CK_14CK_4MS1x11", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_8MHZ_6CK_14CK_4MS1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x13, "INTULPOSC_32KHZ_6CK_14CK_4MS1", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
-  {0x20, "EXTCLK_6CK_14CK_65MSx20", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x21, "EXTCLK_6CK_14CK_65MSx21", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x22, "INTRCOSC_8MHZ_6CK_14CK_65MSx22", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x23, "INTULPOSC_32KHZ_6CK_14CK_65MSx23", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x30, "EXTCLK_6CK_14CK_65MSx30", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x31, "EXTCLK_6CK_14CK_65MSx31", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x32, "INTRCOSC_8MHZ_6CK_14CK_65MSx32", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
-  {0x33, "INTULPOSC_32KHZ_6CK_14CK_65MSx33", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x00, "extclk_6ck_14ck_0msx00", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "extclk_6ck_14ck_0msx01", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intulposc_32khz_6ck_14ck_0ms", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1x10", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "extclk_6ck_14ck_4ms1x11", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "intulposc_32khz_6ck_14ck_4ms1", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x20, "extclk_6ck_14ck_65msx20", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "extclk_6ck_14ck_65msx21", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65msx22", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "intulposc_32khz_6ck_14ck_65msx23", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x30, "extclk_6ck_14ck_65msx30", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x31, "extclk_6ck_14ck_65msx31", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x32, "intrcosc_8mhz_6ck_14ck_65msx32", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x33, "intulposc_32khz_6ck_14ck_65msx33", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
 };
 
 // ATtiny1634 ATtiny1634R
 static const Valueitem_t _values_SUT_CKSEL_attiny1634[15] = {
-  {0x00, "EXTCLK_6CK_16CK_16MS", "ext clock; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
-  {0x02, "INTRCOSC_8MHZ_6CK_16CK_16MS", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
-  {0x04, "INTULPOSC_32KHZ_6CK_16CK_16MS", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
-  {0x08, "EXTCRES_0MHZ4_0MHZ9_258CK_16CK_16MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_16KCK_16CK_16MS", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
-  {0x0a, "EXTCRES_0MHZ9_3MHZ_258CK_16CK_16MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_16KCK_16CK_16MS", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
-  {0x0c, "EXTCRES_3MHZ_8MHZ_258CK_16CK_16MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_16KCK_16CK_16MS", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16K CK/16 CK + 16 ms"},
-  {0x0e, "EXTCRES_8MHZ_XX_258CK_16CK_16MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_16KCK_16CK_16MS", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
-  {0x18, "EXTCRES_0MHZ4_0MHZ9_1KCK_16CK_16MS", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x1a, "EXTCRES_0MHZ9_3MHZ_1KCK_16CK_16MS", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x1c, "EXTCRES_3MHZ_8MHZ_1KCK_16CK_16MS", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
-  {0x1e, "EXTCRES_8MHZ_XX_1KCK_16CK_16MS", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x00, "extclk_6ck_16ck_16ms", "ext clock; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x02, "intrcosc_8mhz_6ck_16ck_16ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x04, "intulposc_32khz_6ck_16ck_16ms", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_16kck_16ck_16ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_16kck_16ck_16ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_16kck_16ck_16ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16K CK/16 CK + 16 ms"},
+  {0x0e, "extcres_8mhz_xx_258ck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0f, "extxosc_8mhz_xx_16kck_16ck_16ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_1kck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_1kck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1c, "extcres_3mhz_8mhz_1kck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1e, "extcres_8mhz_xx_1kck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
 };
 
 // ATtiny2313 ATtiny2313A ATtiny4313
 static const Valueitem_t _values_SUT_CKSEL_attiny2313[44] = {
-  {0x00, "EXTCLK_14CK_0MS", "ext clock; startup time: 14 CK + 0 ms"},
-  {0x02, "INTRCOSC_4MHZ_14CK_0MS", "int RC osc 4 MHz; startup time: 14 CK + 0 ms"},
-  {0x04, "INTRCOSC_8MHZ_14CK_0MS", "int RC osc 8 MHz; startup time: 14 CK + 0 ms"},
-  {0x06, "INTRCOSC_128KHZ_14CK_0MS", "int RC osc 128 kHz; startup time: 14 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_14CK_4MS1x08", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_14CK_65MSx09", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_14CK_4MS1x0a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_14CK_65MSx0b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_14CK_4MS1x0c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_14CK_65MSx0d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_14CK_4MS1x0e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_14CK_65MSx0f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
-  {0x10, "EXTCLK_14CK_4MS1", "ext clock; startup time: 14 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_4MHZ_14CK_4MS1", "int RC osc 4 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x14, "INTRCOSC_8MHZ_14CK_4MS1", "int RC osc 8 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x16, "INTRCOSC_128KHZ_14CK_4MS", "int RC osc 128 kHz; startup time: 14 CK + 4 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_14CK_65MSx18", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_14CK_0MSx19", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_14CK_65MSx1a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_14CK_0MSx1b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_14CK_65MSx1c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_14CK_0MSx1d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_14CK_65MSx1e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_14CK_0MSx1f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 0 ms"},
-  {0x20, "EXTCLK_14CK_65MS", "ext clock; startup time: 14 CK + 65 ms"},
-  {0x22, "INTRCOSC_4MHZ_14CK_65MS", "int RC osc 4 MHz; startup time: 14 CK + 65 ms"},
-  {0x24, "INTRCOSC_8MHZ_14CK_65MS", "int RC osc 8 MHz; startup time: 14 CK + 65 ms"},
-  {0x26, "INTRCOSC_128KHZ_14CK_64MS", "int RC osc 128 kHz; startup time: 14 CK + 64 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_14CK_0MSx28", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_14CK_4MS1x29", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_14CK_0MSx2a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_14CK_4MS1x2b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_14CK_0MSx2c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_14CK_4MS1x2d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_14CK_0MSx2e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_14CK_4MS1x2f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_14CK_4MS1x38", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_14CK_65MSx39", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_14CK_4MS1x3a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_14CK_65MSx3b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_14CK_4MS1x3c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_14CK_65MSx3d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_14CK_4MS1x3e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_14CK_65MSx3f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
+  {0x00, "extclk_14ck_0ms", "ext clock; startup time: 14 CK + 0 ms"},
+  {0x02, "intrcosc_4mhz_14ck_0ms", "int RC osc 4 MHz; startup time: 14 CK + 0 ms"},
+  {0x04, "intrcosc_8mhz_14ck_0ms", "int RC osc 8 MHz; startup time: 14 CK + 0 ms"},
+  {0x06, "intrcosc_128khz_14ck_0ms", "int RC osc 128 kHz; startup time: 14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_14ck_4ms1x08", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_14ck_65msx09", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_14ck_4ms1x0a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_14ck_65msx0b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_14ck_4ms1x0c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_14ck_65msx0d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_14ck_4ms1x0e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_14ck_65msx0f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
+  {0x10, "extclk_14ck_4ms1", "ext clock; startup time: 14 CK + 4.1 ms"},
+  {0x12, "intrcosc_4mhz_14ck_4ms1", "int RC osc 4 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x14, "intrcosc_8mhz_14ck_4ms1", "int RC osc 8 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x16, "intrcosc_128khz_14ck_4ms", "int RC osc 128 kHz; startup time: 14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_14ck_65msx18", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_14ck_0msx19", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_14ck_65msx1a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_14ck_0msx1b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_14ck_65msx1c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_14ck_0msx1d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_14ck_65msx1e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_14ck_0msx1f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 0 ms"},
+  {0x20, "extclk_14ck_65ms", "ext clock; startup time: 14 CK + 65 ms"},
+  {0x22, "intrcosc_4mhz_14ck_65ms", "int RC osc 4 MHz; startup time: 14 CK + 65 ms"},
+  {0x24, "intrcosc_8mhz_14ck_65ms", "int RC osc 8 MHz; startup time: 14 CK + 65 ms"},
+  {0x26, "intrcosc_128khz_14ck_64ms", "int RC osc 128 kHz; startup time: 14 CK + 64 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_14ck_0msx28", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_14ck_4ms1x29", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_14ck_0msx2a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_14ck_4ms1x2b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_14ck_0msx2c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_14ck_4ms1x2d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_14ck_0msx2e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_14ck_4ms1x2f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_14ck_4ms1x38", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_14ck_65msx39", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_14ck_4ms1x3a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_14ck_65msx3b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_14ck_4ms1x3c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_14ck_65msx3d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_14ck_4ms1x3e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_14ck_65msx3f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
 };
 
 // ATmega64RFR2 ATmega128RFR2 ATmega256RFR2 ATmega644RFR2 ATmega1284RFR2 ATmega2564RFR2
 static const Valueitem_t _values_SUT_CKSEL_atmega64rfr2[49] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_6CK_0MS", "int RC osc; startup time: 6 CK + 0 ms"},
-  {0x03, "INTRCOSC_128KHZ_6CK_0MS", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
-  {0x06, "TOSC_258CK_4MS1x06", "transceiver osc; startup time: 258 CK + 4.1 ms"},
-  {0x07, "TOSC_1KCK_65MSx07", "transceiver osc; startup time: 1024 CK + 65 ms"},
-  {0x08, "TOSC_258CK_4MS1x08", "transceiver osc; startup time: 258 CK + 4.1 ms"},
-  {0x09, "TOSC_1KCK_65MSx09", "transceiver osc; startup time: 1024 CK + 65 ms"},
-  {0x0a, "TOSC_258CK_4MS1x0a", "transceiver osc; startup time: 258 CK + 4.1 ms"},
-  {0x0b, "TOSC_1KCK_65MSx0b", "transceiver osc; startup time: 1024 CK + 65 ms"},
-  {0x0c, "TOSC_258CK_4MS1x0c", "transceiver osc; startup time: 258 CK + 4.1 ms"},
-  {0x0d, "TOSC_1KCK_65MSx0d", "transceiver osc; startup time: 1024 CK + 65 ms"},
-  {0x0e, "TOSC_258CK_4MS1x0e", "transceiver osc; startup time: 258 CK + 4.1 ms"},
-  {0x0f, "TOSC_1KCK_65MSx0f", "transceiver osc; startup time: 1024 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_4MS1", "ext clock; startup time: 6 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_6CK_4MS1", "int RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x13, "INTRCOSC_128KHZ_6CK_4MS1", "int 128 kHz RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x16, "TOSC_258CK_65MSx16", "transceiver osc; startup time: 258 CK + 65 ms"},
-  {0x17, "TOSC_16KCK_0MSx17", "transceiver osc; startup time: 16384 CK + 0 ms"},
-  {0x18, "TOSC_258CK_65MSx18", "transceiver osc; startup time: 258 CK + 65 ms"},
-  {0x19, "TOSC_16KCK_0MSx19", "transceiver osc; startup time: 16384 CK + 0 ms"},
-  {0x1a, "TOSC_258CK_65MSx1a", "transceiver osc; startup time: 258 CK + 65 ms"},
-  {0x1b, "TOSC_16KCK_0MSx1b", "transceiver osc; startup time: 16384 CK + 0 ms"},
-  {0x1c, "TOSC_258CK_65MSx1c", "transceiver osc; startup time: 258 CK + 65 ms"},
-  {0x1d, "TOSC_16KCK_0MSx1d", "transceiver osc; startup time: 16384 CK + 0 ms"},
-  {0x1e, "TOSC_258CK_65MSx1e", "transceiver osc; startup time: 258 CK + 65 ms"},
-  {0x1f, "TOSC_16KCK_0MSx1f", "transceiver osc; startup time: 16384 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_65MS", "ext clock; startup time: 6 CK + 65 ms"},
-  {0x22, "INTRCOSC_6CK_65MS", "int RC osc; startup time: 6 CK + 65 ms"},
-  {0x23, "INTRCOSC_128KHZ_6CK_65MS", "int 128 kHz RC osc; startup time: 6 CK + 65 ms"},
-  {0x26, "TOSC_1KCK_0MSx26", "transceiver osc; startup time: 1024 CK + 0 ms"},
-  {0x27, "TOSC_16KCK_4MS1x27", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
-  {0x28, "TOSC_1KCK_0MSx28", "transceiver osc; startup time: 1024 CK + 0 ms"},
-  {0x29, "TOSC_16KCK_4MS1x29", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
-  {0x2a, "TOSC_1KCK_0MSx2a", "transceiver osc; startup time: 1024 CK + 0 ms"},
-  {0x2b, "TOSC_16KCK_4MS1x2b", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
-  {0x2c, "TOSC_1KCK_0MSx2c", "transceiver osc; startup time: 1024 CK + 0 ms"},
-  {0x2d, "TOSC_16KCK_4MS1x2d", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
-  {0x2e, "TOSC_1KCK_0MSx2e", "transceiver osc; startup time: 1024 CK + 0 ms"},
-  {0x2f, "TOSC_16KCK_4MS1x2f", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
-  {0x36, "TOSC_1KCK_4MS1x36", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
-  {0x37, "TOSC_16KCK_65MSx37", "transceiver osc; startup time: 16384 CK + 65 ms"},
-  {0x38, "TOSC_1KCK_4MS1x38", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
-  {0x39, "TOSC_16KCK_65MSx39", "transceiver osc; startup time: 16384 CK + 65 ms"},
-  {0x3a, "TOSC_1KCK_4MS1x3a", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
-  {0x3b, "TOSC_16KCK_65MSx3b", "transceiver osc; startup time: 16384 CK + 65 ms"},
-  {0x3c, "TOSC_1KCK_4MS1x3c", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
-  {0x3d, "TOSC_16KCK_65MSx3d", "transceiver osc; startup time: 16384 CK + 65 ms"},
-  {0x3e, "TOSC_1KCK_4MS1x3e", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
-  {0x3f, "TOSC_16KCK_65MSx3f", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_0ms", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
+  {0x06, "tosc_258ck_4ms1x06", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x07, "tosc_1kck_65msx07", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x08, "tosc_258ck_4ms1x08", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x09, "tosc_1kck_65msx09", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x0a, "tosc_258ck_4ms1x0a", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "tosc_1kck_65msx0b", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x0c, "tosc_258ck_4ms1x0c", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "tosc_1kck_65msx0d", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x0e, "tosc_258ck_4ms1x0e", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "tosc_1kck_65msx0f", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_4ms1", "int 128 kHz RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x16, "tosc_258ck_65msx16", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x17, "tosc_16kck_0msx17", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x18, "tosc_258ck_65msx18", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x19, "tosc_16kck_0msx19", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x1a, "tosc_258ck_65msx1a", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x1b, "tosc_16kck_0msx1b", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x1c, "tosc_258ck_65msx1c", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x1d, "tosc_16kck_0msx1d", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x1e, "tosc_258ck_65msx1e", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x1f, "tosc_16kck_0msx1f", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_65ms", "int 128 kHz RC osc; startup time: 6 CK + 65 ms"},
+  {0x26, "tosc_1kck_0msx26", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x27, "tosc_16kck_4ms1x27", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x28, "tosc_1kck_0msx28", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x29, "tosc_16kck_4ms1x29", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "tosc_1kck_0msx2a", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x2b, "tosc_16kck_4ms1x2b", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "tosc_1kck_0msx2c", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x2d, "tosc_16kck_4ms1x2d", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "tosc_1kck_0msx2e", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x2f, "tosc_16kck_4ms1x2f", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x36, "tosc_1kck_4ms1x36", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x37, "tosc_16kck_65msx37", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x38, "tosc_1kck_4ms1x38", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "tosc_16kck_65msx39", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x3a, "tosc_1kck_4ms1x3a", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "tosc_16kck_65msx3b", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x3c, "tosc_1kck_4ms1x3c", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "tosc_16kck_65msx3d", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x3e, "tosc_1kck_4ms1x3e", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "tosc_16kck_65msx3f", "transceiver osc; startup time: 16384 CK + 65 ms"},
 };
 
 // ATmega128RFA1
 static const Valueitem_t _values_SUT_CKSEL_atmega128rfa1[17] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_6CK_0MS", "int RC osc; startup time: 6 CK + 0 ms"},
-  {0x03, "INTRCOSC_128KHZ_6CK_0MS", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
-  {0x06, "TOSC_258CK_4MS1", "transceiver osc; startup time: 258 CK + 4.1 ms"},
-  {0x07, "TOSC_1KCK_65MS", "transceiver osc; startup time: 1024 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_4MS1", "ext clock; startup time: 6 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_6CK_4MS1", "int RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x13, "INTRCOSC_128KHZ_6CK_4MS1", "int 128 kHz RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x16, "TOSC_258CK_65MS", "transceiver osc; startup time: 258 CK + 65 ms"},
-  {0x17, "TOSC_16KCK_0MS", "transceiver osc; startup time: 16384 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_65MS", "ext clock; startup time: 6 CK + 65 ms"},
-  {0x22, "INTRCOSC_6CK_65MS", "int RC osc; startup time: 6 CK + 65 ms"},
-  {0x23, "INTRCOSC_128KHZ_6CK_65MS", "int 128 kHz RC osc; startup time: 6 CK + 65 ms"},
-  {0x26, "TOSC_1KCK_0MS", "transceiver osc; startup time: 1024 CK + 0 ms"},
-  {0x27, "TOSC_16KCK_4MS1", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
-  {0x36, "TOSC_1KCK_4MS1", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
-  {0x37, "TOSC_16KCK_65MS", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_0ms", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
+  {0x06, "tosc_258ck_4ms1", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x07, "tosc_1kck_65ms", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_4ms1", "int 128 kHz RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x16, "tosc_258ck_65ms", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x17, "tosc_16kck_0ms", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_65ms", "int 128 kHz RC osc; startup time: 6 CK + 65 ms"},
+  {0x26, "tosc_1kck_0ms", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x27, "tosc_16kck_4ms1", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x36, "tosc_1kck_4ms1", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x37, "tosc_16kck_65ms", "transceiver osc; startup time: 16384 CK + 65 ms"},
 };
 
 /*
@@ -8334,61 +8208,61 @@ static const Valueitem_t _values_SUT_CKSEL_atmega128rfa1[17] = {
  * ATmega2561
  */
 static const Valueitem_t _values_SUT_CKSEL_atmega164a[55] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_6CK_0MS", "int RC osc; startup time: 6 CK + 0 ms"},
-  {0x03, "INTRCOSC_128KHZ_6CK_0MS", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_0MS", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
-  {0x05, "EXTLOFXTAL_32KCK_0MS", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
-  {0x06, "FSOSC_258CK_4MS1_CRES_FASTPWR", "full-swing osc; startup time: 258 CK + 4.1 ms; ceramic res; fast rising power"},
-  {0x07, "FSOSC_1KCK_65MS_CRES_SLOWPWR", "full-swing osc; startup time: 1024 CK + 65 ms; ceramic res; slowly rising power"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_65MS", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_4MS1", "ext clock; startup time: 6 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_6CK_4MS1", "int RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x13, "INTRCOSC_128KHZ_6CK_4MS", "int 128 kHz RC osc; startup time: 6 CK + 4 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_4MS1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
-  {0x15, "EXTLOFXTAL_32KCK_4MS1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
-  {0x16, "FSOSC_258CK_65MS_CRES_SLOWPWR", "full-swing osc; startup time: 258 CK + 65 ms; ceramic res; slowly rising power"},
-  {0x17, "FSOSC_16KCK_0MS_XOSC_BODEN", "full-swing osc; startup time: 16384 CK + 0 ms; crystal osc; BOD enabled"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_65MS", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_0MS", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_65MS", "ext clock; startup time: 6 CK + 65 ms"},
-  {0x22, "INTRCOSC_6CK_65MS", "int RC osc; startup time: 6 CK + 65 ms"},
-  {0x23, "INTRCOSC_128KHZ_6CK_64MS", "int 128 kHz RC osc; startup time: 6 CK + 64 ms"},
-  {0x24, "EXTLOFXTAL_1KCK_65MS", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
-  {0x25, "EXTLOFXTAL_32KCK_65MS", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
-  {0x26, "FSOSC_1KCK_0MS_CRES_BODEN", "full-swing osc; startup time: 1024 CK + 0 ms; ceramic res; BOD enable"},
-  {0x27, "FSOSC_16KCK_4MS1_XOSC_FASTPWR", "full-swing osc; startup time: 16384 CK + 4.1 ms; crystal osc; fast rising power"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_0MS", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x36, "FSOSC_1KCK_4MS1_CRES_FASTPWR", "full-swing osc; startup time: 1024 CK + 4.1 ms; ceramic res; fast rising power"},
-  {0x37, "FSOSC_16KCK_65MS_XOSC_SLOWPWR", "full-swing osc; startup time: 16384 CK + 65 ms; crystal osc; slowly rising power"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_65MS", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_0ms", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x06, "fsosc_258ck_4ms1_cres_fastpwr", "full-swing osc; startup time: 258 CK + 4.1 ms; ceramic res; fast rising power"},
+  {0x07, "fsosc_1kck_65ms_cres_slowpwr", "full-swing osc; startup time: 1024 CK + 65 ms; ceramic res; slowly rising power"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_4ms", "int 128 kHz RC osc; startup time: 6 CK + 4 ms"},
+  {0x14, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x16, "fsosc_258ck_65ms_cres_slowpwr", "full-swing osc; startup time: 258 CK + 65 ms; ceramic res; slowly rising power"},
+  {0x17, "fsosc_16kck_0ms_xosc_boden", "full-swing osc; startup time: 16384 CK + 0 ms; crystal osc; BOD enabled"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_65ms", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_64ms", "int 128 kHz RC osc; startup time: 6 CK + 64 ms"},
+  {0x24, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x26, "fsosc_1kck_0ms_cres_boden", "full-swing osc; startup time: 1024 CK + 0 ms; ceramic res; BOD enable"},
+  {0x27, "fsosc_16kck_4ms1_xosc_fastpwr", "full-swing osc; startup time: 16384 CK + 4.1 ms; crystal osc; fast rising power"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x36, "fsosc_1kck_4ms1_cres_fastpwr", "full-swing osc; startup time: 1024 CK + 4.1 ms; ceramic res; fast rising power"},
+  {0x37, "fsosc_16kck_65ms_xosc_slowpwr", "full-swing osc; startup time: 16384 CK + 65 ms; crystal osc; slowly rising power"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
 };
 
 /*
@@ -8399,114 +8273,114 @@ static const Valueitem_t _values_SUT_CKSEL_atmega164a[55] = {
  * ATmega6450P ATmega6490 ATmega6490A ATmega6490P
  */
 static const Valueitem_t _values_SUT_CKSEL_atmega165[44] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_6CK_0MS", "int RC osc; startup time: 6 CK + 0 ms"},
-  {0x06, "EXTLOFXTAL_1KCK_0MS", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
-  {0x07, "EXTLOFXTAL_32KCK_0MS", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_XX_258CK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_XX_1KCK_65MS", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_4MS1", "ext clock; startup time: 6 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_6CK_4MS1", "int RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x16, "EXTLOFXTAL_1KCK_4MS1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
-  {0x17, "EXTLOFXTAL_32KCK_4MS1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
-  {0x19, "EXTXOSC_0MHZ4_0MHZ9_16KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1b, "EXTXOSC_0MHZ9_3MHZ_16KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1d, "EXTXOSC_3MHZ_8MHZ_16KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
-  {0x1e, "EXTXOSC_8MHZ_XX_258CK_65MS", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
-  {0x1f, "EXTXOSC_8MHZ_XX_16KCK_0MS", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
-  {0x20, "EXTCLK_6CK_65MS", "ext clock; startup time: 6 CK + 65 ms"},
-  {0x22, "INTRCOSC_6CK_65MS", "int RC osc; startup time: 6 CK + 65 ms"},
-  {0x26, "EXTLOFXTAL_1KCK_65MS", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
-  {0x27, "EXTLOFXTAL_32KCK_65MS", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
-  {0x29, "EXTXOSC_0MHZ4_0MHZ9_16KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2b, "EXTXOSC_0MHZ9_3MHZ_16KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2d, "EXTXOSC_3MHZ_8MHZ_16KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x2e, "EXTXOSC_8MHZ_XX_1KCK_0MS", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
-  {0x2f, "EXTXOSC_8MHZ_XX_16KCK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x39, "EXTXOSC_0MHZ4_0MHZ9_16KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3b, "EXTXOSC_0MHZ9_3MHZ_16KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3d, "EXTXOSC_3MHZ_8MHZ_16KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
-  {0x3e, "EXTXOSC_8MHZ_XX_1KCK_4MS1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3f, "EXTXOSC_8MHZ_XX_16KCK_65MS", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x07, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x16, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x17, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_65ms", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x26, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x27, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
 };
 
 // ATmega406
 static const Valueitem_t _values_SUT_CKSEL_atmega406[6] = {
-  {0, "SUT_14CK_0MSx00", "startup time: 14 CK + 0 ms"},
-  {1, "SUT_14CK_0MSx01", "startup time: 14 CK + 0 ms"},
-  {2, "SUT_14CK_3MS9x02", "startup time: 14 CK + 3.9 ms"},
-  {3, "SUT_14CK_3MS9x03", "startup time: 14 CK + 3.9 ms"},
-  {4, "SUT_14CK_62MS5x04", "startup time: 14 CK + 62.5 ms"},
-  {5, "SUT_14CK_62MS5x05", "startup time: 14 CK + 62.5 ms"},
+  {0, "sut_14ck_0msx00", "startup time: 14 CK + 0 ms"},
+  {1, "sut_14ck_0msx01", "startup time: 14 CK + 0 ms"},
+  {2, "sut_14ck_3ms9x02", "startup time: 14 CK + 3.9 ms"},
+  {3, "sut_14ck_3ms9x03", "startup time: 14 CK + 3.9 ms"},
+  {4, "sut_14ck_62ms5x04", "startup time: 14 CK + 62.5 ms"},
+  {5, "sut_14ck_62ms5x05", "startup time: 14 CK + 62.5 ms"},
 };
 
 // AT90CAN32 AT90CAN64
 static const Valueitem_t _values_SUT_CKSEL_at90can32[38] = {
-  {0x00, "EXTCLK_6CK_0MS", "ext clock; startup time: 6 CK + 0 ms"},
-  {0x02, "INTRCOSC_6CK_0MS", "int RC osc; startup time: 6 CK + 0 ms"},
-  {0x04, "EXTLOFXTAL_1KCK_0MS", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
-  {0x05, "EXTLOFXTAL_32KCK_0MS", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
-  {0x06, "EXTLOFXTAL_1KCK_0MS_INTCAP", "ext low-freq crystal; startup time: 1024 CK + 0 ms; int cap"},
-  {0x07, "EXTLOFXTAL_32KCK_0MS_INTCAP", "ext low-freq crystal; startup time: 32768 CK + 0 ms; int cap"},
-  {0x08, "EXTXOSC_0MHZ4_0MHZ9_258CK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x09, "EXTXOSC_0MHZ4_0MHZ9_1KCK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0a, "EXTXOSC_0MHZ9_3MHZ_258CK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0b, "EXTXOSC_0MHZ9_3MHZ_1KCK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0c, "EXTXOSC_3MHZ_8MHZ_258CK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0d, "EXTXOSC_3MHZ_8MHZ_1KCK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x0e, "EXTXOSC_8MHZ_16MHZ_258CK_4MS1", "ext crystal osc 8.0-16.0 MHz; startup time: 258 CK + 4.1 ms"},
-  {0x0f, "EXTXOSC_8MHZ_16MHZ_1KCK_65MS", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 65 ms"},
-  {0x10, "EXTCLK_6CK_4MS1", "ext clock; startup time: 6 CK + 4.1 ms"},
-  {0x12, "INTRCOSC_6CK_4MS1", "int RC osc; startup time: 6 CK + 4.1 ms"},
-  {0x14, "EXTLOFXTAL_1KCK_4MS1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
-  {0x15, "EXTLOFXTAL_32KCK_4MS1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
-  {0x16, "EXTLOFXTAL_1KCK_4MS1_INTCAP", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms; int cap"},
-  {0x17, "EXTLOFXTAL_32KCK_4MS1_INTCAP", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms; int cap"},
-  {0x18, "EXTXOSC_0MHZ4_0MHZ9_258CK_65MS", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
-  {0x1a, "EXTXOSC_0MHZ9_3MHZ_258CK_65MS", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1c, "EXTXOSC_3MHZ_8MHZ_258CK_65MS", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x1e, "EXTXOSC_8MHZ_16MHZ_258CK_65MS", "ext crystal osc 8.0-16.0 MHz; startup time: 258 CK + 65 ms"},
-  {0x20, "EXTCLK_6CK_65MS", "ext clock; startup time: 6 CK + 65 ms"},
-  {0x22, "INTRCOSC_6CK_65MS", "int RC osc; startup time: 6 CK + 65 ms"},
-  {0x24, "EXTLOFXTAL_1KCK_65MS", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
-  {0x25, "EXTLOFXTAL_32KCK_65MS", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
-  {0x26, "EXTLOFXTAL_1KCK_65MS_INTCAP", "ext low-freq crystal; startup time: 1024 CK + 65 ms; int cap"},
-  {0x27, "EXTLOFXTAL_32KCK_65MS_INTCAP", "ext low-freq crystal; startup time: 32768 CK + 65 ms; int cap"},
-  {0x28, "EXTXOSC_0MHZ4_0MHZ9_1KCK_0MS", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2a, "EXTXOSC_0MHZ9_3MHZ_1KCK_0MS", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2c, "EXTXOSC_3MHZ_8MHZ_1KCK_0MS", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x2e, "EXTXOSC_8MHZ_16MHZ_1KCK_0MS", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 0 ms"},
-  {0x38, "EXTXOSC_0MHZ4_0MHZ9_1KCK_4MS1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3a, "EXTXOSC_0MHZ9_3MHZ_1KCK_4MS1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3c, "EXTXOSC_3MHZ_8MHZ_1KCK_4MS1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
-  {0x3e, "EXTXOSC_8MHZ_16MHZ_1KCK_4MS1", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_0ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 0 ms; int cap"},
+  {0x07, "extlofxtal_32kck_0ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 0 ms; int cap"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_16mhz_258ck_4ms1", "ext crystal osc 8.0-16.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_16mhz_1kck_65ms", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x16, "extlofxtal_1kck_4ms1_intcap", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms; int cap"},
+  {0x17, "extlofxtal_32kck_4ms1_intcap", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms; int cap"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1e, "extxosc_8mhz_16mhz_258ck_65ms", "ext crystal osc 8.0-16.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x26, "extlofxtal_1kck_65ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 65 ms; int cap"},
+  {0x27, "extlofxtal_32kck_65ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 65 ms; int cap"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2e, "extxosc_8mhz_16mhz_1kck_0ms", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3e, "extxosc_8mhz_16mhz_1kck_4ms1", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 4.1 ms"},
 };
 
 // AT90S2333 AT90S4433
 static const Valueitem_t _values_SUT_CKSEL_at90s2333[8] = {
-  {0, "EXTCLK_SLOWPWR", "ext clock; slowly rising power"},
-  {1, "EXTCLK_BODEN_POR", "ext clock; brownout detection or power-on reset"},
-  {2, "XOSC", "crystal osc"},
-  {3, "XOSC_FASTPWR", "crystal osc; fast rising power"},
-  {4, "XOSC_BODEN_POR", "crystal osc; brownout detection or power-on reset"},
-  {5, "CRES", "ceramic resonator"},
-  {6, "CRES_FASTPWR", "ceramic res; fast rising power"},
-  {7, "CRES_BODEN_POR", "ceramic res; brownout detection or power-on reset"},
+  {0, "extclk_slowpwr", "ext clock; slowly rising power"},
+  {1, "extclk_boden_por", "ext clock; brownout detection or power-on reset"},
+  {2, "xosc", "crystal osc"},
+  {3, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {4, "xosc_boden_por", "crystal osc; brownout detection or power-on reset"},
+  {5, "cres", "ceramic resonator"},
+  {6, "cres_fastpwr", "ceramic res; fast rising power"},
+  {7, "cres_boden_por", "ceramic res; brownout detection or power-on reset"},
 };
 
 /*
@@ -8516,26 +8390,26 @@ static const Valueitem_t _values_SUT_CKSEL_at90s2333[8] = {
  * AT90PWM3 AT90PWM3B AT90PWM216 AT90PWM316 ATA6612C ATA6613C ATA6614Q
  */
 static const Valueitem_t _values_CKOUT_atmega328[2] = {
-  {0, "GPIO_PB0", "clock output on GPIO PB0"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pb0", "clock output on GPIO PB0"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATmega16M1 AT90PWM81 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1 AT90PWM161
 static const Valueitem_t _values_CKOUT_atmega16m1[2] = {
-  {0, "GPIO_PD1", "clock output on GPIO PD1"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pd1", "clock output on GPIO PD1"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATtiny102 ATtiny4 ATtiny5 ATtiny9 ATtiny10 ATtiny20 ATtiny40 ATtiny104
 static const Valueitem_t _values_CKOUT_attiny102[2] = {
-  {0, "GPIO", "clock output on GPIO"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio", "clock output on GPIO"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATtiny441 ATtiny841 ATtiny1634 ATtiny1634R
 static const Valueitem_t _values_CKOUT_attiny441[2] = {
-  {0, "GPIO_PC2", "clock output on GPIO PC2"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pc2", "clock output on GPIO PC2"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 /*
@@ -8543,14 +8417,14 @@ static const Valueitem_t _values_CKOUT_attiny441[2] = {
  * AT90CAN64 AT90USB82 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
  */
 static const Valueitem_t _values_CKOUT_at90can128[2] = {
-  {0, "GPIO_PC7", "clock output on GPIO PC7"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pc7", "clock output on GPIO PC7"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_CKOUT_ata6285[2] = {
-  {0, "GPIO_PC1", "clock output on GPIO PC1"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pc1", "clock output on GPIO PC1"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 /*
@@ -8558,20 +8432,20 @@ static const Valueitem_t _values_CKOUT_ata6285[2] = {
  * ATmega644 ATmega644A ATmega644P ATmega644PA ATmega1284 ATmega1284P AT90SCR100
  */
 static const Valueitem_t _values_CKOUT_at90scr100h[2] = {
-  {0, "GPIO_PB1", "clock output on GPIO PB1"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pb1", "clock output on GPIO PB1"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
 static const Valueitem_t _values_CKOUT_attiny24[2] = {
-  {0, "GPIO_PB2", "clock output on GPIO PB2"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pb2", "clock output on GPIO PB2"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATtiny25 ATtiny45 ATtiny85
 static const Valueitem_t _values_CKOUT_attiny25[2] = {
-  {0, "GPIO_PB4", "clock output on GPIO PB4"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pb4", "clock output on GPIO PB4"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 /*
@@ -8579,14 +8453,14 @@ static const Valueitem_t _values_CKOUT_attiny25[2] = {
  * ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
  */
 static const Valueitem_t _values_CKOUT_attiny43u[2] = {
-  {0, "GPIO_PB5", "clock output on GPIO PB5"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pb5", "clock output on GPIO PB5"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 // ATtiny2313 ATtiny2313A ATtiny4313
 static const Valueitem_t _values_CKOUT_attiny2313[2] = {
-  {0, "GPIO_PD2", "clock output on GPIO PD2"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pd2", "clock output on GPIO PD2"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 /*
@@ -8599,8 +8473,8 @@ static const Valueitem_t _values_CKOUT_attiny2313[2] = {
  * ATmega6490P
  */
 static const Valueitem_t _values_CKOUT_atmega64rfr2[2] = {
-  {0, "GPIO_PE7", "clock output on GPIO PE7"},
-  {1, "CO_DISABLED", "clock signal is not output on a pin"},
+  {0, "gpio_pe7", "clock output on GPIO PE7"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
 };
 
 /*
@@ -8627,8 +8501,8 @@ static const Valueitem_t _values_CKOUT_atmega64rfr2[2] = {
  * ATmega32HVE2
  */
 static const Valueitem_t _values_CKDIV8_atmega328[2] = {
-  {0, "BY_8", "F_CPU prescaled by 8"},
-  {1, "BY_1", "F_CPU prescaled by 1"},
+  {0, "by_8", "F_CPU prescaled by 8"},
+  {1, "by_1", "F_CPU prescaled by 1"},
 };
 
 /*
@@ -8660,8 +8534,8 @@ static const Valueitem_t _values_CKDIV8_atmega328[2] = {
  * ATmega32HVE2
  */
 static const Valueitem_t _values_BOOTRST_atmega328[2] = {
-  {0, "BOOT_SECTION", "reset jumps to start of boot section"},
-  {1, "APPLICATION", "reset jumps to start of memory"},
+  {0, "boot_section", "reset jumps to start of boot section"},
+  {1, "application", "reset jumps to start of memory"},
 };
 
 /*
@@ -8672,10 +8546,10 @@ static const Valueitem_t _values_BOOTRST_atmega328[2] = {
  * ATmega3290PA ATA6614Q
  */
 static const Valueitem_t _values_BOOTSZ_atmega328[4] = {
-  {0, "BS_2048W", "boot size 4096 bytes; boot address 0x7000"},
-  {1, "BS_1024W", "boot size 2048 bytes; boot address 0x7800"},
-  {2, "BS_512W", "boot size 1024 bytes; boot address 0x7c00"},
-  {3, "BS_256W", "boot size 512 bytes; boot address 0x7e00"},
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x7000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x7800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x7c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x7e00"},
 };
 
 /*
@@ -8683,10 +8557,10 @@ static const Valueitem_t _values_BOOTSZ_atmega328[4] = {
  * AT90PWM316
  */
 static const Valueitem_t _values_BOOTSZ_atmega16m1[4] = {
-  {0, "BS_2048W", "boot size 4096 bytes; boot address 0x3000"},
-  {1, "BS_1024W", "boot size 2048 bytes; boot address 0x3800"},
-  {2, "BS_512W", "boot size 1024 bytes; boot address 0x3c00"},
-  {3, "BS_256W", "boot size 512 bytes; boot address 0x3e00"},
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x3000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x3800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x3c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x3e00"},
 };
 
 /*
@@ -8696,10 +8570,10 @@ static const Valueitem_t _values_BOOTSZ_atmega16m1[4] = {
  * ATmega6490A ATmega6490P AT90CAN64 AT90SCR100 ATmega32HVE2
  */
 static const Valueitem_t _values_BOOTSZ_atmega64hve[4] = {
-  {0, "BS_4096W", "boot size 8192 bytes; boot address 0xe000"},
-  {1, "BS_2048W", "boot size 4096 bytes; boot address 0xf000"},
-  {2, "BS_1024W", "boot size 2048 bytes; boot address 0xf800"},
-  {3, "BS_512W", "boot size 1024 bytes; boot address 0xfc00"},
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0xe000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0xf000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0xf800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0xfc00"},
 };
 
 /*
@@ -8708,10 +8582,10 @@ static const Valueitem_t _values_BOOTSZ_atmega64hve[4] = {
  * AT90PWM161 AT90S8515comp ATA6612C
  */
 static const Valueitem_t _values_BOOTSZ_atmega8515[4] = {
-  {0, "BS_1024W", "boot size 2048 bytes; boot address 0x1800"},
-  {1, "BS_512W", "boot size 1024 bytes; boot address 0x1c00"},
-  {2, "BS_256W", "boot size 512 bytes; boot address 0x1e00"},
-  {3, "BS_128W", "boot size 256 bytes; boot address 0x1f00"},
+  {0, "bs_1024w", "boot size 2048 bytes; boot address 0x1800"},
+  {1, "bs_512w", "boot size 1024 bytes; boot address 0x1c00"},
+  {2, "bs_256w", "boot size 512 bytes; boot address 0x1e00"},
+  {3, "bs_128w", "boot size 256 bytes; boot address 0x1f00"},
 };
 
 /*
@@ -8719,18 +8593,18 @@ static const Valueitem_t _values_BOOTSZ_atmega8515[4] = {
  * ATmega1284 ATmega1284P ATmega1284RFR2 AT90USB1286 AT90USB1287
  */
 static const Valueitem_t _values_BOOTSZ_at90can128[4] = {
-  {0, "BS_4096W", "boot size 8192 bytes; boot address 0x1e000"},
-  {1, "BS_2048W", "boot size 4096 bytes; boot address 0x1f000"},
-  {2, "BS_1024W", "boot size 2048 bytes; boot address 0x1f800"},
-  {3, "BS_512W", "boot size 1024 bytes; boot address 0x1fc00"},
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0x1e000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0x1f000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0x1f800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0x1fc00"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_BOOTSZ_ata6285[4] = {
-  {0, "BS_1024W", "boot size 2048 bytes"},
-  {1, "BS_512W", "boot size 1024 bytes"},
-  {2, "BS_256W", "boot size 512 bytes"},
-  {3, "BS_128W", "boot size 256 bytes"},
+  {0, "bs_1024w", "boot size 2048 bytes"},
+  {1, "bs_512w", "boot size 1024 bytes"},
+  {2, "bs_256w", "boot size 512 bytes"},
+  {3, "bs_128w", "boot size 256 bytes"},
 };
 
 /*
@@ -8739,50 +8613,50 @@ static const Valueitem_t _values_BOOTSZ_ata6285[4] = {
  * ATmega169 ATmega169A ATmega169P ATmega169PA ATA6613C
  */
 static const Valueitem_t _values_BOOTSZ_atmega161comp[4] = {
-  {0, "BS_1024W", "boot size 2048 bytes; boot address 0x3800"},
-  {1, "BS_512W", "boot size 1024 bytes; boot address 0x3c00"},
-  {2, "BS_256W", "boot size 512 bytes; boot address 0x3e00"},
-  {3, "BS_128W", "boot size 256 bytes; boot address 0x3f00"},
+  {0, "bs_1024w", "boot size 2048 bytes; boot address 0x3800"},
+  {1, "bs_512w", "boot size 1024 bytes; boot address 0x3c00"},
+  {2, "bs_256w", "boot size 512 bytes; boot address 0x3e00"},
+  {3, "bs_128w", "boot size 256 bytes; boot address 0x3f00"},
 };
 
 // ATmega8U2
 static const Valueitem_t _values_BOOTSZ_atmega8u2[4] = {
-  {0, "BS_2048W", "boot size 4096 bytes; boot address 0x1000"},
-  {1, "BS_1024W", "boot size 2048 bytes; boot address 0x1800"},
-  {2, "BS_512W", "boot size 1024 bytes; boot address 0x1c00"},
-  {3, "BS_256W", "boot size 512 bytes; boot address 0x1e00"},
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x1000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x1800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x1c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x1e00"},
 };
 
 // ATmega256RFR2 ATmega2560 ATmega2561 ATmega2564RFR2
 static const Valueitem_t _values_BOOTSZ_atmega256rfr2[4] = {
-  {0, "BS_4096W", "boot size 8192 bytes; boot address 0x3e000"},
-  {1, "BS_2048W", "boot size 4096 bytes; boot address 0x3f000"},
-  {2, "BS_1024W", "boot size 2048 bytes; boot address 0x3f800"},
-  {3, "BS_512W", "boot size 1024 bytes; boot address 0x3fc00"},
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0x3e000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0x3f000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0x3f800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0x3fc00"},
 };
 
 // ATmega406
 static const Valueitem_t _values_BOOTSZ_atmega406[4] = {
-  {0, "BS_2048W", "boot size 4096 bytes; boot address 0x9000"},
-  {1, "BS_1024W", "boot size 2048 bytes; boot address 0x9800"},
-  {2, "BS_512W", "boot size 1024 bytes; boot address 0x9c00"},
-  {3, "BS_256W", "boot size 512 bytes; boot address 0x9e00"},
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x9000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x9800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x9c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x9e00"},
 };
 
 // AT90CAN32
 static const Valueitem_t _values_BOOTSZ_at90can32[4] = {
-  {0, "BS_4096W", "boot size 8192 bytes; boot address 0x6000"},
-  {1, "BS_2048W", "boot size 4096 bytes; boot address 0x7000"},
-  {2, "BS_1024W", "boot size 2048 bytes; boot address 0x7800"},
-  {3, "BS_512W", "boot size 1024 bytes; boot address 0x7c00"},
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0x6000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0x7000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0x7800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0x7c00"},
 };
 
 // AT90USB646 AT90USB647
 static const Valueitem_t _values_BOOTSZ_at90usb646[4] = {
-  {0, "BS_4096W", "boot size 8192 bytes; boot address 0xf000"},
-  {1, "BS_2408W", "boot size 2408 words; boot address 0xf800"},
-  {2, "BS_1024W", "boot size 2048 bytes; boot address 0xfc00"},
-  {3, "BS_512W", "boot size 1024 bytes; boot address 0xfe00"},
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0xf000"},
+  {1, "bs_2408w", "boot size 2408 words; boot address 0xf800"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0xfc00"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0xfe00"},
 };
 
 /*
@@ -8819,8 +8693,8 @@ static const Valueitem_t _values_BOOTSZ_at90usb646[4] = {
  * ATmega32HVE2
  */
 static const Valueitem_t _values_EESAVE_atmega328[2] = {
-  {0, "EE_PRESERVED", "EEPROM content is preserved during chip erase"},
-  {1, "EE_ERASED", "EEPROM content is erased during chip erase"},
+  {0, "ee_preserved", "EEPROM content is preserved during chip erase"},
+  {1, "ee_erased", "EEPROM content is erased during chip erase"},
 };
 
 /*
@@ -8836,8 +8710,8 @@ static const Valueitem_t _values_EESAVE_atmega328[2] = {
  * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_EESAVE_attiny204[2] = {
-  {0, "EEX_ERASED", "EEPROM content is erased during chip erase"},
-  {1, "EEX_PRESERVED", "EEPROM content is preserved during chip erase"},
+  {0, "eex_erased", "EEPROM content is erased during chip erase"},
+  {1, "eex_preserved", "EEPROM content is preserved during chip erase"},
 };
 
 /*
@@ -8867,8 +8741,8 @@ static const Valueitem_t _values_EESAVE_attiny204[2] = {
  * ATA8510 ATA8515 ATA664251 ATmega32HVE2
  */
 static const Valueitem_t _values_WDTON_atmega328[2] = {
-  {0, "WDT_ALWAYS_ON", "watchdog timer always on"},
-  {1, "WDT_PROGRAMMABLE", "watchdog timer programmable"},
+  {0, "wdt_always_on", "watchdog timer always on"},
+  {1, "wdt_programmable", "watchdog timer programmable"},
 };
 
 /*
@@ -8900,8 +8774,8 @@ static const Valueitem_t _values_WDTON_atmega328[2] = {
  * ATmega32HVE2
  */
 static const Valueitem_t _values_SPIEN_atmega328[2] = {
-  {0, "ISP_ENABLED", "serial programming enabled"},
-  {1, "ISP_DISABLED_WARNING_MIGHT_BRICK_THE_BOARD", "serial programming disabled (warning: might brick the board)"},
+  {0, "isp_enabled", "serial programming enabled"},
+  {1, "isp_disabled_warning_might_brick_the_board", "serial programming disabled (warning: might brick the board)"},
 };
 
 /*
@@ -8919,8 +8793,8 @@ static const Valueitem_t _values_SPIEN_atmega328[2] = {
  * ATA6617C ATA8210 ATA8215 ATA8510 ATA8515 ATA664251 ATmega32HVE2
  */
 static const Valueitem_t _values_DWEN_atmega328[2] = {
-  {0, "DW_ENABLED", "debugWIRE enabled"},
-  {1, "DW_OFF", "debugWIRE off"},
+  {0, "dw_enabled", "debugWIRE enabled"},
+  {1, "dw_off", "debugWIRE off"},
 };
 
 /*
@@ -8931,8 +8805,8 @@ static const Valueitem_t _values_DWEN_atmega328[2] = {
  * AT90PWM2B AT90PWM3 AT90PWM3B AT90USB82 AT90PWM216 AT90PWM316 ATA6612C ATA6613C ATA6614Q
  */
 static const Valueitem_t _values_RSTDISBL_atmega328[2] = {
-  {0, "GPIO_PC6_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO PC6 (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_pc6_warning_external_reset_disabled", "reset pin configured as GPIO PC6 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 /*
@@ -8952,32 +8826,32 @@ static const Valueitem_t _values_RSTDISBL_atmega328[2] = {
  * ATxmega384D3
  */
 static const Valueitem_t _values_RSTDISBL_attiny102[2] = {
-  {0, "GPIO_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_warning_external_reset_disabled", "reset pin configured as GPIO (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 // ATtiny441 ATtiny841 ATtiny1634 ATtiny1634R
 static const Valueitem_t _values_RSTDISBL_attiny441[2] = {
-  {0, "GPIO_PC2_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO PC2 (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_pc2_warning_external_reset_disabled", "reset pin configured as GPIO PC2 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 // AT90PWM81 AT90PWM161
 static const Valueitem_t _values_RSTDISBL_at90pwm81[2] = {
-  {0, "GPIO_PE0_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO PE0 (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_pe0_warning_external_reset_disabled", "reset pin configured as GPIO PE0 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 // ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny15 ATtiny25 ATtiny45 ATtiny85
 static const Valueitem_t _values_RSTDISBL_attiny11[2] = {
-  {0, "GPIO_PB5_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO PB5 (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_pb5_warning_external_reset_disabled", "reset pin configured as GPIO PB5 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 // ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
 static const Valueitem_t _values_RSTDISBL_attiny24[2] = {
-  {0, "GPIO_PB3_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO PB3 (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_pb3_warning_external_reset_disabled", "reset pin configured as GPIO PB3 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 /*
@@ -8985,8 +8859,8 @@ static const Valueitem_t _values_RSTDISBL_attiny24[2] = {
  * ATtiny861A ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
  */
 static const Valueitem_t _values_RSTDISBL_attiny26[2] = {
-  {0, "GPIO_PB7_WARNING_EXTERNAL_RESET_DISABLED", "reset pin configured as GPIO PB7 (warning: external reset disabled)"},
-  {1, "EXTERNAL_RESET", "reset pin configured as external reset"},
+  {0, "gpio_pb7_warning_external_reset_disabled", "reset pin configured as GPIO PB7 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
 };
 
 /*
@@ -9000,10 +8874,10 @@ static const Valueitem_t _values_RSTDISBL_attiny26[2] = {
  * ATmega2560 ATmega2561 ATA6612C ATA6613C ATA6614Q
  */
 static const Valueitem_t _values_BODLEVEL_atmega328[4] = {
-  {4, "BOD_4V3", "brownout detection at 4.3 V"},
-  {5, "BOD_2V7", "brownout detection at 2.7 V"},
-  {6, "BOD_1V8", "brownout detection at 1.8 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9011,14 +8885,14 @@ static const Valueitem_t _values_BODLEVEL_atmega328[4] = {
  * AT90PWM3B AT90PWM216 AT90PWM316
  */
 static const Valueitem_t _values_BODLEVEL_atmega16m1[8] = {
-  {0, "BOD_2V6", "brownout detection at 2.6 V"},
-  {1, "BOD_2V8", "brownout detection at 2.8 V"},
-  {2, "BOD_4V2", "brownout detection at 4.2 V"},
-  {3, "BOD_4V4", "brownout detection at 4.4 V"},
-  {4, "BOD_4V3", "brownout detection at 4.3 V"},
-  {5, "BOD_2V7", "brownout detection at 2.7 V"},
-  {6, "BOD_4V5", "brownout detection at 4.5 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_2v6", "brownout detection at 2.6 V"},
+  {1, "bod_2v8", "brownout detection at 2.8 V"},
+  {2, "bod_4v2", "brownout detection at 4.2 V"},
+  {3, "bod_4v4", "brownout detection at 4.4 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_4v5", "brownout detection at 4.5 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9027,16 +8901,16 @@ static const Valueitem_t _values_BODLEVEL_atmega16m1[8] = {
  * AT90S2333 AT90S4433 AT90S8515comp
  */
 static const Valueitem_t _values_BODLEVEL_atmega8515[2] = {
-  {0, "BOD_4V0", "brownout detection at 4.0 V"},
-  {1, "BOD_2V7", "brownout detection at 2.7 V"},
+  {0, "bod_4v0", "brownout detection at 4.0 V"},
+  {1, "bod_2v7", "brownout detection at 2.7 V"},
 };
 
 // ATtiny441 ATtiny841 ATtiny1634 ATtiny1634R
 static const Valueitem_t _values_BODLEVEL_attiny441[4] = {
-  {4, "BOD_4V3", "brownout detection at 4.3 V"},
-  {5, "BOD_2V7", "brownout detection at 2.7 V"},
-  {6, "BOD_1V8", "brownout detection at 1.8 V"},
-  {7, "BOD_1V8_alt", "brownout detection at 1.8 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_1v8_alt", "brownout detection at 1.8 V"},
 };
 
 /*
@@ -9044,38 +8918,38 @@ static const Valueitem_t _values_BODLEVEL_attiny441[4] = {
  * ATtiny861A AT90PWM161 ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
  */
 static const Valueitem_t _values_BODLEVEL_at90pwm81[8] = {
-  {0, "BOD_2V0", "brownout detection at 2.0 V"},
-  {1, "BOD_1V9", "brownout detection at 1.9 V"},
-  {2, "BOD_2V2", "brownout detection at 2.2 V"},
-  {3, "BOD_2V3", "brownout detection at 2.3 V"},
-  {4, "BOD_4V3", "brownout detection at 4.3 V"},
-  {5, "BOD_2V7", "brownout detection at 2.7 V"},
-  {6, "BOD_1V8", "brownout detection at 1.8 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_2v0", "brownout detection at 2.0 V"},
+  {1, "bod_1v9", "brownout detection at 1.9 V"},
+  {2, "bod_2v2", "brownout detection at 2.2 V"},
+  {3, "bod_2v3", "brownout detection at 2.3 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 // AT90CAN128 AT90CAN32 AT90CAN64
 static const Valueitem_t _values_BODLEVEL_at90can128[8] = {
-  {0, "BOD_2V5", "brownout detection at 2.5 V"},
-  {1, "BOD_2V6", "brownout detection at 2.6 V"},
-  {2, "BOD_2V7", "brownout detection at 2.7 V"},
-  {3, "BOD_3V8", "brownout detection at 3.8 V"},
-  {4, "BOD_3V9", "brownout detection at 3.9 V"},
-  {5, "BOD_4V0", "brownout detection at 4.0 V"},
-  {6, "BOD_4V1", "brownout detection at 4.1 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_2v5", "brownout detection at 2.5 V"},
+  {1, "bod_2v6", "brownout detection at 2.6 V"},
+  {2, "bod_2v7", "brownout detection at 2.7 V"},
+  {3, "bod_3v8", "brownout detection at 3.8 V"},
+  {4, "bod_3v9", "brownout detection at 3.9 V"},
+  {5, "bod_4v0", "brownout detection at 4.0 V"},
+  {6, "bod_4v1", "brownout detection at 4.1 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 // AT90USB162 ATmega8U2 ATmega16U2 ATmega32U2 AT90USB82
 static const Valueitem_t _values_BODLEVEL_at90usb162[8] = {
-  {0, "BOD_4V3", "brownout detection at 4.3 V"},
-  {1, "BOD_4V0", "brownout detection at 4.0 V"},
-  {2, "BOD_3V6", "brownout detection at 3.6 V"},
-  {3, "BOD_3V5", "brownout detection at 3.5 V"},
-  {4, "BOD_3V0", "brownout detection at 3.0 V"},
-  {5, "BOD_2V9", "brownout detection at 2.9 V"},
-  {6, "BOD_2V7", "brownout detection at 2.7 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_4v3", "brownout detection at 4.3 V"},
+  {1, "bod_4v0", "brownout detection at 4.0 V"},
+  {2, "bod_3v6", "brownout detection at 3.6 V"},
+  {3, "bod_3v5", "brownout detection at 3.5 V"},
+  {4, "bod_3v0", "brownout detection at 3.0 V"},
+  {5, "bod_2v9", "brownout detection at 2.9 V"},
+  {6, "bod_2v7", "brownout detection at 2.7 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9087,14 +8961,14 @@ static const Valueitem_t _values_BODLEVEL_at90usb162[8] = {
  * ATxmega384D3
  */
 static const Valueitem_t _values_BODLEVEL_atxmega16e5[8] = {
-  {0, "BOD_3V0", "brownout detection at 3.0 V"},
-  {1, "BOD_2V8", "brownout detection at 2.8 V"},
-  {2, "BOD_2V6", "brownout detection at 2.6 V"},
-  {3, "BOD_2V4", "brownout detection at 2.4 V"},
-  {4, "BOD_2V2", "brownout detection at 2.2 V"},
-  {5, "BOD_2V0", "brownout detection at 2.0 V"},
-  {6, "BOD_1V8", "brownout detection at 1.8 V"},
-  {7, "BOD_1V6", "brownout detection at 1.6 V"},
+  {0, "bod_3v0", "brownout detection at 3.0 V"},
+  {1, "bod_2v8", "brownout detection at 2.8 V"},
+  {2, "bod_2v6", "brownout detection at 2.6 V"},
+  {3, "bod_2v4", "brownout detection at 2.4 V"},
+  {4, "bod_2v2", "brownout detection at 2.2 V"},
+  {5, "bod_2v0", "brownout detection at 2.0 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_1v6", "brownout detection at 1.6 V"},
 };
 
 /*
@@ -9102,29 +8976,29 @@ static const Valueitem_t _values_BODLEVEL_atxmega16e5[8] = {
  * ATxmega256A3B
  */
 static const Valueitem_t _values_BODLEVEL_atxmega128a3[8] = {
-  {0, "BOD_3V4", "brownout detection at 3.4 V"},
-  {1, "BOD_3V2", "brownout detection at 3.2 V"},
-  {2, "BOD_2V9", "brownout detection at 2.9 V"},
-  {3, "BOD_2V6", "brownout detection at 2.6 V"},
-  {4, "BOD_2V4", "brownout detection at 2.4 V"},
-  {5, "BOD_2V1", "brownout detection at 2.1 V"},
-  {6, "BOD_1V9", "brownout detection at 1.9 V"},
-  {7, "BOD_1V6", "brownout detection at 1.6 V"},
+  {0, "bod_3v4", "brownout detection at 3.4 V"},
+  {1, "bod_3v2", "brownout detection at 3.2 V"},
+  {2, "bod_2v9", "brownout detection at 2.9 V"},
+  {3, "bod_2v6", "brownout detection at 2.6 V"},
+  {4, "bod_2v4", "brownout detection at 2.4 V"},
+  {5, "bod_2v1", "brownout detection at 2.1 V"},
+  {6, "bod_1v9", "brownout detection at 1.9 V"},
+  {7, "bod_1v6", "brownout detection at 1.6 V"},
 };
 
 // ATmega161comp ATmega162
 static const Valueitem_t _values_BODLEVEL_atmega161comp[5] = {
-  {3, "BOD_2V3", "brownout detection at 2.3 V"},
-  {4, "BOD_4V3", "brownout detection at 4.3 V"},
-  {5, "BOD_2V7", "brownout detection at 2.7 V"},
-  {6, "BOD_1V8", "brownout detection at 1.8 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {3, "bod_2v3", "brownout detection at 2.3 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 // ATtiny12
 static const Valueitem_t _values_BODLEVEL_attiny12[2] = {
-  {0, "BOD_2V7", "brownout detection at 2.7 V"},
-  {1, "BOD_1V8", "brownout detection at 1.8 V"},
+  {0, "bod_2v7", "brownout detection at 2.7 V"},
+  {1, "bod_1v8", "brownout detection at 1.8 V"},
 };
 
 /*
@@ -9134,22 +9008,22 @@ static const Valueitem_t _values_BODLEVEL_attiny12[2] = {
  * ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
  */
 static const Valueitem_t _values_BODLEVEL_attiny13[4] = {
-  {0, "BOD_4V3", "brownout detection at 4.3 V"},
-  {1, "BOD_2V7", "brownout detection at 2.7 V"},
-  {2, "BOD_1V8", "brownout detection at 1.8 V"},
-  {3, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_4v3", "brownout detection at 4.3 V"},
+  {1, "bod_2v7", "brownout detection at 2.7 V"},
+  {2, "bod_1v8", "brownout detection at 1.8 V"},
+  {3, "bod_disabled", "brownout detection disabled"},
 };
 
 // ATmega16U4 ATmega32U4 ATmega32U6 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
 static const Valueitem_t _values_BODLEVEL_atmega16u4[8] = {
-  {0, "BOD_4V3", "brownout detection at 4.3 V"},
-  {1, "BOD_3V5", "brownout detection at 3.5 V"},
-  {2, "BOD_3V4", "brownout detection at 3.4 V"},
-  {3, "BOD_2V6", "brownout detection at 2.6 V"},
-  {4, "BOD_2V4", "brownout detection at 2.4 V"},
-  {5, "BOD_2V2", "brownout detection at 2.2 V"},
-  {6, "BOD_2V0", "brownout detection at 2.0 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_4v3", "brownout detection at 4.3 V"},
+  {1, "bod_3v5", "brownout detection at 3.5 V"},
+  {2, "bod_3v4", "brownout detection at 3.4 V"},
+  {3, "bod_2v6", "brownout detection at 2.6 V"},
+  {4, "bod_2v4", "brownout detection at 2.4 V"},
+  {5, "bod_2v2", "brownout detection at 2.2 V"},
+  {6, "bod_2v0", "brownout detection at 2.0 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9157,76 +9031,202 @@ static const Valueitem_t _values_BODLEVEL_atmega16u4[8] = {
  * ATmega2564RFR2
  */
 static const Valueitem_t _values_BODLEVEL_atmega64rfr2[8] = {
-  {0, "BOD_2V4", "brownout detection at 2.4 V"},
-  {1, "BOD_2V3", "brownout detection at 2.3 V"},
-  {2, "BOD_2V2", "brownout detection at 2.2 V"},
-  {3, "BOD_2V1", "brownout detection at 2.1 V"},
-  {4, "BOD_2V0", "brownout detection at 2.0 V"},
-  {5, "BOD_1V9", "brownout detection at 1.9 V"},
-  {6, "BOD_1V8", "brownout detection at 1.8 V"},
-  {7, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_2v4", "brownout detection at 2.4 V"},
+  {1, "bod_2v3", "brownout detection at 2.3 V"},
+  {2, "bod_2v2", "brownout detection at 2.2 V"},
+  {3, "bod_2v1", "brownout detection at 2.1 V"},
+  {4, "bod_2v0", "brownout detection at 2.0 V"},
+  {5, "bod_1v9", "brownout detection at 1.9 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
 };
 
 // ATxmega16A4 ATxmega32A4
 static const Valueitem_t _values_BODLEVEL_atxmega16a4[8] = {
-  {0, "BOD_3V5", "brownout detection at 3.5 V"},
-  {1, "BOD_3V2", "brownout detection at 3.2 V"},
-  {2, "BOD_3V0", "brownout detection at 3.0 V"},
-  {3, "BOD_2V7", "brownout detection at 2.7 V"},
-  {4, "BOD_2V4", "brownout detection at 2.4 V"},
-  {5, "BOD_2V1", "brownout detection at 2.1 V"},
-  {6, "BOD_1V9", "brownout detection at 1.9 V"},
-  {7, "BOD_1V6", "brownout detection at 1.6 V"},
+  {0, "bod_3v5", "brownout detection at 3.5 V"},
+  {1, "bod_3v2", "brownout detection at 3.2 V"},
+  {2, "bod_3v0", "brownout detection at 3.0 V"},
+  {3, "bod_2v7", "brownout detection at 2.7 V"},
+  {4, "bod_2v4", "brownout detection at 2.4 V"},
+  {5, "bod_2v1", "brownout detection at 2.1 V"},
+  {6, "bod_1v9", "brownout detection at 1.9 V"},
+  {7, "bod_1v6", "brownout detection at 1.6 V"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 ATtiny102
+ * ATtiny28 ATtiny441 AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162 AT90S1200 AT90S2313 ATA5700M322
+ * ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny4 ATtiny5
+ * ATtiny9 ATtiny10 ATtiny20 ATtiny40 ATtiny104 ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny15
+ * ATtiny22 ATtiny24 ATtiny24A ATtiny25 ATtiny26 ATtiny43U ATtiny44 ATtiny44A ATtiny45 ATtiny48
+ * ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167 ATtiny261 ATtiny261A ATtiny461
+ * ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R
+ * ATtiny2313 ATtiny2313A ATtiny4313 ATmega8 ATmega8A ATmega8HVA ATmega8U2 ATmega16 ATmega16A
+ * ATmega16HVA ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB
+ * ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega48 ATmega48A ATmega48P ATmega48PA
+ * ATmega48PB ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88
+ * ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega103 ATmega128 ATmega128A ATmega128RFA1
+ * ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA ATmega165
+ * ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB
+ * ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A ATmega324P
+ * ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329
+ * ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S2323
+ * AT90S2343 AT90S4414 AT90S4433 AT90S4434 AT90S8515 AT90S8515comp AT90S8535 ATA5272 ATA5505
+ * ATA5702M322 ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835
+ * ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215 ATA8510 ATA8515
+ * ATA664251 ATmega32HVE2
+ */
+static const Valueitem_t _values_LB_atmega328[3] = {
+  {0, "prog_ver_disabled", "further programming and verification disabled"},
+  {2, "prog_disabled", "further programming disabled"},
+  {3, "no_lock", "no memory lock features enabled"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
+ * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
+ * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
+ * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
+ * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_LB_atxmega16e5[3] = {
+  {0, "rwlock", "read and write not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_LB_attiny204[2] = {
+  {0x3a, "rwlock", "read and write not allowed"},
+  {0xc5, "nolock", "no locks"},
+};
+
+// AT90S2333
+static const Valueitem_t _values_LB_at90s2333[3] = {
+  {0, "prog_ver_disabled", "further programming and verification disabled"},
+  {1, "prog_disabled", "further programming disabled"},
+  {3, "no_lock", "no memory lock features enabled"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
+ * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
+ * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
+ * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
+ */
+static const Valueitem_t _values_BLB0_atmega328[4] = {
+  {0, "lpm_spm_disabled_in_app", "LPM and SPM prohibited in application section"},
+  {1, "lpm_disabled_in_app", "LPM prohibited in application section"},
+  {2, "spm_disabled_in_app", "SPM prohibited in application section"},
+  {3, "no_lock_in_app", "no lock on SPM and LPM in application section"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
+ * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
+ * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
+ * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
+ */
+static const Valueitem_t _values_BLB1_atmega328[4] = {
+  {0, "lpm_spm_disabled_in_boot", "LPM and SPM prohibited in boot section"},
+  {1, "lpm_disabled_in_boot", "LPM prohibited in boot section"},
+  {2, "spm_disabled_in_boot", "SPM prohibited in boot section"},
+  {3, "no_lock_in_boot", "no lock on SPM and LPM in boot section"},
 };
 
 // ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1
 static const Valueitem_t _values_PSCRVB_atmega16m1[2] = {
-  {0, "V_0", "PSC0UTnB reset value 0"},
-  {1, "V_1", "PSC0UTnB reset value 1"},
+  {0, "v_0", "PSC0UTnB reset value 0"},
+  {1, "v_1", "PSC0UTnB reset value 1"},
 };
 
 // ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1
 static const Valueitem_t _values_PSCRVA_atmega16m1[2] = {
-  {0, "V_0", "PSCOUTnA reset value 0"},
-  {1, "V_1", "PSCOUTnA reset value 1"},
+  {0, "v_0", "PSCOUTnA reset value 0"},
+  {1, "v_1", "PSCOUTnA reset value 1"},
 };
 
 // ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1
 static const Valueitem_t _values_PSCRB_atmega16m1[2] = {
-  {0, "RB_ENABLED", "PSC reset behavior enabled"},
-  {1, "RB_DISABLED", "PSC reset behavior disabled"},
+  {0, "rb_enabled", "PSC reset behavior enabled"},
+  {1, "rb_disabled", "PSC reset behavior disabled"},
 };
 
 // ATmega16HVA2 ATmega8HVA ATmega16HVA
 static const Valueitem_t _values_SUT_atmega16hva2[8] = {
-  {0, "SUT_6CK_14CK_4MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
-  {1, "SUT_6CK_14CK_8MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 8 ms"},
-  {2, "SUT_6CK_14CK_16MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 16 ms"},
-  {3, "SUT_6CK_14CK_32MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 32 ms"},
-  {4, "SUT_6CK_14CK_64MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
-  {5, "SUT_6CK_14CK_128MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 128 ms"},
-  {6, "SUT_6CK_14CK_256MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 256 ms"},
-  {7, "SUT_6CK_14CK_512MS", "startup time PWRDWN/RESET: 6 CK/14 CK + 512 ms"},
+  {0, "sut_6ck_14ck_4ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {1, "sut_6ck_14ck_8ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 8 ms"},
+  {2, "sut_6ck_14ck_16ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 16 ms"},
+  {3, "sut_6ck_14ck_32ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 32 ms"},
+  {4, "sut_6ck_14ck_64ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {5, "sut_6ck_14ck_128ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 128 ms"},
+  {6, "sut_6ck_14ck_256ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 256 ms"},
+  {7, "sut_6ck_14ck_512ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 512 ms"},
 };
 
 // ATmega32HVBrevB ATmega16HVB ATmega16HVBrevB ATmega32HVB
 static const Valueitem_t _values_SUT_atmega32hvbrevb[8] = {
-  {0, "SUT_14CK_4MS", "startup time: 14 CK + 4 ms"},
-  {1, "SUT_14CK_8MS", "startup time: 14 CK + 8 ms"},
-  {2, "SUT_14CK_16MS", "startup time: 14 CK + 16 ms"},
-  {3, "SUT_14CK_32MS", "startup time: 14 CK + 32 ms"},
-  {4, "SUT_14CK_64MS", "startup time: 14 CK + 64 ms"},
-  {5, "SUT_14CK_128MS", "startup time: 14 CK + 128 ms"},
-  {6, "SUT_14CK_256MS", "startup time: 14 CK + 256 ms"},
-  {7, "SUT_14CK_512MS", "startup time: 14 CK + 512 ms"},
+  {0, "sut_14ck_4ms", "startup time: 14 CK + 4 ms"},
+  {1, "sut_14ck_8ms", "startup time: 14 CK + 8 ms"},
+  {2, "sut_14ck_16ms", "startup time: 14 CK + 16 ms"},
+  {3, "sut_14ck_32ms", "startup time: 14 CK + 32 ms"},
+  {4, "sut_14ck_64ms", "startup time: 14 CK + 64 ms"},
+  {5, "sut_14ck_128ms", "startup time: 14 CK + 128 ms"},
+  {6, "sut_14ck_256ms", "startup time: 14 CK + 256 ms"},
+  {7, "sut_14ck_512ms", "startup time: 14 CK + 512 ms"},
 };
 
 // ATmega64HVE ATmega64HVE2 ATmega32HVE2
 static const Valueitem_t _values_SUT_atmega64hve[4] = {
-  {0, "SUT_14CK_0MS", "startup time: 14 CK + 0 ms"},
-  {1, "SUT_14CK_16MS", "startup time: 14 CK + 16 ms"},
-  {2, "SUT_14CK_32MS", "startup time: 14 CK + 32 ms"},
-  {3, "SUT_14CK_64MS", "startup time: 14 CK + 64 ms"},
+  {0, "sut_14ck_0ms", "startup time: 14 CK + 0 ms"},
+  {1, "sut_14ck_16ms", "startup time: 14 CK + 16 ms"},
+  {2, "sut_14ck_32ms", "startup time: 14 CK + 32 ms"},
+  {3, "sut_14ck_64ms", "startup time: 14 CK + 64 ms"},
 };
 
 /*
@@ -9242,20 +9242,20 @@ static const Valueitem_t _values_SUT_atmega64hve[4] = {
  * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_SUT_attiny204[8] = {
-  {0, "SUT_0MS", "startup time 0 ms"},
-  {1, "SUT_1MS", "startup time 1 ms"},
-  {2, "SUT_2MS", "startup time 2 ms"},
-  {3, "SUT_4MS", "startup time 4 ms"},
-  {4, "SUT_8MS", "startup time 8 ms"},
-  {5, "SUT_16MS", "startup time 16 ms"},
-  {6, "SUT_32MS", "startup time 32 ms"},
-  {7, "SUT_64MS", "startup time 64 ms"},
+  {0, "sut_0ms", "startup time 0 ms"},
+  {1, "sut_1ms", "startup time 1 ms"},
+  {2, "sut_2ms", "startup time 2 ms"},
+  {3, "sut_4ms", "startup time 4 ms"},
+  {4, "sut_8ms", "startup time 8 ms"},
+  {5, "sut_16ms", "startup time 16 ms"},
+  {6, "sut_32ms", "startup time 32 ms"},
+  {7, "sut_64ms", "startup time 64 ms"},
 };
 
 // ATmega161
 static const Valueitem_t _values_SUT_atmega161[2] = {
-  {0, "SUT_LONG", "start up time long"},
-  {1, "SUT_SHORT", "start up time short"},
+  {0, "sut_long", "start up time long"},
+  {1, "sut_short", "start up time short"},
 };
 
 /*
@@ -9266,119 +9266,119 @@ static const Valueitem_t _values_SUT_atmega161[2] = {
  * ATmega48P ATmega48PA ATmega48PB ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
  */
 static const Valueitem_t _values_SELFPRGEN_atmega16hva2[2] = {
-  {0, "SPM_ENABLED", "self programming enabled"},
-  {1, "SPM_DISABLED", "self programming disabled"},
+  {0, "spm_enabled", "self programming enabled"},
+  {1, "spm_disabled", "self programming disabled"},
 };
 
 // ATmega16HVA2
 static const Valueitem_t _values_CKSEL_atmega16hva2[2] = {
-  {1, "SLOW_RCOSC", "slow RC osc"},
-  {2, "ULP_RCOSC", "ultra-low-power RC osc"},
+  {1, "slow_rcosc", "slow RC osc"},
+  {2, "ulp_rcosc", "ultra-low-power RC osc"},
 };
 
 // ATmega32HVBrevB ATmega16HVB ATmega16HVBrevB ATmega32HVB
 static const Valueitem_t _values_CKSEL_atmega32hvbrevb[1] = {
-  {1, "DEFAULT", "default"},
+  {1, "default", "default"},
 };
 
 // ATmega64HVE ATmega64HVE2 ATmega32HVE2
 static const Valueitem_t _values_CKSEL_atmega64hve[1] = {
-  {1, "OSEL_DEFAULT", "oscillator selection default"},
+  {1, "osel_default", "oscillator selection default"},
 };
 
 // ATtiny28 ATtiny12
 static const Valueitem_t _values_CKSEL_attiny28[16] = {
-  {0x00, "EXTCLKx00", "external clock"},
-  {0x01, "EXTCLKx01", "external clock"},
-  {0x02, "INTRCOSCx02", "internal RC oscillator"},
-  {0x03, "INTRCOSCx03", "internal RC oscillator"},
-  {0x04, "INTRCOSCx04", "internal RC oscillator"},
-  {0x05, "EXTRCOSCx05", "external RC oscillator"},
-  {0x06, "EXTRCOSCx06", "external RC oscillator"},
-  {0x07, "EXTRCOSCx07", "external RC oscillator"},
-  {0x08, "EXTLOFXTALx08", "external low-frequency crystal"},
-  {0x09, "EXTLOFXTALx09", "external low-frequency crystal"},
-  {0x0a, "EXTXTALCRESx0a", "external crystal/ceramic resonator"},
-  {0x0b, "EXTXTALCRESx0b", "external crystal/ceramic resonator"},
-  {0x0c, "EXTXTALCRESx0c", "external crystal/ceramic resonator"},
-  {0x0d, "EXTXTALCRESx0d", "external crystal/ceramic resonator"},
-  {0x0e, "EXTXTALCRESx0e", "external crystal/ceramic resonator"},
-  {0x0f, "EXTXTALCRESx0f", "external crystal/ceramic resonator"},
+  {0x00, "extclkx00", "external clock"},
+  {0x01, "extclkx01", "external clock"},
+  {0x02, "intrcoscx02", "internal RC oscillator"},
+  {0x03, "intrcoscx03", "internal RC oscillator"},
+  {0x04, "intrcoscx04", "internal RC oscillator"},
+  {0x05, "extrcoscx05", "external RC oscillator"},
+  {0x06, "extrcoscx06", "external RC oscillator"},
+  {0x07, "extrcoscx07", "external RC oscillator"},
+  {0x08, "extlofxtalx08", "external low-frequency crystal"},
+  {0x09, "extlofxtalx09", "external low-frequency crystal"},
+  {0x0a, "extxtalcresx0a", "external crystal/ceramic resonator"},
+  {0x0b, "extxtalcresx0b", "external crystal/ceramic resonator"},
+  {0x0c, "extxtalcresx0c", "external crystal/ceramic resonator"},
+  {0x0d, "extxtalcresx0d", "external crystal/ceramic resonator"},
+  {0x0e, "extxtalcresx0e", "external crystal/ceramic resonator"},
+  {0x0f, "extxtalcresx0f", "external crystal/ceramic resonator"},
 };
 
 // ATtiny11
 static const Valueitem_t _values_CKSEL_attiny11[5] = {
-  {0, "EXTCLK", "external clock"},
-  {4, "INTRCOSC", "internal RC oscillator"},
-  {5, "EXTRCOSC", "external RC oscillator"},
-  {6, "EXTLOFXTAL", "external low-frequency crystal"},
-  {7, "EXTXTALCRES", "external crystal/ceramic resonator"},
+  {0, "extclk", "external clock"},
+  {4, "intrcosc", "internal RC oscillator"},
+  {5, "extrcosc", "external RC oscillator"},
+  {6, "extlofxtal", "external low-frequency crystal"},
+  {7, "extxtalcres", "external crystal/ceramic resonator"},
 };
 
 // ATtiny15
 static const Valueitem_t _values_CKSEL_attiny15[4] = {
-  {0, "SLOWPWRx00", "slowly rising power"},
-  {1, "SLOWPWRx01", "slowly rising power"},
-  {2, "QUICKPWR", "quickly rising power"},
-  {3, "VQUICKPWR", "very quickly rising power"},
+  {0, "slowpwrx00", "slowly rising power"},
+  {1, "slowpwrx01", "slowly rising power"},
+  {2, "quickpwr", "quickly rising power"},
+  {3, "vquickpwr", "very quickly rising power"},
 };
 
 // AT90S1200 ATtiny22 AT90S2343
 static const Valueitem_t _values_CKSEL_at90s1200[2] = {
-  {0, "INTRCOSC", "internal RC oscillator"},
-  {1, "EXTCLK", "external clock"},
+  {0, "intrcosc", "internal RC oscillator"},
+  {1, "extclk", "external clock"},
 };
 
 // ATmega103
 static const Valueitem_t _values_CKSEL_atmega103[4] = {
-  {0, "SUT_5CK", "startup time 5 CPU cycles"},
-  {1, "SUT_0MS5", "startup time 0.5 ms"},
-  {2, "SUT_4MS", "startup time 4 ms"},
-  {3, "SUT_16MS", "startup time 16 ms"},
+  {0, "sut_5ck", "startup time 5 CPU cycles"},
+  {1, "sut_0ms5", "startup time 0.5 ms"},
+  {2, "sut_4ms", "startup time 4 ms"},
+  {3, "sut_16ms", "startup time 16 ms"},
 };
 
 // ATmega161
 static const Valueitem_t _values_CKSEL_atmega161[8] = {
-  {0, "EXTCLK_FASTPWR", "ext clock; fast rising power"},
-  {1, "EXTCLK_BODEN_POR", "ext clock; brownout detection or power-on reset"},
-  {2, "XOSC_SLOWPWR", "crystal osc; slowly rising power"},
-  {3, "XOSC_FASTPWR", "crystal osc; fast rising power"},
-  {4, "XOSC_BODEN_POR", "crystal osc; brownout detection or power-on reset"},
-  {5, "CRES_EXTCLK_SLOWPWR", "ceramic res/ext clock; slowly rising power"},
-  {6, "CRES_FASTPWR", "ceramic res; fast rising power"},
-  {7, "CRES_BODEN_POR", "ceramic res; brownout detection or power-on reset"},
+  {0, "extclk_fastpwr", "ext clock; fast rising power"},
+  {1, "extclk_boden_por", "ext clock; brownout detection or power-on reset"},
+  {2, "xosc_slowpwr", "crystal osc; slowly rising power"},
+  {3, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {4, "xosc_boden_por", "crystal osc; brownout detection or power-on reset"},
+  {5, "cres_extclk_slowpwr", "ceramic res/ext clock; slowly rising power"},
+  {6, "cres_fastpwr", "ceramic res; fast rising power"},
+  {7, "cres_boden_por", "ceramic res; brownout detection or power-on reset"},
 };
 
 // ATmega163 ATmega323
 static const Valueitem_t _values_CKSEL_atmega163[16] = {
-  {0x00, "EXTCLK_FASTPWR", "ext clock; fast rising power"},
-  {0x01, "EXTCLK_BODEN", "ext clock; brownout detection"},
-  {0x02, "INTRCOSC_SLOWPWR", "int RC osc; slowly rising power"},
-  {0x03, "INTRCOSC_FASTPWR", "int RC osc; fast rising power"},
-  {0x04, "INTRCOSC_BODEN", "int RC osc; brownout detection"},
-  {0x05, "EXTRCOSC_SLOWPWR", "ext RC osc; slowly rising power"},
-  {0x06, "EXTRCOSC_FASTPWR", "ext RC osc; fast rising power"},
-  {0x07, "EXTRCOSC_BODEN", "exter RC osc; brownout detection"},
-  {0x08, "EXTLOFXTALx08", "external low-frequency crystal"},
-  {0x09, "EXTLOFXTALx09", "external low-frequency crystal"},
-  {0x0a, "XOSC_SLOWPWR", "crystal osc; slowly rising power"},
-  {0x0b, "XOSC_FASTPWR", "crystal osc; fast rising power"},
-  {0x0c, "XOSC_BODEN", "crystal osc; brownout detection"},
-  {0x0d, "CRES_EXTCLK_SLOWPWR", "ceramic res/ext clock; slowly rising power"},
-  {0x0e, "CRES_FASTPWR", "ceramic res; fast rising power"},
-  {0x0f, "CRES_BODEN", "ceramic res; brownout detection"},
+  {0x00, "extclk_fastpwr", "ext clock; fast rising power"},
+  {0x01, "extclk_boden", "ext clock; brownout detection"},
+  {0x02, "intrcosc_slowpwr", "int RC osc; slowly rising power"},
+  {0x03, "intrcosc_fastpwr", "int RC osc; fast rising power"},
+  {0x04, "intrcosc_boden", "int RC osc; brownout detection"},
+  {0x05, "extrcosc_slowpwr", "ext RC osc; slowly rising power"},
+  {0x06, "extrcosc_fastpwr", "ext RC osc; fast rising power"},
+  {0x07, "extrcosc_boden", "exter RC osc; brownout detection"},
+  {0x08, "extlofxtalx08", "external low-frequency crystal"},
+  {0x09, "extlofxtalx09", "external low-frequency crystal"},
+  {0x0a, "xosc_slowpwr", "crystal osc; slowly rising power"},
+  {0x0b, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {0x0c, "xosc_boden", "crystal osc; brownout detection"},
+  {0x0d, "cres_extclk_slowpwr", "ceramic res/ext clock; slowly rising power"},
+  {0x0e, "cres_fastpwr", "ceramic res; fast rising power"},
+  {0x0f, "cres_boden", "ceramic res; brownout detection"},
 };
 
 // ATmega16HVA2
 static const Valueitem_t _values_COMPMODE_atmega16hva2[2] = {
-  {0, "CM_PROGRAMMED", "compatibility mode programmed"},
-  {1, "CM_UNPROGRAMMED", "compatibility mode unprogrammed"},
+  {0, "cm_programmed", "compatibility mode programmed"},
+  {1, "cm_unprogrammed", "compatibility mode unprogrammed"},
 };
 
 // ATmega32HVBrevB ATmega16HVBrevB
 static const Valueitem_t _values_DUVRDINIT_atmega32hvbrevb[2] = {
-  {0, "DUVR_ON", "DUVR mode on"},
-  {1, "DUVR_OFF", "DUVR mode off"},
+  {0, "duvr_on", "DUVR mode on"},
+  {1, "duvr_off", "DUVR mode off"},
 };
 
 /*
@@ -9388,20 +9388,20 @@ static const Valueitem_t _values_DUVRDINIT_atmega32hvbrevb[2] = {
  * ATmega32HVE2
  */
 static const Valueitem_t _values_BODEN_atmega64hve[2] = {
-  {0, "BOD_ENABLED", "brownout detection enabled"},
-  {1, "BOD_DISABLED", "brownout detection disabled"},
+  {0, "bod_enabled", "brownout detection enabled"},
+  {1, "bod_disabled", "brownout detection disabled"},
 };
 
 // AT90SCR100H AT90SCR100
 static const Valueitem_t _values_BODEN_at90scr100h[2] = {
-  {0, "BOD_DISABLED", "brownout detection disabled"},
-  {1, "BOD_ENABLED", "brownout detection enabled"},
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_enabled", "brownout detection enabled"},
 };
 
 // ATmega328PB ATmega324PB
 static const Valueitem_t _values_CFD_atmega328pb[2] = {
-  {0, "CFD_DISABLED", "clock failure detection disabled"},
-  {1, "CFD_ENABLED", "clock failure detection enabled"},
+  {0, "cfd_disabled", "clock failure detection disabled"},
+  {1, "cfd_enabled", "clock failure detection enabled"},
 };
 
 /*
@@ -9409,26 +9409,26 @@ static const Valueitem_t _values_CFD_atmega328pb[2] = {
  * ATmega64 ATmega64A ATmega128 ATmega128A ATmega8535 AT90S8515comp
  */
 static const Valueitem_t _values_CKOPT_atmega8515[2] = {
-  {0, "FULL_RAILTORAIL", "oscillator swings full rail-to-rail"},
-  {1, "LESS_THAN_FULL_RAILTORAIL", "oscillator swings less than full rail-to-rail"},
+  {0, "full_railtorail", "oscillator swings full rail-to-rail"},
+  {1, "less_than_full_railtorail", "oscillator swings less than full rail-to-rail"},
 };
 
 // ATtiny26
 static const Valueitem_t _values_CKOPT_attiny26[2] = {
-  {0, "INT_CAPS_ENABLED", "internal capacitors on XTAL1 and XTAL2 enabled"},
-  {1, "NO_INT_CAPS", "no internal capacitors on XTAL1 and XTAL2"},
+  {0, "int_caps_enabled", "internal capacitors on XTAL1 and XTAL2 enabled"},
+  {1, "no_int_caps", "no internal capacitors on XTAL1 and XTAL2"},
 };
 
 // ATmega8515 AT90S8515comp
 static const Valueitem_t _values_S8515C_atmega8515[2] = {
-  {0, "C8515_ENABLED", "AT90S4414/8515 compatibility mode enabled"},
-  {1, "C8515_DISABLED", "AT90S4414/8515 compatibility mode disabled"},
+  {0, "c8515_enabled", "AT90S4414/8515 compatibility mode enabled"},
+  {1, "c8515_disabled", "AT90S4414/8515 compatibility mode disabled"},
 };
 
 // ATtiny28
 static const Valueitem_t _values_INTCAP_attiny28[2] = {
-  {0, "CAP_ENABLED", "internal load capacitors between XTAL1/XTAL2 and GND enabled"},
-  {1, "CAP_DISABLED", "internal load capacitors between XTAL1/XTAL2 and GND disabled"},
+  {0, "cap_enabled", "internal load capacitors between XTAL1/XTAL2 and GND enabled"},
+  {1, "cap_disabled", "internal load capacitors between XTAL1/XTAL2 and GND disabled"},
 };
 
 /*
@@ -9436,9 +9436,9 @@ static const Valueitem_t _values_INTCAP_attiny28[2] = {
  * ATtiny1634 ATtiny1634R ATtiny1634R
  */
 static const Valueitem_t _values_BODACT_attiny441[3] = {
-  {1, "BOD_SAMPLED", "brownout detection in sampled mode"},
-  {2, "BOD_ENABLED", "brownout detection enabled"},
-  {3, "BOD_DISABLED", "brownout detection disabled"},
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_enabled", "brownout detection enabled"},
+  {3, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9458,9 +9458,9 @@ static const Valueitem_t _values_BODACT_attiny441[3] = {
  * ATxmega384D3 ATxmega384D3
  */
 static const Valueitem_t _values_BODACT_atxmega16e5[3] = {
-  {1, "BOD_SAMPLED", "brownout detection in sampled mode"},
-  {2, "BOD_CONTINUOUS", "brownout detection enabled in continuous mode"},
-  {3, "BOD_DISABLED", "brownout detection disabled"},
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {3, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9468,9 +9468,9 @@ static const Valueitem_t _values_BODACT_atxmega16e5[3] = {
  * ATtiny1634 ATtiny1634R ATtiny1634R
  */
 static const Valueitem_t _values_BODPD_attiny441[3] = {
-  {1, "BOD_SAMPLED", "brownout detection in sampled mode"},
-  {2, "BOD_ENABLED", "brownout detection enabled"},
-  {3, "BOD_DISABLED", "brownout detection disabled"},
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_enabled", "brownout detection enabled"},
+  {3, "bod_disabled", "brownout detection disabled"},
 };
 
 /*
@@ -9490,54 +9490,54 @@ static const Valueitem_t _values_BODPD_attiny441[3] = {
  * ATxmega384D3 ATxmega384D3
  */
 static const Valueitem_t _values_BODPD_atxmega16e5[3] = {
-  {1, "BOD_SAMPLED", "brownout detection in sampled mode"},
-  {2, "BOD_CONTINUOUS", "brownout detection enabled in continuous mode"},
-  {3, "BOD_DISABLED", "brownout detection disabled"},
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {3, "bod_disabled", "brownout detection disabled"},
 };
 
 // ATtiny441 ATtiny841
 static const Valueitem_t _values_ULPOSCSEL_attiny441[5] = {
-  {3, "ULPOSC_512KHZ", "ultra-low-power clock running at 512 kHz"},
-  {4, "ULPOSC_256KHZ", "ultra-low-power clock running at 256 kHz"},
-  {5, "ULPOSC_128KHZ", "ultra-low-power clock running at 128 kHz"},
-  {6, "ULPOSC_64KHZ", "ultra-low-power clock running at 64 kHz"},
-  {7, "ULPOSC_32KHZ", "ultra-low-power clock running at 32 kHz"},
+  {3, "ulposc_512khz", "ultra-low-power clock running at 512 kHz"},
+  {4, "ulposc_256khz", "ultra-low-power clock running at 256 kHz"},
+  {5, "ulposc_128khz", "ultra-low-power clock running at 128 kHz"},
+  {6, "ulposc_64khz", "ultra-low-power clock running at 64 kHz"},
+  {7, "ulposc_32khz", "ultra-low-power clock running at 32 kHz"},
 };
 
 // AT90PWM2 AT90PWM81 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM161 AT90PWM216 AT90PWM316
 static const Valueitem_t _values_PSCRV_at90pwm2[2] = {
-  {0, "V_0", "PSCOUT reset value 0"},
-  {1, "V_1", "PSCOUT reset value 1"},
+  {0, "v_0", "PSCOUT reset value 0"},
+  {1, "v_1", "PSCOUT reset value 1"},
 };
 
 // AT90PWM2 AT90PWM81 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM161 AT90PWM216 AT90PWM316
 static const Valueitem_t _values_PSC0RB_at90pwm2[2] = {
-  {0, "RB_ENABLED", "PSC0 reset behavior enabled"},
-  {1, "RB_DISABLED", "PSC0 reset behavior disabled"},
+  {0, "rb_enabled", "PSC0 reset behavior enabled"},
+  {1, "rb_disabled", "PSC0 reset behavior disabled"},
 };
 
 // AT90PWM2 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM216 AT90PWM316
 static const Valueitem_t _values_PSC1RB_at90pwm2[2] = {
-  {0, "RB_ENABLED", "PSC1 reset behavior enabled"},
-  {1, "RB_DISABLED", "PSC1 reset behavior disabled"},
+  {0, "rb_enabled", "PSC1 reset behavior enabled"},
+  {1, "rb_disabled", "PSC1 reset behavior disabled"},
 };
 
 // AT90PWM2 AT90PWM81 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM161 AT90PWM216 AT90PWM316
 static const Valueitem_t _values_PSC2RB_at90pwm2[2] = {
-  {0, "RB_ENABLED", "PSC2 reset behavior enabled"},
-  {1, "RB_DISABLED", "PSC2 reset behavior disabled"},
+  {0, "rb_enabled", "PSC2 reset behavior enabled"},
+  {1, "rb_disabled", "PSC2 reset behavior disabled"},
 };
 
 // AT90PWM81 AT90PWM161
 static const Valueitem_t _values_PSCINRB_at90pwm81[2] = {
-  {0, "RB_ENABLED", "PSC2 and PSC0 input reset behavior enabled"},
-  {1, "RB_DISABLED", "PSC2 and PSC0 input reset behavior disabled"},
+  {0, "rb_enabled", "PSC2 and PSC0 input reset behavior enabled"},
+  {1, "rb_disabled", "PSC2 and PSC0 input reset behavior disabled"},
 };
 
 // AT90PWM81 AT90PWM161
 static const Valueitem_t _values_PSC2RBA_at90pwm81[2] = {
-  {0, "RB_ENABLED", "PSC2 reset behavior for 22 and 23 enabled"},
-  {1, "RB_DISABLED", "PSC2 reset behavior for 22 and 23 disabled"},
+  {0, "rb_enabled", "PSC2 reset behavior for 22 and 23 enabled"},
+  {1, "rb_disabled", "PSC2 reset behavior for 22 and 23 disabled"},
 };
 
 /*
@@ -9558,8 +9558,8 @@ static const Valueitem_t _values_PSC2RBA_at90pwm81[2] = {
  * ATxmega256A3BU ATxmega256A3U
  */
 static const Valueitem_t _values_JTAGEN_at90can128[2] = {
-  {0, "JTAG_ENABLED", "JTAG interface enabled"},
-  {1, "JTAG_DISABLED", "JTAG interface disabled"},
+  {0, "jtag_enabled", "JTAG interface enabled"},
+  {1, "jtag_disabled", "JTAG interface disabled"},
 };
 
 /*
@@ -9576,14 +9576,14 @@ static const Valueitem_t _values_JTAGEN_at90can128[2] = {
  * AT90CAN32 AT90CAN64 AT90SCR100 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
  */
 static const Valueitem_t _values_OCDEN_at90can128[2] = {
-  {0, "OCD_ENABLED", "on-chip debug enabled"},
-  {1, "OCD_DISABLED", "on-chip debug disabled"},
+  {0, "ocd_enabled", "on-chip debug enabled"},
+  {1, "ocd_disabled", "on-chip debug disabled"},
 };
 
 // AT90CAN128 AT90CAN32 AT90CAN64
 static const Valueitem_t _values_TA0SEL_at90can128[2] = {
-  {0, "FT_ENABLED", "factory tests enabled"},
-  {1, "FT_DISABLED", "factory tests disabled"},
+  {0, "ft_enabled", "factory tests enabled"},
+  {1, "ft_disabled", "factory tests disabled"},
 };
 
 /*
@@ -9591,38 +9591,47 @@ static const Valueitem_t _values_TA0SEL_at90can128[2] = {
  * AT90USB647 AT90USB1286 AT90USB1287
  */
 static const Valueitem_t _values_HWBE_at90usb162[2] = {
-  {0, "GPIO_PIN_CAN_FORCE_RESET_TO_BOOT_SECTION", "GPIO pin can force reset to boot section"},
-  {1, "GPIO_PIN_CANNOT_FORCE_RESET_TO_BOOT_SECTION", "GPIO pin cannot force reset to boot section"},
+  {0, "gpio_pin_can_force_reset_to_boot_section", "GPIO pin can force reset to boot section"},
+  {1, "gpio_pin_cannot_force_reset_to_boot_section", "GPIO pin cannot force reset to boot section"},
 };
 
 // AT90S1200 ATtiny22 AT90S2343
 static const Valueitem_t _values_RCEN_at90s1200[2] = {
-  {0, "INTRCOSC", "internal RC oscillator"},
-  {1, "EXTCLK", "external clock"},
+  {0, "intrcosc", "internal RC oscillator"},
+  {1, "extclk", "external clock"},
 };
 
 // AT90S2313 ATtiny11 AT90S2323 AT90S4414 AT90S4434 AT90S8515 AT90S8535
 static const Valueitem_t _values_FSTRT_at90s2313[2] = {
-  {0, "SUT_SHORT", "startup time short"},
-  {1, "SUT_LONG", "startup time long"},
+  {0, "sut_short", "startup time short"},
+  {1, "sut_long", "startup time long"},
 };
 
 // ATA5700M322 ATA5702M322
 static const Valueitem_t _values_PCEE1_ata5700m322[2] = {
-  {0, "CEE_PROTECTED", "customer EEPROM section protected"},
-  {1, "CEE_UNPROTECTED", "customer EEPROM section unprotected"},
+  {0, "cee_protected", "customer EEPROM section protected"},
+  {1, "cee_unprotected", "customer EEPROM section unprotected"},
 };
 
 // ATA5700M322 ATA5702M322
 static const Valueitem_t _values_EEACC_ata5700m322[2] = {
-  {0, "EEA_ENABLED", "EEPROM access control enabled"},
-  {1, "EEA_DISABLED", "EEPROM access control disabled"},
+  {0, "eea_enabled", "EEPROM access control enabled"},
+  {1, "eea_disabled", "EEPROM access control disabled"},
 };
 
 // ATA5700M322 ATA5702M322
 static const Valueitem_t _values_CKSTART_ata5700m322[2] = {
-  {0, "MRC_SELECTED", "MRC selected"},
-  {1, "MRC_NOT_SELECTED", "MRC not selected"},
+  {0, "mrc_selected", "MRC selected"},
+  {1, "mrc_not_selected", "MRC not selected"},
+};
+
+/*
+ * ATA5781 ATA5790 ATA5782 ATA5783 ATA5787 ATA5791 ATA5831 ATA5832 ATA5833 ATA5835 ATA8210 ATA8215
+ * ATA8510 ATA8515
+ */
+static const Valueitem_t _values_EXTCLKEN_ata5781[2] = {
+  {0, "xclk_enabled", "external clock enabled"},
+  {1, "xclk_disabled", "external clock disabled"},
 };
 
 /*
@@ -9647,10 +9656,10 @@ static const Valueitem_t _values_CKSTART_ata5700m322[2] = {
  * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
  */
 static const Valueitem_t _values_AP_atmega328[4] = {
-  {0, "LPM_SPM_DISABLED_IN_APP", "LPM and SPM prohibited in application section"},
-  {1, "LPM_DISABLED_IN_APP", "LPM prohibited in application section"},
-  {2, "SPM_DISABLED_IN_APP", "SPM prohibited in application section"},
-  {3, "NO_LOCK_IN_APP", "no lock on SPM and LPM in application section"},
+  {0, "lpm_spm_disabled_in_app", "LPM and SPM prohibited in application section"},
+  {1, "lpm_disabled_in_app", "LPM prohibited in application section"},
+  {2, "spm_disabled_in_app", "SPM prohibited in application section"},
+  {3, "no_lock_in_app", "no lock on SPM and LPM in application section"},
 };
 
 /*
@@ -9675,54 +9684,146 @@ static const Valueitem_t _values_AP_atmega328[4] = {
  * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
  */
 static const Valueitem_t _values_BLP_atmega328[4] = {
-  {0, "LPM_SPM_DISABLED_IN_BOOT", "LPM and SPM prohibited in boot section"},
-  {1, "LPM_DISABLED_IN_BOOT", "LPM prohibited in boot section"},
-  {2, "SPM_DISABLED_IN_BOOT", "SPM prohibited in boot section"},
-  {3, "NO_LOCK_IN_BOOT", "no lock on SPM and LPM in boot section"},
-};
-
-/*
- * ATA5781 ATA5790 ATA5782 ATA5783 ATA5787 ATA5791 ATA5831 ATA5832 ATA5833 ATA5835 ATA8210 ATA8215
- * ATA8510 ATA8515
- */
-static const Valueitem_t _values_EXTCLKEN_ata5781[2] = {
-  {0, "XCLK_ENABLED", "external clock enabled"},
-  {1, "XCLK_DISABLED", "external clock disabled"},
+  {0, "lpm_spm_disabled_in_boot", "LPM and SPM prohibited in boot section"},
+  {1, "lpm_disabled_in_boot", "LPM prohibited in boot section"},
+  {2, "spm_disabled_in_boot", "SPM prohibited in boot section"},
+  {3, "no_lock_in_boot", "no lock on SPM and LPM in boot section"},
 };
 
 // ATA5790 ATA5790N ATA5791 ATA5795
 static const Valueitem_t _values__32OEN_ata5790[2] = {
-  {0, "O32_ENABLED", "32 kHz oscillator enabled"},
-  {1, "O32_DISABLED", "32 kHz oscillator disabled"},
+  {0, "o32_enabled", "32 kHz oscillator enabled"},
+  {1, "o32_disabled", "32 kHz oscillator disabled"},
 };
 
 // ATA5790 ATA5790N ATA5791 ATA5795
 static const Valueitem_t _values_Reserved_ata5790[1] = {
-  {0, "MUST_BE_0", "bit must be programmed"},
+  {0, "must_be_0", "bit must be programmed"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_TSRDI_ata6285[2] = {
-  {0, "TSR_DISABLED", "temperature shutdown reset disabled"},
-  {1, "TSR_ENABLED", "temperature shutdown reset enabled"},
+  {0, "tsr_disabled", "temperature shutdown reset disabled"},
+  {1, "tsr_enabled", "temperature shutdown reset enabled"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_FRCFS_ata6285[2] = {
-  {0, "OSC_4MHZ", "fast RC oscillator frequency 4 MHz"},
-  {1, "OSC_1MHZ", "fast RC oscillator frequency 1 MHz"},
+  {0, "osc_4mhz", "fast RC oscillator frequency 4 MHz"},
+  {1, "osc_1mhz", "fast RC oscillator frequency 1 MHz"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_WDRCON_ata6285[2] = {
-  {0, "WDRC_ENABLED", "watchdog RC oscillator enabled"},
-  {1, "WDRC_DISABLED", "watchdog RC oscillator disabled"},
+  {0, "wdrc_enabled", "watchdog RC oscillator enabled"},
+  {1, "wdrc_disabled", "watchdog RC oscillator disabled"},
 };
 
 // ATA6285 ATA6286 ATA6289
 static const Valueitem_t _values_EELOCK_ata6285[2] = {
-  {0, "EEL_LOCKED", "upper EEPROM locked"},
-  {1, "EEL_UNLOCKED", "upper EEPROM unlocked"},
+  {0, "eel_locked", "upper EEPROM locked"},
+  {1, "eel_unlocked", "upper EEPROM unlocked"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
+ * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
+ * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
+ * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
+ * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
+ * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
+ * ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_WDPER_atxmega16e5[11] = {
+  {0x00, "t_0s008", "8 cycles (8 ms)"},
+  {0x01, "t_0s016", "16 cycles (16 ms)"},
+  {0x02, "t_0s032", "32 cycles (32 ms)"},
+  {0x03, "t_0s064", "64 cycles (64 ms)"},
+  {0x04, "t_0s125", "128 cycles (0.125 s)"},
+  {0x05, "t_0s250", "256 cycles (0.250 s)"},
+  {0x06, "t_0s500", "512 cycles (0.500 s)"},
+  {0x07, "t_1s000", "1K cycles (1.0 s)"},
+  {0x08, "t_2s000", "2K cycles (2.0 s)"},
+  {0x09, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0a, "t_8s000", "8K cycles (8.0 s)"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
+ * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
+ * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
+ * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
+ * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
+ * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
+ * ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_WDWPER_atxmega16e5[11] = {
+  {0x00, "t_0s008", "8 cycles (8 ms)"},
+  {0x01, "t_0s016", "16 cycles (16 ms)"},
+  {0x02, "t_0s032", "32 cycles (32 ms)"},
+  {0x03, "t_0s064", "64 cycles (64 ms)"},
+  {0x04, "t_0s125", "128 cycles (0.125 s)"},
+  {0x05, "t_0s250", "256 cycles (0.250 s)"},
+  {0x06, "t_0s500", "512 cycles (0.500 s)"},
+  {0x07, "t_1s000", "1K cycles (1.0 s)"},
+  {0x08, "t_2s000", "2K cycles (2.0 s)"},
+  {0x09, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0a, "t_8s000", "8K cycles (8.0 s)"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
+ * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
+ * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
+ * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
+ * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_WDLOCK_atxmega16e5[2] = {
+  {0, "wd_locked", "watchdog timer locked"},
+  {1, "wd_unlocked", "watchdog timer unlocked"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
+ * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
+ * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
+ * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
+ * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_STARTUPTIME_atxmega16e5[3] = {
+  {0, "sut_64ms", "startup time 64 ms"},
+  {1, "sut_4ms", "startup time 4 ms"},
+  {3, "sut_0ms", "startup time 0 ms"},
+};
+
+// ATxmega16E5 ATxmega16E5 ATxmega8E5 ATxmega8E5 ATxmega32E5 ATxmega32E5
+static const Valueitem_t _values_FDACT4_atxmega16e5[2] = {
+  {0, "gpio_from_value_fuse", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
+  {1, "default_io", "default I/O pin configuration"},
+};
+
+// ATxmega16E5 ATxmega16E5 ATxmega8E5 ATxmega8E5 ATxmega32E5 ATxmega32E5
+static const Valueitem_t _values_FDACT5_atxmega16e5[2] = {
+  {0, "gpio_from_value_fuse", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
+  {1, "default_io", "default I/O pin configuration"},
 };
 
 /*
@@ -9748,10 +9849,10 @@ static const Valueitem_t _values_EELOCK_ata6285[2] = {
  * ATxmega384C3 ATxmega384C3 ATxmega384D3 ATxmega384D3 ATxmega384D3
  */
 static const Valueitem_t _values_BLBAT_atxmega16e5[4] = {
-  {0, "RWLOCK", "read and write not allowed"},
-  {1, "RLOCK", "read not allowed"},
-  {2, "WLOCK", "write not allowed"},
-  {3, "NOLOCK", "no locks"},
+  {0, "rwlock", "read and write not allowed"},
+  {1, "rlock", "read not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
 };
 
 /*
@@ -9777,10 +9878,10 @@ static const Valueitem_t _values_BLBAT_atxmega16e5[4] = {
  * ATxmega384C3 ATxmega384C3 ATxmega384D3 ATxmega384D3 ATxmega384D3
  */
 static const Valueitem_t _values_BLBA_atxmega16e5[4] = {
-  {0, "RWLOCK", "read and write not allowed"},
-  {1, "RLOCK", "read not allowed"},
-  {2, "WLOCK", "write not allowed"},
-  {3, "NOLOCK", "no locks"},
+  {0, "rwlock", "read and write not allowed"},
+  {1, "rlock", "read not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
 };
 
 /*
@@ -9806,111 +9907,10 @@ static const Valueitem_t _values_BLBA_atxmega16e5[4] = {
  * ATxmega384C3 ATxmega384C3 ATxmega384D3 ATxmega384D3 ATxmega384D3
  */
 static const Valueitem_t _values_BLBB_atxmega16e5[4] = {
-  {0, "RWLOCK", "read and write not allowed"},
-  {1, "RLOCK", "read not allowed"},
-  {2, "WLOCK", "write not allowed"},
-  {3, "NOLOCK", "no locks"},
-};
-
-/*
- * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
- * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
- * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
- * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
- * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
- * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
- * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
- * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
- * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
- * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
- * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
- * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
- * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
- * ATxmega384D3 ATxmega384D3
- */
-static const Valueitem_t _values_WDPER_atxmega16e5[11] = {
-  {0x00, "T_0S008", "8 cycles (8 ms)"},
-  {0x01, "T_0S016", "16 cycles (16 ms)"},
-  {0x02, "T_0S032", "32 cycles (32 ms)"},
-  {0x03, "T_0S064", "64 cycles (64 ms)"},
-  {0x04, "T_0S125", "128 cycles (0.125 s)"},
-  {0x05, "T_0S250", "256 cycles (0.250 s)"},
-  {0x06, "T_0S500", "512 cycles (0.500 s)"},
-  {0x07, "T_1S000", "1K cycles (1.0 s)"},
-  {0x08, "T_2S000", "2K cycles (2.0 s)"},
-  {0x09, "T_4S000", "4K cycles (4.0 s)"},
-  {0x0a, "T_8S000", "8K cycles (8.0 s)"},
-};
-
-/*
- * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
- * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
- * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
- * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
- * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
- * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
- * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
- * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
- * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
- * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
- * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
- * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
- * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
- * ATxmega384D3 ATxmega384D3
- */
-static const Valueitem_t _values_WDWPER_atxmega16e5[11] = {
-  {0x00, "T_0S008", "8 cycles (8 ms)"},
-  {0x01, "T_0S016", "16 cycles (16 ms)"},
-  {0x02, "T_0S032", "32 cycles (32 ms)"},
-  {0x03, "T_0S064", "64 cycles (64 ms)"},
-  {0x04, "T_0S125", "128 cycles (0.125 s)"},
-  {0x05, "T_0S250", "256 cycles (0.250 s)"},
-  {0x06, "T_0S500", "512 cycles (0.500 s)"},
-  {0x07, "T_1S000", "1K cycles (1.0 s)"},
-  {0x08, "T_2S000", "2K cycles (2.0 s)"},
-  {0x09, "T_4S000", "4K cycles (4.0 s)"},
-  {0x0a, "T_8S000", "8K cycles (8.0 s)"},
-};
-
-/*
- * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
- * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
- * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
- * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
- * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
- * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
- * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
- */
-static const Valueitem_t _values_WDLOCK_atxmega16e5[2] = {
-  {0, "WD_LOCKED", "watchdog timer locked"},
-  {1, "WD_UNLOCKED", "watchdog timer unlocked"},
-};
-
-/*
- * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
- * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
- * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
- * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
- * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
- * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
- * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
- */
-static const Valueitem_t _values_STARTUPTIME_atxmega16e5[3] = {
-  {0, "SUT_64MS", "startup time 64 ms"},
-  {1, "SUT_4MS", "startup time 4 ms"},
-  {3, "SUT_0MS", "startup time 0 ms"},
-};
-
-// ATxmega16E5 ATxmega16E5 ATxmega8E5 ATxmega8E5 ATxmega32E5 ATxmega32E5
-static const Valueitem_t _values_FDACT4_atxmega16e5[2] = {
-  {0, "GPIO_FROM_VALUE_FUSE", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
-  {1, "DEFAULT_IO", "default I/O pin configuration"},
-};
-
-// ATxmega16E5 ATxmega16E5 ATxmega8E5 ATxmega8E5 ATxmega32E5 ATxmega32E5
-static const Valueitem_t _values_FDACT5_atxmega16e5[2] = {
-  {0, "GPIO_FROM_VALUE_FUSE", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
-  {1, "DEFAULT_IO", "default I/O pin configuration"},
+  {0, "rwlock", "read and write not allowed"},
+  {1, "rlock", "read not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
 };
 
 /*
@@ -9921,8 +9921,8 @@ static const Valueitem_t _values_FDACT5_atxmega16e5[2] = {
  * ATxmega256A3U ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
  */
 static const Valueitem_t _values_TOSCSEL_atxmega128a3u[2] = {
-  {0, "ALTERNATE", "TOSC1/TOSC2 on separate pins"},
-  {1, "XTAL", "TOSC1/TOSC2 shared with XTAL1/XTAL2"},
+  {0, "alternate", "TOSC1/TOSC2 on separate pins"},
+  {1, "xtal", "TOSC1/TOSC2 shared with XTAL1/XTAL2"},
 };
 
 /*
@@ -9934,18 +9934,18 @@ static const Valueitem_t _values_TOSCSEL_atxmega128a3u[2] = {
  * ATmega3209 ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_PERIOD_attiny204[12] = {
-  {0x00, "T_OFF", "watchdog timer off"},
-  {0x01, "T_0S008", "8 cycles (8 ms)"},
-  {0x02, "T_0S016", "16 cycles (16 ms)"},
-  {0x03, "T_0S032", "32 cycles (32 ms)"},
-  {0x04, "T_0S064", "64 cycles (64 ms)"},
-  {0x05, "T_0S128", "128 cycles (0.128 s)"},
-  {0x06, "T_0S256", "256 cycles (0.256 s)"},
-  {0x07, "T_0S512", "512 cycles (0.512 s)"},
-  {0x08, "T_1S000", "1K cycles (1.0 s)"},
-  {0x09, "T_2S000", "2K cycles (2.0 s)"},
-  {0x0a, "T_4S100", "4K cycles (4.1 s)"},
-  {0x0b, "T_8S200", "8K cycles (8.2 s)"},
+  {0x00, "t_off", "watchdog timer off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s100", "4K cycles (4.1 s)"},
+  {0x0b, "t_8s200", "8K cycles (8.2 s)"},
 };
 
 /*
@@ -9956,18 +9956,18 @@ static const Valueitem_t _values_PERIOD_attiny204[12] = {
  * AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_PERIOD_avr32dd14[12] = {
-  {0x00, "T_OFF", "watchdog timer off"},
-  {0x01, "T_0S008", "8 cycles (8 ms)"},
-  {0x02, "T_0S016", "16 cycles (16 ms)"},
-  {0x03, "T_0S032", "32 cycles (32 ms)"},
-  {0x04, "T_0S064", "64 cycles (64 ms)"},
-  {0x05, "T_0S128", "128 cycles (0.128 s)"},
-  {0x06, "T_0S256", "256 cycles (0.256 s)"},
-  {0x07, "T_0S512", "512 cycles (0.512 s)"},
-  {0x08, "T_1S000", "1K cycles (1.0 s)"},
-  {0x09, "T_2S000", "2K cycles (2.0 s)"},
-  {0x0a, "T_4S000", "4K cycles (4.0 s)"},
-  {0x0b, "T_8S000", "8K cycles (8.0 s)"},
+  {0x00, "t_off", "watchdog timer off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0b, "t_8s000", "8K cycles (8.0 s)"},
 };
 
 /*
@@ -9979,18 +9979,18 @@ static const Valueitem_t _values_PERIOD_avr32dd14[12] = {
  * ATmega3209 ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_WINDOW_attiny204[12] = {
-  {0x00, "T_OFF", "window mode off"},
-  {0x01, "T_0S008", "8 cycles (8 ms)"},
-  {0x02, "T_0S016", "16 cycles (16 ms)"},
-  {0x03, "T_0S032", "32 cycles (32 ms)"},
-  {0x04, "T_0S064", "64 cycles (64 ms)"},
-  {0x05, "T_0S128", "128 cycles (0.128 s)"},
-  {0x06, "T_0S256", "256 cycles (0.256 s)"},
-  {0x07, "T_0S512", "512 cycles (0.512 s)"},
-  {0x08, "T_1S000", "1K cycles (1.0 s)"},
-  {0x09, "T_2S000", "2K cycles (2.0 s)"},
-  {0x0a, "T_4S100", "4K cycles (4.1 s)"},
-  {0x0b, "T_8S200", "8K cycles (8.2 s)"},
+  {0x00, "t_off", "window mode off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s100", "4K cycles (4.1 s)"},
+  {0x0b, "t_8s200", "8K cycles (8.2 s)"},
 };
 
 /*
@@ -10001,18 +10001,18 @@ static const Valueitem_t _values_WINDOW_attiny204[12] = {
  * AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_WINDOW_avr32dd14[12] = {
-  {0x00, "T_OFF", "window mode off"},
-  {0x01, "T_0S008", "8 cycles (8 ms)"},
-  {0x02, "T_0S016", "16 cycles (16 ms)"},
-  {0x03, "T_0S032", "32 cycles (32 ms)"},
-  {0x04, "T_0S064", "64 cycles (64 ms)"},
-  {0x05, "T_0S128", "128 cycles (0.128 s)"},
-  {0x06, "T_0S256", "256 cycles (0.256 s)"},
-  {0x07, "T_0S512", "512 cycles (0.512 s)"},
-  {0x08, "T_1S000", "1K cycles (1.0 s)"},
-  {0x09, "T_2S000", "2K cycles (2.0 s)"},
-  {0x0a, "T_4S000", "4K cycles (4.0 s)"},
-  {0x0b, "T_8S000", "8K cycles (8.0 s)"},
+  {0x00, "t_off", "window mode off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0b, "t_8s000", "8K cycles (8.0 s)"},
 };
 
 /*
@@ -10024,9 +10024,9 @@ static const Valueitem_t _values_WINDOW_avr32dd14[12] = {
  * ATmega3209 ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_SLEEP_attiny204[3] = {
-  {0, "BOD_DISABLED", "brownout detection disabled"},
-  {1, "BOD_ENABLED", "brownout detection enabled"},
-  {2, "BOD_SAMPLED", "brownout detection in sampled mode"},
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_enabled", "brownout detection enabled"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
 };
 
 /*
@@ -10037,9 +10037,9 @@ static const Valueitem_t _values_SLEEP_attiny204[3] = {
  * AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_SLEEP_avr32dd14[3] = {
-  {0, "BOD_DISABLED", "brownout detection disabled"},
-  {1, "BOD_CONTINUOUS", "brownout detection enabled in continuous mode"},
-  {2, "BOD_SAMPLED", "brownout detection in sampled mode"},
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
 };
 
 /*
@@ -10051,10 +10051,10 @@ static const Valueitem_t _values_SLEEP_avr32dd14[3] = {
  * ATmega3209 ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_ACTIVE_attiny204[4] = {
-  {0, "BOD_DISABLED", "brownout detection disabled"},
-  {1, "BOD_ENABLED", "brownout detection enabled"},
-  {2, "BOD_SAMPLED", "brownout detection in sampled mode"},
-  {3, "BOD_ENABLED_WAIT", "brownout detection enabled with wake-up halted until BOD is ready"},
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_enabled", "brownout detection enabled"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
+  {3, "bod_enabled_wait", "brownout detection enabled with wake-up halted until BOD is ready"},
 };
 
 /*
@@ -10065,10 +10065,10 @@ static const Valueitem_t _values_ACTIVE_attiny204[4] = {
  * AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_ACTIVE_avr32dd14[4] = {
-  {0, "BOD_DISABLED", "brownout detection disabled"},
-  {1, "BOD_CONTINUOUS", "brownout detection enabled in continuous mode"},
-  {2, "BOD_SAMPLED", "brownout detection in sampled mode"},
-  {3, "BOD_CONTINUOUS_WAIT", "brownout detection enabled in continuous mode with wake-up halted until BOD is ready"},
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
+  {3, "bod_continuous_wait", "brownout detection enabled in continuous mode with wake-up halted until BOD is ready"},
 };
 
 /*
@@ -10080,8 +10080,8 @@ static const Valueitem_t _values_ACTIVE_avr32dd14[4] = {
  * ATmega3209 ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_SAMPFREQ_attiny204[2] = {
-  {0, "SF_1KHZ", "1 kHz sampling frequency"},
-  {1, "SF_125HZ", "125 Hz sampling frequency"},
+  {0, "sf_1khz", "1 kHz sampling frequency"},
+  {1, "sf_125hz", "125 Hz sampling frequency"},
 };
 
 /*
@@ -10092,8 +10092,8 @@ static const Valueitem_t _values_SAMPFREQ_attiny204[2] = {
  * AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_SAMPFREQ_avr32dd14[2] = {
-  {0, "SF_128HZ", "128 Hz sampling frequency"},
-  {1, "SF_32HZ", "32 Hz sampling frequency"},
+  {0, "sf_128hz", "128 Hz sampling frequency"},
+  {1, "sf_32hz", "32 Hz sampling frequency"},
 };
 
 /*
@@ -10105,9 +10105,9 @@ static const Valueitem_t _values_SAMPFREQ_avr32dd14[2] = {
  * ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_LVL_attiny204[3] = {
-  {0, "BOD_1V8", "brownout detection at 1.8 V"},
-  {2, "BOD_2V6", "brownout detection at 2.6 V"},
-  {7, "BOD_4V2", "brownout detection at 4.2 V"},
+  {0, "bod_1v8", "brownout detection at 1.8 V"},
+  {2, "bod_2v6", "brownout detection at 2.6 V"},
+  {7, "bod_4v2", "brownout detection at 4.2 V"},
 };
 
 /*
@@ -10117,24 +10117,24 @@ static const Valueitem_t _values_LVL_attiny204[3] = {
  * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_LVL_avr32dd14[4] = {
-  {0, "BOD_1V9", "brownout detection at 1.9 V"},
-  {1, "BOD_2V45", "brownout detection at 2.45 V"},
-  {2, "BOD_2V7", "brownout detection at 2.7 V"},
-  {3, "BOD_2V85", "brownout detection at 2.85 V"},
+  {0, "bod_1v9", "brownout detection at 1.9 V"},
+  {1, "bod_2v45", "brownout detection at 2.45 V"},
+  {2, "bod_2v7", "brownout detection at 2.7 V"},
+  {3, "bod_2v85", "brownout detection at 2.85 V"},
 };
 
 // AVR64EA48 AVR64EA28 AVR64EA32
 static const Valueitem_t _values_LVL_avr64ea48[4] = {
-  {0, "BOD_DISABLED", "brownout detection disabled"},
-  {1, "BOD_1V9", "brownout detection at 1.9 V"},
-  {2, "BOD_2V7", "brownout detection at 2.7 V"},
-  {3, "BOD_4V5", "brownout detection at 4.5 V"},
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_1v9", "brownout detection at 1.9 V"},
+  {2, "bod_2v7", "brownout detection at 2.7 V"},
+  {3, "bod_4v5", "brownout detection at 4.5 V"},
 };
 
 // ATtiny416auto
 static const Valueitem_t _values_LVL_attiny416auto[2] = {
-  {2, "BOD_2V6", "brownout detection at 2.6 V"},
-  {7, "BOD_4V2", "brownout detection at 4.2 V"},
+  {2, "bod_2v6", "brownout detection at 2.6 V"},
+  {7, "bod_4v2", "brownout detection at 4.2 V"},
 };
 
 /*
@@ -10146,19 +10146,19 @@ static const Valueitem_t _values_LVL_attiny416auto[2] = {
  * ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_FREQSEL_attiny204[2] = {
-  {1, "FCPU_16MHZ", "internal clock running at 16 MHz"},
-  {2, "FCPU_20MHZ", "internal clock running at 20 MHz"},
+  {1, "fcpu_16mhz", "internal clock running at 16 MHz"},
+  {2, "fcpu_20mhz", "internal clock running at 20 MHz"},
 };
 
 // AVR64EA48 AVR64EA28 AVR64EA32
 static const Valueitem_t _values_FREQSEL_avr64ea48[2] = {
-  {0, "FCPU_20MHZ", "OSCHF running at 20 MHz"},
-  {1, "FCPU_16MHZ", "OSCHF running at 16 MHz"},
+  {0, "fcpu_20mhz", "OSCHF running at 20 MHz"},
+  {1, "fcpu_16mhz", "OSCHF running at 16 MHz"},
 };
 
 // ATtiny416auto
 static const Valueitem_t _values_FREQSEL_attiny416auto[1] = {
-  {1, "FCPU_16MHZ", "internal clock running at 16 MHz"},
+  {1, "fcpu_16mhz", "internal clock running at 16 MHz"},
 };
 
 /*
@@ -10170,8 +10170,8 @@ static const Valueitem_t _values_FREQSEL_attiny416auto[1] = {
  * ATmega3209 ATmega4808 ATmega4809
  */
 static const Valueitem_t _values_OSCLOCK_attiny204[2] = {
-  {0, "OLOCK_DISABLED", "oscillator lock disabled"},
-  {1, "OLOCK_ENABLED", "oscillator lock enabled"},
+  {0, "olock_disabled", "oscillator lock disabled"},
+  {1, "olock_enabled", "oscillator lock enabled"},
 };
 
 /*
@@ -10180,8 +10180,8 @@ static const Valueitem_t _values_OSCLOCK_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPA_attiny204[2] = {
-  {0, "V_0", "compare A default output value 0"},
-  {1, "V_1", "compare A default output value 1"},
+  {0, "v_0", "compare A default output value 0"},
+  {1, "v_1", "compare A default output value 1"},
 };
 
 /*
@@ -10190,8 +10190,8 @@ static const Valueitem_t _values_CMPA_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPB_attiny204[2] = {
-  {0, "V_0", "compare B default output value 0"},
-  {1, "V_1", "compare B default output value 1"},
+  {0, "v_0", "compare B default output value 0"},
+  {1, "v_1", "compare B default output value 1"},
 };
 
 /*
@@ -10200,8 +10200,8 @@ static const Valueitem_t _values_CMPB_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPC_attiny204[2] = {
-  {0, "V_0", "compare C default output value 0"},
-  {1, "V_1", "compare C default output value 1"},
+  {0, "v_0", "compare C default output value 0"},
+  {1, "v_1", "compare C default output value 1"},
 };
 
 /*
@@ -10210,8 +10210,8 @@ static const Valueitem_t _values_CMPC_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPD_attiny204[2] = {
-  {0, "V_0", "compare D default output value 0"},
-  {1, "V_1", "compare D default output value 1"},
+  {0, "v_0", "compare D default output value 0"},
+  {1, "v_1", "compare D default output value 1"},
 };
 
 /*
@@ -10220,8 +10220,8 @@ static const Valueitem_t _values_CMPD_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPAEN_attiny204[2] = {
-  {0, "CPA_DISABLED", "compare A output disabled"},
-  {1, "CPA_ENABLED", "compare A output enabled"},
+  {0, "cpa_disabled", "compare A output disabled"},
+  {1, "cpa_enabled", "compare A output enabled"},
 };
 
 /*
@@ -10230,8 +10230,8 @@ static const Valueitem_t _values_CMPAEN_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPBEN_attiny204[2] = {
-  {0, "CPB_DISABLED", "compare B output disabled"},
-  {1, "CPB_ENABLED", "compare B output enabled"},
+  {0, "cpb_disabled", "compare B output disabled"},
+  {1, "cpb_enabled", "compare B output enabled"},
 };
 
 /*
@@ -10240,8 +10240,8 @@ static const Valueitem_t _values_CMPBEN_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPCEN_attiny204[2] = {
-  {0, "CPC_DISABLED", "compare C output disabled"},
-  {1, "CPC_ENABLED", "compare C output enabled"},
+  {0, "cpc_disabled", "compare C output disabled"},
+  {1, "cpc_enabled", "compare C output enabled"},
 };
 
 /*
@@ -10250,8 +10250,8 @@ static const Valueitem_t _values_CMPCEN_attiny204[2] = {
  * ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_CMPDEN_attiny204[2] = {
-  {0, "CPD_DISABLED", "compare D output disabled"},
-  {1, "CPD_ENABLED", "compare D output enabled"},
+  {0, "cpd_disabled", "compare D output disabled"},
+  {1, "cpd_enabled", "compare D output enabled"},
 };
 
 /*
@@ -10260,9 +10260,9 @@ static const Valueitem_t _values_CMPDEN_attiny204[2] = {
  * ATtiny1604 ATtiny1606 ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny3216 ATtiny3217
  */
 static const Valueitem_t _values_RSTPINCFG_attiny204[3] = {
-  {0, "GPIO", "GPIO mode"},
-  {1, "UPDI", "UPDI mode"},
-  {2, "RST", "reset mode"},
+  {0, "gpio", "GPIO mode"},
+  {1, "updi", "UPDI mode"},
+  {2, "rst", "reset mode"},
 };
 
 /*
@@ -10270,10 +10270,10 @@ static const Valueitem_t _values_RSTPINCFG_attiny204[3] = {
  * ATtiny3224 ATtiny3226 ATtiny3227
  */
 static const Valueitem_t _values_RSTPINCFG_attiny1624[4] = {
-  {0, "GPIO", "GPIO mode"},
-  {1, "UPDI", "UPDI mode"},
-  {2, "RST", "reset mode"},
-  {3, "PDIRST", "PDI on PDI pad, reset on alternative reset pad"},
+  {0, "gpio", "GPIO mode"},
+  {1, "updi", "UPDI mode"},
+  {2, "rst", "reset mode"},
+  {3, "pdirst", "PDI on PDI pad, reset on alternative reset pad"},
 };
 
 /*
@@ -10282,14 +10282,14 @@ static const Valueitem_t _values_RSTPINCFG_attiny1624[4] = {
  * AVR64DD28 AVR64DD32
  */
 static const Valueitem_t _values_RSTPINCFG_avr32dd14[2] = {
-  {0, "GPIO", "GPIO mode"},
-  {1, "RST", "reset mode"},
+  {0, "gpio", "GPIO mode"},
+  {1, "rst", "reset mode"},
 };
 
 // AVR64EA48 AVR64EA28 AVR64EA32
 static const Valueitem_t _values_RSTPINCFG_avr64ea48[2] = {
-  {0, "NONE", "no external reset"},
-  {1, "RESET", "PF6 configured as reset pin"},
+  {0, "none", "no external reset"},
+  {1, "reset", "PF6 configured as reset pin"},
 };
 
 /*
@@ -10298,8 +10298,8 @@ static const Valueitem_t _values_RSTPINCFG_avr64ea48[2] = {
  * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_RSTPINCFG_avr32da28[2] = {
-  {0, "GPIO", "GPIO mode"},
-  {2, "RST", "reset mode"},
+  {0, "gpio", "GPIO mode"},
+  {2, "rst", "reset mode"},
 };
 
 /*
@@ -10315,10 +10315,10 @@ static const Valueitem_t _values_RSTPINCFG_avr32da28[2] = {
  * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_CRCSRC_attiny204[4] = {
-  {0, "FLASH", "CRC of entire flash (boot, application code and application data)"},
-  {1, "BOOT", "CRC of boot section"},
-  {2, "BOOTAPP", "CRC of application code and boot sections"},
-  {3, "NOCRC", "disable CRC"},
+  {0, "flash", "CRC of entire flash (boot, application code and application data)"},
+  {1, "boot", "CRC of boot section"},
+  {2, "bootapp", "CRC of application code and boot sections"},
+  {3, "nocrc", "disable CRC"},
 };
 
 /*
@@ -10326,20 +10326,8 @@ static const Valueitem_t _values_CRCSRC_attiny204[4] = {
  * ATtiny3224 ATtiny3226 ATtiny3227
  */
 static const Valueitem_t _values_TOUTDIS_attiny1624[2] = {
-  {0, "TO_DISABLED", "timeout disabled"},
-  {1, "TO_ENABLED", "timeout enabled"},
-};
-
-/*
- * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DA28 AVR32DB28
- * AVR32DD28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32DA48 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DA28
- * AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48
- * AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
- */
-static const Valueitem_t _values_KEY_avr32dd14[2] = {
-  {0x5cc5c55c, "NOLOCK", "no locks"},
-  {0xa33a3aa3, "RWLOCK", "read and write not allowed"},
+  {0, "to_disabled", "timeout disabled"},
+  {1, "to_enabled", "timeout enabled"},
 };
 
 /*
@@ -10349,8 +10337,8 @@ static const Valueitem_t _values_KEY_avr32dd14[2] = {
  * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_CLKSEL_avr32dd14[2] = {
-  {0, "OSCHF", "1-32 MHz internal oscillator"},
-  {1, "OSC32K", "32.768 kHz internal oscillator"},
+  {0, "oschf", "1-32 MHz internal oscillator"},
+  {1, "osc32k", "32.768 kHz internal oscillator"},
 };
 
 /*
@@ -10358,14 +10346,14 @@ static const Valueitem_t _values_CLKSEL_avr32dd14[2] = {
  * AVR64DD20 AVR64DD28 AVR64DD32
  */
 static const Valueitem_t _values_UPDIPINCFG_avr32dd14[2] = {
-  {0, "GPIO", "GPIO mode"},
-  {1, "UPDI", "UPDI mode"},
+  {0, "gpio", "GPIO mode"},
+  {1, "updi", "UPDI mode"},
 };
 
 // AVR64EA48 AVR64EA28 AVR64EA32
 static const Valueitem_t _values_UPDIPINCFG_avr64ea48[2] = {
-  {0, "GPIO", "PF7 configured as GPIO pin"},
-  {1, "UPDI", "PF7 configured as UPDI pin"},
+  {0, "gpio", "PF7 configured as GPIO pin"},
+  {1, "updi", "PF7 configured as UPDI pin"},
 };
 
 /*
@@ -10376,8 +10364,8 @@ static const Valueitem_t _values_UPDIPINCFG_avr64ea48[2] = {
  * AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_CRCSEL_avr32dd14[2] = {
-  {0, "CRC16", "enable CRC16"},
-  {1, "CRC32", "enable CRC32"},
+  {0, "crc16", "enable CRC16"},
+  {1, "crc32", "enable CRC32"},
 };
 
 /*
@@ -10386,26 +10374,38 @@ static const Valueitem_t _values_CRCSEL_avr32dd14[2] = {
  * AVR64DB64 AVR128DB28 AVR128DB32 AVR128DB48 AVR128DB64
  */
 static const Valueitem_t _values_MVSYSCFG_avr32dd14[2] = {
-  {1, "DUAL", "device used in a dual supply configuration"},
-  {2, "SINGLE", "device used in a single supply configuration"},
+  {1, "dual", "device used in a dual supply configuration"},
+  {2, "single", "device used in a single supply configuration"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DA28 AVR32DB28
+ * AVR32DD28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32DA48 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DA28
+ * AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48
+ * AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
+ * AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_KEY_avr32dd14[2] = {
+  {0x5cc5c55c, "nolock", "no locks"},
+  {0xa33a3aa3, "rwlock", "read and write not allowed"},
 };
 
 // ATmega103comp ATmega64 ATmega64A ATmega128 ATmega128A
 static const Valueitem_t _values_M103C_atmega103comp[2] = {
-  {0, "C103_ENABLED", "ATmega103 compatibility mode enabled"},
-  {1, "C103_DISABLED", "ATmega103 compatibility mode disabled"},
+  {0, "c103_enabled", "ATmega103 compatibility mode enabled"},
+  {1, "c103_disabled", "ATmega103 compatibility mode disabled"},
 };
 
 // ATmega161comp ATmega162
 static const Valueitem_t _values_M161C_atmega161comp[2] = {
-  {0, "C161_ENABLED", "ATmega161 compatibility mode enabled"},
-  {1, "C161_DISABLED", "ATmega161 compatibility mode disabled"},
+  {0, "c161_enabled", "ATmega161 compatibility mode enabled"},
+  {1, "c161_disabled", "ATmega161 compatibility mode disabled"},
 };
 
 // AT90S8535comp ATmega8535
 static const Valueitem_t _values_S8535C_at90s8535comp[2] = {
-  {0, "C8535_ENABLED", "AT90S4434/8535 compatibility mode enabled"},
-  {1, "C8535_DISABLED", "AT90S4434/8535 compatibility mode disabled"},
+  {0, "c8535_enabled", "AT90S4434/8535 compatibility mode enabled"},
+  {1, "c8535_disabled", "AT90S4434/8535 compatibility mode disabled"},
 };
 
 
@@ -10413,339 +10413,339 @@ static const Valueitem_t _values_S8535C_at90s8535comp[2] = {
 
 // ATmega328 ATmega328P ATA6614Q
 const Configitem_t cfgtab_atmega328[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega16M1
 const Configitem_t cfgtab_atmega16m1[17] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
-  {"PSCRVB", 2, _values_PSCRVB_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
-  {"PSCRVA", 2, _values_PSCRVA_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
-  {"PSCRB", 2, _values_PSCRB_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"sut_cksel", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"pscrvb", 2, _values_PSCRVB_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
+  {"pscrva", 2, _values_PSCRVA_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
+  {"pscrb", 2, _values_PSCRB_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega16HVA2
 const Configitem_t cfgtab_atmega16hva2[9] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT", 8, _values_SUT_atmega16hva2, "lfuse", 0, 0x07, 0, -1, "startup time"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "lfuse", 0, 0x08, 3, -1, "self programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "lfuse", 0, 0x10, 4, -1, "debugWIRE"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, -1, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, -1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, -1, "watchdog timer"},
-  {"CKSEL", 2, _values_CKSEL_atmega16hva2, "hfuse", 1, 0x03, 0, -1, "oscillator"},
-  {"COMPMODE", 2, _values_COMPMODE_atmega16hva2, "hfuse", 1, 0x04, 2, -1, "compatibility mode"},
+  {"sut", 8, _values_SUT_atmega16hva2, "lfuse", 0, 0x07, 0, -1, "startup time"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "lfuse", 0, 0x08, 3, -1, "self programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "lfuse", 0, 0x10, 4, -1, "debugWIRE"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, -1, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, -1, "watchdog timer"},
+  {"cksel", 2, _values_CKSEL_atmega16hva2, "hfuse", 1, 0x03, 0, -1, "oscillator"},
+  {"compmode", 2, _values_COMPMODE_atmega16hva2, "hfuse", 1, 0x04, 2, -1, "compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATmega32HVBrevB
 const Configitem_t cfgtab_atmega32hvbrevb[12] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
-  {"SUT", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
-  {"DUVRDINIT", 2, _values_DUVRDINIT_atmega32hvbrevb, "hfuse", 1, 0x10, 4, 0, "DUVR mode"},
+  {"cksel", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"duvrdinit", 2, _values_DUVRDINIT_atmega32hvbrevb, "hfuse", 1, 0x10, 4, 0, "DUVR mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega64HVE
 const Configitem_t cfgtab_atmega64hve[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 1, _values_CKSEL_atmega64hve, "lfuse", 0, 0x01, 0, -1, "oscillator"},
-  {"SUT", 4, _values_SUT_atmega64hve, "lfuse", 0, 0x06, 1, -1, "startup time"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x08, 3, -1, "clock prescaled"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x10, 4, -1, "brownout detection"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, -1, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, -1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, -1, "watchdog timer"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, -1, "debugWIRE"},
+  {"cksel", 1, _values_CKSEL_atmega64hve, "lfuse", 0, 0x01, 0, -1, "oscillator"},
+  {"sut", 4, _values_SUT_atmega64hve, "lfuse", 0, 0x06, 1, -1, "startup time"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x08, 3, -1, "clock prescaled"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x10, 4, -1, "brownout detection"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, -1, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, -1, "watchdog timer"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, -1, "debugWIRE"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega328PB
 const Configitem_t cfgtab_atmega328pb[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
-  {"CFD", 2, _values_CFD_atmega328pb, "efuse", 2, 0x08, 3, 0, "clock failure detection"},
+  {"sut_cksel", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"cfd", 2, _values_CFD_atmega328pb, "efuse", 2, 0x08, 3, 0, "clock failure detection"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega8515
 const Configitem_t cfgtab_atmega8515[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
-  {"S8515C", 2, _values_S8515C_atmega8515, "hfuse", 1, 0x80, 7, 1, "AT90S4414/8515 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
+  {"s8515c", 2, _values_S8515C_atmega8515, "hfuse", 1, 0x80, 7, 1, "AT90S4414/8515 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATtiny102 ATtiny104
 const Configitem_t cfgtab_attiny102[5] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
-  {"CKOUT", 2, _values_CKOUT_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "fuse", 0, 0x08, 3, 1, "self programming"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
+  {"ckout", 2, _values_CKOUT_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "fuse", 0, 0x08, 3, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny28
 const Configitem_t cfgtab_attiny28[3] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"CKSEL", 16, _values_CKSEL_attiny28, "fuse", 0, 0x0f, 0, 0x02, "clock source"},
-  {"INTCAP", 2, _values_INTCAP_attiny28, "fuse", 0, 0x10, 4, 1, "internal load capacitors between XTAL1/XTAL2 and GND"},
+  {"cksel", 16, _values_CKSEL_attiny28, "fuse", 0, 0x0f, 0, 0x02, "clock source"},
+  {"intcap", 2, _values_INTCAP_attiny28, "fuse", 0, 0x10, 4, 1, "internal load capacitors between XTAL1/XTAL2 and GND"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATtiny441 ATtiny841
 const Configitem_t cfgtab_attiny441[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 17, _values_SUT_CKSEL_attiny441, "lfuse", 0, 0x1f, 0, 0x02, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny441, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_attiny441, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny441, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
-  {"BODACT", 3, _values_BODACT_attiny441, "efuse", 2, 0x06, 1, 3, "brownout detection in active/idle mode"},
-  {"BODPD", 3, _values_BODPD_attiny441, "efuse", 2, 0x18, 3, 3, "brownout detection in power-down mode"},
-  {"ULPOSCSEL", 5, _values_ULPOSCSEL_attiny441, "efuse", 2, 0xe0, 5, 7, "frequency for internal ultra-low-power oscillator"},
+  {"sut_cksel", 17, _values_SUT_CKSEL_attiny441, "lfuse", 0, 0x1f, 0, 0x02, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny441, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_attiny441, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny441, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"bodact", 3, _values_BODACT_attiny441, "efuse", 2, 0x06, 1, 3, "brownout detection in active/idle mode"},
+  {"bodpd", 3, _values_BODPD_attiny441, "efuse", 2, 0x18, 3, 3, "brownout detection in power-down mode"},
+  {"ulposcsel", 5, _values_ULPOSCSEL_attiny441, "efuse", 2, 0xe0, 5, 7, "frequency for internal ultra-low-power oscillator"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // AT90PWM2 AT90PWM3
 const Configitem_t cfgtab_at90pwm2[18] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 42, _values_SUT_CKSEL_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
-  {"PSCRV", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
-  {"PSC0RB", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
-  {"PSC1RB", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
-  {"PSC2RB", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"sut_cksel", 42, _values_SUT_CKSEL_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90PWM81 AT90PWM161
 const Configitem_t cfgtab_at90pwm81[19] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 56, _values_SUT_CKSEL_at90pwm81, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_at90pwm81, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90pwm81, "efuse", 2, 0x07, 0, 5, "brownout detection trigger level"},
-  {"PSCINRB", 2, _values_PSCINRB_at90pwm81, "efuse", 2, 0x08, 3, 1, "PSC2 and PSC0 input reset behavior"},
-  {"PSCRV", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
-  {"PSC0RB", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
-  {"PSC2RBA", 2, _values_PSC2RBA_at90pwm81, "efuse", 2, 0x40, 6, 1, "PSC2 reset behavior for 22 and 23"},
-  {"PSC2RB", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"sut_cksel", 56, _values_SUT_CKSEL_at90pwm81, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_at90pwm81, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_at90pwm81, "efuse", 2, 0x07, 0, 5, "brownout detection trigger level"},
+  {"pscinrb", 2, _values_PSCINRB_at90pwm81, "efuse", 2, 0x08, 3, 1, "PSC2 and PSC0 input reset behavior"},
+  {"pscrv", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc2rba", 2, _values_PSC2RBA_at90pwm81, "efuse", 2, 0x40, 6, 1, "PSC2 reset behavior for 22 and 23"},
+  {"psc2rb", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90CAN128
 const Configitem_t cfgtab_at90can128[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"TA0SEL", 2, _values_TA0SEL_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"ta0sel", 2, _values_TA0SEL_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
+  {"bodlevel", 8, _values_BODLEVEL_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90USB162 ATmega16U2 AT90USB82
 const Configitem_t cfgtab_at90usb162[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"bodlevel", 8, _values_BODLEVEL_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90S1200
 const Configitem_t cfgtab_at90s1200[3] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"RCEN", 2, _values_RCEN_at90s1200, "fuse", 0, 0x01, 0, 1, "clock source"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"rcen", 2, _values_RCEN_at90s1200, "fuse", 0, 0x01, 0, 1, "clock source"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // AT90S2313 AT90S4414 AT90S4434 AT90S8515 AT90S8535
 const Configitem_t cfgtab_at90s2313[3] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"FSTRT", 2, _values_FSTRT_at90s2313, "fuse", 0, 0x01, 0, 1, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"fstrt", 2, _values_FSTRT_at90s2313, "fuse", 0, 0x01, 0, 1, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATA5700M322 ATA5702M322
 const Configitem_t cfgtab_ata5700m322[9] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"PCEE1", 2, _values_PCEE1_ata5700m322, "fuse", 0, 0x01, 0, 1, "protect customer EEPROM section"},
-  {"EEACC", 2, _values_EEACC_ata5700m322, "fuse", 0, 0x02, 1, 1, "EEPROM access control"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
-  {"CKSTART", 2, _values_CKSTART_ata5700m322, "fuse", 0, 0x80, 7, 1, "MRC during reset startup phase"},
+  {"pcee1", 2, _values_PCEE1_ata5700m322, "fuse", 0, 0x01, 0, 1, "protect customer EEPROM section"},
+  {"eeacc", 2, _values_EEACC_ata5700m322, "fuse", 0, 0x02, 1, 1, "EEPROM access control"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckstart", 2, _values_CKSTART_ata5700m322, "fuse", 0, 0x80, 7, 1, "MRC during reset startup phase"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATA5781 ATA5782 ATA5783 ATA5831 ATA5832 ATA5833 ATA8210 ATA8215 ATA8510 ATA8515
 const Configitem_t cfgtab_ata5781[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"AP", 4, _values_AP_atmega328, "lock", 0, 0x0c, 2, 3, "application protection"},
-  {"BLP", 4, _values_BLP_atmega328, "lock", 0, 0x30, 4, 3, "boot loader protection"},
-  {"EXTCLKEN", 2, _values_EXTCLKEN_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x02, 1, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
+  {"extclken", 2, _values_EXTCLKEN_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x02, 1, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"ap", 4, _values_AP_atmega328, "lock", 0, 0x0c, 2, 3, "application protection"},
+  {"blp", 4, _values_BLP_atmega328, "lock", 0, 0x30, 4, 3, "boot loader protection"},
 };
 
 // ATA5790 ATA5791
 const Configitem_t cfgtab_ata5790[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"EXTCLKEN", 2, _values_EXTCLKEN_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
-  {"_32OEN", 2, _values__32OEN_ata5790, "fuse", 0, 0x02, 1, 0, "32 kHz oscillator"},
-  {"Reserved", 1, _values_Reserved_ata5790, "fuse", 0, 0x04, 2, 0, "bit must be programmed"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 0, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"extclken", 2, _values_EXTCLKEN_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
+  {"_32oen", 2, _values__32OEN_ata5790, "fuse", 0, 0x02, 1, 0, "32 kHz oscillator"},
+  {"reserved", 1, _values_Reserved_ata5790, "fuse", 0, 0x04, 2, 0, "bit must be programmed"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 0, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATA6285 ATA6286
 const Configitem_t cfgtab_ata6285[17] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"TSRDI", 2, _values_TSRDI_ata6285, "lfuse", 0, 0x01, 0, 1, "temperature shutdown reset"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x02, 1, 0, "brownout detection"},
-  {"FRCFS", 2, _values_FRCFS_ata6285, "lfuse", 0, 0x04, 2, 0, "fast RC oscillator frequency"},
-  {"WDRCON", 2, _values_WDRCON_ata6285, "lfuse", 0, 0x08, 3, 0, "watchdog RC oscillator"},
-  {"SUT_CKSEL", 3, _values_SUT_CKSEL_ata6285, "lfuse", 0, 0x30, 4, 2, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_ata6285, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_ata6285, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"EELOCK", 2, _values_EELOCK_ata6285, "hfuse", 1, 0x80, 7, 1, "Upper EEPROM"},
+  {"tsrdi", 2, _values_TSRDI_ata6285, "lfuse", 0, 0x01, 0, 1, "temperature shutdown reset"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x02, 1, 0, "brownout detection"},
+  {"frcfs", 2, _values_FRCFS_ata6285, "lfuse", 0, 0x04, 2, 0, "fast RC oscillator frequency"},
+  {"wdrcon", 2, _values_WDRCON_ata6285, "lfuse", 0, 0x08, 3, 0, "watchdog RC oscillator"},
+  {"sut_cksel", 3, _values_SUT_CKSEL_ata6285, "lfuse", 0, 0x30, 4, 2, "clock source"},
+  {"ckout", 2, _values_CKOUT_ata6285, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_ata6285, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"eelock", 2, _values_EELOCK_ata6285, "hfuse", 1, 0x80, 7, 1, "Upper EEPROM"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATxmega16E5 ATxmega8E5 ATxmega32E5
 const Configitem_t cfgtab_atxmega16e5[17] = {
-  {"LB", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLBAT", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
-  {"BLBA", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
-  {"BLBB", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
-  {"WDPER", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WDWPER", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"BODPD", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
-  {"WDLOCK", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
-  {"STARTUPTIME", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"BODACT", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
-  {"VALUE", 0, NULL, "fuse6", 6, 0x3f, 0, 0x3f, "port pin value"},
-  {"FDACT4", 2, _values_FDACT4_atxmega16e5, "fuse6", 6, 0x40, 6, 1, "fault detection action on TC4"},
-  {"FDACT5", 2, _values_FDACT5_atxmega16e5, "fuse6", 6, 0x80, 7, 1, "fault detection action on TC5"},
+  {"wdper", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"wdlock", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"value", 0, NULL, "fuse6", 6, 0x3f, 0, 0x3f, "port pin value"},
+  {"fdact4", 2, _values_FDACT4_atxmega16e5, "fuse6", 6, 0x40, 6, 1, "fault detection action on TC4"},
+  {"fdact5", 2, _values_FDACT5_atxmega16e5, "fuse6", 6, 0x80, 7, 1, "fault detection action on TC5"},
+  {"lb", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
 };
 
 /*
@@ -10753,22 +10753,22 @@ const Configitem_t cfgtab_atxmega16e5[17] = {
  * ATxmega256A3B
  */
 const Configitem_t cfgtab_atxmega128a3[16] = {
-  {"LB", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLBAT", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
-  {"BLBA", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
-  {"BLBB", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
-  {"JTAGUSERID", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
-  {"WDPER", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WDWPER", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"BODPD", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
-  {"WDLOCK", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
-  {"STARTUPTIME", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atxmega128a3, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"BODACT", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"jtaguserid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
+  {"wdlock", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atxmega128a3, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
 };
 
 /*
@@ -10776,23 +10776,23 @@ const Configitem_t cfgtab_atxmega128a3[16] = {
  * ATxmega128A4U ATxmega192A3U ATxmega256A3BU ATxmega256A3U
  */
 const Configitem_t cfgtab_atxmega128a3u[17] = {
-  {"LB", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLBAT", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
-  {"BLBA", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
-  {"BLBB", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
-  {"JTAGUID", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
-  {"WDPER", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WDWPER", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"BODPD", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
-  {"TOSCSEL", 2, _values_TOSCSEL_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
-  {"WDLOCK", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
-  {"STARTUPTIME", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"BODACT", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"jtaguid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"toscsel", 2, _values_TOSCSEL_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
+  {"wdlock", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
 };
 
 /*
@@ -10801,29 +10801,29 @@ const Configitem_t cfgtab_atxmega128a3u[17] = {
  * ATtiny3217
  */
 const Configitem_t cfgtab_attiny204[23] = {
-  {"LB", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
-  {"PERIOD", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"FREQSEL", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
-  {"OSCLOCK", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
-  {"CMPA", 2, _values_CMPA_attiny204, "tcd0cfg", 4, 0x01, 0, 0, "compare A default output value"},
-  {"CMPB", 2, _values_CMPB_attiny204, "tcd0cfg", 4, 0x02, 1, 0, "compare B default output value"},
-  {"CMPC", 2, _values_CMPC_attiny204, "tcd0cfg", 4, 0x04, 2, 0, "compare C default output value"},
-  {"CMPD", 2, _values_CMPD_attiny204, "tcd0cfg", 4, 0x08, 3, 0, "compare D default output value"},
-  {"CMPAEN", 2, _values_CMPAEN_attiny204, "tcd0cfg", 4, 0x10, 4, 0, "compare A output"},
-  {"CMPBEN", 2, _values_CMPBEN_attiny204, "tcd0cfg", 4, 0x20, 5, 0, "compare B output"},
-  {"CMPCEN", 2, _values_CMPCEN_attiny204, "tcd0cfg", 4, 0x40, 6, 0, "compare C output"},
-  {"CMPDEN", 2, _values_CMPDEN_attiny204, "tcd0cfg", 4, 0x80, 7, 0, "compare D output"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 3, _values_RSTPINCFG_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
-  {"APPEND", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
-  {"BOOTEND", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"period", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"cmpa", 2, _values_CMPA_attiny204, "tcd0cfg", 4, 0x01, 0, 0, "compare A default output value"},
+  {"cmpb", 2, _values_CMPB_attiny204, "tcd0cfg", 4, 0x02, 1, 0, "compare B default output value"},
+  {"cmpc", 2, _values_CMPC_attiny204, "tcd0cfg", 4, 0x04, 2, 0, "compare C default output value"},
+  {"cmpd", 2, _values_CMPD_attiny204, "tcd0cfg", 4, 0x08, 3, 0, "compare D default output value"},
+  {"cmpaen", 2, _values_CMPAEN_attiny204, "tcd0cfg", 4, 0x10, 4, 0, "compare A output"},
+  {"cmpben", 2, _values_CMPBEN_attiny204, "tcd0cfg", 4, 0x20, 5, 0, "compare B output"},
+  {"cmpcen", 2, _values_CMPCEN_attiny204, "tcd0cfg", 4, 0x40, 6, 0, "compare C output"},
+  {"cmpden", 2, _values_CMPDEN_attiny204, "tcd0cfg", 4, 0x80, 7, 0, "compare D output"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 3, _values_RSTPINCFG_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
 };
 
 /*
@@ -10831,22 +10831,22 @@ const Configitem_t cfgtab_attiny204[23] = {
  * ATtiny3224 ATtiny3226 ATtiny3227
  */
 const Configitem_t cfgtab_attiny1624[16] = {
-  {"LB", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
-  {"PERIOD", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"FREQSEL", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
-  {"OSCLOCK", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 4, _values_RSTPINCFG_attiny1624, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
-  {"TOUTDIS", 2, _values_TOUTDIS_attiny1624, "syscfg0", 5, 0x10, 4, 1, "timeout"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
-  {"APPEND", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
-  {"BOOTEND", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"period", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 4, _values_RSTPINCFG_attiny1624, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"toutdis", 2, _values_TOUTDIS_attiny1624, "syscfg0", 5, 0x10, 4, 1, "timeout"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
 };
 
 /*
@@ -10854,952 +10854,952 @@ const Configitem_t cfgtab_attiny1624[16] = {
  * AVR64DD20 AVR64DD28 AVR64DD32
  */
 const Configitem_t cfgtab_avr32dd14[17] = {
-  {"KEY", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
-  {"PERIOD", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 4, _values_LVL_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"CLKSEL", 2, _values_CLKSEL_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 2, _values_RSTPINCFG_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
-  {"UPDIPINCFG", 2, _values_UPDIPINCFG_avr32dd14, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
-  {"CRCSEL", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
-  {"MVSYSCFG", 2, _values_MVSYSCFG_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
-  {"CODESIZE", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
-  {"BOOTSIZE", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"period", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 4, _values_LVL_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_CLKSEL_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_RSTPINCFG_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"updipincfg", 2, _values_UPDIPINCFG_avr32dd14, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
+  {"crcsel", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"mvsyscfg", 2, _values_MVSYSCFG_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
 };
 
 // AVR64EA48 AVR64EA28 AVR64EA32
 const Configitem_t cfgtab_avr64ea48[16] = {
-  {"KEY", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
-  {"PERIOD", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 4, _values_LVL_avr64ea48, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"FREQSEL", 2, _values_FREQSEL_avr64ea48, "osccfg", 2, 0x08, 3, 0, "HF oscillator frequency"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 2, _values_RSTPINCFG_avr64ea48, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
-  {"UPDIPINCFG", 2, _values_UPDIPINCFG_avr64ea48, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
-  {"CRCSEL", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
-  {"CODESIZE", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
-  {"BOOTSIZE", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"period", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 4, _values_LVL_avr64ea48, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_FREQSEL_avr64ea48, "osccfg", 2, 0x08, 3, 0, "HF oscillator frequency"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_RSTPINCFG_avr64ea48, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"updipincfg", 2, _values_UPDIPINCFG_avr64ea48, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
+  {"crcsel", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
 };
 
 // ATmega103comp
 const Configitem_t cfgtab_atmega103comp[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
-  {"WDTON", 2, _values_WDTON_atmega328, "efuse", 2, 0x01, 0, -1, "watchdog timer"},
-  {"M103C", 2, _values_M103C_atmega103comp, "efuse", 2, 0x02, 1, -1, "ATmega103 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"wdton", 2, _values_WDTON_atmega328, "efuse", 2, 0x01, 0, -1, "watchdog timer"},
+  {"m103c", 2, _values_M103C_atmega103comp, "efuse", 2, 0x02, 1, -1, "ATmega103 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90SCR100H AT90SCR100
 const Configitem_t cfgtab_at90scr100h[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 14, _values_SUT_CKSEL_at90scr100h, "lfuse", 0, 0x39, 0, -1, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, -1, "clock output"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
-  {"BODEN", 2, _values_BODEN_at90scr100h, "efuse", 2, 0x01, 0, -1, "brownout detection"},
+  {"sut_cksel", 14, _values_SUT_CKSEL_at90scr100h, "lfuse", 0, 0x39, 0, -1, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"boden", 2, _values_BODEN_at90scr100h, "efuse", 2, 0x01, 0, -1, "brownout detection"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega161comp
 const Configitem_t cfgtab_atmega161comp[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, -1, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, -1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
-  {"BODLEVEL", 5, _values_BODLEVEL_atmega161comp, "efuse", 2, 0x0e, 1, -1, "brownout detection trigger level"},
-  {"M161C", 2, _values_M161C_atmega161comp, "efuse", 2, 0x10, 4, -1, "ATmega161 compatibility mode"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"bodlevel", 5, _values_BODLEVEL_atmega161comp, "efuse", 2, 0x0e, 1, -1, "brownout detection trigger level"},
+  {"m161c", 2, _values_M161C_atmega161comp, "efuse", 2, 0x10, 4, -1, "ATmega161 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90S8535comp
 const Configitem_t cfgtab_at90s8535comp[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, -1, "watchdog timer"},
-  {"S8535C", 2, _values_S8535C_at90s8535comp, "hfuse", 1, 0x80, 7, -1, "AT90S4434/8535 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, -1, "watchdog timer"},
+  {"s8535c", 2, _values_S8535C_at90s8535comp, "hfuse", 1, 0x80, 7, -1, "AT90S4434/8535 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATtiny4 ATtiny5 ATtiny9 ATtiny10
 const Configitem_t cfgtab_attiny4[4] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
-  {"CKOUT", 2, _values_CKOUT_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
+  {"ckout", 2, _values_CKOUT_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny20 ATtiny40
 const Configitem_t cfgtab_attiny20[5] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
-  {"CKOUT", 2, _values_CKOUT_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "fuse", 0, 0x70, 4, 7, "brownout detection trigger level"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
+  {"ckout", 2, _values_CKOUT_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "fuse", 0, 0x70, 4, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny11
 const Configitem_t cfgtab_attiny11[4] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"CKSEL", 5, _values_CKSEL_attiny11, "fuse", 0, 0x07, 0, 4, "clock source"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny11, "fuse", 0, 0x08, 3, 0, "reset configuration"},
-  {"FSTRT", 2, _values_FSTRT_at90s2313, "fuse", 0, 0x10, 4, 1, "startup time"},
+  {"cksel", 5, _values_CKSEL_attiny11, "fuse", 0, 0x07, 0, 4, "clock source"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny11, "fuse", 0, 0x08, 3, 0, "reset configuration"},
+  {"fstrt", 2, _values_FSTRT_at90s2313, "fuse", 0, 0x10, 4, 1, "startup time"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATtiny12
 const Configitem_t cfgtab_attiny12[6] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"CKSEL", 16, _values_CKSEL_attiny28, "fuse", 0, 0x0f, 0, 0x02, "clock source"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny11, "fuse", 0, 0x10, 4, 1, "reset configuration"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_attiny12, "fuse", 0, 0x80, 7, 0, "brownout detection trigger level"},
+  {"cksel", 16, _values_CKSEL_attiny28, "fuse", 0, 0x0f, 0, 0x02, "clock source"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny11, "fuse", 0, 0x10, 4, 1, "reset configuration"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"boden", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_attiny12, "fuse", 0, 0x80, 7, 0, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATtiny13 ATtiny13A
 const Configitem_t cfgtab_attiny13[10] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 12, _values_SUT_CKSEL_attiny13, "lfuse", 0, 0x0f, 0, 0x0a, "clock source"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x10, 4, 0, "clock prescaled"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x20, 5, 1, "watchdog timer"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x80, 7, 0, "serial programming"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny11, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_attiny13, "hfuse", 1, 0x06, 1, 3, "brownout detection trigger level"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "hfuse", 1, 0x10, 4, 1, "self programming"},
+  {"sut_cksel", 12, _values_SUT_CKSEL_attiny13, "lfuse", 0, 0x0f, 0, 0x0a, "clock source"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x10, 4, 0, "clock prescaled"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x20, 5, 1, "watchdog timer"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x80, 7, 0, "serial programming"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny11, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_attiny13, "hfuse", 1, 0x06, 1, 3, "brownout detection trigger level"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "hfuse", 1, 0x10, 4, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny15
 const Configitem_t cfgtab_attiny15[6] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"CKSEL", 4, _values_CKSEL_attiny15, "fuse", 0, 0x03, 0, 0, "clock source"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny11, "fuse", 0, 0x10, 4, 1, "reset configuration"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "fuse", 0, 0x80, 7, 0, "brownout detection trigger level"},
+  {"cksel", 4, _values_CKSEL_attiny15, "fuse", 0, 0x03, 0, 0, "clock source"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny11, "fuse", 0, 0x10, 4, 1, "reset configuration"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"boden", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "fuse", 0, 0x80, 7, 0, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATtiny22
 const Configitem_t cfgtab_attiny22[3] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"CKSEL", 2, _values_CKSEL_at90s1200, "fuse", 0, 0x01, 0, -1, "clock source"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"cksel", 2, _values_CKSEL_at90s1200, "fuse", 0, 0x01, 0, -1, "clock source"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
 const Configitem_t cfgtab_attiny24[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_attiny24, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny24, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny24, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_attiny24, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny24, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny24, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny25 ATtiny45 ATtiny85
 const Configitem_t cfgtab_attiny25[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 51, _values_SUT_CKSEL_attiny25, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny25, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny11, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 51, _values_SUT_CKSEL_attiny25, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny25, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny11, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny26
 const Configitem_t cfgtab_attiny26[8] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"CKOPT", 2, _values_CKOPT_attiny26, "lfuse", 0, 0x40, 6, 1, "internal capacitors on XTAL1 and XTAL2"},
-  {"SUT_CKSEL", 62, _values_SUT_CKSEL_attiny26, "lfuse", 0, 0xbf, 0, 0xa1, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "hfuse", 1, 0x01, 0, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "hfuse", 1, 0x02, 1, 1, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x04, 2, 1, "EEPROM after chip erase"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x08, 3, 0, "serial programming"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny26, "hfuse", 1, 0x10, 4, 1, "reset configuration"},
+  {"ckopt", 2, _values_CKOPT_attiny26, "lfuse", 0, 0x40, 6, 1, "internal capacitors on XTAL1 and XTAL2"},
+  {"sut_cksel", 62, _values_SUT_CKSEL_attiny26, "lfuse", 0, 0xbf, 0, 0xa1, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "hfuse", 1, 0x01, 0, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "hfuse", 1, 0x02, 1, 1, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x04, 2, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x08, 3, 0, "serial programming"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny26, "hfuse", 1, 0x10, 4, 1, "reset configuration"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny43U ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A
 const Configitem_t cfgtab_attiny43u[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 48, _values_SUT_CKSEL_attiny43u, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny43u, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90pwm81, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny26, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 48, _values_SUT_CKSEL_attiny43u, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny43u, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_at90pwm81, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny26, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny48 ATtiny88
 const Configitem_t cfgtab_attiny48[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 9, _values_SUT_CKSEL_attiny48, "lfuse", 0, 0x3f, 0, 0x2e, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 9, _values_SUT_CKSEL_attiny48, "lfuse", 0, 0x3f, 0, 0x2e, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny87 ATtiny167 ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
 const Configitem_t cfgtab_attiny87[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_attiny87, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny43u, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90pwm81, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny26, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_attiny87, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny43u, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_at90pwm81, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny26, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny828 ATtiny828R
 const Configitem_t cfgtab_attiny828[16] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 16, _values_SUT_CKSEL_attiny828, "lfuse", 0, 0x33, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 3, "boot section size"},
-  {"BODACT", 3, _values_BODACT_attiny441, "efuse", 2, 0x30, 4, 3, "brownout detection in active/idle mode"},
-  {"BODPD", 3, _values_BODPD_attiny441, "efuse", 2, 0xc0, 6, 3, "brownout detection in power-down mode"},
+  {"sut_cksel", 16, _values_SUT_CKSEL_attiny828, "lfuse", 0, 0x33, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 3, "boot section size"},
+  {"bodact", 3, _values_BODACT_attiny441, "efuse", 2, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"bodpd", 3, _values_BODPD_attiny441, "efuse", 2, 0xc0, 6, 3, "brownout detection in power-down mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATtiny1634 ATtiny1634R
 const Configitem_t cfgtab_attiny1634[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 15, _values_SUT_CKSEL_attiny1634, "lfuse", 0, 0x1f, 0, 0x02, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny441, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_attiny441, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny441, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
-  {"BODACT", 3, _values_BODACT_attiny441, "efuse", 2, 0x06, 1, 3, "brownout detection in active/idle mode"},
-  {"BODPD", 3, _values_BODPD_attiny441, "efuse", 2, 0x18, 3, 3, "brownout detection in power-down mode"},
+  {"sut_cksel", 15, _values_SUT_CKSEL_attiny1634, "lfuse", 0, 0x1f, 0, 0x02, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny441, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_attiny441, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny441, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"bodact", 3, _values_BODACT_attiny441, "efuse", 2, 0x06, 1, 3, "brownout detection in active/idle mode"},
+  {"bodpd", 3, _values_BODPD_attiny441, "efuse", 2, 0x18, 3, 3, "brownout detection in power-down mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny2313
 const Configitem_t cfgtab_attiny2313[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_attiny2313, "lfuse", 0, 0x3f, 0, 0x24, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny2313, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x0e, 1, 7, "brownout detection trigger level"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_attiny2313, "lfuse", 0, 0x3f, 0, 0x24, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny2313, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATtiny2313A ATtiny4313
 const Configitem_t cfgtab_attiny2313a[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_attiny2313, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_attiny2313, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x0e, 1, 7, "brownout detection trigger level"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_attiny2313, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_attiny2313, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATmega8 ATmega8A
 const Configitem_t cfgtab_atmega8[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega8HVA ATmega16HVA
 const Configitem_t cfgtab_atmega8hva[7] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT", 8, _values_SUT_atmega16hva2, "fuse", 0, 0x07, 0, 7, "startup time"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "fuse", 0, 0x08, 3, 1, "self programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "fuse", 0, 0x10, 4, 1, "debugWIRE"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"sut", 8, _values_SUT_atmega16hva2, "fuse", 0, 0x07, 0, 7, "startup time"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "fuse", 0, 0x08, 3, 1, "self programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "fuse", 0, 0x10, 4, 1, "debugWIRE"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATmega8U2
 const Configitem_t cfgtab_atmega8u2[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8u2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8u2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"bodlevel", 8, _values_BODLEVEL_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega16 ATmega16A
 const Configitem_t cfgtab_atmega16[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega16HVB
 const Configitem_t cfgtab_atmega16hvb[12] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
-  {"SUT", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "hfuse", 1, 0x10, 4, 0, "clock prescaled"},
+  {"cksel", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "hfuse", 1, 0x10, 4, 0, "clock prescaled"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega16HVBrevB
 const Configitem_t cfgtab_atmega16hvbrevb[12] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
-  {"SUT", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
-  {"DUVRDINIT", 2, _values_DUVRDINIT_atmega32hvbrevb, "hfuse", 1, 0x10, 4, 0, "DUVR mode"},
+  {"cksel", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"duvrdinit", 2, _values_DUVRDINIT_atmega32hvbrevb, "hfuse", 1, 0x10, 4, 0, "DUVR mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega16U4
 const Configitem_t cfgtab_atmega16u4[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x12, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 1, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x12, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 1, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega32 ATmega32A
 const Configitem_t cfgtab_atmega32[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega32HVB
 const Configitem_t cfgtab_atmega32hvb[12] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
-  {"SUT", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "hfuse", 1, 0x10, 4, 0, "clock prescaled"},
+  {"cksel", 1, _values_CKSEL_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_SUT_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "hfuse", 1, 0x10, 4, 0, "clock prescaled"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega32C1 ATmega32M1
 const Configitem_t cfgtab_atmega32c1[17] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
-  {"PSCRVB", 2, _values_PSCRVB_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
-  {"PSCRVA", 2, _values_PSCRVA_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
-  {"PSCRB", 2, _values_PSCRB_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"sut_cksel", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"pscrvb", 2, _values_PSCRVB_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
+  {"pscrva", 2, _values_PSCRVA_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
+  {"pscrb", 2, _values_PSCRB_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega32U2
 const Configitem_t cfgtab_atmega32u2[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"bodlevel", 8, _values_BODLEVEL_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega32U4
 const Configitem_t cfgtab_atmega32u4[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x12, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 1, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x12, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 1, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega32U6
 const Configitem_t cfgtab_atmega32u6[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, -1, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, -1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, -1, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, -1, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, -1, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, -1, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega48 ATmega48A ATmega48P ATmega48PA
 const Configitem_t cfgtab_atmega48[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATmega48PB
 const Configitem_t cfgtab_atmega48pb[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"SUT_CKSEL", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"SELFPRGEN", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"sut_cksel", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_SELFPRGEN_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
 };
 
 // ATmega64 ATmega64A
 const Configitem_t cfgtab_atmega64[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"WDTON", 2, _values_WDTON_atmega328, "efuse", 2, 0x01, 0, 1, "watchdog timer"},
-  {"M103C", 2, _values_M103C_atmega103comp, "efuse", 2, 0x02, 1, 0, "ATmega103 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"wdton", 2, _values_WDTON_atmega328, "efuse", 2, 0x01, 0, 1, "watchdog timer"},
+  {"m103c", 2, _values_M103C_atmega103comp, "efuse", 2, 0x02, 1, 0, "ATmega103 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega64C1 ATmega64M1
 const Configitem_t cfgtab_atmega64c1[17] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
-  {"PSCRVB", 2, _values_PSCRVB_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
-  {"PSCRVA", 2, _values_PSCRVA_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
-  {"PSCRB", 2, _values_PSCRB_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"sut_cksel", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"pscrvb", 2, _values_PSCRVB_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
+  {"pscrva", 2, _values_PSCRVA_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
+  {"pscrb", 2, _values_PSCRB_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega64HVE2 ATmega32HVE2
 const Configitem_t cfgtab_atmega64hve2[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 1, _values_CKSEL_atmega64hve, "lfuse", 0, 0x01, 0, 1, "oscillator"},
-  {"SUT", 4, _values_SUT_atmega64hve, "lfuse", 0, 0x06, 1, 3, "startup time"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x08, 3, 0, "clock prescaled"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x10, 4, 1, "brownout detection"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"cksel", 1, _values_CKSEL_atmega64hve, "lfuse", 0, 0x01, 0, 1, "oscillator"},
+  {"sut", 4, _values_SUT_atmega64hve, "lfuse", 0, 0x06, 1, 3, "startup time"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x08, 3, 0, "clock prescaled"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x10, 4, 1, "brownout detection"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega64RFR2 ATmega644RFR2
 const Configitem_t cfgtab_atmega64rfr2[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 49, _values_SUT_CKSEL_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"sut_cksel", 49, _values_SUT_CKSEL_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega88 ATmega88A ATmega88P ATmega88PA ATA6612C
 const Configitem_t cfgtab_atmega88[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega88PB
 const Configitem_t cfgtab_atmega88pb[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"sut_cksel", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega103
 const Configitem_t cfgtab_atmega103[4] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"CKSEL", 4, _values_CKSEL_atmega103, "fuse", 0, 0x03, 0, 3, "clock source"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"cksel", 4, _values_CKSEL_atmega103, "fuse", 0, 0x03, 0, 3, "clock source"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // ATmega128 ATmega128A
 const Configitem_t cfgtab_atmega128[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"WDTON", 2, _values_WDTON_atmega328, "efuse", 2, 0x01, 0, 1, "watchdog timer"},
-  {"M103C", 2, _values_M103C_atmega103comp, "efuse", 2, 0x02, 1, 0, "ATmega103 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"wdton", 2, _values_WDTON_atmega328, "efuse", 2, 0x01, 0, 1, "watchdog timer"},
+  {"m103c", 2, _values_M103C_atmega103comp, "efuse", 2, 0x02, 1, 0, "ATmega103 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega128RFA1
 const Configitem_t cfgtab_atmega128rfa1[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 17, _values_SUT_CKSEL_atmega128rfa1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 17, _values_SUT_CKSEL_atmega128rfa1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega128RFR2 ATmega1284RFR2
 const Configitem_t cfgtab_atmega128rfr2[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 49, _values_SUT_CKSEL_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"sut_cksel", 49, _values_SUT_CKSEL_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega161
 const Configitem_t cfgtab_atmega161[7] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 8, _values_CKSEL_atmega161, "fuse", 0, 0x07, 0, 2, "clock source"},
-  {"SUT", 2, _values_SUT_atmega161, "fuse", 0, 0x08, 3, 1, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x10, 4, 1, "serial programming"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x20, 5, 0, "reset address"},
+  {"cksel", 8, _values_CKSEL_atmega161, "fuse", 0, 0x07, 0, 2, "clock source"},
+  {"sut", 2, _values_SUT_atmega161, "fuse", 0, 0x08, 3, 1, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x10, 4, 1, "serial programming"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x20, 5, 0, "reset address"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega162
 const Configitem_t cfgtab_atmega162[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 5, _values_BODLEVEL_atmega161comp, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
-  {"M161C", 2, _values_M161C_atmega161comp, "efuse", 2, 0x10, 4, 1, "ATmega161 compatibility mode"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 5, _values_BODLEVEL_atmega161comp, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"m161c", 2, _values_M161C_atmega161comp, "efuse", 2, 0x10, 4, 1, "ATmega161 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega163
 const Configitem_t cfgtab_atmega163[9] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 16, _values_CKSEL_atmega163, "lfuse", 0, 0x0f, 0, 0x0f, "clock source"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 3, "boot section size"},
+  {"cksel", 16, _values_CKSEL_atmega163, "lfuse", 0, 0x0f, 0, 0x0f, "clock source"},
+  {"spien", 2, _values_SPIEN_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 3, "boot section size"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega164A ATmega164P ATmega164PA
 const Configitem_t cfgtab_atmega164a[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega165 ATmega165A ATmega165P ATmega165PA ATmega169 ATmega169A ATmega169P ATmega169PA
 const Configitem_t cfgtab_atmega165[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega168 ATmega168A ATmega168P ATmega168PA ATA6613C
 const Configitem_t cfgtab_atmega168[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega168PB
 const Configitem_t cfgtab_atmega168pb[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega161comp, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"sut_cksel", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega161comp, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega256RFR2 ATmega2564RFR2
 const Configitem_t cfgtab_atmega256rfr2[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 49, _values_SUT_CKSEL_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega256rfr2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"sut_cksel", 49, _values_SUT_CKSEL_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega256rfr2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega323
 const Configitem_t cfgtab_atmega323[12] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"CKSEL", 16, _values_CKSEL_atmega163, "lfuse", 0, 0x0f, 0, 0x02, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 3, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"cksel", 16, _values_CKSEL_atmega163, "lfuse", 0, 0x0f, 0, 0x02, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 3, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega324A ATmega324P ATmega324PA
 const Configitem_t cfgtab_atmega324a[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega324PB
 const Configitem_t cfgtab_atmega324pb[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
-  {"CFD", 2, _values_CFD_atmega328pb, "efuse", 2, 0x08, 3, 0, "clock failure detection"},
+  {"sut_cksel", 47, _values_SUT_CKSEL_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"cfd", 2, _values_CFD_atmega328pb, "efuse", 2, 0x08, 3, 0, "clock failure detection"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 /*
@@ -11807,71 +11807,71 @@ const Configitem_t cfgtab_atmega324pb[15] = {
  * ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA
  */
 const Configitem_t cfgtab_atmega325[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_attiny13, "efuse", 2, 0x06, 1, 3, "brownout detection trigger level"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_attiny13, "efuse", 2, 0x06, 1, 3, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega406
 const Configitem_t cfgtab_atmega406[10] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 6, _values_SUT_CKSEL_atmega406, "lfuse", 0, 0x07, 0, 5, "clock source"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "lfuse", 0, 0x08, 3, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega406, "lfuse", 0, 0x30, 4, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x01, 0, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x02, 1, 1, "on-chip debug"},
+  {"sut_cksel", 6, _values_SUT_CKSEL_atmega406, "lfuse", 0, 0x07, 0, 5, "clock source"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "lfuse", 0, 0x08, 3, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega406, "lfuse", 0, 0x30, 4, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x01, 0, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x02, 1, 1, "on-chip debug"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega640
 const Configitem_t cfgtab_atmega640[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega644 ATmega644A ATmega644P ATmega644PA
 const Configitem_t cfgtab_atmega644[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 /*
@@ -11879,374 +11879,374 @@ const Configitem_t cfgtab_atmega644[14] = {
  * ATmega6450P ATmega6490 ATmega6490A ATmega6490P
  */
 const Configitem_t cfgtab_atmega645[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 44, _values_SUT_CKSEL_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
-  {"BODLEVEL", 4, _values_BODLEVEL_attiny13, "efuse", 2, 0x06, 1, 3, "brownout detection trigger level"},
+  {"sut_cksel", 44, _values_SUT_CKSEL_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_BODLEVEL_attiny13, "efuse", 2, 0x06, 1, 3, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega1280 ATmega1281
 const Configitem_t cfgtab_atmega1280[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega1284 ATmega1284P
 const Configitem_t cfgtab_atmega1284[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega2560 ATmega2561
 const Configitem_t cfgtab_atmega2560[14] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega256rfr2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"sut_cksel", 55, _values_SUT_CKSEL_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega256rfr2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_BODLEVEL_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATmega8535
 const Configitem_t cfgtab_atmega8535[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
-  {"S8535C", 2, _values_S8535C_at90s8535comp, "hfuse", 1, 0x80, 7, 1, "AT90S4434/8535 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
+  {"s8535c", 2, _values_S8535C_at90s8535comp, "hfuse", 1, 0x80, 7, 1, "AT90S4434/8535 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90PWM1
 const Configitem_t cfgtab_at90pwm1[17] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 42, _values_SUT_CKSEL_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
-  {"PSCRV", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
-  {"PSC0RB", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
-  {"PSC2RB", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"sut_cksel", 42, _values_SUT_CKSEL_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc2rb", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90PWM2B AT90PWM3B
 const Configitem_t cfgtab_at90pwm2b[18] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
-  {"PSCRV", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
-  {"PSC0RB", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
-  {"PSC1RB", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
-  {"PSC2RB", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"sut_cksel", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90CAN32
 const Configitem_t cfgtab_at90can32[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 38, _values_SUT_CKSEL_at90can32, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can32, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"TA0SEL", 2, _values_TA0SEL_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"sut_cksel", 38, _values_SUT_CKSEL_at90can32, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can32, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"ta0sel", 2, _values_TA0SEL_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
+  {"bodlevel", 8, _values_BODLEVEL_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90CAN64
 const Configitem_t cfgtab_at90can64[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 38, _values_SUT_CKSEL_at90can32, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"TA0SEL", 2, _values_TA0SEL_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
-  {"BODLEVEL", 8, _values_BODLEVEL_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"sut_cksel", 38, _values_SUT_CKSEL_at90can32, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"ta0sel", 2, _values_TA0SEL_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
+  {"bodlevel", 8, _values_BODLEVEL_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90PWM216
 const Configitem_t cfgtab_at90pwm216[18] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 42, _values_SUT_CKSEL_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "efuse", 2, 0x06, 1, 0, "boot section size"},
-  {"PSCRV", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
-  {"PSC0RB", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
-  {"PSC1RB", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
-  {"PSC2RB", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"sut_cksel", 42, _values_SUT_CKSEL_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90PWM316
 const Configitem_t cfgtab_at90pwm316[18] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
-  {"RSTDISBL", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega16m1, "efuse", 2, 0x06, 1, 0, "boot section size"},
-  {"PSCRV", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
-  {"PSC0RB", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
-  {"PSC1RB", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
-  {"PSC2RB", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"sut_cksel", 53, _values_SUT_CKSEL_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_CKOUT_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_RSTDISBL_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega16m1, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_PSCRV_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_PSC0RB_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_PSC1RB_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_PSC2RB_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90USB646 AT90USB647
 const Configitem_t cfgtab_at90usb646[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90usb646, "hfuse", 1, 0x06, 1, 1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90usb646, "hfuse", 1, 0x06, 1, 1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90USB1286 AT90USB1287
 const Configitem_t cfgtab_at90usb1286[15] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
-  {"OCDEN", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
-  {"HWBE", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"sut_cksel", 50, _values_SUT_CKSEL_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_CKOUT_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_OCDEN_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_BODLEVEL_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_HWBE_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // AT90S2323
 const Configitem_t cfgtab_at90s2323[3] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"FSTRT", 2, _values_FSTRT_at90s2313, "fuse", 0, 0x01, 0, 0, "startup time"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"fstrt", 2, _values_FSTRT_at90s2313, "fuse", 0, 0x01, 0, 0, "startup time"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // AT90S2333
 const Configitem_t cfgtab_at90s2333[5] = {
-  {"LB", 3, _values_LB_at90s2333, "lock", 0, 0x06, 1, -1, "lock bits"},
-  {"SUT_CKSEL", 8, _values_SUT_CKSEL_at90s2333, "fuse", 0, 0x07, 0, -1, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x08, 3, -1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "fuse", 0, 0x10, 4, -1, "brownout detection trigger level"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"sut_cksel", 8, _values_SUT_CKSEL_at90s2333, "fuse", 0, 0x07, 0, -1, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x08, 3, -1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "fuse", 0, 0x10, 4, -1, "brownout detection trigger level"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"lb", 3, _values_LB_at90s2333, "lock", 0, 0x06, 1, -1, "lock bits"},
 };
 
 // AT90S2343
 const Configitem_t cfgtab_at90s2343[3] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"RCEN", 2, _values_RCEN_at90s1200, "fuse", 0, 0x01, 0, 0, "clock source"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"rcen", 2, _values_RCEN_at90s1200, "fuse", 0, 0x01, 0, 0, "clock source"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // AT90S4433
 const Configitem_t cfgtab_at90s4433[5] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
-  {"SUT_CKSEL", 8, _values_SUT_CKSEL_at90s2333, "fuse", 0, 0x07, 0, 2, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x08, 3, 1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "fuse", 0, 0x10, 4, 1, "brownout detection trigger level"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"sut_cksel", 8, _values_SUT_CKSEL_at90s2333, "fuse", 0, 0x07, 0, 2, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "fuse", 0, 0x08, 3, 1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "fuse", 0, 0x10, 4, 1, "brownout detection trigger level"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
 };
 
 // AT90S8515comp
 const Configitem_t cfgtab_at90s8515comp[13] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"SUT_CKSEL", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
-  {"BODLEVEL", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"CKOPT", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, -1, "watchdog timer"},
-  {"S8515C", 2, _values_S8515C_atmega8515, "hfuse", 1, 0x80, 7, -1, "AT90S4414/8515 compatibility mode"},
+  {"sut_cksel", 58, _values_SUT_CKSEL_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
+  {"bodlevel", 2, _values_BODLEVEL_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_atmega8515, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_CKOPT_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x40, 6, -1, "watchdog timer"},
+  {"s8515c", 2, _values_S8515C_atmega8515, "hfuse", 1, 0x80, 7, -1, "AT90S4414/8515 compatibility mode"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATA5787 ATA5835
 const Configitem_t cfgtab_ata5787[11] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"EXTCLKEN", 2, _values_EXTCLKEN_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x02, 1, 1, "reset configuration"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
+  {"extclken", 2, _values_EXTCLKEN_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse", 0, 0x02, 1, 1, "reset configuration"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATA5790N ATA5795
 const Configitem_t cfgtab_ata5790n[10] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"_32OEN", 2, _values__32OEN_ata5790, "fuse", 0, 0x02, 1, 0, "32 kHz oscillator"},
-  {"Reserved", 1, _values_Reserved_ata5790, "fuse", 0, 0x04, 2, 0, "bit must be programmed"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 0, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"_32oen", 2, _values__32OEN_ata5790, "fuse", 0, 0x02, 1, 0, "32 kHz oscillator"},
+  {"reserved", 1, _values_Reserved_ata5790, "fuse", 0, 0x04, 2, 0, "bit must be programmed"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "fuse", 0, 0x10, 4, 0, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "fuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATA6289
 const Configitem_t cfgtab_ata6289[17] = {
-  {"LB", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLB0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
-  {"BLB1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
-  {"TSRDI", 2, _values_TSRDI_ata6285, "lfuse", 0, 0x01, 0, -1, "temperature shutdown reset"},
-  {"BODEN", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x02, 1, -1, "brownout detection"},
-  {"FRCFS", 2, _values_FRCFS_ata6285, "lfuse", 0, 0x04, 2, -1, "fast RC oscillator frequency"},
-  {"WDRCON", 2, _values_WDRCON_ata6285, "lfuse", 0, 0x08, 3, -1, "watchdog RC oscillator"},
-  {"SUT_CKSEL", 3, _values_SUT_CKSEL_ata6285, "lfuse", 0, 0x30, 4, -1, "clock source"},
-  {"CKOUT", 2, _values_CKOUT_ata6285, "lfuse", 0, 0x40, 6, -1, "clock output"},
-  {"CKDIV8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
-  {"BOOTSZ", 4, _values_BOOTSZ_ata6285, "hfuse", 1, 0x06, 1, -1, "boot section size"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
-  {"WDTON", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
-  {"SPIEN", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
-  {"DWEN", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, -1, "debugWIRE"},
-  {"EELOCK", 2, _values_EELOCK_ata6285, "hfuse", 1, 0x80, 7, -1, "Upper EEPROM"},
+  {"tsrdi", 2, _values_TSRDI_ata6285, "lfuse", 0, 0x01, 0, -1, "temperature shutdown reset"},
+  {"boden", 2, _values_BODEN_atmega64hve, "lfuse", 0, 0x02, 1, -1, "brownout detection"},
+  {"frcfs", 2, _values_FRCFS_ata6285, "lfuse", 0, 0x04, 2, -1, "fast RC oscillator frequency"},
+  {"wdrcon", 2, _values_WDRCON_ata6285, "lfuse", 0, 0x08, 3, -1, "watchdog RC oscillator"},
+  {"sut_cksel", 3, _values_SUT_CKSEL_ata6285, "lfuse", 0, 0x30, 4, -1, "clock source"},
+  {"ckout", 2, _values_CKOUT_ata6285, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"ckdiv8", 2, _values_CKDIV8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_BOOTSZ_ata6285, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_EESAVE_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_WDTON_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_SPIEN_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"dwen", 2, _values_DWEN_atmega328, "hfuse", 1, 0x40, 6, -1, "debugWIRE"},
+  {"eelock", 2, _values_EELOCK_ata6285, "hfuse", 1, 0x80, 7, -1, "Upper EEPROM"},
+  {"lb", 3, _values_LB_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_BLB0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_BLB1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
 };
 
 // ATxmega16A4 ATxmega32A4
 const Configitem_t cfgtab_atxmega16a4[16] = {
-  {"LB", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLBAT", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
-  {"BLBA", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
-  {"BLBB", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
-  {"JTAGUSERID", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
-  {"WDPER", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WDWPER", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"BODPD", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
-  {"WDLOCK", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
-  {"STARTUPTIME", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atxmega16a4, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"BODACT", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"jtaguserid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
+  {"wdlock", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atxmega16a4, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
 };
 
 /*
@@ -12255,107 +12255,107 @@ const Configitem_t cfgtab_atxmega16a4[16] = {
  * ATxmega256D3 ATxmega384C3 ATxmega384D3
  */
 const Configitem_t cfgtab_atxmega16c4[15] = {
-  {"LB", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLBAT", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
-  {"BLBA", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
-  {"BLBB", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
-  {"WDPER", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WDWPER", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"BODPD", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
-  {"TOSCSEL", 2, _values_TOSCSEL_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
-  {"WDLOCK", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
-  {"STARTUPTIME", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"BODACT", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"wdper", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"toscsel", 2, _values_TOSCSEL_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"wdlock", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
 };
 
 // ATxmega64B1 ATxmega64B3 ATxmega128B1 ATxmega128B3
 const Configitem_t cfgtab_atxmega64b1[17] = {
-  {"LB", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
-  {"BLBAT", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
-  {"BLBA", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
-  {"BLBB", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
-  {"JTAGUSERID", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
-  {"WDPER", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WDWPER", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"BODPD", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
-  {"TOSCSEL", 2, _values_TOSCSEL_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
-  {"BOOTRST", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
-  {"JTAGEN", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 1, "JTAG interface"},
-  {"WDLOCK", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
-  {"STARTUPTIME", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
-  {"RSTDISBL", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
-  {"BODLEVEL", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
-  {"EESAVE", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
-  {"BODACT", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"jtaguserid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_WDPER_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_WDWPER_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_BODPD_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"toscsel", 2, _values_TOSCSEL_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
+  {"bootrst", 2, _values_BOOTRST_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_JTAGEN_at90can128, "fuse4", 4, 0x01, 0, 1, "JTAG interface"},
+  {"wdlock", 2, _values_WDLOCK_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_STARTUPTIME_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_RSTDISBL_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_BODLEVEL_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_EESAVE_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_BODACT_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_LB_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_BLBAT_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_BLBA_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_BLBB_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
 };
 
 // ATtiny416auto
 const Configitem_t cfgtab_attiny416auto[23] = {
-  {"LB", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
-  {"PERIOD", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 2, _values_LVL_attiny416auto, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"FREQSEL", 1, _values_FREQSEL_attiny416auto, "osccfg", 2, 0x03, 0, 1, "oscillator frequency"},
-  {"OSCLOCK", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
-  {"CMPA", 2, _values_CMPA_attiny204, "tcd0cfg", 4, 0x01, 0, 0, "compare A default output value"},
-  {"CMPB", 2, _values_CMPB_attiny204, "tcd0cfg", 4, 0x02, 1, 0, "compare B default output value"},
-  {"CMPC", 2, _values_CMPC_attiny204, "tcd0cfg", 4, 0x04, 2, 0, "compare C default output value"},
-  {"CMPD", 2, _values_CMPD_attiny204, "tcd0cfg", 4, 0x08, 3, 0, "compare D default output value"},
-  {"CMPAEN", 2, _values_CMPAEN_attiny204, "tcd0cfg", 4, 0x10, 4, 0, "compare A output"},
-  {"CMPBEN", 2, _values_CMPBEN_attiny204, "tcd0cfg", 4, 0x20, 5, 0, "compare B output"},
-  {"CMPCEN", 2, _values_CMPCEN_attiny204, "tcd0cfg", 4, 0x40, 6, 0, "compare C output"},
-  {"CMPDEN", 2, _values_CMPDEN_attiny204, "tcd0cfg", 4, 0x80, 7, 0, "compare D output"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 3, _values_RSTPINCFG_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
-  {"APPEND", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
-  {"BOOTEND", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"period", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 2, _values_LVL_attiny416auto, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 1, _values_FREQSEL_attiny416auto, "osccfg", 2, 0x03, 0, 1, "oscillator frequency"},
+  {"osclock", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"cmpa", 2, _values_CMPA_attiny204, "tcd0cfg", 4, 0x01, 0, 0, "compare A default output value"},
+  {"cmpb", 2, _values_CMPB_attiny204, "tcd0cfg", 4, 0x02, 1, 0, "compare B default output value"},
+  {"cmpc", 2, _values_CMPC_attiny204, "tcd0cfg", 4, 0x04, 2, 0, "compare C default output value"},
+  {"cmpd", 2, _values_CMPD_attiny204, "tcd0cfg", 4, 0x08, 3, 0, "compare D default output value"},
+  {"cmpaen", 2, _values_CMPAEN_attiny204, "tcd0cfg", 4, 0x10, 4, 0, "compare A output"},
+  {"cmpben", 2, _values_CMPBEN_attiny204, "tcd0cfg", 4, 0x20, 5, 0, "compare B output"},
+  {"cmpcen", 2, _values_CMPCEN_attiny204, "tcd0cfg", 4, 0x40, 6, 0, "compare C output"},
+  {"cmpden", 2, _values_CMPDEN_attiny204, "tcd0cfg", 4, 0x80, 7, 0, "compare D output"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 3, _values_RSTPINCFG_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
 };
 
 // ATtiny804 ATtiny806 ATtiny807 ATtiny1604 ATtiny1606 ATtiny1607
 const Configitem_t cfgtab_attiny804[15] = {
-  {"LB", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
-  {"PERIOD", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"FREQSEL", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
-  {"OSCLOCK", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 3, _values_RSTPINCFG_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
-  {"APPEND", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
-  {"BOOTEND", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"period", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 3, _values_RSTPINCFG_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
 };
 
 // ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809
 const Configitem_t cfgtab_atmega808[15] = {
-  {"LB", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
-  {"PERIOD", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"FREQSEL", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
-  {"OSCLOCK", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 2, _values_RSTPINCFG_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
-  {"APPEND", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
-  {"BOOTEND", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"period", 12, _values_PERIOD_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 3, _values_LVL_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_FREQSEL_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_OSCLOCK_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_RSTPINCFG_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_LB_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
 };
 
 /*
@@ -12363,21 +12363,21 @@ const Configitem_t cfgtab_atmega808[15] = {
  * AVR128DA48 AVR128DA64
  */
 const Configitem_t cfgtab_avr32da28[15] = {
-  {"KEY", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
-  {"PERIOD", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 4, _values_LVL_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"CLKSEL", 2, _values_CLKSEL_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 2, _values_RSTPINCFG_avr32da28, "syscfg0", 5, 0x0c, 2, 0, "reset pin configuration"},
-  {"CRCSEL", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
-  {"CODESIZE", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
-  {"BOOTSIZE", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"period", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 4, _values_LVL_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_CLKSEL_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_RSTPINCFG_avr32da28, "syscfg0", 5, 0x0c, 2, 0, "reset pin configuration"},
+  {"crcsel", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
 };
 
 /*
@@ -12385,20 +12385,20 @@ const Configitem_t cfgtab_avr32da28[15] = {
  * AVR128DB48 AVR128DB64
  */
 const Configitem_t cfgtab_avr32db28[16] = {
-  {"KEY", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
-  {"PERIOD", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
-  {"WINDOW", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
-  {"SLEEP", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
-  {"ACTIVE", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
-  {"SAMPFREQ", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
-  {"LVL", 4, _values_LVL_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
-  {"CLKSEL", 2, _values_CLKSEL_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
-  {"EESAVE", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
-  {"RSTPINCFG", 2, _values_RSTPINCFG_avr32da28, "syscfg0", 5, 0x0c, 2, 0, "reset pin configuration"},
-  {"CRCSEL", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
-  {"CRCSRC", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
-  {"SUT", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
-  {"MVSYSCFG", 2, _values_MVSYSCFG_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
-  {"CODESIZE", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
-  {"BOOTSIZE", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"period", 12, _values_PERIOD_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"window", 12, _values_WINDOW_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"sleep", 3, _values_SLEEP_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"active", 4, _values_ACTIVE_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"sampfreq", 2, _values_SAMPFREQ_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"lvl", 4, _values_LVL_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_CLKSEL_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_EESAVE_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_RSTPINCFG_avr32da28, "syscfg0", 5, 0x0c, 2, 0, "reset pin configuration"},
+  {"crcsel", 2, _values_CRCSEL_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC source"},
+  {"crcsrc", 4, _values_CRCSRC_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_SUT_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"mvsyscfg", 2, _values_MVSYSCFG_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_KEY_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
 };

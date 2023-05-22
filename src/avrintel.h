@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 20.05.2023
+ * 22.05.2023
  *
  */
 
@@ -23,7 +23,7 @@ typedef struct {
 } Valueitem_t;
 
 typedef struct {
-  const char *confignm;         // Name of this configuration item
+  const char *name;             // Name of this configuration item
   int nvalues;                  // Number of (symbolic) values
   const Valueitem_t *vlist;     // Pointer to nvalues value items
   const char *memtype;          // Fuse/Lock memory for this configuration
