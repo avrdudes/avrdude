@@ -1514,7 +1514,7 @@ avrdude done.  Thank you.
 
 @page
 @noindent
-Upload the flash memory from the ATmega128 connected to the STK500
+Dump the flash memory from the ATmega128 connected to the STK500
 programmer and save it in raw binary format in the file named
 @code{c:/diag flash.bin}:
 
@@ -1569,6 +1569,31 @@ avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
+@noindent
+Read the low, high, and extended fuse and print their values in
+hexadecimal and binary formats:
+
+@smallexample
+@cartouche
+
+% avrdude -cusbasp -patmega128 -Ulfuse:r:-:h -Uhfuse:r:-:h -Uefuse:r:-:b
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: reading lfuse memory ...
+avrdude: writing output file <stdout>
+0xbf
+avrdude: reading hfuse memory ...
+avrdude: writing output file <stdout>
+0xc6
+avrdude: reading efuse memory ...
+avrdude: writing output file <stdout>
+0b11111111
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
 @page
 @noindent
 Connect to the JTAG ICE mkII which serial number ends up in 1C37 via
@@ -1592,7 +1617,7 @@ avrdude done.  Thank you.
 @noindent
 List the serial numbers of all JTAG ICEs attached to USB.  This is
 done by specifying an invalid serial number, and increasing the
-verbosity level.
+verbosity level:
 
 @smallexample
 @cartouche
@@ -1610,12 +1635,12 @@ avrdude: usbdev_open(): did not find any (matching) USB device "usb:xxx"
 @end smallexample
 
 @noindent
-Write data from stdin (standard input) to EEPROM.
+Write data from stdin (standard input) to EEPROM:
 
 @smallexample
 @cartouche
 
-% echo "The quick brown fox" | avrdude -cusbasp -pattiny13 -Ueeprom:w:-:r
+% echo 'The quick brown fox' | avrdude -cusbasp -pattiny13 -Ueeprom:w:-:r
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e9007 (probably t13)
 avrdude: reading input file <stdin> for eeprom
@@ -1634,7 +1659,29 @@ avrdude done.  Thank you.
 @end smallexample
 
 @noindent
-Read EEPROM and write content to stdout (standard output)
+Execute multiple terminal mode commands separated by semicolons:
+
+@smallexample
+@cartouche
+
+% echo 'write eeprom 0 "Bonjour le mode"; write eeprom 0x18 0x12345678; dump eeprom 0 0x20' | avrdude -cusbasp -patmega328p -t
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+Caching | ################################################## | 100% 0.00 s
+Caching | ################################################## | 100% 0.00 s
+Reading | ################################################## | 100% 0.00 s
+0000  42 6f 6e 6a 6f 75 72 20  6c 65 20 6d 6f 64 65 00  |Bonjour le mode.|
+0010  ff ff ff ff ff ff ff ff  78 56 34 12 ff ff ff ff  |........xV4.....|
+avrdude> avrdude: synching cache to device ...
+Writing | ################################################## | 100% 0.25 s
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@noindent
+Read EEPROM and write content to stdout (standard output):
 
 @smallexample
 @cartouche
@@ -1650,6 +1697,102 @@ avrdude: writing output file <stdout>
 :00000001FF
 
 avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@noindent
+Using && and quell-output-option -qq to confirm that AVRDUDE command went OK:
+
+@smallexample
+@cartouche
+
+% avrdude -qq -cusbasp -pattiny13 -Uflash:w:diag.hex:i && echo OK
+OK
+
+@end cartouche
+@end smallexample
+
+@noindent
+Factory fuse setting of a device:
+
+@smallexample
+@cartouche
+
+% avrdude -patmega328p/St | grep initval
+.ptmm	ATmega328P	lfuse	initval	0x62
+.ptmm	ATmega328P	hfuse	initval	0xd9
+.ptmm	ATmega328P	efuse	initval	0xff
+.ptmm	ATmega328P	lock	initval	0xff
+
+@end cartouche
+@end smallexample
+
+@noindent
+List of all parts known to AVRDUDE:
+
+@smallexample
+@cartouche
+
+% avrdude -p*/d | grep = | cut -f2 -d"'"
+ATtiny11
+ATtiny12
+ATtiny13
+ATtiny13A
+ATtiny15
+AT89S51
+[...]
+AVR64EA48
+LGT8F88P
+LGT8F168P
+LGT8F328P
+
+@end cartouche
+@end smallexample
+
+@noindent
+Create a simple bash shell script to create terminal scripts that will reset a
+part to factory settings:
+@smallexample
+@cartouche
+
+mkdir /tmp/factory
+for part in $(avrdude -p*/d | grep = | cut -f2 -d"'"); do
+  echo $part
+  avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 | sed "s/.*/write &/" >/tmp/factory/$part.ini
+done
+
+$ cat /tmp/factory/ATmega328P.ini
+write lfuse	0x62
+write hfuse	0xd9
+write efuse	0xff
+write lock	0xff
+
+$ avrdude -qq -cusbasp -pATmega328P -t < /tmp/factory/ATmega328P.ini && echo OK
+OK
+
+@end cartouche
+@end smallexample
+
+@noindent
+Output a list of non-bootloader programmers that can be used for a part.
+Note that |& folds stderr into stdout in a bash shell:
+@smallexample
+@cartouche
+
+$ avrdude -c? -pavr32ea32 |& grep -v bootloader
+Valid programmers for part AVR32EA32 are:
+  atmelice_updi      = Atmel-ICE (ARM/AVR) via UPDI
+  dryrun             = Emulates programming without a programmer via UPDI
+  jtag2updi          = JTAGv2 to UPDI bridge via UPDI
+  jtag3updi          = Atmel AVR JTAGICE3 via UPDI
+  pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
+  pkobn_updi         = Curiosity nano (nEDBG) via UPDI
+  powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
+  serialupdi         = SerialUPDI via UPDI
+  snap_updi          = MPLAB(R) SNAP via UPDI
+  xplainedmini_updi  = Atmel AVR XplainedMini via UPDI
+  xplainedpro_updi   = Atmel AVR XplainedPro via UPDI
 
 @end cartouche
 @end smallexample
@@ -2196,7 +2339,7 @@ Dump the first 64 bytes of the EEPROM using a "terminal mode one-liner".
 @smallexample
 @cartouche
 
-% echo "dump eeprom 0 0x40" | avrdude -cusbasp -patmega328p -t
+% echo 'dump eeprom 0 0x40' | avrdude -cusbasp -patmega328p -t
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
 Reading | ################################################## | 100% 0.02 s
