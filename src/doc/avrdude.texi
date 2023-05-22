@@ -1797,6 +1797,19 @@ Valid programmers for part AVR32EA32 are:
 @end cartouche
 @end smallexample
 
+@noindent
+Print all metadata stored in flash using the Urboot bootloader and
+the Urclock programmer option:
+@smallexample
+@cartouche
+
+% avrdude -curclock -P/dev/ttyUSB0 -pattiny13 -xshowall
+avrdude: AVR device initialized and ready to accept instructions
+0 2023-05-22 22.03 Blink.ino.hex 78 store 665 meta 25 boot 256 u7.7 w-u-jPr-- vector 4 (EE_RDY) ATtiny13A
+
+@end cartouche
+@end smallexample
+
 
 @c
 @c Node
