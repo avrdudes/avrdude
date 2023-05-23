@@ -1810,6 +1810,78 @@ avrdude: AVR device initialized and ready to accept instructions
 @end cartouche
 @end smallexample
 
+@noindent
+Create a bash function, @code{avrdude-elf}, that takes an elf file as input,
+with support for optional Avrdude flags at the end, and writes to the memories
+specified in the elf file. In this example, the elf file did not contain any
+EEPROM data:
+@smallexample
+@cartouche
+
+# Show all memories present for the ATtiny13
+$ ./avrdude -pattiny13/ot | grep write | cut -f3 | uniq
+eeprom
+flash
+lfuse
+hfuse
+lock
+
+# Function that writes to all memories present in the elf file
+@verbatim
+avrdude-elf() {
+avrdude -cusbasp -pattiny13 -U{eeprom,flash,{l,h}fuse,lock}:w:"$1":e "${@:2}"
+}
+@end verbatim
+
+# Run function where -B8 is appended to the Avrdude command
+$ avrdude-elf program.elf -B8
+avrdude: set SCK frequency to 93750 Hz
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+avrdude: reading input file program.elf for eeprom
+         with 0 bytes in 0 sections within [0, -1]
+         using 0 pages and 0 pad bytes
+avrdude: writing 0 bytes eeprom ...
+Writing | ################################################## | 100% 0.00 s
+avrdude: 0 bytes of eeprom written
+avrdude: verifying eeprom memory against program.elf
+Reading | ###########################
+avrdude: reading input file program.elf for flash
+         with 78 bytes in 1 section within [0, 0x4d]
+         using 3 pages and 18 pad bytes
+avrdude: writing 78 bytes flash ...
+Writing | ################################################## | 100% 0.10 s
+avrdude: 78 bytes of flash written
+avrdude: verifying flash memory against program.elf
+Reading | ################################################## | 100% 0.05 s
+avrdude: 78 bytes of flash verified
+avrdude: reading input file program.elf for lfuse
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte lfuse ...
+avrdude: 1 byte of lfuse written
+avrdude: verifying lfuse memory against program.elf
+avrdude: 1 byte of lfuse verified
+avrdude: reading input file program.elf for hfuse
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte hfuse ...
+avrdude: 1 byte of hfuse written
+avrdude: verifying hfuse memory against program.elf
+avrdude: 1 byte of hfuse verified
+avrdude: reading input file program.elf for lock
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte lock ...
+avrdude: 1 byte of lock written
+avrdude: verifying lock memory against program.elf
+avrdude: 1 byte of lock verified
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
 
 @c
 @c Node
