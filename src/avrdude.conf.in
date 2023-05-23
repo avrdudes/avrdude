@@ -928,7 +928,7 @@ programmer parent "ft2232h"
     usbsn                  = "AVR";
     buff                   = ~5;
     reset                  = 4;
-    pgmled                 = ~ 10;
+    pgmled                 = ~10;
 ;
 
 #------------------------------------------------------------
