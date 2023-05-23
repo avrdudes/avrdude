@@ -1487,6 +1487,11 @@ Show help menu and exit.
 @node Example Command Line Invocations,  , Programmers accepting extended parameters, Command Line Options
 @section Example Command Line Invocations
 
+AVRDUDE error messages, warnings and progress reports are generally written to
+stderr which can, in bash, be turned off by 2>/dev/null or using increasingly
+more -q options to suppress them. Terminal output of command or of the -U
+command with an output file - are written to stdout.
+
 @noindent
 Download the file @code{diag.hex} to the ATmega128 chip using the
 STK500 programmer connected to the default serial port:
