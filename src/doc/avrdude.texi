@@ -1665,7 +1665,7 @@ Execute multiple terminal mode commands separated by semicolons:
 @cartouche
 
 % echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' |
-> ./avrdude -cusbasp -patmega328p -t
+> avrdude -cusbasp -patmega328p -t
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
 Caching | ################################################## | 100% 0.01 s
@@ -1710,6 +1710,20 @@ Using && and quell-output-option -qq to confirm that AVRDUDE command went OK:
 
 % avrdude -qq -cusbasp -pattiny13 -Uflash:w:diag.hex:i && echo OK
 OK
+
+@end cartouche
+@end smallexample
+
+@noindent
+Using the Avrdude output to print strings present in flash memory:
+
+@smallexample
+@cartouche
+
+% avrdude -pattiny13 -qq -U flash:r:-:r | strings
+Main menu
+Distance: %dcm
+Exit
 
 @end cartouche
 @end smallexample
@@ -1824,7 +1838,7 @@ EEPROM data:
 @cartouche
 
 # Show all memories present for the ATtiny13
-$ ./avrdude -pattiny13/ot | grep write | cut -f3 | uniq
+$ avrdude -pattiny13/ot | grep write | cut -f3 | uniq
 eeprom
 flash
 lfuse
