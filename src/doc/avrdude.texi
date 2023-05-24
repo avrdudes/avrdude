@@ -2269,6 +2269,8 @@ Display programmer specific parameters.
 
 @end table
 
+@page
+
 @c
 @c Node
 @c
@@ -2383,6 +2385,8 @@ avrdude done.  Thank you.
 
 @end cartouche
 @end smallexample
+
+@page
 
 The following example demonstrates negative address and length bytes, and the
 second form of the @code{write} command where the last data value provided
