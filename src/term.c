@@ -1026,6 +1026,17 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
   char buf[131], bin[129];
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
 
+  // Scan value list for symbolic label and update it
+  vp = NULL;
+  const char *vstr = NULL;
+  if(vt)
+    for(int j=0; j<nv; j++)
+      if(vt[j].value == cc[ii].val) {
+        vstr = vt[j].label;
+        vp = vt+j;
+        break;
+      }
+
   if(o.verb > 0) {
     const char *vcom = !cc[ii].t->vlist? "arbitrary": vp? vp->vcomment: "";
     // Remove some redundancy in explanations
@@ -1051,16 +1062,6 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
   if(done)
     return;
 
-  // Scan value list for symbolic label and update it
-  vp = NULL;
-  const char *vstr = NULL;
-  if(vt)
-    for(int j=0; j<nv; j++)
-      if(vt[j].value == cc[ii].val) {
-        vstr = vt[j].label;
-        vp = vt+j;
-        break;
-      }
   if(!vstr) {
     unsigned u = cc[ii].val;
     if(u < 256)
