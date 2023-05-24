@@ -1733,6 +1733,7 @@ Exit
 @end cartouche
 @end smallexample
 
+@page
 @noindent
 Factory fuse setting of a device:
 
@@ -1748,7 +1749,6 @@ Factory fuse setting of a device:
 @end cartouche
 @end smallexample
 
-@page
 @noindent
 List of all parts known to AVRDUDE:
 
@@ -1796,6 +1796,7 @@ OK
 @end cartouche
 @end smallexample
 
+@page
 @noindent
 Output a list of non-bootloader programmers that can be used for a part.
 Note that |& folds stderr into stdout in a bash shell:
@@ -1819,7 +1820,6 @@ Valid programmers for part AVR32EA32 are:
 @end cartouche
 @end smallexample
 
-@page
 @noindent
 Print all metadata stored in flash using the Urboot bootloader and
 the Urclock programmer option:
@@ -1834,6 +1834,7 @@ vector 4 (EE_RDY) ATtiny13A
 @end cartouche
 @end smallexample
 
+@page
 @noindent
 Create a bash function, @code{avrdude-elf}, that takes an elf file as input,
 with support for optional Avrdude flags at the end, and writes to the memories
@@ -1858,7 +1859,7 @@ avrdude -cusbasp -pattiny13 -U{eeprom,flash,{l,h}fuse,lock}:w:"$1":e "${@:2}"
 @end verbatim
 
 # Run function where -B8 and -V is appended to the Avrdude command
-$ avrdude-elf program.elf -B8 -v
+$ avrdude-elf program.elf -B8 -V
 avrdude: set SCK frequency to 93750 Hz
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e9007 (probably t13)
