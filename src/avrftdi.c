@@ -1462,7 +1462,7 @@ static int avrftdi_jtag_dr_inout(const PROGRAMMER *pgm, unsigned int dr,
 	return dr_in;
 }
 
-static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
+static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
 {
 	pgm->powerup(pgm);
 
@@ -1472,11 +1472,9 @@ static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
 
 	set_pin(pgm, PIN_AVR_RESET, ON);
 	usleep(20 * 1000);
-
-	return 0;
 }
 
-static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
+static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
 {
 	set_pin(pgm, PPI_AVR_BUFF, ON);
 
@@ -1489,6 +1487,8 @@ static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
 	/* Write program enable magic */
 	avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_ENABLE);
 	avrftdi_jtag_dr_out(pgm, 0xa370, 16);
+
+	return 0;
 }
 
 static void avrftdi_jtag_disable(const PROGRAMMER *pgm)
