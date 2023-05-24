@@ -1669,8 +1669,8 @@ Execute multiple terminal mode commands separated by semicolons:
 @smallexample
 @cartouche
 
-% echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' |
-> avrdude -cusbasp -patmega328p -t
+% echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' \
+> | avrdude -cusbasp -patmega328p -t
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
 Caching | ################################################## | 100% 0.01 s
@@ -1780,8 +1780,8 @@ part to factory settings:
 mkdir /tmp/factory
 for part in $(avrdude -p*/d | grep = | cut -f2 -d"'"); do
   echo $part
-  avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 |
-  sed "s/.*/write &/" >/tmp/factory/$part.ini
+  avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 \
+  | sed "s/.*/write &/" >/tmp/factory/$part.ini
 done
 
 $ cat /tmp/factory/ATmega328P.ini
