@@ -69,6 +69,8 @@ static int pin_name;
 %token K_PGM_ENABLE
 %token K_READ_HVSP_CMD
 %token K_READ_HVSP_DATA
+%token K_WRITE_HVSP_CMD
+%token K_WRITE_HVSP_DATA
 
 %token K_MEMORY
 
@@ -572,7 +574,9 @@ opcode :
   K_CHIP_ERASE   |
   K_PGM_ENABLE		|
   K_READ_HVSP_CMD	|
-  K_READ_HVSP_DATA
+  K_READ_HVSP_DATA	|
+  K_WRITE_HVSP_CMD	|
+  K_WRITE_HVSP_DATA
 ;
 
 
@@ -1210,6 +1214,8 @@ static int which_opcode(TOKEN * opcode)
     case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;
     case K_READ_HVSP_CMD	: return AVR_OP_READ_HVSP_CMD; break;
     case K_READ_HVSP_DATA	: return AVR_OP_READ_HVSP_DATA; break;
+    case K_WRITE_HVSP_CMD	: return AVR_OP_WRITE_HVSP_CMD; break;
+    case K_WRITE_HVSP_DATA	: return AVR_OP_WRITE_HVSP_DATA; break;
     default :
       yyerror("invalid opcode");
       return -1;

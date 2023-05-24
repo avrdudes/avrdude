@@ -27,6 +27,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -174,6 +175,54 @@ static int avr_tpi_setup_rw(const PROGRAMMER *pgm, const AVRMEM *mem,
   return 0;
 }
 
+bool avr_is_there_proper_cmd(const PROGRAMMER *pgm, const AVRPART *p) {
+  return (
+    (hvsp_is_hvsp_mode(pgm, p) && pgm->cmd_hvsp != NULL) || (pgm->cmd != NULL)
+  );
+}
+
+void avr_get_opcode(
+  const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, bool is_read,
+  unsigned long addr, OPCODE **op_instr, OPCODE **op, unsigned long *caddr
+) {
+  if (hvsp_is_hvsp_mode(pgm, p)) {
+    *op_instr = mem->op[is_read ? AVR_OP_READ_HVSP_CMD : AVR_OP_WRITE_HVSP_CMD];
+    *op = mem->op[is_read ? AVR_OP_READ_HVSP_DATA : AVR_OP_WRITE_HVSP_DATA];
+    *caddr = addr;
+  } else {
+    if (mem->op[is_read ? AVR_OP_READ_LO : AVR_OP_WRITE_LO]) {
+      if (addr & 0x00000001)
+        *op = mem->op[is_read ? AVR_OP_READ_HI : AVR_OP_WRITE_HI];
+      else
+        *op = mem->op[is_read ? AVR_OP_READ_LO : AVR_OP_WRITE_LO];
+      *caddr = addr / 2;
+    } else if ((!is_read) && (mem->paged && mem->op[AVR_OP_LOADPAGE_LO])) {
+      if (addr & 0x00000001)
+        *op = mem->op[AVR_OP_LOADPAGE_HI];
+      else
+        *op = mem->op[AVR_OP_LOADPAGE_LO];
+      *caddr = addr / 2;
+    } else {
+      *op = mem->op[is_read ? AVR_OP_READ : AVR_OP_WRITE];
+      *caddr = addr;
+    }
+  }
+}
+
+void avr_prepare_cmd(
+  const OPCODE * op, const OPCODE * op_instr, unsigned long addr, bool is_read,
+  unsigned char data, unsigned char *cmd, size_t cmd_size,
+  unsigned char *cmd_instr, size_t cmd_instr_size
+) {
+  memset(cmd, 0, cmd_size);
+  memset(cmd_instr, 0, cmd_instr_size);
+
+  avr_set_bits(op, cmd);
+  if (op_instr) avr_set_bits(op_instr, cmd_instr);
+  avr_set_addr(op, cmd, addr);
+  if (!is_read) avr_set_input(op, cmd, data);
+}
+
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                           unsigned long addr, unsigned char * value)
 {
@@ -183,11 +232,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   int r;
   OPCODE * readop, * readop_cmd = NULL, * lext;
 
-  if (
-    !(
-      (hvsp_is_hvsp_mode(pgm, p) && pgm->cmd_hvsp != NULL) || (pgm->cmd != NULL)
-    )
-  ) {
+  if (!avr_is_there_proper_cmd(pgm, p)) {
     pmsg_error("%s programmer uses avr_read_byte_default() but does not\n", pgm->type);
     imsg_error("provide a cmd() method\n");
     return -1;
@@ -219,22 +264,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   /*
    * figure out what opcode to use
    */
-  if (hvsp_is_hvsp_mode(pgm, p)) {
-    readop_cmd = mem->op[AVR_OP_READ_HVSP_CMD];
-    readop = mem->op[AVR_OP_READ_HVSP_DATA];
-  } else {
-    if (mem->op[AVR_OP_READ_LO]) {
-      if (addr & 0x00000001)
-        readop = mem->op[AVR_OP_READ_HI];
-      else
-        readop = mem->op[AVR_OP_READ_LO];
-      addr = addr / 2;
-    }
-    else {
-      readop = mem->op[AVR_OP_READ];
-    }
-  }
-
+  avr_get_opcode(pgm, p, mem, true, addr, &readop_cmd, &readop, &addr);
   if (readop == NULL) {
 #if DEBUG
     pmsg_error("operation not supported on memory type %s\n", mem->desc);
@@ -256,12 +286,10 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
       return r;
   }
 
-  memset(cmd, 0, sizeof(cmd));
-  memset(cmd_instr, 0, sizeof(cmd_instr));
-
-  avr_set_bits(readop, cmd);
-  if (readop_cmd) avr_set_bits(readop_cmd, cmd_instr);
-  avr_set_addr(readop, cmd, addr);
+  avr_prepare_cmd(
+    readop, readop_cmd, addr, true, 0, cmd, sizeof(cmd), cmd_instr,
+    sizeof(cmd_instr)
+  );
   if (hvsp_is_hvsp_mode(pgm, p)) r = pgm->cmd_hvsp(pgm, cmd_instr, cmd, res);
   else r = pgm->cmd(pgm, cmd, res);
   if (r < 0)
@@ -573,11 +601,23 @@ double avr_timestamp() {
   return avr_ustimestamp()/1e6;
 }
 
+bool avr_wait_for_avr_rdy(
+   const PROGRAMMER *pgm, const AVRPART *p, int timeout_us
+) {
+  if (!pgm->is_avr_rdy) return true;
+  unsigned long start_time = avr_ustimestamp();
+  bool is_avr_rdy;
+  while (
+    (!(is_avr_rdy = pgm->is_avr_rdy(pgm, p))) &&
+    ((avr_ustimestamp() - start_time) < (unsigned long)timeout_us)
+  ) usleep(timeout_us/4);
+  return is_avr_rdy;
+}
 
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
-  unsigned char cmd[4];
+  unsigned char cmd[4], cmd_instr[4];
   unsigned char res[4];
   unsigned char r;
   int ready;
@@ -585,12 +625,12 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   unsigned long start_time;
   unsigned long prog_time;
   unsigned char b;
-  unsigned short caddr;
-  OPCODE * writeop;
+  unsigned long caddr;
+  OPCODE * writeop, * writeop_cmd = NULL;
   int rc;
   int readok=0;
 
-  if (pgm->cmd == NULL) {
+  if (!avr_is_there_proper_cmd(pgm, p)) {
     pmsg_error("%s programmer uses avr_write_byte_default() but does not\n", pgm->type);
     imsg_error("provide a cmd() method\n");
     return -1;
@@ -672,25 +712,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   /*
    * determine which memory opcode to use
    */
-  if (mem->op[AVR_OP_WRITE_LO]) {
-    if (addr & 0x01)
-      writeop = mem->op[AVR_OP_WRITE_HI];
-    else
-      writeop = mem->op[AVR_OP_WRITE_LO];
-    caddr = addr / 2;
-  }
-  else if (mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) {
-    if (addr & 0x01)
-      writeop = mem->op[AVR_OP_LOADPAGE_HI];
-    else
-      writeop = mem->op[AVR_OP_LOADPAGE_LO];
-    caddr = addr / 2;
-  }
-  else {
-    writeop = mem->op[AVR_OP_WRITE];
-    caddr = addr;
-  }
-
+  avr_get_opcode(pgm, p, mem, false, addr, &writeop_cmd, &writeop, &caddr);
   if (writeop == NULL) {
 #if DEBUG
     pmsg_error("write not supported for memory type %s\n", mem->desc);
@@ -702,12 +724,12 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   pgm->pgm_led(pgm, ON);
   pgm->err_led(pgm, OFF);
 
-  memset(cmd, 0, sizeof(cmd));
-
-  avr_set_bits(writeop, cmd);
-  avr_set_addr(writeop, cmd, caddr);
-  avr_set_input(writeop, cmd, data);
-  pgm->cmd(pgm, cmd, res);
+  avr_prepare_cmd(
+    writeop, writeop_cmd, caddr, false, data, cmd, sizeof(cmd), cmd_instr,
+    sizeof(cmd_instr)
+  );
+  if (hvsp_is_hvsp_mode(pgm, p)) pgm->cmd_hvsp(pgm, cmd_instr, cmd, res);
+  else pgm->cmd(pgm, cmd, res);
 
   if (mem->paged) {
     /*
@@ -717,6 +739,13 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
      */
     pgm->pgm_led(pgm, OFF);
     return 0;
+  }
+
+  if (!avr_wait_for_avr_rdy(pgm, p, mem->max_write_delay)) {
+    pmsg_error(
+      "AVR stuck busy after writing. Reset it and check what happened!"
+    );
+    return -7;
   }
 
   if (readok == 0) {

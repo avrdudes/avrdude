@@ -9265,6 +9265,8 @@ part
         read_hvsp_data     = "0000.0100--0000.0000--oooo.oooo--0000.0000";
 		# HVSP fuse read command is padded w/ "No Operation" command to
 		# preserve the 4bytes command length
+        write_hvsp_cmd      = "0100.1100--0010.1100--0110.0100--0110.1100";
+        write_hvsp_data     = "0100.0000--iiii.iiii--0000.0000--0000.0000";
     ;
 
     memory "hfuse"
@@ -9277,6 +9279,8 @@ part
         read_hvsp_data     = "0000.0100--0000.0000--oooo.oooo--0000.0000";
 		# HVSP fuse read command is padded w/ "No Operation" command to
 		# preserve the 4bytes command length
+        write_hvsp_cmd      = "0100.1100--0010.1100--0111.0100--0111.1100";
+        write_hvsp_data     = "0100.0000--iiii.iiii--0000.0000--0000.0000";
     ;
 
     memory "efuse"
@@ -9289,6 +9293,8 @@ part
         read_hvsp_data     = "0000.0100--0000.0000--oooo.oooo--0000.0000";
 		# HVSP fuse read command is padded w/ "No Operation" command to
 		# preserve the 4bytes command length
+        write_hvsp_cmd      = "0100.1100--0010.1100--0110.0110--0110.1110";
+        write_hvsp_data     = "0100.1100--0000.000i--0000.0000--0000.0000";
     ;
 
     memory "lock"

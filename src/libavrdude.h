@@ -148,6 +148,8 @@ enum {
   AVR_OP_PGM_ENABLE,
   AVR_OP_READ_HVSP_CMD,
   AVR_OP_READ_HVSP_DATA,
+  AVR_OP_WRITE_HVSP_CMD,
+  AVR_OP_WRITE_HVSP_DATA,
   AVR_OP_MAX
 };
 
@@ -789,6 +791,7 @@ typedef struct programmer_t {
   int  (*cmd_hvsp)       (const struct programmer_t *pgm,
 				const unsigned char *cmd,
 				const unsigned char *data, unsigned char *res);
+  bool (*is_avr_rdy)	 (const struct programmer_t *pgm, const AVRPART *p);
   int  (*spi)            (const struct programmer_t *pgm, const unsigned char *cmd,
                           unsigned char *res, int count);
   int  (*open)           (struct programmer_t *pgm, const char *port);

@@ -449,9 +449,12 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
   return 0;
 }
 
-
 int bitbang_is_avr_ready_hvsp(const PROGRAMMER *pgm) {
   return pgm->getpin(pgm, PIN_AVR_SDI);
+}
+
+bool bitbang_is_avr_rdy(const PROGRAMMER *pgm, const AVRPART *p) {
+  return !hvsp_is_hvsp_mode(pgm, p) || bitbang_is_avr_ready_hvsp(pgm);
 }
 
 int bitbang_cmd_hvsp(const PROGRAMMER *pgm, const unsigned char *cmd,

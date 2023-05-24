@@ -149,6 +149,7 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
   case AVR_OP_WRITE_LO:
   case AVR_OP_WRITE_HI:
   case AVR_OP_READ_HVSP_DATA:
+  case AVR_OP_WRITE_HVSP_DATA:
     lo = 0;
     hi = intlog2(memsize-1);    // memsize = 1 implies no addr bit is needed
     break;
@@ -307,6 +308,8 @@ static char * avr_op_str(int op)
     case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;
     case AVR_OP_READ_HVSP_CMD	: return "READ_HVSP_CMD"; break;
     case AVR_OP_READ_HVSP_DATA	: return "READ_HVSP_DATA"; break;
+    case AVR_OP_WRITE_HVSP_CMD	: return "WRITE_HVSP_CMD"; break;
+    case AVR_OP_WRITE_HVSP_DATA	: return "WRITE_HVSP_DATA"; break;
     default : return "<unknown opcode>"; break;
   }
 }
@@ -849,7 +852,11 @@ const char *opcodename(int opnum) {
   case AVR_OP_READ_HVSP_CMD:
     return "read_hvsp_cmd";
   case AVR_OP_READ_HVSP_DATA:
-    return "read_hvsp_DATA";
+    return "read_hvsp_data";
+  case AVR_OP_WRITE_HVSP_CMD:
+    return "write_hvsp_cmd";
+  case AVR_OP_WRITE_HVSP_DATA:
+    return "write_hvsp_data";
   default:
     return "???";
   }
