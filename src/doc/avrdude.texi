@@ -1489,7 +1489,7 @@ Show help menu and exit.
 
 AVRDUDE error messages, warnings and progress reports are generally written to
 stderr which can, in bash, be turned off by 2>/dev/null or using increasingly
-more -q options to suppress them. Terminal output of command or of the -U
+more -q options to suppress them. Terminal output of commands or of the -U
 command with an output file - are written to stdout.
 
 @noindent
