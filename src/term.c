@@ -854,7 +854,7 @@ typedef struct {
 } Cfg_opts_t;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
-static int getfusel(PROGRAMMER *pgm, AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
+static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
   const char *err = NULL;
   char *tofree;
   int islock;
@@ -969,7 +969,9 @@ typedef struct {
 
 
 // Fill in cc record with reference to the actual value of the relevant fuse
-static int gatherval(PROGRAMMER *pgm, AVRPART *p, Cfg_t *cc, int i, Fusel_t *fuselp, Flock_t *fc, int nf) {
+static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
+  Fusel_t *fuselp, Flock_t *fc, int nf) {
+
   // Load current value of this config item
   const char *errstr = NULL;
   getfusel(pgm, p, fuselp, cc+i, &errstr);
@@ -1016,7 +1018,7 @@ static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int va
 
 static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, const char *vstr, Cfg_opts_t o) {
   int value = vp? vp->value: cc[ii].val;
-  term_out("%sconfig %s=%s # %s\n", vp && cc[ii].val != vp->value? "# ": "",
+  term_out("%s %s=%s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
@@ -1105,7 +1107,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   int help = 0, invalid = 0, itemac=1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
-    char *q;
+    const char *q;
     if(*(q=argv[++ai]) != '-' || !q[1])
       argv[itemac++] = argv[ai];
     else {
@@ -1231,7 +1233,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     fc[nf-1].mask |= ct[i].mask;
   }
 
-  char *item = argc < 2? "*": argv[1];
+  const char *item = argc < 2? "*": argv[1];
 
   char *rhs = strchr(item, '=');
   if(rhs)                       // Right-hand side of assignment
@@ -1381,7 +1383,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       goto finished;
     }
 
-  const char *av[] = { "confirm", cc[ci].t->name };
+  const char *av[] = { "confirm", cc[ci].t->name, NULL };
   if(o.verb > 0 && !str_eq(argv[0], "confirm"))
     cmd_config(pgm, p, 2, (char **) av);
 
