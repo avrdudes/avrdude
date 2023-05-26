@@ -294,7 +294,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         return -1;
       }
 
-      // Turn negative len value (no. bytes from top of memory) into an actual length number
+      // Turn negative len value (number of bytes from top of memory) into an actual length
       if (len < 0)
         len = maxsize + len + 1 - read_mem[i].addr;
 
@@ -851,8 +851,8 @@ typedef struct {
   int ok, val, initval;         // Has value val been read OK? Initval == -1 if not known
 } Cfg_t;
 
-typedef struct {
-  int verb, allscript, flheaders, allv, vmax;
+typedef struct {                // Context parameters to be passed to functions
+  int verb, allscript, flheaders, allv, vmax, printfactory;
 } Cfg_opts_t;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
@@ -962,15 +962,14 @@ static int getvalidx(const char *str, int n, const Valueitem_t *vt) {
   return matches == 1? hold: matches == 0? -1: -2;
 }
 
-
-typedef struct {
+typedef struct {                // Fuse/lock properties of the part
   const char *memstr;
   int mask;
   int value;
 } Flock_t;
 
 
-// Fill in cc record with reference to the actual value of the relevant fuse
+// Fill in cc record with the actual value of the relevant fuse
 static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
   Fusel_t *fuselp, Flock_t *fc, int nf) {
 
@@ -993,6 +992,7 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
   return 0;
 }
 
+// Comment printed next to symbolic value
 static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
   static char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
@@ -1005,15 +1005,17 @@ static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int va
   else
     sprintf(buf, "%*d", o.vmax >= 100? 3: o.vmax >= 10? 2: 1, value);
 
-  if(u < 256 && (m & (m-1)) && (o.allscript || o.verb > 0)) // Show as binary with leading bitmask zeros
+  // Show as binary with leading bitmask zeros if 2 or more bits in bitmask
+  if(u < 256 && (m & (m-1)) && (o.allscript || o.verb > 0))
     if(cti->mask != 0xff && (unsigned) cti->mask != 0xffffffff)
       sprintf(buf+strlen(buf), " = 0b%s", str_utoa(u | (1<<(intlog2(m)+1)), bin, 2)+1);
 
   if(o.allscript || o.verb > 1) // Fuse mask visible: print shift pattern
     sprintf(buf+strlen(buf), " = 0x%02x>>%d", u<<lsh, lsh);
 
+  // Print value comment and/or factory setting
   int prvcom = (vp || !cti->vlist) && o.verb > 1;
-  int prfact = value >= 0 && value == cti->initval && o.allv;
+  int prfact = value >= 0 && value == cti->initval && (o.allv || o.printfactory);
   if(prvcom || prfact) {
     strcat(buf+strlen(buf), " (");
     if(prvcom)
@@ -1027,12 +1029,14 @@ static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int va
   return buf;
 }
 
+// How a single property is printed
 static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts_t o) {
   int value = vp? vp->value: cc[ii].val;
   term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
+// Prints a list of all possible values (o.allv) or just the one proporty cc[ii]
 static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
   const Valueitem_t *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
@@ -1097,6 +1101,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
   printoneproperty(cc, ii, vp, llen, vstr, o);
 }
 
+// Print the fuse/lock bits header (-f, o.flheaders)
 static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts_t o) {
   char buf[512];
   int fj;
@@ -1263,7 +1268,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   int nm = setmatches(item, nc, cc);
   if(nm == 0) {
-    pmsg_warning("(config) non-matching %s; known config items are:\n", argv[1]);
+    pmsg_warning("(config) non-matching %s; known config items are:\n", item);
     for(int i=0; i<nc; i++)
       if(cc[i].ok)
         msg_warning(" - %s\n", cc[i].t->name);
@@ -1301,7 +1306,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   // Non-empty rhs: attempt assignment
 
   if(nm > 1) {
-    pmsg_warning("(config) ambiguous; known %s=... config items are:\n", argv[1]);
+    pmsg_warning("(config) ambiguous; known %s=... config items are:\n", item);
     for(int i=0; i<nc; i++)
       if(cc[i].match)
         msg_warning(" - %s\n", cc[i].t->name);
@@ -1327,24 +1332,22 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   vt = ct[ci].vlist;
 
   // Assignment can be an integer or symbolic value
-
-    // Have checked for digit to exclude Roman numbers here
   const char *errptr;
   int toassign = str_int(rhs, STR_UINT32, &errptr);
-  if(!errptr) {
-    // All good; on error match against symbols
-  } else if(!vt) {
-    pmsg_error("(config) no symbols known: assign an appropriate number\n");
-    ret = -1;
-    goto finished;
-  } else {                      // Alternatively, assignment can be one of the symbols
+  if(errptr) {                  // Cannot parse as int? Match against symbols, if possible
+    if(!vt) {
+      pmsg_error("(config) no symbols known: assign an appropriate number\n");
+      ret = -1;
+      goto finished;
+    }
     int vj = getvalidx(rhs, nv, vt);
-    if(vj < 0) {                 // Print error msg to stderr
+    if(vj < 0) {
       if(vj == -1)
         pmsg_warning("(config) non-matching %s; known %s symbols are:\n", rhs, cc[ci].t->name);
       else
         pmsg_warning("(config) ambiguous; known %s %s symbols are:\n", cc[ci].t->name, rhs);
       o.vmax = 0;
+      o.printfactory = 1;
       int llen, lmin = 9999, lmax = 0;
       for(int j=0; j<nv; j++) {
         if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label))) {
@@ -1357,7 +1360,8 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       llen = lmax <= lmin+MAX_PAD? lmax: 1; // Align label width if max and min length are similar
       for(int j=0; j<nv; j++)
         if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label)))
-          msg_warning(" - %s=%-*s # %s\n", cc[ci].t->name, llen, vt[j].label, valuecomment(ct+ci, vt+j, vt[j].value, o));
+          msg_warning(" - %s=%-*s # %s\n", cc[ci].t->name, llen, vt[j].label,
+            valuecomment(ct+ci, vt+j, vt[j].value, o));
       ret = -1;
       goto finished;
     }
