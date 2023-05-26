@@ -233,13 +233,13 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     memtype = (char*)read_mem[i].mem->desc;
   AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
-    pmsg_error("(dump) %s memory type not defined for part %s\n", memtype, p->desc);
+    pmsg_error("(%s) %s memory type not defined for part %s\n", cmd, memtype, p->desc);
     return -1;
   }
 
   int maxsize = mem->size;
   if(maxsize <= 0) { // Sanity check
-    pmsg_error("cannot read memory %s of size %d\n", mem->desc, maxsize);
+    pmsg_error("(%s) cannot read memory %s of size %d\n", cmd, mem->desc, maxsize);
     return -1;
   }
 
@@ -255,7 +255,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   }
 
   if(i >= 32) { // Catch highly unlikely case
-    pmsg_error("read_mem[] under-dimensioned; increase and recompile\n");
+    pmsg_error("(%s) read_mem[] under-dimensioned; increase and recompile\n", cmd);
     return -1;
   }
 
@@ -264,7 +264,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if(argc >= 3 && !str_eq(argv[2], "...")) {
     int addr = str_int(argv[2], STR_INT32, &errptr);
     if(errptr) {
-      pmsg_error("(dump) address %s: %s\n", argv[2], errptr);
+      pmsg_error("(%s) address %s: %s\n", cmd, argv[2], errptr);
       return -1;
     }
 
@@ -274,8 +274,8 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
     if (addr < 0 || addr >= maxsize) {
       int digits = mem->size > 0x10000? 5: 4;
-      pmsg_error("(dump) %s address %s is out of range [-0x%0*x, 0x%0*x]\n",
-        mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
+      pmsg_error("(%s) %s address %s is out of range [-0x%0*x, 0x%0*x]\n",
+        cmd, mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
       return -1;
     }
     read_mem[i].addr = addr;
@@ -290,7 +290,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     } else if (argc == 4) {
       int len = str_int(argv[3], STR_INT32, &errptr);
       if(errptr) {
-        pmsg_error("(dump) length %s: %s\n", argv[3], errptr);
+        pmsg_error("(%s) length %s: %s\n", cmd, argv[3], errptr);
         return -1;
       }
 
@@ -301,7 +301,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       if (len == 0)
         return 0;
       if (len < 0) {
-        pmsg_error("(dump) invalid effective length %d\n", len);
+        pmsg_error("(%s) invalid effective length %d\n", cmd, len);
         return -1;
       }
       read_mem[i].len = len;
@@ -317,7 +317,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   uint8_t *buf = malloc(read_mem[i].len);
   if (buf == NULL) {
-    pmsg_error("(dump) out of memory\n");
+    pmsg_error("(%s) out of memory\n", cmd);
     return -1;
   }
 
@@ -330,7 +330,7 @@ static int cmd_dump(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     int rc = pgm->read_byte_cached(pgm, p, read_mem[i].mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
-      pmsg_error("(dump) error reading %s address 0x%05lx of part %s\n", mem->desc, (long) read_mem[i].addr + j, p->desc);
+      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) read_mem[i].addr + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory type %s\n", 7, "", mem->desc);
       free(buf);
@@ -828,6 +828,8 @@ static int cmd_pgerase(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
 // Config command
 
+const int MAX_PAD = 10;         // Align value labels if difference between their lengths is less than this
+
 typedef union {                 // Lock memory can be 1 or 4 bytes
   uint8_t b[4];
   uint32_t i;
@@ -850,7 +852,7 @@ typedef struct {
 } Cfg_t;
 
 typedef struct {
-  int verb, allscript, flheaders;
+  int verb, allscript, flheaders, allv, vmax;
 } Cfg_opts_t;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
@@ -978,7 +980,7 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
   if(errstr) {
     cc[i].ok = 0;
     if(!str_contains(errstr, "cannot read "))
-      pmsg_error("cannot handle %s in %s: %s\n", cc[i].t->name, cc[i].memstr, errstr);
+      pmsg_error("(config) cannot handle %s in %s: %s\n", cc[i].t->name, cc[i].memstr, errstr);
     return -1;
   }
   // Update fuse intell
@@ -993,40 +995,49 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
 
 static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
   static char buf[512], bin[129];
-  unsigned u = value;
+  unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
 
   if(!vp && cti->vlist)         // No symbolic value despite symbol list?
     strcpy(buf, "reserved");    // Enter reserved instead of the number
-  else if(u < 256)              // Show as binary
-    sprintf(buf, "%s%s", u > 1? "0b": "", str_utoa(u, bin, 2));
-  else                          // Show as hex
-    sprintf(buf, "0x%04x", u);
+  else if (m > 255)             // 4-byte lock
+    sprintf(buf, "0x%08x", value);
+  else
+    sprintf(buf, "%*d", o.vmax >= 100? 3: o.vmax >= 10? 2: 1, value);
 
-  if(u > 1 && u < 256)
-    sprintf(buf+strlen(buf), u<8? " = %d": " = 0x%02x", u);
-  if(lsh && value > 0 && (o.allscript || o.verb > 1)) {
-    u <<= lsh;
-    sprintf(buf+strlen(buf), u<8? " = %d >> %d": " = 0x%02x >> %d", u, lsh);
-  }
-  if((vp || !cti->vlist) && o.verb > 1) {
-    const char *vcom = !cti->vlist? "arbitrary": vp->vcomment;
-    snprintf(buf+strlen(buf), 256, " (%s)", vcom);
+  if(u < 256 && (m & (m-1)) && (o.allscript || o.verb > 0)) // Show as binary with leading bitmask zeros
+    if(cti->mask != 0xff && (unsigned) cti->mask != 0xffffffff)
+      sprintf(buf+strlen(buf), " = 0b%s", str_utoa(u | (1<<(intlog2(m)+1)), bin, 2)+1);
+
+  if(o.allscript || o.verb > 1) // Fuse mask visible: print shift pattern
+    sprintf(buf+strlen(buf), " = 0x%02x>>%d", u<<lsh, lsh);
+
+  int prvcom = (vp || !cti->vlist) && o.verb > 1;
+  int prfact = value >= 0 && value == cti->initval && o.allv;
+  if(prvcom || prfact) {
+    strcat(buf+strlen(buf), " (");
+    if(prvcom)
+      strncat(buf+strlen(buf), !cti->vlist? "arbitrary": vp->vcomment, sizeof buf-strlen(buf)-32);
+    if(prvcom && prfact)
+      strcat(buf+strlen(buf), ", ");
+    if(prfact)
+      strcat(buf+strlen(buf), "factory");
+    strcat(buf+strlen(buf), ")");
   }
   return buf;
 }
 
-static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, const char *vstr, Cfg_opts_t o) {
+static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts_t o) {
   int value = vp? vp->value: cc[ii].val;
-  term_out("%s %s=%s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
-    cc[ii].t->name, vstr, valuecomment(cc[ii].t, vp, value, o));
+  term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
+    cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
-static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
+static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
   const Valueitem_t *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
-  char buf[131], bin[129];
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
+  char buf[32];
 
   // Scan value list for symbolic label and update it
   vp = NULL;
@@ -1038,6 +1049,13 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
         vp = vt+j;
         break;
       }
+  if(!vstr) {
+    sprintf(buf, (unsigned ) cc[ii].t->mask > 255? "0x%08x": "%d", cc[ii].val);
+    vstr = buf;
+  }
+
+  int lmin, lmax, llen;
+  lmin = lmax = strlen(vstr);
 
   if(o.verb > 0) {
     const char *vcom = !cc[ii].t->vlist? "arbitrary": vp? vp->vcomment: "";
@@ -1053,9 +1071,21 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
   }
 
   int done = 0;
-  if(allv && vt) {
+  o.vmax = cc[ii].val;
+  if(o.allv && vt) {
     for(int j=0; j<nv; j++) {
-      printoneproperty(cc, ii, vt+j, vt[j].label, o);
+      if(vt[j].value > o.vmax)
+        o.vmax = vt[j].value;
+      llen = strlen(vt[j].label);
+      lmin = llen < lmin? llen: lmin;
+      lmax = llen > lmax? llen: lmax;
+    }
+  }
+  llen = lmax <= lmin+MAX_PAD? lmax: 1; // Align label width if max and min length are similar
+
+  if(o.allv && vt) {
+    for(int j=0; j<nv; j++) {
+      printoneproperty(cc, ii, vt+j, llen, vt[j].label, o);
       if(cc[ii].val == vt[j].value)
         done = 1;
     }
@@ -1064,15 +1094,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o, int allv) {
   if(done)
     return;
 
-  if(!vstr) {
-    unsigned u = cc[ii].val;
-    if(u < 256)
-      sprintf(buf, "%s%s", u > 1? "0b": "", str_utoa(u, bin, 2));
-    else
-      sprintf(buf, "0x%04x", u);
-    vstr = buf;
-  }
-  printoneproperty(cc, ii, vp, vstr, o);
+  printoneproperty(cc, ii, vp, llen, vstr, o);
 }
 
 static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts_t o) {
@@ -1082,7 +1104,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
     if(str_eq(cc[ii].memstr, fc[fj].memstr))
       break;
   if(fj == nf) {
-    pmsg_error("unexpected failure to find fuse %s\n", cc[ii].memstr);
+    pmsg_error("(config) unexpected failure to find fuse %s\n", cc[ii].memstr);
     return;
   }
   if(printed)
@@ -1093,7 +1115,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
   sprintf(buf+strlen(buf), " value 0x%02x", fc[fj].value);
   if(cc[ii].initval != -1)
     sprintf(buf+strlen(buf), " (factory 0x%02x)", cc[ii].initval);
-  if(fc[fj].mask != 0xff && fc[fj].mask != 0xffff)
+  if(fc[fj].mask != 0xff && (unsigned) fc[fj].mask != 0xffffffff)
     sprintf(buf+strlen(buf), " mask 0x%02x", fc[fj].mask);
   for(int n = strlen(buf)+2; n; n--)
     term_out("#");
@@ -1193,14 +1215,14 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   if(idx < 0 && p->desc && *p->desc)
     idx = upidxname(p->desc);
   if(idx < 0) {
-    pmsg_error("uP_table neither knows mcuid %d nor part %s\n",
+    pmsg_error("(config) uP_table neither knows mcuid %d nor part %s\n",
       p->mcuid, p->desc && *p->desc? p->desc: "???");
     return -1;
   }
   nc = uP_table[idx].nconfigs;
   ct = uP_table[idx].cfgtable;
   if(nc <= 0 || !ct) {
-    pmsg_error("part %s does not have a configuration table\n", p->desc);
+    pmsg_error("(config) part %s does not have a configuration table\n", p->desc);
     return -1;
   }
 
@@ -1226,7 +1248,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     if(!nf || !str_eq(fc[nf-1].memstr, mt))
       fc[nf++].memstr = mt;
     if(fc[nf-1].mask & ct[i].mask) { // This should not happen
-      pmsg_error("overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name, ct[i].mask, p->desc, cc[i].memstr);
+      pmsg_error("(config) overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name, ct[i].mask, p->desc, cc[i].memstr);
       ret = -1;
       goto finished;
     }
@@ -1241,10 +1263,10 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   int nm = setmatches(item, nc, cc);
   if(nm == 0) {
-    pmsg_warning("non-matching %s; known config items are:\n", argv[1]);
+    pmsg_warning("(config) non-matching %s; known config items are:\n", argv[1]);
     for(int i=0; i<nc; i++)
       if(cc[i].ok)
-        imsg_warning(" - %s\n", cc[i].t->name);
+        msg_warning(" - %s\n", cc[i].t->name);
     ret = -1;
     goto finished;
   }
@@ -1269,7 +1291,8 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
         term_out("#\n# Mask 0x%02x %s\n", ct[i].mask, ct[i].ccomment);
       else if(printed && (rhs || o.verb > 1))
         term_out("\n");
-      printproperty(cc, i, o, (rhs && !*rhs) || o.allscript);
+      o.allv = (rhs && !*rhs) || o.allscript; // Print list of all values
+      printproperty(cc, i, o);
       printed = 1;
     }
     goto finished;
@@ -1278,10 +1301,10 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   // Non-empty rhs: attempt assignment
 
   if(nm > 1) {
-    pmsg_warning("ambiguous %s=...; known config items are:\n", argv[1]);
+    pmsg_warning("(config) ambiguous; known %s=... config items are:\n", argv[1]);
     for(int i=0; i<nc; i++)
       if(cc[i].match)
-        imsg_warning(" - %s\n", cc[i].t->name);
+        msg_warning(" - %s\n", cc[i].t->name);
     ret = -1;
     goto finished;
   }
@@ -1292,7 +1315,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       break;
 
   if(ci == nc) {
-    pmsg_error("unexpected failure to find match index\n");
+    pmsg_error("(config) unexpected failure to find match index\n");
     ret = -1;
     goto finished;
   }
@@ -1317,12 +1340,24 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   } else {                      // Alternatively, assignment can be one of the symbols
     int vj = getvalidx(rhs, nv, vt);
     if(vj < 0) {                 // Print error msg to stderr
-      pmsg_warning("%s %s; known %s symbols are:\n", vj == -1? "non-matching": "ambiguous",
-        rhs, cc[ci].t->name);
-      for(int j=0; j<nv; j++)
+      if(vj == -1)
+        pmsg_warning("(config) non-matching %s; known %s symbols are:\n", rhs, cc[ci].t->name);
+      else
+        pmsg_warning("(config) ambiguous; known %s %s symbols are:\n", cc[ci].t->name, rhs);
+      o.vmax = 0;
+      int llen, lmin = 9999, lmax = 0;
+      for(int j=0; j<nv; j++) {
         if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label))) {
-          imsg_warning(" - %s=%s # %s\n", cc[ci].t->name, vt[j].label, valuecomment(ct+ci, vt+j, vt[j].value, o));
+          llen = strlen(vt[j].label);
+          lmin = llen < lmin? llen: lmin;
+          lmax = llen > lmax? llen: lmax;
+          o.vmax = vt[j].value > o.vmax? vt[j].value: o.vmax;
         }
+      }
+      llen = lmax <= lmin+MAX_PAD? lmax: 1; // Align label width if max and min length are similar
+      for(int j=0; j<nv; j++)
+        if(vj == -1 || (str_starts(vt[j].label, rhs) || str_match(rhs, vt[j].label)))
+          msg_warning(" - %s=%-*s # %s\n", cc[ci].t->name, llen, vt[j].label, valuecomment(ct+ci, vt+j, vt[j].value, o));
       ret = -1;
       goto finished;
     }
@@ -1338,7 +1373,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   // Check with safe copies of ct[ci] and cc[ci]
   if(memcmp(&safecc, cc+ci, sizeof *cc)) {
-    pmsg_error("unexpected data changes (this should never happen)\n");
+    pmsg_error("(config) unexpected data changes (this should never happen)\n");
     ret = -1;
     goto finished;
   }
@@ -1358,7 +1393,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   getfusel(pgm, p, &fusel, cc+ci, &errstr);
   if(errstr) {
     if(!str_contains(errstr, "cannot read "))
-      pmsg_error("cannot handle %s in %s: %s\n", cc[ci].t->name, cc[ci].memstr, errstr);
+      pmsg_error("(config) cannot handle %s in %s: %s\n", cc[ci].t->name, cc[ci].memstr, errstr);
     ret = -1;
     goto finished;
   }
@@ -1367,18 +1402,18 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
   AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
-    pmsg_error("%s memory type not defined for part %s\n", cc[ci].memstr, p->desc);
+    pmsg_error("(config) %s memory type not defined for part %s\n", cc[ci].memstr, p->desc);
     ret = -1;
     goto finished;
   }
   if((fusel.islock && mem->size != 4 && mem->size != 1) || (!fusel.islock && mem->size != 1)) {
-    pmsg_error("%s's %s memory has unexpected size %d\n", p->desc, mem->desc, mem->size);
+    pmsg_error("(config) %s's %s memory has unexpected size %d\n", p->desc, mem->desc, mem->size);
     ret = -1;
     goto finished;
   }
   for(int i=0; i<mem->size; i++)
     if(pgm->write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
-      pmsg_error("cannot write to %s's %s memory\n", p->desc, mem->desc);
+      pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
       ret = -1;
       goto finished;
     }
