@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 25.05.2023
+ * 26.05.2023
  *
  */
 
@@ -775,17 +775,23 @@ extern const uPcore_t uP_table[380];
 #define vts_avr16dd14        36
 #define vts_avr16dd20        36
 #define vts_avr16dd28        36
+#define vts_avr16ea28        37
 #define vts_avr16dd32        36
+#define vts_avr16ea32        37
+#define vts_avr16ea48        45
 #define vts_avr32dd14        36
 #define vts_avr32dd20        36
 #define vts_avr32da28        41
 #define vts_avr32db28        42
 #define vts_avr32dd28        36
+#define vts_avr32ea28        37
 #define vts_avr32da32        44
 #define vts_avr32db32        44
 #define vts_avr32dd32        36
+#define vts_avr32ea32        37
 #define vts_avr32da48        58
 #define vts_avr32db48        61
+#define vts_avr32ea48        45
 #define vts_avr64dd14        36
 #define vts_avr64dd20        36
 #define vts_avr64da28        41
@@ -1135,17 +1141,23 @@ extern const uPcore_t uP_table[380];
 #define vbu_avr16dd14        36
 #define vbu_avr16dd20        36
 #define vbu_avr16dd28        36
+#define vbu_avr16ea28        37
 #define vbu_avr16dd32        36
+#define vbu_avr16ea32        37
+#define vbu_avr16ea48        45
 #define vbu_avr32dd14        36
 #define vbu_avr32dd20        36
 #define vbu_avr32da28        41
 #define vbu_avr32db28        42
 #define vbu_avr32dd28        36
+#define vbu_avr32ea28        37
 #define vbu_avr32da32        41
 #define vbu_avr32db32        44
 #define vbu_avr32dd32        36
+#define vbu_avr32ea32        37
 #define vbu_avr32da48        58
 #define vbu_avr32db48        59
+#define vbu_avr32ea48        45
 #define vbu_avr64dd14        36
 #define vbu_avr64dd20        36
 #define vbu_avr64da28        41
@@ -1616,8 +1628,14 @@ extern const char * const    vtab_avr64dd32[36];
 
 extern const char * const    vtab_avr64ea32[37];
 #define vtab_avr64ea28       vtab_avr64ea32
+#define vtab_avr32ea32       vtab_avr64ea32
+#define vtab_avr32ea28       vtab_avr64ea32
+#define vtab_avr16ea32       vtab_avr64ea32
+#define vtab_avr16ea28       vtab_avr64ea32
 
 extern const char * const    vtab_avr64ea48[45];
+#define vtab_avr32ea48       vtab_avr64ea48
+#define vtab_avr16ea48       vtab_avr64ea48
 
 extern const char * const    vtab_avr128da28[41];
 #define vtab_avr64da28       vtab_avr128da28
@@ -1787,6 +1805,12 @@ extern const Configitem_t    cfgtab_avr32dd14[17];
 #define cfgtab_avr64dd32     cfgtab_avr32dd14
 
 extern const Configitem_t    cfgtab_avr64ea48[16];
+#define cfgtab_avr16ea28     cfgtab_avr64ea48
+#define cfgtab_avr16ea32     cfgtab_avr64ea48
+#define cfgtab_avr16ea48     cfgtab_avr64ea48
+#define cfgtab_avr32ea28     cfgtab_avr64ea48
+#define cfgtab_avr32ea32     cfgtab_avr64ea48
+#define cfgtab_avr32ea48     cfgtab_avr64ea48
 #define cfgtab_avr64ea28     cfgtab_avr64ea48
 #define cfgtab_avr64ea32     cfgtab_avr64ea48
 
