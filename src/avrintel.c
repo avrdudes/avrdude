@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 13.04.2023
+ * 26.05.2023
  *
  */
 
@@ -26,6 +26,78 @@
 
 #include "avrintel.h"
 
+// Given the MCU id return index in uP_table or -1 if not found
+int upidxmcuid(int mcuid) {
+  for(size_t i=0; i< sizeof uP_table/sizeof *uP_table; i++) {
+    if(mcuid == uP_table[i].mcuid)
+      return i;
+  }
+  return -1;
+}
+
+// Given three signature bytes return index in uP_table or -1 if not found
+int upidxsig(const uint8_t *sigs) {
+  for(size_t i=0; i< sizeof uP_table/sizeof *uP_table; i++) {
+    if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs))
+      return i;
+  }
+  return -1;
+}
+
+// Given the long name of a part return index in uP table or -1 if not found
+int upidxname(const char *name) {
+  for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++)
+    if(0 == strcasecmp(name, uP_table[i].name))
+      return i;
+
+  return -1;
+}
+
+// Given sig bytes return number of matching indices in uP_table and create a list of names in p
+int upmatchingsig(uint8_t sigs[3], char *p, size_t n) {
+  int matching = 0;
+  uPcore_t up = {0, };
+
+  // Scan table for the given signature
+  for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++) {
+    if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs)) {
+      if(matching == 0) {       // First match, initialise uP information
+        matching = 1;
+        up = uP_table[i];
+        if(p) {
+          size_t len = strlen(uP_table[i].name);
+          if(n > len) {
+            strcpy(p, uP_table[i].name);
+            n -= len; p += len;
+          }
+        }
+      } else {
+        // Same signature, but are these chips materially different as far as urboot is concerned?
+        if( up.ninterrupts != uP_table[i].ninterrupts ||
+            up.pagesize != uP_table[i].pagesize ||
+            up.nboots != uP_table[i].nboots ||
+            up.bootsize != uP_table[i].bootsize ||
+            up.flashsize != uP_table[i].flashsize ||
+            up.flashoffset != uP_table[i].flashoffset ) {
+          matching++;
+          if(p) {
+            size_t len = 2 + strlen(uP_table[i].name);
+            if(n > len) {
+              strcpy(p, ", ");
+              strcpy(p+2, uP_table[i].name);
+              n -= len; p += len;
+            }
+          }
+
+        }
+      }
+    }
+  }
+
+  return matching;
+}
+
+
 const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   //mcu_name                                                             // Sources
   //{mcu_name,       mcuid,  family, {sig,    na, ture}, // ID
@@ -35,1900 +107,1905 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   //ATtiny4         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny4",            0, F_AVR8L, {0x1E, 0x8F, 0x0A}, // ID
   /*ATtiny4*/            0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny4*/            1,  1,  10, vtab_attiny9,         0, NULL}, // Config and interrupts
+  /*ATtiny4*/            1,  1,  10, vtab_attiny9,          4, cfgtab_attiny4}, // Config, ISRs
 
   //ATtiny5         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny5",            1, F_AVR8L, {0x1E, 0x8F, 0x09}, // ID
   /*ATtiny5*/            0, 0x00200, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny5*/            1,  1,  11, vtab_attiny10,        0, NULL}, // Config and interrupts
+  /*ATtiny5*/            1,  1,  11, vtab_attiny10,         4, cfgtab_attiny4}, // Config, ISRs
 
   //ATtiny9         atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny9",            2, F_AVR8L, {0x1E, 0x90, 0x08}, // ID
   /*ATtiny9*/            0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny9*/            1,  1,  10, vtab_attiny9,         0, NULL}, // Config and interrupts
+  /*ATtiny9*/            1,  1,  10, vtab_attiny9,          4, cfgtab_attiny4}, // Config, ISRs
 
   //ATtiny10        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny10",           3, F_AVR8L, {0x1E, 0x90, 0x03}, // ID
   /*ATtiny10*/           0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny10*/           1,  1,  11, vtab_attiny10,        0, NULL}, // Config and interrupts
+  /*ATtiny10*/           1,  1,  11, vtab_attiny10,         4, cfgtab_attiny4}, // Config, ISRs
 
   //ATtiny20        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny20",           4, F_AVR8L, {0x1E, 0x91, 0x0F}, // ID
   /*ATtiny20*/           0, 0x00800, 0x020,  0,      0,       0,      0,  0, 0x0040, 0x0080, // Mem
-  /*ATtiny20*/           1,  1,  17, vtab_attiny20,        0, NULL}, // Config and interrupts
+  /*ATtiny20*/           1,  1,  17, vtab_attiny20,         5, cfgtab_attiny20}, // Config, ISRs
 
   //ATtiny40        atdf, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny40",           5, F_AVR8L, {0x1E, 0x92, 0x0E}, // ID
   /*ATtiny40*/           0, 0x01000, 0x040,  0,      0,       0,      0,  0, 0x0040, 0x0100, // Mem
-  /*ATtiny40*/           1,  1,  18, vtab_attiny40,        0, NULL}, // Config and interrupts
+  /*ATtiny40*/           1,  1,  18, vtab_attiny40,         5, cfgtab_attiny20}, // Config, ISRs
 
   //ATtiny102                       atdf, avrdude, boot size (manual) // Sources
   {"ATtiny102",          6, F_AVR8L, {0x1E, 0x90, 0x0C}, // ID
   /*ATtiny102*/          0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny102*/          1,  1,  16, vtab_attiny104,       0, NULL}, // Config and interrupts
+  /*ATtiny102*/          1,  1,  16, vtab_attiny104,        5, cfgtab_attiny102}, // Config, ISRs
 
   //ATtiny104                       atdf, avrdude, boot size (manual) // Sources
   {"ATtiny104",          7, F_AVR8L, {0x1E, 0x90, 0x0B}, // ID
   /*ATtiny104*/          0, 0x00400, 0x010,  0,      0,       0,      0,  0, 0x0040, 0x0020, // Mem
-  /*ATtiny104*/          1,  1,  16, vtab_attiny104,       0, NULL}, // Config and interrupts
+  /*ATtiny104*/          1,  1,  16, vtab_attiny104,        5, cfgtab_attiny102}, // Config, ISRs
 
 
   //ATtiny11                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny11",           8,  F_AVR8, {0x1E, 0x90, 0x04}, // ID
   /*ATtiny11*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020, // Mem
-  /*ATtiny11*/           1,  1,   5, vtab_attiny11,        0, NULL}, // Config and interrupts
+  /*ATtiny11*/           1,  1,   5, vtab_attiny11,         4, cfgtab_attiny11}, // Config, ISRs
 
   //ATtiny12                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny12",           9,  F_AVR8, {0x1E, 0x90, 0x05}, // ID
   /*ATtiny12*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020, // Mem
-  /*ATtiny12*/           1,  1,   6, vtab_attiny12,        0, NULL}, // Config and interrupts
+  /*ATtiny12*/           1,  1,   6, vtab_attiny12,         6, cfgtab_attiny12}, // Config, ISRs
 
   //ATtiny13                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny13",          10,  F_AVR8, {0x1E, 0x90, 0x07}, // ID
   /*ATtiny13*/           0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040, // Mem
-  /*ATtiny13*/           2,  1,  10, vtab_attiny13a,       0, NULL}, // Config and interrupts
+  /*ATtiny13*/           2,  1,  10, vtab_attiny13a,       10, cfgtab_attiny13}, // Config, ISRs
 
   //ATtiny13A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny13A",         11,  F_AVR8, {0x1E, 0x90, 0x07}, // ID
   /*ATtiny13A*/          0, 0x00400, 0x020,  0,      0,       0, 0x0040,  4, 0x0060, 0x0040, // Mem
-  /*ATtiny13A*/          2,  1,  10, vtab_attiny13a,       0, NULL}, // Config and interrupts
+  /*ATtiny13A*/          2,  1,  10, vtab_attiny13a,       10, cfgtab_attiny13}, // Config, ISRs
 
   //ATtiny15                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny15",          12,  F_AVR8, {0x1E, 0x90, 0x06}, // ID
   /*ATtiny15*/           0, 0x00400, 0x001,  0,      0,       0, 0x0040,  2, 0x0060, 0x0020, // Mem
-  /*ATtiny15*/           1,  1,   9, vtab_attiny15,        0, NULL}, // Config and interrupts
+  /*ATtiny15*/           1,  1,   9, vtab_attiny15,         6, cfgtab_attiny15}, // Config, ISRs
 
   //ATtiny22         xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATtiny22",          13,  F_AVR8, {0x1E, 0x91, 0x06}, // ID
   /*ATtiny22*/           0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*ATtiny22*/           1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
+  /*ATtiny22*/           1,  1,   3, vtab_attiny22,         3, cfgtab_attiny22}, // Config, ISRs
 
   //ATtiny24                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny24",          14,  F_AVR8, {0x1E, 0x91, 0x0B}, // ID
   /*ATtiny24*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny24*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+  /*ATtiny24*/           3,  1,  17, vtab_attiny84a,       11, cfgtab_attiny24}, // Config, ISRs
 
   //ATtiny24A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny24A",         15,  F_AVR8, {0x1E, 0x91, 0x0B}, // ID
   /*ATtiny24A*/          0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny24A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+  /*ATtiny24A*/          3,  1,  17, vtab_attiny84a,       11, cfgtab_attiny24}, // Config, ISRs
 
   //ATtiny25                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny25",          16,  F_AVR8, {0x1E, 0x91, 0x08}, // ID
   /*ATtiny25*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny25*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
+  /*ATtiny25*/           3,  1,  15, vtab_attiny85,        11, cfgtab_attiny25}, // Config, ISRs
 
   //ATtiny26                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny26",          17,  F_AVR8, {0x1E, 0x91, 0x09}, // ID
   /*ATtiny26*/           0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny26*/           2,  1,  12, vtab_attiny26,        0, NULL}, // Config and interrupts
+  /*ATtiny26*/           2,  1,  12, vtab_attiny26,         8, cfgtab_attiny26}, // Config, ISRs
 
   //ATtiny28                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny28",          18,  F_AVR8, {0x1E, 0x91, 0x07}, // ID
   /*ATtiny28*/           0, 0x00800, 0x002,  0,      0,       0,      0,  0, 0x0060, 0x0020, // Mem
-  /*ATtiny28*/           1,  1,   6, vtab_attiny28,        0, NULL}, // Config and interrupts
+  /*ATtiny28*/           1,  1,   6, vtab_attiny28,         3, cfgtab_attiny28}, // Config, ISRs
 
   //ATtiny43U                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny43U",         19,  F_AVR8, {0x1E, 0x92, 0x0C}, // ID
   /*ATtiny43U*/          0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny43U*/          3,  1,  16, vtab_attiny43u,       0, NULL}, // Config and interrupts
+  /*ATtiny43U*/          3,  1,  16, vtab_attiny43u,       11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny44                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny44",          20,  F_AVR8, {0x1E, 0x92, 0x07}, // ID
   /*ATtiny44*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny44*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+  /*ATtiny44*/           3,  1,  17, vtab_attiny84a,       11, cfgtab_attiny24}, // Config, ISRs
 
   //ATtiny44A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny44A",         21,  F_AVR8, {0x1E, 0x92, 0x07}, // ID
   /*ATtiny44A*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny44A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+  /*ATtiny44A*/          3,  1,  17, vtab_attiny84a,       11, cfgtab_attiny24}, // Config, ISRs
 
   //ATtiny45                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny45",          22,  F_AVR8, {0x1E, 0x92, 0x06}, // ID
   /*ATtiny45*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny45*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
+  /*ATtiny45*/           3,  1,  15, vtab_attiny85,        11, cfgtab_attiny25}, // Config, ISRs
 
   //ATtiny48                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny48",          23,  F_AVR8, {0x1E, 0x92, 0x09}, // ID
   /*ATtiny48*/           0, 0x01000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0100, // Mem
-  /*ATtiny48*/           3,  1,  20, vtab_attiny88,        0, NULL}, // Config and interrupts
+  /*ATtiny48*/           3,  1,  20, vtab_attiny88,        11, cfgtab_attiny48}, // Config, ISRs
 
   //ATtiny84                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny84",          24,  F_AVR8, {0x1E, 0x93, 0x0C}, // ID
   /*ATtiny84*/           0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny84*/           3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+  /*ATtiny84*/           3,  1,  17, vtab_attiny84a,       11, cfgtab_attiny24}, // Config, ISRs
 
   //ATtiny84A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny84A",         25,  F_AVR8, {0x1E, 0x93, 0x0C}, // ID
   /*ATtiny84A*/          0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny84A*/          3,  1,  17, vtab_attiny84a,       0, NULL}, // Config and interrupts
+  /*ATtiny84A*/          3,  1,  17, vtab_attiny84a,       11, cfgtab_attiny24}, // Config, ISRs
 
   //ATtiny85                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny85",          26,  F_AVR8, {0x1E, 0x93, 0x0B}, // ID
   /*ATtiny85*/           0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny85*/           3,  1,  15, vtab_attiny85,        0, NULL}, // Config and interrupts
+  /*ATtiny85*/           3,  1,  15, vtab_attiny85,        11, cfgtab_attiny25}, // Config, ISRs
 
   //ATtiny87                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny87",          27,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
   /*ATtiny87*/           0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny87*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+  /*ATtiny87*/           3,  1,  20, vtab_attiny167,       11, cfgtab_attiny87}, // Config, ISRs
 
   //ATtiny88                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny88",          28,  F_AVR8, {0x1E, 0x93, 0x11}, // ID
   /*ATtiny88*/           0, 0x02000, 0x040,  0,      0,       0, 0x0040,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny88*/           3,  1,  20, vtab_attiny88,        0, NULL}, // Config and interrupts
+  /*ATtiny88*/           3,  1,  20, vtab_attiny88,        11, cfgtab_attiny48}, // Config, ISRs
 
   //ATtiny167                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny167",         29,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATtiny167*/          0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny167*/          3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+  /*ATtiny167*/          3,  1,  20, vtab_attiny167,       11, cfgtab_attiny87}, // Config, ISRs
 
   //ATtiny261                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny261",         30,  F_AVR8, {0x1E, 0x91, 0x0C}, // ID
   /*ATtiny261*/          0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny261*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+  /*ATtiny261*/          3,  1,  19, vtab_attiny861a,      11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny261A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny261A",        31,  F_AVR8, {0x1E, 0x91, 0x0C}, // ID
   /*ATtiny261A*/         0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny261A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+  /*ATtiny261A*/         3,  1,  19, vtab_attiny861a,      11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny441                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny441",         32,  F_AVR8, {0x1E, 0x92, 0x15}, // ID
   /*ATtiny441*/          0, 0x01000, 0x010,  0,      0,       0, 0x0100,  4, 0x0100, 0x0100, // Mem
-  /*ATtiny441*/          3,  1,  30, vtab_attiny841,       0, NULL}, // Config and interrupts
+  /*ATtiny441*/          3,  1,  30, vtab_attiny841,       14, cfgtab_attiny441}, // Config, ISRs
 
   //ATtiny461                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny461",         33,  F_AVR8, {0x1E, 0x92, 0x08}, // ID
   /*ATtiny461*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny461*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+  /*ATtiny461*/          3,  1,  19, vtab_attiny861a,      11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny461A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny461A",        34,  F_AVR8, {0x1E, 0x92, 0x08}, // ID
   /*ATtiny461A*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny461A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+  /*ATtiny461A*/         3,  1,  19, vtab_attiny861a,      11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny828                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny828",         35,  F_AVR8, {0x1E, 0x93, 0x14}, // ID
   /*ATtiny828*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny828*/          3,  1,  26, vtab_attiny828,       0, NULL}, // Config and interrupts
+  /*ATtiny828*/          3,  1,  26, vtab_attiny828r,      16, cfgtab_attiny828}, // Config, ISRs
 
   //ATtiny828R                                avrdude, from ATtiny828 // Sources
   {"ATtiny828R",        36,  F_AVR8, {0x1E, 0x93, 0x14}, // ID
   /*ATtiny828R*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny828R*/         3,  1,  26, vtab_attiny828,       0, NULL}, // Config and interrupts
+  /*ATtiny828R*/         3,  1,  26, vtab_attiny828r,      16, cfgtab_attiny828}, // Config, ISRs
 
   //ATtiny841                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny841",         37,  F_AVR8, {0x1E, 0x93, 0x15}, // ID
   /*ATtiny841*/          0, 0x02000, 0x010,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATtiny841*/          3,  1,  30, vtab_attiny841,       0, NULL}, // Config and interrupts
+  /*ATtiny841*/          3,  1,  30, vtab_attiny841,       14, cfgtab_attiny441}, // Config, ISRs
 
   //ATtiny861                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny861",         38,  F_AVR8, {0x1E, 0x93, 0x0D}, // ID
   /*ATtiny861*/          0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny861*/          3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+  /*ATtiny861*/          3,  1,  19, vtab_attiny861a,      11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny861A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny861A",        39,  F_AVR8, {0x1E, 0x93, 0x0D}, // ID
   /*ATtiny861A*/         0, 0x02000, 0x040,  0,      0,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATtiny861A*/         3,  1,  19, vtab_attiny861a,      0, NULL}, // Config and interrupts
+  /*ATtiny861A*/         3,  1,  19, vtab_attiny861a,      11, cfgtab_attiny43u}, // Config, ISRs
 
   //ATtiny1634                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1634",        40,  F_AVR8, {0x1E, 0x94, 0x12}, // ID
   /*ATtiny1634*/         0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400, // Mem
-  /*ATtiny1634*/         3,  1,  28, vtab_attiny1634,      0, NULL}, // Config and interrupts
+  /*ATtiny1634*/         3,  1,  28, vtab_attiny1634r,     13, cfgtab_attiny1634}, // Config, ISRs
 
   //ATtiny1634R                              avrdude, from ATtiny1634 // Sources
   {"ATtiny1634R",       41,  F_AVR8, {0x1E, 0x94, 0x12}, // ID
   /*ATtiny1634R*/        0, 0x04000, 0x020,  0,      0,       0, 0x0100,  4, 0x0100, 0x0400, // Mem
-  /*ATtiny1634R*/        3,  1,  28, vtab_attiny1634,      0, NULL}, // Config and interrupts
+  /*ATtiny1634R*/        3,  1,  28, vtab_attiny1634r,     13, cfgtab_attiny1634}, // Config, ISRs
 
   //ATtiny2313                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny2313",        42,  F_AVR8, {0x1E, 0x91, 0x0A}, // ID
   /*ATtiny2313*/         0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny2313*/         3,  1,  19, vtab_attiny2313,      0, NULL}, // Config and interrupts
+  /*ATtiny2313*/         3,  1,  19, vtab_attiny2313,      11, cfgtab_attiny2313}, // Config, ISRs
 
   //ATtiny2313A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny2313A",       43,  F_AVR8, {0x1E, 0x91, 0x0A}, // ID
   /*ATtiny2313A*/        0, 0x00800, 0x020,  0,      0,       0, 0x0080,  4, 0x0060, 0x0080, // Mem
-  /*ATtiny2313A*/        3,  1,  21, vtab_attiny4313,      0, NULL}, // Config and interrupts
+  /*ATtiny2313A*/        3,  1,  21, vtab_attiny4313,      11, cfgtab_attiny2313a}, // Config, ISRs
 
   //ATtiny4313                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny4313",        44,  F_AVR8, {0x1E, 0x92, 0x0D}, // ID
   /*ATtiny4313*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0060, 0x0100, // Mem
-  /*ATtiny4313*/         3,  1,  21, vtab_attiny4313,      0, NULL}, // Config and interrupts
+  /*ATtiny4313*/         3,  1,  21, vtab_attiny4313,      11, cfgtab_attiny2313a}, // Config, ISRs
 
   //ATmega8                             atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8",           45,  F_AVR8, {0x1E, 0x93, 0x07}, // ID
   /*ATmega8*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega8*/            2,  1,  19, vtab_atmega8a,        0, NULL}, // Config and interrupts
+  /*ATmega8*/            2,  1,  19, vtab_atmega8a,        13, cfgtab_atmega8}, // Config, ISRs
 
   //ATmega8A                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8A",          46,  F_AVR8, {0x1E, 0x93, 0x07}, // ID
   /*ATmega8A*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega8A*/           2,  1,  19, vtab_atmega8a,        0, NULL}, // Config and interrupts
+  /*ATmega8A*/           2,  1,  19, vtab_atmega8a,        13, cfgtab_atmega8}, // Config, ISRs
 
-  //ATmega8HVA                                   atdf, avr-gcc 12.2.0 // Sources
+  //ATmega8HVA                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8HVA",        47,  F_AVR8, {0x1E, 0x93, 0x10}, // ID
   /*ATmega8HVA*/         0, 0x02000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega8HVA*/         1,  1,  21, vtab_atmega16hva,     0, NULL}, // Config and interrupts
+  /*ATmega8HVA*/         1,  1,  21, vtab_atmega16hva,      7, cfgtab_atmega8hva}, // Config, ISRs
 
   //ATmega8U2                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8U2",         48,  F_AVR8, {0x1E, 0x93, 0x89}, // ID
   /*ATmega8U2*/          0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATmega8U2*/          3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+  /*ATmega8U2*/          3,  1,  29, vtab_atmega32u2,      15, cfgtab_atmega8u2}, // Config, ISRs
 
   //ATmega16                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16",          49,  F_AVR8, {0x1E, 0x94, 0x03}, // ID
   /*ATmega16*/           0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega16*/           2,  1,  21, vtab_atmega16a,       0, NULL}, // Config and interrupts
+  /*ATmega16*/           2,  1,  21, vtab_atmega16a,       13, cfgtab_atmega16}, // Config, ISRs
 
   //ATmega16A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16A",         50,  F_AVR8, {0x1E, 0x94, 0x03}, // ID
   /*ATmega16A*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0400, // Mem
-  /*ATmega16A*/          2,  1,  21, vtab_atmega16a,       0, NULL}, // Config and interrupts
+  /*ATmega16A*/          2,  1,  21, vtab_atmega16a,       13, cfgtab_atmega16}, // Config, ISRs
 
-  //ATmega16HVA                                  atdf, avr-gcc 12.2.0 // Sources
+  //ATmega16HVA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16HVA",       51,  F_AVR8, {0x1E, 0x94, 0x0C}, // ID
   /*ATmega16HVA*/        0, 0x04000, 0x080,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega16HVA*/        1,  1,  21, vtab_atmega16hva,     0, NULL}, // Config and interrupts
+  /*ATmega16HVA*/        1,  1,  21, vtab_atmega16hva,      7, cfgtab_atmega8hva}, // Config, ISRs
 
-  //ATmega16HVB                                  atdf, avr-gcc 12.2.0 // Sources
+  //ATmega16HVB                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16HVB",       52,  F_AVR8, {0x1E, 0x94, 0x0D}, // ID
   /*ATmega16HVB*/        0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega16HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+  /*ATmega16HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 12, cfgtab_atmega16hvb}, // Config, ISRs
 
-  //ATmega16HVBrevB                              atdf, avr-gcc 12.2.0 // Sources
+  //ATmega16HVBrevB                     atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16HVBrevB",   53,  F_AVR8, {0x1E, 0x94, 0x0D}, // ID
   /*ATmega16HVBrevB*/    0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega16HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+  /*ATmega16HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 12, cfgtab_atmega16hvbrevb}, // Config, ISRs
 
-  //ATmega16M1                                   atdf, avr-gcc 12.2.0 // Sources
+  //ATmega16M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16M1",        54,  F_AVR8, {0x1E, 0x94, 0x84}, // ID
   /*ATmega16M1*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega16M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+  /*ATmega16M1*/         3,  1,  31, vtab_atmega64m1,      17, cfgtab_atmega16m1}, // Config, ISRs
 
   //ATmega16HVA2                                  xml, avr-gcc 12.2.0 // Sources
   {"ATmega16HVA2",      55,  F_AVR8, {0x1E, 0x94, 0x0E}, // ID
   /*ATmega16HVA2*/       0, 0x04000, 0x080, -1,     -1,      -1,     -1, -1, 0x0100, 0x0400, // Mem
-  /*ATmega16HVA2*/       2,  1,  22, vtab_atmega16hva2,    0, NULL}, // Config and interrupts
+  /*ATmega16HVA2*/       2,  1,  22, vtab_atmega16hva2,     9, cfgtab_atmega16hva2}, // Config, ISRs
 
   //ATmega16U2                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16U2",        56,  F_AVR8, {0x1E, 0x94, 0x89}, // ID
   /*ATmega16U2*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATmega16U2*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+  /*ATmega16U2*/         3,  1,  29, vtab_atmega32u2,      15, cfgtab_at90usb162}, // Config, ISRs
 
   //ATmega16U4                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega16U4",        57,  F_AVR8, {0x1E, 0x94, 0x88}, // ID
   /*ATmega16U4*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0500, // Mem
-  /*ATmega16U4*/         3,  1,  43, vtab_atmega32u4,      0, NULL}, // Config and interrupts
+  /*ATmega16U4*/         3,  1,  43, vtab_atmega32u4,      15, cfgtab_atmega16u4}, // Config, ISRs
 
   //ATmega32                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32",          58,  F_AVR8, {0x1E, 0x95, 0x02}, // ID
   /*ATmega32*/           0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800, // Mem
-  /*ATmega32*/           2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
+  /*ATmega32*/           2,  1,  21, vtab_atmega323,       13, cfgtab_atmega32}, // Config, ISRs
 
   //ATmega32A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32A",         59,  F_AVR8, {0x1E, 0x95, 0x02}, // ID
   /*ATmega32A*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0060, 0x0800, // Mem
-  /*ATmega32A*/          2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
+  /*ATmega32A*/          2,  1,  21, vtab_atmega323,       13, cfgtab_atmega32}, // Config, ISRs
 
-  //ATmega32HVB                                  atdf, avr-gcc 12.2.0 // Sources
+  //ATmega32HVB                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32HVB",       60,  F_AVR8, {0x1E, 0x95, 0x10}, // ID
   /*ATmega32HVB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+  /*ATmega32HVB*/        2,  1,  29, vtab_atmega32hvbrevb, 12, cfgtab_atmega32hvb}, // Config, ISRs
 
-  //ATmega32HVBrevB                              atdf, avr-gcc 12.2.0 // Sources
+  //ATmega32HVBrevB                     atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32HVBrevB",   61,  F_AVR8, {0x1E, 0x95, 0x10}, // ID
   /*ATmega32HVBrevB*/    0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 0, NULL}, // Config and interrupts
+  /*ATmega32HVBrevB*/    2,  1,  29, vtab_atmega32hvbrevb, 12, cfgtab_atmega32hvbrevb}, // Config, ISRs
 
-  //ATmega32C1                                   atdf, avr-gcc 12.2.0 // Sources
+  //ATmega32C1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32C1",        62,  F_AVR8, {0x1E, 0x95, 0x86}, // ID
   /*ATmega32C1*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32C1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+  /*ATmega32C1*/         3,  1,  31, vtab_atmega64m1,      17, cfgtab_atmega32c1}, // Config, ISRs
 
   //ATmega32M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32M1",        63,  F_AVR8, {0x1E, 0x95, 0x84}, // ID
   /*ATmega32M1*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega32M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+  /*ATmega32M1*/         3,  1,  31, vtab_atmega64m1,      17, cfgtab_atmega32c1}, // Config, ISRs
+
+  //ATmega32HVE2                          avrdude, boot size (manual) // Sources
+  {"ATmega32HVE2",     379,  F_AVR8, {0x1E, 0x95, 0x13}, // ID
+  /*ATmega32HVE2*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4,     -1,     -1, // Mem
+  /*ATmega32HVE2*/       2,  1,  25, vtab_atmega64hve2,    13, cfgtab_atmega64hve2}, // Config, ISRs
 
   //ATmega32U2                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32U2",        64,  F_AVR8, {0x1E, 0x95, 0x8A}, // ID
   /*ATmega32U2*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0400, // Mem
-  /*ATmega32U2*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+  /*ATmega32U2*/         3,  1,  29, vtab_atmega32u2,      15, cfgtab_atmega32u2}, // Config, ISRs
 
   //ATmega32U4                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega32U4",        65,  F_AVR8, {0x1E, 0x95, 0x87}, // ID
   /*ATmega32U4*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0a00, // Mem
-  /*ATmega32U4*/         3,  1,  43, vtab_atmega32u4,      0, NULL}, // Config and interrupts
+  /*ATmega32U4*/         3,  1,  43, vtab_atmega32u4,      15, cfgtab_atmega32u4}, // Config, ISRs
 
   //ATmega32U6                xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATmega32U6",        66,  F_AVR8, {0x1E, 0x95, 0x88}, // ID
   /*ATmega32U6*/         0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x0a00, // Mem
-  /*ATmega32U6*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+  /*ATmega32U6*/         3,  1,  38, vtab_atmega32u6,      15, cfgtab_atmega32u6}, // Config, ISRs
 
   //ATmega48                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48",          67,  F_AVR8, {0x1E, 0x92, 0x05}, // ID
   /*ATmega48*/           0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega48*/           3,  1,  26, vtab_atmega328p,      11, cfgtab_atmega48}, // Config, ISRs
 
   //ATmega48A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48A",         68,  F_AVR8, {0x1E, 0x92, 0x05}, // ID
   /*ATmega48A*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48A*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega48A*/          3,  1,  26, vtab_atmega328p,      11, cfgtab_atmega48}, // Config, ISRs
 
   //ATmega48P                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48P",         69,  F_AVR8, {0x1E, 0x92, 0x0A}, // ID
   /*ATmega48P*/          0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega48P*/          3,  1,  26, vtab_atmega328p,      11, cfgtab_atmega48}, // Config, ISRs
 
   //ATmega48PA                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48PA",        70,  F_AVR8, {0x1E, 0x92, 0x0A}, // ID
   /*ATmega48PA*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48PA*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega48PA*/         3,  1,  26, vtab_atmega328p,      11, cfgtab_atmega48}, // Config, ISRs
 
   //ATmega48PB                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega48PB",        71,  F_AVR8, {0x1E, 0x92, 0x10}, // ID
   /*ATmega48PB*/         0, 0x01000, 0x040,  0,      0,       0, 0x0100,  4, 0x0100, 0x0200, // Mem
-  /*ATmega48PB*/         3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
+  /*ATmega48PB*/         3,  1,  27, vtab_atmega168pb,     11, cfgtab_atmega48pb}, // Config, ISRs
 
   //ATmega64                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64",          72,  F_AVR8, {0x1E, 0x96, 0x02}, // ID
   /*ATmega64*/           0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64*/           3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+  /*ATmega64*/           3,  1,  35, vtab_atmega128a,      15, cfgtab_atmega64}, // Config, ISRs
 
   //ATmega64A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64A",         73,  F_AVR8, {0x1E, 0x96, 0x02}, // ID
   /*ATmega64A*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64A*/          3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+  /*ATmega64A*/          3,  1,  35, vtab_atmega128a,      15, cfgtab_atmega64}, // Config, ISRs
 
   //ATmega64HVE               xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATmega64HVE",       74,  F_AVR8, {0x1E, 0x96, 0x10}, // ID
   /*ATmega64HVE*/        0, 0x10000, 0x080,  4, 0x0400,      -1,     -1, -1, 0x0100, 0x1000, // Mem
-  /*ATmega64HVE*/        2,  1,  25, vtab_atmega64hve2,    0, NULL}, // Config and interrupts
+  /*ATmega64HVE*/        2,  1,  25, vtab_atmega64hve2,    13, cfgtab_atmega64hve}, // Config, ISRs
 
-  //ATmega64C1                                   atdf, avr-gcc 12.2.0 // Sources
+  //ATmega64C1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64C1",        75,  F_AVR8, {0x1E, 0x96, 0x86}, // ID
   /*ATmega64C1*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64C1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+  /*ATmega64C1*/         3,  1,  31, vtab_atmega64m1,      17, cfgtab_atmega64c1}, // Config, ISRs
 
   //ATmega64M1                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64M1",        76,  F_AVR8, {0x1E, 0x96, 0x84}, // ID
   /*ATmega64M1*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega64M1*/         3,  1,  31, vtab_atmega64m1,      0, NULL}, // Config and interrupts
+  /*ATmega64M1*/         3,  1,  31, vtab_atmega64m1,      17, cfgtab_atmega64c1}, // Config, ISRs
 
-  //ATmega64HVE2                                 atdf, avr-gcc 12.2.0 // Sources
+  //ATmega64HVE2                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64HVE2",      77,  F_AVR8, {0x1E, 0x96, 0x10}, // ID
   /*ATmega64HVE2*/       0, 0x10000, 0x080,  4, 0x0400,       0, 0x0400,  4, 0x0100, 0x1000, // Mem
-  /*ATmega64HVE2*/       2,  1,  25, vtab_atmega64hve2,    0, NULL}, // Config and interrupts
+  /*ATmega64HVE2*/       2,  1,  25, vtab_atmega64hve2,    13, cfgtab_atmega64hve2}, // Config, ISRs
 
   //ATmega64RFR2                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega64RFR2",      78,  F_AVR8, {0x1E, 0xA6, 0x02}, // ID
   /*ATmega64RFR2*/       0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000, // Mem
-  /*ATmega64RFR2*/       3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+  /*ATmega64RFR2*/       3,  1,  77, vtab_atmega2564rfr2,  14, cfgtab_atmega64rfr2}, // Config, ISRs
 
   //ATmega88                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88",          79,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
   /*ATmega88*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega88*/           3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega88}, // Config, ISRs
 
   //ATmega88A                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88A",         80,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
   /*ATmega88A*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88A*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega88A*/          3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega88}, // Config, ISRs
 
   //ATmega88P                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88P",         81,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
   /*ATmega88P*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega88P*/          3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega88}, // Config, ISRs
 
   //ATmega88PA                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88PA",        82,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
   /*ATmega88PA*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88PA*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega88PA*/         3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega88}, // Config, ISRs
 
   //ATmega88PB                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega88PB",        83,  F_AVR8, {0x1E, 0x93, 0x16}, // ID
   /*ATmega88PB*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega88PB*/         3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
+  /*ATmega88PB*/         3,  1,  27, vtab_atmega168pb,     14, cfgtab_atmega88pb}, // Config, ISRs
 
   //ATmega103        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega103",         84,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
   /*ATmega103*/          0, 0x20000, 0x100,  0,      0,       0, 0x1000,  1, 0x0060, 0x0fa0, // Mem
-  /*ATmega103*/          1,  1,  24, vtab_atmega103,       0, NULL}, // Config and interrupts
+  /*ATmega103*/          1,  1,  24, vtab_atmega103,        4, cfgtab_atmega103}, // Config, ISRs
 
   //ATmega103comp                                                 xml // Sources
   {"ATmega103comp",    374,  F_AVR8, {0x1E, 0x97, 0x01}, // ID
   /*ATmega103comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*ATmega103comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*ATmega103comp*/     -1, -1,   0, NULL,                 15, cfgtab_atmega103comp}, // Config, ISRs
 
   //ATmega128                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128",         85,  F_AVR8, {0x1E, 0x97, 0x02}, // ID
   /*ATmega128*/          0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
-  /*ATmega128*/          3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+  /*ATmega128*/          3,  1,  35, vtab_atmega128a,      15, cfgtab_atmega128}, // Config, ISRs
 
   //ATmega128A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128A",        86,  F_AVR8, {0x1E, 0x97, 0x02}, // ID
   /*ATmega128A*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
-  /*ATmega128A*/         3,  1,  35, vtab_atmega128a,      0, NULL}, // Config and interrupts
+  /*ATmega128A*/         3,  1,  35, vtab_atmega128a,      15, cfgtab_atmega128}, // Config, ISRs
 
   //ATmega128RFA1                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128RFA1",     87,  F_AVR8, {0x1E, 0xA7, 0x01}, // ID
   /*ATmega128RFA1*/      0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
-  /*ATmega128RFA1*/      3,  1,  72, vtab_atmega128rfa1,   0, NULL}, // Config and interrupts
+  /*ATmega128RFA1*/      3,  1,  72, vtab_atmega128rfa1,   14, cfgtab_atmega128rfa1}, // Config, ISRs
 
   //ATmega128RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega128RFR2",     88,  F_AVR8, {0x1E, 0xA7, 0x02}, // ID
   /*ATmega128RFR2*/      0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
-  /*ATmega128RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+  /*ATmega128RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  14, cfgtab_atmega128rfr2}, // Config, ISRs
 
   //ATmega161        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega161",         89,  F_AVR8, {0x1E, 0x94, 0x01}, // ID
   /*ATmega161*/          0, 0x04000, 0x080,  1, 0x0400,       0, 0x0200,  1, 0x0060, 0x0400, // Mem
-  /*ATmega161*/          1,  1,  21, vtab_atmega161,       0, NULL}, // Config and interrupts
+  /*ATmega161*/          1,  1,  21, vtab_atmega161,        7, cfgtab_atmega161}, // Config, ISRs
 
   //ATmega161comp                                                 xml // Sources
   {"ATmega161comp",    375,  F_AVR8, {0x1E, 0x94, 0x01}, // ID
   /*ATmega161comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*ATmega161comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*ATmega161comp*/     -1, -1,   0, NULL,                 15, cfgtab_atmega161comp}, // Config, ISRs
 
   //ATmega162                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega162",         90,  F_AVR8, {0x1E, 0x94, 0x04}, // ID
   /*ATmega162*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega162*/          3,  1,  28, vtab_atmega162,       0, NULL}, // Config and interrupts
+  /*ATmega162*/          3,  1,  28, vtab_atmega162,       15, cfgtab_atmega162}, // Config, ISRs
 
   //ATmega163        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega163",         91,  F_AVR8, {0x1E, 0x94, 0x02}, // ID
   /*ATmega163*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  1, 0x0060, 0x0400, // Mem
-  /*ATmega163*/          2,  1,  18, vtab_atmega163,       0, NULL}, // Config and interrupts
+  /*ATmega163*/          2,  1,  18, vtab_atmega163,        9, cfgtab_atmega163}, // Config, ISRs
 
   //ATmega164A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega164A",        92,  F_AVR8, {0x1E, 0x94, 0x0F}, // ID
   /*ATmega164A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega164A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega164A*/         3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega164a}, // Config, ISRs
 
   //ATmega164P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega164P",        93,  F_AVR8, {0x1E, 0x94, 0x0A}, // ID
   /*ATmega164P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega164P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega164P*/         3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega164a}, // Config, ISRs
 
   //ATmega164PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega164PA",       94,  F_AVR8, {0x1E, 0x94, 0x0A}, // ID
   /*ATmega164PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega164PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega164PA*/        3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega164a}, // Config, ISRs
 
   //ATmega165        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega165",         95,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
   /*ATmega165*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega165*/          3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega165A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega165A",        96,  F_AVR8, {0x1E, 0x94, 0x10}, // ID
   /*ATmega165A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega165A*/         3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega165P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega165P",        97,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
   /*ATmega165P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega165P*/         3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega165PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega165PA",       98,  F_AVR8, {0x1E, 0x94, 0x07}, // ID
   /*ATmega165PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega165PA*/        3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega165PA*/        3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega168                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168",         99,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
   /*ATmega168*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168*/          3,  1,  26, vtab_atmega328,       0, NULL}, // Config and interrupts
+  /*ATmega168*/          3,  1,  26, vtab_atmega328,       14, cfgtab_atmega168}, // Config, ISRs
 
   //ATmega168A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168A",       100,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
   /*ATmega168A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168A*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega168A*/         3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega168}, // Config, ISRs
 
   //ATmega168P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168P",       101,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
   /*ATmega168P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168P*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega168P*/         3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega168}, // Config, ISRs
 
   //ATmega168PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega168PA",      102,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
   /*ATmega168PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168PA*/        3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega168PA*/        3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega168}, // Config, ISRs
 
   //ATmega168PB                          atdf, avr-gcc 7.3.0, avrdude // Sources
   {"ATmega168PB",      103,  F_AVR8, {0x1E, 0x94, 0x15}, // ID
   /*ATmega168PB*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega168PB*/        3,  1,  27, vtab_atmega168pb,     0, NULL}, // Config and interrupts
+  /*ATmega168PB*/        3,  1,  27, vtab_atmega168pb,     14, cfgtab_atmega168pb}, // Config, ISRs
 
   //ATmega169        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"ATmega169",        104,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
   /*ATmega169*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega169*/          3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega169A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega169A",       105,  F_AVR8, {0x1E, 0x94, 0x11}, // ID
   /*ATmega169A*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega169A*/         3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega169P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega169P",       106,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
   /*ATmega169P*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega169P*/         3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega169PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega169PA",      107,  F_AVR8, {0x1E, 0x94, 0x05}, // ID
   /*ATmega169PA*/        0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATmega169PA*/        3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega169PA*/        3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega165}, // Config, ISRs
 
   //ATmega256RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega256RFR2",    108,  F_AVR8, {0x1E, 0xA8, 0x02}, // ID
   /*ATmega256RFR2*/      0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000, // Mem
-  /*ATmega256RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+  /*ATmega256RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  14, cfgtab_atmega256rfr2}, // Config, ISRs
 
   //ATmega323                 xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATmega323",        109,  F_AVR8, {0x1E, 0x95, 0x01}, // ID
   /*ATmega323*/          0, 0x08000, 0x080,  4, 0x0200,      -1,     -1, -1, 0x0060, 0x0800, // Mem
-  /*ATmega323*/          2,  1,  21, vtab_atmega323,       0, NULL}, // Config and interrupts
+  /*ATmega323*/          2,  1,  21, vtab_atmega323,       12, cfgtab_atmega323}, // Config, ISRs
 
   //ATmega324A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega324A",       110,  F_AVR8, {0x1E, 0x95, 0x15}, // ID
   /*ATmega324A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega324A*/         3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega324a}, // Config, ISRs
 
   //ATmega324P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega324P",       111,  F_AVR8, {0x1E, 0x95, 0x08}, // ID
   /*ATmega324P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega324P*/         3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega324a}, // Config, ISRs
 
   //ATmega324PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega324PA",      112,  F_AVR8, {0x1E, 0x95, 0x11}, // ID
   /*ATmega324PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega324PA*/        3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega324a}, // Config, ISRs
 
   //ATmega324PB                                         atdf, avrdude // Sources
   {"ATmega324PB",      113,  F_AVR8, {0x1E, 0x95, 0x17}, // ID
   /*ATmega324PB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega324PB*/        3,  1,  51, vtab_atmega324pb,     0, NULL}, // Config and interrupts
+  /*ATmega324PB*/        3,  1,  51, vtab_atmega324pb,     15, cfgtab_atmega324pb}, // Config, ISRs
 
   //ATmega325                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325",        114,  F_AVR8, {0x1E, 0x95, 0x05}, // ID
   /*ATmega325*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega325*/          3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega325A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325A",       115,  F_AVR8, {0x1E, 0x95, 0x05}, // ID
   /*ATmega325A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega325A*/         3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega325P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325P",       116,  F_AVR8, {0x1E, 0x95, 0x0D}, // ID
   /*ATmega325P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega325P*/         3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega325PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega325PA",      117,  F_AVR8, {0x1E, 0x95, 0x0D}, // ID
   /*ATmega325PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega325PA*/        3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega325PA*/        3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega328                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega328",        118,  F_AVR8, {0x1E, 0x95, 0x14}, // ID
   /*ATmega328*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega328*/          3,  1,  26, vtab_atmega328,       0, NULL}, // Config and interrupts
+  /*ATmega328*/          3,  1,  26, vtab_atmega328,       14, cfgtab_atmega328}, // Config, ISRs
 
   //ATmega328P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega328P",       119,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
   /*ATmega328P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega328P*/         3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATmega328P*/         3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega328}, // Config, ISRs
 
   //ATmega328PB                          atdf, avr-gcc 7.3.0, avrdude // Sources
   {"ATmega328PB",      120,  F_AVR8, {0x1E, 0x95, 0x16}, // ID
   /*ATmega328PB*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega328PB*/        3,  1,  45, vtab_atmega328pb,     0, NULL}, // Config and interrupts
+  /*ATmega328PB*/        3,  1,  45, vtab_atmega328pb,     15, cfgtab_atmega328pb}, // Config, ISRs
 
   //ATmega329                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329",        121,  F_AVR8, {0x1E, 0x95, 0x03}, // ID
   /*ATmega329*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega329*/          3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega329A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329A",       122,  F_AVR8, {0x1E, 0x95, 0x03}, // ID
   /*ATmega329A*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega329A*/         3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega329P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329P",       123,  F_AVR8, {0x1E, 0x95, 0x0B}, // ID
   /*ATmega329P*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega329P*/         3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega329PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega329PA",      124,  F_AVR8, {0x1E, 0x95, 0x0B}, // ID
   /*ATmega329PA*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega329PA*/        3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega329PA*/        3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega406                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega406",        125,  F_AVR8, {0x1E, 0x95, 0x07}, // ID
   /*ATmega406*/          0, 0x0a000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0800, // Mem
-  /*ATmega406*/          2,  1,  23, vtab_atmega406,       0, NULL}, // Config and interrupts
+  /*ATmega406*/          2,  1,  23, vtab_atmega406,       10, cfgtab_atmega406}, // Config, ISRs
 
   //ATmega640                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega640",        126,  F_AVR8, {0x1E, 0x96, 0x08}, // ID
   /*ATmega640*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega640*/          3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
+  /*ATmega640*/          3,  1,  57, vtab_atmega2560,      14, cfgtab_atmega640}, // Config, ISRs
 
   //ATmega644                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644",        127,  F_AVR8, {0x1E, 0x96, 0x09}, // ID
   /*ATmega644*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644*/          3,  1,  28, vtab_atmega644,       0, NULL}, // Config and interrupts
+  /*ATmega644*/          3,  1,  28, vtab_atmega644,       14, cfgtab_atmega644}, // Config, ISRs
 
   //ATmega644A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644A",       128,  F_AVR8, {0x1E, 0x96, 0x09}, // ID
   /*ATmega644A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644A*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega644A*/         3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega644}, // Config, ISRs
 
   //ATmega644P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644P",       129,  F_AVR8, {0x1E, 0x96, 0x0A}, // ID
   /*ATmega644P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644P*/         3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega644P*/         3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega644}, // Config, ISRs
 
   //ATmega644PA                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644PA",      130,  F_AVR8, {0x1E, 0x96, 0x0A}, // ID
   /*ATmega644PA*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega644PA*/        3,  1,  31, vtab_atmega644pa,     0, NULL}, // Config and interrupts
+  /*ATmega644PA*/        3,  1,  31, vtab_atmega644pa,     14, cfgtab_atmega644}, // Config, ISRs
 
   //ATmega644RFR2                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega644RFR2",    131,  F_AVR8, {0x1E, 0xA6, 0x03}, // ID
   /*ATmega644RFR2*/      0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0200, 0x2000, // Mem
-  /*ATmega644RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+  /*ATmega644RFR2*/      3,  1,  77, vtab_atmega2564rfr2,  14, cfgtab_atmega64rfr2}, // Config, ISRs
 
   //ATmega645                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega645",        132,  F_AVR8, {0x1E, 0x96, 0x05}, // ID
   /*ATmega645*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega645*/          3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega645*/          3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega645A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega645A",       133,  F_AVR8, {0x1E, 0x96, 0x05}, // ID
   /*ATmega645A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega645A*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega645A*/         3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega645P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega645P",       134,  F_AVR8, {0x1E, 0x96, 0x0D}, // ID
   /*ATmega645P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega645P*/         3,  1,  22, vtab_atmega645p,      0, NULL}, // Config and interrupts
+  /*ATmega645P*/         3,  1,  22, vtab_atmega645p,      15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega649                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega649",        135,  F_AVR8, {0x1E, 0x96, 0x03}, // ID
   /*ATmega649*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega649*/          3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega649*/          3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega649A                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega649A",       136,  F_AVR8, {0x1E, 0x96, 0x03}, // ID
   /*ATmega649A*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega649A*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega649A*/         3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega649P                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega649P",       137,  F_AVR8, {0x1E, 0x96, 0x0B}, // ID
   /*ATmega649P*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega649P*/         3,  1,  23, vtab_atmega649p,      0, NULL}, // Config and interrupts
+  /*ATmega649P*/         3,  1,  23, vtab_atmega649p,      15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega1280                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1280",       138,  F_AVR8, {0x1E, 0x97, 0x03}, // ID
   /*ATmega1280*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega1280*/         3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
+  /*ATmega1280*/         3,  1,  57, vtab_atmega2560,      14, cfgtab_atmega1280}, // Config, ISRs
 
   //ATmega1281                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1281",       139,  F_AVR8, {0x1E, 0x97, 0x04}, // ID
   /*ATmega1281*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega1281*/         3,  1,  57, vtab_atmega2561,      0, NULL}, // Config and interrupts
+  /*ATmega1281*/         3,  1,  57, vtab_atmega2561,      14, cfgtab_atmega1280}, // Config, ISRs
 
   //ATmega1284                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1284",       140,  F_AVR8, {0x1E, 0x97, 0x06}, // ID
   /*ATmega1284*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000, // Mem
-  /*ATmega1284*/         3,  1,  35, vtab_atmega1284p,     0, NULL}, // Config and interrupts
+  /*ATmega1284*/         3,  1,  35, vtab_atmega1284p,     14, cfgtab_atmega1284}, // Config, ISRs
 
   //ATmega1284P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1284P",      141,  F_AVR8, {0x1E, 0x97, 0x05}, // ID
   /*ATmega1284P*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x4000, // Mem
-  /*ATmega1284P*/        3,  1,  35, vtab_atmega1284p,     0, NULL}, // Config and interrupts
+  /*ATmega1284P*/        3,  1,  35, vtab_atmega1284p,     14, cfgtab_atmega1284}, // Config, ISRs
 
   //ATmega1284RFR2                      atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1284RFR2",   142,  F_AVR8, {0x1E, 0xA7, 0x03}, // ID
   /*ATmega1284RFR2*/     0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x4000, // Mem
-  /*ATmega1284RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+  /*ATmega1284RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  14, cfgtab_atmega128rfr2}, // Config, ISRs
 
   //ATmega2560                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega2560",       143,  F_AVR8, {0x1E, 0x98, 0x01}, // ID
   /*ATmega2560*/         0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega2560*/         3,  1,  57, vtab_atmega2560,      0, NULL}, // Config and interrupts
+  /*ATmega2560*/         3,  1,  57, vtab_atmega2560,      14, cfgtab_atmega2560}, // Config, ISRs
 
   //ATmega2561                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega2561",       144,  F_AVR8, {0x1E, 0x98, 0x02}, // ID
   /*ATmega2561*/         0, 0x40000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0200, 0x2000, // Mem
-  /*ATmega2561*/         3,  1,  57, vtab_atmega2561,      0, NULL}, // Config and interrupts
+  /*ATmega2561*/         3,  1,  57, vtab_atmega2561,      14, cfgtab_atmega2560}, // Config, ISRs
 
   //ATmega2564RFR2                      atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega2564RFR2",   145,  F_AVR8, {0x1E, 0xA8, 0x03}, // ID
   /*ATmega2564RFR2*/     0, 0x40000, 0x100,  4, 0x0400,       0, 0x2000,  8, 0x0200, 0x8000, // Mem
-  /*ATmega2564RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  0, NULL}, // Config and interrupts
+  /*ATmega2564RFR2*/     3,  1,  77, vtab_atmega2564rfr2,  14, cfgtab_atmega256rfr2}, // Config, ISRs
 
   //ATmega3250                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250",       146,  F_AVR8, {0x1E, 0x95, 0x06}, // ID
   /*ATmega3250*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250*/         3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega3250*/         3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3250A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250A",      147,  F_AVR8, {0x1E, 0x95, 0x06}, // ID
   /*ATmega3250A*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250A*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega3250A*/        3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3250P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250P",      148,  F_AVR8, {0x1E, 0x95, 0x0E}, // ID
   /*ATmega3250P*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250P*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega3250P*/        3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3250PA                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3250PA",     149,  F_AVR8, {0x1E, 0x95, 0x0E}, // ID
   /*ATmega3250PA*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3250PA*/       3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega3250PA*/       3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3290                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290",       150,  F_AVR8, {0x1E, 0x95, 0x04}, // ID
   /*ATmega3290*/         0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290*/         3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega3290*/         3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3290A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290A",      151,  F_AVR8, {0x1E, 0x95, 0x04}, // ID
   /*ATmega3290A*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290A*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega3290A*/        3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3290P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290P",      152,  F_AVR8, {0x1E, 0x95, 0x0C}, // ID
   /*ATmega3290P*/        0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290P*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega3290P*/        3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega3290PA                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3290PA",     153,  F_AVR8, {0x1E, 0x95, 0x0C}, // ID
   /*ATmega3290PA*/       0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATmega3290PA*/       3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega3290PA*/       3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega325}, // Config, ISRs
 
   //ATmega6450                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6450",       154,  F_AVR8, {0x1E, 0x96, 0x06}, // ID
   /*ATmega6450*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6450*/         3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega6450*/         3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega6450A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6450A",      155,  F_AVR8, {0x1E, 0x96, 0x06}, // ID
   /*ATmega6450A*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6450A*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega6450A*/        3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega6450P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6450P",      156,  F_AVR8, {0x1E, 0x96, 0x0E}, // ID
   /*ATmega6450P*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6450P*/        3,  1,  25, vtab_atmega6450p,     0, NULL}, // Config and interrupts
+  /*ATmega6450P*/        3,  1,  25, vtab_atmega6450p,     15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega6490                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6490",       157,  F_AVR8, {0x1E, 0x96, 0x04}, // ID
   /*ATmega6490*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6490*/         3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega6490*/         3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega6490A                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6490A",      158,  F_AVR8, {0x1E, 0x96, 0x04}, // ID
   /*ATmega6490A*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6490A*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega6490A*/        3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega6490P                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega6490P",      159,  F_AVR8, {0x1E, 0x96, 0x0C}, // ID
   /*ATmega6490P*/        0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*ATmega6490P*/        3,  1,  25, vtab_atmega6490p,     0, NULL}, // Config and interrupts
+  /*ATmega6490P*/        3,  1,  25, vtab_atmega6490p,     15, cfgtab_atmega645}, // Config, ISRs
 
   //ATmega8515                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8515",       160,  F_AVR8, {0x1E, 0x93, 0x06}, // ID
   /*ATmega8515*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATmega8515*/         2,  1,  17, vtab_atmega8515,      0, NULL}, // Config and interrupts
+  /*ATmega8515*/         2,  1,  17, vtab_atmega8515,      13, cfgtab_atmega8515}, // Config, ISRs
 
   //ATmega8535                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega8535",       161,  F_AVR8, {0x1E, 0x93, 0x08}, // ID
   /*ATmega8535*/         0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0060, 0x0200, // Mem
-  /*ATmega8535*/         2,  1,  21, vtab_atmega8535,      0, NULL}, // Config and interrupts
+  /*ATmega8535*/         2,  1,  21, vtab_atmega8535,      13, cfgtab_atmega8535}, // Config, ISRs
 
   //AT43USB320                                         avr-gcc 12.2.0 // Sources
   {"AT43USB320",       162,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT43USB320*/         0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0200, // Mem
-  /*AT43USB320*/        -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT43USB320*/        -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AT43USB355                                         avr-gcc 12.2.0 // Sources
   {"AT43USB355",       163,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT43USB355*/         0, 0x06000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0400, // Mem
-  /*AT43USB355*/        -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT43USB355*/        -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AT76C711                                           avr-gcc 12.2.0 // Sources
   {"AT76C711",         164,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT76C711*/           0, 0x04000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x07a0, // Mem
-  /*AT76C711*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT76C711*/          -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AT86RF401                                          avr-gcc 12.2.0 // Sources
   {"AT86RF401",        165,  F_AVR8, {0x1E, 0x91, 0x81}, // ID
   /*AT86RF401*/          0, 0x00800,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0080, // Mem
-  /*AT86RF401*/          0,  1,   3, vtab_at86rf401,       0, NULL}, // Config and interrupts
+  /*AT86RF401*/          0,  1,   3, vtab_at86rf401,        0, NULL}, // Config, ISRs
 
   //AT89S51                                                   avrdude // Sources
   {"AT89S51",          372,  F_AVR8, {0x1E, 0x51, 0x06}, // ID
   /*AT89S51*/            0, 0x01000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, // Mem
-  /*AT89S51*/           -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT89S51*/           -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AT89S52                                                   avrdude // Sources
   {"AT89S52",          373,  F_AVR8, {0x1E, 0x52, 0x06}, // ID
   /*AT89S52*/            0, 0x02000, 0x001, -1,     -1,       0,      0,  0,     -1,     -1, // Mem
-  /*AT89S52*/           -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT89S52*/           -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
-  //AT90PWM1                                     atdf, avr-gcc 12.2.0 // Sources
+  //AT90PWM1                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM1",         166,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
   /*AT90PWM1*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM1*/           3,  1,  32, vtab_at90pwm1,        0, NULL}, // Config and interrupts
+  /*AT90PWM1*/           3,  1,  32, vtab_at90pwm1,        17, cfgtab_at90pwm1}, // Config, ISRs
 
   //AT90PWM2         xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90PWM2",         167,  F_AVR8, {0x1E, 0x93, 0x81}, // ID
   /*AT90PWM2*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM2*/           3,  1,  32, vtab_at90pwm2,        0, NULL}, // Config and interrupts
+  /*AT90PWM2*/           3,  1,  32, vtab_at90pwm2,        18, cfgtab_at90pwm2}, // Config, ISRs
 
   //AT90PWM2B                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM2B",        168,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
   /*AT90PWM2B*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM2B*/          3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
+  /*AT90PWM2B*/          3,  1,  32, vtab_at90pwm3b,       18, cfgtab_at90pwm2b}, // Config, ISRs
 
   //AT90PWM3                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM3",         169,  F_AVR8, {0x1E, 0x93, 0x81}, // ID
   /*AT90PWM3*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM3*/           3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
+  /*AT90PWM3*/           3,  1,  32, vtab_at90pwm3b,       18, cfgtab_at90pwm2}, // Config, ISRs
 
   //AT90PWM3B                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM3B",        170,  F_AVR8, {0x1E, 0x93, 0x83}, // ID
   /*AT90PWM3B*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90PWM3B*/          3,  1,  32, vtab_at90pwm3b,       0, NULL}, // Config and interrupts
+  /*AT90PWM3B*/          3,  1,  32, vtab_at90pwm3b,       18, cfgtab_at90pwm2b}, // Config, ISRs
 
   //AT90CAN32                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90CAN32",        171,  F_AVR8, {0x1E, 0x95, 0x81}, // ID
   /*AT90CAN32*/          0, 0x08000, 0x100,  4, 0x0400,       0, 0x0400,  8, 0x0100, 0x0800, // Mem
-  /*AT90CAN32*/          3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
+  /*AT90CAN32*/          3,  1,  37, vtab_at90can128,      15, cfgtab_at90can32}, // Config, ISRs
 
   //AT90CAN64                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90CAN64",        172,  F_AVR8, {0x1E, 0x96, 0x81}, // ID
   /*AT90CAN64*/          0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*AT90CAN64*/          3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
+  /*AT90CAN64*/          3,  1,  37, vtab_at90can128,      15, cfgtab_at90can64}, // Config, ISRs
 
-  //AT90PWM81                                    atdf, avr-gcc 12.2.0 // Sources
+  //AT90PWM81                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM81",        173,  F_AVR8, {0x1E, 0x93, 0x88}, // ID
   /*AT90PWM81*/          0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0100, // Mem
-  /*AT90PWM81*/          3,  1,  20, vtab_at90pwm161,      0, NULL}, // Config and interrupts
+  /*AT90PWM81*/          3,  1,  20, vtab_at90pwm161,      19, cfgtab_at90pwm81}, // Config, ISRs
 
   //AT90USB82                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB82",        174,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*AT90USB82*/          0, 0x02000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90USB82*/          3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+  /*AT90USB82*/          3,  1,  29, vtab_atmega32u2,      15, cfgtab_at90usb162}, // Config, ISRs
 
   //AT90SCR100                     avr-gcc 12.2.0, boot size (manual) // Sources
   {"AT90SCR100",       175,  F_AVR8, {0x1E, 0x96, 0xC1}, // ID
   /*AT90SCR100*/         0, 0x10000, 0x100,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000, // Mem
-  /*AT90SCR100*/         3,  1,  38, vtab_at90scr100,      0, NULL}, // Config and interrupts
+  /*AT90SCR100*/         3,  1,  38, vtab_at90scr100h,     13, cfgtab_at90scr100h}, // Config, ISRs
 
   //AT90SCR100H                                  xml, from AT90SCR100 // Sources
   {"AT90SCR100H",      376,  F_AVR8, {0x1E, 0x96, 0xC1}, // ID
   /*AT90SCR100H*/       -1,      -1,    -1,  4, 0x0200,      -1,     -1, -1, 0x0100, 0x1000, // Mem
-  /*AT90SCR100H*/        3,  1,  38, vtab_at90scr100,      0, NULL}, // Config and interrupts
+  /*AT90SCR100H*/        3,  1,  38, vtab_at90scr100h,     13, cfgtab_at90scr100h}, // Config, ISRs
 
   //AT90CAN128                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90CAN128",       176,  F_AVR8, {0x1E, 0x97, 0x81}, // ID
   /*AT90CAN128*/         0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x1000, // Mem
-  /*AT90CAN128*/         3,  1,  37, vtab_at90can128,      0, NULL}, // Config and interrupts
+  /*AT90CAN128*/         3,  1,  37, vtab_at90can128,      15, cfgtab_at90can128}, // Config, ISRs
 
-  //AT90PWM161                                   atdf, avr-gcc 12.2.0 // Sources
+  //AT90PWM161                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM161",       177,  F_AVR8, {0x1E, 0x94, 0x8B}, // ID
   /*AT90PWM161*/         0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*AT90PWM161*/         3,  1,  20, vtab_at90pwm161,      0, NULL}, // Config and interrupts
+  /*AT90PWM161*/         3,  1,  20, vtab_at90pwm161,      19, cfgtab_at90pwm81}, // Config, ISRs
 
   //AT90USB162                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB162",       178,  F_AVR8, {0x1E, 0x94, 0x82}, // ID
   /*AT90USB162*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*AT90USB162*/         3,  1,  29, vtab_atmega32u2,      0, NULL}, // Config and interrupts
+  /*AT90USB162*/         3,  1,  29, vtab_atmega32u2,      15, cfgtab_at90usb162}, // Config, ISRs
 
   //AT90PWM216                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM216",       179,  F_AVR8, {0x1E, 0x94, 0x83}, // ID
   /*AT90PWM216*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*AT90PWM216*/         3,  1,  32, vtab_at90pwm316,      0, NULL}, // Config and interrupts
+  /*AT90PWM216*/         3,  1,  32, vtab_at90pwm316,      18, cfgtab_at90pwm216}, // Config, ISRs
 
   //AT90PWM316                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90PWM316",       180,  F_AVR8, {0x1E, 0x94, 0x83}, // ID
   /*AT90PWM316*/         0, 0x04000, 0x080,  4, 0x0200,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*AT90PWM316*/         3,  1,  32, vtab_at90pwm316,      0, NULL}, // Config and interrupts
+  /*AT90PWM316*/         3,  1,  32, vtab_at90pwm316,      18, cfgtab_at90pwm316}, // Config, ISRs
 
   //AT90USB646                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB646",       181,  F_AVR8, {0x1E, 0x96, 0x82}, // ID
   /*AT90USB646*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*AT90USB646*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+  /*AT90USB646*/         3,  1,  38, vtab_atmega32u6,      15, cfgtab_at90usb646}, // Config, ISRs
 
   //AT90USB647                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB647",       182,  F_AVR8, {0x1E, 0x96, 0x82}, // ID
   /*AT90USB647*/         0, 0x10000, 0x100,  4, 0x0400,       0, 0x0800,  8, 0x0100, 0x1000, // Mem
-  /*AT90USB647*/         3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+  /*AT90USB647*/         3,  1,  38, vtab_atmega32u6,      15, cfgtab_at90usb646}, // Config, ISRs
 
   //AT90S1200        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S1200",        183,  F_AVR8, {0x1E, 0x90, 0x01}, // ID
   /*AT90S1200*/          0, 0x00400, 0x001,  0,      0,       0, 0x0040,  1, 0x0060, 0x0020, // Mem
-  /*AT90S1200*/          1,  1,   4, vtab_at90s1200,       0, NULL}, // Config and interrupts
+  /*AT90S1200*/          1,  1,   4, vtab_at90s1200,        3, cfgtab_at90s1200}, // Config, ISRs
 
   //AT90USB1286                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB1286",      184,  F_AVR8, {0x1E, 0x97, 0x82}, // ID
   /*AT90USB1286*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000, // Mem
-  /*AT90USB1286*/        3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+  /*AT90USB1286*/        3,  1,  38, vtab_atmega32u6,      15, cfgtab_at90usb1286}, // Config, ISRs
 
   //AT90USB1287                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"AT90USB1287",      185,  F_AVR8, {0x1E, 0x97, 0x82}, // ID
   /*AT90USB1287*/        0, 0x20000, 0x100,  4, 0x0400,       0, 0x1000,  8, 0x0100, 0x2000, // Mem
-  /*AT90USB1287*/        3,  1,  38, vtab_atmega32u6,      0, NULL}, // Config and interrupts
+  /*AT90USB1287*/        3,  1,  38, vtab_atmega32u6,      15, cfgtab_at90usb1286}, // Config, ISRs
 
   //AT90S2313        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2313",        186,  F_AVR8, {0x1E, 0x91, 0x01}, // ID
   /*AT90S2313*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2313*/          1,  1,  11, vtab_at90s2313,       0, NULL}, // Config and interrupts
+  /*AT90S2313*/          1,  1,  11, vtab_at90s2313,        3, cfgtab_at90s2313}, // Config, ISRs
 
   //AT90S2323        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2323",        187,  F_AVR8, {0x1E, 0x91, 0x02}, // ID
   /*AT90S2323*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2323*/          1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
+  /*AT90S2323*/          1,  1,   3, vtab_attiny22,         3, cfgtab_at90s2323}, // Config, ISRs
 
   //AT90S2333             avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2333",        188,  F_AVR8, {0x1E, 0x91, 0x05}, // ID
   /*AT90S2333*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2333*/         -1, -1,  14, vtab_at90s4433,       0, NULL}, // Config and interrupts
+  /*AT90S2333*/          1,  1,  14, vtab_at90s4433,        5, cfgtab_at90s2333}, // Config, ISRs
 
   //AT90S2343        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S2343",        189,  F_AVR8, {0x1E, 0x91, 0x03}, // ID
   /*AT90S2343*/          0, 0x00800, 0x001,  0,      0,       0, 0x0080,  1, 0x0060, 0x0080, // Mem
-  /*AT90S2343*/          1,  1,   3, vtab_attiny22,        0, NULL}, // Config and interrupts
+  /*AT90S2343*/          1,  1,   3, vtab_attiny22,         3, cfgtab_at90s2343}, // Config, ISRs
 
   //AT90S4414        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4414",        190,  F_AVR8, {0x1E, 0x92, 0x01}, // ID
   /*AT90S4414*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100, // Mem
-  /*AT90S4414*/          1,  1,  13, vtab_at90s8515,       0, NULL}, // Config and interrupts
+  /*AT90S4414*/          1,  1,  13, vtab_at90s8515,        3, cfgtab_at90s2313}, // Config, ISRs
 
   //AT90S4433        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4433",        191,  F_AVR8, {0x1E, 0x92, 0x03}, // ID
   /*AT90S4433*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0080, // Mem
-  /*AT90S4433*/          1,  1,  14, vtab_at90s4433,       0, NULL}, // Config and interrupts
+  /*AT90S4433*/          1,  1,  14, vtab_at90s4433,        5, cfgtab_at90s4433}, // Config, ISRs
 
   //AT90S4434        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S4434",        192,  F_AVR8, {0x1E, 0x92, 0x02}, // ID
   /*AT90S4434*/          0, 0x01000, 0x001,  0,      0,       0, 0x0100,  1, 0x0060, 0x0100, // Mem
-  /*AT90S4434*/          1,  1,  17, vtab_at90s8535,       0, NULL}, // Config and interrupts
+  /*AT90S4434*/          1,  1,  17, vtab_at90s8535,        3, cfgtab_at90s2313}, // Config, ISRs
 
   //AT90S8515        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S8515",        193,  F_AVR8, {0x1E, 0x93, 0x01}, // ID
   /*AT90S8515*/          0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200, // Mem
-  /*AT90S8515*/          1,  1,  13, vtab_at90s8515,       0, NULL}, // Config and interrupts
+  /*AT90S8515*/          1,  1,  13, vtab_at90s8515,        3, cfgtab_at90s2313}, // Config, ISRs
 
   //AT90S8515comp                                                 xml // Sources
   {"AT90S8515comp",    377,  F_AVR8, {0x1E, 0x93, 0x01}, // ID
   /*AT90S8515comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*AT90S8515comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT90S8515comp*/     -1, -1,   0, NULL,                 13, cfgtab_at90s8515comp}, // Config, ISRs
 
   //AT90C8534                                          avr-gcc 12.2.0 // Sources
   {"AT90C8534",        194,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT90C8534*/          0, 0x02000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0100, // Mem
-  /*AT90C8534*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT90C8534*/         -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AT90S8535        xml, avr-gcc 12.2.0, avrdude, boot size (manual) // Sources
   {"AT90S8535",        195,  F_AVR8, {0x1E, 0x93, 0x03}, // ID
   /*AT90S8535*/          0, 0x02000, 0x001,  0,      0,       0, 0x0200,  1, 0x0060, 0x0200, // Mem
-  /*AT90S8535*/          1,  1,  17, vtab_at90s8535,       0, NULL}, // Config and interrupts
+  /*AT90S8535*/          1,  1,  17, vtab_at90s8535,        3, cfgtab_at90s2313}, // Config, ISRs
 
   //AT90S8535comp                                                 xml // Sources
   {"AT90S8535comp",    378,  F_AVR8, {0x1E, 0x93, 0x03}, // ID
   /*AT90S8535comp*/     -1,      -1,    -1, -1,     -1,      -1,     -1, -1,     -1,     -1, // Mem
-  /*AT90S8535comp*/     -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT90S8535comp*/     -1, -1,   0, NULL,                 13, cfgtab_at90s8535comp}, // Config, ISRs
 
   //AT94K                                              avr-gcc 12.2.0 // Sources
   {"AT94K",            196,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*AT94K*/              0, 0x08000,    -1, -1,     -1,      -1,     -1, -1, 0x0060, 0x0fa0, // Mem
-  /*AT94K*/             -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AT94K*/             -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //ATA5272                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5272",          197,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
   /*ATA5272*/            0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA5272*/            3,  1,  37, vtab_ata5272,         0, NULL}, // Config and interrupts
+  /*ATA5272*/            3,  1,  37, vtab_ata5272,         11, cfgtab_attiny87}, // Config, ISRs
 
-  //ATA5505                                      atdf, avr-gcc 12.2.0 // Sources
+  //ATA5505                             atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA5505",          198,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATA5505*/            0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA5505*/            3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+  /*ATA5505*/            3,  1,  20, vtab_attiny167,       11, cfgtab_attiny87}, // Config, ISRs
 
   //ATA5700M322                                                  atdf // Sources
   {"ATA5700M322",      199,  F_AVR8, {0x1E, 0x95, 0x67}, // ID
   /*ATA5700M322*/  0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400, // Mem
-  /*ATA5700M322*/        1,  1,  51, vtab_ata5702m322,     0, NULL}, // Config and interrupts
+  /*ATA5700M322*/        1,  1,  51, vtab_ata5702m322,      9, cfgtab_ata5700m322}, // Config, ISRs
 
   //ATA5702M322                                  atdf, avr-gcc 12.2.0 // Sources
   {"ATA5702M322",      200,  F_AVR8, {0x1E, 0x95, 0x69}, // ID
   /*ATA5702M322*/  0x08000, 0x08000, 0x040,  0,      0,       0, 0x0880, 16, 0x0200, 0x0400, // Mem
-  /*ATA5702M322*/        1,  1,  51, vtab_ata5702m322,     0, NULL}, // Config and interrupts
+  /*ATA5702M322*/        1,  1,  51, vtab_ata5702m322,      9, cfgtab_ata5700m322}, // Config, ISRs
 
   //ATA5781                                                      atdf // Sources
   {"ATA5781",          201,  F_AVR8, {0x1E, 0x95, 0x64}, // ID
   /*ATA5781*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5781*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA5781*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA5782                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5782",          202,  F_AVR8, {0x1E, 0x95, 0x65}, // ID
   /*ATA5782*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5782*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA5782*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA5783                                                      atdf // Sources
   {"ATA5783",          203,  F_AVR8, {0x1E, 0x95, 0x66}, // ID
   /*ATA5783*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5783*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA5783*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA5787                                                      atdf // Sources
   {"ATA5787",          204,  F_AVR8, {0x1E, 0x94, 0x6C}, // ID
   /*ATA5787*/      0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800, // Mem
-  /*ATA5787*/            1,  1,  44, vtab_ata5835,         0, NULL}, // Config and interrupts
+  /*ATA5787*/            1,  1,  44, vtab_ata5835,         11, cfgtab_ata5787}, // Config, ISRs
 
   //ATA5790                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5790",          205,  F_AVR8, {0x1E, 0x94, 0x61}, // ID
   /*ATA5790*/            0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5790*/            1,  1,  30, vtab_ata5790,         0, NULL}, // Config and interrupts
+  /*ATA5790*/            1,  1,  30, vtab_ata5790,         11, cfgtab_ata5790}, // Config, ISRs
 
   //ATA5790N                                     atdf, avr-gcc 12.2.0 // Sources
   {"ATA5790N",         206,  F_AVR8, {0x1E, 0x94, 0x62}, // ID
   /*ATA5790N*/           0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5790N*/           1,  1,  31, vtab_ata5791,         0, NULL}, // Config and interrupts
+  /*ATA5790N*/           1,  1,  31, vtab_ata5791,         10, cfgtab_ata5790n}, // Config, ISRs
 
   //ATA5791                                       atdf, avr-gcc 7.3.0 // Sources
   {"ATA5791",          207,  F_AVR8, {0x1E, 0x94, 0x62}, // ID
   /*ATA5791*/            0, 0x04000, 0x080,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5791*/            1,  1,  31, vtab_ata5791,         0, NULL}, // Config and interrupts
+  /*ATA5791*/            1,  1,  31, vtab_ata5791,         11, cfgtab_ata5790}, // Config, ISRs
 
   //ATA5795                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5795",          208,  F_AVR8, {0x1E, 0x93, 0x61}, // ID
   /*ATA5795*/            0, 0x02000, 0x040,  1, 0x0800,       0, 0x0800, 16, 0x0100, 0x0200, // Mem
-  /*ATA5795*/            1,  1,  23, vtab_ata5795,         0, NULL}, // Config and interrupts
+  /*ATA5795*/            1,  1,  23, vtab_ata5795,         10, cfgtab_ata5790n}, // Config, ISRs
 
   //ATA5831                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA5831",          209,  F_AVR8, {0x1E, 0x95, 0x61}, // ID
   /*ATA5831*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5831*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA5831*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA5832                                                      atdf // Sources
   {"ATA5832",          210,  F_AVR8, {0x1E, 0x95, 0x62}, // ID
   /*ATA5832*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5832*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA5832*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA5833                                                      atdf // Sources
   {"ATA5833",          211,  F_AVR8, {0x1E, 0x95, 0x63}, // ID
   /*ATA5833*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA5833*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA5833*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA5835                                                      atdf // Sources
   {"ATA5835",          212,  F_AVR8, {0x1E, 0x94, 0x6B}, // ID
   /*ATA5835*/      0x08000, 0x05200, 0x040,  0,      0,       0, 0x0400, 16, 0x0200, 0x0800, // Mem
-  /*ATA5835*/            1,  1,  44, vtab_ata5835,         0, NULL}, // Config and interrupts
+  /*ATA5835*/            1,  1,  44, vtab_ata5835,         11, cfgtab_ata5787}, // Config, ISRs
 
   //ATA6285                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA6285",          213,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*ATA6285*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200, // Mem
-  /*ATA6285*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
+  /*ATA6285*/            2,  1,  27, vtab_ata6289,         17, cfgtab_ata6285}, // Config, ISRs
 
   //ATA6286                                      atdf, avr-gcc 12.2.0 // Sources
   {"ATA6286",          214,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*ATA6286*/            0, 0x02000, 0x040,  4, 0x0100,       0, 0x0140,  4, 0x0100, 0x0200, // Mem
-  /*ATA6286*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
+  /*ATA6286*/            2,  1,  27, vtab_ata6289,         17, cfgtab_ata6285}, // Config, ISRs
 
   //ATA6289                   xml, avr-gcc 12.2.0, boot size (manual) // Sources
   {"ATA6289",          215,  F_AVR8, {0x1E, 0x93, 0x82}, // ID
   /*ATA6289*/            0, 0x02000, 0x040,  4, 0x0100,      -1,     -1, -1, 0x0100, 0x0200, // Mem
-  /*ATA6289*/            2,  1,  27, vtab_ata6289,         0, NULL}, // Config and interrupts
+  /*ATA6289*/            2,  1,  27, vtab_ata6289,         17, cfgtab_ata6289}, // Config, ISRs
 
-  //ATA6612C                                     atdf, avr-gcc 12.2.0 // Sources
+  //ATA6612C                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA6612C",         216,  F_AVR8, {0x1E, 0x93, 0x0A}, // ID
   /*ATA6612C*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATA6612C*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATA6612C*/           3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega88}, // Config, ISRs
 
-  //ATA6613C                                     atdf, avr-gcc 12.2.0 // Sources
+  //ATA6613C                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA6613C",         217,  F_AVR8, {0x1E, 0x94, 0x06}, // ID
   /*ATA6613C*/           0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*ATA6613C*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATA6613C*/           3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega168}, // Config, ISRs
 
-  //ATA6614Q                                     atdf, avr-gcc 12.2.0 // Sources
+  //ATA6614Q                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA6614Q",         218,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
   /*ATA6614Q*/           0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*ATA6614Q*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*ATA6614Q*/           3,  1,  26, vtab_atmega328p,      14, cfgtab_atmega328}, // Config, ISRs
 
-  //ATA6616C                                     atdf, avr-gcc 12.2.0 // Sources
+  //ATA6616C                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA6616C",         219,  F_AVR8, {0x1E, 0x93, 0x87}, // ID
   /*ATA6616C*/           0, 0x02000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA6616C*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+  /*ATA6616C*/           3,  1,  20, vtab_attiny167,       11, cfgtab_attiny87}, // Config, ISRs
 
-  //ATA6617C                                     atdf, avr-gcc 12.2.0 // Sources
+  //ATA6617C                            atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA6617C",         220,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATA6617C*/           0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA6617C*/           3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+  /*ATA6617C*/           3,  1,  20, vtab_attiny167,       11, cfgtab_attiny87}, // Config, ISRs
 
   //ATA8210                                       atdf, avr-gcc 7.3.0 // Sources
   {"ATA8210",          221,  F_AVR8, {0x1E, 0x95, 0x65}, // ID
   /*ATA8210*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8210*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA8210*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA8215                                                      atdf // Sources
   {"ATA8215",          222,  F_AVR8, {0x1E, 0x95, 0x64}, // ID
   /*ATA8215*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8215*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA8215*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA8510                                       atdf, avr-gcc 7.3.0 // Sources
   {"ATA8510",          223,  F_AVR8, {0x1E, 0x95, 0x61}, // ID
   /*ATA8510*/      0x08000, 0x05000, 0x040,  1, 0x5000,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8510*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA8510*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
   //ATA8515                                                      atdf // Sources
   {"ATA8515",          224,  F_AVR8, {0x1E, 0x95, 0x63}, // ID
   /*ATA8515*/           -1,      -1,    -1,  0,      0,       0, 0x0400, 16, 0x0200, 0x0400, // Mem
-  /*ATA8515*/            1,  1,  42, vtab_ata8515,         0, NULL}, // Config and interrupts
+  /*ATA8515*/            1,  1,  42, vtab_ata8515,         11, cfgtab_ata5781}, // Config, ISRs
 
-  //ATA664251                                    atdf, avr-gcc 12.2.0 // Sources
+  //ATA664251                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATA664251",        225,  F_AVR8, {0x1E, 0x94, 0x87}, // ID
   /*ATA664251*/          0, 0x04000, 0x080,  0,      0,       0, 0x0200,  4, 0x0100, 0x0200, // Mem
-  /*ATA664251*/          3,  1,  20, vtab_attiny167,       0, NULL}, // Config and interrupts
+  /*ATA664251*/          3,  1,  20, vtab_attiny167,       11, cfgtab_attiny87}, // Config, ISRs
 
   //M3000                                              avr-gcc 12.2.0 // Sources
   {"M3000",            226,  F_AVR8, {0xff,   -1,   -1}, // ID
   /*M3000*/              0, 0x10000,    -1, -1,     -1,      -1,     -1, -1, 0x1000, 0x1000, // Mem
-  /*M3000*/             -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*M3000*/             -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //LGT8F88P                                   avrdude, from ATmega88 // Sources
   {"LGT8F88P",         227,  F_AVR8, {0x1E, 0x93, 0x0F}, // ID
   /*LGT8F88P*/           0, 0x02000, 0x040,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*LGT8F88P*/           3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*LGT8F88P*/          -1, -1,  26, vtab_atmega328p,       0, NULL}, // Config, ISRs
 
   //LGT8F168P                                avrdude, from ATmega168P // Sources
   {"LGT8F168P",        228,  F_AVR8, {0x1E, 0x94, 0x0B}, // ID
   /*LGT8F168P*/          0, 0x04000, 0x080,  4, 0x0100,       0, 0x0200,  4, 0x0100, 0x0400, // Mem
-  /*LGT8F168P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*LGT8F168P*/         -1, -1,  26, vtab_atmega328p,       0, NULL}, // Config, ISRs
 
   //LGT8F328P                                avrdude, from ATmega328P // Sources
   {"LGT8F328P",        229,  F_AVR8, {0x1E, 0x95, 0x0F}, // ID
   /*LGT8F328P*/          0, 0x08000, 0x080,  4, 0x0200,       0, 0x0400,  4, 0x0100, 0x0800, // Mem
-  /*LGT8F328P*/          3,  1,  26, vtab_atmega328p,      0, NULL}, // Config and interrupts
+  /*LGT8F328P*/         -1, -1,  26, vtab_atmega328p,       0, NULL}, // Config, ISRs
 
 
   //ATxmega8E5                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega8E5",       230, F_XMEGA, {0x1E, 0x93, 0x41}, // ID
   /*ATxmega8E5*/         0, 0x02800, 0x080,  1, 0x0800,       0, 0x0200, 32, 0x2000, 0x0400, // Mem
-  /*ATxmega8E5*/         7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
+  /*ATxmega8E5*/         7,  1,  43, vtab_atxmega32e5,     17, cfgtab_atxmega16e5}, // Config, ISRs
 
   //ATxmega16A4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16A4",      231, F_XMEGA, {0x1E, 0x94, 0x41}, // ID
   /*ATxmega16A4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16A4*/        6,  1,  94, vtab_atxmega32a4,     0, NULL}, // Config and interrupts
+  /*ATxmega16A4*/        6,  1,  94, vtab_atxmega32a4,     16, cfgtab_atxmega16a4}, // Config, ISRs
 
   //ATxmega16A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16A4U",     232, F_XMEGA, {0x1E, 0x94, 0x41}, // ID
   /*ATxmega16A4U*/       0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+  /*ATxmega16A4U*/       6,  1, 127, vtab_atxmega128a4u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega16C4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16C4",      233, F_XMEGA, {0x1E, 0x94, 0x43}, // ID
   /*ATxmega16C4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16C4*/        6,  1, 127, vtab_atxmega32c4,     0, NULL}, // Config and interrupts
+  /*ATxmega16C4*/        6,  1, 127, vtab_atxmega32c4,     15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega16D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega16D4",      234, F_XMEGA, {0x1E, 0x94, 0x42}, // ID
   /*ATxmega16D4*/        0, 0x05000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16D4*/        6,  1,  91, vtab_atxmega32d4,     0, NULL}, // Config and interrupts
+  /*ATxmega16D4*/        6,  1,  91, vtab_atxmega32d4,     15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega16E5                          atdf, avr-gcc 7.3.0, avrdude // Sources
   {"ATxmega16E5",      235, F_XMEGA, {0x1E, 0x94, 0x45}, // ID
   /*ATxmega16E5*/        0, 0x05000, 0x080,  1, 0x1000,       0, 0x0200, 32, 0x2000, 0x0800, // Mem
-  /*ATxmega16E5*/        7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
+  /*ATxmega16E5*/        7,  1,  43, vtab_atxmega32e5,     17, cfgtab_atxmega16e5}, // Config, ISRs
 
-  //ATxmega32C3                                  atdf, avr-gcc 12.2.0 // Sources
+  //ATxmega32C3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32C3",      236, F_XMEGA, {0x1E, 0x95, 0x49}, // ID
   /*ATxmega32C3*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32C3*/        6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+  /*ATxmega32C3*/        6,  1, 127, vtab_atxmega256c3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
-  //ATxmega32D3                                  atdf, avr-gcc 12.2.0 // Sources
+  //ATxmega32D3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32D3",      237, F_XMEGA, {0x1E, 0x95, 0x4A}, // ID
   /*ATxmega32D3*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32D3*/        6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+  /*ATxmega32D3*/        6,  1, 114, vtab_atxmega384d3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega32A4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32A4",      238, F_XMEGA, {0x1E, 0x95, 0x41}, // ID
   /*ATxmega32A4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32A4*/        6,  1,  94, vtab_atxmega32a4,     0, NULL}, // Config and interrupts
+  /*ATxmega32A4*/        6,  1,  94, vtab_atxmega32a4,     16, cfgtab_atxmega16a4}, // Config, ISRs
 
   //ATxmega32A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32A4U",     239, F_XMEGA, {0x1E, 0x95, 0x41}, // ID
   /*ATxmega32A4U*/       0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+  /*ATxmega32A4U*/       6,  1, 127, vtab_atxmega128a4u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega32C4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32C4",      240, F_XMEGA, {0x1E, 0x95, 0x44}, // ID
   /*ATxmega32C4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32C4*/        6,  1, 127, vtab_atxmega32c4,     0, NULL}, // Config and interrupts
+  /*ATxmega32C4*/        6,  1, 127, vtab_atxmega32c4,     15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega32D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32D4",      241, F_XMEGA, {0x1E, 0x95, 0x42}, // ID
   /*ATxmega32D4*/        0, 0x09000, 0x100,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32D4*/        6,  1,  91, vtab_atxmega32d4,     0, NULL}, // Config and interrupts
+  /*ATxmega32D4*/        6,  1,  91, vtab_atxmega32d4,     15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega32E5                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega32E5",      242, F_XMEGA, {0x1E, 0x95, 0x4C}, // ID
   /*ATxmega32E5*/        0, 0x09000, 0x080,  1, 0x1000,       0, 0x0400, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega32E5*/        7,  1,  43, vtab_atxmega32e5,     0, NULL}, // Config and interrupts
+  /*ATxmega32E5*/        7,  1,  43, vtab_atxmega32e5,     17, cfgtab_atxmega16e5}, // Config, ISRs
 
   //ATxmega64A1                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A1",      243, F_XMEGA, {0x1E, 0x96, 0x4E}, // ID
   /*ATxmega64A1*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A1*/        6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
+  /*ATxmega64A1*/        6,  1, 125, vtab_atxmega128a1revd, 16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega64A1U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A1U",     244, F_XMEGA, {0x1E, 0x96, 0x4E}, // ID
   /*ATxmega64A1U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A1U*/       6,  1, 127, vtab_atxmega128a1u,   0, NULL}, // Config and interrupts
+  /*ATxmega64A1U*/       6,  1, 127, vtab_atxmega128a1u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega64B1                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64B1",      245, F_XMEGA, {0x1E, 0x96, 0x52}, // ID
   /*ATxmega64B1*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64B1*/        6,  1,  81, vtab_atxmega128b1,    0, NULL}, // Config and interrupts
+  /*ATxmega64B1*/        6,  1,  81, vtab_atxmega128b1,    17, cfgtab_atxmega64b1}, // Config, ISRs
 
   //ATxmega64A3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A3",      246, F_XMEGA, {0x1E, 0x96, 0x42}, // ID
   /*ATxmega64A3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A3*/        6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+  /*ATxmega64A3*/        6,  1, 122, vtab_atxmega256a3,    16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega64A3U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A3U",     247, F_XMEGA, {0x1E, 0x96, 0x42}, // ID
   /*ATxmega64A3U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A3U*/       6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+  /*ATxmega64A3U*/       6,  1, 127, vtab_atxmega256a3u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega64B3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64B3",      248, F_XMEGA, {0x1E, 0x96, 0x51}, // ID
   /*ATxmega64B3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64B3*/        6,  1,  54, vtab_atxmega128b3,    0, NULL}, // Config and interrupts
+  /*ATxmega64B3*/        6,  1,  54, vtab_atxmega128b3,    17, cfgtab_atxmega64b1}, // Config, ISRs
 
   //ATxmega64C3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64C3",      249, F_XMEGA, {0x1E, 0x96, 0x49}, // ID
   /*ATxmega64C3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64C3*/        6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+  /*ATxmega64C3*/        6,  1, 127, vtab_atxmega256c3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega64D3                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64D3",      250, F_XMEGA, {0x1E, 0x96, 0x4A}, // ID
   /*ATxmega64D3*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64D3*/        6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+  /*ATxmega64D3*/        6,  1, 114, vtab_atxmega384d3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega64A4                                               avrdude // Sources
   {"ATxmega64A4",      251, F_XMEGA, {0x1E, 0x96, 0x46}, // ID
   /*ATxmega64A4*/        0, 0x11000, 0x100, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
-  /*ATxmega64A4*/       -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*ATxmega64A4*/       -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //ATxmega64A4U                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64A4U",     252, F_XMEGA, {0x1E, 0x96, 0x46}, // ID
   /*ATxmega64A4U*/       0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64A4U*/       6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+  /*ATxmega64A4U*/       6,  1, 127, vtab_atxmega128a4u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega64D4                         atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega64D4",      253, F_XMEGA, {0x1E, 0x96, 0x47}, // ID
   /*ATxmega64D4*/        0, 0x11000, 0x100,  1, 0x1000,       0, 0x0800, 32, 0x2000, 0x1000, // Mem
-  /*ATxmega64D4*/        6,  1,  91, vtab_atxmega128d4,    0, NULL}, // Config and interrupts
+  /*ATxmega64D4*/        6,  1,  91, vtab_atxmega128d4,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega128A1                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A1",     254, F_XMEGA, {0x1E, 0x97, 0x4C}, // ID
   /*ATxmega128A1*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A1*/       6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
+  /*ATxmega128A1*/       6,  1, 125, vtab_atxmega128a1revd, 16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega128A1revD                       avrdude, from ATxmega128A1 // Sources
   {"ATxmega128A1revD", 255, F_XMEGA, {0x1E, 0x97, 0x41}, // ID
   /*ATxmega128A1revD*/   0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A1revD*/   6,  1, 125, vtab_atxmega128a1,    0, NULL}, // Config and interrupts
+  /*ATxmega128A1revD*/   6,  1, 125, vtab_atxmega128a1revd, 16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega128A1U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A1U",    256, F_XMEGA, {0x1E, 0x97, 0x4C}, // ID
   /*ATxmega128A1U*/      0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A1U*/      6,  1, 127, vtab_atxmega128a1u,   0, NULL}, // Config and interrupts
+  /*ATxmega128A1U*/      6,  1, 127, vtab_atxmega128a1u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega128B1                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128B1",     257, F_XMEGA, {0x1E, 0x97, 0x4D}, // ID
   /*ATxmega128B1*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128B1*/       6,  1,  81, vtab_atxmega128b1,    0, NULL}, // Config and interrupts
+  /*ATxmega128B1*/       6,  1,  81, vtab_atxmega128b1,    17, cfgtab_atxmega64b1}, // Config, ISRs
 
   //ATxmega128A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A3",     258, F_XMEGA, {0x1E, 0x97, 0x42}, // ID
   /*ATxmega128A3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+  /*ATxmega128A3*/       6,  1, 122, vtab_atxmega256a3,    16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega128A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A3U",    259, F_XMEGA, {0x1E, 0x97, 0x42}, // ID
   /*ATxmega128A3U*/      0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+  /*ATxmega128A3U*/      6,  1, 127, vtab_atxmega256a3u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega128B3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128B3",     260, F_XMEGA, {0x1E, 0x97, 0x4B}, // ID
   /*ATxmega128B3*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128B3*/       6,  1,  54, vtab_atxmega128b3,    0, NULL}, // Config and interrupts
+  /*ATxmega128B3*/       6,  1,  54, vtab_atxmega128b3,    17, cfgtab_atxmega64b1}, // Config, ISRs
 
   //ATxmega128C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128C3",     261, F_XMEGA, {0x1E, 0x97, 0x52}, // ID
   /*ATxmega128C3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+  /*ATxmega128C3*/       6,  1, 127, vtab_atxmega256c3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega128D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128D3",     262, F_XMEGA, {0x1E, 0x97, 0x48}, // ID
   /*ATxmega128D3*/       0, 0x22000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+  /*ATxmega128D3*/       6,  1, 114, vtab_atxmega384d3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega128A4                                              avrdude // Sources
   {"ATxmega128A4",     263, F_XMEGA, {0x1E, 0x97, 0x46}, // ID
   /*ATxmega128A4*/       0, 0x22000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
-  /*ATxmega128A4*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*ATxmega128A4*/      -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //ATxmega128A4U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128A4U",    264, F_XMEGA, {0x1E, 0x97, 0x46}, // ID
   /*ATxmega128A4U*/      0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128A4U*/      6,  1, 127, vtab_atxmega128a4u,   0, NULL}, // Config and interrupts
+  /*ATxmega128A4U*/      6,  1, 127, vtab_atxmega128a4u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega128D4                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega128D4",     265, F_XMEGA, {0x1E, 0x97, 0x47}, // ID
   /*ATxmega128D4*/       0, 0x22000, 0x100,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x2000, // Mem
-  /*ATxmega128D4*/       6,  1,  91, vtab_atxmega128d4,    0, NULL}, // Config and interrupts
+  /*ATxmega128D4*/       6,  1,  91, vtab_atxmega128d4,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega192A1                                              avrdude // Sources
   {"ATxmega192A1",     266, F_XMEGA, {0x1E, 0x97, 0x4E}, // ID
   /*ATxmega192A1*/       0, 0x32000, 0x200, -1,     -1,       0, 0x0800, 32,     -1,     -1, // Mem
-  /*ATxmega192A1*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*ATxmega192A1*/      -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //ATxmega192A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192A3",     267, F_XMEGA, {0x1E, 0x97, 0x44}, // ID
   /*ATxmega192A3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+  /*ATxmega192A3*/       6,  1, 122, vtab_atxmega256a3,    16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega192A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192A3U",    268, F_XMEGA, {0x1E, 0x97, 0x44}, // ID
   /*ATxmega192A3U*/      0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+  /*ATxmega192A3U*/      6,  1, 127, vtab_atxmega256a3u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega192C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192C3",     269, F_XMEGA, {0x1E, 0x97, 0x51}, // ID
   /*ATxmega192C3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+  /*ATxmega192C3*/       6,  1, 127, vtab_atxmega256c3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega192D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega192D3",     270, F_XMEGA, {0x1E, 0x97, 0x49}, // ID
   /*ATxmega192D3*/       0, 0x32000, 0x200,  1, 0x2000,       0, 0x0800, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega192D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+  /*ATxmega192D3*/       6,  1, 114, vtab_atxmega384d3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega256A1                                              avrdude // Sources
   {"ATxmega256A1",     271, F_XMEGA, {0x1E, 0x98, 0x46}, // ID
   /*ATxmega256A1*/       0, 0x42000, 0x200, -1,     -1,       0, 0x1000, 32,     -1,     -1, // Mem
-  /*ATxmega256A1*/      -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*ATxmega256A1*/      -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //ATxmega256A3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3",     272, F_XMEGA, {0x1E, 0x98, 0x42}, // ID
   /*ATxmega256A3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3*/       6,  1, 122, vtab_atxmega256a3,    0, NULL}, // Config and interrupts
+  /*ATxmega256A3*/       6,  1, 122, vtab_atxmega256a3,    16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega256A3B                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3B",    273, F_XMEGA, {0x1E, 0x98, 0x43}, // ID
   /*ATxmega256A3B*/      0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3B*/      6,  1, 122, vtab_atxmega256a3b,   0, NULL}, // Config and interrupts
+  /*ATxmega256A3B*/      6,  1, 122, vtab_atxmega256a3b,   16, cfgtab_atxmega128a3}, // Config, ISRs
 
   //ATxmega256A3BU                      atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3BU",   274, F_XMEGA, {0x1E, 0x98, 0x43}, // ID
   /*ATxmega256A3BU*/     0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3BU*/     6,  1, 127, vtab_atxmega256a3bu,  0, NULL}, // Config and interrupts
+  /*ATxmega256A3BU*/     6,  1, 127, vtab_atxmega256a3bu,  17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega256A3U                       atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256A3U",    275, F_XMEGA, {0x1E, 0x98, 0x42}, // ID
   /*ATxmega256A3U*/      0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256A3U*/      6,  1, 127, vtab_atxmega256a3u,   0, NULL}, // Config and interrupts
+  /*ATxmega256A3U*/      6,  1, 127, vtab_atxmega256a3u,   17, cfgtab_atxmega128a3u}, // Config, ISRs
 
   //ATxmega256C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256C3",     276, F_XMEGA, {0x1E, 0x98, 0x46}, // ID
   /*ATxmega256C3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256C3*/       6,  1, 127, vtab_atxmega256c3,    0, NULL}, // Config and interrupts
+  /*ATxmega256C3*/       6,  1, 127, vtab_atxmega256c3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega256D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega256D3",     277, F_XMEGA, {0x1E, 0x98, 0x44}, // ID
   /*ATxmega256D3*/       0, 0x42000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x4000, // Mem
-  /*ATxmega256D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+  /*ATxmega256D3*/       6,  1, 114, vtab_atxmega384d3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega384C3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega384C3",     278, F_XMEGA, {0x1E, 0x98, 0x45}, // ID
   /*ATxmega384C3*/       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000, // Mem
-  /*ATxmega384C3*/       6,  1, 127, vtab_atxmega384c3,    0, NULL}, // Config and interrupts
+  /*ATxmega384C3*/       6,  1, 127, vtab_atxmega384c3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
   //ATxmega384D3                        atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATxmega384D3",     279, F_XMEGA, {0x1E, 0x98, 0x47}, // ID
   /*ATxmega384D3*/       0, 0x62000, 0x200,  1, 0x2000,       0, 0x1000, 32, 0x2000, 0x8000, // Mem
-  /*ATxmega384D3*/       6,  1, 114, vtab_atxmega384d3,    0, NULL}, // Config and interrupts
+  /*ATxmega384D3*/       6,  1, 114, vtab_atxmega384d3,    15, cfgtab_atxmega16c4}, // Config, ISRs
 
 
   //ATtiny202                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny202",        280, F_AVR8X, {0x1E, 0x91, 0x23}, // ID
   /*ATtiny202*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny202*/         10,  1,  26, vtab_attiny402,       0, NULL}, // Config and interrupts
+  /*ATtiny202*/         10,  1,  26, vtab_attiny402,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny204                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny204",        281, F_AVR8X, {0x1E, 0x91, 0x22}, // ID
   /*ATtiny204*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny204*/         10,  1,  26, vtab_attiny404,       0, NULL}, // Config and interrupts
+  /*ATtiny204*/         10,  1,  26, vtab_attiny404,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny212                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny212",        282, F_AVR8X, {0x1E, 0x91, 0x21}, // ID
   /*ATtiny212*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny212*/         10,  1,  26, vtab_attiny412,       0, NULL}, // Config and interrupts
+  /*ATtiny212*/         10,  1,  26, vtab_attiny412,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny214                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny214",        283, F_AVR8X, {0x1E, 0x91, 0x20}, // ID
   /*ATtiny214*/          0, 0x00800, 0x040,  1,      0, 0x01400, 0x0040, 32, 0x3f80, 0x0080, // Mem
-  /*ATtiny214*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
+  /*ATtiny214*/         10,  1,  26, vtab_attiny814,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny402                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny402",        284, F_AVR8X, {0x1E, 0x92, 0x27}, // ID
   /*ATtiny402*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny402*/         10,  1,  26, vtab_attiny402,       0, NULL}, // Config and interrupts
+  /*ATtiny402*/         10,  1,  26, vtab_attiny402,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny404                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny404",        285, F_AVR8X, {0x1E, 0x92, 0x26}, // ID
   /*ATtiny404*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny404*/         10,  1,  26, vtab_attiny404,       0, NULL}, // Config and interrupts
+  /*ATtiny404*/         10,  1,  26, vtab_attiny404,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny406                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny406",        286, F_AVR8X, {0x1E, 0x92, 0x25}, // ID
   /*ATtiny406*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny406*/         10,  1,  26, vtab_attiny406,       0, NULL}, // Config and interrupts
+  /*ATtiny406*/         10,  1,  26, vtab_attiny406,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny412                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny412",        287, F_AVR8X, {0x1E, 0x92, 0x23}, // ID
   /*ATtiny412*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny412*/         10,  1,  26, vtab_attiny412,       0, NULL}, // Config and interrupts
+  /*ATtiny412*/         10,  1,  26, vtab_attiny412,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny414                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny414",        288, F_AVR8X, {0x1E, 0x92, 0x22}, // ID
   /*ATtiny414*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny414*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
+  /*ATtiny414*/         10,  1,  26, vtab_attiny814,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny416                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny416",        289, F_AVR8X, {0x1E, 0x92, 0x21}, // ID
   /*ATtiny416*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny416*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+  /*ATtiny416*/         10,  1,  26, vtab_attiny817,       23, cfgtab_attiny204}, // Config, ISRs
 
-  //ATtiny416auto                                                atdf // Sources
+  //ATtiny416auto                                       atdf, avrdude // Sources
   {"ATtiny416auto",    290, F_AVR8X, {0x1E, 0x92, 0x28}, // ID
   /*ATtiny416auto*/      0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny416auto*/     10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+  /*ATtiny416auto*/     10,  1,  26, vtab_attiny817,       23, cfgtab_attiny416auto}, // Config, ISRs
 
   //ATtiny417                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny417",        291, F_AVR8X, {0x1E, 0x92, 0x20}, // ID
   /*ATtiny417*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3f00, 0x0100, // Mem
-  /*ATtiny417*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+  /*ATtiny417*/         10,  1,  26, vtab_attiny817,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny424                                           atdf, avrdude // Sources
   {"ATtiny424",        292, F_AVR8X, {0x1E, 0x92, 0x2C}, // ID
   /*ATtiny424*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny424*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny424*/         10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny426                                           atdf, avrdude // Sources
   {"ATtiny426",        293, F_AVR8X, {0x1E, 0x92, 0x2B}, // ID
   /*ATtiny426*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny426*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny426*/         10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny427                                           atdf, avrdude // Sources
   {"ATtiny427",        294, F_AVR8X, {0x1E, 0x92, 0x2A}, // ID
   /*ATtiny427*/          0, 0x01000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny427*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny427*/         10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny804                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny804",        295, F_AVR8X, {0x1E, 0x93, 0x25}, // ID
   /*ATtiny804*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny804*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+  /*ATtiny804*/         10,  1,  31, vtab_attiny1607,      15, cfgtab_attiny804}, // Config, ISRs
 
   //ATtiny806                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny806",        296, F_AVR8X, {0x1E, 0x93, 0x24}, // ID
   /*ATtiny806*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny806*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+  /*ATtiny806*/         10,  1,  31, vtab_attiny1607,      15, cfgtab_attiny804}, // Config, ISRs
 
   //ATtiny807                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny807",        297, F_AVR8X, {0x1E, 0x93, 0x23}, // ID
   /*ATtiny807*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny807*/         10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+  /*ATtiny807*/         10,  1,  31, vtab_attiny1607,      15, cfgtab_attiny804}, // Config, ISRs
 
   //ATtiny814                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny814",        298, F_AVR8X, {0x1E, 0x93, 0x22}, // ID
   /*ATtiny814*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny814*/         10,  1,  26, vtab_attiny814,       0, NULL}, // Config and interrupts
+  /*ATtiny814*/         10,  1,  26, vtab_attiny814,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny816                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny816",        299, F_AVR8X, {0x1E, 0x93, 0x21}, // ID
   /*ATtiny816*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny816*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+  /*ATtiny816*/         10,  1,  26, vtab_attiny817,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny817                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny817",        300, F_AVR8X, {0x1E, 0x93, 0x20}, // ID
   /*ATtiny817*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3e00, 0x0200, // Mem
-  /*ATtiny817*/         10,  1,  26, vtab_attiny817,       0, NULL}, // Config and interrupts
+  /*ATtiny817*/         10,  1,  26, vtab_attiny817,       23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny824                                           atdf, avrdude // Sources
   {"ATtiny824",        301, F_AVR8X, {0x1E, 0x93, 0x29}, // ID
   /*ATtiny824*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny824*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny824*/         10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny826                                           atdf, avrdude // Sources
   {"ATtiny826",        302, F_AVR8X, {0x1E, 0x93, 0x28}, // ID
   /*ATtiny826*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny826*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny826*/         10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny827                                           atdf, avrdude // Sources
   {"ATtiny827",        303, F_AVR8X, {0x1E, 0x93, 0x27}, // ID
   /*ATtiny827*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0080, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny827*/         10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny827*/         10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny1604                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1604",       304, F_AVR8X, {0x1E, 0x94, 0x25}, // ID
   /*ATtiny1604*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny1604*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+  /*ATtiny1604*/        10,  1,  31, vtab_attiny1607,      15, cfgtab_attiny804}, // Config, ISRs
 
   //ATtiny1606                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1606",       305, F_AVR8X, {0x1E, 0x94, 0x24}, // ID
   /*ATtiny1606*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny1606*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+  /*ATtiny1606*/        10,  1,  31, vtab_attiny1607,      15, cfgtab_attiny804}, // Config, ISRs
 
   //ATtiny1607                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1607",       306, F_AVR8X, {0x1E, 0x94, 0x23}, // ID
   /*ATtiny1607*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATtiny1607*/        10,  1,  31, vtab_attiny1607,      0, NULL}, // Config and interrupts
+  /*ATtiny1607*/        10,  1,  31, vtab_attiny1607,      15, cfgtab_attiny804}, // Config, ISRs
 
   //ATtiny1614                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1614",       307, F_AVR8X, {0x1E, 0x94, 0x22}, // ID
   /*ATtiny1614*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1614*/        10,  1,  31, vtab_attiny1614,      0, NULL}, // Config and interrupts
+  /*ATtiny1614*/        10,  1,  31, vtab_attiny1614,      23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny1616                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1616",       308, F_AVR8X, {0x1E, 0x94, 0x21}, // ID
   /*ATtiny1616*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1616*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+  /*ATtiny1616*/        10,  1,  31, vtab_attiny3217,      23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny1617                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny1617",       309, F_AVR8X, {0x1E, 0x94, 0x20}, // ID
   /*ATtiny1617*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1617*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+  /*ATtiny1617*/        10,  1,  31, vtab_attiny3217,      23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny1624                                          atdf, avrdude // Sources
   {"ATtiny1624",       310, F_AVR8X, {0x1E, 0x94, 0x2A}, // ID
   /*ATtiny1624*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1624*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny1624*/        10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny1626                                          atdf, avrdude // Sources
   {"ATtiny1626",       311, F_AVR8X, {0x1E, 0x94, 0x29}, // ID
   /*ATtiny1626*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1626*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny1626*/        10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny1627                                          atdf, avrdude // Sources
   {"ATtiny1627",       312, F_AVR8X, {0x1E, 0x94, 0x28}, // ID
   /*ATtiny1627*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATtiny1627*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny1627*/        10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny3214                                         avr-gcc 12.2.0 // Sources
   {"ATtiny3214",       313, F_AVR8X, {0x1E, 0x95, 0x20}, // ID
   /*ATtiny3214*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
-  /*ATtiny3214*/        10,  1,  31, vtab_attiny3214,      0, NULL}, // Config and interrupts
+  /*ATtiny3214*/        10,  1,  31, vtab_attiny3214,       0, NULL}, // Config, ISRs
 
   //ATtiny3216                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny3216",       314, F_AVR8X, {0x1E, 0x95, 0x21}, // ID
   /*ATtiny3216*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
-  /*ATtiny3216*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+  /*ATtiny3216*/        10,  1,  31, vtab_attiny3217,      23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny3217                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATtiny3217",       315, F_AVR8X, {0x1E, 0x95, 0x22}, // ID
   /*ATtiny3217*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3800, 0x0800, // Mem
-  /*ATtiny3217*/        10,  1,  31, vtab_attiny3217,      0, NULL}, // Config and interrupts
+  /*ATtiny3217*/        10,  1,  31, vtab_attiny3217,      23, cfgtab_attiny204}, // Config, ISRs
 
   //ATtiny3224                                          atdf, avrdude // Sources
   {"ATtiny3224",       316, F_AVR8X, {0x1E, 0x95, 0x28}, // ID
   /*ATtiny3224*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
-  /*ATtiny3224*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny3224*/        10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny3226                                          atdf, avrdude // Sources
   {"ATtiny3226",       317, F_AVR8X, {0x1E, 0x95, 0x27}, // ID
   /*ATtiny3226*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
-  /*ATtiny3226*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny3226*/        10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATtiny3227                                          atdf, avrdude // Sources
   {"ATtiny3227",       318, F_AVR8X, {0x1E, 0x95, 0x26}, // ID
   /*ATtiny3227*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3400, 0x0c00, // Mem
-  /*ATtiny3227*/        10,  1,  30, vtab_attiny3227,      0, NULL}, // Config and interrupts
+  /*ATtiny3227*/        10,  1,  30, vtab_attiny3227,      16, cfgtab_attiny1624}, // Config, ISRs
 
   //ATmega808                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega808",        319, F_AVR8X, {0x1E, 0x93, 0x26}, // ID
   /*ATmega808*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATmega808*/         10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+  /*ATmega808*/         10,  1,  36, vtab_atmega4808,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega809                           atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega809",        320, F_AVR8X, {0x1E, 0x93, 0x2A}, // ID
   /*ATmega809*/          0, 0x02000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3c00, 0x0400, // Mem
-  /*ATmega809*/         10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+  /*ATmega809*/         10,  1,  40, vtab_atmega4809,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega1608                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1608",       321, F_AVR8X, {0x1E, 0x94, 0x27}, // ID
   /*ATmega1608*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATmega1608*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+  /*ATmega1608*/        10,  1,  36, vtab_atmega4808,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega1609                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega1609",       322, F_AVR8X, {0x1E, 0x94, 0x26}, // ID
   /*ATmega1609*/         0, 0x04000, 0x040,  1,      0, 0x01400, 0x0100, 32, 0x3800, 0x0800, // Mem
-  /*ATmega1609*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+  /*ATmega1609*/        10,  1,  40, vtab_atmega4809,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega3208                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3208",       323, F_AVR8X, {0x1E, 0x95, 0x30}, // ID
   /*ATmega3208*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, // Mem
-  /*ATmega3208*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+  /*ATmega3208*/        10,  1,  36, vtab_atmega4808,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega3209                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega3209",       324, F_AVR8X, {0x1E, 0x95, 0x31}, // ID
   /*ATmega3209*/         0, 0x08000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x3000, 0x1000, // Mem
-  /*ATmega3209*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+  /*ATmega3209*/        10,  1,  40, vtab_atmega4809,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega4808                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega4808",       325, F_AVR8X, {0x1E, 0x96, 0x50}, // ID
   /*ATmega4808*/         0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, // Mem
-  /*ATmega4808*/        10,  1,  36, vtab_atmega4808,      0, NULL}, // Config and interrupts
+  /*ATmega4808*/        10,  1,  36, vtab_atmega4808,      15, cfgtab_atmega808}, // Config, ISRs
 
   //ATmega4809                          atdf, avr-gcc 12.2.0, avrdude // Sources
   {"ATmega4809",       326, F_AVR8X, {0x1E, 0x96, 0x51}, // ID
   /*ATmega4809*/         0, 0x0c000, 0x080,  1,      0, 0x01400, 0x0100, 64, 0x2800, 0x1800, // Mem
-  /*ATmega4809*/        10,  1,  40, vtab_atmega4809,      0, NULL}, // Config and interrupts
+  /*ATmega4809*/        10,  1,  40, vtab_atmega4809,      15, cfgtab_atmega808}, // Config, ISRs
 
   //AVR8EA28                                                  avrdude // Sources
   {"AVR8EA28",         327, F_AVR8X, {0x1E, 0x93, 0x2C}, // ID
   /*AVR8EA28*/           0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR8EA28*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR8EA28*/          -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AVR8EA32                                                  avrdude // Sources
   {"AVR8EA32",         328, F_AVR8X, {0x1E, 0x93, 0x2B}, // ID
   /*AVR8EA32*/           0, 0x02000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR8EA32*/          -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR8EA32*/          -1, -1,   0, NULL,                  0, NULL}, // Config, ISRs
 
   //AVR16DD14                                           atdf, avrdude // Sources
   {"AVR16DD14",        329, F_AVR8X, {0x1E, 0x94, 0x34}, // ID
   /*AVR16DD14*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR16DD14*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR16DD20                                           atdf, avrdude // Sources
   {"AVR16DD20",        330, F_AVR8X, {0x1E, 0x94, 0x33}, // ID
   /*AVR16DD20*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR16DD20*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR16DD28                                           atdf, avrdude // Sources
   {"AVR16DD28",        331, F_AVR8X, {0x1E, 0x94, 0x32}, // ID
   /*AVR16DD28*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR16DD28*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
-  //AVR16EA28                                                 avrdude // Sources
+  //AVR16EA28                                           atdf, avrdude // Sources
   {"AVR16EA28",        332, F_AVR8X, {0x1E, 0x94, 0x37}, // ID
-  /*AVR16EA28*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR16EA28*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR16EA28*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
+  /*AVR16EA28*/         16,  4,  37, vtab_avr64ea32,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR16DD32                                           atdf, avrdude // Sources
   {"AVR16DD32",        333, F_AVR8X, {0x1E, 0x94, 0x31}, // ID
   /*AVR16DD32*/          0, 0x04000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7800, 0x0800, // Mem
-  /*AVR16DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR16DD32*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
-  //AVR16EA32                                                 avrdude // Sources
+  //AVR16EA32                                           atdf, avrdude // Sources
   {"AVR16EA32",        334, F_AVR8X, {0x1E, 0x94, 0x36}, // ID
-  /*AVR16EA32*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR16EA32*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR16EA32*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
+  /*AVR16EA32*/         16,  4,  37, vtab_avr64ea32,       16, cfgtab_avr64ea48}, // Config, ISRs
 
-  //AVR16EA48                                                 avrdude // Sources
+  //AVR16EA48                                           atdf, avrdude // Sources
   {"AVR16EA48",        335, F_AVR8X, {0x1E, 0x94, 0x35}, // ID
-  /*AVR16EA48*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR16EA48*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR16EA48*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
+  /*AVR16EA48*/         16,  4,  45, vtab_avr64ea48,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR32DD14                                           atdf, avrdude // Sources
   {"AVR32DD14",        336, F_AVR8X, {0x1E, 0x95, 0x3B}, // ID
   /*AVR32DD14*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR32DD14*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR32DD20                                           atdf, avrdude // Sources
   {"AVR32DD20",        337, F_AVR8X, {0x1E, 0x95, 0x3A}, // ID
   /*AVR32DD20*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR32DD20*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR32DA28                                           atdf, avrdude // Sources
   {"AVR32DA28",        338, F_AVR8X, {0x1E, 0x95, 0x34}, // ID
   /*AVR32DA28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DA28*/         16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
+  /*AVR32DA28*/         16,  4,  41, vtab_avr128da28,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR32DB28                                           atdf, avrdude // Sources
   {"AVR32DB28",        339, F_AVR8X, {0x1E, 0x95, 0x37}, // ID
   /*AVR32DB28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DB28*/         16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
+  /*AVR32DB28*/         16,  4,  42, vtab_avr128db28,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR32DD28                                           atdf, avrdude // Sources
   {"AVR32DD28",        340, F_AVR8X, {0x1E, 0x95, 0x39}, // ID
   /*AVR32DD28*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR32DD28*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
-  //AVR32EA28                                                 avrdude // Sources
+  //AVR32EA28                                           atdf, avrdude // Sources
   {"AVR32EA28",        341, F_AVR8X, {0x1E, 0x95, 0x3E}, // ID
-  /*AVR32EA28*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR32EA28*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR32EA28*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7000, 0x1000, // Mem
+  /*AVR32EA28*/         16,  4,  37, vtab_avr64ea32,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR32DA32                                           atdf, avrdude // Sources
   {"AVR32DA32",        342, F_AVR8X, {0x1E, 0x95, 0x33}, // ID
   /*AVR32DA32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DA32*/         16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
+  /*AVR32DA32*/         16,  4,  44, vtab_avr128da32,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR32DB32                                           atdf, avrdude // Sources
   {"AVR32DB32",        343, F_AVR8X, {0x1E, 0x95, 0x36}, // ID
   /*AVR32DB32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DB32*/         16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
+  /*AVR32DB32*/         16,  4,  44, vtab_avr128db32,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR32DD32                                           atdf, avrdude // Sources
   {"AVR32DD32",        344, F_AVR8X, {0x1E, 0x95, 0x38}, // ID
   /*AVR32DD32*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR32DD32*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
-  //AVR32EA32                                                 avrdude // Sources
+  //AVR32EA32                                           atdf, avrdude // Sources
   {"AVR32EA32",        345, F_AVR8X, {0x1E, 0x95, 0x3D}, // ID
-  /*AVR32EA32*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR32EA32*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR32EA32*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7000, 0x1000, // Mem
+  /*AVR32EA32*/         16,  4,  37, vtab_avr64ea32,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR32DA48                                           atdf, avrdude // Sources
   {"AVR32DA48",        346, F_AVR8X, {0x1E, 0x95, 0x32}, // ID
   /*AVR32DA48*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DA48*/         16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
+  /*AVR32DA48*/         16,  4,  58, vtab_avr128da48,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR32DB48                                           atdf, avrdude // Sources
   {"AVR32DB48",        347, F_AVR8X, {0x1E, 0x95, 0x35}, // ID
   /*AVR32DB48*/          0, 0x08000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x7000, 0x1000, // Mem
-  /*AVR32DB48*/         16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
+  /*AVR32DB48*/         16,  4,  61, vtab_avr128db48,      16, cfgtab_avr32db28}, // Config, ISRs
 
-  //AVR32EA48                                                 avrdude // Sources
+  //AVR32EA48                                           atdf, avrdude // Sources
   {"AVR32EA48",        348, F_AVR8X, {0x1E, 0x95, 0x3C}, // ID
-  /*AVR32EA48*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8,     -1,     -1, // Mem
-  /*AVR32EA48*/         -1, -1,   0, NULL,                 0, NULL}, // Config and interrupts
+  /*AVR32EA48*/          0, 0x08000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7000, 0x1000, // Mem
+  /*AVR32EA48*/         16,  4,  45, vtab_avr64ea48,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR64DD14                                           atdf, avrdude // Sources
   {"AVR64DD14",        349, F_AVR8X, {0x1E, 0x96, 0x1D}, // ID
   /*AVR64DD14*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD14*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR64DD14*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR64DD20                                           atdf, avrdude // Sources
   {"AVR64DD20",        350, F_AVR8X, {0x1E, 0x96, 0x1C}, // ID
   /*AVR64DD20*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD20*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR64DD20*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR64DA28                                           atdf, avrdude // Sources
   {"AVR64DA28",        351, F_AVR8X, {0x1E, 0x96, 0x15}, // ID
   /*AVR64DA28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA28*/         16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
+  /*AVR64DA28*/         16,  4,  41, vtab_avr128da28,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR64DB28                                           atdf, avrdude // Sources
   {"AVR64DB28",        352, F_AVR8X, {0x1E, 0x96, 0x19}, // ID
   /*AVR64DB28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB28*/         16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
+  /*AVR64DB28*/         16,  4,  42, vtab_avr128db28,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR64DD28                                           atdf, avrdude // Sources
   {"AVR64DD28",        353, F_AVR8X, {0x1E, 0x96, 0x1B}, // ID
   /*AVR64DD28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD28*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR64DD28*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR64EA28                                           atdf, avrdude // Sources
   {"AVR64EA28",        354, F_AVR8X, {0x1E, 0x96, 0x20}, // ID
   /*AVR64EA28*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
-  /*AVR64EA28*/         16,  4,  37, vtab_avr64ea32,       0, NULL}, // Config and interrupts
+  /*AVR64EA28*/         16,  4,  37, vtab_avr64ea32,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR64DA32                                           atdf, avrdude // Sources
   {"AVR64DA32",        355, F_AVR8X, {0x1E, 0x96, 0x14}, // ID
   /*AVR64DA32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA32*/         16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
+  /*AVR64DA32*/         16,  4,  44, vtab_avr128da32,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR64DB32                                           atdf, avrdude // Sources
   {"AVR64DB32",        356, F_AVR8X, {0x1E, 0x96, 0x18}, // ID
   /*AVR64DB32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB32*/         16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
+  /*AVR64DB32*/         16,  4,  44, vtab_avr128db32,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR64DD32                                           atdf, avrdude // Sources
   {"AVR64DD32",        357, F_AVR8X, {0x1E, 0x96, 0x1A}, // ID
   /*AVR64DD32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DD32*/         16,  4,  36, vtab_avr64dd32,       0, NULL}, // Config and interrupts
+  /*AVR64DD32*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14}, // Config, ISRs
 
   //AVR64EA32                                           atdf, avrdude // Sources
   {"AVR64EA32",        358, F_AVR8X, {0x1E, 0x96, 0x1F}, // ID
   /*AVR64EA32*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
-  /*AVR64EA32*/         16,  4,  37, vtab_avr64ea32,       0, NULL}, // Config and interrupts
+  /*AVR64EA32*/         16,  4,  37, vtab_avr64ea32,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR64DA48                                           atdf, avrdude // Sources
   {"AVR64DA48",        359, F_AVR8X, {0x1E, 0x96, 0x13}, // ID
   /*AVR64DA48*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA48*/         16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
+  /*AVR64DA48*/         16,  4,  58, vtab_avr128da48,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR64DB48                                           atdf, avrdude // Sources
   {"AVR64DB48",        360, F_AVR8X, {0x1E, 0x96, 0x17}, // ID
   /*AVR64DB48*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB48*/         16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
+  /*AVR64DB48*/         16,  4,  61, vtab_avr128db48,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR64EA48                                           atdf, avrdude // Sources
   {"AVR64EA48",        361, F_AVR8X, {0x1E, 0x96, 0x1E}, // ID
   /*AVR64EA48*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
-  /*AVR64EA48*/         16,  4,  45, vtab_avr64ea48,       0, NULL}, // Config and interrupts
+  /*AVR64EA48*/         16,  4,  45, vtab_avr64ea48,       16, cfgtab_avr64ea48}, // Config, ISRs
 
   //AVR64DA64                                           atdf, avrdude // Sources
   {"AVR64DA64",        362, F_AVR8X, {0x1E, 0x96, 0x12}, // ID
   /*AVR64DA64*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DA64*/         16,  4,  64, vtab_avr128da64,      0, NULL}, // Config and interrupts
+  /*AVR64DA64*/         16,  4,  64, vtab_avr128da64,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR64DB64                                           atdf, avrdude // Sources
   {"AVR64DB64",        363, F_AVR8X, {0x1E, 0x96, 0x16}, // ID
   /*AVR64DB64*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x6000, 0x2000, // Mem
-  /*AVR64DB64*/         16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
+  /*AVR64DB64*/         16,  4,  65, vtab_avr128db64,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR128DA28                                          atdf, avrdude // Sources
   {"AVR128DA28",       364, F_AVR8X, {0x1E, 0x97, 0x0A}, // ID
   /*AVR128DA28*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA28*/        16,  4,  41, vtab_avr128da28,      0, NULL}, // Config and interrupts
+  /*AVR128DA28*/        16,  4,  41, vtab_avr128da28,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR128DB28                                          atdf, avrdude // Sources
   {"AVR128DB28",       365, F_AVR8X, {0x1E, 0x97, 0x0E}, // ID
   /*AVR128DB28*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB28*/        16,  4,  42, vtab_avr128db28,      0, NULL}, // Config and interrupts
+  /*AVR128DB28*/        16,  4,  42, vtab_avr128db28,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR128DA32                                          atdf, avrdude // Sources
   {"AVR128DA32",       366, F_AVR8X, {0x1E, 0x97, 0x09}, // ID
   /*AVR128DA32*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA32*/        16,  4,  44, vtab_avr128da32,      0, NULL}, // Config and interrupts
+  /*AVR128DA32*/        16,  4,  44, vtab_avr128da32,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR128DB32                                          atdf, avrdude // Sources
   {"AVR128DB32",       367, F_AVR8X, {0x1E, 0x97, 0x0D}, // ID
   /*AVR128DB32*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB32*/        16,  4,  44, vtab_avr128db32,      0, NULL}, // Config and interrupts
+  /*AVR128DB32*/        16,  4,  44, vtab_avr128db32,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR128DA48                                          atdf, avrdude // Sources
   {"AVR128DA48",       368, F_AVR8X, {0x1E, 0x97, 0x08}, // ID
   /*AVR128DA48*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA48*/        16,  4,  58, vtab_avr128da48,      0, NULL}, // Config and interrupts
+  /*AVR128DA48*/        16,  4,  58, vtab_avr128da48,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR128DB48                                          atdf, avrdude // Sources
   {"AVR128DB48",       369, F_AVR8X, {0x1E, 0x97, 0x0C}, // ID
   /*AVR128DB48*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB48*/        16,  4,  61, vtab_avr128db48,      0, NULL}, // Config and interrupts
+  /*AVR128DB48*/        16,  4,  61, vtab_avr128db48,      16, cfgtab_avr32db28}, // Config, ISRs
 
   //AVR128DA64                                          atdf, avrdude // Sources
   {"AVR128DA64",       370, F_AVR8X, {0x1E, 0x97, 0x07}, // ID
   /*AVR128DA64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DA64*/        16,  4,  64, vtab_avr128da64,      0, NULL}, // Config and interrupts
+  /*AVR128DA64*/        16,  4,  64, vtab_avr128da64,      15, cfgtab_avr32da28}, // Config, ISRs
 
   //AVR128DB64                                          atdf, avrdude // Sources
   {"AVR128DB64",       371, F_AVR8X, {0x1E, 0x97, 0x0B}, // ID
   /*AVR128DB64*/         0, 0x20000, 0x200,  1,      0, 0x01400, 0x0200,  1, 0x4000, 0x4000, // Mem
-  /*AVR128DB64*/        16,  4,  65, vtab_avr128db64,      0, NULL}, // Config and interrupts
+  /*AVR128DB64*/        16,  4,  65, vtab_avr128db64,      16, cfgtab_avr32db28}, // Config, ISRs
 };
 
 
@@ -2213,8 +2290,8 @@ const char * const vtab_attiny167[vts_attiny167] = {
   "USI_OVF",                    //  19: USI Overflow
 };
 
-// ATtiny828
-const char * const vtab_attiny828[vts_attiny828] = {
+// ATtiny828R ATtiny828
+const char * const vtab_attiny828r[vts_attiny828r] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -2300,8 +2377,8 @@ const char * const vtab_attiny861a[vts_attiny861a] = {
   "FAULT_PROTECTION",           //  18: Timer 1 Fault Protection
 };
 
-// ATtiny1634
-const char * const vtab_attiny1634[vts_attiny1634] = {
+// ATtiny1634R ATtiny1634
+const char * const vtab_attiny1634r[vts_attiny1634r] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "PCINT0",                     //   2: Pin Change Interrupt 0
@@ -2669,7 +2746,7 @@ const char * const vtab_atmega64m1[vts_atmega64m1] = {
   "SPM_READY",                  //  30: Store Program Memory Ready
 };
 
-// ATmega64HVE2 ATmega64HVE
+// ATmega64HVE2 ATmega64HVE ATmega32HVE2
 const char * const vtab_atmega64hve2[vts_atmega64hve2] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
@@ -3063,7 +3140,7 @@ const char * const vtab_atmega328[vts_atmega328] = {
 
 /*
  * ATmega328P ATmega168PA ATmega168P ATmega168A ATmega88PA ATmega88P ATmega88A ATmega88 ATmega48PA
- * ATmega48P ATmega48A ATmega48 ATA6614Q ATA6613C ATA6612C
+ * ATmega48P ATmega48A ATmega48 ATA6614Q ATA6613C ATA6612C LGT8F328P LGT8F168P LGT8F88P
  */
 const char * const vtab_atmega328p[vts_atmega328p] = {
   "RESET",                      //   0: Reset (various reasons)
@@ -3760,8 +3837,8 @@ const char * const vtab_at90pwm3b[vts_at90pwm3b] = {
   "SPM_READY",                  //  31: Store Program Memory Ready
 };
 
-// AT90SCR100
-const char * const vtab_at90scr100[vts_at90scr100] = {
+// AT90SCR100H AT90SCR100
+const char * const vtab_at90scr100h[vts_at90scr100h] = {
   "RESET",                      //   0: Reset (various reasons)
   "INT0",                       //   1: External Interrupt 0
   "INT1",                       //   2: External Interrupt 1
@@ -4670,8 +4747,8 @@ const char * const vtab_atxmega32e5[vts_atxmega32e5] = {
   "USARTD0_TXC",                //  42: USARTD 0 Transmission Complete
 };
 
-// ATxmega128A1 ATxmega64A1
-const char * const vtab_atxmega128a1[vts_atxmega128a1] = {
+// ATxmega128A1revD ATxmega128A1 ATxmega64A1
+const char * const vtab_atxmega128a1revd[vts_atxmega128a1revd] = {
   "RESET",                      //   0: Reset (various reasons)
   "OSC_OSCF",                   //   1: Oscillator Failure NMI
   "PORTC_INT0",                 //   2: External Interrupt 0 PORT C
@@ -6677,7 +6754,7 @@ const char * const vtab_avr64dd32[vts_avr64dd32] = {
   "NVMCTRL_EE",                 //  35: NVM EEPROM
 };
 
-// AVR64EA32 AVR64EA28
+// AVR64EA32 AVR64EA28 AVR32EA32 AVR32EA28 AVR16EA32 AVR16EA28
 const char * const vtab_avr64ea32[vts_avr64ea32] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
@@ -6718,7 +6795,7 @@ const char * const vtab_avr64ea32[vts_avr64ea32] = {
   "USART2_TXC",                 //  36: USART 2 Transmit Complete
 };
 
-// AVR64EA48
+// AVR64EA48 AVR32EA48 AVR16EA48
 const char * const vtab_avr64ea48[vts_avr64ea48] = {
   "RESET",                      //   0: Reset (various reasons)
   "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
@@ -7218,3 +7295,5113 @@ const char * const vtab_avr128db64[vts_avr128db64] = {
   "USART5_TXC",                 //  64: USART 5 Transmit Complete
 };
 
+
+
+// Configuration value tables
+
+/*
+ * ATmega328 ATmega48 ATmega48A ATmega48P ATmega48PA ATmega88 ATmega88A ATmega88P ATmega88PA
+ * ATmega168 ATmega168A ATmega168P ATmega168PA ATmega328P ATA6612C ATA6613C ATA6614Q
+ */
+static const Valueitem_t _values_sut_cksel_atmega328[55] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_14ck_0ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 0 ms"},
+  {0x06, "extfsxtal_258ck_14ck_4ms1", "ext full-swing crystal; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x07, "extfsxtal_1kck_14ck_65ms", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_14ck_4ms1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 4.1 ms"},
+  {0x16, "extfsxtal_258ck_14ck_65ms", "ext full-swing crystal; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x17, "extfsxtal_16kck_14ck_0ms", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_14ck_65ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 65 ms"},
+  {0x26, "extfsxtal_1kck_14ck_0ms", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x27, "extfsxtal_16kck_14ck_4ms1", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x36, "extfsxtal_1kck_14ck_4ms1", "ext full-swing crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x37, "extfsxtal_16kck_14ck_65ms", "ext full-swing crystal; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1 AT90PWM2B AT90PWM3B AT90PWM316
+static const Valueitem_t _values_sut_cksel_atmega16m1[53] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_pllin_extclk_6kck_14ck_0ms", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "pllclk_16mhz_1kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x04, "extxosc_pllin_extxosc_1kck_14ck_0ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "pllclk_pllin_extxosc_1kck_14ck_0ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "pllclk_pllin_extclk_6kck_14ck_4ms", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 4 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "pllclk_16mhz_1kck_14ck_4ms1", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x14, "extxosc_pllin_extxosc_1kck_14ck_4ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x15, "pllclk_pllin_extxosc_1kck_14ck_4ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "pllclk_pllin_extclk_6kck_14ck_64ms", "PLL clock/4; PLL input: ext clock; startup time PWRDWN/RESET: 6K CK/14 CK + 64 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "pllclk_16mhz_1kck_14ck_65ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x24, "extxosc_pllin_extxosc_16kck_14ck_4ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x25, "pllclk_pllin_extxosc_16kck_14ck_4ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x33, "pllclk_16mhz_16kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x34, "extxosc_pllin_extxosc_16kck_14ck_64ms", "ext crystal osc; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x35, "pllclk_pllin_extxosc_16kck_14ck_64ms", "PLL clock/4; PLL input: ext crystal osc; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// ATmega328PB ATmega48PB ATmega88PB ATmega168PB ATmega324PB
+static const Valueitem_t _values_sut_cksel_atmega328pb[47] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_14ck_0ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_14ck_4ms1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_14ck_4ms1", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 4.1 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_14ck_65ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_14ck_65ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 65 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+/*
+ * ATmega8515 ATmega103comp AT90S8535comp ATmega8 ATmega8A ATmega16 ATmega16A ATmega32 ATmega32A
+ * ATmega64 ATmega64A ATmega128 ATmega128A ATmega8535 AT90S8515comp
+ */
+static const Valueitem_t _values_sut_cksel_atmega8515[58] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x01, "intrcosc_1mhz_6ck_0ms", "int RC osc 1 MHz; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_2mhz_6ck_0ms", "int RC osc 2 MHz; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_4mhz_6ck_0ms", "int RC osc 4 MHz; startup time: 6 CK + 0 ms"},
+  {0x04, "intrcosc_8mhz_6ck_0ms", "int RC osc 8 MHz; startup time: 6 CK + 0 ms"},
+  {0x05, "extrcosc_xx_0mhz9_18ck_0ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 0 ms"},
+  {0x06, "extrcosc_0mhz9_3mhz_18ck_0ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x07, "extrcosc_3mhz_8mhz_18ck_0ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x08, "extrcosc_8mhz_12mhz_18ck_0ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x09, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time: 1024 CK + 4 ms"},
+  {0x0a, "extlofxtalres_258ck_4ms", "ext crystal/resonator low freq; startup time: 258 CK + 4 ms"},
+  {0x0b, "extlofxtalres_1kck_64ms", "ext crystal/resonator low freq; startup time: 1024 CK + 64 ms"},
+  {0x0c, "extmedfxtalres_258ck_4ms", "ext crystal/resonator medium freq; startup time: 258 CK + 4 ms"},
+  {0x0d, "extmedfxtalres_1kck_64ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 64 ms"},
+  {0x0e, "exthifxtalres_258ck_4ms", "ext crystal/resonator high freq; startup time: 258 CK + 4 ms"},
+  {0x0f, "exthifxtalres_1kck_64ms", "ext crystal/resonator high freq; startup time: 1024 CK + 64 ms"},
+  {0x10, "extclk_6ck_4ms", "ext clock; startup time: 6 CK + 4 ms"},
+  {0x11, "intrcosc_1mhz_6ck_4ms", "int RC osc 1 MHz; startup time: 6 CK + 4 ms"},
+  {0x12, "intrcosc_2mhz_6ck_4ms", "int RC osc 2 MHz; startup time: 6 CK + 4 ms"},
+  {0x13, "intrcosc_4mhz_6ck_4ms", "int RC osc 4 MHz; startup time: 6 CK + 4 ms"},
+  {0x14, "intrcosc_8mhz_6ck_4ms", "int RC osc 8 MHz; startup time: 6 CK + 4 ms"},
+  {0x15, "extrcosc_xx_0mhz9_18ck_4ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 4 ms"},
+  {0x16, "extrcosc_0mhz9_3mhz_18ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x17, "extrcosc_3mhz_8mhz_18ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x18, "extrcosc_8mhz_12mhz_18ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x19, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time: 1024 CK + 64 ms"},
+  {0x1a, "extlofxtalres_258ck_64ms", "ext crystal/resonator low freq; startup time: 258 CK + 64 ms"},
+  {0x1b, "extlofxtalres_16kck_0ms", "ext crystal/resonator low freq; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extmedfxtalres_258ck_64ms", "ext crystal/resonator medium freq; startup time: 258 CK + 64 ms"},
+  {0x1d, "extmedfxtalres_16kck_0ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 0 ms"},
+  {0x1e, "exthifxtalres_258ck_64ms", "ext crystal/resonator high freq; startup time: 258 CK + 64 ms"},
+  {0x1f, "exthifxtalres_16kck_0ms", "ext crystal/resonator high freq; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_64ms", "ext clock; startup time: 6 CK + 64 ms"},
+  {0x21, "intrcosc_1mhz_6ck_64ms", "int RC osc 1 MHz; startup time: 6 CK + 64 ms"},
+  {0x22, "intrcosc_2mhz_6ck_64ms", "int RC osc 2 MHz; startup time: 6 CK + 64 ms"},
+  {0x23, "intrcosc_4mhz_6ck_64ms", "int RC osc 4 MHz; startup time: 6 CK + 64 ms"},
+  {0x24, "intrcosc_8mhz_6ck_64ms", "int RC osc 8 MHz; startup time: 6 CK + 64 ms"},
+  {0x25, "extrcosc_xx_0mhz9_18ck_64ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 64 ms"},
+  {0x26, "extrcosc_0mhz9_3mhz_18ck_64ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 64 ms"},
+  {0x27, "extrcosc_3mhz_8mhz_18ck_64ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 64 ms"},
+  {0x28, "extrcosc_8mhz_12mhz_18ck_64ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 64 ms"},
+  {0x29, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time: 32768 CK + 64 ms"},
+  {0x2a, "extlofxtalres_1kck_0ms", "ext crystal/resonator low freq; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extlofxtalres_16kck_4ms", "ext crystal/resonator low freq; startup time: 16384 CK + 4 ms"},
+  {0x2c, "extmedfxtalres_1kck_0ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extmedfxtalres_16kck_4ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 4 ms"},
+  {0x2e, "exthifxtalres_1kck_0ms", "ext crystal/resonator high freq; startup time: 1024 CK + 0 ms"},
+  {0x2f, "exthifxtalres_16kck_4ms", "ext crystal/resonator high freq; startup time: 16384 CK + 4 ms"},
+  {0x35, "extrcosc_xx_0mhz9_6ck_4ms", "ext RC osc -0.9 MHz; startup time: 6 CK + 4 ms"},
+  {0x36, "extrcosc_0mhz9_3mhz_6ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 6 CK + 4 ms"},
+  {0x37, "extrcosc_3mhz_8mhz_6ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 6 CK + 4 ms"},
+  {0x38, "extrcosc_8mhz_12mhz_6ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 6 CK + 4 ms"},
+  {0x3a, "extlofxtalres_1kck_4ms", "ext crystal/resonator low freq; startup time: 1024 CK + 4 ms"},
+  {0x3b, "extlofxtalres_16kck_64ms", "ext crystal/resonator low freq; startup time: 16384 CK + 64 ms"},
+  {0x3c, "extmedfxtalres_1kck_4ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 4 ms"},
+  {0x3d, "extmedfxtalres_16kck_64ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 64 ms"},
+  {0x3e, "exthifxtalres_1kck_4ms", "ext crystal/resonator high freq; startup time: 1024 CK + 4 ms"},
+  {0x3f, "exthifxtalres_16kck_64ms", "ext crystal/resonator high freq; startup time: 16384 CK + 64 ms"},
+};
+
+// ATtiny441 ATtiny841
+static const Valueitem_t _values_sut_cksel_attiny441[17] = {
+  {0x00, "extclk_6ck_16ck_16ms", "ext clock; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x02, "intrcosc_8mhz_6ck_16ck_16ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x04, "intulposc_32khz_6ck_16ck_16ms", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x06, "extlofxtal_1kck_16ck_16ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_16kck_16ck_16ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_16kck_16ck_16ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_16kck_16ck_16ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16K CK/16 CK + 16 ms"},
+  {0x0e, "extcres_8mhz_xx_258ck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0f, "extxosc_8mhz_xx_16kck_16ck_16ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x16, "extlofxtal_32kck_14ck_16ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/16 CK + 16 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_1kck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_1kck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1c, "extcres_3mhz_8mhz_1kck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1e, "extcres_8mhz_xx_1kck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+};
+
+// AT90PWM2 AT90PWM1 AT90PWM3 AT90PWM216
+static const Valueitem_t _values_sut_cksel_at90pwm2[42] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "pllclk_16mhz_1kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "pllclk_16mhz_1kck_14ck_4ms1", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "pllclk_16mhz_1kck_14ck_65ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x33, "pllclk_16mhz_16kck_14ck_0ms", "PLL clock 16 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// AT90PWM81 AT90PWM161
+static const Valueitem_t _values_sut_cksel_at90pwm81[56] = {
+  {0x00, "extclk_pllin_rc_8mhz_6ck_14ck_0ms", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_div4_pllin_rc_8mhz_1kck_14ck_0ms", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x02, "rc_8mhz_pllin_rc_8mhz_6ck_14ck_0ms", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "wdosc_128khz_1kck_14ck_0ms", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x04, "pllclk_div4_pllin_xosc_1kck_14ck_0ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x05, "pllclk_div4_pllin_extclk_16kck_14ck_0ms", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x06, "rc_1mhz_1kck_14ck_0ms", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "xosc_pllin_rc_8mhz_258ck_14ck_4ms1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "xosc_pllin_rc_8mhz_1kck_14ck_65ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "xosc_3mhz_8mhz_pllin_rc_8mhz_258ck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "xosc_3mhz_8mhz_pllin_rc_8mhz_1kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "xosc_3mhz_8mhz_pllin_xosc_258ck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "xosc_3mhz_8mhz_pllin_xosc_1kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "xosc_8mhz_16mhz_pllin_rc_8mhz_258ck_14ck_4ms1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "xosc_8mhz_16mhz_pllin_rc_8mhz_1kck_14ck_65ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_pllin_rc_8mhz_6ck_14ck_4ms1", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "pllclk_div4_pllin_rc_8mhz_1kck_14ck_4ms", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x12, "rc_8mhz_pllin_rc_8mhz_6ck_14ck_4ms1", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "wdosc_128khz_1kck_14ck_4ms1", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x14, "pllclk_div4_pllin_xosc_1kck_14ck_4ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x15, "pllclk_div4_pllin_extclk_16kck_14ck_4msx15", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x16, "rc_1mhz_1kck_14ck_4ms1", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x18, "xosc_pllin_rc_8mhz_258ck_14ck_65ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "xosc_pllin_rc_8mhz_16kck_14ck_0ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "xosc_3mhz_8mhz_pllin_rc_8mhz_258ck_14ck_65ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "xosc_3mhz_8mhz_pllin_rc_8mhz_16kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "xosc_3mhz_8mhz_pllin_xosc_258ck_14ck_65ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "xosc_3mhz_8mhz_pllin_xosc_16kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "xosc_8mhz_16mhz_pllin_rc_8mhz_258ck_14ck_65ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "xosc_8mhz_16mhz_pllin_rc_8mhz_16kck_14ck_0ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_pllin_rc_8mhz_6ck_14ck_65ms", "ext clock; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "pllclk_div4_pllin_rc_8mhz_1kck_14ck_64ms", "PLL/4; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
+  {0x22, "rc_8mhz_pllin_rc_8mhz_6ck_14ck_65ms", "RC 8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "wdosc_128khz_1kck_14ck_65ms", "WD 128 kHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x24, "pllclk_div4_pllin_xosc_1kck_14ck_64ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
+  {0x25, "pllclk_div4_pllin_extclk_16kck_14ck_4msx25", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x26, "rc_1mhz_1kck_14ck_65ms", "RC 1 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x28, "xosc_pllin_rc_8mhz_1kck_14ck_0ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "xosc_pllin_rc_8mhz_16kck_14ck_4ms1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "xosc_3mhz_8mhz_pllin_rc_8mhz_1kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "xosc_3mhz_8mhz_pllin_rc_8mhz_16kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "xosc_3mhz_8mhz_pllin_xosc_1kck_14ck_0ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "xosc_3mhz_8mhz_pllin_xosc_16kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "xosc_8mhz_16mhz_pllin_rc_8mhz_1kck_14ck_0ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "xosc_8mhz_16mhz_pllin_rc_8mhz_16kck_14ck_4ms1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x33, "wdosc_128khz_16kck_14ck_0ms", "WD 128 kHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x34, "pllclk_div4_pllin_xosc_16kck_14ck_0ms", "PLL/4; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x35, "pllclk_div4_pllin_extclk_16kck_14ck_64ms", "PLL/4; PLL input: ext CK; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x38, "xosc_pllin_rc_8mhz_1kck_14ck_4ms1", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "xosc_pllin_rc_8mhz_16kck_14ck_65ms", "XOSC 0.9-3 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "xosc_3mhz_8mhz_pllin_rc_8mhz_1kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "xosc_3mhz_8mhz_pllin_rc_8mhz_16kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "xosc_3mhz_8mhz_pllin_xosc_1kck_14ck_4ms1", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "xosc_3mhz_8mhz_pllin_xosc_16kck_14ck_65ms", "XOSC 3-8 MHz; PLL input: XOSC; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "xosc_8mhz_16mhz_pllin_rc_8mhz_1kck_14ck_4ms1", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "xosc_8mhz_16mhz_pllin_rc_8mhz_16kck_14ck_65ms", "XOSC 8-16 MHz; PLL input: RC 8 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+/*
+ * AT90CAN128 AT90USB162 ATmega161comp ATmega8U2 ATmega16U2 ATmega16U4 ATmega32U2 ATmega32U4
+ * ATmega32U6 ATmega162 AT90USB82 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
+ */
+static const Valueitem_t _values_sut_cksel_at90can128[50] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_0ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 0 ms; int cap"},
+  {0x07, "extlofxtal_32kck_0ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 0 ms; int cap"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x16, "extlofxtal_1kck_4ms1_intcap", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms; int cap"},
+  {0x17, "extlofxtal_32kck_4ms1_intcap", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms; int cap"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_65ms", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x26, "extlofxtal_1kck_65ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 65 ms; int cap"},
+  {0x27, "extlofxtal_32kck_65ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 65 ms; int cap"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_sut_cksel_ata6285[3] = {
+  {0, "sut_6ck_14ck_0ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {1, "sut_6ck_14ck_5ms7", "startup time PWRDWN/RESET: 6 CK/14 CK + 5.7 ms"},
+  {2, "sut_6ck_14ck_90ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 90 ms"},
+};
+
+// AT90SCR100H AT90SCR100
+static const Valueitem_t _values_sut_cksel_at90scr100h[14] = {
+  {0x00, "extclk_bodenx00", "ext clock; brownout detection"},
+  {0x01, "extclk_bodenx01", "ext clock; brownout detection"},
+  {0x08, "cres_fastpwrx08", "ceramic res; fast rising power"},
+  {0x09, "cres_slowpwrx09", "ceramic res; slowly rising power"},
+  {0x10, "extclk_fastpwrx10", "ext clock; fast rising power"},
+  {0x11, "extclk_fastpwrx11", "ext clock; fast rising power"},
+  {0x18, "cres_slowpwrx18", "ceramic res; slowly rising power"},
+  {0x19, "xosc_boden", "crystal osc; brownout detection"},
+  {0x20, "extclk_slowpwrx20", "ext clock; slowly rising power"},
+  {0x21, "extclk_slowpwrx21", "ext clock; slowly rising power"},
+  {0x28, "cres_boden", "ceramic res; brownout detection"},
+  {0x29, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {0x38, "cres_fastpwrx38", "ceramic res; fast rising power"},
+  {0x39, "xosc_slowpwr", "crystal osc; slowly rising power"},
+};
+
+// ATtiny13 ATtiny13A
+static const Valueitem_t _values_sut_cksel_attiny13[12] = {
+  {0x00, "extclk_14ck_0ms", "ext clock; startup time: 14 CK + 0 ms"},
+  {0x01, "intrcosc_4mhz8_14ck_0ms", "int RC osc 4.8 MHz; startup time: 14 CK + 0 ms"},
+  {0x02, "intrcosc_9mhz6_14ck_0ms", "int RC osc 9.6 MHz; startup time: 14 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_14ck_0ms", "int RC osc 128 kHz; startup time: 14 CK + 0 ms"},
+  {0x04, "extclk_14ck_4ms", "ext clock; startup time: 14 CK + 4 ms"},
+  {0x05, "intrcosc_4mhz8_14ck_4ms", "int RC osc 4.8 MHz; startup time: 14 CK + 4 ms"},
+  {0x06, "intrcosc_9mhz6_14ck_4ms", "int RC osc 9.6 MHz; startup time: 14 CK + 4 ms"},
+  {0x07, "intrcosc_128khz_14ck_4ms", "int RC osc 128 kHz; startup time: 14 CK + 4 ms"},
+  {0x08, "extclk_14ck_64ms", "ext clock; startup time: 14 CK + 64 ms"},
+  {0x09, "intrcosc_4mhz8_14ck_64ms", "int RC osc 4.8 MHz; startup time: 14 CK + 64 ms"},
+  {0x0a, "intrcosc_9mhz6_14ck_64ms", "int RC osc 9.6 MHz; startup time: 14 CK + 64 ms"},
+  {0x0b, "intrcosc_128khz_14ck_64ms", "int RC osc 128 kHz; startup time: 14 CK + 64 ms"},
+};
+
+// ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
+static const Valueitem_t _values_sut_cksel_attiny24[44] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x16, "extlofxtal_1kck_14ck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x24, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x26, "extlofxtal_32kck_14ck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 64 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// ATtiny25 ATtiny45 ATtiny85
+static const Valueitem_t _values_sut_cksel_attiny25[51] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_1kck_14ck_4ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intrcosc_6mhz4_6ck_14ck_64ms", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x04, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_14ck_0ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "pllclk_16kck_14ck_4ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 4 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x16, "extlofxtal_1kck_14ck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "pllclk_1kck_14ck_64ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 64 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x23, "intrcosc_6mhz4_6ck_14ck_4ms", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x24, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x26, "extlofxtal_32kck_14ck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/14 CK + 64 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x31, "pllclk_16kck_14ck_64ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 64 ms"},
+  {0x33, "intrcosc_6mhz4_1ck_14ck_0ms", "ATtiny15 comp: int RC osc 6.4 MHz; startup time PWRDWN/RESET: 1 CK/14 CK + 0 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// ATtiny26
+static const Valueitem_t _values_sut_cksel_attiny26[62] = {
+  {0x01, "pllclk_1kck_0ms", "PLL clock; startup time: 1024 CK + 0 ms"},
+  {0x11, "pllclk_1kck_4ms", "PLL clock; startup time: 1024 CK + 4 ms"},
+  {0x21, "pllclk_1kck_64ms", "PLL clock; startup time: 1024 CK + 64 ms"},
+  {0x31, "pllclk_16kck_64ms", "PLL clock; startup time: 16384 CK + 64 ms"},
+  {0x80, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x81, "intrcosc_1mhz_6ck_0ms", "int RC osc 1 MHz; startup time: 6 CK + 0 ms"},
+  {0x82, "intrcosc_2mhz_6ck_0ms", "int RC osc 2 MHz; startup time: 6 CK + 0 ms"},
+  {0x83, "intrcosc_4mhz_6ck_0ms", "int RC osc 4 MHz; startup time: 6 CK + 0 ms"},
+  {0x84, "intrcosc_8mhz_6ck_0ms", "int RC osc 8 MHz; startup time: 6 CK + 0 ms"},
+  {0x85, "extrcosc_xx_0mhz9_18ck_0ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 0 ms"},
+  {0x86, "extrcosc_0mhz9_3mhz_18ck_0ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x87, "extrcosc_3mhz_8mhz_18ck_0ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x88, "extrcosc_8mhz_12mhz_18ck_0ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 0 ms"},
+  {0x89, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time: 1024 CK + 4 ms"},
+  {0x8a, "extlofxtalres_258ck_4ms", "ext crystal/resonator low freq; startup time: 258 CK + 4 ms"},
+  {0x8b, "extlofxtalres_1kck_64ms", "ext crystal/resonator low freq; startup time: 1024 CK + 64 ms"},
+  {0x8c, "extmedfxtalres_258ck_4ms", "ext crystal/resonator medium freq; startup time: 258 CK + 4 ms"},
+  {0x8d, "extmedfxtalres_1kck_64ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 64 ms"},
+  {0x8e, "exthifxtalres_258ck_4ms", "ext crystal/resonator high freq; startup time: 258 CK + 4 ms"},
+  {0x8f, "exthifxtalres_1kck_64ms", "ext crystal/resonator high freq; startup time: 1024 CK + 64 ms"},
+  {0x90, "extclk_6ck_4ms", "ext clock; startup time: 6 CK + 4 ms"},
+  {0x91, "intrcosc_1mhz_6ck_4ms", "int RC osc 1 MHz; startup time: 6 CK + 4 ms"},
+  {0x92, "intrcosc_2mhz_6ck_4ms", "int RC osc 2 MHz; startup time: 6 CK + 4 ms"},
+  {0x93, "intrcosc_4mhz_6ck_4ms", "int RC osc 4 MHz; startup time: 6 CK + 4 ms"},
+  {0x94, "intrcosc_8mhz_6ck_4ms", "int RC osc 8 MHz; startup time: 6 CK + 4 ms"},
+  {0x95, "extrcosc_xx_0mhz9_18ck_4ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 4 ms"},
+  {0x96, "extrcosc_0mhz9_3mhz_18ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x97, "extrcosc_3mhz_8mhz_18ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x98, "extrcosc_8mhz_12mhz_18ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 4 ms"},
+  {0x99, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time: 1024 CK + 64 ms"},
+  {0x9a, "extlofxtalres_258ck_64ms", "ext crystal/resonator low freq; startup time: 258 CK + 64 ms"},
+  {0x9b, "extlofxtalres_16kck_0ms", "ext crystal/resonator low freq; startup time: 16384 CK + 0 ms"},
+  {0x9c, "extmedfxtalres_258ck_64ms", "ext crystal/resonator medium freq; startup time: 258 CK + 64 ms"},
+  {0x9d, "extmedfxtalres_16kck_0ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 0 ms"},
+  {0x9e, "exthifxtalres_258ck_64ms", "ext crystal/resonator high freq; startup time: 258 CK + 64 ms"},
+  {0x9f, "exthifxtalres_16kck_0ms", "ext crystal/resonator high freq; startup time: 16384 CK + 0 ms"},
+  {0xa0, "extclk_6ck_64ms", "ext clock; startup time: 6 CK + 64 ms"},
+  {0xa1, "intrcosc_1mhz_6ck_64ms", "int RC osc 1 MHz; startup time: 6 CK + 64 ms"},
+  {0xa2, "intrcosc_2mhz_6ck_64ms", "int RC osc 2 MHz; startup time: 6 CK + 64 ms"},
+  {0xa3, "intrcosc_4mhz_6ck_64ms", "int RC osc 4 MHz; startup time: 6 CK + 64 ms"},
+  {0xa4, "intrcosc_8mhz_6ck_64ms", "int RC osc 8 MHz; startup time: 6 CK + 64 ms"},
+  {0xa5, "extrcosc_xx_0mhz9_18ck_64ms", "ext RC osc -0.9 MHz; startup time: 18 CK + 64 ms"},
+  {0xa6, "extrcosc_0mhz9_3mhz_18ck_64ms", "ext RC osc 0.9-3.0 MHz; startup time: 18 CK + 64 ms"},
+  {0xa7, "extrcosc_3mhz_8mhz_18ck_64ms", "ext RC osc 3.0-8.0 MHz; startup time: 18 CK + 64 ms"},
+  {0xa8, "extrcosc_8mhz_12mhz_18ck_64ms", "ext RC osc 8.0-12.0 MHz; startup time: 18 CK + 64 ms"},
+  {0xa9, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time: 32768 CK + 64 ms"},
+  {0xaa, "extlofxtalres_1kck_0ms", "ext crystal/resonator low freq; startup time: 1024 CK + 0 ms"},
+  {0xab, "extlofxtalres_16kck_4ms", "ext crystal/resonator low freq; startup time: 16384 CK + 4 ms"},
+  {0xac, "extmedfxtalres_1kck_0ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 0 ms"},
+  {0xad, "extmedfxtalres_16kck_4ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 4 ms"},
+  {0xae, "exthifxtalres_1kck_0ms", "ext crystal/resonator high freq; startup time: 1024 CK + 0 ms"},
+  {0xaf, "exthifxtalres_16kck_4ms", "ext crystal/resonator high freq; startup time: 16384 CK + 4 ms"},
+  {0xb5, "extrcosc_xx_0mhz9_6ck_4ms", "ext RC osc -0.9 MHz; startup time: 6 CK + 4 ms"},
+  {0xb6, "extrcosc_0mhz9_3mhz_6ck_4ms", "ext RC osc 0.9-3.0 MHz; startup time: 6 CK + 4 ms"},
+  {0xb7, "extrcosc_3mhz_8mhz_6ck_4ms", "ext RC osc 3.0-8.0 MHz; startup time: 6 CK + 4 ms"},
+  {0xb8, "extrcosc_8mhz_12mhz_6ck_4ms", "ext RC osc 8.0-12.0 MHz; startup time: 6 CK + 4 ms"},
+  {0xba, "extlofxtalres_1kck_4ms", "ext crystal/resonator low freq; startup time: 1024 CK + 4 ms"},
+  {0xbb, "extlofxtalres_16kck_64ms", "ext crystal/resonator low freq; startup time: 16384 CK + 64 ms"},
+  {0xbc, "extmedfxtalres_1kck_4ms", "ext crystal/resonator medium freq; startup time: 1024 CK + 4 ms"},
+  {0xbd, "extmedfxtalres_16kck_64ms", "ext crystal/resonator medium freq; startup time: 16384 CK + 64 ms"},
+  {0xbe, "exthifxtalres_1kck_4ms", "ext crystal/resonator high freq; startup time: 1024 CK + 4 ms"},
+  {0xbf, "exthifxtalres_16kck_64ms", "ext crystal/resonator high freq; startup time: 16384 CK + 64 ms"},
+};
+
+// ATtiny43U ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A
+static const Valueitem_t _values_sut_cksel_attiny43u[48] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "pllclk_1kck_14ck_8ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 8 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/4 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extcres_0mhz4_0mhz9_1kck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extcres_0mhz9_3mhz_1kck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extcres_3mhz_8mhz_1kck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extcres_8mhz_xx_258ck_14ck_4ms1", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extcres_8mhz_xx_1kck_14ck_65ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x11, "pllclk_16kck_14ck_8ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 8 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x13, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/64 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_258ck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_258ck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extcres_3mhz_8mhz_258ck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extcres_8mhz_xx_258ck_14ck_65ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_14ck_0ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_64ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x21, "pllclk_1kck_14ck_68ms", "PLL clock; startup time PWRDWN/RESET: 1024 CK/14 CK + 68 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x23, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x24, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/64 ms"},
+  {0x28, "extcres_0mhz4_0mhz9_1kck_14ck_0ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extcres_0mhz9_3mhz_1kck_14ck_0ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extcres_3mhz_8mhz_1kck_14ck_0ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extcres_8mhz_xx_1kck_14ck_0ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_14ck_4ms1", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x31, "pllclk_16kck_14ck_68ms", "PLL clock; startup time PWRDWN/RESET: 16384 CK/14 CK + 68 ms"},
+  {0x38, "extcres_0mhz4_0mhz9_1kck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extcres_0mhz9_3mhz_1kck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extcres_3mhz_8mhz_1kck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extcres_8mhz_xx_1kck_14ck_4ms1", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_14ck_65ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// ATtiny48 ATtiny88
+static const Valueitem_t _values_sut_cksel_attiny48[9] = {
+  {0x0c, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x0e, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x0f, "intrcosc_128khz_6ck_14ck_0ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x1c, "extclk_6ck_14ck_4ms1", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x1e, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x1f, "intrcosc_128khz_6ck_14ck_4ms1", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x2c, "extclk_6ck_14ck_65ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x2e, "intrcosc_8mhz_6ck_14ck_65ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x2f, "intrcosc_128khz_6ck_14ck_65ms", "int RC osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+};
+
+// ATtiny87 ATtiny167 ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
+static const Valueitem_t _values_sut_cksel_attiny87[44] = {
+  {0x00, "extclk_6ck_14ck_0ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "wdosc_128khz_6ck_14ck_0ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_4ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/4 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x09, "extcres_0mhz4_0mhz9_1kck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0b, "extcres_0mhz9_3mhz_1kck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0d, "extcres_3mhz_8mhz_1kck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x0e, "extcres_8mhz_16mhz_258ck_14ck_4ms1", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 4.1 ms"},
+  {0x0f, "extcres_8mhz_16mhz_1kck_14ck_65ms", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 65 ms"},
+  {0x10, "extclk_6ck_14ck_4ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x13, "wdosc_128khz_6ck_14ck_4ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {0x14, "extlofxtal_1kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 1024 CK/64 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_258ck_14ck_65ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_14ck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_258ck_14ck_65ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_14ck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1c, "extcres_3mhz_8mhz_258ck_14ck_65ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_14ck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x1e, "extcres_8mhz_16mhz_258ck_14ck_65ms", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 258 CK/14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_16mhz_16kck_14ck_0ms", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 0 ms"},
+  {0x20, "extclk_6ck_14ck_64ms", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_64ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x23, "wdosc_128khz_6ck_14ck_64ms", "WD osc 128 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {0x24, "extlofxtal_32kck_64ms", "ext low-freq crystal; startup time PWRDWN/RESET: 32768 CK/64 ms"},
+  {0x28, "extcres_0mhz4_0mhz9_1kck_14ck_0ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_14ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2a, "extcres_0mhz9_3mhz_1kck_14ck_0ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_14ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2c, "extcres_3mhz_8mhz_1kck_14ck_0ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_14ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x2e, "extcres_8mhz_16mhz_1kck_14ck_0ms", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_16mhz_16kck_14ck_4ms1", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 4.1 ms"},
+  {0x38, "extcres_0mhz4_0mhz9_1kck_14ck_4ms1", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_14ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3a, "extcres_0mhz9_3mhz_1kck_14ck_4ms1", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_14ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3c, "extcres_3mhz_8mhz_1kck_14ck_4ms1", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_14ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+  {0x3e, "extcres_8mhz_16mhz_1kck_14ck_4ms1", "ext ceramic res 8.0-16.0 MHz; startup time PWRDWN/RESET: 1024 CK/14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_16mhz_16kck_14ck_65ms", "ext crystal osc 8.0-16.0 MHz; startup time PWRDWN/RESET: 16384 CK/14 CK + 65 ms"},
+};
+
+// ATtiny828 ATtiny828R
+static const Valueitem_t _values_sut_cksel_attiny828[16] = {
+  {0x00, "extclk_6ck_14ck_0msx00", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x01, "extclk_6ck_14ck_0msx01", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x02, "intrcosc_8mhz_6ck_14ck_0ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x03, "intulposc_32khz_6ck_14ck_0ms", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 0 ms"},
+  {0x10, "extclk_6ck_14ck_4ms1x10", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x11, "extclk_6ck_14ck_4ms1x11", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x12, "intrcosc_8mhz_6ck_14ck_4ms1", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x13, "intulposc_32khz_6ck_14ck_4ms1", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 4.1 ms"},
+  {0x20, "extclk_6ck_14ck_65msx20", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x21, "extclk_6ck_14ck_65msx21", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x22, "intrcosc_8mhz_6ck_14ck_65msx22", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x23, "intulposc_32khz_6ck_14ck_65msx23", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x30, "extclk_6ck_14ck_65msx30", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x31, "extclk_6ck_14ck_65msx31", "ext clock; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x32, "intrcosc_8mhz_6ck_14ck_65msx32", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+  {0x33, "intulposc_32khz_6ck_14ck_65msx33", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/14 CK + 65 ms"},
+};
+
+// ATtiny1634 ATtiny1634R
+static const Valueitem_t _values_sut_cksel_attiny1634[15] = {
+  {0x00, "extclk_6ck_16ck_16ms", "ext clock; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x02, "intrcosc_8mhz_6ck_16ck_16ms", "int RC osc 8 MHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x04, "intulposc_32khz_6ck_16ck_16ms", "int ultra-low-power osc 32 kHz; startup time PWRDWN/RESET: 6 CK/16 CK + 16 ms"},
+  {0x08, "extcres_0mhz4_0mhz9_258ck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_16kck_16ck_16ms", "ext crystal osc 0.4-0.9 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0a, "extcres_0mhz9_3mhz_258ck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_16kck_16ck_16ms", "ext crystal osc 0.9-3.0 MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x0c, "extcres_3mhz_8mhz_258ck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_16kck_16ck_16ms", "ext crystal osc 3.0-8.0 MHz; startup time PWRDWN/RESET: 16K CK/16 CK + 16 ms"},
+  {0x0e, "extcres_8mhz_xx_258ck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 258 CK/16 CK + 16 ms"},
+  {0x0f, "extxosc_8mhz_xx_16kck_16ck_16ms", "ext crystal osc 8.0+ MHz; startup time PWRDWN/RESET: 16384 CK/16 CK + 16 ms"},
+  {0x18, "extcres_0mhz4_0mhz9_1kck_16ck_16ms", "ext ceramic res 0.4-0.9 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1a, "extcres_0mhz9_3mhz_1kck_16ck_16ms", "ext ceramic res 0.9-3.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1c, "extcres_3mhz_8mhz_1kck_16ck_16ms", "ext ceramic res 3.0-8.0 MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+  {0x1e, "extcres_8mhz_xx_1kck_16ck_16ms", "ext ceramic res 8.0+ MHz; startup time PWRDWN/RESET: 1024 CK/16 CK + 16 ms"},
+};
+
+// ATtiny2313 ATtiny2313A ATtiny4313
+static const Valueitem_t _values_sut_cksel_attiny2313[44] = {
+  {0x00, "extclk_14ck_0ms", "ext clock; startup time: 14 CK + 0 ms"},
+  {0x02, "intrcosc_4mhz_14ck_0ms", "int RC osc 4 MHz; startup time: 14 CK + 0 ms"},
+  {0x04, "intrcosc_8mhz_14ck_0ms", "int RC osc 8 MHz; startup time: 14 CK + 0 ms"},
+  {0x06, "intrcosc_128khz_14ck_0ms", "int RC osc 128 kHz; startup time: 14 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_14ck_4ms1x08", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_14ck_65msx09", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_14ck_4ms1x0a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_14ck_65msx0b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_14ck_4ms1x0c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_14ck_65msx0d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_14ck_4ms1x0e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_14ck_65msx0f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
+  {0x10, "extclk_14ck_4ms1", "ext clock; startup time: 14 CK + 4.1 ms"},
+  {0x12, "intrcosc_4mhz_14ck_4ms1", "int RC osc 4 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x14, "intrcosc_8mhz_14ck_4ms1", "int RC osc 8 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x16, "intrcosc_128khz_14ck_4ms", "int RC osc 128 kHz; startup time: 14 CK + 4 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_14ck_65msx18", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_14ck_0msx19", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_14ck_65msx1a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_14ck_0msx1b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_14ck_65msx1c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_14ck_0msx1d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_14ck_65msx1e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_14ck_0msx1f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 0 ms"},
+  {0x20, "extclk_14ck_65ms", "ext clock; startup time: 14 CK + 65 ms"},
+  {0x22, "intrcosc_4mhz_14ck_65ms", "int RC osc 4 MHz; startup time: 14 CK + 65 ms"},
+  {0x24, "intrcosc_8mhz_14ck_65ms", "int RC osc 8 MHz; startup time: 14 CK + 65 ms"},
+  {0x26, "intrcosc_128khz_14ck_64ms", "int RC osc 128 kHz; startup time: 14 CK + 64 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_14ck_0msx28", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_14ck_4ms1x29", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_14ck_0msx2a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_14ck_4ms1x2b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_14ck_0msx2c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_14ck_4ms1x2d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_14ck_0msx2e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_14ck_4ms1x2f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_14ck_4ms1x38", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_14ck_65msx39", "ext crystal osc 0.4-0.9 MHz; startup time: 14 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_14ck_4ms1x3a", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_14ck_65msx3b", "ext crystal osc 0.9-3.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_14ck_4ms1x3c", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_14ck_65msx3d", "ext crystal osc 3.0-8.0 MHz; startup time: 14 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_14ck_4ms1x3e", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_14ck_65msx3f", "ext crystal osc 8.0+ MHz; startup time: 14 CK + 65 ms"},
+};
+
+// ATmega64RFR2 ATmega128RFR2 ATmega256RFR2 ATmega644RFR2 ATmega1284RFR2 ATmega2564RFR2
+static const Valueitem_t _values_sut_cksel_atmega64rfr2[49] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_0ms", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
+  {0x06, "tosc_258ck_4ms1x06", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x07, "tosc_1kck_65msx07", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x08, "tosc_258ck_4ms1x08", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x09, "tosc_1kck_65msx09", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x0a, "tosc_258ck_4ms1x0a", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "tosc_1kck_65msx0b", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x0c, "tosc_258ck_4ms1x0c", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "tosc_1kck_65msx0d", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x0e, "tosc_258ck_4ms1x0e", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "tosc_1kck_65msx0f", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_4ms1", "int 128 kHz RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x16, "tosc_258ck_65msx16", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x17, "tosc_16kck_0msx17", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x18, "tosc_258ck_65msx18", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x19, "tosc_16kck_0msx19", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x1a, "tosc_258ck_65msx1a", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x1b, "tosc_16kck_0msx1b", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x1c, "tosc_258ck_65msx1c", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x1d, "tosc_16kck_0msx1d", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x1e, "tosc_258ck_65msx1e", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x1f, "tosc_16kck_0msx1f", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_65ms", "int 128 kHz RC osc; startup time: 6 CK + 65 ms"},
+  {0x26, "tosc_1kck_0msx26", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x27, "tosc_16kck_4ms1x27", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x28, "tosc_1kck_0msx28", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x29, "tosc_16kck_4ms1x29", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "tosc_1kck_0msx2a", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x2b, "tosc_16kck_4ms1x2b", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "tosc_1kck_0msx2c", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x2d, "tosc_16kck_4ms1x2d", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "tosc_1kck_0msx2e", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x2f, "tosc_16kck_4ms1x2f", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x36, "tosc_1kck_4ms1x36", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x37, "tosc_16kck_65msx37", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x38, "tosc_1kck_4ms1x38", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "tosc_16kck_65msx39", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x3a, "tosc_1kck_4ms1x3a", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "tosc_16kck_65msx3b", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x3c, "tosc_1kck_4ms1x3c", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "tosc_16kck_65msx3d", "transceiver osc; startup time: 16384 CK + 65 ms"},
+  {0x3e, "tosc_1kck_4ms1x3e", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "tosc_16kck_65msx3f", "transceiver osc; startup time: 16384 CK + 65 ms"},
+};
+
+// ATmega128RFA1
+static const Valueitem_t _values_sut_cksel_atmega128rfa1[17] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_0ms", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
+  {0x06, "tosc_258ck_4ms1", "transceiver osc; startup time: 258 CK + 4.1 ms"},
+  {0x07, "tosc_1kck_65ms", "transceiver osc; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_4ms1", "int 128 kHz RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x16, "tosc_258ck_65ms", "transceiver osc; startup time: 258 CK + 65 ms"},
+  {0x17, "tosc_16kck_0ms", "transceiver osc; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_65ms", "int 128 kHz RC osc; startup time: 6 CK + 65 ms"},
+  {0x26, "tosc_1kck_0ms", "transceiver osc; startup time: 1024 CK + 0 ms"},
+  {0x27, "tosc_16kck_4ms1", "transceiver osc; startup time: 16384 CK + 4.1 ms"},
+  {0x36, "tosc_1kck_4ms1", "transceiver osc; startup time: 1024 CK + 4.1 ms"},
+  {0x37, "tosc_16kck_65ms", "transceiver osc; startup time: 16384 CK + 65 ms"},
+};
+
+/*
+ * ATmega164A ATmega164P ATmega164PA ATmega324A ATmega324P ATmega324PA ATmega640 ATmega644
+ * ATmega644A ATmega644P ATmega644PA ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega2560
+ * ATmega2561
+ */
+static const Valueitem_t _values_sut_cksel_atmega164a[55] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x03, "intrcosc_128khz_6ck_0ms", "int 128 kHz RC osc; startup time: 6 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x06, "fsosc_258ck_4ms1_cres_fastpwr", "full-swing osc; startup time: 258 CK + 4.1 ms; ceramic res; fast rising power"},
+  {0x07, "fsosc_1kck_65ms_cres_slowpwr", "full-swing osc; startup time: 1024 CK + 65 ms; ceramic res; slowly rising power"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x13, "intrcosc_128khz_6ck_4ms", "int 128 kHz RC osc; startup time: 6 CK + 4 ms"},
+  {0x14, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x16, "fsosc_258ck_65ms_cres_slowpwr", "full-swing osc; startup time: 258 CK + 65 ms; ceramic res; slowly rising power"},
+  {0x17, "fsosc_16kck_0ms_xosc_boden", "full-swing osc; startup time: 16384 CK + 0 ms; crystal osc; BOD enabled"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_65ms", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x23, "intrcosc_128khz_6ck_64ms", "int 128 kHz RC osc; startup time: 6 CK + 64 ms"},
+  {0x24, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x26, "fsosc_1kck_0ms_cres_boden", "full-swing osc; startup time: 1024 CK + 0 ms; ceramic res; BOD enable"},
+  {0x27, "fsosc_16kck_4ms1_xosc_fastpwr", "full-swing osc; startup time: 16384 CK + 4.1 ms; crystal osc; fast rising power"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x36, "fsosc_1kck_4ms1_cres_fastpwr", "full-swing osc; startup time: 1024 CK + 4.1 ms; ceramic res; fast rising power"},
+  {0x37, "fsosc_16kck_65ms_xosc_slowpwr", "full-swing osc; startup time: 16384 CK + 65 ms; crystal osc; slowly rising power"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
+};
+
+/*
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega169 ATmega169A ATmega169P ATmega169PA
+ * ATmega325 ATmega325A ATmega325P ATmega325PA ATmega329 ATmega329A ATmega329P ATmega329PA
+ * ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P ATmega3250 ATmega3250A
+ * ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA ATmega6450 ATmega6450A
+ * ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ */
+static const Valueitem_t _values_sut_cksel_atmega165[44] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x07, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_xx_258ck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_xx_1kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x16, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x17, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x19, "extxosc_0mhz4_0mhz9_16kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1b, "extxosc_0mhz9_3mhz_16kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1d, "extxosc_3mhz_8mhz_16kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 0 ms"},
+  {0x1e, "extxosc_8mhz_xx_258ck_65ms", "ext crystal osc 8.0+ MHz; startup time: 258 CK + 65 ms"},
+  {0x1f, "extxosc_8mhz_xx_16kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 0 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x26, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x27, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x29, "extxosc_0mhz4_0mhz9_16kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2b, "extxosc_0mhz9_3mhz_16kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2d, "extxosc_3mhz_8mhz_16kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x2e, "extxosc_8mhz_xx_1kck_0ms", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 0 ms"},
+  {0x2f, "extxosc_8mhz_xx_16kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 4.1 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x39, "extxosc_0mhz4_0mhz9_16kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3b, "extxosc_0mhz9_3mhz_16kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3d, "extxosc_3mhz_8mhz_16kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 16384 CK + 65 ms"},
+  {0x3e, "extxosc_8mhz_xx_1kck_4ms1", "ext crystal osc 8.0+ MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3f, "extxosc_8mhz_xx_16kck_65ms", "ext crystal osc 8.0+ MHz; startup time: 16384 CK + 65 ms"},
+};
+
+// ATmega406
+static const Valueitem_t _values_sut_cksel_atmega406[6] = {
+  {0, "sut_14ck_0msx00", "startup time: 14 CK + 0 ms"},
+  {1, "sut_14ck_0msx01", "startup time: 14 CK + 0 ms"},
+  {2, "sut_14ck_3ms9x02", "startup time: 14 CK + 3.9 ms"},
+  {3, "sut_14ck_3ms9x03", "startup time: 14 CK + 3.9 ms"},
+  {4, "sut_14ck_62ms5x04", "startup time: 14 CK + 62.5 ms"},
+  {5, "sut_14ck_62ms5x05", "startup time: 14 CK + 62.5 ms"},
+};
+
+// AT90CAN32 AT90CAN64
+static const Valueitem_t _values_sut_cksel_at90can32[38] = {
+  {0x00, "extclk_6ck_0ms", "ext clock; startup time: 6 CK + 0 ms"},
+  {0x02, "intrcosc_6ck_0ms", "int RC osc; startup time: 6 CK + 0 ms"},
+  {0x04, "extlofxtal_1kck_0ms", "ext low-freq crystal; startup time: 1024 CK + 0 ms"},
+  {0x05, "extlofxtal_32kck_0ms", "ext low-freq crystal; startup time: 32768 CK + 0 ms"},
+  {0x06, "extlofxtal_1kck_0ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 0 ms; int cap"},
+  {0x07, "extlofxtal_32kck_0ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 0 ms; int cap"},
+  {0x08, "extxosc_0mhz4_0mhz9_258ck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x09, "extxosc_0mhz4_0mhz9_1kck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0a, "extxosc_0mhz9_3mhz_258ck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0b, "extxosc_0mhz9_3mhz_1kck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0c, "extxosc_3mhz_8mhz_258ck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0d, "extxosc_3mhz_8mhz_1kck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x0e, "extxosc_8mhz_16mhz_258ck_4ms1", "ext crystal osc 8.0-16.0 MHz; startup time: 258 CK + 4.1 ms"},
+  {0x0f, "extxosc_8mhz_16mhz_1kck_65ms", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 65 ms"},
+  {0x10, "extclk_6ck_4ms1", "ext clock; startup time: 6 CK + 4.1 ms"},
+  {0x12, "intrcosc_6ck_4ms1", "int RC osc; startup time: 6 CK + 4.1 ms"},
+  {0x14, "extlofxtal_1kck_4ms1", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms"},
+  {0x15, "extlofxtal_32kck_4ms1", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms"},
+  {0x16, "extlofxtal_1kck_4ms1_intcap", "ext low-freq crystal; startup time: 1024 CK + 4.1 ms; int cap"},
+  {0x17, "extlofxtal_32kck_4ms1_intcap", "ext low-freq crystal; startup time: 32768 CK + 4.1 ms; int cap"},
+  {0x18, "extxosc_0mhz4_0mhz9_258ck_65ms", "ext crystal osc 0.4-0.9 MHz; startup time: 258 CK + 65 ms"},
+  {0x1a, "extxosc_0mhz9_3mhz_258ck_65ms", "ext crystal osc 0.9-3.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1c, "extxosc_3mhz_8mhz_258ck_65ms", "ext crystal osc 3.0-8.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x1e, "extxosc_8mhz_16mhz_258ck_65ms", "ext crystal osc 8.0-16.0 MHz; startup time: 258 CK + 65 ms"},
+  {0x20, "extclk_6ck_65ms", "ext clock; startup time: 6 CK + 65 ms"},
+  {0x22, "intrcosc_6ck_65ms", "int RC osc; startup time: 6 CK + 65 ms"},
+  {0x24, "extlofxtal_1kck_65ms", "ext low-freq crystal; startup time: 1024 CK + 65 ms"},
+  {0x25, "extlofxtal_32kck_65ms", "ext low-freq crystal; startup time: 32768 CK + 65 ms"},
+  {0x26, "extlofxtal_1kck_65ms_intcap", "ext low-freq crystal; startup time: 1024 CK + 65 ms; int cap"},
+  {0x27, "extlofxtal_32kck_65ms_intcap", "ext low-freq crystal; startup time: 32768 CK + 65 ms; int cap"},
+  {0x28, "extxosc_0mhz4_0mhz9_1kck_0ms", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2a, "extxosc_0mhz9_3mhz_1kck_0ms", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2c, "extxosc_3mhz_8mhz_1kck_0ms", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x2e, "extxosc_8mhz_16mhz_1kck_0ms", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 0 ms"},
+  {0x38, "extxosc_0mhz4_0mhz9_1kck_4ms1", "ext crystal osc 0.4-0.9 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3a, "extxosc_0mhz9_3mhz_1kck_4ms1", "ext crystal osc 0.9-3.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3c, "extxosc_3mhz_8mhz_1kck_4ms1", "ext crystal osc 3.0-8.0 MHz; startup time: 1024 CK + 4.1 ms"},
+  {0x3e, "extxosc_8mhz_16mhz_1kck_4ms1", "ext crystal osc 8.0-16.0 MHz; startup time: 1024 CK + 4.1 ms"},
+};
+
+// AT90S2333 AT90S4433
+static const Valueitem_t _values_sut_cksel_at90s2333[8] = {
+  {0, "extclk_slowpwr", "ext clock; slowly rising power"},
+  {1, "extclk_boden_por", "ext clock; brownout detection or power-on reset"},
+  {2, "xosc", "crystal osc"},
+  {3, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {4, "xosc_boden_por", "crystal osc; brownout detection or power-on reset"},
+  {5, "cres", "ceramic resonator"},
+  {6, "cres_fastpwr", "ceramic res; fast rising power"},
+  {7, "cres_boden_por", "ceramic res; brownout detection or power-on reset"},
+};
+
+/*
+ * ATmega328 ATmega328PB AT90PWM2 ATmega161comp ATtiny48 ATtiny88 ATtiny828 ATtiny828R ATmega48
+ * ATmega48A ATmega48P ATmega48PA ATmega48PB ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB
+ * ATmega162 ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB ATmega328P AT90PWM1 AT90PWM2B
+ * AT90PWM3 AT90PWM3B AT90PWM216 AT90PWM316 ATA6612C ATA6613C ATA6614Q
+ */
+static const Valueitem_t _values_ckout_atmega328[2] = {
+  {0, "gpio_pb0", "clock output on GPIO PB0"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATmega16M1 AT90PWM81 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1 AT90PWM161
+static const Valueitem_t _values_ckout_atmega16m1[2] = {
+  {0, "gpio_pd1", "clock output on GPIO PD1"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATtiny102 ATtiny4 ATtiny5 ATtiny9 ATtiny10 ATtiny20 ATtiny40 ATtiny104
+static const Valueitem_t _values_ckout_attiny102[2] = {
+  {0, "gpio", "clock output on GPIO"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATtiny441 ATtiny841 ATtiny1634 ATtiny1634R
+static const Valueitem_t _values_ckout_attiny441[2] = {
+  {0, "gpio_pc2", "clock output on GPIO PC2"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+/*
+ * AT90CAN128 AT90USB162 ATmega8U2 ATmega16U2 ATmega16U4 ATmega32U2 ATmega32U4 ATmega32U6 AT90CAN32
+ * AT90CAN64 AT90USB82 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
+ */
+static const Valueitem_t _values_ckout_at90can128[2] = {
+  {0, "gpio_pc7", "clock output on GPIO PC7"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_ckout_ata6285[2] = {
+  {0, "gpio_pc1", "clock output on GPIO PC1"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+/*
+ * AT90SCR100H ATmega164A ATmega164P ATmega164PA ATmega324A ATmega324P ATmega324PA ATmega324PB
+ * ATmega644 ATmega644A ATmega644P ATmega644PA ATmega1284 ATmega1284P AT90SCR100
+ */
+static const Valueitem_t _values_ckout_at90scr100h[2] = {
+  {0, "gpio_pb1", "clock output on GPIO PB1"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
+static const Valueitem_t _values_ckout_attiny24[2] = {
+  {0, "gpio_pb2", "clock output on GPIO PB2"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATtiny25 ATtiny45 ATtiny85
+static const Valueitem_t _values_ckout_attiny25[2] = {
+  {0, "gpio_pb4", "clock output on GPIO PB4"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+/*
+ * ATtiny43U ATtiny87 ATtiny167 ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A
+ * ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
+ */
+static const Valueitem_t _values_ckout_attiny43u[2] = {
+  {0, "gpio_pb5", "clock output on GPIO PB5"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+// ATtiny2313 ATtiny2313A ATtiny4313
+static const Valueitem_t _values_ckout_attiny2313[2] = {
+  {0, "gpio_pd2", "clock output on GPIO PD2"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+/*
+ * ATmega64RFR2 ATmega128RFA1 ATmega128RFR2 ATmega165 ATmega165A ATmega165P ATmega165PA ATmega169
+ * ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega325 ATmega325A ATmega325P ATmega325PA
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega640 ATmega644RFR2 ATmega645 ATmega645A
+ * ATmega645P ATmega649 ATmega649A ATmega649P ATmega1280 ATmega1281 ATmega1284RFR2 ATmega2560
+ * ATmega2561 ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290
+ * ATmega3290A ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A
+ * ATmega6490P
+ */
+static const Valueitem_t _values_ckout_atmega64rfr2[2] = {
+  {0, "gpio_pe7", "clock output on GPIO PE7"},
+  {1, "co_disabled", "clock signal is not output on a pin"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega64HVE ATmega328PB ATtiny441 AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162
+ * ATA5781 ATA5790 ATA6285 ATmega161comp ATtiny13 ATtiny13A ATtiny24 ATtiny24A ATtiny25 ATtiny43U
+ * ATtiny44 ATtiny44A ATtiny45 ATtiny48 ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167
+ * ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A
+ * ATtiny1634 ATtiny1634R ATtiny2313 ATtiny2313A ATtiny4313 ATmega8U2 ATmega16HVB ATmega16U2
+ * ATmega16U4 ATmega32HVB ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega48
+ * ATmega48A ATmega48P ATmega48PA ATmega48PB ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2
+ * ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128RFA1 ATmega128RFR2 ATmega162
+ * ATmega164A ATmega164P ATmega164PA ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168
+ * ATmega168A ATmega168P ATmega168PA ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA
+ * ATmega256RFR2 ATmega324A ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P
+ * ATmega325PA ATmega328P ATmega329 ATmega329A ATmega329P ATmega329PA ATmega640 ATmega644
+ * ATmega644A ATmega644P ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649
+ * ATmega649A ATmega649P ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560
+ * ATmega2561 ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290
+ * ATmega3290A ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A
+ * ATmega6490P AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90PWM161
+ * AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 ATA5272 ATA5505 ATA5782
+ * ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286 ATA6289
+ * ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215 ATA8510 ATA8515 ATA664251
+ * ATmega32HVE2
+ */
+static const Valueitem_t _values_ckdiv8_atmega328[2] = {
+  {0, "by_8", "F_CPU prescaled by 8"},
+  {1, "by_1", "F_CPU prescaled by 1"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5700M322 ATA5781 ATA6285 ATxmega16E5 ATxmega128A3 ATxmega128A3U
+ * ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A
+ * ATmega8U2 ATmega16 ATmega16A ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32
+ * ATmega32A ATmega32HVB ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A
+ * ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA
+ * ATmega88PB ATmega128 ATmega128A ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163
+ * ATmega164A ATmega164P ATmega164PA ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168
+ * ATmega168A ATmega168P ATmega168PA ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA
+ * ATmega256RFR2 ATmega323 ATmega324A ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A
+ * ATmega325P ATmega325PA ATmega328P ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406
+ * ATmega640 ATmega644 ATmega644A ATmega644P ATmega644PA ATmega644RFR2 ATmega645 ATmega645A
+ * ATmega645P ATmega649 ATmega649A ATmega649P ATmega1280 ATmega1281 ATmega1284 ATmega1284P
+ * ATmega1284RFR2 ATmega2560 ATmega2561 ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P
+ * ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P
+ * ATmega6490 ATmega6490A ATmega6490P ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32
+ * AT90CAN64 AT90USB82 AT90SCR100 AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647
+ * AT90USB1286 AT90USB1287 AT90S8515comp ATA5702M322 ATA5782 ATA5783 ATA5787 ATA5831 ATA5832
+ * ATA5833 ATA5835 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4 ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4
+ * ATxmega32A4U ATxmega32C4 ATxmega32D4 ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1
+ * ATxmega64A3 ATxmega64A3U ATxmega64B3 ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4
+ * ATxmega128A1 ATxmega128A1revD ATxmega128A1U ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3
+ * ATxmega128A4U ATxmega128D4 ATxmega192A3 ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3B ATxmega256A3BU ATxmega256A3U ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ * ATmega32HVE2
+ */
+static const Valueitem_t _values_bootrst_atmega328[2] = {
+  {0, "boot_section", "reset jumps to start of boot section"},
+  {1, "application", "reset jumps to start of memory"},
+};
+
+/*
+ * ATmega328 ATmega32HVBrevB ATmega328PB ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega323 ATmega324A ATmega324P ATmega324PA ATmega324PB
+ * ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329 ATmega329A ATmega329P
+ * ATmega329PA ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P
+ * ATmega3290PA ATA6614Q
+ */
+static const Valueitem_t _values_bootsz_atmega328[4] = {
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x7000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x7800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x7c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x7e00"},
+};
+
+/*
+ * ATmega16M1 AT90USB162 ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 AT90USB82 AT90PWM216
+ * AT90PWM316
+ */
+static const Valueitem_t _values_bootsz_atmega16m1[4] = {
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x3000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x3800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x3c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x3e00"},
+};
+
+/*
+ * ATmega64HVE AT90SCR100H ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2
+ * ATmega640 ATmega644 ATmega644A ATmega644P ATmega644PA ATmega644RFR2 ATmega645 ATmega645A
+ * ATmega645P ATmega649 ATmega649A ATmega649P ATmega6450 ATmega6450A ATmega6450P ATmega6490
+ * ATmega6490A ATmega6490P AT90CAN64 AT90SCR100 ATmega32HVE2
+ */
+static const Valueitem_t _values_bootsz_atmega64hve[4] = {
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0xe000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0xf000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0xf800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0xfc00"},
+};
+
+/*
+ * ATmega8515 AT90PWM2 AT90PWM81 AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega88
+ * ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B
+ * AT90PWM161 AT90S8515comp ATA6612C
+ */
+static const Valueitem_t _values_bootsz_atmega8515[4] = {
+  {0, "bs_1024w", "boot size 2048 bytes; boot address 0x1800"},
+  {1, "bs_512w", "boot size 1024 bytes; boot address 0x1c00"},
+  {2, "bs_256w", "boot size 512 bytes; boot address 0x1e00"},
+  {3, "bs_128w", "boot size 256 bytes; boot address 0x1f00"},
+};
+
+/*
+ * AT90CAN128 ATmega103comp ATmega128 ATmega128A ATmega128RFA1 ATmega128RFR2 ATmega1280 ATmega1281
+ * ATmega1284 ATmega1284P ATmega1284RFR2 AT90USB1286 AT90USB1287
+ */
+static const Valueitem_t _values_bootsz_at90can128[4] = {
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0x1e000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0x1f000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0x1f800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0x1fc00"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_bootsz_ata6285[4] = {
+  {0, "bs_1024w", "boot size 2048 bytes"},
+  {1, "bs_512w", "boot size 1024 bytes"},
+  {2, "bs_256w", "boot size 512 bytes"},
+  {3, "bs_128w", "boot size 256 bytes"},
+};
+
+/*
+ * ATmega161comp ATmega16 ATmega16A ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA ATmega165
+ * ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB
+ * ATmega169 ATmega169A ATmega169P ATmega169PA ATA6613C
+ */
+static const Valueitem_t _values_bootsz_atmega161comp[4] = {
+  {0, "bs_1024w", "boot size 2048 bytes; boot address 0x3800"},
+  {1, "bs_512w", "boot size 1024 bytes; boot address 0x3c00"},
+  {2, "bs_256w", "boot size 512 bytes; boot address 0x3e00"},
+  {3, "bs_128w", "boot size 256 bytes; boot address 0x3f00"},
+};
+
+// ATmega8U2
+static const Valueitem_t _values_bootsz_atmega8u2[4] = {
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x1000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x1800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x1c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x1e00"},
+};
+
+// ATmega256RFR2 ATmega2560 ATmega2561 ATmega2564RFR2
+static const Valueitem_t _values_bootsz_atmega256rfr2[4] = {
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0x3e000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0x3f000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0x3f800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0x3fc00"},
+};
+
+// ATmega406
+static const Valueitem_t _values_bootsz_atmega406[4] = {
+  {0, "bs_2048w", "boot size 4096 bytes; boot address 0x9000"},
+  {1, "bs_1024w", "boot size 2048 bytes; boot address 0x9800"},
+  {2, "bs_512w", "boot size 1024 bytes; boot address 0x9c00"},
+  {3, "bs_256w", "boot size 512 bytes; boot address 0x9e00"},
+};
+
+// AT90CAN32
+static const Valueitem_t _values_bootsz_at90can32[4] = {
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0x6000"},
+  {1, "bs_2048w", "boot size 4096 bytes; boot address 0x7000"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0x7800"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0x7c00"},
+};
+
+// AT90USB646 AT90USB647
+static const Valueitem_t _values_bootsz_at90usb646[4] = {
+  {0, "bs_4096w", "boot size 8192 bytes; boot address 0xf000"},
+  {1, "bs_2408w", "boot size 2408 words; boot address 0xf800"},
+  {2, "bs_1024w", "boot size 2048 bytes; boot address 0xfc00"},
+  {3, "bs_512w", "boot size 1024 bytes; boot address 0xfe00"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 ATtiny441
+ * AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162 ATA5700M322 ATA5781 ATA5790 ATA6285 ATxmega16E5
+ * ATxmega128A3 ATxmega128A3U ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny13
+ * ATtiny13A ATtiny24 ATtiny24A ATtiny25 ATtiny26 ATtiny43U ATtiny44 ATtiny44A ATtiny45 ATtiny48
+ * ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167 ATtiny261 ATtiny261A ATtiny461
+ * ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R
+ * ATtiny2313 ATtiny2313A ATtiny4313 ATmega8 ATmega8A ATmega8HVA ATmega8U2 ATmega16 ATmega16A
+ * ATmega16HVA ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB
+ * ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega48 ATmega48A ATmega48P ATmega48PA
+ * ATmega48PB ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88
+ * ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega103 ATmega128 ATmega128A ATmega128RFA1
+ * ATmega128RFR2 ATmega162 ATmega164A ATmega164P ATmega164PA ATmega165 ATmega165A ATmega165P
+ * ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB ATmega169 ATmega169A
+ * ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A ATmega324P ATmega324PA ATmega324PB
+ * ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329 ATmega329A ATmega329P
+ * ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P ATmega644PA ATmega644RFR2
+ * ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P ATmega1280 ATmega1281
+ * ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561 ATmega2564RFR2 ATmega3250
+ * ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA ATmega6450
+ * ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P ATmega8535 AT90PWM1 AT90PWM2B
+ * AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100 AT90PWM161 AT90PWM216 AT90PWM316
+ * AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp ATA5272 ATA5505 ATA5702M322 ATA5782
+ * ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286 ATA6289
+ * ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215 ATA8510 ATA8515 ATA664251
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4 ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4
+ * ATxmega32A4U ATxmega32C4 ATxmega32D4 ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1
+ * ATxmega64A3 ATxmega64A3U ATxmega64B3 ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4
+ * ATxmega128A1 ATxmega128A1revD ATxmega128A1U ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3
+ * ATxmega128A4U ATxmega128D4 ATxmega192A3 ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3B ATxmega256A3BU ATxmega256A3U ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ * ATmega32HVE2
+ */
+static const Valueitem_t _values_eesave_atmega328[2] = {
+  {0, "ee_preserved", "EEPROM content is preserved during chip erase"},
+  {1, "ee_erased", "EEPROM content is erased during chip erase"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 AVR32DD14 AVR64EA48 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404
+ * ATtiny406 ATtiny412 ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427
+ * ATtiny804 ATtiny806 ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827
+ * ATtiny1604 ATtiny1606 ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627
+ * ATtiny3216 ATtiny3217 ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608
+ * ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28
+ * AVR16DD32 AVR16EA32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32
+ * AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28
+ * AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48
+ * AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
+ * AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_eesave_attiny204[2] = {
+  {0, "eex_erased", "EEPROM content is erased during chip erase"},
+  {1, "eex_preserved", "EEPROM content is preserved during chip erase"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 ATtiny102
+ * ATtiny441 AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162 ATA5700M322 ATA5781 ATA5790 ATA6285
+ * ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny4 ATtiny5 ATtiny9 ATtiny10 ATtiny20
+ * ATtiny40 ATtiny104 ATtiny13 ATtiny13A ATtiny24 ATtiny24A ATtiny25 ATtiny43U ATtiny44 ATtiny44A
+ * ATtiny45 ATtiny48 ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167 ATtiny261 ATtiny261A
+ * ATtiny461 ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R
+ * ATtiny2313 ATtiny2313A ATtiny4313 ATmega8 ATmega8A ATmega8HVA ATmega8U2 ATmega16HVA ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32HVB ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4
+ * ATmega32U6 ATmega48 ATmega48A ATmega48P ATmega48PA ATmega48PB ATmega64 ATmega64A ATmega64C1
+ * ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB
+ * ATmega128 ATmega128A ATmega128RFA1 ATmega128RFR2 ATmega162 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega324A ATmega324P
+ * ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329
+ * ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5272 ATA5505 ATA5702M322 ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832
+ * ATA5833 ATA5835 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215
+ * ATA8510 ATA8515 ATA664251 ATmega32HVE2
+ */
+static const Valueitem_t _values_wdton_atmega328[2] = {
+  {0, "wdt_always_on", "watchdog timer always on"},
+  {1, "wdt_programmable", "watchdog timer programmable"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 ATtiny441
+ * AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162 AT90S1200 AT90S2313 ATA5700M322 ATA5781 ATA5790
+ * ATA6285 ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny12 ATtiny13 ATtiny13A
+ * ATtiny15 ATtiny22 ATtiny24 ATtiny24A ATtiny25 ATtiny26 ATtiny43U ATtiny44 ATtiny44A ATtiny45
+ * ATtiny48 ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167 ATtiny261 ATtiny261A ATtiny461
+ * ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R
+ * ATtiny2313 ATtiny2313A ATtiny4313 ATmega8 ATmega8A ATmega8HVA ATmega8U2 ATmega16 ATmega16A
+ * ATmega16HVA ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB
+ * ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega48 ATmega48A ATmega48P ATmega48PA
+ * ATmega48PB ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88
+ * ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega103 ATmega128 ATmega128A ATmega128RFA1
+ * ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA ATmega165
+ * ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB
+ * ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A ATmega324P
+ * ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329
+ * ATmega329A ATmega329P ATmega329PA ATmega640 ATmega644 ATmega644A ATmega644P ATmega644PA
+ * ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P ATmega1280
+ * ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561 ATmega2564RFR2
+ * ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA
+ * ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P ATmega8535 AT90PWM1
+ * AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100 AT90PWM161 AT90PWM216
+ * AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S2323 AT90S2333 AT90S2343
+ * AT90S4414 AT90S4433 AT90S4434 AT90S8515 AT90S8515comp AT90S8535 ATA5272 ATA5505 ATA5702M322
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215 ATA8510 ATA8515 ATA664251
+ * ATmega32HVE2
+ */
+static const Valueitem_t _values_spien_atmega328[2] = {
+  {0, "isp_enabled", "serial programming enabled"},
+  {1, "isp_disabled_warning_might_brick_the_board", "serial programming disabled (warning: might brick the board)"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATtiny441 AT90PWM2
+ * AT90PWM81 AT90USB162 ATA5700M322 ATA5781 ATA5790 ATA6285 ATtiny13 ATtiny13A ATtiny24 ATtiny24A
+ * ATtiny25 ATtiny43U ATtiny44 ATtiny44A ATtiny45 ATtiny48 ATtiny84 ATtiny84A ATtiny85 ATtiny87
+ * ATtiny88 ATtiny167 ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny828 ATtiny828R ATtiny841
+ * ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R ATtiny2313 ATtiny2313A ATtiny4313 ATmega8HVA
+ * ATmega8U2 ATmega16HVA ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega48 ATmega48A ATmega48P ATmega48PA ATmega48PB ATmega64C1 ATmega64M1
+ * ATmega64HVE2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega168 ATmega168A ATmega168P
+ * ATmega168PA ATmega168PB ATmega328P AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90USB82 AT90PWM161
+ * AT90PWM216 AT90PWM316 ATA5272 ATA5505 ATA5702M322 ATA5782 ATA5783 ATA5787 ATA5790N ATA5791
+ * ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA6616C
+ * ATA6617C ATA8210 ATA8215 ATA8510 ATA8515 ATA664251 ATmega32HVE2
+ */
+static const Valueitem_t _values_dwen_atmega328[2] = {
+  {0, "dw_enabled", "debugWIRE enabled"},
+  {1, "dw_off", "debugWIRE off"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega328PB AT90PWM2 AT90USB162 ATtiny48 ATtiny88 ATtiny828 ATtiny828R
+ * ATmega8 ATmega8A ATmega8U2 ATmega16U2 ATmega32C1 ATmega32M1 ATmega32U2 ATmega48 ATmega48A
+ * ATmega48P ATmega48PA ATmega48PB ATmega64C1 ATmega64M1 ATmega88 ATmega88A ATmega88P ATmega88PA
+ * ATmega88PB ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB ATmega328P AT90PWM1
+ * AT90PWM2B AT90PWM3 AT90PWM3B AT90USB82 AT90PWM216 AT90PWM316 ATA6612C ATA6613C ATA6614Q
+ */
+static const Valueitem_t _values_rstdisbl_atmega328[2] = {
+  {0, "gpio_pc6_warning_external_reset_disabled", "reset pin configured as GPIO PC6 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+/*
+ * ATtiny102 ATA5781 ATxmega16E5 ATxmega128A3 ATxmega128A3U ATtiny4 ATtiny5 ATtiny9 ATtiny10
+ * ATtiny20 ATtiny40 ATtiny104 ATtiny2313 ATtiny2313A ATtiny4313 ATmega165 ATmega165A ATmega165P
+ * ATmega165PA ATmega169 ATmega169A ATmega169P ATmega169PA ATmega325 ATmega325A ATmega325P
+ * ATmega325PA ATmega329 ATmega329A ATmega329P ATmega329PA ATmega645 ATmega645A ATmega645P
+ * ATmega649 ATmega649A ATmega649P ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290
+ * ATmega3290A ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A
+ * ATmega6490P ATA5782 ATA5783 ATA5787 ATA5831 ATA5832 ATA5833 ATA5835 ATA8210 ATA8215 ATA8510
+ * ATA8515 ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4 ATxmega16D4 ATxmega32C3 ATxmega32D3
+ * ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4 ATxmega32E5 ATxmega64A1 ATxmega64A1U
+ * ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3 ATxmega64C3 ATxmega64D3 ATxmega64A4U
+ * ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U ATxmega128B1 ATxmega128B3 ATxmega128C3
+ * ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3 ATxmega192A3U ATxmega192C3 ATxmega192D3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U ATxmega256C3 ATxmega256D3 ATxmega384C3
+ * ATxmega384D3
+ */
+static const Valueitem_t _values_rstdisbl_attiny102[2] = {
+  {0, "gpio_warning_external_reset_disabled", "reset pin configured as GPIO (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+// ATtiny441 ATtiny841 ATtiny1634 ATtiny1634R
+static const Valueitem_t _values_rstdisbl_attiny441[2] = {
+  {0, "gpio_pc2_warning_external_reset_disabled", "reset pin configured as GPIO PC2 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+// AT90PWM81 AT90PWM161
+static const Valueitem_t _values_rstdisbl_at90pwm81[2] = {
+  {0, "gpio_pe0_warning_external_reset_disabled", "reset pin configured as GPIO PE0 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+// ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny15 ATtiny25 ATtiny45 ATtiny85
+static const Valueitem_t _values_rstdisbl_attiny11[2] = {
+  {0, "gpio_pb5_warning_external_reset_disabled", "reset pin configured as GPIO PB5 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+// ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
+static const Valueitem_t _values_rstdisbl_attiny24[2] = {
+  {0, "gpio_pb3_warning_external_reset_disabled", "reset pin configured as GPIO PB3 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+/*
+ * ATtiny26 ATtiny43U ATtiny87 ATtiny167 ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861
+ * ATtiny861A ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
+ */
+static const Valueitem_t _values_rstdisbl_attiny26[2] = {
+  {0, "gpio_pb7_warning_external_reset_disabled", "reset pin configured as GPIO PB7 (warning: external reset disabled)"},
+  {1, "external_reset", "reset pin configured as external reset"},
+};
+
+/*
+ * ATmega328 ATmega328PB ATtiny20 ATtiny40 ATtiny24 ATtiny24A ATtiny25 ATtiny44 ATtiny44A ATtiny45
+ * ATtiny48 ATtiny84 ATtiny84A ATtiny85 ATtiny88 ATtiny828 ATtiny828R ATtiny2313 ATtiny2313A
+ * ATtiny4313 ATmega48 ATmega48A ATmega48P ATmega48PA ATmega48PB ATmega88 ATmega88A ATmega88P
+ * ATmega88PA ATmega88PB ATmega164A ATmega164P ATmega164PA ATmega165 ATmega165A ATmega165P
+ * ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB ATmega169 ATmega169A
+ * ATmega169P ATmega169PA ATmega324A ATmega324P ATmega324PA ATmega324PB ATmega328P ATmega640
+ * ATmega644 ATmega644A ATmega644P ATmega644PA ATmega1280 ATmega1281 ATmega1284 ATmega1284P
+ * ATmega2560 ATmega2561 ATA6612C ATA6613C ATA6614Q
+ */
+static const Valueitem_t _values_bodlevel_atmega328[4] = {
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATmega16M1 AT90PWM2 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1 AT90PWM1 AT90PWM2B AT90PWM3
+ * AT90PWM3B AT90PWM216 AT90PWM316
+ */
+static const Valueitem_t _values_bodlevel_atmega16m1[8] = {
+  {0, "bod_2v6", "brownout detection at 2.6 V"},
+  {1, "bod_2v8", "brownout detection at 2.8 V"},
+  {2, "bod_4v2", "brownout detection at 4.2 V"},
+  {3, "bod_4v4", "brownout detection at 4.4 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_4v5", "brownout detection at 4.5 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATmega8515 ATmega103comp AT90S8535comp ATtiny15 ATtiny26 ATmega8 ATmega8A ATmega16 ATmega16A
+ * ATmega32 ATmega32A ATmega64 ATmega64A ATmega128 ATmega128A ATmega163 ATmega323 ATmega8535
+ * AT90S2333 AT90S4433 AT90S8515comp
+ */
+static const Valueitem_t _values_bodlevel_atmega8515[2] = {
+  {0, "bod_4v0", "brownout detection at 4.0 V"},
+  {1, "bod_2v7", "brownout detection at 2.7 V"},
+};
+
+// ATtiny441 ATtiny841 ATtiny1634 ATtiny1634R
+static const Valueitem_t _values_bodlevel_attiny441[4] = {
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_1v8_alt", "brownout detection at 1.8 V"},
+};
+
+/*
+ * AT90PWM81 ATtiny43U ATtiny87 ATtiny167 ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861
+ * ATtiny861A AT90PWM161 ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
+ */
+static const Valueitem_t _values_bodlevel_at90pwm81[8] = {
+  {0, "bod_2v0", "brownout detection at 2.0 V"},
+  {1, "bod_1v9", "brownout detection at 1.9 V"},
+  {2, "bod_2v2", "brownout detection at 2.2 V"},
+  {3, "bod_2v3", "brownout detection at 2.3 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+// AT90CAN128 AT90CAN32 AT90CAN64
+static const Valueitem_t _values_bodlevel_at90can128[8] = {
+  {0, "bod_2v5", "brownout detection at 2.5 V"},
+  {1, "bod_2v6", "brownout detection at 2.6 V"},
+  {2, "bod_2v7", "brownout detection at 2.7 V"},
+  {3, "bod_3v8", "brownout detection at 3.8 V"},
+  {4, "bod_3v9", "brownout detection at 3.9 V"},
+  {5, "bod_4v0", "brownout detection at 4.0 V"},
+  {6, "bod_4v1", "brownout detection at 4.1 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+// AT90USB162 ATmega8U2 ATmega16U2 ATmega32U2 AT90USB82
+static const Valueitem_t _values_bodlevel_at90usb162[8] = {
+  {0, "bod_4v3", "brownout detection at 4.3 V"},
+  {1, "bod_4v0", "brownout detection at 4.0 V"},
+  {2, "bod_3v6", "brownout detection at 3.6 V"},
+  {3, "bod_3v5", "brownout detection at 3.5 V"},
+  {4, "bod_3v0", "brownout detection at 3.0 V"},
+  {5, "bod_2v9", "brownout detection at 2.9 V"},
+  {6, "bod_2v7", "brownout detection at 2.7 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3U ATxmega8E5 ATxmega16A4U ATxmega16C4 ATxmega16D4 ATxmega32C3
+ * ATxmega32D3 ATxmega32A4U ATxmega32C4 ATxmega32D4 ATxmega32E5 ATxmega64A1U ATxmega64B1
+ * ATxmega64A3U ATxmega64B3 ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3U
+ * ATxmega192C3 ATxmega192D3 ATxmega256A3BU ATxmega256A3U ATxmega256C3 ATxmega256D3 ATxmega384C3
+ * ATxmega384D3
+ */
+static const Valueitem_t _values_bodlevel_atxmega16e5[8] = {
+  {0, "bod_3v0", "brownout detection at 3.0 V"},
+  {1, "bod_2v8", "brownout detection at 2.8 V"},
+  {2, "bod_2v6", "brownout detection at 2.6 V"},
+  {3, "bod_2v4", "brownout detection at 2.4 V"},
+  {4, "bod_2v2", "brownout detection at 2.2 V"},
+  {5, "bod_2v0", "brownout detection at 2.0 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_1v6", "brownout detection at 1.6 V"},
+};
+
+/*
+ * ATxmega128A3 ATxmega64A1 ATxmega64A3 ATxmega128A1 ATxmega128A1revD ATxmega192A3 ATxmega256A3
+ * ATxmega256A3B
+ */
+static const Valueitem_t _values_bodlevel_atxmega128a3[8] = {
+  {0, "bod_3v4", "brownout detection at 3.4 V"},
+  {1, "bod_3v2", "brownout detection at 3.2 V"},
+  {2, "bod_2v9", "brownout detection at 2.9 V"},
+  {3, "bod_2v6", "brownout detection at 2.6 V"},
+  {4, "bod_2v4", "brownout detection at 2.4 V"},
+  {5, "bod_2v1", "brownout detection at 2.1 V"},
+  {6, "bod_1v9", "brownout detection at 1.9 V"},
+  {7, "bod_1v6", "brownout detection at 1.6 V"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806 ATtiny807
+ * ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606 ATtiny1607
+ * ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217 ATtiny3224
+ * ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208 ATmega3209
+ * ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_bodlevel_attiny204[3] = {
+  {0, "bod_1v8", "brownout detection at 1.8 V"},
+  {2, "bod_2v6", "brownout detection at 2.6 V"},
+  {7, "bod_4v2", "brownout detection at 4.2 V"},
+};
+
+/*
+ * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28
+ * AVR32DA32 AVR32DB32 AVR32DD32 AVR32DA48 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28
+ * AVR64DD28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_bodlevel_avr32dd14[4] = {
+  {0, "bod_1v9", "brownout detection at 1.9 V"},
+  {1, "bod_2v45", "brownout detection at 2.45 V"},
+  {2, "bod_2v7", "brownout detection at 2.7 V"},
+  {3, "bod_2v85", "brownout detection at 2.85 V"},
+};
+
+// AVR64EA48 AVR16EA28 AVR16EA32 AVR16EA48 AVR32EA28 AVR32EA32 AVR32EA48 AVR64EA28 AVR64EA32
+static const Valueitem_t _values_bodlevel_avr64ea48[4] = {
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_1v9", "brownout detection at 1.9 V"},
+  {2, "bod_2v7", "brownout detection at 2.7 V"},
+  {3, "bod_4v5", "brownout detection at 4.5 V"},
+};
+
+// ATmega161comp ATmega162
+static const Valueitem_t _values_bodlevel_atmega161comp[5] = {
+  {3, "bod_2v3", "brownout detection at 2.3 V"},
+  {4, "bod_4v3", "brownout detection at 4.3 V"},
+  {5, "bod_2v7", "brownout detection at 2.7 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+// ATtiny12
+static const Valueitem_t _values_bodlevel_attiny12[2] = {
+  {0, "bod_2v7", "brownout detection at 2.7 V"},
+  {1, "bod_1v8", "brownout detection at 1.8 V"},
+};
+
+/*
+ * ATtiny13 ATtiny13A ATmega325 ATmega325A ATmega325P ATmega325PA ATmega329 ATmega329A ATmega329P
+ * ATmega329PA ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P ATmega3250
+ * ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA ATmega6450
+ * ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ */
+static const Valueitem_t _values_bodlevel_attiny13[4] = {
+  {0, "bod_4v3", "brownout detection at 4.3 V"},
+  {1, "bod_2v7", "brownout detection at 2.7 V"},
+  {2, "bod_1v8", "brownout detection at 1.8 V"},
+  {3, "bod_disabled", "brownout detection disabled"},
+};
+
+// ATmega16U4 ATmega32U4 ATmega32U6 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
+static const Valueitem_t _values_bodlevel_atmega16u4[8] = {
+  {0, "bod_4v3", "brownout detection at 4.3 V"},
+  {1, "bod_3v5", "brownout detection at 3.5 V"},
+  {2, "bod_3v4", "brownout detection at 3.4 V"},
+  {3, "bod_2v6", "brownout detection at 2.6 V"},
+  {4, "bod_2v4", "brownout detection at 2.4 V"},
+  {5, "bod_2v2", "brownout detection at 2.2 V"},
+  {6, "bod_2v0", "brownout detection at 2.0 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATmega64RFR2 ATmega128RFA1 ATmega128RFR2 ATmega256RFR2 ATmega644RFR2 ATmega1284RFR2
+ * ATmega2564RFR2
+ */
+static const Valueitem_t _values_bodlevel_atmega64rfr2[8] = {
+  {0, "bod_2v4", "brownout detection at 2.4 V"},
+  {1, "bod_2v3", "brownout detection at 2.3 V"},
+  {2, "bod_2v2", "brownout detection at 2.2 V"},
+  {3, "bod_2v1", "brownout detection at 2.1 V"},
+  {4, "bod_2v0", "brownout detection at 2.0 V"},
+  {5, "bod_1v9", "brownout detection at 1.9 V"},
+  {6, "bod_1v8", "brownout detection at 1.8 V"},
+  {7, "bod_disabled", "brownout detection disabled"},
+};
+
+// ATxmega16A4 ATxmega32A4
+static const Valueitem_t _values_bodlevel_atxmega16a4[8] = {
+  {0, "bod_3v5", "brownout detection at 3.5 V"},
+  {1, "bod_3v2", "brownout detection at 3.2 V"},
+  {2, "bod_3v0", "brownout detection at 3.0 V"},
+  {3, "bod_2v7", "brownout detection at 2.7 V"},
+  {4, "bod_2v4", "brownout detection at 2.4 V"},
+  {5, "bod_2v1", "brownout detection at 2.1 V"},
+  {6, "bod_1v9", "brownout detection at 1.9 V"},
+  {7, "bod_1v6", "brownout detection at 1.6 V"},
+};
+
+// ATtiny416auto
+static const Valueitem_t _values_bodlevel_attiny416auto[2] = {
+  {2, "bod_2v6", "brownout detection at 2.6 V"},
+  {7, "bod_4v2", "brownout detection at 4.2 V"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega16HVA2 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 ATtiny102
+ * ATtiny28 ATtiny441 AT90PWM2 AT90PWM81 AT90CAN128 AT90USB162 AT90S1200 AT90S2313 ATA5700M322
+ * ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp AT90S8535comp ATtiny4 ATtiny5
+ * ATtiny9 ATtiny10 ATtiny20 ATtiny40 ATtiny104 ATtiny11 ATtiny12 ATtiny13 ATtiny13A ATtiny15
+ * ATtiny22 ATtiny24 ATtiny24A ATtiny25 ATtiny26 ATtiny43U ATtiny44 ATtiny44A ATtiny45 ATtiny48
+ * ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88 ATtiny167 ATtiny261 ATtiny261A ATtiny461
+ * ATtiny461A ATtiny828 ATtiny828R ATtiny841 ATtiny861 ATtiny861A ATtiny1634 ATtiny1634R
+ * ATtiny2313 ATtiny2313A ATtiny4313 ATmega8 ATmega8A ATmega8HVA ATmega8U2 ATmega16 ATmega16A
+ * ATmega16HVA ATmega16HVB ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB
+ * ATmega32C1 ATmega32M1 ATmega32U2 ATmega32U4 ATmega32U6 ATmega48 ATmega48A ATmega48P ATmega48PA
+ * ATmega48PB ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2 ATmega64RFR2 ATmega88
+ * ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega103 ATmega128 ATmega128A ATmega128RFA1
+ * ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA ATmega165
+ * ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA ATmega168PB
+ * ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A ATmega324P
+ * ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P ATmega329
+ * ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S2323
+ * AT90S2343 AT90S4414 AT90S4433 AT90S4434 AT90S8515 AT90S8515comp AT90S8535 ATA5272 ATA5505
+ * ATA5702M322 ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835
+ * ATA6286 ATA6289 ATA6612C ATA6613C ATA6614Q ATA6616C ATA6617C ATA8210 ATA8215 ATA8510 ATA8515
+ * ATA664251 ATmega32HVE2
+ */
+static const Valueitem_t _values_lb_atmega328[3] = {
+  {0, "prog_ver_disabled", "further programming and verification disabled"},
+  {2, "prog_disabled", "further programming disabled"},
+  {3, "no_lock", "no memory lock features enabled"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
+ * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
+ * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
+ * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
+ * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_lb_atxmega16e5[3] = {
+  {0, "rwlock", "read and write not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_lb_attiny204[2] = {
+  {0x3a, "rwlock", "read and write not allowed"},
+  {0xc5, "nolock", "no locks"},
+};
+
+// AT90S2333
+static const Valueitem_t _values_lb_at90s2333[3] = {
+  {0, "prog_ver_disabled", "further programming and verification disabled"},
+  {1, "prog_disabled", "further programming disabled"},
+  {3, "no_lock", "no memory lock features enabled"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
+ * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
+ * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
+ * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
+ */
+static const Valueitem_t _values_blb0_atmega328[4] = {
+  {0, "lpm_spm_disabled_in_app", "LPM and SPM prohibited in application section"},
+  {1, "lpm_disabled_in_app", "LPM prohibited in application section"},
+  {2, "spm_disabled_in_app", "SPM prohibited in application section"},
+  {3, "no_lock_in_app", "no lock on SPM and LPM in application section"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
+ * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
+ * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
+ * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
+ */
+static const Valueitem_t _values_blb1_atmega328[4] = {
+  {0, "lpm_spm_disabled_in_boot", "LPM and SPM prohibited in boot section"},
+  {1, "lpm_disabled_in_boot", "LPM prohibited in boot section"},
+  {2, "spm_disabled_in_boot", "SPM prohibited in boot section"},
+  {3, "no_lock_in_boot", "no lock on SPM and LPM in boot section"},
+};
+
+// ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1
+static const Valueitem_t _values_pscrvb_atmega16m1[2] = {
+  {0, "v_0", "PSC0UTnB reset value 0"},
+  {1, "v_1", "PSC0UTnB reset value 1"},
+};
+
+// ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1
+static const Valueitem_t _values_pscrva_atmega16m1[2] = {
+  {0, "v_0", "PSCOUTnA reset value 0"},
+  {1, "v_1", "PSCOUTnA reset value 1"},
+};
+
+// ATmega16M1 ATmega32C1 ATmega32M1 ATmega64C1 ATmega64M1
+static const Valueitem_t _values_pscrb_atmega16m1[2] = {
+  {0, "rb_enabled", "PSC reset behavior enabled"},
+  {1, "rb_disabled", "PSC reset behavior disabled"},
+};
+
+// ATmega16HVA2 ATmega8HVA ATmega16HVA
+static const Valueitem_t _values_sut_atmega16hva2[8] = {
+  {0, "sut_6ck_14ck_4ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 4 ms"},
+  {1, "sut_6ck_14ck_8ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 8 ms"},
+  {2, "sut_6ck_14ck_16ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 16 ms"},
+  {3, "sut_6ck_14ck_32ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 32 ms"},
+  {4, "sut_6ck_14ck_64ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 64 ms"},
+  {5, "sut_6ck_14ck_128ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 128 ms"},
+  {6, "sut_6ck_14ck_256ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 256 ms"},
+  {7, "sut_6ck_14ck_512ms", "startup time PWRDWN/RESET: 6 CK/14 CK + 512 ms"},
+};
+
+// ATmega32HVBrevB ATmega16HVB ATmega16HVBrevB ATmega32HVB
+static const Valueitem_t _values_sut_atmega32hvbrevb[8] = {
+  {0, "sut_14ck_4ms", "startup time: 14 CK + 4 ms"},
+  {1, "sut_14ck_8ms", "startup time: 14 CK + 8 ms"},
+  {2, "sut_14ck_16ms", "startup time: 14 CK + 16 ms"},
+  {3, "sut_14ck_32ms", "startup time: 14 CK + 32 ms"},
+  {4, "sut_14ck_64ms", "startup time: 14 CK + 64 ms"},
+  {5, "sut_14ck_128ms", "startup time: 14 CK + 128 ms"},
+  {6, "sut_14ck_256ms", "startup time: 14 CK + 256 ms"},
+  {7, "sut_14ck_512ms", "startup time: 14 CK + 512 ms"},
+};
+
+// ATmega64HVE ATmega64HVE2 ATmega32HVE2
+static const Valueitem_t _values_sut_atmega64hve[4] = {
+  {0, "sut_14ck_0ms", "startup time: 14 CK + 0 ms"},
+  {1, "sut_14ck_16ms", "startup time: 14 CK + 16 ms"},
+  {2, "sut_14ck_32ms", "startup time: 14 CK + 32 ms"},
+  {3, "sut_14ck_64ms", "startup time: 14 CK + 64 ms"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 AVR32DD14 AVR64EA48 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404
+ * ATtiny406 ATtiny412 ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427
+ * ATtiny804 ATtiny806 ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827
+ * ATtiny1604 ATtiny1606 ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627
+ * ATtiny3216 ATtiny3217 ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608
+ * ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28
+ * AVR16DD32 AVR16EA32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32
+ * AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28
+ * AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48
+ * AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
+ * AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_sut_attiny204[8] = {
+  {0, "sut_0ms", "startup time 0 ms"},
+  {1, "sut_1ms", "startup time 1 ms"},
+  {2, "sut_2ms", "startup time 2 ms"},
+  {3, "sut_4ms", "startup time 4 ms"},
+  {4, "sut_8ms", "startup time 8 ms"},
+  {5, "sut_16ms", "startup time 16 ms"},
+  {6, "sut_32ms", "startup time 32 ms"},
+  {7, "sut_64ms", "startup time 64 ms"},
+};
+
+// ATmega161
+static const Valueitem_t _values_sut_atmega161[2] = {
+  {0, "sut_long", "start up time long"},
+  {1, "sut_short", "start up time short"},
+};
+
+/*
+ * ATmega16HVA2 ATtiny102 ATtiny441 ATtiny104 ATtiny13 ATtiny13A ATtiny24 ATtiny24A ATtiny25
+ * ATtiny43U ATtiny44 ATtiny44A ATtiny45 ATtiny48 ATtiny84 ATtiny84A ATtiny85 ATtiny87 ATtiny88
+ * ATtiny167 ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny841 ATtiny861 ATtiny861A ATtiny1634
+ * ATtiny1634R ATtiny2313 ATtiny2313A ATtiny4313 ATmega8HVA ATmega16HVA ATmega48 ATmega48A
+ * ATmega48P ATmega48PA ATmega48PB ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
+ */
+static const Valueitem_t _values_selfprgen_atmega16hva2[2] = {
+  {0, "spm_enabled", "self programming enabled"},
+  {1, "spm_disabled", "self programming disabled"},
+};
+
+// ATmega16HVA2
+static const Valueitem_t _values_cksel_atmega16hva2[2] = {
+  {1, "slow_rcosc", "slow RC osc"},
+  {2, "ulp_rcosc", "ultra-low-power RC osc"},
+};
+
+// ATmega32HVBrevB ATmega16HVB ATmega16HVBrevB ATmega32HVB
+static const Valueitem_t _values_cksel_atmega32hvbrevb[1] = {
+  {1, "default", "default"},
+};
+
+// ATmega64HVE ATmega64HVE2 ATmega32HVE2
+static const Valueitem_t _values_cksel_atmega64hve[1] = {
+  {1, "osel_default", "oscillator selection default"},
+};
+
+// ATtiny28 ATtiny12
+static const Valueitem_t _values_cksel_attiny28[16] = {
+  {0x00, "extclkx00", "external clock"},
+  {0x01, "extclkx01", "external clock"},
+  {0x02, "intrcoscx02", "internal RC oscillator"},
+  {0x03, "intrcoscx03", "internal RC oscillator"},
+  {0x04, "intrcoscx04", "internal RC oscillator"},
+  {0x05, "extrcoscx05", "external RC oscillator"},
+  {0x06, "extrcoscx06", "external RC oscillator"},
+  {0x07, "extrcoscx07", "external RC oscillator"},
+  {0x08, "extlofxtalx08", "external low-frequency crystal"},
+  {0x09, "extlofxtalx09", "external low-frequency crystal"},
+  {0x0a, "extxtalcresx0a", "external crystal/ceramic resonator"},
+  {0x0b, "extxtalcresx0b", "external crystal/ceramic resonator"},
+  {0x0c, "extxtalcresx0c", "external crystal/ceramic resonator"},
+  {0x0d, "extxtalcresx0d", "external crystal/ceramic resonator"},
+  {0x0e, "extxtalcresx0e", "external crystal/ceramic resonator"},
+  {0x0f, "extxtalcresx0f", "external crystal/ceramic resonator"},
+};
+
+// ATtiny11
+static const Valueitem_t _values_cksel_attiny11[5] = {
+  {0, "extclk", "external clock"},
+  {4, "intrcosc", "internal RC oscillator"},
+  {5, "extrcosc", "external RC oscillator"},
+  {6, "extlofxtal", "external low-frequency crystal"},
+  {7, "extxtalcres", "external crystal/ceramic resonator"},
+};
+
+// ATtiny15
+static const Valueitem_t _values_cksel_attiny15[4] = {
+  {0, "slowpwrx00", "slowly rising power"},
+  {1, "slowpwrx01", "slowly rising power"},
+  {2, "quickpwr", "quickly rising power"},
+  {3, "vquickpwr", "very quickly rising power"},
+};
+
+// AT90S1200 ATtiny22 AT90S2343
+static const Valueitem_t _values_cksel_at90s1200[2] = {
+  {0, "intrcosc", "internal RC oscillator"},
+  {1, "extclk", "external clock"},
+};
+
+// ATmega103
+static const Valueitem_t _values_cksel_atmega103[4] = {
+  {0, "sut_5ck", "startup time 5 CPU cycles"},
+  {1, "sut_0ms5", "startup time 0.5 ms"},
+  {2, "sut_4ms", "startup time 4 ms"},
+  {3, "sut_16ms", "startup time 16 ms"},
+};
+
+// ATmega161
+static const Valueitem_t _values_cksel_atmega161[8] = {
+  {0, "extclk_fastpwr", "ext clock; fast rising power"},
+  {1, "extclk_boden_por", "ext clock; brownout detection or power-on reset"},
+  {2, "xosc_slowpwr", "crystal osc; slowly rising power"},
+  {3, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {4, "xosc_boden_por", "crystal osc; brownout detection or power-on reset"},
+  {5, "cres_extclk_slowpwr", "ceramic res/ext clock; slowly rising power"},
+  {6, "cres_fastpwr", "ceramic res; fast rising power"},
+  {7, "cres_boden_por", "ceramic res; brownout detection or power-on reset"},
+};
+
+// ATmega163 ATmega323
+static const Valueitem_t _values_cksel_atmega163[16] = {
+  {0x00, "extclk_fastpwr", "ext clock; fast rising power"},
+  {0x01, "extclk_boden", "ext clock; brownout detection"},
+  {0x02, "intrcosc_slowpwr", "int RC osc; slowly rising power"},
+  {0x03, "intrcosc_fastpwr", "int RC osc; fast rising power"},
+  {0x04, "intrcosc_boden", "int RC osc; brownout detection"},
+  {0x05, "extrcosc_slowpwr", "ext RC osc; slowly rising power"},
+  {0x06, "extrcosc_fastpwr", "ext RC osc; fast rising power"},
+  {0x07, "extrcosc_boden", "exter RC osc; brownout detection"},
+  {0x08, "extlofxtalx08", "external low-frequency crystal"},
+  {0x09, "extlofxtalx09", "external low-frequency crystal"},
+  {0x0a, "xosc_slowpwr", "crystal osc; slowly rising power"},
+  {0x0b, "xosc_fastpwr", "crystal osc; fast rising power"},
+  {0x0c, "xosc_boden", "crystal osc; brownout detection"},
+  {0x0d, "cres_extclk_slowpwr", "ceramic res/ext clock; slowly rising power"},
+  {0x0e, "cres_fastpwr", "ceramic res; fast rising power"},
+  {0x0f, "cres_boden", "ceramic res; brownout detection"},
+};
+
+// ATmega16HVA2
+static const Valueitem_t _values_compmode_atmega16hva2[2] = {
+  {0, "cm_programmed", "compatibility mode programmed"},
+  {1, "cm_unprogrammed", "compatibility mode unprogrammed"},
+};
+
+// ATmega32HVBrevB ATmega16HVBrevB
+static const Valueitem_t _values_duvrdinit_atmega32hvbrevb[2] = {
+  {0, "duvr_on", "DUVR mode on"},
+  {1, "duvr_off", "DUVR mode off"},
+};
+
+/*
+ * ATmega64HVE ATmega8515 ATA6285 ATmega103comp AT90S8535comp ATtiny12 ATtiny15 ATtiny26 ATmega8
+ * ATmega8A ATmega16 ATmega16A ATmega32 ATmega32A ATmega64 ATmega64A ATmega64HVE2 ATmega128
+ * ATmega128A ATmega163 ATmega323 ATmega8535 AT90S2333 AT90S4433 AT90S8515comp ATA6286 ATA6289
+ * ATmega32HVE2
+ */
+static const Valueitem_t _values_boden_atmega64hve[2] = {
+  {0, "bod_enabled", "brownout detection enabled"},
+  {1, "bod_disabled", "brownout detection disabled"},
+};
+
+// AT90SCR100H AT90SCR100
+static const Valueitem_t _values_boden_at90scr100h[2] = {
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_enabled", "brownout detection enabled"},
+};
+
+// ATmega328PB ATmega324PB
+static const Valueitem_t _values_cfd_atmega328pb[2] = {
+  {0, "cfd_disabled", "clock failure detection disabled"},
+  {1, "cfd_enabled", "clock failure detection enabled"},
+};
+
+/*
+ * ATmega8515 ATmega103comp AT90S8535comp ATmega8 ATmega8A ATmega16 ATmega16A ATmega32 ATmega32A
+ * ATmega64 ATmega64A ATmega128 ATmega128A ATmega8535 AT90S8515comp
+ */
+static const Valueitem_t _values_ckopt_atmega8515[2] = {
+  {0, "full_railtorail", "oscillator swings full rail-to-rail"},
+  {1, "less_than_full_railtorail", "oscillator swings less than full rail-to-rail"},
+};
+
+// ATtiny26
+static const Valueitem_t _values_ckopt_attiny26[2] = {
+  {0, "int_caps_enabled", "internal capacitors on XTAL1 and XTAL2 enabled"},
+  {1, "no_int_caps", "no internal capacitors on XTAL1 and XTAL2"},
+};
+
+// ATmega8515 AT90S8515comp
+static const Valueitem_t _values_s8515c_atmega8515[2] = {
+  {0, "c8515_enabled", "AT90S4414/8515 compatibility mode enabled"},
+  {1, "c8515_disabled", "AT90S4414/8515 compatibility mode disabled"},
+};
+
+// ATtiny28
+static const Valueitem_t _values_intcap_attiny28[2] = {
+  {0, "cap_enabled", "internal load capacitors between XTAL1/XTAL2 and GND enabled"},
+  {1, "cap_disabled", "internal load capacitors between XTAL1/XTAL2 and GND disabled"},
+};
+
+/*
+ * ATtiny441 ATtiny441 ATtiny828 ATtiny828 ATtiny828R ATtiny828R ATtiny841 ATtiny841 ATtiny1634
+ * ATtiny1634 ATtiny1634R ATtiny1634R
+ */
+static const Valueitem_t _values_bodact_attiny441[3] = {
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_enabled", "brownout detection enabled"},
+  {3, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
+ * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
+ * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
+ * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
+ * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
+ * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
+ * ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_bodact_atxmega16e5[3] = {
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {3, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATtiny441 ATtiny441 ATtiny828 ATtiny828 ATtiny828R ATtiny828R ATtiny841 ATtiny841 ATtiny1634
+ * ATtiny1634 ATtiny1634R ATtiny1634R
+ */
+static const Valueitem_t _values_bodpd_attiny441[3] = {
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_enabled", "brownout detection enabled"},
+  {3, "bod_disabled", "brownout detection disabled"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
+ * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
+ * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
+ * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
+ * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
+ * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
+ * ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_bodpd_atxmega16e5[3] = {
+  {1, "bod_sampled", "brownout detection in sampled mode"},
+  {2, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {3, "bod_disabled", "brownout detection disabled"},
+};
+
+// ATtiny441 ATtiny841
+static const Valueitem_t _values_ulposcsel_attiny441[5] = {
+  {3, "ulposc_512khz", "ultra-low-power clock running at 512 kHz"},
+  {4, "ulposc_256khz", "ultra-low-power clock running at 256 kHz"},
+  {5, "ulposc_128khz", "ultra-low-power clock running at 128 kHz"},
+  {6, "ulposc_64khz", "ultra-low-power clock running at 64 kHz"},
+  {7, "ulposc_32khz", "ultra-low-power clock running at 32 kHz"},
+};
+
+// AT90PWM2 AT90PWM81 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM161 AT90PWM216 AT90PWM316
+static const Valueitem_t _values_pscrv_at90pwm2[2] = {
+  {0, "v_0", "PSCOUT reset value 0"},
+  {1, "v_1", "PSCOUT reset value 1"},
+};
+
+// AT90PWM2 AT90PWM81 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM161 AT90PWM216 AT90PWM316
+static const Valueitem_t _values_psc0rb_at90pwm2[2] = {
+  {0, "rb_enabled", "PSC0 reset behavior enabled"},
+  {1, "rb_disabled", "PSC0 reset behavior disabled"},
+};
+
+// AT90PWM2 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM216 AT90PWM316
+static const Valueitem_t _values_psc1rb_at90pwm2[2] = {
+  {0, "rb_enabled", "PSC1 reset behavior enabled"},
+  {1, "rb_disabled", "PSC1 reset behavior disabled"},
+};
+
+// AT90PWM2 AT90PWM81 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90PWM161 AT90PWM216 AT90PWM316
+static const Valueitem_t _values_psc2rb_at90pwm2[2] = {
+  {0, "rb_enabled", "PSC2 reset behavior enabled"},
+  {1, "rb_disabled", "PSC2 reset behavior disabled"},
+};
+
+// AT90PWM81 AT90PWM161
+static const Valueitem_t _values_pscinrb_at90pwm81[2] = {
+  {0, "rb_enabled", "PSC2 and PSC0 input reset behavior enabled"},
+  {1, "rb_disabled", "PSC2 and PSC0 input reset behavior disabled"},
+};
+
+// AT90PWM81 AT90PWM161
+static const Valueitem_t _values_psc2rba_at90pwm81[2] = {
+  {0, "rb_enabled", "PSC2 reset behavior for 22 and 23 enabled"},
+  {1, "rb_disabled", "PSC2 reset behavior for 22 and 23 disabled"},
+};
+
+/*
+ * AT90CAN128 ATxmega128A3 ATxmega128A3U ATmega103comp AT90SCR100H ATmega161comp ATmega16 ATmega16A
+ * ATmega16U4 ATmega32 ATmega32A ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64RFR2 ATmega128
+ * ATmega128A ATmega128RFA1 ATmega128RFR2 ATmega162 ATmega164A ATmega164P ATmega164PA ATmega165
+ * ATmega165A ATmega165P ATmega165PA ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2
+ * ATmega323 ATmega324A ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P
+ * ATmega325PA ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644
+ * ATmega644A ATmega644P ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649
+ * ATmega649A ATmega649P ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560
+ * ATmega2561 ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290
+ * ATmega3290A ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A
+ * ATmega6490P AT90CAN32 AT90CAN64 AT90SCR100 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
+ * ATxmega16A4 ATxmega16A4U ATxmega32A4 ATxmega32A4U ATxmega64A1 ATxmega64A1U ATxmega64B1
+ * ATxmega64A3 ATxmega64A3U ATxmega64B3 ATxmega64A4U ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128A4U ATxmega192A3 ATxmega192A3U ATxmega256A3 ATxmega256A3B
+ * ATxmega256A3BU ATxmega256A3U
+ */
+static const Valueitem_t _values_jtagen_at90can128[2] = {
+  {0, "jtag_enabled", "JTAG interface enabled"},
+  {1, "jtag_disabled", "JTAG interface disabled"},
+};
+
+/*
+ * AT90CAN128 ATmega103comp AT90SCR100H ATmega161comp ATmega16 ATmega16A ATmega16U4 ATmega32
+ * ATmega32A ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64RFR2 ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega162 ATmega164A ATmega164P ATmega164PA ATmega165 ATmega165A
+ * ATmega165P ATmega165PA ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323
+ * ATmega324A ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * AT90CAN32 AT90CAN64 AT90SCR100 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287
+ */
+static const Valueitem_t _values_ocden_at90can128[2] = {
+  {0, "ocd_enabled", "on-chip debug enabled"},
+  {1, "ocd_disabled", "on-chip debug disabled"},
+};
+
+// AT90CAN128 AT90CAN32 AT90CAN64
+static const Valueitem_t _values_ta0sel_at90can128[2] = {
+  {0, "ft_enabled", "factory tests enabled"},
+  {1, "ft_disabled", "factory tests disabled"},
+};
+
+/*
+ * AT90USB162 ATmega8U2 ATmega16U2 ATmega16U4 ATmega32U2 ATmega32U4 ATmega32U6 AT90USB82 AT90USB646
+ * AT90USB647 AT90USB1286 AT90USB1287
+ */
+static const Valueitem_t _values_hwbe_at90usb162[2] = {
+  {0, "gpio_pin_can_force_reset_to_boot_section", "GPIO pin can force reset to boot section"},
+  {1, "gpio_pin_cannot_force_reset_to_boot_section", "GPIO pin cannot force reset to boot section"},
+};
+
+// AT90S1200 ATtiny22 AT90S2343
+static const Valueitem_t _values_rcen_at90s1200[2] = {
+  {0, "intrcosc", "internal RC oscillator"},
+  {1, "extclk", "external clock"},
+};
+
+// AT90S2313 ATtiny11 AT90S2323 AT90S4414 AT90S4434 AT90S8515 AT90S8535
+static const Valueitem_t _values_fstrt_at90s2313[2] = {
+  {0, "sut_short", "startup time short"},
+  {1, "sut_long", "startup time long"},
+};
+
+// ATA5700M322 ATA5702M322
+static const Valueitem_t _values_pcee1_ata5700m322[2] = {
+  {0, "cee_protected", "customer EEPROM section protected"},
+  {1, "cee_unprotected", "customer EEPROM section unprotected"},
+};
+
+// ATA5700M322 ATA5702M322
+static const Valueitem_t _values_eeacc_ata5700m322[2] = {
+  {0, "eea_enabled", "EEPROM access control enabled"},
+  {1, "eea_disabled", "EEPROM access control disabled"},
+};
+
+// ATA5700M322 ATA5702M322
+static const Valueitem_t _values_ckstart_ata5700m322[2] = {
+  {0, "mrc_selected", "MRC selected"},
+  {1, "mrc_not_selected", "MRC not selected"},
+};
+
+/*
+ * ATA5781 ATA5790 ATA5782 ATA5783 ATA5787 ATA5791 ATA5831 ATA5832 ATA5833 ATA5835 ATA8210 ATA8215
+ * ATA8510 ATA8515
+ */
+static const Valueitem_t _values_extclken_ata5781[2] = {
+  {0, "xclk_enabled", "external clock enabled"},
+  {1, "xclk_disabled", "external clock disabled"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
+ * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
+ * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
+ * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
+ */
+static const Valueitem_t _values_ap_atmega328[4] = {
+  {0, "lpm_spm_disabled_in_app", "LPM and SPM prohibited in application section"},
+  {1, "lpm_disabled_in_app", "LPM prohibited in application section"},
+  {2, "spm_disabled_in_app", "SPM prohibited in application section"},
+  {3, "no_lock_in_app", "no lock on SPM and LPM in application section"},
+};
+
+/*
+ * ATmega328 ATmega16M1 ATmega32HVBrevB ATmega64HVE ATmega328PB ATmega8515 AT90PWM2 AT90PWM81
+ * AT90CAN128 AT90USB162 ATA5781 ATA5790 ATA6285 ATmega103comp AT90SCR100H ATmega161comp
+ * AT90S8535comp ATtiny828 ATtiny828R ATmega8 ATmega8A ATmega8U2 ATmega16 ATmega16A ATmega16HVB
+ * ATmega16HVBrevB ATmega16U2 ATmega16U4 ATmega32 ATmega32A ATmega32HVB ATmega32C1 ATmega32M1
+ * ATmega32U2 ATmega32U4 ATmega32U6 ATmega64 ATmega64A ATmega64C1 ATmega64M1 ATmega64HVE2
+ * ATmega64RFR2 ATmega88 ATmega88A ATmega88P ATmega88PA ATmega88PB ATmega128 ATmega128A
+ * ATmega128RFA1 ATmega128RFR2 ATmega161 ATmega162 ATmega163 ATmega164A ATmega164P ATmega164PA
+ * ATmega165 ATmega165A ATmega165P ATmega165PA ATmega168 ATmega168A ATmega168P ATmega168PA
+ * ATmega168PB ATmega169 ATmega169A ATmega169P ATmega169PA ATmega256RFR2 ATmega323 ATmega324A
+ * ATmega324P ATmega324PA ATmega324PB ATmega325 ATmega325A ATmega325P ATmega325PA ATmega328P
+ * ATmega329 ATmega329A ATmega329P ATmega329PA ATmega406 ATmega640 ATmega644 ATmega644A ATmega644P
+ * ATmega644PA ATmega644RFR2 ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P
+ * ATmega1280 ATmega1281 ATmega1284 ATmega1284P ATmega1284RFR2 ATmega2560 ATmega2561
+ * ATmega2564RFR2 ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A
+ * ATmega3290P ATmega3290PA ATmega6450 ATmega6450A ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ * ATmega8535 AT90PWM1 AT90PWM2B AT90PWM3 AT90PWM3B AT90CAN32 AT90CAN64 AT90USB82 AT90SCR100
+ * AT90PWM161 AT90PWM216 AT90PWM316 AT90USB646 AT90USB647 AT90USB1286 AT90USB1287 AT90S8515comp
+ * ATA5782 ATA5783 ATA5787 ATA5790N ATA5791 ATA5795 ATA5831 ATA5832 ATA5833 ATA5835 ATA6286
+ * ATA6289 ATA6612C ATA6613C ATA6614Q ATA8210 ATA8215 ATA8510 ATA8515 ATmega32HVE2
+ */
+static const Valueitem_t _values_blp_atmega328[4] = {
+  {0, "lpm_spm_disabled_in_boot", "LPM and SPM prohibited in boot section"},
+  {1, "lpm_disabled_in_boot", "LPM prohibited in boot section"},
+  {2, "spm_disabled_in_boot", "SPM prohibited in boot section"},
+  {3, "no_lock_in_boot", "no lock on SPM and LPM in boot section"},
+};
+
+// ATA5790 ATA5790N ATA5791 ATA5795
+static const Valueitem_t _values__32oen_ata5790[2] = {
+  {0, "o32_enabled", "32 kHz oscillator enabled"},
+  {1, "o32_disabled", "32 kHz oscillator disabled"},
+};
+
+// ATA5790 ATA5790N ATA5791 ATA5795
+static const Valueitem_t _values_reserved_ata5790[1] = {
+  {0, "must_be_0", "bit must be programmed"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_tsrdi_ata6285[2] = {
+  {0, "tsr_disabled", "temperature shutdown reset disabled"},
+  {1, "tsr_enabled", "temperature shutdown reset enabled"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_frcfs_ata6285[2] = {
+  {0, "osc_4mhz", "fast RC oscillator frequency 4 MHz"},
+  {1, "osc_1mhz", "fast RC oscillator frequency 1 MHz"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_wdrcon_ata6285[2] = {
+  {0, "wdrc_enabled", "watchdog RC oscillator enabled"},
+  {1, "wdrc_disabled", "watchdog RC oscillator disabled"},
+};
+
+// ATA6285 ATA6286 ATA6289
+static const Valueitem_t _values_eelock_ata6285[2] = {
+  {0, "eel_locked", "upper EEPROM locked"},
+  {1, "eel_unlocked", "upper EEPROM unlocked"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
+ * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
+ * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
+ * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
+ * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
+ * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
+ * ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_wdper_atxmega16e5[11] = {
+  {0x00, "t_0s008", "8 cycles (8 ms)"},
+  {0x01, "t_0s016", "16 cycles (16 ms)"},
+  {0x02, "t_0s032", "32 cycles (32 ms)"},
+  {0x03, "t_0s064", "64 cycles (64 ms)"},
+  {0x04, "t_0s125", "128 cycles (0.125 s)"},
+  {0x05, "t_0s250", "256 cycles (0.250 s)"},
+  {0x06, "t_0s500", "512 cycles (0.500 s)"},
+  {0x07, "t_1s000", "1K cycles (1.0 s)"},
+  {0x08, "t_2s000", "2K cycles (2.0 s)"},
+  {0x09, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0a, "t_8s000", "8K cycles (8.0 s)"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3U ATxmega128A3U ATxmega8E5
+ * ATxmega8E5 ATxmega16A4 ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3 ATxmega32A4 ATxmega32A4
+ * ATxmega32A4U ATxmega32A4U ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64B1 ATxmega64B1
+ * ATxmega64A3 ATxmega64A3 ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64D4 ATxmega64D4
+ * ATxmega128A1 ATxmega128A1 ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3 ATxmega128D3
+ * ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3 ATxmega256A3
+ * ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3BU ATxmega256A3BU ATxmega256A3U
+ * ATxmega256A3U ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega384C3 ATxmega384C3
+ * ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_wdwper_atxmega16e5[11] = {
+  {0x00, "t_0s008", "8 cycles (8 ms)"},
+  {0x01, "t_0s016", "16 cycles (16 ms)"},
+  {0x02, "t_0s032", "32 cycles (32 ms)"},
+  {0x03, "t_0s064", "64 cycles (64 ms)"},
+  {0x04, "t_0s125", "128 cycles (0.125 s)"},
+  {0x05, "t_0s250", "256 cycles (0.250 s)"},
+  {0x06, "t_0s500", "512 cycles (0.500 s)"},
+  {0x07, "t_1s000", "1K cycles (1.0 s)"},
+  {0x08, "t_2s000", "2K cycles (2.0 s)"},
+  {0x09, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0a, "t_8s000", "8K cycles (8.0 s)"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
+ * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
+ * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
+ * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
+ * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_wdlock_atxmega16e5[2] = {
+  {0, "wd_locked", "watchdog timer locked"},
+  {1, "wd_unlocked", "watchdog timer unlocked"},
+};
+
+/*
+ * ATxmega16E5 ATxmega128A3 ATxmega128A3U ATxmega8E5 ATxmega16A4 ATxmega16A4U ATxmega16C4
+ * ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4 ATxmega32A4U ATxmega32C4 ATxmega32D4
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1U ATxmega64B1 ATxmega64A3 ATxmega64A3U ATxmega64B3
+ * ATxmega64C3 ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1 ATxmega128A1revD ATxmega128A1U
+ * ATxmega128B1 ATxmega128B3 ATxmega128C3 ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3
+ * ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3 ATxmega256A3B ATxmega256A3BU ATxmega256A3U
+ * ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_startuptime_atxmega16e5[3] = {
+  {0, "sut_64ms", "startup time 64 ms"},
+  {1, "sut_4ms", "startup time 4 ms"},
+  {3, "sut_0ms", "startup time 0 ms"},
+};
+
+// ATxmega16E5 ATxmega16E5 ATxmega8E5 ATxmega8E5 ATxmega32E5 ATxmega32E5
+static const Valueitem_t _values_fdact4_atxmega16e5[2] = {
+  {0, "gpio_from_value_fuse", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
+  {1, "default_io", "default I/O pin configuration"},
+};
+
+// ATxmega16E5 ATxmega16E5 ATxmega8E5 ATxmega8E5 ATxmega32E5 ATxmega32E5
+static const Valueitem_t _values_fdact5_atxmega16e5[2] = {
+  {0, "gpio_from_value_fuse", "during reset and until a timer/counter compare channel is enabled the port pins are set to the VALUEn fuse bits"},
+  {1, "default_io", "default I/O pin configuration"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3 ATxmega128A3U
+ * ATxmega128A3U ATxmega128A3U ATxmega8E5 ATxmega8E5 ATxmega8E5 ATxmega16A4 ATxmega16A4
+ * ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3
+ * ATxmega32D3 ATxmega32A4 ATxmega32A4 ATxmega32A4 ATxmega32A4U ATxmega32A4U ATxmega32A4U
+ * ATxmega32C4 ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32D4 ATxmega32E5 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64A1U
+ * ATxmega64B1 ATxmega64B1 ATxmega64B1 ATxmega64A3 ATxmega64A3 ATxmega64A3 ATxmega64A3U
+ * ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64B3 ATxmega64C3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64A4U
+ * ATxmega64D4 ATxmega64D4 ATxmega64D4 ATxmega128A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD
+ * ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U ATxmega128A1U ATxmega128B1
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3
+ * ATxmega128C3 ATxmega128D3 ATxmega128D3 ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128A4U
+ * ATxmega128D4 ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3 ATxmega192A3 ATxmega192A3U
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3
+ * ATxmega192D3 ATxmega256A3 ATxmega256A3 ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3B
+ * ATxmega256A3BU ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U ATxmega256A3U
+ * ATxmega256C3 ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega256D3 ATxmega384C3
+ * ATxmega384C3 ATxmega384C3 ATxmega384D3 ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_blbat_atxmega16e5[4] = {
+  {0, "rwlock", "read and write not allowed"},
+  {1, "rlock", "read not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3 ATxmega128A3U
+ * ATxmega128A3U ATxmega128A3U ATxmega8E5 ATxmega8E5 ATxmega8E5 ATxmega16A4 ATxmega16A4
+ * ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3
+ * ATxmega32D3 ATxmega32A4 ATxmega32A4 ATxmega32A4 ATxmega32A4U ATxmega32A4U ATxmega32A4U
+ * ATxmega32C4 ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32D4 ATxmega32E5 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64A1U
+ * ATxmega64B1 ATxmega64B1 ATxmega64B1 ATxmega64A3 ATxmega64A3 ATxmega64A3 ATxmega64A3U
+ * ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64B3 ATxmega64C3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64A4U
+ * ATxmega64D4 ATxmega64D4 ATxmega64D4 ATxmega128A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD
+ * ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U ATxmega128A1U ATxmega128B1
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3
+ * ATxmega128C3 ATxmega128D3 ATxmega128D3 ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128A4U
+ * ATxmega128D4 ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3 ATxmega192A3 ATxmega192A3U
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3
+ * ATxmega192D3 ATxmega256A3 ATxmega256A3 ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3B
+ * ATxmega256A3BU ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U ATxmega256A3U
+ * ATxmega256C3 ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega256D3 ATxmega384C3
+ * ATxmega384C3 ATxmega384C3 ATxmega384D3 ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_blba_atxmega16e5[4] = {
+  {0, "rwlock", "read and write not allowed"},
+  {1, "rlock", "read not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
+};
+
+/*
+ * ATxmega16E5 ATxmega16E5 ATxmega16E5 ATxmega128A3 ATxmega128A3 ATxmega128A3 ATxmega128A3U
+ * ATxmega128A3U ATxmega128A3U ATxmega8E5 ATxmega8E5 ATxmega8E5 ATxmega16A4 ATxmega16A4
+ * ATxmega16A4 ATxmega16A4U ATxmega16A4U ATxmega16A4U ATxmega16C4 ATxmega16C4 ATxmega16C4
+ * ATxmega16D4 ATxmega16D4 ATxmega16D4 ATxmega32C3 ATxmega32C3 ATxmega32C3 ATxmega32D3 ATxmega32D3
+ * ATxmega32D3 ATxmega32A4 ATxmega32A4 ATxmega32A4 ATxmega32A4U ATxmega32A4U ATxmega32A4U
+ * ATxmega32C4 ATxmega32C4 ATxmega32C4 ATxmega32D4 ATxmega32D4 ATxmega32D4 ATxmega32E5 ATxmega32E5
+ * ATxmega32E5 ATxmega64A1 ATxmega64A1 ATxmega64A1 ATxmega64A1U ATxmega64A1U ATxmega64A1U
+ * ATxmega64B1 ATxmega64B1 ATxmega64B1 ATxmega64A3 ATxmega64A3 ATxmega64A3 ATxmega64A3U
+ * ATxmega64A3U ATxmega64A3U ATxmega64B3 ATxmega64B3 ATxmega64B3 ATxmega64C3 ATxmega64C3
+ * ATxmega64C3 ATxmega64D3 ATxmega64D3 ATxmega64D3 ATxmega64A4U ATxmega64A4U ATxmega64A4U
+ * ATxmega64D4 ATxmega64D4 ATxmega64D4 ATxmega128A1 ATxmega128A1 ATxmega128A1 ATxmega128A1revD
+ * ATxmega128A1revD ATxmega128A1revD ATxmega128A1U ATxmega128A1U ATxmega128A1U ATxmega128B1
+ * ATxmega128B1 ATxmega128B1 ATxmega128B3 ATxmega128B3 ATxmega128B3 ATxmega128C3 ATxmega128C3
+ * ATxmega128C3 ATxmega128D3 ATxmega128D3 ATxmega128D3 ATxmega128A4U ATxmega128A4U ATxmega128A4U
+ * ATxmega128D4 ATxmega128D4 ATxmega128D4 ATxmega192A3 ATxmega192A3 ATxmega192A3 ATxmega192A3U
+ * ATxmega192A3U ATxmega192A3U ATxmega192C3 ATxmega192C3 ATxmega192C3 ATxmega192D3 ATxmega192D3
+ * ATxmega192D3 ATxmega256A3 ATxmega256A3 ATxmega256A3 ATxmega256A3B ATxmega256A3B ATxmega256A3B
+ * ATxmega256A3BU ATxmega256A3BU ATxmega256A3BU ATxmega256A3U ATxmega256A3U ATxmega256A3U
+ * ATxmega256C3 ATxmega256C3 ATxmega256C3 ATxmega256D3 ATxmega256D3 ATxmega256D3 ATxmega384C3
+ * ATxmega384C3 ATxmega384C3 ATxmega384D3 ATxmega384D3 ATxmega384D3
+ */
+static const Valueitem_t _values_blbb_atxmega16e5[4] = {
+  {0, "rwlock", "read and write not allowed"},
+  {1, "rlock", "read not allowed"},
+  {2, "wlock", "write not allowed"},
+  {3, "nolock", "no locks"},
+};
+
+/*
+ * ATxmega128A3U ATxmega16A4U ATxmega16C4 ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32A4U
+ * ATxmega32C4 ATxmega32D4 ATxmega64A1U ATxmega64B1 ATxmega64A3U ATxmega64B3 ATxmega64C3
+ * ATxmega64D3 ATxmega64A4U ATxmega64D4 ATxmega128A1U ATxmega128B1 ATxmega128B3 ATxmega128C3
+ * ATxmega128D3 ATxmega128A4U ATxmega128D4 ATxmega192A3U ATxmega192C3 ATxmega192D3 ATxmega256A3BU
+ * ATxmega256A3U ATxmega256C3 ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+static const Valueitem_t _values_toscsel_atxmega128a3u[2] = {
+  {0, "alternate", "TOSC1/TOSC2 on separate pins"},
+  {1, "xtal", "TOSC1/TOSC2 shared with XTAL1/XTAL2"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_wdtperiod_attiny204[12] = {
+  {0x00, "t_off", "watchdog timer off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s100", "4K cycles (4.1 s)"},
+  {0x0b, "t_8s200", "8K cycles (8.2 s)"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_wdtperiod_avr32dd14[12] = {
+  {0x00, "t_off", "watchdog timer off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0b, "t_8s000", "8K cycles (8.0 s)"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_wdtwindow_attiny204[12] = {
+  {0x00, "t_off", "window mode off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s100", "4K cycles (4.1 s)"},
+  {0x0b, "t_8s200", "8K cycles (8.2 s)"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_wdtwindow_avr32dd14[12] = {
+  {0x00, "t_off", "window mode off"},
+  {0x01, "t_0s008", "8 cycles (8 ms)"},
+  {0x02, "t_0s016", "16 cycles (16 ms)"},
+  {0x03, "t_0s032", "32 cycles (32 ms)"},
+  {0x04, "t_0s064", "64 cycles (64 ms)"},
+  {0x05, "t_0s128", "128 cycles (0.128 s)"},
+  {0x06, "t_0s256", "256 cycles (0.256 s)"},
+  {0x07, "t_0s512", "512 cycles (0.512 s)"},
+  {0x08, "t_1s000", "1K cycles (1.0 s)"},
+  {0x09, "t_2s000", "2K cycles (2.0 s)"},
+  {0x0a, "t_4s000", "4K cycles (4.0 s)"},
+  {0x0b, "t_8s000", "8K cycles (8.0 s)"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_bodsleep_attiny204[3] = {
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_enabled", "brownout detection enabled"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_bodsleep_avr32dd14[3] = {
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_bodactive_attiny204[4] = {
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_enabled", "brownout detection enabled"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
+  {3, "bod_enabled_wait", "brownout detection enabled with wake-up halted until BOD is ready"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_bodactive_avr32dd14[4] = {
+  {0, "bod_disabled", "brownout detection disabled"},
+  {1, "bod_continuous", "brownout detection enabled in continuous mode"},
+  {2, "bod_sampled", "brownout detection in sampled mode"},
+  {3, "bod_continuous_wait", "brownout detection enabled in continuous mode with wake-up halted until BOD is ready"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_bodsampfreq_attiny204[2] = {
+  {0, "bod_1khz", "1 kHz sampling frequency"},
+  {1, "bod_125hz", "125 Hz sampling frequency"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_bodsampfreq_avr32dd14[2] = {
+  {0, "bod_128hz", "128 Hz sampling frequency"},
+  {1, "bod_32hz", "32 Hz sampling frequency"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806 ATtiny807
+ * ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606 ATtiny1607
+ * ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217 ATtiny3224
+ * ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208 ATmega3209
+ * ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_freqsel_attiny204[2] = {
+  {1, "fcpu_16mhz", "internal clock running at 16 MHz"},
+  {2, "fcpu_20mhz", "internal clock running at 20 MHz"},
+};
+
+// AVR64EA48 AVR16EA28 AVR16EA32 AVR16EA48 AVR32EA28 AVR32EA32 AVR32EA48 AVR64EA28 AVR64EA32
+static const Valueitem_t _values_freqsel_avr64ea48[2] = {
+  {0, "fcpu_20mhz", "OSCHF running at 20 MHz"},
+  {1, "fcpu_16mhz", "OSCHF running at 16 MHz"},
+};
+
+// ATtiny416auto
+static const Valueitem_t _values_freqsel_attiny416auto[1] = {
+  {1, "fcpu_16mhz", "internal clock running at 16 MHz"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412
+ * ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427 ATtiny804 ATtiny806
+ * ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827 ATtiny1604 ATtiny1606
+ * ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627 ATtiny3216 ATtiny3217
+ * ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208
+ * ATmega3209 ATmega4808 ATmega4809
+ */
+static const Valueitem_t _values_osclock_attiny204[2] = {
+  {0, "olock_disabled", "oscillator lock disabled"},
+  {1, "olock_enabled", "oscillator lock enabled"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpa_attiny204[2] = {
+  {0, "v_0", "compare A default output value 0"},
+  {1, "v_1", "compare A default output value 1"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpb_attiny204[2] = {
+  {0, "v_0", "compare B default output value 0"},
+  {1, "v_1", "compare B default output value 1"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpc_attiny204[2] = {
+  {0, "v_0", "compare C default output value 0"},
+  {1, "v_1", "compare C default output value 1"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpd_attiny204[2] = {
+  {0, "v_0", "compare D default output value 0"},
+  {1, "v_1", "compare D default output value 1"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpaen_attiny204[2] = {
+  {0, "cpa_disabled", "compare A output disabled"},
+  {1, "cpa_enabled", "compare A output enabled"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpben_attiny204[2] = {
+  {0, "cpb_disabled", "compare B output disabled"},
+  {1, "cpb_enabled", "compare B output enabled"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpcen_attiny204[2] = {
+  {0, "cpc_disabled", "compare C output disabled"},
+  {1, "cpc_enabled", "compare C output enabled"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616
+ * ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_cmpden_attiny204[2] = {
+  {0, "cpd_disabled", "compare D output disabled"},
+  {1, "cpd_enabled", "compare D output enabled"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny416auto ATtiny417 ATtiny804 ATtiny806 ATtiny807 ATtiny814 ATtiny816 ATtiny817
+ * ATtiny1604 ATtiny1606 ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny3216 ATtiny3217
+ */
+static const Valueitem_t _values_rstpincfg_attiny204[3] = {
+  {0, "gpio", "GPIO mode"},
+  {1, "updi", "UPDI mode"},
+  {2, "rst", "reset mode"},
+};
+
+/*
+ * ATtiny1624 ATtiny424 ATtiny426 ATtiny427 ATtiny824 ATtiny826 ATtiny827 ATtiny1626 ATtiny1627
+ * ATtiny3224 ATtiny3226 ATtiny3227
+ */
+static const Valueitem_t _values_rstpincfg_attiny1624[4] = {
+  {0, "gpio", "GPIO mode"},
+  {1, "updi", "UPDI mode"},
+  {2, "rst", "reset mode"},
+  {3, "pdirst", "PDI on PDI pad, reset on alternative reset pad"},
+};
+
+/*
+ * AVR32DD14 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809
+ * AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DD28 AVR32DD32 AVR64DD14 AVR64DD20
+ * AVR64DD28 AVR64DD32
+ */
+static const Valueitem_t _values_rstpincfg_avr32dd14[2] = {
+  {0, "gpio", "GPIO mode"},
+  {1, "rst", "reset mode"},
+};
+
+// AVR64EA48 AVR16EA28 AVR16EA32 AVR16EA48 AVR32EA28 AVR32EA32 AVR32EA48 AVR64EA28 AVR64EA32
+static const Valueitem_t _values_rstpincfg_avr64ea48[2] = {
+  {0, "none", "no external reset"},
+  {1, "reset", "PF6 configured as reset pin"},
+};
+
+/*
+ * AVR32DA28 AVR32DB28 AVR32DA32 AVR32DB32 AVR32DA48 AVR32DB48 AVR64DA28 AVR64DB28 AVR64DA32
+ * AVR64DB32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_rstpincfg_avr32da28[2] = {
+  {0, "gpio", "GPIO mode"},
+  {2, "rst", "reset mode"},
+};
+
+/*
+ * ATtiny204 ATtiny1624 AVR32DD14 AVR64EA48 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404
+ * ATtiny406 ATtiny412 ATtiny414 ATtiny416 ATtiny416auto ATtiny417 ATtiny424 ATtiny426 ATtiny427
+ * ATtiny804 ATtiny806 ATtiny807 ATtiny814 ATtiny816 ATtiny817 ATtiny824 ATtiny826 ATtiny827
+ * ATtiny1604 ATtiny1606 ATtiny1607 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny1626 ATtiny1627
+ * ATtiny3216 ATtiny3217 ATtiny3224 ATtiny3226 ATtiny3227 ATmega808 ATmega809 ATmega1608
+ * ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28
+ * AVR16DD32 AVR16EA32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32
+ * AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28
+ * AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48
+ * AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
+ * AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_crcsrc_attiny204[4] = {
+  {0, "flash", "CRC of entire flash (boot, application code and application data)"},
+  {1, "boot", "CRC of boot section"},
+  {2, "bootapp", "CRC of application code and boot sections"},
+  {3, "nocrc", "disable CRC"},
+};
+
+/*
+ * ATtiny1624 ATtiny424 ATtiny426 ATtiny427 ATtiny824 ATtiny826 ATtiny827 ATtiny1626 ATtiny1627
+ * ATtiny3224 ATtiny3226 ATtiny3227
+ */
+static const Valueitem_t _values_toutdis_attiny1624[2] = {
+  {0, "to_disabled", "timeout disabled"},
+  {1, "to_enabled", "timeout enabled"},
+};
+
+/*
+ * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28
+ * AVR32DA32 AVR32DB32 AVR32DD32 AVR32DA48 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28
+ * AVR64DD28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_clksel_avr32dd14[2] = {
+  {0, "oschf", "1-32 MHz internal oscillator"},
+  {1, "osc32k", "32.768 kHz internal oscillator"},
+};
+
+/*
+ * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DD28 AVR32DD32 AVR64DD14
+ * AVR64DD20 AVR64DD28 AVR64DD32
+ */
+static const Valueitem_t _values_updipincfg_avr32dd14[2] = {
+  {0, "gpio", "GPIO mode"},
+  {1, "updi", "UPDI mode"},
+};
+
+// AVR64EA48 AVR16EA28 AVR16EA32 AVR16EA48 AVR32EA28 AVR32EA32 AVR32EA48 AVR64EA28 AVR64EA32
+static const Valueitem_t _values_updipincfg_avr64ea48[2] = {
+  {0, "gpio", "PF7 configured as GPIO pin"},
+  {1, "updi", "PF7 configured as UPDI pin"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_crcsel_avr32dd14[2] = {
+  {0, "crc16", "enable CRC16"},
+  {1, "crc32", "enable CRC32"},
+};
+
+/*
+ * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DB28 AVR32DD28 AVR32DB32
+ * AVR32DD32 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DB28 AVR64DD28 AVR64DB32 AVR64DD32 AVR64DB48
+ * AVR64DB64 AVR128DB28 AVR128DB32 AVR128DB48 AVR128DB64
+ */
+static const Valueitem_t _values_mvsyscfg_avr32dd14[2] = {
+  {1, "dual", "device used in a dual supply configuration"},
+  {2, "single", "device used in a single supply configuration"},
+};
+
+/*
+ * AVR32DD14 AVR64EA48 AVR16DD14 AVR16DD20 AVR16DD28 AVR16EA28 AVR16DD32 AVR16EA32 AVR16EA48
+ * AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32
+ * AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28
+ * AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ */
+static const Valueitem_t _values_key_avr32dd14[2] = {
+  {0x5cc5c55c, "nolock", "no locks"},
+  {0xa33a3aa3, "rwlock", "read and write not allowed"},
+};
+
+// ATmega103comp ATmega64 ATmega64A ATmega128 ATmega128A
+static const Valueitem_t _values_m103c_atmega103comp[2] = {
+  {0, "c103_enabled", "ATmega103 compatibility mode enabled"},
+  {1, "c103_disabled", "ATmega103 compatibility mode disabled"},
+};
+
+// ATmega161comp ATmega162
+static const Valueitem_t _values_m161c_atmega161comp[2] = {
+  {0, "c161_enabled", "ATmega161 compatibility mode enabled"},
+  {1, "c161_disabled", "ATmega161 compatibility mode disabled"},
+};
+
+// AT90S8535comp ATmega8535
+static const Valueitem_t _values_s8535c_at90s8535comp[2] = {
+  {0, "c8535_enabled", "AT90S4434/8535 compatibility mode enabled"},
+  {1, "c8535_disabled", "AT90S4434/8535 compatibility mode disabled"},
+};
+
+
+// Configuration tables
+
+// ATmega328 ATmega328P ATA6614Q
+const Configitem_t cfgtab_atmega328[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega16M1
+const Configitem_t cfgtab_atmega16m1[17] = {
+  {"sut_cksel", 53, _values_sut_cksel_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"pscrvb", 2, _values_pscrvb_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
+  {"pscrva", 2, _values_pscrva_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
+  {"pscrb", 2, _values_pscrb_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega16HVA2
+const Configitem_t cfgtab_atmega16hva2[9] = {
+  {"sut", 8, _values_sut_atmega16hva2, "lfuse", 0, 0x07, 0, -1, "startup time"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "lfuse", 0, 0x08, 3, -1, "self programming"},
+  {"dwen", 2, _values_dwen_atmega328, "lfuse", 0, 0x10, 4, -1, "debugWIRE"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, -1, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, -1, "watchdog timer"},
+  {"cksel", 2, _values_cksel_atmega16hva2, "hfuse", 1, 0x03, 0, -1, "oscillator"},
+  {"compmode", 2, _values_compmode_atmega16hva2, "hfuse", 1, 0x04, 2, -1, "compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATmega32HVBrevB
+const Configitem_t cfgtab_atmega32hvbrevb[12] = {
+  {"cksel", 1, _values_cksel_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_sut_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"duvrdinit", 2, _values_duvrdinit_atmega32hvbrevb, "hfuse", 1, 0x10, 4, 0, "DUVR mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega64HVE
+const Configitem_t cfgtab_atmega64hve[13] = {
+  {"cksel", 1, _values_cksel_atmega64hve, "lfuse", 0, 0x01, 0, -1, "oscillator"},
+  {"sut", 4, _values_sut_atmega64hve, "lfuse", 0, 0x06, 1, -1, "startup time"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x08, 3, -1, "clock prescaled"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x10, 4, -1, "brownout detection"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, -1, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, -1, "watchdog timer"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, -1, "debugWIRE"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega328PB
+const Configitem_t cfgtab_atmega328pb[15] = {
+  {"sut_cksel", 47, _values_sut_cksel_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"cfd", 2, _values_cfd_atmega328pb, "efuse", 2, 0x08, 3, 0, "clock failure detection"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega8515
+const Configitem_t cfgtab_atmega8515[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
+  {"s8515c", 2, _values_s8515c_atmega8515, "hfuse", 1, 0x80, 7, 1, "AT90S4414/8515 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATtiny102 ATtiny104
+const Configitem_t cfgtab_attiny102[5] = {
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
+  {"ckout", 2, _values_ckout_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "fuse", 0, 0x08, 3, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny28
+const Configitem_t cfgtab_attiny28[3] = {
+  {"cksel", 16, _values_cksel_attiny28, "fuse", 0, 0x0f, 0, 0x02, "clock source"},
+  {"intcap", 2, _values_intcap_attiny28, "fuse", 0, 0x10, 4, 1, "internal load capacitors between XTAL1/XTAL2 and GND"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATtiny441 ATtiny841
+const Configitem_t cfgtab_attiny441[14] = {
+  {"sut_cksel", 17, _values_sut_cksel_attiny441, "lfuse", 0, 0x1f, 0, 0x02, "clock source"},
+  {"ckout", 2, _values_ckout_attiny441, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_attiny441, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny441, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"bodact", 3, _values_bodact_attiny441, "efuse", 2, 0x06, 1, 3, "brownout detection in active/idle mode"},
+  {"bodpd", 3, _values_bodpd_attiny441, "efuse", 2, 0x18, 3, 3, "brownout detection in power-down mode"},
+  {"ulposcsel", 5, _values_ulposcsel_attiny441, "efuse", 2, 0xe0, 5, 7, "frequency for internal ultra-low-power oscillator"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// AT90PWM2 AT90PWM3
+const Configitem_t cfgtab_at90pwm2[18] = {
+  {"sut_cksel", 42, _values_sut_cksel_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_pscrv_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_psc0rb_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_psc1rb_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_psc2rb_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90PWM81 AT90PWM161
+const Configitem_t cfgtab_at90pwm81[19] = {
+  {"sut_cksel", 56, _values_sut_cksel_at90pwm81, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_at90pwm81, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_at90pwm81, "efuse", 2, 0x07, 0, 5, "brownout detection trigger level"},
+  {"pscinrb", 2, _values_pscinrb_at90pwm81, "efuse", 2, 0x08, 3, 1, "PSC2 and PSC0 input reset behavior"},
+  {"pscrv", 2, _values_pscrv_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_psc0rb_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc2rba", 2, _values_psc2rba_at90pwm81, "efuse", 2, 0x40, 6, 1, "PSC2 reset behavior for 22 and 23"},
+  {"psc2rb", 2, _values_psc2rb_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90CAN128
+const Configitem_t cfgtab_at90can128[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"ta0sel", 2, _values_ta0sel_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
+  {"bodlevel", 8, _values_bodlevel_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90USB162 ATmega16U2 AT90USB82
+const Configitem_t cfgtab_at90usb162[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"bodlevel", 8, _values_bodlevel_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90S1200
+const Configitem_t cfgtab_at90s1200[3] = {
+  {"rcen", 2, _values_rcen_at90s1200, "fuse", 0, 0x01, 0, 1, "clock source"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// AT90S2313 AT90S4414 AT90S4434 AT90S8515 AT90S8535
+const Configitem_t cfgtab_at90s2313[3] = {
+  {"fstrt", 2, _values_fstrt_at90s2313, "fuse", 0, 0x01, 0, 1, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATA5700M322 ATA5702M322
+const Configitem_t cfgtab_ata5700m322[9] = {
+  {"pcee1", 2, _values_pcee1_ata5700m322, "fuse", 0, 0x01, 0, 1, "protect customer EEPROM section"},
+  {"eeacc", 2, _values_eeacc_ata5700m322, "fuse", 0, 0x02, 1, 1, "EEPROM access control"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckstart", 2, _values_ckstart_ata5700m322, "fuse", 0, 0x80, 7, 1, "MRC during reset startup phase"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATA5781 ATA5782 ATA5783 ATA5831 ATA5832 ATA5833 ATA8210 ATA8215 ATA8510 ATA8515
+const Configitem_t cfgtab_ata5781[11] = {
+  {"extclken", 2, _values_extclken_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse", 0, 0x02, 1, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"ap", 4, _values_ap_atmega328, "lock", 0, 0x0c, 2, 3, "application protection"},
+  {"blp", 4, _values_blp_atmega328, "lock", 0, 0x30, 4, 3, "boot loader protection"},
+};
+
+// ATA5790 ATA5791
+const Configitem_t cfgtab_ata5790[11] = {
+  {"extclken", 2, _values_extclken_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
+  {"_32oen", 2, _values__32oen_ata5790, "fuse", 0, 0x02, 1, 0, "32 kHz oscillator"},
+  {"reserved", 1, _values_reserved_ata5790, "fuse", 0, 0x04, 2, 0, "bit must be programmed"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x10, 4, 0, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "fuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATA6285 ATA6286
+const Configitem_t cfgtab_ata6285[17] = {
+  {"tsrdi", 2, _values_tsrdi_ata6285, "lfuse", 0, 0x01, 0, 1, "temperature shutdown reset"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x02, 1, 0, "brownout detection"},
+  {"frcfs", 2, _values_frcfs_ata6285, "lfuse", 0, 0x04, 2, 0, "fast RC oscillator frequency"},
+  {"wdrcon", 2, _values_wdrcon_ata6285, "lfuse", 0, 0x08, 3, 0, "watchdog RC oscillator"},
+  {"sut_cksel", 3, _values_sut_cksel_ata6285, "lfuse", 0, 0x30, 4, 2, "clock source"},
+  {"ckout", 2, _values_ckout_ata6285, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_ata6285, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"eelock", 2, _values_eelock_ata6285, "hfuse", 1, 0x80, 7, 1, "Upper EEPROM"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATxmega16E5 ATxmega8E5 ATxmega32E5
+const Configitem_t cfgtab_atxmega16e5[17] = {
+  {"wdper", 11, _values_wdper_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_wdwper_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_bodpd_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"wdlock", 2, _values_wdlock_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_startuptime_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_bodact_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"value", 0, NULL, "fuse6", 6, 0x3f, 0, 0x3f, "port pin value"},
+  {"fdact4", 2, _values_fdact4_atxmega16e5, "fuse6", 6, 0x40, 6, 1, "fault detection action on TC4"},
+  {"fdact5", 2, _values_fdact5_atxmega16e5, "fuse6", 6, 0x80, 7, 1, "fault detection action on TC5"},
+  {"lb", 3, _values_lb_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_blbat_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_blba_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_blbb_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
+};
+
+/*
+ * ATxmega128A3 ATxmega64A1 ATxmega64A3 ATxmega128A1 ATxmega128A1revD ATxmega192A3 ATxmega256A3
+ * ATxmega256A3B
+ */
+const Configitem_t cfgtab_atxmega128a3[16] = {
+  {"jtaguserid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_wdper_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_wdwper_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_bodpd_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_jtagen_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
+  {"wdlock", 2, _values_wdlock_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_startuptime_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atxmega128a3, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_bodact_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_lb_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_blbat_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_blba_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_blbb_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
+};
+
+/*
+ * ATxmega128A3U ATxmega16A4U ATxmega32A4U ATxmega64A1U ATxmega64A3U ATxmega64A4U ATxmega128A1U
+ * ATxmega128A4U ATxmega192A3U ATxmega256A3BU ATxmega256A3U
+ */
+const Configitem_t cfgtab_atxmega128a3u[17] = {
+  {"jtaguid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_wdper_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_wdwper_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_bodpd_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"toscsel", 2, _values_toscsel_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_jtagen_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
+  {"wdlock", 2, _values_wdlock_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_startuptime_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_bodact_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_lb_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_blbat_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_blba_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_blbb_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
+};
+
+/*
+ * ATtiny204 ATtiny202 ATtiny212 ATtiny214 ATtiny402 ATtiny404 ATtiny406 ATtiny412 ATtiny414
+ * ATtiny416 ATtiny417 ATtiny814 ATtiny816 ATtiny817 ATtiny1614 ATtiny1616 ATtiny1617 ATtiny3216
+ * ATtiny3217
+ */
+const Configitem_t cfgtab_attiny204[23] = {
+  {"wdtperiod", 12, _values_wdtperiod_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 3, _values_bodlevel_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_freqsel_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_osclock_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"cmpa", 2, _values_cmpa_attiny204, "tcd0cfg", 4, 0x01, 0, 0, "compare A default output value"},
+  {"cmpb", 2, _values_cmpb_attiny204, "tcd0cfg", 4, 0x02, 1, 0, "compare B default output value"},
+  {"cmpc", 2, _values_cmpc_attiny204, "tcd0cfg", 4, 0x04, 2, 0, "compare C default output value"},
+  {"cmpd", 2, _values_cmpd_attiny204, "tcd0cfg", 4, 0x08, 3, 0, "compare D default output value"},
+  {"cmpaen", 2, _values_cmpaen_attiny204, "tcd0cfg", 4, 0x10, 4, 0, "compare A output"},
+  {"cmpben", 2, _values_cmpben_attiny204, "tcd0cfg", 4, 0x20, 5, 0, "compare B output"},
+  {"cmpcen", 2, _values_cmpcen_attiny204, "tcd0cfg", 4, 0x40, 6, 0, "compare C output"},
+  {"cmpden", 2, _values_cmpden_attiny204, "tcd0cfg", 4, 0x80, 7, 0, "compare D output"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 3, _values_rstpincfg_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_lb_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
+};
+
+/*
+ * ATtiny1624 ATtiny424 ATtiny426 ATtiny427 ATtiny824 ATtiny826 ATtiny827 ATtiny1626 ATtiny1627
+ * ATtiny3224 ATtiny3226 ATtiny3227
+ */
+const Configitem_t cfgtab_attiny1624[16] = {
+  {"wdtperiod", 12, _values_wdtperiod_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 3, _values_bodlevel_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_freqsel_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_osclock_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 4, _values_rstpincfg_attiny1624, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"toutdis", 2, _values_toutdis_attiny1624, "syscfg0", 5, 0x10, 4, 1, "timeout"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_lb_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
+};
+
+/*
+ * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DD28 AVR32DD32 AVR64DD14
+ * AVR64DD20 AVR64DD28 AVR64DD32
+ */
+const Configitem_t cfgtab_avr32dd14[17] = {
+  {"wdtperiod", 12, _values_wdtperiod_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 4, _values_bodlevel_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_clksel_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_rstpincfg_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"updipincfg", 2, _values_updipincfg_avr32dd14, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
+  {"crcsel", 2, _values_crcsel_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC select"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"mvsyscfg", 2, _values_mvsyscfg_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_key_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
+};
+
+// AVR64EA48 AVR16EA28 AVR16EA32 AVR16EA48 AVR32EA28 AVR32EA32 AVR32EA48 AVR64EA28 AVR64EA32
+const Configitem_t cfgtab_avr64ea48[16] = {
+  {"wdtperiod", 12, _values_wdtperiod_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 4, _values_bodlevel_avr64ea48, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_freqsel_avr64ea48, "osccfg", 2, 0x08, 3, 0, "HF oscillator frequency"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_rstpincfg_avr64ea48, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"updipincfg", 2, _values_updipincfg_avr64ea48, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
+  {"crcsel", 2, _values_crcsel_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC select"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_key_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
+};
+
+// ATmega103comp
+const Configitem_t cfgtab_atmega103comp[15] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"wdton", 2, _values_wdton_atmega328, "efuse", 2, 0x01, 0, -1, "watchdog timer"},
+  {"m103c", 2, _values_m103c_atmega103comp, "efuse", 2, 0x02, 1, -1, "ATmega103 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90SCR100H AT90SCR100
+const Configitem_t cfgtab_at90scr100h[13] = {
+  {"sut_cksel", 14, _values_sut_cksel_at90scr100h, "lfuse", 0, 0x39, 0, -1, "clock source"},
+  {"ckout", 2, _values_ckout_at90scr100h, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"boden", 2, _values_boden_at90scr100h, "efuse", 2, 0x01, 0, -1, "brownout detection"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega161comp
+const Configitem_t cfgtab_atmega161comp[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"bodlevel", 5, _values_bodlevel_atmega161comp, "efuse", 2, 0x0e, 1, -1, "brownout detection trigger level"},
+  {"m161c", 2, _values_m161c_atmega161comp, "efuse", 2, 0x10, 4, -1, "ATmega161 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90S8535comp
+const Configitem_t cfgtab_at90s8535comp[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x40, 6, -1, "watchdog timer"},
+  {"s8535c", 2, _values_s8535c_at90s8535comp, "hfuse", 1, 0x80, 7, -1, "AT90S4434/8535 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATtiny4 ATtiny5 ATtiny9 ATtiny10
+const Configitem_t cfgtab_attiny4[4] = {
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
+  {"ckout", 2, _values_ckout_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny20 ATtiny40
+const Configitem_t cfgtab_attiny20[5] = {
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse", 0, 0x01, 0, 1, "reset configuration"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x02, 1, 1, "watchdog timer"},
+  {"ckout", 2, _values_ckout_attiny102, "fuse", 0, 0x04, 2, 1, "clock output"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "fuse", 0, 0x70, 4, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny11
+const Configitem_t cfgtab_attiny11[4] = {
+  {"cksel", 5, _values_cksel_attiny11, "fuse", 0, 0x07, 0, 4, "clock source"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny11, "fuse", 0, 0x08, 3, 0, "reset configuration"},
+  {"fstrt", 2, _values_fstrt_at90s2313, "fuse", 0, 0x10, 4, 1, "startup time"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATtiny12
+const Configitem_t cfgtab_attiny12[6] = {
+  {"cksel", 16, _values_cksel_attiny28, "fuse", 0, 0x0f, 0, 0x02, "clock source"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny11, "fuse", 0, 0x10, 4, 1, "reset configuration"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"boden", 2, _values_boden_atmega64hve, "fuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_attiny12, "fuse", 0, 0x80, 7, 0, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATtiny13 ATtiny13A
+const Configitem_t cfgtab_attiny13[10] = {
+  {"sut_cksel", 12, _values_sut_cksel_attiny13, "lfuse", 0, 0x0f, 0, 0x0a, "clock source"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x10, 4, 0, "clock prescaled"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x20, 5, 1, "watchdog timer"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x80, 7, 0, "serial programming"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny11, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_attiny13, "hfuse", 1, 0x06, 1, 3, "brownout detection trigger level"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "hfuse", 1, 0x10, 4, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny15
+const Configitem_t cfgtab_attiny15[6] = {
+  {"cksel", 4, _values_cksel_attiny15, "fuse", 0, 0x03, 0, 0, "clock source"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny11, "fuse", 0, 0x10, 4, 1, "reset configuration"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"boden", 2, _values_boden_atmega64hve, "fuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "fuse", 0, 0x80, 7, 0, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATtiny22
+const Configitem_t cfgtab_attiny22[3] = {
+  {"cksel", 2, _values_cksel_at90s1200, "fuse", 0, 0x01, 0, -1, "clock source"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATtiny24 ATtiny24A ATtiny44 ATtiny44A ATtiny84 ATtiny84A
+const Configitem_t cfgtab_attiny24[11] = {
+  {"sut_cksel", 44, _values_sut_cksel_attiny24, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_attiny24, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny24, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny25 ATtiny45 ATtiny85
+const Configitem_t cfgtab_attiny25[11] = {
+  {"sut_cksel", 51, _values_sut_cksel_attiny25, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_attiny25, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny11, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny26
+const Configitem_t cfgtab_attiny26[8] = {
+  {"ckopt", 2, _values_ckopt_attiny26, "lfuse", 0, 0x40, 6, 1, "internal capacitors on XTAL1 and XTAL2"},
+  {"sut_cksel", 62, _values_sut_cksel_attiny26, "lfuse", 0, 0xbf, 0, 0xa1, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "hfuse", 1, 0x01, 0, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "hfuse", 1, 0x02, 1, 1, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x04, 2, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x08, 3, 0, "serial programming"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny26, "hfuse", 1, 0x10, 4, 1, "reset configuration"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny43U ATtiny261 ATtiny261A ATtiny461 ATtiny461A ATtiny861 ATtiny861A
+const Configitem_t cfgtab_attiny43u[11] = {
+  {"sut_cksel", 48, _values_sut_cksel_attiny43u, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_attiny43u, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_at90pwm81, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny26, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny48 ATtiny88
+const Configitem_t cfgtab_attiny48[11] = {
+  {"sut_cksel", 9, _values_sut_cksel_attiny48, "lfuse", 0, 0x3f, 0, 0x2e, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny87 ATtiny167 ATA5272 ATA5505 ATA6616C ATA6617C ATA664251
+const Configitem_t cfgtab_attiny87[11] = {
+  {"sut_cksel", 44, _values_sut_cksel_attiny87, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_attiny43u, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_at90pwm81, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny26, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny828 ATtiny828R
+const Configitem_t cfgtab_attiny828[16] = {
+  {"sut_cksel", 16, _values_sut_cksel_attiny828, "lfuse", 0, 0x33, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "efuse", 2, 0x06, 1, 3, "boot section size"},
+  {"bodact", 3, _values_bodact_attiny441, "efuse", 2, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"bodpd", 3, _values_bodpd_attiny441, "efuse", 2, 0xc0, 6, 3, "brownout detection in power-down mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATtiny1634 ATtiny1634R
+const Configitem_t cfgtab_attiny1634[13] = {
+  {"sut_cksel", 15, _values_sut_cksel_attiny1634, "lfuse", 0, 0x1f, 0, 0x02, "clock source"},
+  {"ckout", 2, _values_ckout_attiny441, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_attiny441, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny441, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"bodact", 3, _values_bodact_attiny441, "efuse", 2, 0x06, 1, 3, "brownout detection in active/idle mode"},
+  {"bodpd", 3, _values_bodpd_attiny441, "efuse", 2, 0x18, 3, 3, "brownout detection in power-down mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny2313
+const Configitem_t cfgtab_attiny2313[11] = {
+  {"sut_cksel", 44, _values_sut_cksel_attiny2313, "lfuse", 0, 0x3f, 0, 0x24, "clock source"},
+  {"ckout", 2, _values_ckout_attiny2313, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATtiny2313A ATtiny4313
+const Configitem_t cfgtab_attiny2313a[11] = {
+  {"sut_cksel", 44, _values_sut_cksel_attiny2313, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_attiny2313, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "hfuse", 1, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATmega8 ATmega8A
+const Configitem_t cfgtab_atmega8[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega8HVA ATmega16HVA
+const Configitem_t cfgtab_atmega8hva[7] = {
+  {"sut", 8, _values_sut_atmega16hva2, "fuse", 0, 0x07, 0, 7, "startup time"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "fuse", 0, 0x08, 3, 1, "self programming"},
+  {"dwen", 2, _values_dwen_atmega328, "fuse", 0, 0x10, 4, 1, "debugWIRE"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATmega8U2
+const Configitem_t cfgtab_atmega8u2[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8u2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"bodlevel", 8, _values_bodlevel_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega16 ATmega16A
+const Configitem_t cfgtab_atmega16[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega16HVB
+const Configitem_t cfgtab_atmega16hvb[12] = {
+  {"cksel", 1, _values_cksel_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_sut_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "hfuse", 1, 0x10, 4, 0, "clock prescaled"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega16HVBrevB
+const Configitem_t cfgtab_atmega16hvbrevb[12] = {
+  {"cksel", 1, _values_cksel_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_sut_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"duvrdinit", 2, _values_duvrdinit_atmega32hvbrevb, "hfuse", 1, 0x10, 4, 0, "DUVR mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega16U4
+const Configitem_t cfgtab_atmega16u4[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x12, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 1, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega32 ATmega32A
+const Configitem_t cfgtab_atmega32[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega32HVB
+const Configitem_t cfgtab_atmega32hvb[12] = {
+  {"cksel", 1, _values_cksel_atmega32hvbrevb, "lfuse", 0, 0x03, 0, 1, "oscillator"},
+  {"sut", 8, _values_sut_atmega32hvbrevb, "lfuse", 0, 0x1c, 2, 7, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "hfuse", 1, 0x10, 4, 0, "clock prescaled"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega32C1 ATmega32M1
+const Configitem_t cfgtab_atmega32c1[17] = {
+  {"sut_cksel", 53, _values_sut_cksel_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"pscrvb", 2, _values_pscrvb_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
+  {"pscrva", 2, _values_pscrva_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
+  {"pscrb", 2, _values_pscrb_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega32U2
+const Configitem_t cfgtab_atmega32u2[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x40, 6, 1, "reset configuration"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x80, 7, 1, "debugWIRE"},
+  {"bodlevel", 8, _values_bodlevel_at90usb162, "efuse", 2, 0x07, 0, 4, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega32U4
+const Configitem_t cfgtab_atmega32u4[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x12, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 1, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega32U6
+const Configitem_t cfgtab_atmega32u6[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, -1, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, -1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega16u4, "efuse", 2, 0x07, 0, -1, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, -1, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega48 ATmega48A ATmega48P ATmega48PA
+const Configitem_t cfgtab_atmega48[11] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATmega48PB
+const Configitem_t cfgtab_atmega48pb[11] = {
+  {"sut_cksel", 47, _values_sut_cksel_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"selfprgen", 2, _values_selfprgen_atmega16hva2, "efuse", 2, 0x01, 0, 1, "self programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+};
+
+// ATmega64 ATmega64A
+const Configitem_t cfgtab_atmega64[15] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"wdton", 2, _values_wdton_atmega328, "efuse", 2, 0x01, 0, 1, "watchdog timer"},
+  {"m103c", 2, _values_m103c_atmega103comp, "efuse", 2, 0x02, 1, 0, "ATmega103 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega64C1 ATmega64M1
+const Configitem_t cfgtab_atmega64c1[17] = {
+  {"sut_cksel", 53, _values_sut_cksel_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega16m1, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"pscrvb", 2, _values_pscrvb_atmega16m1, "efuse", 2, 0x08, 3, 1, "PSC0UTnB reset value"},
+  {"pscrva", 2, _values_pscrva_atmega16m1, "efuse", 2, 0x10, 4, 1, "PSCOUTnA reset value"},
+  {"pscrb", 2, _values_pscrb_atmega16m1, "efuse", 2, 0x20, 5, 1, "PSC reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega64HVE2 ATmega32HVE2
+const Configitem_t cfgtab_atmega64hve2[13] = {
+  {"cksel", 1, _values_cksel_atmega64hve, "lfuse", 0, 0x01, 0, 1, "oscillator"},
+  {"sut", 4, _values_sut_atmega64hve, "lfuse", 0, 0x06, 1, 3, "startup time"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x08, 3, 0, "clock prescaled"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x10, 4, 1, "brownout detection"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x08, 3, 1, "debugWIRE"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega64RFR2 ATmega644RFR2
+const Configitem_t cfgtab_atmega64rfr2[14] = {
+  {"sut_cksel", 49, _values_sut_cksel_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega88 ATmega88A ATmega88P ATmega88PA ATA6612C
+const Configitem_t cfgtab_atmega88[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega88PB
+const Configitem_t cfgtab_atmega88pb[14] = {
+  {"sut_cksel", 47, _values_sut_cksel_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega103
+const Configitem_t cfgtab_atmega103[4] = {
+  {"cksel", 4, _values_cksel_atmega103, "fuse", 0, 0x03, 0, 3, "clock source"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// ATmega128 ATmega128A
+const Configitem_t cfgtab_atmega128[15] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"wdton", 2, _values_wdton_atmega328, "efuse", 2, 0x01, 0, 1, "watchdog timer"},
+  {"m103c", 2, _values_m103c_atmega103comp, "efuse", 2, 0x02, 1, 0, "ATmega103 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega128RFA1
+const Configitem_t cfgtab_atmega128rfa1[14] = {
+  {"sut_cksel", 17, _values_sut_cksel_atmega128rfa1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega64rfr2, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega128RFR2 ATmega1284RFR2
+const Configitem_t cfgtab_atmega128rfr2[14] = {
+  {"sut_cksel", 49, _values_sut_cksel_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega161
+const Configitem_t cfgtab_atmega161[7] = {
+  {"cksel", 8, _values_cksel_atmega161, "fuse", 0, 0x07, 0, 2, "clock source"},
+  {"sut", 2, _values_sut_atmega161, "fuse", 0, 0x08, 3, 1, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x10, 4, 1, "serial programming"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse", 0, 0x20, 5, 0, "reset address"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega162
+const Configitem_t cfgtab_atmega162[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 5, _values_bodlevel_atmega161comp, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"m161c", 2, _values_m161c_atmega161comp, "efuse", 2, 0x10, 4, 1, "ATmega161 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega163
+const Configitem_t cfgtab_atmega163[9] = {
+  {"cksel", 16, _values_cksel_atmega163, "lfuse", 0, 0x0f, 0, 0x0f, "clock source"},
+  {"spien", 2, _values_spien_atmega328, "lfuse", 0, 0x20, 5, 0, "serial programming"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "hfuse", 1, 0x06, 1, 3, "boot section size"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega164A ATmega164P ATmega164PA
+const Configitem_t cfgtab_atmega164a[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega165 ATmega165A ATmega165P ATmega165PA ATmega169 ATmega169A ATmega169P ATmega169PA
+const Configitem_t cfgtab_atmega165[15] = {
+  {"sut_cksel", 44, _values_sut_cksel_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega168 ATmega168A ATmega168P ATmega168PA ATA6613C
+const Configitem_t cfgtab_atmega168[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega328, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega168PB
+const Configitem_t cfgtab_atmega168pb[14] = {
+  {"sut_cksel", 47, _values_sut_cksel_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega161comp, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega256RFR2 ATmega2564RFR2
+const Configitem_t cfgtab_atmega256rfr2[14] = {
+  {"sut_cksel", 49, _values_sut_cksel_atmega64rfr2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega256rfr2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega64rfr2, "efuse", 2, 0x07, 0, 6, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega323
+const Configitem_t cfgtab_atmega323[12] = {
+  {"cksel", 16, _values_cksel_atmega163, "lfuse", 0, 0x0f, 0, 0x02, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 3, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega324A ATmega324P ATmega324PA
+const Configitem_t cfgtab_atmega324a[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega324PB
+const Configitem_t cfgtab_atmega324pb[15] = {
+  {"sut_cksel", 47, _values_sut_cksel_atmega328pb, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"cfd", 2, _values_cfd_atmega328pb, "efuse", 2, 0x08, 3, 0, "clock failure detection"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+/*
+ * ATmega325 ATmega325A ATmega325P ATmega325PA ATmega329 ATmega329A ATmega329P ATmega329PA
+ * ATmega3250 ATmega3250A ATmega3250P ATmega3250PA ATmega3290 ATmega3290A ATmega3290P ATmega3290PA
+ */
+const Configitem_t cfgtab_atmega325[15] = {
+  {"sut_cksel", 44, _values_sut_cksel_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega328, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_attiny13, "efuse", 2, 0x06, 1, 3, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega406
+const Configitem_t cfgtab_atmega406[10] = {
+  {"sut_cksel", 6, _values_sut_cksel_atmega406, "lfuse", 0, 0x07, 0, 5, "clock source"},
+  {"bootrst", 2, _values_bootrst_atmega328, "lfuse", 0, 0x08, 3, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega406, "lfuse", 0, 0x30, 4, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "lfuse", 0, 0x40, 6, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "lfuse", 0, 0x80, 7, 1, "watchdog timer"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x01, 0, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x02, 1, 1, "on-chip debug"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega640
+const Configitem_t cfgtab_atmega640[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega644 ATmega644A ATmega644P ATmega644PA
+const Configitem_t cfgtab_atmega644[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+/*
+ * ATmega645 ATmega645A ATmega645P ATmega649 ATmega649A ATmega649P ATmega6450 ATmega6450A
+ * ATmega6450P ATmega6490 ATmega6490A ATmega6490P
+ */
+const Configitem_t cfgtab_atmega645[15] = {
+  {"sut_cksel", 44, _values_sut_cksel_atmega165, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "efuse", 2, 0x01, 0, 1, "reset configuration"},
+  {"bodlevel", 4, _values_bodlevel_attiny13, "efuse", 2, 0x06, 1, 3, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega1280 ATmega1281
+const Configitem_t cfgtab_atmega1280[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega1284 ATmega1284P
+const Configitem_t cfgtab_atmega1284[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90scr100h, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega2560 ATmega2561
+const Configitem_t cfgtab_atmega2560[14] = {
+  {"sut_cksel", 55, _values_sut_cksel_atmega164a, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega64rfr2, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega256rfr2, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 4, _values_bodlevel_atmega328, "efuse", 2, 0x07, 0, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATmega8535
+const Configitem_t cfgtab_atmega8535[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, 0x21, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, 1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, 1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x40, 6, 1, "watchdog timer"},
+  {"s8535c", 2, _values_s8535c_at90s8535comp, "hfuse", 1, 0x80, 7, 1, "AT90S4434/8535 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90PWM1
+const Configitem_t cfgtab_at90pwm1[17] = {
+  {"sut_cksel", 42, _values_sut_cksel_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_pscrv_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_psc0rb_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc2rb", 2, _values_psc2rb_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90PWM2B AT90PWM3B
+const Configitem_t cfgtab_at90pwm2b[18] = {
+  {"sut_cksel", 53, _values_sut_cksel_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_pscrv_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_psc0rb_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_psc1rb_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_psc2rb_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90CAN32
+const Configitem_t cfgtab_at90can32[15] = {
+  {"sut_cksel", 38, _values_sut_cksel_at90can32, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can32, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"ta0sel", 2, _values_ta0sel_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
+  {"bodlevel", 8, _values_bodlevel_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90CAN64
+const Configitem_t cfgtab_at90can64[15] = {
+  {"sut_cksel", 38, _values_sut_cksel_at90can32, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega64hve, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"ta0sel", 2, _values_ta0sel_at90can128, "efuse", 2, 0x01, 0, 1, "reserved for factory tests"},
+  {"bodlevel", 8, _values_bodlevel_at90can128, "efuse", 2, 0x0e, 1, 7, "brownout detection trigger level"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90PWM216
+const Configitem_t cfgtab_at90pwm216[18] = {
+  {"sut_cksel", 42, _values_sut_cksel_at90pwm2, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_pscrv_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_psc0rb_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_psc1rb_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_psc2rb_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90PWM316
+const Configitem_t cfgtab_at90pwm316[18] = {
+  {"sut_cksel", 53, _values_sut_cksel_atmega16m1, "lfuse", 0, 0x3f, 0, 0x22, "clock source"},
+  {"ckout", 2, _values_ckout_atmega328, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bodlevel", 8, _values_bodlevel_atmega16m1, "hfuse", 1, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, 1, "debugWIRE"},
+  {"rstdisbl", 2, _values_rstdisbl_atmega328, "hfuse", 1, 0x80, 7, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "efuse", 2, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega16m1, "efuse", 2, 0x06, 1, 0, "boot section size"},
+  {"pscrv", 2, _values_pscrv_at90pwm2, "efuse", 2, 0x10, 4, 1, "PSCOUT reset value"},
+  {"psc0rb", 2, _values_psc0rb_at90pwm2, "efuse", 2, 0x20, 5, 1, "PSC0 reset behavior"},
+  {"psc1rb", 2, _values_psc1rb_at90pwm2, "efuse", 2, 0x40, 6, 1, "PSC1 reset behavior"},
+  {"psc2rb", 2, _values_psc2rb_at90pwm2, "efuse", 2, 0x80, 7, 1, "PSC2 reset behavior"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90USB646 AT90USB647
+const Configitem_t cfgtab_at90usb646[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90usb646, "hfuse", 1, 0x06, 1, 1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90USB1286 AT90USB1287
+const Configitem_t cfgtab_at90usb1286[15] = {
+  {"sut_cksel", 50, _values_sut_cksel_at90can128, "lfuse", 0, 0x3f, 0, 0x1e, "clock source"},
+  {"ckout", 2, _values_ckout_at90can128, "lfuse", 0, 0x40, 6, 1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, 1, "reset address"},
+  {"bootsz", 4, _values_bootsz_at90can128, "hfuse", 1, 0x06, 1, 0, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, 0, "serial programming"},
+  {"jtagen", 2, _values_jtagen_at90can128, "hfuse", 1, 0x40, 6, 0, "JTAG interface"},
+  {"ocden", 2, _values_ocden_at90can128, "hfuse", 1, 0x80, 7, 1, "on-chip debug"},
+  {"bodlevel", 8, _values_bodlevel_atmega16u4, "efuse", 2, 0x07, 0, 3, "brownout detection trigger level"},
+  {"hwbe", 2, _values_hwbe_at90usb162, "efuse", 2, 0x08, 3, 0, "hardware boot"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// AT90S2323
+const Configitem_t cfgtab_at90s2323[3] = {
+  {"fstrt", 2, _values_fstrt_at90s2313, "fuse", 0, 0x01, 0, 0, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// AT90S2333
+const Configitem_t cfgtab_at90s2333[5] = {
+  {"sut_cksel", 8, _values_sut_cksel_at90s2333, "fuse", 0, 0x07, 0, -1, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "fuse", 0, 0x08, 3, -1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "fuse", 0, 0x10, 4, -1, "brownout detection trigger level"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, -1, "serial programming"},
+  {"lb", 3, _values_lb_at90s2333, "lock", 0, 0x06, 1, -1, "lock bits"},
+};
+
+// AT90S2343
+const Configitem_t cfgtab_at90s2343[3] = {
+  {"rcen", 2, _values_rcen_at90s1200, "fuse", 0, 0x01, 0, 0, "clock source"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// AT90S4433
+const Configitem_t cfgtab_at90s4433[5] = {
+  {"sut_cksel", 8, _values_sut_cksel_at90s2333, "fuse", 0, 0x07, 0, 2, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "fuse", 0, 0x08, 3, 1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "fuse", 0, 0x10, 4, 1, "brownout detection trigger level"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x06, 1, 3, "lock bits"},
+};
+
+// AT90S8515comp
+const Configitem_t cfgtab_at90s8515comp[13] = {
+  {"sut_cksel", 58, _values_sut_cksel_atmega8515, "lfuse", 0, 0x3f, 0, -1, "clock source"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x40, 6, -1, "brownout detection"},
+  {"bodlevel", 2, _values_bodlevel_atmega8515, "lfuse", 0, 0x80, 7, -1, "brownout detection trigger level"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_atmega8515, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"ckopt", 2, _values_ckopt_atmega8515, "hfuse", 1, 0x10, 4, -1, "oscillator swing"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x40, 6, -1, "watchdog timer"},
+  {"s8515c", 2, _values_s8515c_atmega8515, "hfuse", 1, 0x80, 7, -1, "AT90S4414/8515 compatibility mode"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATA5787 ATA5835
+const Configitem_t cfgtab_ata5787[11] = {
+  {"extclken", 2, _values_extclken_ata5781, "fuse", 0, 0x01, 0, 1, "external clock"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse", 0, 0x02, 1, 1, "reset configuration"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse", 0, 0x04, 2, 1, "reset address"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x10, 4, 1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "fuse", 0, 0x80, 7, 1, "clock prescaled"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATA5790N ATA5795
+const Configitem_t cfgtab_ata5790n[10] = {
+  {"_32oen", 2, _values__32oen_ata5790, "fuse", 0, 0x02, 1, 0, "32 kHz oscillator"},
+  {"reserved", 1, _values_reserved_ata5790, "fuse", 0, 0x04, 2, 0, "bit must be programmed"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse", 0, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "fuse", 0, 0x10, 4, 0, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "fuse", 0, 0x40, 6, 1, "debugWIRE"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "fuse", 0, 0x80, 7, 0, "clock prescaled"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATA6289
+const Configitem_t cfgtab_ata6289[17] = {
+  {"tsrdi", 2, _values_tsrdi_ata6285, "lfuse", 0, 0x01, 0, -1, "temperature shutdown reset"},
+  {"boden", 2, _values_boden_atmega64hve, "lfuse", 0, 0x02, 1, -1, "brownout detection"},
+  {"frcfs", 2, _values_frcfs_ata6285, "lfuse", 0, 0x04, 2, -1, "fast RC oscillator frequency"},
+  {"wdrcon", 2, _values_wdrcon_ata6285, "lfuse", 0, 0x08, 3, -1, "watchdog RC oscillator"},
+  {"sut_cksel", 3, _values_sut_cksel_ata6285, "lfuse", 0, 0x30, 4, -1, "clock source"},
+  {"ckout", 2, _values_ckout_ata6285, "lfuse", 0, 0x40, 6, -1, "clock output"},
+  {"ckdiv8", 2, _values_ckdiv8_atmega328, "lfuse", 0, 0x80, 7, -1, "clock prescaled"},
+  {"bootrst", 2, _values_bootrst_atmega328, "hfuse", 1, 0x01, 0, -1, "reset address"},
+  {"bootsz", 4, _values_bootsz_ata6285, "hfuse", 1, 0x06, 1, -1, "boot section size"},
+  {"eesave", 2, _values_eesave_atmega328, "hfuse", 1, 0x08, 3, -1, "EEPROM after chip erase"},
+  {"wdton", 2, _values_wdton_atmega328, "hfuse", 1, 0x10, 4, -1, "watchdog timer"},
+  {"spien", 2, _values_spien_atmega328, "hfuse", 1, 0x20, 5, -1, "serial programming"},
+  {"dwen", 2, _values_dwen_atmega328, "hfuse", 1, 0x40, 6, -1, "debugWIRE"},
+  {"eelock", 2, _values_eelock_ata6285, "hfuse", 1, 0x80, 7, -1, "Upper EEPROM"},
+  {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
+  {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},
+};
+
+// ATxmega16A4 ATxmega32A4
+const Configitem_t cfgtab_atxmega16a4[16] = {
+  {"jtaguserid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_wdper_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_wdwper_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_bodpd_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_jtagen_at90can128, "fuse4", 4, 0x01, 0, 0, "JTAG interface"},
+  {"wdlock", 2, _values_wdlock_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_startuptime_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atxmega16a4, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_bodact_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_lb_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_blbat_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_blba_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_blbb_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
+};
+
+/*
+ * ATxmega16C4 ATxmega16D4 ATxmega32C3 ATxmega32D3 ATxmega32C4 ATxmega32D4 ATxmega64C3 ATxmega64D3
+ * ATxmega64D4 ATxmega128C3 ATxmega128D3 ATxmega128D4 ATxmega192C3 ATxmega192D3 ATxmega256C3
+ * ATxmega256D3 ATxmega384C3 ATxmega384D3
+ */
+const Configitem_t cfgtab_atxmega16c4[15] = {
+  {"wdper", 11, _values_wdper_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_wdwper_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_bodpd_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"toscsel", 2, _values_toscsel_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"wdlock", 2, _values_wdlock_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_startuptime_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_bodact_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_lb_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_blbat_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_blba_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_blbb_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
+};
+
+// ATxmega64B1 ATxmega64B3 ATxmega128B1 ATxmega128B3
+const Configitem_t cfgtab_atxmega64b1[17] = {
+  {"jtaguserid", 0, NULL, "fuse0", 0, 0xff, 0, 0xff, "JTAG User ID"},
+  {"wdper", 11, _values_wdper_atxmega16e5, "fuse1", 1, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdwper", 11, _values_wdwper_atxmega16e5, "fuse1", 1, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodpd", 3, _values_bodpd_atxmega16e5, "fuse2", 2, 0x03, 0, 3, "brownout detection in power-down mode"},
+  {"toscsel", 2, _values_toscsel_atxmega128a3u, "fuse2", 2, 0x20, 5, 1, "timer oscillator pin location"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse2", 2, 0x40, 6, 1, "reset address"},
+  {"jtagen", 2, _values_jtagen_at90can128, "fuse4", 4, 0x01, 0, 1, "JTAG interface"},
+  {"wdlock", 2, _values_wdlock_atxmega16e5, "fuse4", 4, 0x02, 1, 1, "watchdog timer"},
+  {"startuptime", 3, _values_startuptime_atxmega16e5, "fuse4", 4, 0x0c, 2, 3, "startup time"},
+  {"rstdisbl", 2, _values_rstdisbl_attiny102, "fuse4", 4, 0x10, 4, 1, "reset configuration"},
+  {"bodlevel", 8, _values_bodlevel_atxmega16e5, "fuse5", 5, 0x07, 0, 7, "brownout detection trigger level"},
+  {"eesave", 2, _values_eesave_atmega328, "fuse5", 5, 0x08, 3, 1, "EEPROM after chip erase"},
+  {"bodact", 3, _values_bodact_atxmega16e5, "fuse5", 5, 0x30, 4, 3, "brownout detection in active/idle mode"},
+  {"lb", 3, _values_lb_atxmega16e5, "lock", 0, 0x03, 0, 3, "lock bits"},
+  {"blbat", 4, _values_blbat_atxmega16e5, "lock", 0, 0x0c, 2, 3, "boot lock bits: application table"},
+  {"blba", 4, _values_blba_atxmega16e5, "lock", 0, 0x30, 4, 3, "boot lock bits: application section"},
+  {"blbb", 4, _values_blbb_atxmega16e5, "lock", 0, 0xc0, 6, 3, "boot lock bits: boot section"},
+};
+
+// ATtiny416auto
+const Configitem_t cfgtab_attiny416auto[23] = {
+  {"wdtperiod", 12, _values_wdtperiod_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 2, _values_bodlevel_attiny416auto, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 1, _values_freqsel_attiny416auto, "osccfg", 2, 0x03, 0, 1, "oscillator frequency"},
+  {"osclock", 2, _values_osclock_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"cmpa", 2, _values_cmpa_attiny204, "tcd0cfg", 4, 0x01, 0, 0, "compare A default output value"},
+  {"cmpb", 2, _values_cmpb_attiny204, "tcd0cfg", 4, 0x02, 1, 0, "compare B default output value"},
+  {"cmpc", 2, _values_cmpc_attiny204, "tcd0cfg", 4, 0x04, 2, 0, "compare C default output value"},
+  {"cmpd", 2, _values_cmpd_attiny204, "tcd0cfg", 4, 0x08, 3, 0, "compare D default output value"},
+  {"cmpaen", 2, _values_cmpaen_attiny204, "tcd0cfg", 4, 0x10, 4, 0, "compare A output"},
+  {"cmpben", 2, _values_cmpben_attiny204, "tcd0cfg", 4, 0x20, 5, 0, "compare B output"},
+  {"cmpcen", 2, _values_cmpcen_attiny204, "tcd0cfg", 4, 0x40, 6, 0, "compare C output"},
+  {"cmpden", 2, _values_cmpden_attiny204, "tcd0cfg", 4, 0x80, 7, 0, "compare D output"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 3, _values_rstpincfg_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_lb_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
+};
+
+// ATtiny804 ATtiny806 ATtiny807 ATtiny1604 ATtiny1606 ATtiny1607
+const Configitem_t cfgtab_attiny804[15] = {
+  {"wdtperiod", 12, _values_wdtperiod_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 3, _values_bodlevel_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_freqsel_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_osclock_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 3, _values_rstpincfg_attiny204, "syscfg0", 5, 0x0c, 2, 1, "reset pin configuration"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_lb_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
+};
+
+// ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809
+const Configitem_t cfgtab_atmega808[15] = {
+  {"wdtperiod", 12, _values_wdtperiod_attiny204, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_attiny204, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_attiny204, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_attiny204, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_attiny204, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 3, _values_bodlevel_attiny204, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"freqsel", 2, _values_freqsel_attiny204, "osccfg", 2, 0x03, 0, 2, "oscillator frequency"},
+  {"osclock", 2, _values_osclock_attiny204, "osccfg", 2, 0x80, 7, 0, "oscillator lock"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_rstpincfg_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 7, "startup time"},
+  {"append", 0, NULL, "append", 7, 0xff, 0, 0x00, "application code section end [# of pages]"},
+  {"bootend", 0, NULL, "bootend", 8, 0xff, 0, 0x00, "boot section end [# of pages]"},
+  {"lb", 2, _values_lb_attiny204, "lock", 0, 0xff, 0, 0xc5, "lock bits"},
+};
+
+/*
+ * AVR32DA28 AVR32DA32 AVR32DA48 AVR64DA28 AVR64DA32 AVR64DA48 AVR64DA64 AVR128DA28 AVR128DA32
+ * AVR128DA48 AVR128DA64
+ */
+const Configitem_t cfgtab_avr32da28[15] = {
+  {"wdtperiod", 12, _values_wdtperiod_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 4, _values_bodlevel_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_clksel_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_rstpincfg_avr32da28, "syscfg0", 5, 0x0c, 2, 0, "reset pin configuration"},
+  {"crcsel", 2, _values_crcsel_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC select"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_key_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
+};
+
+/*
+ * AVR32DB28 AVR32DB32 AVR32DB48 AVR64DB28 AVR64DB32 AVR64DB48 AVR64DB64 AVR128DB28 AVR128DB32
+ * AVR128DB48 AVR128DB64
+ */
+const Configitem_t cfgtab_avr32db28[16] = {
+  {"wdtperiod", 12, _values_wdtperiod_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 4, _values_bodlevel_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_clksel_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"rstpincfg", 2, _values_rstpincfg_avr32da28, "syscfg0", 5, 0x0c, 2, 0, "reset pin configuration"},
+  {"crcsel", 2, _values_crcsel_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC select"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"mvsyscfg", 2, _values_mvsyscfg_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_key_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
+};

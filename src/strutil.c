@@ -1,7 +1,7 @@
 /*
  * AVRDUDE - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2023, Hans Eirik Bull
- * Copyright (C) 2023, Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2023 Hans Eirik Bull
+ * Copyright (C) 2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ int str_caseends(const char *str, const char *ends) {
 
 /*
  * Match string against the partname pattern, returning 1 if it matches, 0 if
- * not. Note: str_casematch() is a modified old copy of !fnmatch() from the
+ * not. Note: str_match_core() is a modified old copy of !fnmatch() from the
  * GNU C Library (published under GLP v2), which uses shell wildcards for
  * constructing patterns, ie, *, ? and single character classes, eg, [^0-6].
  * Used for portability.
@@ -86,7 +86,11 @@ inline static int fold(int c) {
   return (c >= 'A' && c <= 'Z')? c+('a'-'A'): c;
 }
 
-int str_casematch(const char *pattern, const char *string) {
+inline static int nofold(int c) {
+  return c;
+}
+
+static int str_match_core(const char *pattern, const char *string, int (*fold)(int c)) {
   unsigned char c;
   const char *p = pattern, *n = string;
 
@@ -118,7 +122,7 @@ int str_casematch(const char *pattern, const char *string) {
         unsigned char c1 = fold(c == '\\'? *p : c); // This char
 
         for(--p; *n; ++n)       // Recursively check reminder of string for *
-          if((c == '[' || fold(*n) == c1) && str_casematch(p, n) == 1)
+          if((c == '[' || fold(*n) == c1) && str_match_core(p, n, fold) == 1)
             return 1;
         return 0;
       }
@@ -196,6 +200,14 @@ int str_casematch(const char *pattern, const char *string) {
   return *n == 0;
 }
 
+int str_match(const char *pattern, const char *string) {
+  return str_match_core(pattern, string, nofold);
+}
+
+int str_casematch(const char *pattern, const char *string) {
+  return str_match_core(pattern, string, fold);
+}
+
 
 // Return a malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {
@@ -221,6 +233,68 @@ char *str_sprintf(const char *fmt, ...) {
     *p = 0;
 
   return p;
+}
+
+
+// Changes string to be all lowercase and returns original pointer
+char *str_lc(char *s) {
+  for(char *t = s; *t; t++)
+    *t = tolower(*t & 0xff);
+  return s;
+}
+
+// Changes string to be all uppercase and returns original pointer
+char *str_uc(char *s) {
+  for(char *t = s; *t; t++)
+    *t = toupper(*t & 0xff);
+  return s;
+}
+
+// Changes first character in a string to be lowercase and returns original pointer
+char *str_lcfirst(char *s) {
+  *s = tolower(*s & 0xff);
+  return s;
+}
+
+// Changes first character in a string to be uppercase and returns original pointer
+char *str_ucfirst(char *s) {
+  *s = toupper(*s & 0xff);
+  return s;
+}
+
+
+// Convert unsigned to ASCII string; caller needs to allocate enough space for buf
+char *str_utoa(unsigned n, char *buf, int base) {
+  unsigned q;
+  char *cp;
+
+  if(base < 2 || base > 36) {
+    *buf = 0;
+    return buf;
+  }
+
+  cp = buf;
+  /*
+   * Divide by base until the number disappeared, but ensure at least
+   * one digit will be emitted.
+   */
+  do {
+    q = n % base;
+    n /= base;
+    *cp++ = q < 10? q + '0': q + 'a'-10;
+  } while(n);
+
+  // Terminate the string
+  *cp-- = 0;
+
+  // Revert the result string
+  for(char *cp2 = buf; cp > cp2; ) {
+    char c = *cp;
+    *cp-- = *cp2;
+    *cp2++ = c;
+  }
+
+  return buf;
 }
 
 

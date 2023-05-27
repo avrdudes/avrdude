@@ -8209,7 +8209,7 @@ part
 
     memory "lock"
         size               = 1;
-        initval            = 0x03;
+        initval            = 0x06;
     ;
 
     memory "signature"
@@ -9494,7 +9494,7 @@ part
 
     memory "lfuse"
         size               = 1;
-        initval            = 0x62;
+        initval            = 0x6E;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9638,7 +9638,7 @@ part
 
     memory "lfuse"
         size               = 1;
-        initval            = 0x62;
+        initval            = 0x6E;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";

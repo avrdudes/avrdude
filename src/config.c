@@ -810,7 +810,7 @@ char *cfg_escape(const char *s) {
       *d++ = '\\'; *d++ = '\"';
       break;
     default:
-      if(*s == 0x7f || (*s >= 0 && *s < 32)) {
+      if(*s == 0x7f || (unsigned char) *s < 32) {
         sprintf(d, "\\%03o", *s);
         d += strlen(d);
       } else

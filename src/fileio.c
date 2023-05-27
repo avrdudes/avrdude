@@ -1031,45 +1031,6 @@ done:
 }
 #endif  /* HAVE_LIBELF */
 
-/*
- * Simple itoa() implementation.  Caller needs to allocate enough
- * space in buf.  Only positive integers are handled.
- */
-static char *itoa_simple(int n, char *buf, int base)
-{
-  div_t q;
-  char c, *cp, *cp2;
-
-  cp = buf;
-  /*
-   * Divide by base until the number disappeared, but ensure at least
-   * one digit will be emitted.
-   */
-  do {
-    q = div(n, base);
-    n = q.quot;
-    if (q.rem >= 10)
-      c = q.rem - 10 + 'a';
-    else
-      c = q.rem + '0';
-    *cp++ = c;
-  } while (q.quot != 0);
-
-  /* Terminate the string. */
-  *cp-- = '\0';
-
-  /* Now revert the result string. */
-  cp2 = buf;
-  while (cp > cp2) {
-    c = *cp;
-    *cp-- = *cp2;
-    *cp2++ = c;
-  }
-
-  return buf;
-}
-
-
 
 static int fileio_rbin(struct fioparms *fio,
              const char *filename, FILE *f, const AVRMEM *mem, int size) {
@@ -1269,7 +1230,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
       if (putc(',', f) == EOF)
         goto writeerr;
     }
-    int num = (unsigned int) mem->buf[i];
+    unsigned num = mem->buf[i];
     /*
      * For a base of 8 and a value < 8 to convert, don't write the
      * prefix.  The conversion will be indistinguishable from a
@@ -1279,7 +1240,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
       if (fputs(prefix, f) == EOF)
         goto writeerr;
     }
-    itoa_simple(num, cbuf, base);
+   str_utoa(num, cbuf, base);
     if (fputs(cbuf, f) == EOF)
       goto writeerr;
   }
