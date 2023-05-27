@@ -766,7 +766,7 @@ Other fuse bytes of ATxmega devices, where
 .Em N
 is 2, 4 or 5, for system configuration
 .It prodsig
-Production signature (calibration) area of ATxmega devices
+Production signature (calibration) area
 .It usersig
 User signature area of ATxmega devices
 .El
@@ -801,13 +801,13 @@ Two oscillator calibration bytes for 16 MHz
 .It osccal20
 Two oscillator calibration bytes for 20 MHz
 .It prodsig
+Production signature (calibration) area
 .It sernum
 Serial number with a unique ID for the part (10 bytes)
 .It tempsense
 Temperature sensor calibration values
 .It userrow
 Extra page of EEPROM memory that can be used for firmware settings
-.It usersig
 .El
 .Pp
 The
@@ -1090,6 +1090,37 @@ command, at the end of the terminal session after typing
 .Ar quit ,
 or after EOF on input is encountered. The abort command resets
 the cache discarding all previous writes to the flash and EEPROM cache.
+.It Ar config {<-f|-a|-v>}
+Show all configuration properties of the part; these are usually bitfields
+in fuses or lock bits bytes that can take on values, which typically have
+a mnemonic name. Each part has their own set of configurable items.  The
+option -f groups the configuration properties by the fuses and lock bits
+byte they are housed in, and shows the current value of these memories as
+well. Config -a outputs an initialisation script with all properties and
+all possible respective assignments. The currently assigned mnemonic
+values are the ones that are not commented out. The option -v increases
+the verbosity of the output of the config command.
+.It Ar config {<-f|-v>} <property> {<-f|-v>}
+Show the current value of the named configuration property. Wildcards or
+initial strings are permitted (but not both), in which case the current
+values of all matching properties are displayed.
+.It Ar config {<-f|-v>} <property>= {<-f|-v>}
+Show all possible values of the named configuration property (notice the
+trailing =). The one that is currently set is the only one not commented
+out. As before, wildcards or initial strings are permitted.
+.It Ar config {<-f|-v>} <property>=<value> {<-f|-v>}
+Modify the named configuration property to the given value. The
+corresponding fuse or lock bits will be changed immediately but the change
+will normally only take effect the next time the part is reset, at which
+point the fuses and lock bits are utilised. Value can either be a valid
+integer or one of the symbolic mnemonics, if known. Wildcards or initial
+strings are permitted for either the property or the assigned mnemonic
+value, but an assignment only happens if both the property and the name
+can be uniquely resolved.
+.Pp
+It is quite possible, as is with direct writing to the underlying fuses
+and lock bits, to brick a part, i.e., make it unresponsive to further
+programming with the chosen programmer: here be dragons.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part

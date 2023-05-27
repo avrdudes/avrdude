@@ -1,7 +1,7 @@
 /*
  * AVRDUDE - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2023, Hans Eirik Bull
- * Copyright (C) 2023, Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2023 Hans Eirik Bull
+ * Copyright (C) 2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

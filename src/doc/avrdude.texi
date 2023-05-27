@@ -814,7 +814,7 @@ Fault detection action configuration TC4/5 for ATxmega E series parts
 @item fuse@emph{N}
 Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system configuration
 @item prodsig
-Production signature (calibration) area of ATxmega devices
+Production signature (calibration) area
 @item usersig
 User signature area of ATxmega devices
 @end table
@@ -849,14 +849,13 @@ Two oscillator calibration bytes for 16 MHz
 @item osccal20
 Two oscillator calibration bytes for 20 MHz
 @item prodsig
-
+Production signature (calibration) area
 @item sernum
 Serial number with a unique ID for the pary (10 bytes)
 @item tempsense
 Temperature sensor calibration values
 @item userrow
 Extra page of EEPROM memory that can be used for firmware settings
-@item usersig
 
 @end table
 
@@ -1873,10 +1872,10 @@ the specified memory area even if more data than needed were given.
 Perform a chip erase and discard all pending writes to EEPROM and flash.
 Note that EEPROM will be preserved if the EESAVE fuse bit is set.
 
-@item erase memory
+@item erase @var{memory}
 Erase the entire specified memory.
 
-@item erase memory addr len
+@item erase @var{memory} @var{addr} @var{len}
 Erase a section of the specified memory.
 
 @item flush
@@ -1895,6 +1894,42 @@ Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
 cache discarding all previous writes to the flash and EEPROM cache.
+
+@item config [@var{opts}]
+Show all configuration properties of the part; these are usually bitfields
+in fuses or lock bits bytes that can take on values, which typically have
+a mnemonic name. Each part has their own set of configurable items.  The
+option @code{-f} groups the configuration properties by the fuses and lock
+bits byte they are housed in, and shows the current value of these
+memories as well. Config @code{-a} outputs an initialisation script with
+all properties and all possible respective assignments. The currently
+assigned mnemonic values are the ones that are not commented out. The
+option @code{-v} increases the verbosity of the output of the config
+command.
+
+@item config [@var{opts}] @var{property} [@var{opts}]
+Show the current value of the named configuration property. Wildcards or
+initial strings are permitted (but not both), in which case the current
+values of all matching properties are displayed.
+
+@item config [@var{opts}] @var{property=} [@var{opts}]
+Show all possible values of the named configuration property (notice the
+trailing @code{=}). The one that is currently set is the only one not
+commented out. As before, wildcards or initial strings are permitted.
+
+@item config [@var{opts}] @var{property=value} [@var{opts}]
+Modify the named configuration property to the given value. The
+corresponding fuse or lock bits will be changed immediately but the change
+will normally only take effect the next time the part is reset, at which
+point the fuses and lock bits are utilised. Value can either be a valid
+integer or one of the symbolic mnemonics, if known. Wildcards or initial
+strings are permitted for either the property or the assigned mnemonic
+value, but an assignment only happens if both the property and the name
+can be uniquely resolved.
+
+It is quite possible, as is with direct writing to the underlying fuses
+and lock bits, to brick a part, i.e., make it unresponsive to further
+programming with the chosen programmer: here be dragons.
 
 @item sig
 Display the device signature bytes.
@@ -1982,6 +2017,8 @@ Display programmer specific parameters.
 
 @end table
 
+@page
+
 @c
 @c Node
 @c
@@ -1994,10 +2031,7 @@ Display part parameters, modify eeprom cells, perform a chip erase:
 
 @smallexample
 @cartouche
-% avrdude -c usbasp -p atmega328p -t
-
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e950f (probably m328p)
+$ avrdude -qq -c usbasp -p atmega328p -t
 
 avrdude> part
 AVR Part                      : ATmega328P
@@ -2016,55 +2050,57 @@ PollIndex                     : 3
 PollValue                     : 0x53
 Memory Detail                 :
 
-                                  Block Poll               Page                       Polled
-  Memory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack
-  ----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------
-  eeprom                 65    20     4    0 no       1024    4      0  3600  3600 0x00 0x00
-  flash                  65    10   128    0 yes     32768  128    256  4500  4500 0x00 0x00
-  lfuse                   0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
-  hfuse                   0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
-  efuse                   0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
-  lock                    0     0     0    0 no          1    1      0  4500  4500 0x00 0x00
-  signature               0     0     0    0 no          3    1      0     0     0 0x00 0x00
-  calibration             0     0     0    0 no          1    1      0     0     0 0x00 0x00
+                                 Block               Page                       Polled
+ Memory Type Alias    Mode Delay Size  Paged  Size   Size #Pages MinW  MaxW   ReadBack
+ ----------- -------- ---- ----- ----- ------ ------ ---- ------ ----- ----- ---------
+ eeprom                 65    20     4 no       1024    4      0  3600  3600 0x00 0x00
+ flash                  65    10   128 yes     32768  128    256  4500  4500 0x00 0x00
+ lfuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ hfuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ efuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ lock                    0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ signature               0     0     0 no          3    1      0     0     0 0x00 0x00
+ calibration             0     0     0 no          1    1      0     0     0 0x00 0x00
 
 avrdude> dump eeprom 0 16
-Reading | ################################################## | 100% 0.01 s
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
 avrdude> write eeprom 0 1 2 3 4 0xcafe "Avrdude"
-Caching | ################################################## | 100% 0.00 s
 
 avrdude> dump eeprom 0 16
-Reading | ################################################## | 100% 0.00 s
 0000  01 02 03 04 fe ca 41 76  72 64 75 64 65 00 ff ff  |......Avrdude...|
 
 avrdude> flush
-avrdude: synching cache to device ...
-Writing | ################################################## | 100% 0.36 s
 
 avrdude> erase
 erasing chip ...
 
 avrdude> dump eeprom 0 16
-Reading | ################################################## | 100% 0.00 s
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
 
 avrdude> quit
-
-avrdude done.  Thank you.
-
 @end cartouche
 @end smallexample
 
+@page
+@noindent
+@strong{Program the fuse bits of an ATmega328P with a fuse calculator}
+@itemize @bullet
+@item Enable full-swing high speed external crystal with long startup time
+@item Remove default clock division by 8
+@item Make reset jump to boot loader
+@item Set the size of the bootloader to 512 bytes (256 words)
+@item Enable brown-out detection at 2.7 V
+@end itemize
 
 @noindent
-Program the fuse bits of an ATmega328P (enable high speed external crystal,
-enable brown-out detection). First display the factory defaults, then reprogram:
+First display the factory defaults, then consult an external fuse
+calculator, select the ATmega328P part, find above settings, note the
+ensuinig new values for the three fuses and reprogram:
 
 @smallexample
 @cartouche
-% avrdude -c usbasp -p atmega328p -t
+$ avrdude -c usbasp -p atmega328p -t
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
@@ -2097,13 +2133,71 @@ avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
+@page
+@noindent
+@strong{Program the fuse bits of an ATmega328P with the config command}
+
+@smallexample
+@cartouche
+$ avrdude -qq -c usbasp -p atmega328p -t
+
+avrdude> # Show all configurations
+avrdude> config
+config sut_cksel=intrcosc_8mhz_6ck_14ck_65ms # 34
+config ckout=co_disabled # 1
+config ckdiv8=by_8 # 0
+config bootrst=application # 1
+config bootsz=bs_2048w # 0
+config eesave=ee_erased # 1
+config wdton=wdt_programmable # 1
+config spien=isp_enabled # 0
+config dwen=dw_off # 1
+config rstdisbl=external_reset # 1
+config bodlevel=bod_disabled # 7
+config lb=no_lock # 3
+config blb0=no_lock_in_app # 3
+config blb1=no_lock_in_boot # 3
+
+# Show possible values for full-swing external crystal
+avrdude> config sut_cksel=extfs
+avrdude warning: (config) ambiguous; known sut_cksel extfs symbols are:
+ - sut_cksel=extfsxtal_258ck_14ck_4ms1 #  6
+ - sut_cksel=extfsxtal_1kck_14ck_65ms  #  7
+ - sut_cksel=extfsxtal_258ck_14ck_65ms # 22
+ - sut_cksel=extfsxtal_16kck_14ck_0ms  # 23
+ - sut_cksel=extfsxtal_1kck_14ck_0ms   # 38
+ - sut_cksel=extfsxtal_16kck_14ck_4ms1 # 39
+ - sut_cksel=extfsxtal_1kck_14ck_4ms1  # 54
+ - sut_cksel=extfsxtal_16kck_14ck_65ms # 55
+
+# Set the one with appropriate startup times
+avrdude> c su=55
+
+# Unprogram clock division by 8, make reset jump to boot loader
+avrdude> c ckdiv8=1
+avrdude> c bootrst=boot
+avrdude> c bootsz=bs_256w
+
+# Query which bod levels exist; set brown-out at 2.7 V
+avrdude> c bodlevel=
+# conf bodlevel=bod_4v3      # 4
+# conf bodlevel=bod_2v7      # 5
+# conf bodlevel=bod_1v8      # 6
+config bodlevel=bod_disabled # 7 (factory)
+avrdude> c bod=*2v7
+
+avrdude> quit
+@end cartouche
+@end smallexample
+
+@page
 The following example demonstrates negative address and length bytes, and the
 second form of the @code{write} command where the last data value provided
 is used to fill up the indicated memory range.
 
 @smallexample
 @cartouche
-% avrdude -c usbasp -p atmega328p -t
+$ avrdude -c usbasp -p atmega328p -t
 
 avrdude: AVR device initialized and ready to accept instructions
 avrdude: device signature = 0x1e950f (probably m328p)
@@ -2144,6 +2238,8 @@ avrdude done.  Thank you.
 
 @end cartouche
 @end smallexample
+
+@page
 
 @c
 @c Node

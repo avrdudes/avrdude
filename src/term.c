@@ -1,6 +1,8 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2021-2023 Hans Eirik Bull
+ * Copyright (C) 2022-2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1167,7 +1169,7 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
 
   if(argc > 2 || help || invalid || (argc >1 && o.allscript)) {
     msg_error(
-      "Syntax: config {<opts> | <property>[=<value>]}\n"
+      "Syntax: config [<opts>] [<property>[=<value>]] [<opts>]\n"
       "Function: Show or change configuration properties of the part\n"
       "Options:\n"
       "    -f show value of fuse and lock bit memories as well\n"
@@ -1190,13 +1192,13 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       "\n"
       "avrdude> config <property>=<value>\n"
       "\n"
-      "modify the corresponding fuse or lock bits immediately but will normally only\n"
-      "take effect the next time the part is reset (see the data sheet). Value can\n"
-      "be a valid integer or one of the symbolic mnemonics, if known. Wildcards or\n"
-      "initial strings are permitted for the mnemonic, but an assignment only\n"
+      "modify the corresponding fuses or lock bits immediately but will normally only\n"
+      "take effect the next time the part is reset. Value can be a valid integer or\n"
+      "one of the symbolic mnemonics, if known. Wildcards or initial strings are\n"
+      "permitted for both the property and the mnemonic, but an assignment only\n"
       "happens if both the property and the name can be uniquely resolved.\n"
       "\n"
-      "It is quite possible, as is with direct writing to the underlying fuse and\n"
+      "It is quite possible, as is with direct writing to the underlying fuses and\n"
       "lock bits, to brick a part, i.e., make it unresponsive to further programming\n"
       "with the chosen programmer: here be dragons.\n"
     );
