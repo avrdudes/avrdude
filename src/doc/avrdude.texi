@@ -1486,6 +1486,11 @@ Show help menu and exit.
 @node Example Command Line Invocations,  , Programmers accepting extended parameters, Command Line Options
 @section Example Command Line Invocations
 
+AVRDUDE error messages, warnings and progress reports are generally written to
+stderr which can, in bash, be turned off by 2>/dev/null or using increasingly
+more -q options to suppress them. Terminal output of commands or of the -U
+command with an output file - are written to stdout.
+
 @noindent
 Download the file @code{diag.hex} to the ATmega128 chip using the
 STK500 programmer connected to the default serial port:
@@ -1511,9 +1516,8 @@ avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
-@page
 @noindent
-Upload the flash memory from the ATmega128 connected to the STK500
+Dump the flash memory from the ATmega128 connected to the STK500
 programmer and save it in raw binary format in the file named
 @code{c:/diag flash.bin}:
 
@@ -1568,6 +1572,31 @@ avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
+@noindent
+Read the low, high, and extended fuse and print their values in
+hexadecimal and binary formats:
+
+@smallexample
+@cartouche
+
+% avrdude -cusbasp -patmega128 -Ulfuse:r:-:h -Uhfuse:r:-:h -Uefuse:r:-:b
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: reading lfuse memory ...
+avrdude: writing output file <stdout>
+0xbf
+avrdude: reading hfuse memory ...
+avrdude: writing output file <stdout>
+0xc6
+avrdude: reading efuse memory ...
+avrdude: writing output file <stdout>
+0b11111111
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
 @page
 @noindent
 Connect to the JTAG ICE mkII which serial number ends up in 1C37 via
@@ -1591,7 +1620,7 @@ avrdude done.  Thank you.
 @noindent
 List the serial numbers of all JTAG ICEs attached to USB.  This is
 done by specifying an invalid serial number, and increasing the
-verbosity level.
+verbosity level:
 
 @smallexample
 @cartouche
@@ -1604,6 +1633,264 @@ avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
 avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
 avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C30
 avrdude: usbdev_open(): did not find any (matching) USB device "usb:xxx"
+
+@end cartouche
+@end smallexample
+
+@noindent
+Write data from stdin (standard input) to EEPROM:
+
+@smallexample
+@cartouche
+
+% echo 'The quick brown fox' | avrdude -cusbasp -pattiny13 -Ueeprom:w:-:r
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: reading input file <stdin> for eeprom
+         with 20 bytes in 1 section within [0, 0x13]
+         using 5 pages and 0 pad bytes
+avrdude: writing 20 bytes eeprom ...
+Writing | ################################################## | 100% 0.21 s
+avrdude: 20 bytes of eeprom written
+avrdude: verifying eeprom memory against <stdin>
+Reading | ################################################## | 100% 0.01 s
+avrdude: 20 bytes of eeprom verified
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@page
+@noindent
+Execute multiple terminal mode commands separated by semicolons:
+
+@smallexample
+@cartouche
+
+% echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' \
+> | avrdude -cusbasp -patmega328p -t
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+Caching | ################################################## | 100% 0.01 s
+Caching | ################################################## | 100% 0.00 s
+Reading | ################################################## | 100% 0.01 s
+0000  42 6f 6e 6a 6f 75 72 00  ff ff ff ff ff ff ff ff  |Bonjour.........|
+0010  ff ff ff ff ff ff ff ff  78 56 34 12 ff ff ff ff  |........xV4.....|
+avrdude> avrdude: synching cache to device ...
+Writing | ################################################## | 100% 0.13 s
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@noindent
+Read EEPROM and write content to stdout (standard output):
+
+@smallexample
+@cartouche
+
+% avrdude -cusbasp -pattiny13 -Ueeprom:r:-:i
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: reading eeprom memory ...
+Reading | ################################################## | 100% 0.02 s
+avrdude: writing output file <stdout>
+:20000000E2809954686520717569636B2062726F776E20666F78E280990AFFFFFFFFFFFFD3
+:20002000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0
+:00000001FF
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@noindent
+Using && and quell-output-option -qq to confirm that AVRDUDE command went OK:
+
+@smallexample
+@cartouche
+
+% avrdude -qq -cusbasp -pattiny13 -Uflash:w:diag.hex:i && echo OK
+OK
+
+@end cartouche
+@end smallexample
+
+@noindent
+Using the Avrdude output to print strings present in flash memory:
+
+@smallexample
+@cartouche
+
+% avrdude -pattiny13 -qq -U flash:r:-:r | strings
+Main menu
+Distance: %dcm
+Exit
+
+@end cartouche
+@end smallexample
+
+@page
+@noindent
+Factory fuse setting of a device:
+
+@smallexample
+@cartouche
+
+% avrdude -patmega328p/St | grep initval
+.ptmm	ATmega328P	lfuse	initval	0x62
+.ptmm	ATmega328P	hfuse	initval	0xd9
+.ptmm	ATmega328P	efuse	initval	0xff
+.ptmm	ATmega328P	lock	initval	0xff
+
+@end cartouche
+@end smallexample
+
+@noindent
+List of all parts known to AVRDUDE:
+
+@smallexample
+@cartouche
+
+% avrdude -p*/d | grep = | cut -f2 -d"'"
+ATtiny11
+ATtiny12
+ATtiny13
+ATtiny13A
+ATtiny15
+AT89S51
+[...]
+AVR64EA48
+LGT8F88P
+LGT8F168P
+LGT8F328P
+
+@end cartouche
+@end smallexample
+
+@noindent
+Create a simple bash shell script to create terminal scripts that will reset a
+part to factory settings:
+@smallexample
+@cartouche
+
+mkdir /tmp/factory
+for part in $(avrdude -p*/d | grep = | cut -f2 -d"'"); do
+  echo $part
+  avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 \
+  | sed "s/.*/write &/" >/tmp/factory/$part.ini
+done
+
+$ cat /tmp/factory/ATmega328P.ini
+write lfuse	0x62
+write hfuse	0xd9
+write efuse	0xff
+write lock	0xff
+
+$ avrdude -qq -cusbasp -pATmega328P -t < /tmp/factory/ATmega328P.ini && echo OK
+OK
+
+@end cartouche
+@end smallexample
+
+@page
+@noindent
+Output a list of non-bootloader programmers that can be used for a part.
+Note that |& folds stderr into stdout in a bash shell:
+@smallexample
+@cartouche
+
+$ avrdude -c? -pavr32ea32 |& grep -v bootloader
+Valid programmers for part AVR32EA32 are:
+  atmelice_updi      = Atmel-ICE (ARM/AVR) via UPDI
+  dryrun             = Emulates programming without a programmer via UPDI
+  jtag2updi          = JTAGv2 to UPDI bridge via UPDI
+  jtag3updi          = Atmel AVR JTAGICE3 via UPDI
+  pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
+  pkobn_updi         = Curiosity nano (nEDBG) via UPDI
+  powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
+  serialupdi         = SerialUPDI via UPDI
+  snap_updi          = MPLAB(R) SNAP via UPDI
+  xplainedmini_updi  = Atmel AVR XplainedMini via UPDI
+  xplainedpro_updi   = Atmel AVR XplainedPro via UPDI
+
+@end cartouche
+@end smallexample
+
+@noindent
+Print all metadata stored in flash using the Urboot bootloader and
+the Urclock programmer option:
+@smallexample
+@cartouche
+
+% avrdude -curclock -P/dev/ttyUSB0 -pattiny13 -xshowall
+avrdude: AVR device initialized and ready to accept instructions
+0 2023-05-22 22.03 Blink.ino.hex 78 store 665 meta 25 boot 256 u7.7 w-u-jPr--
+vector 4 (EE_RDY) ATtiny13A
+
+@end cartouche
+@end smallexample
+
+@page
+@noindent
+Create a bash function, @code{avrdude-elf}, that takes an elf file as input,
+with support for optional Avrdude flags at the end, and writes to the memories
+specified in the elf file. In this example, the elf file did not contain any
+EEPROM data:
+@smallexample
+@cartouche
+
+# Show all memories present for the ATtiny13
+$ avrdude -pattiny13/ot | grep write | cut -f3 | uniq
+eeprom
+flash
+lfuse
+hfuse
+lock
+
+# Function that writes to all memories present in the elf file
+@verbatim
+avrdude-elf() {
+avrdude -cusbasp -pattiny13 -U{eeprom,flash,{l,h}fuse,lock}:w:"$1":e "${@:2}"
+}
+@end verbatim
+
+# Run function where -B8 and -V is appended to the Avrdude command
+$ avrdude-elf program.elf -B8 -V
+avrdude: set SCK frequency to 93750 Hz
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+avrdude: reading input file Blink.elf for eeprom
+         with 0 bytes in 0 sections within [0, -1]
+         using 0 pages and 0 pad bytes
+avrdude: writing 0 bytes eeprom ...
+Writing | ################################################## | 100% 0.00 s
+avrdude: 0 bytes of eeprom written
+avrdude: reading input file Blink.elf for flash
+         with 78 bytes in 1 section within [0, 0x4d]
+         using 3 pages and 18 pad bytes
+avrdude: writing 78 bytes flash ...
+Writing | ################################################## | 100% 0.09 s
+avrdude: 78 bytes of flash written
+avrdude: reading input file Blink.elf for lfuse
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte lfuse ...
+avrdude: 1 byte of lfuse written
+avrdude: reading input file Blink.elf for hfuse
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte hfuse ...
+avrdude: 1 byte of hfuse written
+avrdude: reading input file Blink.elf for lock
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte lock ...
+avrdude: 1 byte of lock written
+
+avrdude done.  Thank you.
 
 @end cartouche
 @end smallexample
@@ -2191,6 +2478,7 @@ avrdude> quit
 @end smallexample
 
 @page
+
 The following example demonstrates negative address and length bytes, and the
 second form of the @code{write} command where the last data value provided
 is used to fill up the indicated memory range.
@@ -2215,7 +2503,7 @@ Reading | ################################################## | 100% 0.00 s
 avrdude> write flash -64 1234567890 'A' 'V' 'R' 2.718282 0xaa 0xbb 0xcc "Hello World!"
 Caching | ################################################## | 100% 0.00 s
 
-avrdude> write flash -32 -1 0x01 0x02 0x03 0x04 0x05 ...
+avrdude> write flash -32 -1 0x01 0b00000010 0b11 0x04 0x05 ...
 Caching | ################################################## | 100% 0.00 s
 
 avrdude> read flash -64 -33
@@ -2240,6 +2528,25 @@ avrdude done.  Thank you.
 @end smallexample
 
 @page
+@noindent
+Dump the first 64 bytes of the EEPROM using a "terminal mode one-liner".
+
+@smallexample
+@cartouche
+
+% echo 'dump eeprom 0 0x40' | avrdude -cusbasp -patmega328p -t
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+Reading | ################################################## | 100% 0.02 s
+0000  48 65 6c 6c 6f 20 57 6f  72 6c 64 21 00 ff ff ff  |Hello World!....|
+0010  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+0020  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+0030  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
 
 @c
 @c Node
