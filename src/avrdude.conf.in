@@ -9494,7 +9494,7 @@ part
 
     memory "lfuse"
         size               = 1;
-        initval            = 0x6E;
+        initval            = 0x6e;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9638,7 +9638,7 @@ part
 
     memory "lfuse"
         size               = 1;
-        initval            = 0x6E;
+        initval            = 0x6e;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -21704,6 +21704,8 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR16EA28";
     id                     = "avr16ea28";
+    variants               =
+        "AVR16EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 332;
     signature              = 0x1e 0x94 0x37;
 
@@ -21729,6 +21731,8 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR16EA32";
     id                     = "avr16ea32";
+    variants               =
+        "AVR16EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 334;
     signature              = 0x1e 0x94 0x36;
 
@@ -21754,6 +21758,8 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR16EA48";
     id                     = "avr16ea48";
+    variants               =
+        "AVR16EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 335;
     signature              = 0x1e 0x94 0x35;
 
@@ -21779,6 +21785,8 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR32EA28";
     id                     = "avr32ea28";
+    variants               =
+        "AVR32EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 341;
     signature              = 0x1e 0x95 0x3e;
 
@@ -21804,6 +21812,8 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR32EA32";
     id                     = "avr32ea32";
+    variants               =
+        "AVR32EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 345;
     signature              = 0x1e 0x95 0x3d;
 
@@ -21829,6 +21839,8 @@ part parent ".avrex"
 part parent ".avrex"
     desc                   = "AVR32EA48";
     id                     = "avr32ea48";
+    variants               =
+        "AVR32EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 348;
     signature              = 0x1e 0x95 0x3c;
 
@@ -21897,7 +21909,7 @@ part parent ".avrex"
     desc                   = "AVR64EA32";
     id                     = "avr64ea32";
     variants               =
-        "AVR64EA32:       QFN32,  Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR64EA32:       VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA32-I/PT:  TQFP32, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA32-I/RXB: VQFN32, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 358;
@@ -21939,7 +21951,7 @@ part parent ".avrex"
     desc                   = "AVR64EA48";
     id                     = "avr64ea48";
     variants               =
-        "AVR64EA48:       QFN48,  Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR64EA48:       VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA48-I/6LX: VQFN48, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA48-I/PT:  TQFP48, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 361;
