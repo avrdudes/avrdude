@@ -915,6 +915,23 @@ programmer parent "ft2232h"
 ;
 
 #------------------------------------------------------------
+# avrisp-u
+#------------------------------------------------------------
+
+# Kanda's low cost FT2232H based programmer. Uses a different reset pin.
+# Adds a buffer and a LED indicating that the programming is in progress.
+# https://www.kanda.com/products/Kanda/AVRISP-U.html
+
+programmer parent "ft2232h"
+    id                     = "avrisp-u";
+    desc                   = "Kanda AVRISP-U";
+    usbsn                  = "AVR";
+    buff                   = ~5;
+    reset                  = 4;
+    pgmled                 = ~10;
+;
+
+#------------------------------------------------------------
 # ft4232h
 #------------------------------------------------------------
 
