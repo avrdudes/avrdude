@@ -2808,6 +2808,7 @@ part
         page_size       = <num> ;             # bytes
         num_pages       = <num> ;             # numeric
         initval         = <num> ;             # factory setting of fuses and lockbits
+        bitmask         = <num> ;             # bits used (only in fuses and lockbits)
         n_word_writes   = <num> ;             # TPI only: if set, number of words to write
         min_write_delay = <num> ;             # micro-seconds
         max_write_delay = <num> ;             # micro-seconds

@@ -328,6 +328,7 @@ typedef struct avrmem {
   int page_size;              /* size of memory page (if page addressed) */
   int num_pages;              /* number of pages (if page addressed) */
   int initval;                /* factory setting of fuses and lock bits */
+  int bitmask;                /* bits used in fuses and lock bits */
   int n_word_writes;          /* TPI only: number words to write at a time */
   unsigned int offset;        /* offset in IO memory (ATxmega) */
   int min_write_delay;        /* microseconds */

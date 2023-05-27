@@ -136,6 +136,7 @@ Component_t avr_comp[] = {
   mem_comp_desc(size, COMP_INT),
   mem_comp_desc(num_pages, COMP_INT),
   mem_comp_desc(initval, COMP_INT),
+  mem_comp_desc(bitmask, COMP_INT),
   mem_comp_desc(n_word_writes, COMP_INT),
   mem_comp_desc(offset, COMP_INT),
   mem_comp_desc(min_write_delay, COMP_INT),

@@ -331,6 +331,7 @@ AVRMEM *avr_new_memtype(void) {
   m->desc = cache_string("");
   m->page_size = 1;             // Ensure not 0
   m->initval = -1;              // Unknown value represented as -1
+  m->bitmask = -1;              // Default to -1
 
   return m;
 }
