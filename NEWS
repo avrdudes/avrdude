@@ -10,6 +10,11 @@ Changes since version 7.1:
   * Major changes compared to the previous version:
 
     - libgpiod support for linuxgpio #1299
+    - Support -U UPDI EEPROM write #1318
+    - avrdude.conf reconciled with ATDFs #1343
+    - New programmer dryrun for testing #1347
+    - Can write files in terminal write #1358
+    - Terminal command config #1365
 
   * New devices supported:
 
@@ -30,11 +35,39 @@ Changes since version 7.1:
     - ATxmega32D3
     - ATtiny416auto
 
+    - Variants of known devices now accepted:
+      AT32UC3A0512AU AT90PWM81EP    AT90S1200A     ATmega103L
+      ATmega1280V    ATmega1281V    ATmega128L     ATmega161L
+      ATmega162L     ATmega162V     ATmega163L     ATmega164PV
+      ATmega165PV    ATmega165V     ATmega168PV    ATmega168V
+      ATmega169L     ATmega169PV    ATmega169V     ATmega16L
+      ATmega16U4RC   ATmega2560V    ATmega2561V    ATmega324PV
+      ATmega3250PV   ATmega3250V    ATmega325PV    ATmega325V
+      ATmega3290PV   ATmega3290V    ATmega329PV    ATmega329V
+      ATmega32L      ATmega32U4RC   ATmega48PV     ATmega48V
+      ATmega640V     ATmega644PV    ATmega644V     ATmega6450V
+      ATmega645V     ATmega6490V    ATmega649V     ATmega64L
+      ATmega8515L    ATmega8535L    ATmega88PV     ATmega88V
+      ATmega8L       ATtiny102F     ATtiny104F     ATtiny11L
+      ATtiny12L      ATtiny12V      ATtiny13V      ATtiny15L
+      ATtiny22L      ATtiny2313V    ATtiny24V      ATtiny25V
+      ATtiny261V     ATtiny26L      ATtiny28L      ATtiny28V
+      ATtiny44V      ATtiny45V      ATtiny461V     ATtiny84V
+      ATtiny85V      ATtiny861V     AVR128DA28T    AVR128DA32T
+      AVR128DA48T    AVR128DA64T    AVR128DB28T    AVR128DB32T
+      AVR128DB48T    AVR128DB64T    AVR32DA28T     AVR32DA32T
+      AVR32DA48T     AVR32DB28T     AVR32DB32T     AVR32DB48T
+      AVR64DA28T     AVR64DA32T     AVR64DA48T     AVR64DA64T
+      AVR64DB28T     AVR64DB32T     AVR64DB48T     AVR64DB64T
+
+
   * New programmers supported:
 
+    - dryrun
     - raspberry_pi_gpio
     - Flysquatter2
     - CH341A
+    - Kanda AVRISP-U
 
   * Issues fixed:
 
@@ -99,6 +132,9 @@ Changes since version 7.1:
     - Progressively shrink metadata for -c urclock #1357
     - Extend <data> notion to files in terminal write #1358
     - Add fuse0 to ATxmega128A4U/64A4U/32A4U/16A4U #1360
+    - Add configuration for Kanda's AVRISP-U programmer #1363
+    - Add more Avrdude CLI usage examples #1364
+    - Provide terminal config command for fuses and lock bits #1365
 
   * Internals:
 
