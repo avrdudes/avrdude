@@ -7183,7 +7183,7 @@ part
     memory "fuse"
         size               = 1;
         initval            = 0xda;
-        bitmask            = 0x3f;
+        bitmask            = 0x77;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xoxo.oooo";
@@ -13473,6 +13473,7 @@ part parent "t44"
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21;
+
 
 ;
 
