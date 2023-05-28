@@ -2896,24 +2896,30 @@ of the instruction.  Bit specifiers may be one of the following formats:
 The bit is always set on input as well as output
 
 @item 0
-the bit is always clear on input as well as output
+The bit is always clear on input as well as output
 
 @item x
-the bit is ignored on input and output
+The bit is ignored on input and output
 
 @item a
-the bit is an address bit, the bit-number matches this bit specifier's
+The bit is an address bit, the bit-number matches this bit specifier's
 position within the current instruction byte
 
 @item a@var{N}
-the bit is the @var{N}th address bit, bit-number = N, i.e., @code{a12}
+The bit is the @var{N}th address bit, bit-number = N, i.e., @code{a12}
 is address bit 12 on input, @code{a0} is address bit 0.
 
 @item i
-the bit is an input data bit
+The bit is an input data bit; as with @code{a} bits an input data bit can
+optionally be followed by a bit number, here between 0 and 7, if the bit
+needs to be moved to a different position in the SPI write command byte
+than it appears in memory.
 
 @item o
-the bit is an output data bit
+The bit is an output data bit; as with @code{i} bits an output data bit
+can optionally be followed by a bit number; this is useful in case the
+part's SPI read command places a particular bit into a different position
+than the write command put it, e.g., ATtiny22L or AT90S8535 lock bits.
 
 @end table
 

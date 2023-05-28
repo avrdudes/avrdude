@@ -258,9 +258,12 @@
 #       'aN' = the bit is the Nth address bit, bit-number = N, i.e., a12
 #              is address bit 12 on input, a0 is address bit 0.
 #
-#       'i'  = the bit is an input data bit
+#       'i'  = the bit is an input data bit (can optionally be followed
+#              by a memory bit position between 0 and 7 if that differs
+#              from the bit-position in the SPI write command byte)
 #
-#       'o'  = the bit is an output data bit
+#       'o'  = the bit is an output data bit (can optionally be followed
+#              by a memory bit position between 0 and 7)
 #
 #    Each instruction must be composed of 32 bit specifiers. The
 #    instruction specification closely follows the instruction data
@@ -3843,7 +3846,7 @@ part
         bitmask            = 0x21;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--ooox.xxxo";
+        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxox.xxxo";
         write              = "1010.1100--1011.111i--xxxx.xxxx--xxxx.xxxx";
     ;
 
@@ -3853,7 +3856,7 @@ part
         bitmask            = 0x06;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--ooox.xxxo";
+        read               = "0 1 0 1 1 0 0 0  x x x x x x x x  x x x x x x x x  o1 o2 x x x x x x";
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
     ;
 
@@ -3994,8 +3997,8 @@ part
         bitmask            = 0x21;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
-        read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xxoo.oooo";
-        write              = "1010.1100--101i.iiii--xxxx.xxxx--xxxx.xxxx";
+        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxox.xxxo";
+        write              = "1010.1100--1011.111i--xxxx.xxxx--xxxx.xxxx";
     ;
 
     memory "lock"
@@ -4004,7 +4007,7 @@ part
         bitmask            = 0x06;
         min_write_delay    = 9000;
         max_write_delay    = 20000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xoox";
+        read               = "0 1 0 1 1 0 0 0  x x x x x x x x  x x x x x x x x  o1 o2 x x x x x x";
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
     ;
 
@@ -4177,7 +4180,7 @@ part
         bitmask            = 0x21;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxxx.xxxo";
+        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxox.xxxo";
         write              = "1010.1100--1011.111i--xxxx.xxxx--xxxx.xxxx";
     ;
 
@@ -4187,7 +4190,7 @@ part
         bitmask            = 0x06;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--ooxx.xxxx";
+        read               = "0 1 0 1 1 0 0 0  x x x x x x x x  x x x x x x x x  o1 o2 x x x x x x";
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
     ;
 
@@ -5476,6 +5479,7 @@ part parent "m324p"
     memory "efuse"
         initval            = 0x07;
         bitmask            = 0x0f;
+        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.iiii";
     ;
 ;
 
@@ -6055,7 +6059,7 @@ part
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
-        write              = "1010.1100--1010.0100--xxxx.xxxx--1111.1iii";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--111i.iii1";
     ;
 
     memory "lock"
@@ -7183,7 +7187,7 @@ part
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--xoxo.oooo";
-        write              = "1010.1100--101x.xxxx--xxxx.xxxx--1i1i.iiii";
+        write              = "1010.1100--101x.xxxx--xxxx.xxxx--1i1i.1iii";
     ;
 
     memory "lock"
@@ -9200,7 +9204,7 @@ part
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
-        write              = "1010.1100--1010.0100--xxxx.xxxx--111i.iiii";
+        write              = "1010.1100--1010.0100--xxxx.xxxx--iiii.1iii";
     ;
 
     memory "lock"

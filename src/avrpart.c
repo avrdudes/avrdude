@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "ac_cfg.h"
 #include "avrdude.h"
@@ -857,32 +858,41 @@ const char *opcodename(int opnum) {
 // Unique string representation of an opcode
 char *opcode2str(const OPCODE *op, int opnum, int detailed) {
   char cb, space[1024], *sp = space;
-  int compact = 1;
+  int compact = 1, printbit;
 
   if(!op)
     return cfg_strdup("opcode2str()", "NULL");
 
-  // Can the opcode be printed in a compact way? Only if address bits are systematic.
+  // Can the opcode be printed in a compact way? Only if i, o and a bits are systematic.
   for(int i=31; i >= 0; i--)
-    if(op->bit[i].type == AVR_CMDBIT_ADDRESS)
+    switch(op->bit[i].type) {
+    case AVR_CMDBIT_ADDRESS:
       if(i<8 || i>23 || op->bit[i].bitno != (opnum == AVR_OP_LOAD_EXT_ADDR? i+8: i-8))
         compact = 0;
+      break;
+    case AVR_CMDBIT_INPUT:
+    case AVR_CMDBIT_OUTPUT:
+      if(op->bit[i].bitno != i%8)
+        compact = 0;
+    }
 
   if(detailed)
     *sp++ = '"';
 
   for(int i=31; i >= 0; i--) {
-    *sp++ = cb = cmdbitchar(op->bit[i]);
-    if(compact) {
+    cb = cmdbitchar(op->bit[i]);
+    printbit = cb == 'a' || ((strchr("io", cb) && op->bit[i].bitno != i%8));
+    *sp++ = !detailed && !compact && printbit? toupper(cb): cb; // Disambiguate tsv output
+    if(!compact && printbit) {
+      sprintf(sp, "%d", op->bit[i].bitno);
+      sp += strlen(sp);
+    }
+    if(compact || !detailed) {
       if(i && i%8 == 0)
         *sp++ = '-', *sp++ = '-';
       else if(i && i%4 == 0)
         *sp++ = '.';
     } else {
-      if(cb == 'a') {
-        sprintf(sp, "%d", op->bit[i].bitno);
-        sp += strlen(sp);
-      }
       if(i) {
         if(detailed)
           *sp++ = ' ';
