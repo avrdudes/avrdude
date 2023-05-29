@@ -1126,6 +1126,23 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   return LIBAVRDUDE_SUCCESS;
 }
 
+
+// Obtain bitmask for byte in memory (classic, TPI, PDI and UPDI parts)
+int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
+  int bitmask = mem->bitmask;
+  // Collective memory fuses will have a different bitmask for each address (ie, fuse)
+  if(str_eq(mem->desc, "fuses") && addr < 10) { // Get right fuse in fuses memory
+    char memtype[64];
+    AVRMEM *dfuse;
+    sprintf(memtype, "fuse%d", addr);
+    if((dfuse = avr_locate_mem(p, memtype)) && dfuse->size == 1)
+      bitmask = dfuse->bitmask;
+  }
+
+  return bitmask & 0xff;
+}
+
+// Bitmask for ISP programming (classic parts only)
 static uint8_t get_fuse_bitmask(AVRMEM * m) {
   uint8_t bitmask_r = 0;
   uint8_t bitmask_w = 0;
@@ -1151,13 +1168,14 @@ static uint8_t get_fuse_bitmask(AVRMEM * m) {
   return bitmask_r & bitmask_w;
 }
 
+// Unused in AVRDUDE, beware this is only valid for ISP parts
 int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
   uint8_t bitmask = get_fuse_bitmask(m);
   return (b1 & bitmask) != (b2 & bitmask);
 }
 
 /*
- * Verify the memory buffer of p with that of v.  The byte range of v,
+ * Verify the memory buffer of p with that of v.  The byte range of v
  * may be a subset of p.  The byte range of p should cover the whole
  * chip's memory size.
  *
@@ -1195,7 +1213,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size+1: 10;
   for (i=0; i<size; i++) {
     if ((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
-      uint8_t bitmask = get_fuse_bitmask(a);
+      uint8_t bitmask = p->prog_modes & PM_ISP? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
       if(pgm->readonly && pgm->readonly(pgm, p, a, i)) {
         if(quell_progress < 2) {
           if(vroerror < 10) {
