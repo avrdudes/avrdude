@@ -441,7 +441,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
-  if (strcmp(mem->desc, "signature") == 0) {
+  if (str_eq(mem->desc, "signature")) {
     if (pgm->read_sig_bytes) {
       return pgm->read_sig_bytes(pgm, p, mem);
     }
@@ -465,7 +465,6 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   return avr_mem_hiaddr(mem);
 }
-
 
 
 /*
@@ -589,7 +588,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return -1;
     }
 
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (str_eq(mem->desc, "flash")) {
       pmsg_error("writing a byte to flash is not supported for %s\n", p->desc);
       return -1;
     } else if ((mem->offset + addr) & 1) {
@@ -600,7 +599,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     while (avr_tpi_poll_nvmbsy(pgm));
 
     /* must erase fuse first */
-    if (strcmp(mem->desc, "fuse") == 0) {
+    if (str_eq(mem->desc, "fuse")) {
       /* setup for SECTION_ERASE (high byte) */
       avr_tpi_setup_rw(pgm, mem, addr | 1, TPI_NVMCMD_SECTION_ERASE);
 
@@ -1109,7 +1108,6 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 }
 
 
-
 /*
  * read the AVR device's signature bytes
  */
@@ -1359,7 +1357,7 @@ const char *avr_mem_order[100] = {
 
 void avr_add_mem_order(const char *str) {
   for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {
-    if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+    if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
       return;
     if(!avr_mem_order[i]) {
       avr_mem_order[i] = cfg_strdup("avr_mem_order()", str);
@@ -1372,10 +1370,10 @@ void avr_add_mem_order(const char *str) {
 
 int avr_memtype_is_flash_type(const char *memtype) {
   return memtype && (
-     strcmp(memtype, "flash") == 0 ||
-     strcmp(memtype, "application") == 0 ||
-     strcmp(memtype, "apptable") == 0 ||
-     strcmp(memtype, "boot") == 0);
+     str_eq(memtype, "flash") ||
+     str_eq(memtype, "application") ||
+     str_eq(memtype, "apptable") ||
+     str_eq(memtype, "boot"));
 }
 
 int avr_mem_is_flash_type(const AVRMEM *mem) {
@@ -1383,7 +1381,7 @@ int avr_mem_is_flash_type(const AVRMEM *mem) {
 }
 
 int avr_memtype_is_eeprom_type(const char *memtype) {
-  return memtype && strcmp(memtype, "eeprom") == 0;
+  return memtype && str_eq(memtype, "eeprom");
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
@@ -1393,7 +1391,7 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem) {
 int avr_mem_is_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+      if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
         return 1;
   return 0;
 }
@@ -1401,7 +1399,7 @@ int avr_mem_is_known(const char *str) {
 int avr_mem_might_be_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && !strncmp(avr_mem_order[i], str, strlen(str)))
+      if(avr_mem_order[i] && str_starts(avr_mem_order[i], str))
         return 1;
   return 0;
 }
