@@ -2967,7 +2967,6 @@ part
     memory "fuse"
         size               = 1;
         initval            = 0x52;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--xxxx.xxxx--xxxx.xxxx--oooo.oooo";
@@ -3106,7 +3105,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x6a;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4401,7 +4399,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4411,7 +4408,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4568,7 +4564,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4578,7 +4573,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4729,7 +4723,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4739,7 +4732,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -4868,7 +4860,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -4878,7 +4869,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5007,7 +4997,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5017,7 +5006,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5156,7 +5144,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5166,7 +5153,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5317,7 +5303,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5327,7 +5312,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5626,7 +5610,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5636,7 +5619,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -5848,7 +5830,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -5858,7 +5839,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6035,7 +6015,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6045,7 +6024,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 16000;
         max_write_delay    = 16000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6306,7 +6284,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6316,7 +6293,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6561,7 +6537,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6571,7 +6546,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -6834,7 +6808,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -6844,7 +6817,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7062,7 +7034,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7072,7 +7043,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7326,7 +7296,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7336,7 +7305,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7478,7 +7446,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7488,7 +7455,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7608,7 +7574,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7618,7 +7583,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 2000;
         max_write_delay    = 2000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -7735,7 +7699,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7869,7 +7832,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -7879,7 +7841,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8039,7 +8000,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8049,7 +8009,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8205,7 +8164,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8215,7 +8173,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8445,7 +8402,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8455,7 +8411,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8691,7 +8646,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8701,7 +8655,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -8941,7 +8894,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -8951,7 +8903,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9190,7 +9141,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9339,7 +9289,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9349,7 +9298,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9489,7 +9437,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9499,7 +9446,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9637,7 +9583,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x6e;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9647,7 +9592,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9785,7 +9729,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x6e;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9795,7 +9738,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -9932,7 +9874,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -9942,7 +9883,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10127,7 +10067,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10137,7 +10076,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -10657,7 +10595,6 @@ part
     memory "fuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10800,7 +10737,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xdd;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -10986,7 +10922,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xd7;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11148,7 +11083,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x64;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11158,7 +11092,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11322,7 +11255,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11332,7 +11264,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11464,7 +11395,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11474,7 +11404,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11606,7 +11535,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11616,7 +11544,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11823,7 +11750,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -11833,7 +11759,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -11843,7 +11768,6 @@ part
     memory "efuse"
         size               = 1;
         initval            = 0xfd;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12076,7 +12000,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12086,7 +12009,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12237,7 +12159,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12247,7 +12168,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12395,7 +12315,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12405,7 +12324,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12539,7 +12457,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12549,7 +12466,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12682,7 +12598,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12692,7 +12607,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -12849,7 +12763,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -12859,7 +12772,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13219,7 +13131,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13229,7 +13140,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13400,7 +13310,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13410,7 +13319,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13473,6 +13381,7 @@ part parent "t44"
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21;
+
 
 
 ;
@@ -13582,7 +13491,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13592,7 +13500,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13836,7 +13743,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13846,7 +13752,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -13977,7 +13882,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x52;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -13987,7 +13891,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -14120,7 +14023,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x52;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14130,7 +14032,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -14261,7 +14162,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14271,7 +14171,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x9b;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -14420,7 +14319,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14430,7 +14328,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -14582,7 +14479,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14592,7 +14488,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -14725,7 +14620,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14735,7 +14629,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -14869,7 +14762,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -14879,7 +14771,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -15013,7 +14904,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -15023,7 +14913,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -15157,7 +15046,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x5e;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -15167,7 +15055,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -15305,7 +15192,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
@@ -15315,7 +15201,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -15506,7 +15391,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--0000.0000--oooo.oooo";
@@ -15516,7 +15400,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--0000.0000--oooo.oooo";
@@ -15708,7 +15591,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0x62;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.0000--0000.0000--0000.0000--oooo.oooo";
@@ -15718,7 +15600,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        bitmask            = 0xff;
         min_write_delay    = 9000;
         max_write_delay    = 9000;
         read               = "0101.1000--0000.1000--0000.0000--oooo.oooo";
@@ -16060,14 +15941,6 @@ part parent ".xmega-a"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -16079,10 +15952,6 @@ part parent ".xmega-a"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -16231,14 +16100,6 @@ part parent ".xmega-a"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -16250,10 +16111,6 @@ part parent ".xmega-a"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -16402,14 +16259,6 @@ part parent ".xmega-a"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -16421,10 +16270,6 @@ part parent ".xmega-a"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -16781,10 +16626,6 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -16795,10 +16636,6 @@ part parent ".xmega"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -16877,7 +16714,6 @@ part parent "x128c3"
     memory "fuse0"
         size               = 1;
         initval            = 0xff;
-        bitmask            = 0xff;
         offset             = 0x8f0020;
     ;
 
@@ -17087,14 +16923,6 @@ part parent ".xmega-a"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -17106,10 +16934,6 @@ part parent ".xmega-a"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -17178,12 +17002,7 @@ part parent ".xmega"
     memory "fuse0"
         size               = 1;
         initval            = 0xff;
-        bitmask            = 0xff;
         offset             = 0x8f0020;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
     ;
 
     memory "fuse2"
@@ -17196,10 +17015,6 @@ part parent ".xmega"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -17283,10 +17098,6 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -17297,10 +17108,6 @@ part parent ".xmega"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -17371,7 +17178,6 @@ part parent "x192a1"
 
     memory "fuse0"
         initval            = 0xff;
-        bitmask            = 0xff;
     ;
 
     memory "fuse2"
@@ -17405,7 +17211,6 @@ part parent "x192a1"
 
     memory "fuse0"
         initval            = 0xff;
-        bitmask            = 0xff;
     ;
 
     memory "fuse4"
@@ -17469,10 +17274,6 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -17483,10 +17284,6 @@ part parent ".xmega"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -17556,7 +17353,6 @@ part parent "x256a1"
 
     memory "fuse0"
         initval            = 0xff;
-        bitmask            = 0xff;
     ;
 
     memory "fuse2"
@@ -17590,7 +17386,6 @@ part parent "x256a1"
 
     memory "fuse0"
         initval            = 0xff;
-        bitmask            = 0xff;
     ;
 
     memory "fuse4"
@@ -17618,7 +17413,6 @@ part parent "x256a1"
 
     memory "fuse0"
         initval            = 0xff;
-        bitmask            = 0xff;
     ;
 
     memory "fuse2"
@@ -17649,7 +17443,6 @@ part parent "x256a1"
 
     memory "fuse0"
         initval            = 0xff;
-        bitmask            = 0xff;
     ;
 
     memory "fuse4"
@@ -17713,10 +17506,6 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x63;
     ;
@@ -17727,10 +17516,6 @@ part parent ".xmega"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -17818,10 +17603,6 @@ part parent ".xmega-e"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x43;
     ;
@@ -17832,14 +17613,6 @@ part parent ".xmega-e"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "fuse6"
-        bitmask            = 0xff;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -17909,10 +17682,6 @@ part parent ".xmega-e"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x43;
     ;
@@ -17923,14 +17692,6 @@ part parent ".xmega-e"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "fuse6"
-        bitmask            = 0xff;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -18000,10 +17761,6 @@ part parent ".xmega-e"
         readsize           = 256;
     ;
 
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x43;
     ;
@@ -18014,14 +17771,6 @@ part parent ".xmega-e"
 
     memory "fuse5"
         bitmask            = 0x3f;
-    ;
-
-    memory "fuse6"
-        bitmask            = 0xff;
-    ;
-
-    memory "lock"
-        bitmask            = 0xff;
     ;
 
     memory "usersig"
@@ -18180,7 +17929,6 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xdf;
-        bitmask            = 0xff;
         min_write_delay    = 4500;
         max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
@@ -18588,7 +18336,6 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xcd;
-        bitmask            = 0xff;
     ;
 
     memory "hfuse"
@@ -18850,14 +18597,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -18865,7 +18604,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -18882,17 +18620,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -18926,14 +18655,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -18941,7 +18662,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -18958,17 +18678,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19002,14 +18713,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19017,7 +18720,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19034,17 +18736,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19078,14 +18771,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19093,7 +18778,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19110,17 +18794,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19156,14 +18831,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19171,7 +18838,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19188,17 +18854,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19232,14 +18889,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19252,17 +18901,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19300,14 +18940,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19320,17 +18952,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19365,14 +18988,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19385,17 +19000,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19429,14 +19035,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19449,17 +19047,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19497,14 +19086,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19517,17 +19098,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19562,14 +19134,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19582,17 +19146,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19626,14 +19181,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19641,7 +19188,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19658,17 +19204,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19702,14 +19239,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19717,7 +19246,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19734,17 +19262,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19778,14 +19297,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19793,7 +19304,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19810,17 +19320,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19854,14 +19355,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19869,7 +19362,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19886,17 +19378,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -19932,14 +19415,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -19947,7 +19422,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -19964,17 +19438,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20026,14 +19491,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20041,7 +19498,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20058,17 +19514,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20103,14 +19550,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20118,7 +19557,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20135,17 +19573,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20184,14 +19613,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20199,7 +19620,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20216,17 +19636,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20261,14 +19672,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20276,7 +19679,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20293,17 +19695,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20337,14 +19730,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20352,7 +19737,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20369,17 +19753,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20415,14 +19790,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20430,7 +19797,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20447,17 +19813,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20491,14 +19848,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20506,7 +19855,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20523,17 +19871,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20567,14 +19906,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20582,7 +19913,6 @@ part parent ".avr8x_tiny"
     memory "fuse4"
         size               = 1;
         initval            = 0x00;
-        bitmask            = 0xff;
         offset             = 0x1284;
         readsize           = 1;
     ;
@@ -20599,17 +19929,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 
     memory "userrow"
@@ -20669,14 +19990,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20689,17 +20002,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20742,14 +20046,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20762,17 +20058,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20807,14 +20094,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20827,17 +20106,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20876,14 +20146,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20896,17 +20158,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -20949,14 +20202,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -20969,17 +20214,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21014,14 +20250,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21034,17 +20262,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21083,14 +20302,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21103,17 +20314,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21156,14 +20358,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21176,17 +20370,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21221,14 +20406,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21241,17 +20418,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21290,14 +20458,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21310,17 +20470,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21363,14 +20514,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21383,17 +20526,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21428,14 +20562,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21448,17 +20574,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21500,14 +20617,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21520,17 +20629,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21568,14 +20668,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21588,17 +20680,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21640,14 +20723,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21660,17 +20735,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21708,14 +20774,6 @@ part parent ".avr8x_tiny"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21728,17 +20786,8 @@ part parent ".avr8x_tiny"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21780,14 +20829,6 @@ part parent ".avr8x_mega"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21800,17 +20841,8 @@ part parent ".avr8x_mega"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21848,14 +20880,6 @@ part parent ".avr8x_mega"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21868,17 +20892,8 @@ part parent ".avr8x_mega"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21920,14 +20935,6 @@ part parent ".avr8x_mega"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -21940,17 +20947,8 @@ part parent ".avr8x_mega"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -21989,14 +20987,6 @@ part parent ".avr8x_mega"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x83;
     ;
@@ -22009,17 +20999,8 @@ part parent ".avr8x_mega"
         bitmask            = 0x07;
     ;
 
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
-    ;
-
     memory "lock"
         initval            = 0xc5;
-        bitmask            = 0xff;
     ;
 ;
 
@@ -22216,14 +21197,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22235,14 +21208,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22285,14 +21250,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22304,14 +21261,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22354,14 +21303,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22373,14 +21314,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22425,14 +21358,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22444,14 +21369,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22494,14 +21411,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22513,14 +21422,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22563,14 +21464,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22582,14 +21475,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22632,14 +21517,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22651,14 +21528,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22703,14 +21572,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22722,14 +21583,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22772,14 +21625,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22791,14 +21636,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22841,14 +21678,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22860,14 +21689,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22910,14 +21731,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22929,14 +21742,6 @@ part parent ".avrdx"
     memory "fuse6"
         initval            = 0x00;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -22980,14 +21785,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -22998,14 +21795,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23047,14 +21836,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23065,14 +21846,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23114,14 +21887,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23132,14 +21897,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23183,14 +21940,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23201,14 +21950,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23250,14 +21991,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23268,14 +22001,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23317,14 +22042,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23335,14 +22052,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23384,14 +22093,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23402,14 +22103,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23453,14 +22146,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23471,14 +22156,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23520,14 +22197,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23538,14 +22207,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23587,14 +22248,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23605,14 +22258,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23654,14 +22299,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23672,14 +22309,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23715,14 +22344,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23734,14 +22355,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23778,14 +22391,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23797,14 +22402,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23843,14 +22440,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23862,14 +22451,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23906,14 +22487,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23925,14 +22498,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -23968,14 +22533,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -23987,14 +22544,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24031,14 +22580,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24050,14 +22591,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24096,14 +22629,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24115,14 +22640,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24159,14 +22676,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24178,14 +22687,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24221,14 +22722,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24240,14 +22733,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24283,14 +22768,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24302,14 +22779,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24348,14 +22817,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24367,14 +22828,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24411,14 +22864,6 @@ part parent ".avrdx"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x07;
     ;
@@ -24430,14 +22875,6 @@ part parent ".avrdx"
 
     memory "fuse6"
         bitmask            = 0x1f;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24538,14 +22975,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24558,14 +22987,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24599,14 +23020,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24619,14 +23032,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24660,14 +23065,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24680,14 +23077,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24721,14 +23110,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24741,14 +23122,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24782,14 +23155,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24802,14 +23167,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24843,14 +23200,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24863,14 +23212,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24907,14 +23248,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24927,14 +23260,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -24971,14 +23296,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -24991,14 +23308,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
@@ -25035,14 +23344,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "fuse0"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse1"
-        bitmask            = 0xff;
-    ;
-
     memory "fuse2"
         bitmask            = 0x08;
     ;
@@ -25055,14 +23356,6 @@ part parent ".avrex"
     memory "fuse6"
         initval            = 0x07;
         bitmask            = 0x07;
-    ;
-
-    memory "fuse7"
-        bitmask            = 0xff;
-    ;
-
-    memory "fuse8"
-        bitmask            = 0xff;
     ;
 
     memory "lock"
