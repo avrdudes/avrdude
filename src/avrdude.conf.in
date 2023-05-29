@@ -193,10 +193,10 @@
 #   ;
 #
 # If any of the above parameters are not specified, the default value
-# of 0 is used for numerics (except for mcuid, hvupdi_variant and
-# ocdrev, where the default value is -1, and for autobaud_sync which
-# defaults to 0x30), or the empty string "" for string values. If a
-# required parameter is left empty, AVRDUDE will complain. Almost all
+# of 0 is used for numerics (except for mcuid, hvupdi_variant, ocdrev
+# and bitmask, where the default value is -1, and for autobaud_sync
+# which defaults to 0x30), or the empty string "" for string values. If
+# a required parameter is left empty, AVRDUDE will complain. Almost all
 # occurrences of numbers (with the exception of pin numbers and where
 # they are separated by space, eg, in signature and readback) can also
 # be given as simple expressions involving arithemtic and bitwise
