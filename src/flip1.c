@@ -292,7 +292,7 @@ int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   if (dfu->dev_desc.bMaxPacketSize0 != 32)
     pmsg_warning("bMaxPacketSize0 (%d) != 32, things might go wrong\n", dfu->dev_desc.bMaxPacketSize0);
 
-  if (verbose)
+  if (verbose > 0)
     flip1_show_info(FLIP1(pgm));
 
   dfu_abort(dfu);

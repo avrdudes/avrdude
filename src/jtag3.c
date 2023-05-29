@@ -1114,7 +1114,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
-  if (verbose && quell_progress < 2)
+  if (verbose > 0 && quell_progress < 2)
     jtag3_print_parms1(pgm, progbuf, stderr);
 
   // Read or write SUFFER register
@@ -2836,7 +2836,7 @@ static int jtag3_initialize_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  if (verbose && quell_progress < 2)
+  if (verbose > 0 && quell_progress < 2)
     jtag3_print_parms1(pgm, progbuf, stderr);
 
   pmsg_notice2("jtag3_initialize_tpi() start\n");
