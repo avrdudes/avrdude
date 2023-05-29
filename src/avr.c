@@ -560,6 +560,33 @@ double avr_timestamp() {
 }
 
 
+int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char *datap) {
+
+  int bakverb = verbose;
+  verbose = -123;
+  int ret = pgm->read_byte(pgm, p, mem, addr, datap);
+  verbose = bakverb;
+
+  return ret;
+}
+
+
+int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data) {
+
+  int bitmask = avr_mem_bitmask(p, mem, addr);
+  if(bitmask && bitmask != 0xff) { // Modify data
+    unsigned char was = mem->initval;
+    if(mem->initval == -1)      // -1 stands for unknown/not set in avrdude.conf
+      if(avr_read_byte_silent(pgm, p, mem, addr, &was) < 0)
+        was = 0xff;
+    data = (was & ~bitmask) | (data & bitmask);
+  }
+
+  return data;
+}
+
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
@@ -581,6 +608,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     imsg_error("provide a cmd() method\n");
     return -1;
   }
+
+  data = avr_bitmask_data(pgm, p, mem, addr, data);
 
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
@@ -810,6 +839,11 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
+
+  if(pgm->write_byte != avr_write_byte_default)
+    if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Read-modify-write classic parts
+      data = avr_bitmask_data(pgm, p, mem, addr, data);
+
   return pgm->write_byte(pgm, p, mem, addr, data);
 }
 
