@@ -90,6 +90,8 @@ Changes since version 7.1:
     - Parts with *L, *PV and *V suffixes + others are missing in
       avrdude.conf #1092
     - -c urclock should progressively shrink metadata #1352
+    - Write errors in fuses/lock bits with unused bits #1371
+    - Some SPI read/write commands incompatible with .ATDF #1370
 
   * Pull requests:
 
@@ -135,6 +137,8 @@ Changes since version 7.1:
     - Add configuration for Kanda's AVRISP-U programmer #1363
     - Add more Avrdude CLI usage examples #1364
     - Provide terminal config command for fuses and lock bits #1365
+    - Initialise unused bits of classic/XMEGA- part fuses/lock bits
+      with factory defaults #1372
 
   * Internals:
 
