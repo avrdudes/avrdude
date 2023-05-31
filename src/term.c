@@ -837,7 +837,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 
 // Config command
 
-const int MAX_PAD = 10;         // Align value labels if difference between their lengths is less than this
+static const int MAX_PAD = 10;  // Align value labels if difference between their lengths is less than this
 
 typedef union {                 // Lock memory can be 1 or 4 bytes
   uint8_t b[4];
@@ -1959,7 +1959,7 @@ static int readytoread() {
 }
 
 // Callback processes commands whenever readline() has finished
-void term_gotline(char *cmdstr) {
+static void term_gotline(char *cmdstr) {
   if(cmdstr) {
     if(*cmdstr) {
       add_history(cmdstr);
@@ -1990,7 +1990,7 @@ void term_gotline(char *cmdstr) {
 }
 
 
-int terminal_mode_interactive(const PROGRAMMER *pgm, const AVRPART *p) {
+static int terminal_mode_interactive(const PROGRAMMER *pgm, const AVRPART *p) {
   term_pgm = pgm;               // For callback routine
   term_p = p;
 
@@ -2029,6 +2029,8 @@ int terminal_mode_noninteractive(const PROGRAMMER *pgm, const AVRPART *p) {
   return pgm->flush_cache(pgm, p);
 }
 
+
+// Terminal shell that is called on avrdude -t
 int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p) {
 #if defined(HAVE_LIBREADLINE)
   // GNU libreadline can also work if input is a pipe.
