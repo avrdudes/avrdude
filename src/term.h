@@ -29,6 +29,7 @@ extern "C" {
 
 int terminal_mode(const PROGRAMMER * pgm, const AVRPART * p);
 int terminal_mode_noninteractive(const PROGRAMMER * pgm, const AVRPART * p);
+int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line);
 char * terminal_get_input(const char *prompt);
 void terminal_setup_update_progress();
 

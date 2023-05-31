@@ -1909,6 +1909,24 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
   return rc;
 }
 
+
+/*
+ * Process individual terminal line
+ *   - Used by main's -T argument
+ *   - The terminal manages a cache, -U does not: the caller is responsible for executing
+ *       + pgm->flush_cache(pgm, p) between -T line and -U memory read/avrdude exit
+ *       + pgm->reset_cache(pgm, p) between -U memory write and -T line
+ */
+
+int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line) {
+  char *ln = cfg_strdup(__func__, line);
+  int ret = process_line(ln, pgm, p);
+  free(ln);
+
+  return ret;
+}
+
+
 #if defined(HAVE_LIBREADLINE)
 
 static const PROGRAMMER *term_pgm;
