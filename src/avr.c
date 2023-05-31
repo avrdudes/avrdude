@@ -571,7 +571,7 @@ int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
   return ret;
 }
 
-
+// Initialise unused bits in fuses and lock bits from factory setting initval
 int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
@@ -841,7 +841,7 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 {
 
   if(pgm->write_byte != avr_write_byte_default)
-    if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Read-modify-write classic parts
+    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
       data = avr_bitmask_data(pgm, p, mem, addr, data);
 
   return pgm->write_byte(pgm, p, mem, addr, data);

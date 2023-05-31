@@ -291,7 +291,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
       dry.dp->desc, dmem->desc, addr, dmem->size-1);
 
-  if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) { // Read-modify-write classic parts
+  if(!(p->prog_modes & (PM_UPDI | PM_aWire))) { // Initialise unused bits in classic & XMEGA parts
     int bitmask = avr_mem_bitmask(dry.dp, dmem, addr);
     // Read-modify-write for bitmasked memory
     data = (data & bitmask) | (dmem->buf[addr] & ~bitmask);
