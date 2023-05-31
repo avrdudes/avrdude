@@ -56,7 +56,6 @@
 
 
 #include "avrdude.h"
-#include "term.h"
 
 struct command {
   char *name;

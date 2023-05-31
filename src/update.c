@@ -126,6 +126,12 @@ UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
   return u;
 }
 
+UPDATE *cmd_update(const char *cmd) {
+  UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
+  u->cmdline = cmd;
+  return u;
+}
+
 void free_update(UPDATE * u)
 {
     if (u != NULL) {
@@ -305,6 +311,9 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
 
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
+  if(upd->cmdline)              // Todo: parse terminal command line?
+    return 0;
+
   /*
    * Reject an update if memory name is not known amongst any part (suspect a typo)
    * but accept when the specific part does not have it (allow unifying i/faces)
@@ -386,6 +395,9 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags
   int size;
   int rc;
   Filestats fs, fs_patched;
+
+  if(upd->cmdline)
+    return terminal_line(pgm, p, upd->cmdline);
 
   mem = avr_locate_mem(p, upd->memtype);
   if (mem == NULL) {

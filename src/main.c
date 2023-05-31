@@ -49,7 +49,6 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
-#include "term.h"
 #include "developer_opts.h"
 
 /* Get VERSION from ac_cfg.h */
@@ -632,7 +631,8 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstU:uvVx:yY:")) != -1) {
+  int memwrite = 0, memterminal = 0;
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -772,12 +772,28 @@ int main(int argc, char * argv [])
         pmsg_error("\"safemode\" feature no longer supported\n");
         break;
 
+      case 'T':
+        upd = (UPDATE *) cfg_malloc(__func__, sizeof *upd);
+        upd->cmdline = optarg;
+        if(memwrite) {          // Invalidate cache if device was written to
+          memwrite = 0;
+          ladd(updates, cmd_update("abort # Reset cache"));
+        }
+        memterminal = 1;
+        ladd(updates, upd);
+        break;
+
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
           pmsg_error("unable to parse update operation '%s'\n", optarg);
           exit(1);
         }
+        if(memterminal) {       // Flush cache before any device memory access
+          memterminal = 0;
+          ladd(updates, cmd_update("flush"));
+        }
+        memwrite |= upd->op == DEVICE_WRITE;
         ladd(updates, upd);
         break;
 
@@ -814,6 +830,9 @@ int main(int argc, char * argv [])
     }
 
   }
+
+  if(memterminal)
+    ladd(updates, cmd_update("flush"));
 
   if (logfile != NULL) {
     FILE *newstderr = freopen(logfile, "w", stderr);
@@ -1235,7 +1254,7 @@ int main(int argc, char * argv [])
   int doexit = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    if (upd->memtype == NULL) {
+    if (upd->memtype == NULL && upd->cmdline == NULL) {
       const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
       pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
@@ -1445,6 +1464,8 @@ int main(int argc, char * argv [])
       uflags &= ~UF_AUTO_ERASE;
       for (ln=lfirst(updates); ln; ln=lnext(ln)) {
         upd = ldata(ln);
+        if(!upd->memtype)
+          continue;
         m = avr_locate_mem(p, upd->memtype);
         if (m == NULL)
           continue;
