@@ -32,7 +32,7 @@ typedef enum {
   WRITE_MODE_FILL     = 1,
 } mode;
 
-int terminal_mode(PROGRAMMER * pgm, struct avrpart * p);
+int terminal_mode(const PROGRAMMER * pgm, const AVRPART * p);
 char * terminal_get_input(const char *prompt);
 void terminal_setup_update_progress();
 
