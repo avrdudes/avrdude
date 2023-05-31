@@ -363,6 +363,10 @@ static size_t maxstrlen(int argc, char **argv) {
   return max;
 }
 
+typedef enum {
+  WRITE_MODE_STANDARD = 0,
+  WRITE_MODE_FILL     = 1,
+} Write_mode_t;
 
 static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
@@ -1904,7 +1908,6 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
 
   return rc;
 }
-
 
 #if defined(HAVE_LIBREADLINE)
 
