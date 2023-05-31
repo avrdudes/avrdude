@@ -233,7 +233,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     memtype = argv[1];
   else
     memtype = (char*)read_mem[i].mem->desc;
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+  const AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     pmsg_error("(%s) %s memory type not defined for part %s\n", cmd, memtype, p->desc);
     return -1;
@@ -419,7 +419,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   char *memtype = argv[1];      // Memory name string
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+  const AVRMEM *mem = avr_locate_mem(p, memtype);
   if (mem == NULL) {
     pmsg_error("(write) %s memory type not defined for part %s\n", memtype, p->desc);
     return -1;
@@ -726,7 +726,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
   if (argc > 1) {
     char *memtype = argv[1];
-    AVRMEM *mem = avr_locate_mem(p, memtype);
+    const AVRMEM *mem = avr_locate_mem(p, memtype);
     if (mem == NULL) {
       pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
       return -1;
@@ -752,7 +752,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
   if(rc == LIBAVRDUDE_SOFTFAIL) {
     pmsg_info("(erase) emulating chip erase by writing 0xff to flash ");
-    AVRMEM *flm = avr_locate_mem(p, "flash");
+    const AVRMEM *flm = avr_locate_mem(p, "flash");
     if(!flm) {
       msg_error("but flash not defined for part %s?\n", p->desc);
       return -1;
@@ -802,7 +802,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
   }
 
   char *memtype = argv[1];
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+  const AVRMEM *mem = avr_locate_mem(p, memtype);
   if(!mem) {
     pmsg_error("(pgerase) %s memory type not defined for part %s\n", memtype, p->desc);
     return -1;
@@ -889,7 +889,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
     goto back;
   }
 
-  AVRMEM *mem = avr_locate_mem(p, cci->memstr);
+  const AVRMEM *mem = avr_locate_mem(p, cci->memstr);
   if(!mem) {
     err = cache_string(tofree = str_sprintf("%s memory type not defined for part %s", cci->memstr, p->desc));
     free(tofree);
@@ -1251,7 +1251,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
     cc[i].t = ct+i;
     const char *mt = str_starts(ct[i].memtype, "lock")? locktype: ct[i].memtype;
     cc[i].memstr = mt;
-    AVRMEM *mem = avr_locate_mem(p, mt);
+    const AVRMEM *mem = avr_locate_mem(p, mt);
     if(!mem) {
       pmsg_warning("(config) %s unavailable as memory %s is not defined for %s\n", ct[i].name, mt, p->desc);
       continue;
@@ -1413,7 +1413,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
 
   fl_t towrite;
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
-  AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
+  const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
     pmsg_error("(config) %s memory type not defined for part %s\n", cc[ci].memstr, p->desc);
     ret = -1;
@@ -1463,7 +1463,7 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int i;
   int rc;
-  AVRMEM *m;
+  const AVRMEM *m;
 
   if(argc > 1) {
     msg_error(
