@@ -297,7 +297,7 @@ int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   if (result != 0)
     goto flip2_initialize_fail;
 
-  if (verbose)
+  if (verbose > 0)
     flip2_show_info(FLIP2(pgm));
 
   return 0;

@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 26.05.2023
+ * 27.05.2023
  *
  */
 
@@ -11621,9 +11621,9 @@ const Configitem_t cfgtab_atmega128rfr2[14] = {
 // ATmega161
 const Configitem_t cfgtab_atmega161[7] = {
   {"cksel", 8, _values_cksel_atmega161, "fuse", 0, 0x07, 0, 2, "clock source"},
-  {"sut", 2, _values_sut_atmega161, "fuse", 0, 0x08, 3, 1, "startup time"},
-  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x10, 4, 1, "serial programming"},
-  {"bootrst", 2, _values_bootrst_atmega328, "fuse", 0, 0x20, 5, 0, "reset address"},
+  {"sut", 2, _values_sut_atmega161, "fuse", 0, 0x10, 4, 1, "startup time"},
+  {"spien", 2, _values_spien_atmega328, "fuse", 0, 0x20, 5, 0, "serial programming"},
+  {"bootrst", 2, _values_bootrst_atmega328, "fuse", 0, 0x40, 6, 1, "reset address"},
   {"lb", 3, _values_lb_atmega328, "lock", 0, 0x03, 0, 3, "lock bits"},
   {"blb0", 4, _values_blb0_atmega328, "lock", 0, 0x0c, 2, 3, "boot lock bits: application section"},
   {"blb1", 4, _values_blb1_atmega328, "lock", 0, 0x30, 4, 3, "boot lock bits: boot section"},

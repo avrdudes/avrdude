@@ -328,6 +328,7 @@ typedef struct avrmem {
   int page_size;              /* size of memory page (if page addressed) */
   int num_pages;              /* number of pages (if page addressed) */
   int initval;                /* factory setting of fuses and lock bits */
+  int bitmask;                /* bits used in fuses and lock bits */
   int n_word_writes;          /* TPI only: number words to write at a time */
   unsigned int offset;        /* offset in IO memory (ATxmega) */
   int min_write_delay;        /* microseconds */
@@ -911,6 +912,12 @@ double avr_timestamp();
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
 
+int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char *datap);
+
+int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data);
+
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			   unsigned long addr, unsigned char data);
 
@@ -919,6 +926,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, in
 int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase);
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
+
+int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr);
 
 int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *m, int size);
 

@@ -441,7 +441,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
-  if (strcmp(mem->desc, "signature") == 0) {
+  if (str_eq(mem->desc, "signature")) {
     if (pgm->read_sig_bytes) {
       return pgm->read_sig_bytes(pgm, p, mem);
     }
@@ -465,7 +465,6 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   return avr_mem_hiaddr(mem);
 }
-
 
 
 /*
@@ -561,6 +560,33 @@ double avr_timestamp() {
 }
 
 
+int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char *datap) {
+
+  int bakverb = verbose;
+  verbose = -123;
+  int ret = pgm->read_byte(pgm, p, mem, addr, datap);
+  verbose = bakverb;
+
+  return ret;
+}
+
+// Initialise unused bits in fuses and lock bits from factory setting initval
+int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data) {
+
+  int bitmask = avr_mem_bitmask(p, mem, addr);
+  if(bitmask && bitmask != 0xff) { // Modify data
+    unsigned char was = mem->initval;
+    if(mem->initval == -1)      // -1 stands for unknown/not set in avrdude.conf
+      if(avr_read_byte_silent(pgm, p, mem, addr, &was) < 0)
+        was = 0xff;
+    data = (was & ~bitmask) | (data & bitmask);
+  }
+
+  return data;
+}
+
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
@@ -583,13 +609,15 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return -1;
   }
 
+  data = avr_bitmask_data(pgm, p, mem, addr, data);
+
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
       pmsg_error("%s programmer does not support TPI\n", pgm->type);
       return -1;
     }
 
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (str_eq(mem->desc, "flash")) {
       pmsg_error("writing a byte to flash is not supported for %s\n", p->desc);
       return -1;
     } else if ((mem->offset + addr) & 1) {
@@ -600,7 +628,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     while (avr_tpi_poll_nvmbsy(pgm));
 
     /* must erase fuse first */
-    if (strcmp(mem->desc, "fuse") == 0) {
+    if (str_eq(mem->desc, "fuse")) {
       /* setup for SECTION_ERASE (high byte) */
       avr_tpi_setup_rw(pgm, mem, addr | 1, TPI_NVMCMD_SECTION_ERASE);
 
@@ -811,6 +839,11 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data)
 {
+
+  if(pgm->write_byte != avr_write_byte_default)
+    if(!(p->prog_modes & (PM_UPDI | PM_aWire))) // Initialise unused bits in classic & XMEGA parts
+      data = avr_bitmask_data(pgm, p, mem, addr, data);
+
   return pgm->write_byte(pgm, p, mem, addr, data);
 }
 
@@ -1109,7 +1142,6 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 }
 
 
-
 /*
  * read the AVR device's signature bytes
  */
@@ -1128,6 +1160,23 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   return LIBAVRDUDE_SUCCESS;
 }
 
+
+// Obtain bitmask for byte in memory (classic, TPI, PDI and UPDI parts)
+int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
+  int bitmask = mem->bitmask;
+  // Collective memory fuses will have a different bitmask for each address (ie, fuse)
+  if(str_eq(mem->desc, "fuses") && addr < 10) { // Get right fuse in fuses memory
+    char memtype[64];
+    AVRMEM *dfuse;
+    sprintf(memtype, "fuse%d", addr);
+    if((dfuse = avr_locate_mem(p, memtype)) && dfuse->size == 1)
+      bitmask = dfuse->bitmask;
+  }
+
+  return bitmask & 0xff;
+}
+
+// Bitmask for ISP programming (classic parts only)
 static uint8_t get_fuse_bitmask(AVRMEM * m) {
   uint8_t bitmask_r = 0;
   uint8_t bitmask_w = 0;
@@ -1153,13 +1202,14 @@ static uint8_t get_fuse_bitmask(AVRMEM * m) {
   return bitmask_r & bitmask_w;
 }
 
+// Unused in AVRDUDE, beware this is only valid for ISP parts
 int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
   uint8_t bitmask = get_fuse_bitmask(m);
   return (b1 & bitmask) != (b2 & bitmask);
 }
 
 /*
- * Verify the memory buffer of p with that of v.  The byte range of v,
+ * Verify the memory buffer of p with that of v.  The byte range of v
  * may be a subset of p.  The byte range of p should cover the whole
  * chip's memory size.
  *
@@ -1197,7 +1247,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size+1: 10;
   for (i=0; i<size; i++) {
     if ((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
-      uint8_t bitmask = get_fuse_bitmask(a);
+      uint8_t bitmask = p->prog_modes & PM_ISP? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
       if(pgm->readonly && pgm->readonly(pgm, p, a, i)) {
         if(quell_progress < 2) {
           if(vroerror < 10) {
@@ -1359,7 +1409,7 @@ const char *avr_mem_order[100] = {
 
 void avr_add_mem_order(const char *str) {
   for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {
-    if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+    if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
       return;
     if(!avr_mem_order[i]) {
       avr_mem_order[i] = cfg_strdup("avr_mem_order()", str);
@@ -1372,10 +1422,10 @@ void avr_add_mem_order(const char *str) {
 
 int avr_memtype_is_flash_type(const char *memtype) {
   return memtype && (
-     strcmp(memtype, "flash") == 0 ||
-     strcmp(memtype, "application") == 0 ||
-     strcmp(memtype, "apptable") == 0 ||
-     strcmp(memtype, "boot") == 0);
+     str_eq(memtype, "flash") ||
+     str_eq(memtype, "application") ||
+     str_eq(memtype, "apptable") ||
+     str_eq(memtype, "boot"));
 }
 
 int avr_mem_is_flash_type(const AVRMEM *mem) {
@@ -1383,7 +1433,7 @@ int avr_mem_is_flash_type(const AVRMEM *mem) {
 }
 
 int avr_memtype_is_eeprom_type(const char *memtype) {
-  return memtype && strcmp(memtype, "eeprom") == 0;
+  return memtype && str_eq(memtype, "eeprom");
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
@@ -1393,7 +1443,7 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem) {
 int avr_mem_is_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && !strcmp(avr_mem_order[i], str))
+      if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
         return 1;
   return 0;
 }
@@ -1401,7 +1451,7 @@ int avr_mem_is_known(const char *str) {
 int avr_mem_might_be_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && !strncmp(avr_mem_order[i], str, strlen(str)))
+      if(avr_mem_order[i] && str_starts(avr_mem_order[i], str))
         return 1;
   return 0;
 }

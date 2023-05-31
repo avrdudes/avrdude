@@ -2808,6 +2808,7 @@ part
         page_size       = <num> ;             # bytes
         num_pages       = <num> ;             # numeric
         initval         = <num> ;             # factory setting of fuses and lockbits
+        bitmask         = <num> ;             # bits used (only in fuses and lockbits)
         n_word_writes   = <num> ;             # TPI only: if set, number of words to write
         min_write_delay = <num> ;             # micro-seconds
         max_write_delay = <num> ;             # micro-seconds
@@ -2834,13 +2835,14 @@ part
 
 @noindent
 If any of the above parameters are not specified, the default value of 0
-is used for numerics (except for @code{mcuid}, @code{hvupdi_variant} and
-@code{ocdrev}, where the default value is -1, and for @code{autobaud_sync}
-which defaults to 0x30) or the empty string @code{""} for string values.
-If a required parameter is left empty, AVRDUDE will complain. Almost all
-occurrences of numbers (with the exception of pin numbers and where they
-are separated by space, e.g., in signature and readback) can also be given
-as simple expressions involving arithemtic and bitwise operators.
+is used for numerics (except for @code{mcuid}, @code{hvupdi_variant},
+@code{ocdrev}, @code{initval} and @code{bitmask}, all of which default to
+-1, and for @code{autobaud_sync} which defaults to 0x30) or the empty
+string @code{""} for string values. If a required parameter is left empty,
+AVRDUDE will complain. Almost all occurrences of numbers (with the
+exception of pin numbers and where they are separated by space, e.g., in
+signature and readback) can also be given as simple expressions involving
+arithemtic and bitwise operators.
 
 @menu
 * Parent Part::
@@ -2895,24 +2897,30 @@ of the instruction.  Bit specifiers may be one of the following formats:
 The bit is always set on input as well as output
 
 @item 0
-the bit is always clear on input as well as output
+The bit is always clear on input as well as output
 
 @item x
-the bit is ignored on input and output
+The bit is ignored on input and output
 
 @item a
-the bit is an address bit, the bit-number matches this bit specifier's
+The bit is an address bit, the bit-number matches this bit specifier's
 position within the current instruction byte
 
 @item a@var{N}
-the bit is the @var{N}th address bit, bit-number = N, i.e., @code{a12}
+The bit is the @var{N}th address bit, bit-number = N, i.e., @code{a12}
 is address bit 12 on input, @code{a0} is address bit 0.
 
 @item i
-the bit is an input data bit
+The bit is an input data bit; as with @code{a} bits an input data bit can
+optionally be followed by a bit number, here between 0 and 7, if the bit
+needs to be moved to a different position in the SPI write command byte
+than it appears in memory.
 
 @item o
-the bit is an output data bit
+The bit is an output data bit; as with @code{i} bits an output data bit
+can optionally be followed by a bit number; this is useful in case the
+part's SPI read command places a particular bit into a different position
+than the write command put it, e.g., ATtiny22L or AT90S8535 lock bits.
 
 @end table
 

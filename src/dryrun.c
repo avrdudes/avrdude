@@ -171,7 +171,7 @@ static void dryrun_disable(const PROGRAMMER *pgm) {
     avr_free_part(dry.dp);
     dry.dp = NULL;
   }
-    
+
   return;
 }
 
@@ -291,6 +291,12 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
       dry.dp->desc, dmem->desc, addr, dmem->size-1);
 
+  if(!(p->prog_modes & (PM_UPDI | PM_aWire))) { // Initialise unused bits in classic & XMEGA parts
+    int bitmask = avr_mem_bitmask(dry.dp, dmem, addr);
+    // Read-modify-write for bitmasked memory
+    data = (data & bitmask) | (dmem->buf[addr] & ~bitmask);
+  }
+
   dmem->buf[addr] = data;
 
   if(str_eq(dmem->desc, "fuses") && addr < 10) { // Copy the byte to corresponding fuse[0-9]
@@ -298,7 +304,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     sprintf(memtype, "fuse%ld", addr);
     if((dfuse = avr_locate_mem(dry.dp, memtype)) && dfuse->size == 1)
       dfuse->buf[0] = data;
-  } else if(str_starts(m->desc, "fuse")) {
+  } else if(str_starts(m->desc, "fuse")) { // Copy fuseN byte into fuses memory
     int fno = m->desc[4]-'0';
     if(fno >= 0 && fno < 10)
       if((dfuse = avr_locate_mem(dry.dp, "fuses")) && dfuse->size > fno)

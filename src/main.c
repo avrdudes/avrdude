@@ -321,7 +321,7 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
 
         if(*id == 0 || *id == '.')
           continue;
-        if(verbose)
+        if(verbose > 0)
           fprintf(f, "%s%-*s = %-30s [%s:%d]", prefix, maxlen, id, desc, pgm->config_file, pgm->lineno);
         else
           fprintf(f, "%s%-*s = %-s", prefix, maxlen, id, desc);
@@ -378,14 +378,14 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
       if(verbose < 2 && p->id[0] == '.') // hide ids starting with '.'
         continue;
-      if(verbose)
+      if(verbose > 0)
         fprintf(f, "%s%-*s = %-18s [%s:%d]", prefix, maxlen, p->id, p->desc, p->config_file, p->lineno);
       else
         fprintf(f, "%s%-*s = %s", prefix, maxlen, p->id, p->desc);
       if(pm != ~0)
         fprintf(f, " via %s", avr_prog_modes(pm & p->prog_modes));
       fprintf(f, "\n");
-      if(verbose)
+      if(verbose > 0)
         for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln))
           fprintf(f, "%s%s- %s\n", prefix, prefix, (char *) ldata(ln));
     }
@@ -1154,7 +1154,7 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
-  if (verbose) {
+  if (verbose > 0) {
     imsg_notice("Using Port                    : %s\n", port);
     imsg_notice("Using Programmer              : %s\n", programmer);
   }
@@ -1215,7 +1215,7 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
 
-  if(verbose) {
+  if(verbose > 0) {
     if ((strcmp(pgm->type, "avr910") == 0)) {
       imsg_notice("avr910_devcode (avrdude.conf) : ");
       if(p->avr910_devcode)
@@ -1269,7 +1269,7 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
 
-  if (verbose && quell_progress < 2) {
+  if (verbose > 0 && quell_progress < 2) {
     avr_display(stderr, p, progbuf, verbose);
     msg_notice("\n");
     programmer_display(pgm, progbuf);

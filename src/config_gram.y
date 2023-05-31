@@ -1328,20 +1328,19 @@ static int parse_cmdbits(OPCODE * op, int opnum)
             rv = -1;
             break;
         }
-      }
-      else {
-        if (*s == 'a') {
-          int sb, bn;
-          char *q;
-          const char *errstr;
+      } else {
+        const char *errstr;
+        int sb, bn = str_int(s+1, STR_INT32, &errstr); // Bit number
+        if(errstr) {
+          yywarning("bit number from %s: %s", s, errstr);
+          bn = 0;
+        } else if(strchr("io", *s) && (bn < 0 || bn > 7)) {
+          bn &= 7;
+          yywarning("out-of-range bit number %s mapped to %d", s, bn);
+        }
 
-          q = s+1;
-          bn = str_int(q, STR_INT32, &errstr); // Address line
-          if(errstr) {
-            yywarning("bit number from a%s: %s", q, errstr);
-            bn = 0;
-          }
-
+        switch(*s) {
+        case 'a':
           sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
           if(bitno < 8 || bitno > 23)
             yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
@@ -1352,11 +1351,20 @@ static int parse_cmdbits(OPCODE * op, int opnum)
             yywarning("invalid address bit a%d, using a%d", bn, bn & 31);
 
           op->bit[bitno].bitno = bn & 31;
-
           op->bit[bitno].type = AVR_CMDBIT_ADDRESS;
           op->bit[bitno].value = 0;
-        }
-        else {
+          break;
+        case 'o':
+          op->bit[bitno].type  = AVR_CMDBIT_OUTPUT;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bn;
+          break;
+        case 'i':
+          op->bit[bitno].type  = AVR_CMDBIT_INPUT;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bn;
+          break;
+        default:
           yyerror("invalid bit specifier %s", s);
           rv = -1;
           break;

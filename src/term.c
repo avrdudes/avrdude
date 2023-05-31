@@ -597,6 +597,8 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     report_progress(i, len + bytes_grown, NULL);
     if(!tags[i])
       continue;
+
+    uint8_t b;
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
@@ -605,11 +607,16 @@ static int cmd_write(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
       werror = true;
-    } else {
-      uint8_t b;
-      rc = pgm->read_byte_cached(pgm, p, mem, addr+i, &b);
-      if (b != buf[i]) {
-        pmsg_error("(write) verification error writing 0x%02x at 0x%05x cell=0x%02x\n", buf[i], addr+i, b);
+    } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
+      imsg_error("%*sreadback from %s failed\n", 8, "", mem->desc);
+      werror = true;
+    } else {                    // Read back byte b is now set
+      int bitmask = avr_mem_bitmask(p, mem, addr+i);
+      if((b & bitmask) != (buf[i] & bitmask)) {
+        pmsg_error("(write) verification error writing 0x%02x at 0x%05x cell=0x%02x", buf[i], addr+i, b);
+        if(bitmask != 0xff)
+          msg_error(" using bit mask 0x%02x", bitmask);
+        msg_error("\n");
         werror = true;
       }
    }
