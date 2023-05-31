@@ -215,39 +215,6 @@ int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp) {
 }
 
 
-// Convenience functions for printing
-const char *update_plural(int x) {
-  return x==1? "": "s";
-}
-
-const char *update_inname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdin>";
-}
-
-const char *update_outname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
-}
-
-// Return sth like "[0, 0x1ff]"
-const char *update_interval(int a, int b) {
-  // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
-  static char space[20*41 + 80], *sp;
-  if(!sp || sp-space > (int) sizeof space - 80)
-    sp = space;
-
-  char *ret = sp;
-
-  sprintf(sp, a<16? "[%d": "[0x%x", a);
-  sp += strlen(sp);
-  sprintf(sp, b<16? ", %d]": ", 0x%x]", b);
-
-  // Advance beyond return string in temporary ring buffer
-  sp += strlen(sp)+1;
-
-  return ret;
-}
-
-
 // Helper functions for dry run to determine file access
 
 int update_is_okfile(const char *fn) {
@@ -294,7 +261,7 @@ int update_is_readable(const char *fn) {
 static void ioerror(const char *iotype, const UPDATE *upd) {
   int errnocp = errno;
 
-  pmsg_ext_error("file %s is not %s: ", update_outname(upd->filename), iotype);
+  pmsg_ext_error("file %s is not %s: ", str_outname(upd->filename), iotype);
   if(errnocp)
     msg_ext_error("%s", strerror(errnocp));
   else if(upd->filename && *upd->filename)
@@ -432,11 +399,11 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     if (rc == 0)
       pmsg_notice("flash is empty, resulting file has no contents\n");
-    pmsg_info("writing output file %s\n", update_outname(upd->filename));
+    pmsg_info("writing output file %s\n", str_outname(upd->filename));
 
     rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memtype, size);
     if (rc < 0) {
-      pmsg_error("write to file %s failed\n", update_outname(upd->filename));
+      pmsg_error("write to file %s failed\n", str_outname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     break;
@@ -446,27 +413,27 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memtype, -1);
     if (rc < 0) {
-      pmsg_error("read from file %s failed\n", update_inname(upd->filename));
+      pmsg_error("read from file %s failed\n", str_inname(upd->filename));
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
     pmsg_info("reading input file %s for %s%s\n",
-      update_inname(upd->filename), mem->desc, alias_mem_desc);
+      str_inname(upd->filename), mem->desc, alias_mem_desc);
 
     if(memstats(p, upd->memtype, rc, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
 
     imsg_info("with %d byte%s in %d section%s within %s\n",
-      fs.nbytes, update_plural(fs.nbytes),
-      fs.nsections, update_plural(fs.nsections),
-      update_interval(fs.firstaddr, fs.lastaddr));
+      fs.nbytes, str_plural(fs.nbytes),
+      fs.nsections, str_plural(fs.nsections),
+      str_interval(fs.firstaddr, fs.lastaddr));
     if(mem->page_size > 1) {
       imsg_info("using %d page%s and %d pad byte%s",
-        fs.npages, update_plural(fs.npages),
-        fs.nfill, update_plural(fs.nfill));
+        fs.npages, str_plural(fs.npages),
+        fs.nfill, str_plural(fs.nfill));
       if(fs.ntrailing)
         msg_info(", cutting off %d trailing 0xff byte%s",
-          fs.ntrailing, update_plural(fs.ntrailing));
+          fs.ntrailing, str_plural(fs.ntrailing));
       msg_info("\n");
     }
 
@@ -476,7 +443,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       if(mem && !strcmp(mem->desc, "flash")) {
         rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
         if (rc < 0) {
-          pmsg_notice("readhook for file %s failed\n", update_inname(upd->filename));
+          pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));
           return LIBAVRDUDE_GENERAL_FAILURE;
         }
         if(memstats(p, upd->memtype, rc, &fs_patched) < 0)
@@ -485,16 +452,16 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
           pmsg_info("preparing flash input for device%s\n",
             pgm->prog_modes & PM_SPM? " bootloader": "");
             imsg_notice2("with %d byte%s in %d section%s within %s\n",
-              fs_patched.nbytes, update_plural(fs_patched.nbytes),
-              fs_patched.nsections, update_plural(fs_patched.nsections),
-              update_interval(fs_patched.firstaddr, fs_patched.lastaddr));
+              fs_patched.nbytes, str_plural(fs_patched.nbytes),
+              fs_patched.nsections, str_plural(fs_patched.nsections),
+              str_interval(fs_patched.firstaddr, fs_patched.lastaddr));
             if(mem->page_size > 1) {
               imsg_notice2("using %d page%s and %d pad byte%s",
-                fs_patched.npages, update_plural(fs_patched.npages),
-                fs_patched.nfill, update_plural(fs_patched.nfill));
+                fs_patched.npages, str_plural(fs_patched.npages),
+                fs_patched.nfill, str_plural(fs_patched.nfill));
               if(fs_patched.ntrailing)
                 msg_notice2(", and %d trailing 0xff byte%s",
-                  fs_patched.ntrailing, update_plural(fs_patched.ntrailing));
+                  fs_patched.ntrailing, str_plural(fs_patched.ntrailing));
               msg_notice2("\n");
             }
         }
@@ -504,7 +471,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     // Write the buffer contents to the selected memory type
     pmsg_info("writing %d byte%s %s%s ...\n", fs.nbytes,
-      update_plural(fs.nbytes), mem->desc, alias_mem_desc);
+      str_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
       if(mem->size > 32 || verbose > 1)
@@ -522,7 +489,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     }
 
     pmsg_info("%d byte%s of %s%s written\n", fs.nbytes,
-      update_plural(fs.nbytes), mem->desc, alias_mem_desc);
+      str_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
     if (!(flags & UF_VERIFY))   // Fall through for auto verify unless
       break;
@@ -535,17 +502,17 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     int userverify = upd->op == DEVICE_VERIFY; // Explicit -U :v by user
 
     pmsg_info("verifying %s%s memory against %s\n", mem->desc,
-      alias_mem_desc, update_inname(upd->filename));
+      alias_mem_desc, str_inname(upd->filename));
 
     // No need to read file when fallen through from DEVICE_WRITE
     if (userverify) {
       pmsg_notice("load %s%s data from input file %s\n", mem->desc,
-        alias_mem_desc, update_inname(upd->filename));
+        alias_mem_desc, str_inname(upd->filename));
 
       rc = fileio(FIO_READ_FOR_VERIFY, upd->filename, upd->format, p, upd->memtype, -1);
 
       if (rc < 0) {
-        pmsg_error("read from file %s failed\n", update_inname(upd->filename));
+        pmsg_error("read from file %s failed\n", str_inname(upd->filename));
         return LIBAVRDUDE_GENERAL_FAILURE;
       }
       size = rc;
@@ -562,7 +529,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     if (quell_progress < 2) {
       if (userverify)
         pmsg_notice("input file %s contains %d byte%s\n",
-          update_inname(upd->filename), fs.nbytes, update_plural(fs.nbytes));
+          str_inname(upd->filename), fs.nbytes, str_plural(fs.nbytes));
       pmsg_notice2("reading on-chip %s%s data ...\n", mem->desc, alias_mem_desc);
     }
 
@@ -589,7 +556,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     }
 
     int verified = fs.nbytes+fs.ntrailing;
-    pmsg_info("%d byte%s of %s%s verified\n", verified, update_plural(verified), mem->desc, alias_mem_desc);
+    pmsg_info("%d byte%s of %s%s verified\n", verified, str_plural(verified), mem->desc, alias_mem_desc);
 
     pgm->vfy_led(pgm, OFF);
     avr_free_part(v);

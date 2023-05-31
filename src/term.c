@@ -578,7 +578,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   if(write_mode == WRITE_MODE_FILL) {
     if(recorded < len) {
       pmsg_warning("(write ...) can only fill %d < %d byte%s as last item has zero bytes\n",
-        recorded, len, update_plural(recorded));
+        recorded, len, str_plural(recorded));
       len = recorded;
     }
     bytes_grown = 0;
@@ -588,7 +588,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   pmsg_notice2("(write) writing %d byte%s starting from address 0x%02x",
-    len + bytes_grown, update_plural(len + bytes_grown), addr);
+    len + bytes_grown, str_plural(len + bytes_grown), addr);
   if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\v");

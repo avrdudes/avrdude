@@ -1082,12 +1082,6 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
 int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
 
-// Convenience functions for printing
-const char *update_plural(int x);
-const char *update_inname(const char *fn);
-const char *update_outname(const char *fn);
-const char *update_interval(int a, int b);
-
 // Helper functions for dry run to determine file access
 int update_is_okfile(const char *fn);
 int update_is_writeable(const char *fn);
@@ -1235,6 +1229,10 @@ char *str_uc(char *s);
 char *str_lcfirst(char *s);
 char *str_ucfirst(char *s);
 char *str_utoa(unsigned n, char *buf, int base);
+const char *str_plural(int x);
+const char *str_inname(const char *fn);
+const char *str_outname(const char *fn);
+const char *str_interval(int a, int b);
 bool is_bigendian();
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
