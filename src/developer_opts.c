@@ -813,7 +813,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
         int haveinjct = 0;
         if(injct)
           for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
-            if(meminj[i].mcu && str_eq(meminj[i].mcu, p->desc) && str_eq(meminj[i].mem, m->desc))
+            if(meminj[i].mcu && str_match(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
               haveinjct = 1;
         if(!haveinjct)
           continue;
@@ -848,7 +848,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     if(injct)
       for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
         if(meminj[i].mcu)
-          if(str_eq(meminj[i].mcu, p->desc) && str_eq(meminj[i].mem, m->desc))
+          if(str_match(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
             dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
               meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
 
@@ -882,7 +882,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   if(injct)
     for(size_t i=0; i<sizeof ptinj/sizeof*ptinj; i++)
       if(ptinj[i].mcu)
-        if(str_eq(ptinj[i].mcu, p->desc))
+        if(str_match(ptinj[i].mcu, p->desc))
           dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
             ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
 
@@ -1425,7 +1425,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)
       if(pgminj[i].pgmid)
         for(LNODEID *ln=lfirst(pgm->id); ln; ln=lnext(ln))
-          if(str_eq(pgminj[i].pgmid, ldata(ln)))
+          if(str_match(pgminj[i].pgmid, ldata(ln)))
             dev_part_strct_entry(tsv, ".prog", ldata(ln), NULL,
               pgminj[i].var, cfg_strdup("pgminj", pgminj[i].value), NULL);
 
