@@ -1073,12 +1073,12 @@ typedef struct {                // File reads for flash can exclude trailing 0xf
 extern "C" {
 #endif
 
-UPDATE *parse_op(char *s);
-UPDATE *dup_update(UPDATE *upd);
-UPDATE *new_update(int op, char *memtype, int filefmt, char *filename);
+UPDATE *parse_op(const char *s);
+UPDATE *dup_update(const UPDATE *upd);
+UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname);
 UPDATE *cmd_update(const char *cmd);
-extern void free_update(UPDATE * upd);
-int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd,
+extern void free_update(UPDATE *upd);
+int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
 int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
 

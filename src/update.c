@@ -42,15 +42,15 @@
  * flash write). This allows colons in filenames other than those for
  * enclosing <op> and separating <fmt>, eg, C:/some/file.hex
  */
-UPDATE *parse_op(char *s) {
+UPDATE *parse_op(const char *s) {
   // Assume -U <file>[:<fmt>] first
   UPDATE *upd = (UPDATE *) cfg_malloc(__func__, sizeof *upd);
   upd->memtype = NULL;        // Defaults to flash or application
   upd->op = DEVICE_WRITE;
-  char *fn = s;
+  const char *fn = s;
 
   // Check for <memory>:c: start in which case override defaults
-  char *fc = strchr(s, ':');
+  const char *fc = strchr(s, ':');
   if(fc && fc[1] && fc[2] == ':') {
     if(!strchr("rwv", fc[1])) {
       pmsg_error("invalid I/O mode :%c: in -U %s\n", fc[1], s);
@@ -95,8 +95,7 @@ UPDATE *parse_op(char *s) {
 }
 
 
-UPDATE * dup_update(UPDATE * upd)
-{
+UPDATE *dup_update(const UPDATE *upd) {
   UPDATE * u;
 
   u = (UPDATE *) cfg_malloc("dup_update()", sizeof(UPDATE));
@@ -112,14 +111,13 @@ UPDATE * dup_update(UPDATE * upd)
   return u;
 }
 
-UPDATE * new_update(int op, char * memtype, int filefmt, char * filename)
-{
+UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
   UPDATE * u;
 
   u = (UPDATE *) cfg_malloc("new_update()", sizeof(UPDATE));
 
-  u->memtype = cfg_strdup("new_update()", memtype);
-  u->filename = cfg_strdup("new_update()", filename);
+  u->memtype = cfg_strdup("new_update()", memstr);
+  u->filename = cfg_strdup("new_update()", fname);
   u->op = op;
   u->format = filefmt;
 
@@ -304,7 +302,7 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
   msg_ext_error("\n");
 }
 
-// Basic checks to reveal serious failure before programming
+// Basic checks to reveal serious failure before programming (and on autodetect set format)
 int update_dryrun(const AVRPART *p, UPDATE *upd) {
   static char **wrote;
   static int nfwritten;
@@ -389,7 +387,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
 }
 
 
-int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd, enum updateflags flags) {
+int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updateflags flags) {
   AVRPART *v;
   AVRMEM *mem;
   int size;
