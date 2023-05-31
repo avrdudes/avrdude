@@ -2836,13 +2836,13 @@ part
 @noindent
 If any of the above parameters are not specified, the default value of 0
 is used for numerics (except for @code{mcuid}, @code{hvupdi_variant},
-@code{ocdrev} and @code{bitmask}, where the default value is -1, and for
-@code{autobaud_sync} which defaults to 0x30) or the empty string @code{""}
-for string values. If a required parameter is left empty, AVRDUDE will
-complain. Almost all occurrences of numbers (with the exception of pin
-numbers and where they are separated by space, e.g., in signature and
-readback) can also be given as simple expressions involving arithemtic and
-bitwise operators.
+@code{ocdrev}, @code{initval} and @code{bitmask}, all of which default to
+-1, and for @code{autobaud_sync} which defaults to 0x30) or the empty
+string @code{""} for string values. If a required parameter is left empty,
+AVRDUDE will complain. Almost all occurrences of numbers (with the
+exception of pin numbers and where they are separated by space, e.g., in
+signature and readback) can also be given as simple expressions involving
+arithemtic and bitwise operators.
 
 @menu
 * Parent Part::
