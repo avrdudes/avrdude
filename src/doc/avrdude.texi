@@ -757,9 +757,17 @@ to the device.  Specify it a second time for even quieter operation.
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 
+@item -T @var{cmd}
+Slots a terminal command line @var{cmd} into the intermixed list of
+@code{-T} terminal commands and @code{-U} memory operations. The terminal
+command line is executed when it is its turn in the mixed list. Except for
+the simplest of terminal commands the argument @var{cmd} will most likely
+need to be set in quotes, see your OS shell manual for details.
+
 @item -t
-Tells AVRDUDE to enter the interactive ``terminal'' mode instead of up-
-or downloading files.  See below for a detailed description of the
+Tells AVRDUDE to enter the interactive terminal shell before uploading or
+downloading files via the @code{-U} option or processing other @code{-T}
+terminal commands, if any.  See below for a detailed description of the
 terminal mode.
 
 @item -U @var{memtype}:@var{op}:@var{filename}[:@var{format}]

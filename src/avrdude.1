@@ -44,6 +44,7 @@
 .Op Fl O
 .Op Fl P Ar port
 .Op Fl q
+.Op Fl T Ar cmd
 .Op Fl t
 .Op Fl U Ar memtype:op:filename:filefmt
 .Op Fl v
@@ -694,17 +695,28 @@ to the device.  Specify it more often for even quieter operations.
 .It Fl s, u
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
+.It Fl T Ar cmd
+Slots a terminal command line
+.Ar cmd
+into the intermixed list of -T terminal commands and -U memory operations.
+The terminal command line is executed when it is its turn in the mixed list.
+Except for the simplest of terminal commands the argument
+.Ar cmd
+will most likely need to be set in quotes, see your OS shell manual for
+details.
 .It Fl t
 Tells
 .Nm
-to enter the interactive ``terminal'' mode instead of up- or downloading
-files.  See below for a detailed description of the terminal mode.
+to enter the interactive terminal shell before up- or downloading files
+via the -U option or processing other -T terminal commands, if any. See
+below for a detailed description of the terminal mode.
 .It Xo Fl U Ar memtype Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
 .Op \&: Ns Ar format
 .Xc
-Perform a memory operation as indicated.  The
+Perform a memory operation as indicated. Multiple -U operations are
+allowed. The
 .Ar memtype
 field specifies the memory type to operate on.
 The available memory types are device-dependent, the actual
