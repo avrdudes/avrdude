@@ -2573,6 +2573,72 @@ avrdude done.  Thank you.
 
 @page
 
+@noindent
+@strong{Mixing terminal commands and @code{-U} memory operations:} the
+example below burns a bootloader, uses a terminal line to write
+application data to flash, loads the application, configures the brownout
+detection level to 2.7 V and, finally, stores the full flash as new hex
+file. Note the use of different quotation marks in @code{bash} to pass the
+terminal command lines as single entity to AVRDUDE. Also note the extra
+@code{flush} terminal command that AVRDUDE inserted to ensure the terminal
+cache and @code{-U} update operations work seamlessly.
+
+@smallexample
+@cartouche
+
+$ avrdude -qc dryrun -p m328p \
+          -U urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex \
+          -T 'write flash 0x7000 0xc0cac01a 0xcafe "secret Coca Cola recipe"' \
+          -U flash:w:cola-vending-machine.hex \
+          -T "config -v bod=*2v7" \
+          -U flash:r:app+data.hex:I
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+
+avrdude: processing -U flash:w:urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex:i
+avrdude: reading input file urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex for flash
+         with 368 bytes in 2 sections within [0x7e80, 0x7fff]
+         using 3 pages and 16 pad bytes
+avrdude: writing 368 bytes flash ...
+avrdude: 368 bytes of flash written
+avrdude: verifying flash memory against urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex
+avrdude: 368 bytes of flash verified
+
+avrdude: processing -T write flash 0x7000 0xc0cac01a 0xcafe "secret Coca Cola recipe"
+
+avrdude: processing -T flush
+avrdude: synching cache to device ... done
+
+avrdude: processing -U flash:w:cola-vending-machine.hex:i
+avrdude: reading input file cola-vending-machine.hex for flash
+         with 736 bytes in 1 section within [0, 0x2df]
+         using 6 pages and 32 pad bytes
+avrdude: writing 736 bytes flash ...
+avrdude: 736 bytes of flash written
+avrdude: verifying flash memory against cola-vending-machine.hex
+avrdude: 736 bytes of flash verified
+
+avrdude: processing -T config -v bod=*2v7
+config bodlevel=bod_2v7 # 5
+
+avrdude: processing -T flush
+
+avrdude: processing -U flash:r:app+data.hex:I
+avrdude: reading flash memory ...
+avrdude: writing output file app+data.hex
+
+avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+
+@page
+
 @c
 @c Node
 @c
