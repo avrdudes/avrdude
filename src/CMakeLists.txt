@@ -228,6 +228,7 @@ add_library(libavrdude
     strutil.c
     teensy.c
     teensy.h
+    term.c
     tpi.h
     updi_constants.h
     updi_link.c
@@ -292,8 +293,6 @@ target_link_libraries(libavrdude
 
 add_executable(avrdude
     main.c
-    term.c
-    term.h
     developer_opts.c
     developer_opts.h
     developer_opts_private.h
