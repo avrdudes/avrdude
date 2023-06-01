@@ -1364,7 +1364,13 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
   (void)jtagmkII_program_disable(pgm);
 }
 
-static void jtagmkII_enable(PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
+static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  // Unset page_erase when part or programmer not capable of it
+  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+    pgm->page_erase = NULL;
+  if(pgm->flag & PGM_FL_IS_DW)
+    pgm->page_erase = NULL;
+
   return;
 }
 
