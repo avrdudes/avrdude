@@ -2579,16 +2579,14 @@ example below burns a bootloader, uses a terminal line to write
 application data to flash, loads the application, configures the brownout
 detection level to 2.7 V and, finally, stores the full flash as new hex
 file. Note the use of different quotation marks in @code{bash} to pass the
-terminal command lines as single entity to AVRDUDE. Also note the extra
-@code{flush} terminal command that AVRDUDE inserted to ensure the terminal
-cache and @code{-U} update operations work seamlessly.
+terminal command lines as single entity to AVRDUDE.
 
 @smallexample
 @cartouche
 
 $ avrdude -qc dryrun -p m328p \
           -U urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex \
-          -T 'write flash 0x7000 0xc0cac01a 0xcafe "secret Coca Cola recipe"' \
+          -T 'write flash 0x7D00 0xc0cac01a 0xcafe "secret Coca Cola recipe"' \
           -U flash:w:cola-vending-machine.hex \
           -T "config -v bod=*2v7" \
           -U flash:r:app+data.hex:I
@@ -2608,9 +2606,7 @@ avrdude: 368 bytes of flash written
 avrdude: verifying flash memory against urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex
 avrdude: 368 bytes of flash verified
 
-avrdude: processing -T write flash 0x7000 0xc0cac01a 0xcafe "secret Coca Cola recipe"
-
-avrdude: processing -T flush
+avrdude: processing -T write flash 0x7D00 0xc0cac01a 0xcafe "secret Coca Cola recipe"
 avrdude: synching cache to device ... done
 
 avrdude: processing -U flash:w:cola-vending-machine.hex:i
@@ -2624,8 +2620,6 @@ avrdude: 736 bytes of flash verified
 
 avrdude: processing -T config -v bod=*2v7
 config bodlevel=bod_2v7 # 5
-
-avrdude: processing -T flush
 
 avrdude: processing -U flash:r:app+data.hex:I
 avrdude: reading flash memory ...

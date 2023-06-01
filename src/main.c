@@ -632,7 +632,6 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  int memwrite = 0, memterminal = 0;
   while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
@@ -774,14 +773,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'T':
-        upd = (UPDATE *) cfg_malloc(__func__, sizeof *upd);
-        upd->cmdline = optarg;
-        if(memwrite) {          // Invalidate cache if device was written to
-          memwrite = 0;
-          ladd(updates, cmd_update("abort # Reset cache"));
-        }
-        memterminal = 1;
-        ladd(updates, upd);
+        ladd(updates, cmd_update(optarg));
         break;
 
       case 'U':
@@ -790,11 +782,6 @@ int main(int argc, char * argv [])
           pmsg_error("unable to parse update operation '%s'\n", optarg);
           exit(1);
         }
-        if(memterminal) {       // Flush cache before any device memory access
-          memterminal = 0;
-          ladd(updates, cmd_update("flush"));
-        }
-        memwrite |= upd->op == DEVICE_WRITE;
         ladd(updates, upd);
         break;
 
@@ -831,9 +818,6 @@ int main(int argc, char * argv [])
     }
 
   }
-
-  if(memterminal)
-    ladd(updates, cmd_update("flush"));
 
   if (logfile != NULL) {
     FILE *newstderr = freopen(logfile, "w", stderr);
@@ -1517,8 +1501,16 @@ int main(int argc, char * argv [])
   }
 
 
+  int wrmem = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
+    if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
+      wrmem = 0;
+      pgm->reset_cache(pgm, p);
+    } else if(!upd->cmdline) {  // Flush cache before any device memory access
+      pgm->flush_cache(pgm, p);
+      wrmem |= upd->op == DEVICE_WRITE;
+    }
     rc = do_op(pgm, p, upd, uflags);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
@@ -1526,6 +1518,7 @@ int main(int argc, char * argv [])
     } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memtype_is_flash_type(upd->memtype))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
+  pgm->flush_cache(pgm, p);
 
 main_exit:
 
