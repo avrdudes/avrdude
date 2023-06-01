@@ -1020,6 +1020,8 @@ FILEFMT fileio_format(char c);
 
 char *fileio_fmtstr(FILEFMT format);
 
+int fileio_fmtchr(FILEFMT format);
+
 FILE *fileio_fopenr(const char *fname);
 
 int fileio_fmt_autodetect_fp(FILE *f);
@@ -1078,6 +1080,7 @@ UPDATE *dup_update(const UPDATE *upd);
 UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname);
 UPDATE *cmd_update(const char *cmd);
 extern void free_update(UPDATE *upd);
+char *update_str(const UPDATE *upd);
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
 int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);

@@ -130,7 +130,36 @@ char *fileio_fmtstr(FILEFMT format) {
     return "octal byte list";
   default:
     return "invalid format";
- };
+  }
+}
+
+int fileio_fmtchr(FILEFMT format) {
+  switch (format) {
+  case FMT_AUTO:
+    return 'a';
+  case FMT_SREC:
+    return 's';
+  case FMT_IHEX:
+    return 'i';
+  case FMT_IHXC:
+    return 'I';
+  case FMT_RBIN:
+    return 'r';
+  case FMT_ELF:
+    return 'e';
+  case FMT_IMM:
+    return 'm';
+  case FMT_BIN:
+    return 'b';
+  case FMT_DEC:
+    return 'd';
+  case FMT_HEX:
+    return 'h';
+  case FMT_OCT:
+    return 'o';
+  default:
+    return '?';
+  }
 }
 
 

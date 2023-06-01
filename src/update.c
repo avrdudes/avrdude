@@ -145,6 +145,15 @@ void free_update(UPDATE * u)
     }
 }
 
+char *update_str(const UPDATE *upd) {
+  if(upd->cmdline)
+    return str_sprintf("-T %s", upd->cmdline);
+  return str_sprintf("-U %s:%c:%s:%c",
+    upd->memtype,
+    upd->op == DEVICE_READ? 'r': upd->op == DEVICE_WRITE? 'w': 'v',
+    upd->filename,
+    fileio_fmtchr(upd->format));
+}
 
 // Memory statistics considering holes after a file read returned size bytes
 int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp) {
@@ -360,6 +369,13 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   int size;
   int rc;
   Filestats fs, fs_patched;
+
+  if(!upd->cmdline || !str_eq(upd->cmdline, "abort # Reset cache")) {
+    char *tofree;
+    msg_info("\v\n");
+    pmsg_info("processing %s\n", tofree = update_str(upd));
+    free(tofree);
+  }
 
   if(upd->cmdline)
     return terminal_line(pgm, p, upd->cmdline);
