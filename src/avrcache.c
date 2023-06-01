@@ -549,7 +549,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
 
       for(int iwr = 0, pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
         if(cp->iscached[pgno] && memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
-          if(!chiperase && mems[i].pgerase)
+          if(!chiperase && mems[i].pgerase && pgm->page_erase)
             pgm->page_erase(pgm, p, mem, n);
           if(writeCachePage(cp, pgm, p, mem, n, 1) < 0)
             return LIBAVRDUDE_GENERAL_FAILURE;
