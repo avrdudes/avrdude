@@ -625,9 +625,6 @@ int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
 int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
-  if(pgm->readonly && pgm->readonly(pgm, p, mem, addr))
-    return LIBAVRDUDE_SOFTFAIL;
-
   // Use pgm->write_byte() if not EEPROM/flash or no paged access
   if(!avr_has_paged_access(pgm, mem))
     return fallback_write_byte(pgm, p, mem, addr, data);
@@ -649,6 +646,12 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   // Ensure cache page is there
   if(loadCachePage(cp, pgm, p, mem, addr, cacheaddr, 0) < 0)
     return LIBAVRDUDE_GENERAL_FAILURE;
+
+  if(cp->cont[cacheaddr] == data)
+    return LIBAVRDUDE_SUCCESS;
+
+  if(pgm->readonly && pgm->readonly(pgm, p, mem, addr))
+    return LIBAVRDUDE_SOFTFAIL;
 
   cp->cont[cacheaddr] = data;
 
