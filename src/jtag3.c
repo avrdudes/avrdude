@@ -1474,6 +1474,9 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 }
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+    pgm->page_erase = NULL;
+
   return;
 }
 
@@ -3207,6 +3210,7 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = jtag3_paged_write;
   pgm->paged_load     = jtag3_paged_load;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = jtag3_print_parms;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
@@ -3327,6 +3331,7 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = jtag3_paged_write_tpi;
   pgm->paged_load     = jtag3_paged_load_tpi;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = jtag3_print_parms;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
