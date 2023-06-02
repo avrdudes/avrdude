@@ -369,13 +369,11 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   int size;
   int rc;
   Filestats fs, fs_patched;
+  char *tofree;
 
-  if(!upd->cmdline || !str_eq(upd->cmdline, "abort # Reset cache")) {
-    char *tofree;
-    msg_info("\v\n");
-    pmsg_info("processing %s\n", tofree = update_str(upd));
-    free(tofree);
-  }
+  msg_info("\v\n");
+  pmsg_info("processing %s\n", tofree = update_str(upd));
+  free(tofree);
 
   if(upd->cmdline)
     return terminal_line(pgm, p, upd->cmdline);
