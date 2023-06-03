@@ -1419,17 +1419,21 @@ static int cmd_config(PROGRAMMER *pgm, AVRPART *p, int argc, char *argv[]) {
     ret = -1;
     goto finished;
   }
+
   if((fusel.islock && mem->size != 4 && mem->size != 1) || (!fusel.islock && mem->size != 1)) {
     pmsg_error("(config) %s's %s memory has unexpected size %d\n", p->desc, mem->desc, mem->size);
     ret = -1;
     goto finished;
   }
-  for(int i=0; i<mem->size; i++)
-    if(pgm->write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
-      pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
-      ret = -1;
-      goto finished;
-    }
+
+  if(towrite.i != fusel.current) {
+    for(int i=0; i<mem->size; i++)
+      if(pgm->write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
+        pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
+        ret = -1;
+        goto finished;
+      }
+  }
 
   const char *av[] = { "confirm", cc[ci].t->name, NULL };
   if(o.verb > 0 && !str_eq(argv[0], "confirm"))
