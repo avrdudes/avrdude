@@ -3134,13 +3134,6 @@ static int stk500hvsp_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 }
 
 
-static int stk500v2_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-                               unsigned int addr)
-{
-  pmsg_error("this function must never be called\n");
-  return -1;
-}
-
 static int stk500v2_set_vtarget(const PROGRAMMER *pgm, double v) {
   unsigned char uaref, utarg;
 
@@ -4696,7 +4689,7 @@ static void stk600_setup_isp(PROGRAMMER * pgm)
   pgm->write_byte = stk500isp_write_byte;
   pgm->paged_load = stk500v2_paged_load;
   pgm->paged_write = stk500v2_paged_write;
-  pgm->page_erase = stk500v2_page_erase;
+  pgm->page_erase = NULL;
   pgm->chip_erase = stk500v2_chip_erase;
 }
 
@@ -4725,7 +4718,7 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
-  pgm->page_erase     = stk500v2_page_erase;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
@@ -4854,7 +4847,7 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
-  pgm->page_erase     = stk500v2_page_erase;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->perform_osccal = stk500v2_perform_osccal;
@@ -4888,7 +4881,7 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
-  pgm->page_erase     = stk500v2_page_erase;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
   pgm->setup          = stk500v2_jtagmkII_setup;
@@ -4983,7 +4976,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
-  pgm->page_erase     = stk500v2_page_erase;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
   pgm->set_varef      = stk600_set_varef;
@@ -5091,7 +5084,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    */
   pgm->paged_write    = stk500v2_paged_write;
   pgm->paged_load     = stk500v2_paged_load;
-  pgm->page_erase     = stk500v2_page_erase;
+  pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_jtag3_set_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
