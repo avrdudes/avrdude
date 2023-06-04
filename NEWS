@@ -15,6 +15,7 @@ Changes since version 7.1:
     - New programmer dryrun for testing #1347
     - Can write files in terminal write #1358
     - Terminal command config #1365
+    - New -T cmd to mix terminal with -U commands #1373
 
   * New devices supported:
 
@@ -139,6 +140,10 @@ Changes since version 7.1:
     - Provide terminal config command for fuses and lock bits #1365
     - Initialise unused bits of classic/XMEGA- part fuses/lock bits
       with factory defaults #1372
+    - Implement -T cmd to mix terminal with -U commands #1373
+    - Prevent terminal write error for unchanged r/o region #1375
+    - Remove pgm->page_erase() function when unable to do so #1376
+    - Write fuse/lock only when terminal config changes them #1378
 
   * Internals:
 
