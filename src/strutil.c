@@ -298,6 +298,39 @@ char *str_utoa(unsigned n, char *buf, int base) {
 }
 
 
+// Convenience functions for printing
+const char *str_plural(int x) {
+  return x==1? "": "s";
+}
+
+const char *str_inname(const char *fn) {
+  return !fn? "???": strcmp(fn, "-")? fn: "<stdin>";
+}
+
+const char *str_outname(const char *fn) {
+  return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
+}
+
+// Return sth like "[0, 0x1ff]"
+const char *str_interval(int a, int b) {
+  // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
+  static char space[20*41 + 80], *sp;
+  if(!sp || sp-space > (int) sizeof space - 80)
+    sp = space;
+
+  char *ret = sp;
+
+  sprintf(sp, a<16? "[%d": "[0x%x", a);
+  sp += strlen(sp);
+  sprintf(sp, b<16? ", %d]": ", 0x%x]", b);
+
+  // Advance beyond return string in temporary ring buffer
+  sp += strlen(sp)+1;
+
+  return ret;
+}
+
+
 bool is_bigendian() {
   union {char a[2]; int16_t i;} u = {.i = 1};
   return u.a[1] == 1;

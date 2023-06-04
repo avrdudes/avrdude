@@ -175,6 +175,7 @@ libavrdude_a_SOURCES = \
 	strutil.c \
 	teensy.c \
 	teensy.h \
+	term.c \
 	tpi.h \
 	usbasp.c \
 	usbasp.h \
@@ -214,9 +215,7 @@ avrdude_SOURCES = \
 	whereami.h \
 	developer_opts.c \
 	developer_opts.h \
-	developer_opts_private.h \
-	term.c \
-	term.h
+	developer_opts_private.h
 
 man_MANS = avrdude.1
 

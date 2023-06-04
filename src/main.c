@@ -49,7 +49,6 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
-#include "term.h"
 #include "developer_opts.h"
 
 /* Get VERSION from ac_cfg.h */
@@ -225,34 +224,35 @@ static void usage(void)
   msg_error(
     "Usage: %s [options]\n"
     "Options:\n"
-    "  -p <partno>                Specify AVR device\n"
-    "  -p <wildcard>/<flags>      Run developer options for matched AVR devices\n"
-    "  -b <baudrate>              Override RS-232 baud rate\n"
-    "  -B <bitclock>              Specify bit clock period (us)\n"
-    "  -C <config-file>           Specify location of configuration file\n"
-    "  -c <programmer>            Specify programmer type\n"
-    "  -c <wildcard>/<flags>      Run developer options for matched programmers\n"
-    "  -A                         Disable trailing-0xff removal from file and AVR read\n"
-    "  -D                         Disable auto erase for flash memory; implies -A\n"
-    "  -i <delay>                 ISP Clock Delay [in microseconds]\n"
-    "  -P <port>                  Specify connection port\n"
-    "  -F                         Override invalid signature or initialisation check\n"
-    "  -e                         Perform a chip erase\n"
-    "  -O                         Perform RC oscillator calibration (see AVR053)\n"
+    "  -p <partno>            Specify AVR device\n"
+    "  -p <wildcard>/<flags>  Run developer options for matched AVR devices\n"
+    "  -b <baudrate>          Override RS-232 baud rate\n"
+    "  -B <bitclock>          Specify bit clock period (us)\n"
+    "  -C <config-file>       Specify location of configuration file\n"
+    "  -c <programmer>        Specify programmer type\n"
+    "  -c <wildcard>/<flags>  Run developer options for matched programmers\n"
+    "  -A                     Disable trailing-0xff removal for file/AVR read\n"
+    "  -D                     Disable auto erase for flash memory; implies -A\n"
+    "  -i <delay>             ISP Clock Delay [in microseconds]\n"
+    "  -P <port>              Specify connection port\n"
+    "  -F                     Override invalid signature or initial checks\n"
+    "  -e                     Perform a chip erase\n"
+    "  -O                     Perform RC oscillator calibration (see AVR053)\n"
+    "  -t                     Enter terminal shell before processing -U/T\n"
+    "  -T <terminal cmd line> Slot terminal line into a list and run in turn\n"
     "  -U <memtype>:r|w|v:<filename>[:format]\n"
-    "                             Memory operation specification\n"
-    "                             Multiple -U options are allowed, each request\n"
-    "                             is performed in the order specified\n"
-    "  -n                         Do not write to the device whilst processing -U\n"
-    "  -V                         Do not automatically verify during -U\n"
-    "  -t                         Enter terminal mode\n"
-    "  -E <exitspec>[,<exitspec>] List programmer exit specifications\n"
-    "  -x <extended_param>        Pass <extended_param> to programmer, see -xhelp\n"
-    "  -v                         Verbose output; -v -v for more\n"
-    "  -q                         Quell progress output; -q -q for less\n"
-    "  -l logfile                 Use logfile rather than stderr for diagnostics\n"
-    "  -?                         Display this usage\n"
-    "\navrdude version %s, URL: <https://github.com/avrdudes/avrdude>\n",
+    "                         Memory operation specification\n"
+    "                         Multiple -U/T options are allowed; each request\n"
+    "                         is performed in the specified intermixed order\n"
+    "  -n                     Do not write to the device whilst processing -U\n"
+    "  -V                     Do not automatically verify during -U\n"
+    "  -E <exitsp>[,<exitsp>] List programmer exit specifications\n"
+    "  -x <extended_param>    Pass <extended_param> to programmer, see -xhelp\n"
+    "  -v                     Verbose output; -v -v for more\n"
+    "  -q                     Quell progress output; -q -q for less\n"
+    "  -l logfile             Use logfile rather than stderr for diagnostics\n"
+    "  -?                     Display this usage\n"
+    "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
     progname, version);
 }
 
@@ -632,7 +632,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstU:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -770,6 +770,10 @@ int main(int argc, char * argv [])
       case 's':
       case 'u':
         pmsg_error("\"safemode\" feature no longer supported\n");
+        break;
+
+      case 'T':
+        ladd(updates, cmd_update(optarg));
         break;
 
       case 'U':
@@ -1235,7 +1239,7 @@ int main(int argc, char * argv [])
   int doexit = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    if (upd->memtype == NULL) {
+    if (upd->memtype == NULL && upd->cmdline == NULL) {
       const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
       pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
@@ -1445,6 +1449,8 @@ int main(int argc, char * argv [])
       uflags &= ~UF_AUTO_ERASE;
       for (ln=lfirst(updates); ln; ln=lnext(ln)) {
         upd = ldata(ln);
+        if(!upd->memtype)
+          continue;
         m = avr_locate_mem(p, upd->memtype);
         if (m == NULL)
           continue;
@@ -1495,8 +1501,16 @@ int main(int argc, char * argv [])
   }
 
 
+  int wrmem = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
+    if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
+      wrmem = 0;
+      pgm->reset_cache(pgm, p);
+    } else if(!upd->cmdline) {  // Flush cache before any device memory access
+      pgm->flush_cache(pgm, p);
+      wrmem |= upd->op == DEVICE_WRITE;
+    }
     rc = do_op(pgm, p, upd, uflags);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
@@ -1504,6 +1518,7 @@ int main(int argc, char * argv [])
     } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memtype_is_flash_type(upd->memtype))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
+  pgm->flush_cache(pgm, p);
 
 main_exit:
 

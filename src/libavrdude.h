@@ -1020,6 +1020,8 @@ FILEFMT fileio_format(char c);
 
 char *fileio_fmtstr(FILEFMT format);
 
+int fileio_fmtchr(FILEFMT format);
+
 FILE *fileio_fopenr(const char *fname);
 
 int fileio_fmt_autodetect_fp(FILE *f);
@@ -1051,10 +1053,11 @@ enum updateflags {
 
 
 typedef struct update_t {
-  char * memtype;
-  int    op;
-  char * filename;
-  int    format;
+  const char *cmdline;          // -T line is stored here and takes precedence if it exists
+  char *memtype;                // Memory name for -U
+  int   op;                     // Symbolic memory operation DEVICE_... for -U
+  char *filename;               // Filename for -U, can be -
+  int   format;                 // File format FMT_...
 } UPDATE;
 
 typedef struct {                // File reads for flash can exclude trailing 0xff, which are cut off
@@ -1072,21 +1075,15 @@ typedef struct {                // File reads for flash can exclude trailing 0xf
 extern "C" {
 #endif
 
-extern UPDATE * parse_op(char * s);
-extern UPDATE * dup_update(UPDATE * upd);
-extern UPDATE * new_update(int op, char * memtype, int filefmt,
-			   char * filename);
-extern void free_update(UPDATE * upd);
-extern int do_op(const PROGRAMMER *pgm, const AVRPART *p, UPDATE *upd,
-             enum updateflags flags);
-
-extern int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
-
-// Convenience functions for printing
-const char *update_plural(int x);
-const char *update_inname(const char *fn);
-const char *update_outname(const char *fn);
-const char *update_interval(int a, int b);
+UPDATE *parse_op(const char *s);
+UPDATE *dup_update(const UPDATE *upd);
+UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname);
+UPDATE *cmd_update(const char *cmd);
+extern void free_update(UPDATE *upd);
+char *update_str(const UPDATE *upd);
+int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
+  enum updateflags flags);
+int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
 
 // Helper functions for dry run to determine file access
 int update_is_okfile(const char *fn);
@@ -1235,6 +1232,10 @@ char *str_uc(char *s);
 char *str_lcfirst(char *s);
 char *str_ucfirst(char *s);
 char *str_utoa(unsigned n, char *buf, int base);
+const char *str_plural(int x);
+const char *str_inname(const char *fn);
+const char *str_outname(const char *fn);
+const char *str_interval(int a, int b);
 bool is_bigendian();
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
@@ -1244,6 +1245,12 @@ void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
+
+int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p);
+int terminal_mode_noninteractive(const PROGRAMMER *pgm, const AVRPART *p);
+int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line);
+char *terminal_get_input(const char *prompt);
+void terminal_setup_update_progress();
 
 #ifdef __cplusplus
 }
