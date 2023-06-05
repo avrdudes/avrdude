@@ -371,6 +371,9 @@ void par_display(const PROGRAMMER *pgm, const char *p) {
    pgm_display_generic(pgm, p);
    if (pgm->prog_modes & PM_HVSP) {
       msg_info("%s  SII     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SII]));
+      msg_info(
+	"%s  VCC_DETECT = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_VCC_DETECT])
+      );
    }
 }
 
