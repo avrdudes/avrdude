@@ -27,6 +27,7 @@
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                        # baudrate for avr910-programmer
 #       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
+#       vcc_detect	= <pin> ;                 # pin number
 #       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
@@ -625,6 +626,7 @@ programmer
     sdo                    = 2;	/* SDI in HVSP */
     sii                    = 3;
     sdi                    = 11;	/* SDO in HVSP */
+    vcc_detect             = 10;
 ;
 
 #------------------------------------------------------------

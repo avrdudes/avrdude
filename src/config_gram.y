@@ -96,6 +96,7 @@ static int pin_name;
 %token K_SDI
 %token K_SDO
 %token K_SII
+%token K_VCC_DETECT
 %token K_PARALLEL
 %token K_PARENT
 %token K_PART
@@ -553,6 +554,7 @@ prog_parm_pins:
   K_SCK    TKN_EQUAL {pin_name = PIN_AVR_SCK; clear_pin(pin_name);  } pin_number { free_token($1); } |
   K_SDO    TKN_EQUAL {pin_name = PIN_AVR_SDO; clear_pin(pin_name);  } pin_number |
   K_SII    TKN_EQUAL {pin_name = PIN_AVR_SII; clear_pin(pin_name);  } pin_number |
+  K_VCC_DETECT    TKN_EQUAL {pin_name = PIN_AVR_VCC_DETECT; clear_pin(pin_name);  } pin_number |
   K_SDI    TKN_EQUAL {pin_name = PIN_AVR_SDI; clear_pin(pin_name);  } pin_number |
   K_ERRLED TKN_EQUAL {pin_name = PIN_LED_ERR; clear_pin(pin_name);  } pin_number |
   K_RDYLED TKN_EQUAL {pin_name = PIN_LED_RDY; clear_pin(pin_name);  } pin_number |

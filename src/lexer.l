@@ -210,6 +210,7 @@ sck              { yylval=new_token(K_SCK); ccap(); return K_SCK; }
 sdi              { yylval=NULL; ccap(); return K_SDI; }
 sdo              { yylval=NULL; ccap(); return K_SDO; }
 sii              { yylval=NULL; ccap(); return K_SII; }
+vcc_detect       { yylval=NULL; ccap(); return K_VCC_DETECT; }
 serial           { yylval=NULL; ccap(); return K_SERIAL; }
 signature        { yylval=NULL; ccap(); return K_SIGNATURE; }
 spi              { yylval=NULL; return K_SPI; }

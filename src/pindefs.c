@@ -129,6 +129,7 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDO]), &(pgm->pinno[PIN_AVR_SDO])) < 0)
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SII]), &(pgm->pinno[PIN_AVR_SII])) < 0)
+  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_VCC_DETECT]), &(pgm->pinno[PIN_AVR_VCC_DETECT])) < 0)
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDI]), &(pgm->pinno[PIN_AVR_SDI])) < 0)
     return -1;
@@ -379,6 +380,7 @@ const char * avr_pin_name(int pinname) {
   case PIN_AVR_SCK   : return "SCK";
   case PIN_AVR_SDO   : return "SDO";
   case PIN_AVR_SII   : return "SII";
+  case PIN_AVR_VCC_DETECT	: return "VCC_DETECT";
   case PIN_AVR_SDI   : return "SDI";
   case PIN_LED_ERR   : return "ERRLED";
   case PIN_LED_RDY   : return "RDYLED";
@@ -403,6 +405,7 @@ const char * avr_pin_lcname(int pinname) {
   case PIN_AVR_SCK   : return "sck";
   case PIN_AVR_SDO   : return "sdo";
   case PIN_AVR_SII   : return "sii";
+  case PIN_AVR_VCC_DETECT   : return "vcc_detect";
   case PIN_AVR_SDI   : return "sdi";
   case PIN_LED_ERR   : return "errled";
   case PIN_LED_RDY   : return "rdyled";
