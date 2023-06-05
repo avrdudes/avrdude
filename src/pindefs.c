@@ -129,6 +129,7 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDO]), &(pgm->pinno[PIN_AVR_SDO])) < 0)
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SII]), &(pgm->pinno[PIN_AVR_SII])) < 0)
+    return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_VCC_DETECT]), &(pgm->pinno[PIN_AVR_VCC_DETECT])) < 0)
     return -1;
   if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDI]), &(pgm->pinno[PIN_AVR_SDI])) < 0)
