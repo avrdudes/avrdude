@@ -54,14 +54,13 @@ typedef struct {
 
 // Read expected signature bytes from part description
 static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *sigmem) {
-  pmsg_debug("%s()\n", __func__);
+  pmsg_debug("%s()", __func__);
   // Signature byte reads are always 3 bytes
-  if(sigmem->size < 3) {
-    pmsg_error("memory size too small for sig byte read\n");
-    return -1;
-  }
+  if(sigmem->size < 3)
+    Return("memory size too small for %s()", __func__);
 
   memcpy(sigmem->buf, p->signature, 3);
+  msg_debug(" returns 0x%02x%02x%02x\n", sigmem->buf[0], sigmem->buf[1], sigmem->buf[2]);
   return 3;
 }
 
@@ -86,19 +85,20 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
 // For now pretend all is hunky-dory
 static int dryrun_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
+  int ret = 0;
+
   pmsg_debug("%s(0x%02x 0x%02x 0x%02x 0x%02x)\n", __func__, cmd[0], cmd[1], cmd[2], cmd[3]);
   // FIXME: do we need to emulate some more commands? For now it's only the STK universal CE
   if(cmd[0] == (Subc_STK_UNIVERSAL_LEXT>>24) ||
     (cmd[0] == (Subc_STK_UNIVERSAL_CE>>24) && cmd[1] == (uint8_t)(Subc_STK_UNIVERSAL_CE>>16))) {
 
-    memcpy(res, cmd+1, 3);
-    return dryrun_chip_erase(pgm, NULL);
+    ret = dryrun_chip_erase(pgm, NULL);
   }
   // Pretend call happened and all is good, returning 0xff each time
   memcpy(res, cmd+1, 3);
   res[3] = 0xff;
 
-  return 0;
+  return ret;
 }
 
 
@@ -335,7 +335,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   AVRMEM *dmem;
 
-  pmsg_debug("%s(%s, 0x%04lx)\n", __func__, m->desc, addr);
+  pmsg_debug("%s(%s, 0x%04lx)", __func__, m->desc, addr);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -352,6 +352,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   *value = dmem->buf[addr];
 
+  msg_debug(" returns 0x%02x\n", *value);
   return 0;
 }
 
