@@ -362,6 +362,31 @@ static int dryrun_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unused
 }
 
 
+static int dryrun_rdy_led(const PROGRAMMER *pgm, int value) {
+  pmsg_debug("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+static int dryrun_err_led(const PROGRAMMER *pgm, int value) {
+  pmsg_debug("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+static int dryrun_pgm_led(const PROGRAMMER *pgm, int value) {
+  pmsg_debug("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+static int dryrun_vfy_led(const PROGRAMMER *pgm, int value) {
+  pmsg_debug("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+
 static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
   imsg_info("Dryrun programmer for %s\n", dry.dp? dry.dp->desc: partdesc? partdesc: "???");
   return;
@@ -392,6 +417,10 @@ void dryrun_initpgm(PROGRAMMER *pgm) {
   pgm->read_sig_bytes = dryrun_read_sig_bytes;
 
   // Mandatory functions
+  pgm->rdy_led = dryrun_rdy_led;
+  pgm->err_led = dryrun_err_led;
+  pgm->pgm_led = dryrun_pgm_led;
+  pgm->vfy_led = dryrun_vfy_led;
   pgm->initialize = dryrun_initialize;
   pgm->display = dryrun_display;
   pgm->enable = dryrun_enable;
