@@ -966,8 +966,9 @@ static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   if(avr_mem_is_eeprom_type(m)) {
     *memtypep = 'E';
-    // Word addr for bootloaders where part is a "classic" part (eg, optiboot, arduinoisp, ...), byte addr otherwise
-    *a_divp = (pgm->prog_modes & PM_SPM) && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
+    // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
+    *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(ldata(lfirst(pgm->id)), "arduino_as_isp")) \
+       && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
     return 0;
   }
 
