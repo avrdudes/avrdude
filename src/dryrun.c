@@ -54,6 +54,7 @@ typedef struct {
 
 // Read expected signature bytes from part description
 static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *sigmem) {
+  pmsg_debug("%s()\n", __func__);
   // Signature byte reads are always 3 bytes
   if(sigmem->size < 3) {
     pmsg_error("memory size too small for sig byte read\n");
@@ -69,6 +70,7 @@ static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
   AVRMEM *flm;
 
+  pmsg_debug("%s()\n", __func__);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
   if(!(flm = avr_locate_mem(dry.dp, "flash")))
@@ -84,6 +86,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
 // For now pretend all is hunky-dory
 static int dryrun_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
+  pmsg_debug("%s(0x%02x 0x%02x 0x%02x 0x%02x)\n", __func__, cmd[0], cmd[1], cmd[2], cmd[3]);
   // FIXME: do we need to emulate some more commands? For now it's only the STK universal CE
   if(cmd[0] == (Subc_STK_UNIVERSAL_LEXT>>24) ||
     (cmd[0] == (Subc_STK_UNIVERSAL_CE>>24) && cmd[1] == (uint8_t)(Subc_STK_UNIVERSAL_CE>>16))) {
@@ -100,11 +103,15 @@ static int dryrun_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned 
 
 
 static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused) {
+  pmsg_debug("%s()\n", __func__);
+
   return 0;
 }
 
 
 static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  pmsg_debug("%s()\n", __func__);
+
   if(!dry.dp) {
     unsigned char inifuses[10]; // For fuses, which is made up from fuse0, fuse1, ...
     AVRMEM *fusesm = NULL;
@@ -148,6 +155,8 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 // Initialise the AVR device and prepare it to accept commands
 static int dryrun_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
+  pmsg_debug("%s()\n", __func__);
+
 /*
  * Normally one would select appropriate programming mechanisms here,
  * but for dryrun ignore discrepancies...
@@ -167,6 +176,7 @@ static int dryrun_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static void dryrun_disable(const PROGRAMMER *pgm) {
+  pmsg_debug("%s()\n", __func__);
   if(dry.dp) {                  // Deallocate dryrun part
     avr_free_part(dry.dp);
     dry.dp = NULL;
@@ -177,11 +187,14 @@ static void dryrun_disable(const PROGRAMMER *pgm) {
 
 
 static int dryrun_open(PROGRAMMER *pgm, const char *port) {
+  pmsg_debug("%s(%s)\n", __func__, port? port: "NULL");
+
   return 0;
 }
 
 
 static void dryrun_close(PROGRAMMER *pgm) {
+  pmsg_debug("%s()\n", __func__);
 }
 
 
@@ -195,6 +208,7 @@ static void *memand(void *dest, const void *src, size_t n) {
 static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
+  pmsg_debug("%s(%s, %u, 0x%04x, %u)\n", __func__, m->desc, page_size, addr, n_bytes);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
 
@@ -234,6 +248,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
+  pmsg_debug("%s(%s, %u, 0x%04x, %u)\n", __func__, m->desc, page_size, addr, n_bytes);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
 
@@ -275,6 +290,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   AVRMEM *dmem, *dfuse;
 
+  pmsg_debug("%s(%s, 0x%04lx, 0x%02x)\n", __func__, m->desc, addr, data);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -319,6 +335,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   AVRMEM *dmem;
 
+  pmsg_debug("%s(%s, 0x%04lx)\n", __func__, m->desc, addr);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -351,12 +368,14 @@ static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 
 static void dryrun_setup(PROGRAMMER *pgm) {
+  pmsg_debug("%s()\n", __func__);
   // Allocate dry
   pgm->cookie = cfg_malloc(__func__, sizeof(dryrun_t));
 }
 
 
 static void dryrun_teardown(PROGRAMMER *pgm) {
+  pmsg_debug("%s()\n", __func__);
   free(pgm->cookie);
   pgm->cookie = NULL;
 }
@@ -365,6 +384,8 @@ static void dryrun_teardown(PROGRAMMER *pgm) {
 const char dryrun_desc[] = "Dryrun programmer for testing avrdude";
 
 void dryrun_initpgm(PROGRAMMER *pgm) {
+  pmsg_debug("%s()\n", __func__);
+
   strcpy(pgm->type, "Dryrun");
 
   pgm->read_sig_bytes = dryrun_read_sig_bytes;
