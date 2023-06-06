@@ -362,7 +362,7 @@ static int dryrun_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unused
 
 
 static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
-  imsg_info("Dryrun programmer for %s\n", dry.dp? dry.dp->desc: "???");
+  imsg_info("Dryrun programmer for %s\n", dry.dp? dry.dp->desc: partdesc? partdesc: "???");
   return;
 }
 
