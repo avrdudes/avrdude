@@ -803,6 +803,13 @@ programmer
 # arduino
 #------------------------------------------------------------
 
+# Serves optiboot bootloaders and others using the STK500v1 protocol;
+# it is superseded by the more modern -c urclock programmer, see below.
+# The programmer is named after the popular embedded programming
+# environment Arduino that has for a long time used optiboot
+# bootloaders. Same as the stk500v1 except that it resets the attached
+# board and treats EEPROM as the optiboot bootloaders expect.
+
 programmer
     id                     = "arduino";
     desc                   = "Arduino for bootloader using STK500 v1 protocol";
