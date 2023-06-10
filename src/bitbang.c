@@ -44,6 +44,7 @@
 #include "tpi.h"
 #include "bitbang.h"
 #include "hvsp.h"
+#include "term.h"
 
 static int delay_decrement;
 
@@ -593,27 +594,75 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return 0;
 }
 
+void bitbang_initialize_pins_4_hvsp_latching(const PROGRAMMER* pgm) {
+  pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
+  pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
+  pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
+  /* MCU SDO is driven L by the adaptor harware */
+  pgm->setpin(pgm, PIN_AVR_SCK, 0);
+    /* Although not required by HVSP latching, set SCI to L to ensure that the
+       1st edge to H will happen when shifting out the 1st command bit */
+}
+
+void bitbang_wait_for_vcc(const PROGRAMMER* pgm) {
+  while(!pgm->getpin(pgm, PIN_AVR_VCC_DETECT)) bitbang_delay(2000);
+    /* We have at least 4ms between VCC appears and the sketch starts to drive
+       the MCU pins */
+}
+
+bool bitbang_latch_hvsp(const PROGRAMMER* pgm) {
+  pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
+  bitbang_delay(310);
+  if (bitbang_is_avr_ready_hvsp(pgm)) return true; /* check MCU SDO */
+  pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
+  return false;
+}
+
+void bitbang_ask_for_vcc() {
+  term_out("connect power supply to adaptor and/or turn it on!\n");
+}
+
+void bitbang_prompt_to_powercycle() {
+  char* dmmy_ptr = NULL;
+  if (
+    (dmmy_ptr = terminal_get_input("Disconnect power supply and press ENTER!"))
+  ) free(dmmy_ptr);
+  bitbang_ask_for_vcc();
+}
+
+bool bitbang_is_vcc_sustained(const PROGRAMMER* pgm, unsigned long timespan_ms)
+{
+  bool is_vcc_on = false;
+  unsigned long start_time = avr_mstimestamp();
+  while (
+    (is_vcc_on = pgm->getpin(pgm, PIN_AVR_VCC_DETECT)) &&
+    (avr_mstimestamp() - start_time < timespan_ms)
+  ) bitbang_delay(90);
+    /* The ELCO on the Digispark board keeps VCC (+5V) above 3.9V for 90us. */
+  return is_vcc_on;
+}
+
 int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
-  int tries_left = 16;
-  do {
-    pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
-    pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
-    pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
-    /* MCU SDO is driven L by the adaptor harware */
-    pgm->setpin(pgm, PIN_AVR_SCK, 0);
-      /* Although not required by HVSP latching, set SCI to L to ensure that the
-	 1st edge to H will happen when shifting out the 1st command bit */
-    bitbang_delay(30);
-    pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
-    bitbang_delay(310);
-  } while (!bitbang_is_avr_ready_hvsp(pgm) && --tries_left); /* check MCU SDO */
-msg_debug("pgm->getpin(pgm, PIN_AVR_SDI) = %x\n", pgm->getpin(pgm, PIN_AVR_SDI));
-  if (!tries_left) {
-    pmsg_error("Could not latch HVSP mode.\n");
-    return -1;
-  } else {
-    msg_debug("HVSP mode latched (or adaptor is not connected).\n");
-  }
+  bitbang_initialize_pins_4_hvsp_latching(pgm);
+  term_out("Connect MCU to adaptor (power and ports) and THEN\n");
+  bitbang_ask_for_vcc();
+  while (true) {
+    bitbang_wait_for_vcc(pgm);
+    if (bitbang_latch_hvsp(pgm)) {
+      /* PSU switch/connector bounce elimination */
+      if (!bitbang_is_vcc_sustained(pgm, 1000)) {
+        /* Bouncing is not expected after 1s. */
+        msg_debug("Power supply switch/connector bounce detected.\n");
+	continue; /* retry */
+      }
+      /* Check if we missed a VCC outage or something else went wrong. */
+      if (bitbang_is_avr_ready_hvsp(pgm)) {
+	break; /* success */
+      }
+    }
+    bitbang_prompt_to_powercycle();
+  };
+  msg_debug("HVSP mode latched (or adaptor is not connected).\n");
   /* There is no program enable command in HVSP mode. */
   return 0;
 }
