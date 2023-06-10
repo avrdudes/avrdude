@@ -439,110 +439,96 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
   return maxaddr;
 }
 
+static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, int addr_width) {
+  unsigned char cksum = n + addr_width + 1;
 
-static int b2srec(const unsigned char *inbuf, int bufsize, int recsize,
-  int startaddr, const char *outfile_unused, FILE *outf) {
-
-  const unsigned char *buf;
-  unsigned int nextaddr;
-  int n, nbytes, addr_width;
-  unsigned char cksum;
-
-  char * tmpl=0;
-
-  if (recsize > 255) {
-    pmsg_error("recsize=%d, must be < 256\n", recsize);
-    return -1;
-  }
-  
-  nextaddr = startaddr;
-  buf = inbuf;
-  nbytes = 0;    
-
-  addr_width = 0;
-
-  while (bufsize) {
-
-    n = recsize;
-
-    if (n > bufsize) 
-      n = bufsize;
-
-    if (n) {
-      cksum = 0;
-      if (nextaddr + n <= 0xffff) {
-        addr_width = 2;
-        tmpl="S1%02X%04X";
-      }
-      else if (nextaddr + n <= 0xffffff) {
-        addr_width = 3;
-        tmpl="S2%02X%06X";
-      }
-      else if (nextaddr + n <= 0xffffffff) {
-        addr_width = 4;
-        tmpl="S3%02X%08X";
-      }
-      else {
-        pmsg_error("address=%d, out of range\n", nextaddr);
-        return -1;
-      }
-
-      fprintf(outf, tmpl, n + addr_width + 1, nextaddr);
-
-      cksum += n + addr_width + 1;
-
-      for (int i=addr_width; i>0; i--)
-        cksum += (nextaddr >> (i-1) * 8) & 0xff;
-
-      for (unsigned i=nextaddr; i<nextaddr + n; i++) {
-        fprintf(outf, "%02X", buf[i]);
-        cksum += buf[i];
-      }
-
-      cksum = 0xff - cksum;
-      fprintf(outf, "%02X\n", cksum);
-
-      nextaddr += n;
-      nbytes +=n;
-    }
-
-    /* advance to next 'recsize' bytes */
-    bufsize -= n;
-  }
-
-  /*-----------------------------------------------------------------
-    add the end of record data line
-    -----------------------------------------------------------------*/
-  cksum = 0;
-  n = 0;
-  nextaddr = 0;
-
-  if (startaddr <= 0xffff) {
-    addr_width = 2;
-    tmpl="S9%02X%04X";
-  }
-  else if (startaddr <= 0xffffff) {
-    addr_width = 3;
-    tmpl="S9%02X%06X";
-  }
-  else if ((unsigned) startaddr <= 0xffffffff) {
-    addr_width = 4;
-    tmpl="S9%02X%08X";
-  }
-
-  fprintf(outf, tmpl, n + addr_width + 1, nextaddr);
-
-  cksum += n + addr_width +1;
-  for (int i=addr_width; i>0; i--)
-    cksum += (nextaddr >> (i - 1) * 8) & 0xff;
+  for(int i=0; i<addr_width; i++)
+    cksum += addr, addr >>= 8;
+  for(int i=0; i<n; i++)
+    cksum += buf[i];
   cksum = 0xff - cksum;
-  fprintf(outf, "%02X\n", cksum);
 
-  return nbytes; 
+  return cksum;
 }
 
 
-static int srec_readrec(struct ihexsrec* srec, char *rec) {
+// Binary to Motorola S-Record, see https://en.wikipedia.org/wiki/SREC_(file_format)
+static int b2srec(const AVRMEM *mem, Segment_t *segp, Segorder_t where,
+  int recsize, int startaddr, const char *outfile_unused, FILE *outf) {
+
+  const unsigned char *buf;
+  unsigned int nextaddr;
+  int n, hiaddr, addr_width, reccount;
+
+  buf = mem->buf + segp->addr;
+  nextaddr = startaddr + segp->addr;
+  hiaddr = 0;
+
+  unsigned highest = startaddr + mem->size-1;
+
+  // Assume same address width throughout, even across different segments
+  char datarec, endrec;
+  if(highest <= 0xffffu) {
+    addr_width = 2;
+    datarec = '1';
+    endrec = '9';
+  } else if(highest <= 0xffffffu) {
+    addr_width = 3;
+    datarec = '2';
+    endrec = '8';
+  } else {
+    addr_width = 4;
+    datarec = '3';
+    endrec = '7';
+  }
+
+  if(recsize < 1 || recsize > 255-1-addr_width) {
+    pmsg_error("recsize %d must be in [1, %d]\n", recsize, 255-1-addr_width);
+    return -1;
+  }
+  
+  if(where & FIRST_SEG) {       // Write header record
+    const char *s = "https://github.com/avrdudes/avrdude";
+    unsigned char len = strlen(s);
+
+    fprintf(outf, "S0%02X0000", len+3);
+    for(int i = 0; i < len; i++)
+      fprintf(outf, "%02X", s[i]);
+    fprintf(outf, "%02X\n", cksum_srec((unsigned char *) s, len, 0, 2));
+  }
+
+  reccount = 0;
+  for(int bufsize = segp->len; bufsize; bufsize -= n) {
+    n = recsize;
+    if(n > bufsize)
+      n = bufsize;
+
+    fprintf(outf, "S%c%02X%0*X", datarec, n + addr_width + 1, 2*addr_width, nextaddr);
+    for(int i=0; i<n; i++)
+      fprintf(outf, "%02X", buf[i]);
+    fprintf(outf, "%02X\n", cksum_srec(buf, n, nextaddr, addr_width));
+
+    buf += n;
+    nextaddr += n;
+    hiaddr +=n;
+    reccount++;
+  }
+
+  // Add S5/6 record count record and S7/8/9 end of data record
+  if(where & LAST_SEG) {
+    if(reccount > 0 && reccount <= 0xffffff) {
+      int wd = reccount <= 0xffff? 2: 3;
+      fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, reccount,
+        cksum_srec(NULL, 0, reccount, wd));
+    }
+    fprintf(outf, "S%c%02X%0*X", endrec, addr_width + 1, 2*addr_width, startaddr);
+    fprintf(outf, "%02X\n", cksum_srec(NULL, 0, startaddr, addr_width));
+  }
+
+  return hiaddr;
+}
+
+static int srec_readrec(struct ihexsrec *srec, char *rec) {
   int i, j;
   char buf[8];
   int offset, len, addr_width;
@@ -616,101 +602,107 @@ static int srec_readrec(struct ihexsrec* srec, char *rec) {
   return rc;
 }
 
-
+// Motorola S-Record to binary
 static int srec2b(const char *infile, FILE * inf,
-           const AVRMEM *mem, int bufsize, unsigned int fileoffset)
-{
-  char buffer [ MAX_LINE_LEN ];
+  const AVRMEM *mem, Segment_t *segp, unsigned int fileoffset) {
+
+  const char *errstr;
   unsigned int nextaddr, maxaddr;
-  int i;
-  int lineno;
-  int len;
   struct ihexsrec srec;
-  int rc;
+  int lineno, rc, digits, hexdigs;
   unsigned int reccount;
   unsigned char datarec;
-
-  char * msg = "";
 
   lineno   = 0;
   maxaddr  = 0;
   reccount = 0;
+  digits = mem->size > 0x10000? 5: 4;
 
-  while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
+  for(char *buffer; (buffer = str_fgets(inf, &errstr)); free(buffer)) {
     lineno++;
-    len = strlen(buffer);
-    if (buffer[len-1] == '\n') 
+    int len = strlen(buffer);
+    if(len > 0 && buffer[len-1] == '\n')
       buffer[--len] = 0;
-    if (buffer[0] != 0x53)
+    if(len == 0 || buffer[0] != 'S')
       continue;
     rc = srec_readrec(&srec, buffer);
-
-    if (rc < 0) {
+    if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
+      free(buffer);
       return -1;
     }
-    else if (rc != srec.cksum) {
+    if(rc != srec.cksum) {
       pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
+      free(buffer);
       return -1;
     }
 
     datarec=0; 
+    hexdigs=4;
     switch (srec.rectyp) {
-      case 0x30: /* S0 - header record*/
-        /* skip */
+      case '0':                 // S0: header record, ignore
         break;
 
-      case 0x31: /* S1 - 16 bit address data record */
+      case '1':                 // S1: 16 bit address data record
         datarec=1;
-        msg="address 0x%04x out of range %sat line %d of %s\n";
         break;
 
-      case 0x32: /* S2 - 24 bit address data record */
+      case '2':                 // S2: 24 bit address data record
         datarec=1;
-        msg="address 0x%06x out of range %sat line %d of %s\n";
+        hexdigs=6;
         break;
 
-      case 0x33: /* S3 - 32 bit address data record */
+      case '3':                 // S3: 32 bit address data record
         datarec=1;
-        msg="address 0x%08x out of range %sat line %d of %s\n";
+        hexdigs=8;
         break;
 
-      case 0x34: /* S4 - symbol record (LSI extension) */
+      case '4':                 // S4: symbol record (LSI extension)
         pmsg_error("not supported record at line %d of %s\n", lineno, infile);
+        free(buffer);
         return -1;
 
-      case 0x35: /* S5 - count of S1,S2 and S3 records previously tx'd */
+      case '5':                 // S5: count of S1, S2 and S3 records previously tx'd
         if (srec.loadofs != reccount){
           pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
           imsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
+          free(buffer);
           return -1;
         }
         break;
 
-      case 0x37: /* S7 Record - end record for 32 bit address data */
-      case 0x38: /* S8 Record - end record for 24 bit address data */
-      case 0x39: /* S9 Record - end record for 16 bit address data */
+      case '7':                 // S7: end record for 32 bit addresses
+      case '8':                 // S8: end record for 24 bit addresses
+      case '9':                 // S9: end record for 16 bit addresses
+        free(buffer);
         return maxaddr;
 
       default:
         pmsg_error("do not know how to deal with rectype S%d at line %d of %s\n",
           srec.rectyp, lineno, infile);
+        free(buffer);
         return -1;
     }
 
     if (datarec == 1) {
       nextaddr = srec.loadofs;
       if (nextaddr < fileoffset) {
-        pmsg_error(msg, nextaddr, "(below fileoffset) ", lineno, infile);
+        pmsg_error("address 0x%0*x below memory offset at line %d of %s\n",
+          hexdigs, nextaddr, lineno, infile);
+        free(buffer);
         return -1;
       }
       nextaddr -= fileoffset;
-      if (nextaddr + srec.reclen > (unsigned) bufsize) {
-        pmsg_error(msg, nextaddr+srec.reclen, "", lineno, infile);
+      unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
+      if(nextaddr < beg || nextaddr + srec.reclen-1 > end) {
+        pmsg_error("Motorola S-Record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
+          digits, nextaddr, digits, nextaddr+srec.reclen-1, digits, beg, digits, end);
+        imsg_error("at line %d of %s\n", lineno, infile);
+        free(buffer);
         return -1;
       }
-      for (i=0; i<srec.reclen; i++) {
+      for(int i=0; i<srec.reclen; i++) {
         mem->buf[nextaddr+i] = srec.data[i];
         mem->tags[nextaddr+i] = TAG_ALLOCATED;
       }
@@ -718,13 +710,17 @@ static int srec2b(const char *infile, FILE * inf,
         maxaddr = nextaddr+srec.reclen;
       reccount++;      
     }
+  }
 
+  if(errstr) {
+    pmsg_error("read error in Motorola S-Record file %s: %s\n", infile, errstr);
+    return -1;
   }
 
   pmsg_warning("no end of file record found for Motorola S-Records file %s\n", infile);
-
   return maxaddr;
 }
+
 
 #ifdef HAVE_LIBELF
 /*
@@ -1130,32 +1126,26 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
 }
 
 
-static int fileio_srec(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size)
-{
+static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, Segment_t *segp, Segorder_t where) {
+
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2srec(mem->buf, size, 32, fio->fileoffset, filename, f);
-      if (rc < 0) {
-        return -1;
-      }
+      rc = b2srec(mem, segp, where, 32, fio->fileoffset, filename, f);
       break;
 
     case FIO_READ:
-      rc = srec2b(filename, f, mem, size, fio->fileoffset);
-      if (rc < 0)
-        return -1;
+      rc = srec2b(filename, f, mem, segp, fio->fileoffset);
       break;
 
     default:
+      rc = -1;
       pmsg_error("invalid Motorola S-Records file I/O operation=%d\n", fio->op);
-      return -1;
-      break;
   }
 
-  return rc;
+  return rc < 0? -1: rc;
 }
 
 
@@ -1614,7 +1604,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
       break;
 
     case FMT_SREC:
-      thisrc = fileio_srec(&fio, fname, f, mem, size);
+      thisrc = fileio_srec(&fio, fname, f, mem, seglist+i, where);
       break;
 
     case FMT_RBIN:
