@@ -1023,32 +1023,32 @@ done:
 #endif  /* HAVE_LIBELF */
 
 
-static int fileio_rbin(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size) {
-  int rc;
-  unsigned char *buf = mem->buf;
+// Read/write binary files and return highest memory addr set + 1
+static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, Segment_t *segp) {
 
+  int rc;
   switch (fio->op) {
     case FIO_READ:
-      rc = fread(buf, 1, size, f);
+      rc = fread(mem->buf + segp->addr, 1, segp->len, f);
       if (rc > 0)
-        memset(mem->tags, TAG_ALLOCATED, rc);
+        memset(mem->tags + segp->addr, TAG_ALLOCATED, rc);
       break;
     case FIO_WRITE:
-      rc = fwrite(buf, 1, size, f);
+      rc = fwrite(mem->buf + segp->addr, 1, segp->len, f);
       break;
     default:
       pmsg_error("invalid fileio operation=%d\n", fio->op);
       return -1;
   }
 
-  if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
+  if (rc < 0 || (fio->op == FIO_WRITE && rc < segp->len)) {
     pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
-      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
+      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, segp->len);
     return -1;
   }
 
-  return rc;
+  return segp->addr + rc;
 }
 
 
@@ -1581,7 +1581,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
       break;
 
     case FMT_RBIN:
-      thisrc = fileio_rbin(&fio, fname, f, mem, size);
+      thisrc = fileio_rbin(&fio, fname, f, mem, seglist+i);
       break;
 
     case FMT_ELF:
