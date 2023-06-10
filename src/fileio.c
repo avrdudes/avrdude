@@ -46,16 +46,14 @@
 #include "libavrdude.h"
 
 
-#define IHEX_MAXDATA 256
-
 #define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
 
-
-struct ihexrec {
+// Common internal record structure for ihex and srec files
+struct ihexsrec {
   unsigned char    reclen;
   unsigned int     loadofs;
   unsigned char    rectyp;
-  unsigned char    data[IHEX_MAXDATA];
+  unsigned char    data[256];
   unsigned char    cksum;
 };
 
@@ -75,9 +73,9 @@ static int b2srec(const unsigned char *inbuf, int bufsize,
 static int srec2b(const char *infile, FILE *inf,
              const AVRMEM *mem, int bufsize, unsigned int fileoffset);
 
-static int ihex_readrec(struct ihexrec *ihex, char *rec);
+static int ihex_readrec(struct ihexsrec *ihex, char *rec);
 
-static int srec_readrec(struct ihexrec *srec, char *rec);
+static int srec_readrec(struct ihexsrec *srec, char *rec);
 
 static int fileio_rbin(struct fioparms *fio,
              const char *filename, FILE *f, const AVRMEM *mem, int size);
@@ -281,8 +279,7 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
 }
 
 
-static int ihex_readrec(struct ihexrec * ihex, char * rec)
-{
+static int ihex_readrec(struct ihexsrec *ihex, char *rec) {
   int i, j;
   char buf[8];
   int offset, len;
@@ -378,7 +375,7 @@ static int ihex2b(const char *infile, FILE *inf,
   int i;
   int lineno;
   int len;
-  struct ihexrec ihex;
+  struct ihexsrec ihex;
   int rc;
 
   lineno   = 0;
@@ -573,8 +570,7 @@ static int b2srec(const unsigned char *inbuf, int bufsize, int recsize,
 }
 
 
-static int srec_readrec(struct ihexrec * srec, char * rec)
-{
+static int srec_readrec(struct ihexsrec* srec, char *rec) {
   int i, j;
   char buf[8];
   int offset, len, addr_width;
@@ -657,7 +653,7 @@ static int srec2b(const char *infile, FILE * inf,
   int i;
   int lineno;
   int len;
-  struct ihexrec srec;
+  struct ihexsrec srec;
   int rc;
   unsigned int reccount;
   unsigned char datarec;
