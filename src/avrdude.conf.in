@@ -815,7 +815,22 @@ programmer
 # urclock
 #------------------------------------------------------------
 
+# Serves urboot and optiboot bootloaders
+#  - Reads/writes flash/EEPROM via the MCU bootloader and a serial connection
+#  - Implements urprotocol, a skeleton version of STK500v1
+#  - Supports vector bootloaders by patching interrupt vectors during upload:
+#     + Vector bootloaders run on all parts, no need for a HW boot section
+#     + Can be much smaller than the smallest HW boot section of a part, eg,
+#       256 bytes for ATmega2560 (smallest HW boot section is 1024 bytes)
+#  - Checks sizes of applications so they don't overwrite the bootloader
+#  - Keeps the bootloader alive during interactive terminal sessions
+#  - Provides a 4-byte metadata interface in top flash for
+#     + Allowing applications to utilise unused flash similar to EEPROM
+#     + Storing in top flash the file name and its last-modified date
+#     + Displaying file name and date of the last uploaded application
+#
 # See https://github.com/stefanrueger/urboot
+
 programmer
     id                     = "urclock";
     desc                   = "Urclock programmer for urboot bootloaders using urprotocol";
