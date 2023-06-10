@@ -599,9 +599,6 @@ void bitbang_initialize_pins_4_hvsp_latching(const PROGRAMMER* pgm) {
   pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
   pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
   /* MCU SDO is driven L by the adaptor harware */
-  pgm->setpin(pgm, PIN_AVR_SCK, 0);
-    /* Although not required by HVSP latching, set SCI to L to ensure that the
-       1st edge to H will happen when shifting out the 1st command bit */
 }
 
 void bitbang_wait_for_vcc(const PROGRAMMER* pgm) {
@@ -611,23 +608,30 @@ void bitbang_wait_for_vcc(const PROGRAMMER* pgm) {
 }
 
 bool bitbang_latch_hvsp(const PROGRAMMER* pgm) {
+  pgm->setpin(pgm, PIN_AVR_SCK, 0);
+    /* Set SCI to L to ensure that the 1st edge to H will happen when shifting
+       out the 1st command bit */
   pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
-  bitbang_delay(310);
+  bitbang_delay(20000);
   if (bitbang_is_avr_ready_hvsp(pgm)) return true; /* check MCU SDO */
+  msg_debug("Latching failed.\n");
   pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
   return false;
 }
 
-void bitbang_ask_for_vcc() {
+void bitbang_ask_for_vcc(const PROGRAMMER* pgm) {
+  pgm->setpin(pgm, PIN_AVR_SCK, 1);
+    /* Set SCK pin of PPI to 0V to avoid voltage leaking to VCC (in case of
+       dapa_hvsp adaptor) */
   term_out("connect power supply to adaptor and/or turn it on!\n");
 }
 
-void bitbang_prompt_to_powercycle() {
+void bitbang_prompt_to_powercycle(const PROGRAMMER* pgm) {
   char* dmmy_ptr = NULL;
   if (
     (dmmy_ptr = terminal_get_input("Disconnect power supply and press ENTER!"))
   ) free(dmmy_ptr);
-  bitbang_ask_for_vcc();
+  bitbang_ask_for_vcc(pgm);
 }
 
 bool bitbang_is_vcc_sustained(const PROGRAMMER* pgm, unsigned long timespan_ms)
@@ -645,7 +649,7 @@ bool bitbang_is_vcc_sustained(const PROGRAMMER* pgm, unsigned long timespan_ms)
 int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
   bitbang_initialize_pins_4_hvsp_latching(pgm);
   term_out("Connect MCU to adaptor (power and ports) and THEN\n");
-  bitbang_ask_for_vcc();
+  bitbang_ask_for_vcc(pgm);
   while (true) {
     bitbang_wait_for_vcc(pgm);
     if (bitbang_latch_hvsp(pgm)) {
@@ -655,12 +659,14 @@ int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {
         msg_debug("Power supply switch/connector bounce detected.\n");
 	continue; /* retry */
       }
+      msg_debug("Power supply is stable.\n");
       /* Check if we missed a VCC outage or something else went wrong. */
       if (bitbang_is_avr_ready_hvsp(pgm)) {
 	break; /* success */
       }
+      msg_debug("Latching lost.\n");
     }
-    bitbang_prompt_to_powercycle();
+    bitbang_prompt_to_powercycle(pgm);
   };
   msg_debug("HVSP mode latched (or adaptor is not connected).\n");
   /* There is no program enable command in HVSP mode. */
