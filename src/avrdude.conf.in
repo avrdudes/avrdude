@@ -1340,6 +1340,21 @@ programmer
 ;
 
 #------------------------------------------------------------
+# arduino_as_isp
+#------------------------------------------------------------
+
+# Not to be confused with arduinoISP, this is the same as `-c stk500v1`
+# but treats EEPROM r/w correctly for arduino_as_isp programmers
+
+programmer
+    id                     = "arduino_as_isp";
+    desc                   = "Arduino board as programmer using arduino as ISP firmware";
+    type                   = "stk500";
+    prog_modes             = PM_ISP;
+    connection_type        = serial;
+;
+
+#------------------------------------------------------------
 # mib510
 #------------------------------------------------------------
 
