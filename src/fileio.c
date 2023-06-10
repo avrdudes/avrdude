@@ -46,8 +46,6 @@
 #include "libavrdude.h"
 
 
-#define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
-
 // Common internal record structure for ihex and srec files
 struct ihexsrec {
   unsigned char    reclen;
@@ -1235,45 +1233,12 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
 }
 
 
-// Allocates sufficient memory for a line; returned pointer to be free'd
-char *Nfgets(FILE *fp) {
-  int bs = 1023;                // Must be 2^n - 1
-  char *ret = (char *) cfg_malloc(__func__, bs);
-
-  ret[bs-2] = 0;
-  if(!fgets(ret, bs, fp)) {
-    free(ret);
-    return NULL;
-  }
-
-  while(ret[bs-2] != 0 && ret[bs-2] != '\n') {
-    if(bs >= INT_MAX/2) {
-      pmsg_error("cannot cope with lines longer than %d bytes\n", INT_MAX);
-      free(ret);
-      return NULL;
-    }
-    int was = bs;
-    bs = 2*bs+1;
-    ret = cfg_realloc(__func__, ret, bs);
-    ret[was-1] = ret[bs-2] = 0;
-    if(!fgets(ret+was-1, bs-(was-1), fp)) { // EOF? Error?
-      if(ferror(fp)) {
-        free(ret);
-        return NULL;
-      }
-      break;
-    }
-  }
-
-  return ret;
-}
-
-
 static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
+  const char *geterr = NULL;
   char *line;
   int n = 0;
 
-  while(n < mem->size && (line = Nfgets(f))) {
+  while(n < mem->size && (line = str_fgets(f, &geterr))) {
     char *p = line, *tok;
     while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
       p++;
@@ -1294,6 +1259,11 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
     }
     free(line);
   }
+  if(geterr) {
+    pmsg_error("fgets() errror: %s\n", geterr);
+    n = -1;
+  }
+
   return n;
 }
 
@@ -1429,14 +1399,17 @@ static FILEFMT couldbe(int first, unsigned char *line) {
 }
 
 int fileio_fmt_autodetect_fp(FILE *f) {
+  const char *err = NULL;
   int ret = FMT_ERROR;
 
   if(f) {
     unsigned char *buf;
-    for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) Nfgets(f)); first = 0) {
+    for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) str_fgets(f, &err)); first = 0) {
       ret = couldbe(first, buf);
       free(buf);
     }
+    if(err)
+      pmsg_error("fgets() error: %s\n", err);
   }
 
   return ret;
