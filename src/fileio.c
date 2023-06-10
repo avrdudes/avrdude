@@ -151,25 +151,47 @@ typedef enum {
   LAST_SEG  = 2,
 } Segorder_t;
 
+static void print_ihex_extended_addr(int n_64k, FILE *outf) {
+  unsigned char hi = (n_64k >> 8);
+  unsigned char lo = n_64k;
+  unsigned char cksum = -(2 + 0 + 4 + hi + lo);
+  fprintf(outf, ":02000004%02X%02X%02X\n", hi, lo, cksum);
+}
 
-static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
-  int startaddr, const char *outfile_unused, FILE *outf, FILEFMT ffmt) {
+/*
+ * Binary buffer to Intel Hex, see https://en.wikipedia.org/wiki/Intel_HEX
+ *
+ * Given a buffer and a single segment, segp, an open file 'outf' to
+ * which to write Intel Hex formatted data, the desired record size
+ * recsize, an AVR32-specific memory offset startaddr and the name of
+ * the output file,  write a valid Intel Hex file. Where indicates
+ * whether this is the first segment to be written to the file or
+ * the last segment (or both).
+ *
+ * Return the maximum memory address within mem->buf that was read from
+ * plus one. If an error occurs, return -1.
+ */
+static int b2ihex(const unsigned char *buf, Segment_t *segp, Segorder_t where,
+  int recsize, int startaddr, const char *outfile_unused, FILE *outf,
+  FILEFMT ffmt) {
 
-  const unsigned char *buf;
+  int bufsize = segp->len;
   unsigned int nextaddr;
-  int n, nbytes, n_64k;
-  int i;
-  unsigned char cksum;
+  int n, hiaddr, n_64k;
 
-  if (recsize > 255) {
-    pmsg_error("recsize=%d, must be < 256\n", recsize);
+  if(recsize < 1 || recsize > 255) {
+    pmsg_error("recsize %d must be in [1, 255]\n", recsize);
     return -1;
   }
 
-  n_64k    = 0;
-  nextaddr = startaddr;
-  buf      = inbuf;
-  nbytes   = 0;
+  nextaddr = (unsigned) (startaddr + segp->addr) % 0x10000;
+  n_64k    = (unsigned) (startaddr + segp->addr) / 0x10000;
+  hiaddr   = segp->addr;
+  buf     += segp->addr;
+
+  // Give address unless it's the first segment and it would be the default 0
+  if(!((where & FIRST_SEG) && n_64k == 0))
+    print_ihex_extended_addr(n_64k, outf);
 
   while (bufsize) {
     n = recsize;
@@ -180,10 +202,9 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
       n = 0x10000 - nextaddr;
 
     if (n) {
-      cksum = 0;
       fprintf(outf, ":%02X%04X00", n, nextaddr);
-      cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
-      for (i=0; i<n; i++) {
+      unsigned char cksum = n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
+      for(int i=0; i<n; i++) {
         fprintf(outf, "%02X", buf[i]);
         cksum += buf[i];
       }
@@ -191,10 +212,10 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
       fprintf(outf, "%02X", cksum);
 
       if(ffmt == FMT_IHXC) { /* Print comment with address and ASCII dump */
-        for(i=n; i<recsize; i++)
+        for(int i=n; i<recsize; i++)
           fprintf(outf, "  ");
         fprintf(outf, " // %05x> ", n_64k*0x10000 + nextaddr);
-        for (i=0; i<n; i++) {
+        for(int i=0; i<n; i++) {
           unsigned char c = buf[i] & 0x7f;
           /* Print space as _ so that line is one word */
           putc(c == ' '? '_': c < ' ' || c == 0x7f? '.': c, outf);
@@ -203,20 +224,13 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
       putc('\n', outf);
 
       nextaddr += n;
-      nbytes   += n;
+      hiaddr   += n;
     }
 
-    if (nextaddr >= 0x10000) {
-      int lo, hi;
+    if(nextaddr >= 0x10000 && bufsize > n) {
       /* output an extended address record */
       n_64k++;
-      lo = n_64k & 0xff;
-      hi = (n_64k >> 8) & 0xff;
-      cksum = 0;
-      fprintf(outf, ":02000004%02X%02X", hi, lo);
-      cksum += 2 + 0 + 4 + hi + lo;
-      cksum = -cksum;
-      fprintf(outf, "%02X\n", cksum);
+      print_ihex_extended_addr(n_64k, outf);
       nextaddr = 0;
     }
 
@@ -225,22 +239,15 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
     bufsize -= n;
   }
 
-  /*-----------------------------------------------------------------
-    add the end of record data line
-    -----------------------------------------------------------------*/
-  cksum = 0;
-  n = 0;
-  nextaddr = 0;
-  fprintf(outf, ":%02X%04X01", n, nextaddr);
-  cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff) + 1;
-  cksum = -cksum;
-  fprintf(outf, "%02X\n", cksum);
+  // Add the end of record data line if it's the last segment
+  if(where & LAST_SEG)
+    fprintf(outf, ":00000001FF\n");
 
-  return nbytes;
+  return hiaddr;
 }
 
 
-static int ihex_readrec(struct ihexsrec *ihex, char *rec) {
+static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
   int i, j;
   char buf[8];
   int offset, len;
@@ -320,67 +327,69 @@ static int ihex_readrec(struct ihexsrec *ihex, char *rec) {
  *
  * Given an open file 'inf' which contains Intel Hex formatted data,
  * parse the file and lay it out within the memory buffer pointed to
- * by outbuf. The size of outbuf, 'bufsize' is honored; if data would
- * fall outsize of the memory buffer outbuf, an error is generated.
+ * by mem->buf. The segment within buf, segp, is honoured; if data
+ * were to fall outside of the memory segment, an error is generated.
  *
- * Return the maximum memory address within 'outbuf' that was written
+ * Return the maximum memory address within mem->buf that was written
  * plus one. If an error occurs, return -1.
- *
- * */
-static int ihex2b(const char *infile, FILE *inf,
-             const AVRMEM *mem, int bufsize, unsigned int fileoffset,
-             FILEFMT ffmt)
-{
-  char buffer [ MAX_LINE_LEN ];
+ */
+static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
+  Segment_t *segp, unsigned int fileoffset, FILEFMT ffmt) {
+
+  const char *errstr;
   unsigned int nextaddr, baseaddr, maxaddr;
-  int i;
-  int lineno;
-  int len;
+  int lineno, rc, digits;
   struct ihexsrec ihex;
-  int rc;
 
   lineno   = 0;
   baseaddr = 0;
   maxaddr  = 0;
   nextaddr = 0;
+  digits = mem->size > 0x10000? 5: 4;
 
-  while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
+  for(char *buffer; (buffer = str_fgets(inf, &errstr)); free(buffer)) {
     lineno++;
-    len = strlen(buffer);
-    if (buffer[len-1] == '\n') 
+    int len = strlen(buffer);
+    if(len > 0 && buffer[len-1] == '\n')
       buffer[--len] = 0;
-    if (buffer[0] != ':')
+    if(len == 0 || buffer[0] != ':')
       continue;
     rc = ihex_readrec(&ihex, buffer);
-    if (rc < 0) {
+    if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
+      free(buffer);
       return -1;
     }
-    else if (rc != ihex.cksum) {
+    if(rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
         pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
         imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
+        free(buffer);
         return -1;
-      } else {                  /* Just warn with more permissive format FMT_IHXC */
-        pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
-        imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
       }
+      // Just warn with more permissive format FMT_IHXC
+      pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
+      imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
     }
 
     switch (ihex.rectyp) {
       case 0: /* data record */
-        if (fileoffset != 0 && baseaddr < fileoffset) {
+        if (fileoffset != 0 && ihex.loadofs + baseaddr < fileoffset) {
           pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
-            baseaddr, fileoffset, lineno, infile);
+            ihex.loadofs + baseaddr, fileoffset, lineno, infile);
+          free(buffer);
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
-        if (nextaddr + ihex.reclen > (unsigned) bufsize) {
-          pmsg_error("address 0x%04x out of range at line %d of %s\n",
-            nextaddr+ihex.reclen, lineno, infile);
+        unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
+        if(nextaddr < beg || nextaddr + ihex.reclen-1 > end) {
+          pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
+            digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
+          imsg_error("at line %d of %s\n", lineno, infile);
+          free(buffer);
           return -1;
         }
-        for (i=0; i<ihex.reclen; i++) {
+        for(int i=0; i<ihex.reclen; i++) {
           mem->buf[nextaddr+i] = ihex.data[i];
           mem->tags[nextaddr+i] = TAG_ALLOCATED;
         }
@@ -389,14 +398,14 @@ static int ihex2b(const char *infile, FILE *inf,
         break;
 
       case 1: /* end of file record */
+        free(buffer);
         return maxaddr;
-        break;
 
       case 2: /* extended segment address record */
         baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
         break;
 
-      case 3: /* start segment address record */
+      case 3: /* Start segment address record */
         /* we don't do anything with the start address */
         break;
 
@@ -411,23 +420,25 @@ static int ihex2b(const char *infile, FILE *inf,
       default:
         pmsg_error("do not know how to deal with rectype=%d "
           "at line %d of %s\n", ihex.rectyp, lineno, infile);
+        free(buffer);
         return -1;
-        break;
     }
+  }
 
-  } /* while */
+  if(errstr) {
+    pmsg_error("read error in Intel Hex file %s: %s\n", infile, errstr);
+    return -1;
+  }
 
   if (maxaddr == 0) {
     pmsg_error("no valid record found in Intel Hex file %s\n", infile);
-
     return -1;
   }
-  else {
-    pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
 
-    return maxaddr;
-  }
+  pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
+  return maxaddr;
 }
+
 
 static int b2srec(const unsigned char *inbuf, int bufsize, int recsize,
   int startaddr, const char *outfile_unused, FILE *outf) {
@@ -1096,33 +1107,26 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 }
 
 
-static int fileio_ihex(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT ffmt)
-{
+static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, Segment_t *segp, FILEFMT ffmt, Segorder_t where) {
+
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2ihex(mem->buf, size, 32, fio->fileoffset, filename, f, ffmt);
-      if (rc < 0) {
-        return -1;
-      }
+      rc = b2ihex(mem->buf, segp, where, 32, fio->fileoffset, filename, f, ffmt);
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, mem, size, fio->fileoffset, ffmt);
-      if (rc < 0)
-        return -1;
+      rc = ihex2b(filename, f, mem, segp, fio->fileoffset, ffmt);
       break;
 
     default:
+      rc = -1;
       pmsg_error("invalid Intel Hex file I/O operation=%d\n", fio->op);
-      return -1;
-      break;
   }
 
-  return rc;
+  return rc < 0? -1: rc;
 }
 
 
@@ -1606,7 +1610,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
     switch(format) {
     case FMT_IHEX:
     case FMT_IHXC:
-      thisrc = fileio_ihex(&fio, fname, f, mem, size, format);
+      thisrc = fileio_ihex(&fio, fname, f, mem, seglist+i, format, where);
       break;
 
     case FMT_SREC:
