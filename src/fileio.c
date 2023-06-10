@@ -1287,7 +1287,7 @@ static int fileio_num(struct fioparms *fio,
 }
 
 
-int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM * m) {
+static int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM *m) {
   fp->op = op;
 
   switch (op) {
