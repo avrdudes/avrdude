@@ -1174,7 +1174,7 @@ static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
 #endif
 
 
-static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FILEFMT fmt) {
+static int b2num(const char *filename, FILE *f, const AVRMEM *mem, Segment_t *segp, FILEFMT fmt) {
   const char *prefix;
   int base;
 
@@ -1201,7 +1201,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
       break;
   }
 
-  for (int i = 0; i < size; i++) {
+  for (int i = segp->addr; i < segp->addr + segp->len; i++) {
     char cbuf[20];
 
     if (i > 0) {
@@ -1225,7 +1225,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
   if (putc('\n', f) == EOF)
     goto writeerr;
 
-  return 0;
+  return segp->addr + segp->len-1;
 
  writeerr:
   pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
@@ -1233,12 +1233,12 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
 }
 
 
-static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
+static int num2b(const char *filename, FILE *f, const AVRMEM *mem, Segment_t *segp) {
   const char *geterr = NULL;
   char *line;
-  int n = 0;
+  int n = segp->addr, end = segp->addr + segp->len;
 
-  while(n < mem->size && (line = str_fgets(f, &geterr))) {
+  while(n < end && (line = str_fgets(f, &geterr))) {
     char *p = line, *tok;
     while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
       p++;
@@ -1253,6 +1253,8 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
           free(line);
           return -1;
         }
+        if(set > end-n)
+          set = end-n;
         memset(mem->tags+n, TAG_ALLOCATED, set);
         n += set;
       }
@@ -1268,17 +1270,15 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
 }
 
 
-static int fileio_num(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT fmt)
-{
+static int fileio_num(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, Segment_t *segp, FILEFMT fmt) {
 
   switch (fio->op) {
     case FIO_WRITE:
-      return b2num(filename, f, mem, size, fmt);
+      return b2num(filename, f, mem, segp, fmt);
 
     case FIO_READ:
-      return num2b(filename, f, mem);
+      return num2b(filename, f, mem, segp);
 
     default:
       pmsg_error("invalid operation=%d\n", fio->op);
@@ -1601,7 +1601,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
     case FMT_DEC:
     case FMT_OCT:
     case FMT_BIN:
-      thisrc = fileio_num(&fio, fname, f, mem, size, format);
+      thisrc = fileio_num(&fio, fname, f, mem, seglist+i, format);
       break;
 
     default:
