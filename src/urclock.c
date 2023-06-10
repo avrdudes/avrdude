@@ -22,6 +22,7 @@
  * The Urclock programmer
  *
  *  - Reads/writes flash/EEPROM of boards directly via the MCU bootloader and a serial connection
+ *  - Automatically resets an attached board via RTS/DTR into bootloader mode
  *  - Works best in tandem with the urboot bootloader, but can deal with optiboot and similar
  *  - Implements urprotocol, a communication protocol designed for small bootloader sizes
  *  - Supports vector bootloaders by patching relevant interrupt vectors during upload:

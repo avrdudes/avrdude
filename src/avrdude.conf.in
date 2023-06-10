@@ -817,6 +817,7 @@ programmer
 
 # Serves urboot and optiboot bootloaders
 #  - Reads/writes flash/EEPROM via the MCU bootloader and a serial connection
+#  - Automatically resets an attached board via RTS/DTR into bootloader mode
 #  - Implements urprotocol, a skeleton version of STK500v1
 #  - Supports vector bootloaders by patching interrupt vectors during upload:
 #     + Vector bootloaders run on all parts, no need for a HW boot section
