@@ -1006,6 +1006,10 @@ struct fioparms {
   unsigned int fileoffset;
 };
 
+typedef struct {
+  int addr, len;
+} Segment_t;
+
 enum {
   FIO_READ,
   FIO_WRITE,
@@ -1029,7 +1033,12 @@ int fileio_fmt_autodetect_fp(FILE *f);
 int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
-      const AVRPART *p, const char *memtype, int size);
+  const AVRPART *p, const char *memtype, int size);
+
+int segmemt_normalise(AVRMEM *mem, Segment_t *segp);
+
+int fileio_segments(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, AVRMEM *mem, int n, Segment_t *seglist);
 
 #ifdef __cplusplus
 }

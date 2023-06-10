@@ -190,6 +190,11 @@ FILEFMT fileio_format(char c) {
   }
 }
 
+typedef enum {
+  FIRST_SEG = 1,
+  LAST_SEG  = 2,
+} Segorder_t;
+
 
 static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
   int startaddr, const char *outfile_unused, FILE *outf, FILEFMT ffmt) {
@@ -1503,52 +1508,78 @@ int fileio_fmt_autodetect(const char *fname) {
 
 
 
-int fileio(int oprwv, const char *filename, FILEFMT format,
-      const AVRPART *p, const char *memtype, int size)
-{
-  int op, rc;
-  FILE * f;
-  const char *fname;
-  struct fioparms fio;
-  AVRMEM * mem;
-  int using_stdio;
+int fileio(int op, const char *filename, FILEFMT format,
+  const AVRPART *p, const char *memtype, int size) {
 
-  op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
-  mem = avr_locate_mem(p, memtype);
-  if (mem == NULL) {
+  AVRMEM *mem = avr_locate_mem(p, memtype);
+  if(mem == NULL) {
     pmsg_error("memory type %s not configured for device %s\n", memtype, p->desc);
     return -1;
   }
 
+  if(size < 0 || op == FIO_READ || FIO_READ_FOR_VERIFY)
+    size = mem->size;
+
+  Segment_t seg = {0, size};
+  return fileio_segments(op, filename, format, p, mem, 1, &seg);
+}
+
+
+// Normalise segment address and length to be non-negative
+int segmemt_normalise(AVRMEM *mem, Segment_t *segp) {
+  int addr = segp->addr, len = segp->len, maxsize = mem->size;
+  int digits = maxsize > 0x10000? 5: 4;
+
+  if(addr < 0)
+    addr = maxsize + addr;
+
+  if(addr < 0 || addr >= maxsize) {
+    pmsg_error("%s address %s is out of range [-0x%0*x, 0x%0*x]\n",
+      mem->desc, segp->addr, digits, maxsize, digits, maxsize-1);
+    return -1;
+  }
+
+  if(len < 0)
+    len = maxsize + len - addr + 1;
+
+  if(len < 0 || len > maxsize) {
+    pmsg_error("invalid segment length %d for %s address 0x%0*x\n",
+      segp->len, mem->desc, digits, addr);
+    return -1;
+  }
+
+  segp->addr = addr;
+  segp->len = len;
+
+  return 0;
+}
+
+
+int fileio_segments(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, AVRMEM *mem, int n, Segment_t *seglist) {
+
+  int op, rc;
+  FILE * f;
+  const char *fname;
+  struct fioparms fio;
+  int using_stdio;
+
+  op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
   rc = fileio_setparms(op, &fio, p, mem);
   if (rc < 0)
     return -1;
 
-  if (size < 0 || fio.op == FIO_READ)
-    size = mem->size;
-
-  if (fio.op == FIO_READ) {
-    /* 0xff fill unspecified memory */
-    memset(mem->buf, 0xff, size);
-  }
-  memset(mem->tags, 0, size);
+  for(int i=0; i<n; i++)
+    if(segmemt_normalise(mem, seglist+i) < 0)
+      return -1;
 
   using_stdio = 0;
-
-  if (strcmp(filename, "-")==0) {
-    if (fio.op == FIO_READ) {
-      fname = "<stdin>";
-      f = stdin;
-    }
-    else {
-      fname = "<stdout>";
-      f = stdout;
-    }
+  fname = filename;
+  f = NULL;
+  if(str_eq(filename, "-")) {
     using_stdio = 1;
-  }
-  else {
-    fname = filename;
-    f = NULL;
+    fname = fio.op == FIO_READ? "<stdin>": "<stdout>";
+    f = fio.op == FIO_READ? stdin: stdout;
   }
 
   if (format == FMT_AUTO) {
@@ -1597,48 +1628,72 @@ int fileio(int oprwv, const char *filename, FILEFMT format,
     }
   }
 
-  switch (format) {
+  rc = 0;
+  for(int i=0; i<n; i++) {
+    int addr = seglist[i].addr, len = seglist[i].len;
+
+    if(len == 0)
+      continue;
+
+    if(fio.op == FIO_READ) // Fill unspecified memory in segment
+      memset(mem->buf+addr, 0xff, len);
+    memset(mem->tags+addr, 0, len);
+    int size = len;
+    Segorder_t where = 0;
+
+    if(i == 0)
+      where |= FIRST_SEG;
+    if(i+1 == n)
+      where |= LAST_SEG;
+
+    int thisrc = 0;
+    switch(format) {
     case FMT_IHEX:
     case FMT_IHXC:
-      rc = fileio_ihex(&fio, fname, f, mem, size, format);
+      thisrc = fileio_ihex(&fio, fname, f, mem, size, format);
       break;
 
     case FMT_SREC:
-      rc = fileio_srec(&fio, fname, f, mem, size);
+      thisrc = fileio_srec(&fio, fname, f, mem, size);
       break;
 
     case FMT_RBIN:
-      rc = fileio_rbin(&fio, fname, f, mem, size);
+      thisrc = fileio_rbin(&fio, fname, f, mem, size);
       break;
 
     case FMT_ELF:
 #ifdef HAVE_LIBELF
-      rc = fileio_elf(&fio, fname, f, mem, p, size);
+      thisrc = fileio_elf(&fio, fname, f, mem, p, size);
+      break;
 #else
       pmsg_error("cannot handle ELF file %s, ELF file support was not compiled in\n", fname);
-      rc = -1;
+      return -1;
 #endif
-      break;
 
     case FMT_IMM:
-      rc = fileio_imm(&fio, fname, f, mem, size);
+      thisrc = fileio_imm(&fio, fname, f, mem, size);
       break;
 
     case FMT_HEX:
     case FMT_DEC:
     case FMT_OCT:
     case FMT_BIN:
-      rc = fileio_num(&fio, fname, f, mem, size, format);
+      thisrc = fileio_num(&fio, fname, f, mem, size, format);
       break;
 
     default:
       pmsg_error("invalid %s file format: %d\n", fio.iodesc, format);
       return -1;
+    }
+    if(thisrc < 0)
+      return thisrc;
+    if(thisrc > rc)
+      rc = thisrc;
   }
 
   /* on reading flash other than for verify set the size to location of highest non-0xff byte */
   if (rc > 0 && oprwv == FIO_READ) {
-    int hiaddr = avr_mem_hiaddr(mem);
+    int hiaddr = avr_mem_hiaddr(mem); // @@@ Should check segments only, not all file
 
     if(hiaddr < rc)             /* if trailing-0xff not disabled */
       rc = hiaddr;
