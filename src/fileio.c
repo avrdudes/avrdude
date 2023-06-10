@@ -58,50 +58,6 @@ struct ihexsrec {
 };
 
 
-static int b2ihex(const unsigned char *inbuf, int bufsize,
-             int recsize, int startaddr,
-             const char *outfile, FILE *outf, FILEFMT ffmt);
-
-static int ihex2b(const char *infile, FILE *inf,
-             const AVRMEM *mem, int bufsize, unsigned int fileoffset,
-             FILEFMT ffmt);
-
-static int b2srec(const unsigned char *inbuf, int bufsize,
-             int recsize, int startaddr,
-             const char *outfile, FILE *outf);
-
-static int srec2b(const char *infile, FILE *inf,
-             const AVRMEM *mem, int bufsize, unsigned int fileoffset);
-
-static int ihex_readrec(struct ihexsrec *ihex, char *rec);
-
-static int srec_readrec(struct ihexsrec *srec, char *rec);
-
-static int fileio_rbin(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size);
-
-static int fileio_ihex(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT ffmt);
-
-static int fileio_srec(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size);
-
-#ifdef HAVE_LIBELF
-static int elf2b(const char *infile, FILE *inf,
-                 const AVRMEM *mem, const AVRPART *p,
-                 int bufsize, unsigned int fileoffset);
-
-static int fileio_elf(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem,
-             const AVRPART *p, int size);
-#endif
-
-static int fileio_num(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT fmt);
-
-
 char *fileio_fmtstr(FILEFMT format) {
   switch (format) {
   case FMT_AUTO:
@@ -1705,4 +1661,3 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
 
   return rc;
 }
-
