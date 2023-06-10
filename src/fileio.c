@@ -814,8 +814,9 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 }
 
 
+// ELF format to binary (the memory segment to read into is ignored)
 static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
-  const AVRPART *p, int bufsize_unused, unsigned int fileoffset_unused) {
+  const AVRPART *p, Segment_t *segp_unused, unsigned int fileoffset_unused) {
 
   Elf *e;
   int rv = 0, size = 0;
@@ -1148,10 +1149,9 @@ static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
 
 
 #ifdef HAVE_LIBELF
-static int fileio_elf(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem,
-             const AVRPART *p, int size)
-{
+static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, const AVRPART *p, Segment_t *segp) {
+
   int rc;
 
   switch (fio->op) {
@@ -1161,7 +1161,7 @@ static int fileio_elf(struct fioparms *fio,
       break;
 
     case FIO_READ:
-      rc = elf2b(filename, f, mem, p, size, fio->fileoffset);
+      rc = elf2b(filename, f, mem, p, segp, fio->fileoffset);
       return rc;
 
     default:
@@ -1586,7 +1586,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
 
     case FMT_ELF:
 #ifdef HAVE_LIBELF
-      thisrc = fileio_elf(&fio, fname, f, mem, p, size);
+      thisrc = fileio_elf(&fio, fname, f, mem, p, seglist+i);
       break;
 #else
       pmsg_error("cannot handle ELF file %s, ELF file support was not compiled in\n", fname);
