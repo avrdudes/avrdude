@@ -69,6 +69,7 @@ Changes since version 7.1:
     - Flysquatter2
     - CH341A
     - Kanda AVRISP-U
+    - arduino_as_isp
 
   * Issues fixed:
 
@@ -144,6 +145,8 @@ Changes since version 7.1:
     - Prevent terminal write error for unchanged r/o region #1375
     - Remove pgm->page_erase() function when unable to do so #1376
     - Write fuse/lock only when terminal config changes them #1378
+    - Provide programmer arduino_as_isp #1383
+    - Provide debug messages for the dryrun programmer #1385
 
   * Internals:
 
