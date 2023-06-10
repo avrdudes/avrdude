@@ -74,7 +74,7 @@ char *fileio_fmtstr(FILEFMT format) {
   case FMT_IMM:
     return "in-place immediate";
   case FMT_EEGG:
-    return "R-number list";
+    return "R byte list";
   case FMT_BIN:
     return "0b-binary byte list";
   case FMT_DEC:
@@ -1061,28 +1061,25 @@ static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
- const AVRMEM *mem, int size) {
+ const AVRMEM *mem, Segment_t *segp) {
 
-  int rc = 0;
   char *tok, *p, *line;
   const char *errstr;
-  int loc;
+  int n = segp->addr, end = segp->addr + segp->len;
 
   p = line = cfg_strdup(__func__, fname);
 
   switch (fio->op) {
     case FIO_READ:
-      loc = 0;
-      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && loc < size) {
-        int set = str_membuf(tok, STR_ANY, mem->buf+loc, mem->size-loc, &errstr);
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < end) {
+        int set = str_membuf(tok, STR_ANY, mem->buf+n, end-n, &errstr);
         if(errstr || set < 0) {
           pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
           free(line);
           return -1;
         }
-        memset(mem->tags+loc, TAG_ALLOCATED, set);
-        loc += set;
-        rc = loc;
+        memset(mem->tags+n, TAG_ALLOCATED, set);
+        n += set;
       }
       break;
 
@@ -1097,15 +1094,8 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
       return -1;
   }
 
-  if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
-    pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
-      fio->iodesc, fio->dir, line, strerror(errno), fio->rw, rc, size);
-    free(line);
-    return -1;
-  }
-
   free(line);
-  return rc;
+  return n;
 }
 
 
@@ -1255,18 +1245,16 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem, Segment_t *se
     while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
       p++;
     if(*p && *p != '#') {
-      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < mem->size) {
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < end) {
         const char *errstr;
         if(*tok == '#')           // Ignore rest of line after #
           break;
-        int set = str_membuf(tok, STR_ANY, mem->buf+n, mem->size-n, &errstr);
+        int set = str_membuf(tok, STR_ANY, mem->buf+n, end-n, &errstr);
         if(errstr || set < 0) {
           pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
           free(line);
           return -1;
         }
-        if(set > end-n)
-          set = end-n;
         memset(mem->tags+n, TAG_ALLOCATED, set);
         n += set;
       }
@@ -1573,7 +1561,6 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
       memset(mem->buf+addr, 0xff, len);
     memset(mem->tags+addr, 0, len);
-    int size = len;
     Segorder_t where = 0;
 
     if(i == 0)
@@ -1606,7 +1593,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
 #endif
 
     case FMT_IMM:
-      thisrc = fileio_imm(&fio, fname, f, mem, size);
+      thisrc = fileio_imm(&fio, fname, f, mem, seglist+i);
       break;
 
     case FMT_HEX:
