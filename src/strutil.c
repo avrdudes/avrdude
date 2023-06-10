@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "libavrdude.h"
 
 // Return 1 if str starts with starts, 0 otherwise
@@ -233,6 +234,47 @@ char *str_sprintf(const char *fmt, ...) {
     *p = 0;
 
   return p;
+}
+
+
+// Reads a potentially long line and returns it in a malloc'd buffer
+char *str_fgets(FILE *fp, const char **errpp) {
+  int bs = 1023;                // Must be 2^n - 1
+  char *ret = (char *) cfg_malloc(__func__, bs);
+
+  ret[bs-2] = 0;
+  if(!fgets(ret, bs, fp)) {
+    free(ret);
+    if(errpp)
+      *errpp = ferror(fp) && !feof(fp)? "I/O error": NULL;
+    return NULL;
+  }
+
+  while(ret[bs-2] != 0 && ret[bs-2] != '\n' && ret[bs-2] != '\r') {
+    if(bs >= INT_MAX/2) {
+      free(ret);
+      if(errpp)
+        *errpp = "cannot cope with lines longer than INT_MAX/2 bytes";
+      return NULL;
+    }
+    int was = bs;
+    bs = 2*bs+1;
+    ret = cfg_realloc(__func__, ret, bs);
+    ret[was-1] = ret[bs-2] = 0;
+    if(!fgets(ret+was-1, bs-(was-1), fp)) { // EOF? Error?
+      if(ferror(fp)) {
+        free(ret);
+        if(errpp)
+          *errpp = "I/O error";
+        return NULL;
+      }
+      break;
+    }
+  }
+
+  if(errpp)
+    *errpp = NULL;
+  return ret;
 }
 
 

@@ -1227,6 +1227,7 @@ int str_caseeq(const char *str1, const char *str2);
 int str_match(const char *pattern, const char *string);
 int str_casematch(const char *pattern, const char *string);
 char *str_sprintf(const char *fmt, ...);
+char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);
