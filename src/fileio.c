@@ -72,6 +72,8 @@ char *fileio_fmtstr(FILEFMT format) {
     return "ELF";
   case FMT_IMM:
     return "in-place immediate";
+  case FMT_EEGG:
+    return "R-number list";
   case FMT_BIN:
     return "0b-binary byte list";
   case FMT_DEC:
@@ -101,6 +103,8 @@ int fileio_fmtchr(FILEFMT format) {
     return 'e';
   case FMT_IMM:
     return 'm';
+  case FMT_EEGG:
+    return 'R';
   case FMT_BIN:
     return 'b';
   case FMT_DEC:
@@ -113,7 +117,6 @@ int fileio_fmtchr(FILEFMT format) {
     return '?';
   }
 }
-
 
 FILEFMT fileio_format(char c) {
   switch (c) {
@@ -131,6 +134,8 @@ FILEFMT fileio_format(char c) {
     return FMT_ELF;
   case 'm':
     return FMT_IMM;
+  case 'R':
+    return FMT_EEGG;
   case 'b':
     return FMT_BIN;
   case 'd':
@@ -148,6 +153,7 @@ typedef enum {
   FIRST_SEG = 1,
   LAST_SEG  = 2,
 } Segorder_t;
+
 
 static void print_ihex_extended_addr(int n_64k, FILE *outf) {
   unsigned char hi = (n_64k >> 8);
@@ -1199,10 +1205,15 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, Segment_t *se
       prefix = "0b";
       base = 2;
       break;
+
+    case FMT_EEGG:
+      prefix = "";
+      base = 'r';
+      break;
   }
 
   for (int i = segp->addr; i < segp->addr + segp->len; i++) {
-    char cbuf[20];
+    char cbuf[81];
 
     if (i > 0) {
       if (putc(',', f) == EOF)
@@ -1218,7 +1229,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, Segment_t *se
       if (fputs(prefix, f) == EOF)
         goto writeerr;
     }
-   str_utoa(num, cbuf, base);
+    str_utoa(num, cbuf, base);
     if (fputs(cbuf, f) == EOF)
       goto writeerr;
   }
@@ -1601,6 +1612,7 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
     case FMT_DEC:
     case FMT_OCT:
     case FMT_BIN:
+    case FMT_EEGG:
       thisrc = fileio_num(&fio, fname, f, mem, seglist+i, format);
       break;
 

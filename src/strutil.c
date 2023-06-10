@@ -310,6 +310,30 @@ char *str_utoa(unsigned n, char *buf, int base) {
   unsigned q;
   char *cp;
 
+  if(base == 'r') {
+    const char *units = "IVXLCDMFTYHSNabcdefghijkl";
+    const char *rep[10] = {"", "a", "aa", "aaa", "ab", "b", "ba", "baa", "baaa", "ac"};
+
+    if(n == 0) {
+      strcpy(buf, "0");
+      return buf;
+    }
+
+    int i = 0;
+    for(unsigned u = n; u; u /= 10)
+      i++;
+    for(*buf = 0; i > 0; i--) {
+      unsigned u = n;
+      for(int j=1; j<i; j++)
+        u /= 10;
+      char *q = buf+strlen(buf);
+      for(const char *p = rep[u%10], *d = units + (i-1)*2; *p; p++)
+        *q++ = d[*p-'a'];
+      *q = 0;
+    }
+    return buf;
+  }
+
   if(base < 2 || base > 36) {
     *buf = 0;
     return buf;

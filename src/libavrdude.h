@@ -989,6 +989,7 @@ typedef enum {
   FMT_IHEX,
   FMT_RBIN,
   FMT_IMM,
+  FMT_EEGG,
   FMT_HEX,
   FMT_DEC,
   FMT_OCT,
