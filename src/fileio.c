@@ -1203,13 +1203,13 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
       break;
   }
 
-  for (int i = segp->addr; i < segp->addr + segp->len; i++) {
+  for(int seen = 0, i = segp->addr; i < segp->addr + segp->len; i++) {
     char cbuf[81];
 
-    if (i > 0) {
-      if (putc(',', f) == EOF)
+    if(seen++)
+      if(putc(',', f) == EOF)
         goto writeerr;
-    }
+
     unsigned num = mem->buf[i];
     /*
      * For a base of 8 and a value < 8 to convert, don't write the
