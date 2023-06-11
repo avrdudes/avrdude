@@ -1449,7 +1449,7 @@ int fileio(int op, const char *filename, FILEFMT format,
 
 
 // Normalise segment address and length to be non-negative
-int segmemt_normalise(const AVRMEM *mem, Segment_t *segp) {
+int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
   int addr = segp->addr, len = segp->len, maxsize = mem->size;
   int digits = maxsize > 0x10000? 5: 4;
 
@@ -1493,7 +1493,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     return -1;
 
   for(int i=0; i<n; i++)
-    if(segmemt_normalise(mem, seglist+i) < 0)
+    if(segment_normalise(mem, seglist+i) < 0)
       return -1;
 
   using_stdio = 0;
@@ -1639,4 +1639,3 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
 
   return ret;
 }
-
