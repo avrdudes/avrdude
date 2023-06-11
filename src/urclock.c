@@ -22,14 +22,16 @@
  * The Urclock programmer
  *
  *  - Reads/writes flash/EEPROM of boards directly via the MCU bootloader and a serial connection
+ *  - Automatically resets an attached board via RTS/DTR into bootloader mode
  *  - Works best in tandem with the urboot bootloader, but can deal with optiboot and similar
  *  - Implements urprotocol, a communication protocol designed for small bootloader sizes
  *  - Supports vector bootloaders by patching relevant interrupt vectors during upload:
  *     + Vector bootloaders run on all devices, not only those with a dedicated boot section
- *     + Can be considerably smaller than the smallest dedicated boot sections of a part, eg,
+ *     + Can be considerably smaller than the smallest dedicated boot section of a part, eg,
  *       only 256 bytes for ATmega2560 with an otherwise smallest boot section of 1024 bytes
  *  - Checks sizes of applications so they don't overwrite the bootloader
- *  - Provides a 4-byte metadata interface for
+ *  - Keeps the bootloader alive during interactive terminal sessions
+ *  - Provides a 4-byte metadata interface in top flash for
  *     + Allowing applications to utilise unused flash in a similar fashion to EEPROM
  *     + Storing in top flash the file name and last-modified-date of the uploaded application
  *     + Displaying file name and date of the application that was last uploaded
