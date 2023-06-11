@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,62 +47,14 @@
 #include "libavrdude.h"
 
 
-#define IHEX_MAXDATA 256
-
-#define MAX_LINE_LEN 256  /* max line length for ASCII format input files */
-
-
-struct ihexrec {
+// Common internal record structure for ihex and srec files
+struct ihexsrec {
   unsigned char    reclen;
   unsigned int     loadofs;
   unsigned char    rectyp;
-  unsigned char    data[IHEX_MAXDATA];
+  unsigned char    data[256];
   unsigned char    cksum;
 };
-
-
-static int b2ihex(const unsigned char *inbuf, int bufsize,
-             int recsize, int startaddr,
-             const char *outfile, FILE *outf, FILEFMT ffmt);
-
-static int ihex2b(const char *infile, FILE *inf,
-             const AVRMEM *mem, int bufsize, unsigned int fileoffset,
-             FILEFMT ffmt);
-
-static int b2srec(const unsigned char *inbuf, int bufsize,
-             int recsize, int startaddr,
-             const char *outfile, FILE *outf);
-
-static int srec2b(const char *infile, FILE *inf,
-             const AVRMEM *mem, int bufsize, unsigned int fileoffset);
-
-static int ihex_readrec(struct ihexrec *ihex, char *rec);
-
-static int srec_readrec(struct ihexrec *srec, char *rec);
-
-static int fileio_rbin(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size);
-
-static int fileio_ihex(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT ffmt);
-
-static int fileio_srec(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size);
-
-#ifdef HAVE_LIBELF
-static int elf2b(const char *infile, FILE *inf,
-                 const AVRMEM *mem, const AVRPART *p,
-                 int bufsize, unsigned int fileoffset);
-
-static int fileio_elf(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem,
-             const AVRPART *p, int size);
-#endif
-
-static int fileio_num(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT fmt);
 
 
 char *fileio_fmtstr(FILEFMT format) {
@@ -120,6 +73,8 @@ char *fileio_fmtstr(FILEFMT format) {
     return "ELF";
   case FMT_IMM:
     return "in-place immediate";
+  case FMT_EEGG:
+    return "R byte list";
   case FMT_BIN:
     return "0b-binary byte list";
   case FMT_DEC:
@@ -149,6 +104,8 @@ int fileio_fmtchr(FILEFMT format) {
     return 'e';
   case FMT_IMM:
     return 'm';
+  case FMT_EEGG:
+    return 'R';
   case FMT_BIN:
     return 'b';
   case FMT_DEC:
@@ -161,7 +118,6 @@ int fileio_fmtchr(FILEFMT format) {
     return '?';
   }
 }
-
 
 FILEFMT fileio_format(char c) {
   switch (c) {
@@ -179,6 +135,8 @@ FILEFMT fileio_format(char c) {
     return FMT_ELF;
   case 'm':
     return FMT_IMM;
+  case 'R':
+    return FMT_EEGG;
   case 'b':
     return FMT_BIN;
   case 'd':
@@ -192,25 +150,53 @@ FILEFMT fileio_format(char c) {
   }
 }
 
+typedef enum {
+  FIRST_SEG = 1,
+  LAST_SEG  = 2,
+} Segorder_t;
 
-static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
-  int startaddr, const char *outfile_unused, FILE *outf, FILEFMT ffmt) {
 
-  const unsigned char *buf;
+static void print_ihex_extended_addr(int n_64k, FILE *outf) {
+  unsigned char hi = (n_64k >> 8);
+  unsigned char lo = n_64k;
+  unsigned char cksum = -(2 + 0 + 4 + hi + lo);
+  fprintf(outf, ":02000004%02X%02X%02X\n", hi, lo, cksum);
+}
+
+/*
+ * Binary buffer to Intel Hex, see https://en.wikipedia.org/wiki/Intel_HEX
+ *
+ * Given a buffer and a single segment, segp, an open file 'outf' to
+ * which to write Intel Hex formatted data, the desired record size
+ * recsize, an AVR32-specific memory offset startaddr and the name of
+ * the output file,  write a valid Intel Hex file. Where indicates
+ * whether this is the first segment to be written to the file or
+ * the last segment (or both).
+ *
+ * Return the maximum memory address within mem->buf that was read from
+ * plus one. If an error occurs, return -1.
+ */
+static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder_t where,
+  int recsize, int startaddr, const char *outfile_unused, FILE *outf,
+  FILEFMT ffmt) {
+
+  int bufsize = segp->len;
   unsigned int nextaddr;
-  int n, nbytes, n_64k;
-  int i;
-  unsigned char cksum;
+  int n, hiaddr, n_64k;
 
-  if (recsize > 255) {
-    pmsg_error("recsize=%d, must be < 256\n", recsize);
+  if(recsize < 1 || recsize > 255) {
+    pmsg_error("recsize %d must be in [1, 255]\n", recsize);
     return -1;
   }
 
-  n_64k    = 0;
-  nextaddr = startaddr;
-  buf      = inbuf;
-  nbytes   = 0;
+  nextaddr = (unsigned) (startaddr + segp->addr) % 0x10000;
+  n_64k    = (unsigned) (startaddr + segp->addr) / 0x10000;
+  hiaddr   = segp->addr;
+  buf     += segp->addr;
+
+  // Give address unless it's the first segment and it would be the default 0
+  if(!((where & FIRST_SEG) && n_64k == 0))
+    print_ihex_extended_addr(n_64k, outf);
 
   while (bufsize) {
     n = recsize;
@@ -221,10 +207,9 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
       n = 0x10000 - nextaddr;
 
     if (n) {
-      cksum = 0;
       fprintf(outf, ":%02X%04X00", n, nextaddr);
-      cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
-      for (i=0; i<n; i++) {
+      unsigned char cksum = n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
+      for(int i=0; i<n; i++) {
         fprintf(outf, "%02X", buf[i]);
         cksum += buf[i];
       }
@@ -232,10 +217,10 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
       fprintf(outf, "%02X", cksum);
 
       if(ffmt == FMT_IHXC) { /* Print comment with address and ASCII dump */
-        for(i=n; i<recsize; i++)
+        for(int i=n; i<recsize; i++)
           fprintf(outf, "  ");
         fprintf(outf, " // %05x> ", n_64k*0x10000 + nextaddr);
-        for (i=0; i<n; i++) {
+        for(int i=0; i<n; i++) {
           unsigned char c = buf[i] & 0x7f;
           /* Print space as _ so that line is one word */
           putc(c == ' '? '_': c < ' ' || c == 0x7f? '.': c, outf);
@@ -244,20 +229,13 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
       putc('\n', outf);
 
       nextaddr += n;
-      nbytes   += n;
+      hiaddr   += n;
     }
 
-    if (nextaddr >= 0x10000) {
-      int lo, hi;
+    if(nextaddr >= 0x10000 && bufsize > n) {
       /* output an extended address record */
       n_64k++;
-      lo = n_64k & 0xff;
-      hi = (n_64k >> 8) & 0xff;
-      cksum = 0;
-      fprintf(outf, ":02000004%02X%02X", hi, lo);
-      cksum += 2 + 0 + 4 + hi + lo;
-      cksum = -cksum;
-      fprintf(outf, "%02X\n", cksum);
+      print_ihex_extended_addr(n_64k, outf);
       nextaddr = 0;
     }
 
@@ -266,23 +244,15 @@ static int b2ihex(const unsigned char *inbuf, int bufsize, int recsize,
     bufsize -= n;
   }
 
-  /*-----------------------------------------------------------------
-    add the end of record data line
-    -----------------------------------------------------------------*/
-  cksum = 0;
-  n = 0;
-  nextaddr = 0;
-  fprintf(outf, ":%02X%04X01", n, nextaddr);
-  cksum += n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff) + 1;
-  cksum = -cksum;
-  fprintf(outf, "%02X\n", cksum);
+  // Add the end of record data line if it's the last segment
+  if(where & LAST_SEG)
+    fprintf(outf, ":00000001FF\n");
 
-  return nbytes;
+  return hiaddr;
 }
 
 
-static int ihex_readrec(struct ihexrec * ihex, char * rec)
-{
+static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
   int i, j;
   char buf[8];
   int offset, len;
@@ -362,67 +332,69 @@ static int ihex_readrec(struct ihexrec * ihex, char * rec)
  *
  * Given an open file 'inf' which contains Intel Hex formatted data,
  * parse the file and lay it out within the memory buffer pointed to
- * by outbuf. The size of outbuf, 'bufsize' is honored; if data would
- * fall outsize of the memory buffer outbuf, an error is generated.
+ * by mem->buf. The segment within buf, segp, is honoured; if data
+ * were to fall outside of the memory segment, an error is generated.
  *
- * Return the maximum memory address within 'outbuf' that was written
+ * Return the maximum memory address within mem->buf that was written
  * plus one. If an error occurs, return -1.
- *
- * */
-static int ihex2b(const char *infile, FILE *inf,
-             const AVRMEM *mem, int bufsize, unsigned int fileoffset,
-             FILEFMT ffmt)
-{
-  char buffer [ MAX_LINE_LEN ];
+ */
+static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
+  const Segment_t *segp, unsigned int fileoffset, FILEFMT ffmt) {
+
+  const char *errstr;
   unsigned int nextaddr, baseaddr, maxaddr;
-  int i;
-  int lineno;
-  int len;
-  struct ihexrec ihex;
-  int rc;
+  int lineno, rc, digits;
+  struct ihexsrec ihex;
 
   lineno   = 0;
   baseaddr = 0;
   maxaddr  = 0;
   nextaddr = 0;
+  digits = mem->size > 0x10000? 5: 4;
 
-  while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
+  for(char *buffer; (buffer = str_fgets(inf, &errstr)); free(buffer)) {
     lineno++;
-    len = strlen(buffer);
-    if (buffer[len-1] == '\n') 
+    int len = strlen(buffer);
+    if(len > 0 && buffer[len-1] == '\n')
       buffer[--len] = 0;
-    if (buffer[0] != ':')
+    if(len == 0 || buffer[0] != ':')
       continue;
     rc = ihex_readrec(&ihex, buffer);
-    if (rc < 0) {
+    if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
+      free(buffer);
       return -1;
     }
-    else if (rc != ihex.cksum) {
+    if(rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
         pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
         imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
+        free(buffer);
         return -1;
-      } else {                  /* Just warn with more permissive format FMT_IHXC */
-        pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
-        imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
       }
+      // Just warn with more permissive format FMT_IHXC
+      pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
+      imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
     }
 
     switch (ihex.rectyp) {
       case 0: /* data record */
-        if (fileoffset != 0 && baseaddr < fileoffset) {
+        if (fileoffset != 0 && ihex.loadofs + baseaddr < fileoffset) {
           pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
-            baseaddr, fileoffset, lineno, infile);
+            ihex.loadofs + baseaddr, fileoffset, lineno, infile);
+          free(buffer);
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
-        if (nextaddr + ihex.reclen > (unsigned) bufsize) {
-          pmsg_error("address 0x%04x out of range at line %d of %s\n",
-            nextaddr+ihex.reclen, lineno, infile);
+        unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
+        if(nextaddr < beg || nextaddr + ihex.reclen-1 > end) {
+          pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
+            digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
+          imsg_error("at line %d of %s\n", lineno, infile);
+          free(buffer);
           return -1;
         }
-        for (i=0; i<ihex.reclen; i++) {
+        for(int i=0; i<ihex.reclen; i++) {
           mem->buf[nextaddr+i] = ihex.data[i];
           mem->tags[nextaddr+i] = TAG_ALLOCATED;
         }
@@ -431,14 +403,14 @@ static int ihex2b(const char *infile, FILE *inf,
         break;
 
       case 1: /* end of file record */
+        free(buffer);
         return maxaddr;
-        break;
 
       case 2: /* extended segment address record */
         baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
         break;
 
-      case 3: /* start segment address record */
+      case 3: /* Start segment address record */
         /* we don't do anything with the start address */
         break;
 
@@ -453,128 +425,115 @@ static int ihex2b(const char *infile, FILE *inf,
       default:
         pmsg_error("do not know how to deal with rectype=%d "
           "at line %d of %s\n", ihex.rectyp, lineno, infile);
+        free(buffer);
         return -1;
-        break;
     }
+  }
 
-  } /* while */
+  if(errstr) {
+    pmsg_error("read error in Intel Hex file %s: %s\n", infile, errstr);
+    return -1;
+  }
 
   if (maxaddr == 0) {
     pmsg_error("no valid record found in Intel Hex file %s\n", infile);
-
     return -1;
   }
-  else {
-    pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
 
-    return maxaddr;
-  }
+  pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
+  return maxaddr;
 }
 
-static int b2srec(const unsigned char *inbuf, int bufsize, int recsize,
-  int startaddr, const char *outfile_unused, FILE *outf) {
+static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, int addr_width) {
+  unsigned char cksum = n + addr_width + 1;
+
+  for(int i=0; i<addr_width; i++)
+    cksum += addr, addr >>= 8;
+  for(int i=0; i<n; i++)
+    cksum += buf[i];
+  cksum = 0xff - cksum;
+
+  return cksum;
+}
+
+
+// Binary to Motorola S-Record, see https://en.wikipedia.org/wiki/SREC_(file_format)
+static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
+  int recsize, int startaddr, const char *outfile_unused, FILE *outf) {
 
   const unsigned char *buf;
   unsigned int nextaddr;
-  int n, nbytes, addr_width;
-  unsigned char cksum;
+  int n, hiaddr, addr_width, reccount;
 
-  char * tmpl=0;
+  buf = mem->buf + segp->addr;
+  nextaddr = startaddr + segp->addr;
+  hiaddr = 0;
 
-  if (recsize > 255) {
-    pmsg_error("recsize=%d, must be < 256\n", recsize);
+  unsigned highest = startaddr + mem->size-1;
+
+  // Assume same address width throughout, even across different segments
+  char datarec, endrec;
+  if(highest <= 0xffffu) {
+    addr_width = 2;
+    datarec = '1';
+    endrec = '9';
+  } else if(highest <= 0xffffffu) {
+    addr_width = 3;
+    datarec = '2';
+    endrec = '8';
+  } else {
+    addr_width = 4;
+    datarec = '3';
+    endrec = '7';
+  }
+
+  if(recsize < 1 || recsize > 255-1-addr_width) {
+    pmsg_error("recsize %d must be in [1, %d]\n", recsize, 255-1-addr_width);
     return -1;
   }
   
-  nextaddr = startaddr;
-  buf = inbuf;
-  nbytes = 0;    
+  if(where & FIRST_SEG) {       // Write header record
+    const char *s = "https://github.com/avrdudes/avrdude";
+    unsigned char len = strlen(s);
 
-  addr_width = 0;
+    fprintf(outf, "S0%02X0000", len+3);
+    for(int i = 0; i < len; i++)
+      fprintf(outf, "%02X", s[i]);
+    fprintf(outf, "%02X\n", cksum_srec((unsigned char *) s, len, 0, 2));
+  }
 
-  while (bufsize) {
-
+  reccount = 0;
+  for(int bufsize = segp->len; bufsize; bufsize -= n) {
     n = recsize;
-
-    if (n > bufsize) 
+    if(n > bufsize)
       n = bufsize;
 
-    if (n) {
-      cksum = 0;
-      if (nextaddr + n <= 0xffff) {
-        addr_width = 2;
-        tmpl="S1%02X%04X";
-      }
-      else if (nextaddr + n <= 0xffffff) {
-        addr_width = 3;
-        tmpl="S2%02X%06X";
-      }
-      else if (nextaddr + n <= 0xffffffff) {
-        addr_width = 4;
-        tmpl="S3%02X%08X";
-      }
-      else {
-        pmsg_error("address=%d, out of range\n", nextaddr);
-        return -1;
-      }
+    fprintf(outf, "S%c%02X%0*X", datarec, n + addr_width + 1, 2*addr_width, nextaddr);
+    for(int i=0; i<n; i++)
+      fprintf(outf, "%02X", buf[i]);
+    fprintf(outf, "%02X\n", cksum_srec(buf, n, nextaddr, addr_width));
 
-      fprintf(outf, tmpl, n + addr_width + 1, nextaddr);
+    buf += n;
+    nextaddr += n;
+    hiaddr +=n;
+    reccount++;
+  }
 
-      cksum += n + addr_width + 1;
-
-      for (int i=addr_width; i>0; i--)
-        cksum += (nextaddr >> (i-1) * 8) & 0xff;
-
-      for (unsigned i=nextaddr; i<nextaddr + n; i++) {
-        fprintf(outf, "%02X", buf[i]);
-        cksum += buf[i];
-      }
-
-      cksum = 0xff - cksum;
-      fprintf(outf, "%02X\n", cksum);
-
-      nextaddr += n;
-      nbytes +=n;
+  // Add S5/6 record count record and S7/8/9 end of data record
+  if(where & LAST_SEG) {
+    if(reccount > 0 && reccount <= 0xffffff) {
+      int wd = reccount <= 0xffff? 2: 3;
+      fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, reccount,
+        cksum_srec(NULL, 0, reccount, wd));
     }
-
-    /* advance to next 'recsize' bytes */
-    bufsize -= n;
+    fprintf(outf, "S%c%02X%0*X", endrec, addr_width + 1, 2*addr_width, startaddr);
+    fprintf(outf, "%02X\n", cksum_srec(NULL, 0, startaddr, addr_width));
   }
 
-  /*-----------------------------------------------------------------
-    add the end of record data line
-    -----------------------------------------------------------------*/
-  cksum = 0;
-  n = 0;
-  nextaddr = 0;
-
-  if (startaddr <= 0xffff) {
-    addr_width = 2;
-    tmpl="S9%02X%04X";
-  }
-  else if (startaddr <= 0xffffff) {
-    addr_width = 3;
-    tmpl="S9%02X%06X";
-  }
-  else if ((unsigned) startaddr <= 0xffffffff) {
-    addr_width = 4;
-    tmpl="S9%02X%08X";
-  }
-
-  fprintf(outf, tmpl, n + addr_width + 1, nextaddr);
-
-  cksum += n + addr_width +1;
-  for (int i=addr_width; i>0; i--)
-    cksum += (nextaddr >> (i - 1) * 8) & 0xff;
-  cksum = 0xff - cksum;
-  fprintf(outf, "%02X\n", cksum);
-
-  return nbytes; 
+  return hiaddr;
 }
 
-
-static int srec_readrec(struct ihexrec * srec, char * rec)
-{
+static int srec_readrec(struct ihexsrec *srec, char *rec) {
   int i, j;
   char buf[8];
   int offset, len, addr_width;
@@ -648,101 +607,107 @@ static int srec_readrec(struct ihexrec * srec, char * rec)
   return rc;
 }
 
-
+// Motorola S-Record to binary
 static int srec2b(const char *infile, FILE * inf,
-           const AVRMEM *mem, int bufsize, unsigned int fileoffset)
-{
-  char buffer [ MAX_LINE_LEN ];
+  const AVRMEM *mem, const Segment_t *segp, unsigned int fileoffset) {
+
+  const char *errstr;
   unsigned int nextaddr, maxaddr;
-  int i;
-  int lineno;
-  int len;
-  struct ihexrec srec;
-  int rc;
+  struct ihexsrec srec;
+  int lineno, rc, digits, hexdigs;
   unsigned int reccount;
   unsigned char datarec;
-
-  char * msg = "";
 
   lineno   = 0;
   maxaddr  = 0;
   reccount = 0;
+  digits = mem->size > 0x10000? 5: 4;
 
-  while (fgets((char *)buffer,MAX_LINE_LEN,inf)!=NULL) {
+  for(char *buffer; (buffer = str_fgets(inf, &errstr)); free(buffer)) {
     lineno++;
-    len = strlen(buffer);
-    if (buffer[len-1] == '\n') 
+    int len = strlen(buffer);
+    if(len > 0 && buffer[len-1] == '\n')
       buffer[--len] = 0;
-    if (buffer[0] != 0x53)
+    if(len == 0 || buffer[0] != 'S')
       continue;
     rc = srec_readrec(&srec, buffer);
-
-    if (rc < 0) {
+    if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
+      free(buffer);
       return -1;
     }
-    else if (rc != srec.cksum) {
+    if(rc != srec.cksum) {
       pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
+      free(buffer);
       return -1;
     }
 
     datarec=0; 
+    hexdigs=4;
     switch (srec.rectyp) {
-      case 0x30: /* S0 - header record*/
-        /* skip */
+      case '0':                 // S0: header record, ignore
         break;
 
-      case 0x31: /* S1 - 16 bit address data record */
+      case '1':                 // S1: 16 bit address data record
         datarec=1;
-        msg="address 0x%04x out of range %sat line %d of %s\n";
         break;
 
-      case 0x32: /* S2 - 24 bit address data record */
+      case '2':                 // S2: 24 bit address data record
         datarec=1;
-        msg="address 0x%06x out of range %sat line %d of %s\n";
+        hexdigs=6;
         break;
 
-      case 0x33: /* S3 - 32 bit address data record */
+      case '3':                 // S3: 32 bit address data record
         datarec=1;
-        msg="address 0x%08x out of range %sat line %d of %s\n";
+        hexdigs=8;
         break;
 
-      case 0x34: /* S4 - symbol record (LSI extension) */
+      case '4':                 // S4: symbol record (LSI extension)
         pmsg_error("not supported record at line %d of %s\n", lineno, infile);
+        free(buffer);
         return -1;
 
-      case 0x35: /* S5 - count of S1,S2 and S3 records previously tx'd */
+      case '5':                 // S5: count of S1, S2 and S3 records previously tx'd
         if (srec.loadofs != reccount){
           pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
           imsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
+          free(buffer);
           return -1;
         }
         break;
 
-      case 0x37: /* S7 Record - end record for 32 bit address data */
-      case 0x38: /* S8 Record - end record for 24 bit address data */
-      case 0x39: /* S9 Record - end record for 16 bit address data */
+      case '7':                 // S7: end record for 32 bit addresses
+      case '8':                 // S8: end record for 24 bit addresses
+      case '9':                 // S9: end record for 16 bit addresses
+        free(buffer);
         return maxaddr;
 
       default:
         pmsg_error("do not know how to deal with rectype S%d at line %d of %s\n",
           srec.rectyp, lineno, infile);
+        free(buffer);
         return -1;
     }
 
     if (datarec == 1) {
       nextaddr = srec.loadofs;
       if (nextaddr < fileoffset) {
-        pmsg_error(msg, nextaddr, "(below fileoffset) ", lineno, infile);
+        pmsg_error("address 0x%0*x below memory offset at line %d of %s\n",
+          hexdigs, nextaddr, lineno, infile);
+        free(buffer);
         return -1;
       }
       nextaddr -= fileoffset;
-      if (nextaddr + srec.reclen > (unsigned) bufsize) {
-        pmsg_error(msg, nextaddr+srec.reclen, "", lineno, infile);
+      unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
+      if(nextaddr < beg || nextaddr + srec.reclen-1 > end) {
+        pmsg_error("Motorola S-Record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
+          digits, nextaddr, digits, nextaddr+srec.reclen-1, digits, beg, digits, end);
+        imsg_error("at line %d of %s\n", lineno, infile);
+        free(buffer);
         return -1;
       }
-      for (i=0; i<srec.reclen; i++) {
+      for(int i=0; i<srec.reclen; i++) {
         mem->buf[nextaddr+i] = srec.data[i];
         mem->tags[nextaddr+i] = TAG_ALLOCATED;
       }
@@ -750,13 +715,17 @@ static int srec2b(const char *infile, FILE * inf,
         maxaddr = nextaddr+srec.reclen;
       reccount++;      
     }
+  }
 
+  if(errstr) {
+    pmsg_error("read error in Motorola S-Record file %s: %s\n", infile, errstr);
+    return -1;
   }
 
   pmsg_warning("no end of file record found for Motorola S-Records file %s\n", infile);
-
   return maxaddr;
 }
+
 
 #ifdef HAVE_LIBELF
 /*
@@ -852,8 +821,9 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 }
 
 
+// ELF format to binary (the memory segment to read into is ignored)
 static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
-  const AVRPART *p, int bufsize_unused, unsigned int fileoffset_unused) {
+  const AVRPART *p, const Segment_t *segp_unused, unsigned int fileoffset_unused) {
 
   Elf *e;
   int rv = 0, size = 0;
@@ -1061,58 +1031,55 @@ done:
 #endif  /* HAVE_LIBELF */
 
 
-static int fileio_rbin(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size) {
-  int rc;
-  unsigned char *buf = mem->buf;
+// Read/write binary files and return highest memory addr set + 1
+static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, const Segment_t *segp) {
 
+  int rc;
   switch (fio->op) {
     case FIO_READ:
-      rc = fread(buf, 1, size, f);
+      rc = fread(mem->buf + segp->addr, 1, segp->len, f);
       if (rc > 0)
-        memset(mem->tags, TAG_ALLOCATED, rc);
+        memset(mem->tags + segp->addr, TAG_ALLOCATED, rc);
       break;
     case FIO_WRITE:
-      rc = fwrite(buf, 1, size, f);
+      rc = fwrite(mem->buf + segp->addr, 1, segp->len, f);
       break;
     default:
       pmsg_error("invalid fileio operation=%d\n", fio->op);
       return -1;
   }
 
-  if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
+  if (rc < 0 || (fio->op == FIO_WRITE && rc < segp->len)) {
     pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
-      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, size);
+      fio->iodesc, fio->dir, filename, strerror(errno), fio->rw, rc, segp->len);
     return -1;
   }
 
-  return rc;
+  return segp->addr + rc;
 }
 
 
 static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
- const AVRMEM *mem, int size) {
+ const AVRMEM *mem, const Segment_t *segp) {
 
-  int rc = 0;
   char *tok, *p, *line;
   const char *errstr;
-  int loc;
+  int n = segp->addr, end = segp->addr + segp->len;
 
   p = line = cfg_strdup(__func__, fname);
 
   switch (fio->op) {
     case FIO_READ:
-      loc = 0;
-      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && loc < size) {
-        int set = str_membuf(tok, STR_ANY, mem->buf+loc, mem->size-loc, &errstr);
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < end) {
+        int set = str_membuf(tok, STR_ANY, mem->buf+n, end-n, &errstr);
         if(errstr || set < 0) {
           pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
           free(line);
           return -1;
         }
-        memset(mem->tags+loc, TAG_ALLOCATED, set);
-        loc += set;
-        rc = loc;
+        memset(mem->tags+n, TAG_ALLOCATED, set);
+        n += set;
       }
       break;
 
@@ -1127,82 +1094,61 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
       return -1;
   }
 
-  if (rc < 0 || (fio->op == FIO_WRITE && rc < size)) {
-    pmsg_ext_error("%s error %s %s: %s; %s %d of the expected %d bytes\n",
-      fio->iodesc, fio->dir, line, strerror(errno), fio->rw, rc, size);
-    free(line);
-    return -1;
-  }
-
   free(line);
-  return rc;
+  return n;
 }
 
 
-static int fileio_ihex(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT ffmt)
-{
+static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, const Segment_t *segp, FILEFMT ffmt, Segorder_t where) {
+
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2ihex(mem->buf, size, 32, fio->fileoffset, filename, f, ffmt);
-      if (rc < 0) {
-        return -1;
-      }
+      rc = b2ihex(mem->buf, segp, where, 32, fio->fileoffset, filename, f, ffmt);
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, mem, size, fio->fileoffset, ffmt);
-      if (rc < 0)
-        return -1;
+      rc = ihex2b(filename, f, mem, segp, fio->fileoffset, ffmt);
       break;
 
     default:
+      rc = -1;
       pmsg_error("invalid Intel Hex file I/O operation=%d\n", fio->op);
-      return -1;
-      break;
   }
 
-  return rc;
+  return rc < 0? -1: rc;
 }
 
 
-static int fileio_srec(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size)
-{
+static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, const Segment_t *segp, Segorder_t where) {
+
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2srec(mem->buf, size, 32, fio->fileoffset, filename, f);
-      if (rc < 0) {
-        return -1;
-      }
+      rc = b2srec(mem, segp, where, 32, fio->fileoffset, filename, f);
       break;
 
     case FIO_READ:
-      rc = srec2b(filename, f, mem, size, fio->fileoffset);
-      if (rc < 0)
-        return -1;
+      rc = srec2b(filename, f, mem, segp, fio->fileoffset);
       break;
 
     default:
+      rc = -1;
       pmsg_error("invalid Motorola S-Records file I/O operation=%d\n", fio->op);
-      return -1;
-      break;
   }
 
-  return rc;
+  return rc < 0? -1: rc;
 }
 
 
 #ifdef HAVE_LIBELF
-static int fileio_elf(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem,
-             const AVRPART *p, int size)
-{
+static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, const AVRPART *p, const Segment_t *segp) {
+
   int rc;
 
   switch (fio->op) {
@@ -1212,7 +1158,7 @@ static int fileio_elf(struct fioparms *fio,
       break;
 
     case FIO_READ:
-      rc = elf2b(filename, f, mem, p, size, fio->fileoffset);
+      rc = elf2b(filename, f, mem, p, segp, fio->fileoffset);
       return rc;
 
     default:
@@ -1225,7 +1171,7 @@ static int fileio_elf(struct fioparms *fio,
 #endif
 
 
-static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FILEFMT fmt) {
+static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment_t *segp, FILEFMT fmt) {
   const char *prefix;
   int base;
 
@@ -1250,10 +1196,15 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
       prefix = "0b";
       base = 2;
       break;
+
+    case FMT_EEGG:
+      prefix = "";
+      base = 'r';
+      break;
   }
 
-  for (int i = 0; i < size; i++) {
-    char cbuf[20];
+  for (int i = segp->addr; i < segp->addr + segp->len; i++) {
+    char cbuf[81];
 
     if (i > 0) {
       if (putc(',', f) == EOF)
@@ -1269,14 +1220,14 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
       if (fputs(prefix, f) == EOF)
         goto writeerr;
     }
-   str_utoa(num, cbuf, base);
+    str_utoa(num, cbuf, base);
     if (fputs(cbuf, f) == EOF)
       goto writeerr;
   }
   if (putc('\n', f) == EOF)
     goto writeerr;
 
-  return 0;
+  return segp->addr + segp->len-1;
 
  writeerr:
   pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
@@ -1284,54 +1235,21 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, int size, FIL
 }
 
 
-// Allocates sufficient memory for a line; returned pointer to be free'd
-char *Nfgets(FILE *fp) {
-  int bs = 1023;                // Must be 2^n - 1
-  char *ret = (char *) cfg_malloc(__func__, bs);
-
-  ret[bs-2] = 0;
-  if(!fgets(ret, bs, fp)) {
-    free(ret);
-    return NULL;
-  }
-
-  while(ret[bs-2] != 0 && ret[bs-2] != '\n') {
-    if(bs >= INT_MAX/2) {
-      pmsg_error("cannot cope with lines longer than %d bytes\n", INT_MAX);
-      free(ret);
-      return NULL;
-    }
-    int was = bs;
-    bs = 2*bs+1;
-    ret = cfg_realloc(__func__, ret, bs);
-    ret[was-1] = ret[bs-2] = 0;
-    if(!fgets(ret+was-1, bs-(was-1), fp)) { // EOF? Error?
-      if(ferror(fp)) {
-        free(ret);
-        return NULL;
-      }
-      break;
-    }
-  }
-
-  return ret;
-}
-
-
-static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
+static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment_t *segp) {
+  const char *geterr = NULL;
   char *line;
-  int n = 0;
+  int n = segp->addr, end = segp->addr + segp->len;
 
-  while(n < mem->size && (line = Nfgets(f))) {
+  while(n < end && (line = str_fgets(f, &geterr))) {
     char *p = line, *tok;
     while(*p && isspace(*p & 0xff)) // Skip white space, comments and empty lines
       p++;
     if(*p && *p != '#') {
-      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < mem->size) {
+      while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < end) {
         const char *errstr;
         if(*tok == '#')           // Ignore rest of line after #
           break;
-        int set = str_membuf(tok, STR_ANY, mem->buf+n, mem->size-n, &errstr);
+        int set = str_membuf(tok, STR_ANY, mem->buf+n, end-n, &errstr);
         if(errstr || set < 0) {
           pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
           free(line);
@@ -1343,21 +1261,24 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem) {
     }
     free(line);
   }
+  if(geterr) {
+    pmsg_error("fgets() errror: %s\n", geterr);
+    n = -1;
+  }
+
   return n;
 }
 
 
-static int fileio_num(struct fioparms *fio,
-             const char *filename, FILE *f, const AVRMEM *mem, int size,
-             FILEFMT fmt)
-{
+static int fileio_num(struct fioparms *fio, const char *filename, FILE *f,
+  const AVRMEM *mem, const Segment_t *segp, FILEFMT fmt) {
 
   switch (fio->op) {
     case FIO_WRITE:
-      return b2num(filename, f, mem, size, fmt);
+      return b2num(filename, f, mem, segp, fmt);
 
     case FIO_READ:
-      return num2b(filename, f, mem);
+      return num2b(filename, f, mem, segp);
 
     default:
       pmsg_error("invalid operation=%d\n", fio->op);
@@ -1366,7 +1287,7 @@ static int fileio_num(struct fioparms *fio,
 }
 
 
-int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM * m) {
+static int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM *m) {
   fp->op = op;
 
   switch (op) {
@@ -1478,14 +1399,17 @@ static FILEFMT couldbe(int first, unsigned char *line) {
 }
 
 int fileio_fmt_autodetect_fp(FILE *f) {
+  const char *err = NULL;
   int ret = FMT_ERROR;
 
   if(f) {
     unsigned char *buf;
-    for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) Nfgets(f)); first = 0) {
+    for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) str_fgets(f, &err)); first = 0) {
       ret = couldbe(first, buf);
       free(buf);
     }
+    if(err)
+      pmsg_error("fgets() error: %s\n", err);
   }
 
   return ret;
@@ -1507,52 +1431,78 @@ int fileio_fmt_autodetect(const char *fname) {
 
 
 
-int fileio(int oprwv, const char *filename, FILEFMT format,
-      const AVRPART *p, const char *memtype, int size)
-{
-  int op, rc;
-  FILE * f;
-  const char *fname;
-  struct fioparms fio;
-  AVRMEM * mem;
-  int using_stdio;
+int fileio(int op, const char *filename, FILEFMT format,
+  const AVRPART *p, const char *memtype, int size) {
 
-  op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
-  mem = avr_locate_mem(p, memtype);
-  if (mem == NULL) {
+  AVRMEM *mem = avr_locate_mem(p, memtype);
+  if(mem == NULL) {
     pmsg_error("memory type %s not configured for device %s\n", memtype, p->desc);
     return -1;
   }
 
+  if(size < 0 || op == FIO_READ || FIO_READ_FOR_VERIFY)
+    size = mem->size;
+
+  const Segment_t seg = {0, size};
+  return fileio_segments(op, filename, format, p, mem, 1, &seg);
+}
+
+
+// Normalise segment address and length to be non-negative
+int segmemt_normalise(const AVRMEM *mem, Segment_t *segp) {
+  int addr = segp->addr, len = segp->len, maxsize = mem->size;
+  int digits = maxsize > 0x10000? 5: 4;
+
+  if(addr < 0)
+    addr = maxsize + addr;
+
+  if(addr < 0 || addr >= maxsize) {
+    pmsg_error("%s address %s is out of range [-0x%0*x, 0x%0*x]\n",
+      mem->desc, segp->addr, digits, maxsize, digits, maxsize-1);
+    return -1;
+  }
+
+  if(len < 0)
+    len = maxsize + len - addr + 1;
+
+  if(len < 0 || len > maxsize) {
+    pmsg_error("invalid segment length %d for %s address 0x%0*x\n",
+      segp->len, mem->desc, digits, addr);
+    return -1;
+  }
+
+  segp->addr = addr;
+  segp->len = len;
+
+  return 0;
+}
+
+
+static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int n, Segment_t *seglist) {
+
+  int op, rc;
+  FILE * f;
+  const char *fname;
+  struct fioparms fio;
+  int using_stdio;
+
+  op = oprwv == FIO_READ_FOR_VERIFY? FIO_READ: oprwv;
   rc = fileio_setparms(op, &fio, p, mem);
   if (rc < 0)
     return -1;
 
-  if (size < 0 || fio.op == FIO_READ)
-    size = mem->size;
-
-  if (fio.op == FIO_READ) {
-    /* 0xff fill unspecified memory */
-    memset(mem->buf, 0xff, size);
-  }
-  memset(mem->tags, 0, size);
+  for(int i=0; i<n; i++)
+    if(segmemt_normalise(mem, seglist+i) < 0)
+      return -1;
 
   using_stdio = 0;
-
-  if (strcmp(filename, "-")==0) {
-    if (fio.op == FIO_READ) {
-      fname = "<stdin>";
-      f = stdin;
-    }
-    else {
-      fname = "<stdout>";
-      f = stdout;
-    }
+  fname = filename;
+  f = NULL;
+  if(str_eq(filename, "-")) {
     using_stdio = 1;
-  }
-  else {
-    fname = filename;
-    f = NULL;
+    fname = fio.op == FIO_READ? "<stdin>": "<stdout>";
+    f = fio.op == FIO_READ? stdin: stdout;
   }
 
   if (format == FMT_AUTO) {
@@ -1601,48 +1551,72 @@ int fileio(int oprwv, const char *filename, FILEFMT format,
     }
   }
 
-  switch (format) {
+  rc = 0;
+  for(int i=0; i<n; i++) {
+    int addr = seglist[i].addr, len = seglist[i].len;
+
+    if(len == 0)
+      continue;
+
+    if(fio.op == FIO_READ) // Fill unspecified memory in segment
+      memset(mem->buf+addr, 0xff, len);
+    memset(mem->tags+addr, 0, len);
+    Segorder_t where = 0;
+
+    if(i == 0)
+      where |= FIRST_SEG;
+    if(i+1 == n)
+      where |= LAST_SEG;
+
+    int thisrc = 0;
+    switch(format) {
     case FMT_IHEX:
     case FMT_IHXC:
-      rc = fileio_ihex(&fio, fname, f, mem, size, format);
+      thisrc = fileio_ihex(&fio, fname, f, mem, seglist+i, format, where);
       break;
 
     case FMT_SREC:
-      rc = fileio_srec(&fio, fname, f, mem, size);
+      thisrc = fileio_srec(&fio, fname, f, mem, seglist+i, where);
       break;
 
     case FMT_RBIN:
-      rc = fileio_rbin(&fio, fname, f, mem, size);
+      thisrc = fileio_rbin(&fio, fname, f, mem, seglist+i);
       break;
 
     case FMT_ELF:
 #ifdef HAVE_LIBELF
-      rc = fileio_elf(&fio, fname, f, mem, p, size);
+      thisrc = fileio_elf(&fio, fname, f, mem, p, seglist+i);
+      break;
 #else
       pmsg_error("cannot handle ELF file %s, ELF file support was not compiled in\n", fname);
-      rc = -1;
+      return -1;
 #endif
-      break;
 
     case FMT_IMM:
-      rc = fileio_imm(&fio, fname, f, mem, size);
+      thisrc = fileio_imm(&fio, fname, f, mem, seglist+i);
       break;
 
     case FMT_HEX:
     case FMT_DEC:
     case FMT_OCT:
     case FMT_BIN:
-      rc = fileio_num(&fio, fname, f, mem, size, format);
+    case FMT_EEGG:
+      thisrc = fileio_num(&fio, fname, f, mem, seglist+i, format);
       break;
 
     default:
       pmsg_error("invalid %s file format: %d\n", fio.iodesc, format);
       return -1;
+    }
+    if(thisrc < 0)
+      return thisrc;
+    if(thisrc > rc)
+      rc = thisrc;
   }
 
   /* on reading flash other than for verify set the size to location of highest non-0xff byte */
   if (rc > 0 && oprwv == FIO_READ) {
-    int hiaddr = avr_mem_hiaddr(mem);
+    int hiaddr = avr_mem_hiaddr(mem); // @@@ Should check segments only, not all file
 
     if(hiaddr < rc)             /* if trailing-0xff not disabled */
       rc = hiaddr;
@@ -1653,5 +1627,16 @@ int fileio(int oprwv, const char *filename, FILEFMT format,
   }
 
   return rc;
+}
+
+int fileio_segments(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *list) {
+
+  Segment_t *seglist = cfg_malloc(__func__, n*sizeof*seglist);
+  memcpy(seglist, list, n*sizeof*seglist);
+  int ret = fileio_segments_normalise(oprwv, filename, format, p, mem, n, seglist);
+  free(seglist);
+
+  return ret;
 }
 

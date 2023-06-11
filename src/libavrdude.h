@@ -989,6 +989,7 @@ typedef enum {
   FMT_IHEX,
   FMT_RBIN,
   FMT_IMM,
+  FMT_EEGG,
   FMT_HEX,
   FMT_DEC,
   FMT_OCT,
@@ -1005,6 +1006,10 @@ struct fioparms {
   char * rw;
   unsigned int fileoffset;
 };
+
+typedef struct {
+  int addr, len;
+} Segment_t;
 
 enum {
   FIO_READ,
@@ -1029,7 +1034,12 @@ int fileio_fmt_autodetect_fp(FILE *f);
 int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
-      const AVRPART *p, const char *memtype, int size);
+  const AVRPART *p, const char *memtype, int size);
+
+int segmemt_normalise(const AVRMEM *mem, Segment_t *segp);
+
+int fileio_segments(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *seglist);
 
 #ifdef __cplusplus
 }
@@ -1227,6 +1237,7 @@ int str_caseeq(const char *str1, const char *str2);
 int str_match(const char *pattern, const char *string);
 int str_casematch(const char *pattern, const char *string);
 char *str_sprintf(const char *fmt, ...);
+char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);
