@@ -1806,8 +1806,10 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
     } else {
       stk600_setup_isp(pgm);
       AVRMEM *mem = avr_locate_mem(p, "flash");
-      if(mem && mem->op[AVR_OP_WRITE_LO]) // Old part that can only write flash bytewise
+      if(mem && mem->op[AVR_OP_WRITE_LO]) { // Old part that can only write flash bytewise
         pgm->write_byte = avr_write_byte_default;
+        pgm->read_byte = avr_read_byte_default;
+      }
     }
   }
 
