@@ -1039,7 +1039,7 @@ int fileio(int oprwv, const char *filename, FILEFMT format,
 int segmemt_normalise(AVRMEM *mem, Segment_t *segp);
 
 int fileio_segments(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, AVRMEM *mem, int n, Segment_t *seglist);
+  const AVRPART *p, AVRMEM *mem, int n, const Segment_t *seglist);
 
 #ifdef __cplusplus
 }
