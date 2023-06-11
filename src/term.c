@@ -67,6 +67,7 @@ struct command {
 
 static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -93,6 +94,7 @@ struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
+  { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
@@ -634,6 +636,110 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   return 0;
 }
 
+static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: save <mem> {<addr> <len>} <file>[:<format>]\n"
+      "Function: save memory segments to file (default format :r raw binary)\n"
+    );
+    return -1;
+  }
+
+  AVRMEM *mem, *omem;
+  if(!(omem = avr_locate_mem(p, argv[1]))) {
+    pmsg_error("(save) %s memory type not defined for part %s\n", argv[1], p->desc);
+    return -1;
+  }
+
+  if(argc > 3 && !(argc&1))
+    pmsg_error("(save) need pairs <addr> <len> to describe memory segments\n");
+
+  // Last char of filename is format if the penultimate char is a colon
+  FILEFMT format = FMT_RBIN;
+  char *fn = argv[argc-1];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // Assume format specified
+    format = fileio_format(fn[len-1]);
+    if(format == FMT_ERROR) {
+      pmsg_error("(save) invalid file format :%c; known formats are\n", fn[len-1]);
+      for(int f, c, i=0; i<62; i++) {
+        c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
+        f = fileio_format(c);
+        if(f != FMT_ERROR)
+          msg_error("  :%c %s\n", c, fileio_fmtstr(f));
+      }
+      return -1;
+    }
+    len -= 2;
+  }
+  char *filename = memcpy(cfg_malloc(__func__, len+1), fn, len);
+
+  mem = avr_dup_mem(omem);
+  int n = argc > 3? (argc-3)/2: 1;
+  Segment_t *seglist = cfg_malloc(__func__, n*sizeof*seglist);
+
+  int ret = -1;
+
+  // Build memory segment list
+  seglist[0].addr = 0;          // Defaults to entire memory
+  seglist[0].len = mem->size;
+  if(argc > 3) {
+    for(int cc = 2, i = 0; i < n; i++, cc+=2) {
+      const char *errstr;
+      seglist[i].addr = str_int(argv[cc], STR_INT32, &errstr);
+      if(errstr) {
+        pmsg_error("(save) address %s: %s\n", argv[cc], errstr);
+        goto done;
+      }
+      seglist[i].len = str_int(argv[cc+1], STR_INT32, &errstr);
+      if(errstr) {
+        pmsg_error("(save) length %s: %s\n", argv[cc], errstr);
+        goto done;
+      }
+    }
+  }
+
+  int nbytes = 0;               // Total number of bytes to save
+  for(int i=0; i<n; i++) {      // Ensure addr and lengths are non-negative
+    if(segment_normalise(mem, seglist+i) < 0)
+      goto done;
+    nbytes += seglist[i].len;
+  }
+
+  if(nbytes <= 0 && !str_eq(filename, "-"))
+    pmsg_warning("(save) no file written owing to empty memory segment%s\n",
+      str_plural(n));
+
+  if(nbytes <= 0) {
+    ret = 0;
+    goto done;
+  }
+
+  // Read memory from device/cache
+  report_progress(0, 1, "Reading");
+  for(int i = 0; i < n; i++) {
+    for(int j = seglist[i].addr; j < seglist[i].addr + seglist[i].len; j++) {
+      int rc = pgm->read_byte_cached(pgm, p, mem, j, mem->buf+j);
+      if(rc < 0) {
+        report_progress(1, -1, NULL);
+        pmsg_error("(save) error reading %s address 0x%0*x of part %s\n",
+          mem->desc, j<16? 1: j<256? 2: j<65536? 4: 5, j, p->desc);
+        return -1;
+      }
+      report_progress(j, nbytes, NULL);
+    }
+  }
+  report_progress(1, 1, NULL);
+
+  ret = fileio_segments(FIO_WRITE, filename, format, p, mem, n, seglist);
+
+ done:
+  avr_free_mem(mem);
+  free(seglist);
+  free(filename);
+
+  return ret < 0? ret: 0;
+}
 
 static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   if(argc > 1) {
