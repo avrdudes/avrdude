@@ -94,6 +94,8 @@ Changes since version 7.1:
     - -c urclock should progressively shrink metadata #1352
     - Write errors in fuses/lock bits with unused bits #1371
     - Some SPI read/write commands incompatible with .ATDF #1370
+    - Avrdude can segfault writing ihex or srec files #1390
+    - Avrdude srec format too lax when writing #1391
 
   * Pull requests:
 
@@ -147,6 +149,8 @@ Changes since version 7.1:
     - Write fuse/lock only when terminal config changes them #1378
     - Provide programmer arduino_as_isp #1383
     - Provide debug messages for the dryrun programmer #1385
+    - Rewrite fileio functions to cater for memory segments #1392
+    - Add more documentation for programmers #1393, #1394, #1395
 
   * Internals:
 
