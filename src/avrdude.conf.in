@@ -777,6 +777,18 @@ programmer
 # dryrun
 #------------------------------------------------------------
 
+# Using -c dryrun is a good way to get acquainted with AVRDUDE and its
+# command line -U memory operations, -T terminal commands or the
+# interactive terminal -t. No hardware needs to be connected, as the
+# dryrun programmer emulates what can be expected to happen with a real
+# -c programmer and a corresponding connected physical programmer or a
+# directly connected board when it has a bootloader.
+#
+# Examples:
+# avrdude -c dryrun -p ATmega328P -t # Interactive terminal: enter help
+# avrdude -c dryrun -p ATmega2560 -U flash:w:myapplication.hex:i
+# avrdude -c dryrun -p AVR64DB48 -Tconfig
+
 programmer
     id                     = "dryrun";
     desc                   = "Emulates programming without a programmer";
