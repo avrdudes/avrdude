@@ -1449,7 +1449,7 @@ int fileio(int op, const char *filename, FILEFMT format,
 
 
 // Normalise segment address and length to be non-negative
-int segmemt_normalise(AVRMEM *mem, Segment_t *segp) {
+int segmemt_normalise(const AVRMEM *mem, Segment_t *segp) {
   int addr = segp->addr, len = segp->len, maxsize = mem->size;
   int digits = maxsize > 0x10000? 5: 4;
 
@@ -1479,7 +1479,7 @@ int segmemt_normalise(AVRMEM *mem, Segment_t *segp) {
 
 
 static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, AVRMEM *mem, int n, Segment_t *seglist) {
+  const AVRPART *p, const AVRMEM *mem, int n, Segment_t *seglist) {
 
   int op, rc;
   FILE * f;
@@ -1630,7 +1630,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
 }
 
 int fileio_segments(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, AVRMEM *mem, int n, const Segment_t *list) {
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *list) {
 
   Segment_t *seglist = cfg_malloc(__func__, n*sizeof*seglist);
   memcpy(seglist, list, n*sizeof*seglist);

@@ -1036,10 +1036,10 @@ int fileio_fmt_autodetect(const char *fname);
 int fileio(int oprwv, const char *filename, FILEFMT format,
   const AVRPART *p, const char *memtype, int size);
 
-int segmemt_normalise(AVRMEM *mem, Segment_t *segp);
+int segmemt_normalise(const AVRMEM *mem, Segment_t *segp);
 
 int fileio_segments(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, AVRMEM *mem, int n, const Segment_t *seglist);
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *seglist);
 
 #ifdef __cplusplus
 }
