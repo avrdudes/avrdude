@@ -46,7 +46,7 @@
 .Op Fl q
 .Op Fl T Ar cmd
 .Op Fl t
-.Op Fl U Ar memtype:op:filename:filefmt
+.Op Fl U Ar memory:op:filename:filefmt
 .Op Fl v
 .Op Fl x Ar extended_param
 .Op Fl V
@@ -710,15 +710,15 @@ Tells
 to enter the interactive terminal shell before up- or downloading files
 via the -U option or processing other -T terminal commands, if any. See
 below for a detailed description of the terminal mode.
-.It Xo Fl U Ar memtype Ns
+.It Xo Fl U Ar memory Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
 .Op \&: Ns Ar format
 .Xc
 Perform a memory operation as indicated. Multiple -U operations are
 allowed. The
-.Ar memtype
-field specifies the memory type to operate on.
+.Ar memory
+field specifies the memory to operate on.
 The available memory types are device-dependent, the actual
 configuration can be viewed with the
 .Cm part
