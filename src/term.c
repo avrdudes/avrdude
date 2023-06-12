@@ -1675,7 +1675,7 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     term_out(cmd[i].desc, cmd[i].name);
     term_out("\n");
   }
-  term_out("  !<scmd> : run the command <scmd> in a subshell, eg, !ls\n\n"
+  term_out("  !<line> : run the shell <line> in a subshell, eg, !ls *.hex\n\n"
     "For more details about a terminal command cmd type cmd -?\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"

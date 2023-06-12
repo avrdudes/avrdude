@@ -2281,6 +2281,11 @@ Leave terminal mode and thus AVRDUDE.
 @item q
 Can be used as an alias for @code{quit}.
 
+@item !@var{line}
+Run the shell @var{line} in a subshell, eg, @code{!ls *.hex}. Subshell
+commands are always complete lines on their own.
+
+
 @end table
 
 @noindent

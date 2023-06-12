@@ -1162,6 +1162,9 @@ Leave terminal mode and thus
 .Nm avrdude .
 .It Ar q
 Can be used as an alias for quit.
+.It Ar !<line>
+Run the shell <line> in a subshell, eg, !ls *.hex. Subshell commands are
+always complete lines on their own.
 .El
 .Pp
 The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
