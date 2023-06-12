@@ -1136,14 +1136,15 @@ void walk_programmer_types(/*LISTID programmer_types,*/ walk_programmer_types_cb
 
 /* formerly config.h */
 
-extern LISTID       part_list;
-extern LISTID       programmers;
+extern LISTID      part_list;
+extern LISTID      programmers;
 extern const char *default_programmer;
 extern const char *default_parallel;
 extern const char *default_serial;
 extern const char *default_spi;
-extern double       default_bitclock;
-extern char const * default_linuxgpio;
+extern double      default_bitclock;
+extern char const *default_linuxgpio;
+extern int         allow_subshells;
 
 /* This name is fixed, it's only here for symmetry with
  * default_parallel and default_serial. */

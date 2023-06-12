@@ -421,6 +421,7 @@ default_serial     = "@DEFAULT_SER_PORT@";
 default_spi        = "@DEFAULT_SPI_PORT@";
 # default_bitclock = 2.5;
 default_linuxgpio  = "@DEFAULT_LINUXGPIO_PORT@";
+allow_subshells    = no;
 
 @HAVE_PARPORT_BEGIN@
 

@@ -1675,7 +1675,7 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     term_out(cmd[i].desc, cmd[i].name);
     term_out("\n");
   }
-  term_out("\n"
+  term_out("  !<scmd> : run the command <scmd> in a subshell, eg, !ls\n\n"
     "For more details about a terminal command cmd type cmd -?\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
@@ -1895,6 +1895,21 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
   // Skip blank lines and comments
   if (!*q || (*q == '#'))
     return 0;
+
+  if(*q == '!') {
+    if(allow_subshells) {
+      while(*++q && isspace((unsigned char) *q))
+        continue;
+      errno = 0;
+      int shret = *q? system(q): 0;
+      if(errno)
+        pmsg_warning("system() call returned %d: %s\n", shret, strerror(errno));
+    } else {
+      pmsg_warning("subshell commands are by default not allowed in the terminal\n");
+      imsg_warning("allow_subshells = yes; in avrdude.rc or ~/.avrduderc changes this\n");
+    }
+    return 0;
+  }
 
   // Tokenize command line
   do {

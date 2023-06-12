@@ -573,6 +573,7 @@ int main(int argc, char * argv [])
   default_spi        = "";
   default_bitclock   = 0.0;
   default_linuxgpio  = "";
+  allow_subshells    = 0;
 
   init_config();
 

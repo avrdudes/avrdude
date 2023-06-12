@@ -2701,6 +2701,15 @@ option.
 Assign the default bitclock value.  Can be overridden using the @option{-B}
 option.
 
+@item allow_subshells = @var{no};
+Whether or not AVRDUDE's interactive terminal is allowed to use subshell
+@code{!} commands. This defaults to no for security reasons, eg, in the
+rare case @code{avrdude -t} is set up with attached hardware to provide a
+web service, remote ssh or a login on a PC instead of a shell, say, for
+demo or training purposes. In almost all other cases this can be
+overridden in the personal @code{avrddude.rc} or @code{.avrduderc}
+configuration file with @var{yes}.
+
 @end table
 
 
