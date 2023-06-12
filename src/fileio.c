@@ -1440,7 +1440,7 @@ int fileio(int op, const char *filename, FILEFMT format,
     return -1;
   }
 
-  if(size < 0 || op == FIO_READ || FIO_READ_FOR_VERIFY)
+  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
     size = mem->size;
 
   const Segment_t seg = {0, size};
