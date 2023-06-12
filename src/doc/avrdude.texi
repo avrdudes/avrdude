@@ -1959,7 +1959,7 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides a
 command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
-The @var{addr} and @var{len} parameters of the dump, read, write, and erase
+The @var{addr} and @var{len} parameters of the dump, read, write, save and erase
 commands can be negative with the same syntax as substring computations in
 perl or python. The table below details their meaning with respect to an
 example memory of size @code{sz=0x800}.
@@ -2058,7 +2058,7 @@ Read all bytes from the specified memory, and display them (deprecated: use @cod
 @item read
 Can be used as an alias for dump.
 
-@item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
+@item write @var{memtype} @var{addr} @var{data[,]} @var{@{data[,]@}}
 Manually program the respective memory cells, starting at address
 @var{addr}, using the data items provided. The terminal implements
 reading from and writing to flash and EEPROM type memories normally
@@ -2182,11 +2182,22 @@ and paste of lists.
 The start address @code{addr} may be omitted if the size of the memory
 being written to is 1 byte in size.
 
-@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @{@var{data[,]}@} @dots{}
+@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
 The ellipsis @dots{} form writes the data to the entire memory intervall
 addressed by @var{addr len} and, if necessary, pads the remaining space by
 repeating the last data item. The fill write command does not write beyond
 the specified memory area even if more data than needed were given.
+
+@item save @var{memory} @var{@{addr len@}} @var{file[:format]}
+Save one or more memory segments to a file in a format specified by the
+@code{:}format letter. The default is @code{:r} for raw binary. Each
+memory segment is described by an address and length pair. In absence of
+any memory segments the entire memory is saved to the file. Only Motorola
+S-Record (@code{:s}) and Intel Hex (@code{:i} or @code{:I}) formats store
+address information with the saved data.  Avrdude cannot currently save
+ELF file formats. All the other file formats lose the address information
+and concatenate the chosen memory segments into the output file. If the
+file name is - then avrdude writes to stdout.
 
 @item erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
