@@ -2283,8 +2283,10 @@ Can be used as an alias for @code{quit}.
 
 @item !@var{line}
 Run the shell @var{line} in a subshell, eg, @code{!ls *.hex}. Subshell
-commands are always complete lines on their own.
-
+commands take the rest of the line as their command. For security reasons,
+they must  be enabled explictly by putting @code{allow_subshells = yes;}
+into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
+@code{$@{HOME@}/.avrduderc} file.
 
 @end table
 

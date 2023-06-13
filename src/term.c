@@ -1922,8 +1922,12 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
         if(errno)
           pmsg_warning("system() call returned %d: %s\n", shret, strerror(errno));
       } else {
-        pmsg_warning("subshell commands are by default not allowed in the terminal\n");
-        imsg_warning("allow_subshells = yes; in avrdude.rc or ~/.avrduderc changes this\n");
+        pmsg_info("by default subshell commands are not allowed in the terminal; to change put\n");
+#if defined(WIN32)
+        imsg_info("allow_subshells = yes; into " USER_CONF_FILE "\n");
+#else
+        imsg_info("allow_subshells = yes; into ~/.config/avrdude/avrdude.rc or ~/.avrduderc\n");
+#endif
       }
       free(argv);
       return 0;
