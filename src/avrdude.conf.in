@@ -3945,77 +3945,6 @@ part parent "2333"
 ;
 
 #------------------------------------------------------------
-# AT90S4434
-#------------------------------------------------------------
-
-part
-##### WARNING: No XML file for device 'AT90S4434'! #####
-    desc                   = "AT90S4434";
-    id                     = "4434";
-    variants               =
-        "AT90S4434-8AC: TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
-        "AT90S4434-8AI: TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
-        "AT90S4434-8JC: LCC44,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
-        "AT90S4434-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
-        "AT90S4434-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
-        "AT90S4434-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
-    prog_modes             = PM_SPM | PM_ISP;
-    mcuid                  = 192;
-    n_interrupts           = 17;
-    stk500_devcode         = 0x52;
-    avr910_devcode         = 0x6c;
-    chip_erase_delay       = 20000;
-    signature              = 0x1e 0x92 0x02;
-    chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
-    pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
-
-    memory "eeprom"
-        size               = 256;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        readback           = 0x00 0xff;
-        read               = "1010.0000--xxxx.xxxx--aaaa.aaaa--oooo.oooo";
-        write              = "1100.0000--xxxx.xxxx--aaaa.aaaa--iiii.iiii";
-    ;
-
-    memory "flash"
-        size               = 4096;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        readback           = 0xff 0xff;
-        read_lo            = "0010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
-        read_hi            = "0010.1000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
-        write_lo           = "0100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
-        write_hi           = "0100.1000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
-    ;
-
-    memory "fuse"
-        size               = 1;
-        initval            = 0xdf;
-        bitmask            = 0x21;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        read               = "0101.1000--xxxx.xxxx--xxxx.xxxx--xxox.xxxo";
-        write              = "1010.1100--1011.111i--xxxx.xxxx--xxxx.xxxx";
-    ;
-
-    memory "lock"
-        size               = 1;
-        initval            = 0xff;
-        bitmask            = 0x06;
-        min_write_delay    = 9000;
-        max_write_delay    = 20000;
-        read               = "0 1 0 1 1 0 0 0  x x x x x x x x  x x x x x x x x  o1 o2 x x x x x x";
-        write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
-    ;
-
-    memory "signature"
-        size               = 3;
-        read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
-    ;
-;
-
-#------------------------------------------------------------
 # AT90S8515
 #------------------------------------------------------------
 
@@ -4195,6 +4124,51 @@ part
     memory "signature"
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+;
+
+#------------------------------------------------------------
+# AT90S4434
+#------------------------------------------------------------
+
+# No XML file for device AT90S4434, so parenting off AT90S8535
+# with which it shares the datasheet.
+
+part parent "8535"
+    desc                   = "AT90S4434";
+    id                     = "4434";
+    variants               =
+        "AT90S4434-8AC: TQFP44, Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8AI: TQFP44, Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8JC: LCC44,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8JI: LCC44,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8PC: DIP40,  Fmax=8 MHz, T=[0 C,   70 C], Vcc=[4 V, 6 V]",
+        "AT90S4434-8PI: DIP40,  Fmax=8 MHz, T=[-40 C, 85 C], Vcc=[4 V, 6 V]";
+    mcuid                  = 192;
+    stk500_devcode         = 0x52;
+    avr910_devcode         = 0x6c;
+    signature              = 0x1e 0x92 0x02;
+
+    memory "eeprom"
+        size               = 256;
+        read               = "1010.0000--xxxx.xxxx--aaaa.aaaa--oooo.oooo";
+        write              = "1100.0000--xxxx.xxxx--aaaa.aaaa--iiii.iiii";
+    ;
+
+    memory "flash"
+        size               = 4096;
+        read_lo            = "0010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
+        read_hi            = "0010.1000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
+        write_lo           = "0100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
+        write_hi           = "0100.1000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
+    ;
+
+    memory "fuse"
+        max_write_delay    = 20000;
+    ;
+
+    memory "lock"
+        max_write_delay    = 20000;
     ;
 ;
 
