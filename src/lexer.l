@@ -179,6 +179,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 }
 
 alias            { yylval=NULL; return K_ALIAS; }
+allow_subshells  { yylval=NULL; return K_ALLOW_SUBSHELLS; }
 allowfullpagebitstream { yylval=NULL; ccap(); return K_ALLOWFULLPAGEBITSTREAM; }
 buff             { yylval=NULL; ccap(); return K_BUFF; }
 chip_erase       { yylval=new_token(K_CHIP_ERASE); ccap(); return K_CHIP_ERASE; }

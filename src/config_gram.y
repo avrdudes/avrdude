@@ -73,6 +73,7 @@ static int pin_name;
 %token K_PAGE_SIZE
 
 %token K_ALIAS
+%token K_ALLOW_SUBSHELLS
 %token K_BUFF
 %token K_CONNTYPE
 %token K_DEDICATED
@@ -230,6 +231,11 @@ def :
 
   K_DEFAULT_BITCLOCK TKN_EQUAL number_real TKN_SEMI {
     default_bitclock = $3->value.number_real;
+    free_token($3);
+  } |
+
+  K_ALLOW_SUBSHELLS TKN_EQUAL numexpr TKN_SEMI {
+    allow_subshells = $3->value.number;
     free_token($3);
   } |
 

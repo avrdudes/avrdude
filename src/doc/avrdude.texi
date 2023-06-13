@@ -2292,6 +2292,13 @@ Leave terminal mode and thus AVRDUDE.
 @item q
 Can be used as an alias for @code{quit}.
 
+@item !@var{line}
+Run the shell @var{line} in a subshell, eg, @code{!ls *.hex}. Subshell
+commands take the rest of the line as their command. For security reasons,
+they must  be enabled explictly by putting @code{allow_subshells = yes;}
+into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
+@code{$@{HOME@}/.avrduderc} file.
+
 @end table
 
 @noindent
@@ -2711,6 +2718,15 @@ option.
 @item default_bitclock = "@var{default-bitclock}";
 Assign the default bitclock value.  Can be overridden using the @option{-B}
 option.
+
+@item allow_subshells = @var{no};
+Whether or not AVRDUDE's interactive terminal is allowed to use subshell
+@code{!} commands. This defaults to no for security reasons, eg, in the
+rare case @code{avrdude -t} is set up with attached hardware to provide a
+web service, remote ssh or a login on a PC instead of a shell, say, for
+demo or training purposes. In almost all other cases this can be
+overridden in the personal @code{avrddude.rc} or @code{.avrduderc}
+configuration file with @var{yes}.
 
 @end table
 
@@ -3603,7 +3619,7 @@ compiler version that still supports MinGW builds, or use MinGW
 @noindent
 AVRDUDE on Windows looks for a system configuration file name of
 @code{avrdude.conf} and looks for a user override configuration file of
-@code{avrdude.rc}.
+@code{avrdude.rc} in the same directory where avrdude.exe is located.
 
 @c
 @c Node

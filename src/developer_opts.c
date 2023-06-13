@@ -905,6 +905,7 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
     dev_info("default_spi        = %s;\n", p = cfg_escape(default_spi)); free(p);
     dev_info("default_bitclock   = %7.5f;\n", default_bitclock);
     dev_info("default_linuxgpio  = %s;\n", p = cfg_escape(default_linuxgpio)); free(p);
+    dev_info("allow_subshells    = %s;\n", allow_subshells? "yes": "no");
 
     dev_info("\n#\n# PROGRAMMER DEFINITIONS\n#\n\n");
   }
