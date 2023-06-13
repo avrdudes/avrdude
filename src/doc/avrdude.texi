@@ -3608,7 +3608,7 @@ compiler version that still supports MinGW builds, or use MinGW
 @noindent
 AVRDUDE on Windows looks for a system configuration file name of
 @code{avrdude.conf} and looks for a user override configuration file of
-@code{avrdude.rc}.
+@code{avrdude.rc} in the same directory where avrdude.exe is located.
 
 @c
 @c Node
