@@ -1203,13 +1203,13 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
       break;
   }
 
-  for (int i = segp->addr; i < segp->addr + segp->len; i++) {
+  for(int seen = 0, i = segp->addr; i < segp->addr + segp->len; i++) {
     char cbuf[81];
 
-    if (i > 0) {
-      if (putc(',', f) == EOF)
+    if(seen++)
+      if(putc(',', f) == EOF)
         goto writeerr;
-    }
+
     unsigned num = mem->buf[i];
     /*
      * For a base of 8 and a value < 8 to convert, don't write the
@@ -1440,7 +1440,7 @@ int fileio(int op, const char *filename, FILEFMT format,
     return -1;
   }
 
-  if(size < 0 || op == FIO_READ || FIO_READ_FOR_VERIFY)
+  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
     size = mem->size;
 
   const Segment_t seg = {0, size};
@@ -1449,7 +1449,7 @@ int fileio(int op, const char *filename, FILEFMT format,
 
 
 // Normalise segment address and length to be non-negative
-int segmemt_normalise(const AVRMEM *mem, Segment_t *segp) {
+int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
   int addr = segp->addr, len = segp->len, maxsize = mem->size;
   int digits = maxsize > 0x10000? 5: 4;
 
@@ -1493,7 +1493,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     return -1;
 
   for(int i=0; i<n; i++)
-    if(segmemt_normalise(mem, seglist+i) < 0)
+    if(segment_normalise(mem, seglist+i) < 0)
       return -1;
 
   using_stdio = 0;
@@ -1639,4 +1639,3 @@ int fileio_segments(int oprwv, const char *filename, FILEFMT format,
 
   return ret;
 }
-

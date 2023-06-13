@@ -770,11 +770,11 @@ downloading files via the @code{-U} option or processing other @code{-T}
 terminal commands, if any.  See below for a detailed description of the
 terminal mode.
 
-@item -U @var{memtype}:@var{op}:@var{filename}[:@var{format}]
+@item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
 Perform a memory operation.
 Multiple @option{-U} options can be specified in order to operate on
 multiple memories on the same command-line invocation.  The
-@var{memtype} field specifies the memory type to operate on. Use
+@var{memory} field specifies the memory type to operate on. Use
 the @option{-v} option on the command line or the @code{part} command from
 terminal mode to display all the memory types supported by a particular
 device.
@@ -1959,7 +1959,7 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides a
 command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
-The @var{addr} and @var{len} parameters of the dump, read, write, and erase
+The @var{addr} and @var{len} parameters of the dump, read, write, save and erase
 commands can be negative with the same syntax as substring computations in
 perl or python. The table below details their meaning with respect to an
 example memory of size @code{sz=0x800}.
@@ -2037,28 +2037,28 @@ The following commands are implemented for all programmers:
 
 @table @code
 
-@item dump @var{memtype} @var{addr} @var{len}
+@item dump @var{memory} @var{addr} @var{len}
 Read from the specified memory interval (see above), and display in the usual hexadecimal and
 ASCII form.
 
-@item dump @var{memtype} @var{addr}
+@item dump @var{memory} @var{addr}
 Read from memory addr as many bytes as the most recent dump memory addr len command with this
 very memory had specified (default 256 bytes), and display them.
 
-@item dump @var{memtype}
+@item dump @var{memory}
 Continue dumping from the memory and location where the most recent dump command left off; if no
 previous dump command has addressed a memory an error message will be shown.
 
-@item dump @var{memtype} @var{addr} @dots{}
-Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memtype} @var{addr} -1}).
+@item dump @var{memory} @var{addr} @dots{}
+Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memory} @var{addr} -1}).
 
-@item dump @var{memtype} @dots{}
-Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memtype} 0 -1}).
+@item dump @var{memory} @dots{}
+Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memory} 0 -1}).
 
 @item read
 Can be used as an alias for dump.
 
-@item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
+@item write @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
 Manually program the respective memory cells, starting at address
 @var{addr}, using the data items provided. The terminal implements
 reading from and writing to flash and EEPROM type memories normally
@@ -2178,15 +2178,26 @@ as it is the same as @code{0xFFFFffffFFFFffffU}.
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
-@item write @var{memtype} @var{addr} @var{data}
+@item write @var{memory} @var{addr} @var{data}
 The start address @code{addr} may be omitted if the size of the memory
 being written to is 1 byte in size.
 
-@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @{@var{data[,]}@} @dots{}
+@item write @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
 The ellipsis @dots{} form writes the data to the entire memory intervall
 addressed by @var{addr len} and, if necessary, pads the remaining space by
 repeating the last data item. The fill write command does not write beyond
 the specified memory area even if more data than needed were given.
+
+@item save @var{memory} @var{@{addr len@}} @var{file[:format]}
+Save one or more memory segments to a file in a format specified by the
+@code{:}format letter. The default is @code{:r} for raw binary. Each
+memory segment is described by an address and length pair. In absence of
+any memory segments the entire memory is saved to the file. Only Motorola
+S-Record (@code{:s}) and Intel Hex (@code{:i} or @code{:I}) formats store
+address information with the saved data.  Avrdude cannot currently save
+ELF file formats. All the other file formats lose the address information
+and concatenate the chosen memory segments into the output file. If the
+file name is - then avrdude writes to stdout.
 
 @item erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
@@ -2869,7 +2880,7 @@ part
     # parameters for bootloaders
     autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 
-    memory <memtype>
+    memory <memory>
         paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
         offset          = <num> ;             # memory offset
         size            = <num> ;             # bytes

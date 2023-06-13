@@ -46,7 +46,7 @@
 .Op Fl q
 .Op Fl T Ar cmd
 .Op Fl t
-.Op Fl U Ar memtype:op:filename:filefmt
+.Op Fl U Ar memory:op:filename:filefmt
 .Op Fl v
 .Op Fl x Ar extended_param
 .Op Fl V
@@ -710,15 +710,15 @@ Tells
 to enter the interactive terminal shell before up- or downloading files
 via the -U option or processing other -T terminal commands, if any. See
 below for a detailed description of the terminal mode.
-.It Xo Fl U Ar memtype Ns
+.It Xo Fl U Ar memory Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
 .Op \&: Ns Ar format
 .Xc
 Perform a memory operation as indicated. Multiple -U operations are
 allowed. The
-.Ar memtype
-field specifies the memory type to operate on.
+.Ar memory
+field specifies the memory to operate on.
 The available memory types are device-dependent, the actual
 configuration can be viewed with the
 .Cm part
@@ -962,7 +962,7 @@ The
 .Ar addr
 and
 .Ar len
-parameters of the dump, read, write and erase commands can be
+parameters of the dump, read, write, save and erase commands can be
 negative with the same syntax as substring computations in perl or python.
 The table below details their meaning with respect to an example memory of size
 sz=0x800.
@@ -1077,6 +1077,19 @@ and, if necessary, pads the remaining space by repeating the last
 .Ar data
 item. The fill write command does not write beyond the specified memory area
 even if more data than needed were given.
+.It Ar save memory {addr len} file[:format]
+Save one or more memory segments to a file in a format specified by the
+:format letter. The default is :r for raw binary. Each memory segment is
+described by an address and length pair. In absence of any memory segments
+the entire memory is saved to the file. Only Motorola S-Record (:s) and
+Intel Hex (:i or :I) formats store address information with the saved
+data.
+.Nm Avrdude
+cannot currently save ELF file formats. All the other file formats lose
+the address information and concatenate the chosen memory segments into
+the output file. If the file name is - then
+.Nm
+writes to stdout.
 .It Ar erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
 Note that EEPROM will be preserved if the EESAVE fuse bit is set.
