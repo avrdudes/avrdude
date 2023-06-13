@@ -28,7 +28,8 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
+Copyright @copyright{} Hans Eirik Bull, Brian Dean, Stefan R@"uger and
+J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -57,15 +58,16 @@ the terms of the GNU Free Documentation License (FDL), version 1.3.
 
 @titlepage
 @title AVRDUDE
-@subtitle A program for download/uploading AVR microcontroller flash and eeprom.
-@subtitle For AVRDUDE, Version @value{VERSION}, @value{UPDATED}.
-@author by Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
+@subtitle A program for downloading/uploading AVR microcontroller flash, EEPROM and more
+@subtitle for AVRDUDE, Version @value{VERSION}, @value{UPDATED}
+@author by Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and
+@author J@"org Wunsch
 
 @page
 
 Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
-Copyright @copyright{} Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
+Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -99,7 +101,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
-Copyright @copyright{} Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
+Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org Wunsch
 @end ifinfo
 
 @menu
@@ -373,13 +375,13 @@ savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
 addition to FreeBSD, AVRDUDE now runs on Linux and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
-Weddington, and Joerg Wunsch.
+Weddington, and J@"org Wunsch.
 
 In 2022, the project moved to Github (@url{https://github.com/avrdudes/avrdude/}).
 
 And in the spirit of many open source projects, this manual also draws
 on the work of others.  The initial revision was composed of parts of
-the original Unix manual page written by Joerg Wunsch, the original web
+the original Unix manual page written by J@"org Wunsch, the original web
 site documentation by Brian Dean, and from the comments describing the
 fields in the AVRDUDE configuration file by Brian Dean.  The texi
 formatting was modeled after that of the Simulavr documentation by Ted
