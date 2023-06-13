@@ -1805,13 +1805,12 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
       stk600_setup_xprog(pgm);
     } else {
       stk600_setup_isp(pgm);
-      AVRMEM *mem = avr_locate_mem(p, "flash");
-      if(mem && mem->op[AVR_OP_WRITE_LO]) { // Old part that can only write flash bytewise
-        pgm->write_byte = avr_write_byte_default;
-        pgm->read_byte = avr_read_byte_default;
-      }
     }
   }
+  AVRMEM *mem = avr_locate_mem(p, "flash");
+  if(mem && mem->op[AVR_OP_WRITE_LO]) // Old part that can only write flash bytewise
+    if(mem->page_size < 2)  // Override page size, as STK500v2/EDBG uses flash word addresses
+      mem->page_size = 2;
 
   return;
 }
