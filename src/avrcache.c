@@ -144,11 +144,11 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   int rc, pgsize = mem->page_size, base = addr & ~(pgsize-1);
-  unsigned char *pagecopy = cfg_malloc("avr_read_page_default()", pgsize);
 
   if(pgsize == 1)
     return fallback_read_byte(pgm, p, mem, addr, buf);
 
+  unsigned char *pagecopy = cfg_malloc(__func__, pgsize);
   memcpy(pagecopy, mem->buf + base, pgsize);
   if((rc = pgm->paged_load(pgm, p, mem, pgsize, base, pgsize)) >= 0)
     memcpy(buf, mem->buf + base, pgsize);
@@ -182,11 +182,11 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   int rc, pgsize = mem->page_size, base = addr & ~(pgsize-1);
-  unsigned char *pagecopy = cfg_malloc("avr_write_page_default()", pgsize);
 
   if(pgsize == 1)
     return fallback_write_byte(pgm, p, mem, addr, *data);
 
+  unsigned char *pagecopy = cfg_malloc(__func__, pgsize);
   memcpy(pagecopy, mem->buf + base, pgsize);
   memcpy(mem->buf + base, data, pgsize);
   rc = pgm->paged_write(pgm, p, mem, pgsize, base, pgsize);
