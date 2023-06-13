@@ -651,8 +651,10 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     return -1;
   }
 
-  if(argc > 3 && !(argc&1))
+  if(argc > 3 && !(argc&1)) {
     pmsg_error("(save) need pairs <addr> <len> to describe memory segments\n");
+    return -1;
+  }
 
   // Last char of filename is format if the penultimate char is a colon
   FILEFMT format = FMT_RBIN;
