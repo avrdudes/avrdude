@@ -13,9 +13,12 @@ Changes since version 7.1:
     - Support -U UPDI EEPROM write #1318
     - avrdude.conf reconciled with ATDFs #1343
     - New programmer dryrun for testing #1347
-    - Can write files in terminal write #1358
-    - Terminal command config #1365
     - New -T cmd to mix terminal with -U commands #1373
+    - Terminal
+        + Command config (mnemonic fuse setting) #1365
+        + Write to memory from files #1358
+        + Command save memory to file #1396
+        + Subshell command ! #1397
 
   * New devices supported:
 
@@ -151,6 +154,8 @@ Changes since version 7.1:
     - Provide debug messages for the dryrun programmer #1385
     - Rewrite fileio functions to cater for memory segments #1392
     - Add more documentation for programmers #1393, #1394, #1395
+    - Provide terminal save command #1396
+    - Provide terminal subshell command ! #1397
 
   * Internals:
 
