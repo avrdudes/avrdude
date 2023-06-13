@@ -1785,8 +1785,8 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 /*
  * Simplified shell-like tokenising of a command line, which is broken up
  * into an (argc, argv) style pointer array until
- *   - A token ends with a semicolon, which is set to nul
- *   - A token starts with a comment character #
+ *   - A not end-of-line token ends with a semicolon, which is set to nul
+ *   - A token starts with a comment character # or subshell character !
  *   - The end of the string is encountered
  *
  * Tokenisation takes single and double quoted strings into consideration. In
@@ -1820,16 +1820,23 @@ static char *tokenize(char *s, int *argcp, char ***argvp) {
   buf  = (char *) (argv+nargs+1);
 
   for(n=0, r=s; *r; ) {
-    q = str_nexttok(r, " \t\n\r\v\f", &r);
-    if(*q == '#') {             // Inline comment: ignore rest of line
+    if(n == 0 && *r == '!') {   // Subshell command ! takes rest of line
+      q = r;
       r = q+strlen(q);
-      break;
+    } else {
+      q = str_nexttok(r, " \t\n\r\v\f", &r);
+      if(*q == '#') {           // Inline comment: ignore rest of line
+        r = q+strlen(q);
+        break;
+      }
     }
     strcpy(buf, q);
     if(*buf && !str_eq(buf, ";")) // Don't record empty arguments
       argv[n++] = buf;
-    buf += strlen(q) + 1;
-    if(buf[-2] == ';') {        // Command separator
+
+    size_t len = strlen(q);
+    buf += len + 1;
+    if(n && **argv != '!' && len > 1 && buf[-2] == ';') { // End command
       buf[-2] = 0;
       break;
     }
@@ -1896,29 +1903,32 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
   if (!*q || (*q == '#'))
     return 0;
 
-  if(*q == '!') {
-    if(allow_subshells) {
-      while(*++q && isspace((unsigned char) *q))
-        continue;
-      errno = 0;
-      int shret = *q? system(q): 0;
-      if(errno)
-        pmsg_warning("system() call returned %d: %s\n", shret, strerror(errno));
-    } else {
-      pmsg_warning("subshell commands are by default not allowed in the terminal\n");
-      imsg_warning("allow_subshells = yes; in avrdude.rc or ~/.avrduderc changes this\n");
-    }
-    return 0;
-  }
-
-  // Tokenize command line
+  // Tokenise command line
   do {
     argc = 0; argv = NULL;
     q = tokenize(q, &argc, &argv);
     if(!q)
       return -1;
+
     if(argc <= 0 || !argv)
       continue;
+
+    if(argc == 1 && **argv == '!') {
+      if(allow_subshells) {
+        for(q=argv[0]+1; *q && isspace((unsigned char) *q); q++)
+          continue;
+        errno = 0;
+        int shret = *q? system(q): 0;
+        if(errno)
+          pmsg_warning("system() call returned %d: %s\n", shret, strerror(errno));
+      } else {
+        pmsg_warning("subshell commands are by default not allowed in the terminal\n");
+        imsg_warning("allow_subshells = yes; in avrdude.rc or ~/.avrduderc changes this\n");
+      }
+      free(argv);
+      return 0;
+    }
+
     // Run the command
     rc = do_cmd(pgm, p, argc, argv);
     free(argv);
