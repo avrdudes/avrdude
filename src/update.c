@@ -147,7 +147,8 @@ void free_update(UPDATE * u)
 
 char *update_str(const UPDATE *upd) {
   if(upd->cmdline)
-    return str_sprintf("-T %s", upd->cmdline);
+    return str_sprintf("-%c %s",
+      str_eq("interactive terminal", upd->cmdline)? 't': 'T', upd->cmdline);
   return str_sprintf("-U %s:%c:%s:%c",
     upd->memtype,
     upd->op == DEVICE_READ? 'r': upd->op == DEVICE_WRITE? 'w': 'v',
@@ -375,8 +376,13 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   pmsg_info("processing %s\n", tofree = update_str(upd));
   free(tofree);
 
-  if(upd->cmdline)
-    return terminal_line(pgm, p, upd->cmdline);
+  if(upd->cmdline) {
+    if(!str_eq(upd->cmdline, "interactive terminal"))
+      return terminal_line(pgm, p, upd->cmdline);
+    // Interactive terminal shell
+    clearerr(stdin);
+    return terminal_mode(pgm, p);
+  }
 
   mem = avr_locate_mem(p, upd->memtype);
   if (mem == NULL) {

@@ -696,31 +696,31 @@ to the device.  Specify it more often for even quieter operations.
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 .It Fl T Ar cmd
-Slots a terminal command line
+Run terminal line
 .Ar cmd
-into the intermixed list of -T terminal commands and -U memory operations.
-The terminal command line is executed when it is its turn in the mixed list.
-Except for the simplest of terminal commands the argument
+when it is its turn in relation to other -t interactive terminal shells,
+-T terminal commands and -U memory operations. Except for the simplest
+of terminal commands the argument
 .Ar cmd
 will most likely need to be set in quotes, see your OS shell manual for
-details.
+details. See below for a detailed description of all terminal commands.
 .It Fl t
 Tells
 .Nm
-to enter the interactive terminal shell before up- or downloading files
-via the -U option or processing other -T terminal commands, if any. See
-below for a detailed description of the terminal mode.
+to run an interactive terminal shell when it is its turn in relation to
+other -t interactive terminal shells, -T terminal commands and -U memory
+operations.
 .It Xo Fl U Ar memory Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
 .Op \&: Ns Ar format
 .Xc
-Perform a memory operation as indicated. Multiple -U operations are
-allowed. The
+Perform a memory operation as indicated  when it is its turn in relation to
+other -t interactive terminal shells, -T terminal commands and -U memory
+operations. The
 .Ar memory
-field specifies the memory to operate on.
-The available memory types are device-dependent, the actual
-configuration can be viewed with the
+field specifies the memory to operate on. The available memory types are
+device-dependent, the actual configuration can be viewed with the
 .Cm part
 command in terminal mode.
 Typically, a device's memory configuration at least contains
