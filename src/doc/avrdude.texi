@@ -28,7 +28,7 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} Brian Dean, J@"org Wunsch
+Copyright @copyright{} Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -59,13 +59,13 @@ the terms of the GNU Free Documentation License (FDL), version 1.3.
 @title AVRDUDE
 @subtitle A program for download/uploading AVR microcontroller flash and eeprom.
 @subtitle For AVRDUDE, Version @value{VERSION}, @value{UPDATED}.
-@author by Brian S. Dean
+@author by Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
 
 @page
 
 Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
-Copyright @copyright{} Brian S. Dean, J@"org Wunsch
+Copyright @copyright{} Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -99,7 +99,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
-Copyright @copyright{} Brian S. Dean, J@"org Wunsch
+Copyright @copyright{} Brian S. Dean, Hans Bull, Stefan R@"uger and J@"org Wunsch
 @end ifinfo
 
 @menu
