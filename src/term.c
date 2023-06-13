@@ -1924,7 +1924,7 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
       } else {
         pmsg_info("by default subshell commands are not allowed in the terminal; to change put\n");
 #if defined(WIN32)
-        imsg_info("allow_subshells = yes; into " USER_CONF_FILE "\n");
+        imsg_info("allow_subshells = yes; into " USER_CONF_FILE " in the avrdude.exe directory\n");
 #else
         imsg_info("allow_subshells = yes; into ~/.config/avrdude/avrdude.rc or ~/.avrduderc\n");
 #endif
