@@ -1440,6 +1440,14 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem) {
   return avr_memtype_is_eeprom_type(mem->desc);
 }
 
+int avr_memtype_is_usersig_type(const char *memtype) {
+  return memtype && (str_eq(memtype, "usersig") || str_eq(memtype, "userrow"));
+}
+
+int avr_mem_is_usersig_type(const AVRMEM *mem) {
+  return avr_memtype_is_usersig_type(mem->desc);
+}
+
 int avr_mem_is_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
