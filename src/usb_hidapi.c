@@ -123,10 +123,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
     if (dev == NULL)
     {
-      if (verbose > 1) {
-      pmsg_warning("USB device with VID: 0x%04x and PID: 0x%04x not found\n",
+      pmsg_notice2("USB device with VID: 0x%04x and PID: 0x%04x not found\n",
         pinfo.usbinfo.vid, pinfo.usbinfo.pid);
-      }
       return -1;
     }
   }
