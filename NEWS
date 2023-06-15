@@ -99,6 +99,11 @@ Changes since version 7.1:
     - Some SPI read/write commands incompatible with .ATDF #1370
     - Avrdude can segfault writing ihex or srec files #1390
     - Avrdude srec format too lax when writing #1391
+    - Avrdude fails with AT90S8515 #433
+    - AT90S8515 STK500v2: only odd bytes are programmed #500
+    - STK500v2 ATtiny15 problem #509
+    - Downgrade missing USB device warning #1398
+    - Avrdude can not write usersig in terminal mode #1361
 
   * Pull requests:
 
@@ -156,6 +161,15 @@ Changes since version 7.1:
     - Add more documentation for programmers #1393, #1394, #1395
     - Provide terminal save command #1396
     - Provide terminal subshell command ! #1397
+    - Fix stk500v2.c's write_byte() for old parts #1386
+    - Document terminal comments #1399
+    - Expand authorship of documentation #1400
+    - Fix memory leak in avrcache.c #1401
+    - Run -t interactive terminals when it is their turn with
+      respect to -t/-T/-U command line option order #1402
+    - Mute missing USB device warning for lower verbosity #1403
+    - Implement bytewise cache for usersig #1404
+    - Relax checks before executing the -T/-U operations #1405
 
   * Internals:
 
