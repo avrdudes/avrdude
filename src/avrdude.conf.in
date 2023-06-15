@@ -12897,6 +12897,26 @@ part parent "m2561"
         delay              = 50;
         load_ext_addr      = NULL;
     ;
+
+    #####
+    # Three separate flash pages
+    #   - Offset 0x100 in signature row
+    #   - Only programmable with JTAG or HVPP
+    #   - Readable from an application
+    #   - Cannot be read using ISP
+    #   - Not erased by chip erase
+    #
+    memory "usersig"
+        paged              = yes;
+        size               = 768;
+        page_size          = 256;
+        num_pages          = 3;
+        offset             = 0x100;
+        mode               = 0x41;
+        delay              = 50;
+        blocksize          = 256;
+        readsize           = 256;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12940,6 +12960,26 @@ part parent "m2561"
 
     memory "efuse"
         initval            = 0xfe;
+    ;
+
+    #####
+    # Three separate flash pages
+    #   - Offset 0x100 in signature row
+    #   - Only programmable with JTAG or HVPP
+    #   - Readable from an application
+    #   - Cannot be read using ISP
+    #   - Not erased by chip erase
+    #
+    memory "usersig"
+        paged              = yes;
+        size               = 768;
+        page_size          = 256;
+        num_pages          = 3;
+        offset             = 0x100;
+        mode               = 0x41;
+        delay              = 50;
+        blocksize          = 256;
+        readsize           = 256;
     ;
 ;
 
