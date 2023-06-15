@@ -81,6 +81,7 @@ PROGRAMMER *pgm_new(void) {
   // Allocate cache structures for flash and EEPROM, *do not* free in pgm_free()
   pgm->cp_flash = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
   pgm->cp_eeprom = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_usersig = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
 
   // Default values
   pgm->initpgm = NULL;
@@ -179,7 +180,7 @@ void pgm_free(PROGRAMMER *p) {
     }
     // Never free const char *, eg, p->desc, which are set by cache_string()
     // p->cookie is freed by pgm_teardown
-    // Never free cp_eeprom or cp_flash cache structures
+    // Never free cp_flash, cp_eeprom or cp_usersig cache structures
     free(p);
   }
 }
@@ -196,6 +197,8 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
       free(pgm->cp_flash);
     if(pgm->cp_eeprom)
       free(pgm->cp_eeprom);
+    if(pgm->cp_usersig)
+      free(pgm->cp_usersig);
 
     memcpy(pgm, src, sizeof(*pgm));
 

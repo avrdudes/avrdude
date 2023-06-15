@@ -836,7 +836,7 @@ typedef struct programmer_t {
                           unsigned int addr);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
-  AVR_Cache *cp_flash, *cp_eeprom;
+  AVR_Cache *cp_flash, *cp_eeprom, *cp_usersig;
 
   const char *config_file;      // Config file where defined
   int  lineno;                  // Config file line number
@@ -946,6 +946,10 @@ int avr_mem_is_flash_type(const AVRMEM *mem);
 int avr_memtype_is_eeprom_type(const char *mem);
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem);
+
+int avr_memtype_is_usersig_type(const char *mem);
+
+int avr_mem_is_usersig_type(const AVRMEM *mem);
 
 int avr_mem_is_known(const char *str);
 
