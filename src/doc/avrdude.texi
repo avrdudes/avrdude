@@ -759,20 +759,20 @@ is no longer present. They are silently ignored for backwards compatibility.
 
 @item -T @var{cmd}
 Run terminal line @var{cmd} when it is its turn in relation to other
-@code{-t} interactive terminal shells, @code{-T} terminal commands and
+@code{-t} interactive terminals, @code{-T} terminal commands and
 @code{-U} memory operations. Except for the simplest of terminal commands
 the argument @var{cmd} will most likely need to be set in quotes, see your
 OS shell manual for details. See below for a detailed description of all
 terminal commands.
 
 @item -t
-Tells AVRDUDE to run an interactive terminal shell when it is its turn in
-relation to other @code{-t} interactive terminal shells, @code{-T}
+Tells AVRDUDE to run an interactive terminal when it is its turn in
+relation to other @code{-t} interactive terminals, @code{-T}
 terminal commands and @code{-U} memory operations.
 
 @item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
 Perform a memory operation when it is its turn in relation to other
-@code{-t} interactive terminal shells, @code{-T} terminal commands and
+@code{-t} interactive terminals, @code{-T} terminal commands and
 @code{-U} memory operations. The @var{memory} field specifies the memory
 type to operate on. Use the @option{-T part} option on the command line or
 the @code{part} command in the interactive terminal to display all the
