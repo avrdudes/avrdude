@@ -240,12 +240,11 @@ static void usage(void)
     "  -F                     Override invalid signature or initial checks\n"
     "  -e                     Perform a chip erase\n"
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
-    "  -t                     Enter terminal shell before processing -U/T\n"
-    "  -T <terminal cmd line> Slot terminal line into a list and run in turn\n"
+    "  -t                     Run an interactive terminal when it is its turn\n"
+    "  -T <terminal cmd line> Run terminal line when it is its turn\n"
     "  -U <memtype>:r|w|v:<filename>[:format]\n"
-    "                         Memory operation specification\n"
-    "                         Multiple -U/T options are allowed; each request\n"
-    "                         is performed in the specified intermixed order\n"
+    "                         Carry out memory operation when it is its turn\n"
+    "                         Multiple -t, -T and -U options can be specified\n"
     "  -n                     Do not write to the device whilst processing -U\n"
     "  -V                     Do not automatically verify during -U\n"
     "  -E <exitsp>[,<exitsp>] List programmer exit specifications\n"
@@ -511,11 +510,10 @@ int main(int argc, char * argv [])
   int     erase;       /* 1=erase chip, 0=don't */
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
-  int     terminal;    /* 1=enter terminal mode, 0=don't */
   const char *exitspecs; /* exit specs string from command line */
   const char *programmer; /* programmer id */
-  int     explicit_c;  /* 1=explicit -c on command line, 0=not spcified  there */
-  int     explicit_e;  /* 1=explicit -e on command line, 0=not spcified  there */
+  int     explicit_c;  /* 1=explicit -c on command line, 0=not specified there */
+  int     explicit_e;  /* 1=explicit -e on command line, 0=not specified there */
   char    sys_config[PATH_MAX]; /* system wide config file */
   char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
@@ -603,7 +601,6 @@ int main(int argc, char * argv [])
   calibrate     = 0;
   p             = NULL;
   ovsigck       = 0;
-  terminal      = 0;
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
@@ -767,7 +764,7 @@ int main(int argc, char * argv [])
         break;
 
       case 't': /* enter terminal mode */
-        terminal = 1;
+        ladd(updates, cmd_update("interactive terminal"));
         break;
 
       case 's':
@@ -1249,7 +1246,6 @@ int main(int argc, char * argv [])
         upd->filename, mtype);
       upd->memtype = cfg_strdup("main()", mtype);
     }
-
     rc = update_dryrun(p, upd);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL)
       doexit = 1;
@@ -1486,15 +1482,6 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (terminal) {
-    /*
-     * terminal mode
-     */
-    if (uflags & UF_NOWRITE)
-      pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
-    exitrc = terminal_mode(pgm, p);
-  }
-
   if (!init_ok) {
     /*
      * If we came here by the -tF options, bail out now.
@@ -1504,7 +1491,7 @@ int main(int argc, char * argv [])
   }
 
 
-  int wrmem = 0;
+  int wrmem = 0, terminal = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
@@ -1514,6 +1501,8 @@ int main(int argc, char * argv [])
       pgm->flush_cache(pgm, p);
       wrmem |= upd->op == DEVICE_WRITE;
     }
+    if((uflags & UF_NOWRITE) && !terminal++ && upd->cmdline)
+      pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
     rc = do_op(pgm, p, upd, uflags);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;

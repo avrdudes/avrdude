@@ -760,26 +760,25 @@ These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 
 @item -T @var{cmd}
-Slots a terminal command line @var{cmd} into the intermixed list of
-@code{-T} terminal commands and @code{-U} memory operations. The terminal
-command line is executed when it is its turn in the mixed list. Except for
-the simplest of terminal commands the argument @var{cmd} will most likely
-need to be set in quotes, see your OS shell manual for details.
+Run terminal line @var{cmd} when it is its turn in relation to other
+@code{-t} interactive terminals, @code{-T} terminal commands and
+@code{-U} memory operations. Except for the simplest of terminal commands
+the argument @var{cmd} will most likely need to be set in quotes, see your
+OS shell manual for details. See below for a detailed description of all
+terminal commands.
 
 @item -t
-Tells AVRDUDE to enter the interactive terminal shell before uploading or
-downloading files via the @code{-U} option or processing other @code{-T}
-terminal commands, if any.  See below for a detailed description of the
-terminal mode.
+Tells AVRDUDE to run an interactive terminal when it is its turn in
+relation to other @code{-t} interactive terminals, @code{-T}
+terminal commands and @code{-U} memory operations.
 
 @item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
-Perform a memory operation.
-Multiple @option{-U} options can be specified in order to operate on
-multiple memories on the same command-line invocation.  The
-@var{memory} field specifies the memory type to operate on. Use
-the @option{-v} option on the command line or the @code{part} command from
-terminal mode to display all the memory types supported by a particular
-device.
+Perform a memory operation when it is its turn in relation to other
+@code{-t} interactive terminals, @code{-T} terminal commands and
+@code{-U} memory operations. The @var{memory} field specifies the memory
+type to operate on. Use the @option{-T part} option on the command line or
+the @code{part} command in the interactive terminal to display all the
+memory types supported by a particular device.
 
 Typically, a device's memory configuration at least contains the memory
 types @code{flash}, @code{eeprom}, @code{signature} and @code{lock}, which
