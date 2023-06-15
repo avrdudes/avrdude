@@ -2299,6 +2299,9 @@ they must  be enabled explictly by putting @code{allow_subshells = yes;}
 into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
 @code{$@{HOME@}/.avrduderc} file.
 
+@item # @var{comment}
+Place comments onto the terminal line (useful for scripts).
+
 @end table
 
 @noindent
