@@ -4424,8 +4424,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4433,8 +4433,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4443,8 +4443,8 @@ part
         size               = 1;
         initval            = 0xfd;
         bitmask            = 0x03;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxii";
     ;
@@ -4453,8 +4453,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -4556,8 +4556,8 @@ part
     memory "eeprom"
         size               = 4096;
         page_size          = 8;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 10000;
+        max_write_delay    = 10000;
         readback           = 0xff 0xff;
         mode               = 0x04;
         delay              = 20;
@@ -4572,8 +4572,8 @@ part
         size               = 0x20000;
         page_size          = 256;
         num_pages          = 512;
-        min_write_delay    = 4500;
-        max_write_delay    = 4500;
+        min_write_delay    = 5000;
+        max_write_delay    = 5000;
         readback           = 0xff 0x00;
         mode               = 0x21;
         delay              = 10;
@@ -4589,8 +4589,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4598,8 +4598,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4608,8 +4608,8 @@ part
         size               = 1;
         initval            = 0xfd;
         bitmask            = 0x03;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxii";
     ;
@@ -4618,8 +4618,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -5169,8 +5169,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -5178,8 +5178,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -5188,8 +5188,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -7059,8 +7059,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7068,8 +7068,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7078,8 +7078,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -7321,8 +7321,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7330,8 +7330,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7340,8 +7340,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -12886,18 +12886,37 @@ part parent "m2561"
     ocdrev                 = 3;
 
     memory "eeprom"
+        min_write_delay    = 13000;
+        max_write_delay    = 13000;
         delay              = 50;
     ;
 
     memory "flash"
         size               = 0x20000;
         num_pages          = 512;
-        min_write_delay    = 50000;
-        max_write_delay    = 50000;
         delay              = 50;
         load_ext_addr      = NULL;
     ;
 
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
     #####
     # Three separate flash pages
     #   - Offset 0x100 in signature row
@@ -12940,8 +12959,6 @@ part parent "m128rfa1"
 
     memory "eeprom"
         size               = 8192;
-        min_write_delay    = 13000;
-        max_write_delay    = 13000;
         read               = "1010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
@@ -12950,8 +12967,6 @@ part parent "m128rfa1"
     memory "flash"
         size               = 0x40000;
         num_pages          = 1024;
-        min_write_delay    = 4500;
-        max_write_delay    = 4500;
         load_ext_addr      = "0100.1101--0000.0000--0000.000a--0000.0000";
     ;
 
@@ -13001,8 +13016,6 @@ part parent "m128rfa1"
 
     memory "eeprom"
         size               = 2048;
-        min_write_delay    = 13000;
-        max_write_delay    = 13000;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xx.xaaa--aaaa.a000--xxxx.xxxx";
