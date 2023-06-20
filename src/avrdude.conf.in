@@ -12941,6 +12941,8 @@ part parent "m2561"
         page_size          = 256;
         num_pages          = 3;
         offset             = 0x100;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         mode               = 0x41;
         delay              = 50;
         blocksize          = 256;
