@@ -361,9 +361,11 @@ void dev_print_comment(const LISTID comms) {
 static void dev_cout(const LISTID comms, const char *name, int rhs, int elself) {
   COMMENT *cp;
 
+  if(elself == 2)
+    dev_info("\n");
   if((cp = locate_comment(comms, name, rhs)))
     dev_print_comment(cp->comms);
-  else if(elself)
+  else if(elself == 1)
     dev_info("\n");
 }
 
@@ -819,7 +821,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
           continue;
       }
 
-      dev_cout(m->comments, "*", 0, 1);
+      dev_cout(m->comments, "*", 0, 2);
       dev_info("    memory \"%s\"\n", m->desc);
     }
 
