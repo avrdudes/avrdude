@@ -9348,7 +9348,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny87 has Signature Bytes: 0x1E 0x93 0x87.
+
+    # ATtiny87 has signature bytes 0x1E 0x93 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -9496,7 +9497,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny167 has Signature Bytes: 0x1E 0x94 0x87.
+
+    # ATtiny167 has signature bytes 0x1E 0x94 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -11142,11 +11144,13 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny2313 has Signature Bytes: 0x1E 0x91 0x0A.
+
+    # ATtiny2313 has signature bytes 0x1E 0x91 0x0A
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
 # The Tiny2313 has calibration data for both 4 MHz and 8 MHz.
 # The information in the data sheet of April/2004 is wrong, this works:
 
@@ -11314,7 +11318,8 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny4313 has Signature Bytes: 0x1E 0x92 0x0D.
+
+    # ATtiny4313 has signature bytes 0x1E 0x92 0x0D
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -11594,7 +11599,8 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   AT90PWM2 has Signature Bytes: 0x1E 0x93 0x81.
+
+    # AT90PWM2 has signature bytes 0x1E 0x93 0x81
     memory "signature"
         size               = 3;
         read               = "0011.0000--00xx.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12059,7 +12065,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny25 has Signature Bytes: 0x1E 0x91 0x08.
+
+    # ATtiny25 has signature bytes 0x1E 0x91 0x08
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12218,7 +12225,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny45 has Signature Bytes: 0x1E 0x92 0x08. (Data sheet 2586C-AVR-06/05 (doc2586.pdf) indicates otherwise!)
+
+    # ATtiny45 has signature bytes 0x1E 0x92 0x08 (data sheet 2586C-AVR-06/05 doc2586.pdf indicates otherwise)
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12374,7 +12382,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny85 has Signature Bytes: 0x1E 0x93 0x08.
+
+    # ATtiny85 has signature bytes 0x1E 0x93 0x08
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12917,6 +12926,7 @@ part parent "m2561"
         min_write_delay    = 4500;
         max_write_delay    = 4500;
     ;
+
     #####
     # Three separate flash pages
     #   - Offset 0x100 in signature row
@@ -13219,7 +13229,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny24 has Signature Bytes: 0x1E 0x91 0x0B.
+
+    # ATtiny24 has signature bytes 0x1E 0x91 0x0B
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -13398,7 +13409,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny44 has Signature Bytes: 0x1E 0x92 0x07.
+
+    # ATtiny44 has signature bytes 0x1E 0x92 0x07
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -13576,7 +13588,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny84 has Signature Bytes: 0x1E 0x93 0x0C.
+
+    # ATtiny84 has signature bytes 0x1E 0x93 0x0C
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -17113,6 +17126,7 @@ part parent ".xmega"
     n_interrupts           = 127;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x51;
+
 #   usbpid                 = 0x2f??;
 
     memory "eeprom"
