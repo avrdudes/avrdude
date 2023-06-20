@@ -12923,7 +12923,7 @@ part parent "m2561"
 # ATmega256RFR2
 #------------------------------------------------------------
 
-part parent "m2561"
+part parent "m128rfa1"
     desc                   = "ATmega256RFR2";
     id                     = "m256rfr2";
     variants               =
@@ -12934,52 +12934,29 @@ part parent "m2561"
     mcuid                  = 108;
     n_interrupts           = 77;
     chip_erase_delay       = 18500;
-    bs2                    = 0xe2;
     signature              = 0x1e 0xa8 0x02;
-    pp_controlstack        =
-        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
-        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
-        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
-        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    latchcycles            = 5;
     chiperasepolltimeout   = 20;
+    ocdrev                 = 4;
 
     memory "eeprom"
         size               = 8192;
         min_write_delay    = 13000;
         max_write_delay    = 13000;
-        delay              = 50;
         read               = "1010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
     ;
 
     memory "flash"
-        delay              = 50;
+        size               = 0x40000;
+        num_pages          = 1024;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        load_ext_addr      = "0100.1101--0000.0000--0000.000a--0000.0000";
     ;
 
     memory "efuse"
         initval            = 0xfe;
-    ;
-
-    #####
-    # Three separate flash pages
-    #   - Offset 0x100 in signature row
-    #   - Only programmable with JTAG or HVPP
-    #   - Readable from an application
-    #   - Cannot be read using ISP
-    #   - Not erased by chip erase
-    #
-    memory "usersig"
-        paged              = yes;
-        size               = 768;
-        page_size          = 256;
-        num_pages          = 3;
-        offset             = 0x100;
-        mode               = 0x41;
-        delay              = 50;
-        blocksize          = 256;
-        readsize           = 256;
     ;
 ;
 
