@@ -4519,7 +4519,7 @@ part
     boot_section_size      = 1024;
     stk500_devcode         = 0xb2;
     avr910_devcode         = 0x43;
-    chip_erase_delay       = 9000;
+    chip_erase_delay       = 10000;
     pagel                  = 0xd7;
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x02;
@@ -7254,7 +7254,7 @@ part
     boot_section_size      = 256;
     stk500_devcode         = 0x70;
     avr910_devcode         = 0x76;
-    chip_erase_delay       = 10000;
+    chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc2;
     signature              = 0x1e 0x93 0x07;
@@ -12874,7 +12874,7 @@ part parent "m2561"
         "ATmega128RFA1-ZUR00:     VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 87;
     n_interrupts           = 72;
-    chip_erase_delay       = 55000;
+    chip_erase_delay       = 18500;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa7 0x01;
     pp_controlstack        =
@@ -12952,7 +12952,6 @@ part parent "m128rfa1"
         "ATmega256RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 108;
     n_interrupts           = 77;
-    chip_erase_delay       = 18500;
     signature              = 0x1e 0xa8 0x02;
     chiperasepolltimeout   = 20;
     ocdrev                 = 4;
