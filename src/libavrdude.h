@@ -336,7 +336,7 @@ typedef struct avrmem {
   int pwroff_after_write;     /* after this memory type is written to,
                                  the device must be powered off and
                                  back on, see errata
-                                 http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf */
+                                 https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf */
   unsigned char readback[2];  /* polled read-back values */
 
   int mode;                   /* stk500 v2 xml file parameter */
