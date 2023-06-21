@@ -625,9 +625,11 @@ programmer
 # atisp
 #------------------------------------------------------------
 
+# https://micro-research.co.th
+
 programmer
     id                     = "atisp";
-    desc                   = "AT-ISP v1.1 programming cable for AVR-SDK1 from <https://micro-research.co.th>";
+    desc                   = "AT-ISP v1.1 programming cable for AVR-SDK1";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~6;
@@ -640,9 +642,11 @@ programmer
 # ere-isp-avr
 #------------------------------------------------------------
 
+# No longer exists: http://www.ere.co.th/download/sch050713.pdf
+
 programmer
     id                     = "ere-isp-avr";
-    desc                   = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
+    desc                   = "ERE ISP-AVR";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~4;
@@ -672,7 +676,7 @@ programmer
 #------------------------------------------------------------
 
 # It is almost same as pony-stk200, except vcc on pin 5 to auto
-# disconnect port (download on http://electropol.free.fr/spip/spip.php?article27)
+# disconnect port, see http://electropol.free.fr/spip/spip.php?article27
 
 programmer parent "pony-stk200"
     id                     = "frank-stk200";
@@ -1174,14 +1178,18 @@ programmer
 # Kristech KT-LINK FT2232H interface with IO switching and voltage buffers.
 # Created on 20220410 by CeDeROM Tomasz CEDRO (www.cederom.io).
 # Interface DataSheet: https://kristech.pl/files/KT-LINK-UM-ENG.pdf
+#
 # AVRDUDE FT2232H PIN NUMBER DECODE:
 #  | 0      | 1      | .. | 7      | 8      | 9      | .. | 15     |
 #  | ADBUS0 | ADBUS1 | .. | ADBUS7 | ACBUS0 | ACBUS1 | .. | ACBUS7 |
+#
 # KT-LINK JTAG CONN:
 #  1=Vsense(->EXT13), 19=5V(EXT1->EXT3), 20=GND, 3=TPIRST, 9=TPICLK, 7=TPIDATA.
+#
 # INTERNALS CONFIGURATION ("~" MEANS ACTIVE LOW):
 #  ~TRST_EN=10(ACBUS2), ~CLK_EN=14(ACBUS6), ~SDO_EN=13(ACBUS5),
 #  TMS_SEL=5(ADBUS5), ~TMS_EN=12(ACBUS4), LED=~15(ACBUS7).
+#
 # CONNECTION NOTES:
 #  * Connect EXT connector pin 1 with 3 to get 5V on JTAG connector pin 19.
 #  * Connect JTAG connector pin 1 to 5V (i.e. EXT pin 13 or JTAG pin 19).
@@ -1190,7 +1198,7 @@ programmer
 
 programmer
     id                     = "ktlink";
-    desc                   = "KT-LINK FT2232H interface with IO switching and voltage buffers.";
+    desc                   = "KT-LINK FT2232H interface with IO switching and voltage buffers";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1705,14 +1713,16 @@ programmer
 # usbtiny
 #------------------------------------------------------------
 
-# USBtiny can also be used for TPI programming.
+# https://learn.adafruit.com/usbtinyisp
+#
+# The ISP USBtiny programmer can also be used for TPI programming.
 # In that case, a resistor of 1 kOhm is needed between SDI and SDO
 # pins of the connector, and SDI (pin 1 of the 6-pin connector)
 # connects to TPIDATA.
 
 programmer
     id                     = "usbtiny";
-    desc                   = "USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp";
+    desc                   = "USBtiny simple USB programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1784,11 +1794,12 @@ programmer
 # ehajo-isp
 #------------------------------------------------------------
 
-# commercial version of USBtiny, using a separate VID/PID
+# Commercial version of USBtiny using a separate VID/PID from
+# http://www.eHaJo.de (closed from end of 2023)
 
 programmer
     id                     = "ehajo-isp";
-    desc                   = "avr-isp-programmer from eHaJo, http://www.eHaJo.de";
+    desc                   = "AVR ISP programmer from eHaJo.de";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1800,12 +1811,14 @@ programmer
 # iseavrprog
 #------------------------------------------------------------
 
-# commercial version of USBtiny, using a separate VID/PID
+# Commercial version of USBtiny using a separate VID/PID from
+# https://iascaled.com
+#
 # https://github.com/IowaScaledEngineering/ckt-avrprogrammer
 
 programmer
     id                     = "iseavrprog";
-    desc                   = "USBtiny-based programmer, https://iascaled.com";
+    desc                   = "AVR ISP programmer from iascaled.com";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -2769,12 +2782,13 @@ programmer
 # siprog
 #------------------------------------------------------------
 
+# Serial port adapter http://www.lancos.com/siprogsch.html
 # Same as above, different name
 # reset=!txd sck=rts sdo=dtr sdi=cts
 
 programmer parent "ponyser"
     id                     = "siprog";
-    desc                   = "Lancos SI-Prog <http://www.lancos.com/siprogsch.html>";
+    desc                   = "Lancos SI-Prog";
 ;
 
 #------------------------------------------------------------
