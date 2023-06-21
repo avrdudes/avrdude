@@ -280,7 +280,7 @@ static void pmshorten(char *desc, const char *modes) {
 
   for(size_t i=0; i<sizeof pairs/sizeof*pairs; i++) {
     size_t elen = strlen(pairs[i].end);
-    if(len > elen && strcasecmp(desc+len-elen, pairs[i].end) == 0 && strcmp(modes, pairs[i].mode) == 0) {
+    if(len > elen && str_caseeq(desc+len-elen, pairs[i].end) && str_eq(modes, pairs[i].mode)) {
       desc[len-elen] = 0;
       break;
     }
@@ -431,7 +431,7 @@ static void replace_backslashes(char *s)
 static int dev_opt(const char *str) {
   return
     !str? 0:
-    !strcmp(str, "*") || !strncmp(str, "*/", 2)? 2:
+    str_eq(str, "*") || str_starts(str, "*/")? 2:
     !!strchr(str, '/');
 }
 
@@ -559,7 +559,7 @@ int main(int argc, char * argv [])
     progname = argv[0];
 
   // Remove trailing .exe
-  if(strlen(progname) > 4 && strcmp(progname+strlen(progname)-4, ".exe") == 0) {
+  if(str_ends(progname, ".exe")) {
     progname = cfg_strdup("main()", progname); // Don't write to argv[0]
     progname[strlen(progname)-4] = 0;
   }
@@ -1025,8 +1025,8 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (partdesc) {
-    if (strcmp(partdesc, "?") == 0) {
+  if(partdesc) {
+    if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
         PROGRAMMER *pgm = locate_programmer(programmers, pgmid);
         if(!pgm) {
@@ -1045,7 +1045,7 @@ int main(int argc, char * argv [])
   }
 
   if(pgmid) {
-    if(strcmp(pgmid, "?") == 0) {
+    if(str_eq(pgmid, "?")) {
       if(partdesc && *partdesc) {
         AVRPART *p = locate_part(part_list, partdesc);
         if(!p) {
@@ -1062,7 +1062,7 @@ int main(int argc, char * argv [])
       exit(1);
     }
 
-    if(strcmp(pgmid, "?type") == 0) {
+    if(str_eq(pgmid, "?type")) {
       msg_error("\nValid programmer types are:\n");
       list_programmer_types(stderr, "  ");
       msg_error("\n");
@@ -1219,7 +1219,7 @@ int main(int argc, char * argv [])
   }
 
   if(verbose > 0) {
-    if ((strcmp(pgm->type, "avr910") == 0)) {
+    if((str_eq(pgm->type, "avr910"))) {
       imsg_notice("avr910_devcode (avrdude.conf) : ");
       if(p->avr910_devcode)
         msg_notice("0x%02x\n", (uint8_t) p->avr910_devcode);
@@ -1305,7 +1305,7 @@ int main(int argc, char * argv [])
     else
       imsg_error("- double check the connections and try again\n");
 
-    if (strcmp(pgm->type, "serialupdi") == 0 || strcmp(pgm->type, "SERBB") == 0)
+    if(str_eq(pgm->type, "serialupdi") || str_eq(pgm->type, "SERBB"))
       imsg_error("- use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
     else
       imsg_error("- use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
@@ -1452,7 +1452,7 @@ int main(int argc, char * argv [])
         m = avr_locate_mem(p, upd->memtype);
         if (m == NULL)
           continue;
-        if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
+        if(str_eq(m->desc, memname) && upd->op == DEVICE_WRITE) {
           erase = 1;
           pmsg_info("Note: %s memory has been specified, an erase cycle will be performed.\n", memname);
           imsg_info("To disable this feature, specify the -D option.\n");
