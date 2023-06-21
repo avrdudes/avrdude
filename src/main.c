@@ -214,7 +214,7 @@ int verbose;                    // Verbose output
 int quell_progress;             // Quell progress report and un-verbose output
 int ovsigck;                    // 1 = override sig check, 0 = don't
 const char *partdesc;           // Part id
-
+const char *pgmid;              // Programmer id
 
 /*
  * usage message
@@ -511,7 +511,6 @@ int main(int argc, char * argv [])
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   const char *exitspecs; /* exit specs string from command line */
-  const char *programmer; /* programmer id */
   int     explicit_c;  /* 1=explicit -c on command line, 0=not specified there */
   int     explicit_e;  /* 1=explicit -e on command line, 0=not specified there */
   char    sys_config[PATH_MAX]; /* system wide config file */
@@ -604,7 +603,7 @@ int main(int argc, char * argv [])
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  programmer    = "";
+  pgmid         = "";
   explicit_c    = 0;
   explicit_e    = 0;
   verbose       = 0;
@@ -704,7 +703,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'c': /* programmer id */
-        programmer = optarg;
+        pgmid = optarg;
         explicit_c = 1;
         break;
 
@@ -1003,15 +1002,15 @@ int main(int argc, char * argv [])
     bitclock = default_bitclock;
   }
 
-  if(!(programmer && *programmer) && *default_programmer)
-    programmer = cache_string(default_programmer);
+  if(!(pgmid && *pgmid) && *default_programmer)
+    pgmid = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
-  int dev_opt_c = dev_opt(programmer); // -c <wildcard>/[sSArt]
-  int dev_opt_p = dev_opt(partdesc);   // -p <wildcard>/[dsSArcow*t]
+  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[sSArt]
+  int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[dsSArcow*t]
 
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
-    dev_output_pgm_part(dev_opt_c, programmer, dev_opt_p, partdesc);
+    dev_output_pgm_part(dev_opt_c, pgmid, dev_opt_p, partdesc);
     exit(0);
   }
 
@@ -1028,13 +1027,13 @@ int main(int argc, char * argv [])
 
   if (partdesc) {
     if (strcmp(partdesc, "?") == 0) {
-      if(programmer && *programmer && explicit_c) {
-        PROGRAMMER *pgm = locate_programmer(programmers, programmer);
+      if(pgmid && *pgmid && explicit_c) {
+        PROGRAMMER *pgm = locate_programmer(programmers, pgmid);
         if(!pgm) {
-          programmer_not_found(programmer);
+          programmer_not_found(pgmid);
           exit(1);
         }
-        msg_error("\nValid parts for programmer %s are:\n", programmer);
+        msg_error("\nValid parts for programmer %s are:\n", pgmid);
         list_parts(stderr, "  ", part_list, pgm->prog_modes);
       } else {
         msg_error("\nValid parts are:\n");
@@ -1045,8 +1044,8 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (programmer) {
-    if (strcmp(programmer, "?") == 0) {
+  if(pgmid) {
+    if(strcmp(pgmid, "?") == 0) {
       if(partdesc && *partdesc) {
         AVRPART *p = locate_part(part_list, partdesc);
         if(!p) {
@@ -1063,7 +1062,7 @@ int main(int argc, char * argv [])
       exit(1);
     }
 
-    if (strcmp(programmer, "?type") == 0) {
+    if(strcmp(pgmid, "?type") == 0) {
       msg_error("\nValid programmer types are:\n");
       list_programmer_types(stderr, "  ");
       msg_error("\n");
@@ -1073,14 +1072,14 @@ int main(int argc, char * argv [])
 
   msg_notice("\n");
 
-  if (!programmer || !*programmer) {
+  if(!pgmid || !*pgmid) {
     programmer_not_found(NULL);
     exit(1);
   }
 
-  pgm = locate_programmer(programmers, programmer);
+  pgm = locate_programmer(programmers, pgmid);
   if (pgm == NULL) {
-    programmer_not_found(programmer);
+    programmer_not_found(pgmid);
     exit(1);
   }
 
@@ -1160,7 +1159,7 @@ int main(int argc, char * argv [])
 
   if (verbose > 0) {
     imsg_notice("Using Port                    : %s\n", port);
-    imsg_notice("Using Programmer              : %s\n", programmer);
+    imsg_notice("Using Programmer              : %s\n", pgmid);
   }
 
   if (baudrate != 0) {
@@ -1180,7 +1179,7 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    pmsg_error("unable to open programmer %s on port %s\n", programmer, port);
+    pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
