@@ -876,25 +876,25 @@ programmer
 # ft2232h
 #------------------------------------------------------------
 
-# this will interface with the chips on these programmers:
-#
-# http://real.kiev.ua/old/avreal/en/adapters
-# http://www.amontec.com/jtagkey.shtml, jtagkey-tiny.shtml
-# http://www.olimex.com/dev/arm-usb-ocd.html, arm-usb-tiny.html
-# http://www.ethernut.de/en/hardware/turtelizer/index.html
-# http://elk.informatik.fh-augsburg.de/hhweb/doc/openocd/usbjtag/usbjtag.html
-# http://dangerousprototypes.com/docs/FT2232_breakout_board
-# http://www.ftdichip.com/Products/Modules/DLPModules.htm,DLP-2232*,DLP-USB1232H
-# http://flashrom.org/FT2232SPI_Programmer
+# Interfaces with the chips on these programmers:
+#  - http://real.kiev.ua/old/avreal/en/adapters
+#  - http://www.amontec.com/jtagkey.shtml and .../jtagkey-tiny.shtml
+#  - http://www.olimex.com/dev/arm-usb-ocd.html, arm-usb-tiny.html
+#  - http://www.ethernut.de/en/hardware/turtelizer/index.html
+#  - https://web.archive.org/web/20161221220118/http://elk.informatik.fh-augsburg.de/hhweb/doc/openocd/usbjtag/usbjtag.html
+#  - http://dangerousprototypes.com/docs/FT2232_breakout_board
+#  - http://flashrom.org/FT2232SPI_Programmer
 #
 # The drivers will look for a specific device and use the first one found.
 # If you have mulitple devices, then look for unique information (like SN)
-# And fill that in here.
+# and fill that in here.
 #
 # Note that the pin numbers for the main ISP signals (reset, sck,
 # sdo, sdi) are fixed and cannot be changed, since they must match
 # the way the Multi-Protocol Synchronous Serial Engine (MPSSE) of
 # these FTDI ICs has been designed.
+#
+# See also https://ftdichip.com/wp-content/uploads/2020/07/DS_FT2232H.pdf
 
 programmer
     id                     = "ft2232h";
