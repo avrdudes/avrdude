@@ -1417,7 +1417,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         if (str_caseeq(rts_mode, "low")) {
           PDATA(pgm)->rts_mode = RTS_MODE_LOW;
         } else if (str_caseeq(rts_mode, "high")) {
-          PDATA(pgm)->rts_mode = RTS_MODE_LOW;
+          PDATA(pgm)->rts_mode = RTS_MODE_HIGH;
         } else {
           pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
           return -1;
