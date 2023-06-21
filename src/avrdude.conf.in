@@ -502,9 +502,12 @@ programmer parent "dt006"
 # alf
 #------------------------------------------------------------
 
+# PC Parallel Port Programmer
+# https://web.archive.org/web/20050928233713fw_/http://nightshade.homeip.net/ALF-PgmAVR.htm
+
 programmer
     id                     = "alf";
-    desc                   = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
+    desc                   = "Nightshade ALF-PgmAVR via PC parallel port";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 2, 3, 4, 5;
