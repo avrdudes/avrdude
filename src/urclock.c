@@ -2105,16 +2105,16 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[0] = Cmnd_STK_CHIP_ERASE;
     buf[1] = Sync_CRC_EOP;
 
-    if(urclock_send(pgm, buf, 2) < 0)
+    if(urclock_send(pgm, buf, 2) < 0 || urclock_res_check(pgm, __func__, 0, NULL, 0) < 0) {
+      serial_recv_timeout = bak_timeout;
       return -1;
-    if(urclock_res_check(pgm, __func__, 0, NULL, 0) < 0)
-      return -1;
-
+    }
   } else {                      // Legacy bootloaders use universal extension
     pmsg_notice2("chip erase via universal STK500v1 command\n");
 
-    if (pgm->cmd == NULL) {     // Should not happen
+    if(pgm->cmd == NULL) {      // Should not happen
       pmsg_error("%s programmer does not provide a cmd() method\n", pgm->type);
+      serial_recv_timeout = bak_timeout;
       return -1;
     }
 
@@ -2125,8 +2125,10 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[2] = (uint8_t) (Subc_STK_UNIVERSAL_CE>>8);
     buf[3] = (uint8_t) (Subc_STK_UNIVERSAL_CE);
 
-    if(urclock_cmd(pgm, buf, buf+4) < 0)
+    if(urclock_cmd(pgm, buf, buf+4) < 0) {
+      serial_recv_timeout = bak_timeout;
       return -1;
+    }
   }
 
   serial_recv_timeout = bak_timeout;
