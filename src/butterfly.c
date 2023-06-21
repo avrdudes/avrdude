@@ -140,11 +140,21 @@ static int butterfly_vfy_led(const PROGRAMMER *pgm, int value) {
  * issue the 'chip erase' command to the butterfly board
  */
 static int butterfly_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  butterfly_send(pgm, "e", 1);
-  if (butterfly_vfy_cmd_sent(pgm, "chip erase") < 0)
-      return -1;
+  long bak_timeout = serial_recv_timeout;
+  AVRMEM *fl = avr_locate_mem(p, "flash");
+  int ret = 0;
 
-  return 0;
+  // Estimated time it takes to erase all pages in bootloader
+  long new_timeout = p->chip_erase_delay * (fl? fl->num_pages: 999);
+  if(serial_recv_timeout < new_timeout)
+    serial_recv_timeout = new_timeout;
+
+  butterfly_send(pgm, "e", 1);
+  if(butterfly_vfy_cmd_sent(pgm, "chip erase") < 0)
+    ret = -1;
+
+  serial_recv_timeout = bak_timeout;
+  return ret;
 }
 
 
