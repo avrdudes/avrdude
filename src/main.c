@@ -213,8 +213,8 @@ static PROGRAMMER * pgm;
 int verbose;                    // Verbose output
 int quell_progress;             // Quell progress report and un-verbose output
 int ovsigck;                    // 1 = override sig check, 0 = don't
-const char *partdesc;           // Part id
-const char *pgmid;              // Programmer id
+const char *partdesc;           // Part -p string
+const char *pgmid;              // Programmer -c string
 
 /*
  * usage message
@@ -1103,8 +1103,7 @@ int main(int argc, char * argv [])
       for (LNODEID ln = lfirst(extended_params); ln; ln = lnext(ln)) {
         const char *extended_param = ldata(ln);
         if (str_eq(extended_param, "help")) {
-          char *prg = (char *)ldata(lfirst(pgm->id));
-          msg_error("%s -c %s extended options:\n", progname, prg);
+          msg_error("%s -c %s extended options:\n", progname, pgmid);
           msg_error("  -xhelp    Show this help menu and exit\n");
           exit(0);
         }
