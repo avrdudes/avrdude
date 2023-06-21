@@ -1438,16 +1438,16 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
 
 // -c */[ASsrti]
-void dev_output_pgm_defs(char *pgmid) {
+void dev_output_pgm_defs(char *pgmidcp) {
   bool astrc, strct, cmpst, raw, tsv, injct;
   char *flags;
   int nprinted;
   PROGRAMMER *nullpgm = pgm_new();
 
-  if((flags = strchr(pgmid, '/')))
+  if((flags = strchr(pgmidcp, '/')))
     *flags++ = 0;
 
-  if(!flags && str_eq(pgmid, "*")) // Treat -c * as if it was -c */s
+  if(!flags && str_eq(pgmidcp, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
   if(!*flags || !strchr("ASsrti", *flags)) {
@@ -1494,7 +1494,7 @@ void dev_output_pgm_defs(char *pgmid) {
     PROGRAMMER *pgm = ldata(ln1);
     int matched = 0;
     for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
-      if(str_casematch(pgmid, ldata(ln2))) {
+      if(str_casematch(pgmidcp, ldata(ln2))) {
         matched = 1;
         break;
       }
