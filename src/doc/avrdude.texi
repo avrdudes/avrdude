@@ -1456,10 +1456,12 @@ the MCU's ‘TXD’ line.
 Show help menu and exit.
 @end table
 
+@cindex @code{-x} jtag2updi
 @cindex @code{-x} serialupdi
+@item jtag2updi
 @item serialupdi
 
-The serialupdi programmer type accepts the following extended parameter:
+The jtag2updi and serialupdi programmer types accepts the following extended parameters:
 @table @code
 @item @samp{rtsdtr=low,high}
 Forces RTS/DTR lines to assume low or high state during the whole
