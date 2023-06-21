@@ -1546,9 +1546,6 @@ programmer
 # arduino-ft232r
 #------------------------------------------------------------
 
-# see http://www.geocities.jp/arduino_diecimila/bootloader/index_en.html
-# Note: pins are numbered from 1!
-
 programmer
     id                     = "arduino-ft232r";
     desc                   = "Arduino: FT232R connected to ISP";
