@@ -1075,23 +1075,15 @@ programmer parent "ft232h"
 # o-link
 #------------------------------------------------------------
 
-# On the adapter you can read "O-Link". On the PCB is printed "OpenJTAG v3.1"
-# You can find it as "OpenJTAG ARM JTAG USB" in the internet.
-# (But there are also several projects called Open JTAG, eg.
-# http://www.openjtag.org, which are completely different.)
-#   http://www.100ask.net/shop/english.html (website seems to be outdated)
-#   http://item.taobao.com/item.htm?id=1559277013
-#   http://www.micro4you.com/store/openjtag-arm-jtag-usb.html (schematics!)
-# some other sources which call it O-Link
-#   http://www.andahammer.com/olink/
-#   http://www.developmentboard.net/31-o-link-debugger.html
-#   http://armwerks.com/catalog/o-link-debugger-copy/
-# or just have a look at ebay ...
-# It is basically the same entry as jtagkey with different usb ids.
+# On the adapter you can read "O-Link". On the PCB is printed "OpenJTAG v3.1".
+# You can find it as "OpenJTAG ARM JTAG USB" in the internet. Note there are also
+# several projects called Open JTAG, which are completely different. Some other
+# sources call it O-Link or just have a look at ebay ... It is basically the same
+# entry as jtagkey with different usb ids. See www.100ask.net
 
 programmer parent "jtagkey"
     id                     = "o-link";
-    desc                   = "O-Link, OpenJTAG from www.100ask.net";
+    desc                   = "O-Link, OpenJTAG ARM JTAG USB";
     usbvid                 = 0x1457;
     usbpid                 = 0x5118;
     usbvendor              = "www.100ask.net";
