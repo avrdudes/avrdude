@@ -1461,7 +1461,7 @@ Show help menu and exit.
 @item jtag2updi
 @item serialupdi
 
-The jtag2updi and serialupdi programmer types accepts the following extended parameters:
+The jtag2updi and serialupdi programmer types accept the following extended parameters:
 @table @code
 @item @samp{rtsdtr=low,high}
 Forces RTS/DTR lines to assume low or high state during the whole
