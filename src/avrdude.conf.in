@@ -1546,6 +1546,13 @@ programmer
 # arduino-ft232r
 #------------------------------------------------------------
 
+# This programmer helps programming the Arduino Diecimila, NG and
+# Duemilanove (but not the Uno) without bootloader or external
+# programmer using the on-board FT232RL chip. Instructions here:
+# https://make.kosakalab.com/arduino/bootloader/index_en.html
+# Note that the -c diecimila avrdude.conf entry mentioned in above post
+# is the same as the -c arduino-ft232r entry here.
+
 programmer
     id                     = "arduino-ft232r";
     desc                   = "Arduino: FT232R connected to ISP";
