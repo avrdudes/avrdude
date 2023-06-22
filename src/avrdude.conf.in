@@ -1653,6 +1653,22 @@ programmer
 # special USB controller is needed.
 #
 # Firmware, schematics and drivers are available under above URL, too.
+#
+# Alternative firmware for the external programmer:
+#
+# - https://github.com/mariusgreuel/USBasp
+#   Windows OS descriptor to load WinUSB driver automatically
+#
+# - https://github.com/nerdralph/usbasp
+#   WCID compliant, meaning it should work on Windows without any
+#   driver or .inf install; default SCK clock of 1.5 Mhz and automatic
+#   SCK slowing if target does not respond; PORTD is left as input, so
+#   this firmware also works with USBISP modules, eg,
+#   https://www.sciencetronics.com/greenphotons/?p=938
+#
+# - https://github.com/dioannidis/usbasp
+#   As above plus HID UART support, setting unique serial number and
+#   AT89S51/AT89S52 support
 
 programmer
     id                     = "usbasp";
