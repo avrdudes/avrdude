@@ -885,9 +885,11 @@ programmer
 #  - http://dangerousprototypes.com/docs/FT2232_breakout_board
 #  - http://flashrom.org/FT2232SPI_Programmer
 #
-# The drivers will look for a specific device and use the first one found.
-# If you have mulitple devices, then look for unique information (like SN)
-# and fill that in here.
+# The drivers will look for a specific device and use the first one
+# found. If you have mulitple devices, and they give out serial
+# numbers, a different entry for each of them can be created in a
+# persnonal ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
+# field added to distinguish between them.
 #
 # Note that the pin numbers for the main ISP signals (reset, sck,
 # sdo, sdi) are fixed and cannot be changed, since they must match
