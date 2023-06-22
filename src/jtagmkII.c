@@ -1220,7 +1220,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   const char *ifname;
 
   if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-    pmsg_warning("forcing serial DTR/RTS handshake lines %s\n",
+    pmsg_info("forcing serial DTR/RTS handshake lines %s\n",
       PDATA(pgm)->rts_mode == RTS_MODE_LOW ? "LOW" : "HIGH");
   }
 
@@ -1820,7 +1820,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
   }
 
   if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-    pmsg_warning("releasing DTR/RTS handshake lines\n");
+    pmsg_info("releasing DTR/RTS handshake lines\n");
     serial_set_dtr_rts(&pgm->fd, 0);
   }
 

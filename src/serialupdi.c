@@ -181,7 +181,7 @@ static void serialupdi_close(PROGRAMMER * pgm)
     pmsg_error("unable to leave NVM programming mode\n");
   }
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    pmsg_warning("releasing DTR/RTS handshake lines\n");
+    pmsg_info("releasing DTR/RTS handshake lines\n");
   }
 
   updi_link_close(pgm);
@@ -573,7 +573,7 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_notice2("UPDI link initialization OK\n");
 
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    pmsg_warning("forcing serial DTR/RTS handshake lines %s\n", updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
+    pmsg_info("forcing serial DTR/RTS handshake lines %s\n", updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
