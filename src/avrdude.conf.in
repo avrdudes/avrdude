@@ -692,8 +692,10 @@ programmer parent "pony-stk200"
 # 89isp
 #------------------------------------------------------------
 
-# The AT98ISP Cable is a simple parallel dongle for AT89 family.
-# http://www.atmel.com/dyn/products/tools_card.asp?tool_id=2877
+# The AT89ISP Cable is a simple parallel dongle for AT89 family
+# https://www.microchip.com/en-us/development-tool/AT89ISP
+# https://ww1.microchip.com/downloads/en/appnotes/doc3310.pdf
+# https://ww1.microchip.com/downloads/en/DeviceDoc/AT89ISP_Update3.3.zip
 
 programmer
     id                     = "89isp";
