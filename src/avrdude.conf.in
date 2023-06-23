@@ -1930,25 +1930,17 @@ programmer
 ;
 
 #------------------------------------------------------------
-# mkbutterfly
+# butterfly_mk and mkbutterfly
 #------------------------------------------------------------
 
-# suggested in http://forum.mikrokopter.de/topic-post48317.html
+# http://forum.mikrokopter.de
 
 programmer
-    id                     = "mkbutterfly";
+    id                     = "butterfly_mk", "mkbutterfly";
     desc                   = "Mikrokopter.de Butterfly for bootloader";
     type                   = "butterfly_mk";
     prog_modes             = PM_SPM;
     connection_type        = serial;
-;
-
-#------------------------------------------------------------
-# butterfly_mk
-#------------------------------------------------------------
-
-programmer parent "mkbutterfly"
-    id                     = "butterfly_mk";
 ;
 
 #------------------------------------------------------------
