@@ -4438,8 +4438,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4447,8 +4447,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4457,8 +4457,8 @@ part
         size               = 1;
         initval            = 0xfd;
         bitmask            = 0x03;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxii";
     ;
@@ -4467,8 +4467,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -4533,7 +4533,7 @@ part
     boot_section_size      = 1024;
     stk500_devcode         = 0xb2;
     avr910_devcode         = 0x43;
-    chip_erase_delay       = 9000;
+    chip_erase_delay       = 10000;
     pagel                  = 0xd7;
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x02;
@@ -4570,8 +4570,8 @@ part
     memory "eeprom"
         size               = 4096;
         page_size          = 8;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 10000;
+        max_write_delay    = 10000;
         readback           = 0xff 0xff;
         mode               = 0x04;
         delay              = 20;
@@ -4586,8 +4586,8 @@ part
         size               = 0x20000;
         page_size          = 256;
         num_pages          = 512;
-        min_write_delay    = 4500;
-        max_write_delay    = 4500;
+        min_write_delay    = 5000;
+        max_write_delay    = 5000;
         readback           = 0xff 0x00;
         mode               = 0x21;
         delay              = 10;
@@ -4603,8 +4603,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4612,8 +4612,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4622,8 +4622,8 @@ part
         size               = 1;
         initval            = 0xfd;
         bitmask            = 0x03;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxii";
     ;
@@ -4632,8 +4632,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -5183,8 +5183,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -5192,8 +5192,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -5202,8 +5202,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -7073,8 +7073,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7082,8 +7082,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7092,8 +7092,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -7268,7 +7268,7 @@ part
     boot_section_size      = 256;
     stk500_devcode         = 0x70;
     avr910_devcode         = 0x76;
-    chip_erase_delay       = 10000;
+    chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc2;
     signature              = 0x1e 0x93 0x07;
@@ -7335,8 +7335,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7344,8 +7344,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7354,8 +7354,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -9362,7 +9362,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny87 has Signature Bytes: 0x1E 0x93 0x87.
+
+    # ATtiny87 has signature bytes 0x1E 0x93 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -9510,7 +9511,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny167 has Signature Bytes: 0x1E 0x94 0x87.
+
+    # ATtiny167 has signature bytes 0x1E 0x94 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -11156,11 +11158,13 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny2313 has Signature Bytes: 0x1E 0x91 0x0A.
+
+    # ATtiny2313 has signature bytes 0x1E 0x91 0x0A
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
 # The Tiny2313 has calibration data for both 4 MHz and 8 MHz.
 # The information in the data sheet of April/2004 is wrong, this works:
 
@@ -11328,7 +11332,8 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny4313 has Signature Bytes: 0x1E 0x92 0x0D.
+
+    # ATtiny4313 has signature bytes 0x1E 0x92 0x0D
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -11608,7 +11613,8 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   AT90PWM2 has Signature Bytes: 0x1E 0x93 0x81.
+
+    # AT90PWM2 has signature bytes 0x1E 0x93 0x81
     memory "signature"
         size               = 3;
         read               = "0011.0000--00xx.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12073,7 +12079,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny25 has Signature Bytes: 0x1E 0x91 0x08.
+
+    # ATtiny25 has signature bytes 0x1E 0x91 0x08
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12232,7 +12239,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny45 has Signature Bytes: 0x1E 0x92 0x08. (Data sheet 2586C-AVR-06/05 (doc2586.pdf) indicates otherwise!)
+
+    # ATtiny45 has signature bytes 0x1E 0x92 0x08 (data sheet 2586C-AVR-06/05 doc2586.pdf indicates otherwise)
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12388,7 +12396,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny85 has Signature Bytes: 0x1E 0x93 0x08.
+
+    # ATtiny85 has signature bytes 0x1E 0x93 0x08
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12888,7 +12897,7 @@ part parent "m2561"
         "ATmega128RFA1-ZUR00:     VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 87;
     n_interrupts           = 72;
-    chip_erase_delay       = 55000;
+    chip_erase_delay       = 18500;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa7 0x01;
     pp_controlstack        =
@@ -12900,16 +12909,58 @@ part parent "m2561"
     ocdrev                 = 3;
 
     memory "eeprom"
+        min_write_delay    = 13000;
+        max_write_delay    = 13000;
         delay              = 50;
     ;
 
     memory "flash"
         size               = 0x20000;
         num_pages          = 512;
-        min_write_delay    = 50000;
-        max_write_delay    = 50000;
         delay              = 50;
         load_ext_addr      = NULL;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    #####
+    # Three separate flash pages
+    #   - Offset 0x100 in signature row
+    #   - Only programmable with JTAG or HVPP
+    #   - Readable from an application
+    #   - Cannot be read using ISP
+    #   - Not erased by chip erase
+    #
+    memory "usersig"
+        paged              = yes;
+        size               = 768;
+        page_size          = 256;
+        num_pages          = 3;
+        offset             = 0x100;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 50;
+        blocksize          = 256;
+        readsize           = 256;
     ;
 ;
 
@@ -12917,7 +12968,7 @@ part parent "m2561"
 # ATmega256RFR2
 #------------------------------------------------------------
 
-part parent "m2561"
+part parent "m128rfa1"
     desc                   = "ATmega256RFR2";
     id                     = "m256rfr2";
     variants               =
@@ -12927,29 +12978,21 @@ part parent "m2561"
         "ATmega256RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 108;
     n_interrupts           = 77;
-    chip_erase_delay       = 18500;
-    bs2                    = 0xe2;
     signature              = 0x1e 0xa8 0x02;
-    pp_controlstack        =
-        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
-        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
-        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
-        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    latchcycles            = 5;
     chiperasepolltimeout   = 20;
+    ocdrev                 = 4;
 
     memory "eeprom"
         size               = 8192;
-        min_write_delay    = 13000;
-        max_write_delay    = 13000;
-        delay              = 50;
         read               = "1010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
     ;
 
     memory "flash"
-        delay              = 50;
+        size               = 0x40000;
+        num_pages          = 1024;
+        load_ext_addr      = "0100.1101--0000.0000--0000.000a--0000.0000";
     ;
 
     memory "efuse"
@@ -12998,8 +13041,6 @@ part parent "m128rfa1"
 
     memory "eeprom"
         size               = 2048;
-        min_write_delay    = 13000;
-        max_write_delay    = 13000;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xx.xaaa--aaaa.a000--xxxx.xxxx";
@@ -13204,7 +13245,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny24 has Signature Bytes: 0x1E 0x91 0x0B.
+
+    # ATtiny24 has signature bytes 0x1E 0x91 0x0B
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -13383,7 +13425,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny44 has Signature Bytes: 0x1E 0x92 0x07.
+
+    # ATtiny44 has signature bytes 0x1E 0x92 0x07
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -13561,7 +13604,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny84 has Signature Bytes: 0x1E 0x93 0x0C.
+
+    # ATtiny84 has signature bytes 0x1E 0x93 0x0C
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -17098,6 +17142,7 @@ part parent ".xmega"
     n_interrupts           = 127;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x51;
+
 #   usbpid                 = 0x2f??;
 
     memory "eeprom"
