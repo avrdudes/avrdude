@@ -3096,7 +3096,7 @@ defined for the programmer, a message indicating that the device needs a
 power-cycle is printed out.  This flag was added to work around a
 problem with the at90s4433/2333's; see the at90s4433 errata at:
 
-         @url{http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf}
+         @url{https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf}
 
 @item
 The boot loader from application note AVR109 (and thus also the AVR
