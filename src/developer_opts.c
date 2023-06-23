@@ -815,7 +815,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
         int haveinjct = 0;
         if(injct)
           for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
-            if(meminj[i].mcu && str_match(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
+            if(meminj[i].mcu && str_casematch(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
               haveinjct = 1;
         if(!haveinjct)
           continue;
@@ -850,7 +850,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     if(injct)
       for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
         if(meminj[i].mcu)
-          if(str_match(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
+          if(str_casematch(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
             dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
               meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
 
@@ -884,7 +884,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   if(injct)
     for(size_t i=0; i<sizeof ptinj/sizeof*ptinj; i++)
       if(ptinj[i].mcu)
-        if(str_match(ptinj[i].mcu, p->desc))
+        if(str_casematch(ptinj[i].mcu, p->desc))
           dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
             ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
 
@@ -1428,7 +1428,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)
       if(pgminj[i].pgmid)
         for(LNODEID *ln=lfirst(pgm->id); ln; ln=lnext(ln))
-          if(str_match(pgminj[i].pgmid, ldata(ln)))
+          if(str_casematch(pgminj[i].pgmid, ldata(ln)))
             dev_part_strct_entry(tsv, ".prog", ldata(ln), NULL,
               pgminj[i].var, cfg_strdup("pgminj", pgminj[i].value), NULL);
 
@@ -1440,16 +1440,16 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
 
 // -c */[ASsrti]
-void dev_output_pgm_defs(char *pgmid) {
+void dev_output_pgm_defs(char *pgmidcp) {
   bool astrc, strct, cmpst, raw, tsv, injct;
   char *flags;
   int nprinted;
   PROGRAMMER *nullpgm = pgm_new();
 
-  if((flags = strchr(pgmid, '/')))
+  if((flags = strchr(pgmidcp, '/')))
     *flags++ = 0;
 
-  if(!flags && str_eq(pgmid, "*")) // Treat -c * as if it was -c */s
+  if(!flags && str_eq(pgmidcp, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
   if(!*flags || !strchr("ASsrti", *flags)) {
@@ -1496,7 +1496,7 @@ void dev_output_pgm_defs(char *pgmid) {
     PROGRAMMER *pgm = ldata(ln1);
     int matched = 0;
     for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
-      if(str_casematch(pgmid, ldata(ln2))) {
+      if(str_casematch(pgmidcp, ldata(ln2))) {
         matched = 1;
         break;
       }

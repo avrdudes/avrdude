@@ -37,7 +37,8 @@ extern char progbuf[];       // Spaces same length as progname
 extern int ovsigck;          // Override signature check (-F)
 extern int verbose;          // Verbosity level (-v, -vv, ...)
 extern int quell_progress;   // Quell progress report -q, reduce effective verbosity level (-qq, -qqq)
-extern const char *partdesc; // Part id
+extern const char *partdesc; // Part -p string
+extern const char *pgmid;    // Programmer -c string
 
 int avrdude_message(int msglvl, const char *format, ...);
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);

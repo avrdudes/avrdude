@@ -291,18 +291,24 @@ void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
   pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
-PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid) {
-  PROGRAMMER *p = NULL;
-  int found = 0;
-
-  for(LNODEID ln1=lfirst(programmers); ln1 && !found; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    for(LNODEID ln2=lfirst(p->id); ln2 && !found; ln2=lnext(ln2))
-      if(strcasecmp(configid, (const char *) ldata(ln2)) == 0)
-        found = 1;
+PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *configid, const char **setid) {
+  for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    PROGRAMMER *p = ldata(ln1);
+    for(LNODEID ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+      const char *id = (const char *) ldata(ln2);
+      if(str_caseeq(configid, id)) {
+        if(setid)
+          *setid = id;
+        return p;
+      }
+    }
   }
 
-  return found? p: NULL;
+  return NULL;
+}
+
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid) {
+  return locate_programmer_set(programmers, configid, NULL);
 }
 
 /*

@@ -403,7 +403,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
 
   // MIB510 does not need extparams
-  if (str_eq(ldata(lfirst(pgm->id)), "mib510"))
+  if (str_eq(pgmid, "mib510"))
     n_extparms = 0;
   else if ((maj > 1) || ((maj == 1) && (min > 10)))
     n_extparms = 4;
@@ -749,8 +749,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
       if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
@@ -844,7 +843,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
   stk500_drain(pgm, 0);
 
   // MIB510 init
-  if (str_eq(ldata(lfirst(pgm->id)), "mib510") && mib510_isp(pgm, 1) != 0)
+  if (str_eq(pgmid, "mib510") && mib510_isp(pgm, 1) != 0)
     return -1;
 
   if (stk500_getsync(pgm) < 0)
@@ -857,7 +856,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
 static void stk500_close(PROGRAMMER * pgm)
 {
   // MIB510 close
-  if (str_eq(ldata(lfirst(pgm->id)), "mib510"))
+  if (str_eq(pgmid, "mib510"))
     (void)mib510_isp(pgm, 0);
 
   serial_close(&pgm->fd);
@@ -967,7 +966,7 @@ static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   if(avr_mem_is_eeprom_type(m)) {
     *memtypep = 'E';
     // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
-    *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(ldata(lfirst(pgm->id)), "arduino_as_isp")) \
+    *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp")) \
        && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
     return 0;
   }
@@ -1003,7 +1002,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if (str_eq(ldata(lfirst(pgm->id)), "mib510")) {
+    if (str_eq(pgmid, "mib510")) {
       block_size = 256;
     } else {
       if (n - addr < page_size)
@@ -1075,7 +1074,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   n = addr + n_bytes;
   for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if (str_eq(ldata(lfirst(pgm->id)), "mib510")) {
+    if(str_eq(pgmid, "mib510")) {
       block_size = 256;
     } else {
       if (n - addr < page_size)
@@ -1119,7 +1118,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     if (stk500_recv(pgm, buf, 1) < 0)
       return -1;
 
-    if(str_eq(ldata(lfirst(pgm->id)), "mib510")) {
+    if(str_eq(pgmid, "mib510")) {
       if (buf[0] != Resp_STK_INSYNC) {
         msg_error("\n");
         pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);

@@ -1216,10 +1216,9 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   const char *ifname;
 
   /* Abort and print error if programmer does not support the target microcontroller */
-  if ((strncmp(pgm->type, "JTAGMKII_UPDI", strlen("JTAGMKII_UPDI")) == 0 && !(p->prog_modes & PM_UPDI)) ||
-      (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0 && (p->prog_modes & PM_UPDI))) {
-    msg_error("programmer %s does not support target %s\n\n",
-      (char *) ldata(lfirst(pgm->id)), p->desc);
+  if((str_starts(pgm->type, "JTAGMKII_UPDI") && !(p->prog_modes & PM_UPDI)) ||
+      (str_starts(pgmid, "jtagmkII") && (p->prog_modes & PM_UPDI))) {
+    msg_error("programmer %s does not support target %s\n\n", pgmid, p->desc);
     return -1;
   }
 
@@ -1289,9 +1288,8 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *bootmem = avr_locate_mem(p, "boot");
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (bootmem == NULL || flashmem == NULL) {
-      if (strncmp(ldata(lfirst(pgm->id)), "jtagmkII", strlen("jtagmkII")) == 0) {
+      if(str_starts(pgmid, "jtagmkII"))
         pmsg_error("cannot locate flash or boot memories in description\n");
-      }
     } else {
       if (PDATA(pgm)->fwver < 0x700) {
         /* V7+ firmware does not need this anymore */
@@ -1401,8 +1399,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       if (str_eq(pgm->type, "JTAGMKII") || str_eq(pgm->type, "DRAGON_JTAG"))
         msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
       msg_error(  "  -xhelp                  Show this help menu and exit\n");

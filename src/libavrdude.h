@@ -864,6 +864,8 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
 
+PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, const char **setid);
+
 PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,

@@ -1757,7 +1757,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
   int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
 
   pmsg_debug("ur_readEF(%s, %s, %s, %p, 0x%06x, %d, %c)\n",
-    (char *) ldata(lfirst(pgm->id)), p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
+    pgmid, p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
 
   if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
     Return("bootloader does not have flash read capability");
@@ -2500,7 +2500,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
   }
 
   if(help || rc < 0) {
-    msg_error("%s -c %s extended options:\n", progname, (char *) ldata(lfirst(pgm->id)));
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
     for(size_t i=0; i<sizeof options/sizeof*options; i++) {
       msg_error("  -x%s%s%*s%s\n", options[i].name, options[i].assign? "=<arg>": "",
         urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);

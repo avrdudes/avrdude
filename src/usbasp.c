@@ -290,8 +290,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
     if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
       msg_error("  -xhelp           Show this help menu and exit\n");
       exit(0);
@@ -560,7 +559,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
   if (usbOpenDevice(&PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct) != 0) {
     /* try alternatives */
-    if(strcasecmp(ldata(lfirst(pgm->id)), "usbasp") == 0) {
+    if(str_eq(pgmid, "usbasp")) {
     /* for id usbasp autodetect some variants */
       if(strcasecmp(port, "nibobee") == 0) {
         pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");

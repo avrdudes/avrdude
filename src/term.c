@@ -895,7 +895,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   if(rc) {
-    pmsg_error("(erase) programmer %s failed erasing the chip\n", (char *) ldata(lfirst(pgm->id)));
+    pmsg_error("(erase) programmer %s failed erasing the chip\n", pgmid);
     return -1;
   }
 
@@ -919,7 +919,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
-    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, (char *) ldata(lfirst(pgm->id)));
+    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, pgmid);
     return -1;
   }
 
