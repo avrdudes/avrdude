@@ -1414,7 +1414,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500v2";
+    id                     = "stk500v2", "scratchmonkey";
     desc                   = "Atmel STK500 version 2.x firmware";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
@@ -1427,7 +1427,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500pp";
+    id                     = "stk500pp", "scratchmonkey_pp";
     desc                   = "Atmel STK500 v2 in parallel programming mode";
     type                   = "stk500pp";
     prog_modes             = PM_HVPP;
@@ -1440,7 +1440,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500hvsp";
+    id                     = "stk500hvsp", "scratchmonkey_hvsp";
     desc                   = "Atmel STK500 v2 in high-voltage serial programming mode";
     type                   = "stk500hvsp";
     prog_modes             = PM_HVSP;
