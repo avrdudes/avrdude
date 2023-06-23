@@ -1028,7 +1028,7 @@ int main(int argc, char * argv [])
   if(partdesc) {
     if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
-        PROGRAMMER *pgm = locate_programmer(programmers, pgmid);
+        PROGRAMMER *pgm = locate_programmer_set(programmers, pgmid, &pgmid);
         if(!pgm) {
           programmer_not_found(pgmid);
           exit(1);
@@ -1077,7 +1077,7 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
-  pgm = locate_programmer(programmers, pgmid);
+  pgm = locate_programmer_set(programmers, pgmid, &pgmid);
   if (pgm == NULL) {
     programmer_not_found(pgmid);
     exit(1);
