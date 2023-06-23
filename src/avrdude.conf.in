@@ -1624,9 +1624,10 @@ programmer
 #------------------------------------------------------------
 
 # FTDI USB to serial cable TTL-232R-5V with a custom adapter for ICSP
-# http://www.ftdichip.com/Products/Cables/USBTTLSerial.htm
-# http://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232R_CABLES.pdf
-# For ICSP pinout see for example http://www.atmel.com/images/doc2562.pdf
+#  - https://ftdichip.com/product-category/products/cables/usb-ttl-serial-cable-series/
+#  - http://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232R_CABLES.pdf
+#
+# For ICSP pinout see, e.g., http://ww1.microchip.com/downloads/en/DeviceDoc/doc2562.pdf
 # (Figure 1. ISP6PIN header pinout and Table 1. Connections required for ISP ...)
 # TTL-232R GND 1 Black  -> ICPS GND   (pin 6)
 # TTL-232R CTS 2 Brown  -> ICPS SDO   (pin 4)
@@ -1634,8 +1635,9 @@ programmer
 # TTL-232R TXD 4 Orange -> ICPS RESET (pin 5)
 # TTL-232R RXD 5 Yellow -> ICPS SCK   (pin 3)
 # TTL-232R RTS 6 Green  -> ICPS SDI   (pin 1)
-# Except for VCC and GND, you can connect arbitual pairs as long as
-# the following table is adjusted.
+#
+# Except for VCC and GND, you can connect arbitrary pairs as long as the
+# following table is adjusted.
 
 programmer
     id                     = "ttl232r";
