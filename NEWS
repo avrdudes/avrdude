@@ -104,6 +104,7 @@ Changes since version 7.1:
     - STK500v2 ATtiny15 problem #509
     - Downgrade missing USB device warning #1398
     - Avrdude can not write usersig in terminal mode #1361
+    - avr109 atmega2564rfr2 erase timeout too short #336
 
   * Pull requests:
 
@@ -170,6 +171,18 @@ Changes since version 7.1:
     - Mute missing USB device warning for lower verbosity #1403
     - Implement bytewise cache for usersig #1404
     - Relax checks before executing the -T/-U operations #1405
+    - Define usersig memory for ATmega*RF[AR]* parts #1406
+    - Increase timeout for emulated butterfly chip erase #1411
+    - Update reference to AT90S4433 datasheet #1415
+    - Update alf programmer info and URL #1416
+    - Update URLs for 89isp programmer #1417
+    - Update ft2232h programmer info and URLs #1418
+    - Update butterfly_mk info #1419
+    - Remove outdated web URLs for O-Link #1420
+    - Update URLs for the ttl232r programmer #1421
+    - Update usbasp programmer info #1422
+    - Remove comment and URL for arduino-ft232r programmer #1423
+    - Enable -c programmers to access -c string #1424
 
   * Internals:
 
