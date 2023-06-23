@@ -908,8 +908,8 @@ programmer
 # See also https://ftdichip.com/wp-content/uploads/2020/07/DS_FT2232H.pdf
 
 programmer
-    id                     = "ft2232h";
-    desc                   = "FT2232H based generic programmer";
+    id                     = "ft2232h", "avrftdi", "2232h";
+    desc                   = "FT2232H/D based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -921,15 +921,6 @@ programmer
     sck                    = 0; # AD0 (TCK)
     sdo                    = 1; # AD1 (TDI)
     sdi                    = 2; # AD2 (TDO)
-;
-
-#------------------------------------------------------------
-# avrftdi
-#------------------------------------------------------------
-
-programmer parent "ft2232h"
-    id                     = "avrftdi";
-    desc                   = "FT2232D based generic programmer";
 ;
 
 #------------------------------------------------------------
@@ -986,21 +977,13 @@ programmer parent "ft2232h"
 # ft4232h
 #------------------------------------------------------------
 
-#The FT4232H can be treated as FT2232H, but it has a different USB
-#device ID of 0x6011.
+# The FT4232H can be treated as FT2232H but with a different USB
+# device ID of 0x6011
 
 programmer parent "ft2232h"
-    id                     = "ft4232h";
+    id                     = "ft4232h", "4232h";
     desc                   = "FT4232H based generic programmer";
     usbpid                 = 0x6011;
-;
-
-#------------------------------------------------------------
-# 4232h
-#------------------------------------------------------------
-
-programmer parent "ft4232h"
-    id                     = "4232h";
 ;
 
 #------------------------------------------------------------
@@ -1304,20 +1287,12 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "avrispmkII";
+    id                     = "avrispmkII", "avrisp2";
     desc                   = "Atmel AVR ISP mkII";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-;
-
-#------------------------------------------------------------
-# avrisp2
-#------------------------------------------------------------
-
-programmer parent "avrispmkII"
-    id                     = "avrisp2";
 ;
 
 #------------------------------------------------------------
@@ -1561,7 +1536,7 @@ programmer
 # is the same as the -c arduino-ft232r entry here.
 
 programmer
-    id                     = "arduino-ft232r";
+    id                     = "arduino-ft232r", "diecimila";
     desc                   = "Arduino: FT232R connected to ISP";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
@@ -1587,17 +1562,6 @@ programmer
     sck                    = 2;  # RTS = D2 (wire to SCK)
     sdo                    = 0;  # TxD = D0 (wire to TPIDATA via 1k resistor)
     sdi                    = 1;  # RxD = D1 (wire to TPIDATA directly)
-;
-
-#------------------------------------------------------------
-# diecimila
-#------------------------------------------------------------
-
-# website mentioned above uses this id
-
-programmer parent "arduino-ft232r"
-    id                     = "diecimila";
-    desc                   = "alias for arduino-ft232r";
 ;
 
 #------------------------------------------------------------
@@ -1965,7 +1929,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "jtagmkI";
+    id                     = "jtagmkI", "jtag1";
     desc                   = "Atmel JTAG ICE (mkI)";
     type                   = "jtagmki";
     prog_modes             = PM_JTAGmkI;
@@ -1975,20 +1939,8 @@ programmer
 ;
 
 #------------------------------------------------------------
-# jtag1
-#------------------------------------------------------------
-
-# easier to type
-
-programmer parent "jtagmkI"
-    id                     = "jtag1";
-;
-
-#------------------------------------------------------------
 # jtag1slow
 #------------------------------------------------------------
-
-# easier to type
 
 programmer parent "jtag1"
     id                     = "jtag1slow";
@@ -2018,8 +1970,6 @@ programmer
 # jtag2slow
 #------------------------------------------------------------
 
-# easier to type
-
 programmer parent "jtagmkII"
     id                     = "jtag2slow";
 ;
@@ -2028,21 +1978,11 @@ programmer parent "jtagmkII"
 # jtag2fast
 #------------------------------------------------------------
 
-# JTAG ICE mkII @ 115200 Bd
+# JTAG ICE mkII @ 115200 Bd (and alias jtag2 the fast version)
 
 programmer parent "jtag2slow"
-    id                     = "jtag2fast";
+    id                     = "jtag2fast", "jtag2";
     baudrate               = 115200;
-;
-
-#------------------------------------------------------------
-# jtag2
-#------------------------------------------------------------
-
-# make the fast one the default, people will love that
-
-programmer parent "jtag2fast"
-    id                     = "jtag2";
 ;
 
 #------------------------------------------------------------
@@ -2084,23 +2024,13 @@ programmer
 # JTAG ICE mkII in AVR32 mode
 
 programmer
-    id                     = "jtagmkII_avr32";
+    id                     = "jtagmkII_avr32", "jtag2avr32";
     desc                   = "Atmel JTAG ICE mkII in AVR32 mode";
     type                   = "jtagmkii_avr32";
     prog_modes             = PM_aWire;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
-;
-
-#------------------------------------------------------------
-# jtag2avr32
-#------------------------------------------------------------
-
-# JTAG ICE mkII in AVR32 mode
-
-programmer parent "jtagmkII_avr32"
-    id                     = "jtag2avr32";
 ;
 
 #------------------------------------------------------------
@@ -2800,11 +2730,10 @@ programmer
 
 # Serial port adapter http://www.lancos.com/siprogsch.html
 # Same as above, different name
-# reset=!txd sck=rts sdo=dtr sdi=cts
 
 programmer parent "ponyser"
     id                     = "siprog";
-    desc                   = "Lancos SI-Prog";
+    desc                   = "Lancos SI-Prog (same as ponyser)";
 ;
 
 #------------------------------------------------------------
