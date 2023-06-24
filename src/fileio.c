@@ -1457,8 +1457,8 @@ int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
     addr = maxsize + addr;
 
   if(addr < 0 || addr >= maxsize) {
-    pmsg_error("%s address %s is out of range [-0x%0*x, 0x%0*x]\n",
-      mem->desc, segp->addr, digits, maxsize, digits, maxsize-1);
+    pmsg_error("%s address 0x%0*x is out of range [-0x%0*x, 0x%0*x]\n",
+      mem->desc, digits, segp->addr, digits, maxsize, digits, maxsize-1);
     return -1;
   }
 
