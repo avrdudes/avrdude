@@ -599,6 +599,8 @@ void bitbang_initialize_pins_4_hvsp_latching(const PROGRAMMER* pgm) {
   pgm->setpin(pgm, PIN_AVR_SDO, 0); /* L to MCU SDI */
   pgm->setpin(pgm, PIN_AVR_SII, 0); /* L to MCU SII */
   /* MCU SDO is driven L by the adaptor harware */
+  pgm->setpin(pgm, PIN_AVR_SCK, 0);
+    /* L to MCU SCI to avoid driving MCU without VCC */
 }
 
 void bitbang_wait_for_vcc(const PROGRAMMER* pgm) {
