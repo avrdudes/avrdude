@@ -622,9 +622,6 @@ bool bitbang_latch_hvsp(const PROGRAMMER* pgm) {
 }
 
 void bitbang_ask_for_vcc(const PROGRAMMER* pgm) {
-  pgm->setpin(pgm, PIN_AVR_SCK, 1);
-    /* Set SCK pin of PPI to 0V to avoid voltage leaking to VCC (in case of
-       dapa_hvsp adaptor) */
   term_out("connect power supply to adaptor and/or turn it on!\n");
 }
 
