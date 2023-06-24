@@ -1227,7 +1227,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
   if (putc('\n', f) == EOF)
     goto writeerr;
 
-  return segp->addr + segp->len-1;
+  return segp->addr + segp->len;
 
  writeerr:
   pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
@@ -1555,7 +1555,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
   for(int i=0; i<n; i++) {
     int addr = seglist[i].addr, len = seglist[i].len;
 
-    if(len == 0)
+    if(len == 0 && fio.op != FIO_WRITE)
       continue;
 
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
