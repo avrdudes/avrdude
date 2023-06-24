@@ -1661,7 +1661,7 @@ programmer
 
 # From http://www.fischl.de/usbasp
 # USBasp is a USB in-circuit programmer for Atmel AVR controllers. It
-# simply consists of an ATMega88 or an ATMega8 and a couple of passive
+# simply consists of an ATmega88 or an ATmega8 and a couple of passive
 # components. The programmer uses a firmware-only USB driver, no
 # special USB controller is needed.
 #
@@ -1674,7 +1674,7 @@ programmer
 #
 # - https://github.com/nerdralph/usbasp
 #   WCID compliant, meaning it should work on Windows without any
-#   driver or .inf install; default SCK clock of 1.5 Mhz and automatic
+#   driver or .inf install; default SCK clock of 1.5 MHz and automatic
 #   SCK slowing if target does not respond; PORTD is left as input, so
 #   this firmware also works with USBISP modules, eg,
 #   https://www.sciencetronics.com/greenphotons/?p=938
