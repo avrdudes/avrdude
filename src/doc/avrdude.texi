@@ -2182,7 +2182,7 @@ and paste of lists.
 
 @item write @var{memory} @var{addr} @var{data}
 The start address @code{addr} may be omitted if the size of the memory
-being written to is 1 byte in size.
+being written to is one byte.
 
 @item write @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
 The ellipsis @dots{} form writes the data to the entire memory intervall
