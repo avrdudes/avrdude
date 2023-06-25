@@ -1150,6 +1150,11 @@ can be uniquely resolved.
 It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
+.It Ar include [<opts>] <file>
+Include contents of the named file as if it was typed. This is useful for
+batch scripts, eg, recurring initialisation code for fuses. The include
+option -e prints the lines of the file as comments before processing them;
+on a non-zero verbosity level the line numbers are printed, too.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
