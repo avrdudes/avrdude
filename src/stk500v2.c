@@ -755,6 +755,9 @@ retry:
       if (siglen >= strlen("STK500_2") &&
 	  memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+      } else if (siglen >= strlen("SCRATCHMONKEY") &&
+	  memcmp(resp + 3, "SCRATCHMONKEY", strlen("SCRATCHMONKEY")) == 0) {
+	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       } else if (siglen >= strlen("AVRISP_2") &&
 		 memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
 	PDATA(pgm)->pgmtype = PGMTYPE_AVRISP;
