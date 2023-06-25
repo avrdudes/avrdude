@@ -458,7 +458,7 @@ bool bitbang_wait_for_signal(
   unsigned long start_time = avr_ustimestamp();
   while (
     (!(has_got_signal = (pgm->getpin(pgm, pin) == value))) &&
-    ((timeout_us == 0) || (avr_mstimestamp() - start_time < timeout_us))
+    ((timeout_us == 0) || (avr_ustimestamp() - start_time < timeout_us))
   ) bitbang_delay(poll_interval_us);
   return has_got_signal;
 }
