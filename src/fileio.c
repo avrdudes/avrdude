@@ -521,7 +521,7 @@ static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
 
   // Add S5/6 record count record and S7/8/9 end of data record
   if(where & LAST_SEG) {
-    if(reccount > 0 && reccount <= 0xffffff) {
+    if(reccount >= 0 && reccount <= 0xffffff) {
       int wd = reccount <= 0xffff? 2: 3;
       fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, reccount,
         cksum_srec(NULL, 0, reccount, wd));
