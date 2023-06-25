@@ -12,13 +12,16 @@ Changes since version 7.1:
     - libgpiod support for linuxgpio #1299
     - Support jtag2updi -U UPDI EEPROM write #1318
     - avrdude.conf reconciled with ATDFs #1343
+    - avrdude -p part/s now also shows part variants #1343
     - New programmer dryrun for testing #1347
     - New -T cmd to mix terminal with -U commands #1373
+    - Run -t interactive terminals in CLI option order #1402
     - Terminal
         + Command config (mnemonic fuse setting) #1365
         + Write to memory from files #1358
         + Command save memory to file #1396
         + Subshell command ! #1397
+        + Command include file #1429
 
   * New devices supported:
 
@@ -73,6 +76,7 @@ Changes since version 7.1:
     - CH341A
     - Kanda AVRISP-U
     - arduino_as_isp
+    - scratchmonkey, scratchmonkey_pp, scratchmonkey_hvsp
 
   * Issues fixed:
 
@@ -105,6 +109,7 @@ Changes since version 7.1:
     - Downgrade missing USB device warning #1398
     - Avrdude can not write usersig in terminal mode #1361
     - avr109 atmega2564rfr2 erase timeout too short #336
+    - Add ScratchMonkey #989
 
   * Pull requests:
 
@@ -183,6 +188,10 @@ Changes since version 7.1:
     - Update usbasp programmer info #1422
     - Remove comment and URL for arduino-ft232r programmer #1423
     - Enable -c programmers to access -c string #1424
+    - Add scratchmonkey programmers #1429
+    - Use pgm->id list for alias names of a programmer #1430
+    - Fix writing of empty flash memory #1438
+    - Provide terminal include command #1439
 
   * Internals:
 
