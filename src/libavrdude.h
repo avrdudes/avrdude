@@ -792,7 +792,10 @@ typedef struct programmer_t {
   int  (*cmd_hvsp)       (const struct programmer_t *pgm,
 				const unsigned char *cmd,
 				const unsigned char *data, unsigned char *res);
-  bool (*is_avr_rdy)	 (const struct programmer_t *pgm, const AVRPART *p);
+  bool (*wait_for_avr_ready)(
+    const struct programmer_t *pgm, const AVRPART *p, unsigned long timeout_us,
+    unsigned long poll_interval_us
+  );
   int  (*spi)            (const struct programmer_t *pgm, const unsigned char *cmd,
                           unsigned char *res, int count);
   int  (*open)           (struct programmer_t *pgm, const char *port);

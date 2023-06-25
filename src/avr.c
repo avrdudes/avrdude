@@ -604,14 +604,10 @@ double avr_timestamp() {
 bool avr_wait_for_avr_rdy(
    const PROGRAMMER *pgm, const AVRPART *p, int timeout_us
 ) {
-  if (!pgm->is_avr_rdy) return true;
-  unsigned long start_time = avr_ustimestamp();
-  bool is_avr_rdy;
-  while (
-    (!(is_avr_rdy = pgm->is_avr_rdy(pgm, p))) &&
-    ((avr_ustimestamp() - start_time) < (unsigned long)timeout_us)
-  ) usleep(timeout_us/4);
-  return is_avr_rdy;
+  return (
+    (!pgm->wait_for_avr_ready) ||
+    pgm->wait_for_avr_ready(pgm, p, timeout_us, timeout_us / 4)
+  );
 }
 
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,

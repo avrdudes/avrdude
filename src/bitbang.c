@@ -450,19 +450,48 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
   return 0;
 }
 
+bool bitbang_wait_for_signal(
+  const PROGRAMMER* pgm, int pin, bool value, unsigned long timeout_us,
+  unsigned long poll_interval_us
+) {
+  bool has_got_signal = false;
+  unsigned long start_time = avr_ustimestamp();
+  while (
+    (!(has_got_signal = (pgm->getpin(pgm, pin) == value))) &&
+    ((timeout_us == 0) || (avr_mstimestamp() - start_time < timeout_us))
+  ) bitbang_delay(poll_interval_us);
+  return has_got_signal;
+}
+
 int bitbang_is_avr_ready_hvsp(const PROGRAMMER *pgm) {
   return pgm->getpin(pgm, PIN_AVR_SDI);
 }
 
-bool bitbang_is_avr_rdy(const PROGRAMMER *pgm, const AVRPART *p) {
-  return !hvsp_is_hvsp_mode(pgm, p) || bitbang_is_avr_ready_hvsp(pgm);
+bool bitbang_wait_for_avr_ready_hvsp(
+  const PROGRAMMER *pgm, unsigned long timeout_us,
+  unsigned long poll_interval_us
+) {
+  return (
+    bitbang_wait_for_signal(
+      pgm, PIN_AVR_SDI, true, timeout_us, poll_interval_us
+    )
+  );
+}
+
+bool bitbang_wait_for_avr_ready(
+  const PROGRAMMER *pgm, const AVRPART *p, unsigned long timeout_us,
+  unsigned long poll_interval_us
+) {
+  return (
+    (!hvsp_is_hvsp_mode(pgm, p)) ||
+    bitbang_wait_for_avr_ready_hvsp(pgm, timeout_us, poll_interval_us)
+  );
 }
 
 int bitbang_cmd_hvsp(const PROGRAMMER *pgm, const unsigned char *cmd,
 		   const unsigned char *data,
                    unsigned char *res)
 {
-  while(!bitbang_is_avr_ready_hvsp(pgm)) bitbang_delay(1);
   return bitbang_cmd_internal(pgm, cmd, data, res);
 }
 
@@ -604,7 +633,7 @@ void bitbang_initialize_pins_4_hvsp_latching(const PROGRAMMER* pgm) {
 }
 
 void bitbang_wait_for_vcc(const PROGRAMMER* pgm) {
-  while(!pgm->getpin(pgm, PIN_AVR_VCC_DETECT)) bitbang_delay(2000);
+  bitbang_wait_for_signal(pgm, PIN_AVR_VCC_DETECT, true, 0, 2000);
     /* We have at least 4ms between VCC appears and the sketch starts to drive
        the MCU pins */
 }
@@ -614,8 +643,8 @@ bool bitbang_latch_hvsp(const PROGRAMMER* pgm) {
     /* Set SCI to L to ensure that the 1st edge to H will happen when shifting
        out the 1st command bit */
   pgm->setpin(pgm, PIN_AVR_RESET, 1); /* 12V to MCU RESET */
-  bitbang_delay(20000);
-  if (bitbang_is_avr_ready_hvsp(pgm)) return true; /* check MCU SDO */
+  if (bitbang_wait_for_avr_ready_hvsp(pgm, 1000000, 20000)) return true;
+    /* check MCU SDO */
   msg_debug("Latching failed.\n");
   pgm->setpin(pgm, PIN_AVR_RESET, 0); /* 0V to MCU RESET */
   return false;
@@ -635,14 +664,13 @@ void bitbang_prompt_to_powercycle(const PROGRAMMER* pgm) {
 
 bool bitbang_is_vcc_sustained(const PROGRAMMER* pgm, unsigned long timespan_ms)
 {
-  bool is_vcc_on = false;
-  unsigned long start_time = avr_mstimestamp();
-  while (
-    (is_vcc_on = pgm->getpin(pgm, PIN_AVR_VCC_DETECT)) &&
-    (avr_mstimestamp() - start_time < timespan_ms)
-  ) bitbang_delay(90);
-    /* The ELCO on the Digispark board keeps VCC (+5V) above 3.9V for 90us. */
-  return is_vcc_on;
+  return (
+    !(
+      bitbang_wait_for_signal(
+        pgm, PIN_AVR_VCC_DETECT, false, timespan_ms * 1000, 90
+      )
+    )
+  ); /* The ELCO on the Digispark board keeps VCC (+5V) above 3.9V for 90us. */
 }
 
 int bitbang_initialize_hvsp(const PROGRAMMER *pgm) {

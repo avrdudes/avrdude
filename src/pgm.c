@@ -134,7 +134,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->cmd            = NULL;
   pgm->cmd_tpi        = NULL;
   pgm->cmd_hvsp       = NULL;
-  pgm->is_avr_rdy     = NULL;
+  pgm->wait_for_avr_ready = NULL;
   pgm->spi            = NULL;
   pgm->paged_write    = NULL;
   pgm->paged_load     = NULL;

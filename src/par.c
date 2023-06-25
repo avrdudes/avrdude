@@ -401,7 +401,7 @@ void par_initpgm(PROGRAMMER *pgm) {
   pgm->cmd            = bitbang_cmd;
   pgm->cmd_tpi        = bitbang_cmd_tpi;
   pgm->cmd_hvsp       = bitbang_cmd_hvsp;
-  pgm->is_avr_rdy     = bitbang_is_avr_rdy;
+  pgm->wait_for_avr_ready = bitbang_wait_for_avr_ready;
   pgm->spi            = bitbang_spi;
   pgm->open           = par_open;
   pgm->close          = par_close;

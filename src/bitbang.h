@@ -45,7 +45,10 @@ int  bitbang_cmd_tpi        (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 int cmd_len, unsigned char *res, int res_len);
 int  bitbang_cmd_hvsp       (const PROGRAMMER *pgm, const unsigned char *cmd,
 				const unsigned char *data, unsigned char *res);
-bool bitbang_is_avr_rdy     (const PROGRAMMER *pgm, const AVRPART *p);
+bool bitbang_wait_for_avr_ready(
+  const PROGRAMMER *pgm, const AVRPART *p, unsigned long timeout_us,
+  unsigned long poll_interval_us
+);
 int  bitbang_spi            (const PROGRAMMER *pgm, const unsigned char *cmd,
                                 unsigned char *res, int count);
 int  bitbang_chip_erase     (const PROGRAMMER *pgm, const AVRPART *p);
