@@ -521,7 +521,7 @@ static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
 
   // Add S5/6 record count record and S7/8/9 end of data record
   if(where & LAST_SEG) {
-    if(reccount > 0 && reccount <= 0xffffff) {
+    if(reccount >= 0 && reccount <= 0xffffff) {
       int wd = reccount <= 0xffff? 2: 3;
       fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, reccount,
         cksum_srec(NULL, 0, reccount, wd));
@@ -1227,7 +1227,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
   if (putc('\n', f) == EOF)
     goto writeerr;
 
-  return segp->addr + segp->len-1;
+  return segp->addr + segp->len;
 
  writeerr:
   pmsg_ext_error("unable to write to %s: %s\n", filename, strerror(errno));
@@ -1457,8 +1457,8 @@ int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
     addr = maxsize + addr;
 
   if(addr < 0 || addr >= maxsize) {
-    pmsg_error("%s address %s is out of range [-0x%0*x, 0x%0*x]\n",
-      mem->desc, segp->addr, digits, maxsize, digits, maxsize-1);
+    pmsg_error("%s address 0x%0*x is out of range [-0x%0*x, 0x%0*x]\n",
+      mem->desc, digits, segp->addr, digits, maxsize, digits, maxsize-1);
     return -1;
   }
 
@@ -1555,7 +1555,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
   for(int i=0; i<n; i++) {
     int addr = seglist[i].addr, len = seglist[i].len;
 
-    if(len == 0)
+    if(len == 0 && fio.op != FIO_WRITE)
       continue;
 
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
