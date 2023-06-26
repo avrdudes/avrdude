@@ -32,8 +32,8 @@ build_type=RelWithDebInfo
 # See CMakeLists.txt for all options
 #
 # Use this to enable (historical) parallel-port based programmers:
-extra_enable="-D HAVE_PARPORT=1"
-#extra_enable=""
+#extra_enable="-D HAVE_PARPORT=1"
+extra_enable=""
 
 build_flags=""
 
