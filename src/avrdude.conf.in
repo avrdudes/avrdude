@@ -618,7 +618,7 @@ programmer
 
 programmer
     id                     = "dapa_hvsp";
-    desc                   = "Direct AVR Parallel Access cable for HVSP mode";
+    desc                   = "Direct AVR Parallel Access cable for HVSP mode <https://pety.dynu.net/dapa_hvsp/>";
     type                   = "par";
     prog_modes             = PM_HVSP;
     reset                  = ~16;	/* RESET (0V) on HIGH and 12V on LOW */
