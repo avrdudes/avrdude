@@ -336,7 +336,7 @@ typedef struct avrmem {
   int pwroff_after_write;     /* after this memory type is written to,
                                  the device must be powered off and
                                  back on, see errata
-                                 http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf */
+                                 https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf */
   unsigned char readback[2];  /* polled read-back values */
 
   int mode;                   /* stk500 v2 xml file parameter */
@@ -863,6 +863,8 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
+
+PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, const char **setid);
 
 PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 

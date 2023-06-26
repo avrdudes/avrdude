@@ -73,6 +73,7 @@ static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_help   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -100,6 +101,7 @@ struct command cmd[] = {
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
   { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "config", cmd_config, _fo(open),            "change or show configuration properties of the part" },
+  { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
@@ -895,7 +897,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   if(rc) {
-    pmsg_error("(erase) programmer %s failed erasing the chip\n", (char *) ldata(lfirst(pgm->id)));
+    pmsg_error("(erase) programmer %s failed erasing the chip\n", pgmid);
     return -1;
   }
 
@@ -919,7 +921,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
-    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, (char *) ldata(lfirst(pgm->id)));
+    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, pgmid);
     return -1;
   }
 
@@ -2206,6 +2208,75 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p) {
 #endif
   return terminal_mode_noninteractive(pgm, p);
 }
+
+
+static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  int help = 0, invalid = 0, echo = 0, itemac=1;
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'e':
+          echo++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(config) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(argc != 2 || help || invalid) {
+    msg_error(
+      "Syntax: include [opts] <file>\n"
+      "Function: include contents of named file as if it was typed\n"
+      "Option:\n"
+      "    -e echo lines as they are processed\n"
+    );
+    return !help || invalid? -1: 0;
+  }
+
+  int lineno = 0, rc = 0;
+  const char *errstr;
+  FILE *fp = fopen(argv[1], "r");
+  if(fp == NULL) {
+    pmsg_ext_error("(include) cannot open file %s: %s\n", argv[1], strerror(errno));
+    return -1;
+  }
+
+  for(char *buffer; (buffer = str_fgets(fp, &errstr)); free(buffer)) {
+    lineno++;
+    if(echo) {
+      term_out("# ");
+      if(verbose > 0)
+       term_out("%d: ", lineno);
+      term_out("%s", buffer);
+      term_out("\v");
+    }
+    if(process_line(buffer, pgm, p) < 0)
+      rc = -1;
+    term_out("\v");
+  }
+  if(errstr) {
+    pmsg_error("(include) read error in file %s: %s\n", argv[1], errstr);
+    return -1;
+  }
+
+  fclose(fp);
+  return rc;
+}
+
 
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;

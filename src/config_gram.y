@@ -250,7 +250,6 @@ prog_def :
   prog_decl prog_parms
     {
       PROGRAMMER * existing_prog;
-      char * id;
       if (lsize(current_prog->id) == 0) {
         yyerror("required parameter id not specified");
         YYABORT;
@@ -259,17 +258,17 @@ prog_def :
         yyerror("programmer type not specified");
         YYABORT;
       }
-      id = ldata(lfirst(current_prog->id));
-      existing_prog = locate_programmer(programmers, id);
-      if (existing_prog) {
-        { /* temporarily set lineno to lineno of programmer start */
+      for(LNODEID ln = lfirst(current_prog->id); ln; ln = lnext(ln)) {
+        char *id = ldata(ln);
+        if((existing_prog = locate_programmer(programmers, id))) {
+          // Temporarily set lineno to lineno of programmer start
           int temp = cfg_lineno; cfg_lineno = current_prog->lineno;
           yywarning("programmer %s overwrites previous definition %s:%d.",
-                id, existing_prog->config_file, existing_prog->lineno);
+            id, existing_prog->config_file, existing_prog->lineno);
           cfg_lineno = temp;
+          lrmv_d(programmers, existing_prog);
+          pgm_free(existing_prog);
         }
-        lrmv_d(programmers, existing_prog);
-        pgm_free(existing_prog);
       }
       current_prog->comments = cfg_move_comments();
       LISTADD(programmers, current_prog);

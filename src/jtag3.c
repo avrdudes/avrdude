@@ -879,7 +879,7 @@ int jtag3_getsync(const PROGRAMMER *pgm, int mode) {
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
   if ((pgm->flag & PGM_FL_IS_EDBG) &&
-      !str_starts(ldata(lfirst(pgm->id)), "xplainedmini")) {
+      !str_starts(pgmid, "xplainedmini")) {
     if (jtag3_edbg_prepare(pgm) < 0) {
       return -1;
     }
@@ -1583,13 +1583,12 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       if (str_eq(pgm->type, "JTAGICE3"))
         msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if (str_eq(prg, "powerdebugger_updi") || str_eq(prg, "pickit4_updi"))
+      if (str_eq(pgmid, "powerdebugger_updi") || str_eq(pgmid, "pickit4_updi"))
         msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if (str_starts(prg, "xplainedmini") && !str_eq(prg, "xplainedmini_tpi")) {
+      if (str_starts(pgmid, "xplainedmini") && !str_eq(pgmid, "xplainedmini_tpi")) {
         msg_error("  -xsuffer                Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
         msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
@@ -1820,7 +1819,7 @@ void jtag3_close(PROGRAMMER * pgm) {
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
   if ((pgm->flag & PGM_FL_IS_EDBG) &&
-      !str_starts(ldata(lfirst(pgm->id)), "xplainedmini")) {
+      !str_starts(pgmid, "xplainedmini")) {
     jtag3_edbg_signoff(pgm);
   }
 

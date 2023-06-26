@@ -755,6 +755,9 @@ retry:
       if (siglen >= strlen("STK500_2") &&
 	  memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+      } else if (siglen >= strlen("SCRATCHMONKEY") &&
+	  memcmp(resp + 3, "SCRATCHMONKEY", strlen("SCRATCHMONKEY")) == 0) {
+	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       } else if (siglen >= strlen("AVRISP_2") &&
 		 memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
 	PDATA(pgm)->pgmtype = PGMTYPE_AVRISP;
@@ -1932,8 +1935,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
         msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
@@ -2046,9 +2048,8 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
-      if (str_starts(prg, "xplainedmini")) {
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
+      if(str_starts(pgmid, "xplainedmini")) {
         msg_error("  -xsuffer              Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
         msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");

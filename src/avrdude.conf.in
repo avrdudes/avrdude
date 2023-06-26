@@ -236,7 +236,7 @@
 #     This flag was added to work around a problem with the
 #     at90s4433/2333's; see the at90s4433 errata at:
 #
-#         http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf
+#     https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf
 #
 # INSTRUCTION FORMATS
 #
@@ -502,9 +502,12 @@ programmer parent "dt006"
 # alf
 #------------------------------------------------------------
 
+# PC Parallel Port Programmer
+# https://web.archive.org/web/20050928233713fw_/http://nightshade.homeip.net/ALF-PgmAVR.htm
+
 programmer
     id                     = "alf";
-    desc                   = "Nightshade ALF-PgmAVR, http://nightshade.homeip.net/";
+    desc                   = "Nightshade ALF-PgmAVR via PC parallel port";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 2, 3, 4, 5;
@@ -625,9 +628,11 @@ programmer
 # atisp
 #------------------------------------------------------------
 
+# https://micro-research.co.th
+
 programmer
     id                     = "atisp";
-    desc                   = "AT-ISP v1.1 programming cable for AVR-SDK1 from <https://micro-research.co.th>";
+    desc                   = "AT-ISP v1.1 programming cable for AVR-SDK1";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~6;
@@ -640,9 +645,11 @@ programmer
 # ere-isp-avr
 #------------------------------------------------------------
 
+# No longer exists: http://www.ere.co.th/download/sch050713.pdf
+
 programmer
     id                     = "ere-isp-avr";
-    desc                   = "ERE ISP-AVR <http://www.ere.co.th/download/sch050713.pdf>";
+    desc                   = "ERE ISP-AVR";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = ~4;
@@ -672,7 +679,7 @@ programmer
 #------------------------------------------------------------
 
 # It is almost same as pony-stk200, except vcc on pin 5 to auto
-# disconnect port (download on http://electropol.free.fr/spip/spip.php?article27)
+# disconnect port, see http://electropol.free.fr/spip/spip.php?article27
 
 programmer parent "pony-stk200"
     id                     = "frank-stk200";
@@ -685,8 +692,10 @@ programmer parent "pony-stk200"
 # 89isp
 #------------------------------------------------------------
 
-# The AT98ISP Cable is a simple parallel dongle for AT89 family.
-# http://www.atmel.com/dyn/products/tools_card.asp?tool_id=2877
+# The AT89ISP Cable is a simple parallel dongle for AT89 family
+# https://www.microchip.com/en-us/development-tool/AT89ISP
+# https://ww1.microchip.com/downloads/en/appnotes/doc3310.pdf
+# https://ww1.microchip.com/downloads/en/DeviceDoc/AT89ISP_Update3.3.zip
 
 programmer
     id                     = "89isp";
@@ -876,29 +885,31 @@ programmer
 # ft2232h
 #------------------------------------------------------------
 
-# this will interface with the chips on these programmers:
+# Interfaces with the chips on these programmers:
+#  - http://real.kiev.ua/old/avreal/en/adapters
+#  - http://www.amontec.com/jtagkey.shtml and .../jtagkey-tiny.shtml
+#  - http://www.olimex.com/dev/arm-usb-ocd.html, arm-usb-tiny.html
+#  - http://www.ethernut.de/en/hardware/turtelizer/index.html
+#  - https://web.archive.org/web/20161221220118/http://elk.informatik.fh-augsburg.de/hhweb/doc/openocd/usbjtag/usbjtag.html
+#  - http://dangerousprototypes.com/docs/FT2232_breakout_board
+#  - http://flashrom.org/FT2232SPI_Programmer
 #
-# http://real.kiev.ua/old/avreal/en/adapters
-# http://www.amontec.com/jtagkey.shtml, jtagkey-tiny.shtml
-# http://www.olimex.com/dev/arm-usb-ocd.html, arm-usb-tiny.html
-# http://www.ethernut.de/en/hardware/turtelizer/index.html
-# http://elk.informatik.fh-augsburg.de/hhweb/doc/openocd/usbjtag/usbjtag.html
-# http://dangerousprototypes.com/docs/FT2232_breakout_board
-# http://www.ftdichip.com/Products/Modules/DLPModules.htm,DLP-2232*,DLP-USB1232H
-# http://flashrom.org/FT2232SPI_Programmer
-#
-# The drivers will look for a specific device and use the first one found.
-# If you have mulitple devices, then look for unique information (like SN)
-# And fill that in here.
+# The drivers will look for a specific device and use the first one
+# found. If you have mulitple devices, and they give out serial
+# numbers, a different entry for each of them can be created in a
+# persnonal ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
+# field added to distinguish between them.
 #
 # Note that the pin numbers for the main ISP signals (reset, sck,
 # sdo, sdi) are fixed and cannot be changed, since they must match
 # the way the Multi-Protocol Synchronous Serial Engine (MPSSE) of
 # these FTDI ICs has been designed.
+#
+# See also https://ftdichip.com/wp-content/uploads/2020/07/DS_FT2232H.pdf
 
 programmer
-    id                     = "ft2232h";
-    desc                   = "FT2232H based generic programmer";
+    id                     = "ft2232h", "avrftdi", "2232h";
+    desc                   = "FT2232H/D based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -910,15 +921,6 @@ programmer
     sck                    = 0; # AD0 (TCK)
     sdo                    = 1; # AD1 (TDI)
     sdi                    = 2; # AD2 (TDO)
-;
-
-#------------------------------------------------------------
-# avrftdi
-#------------------------------------------------------------
-
-programmer parent "ft2232h"
-    id                     = "avrftdi";
-    desc                   = "FT2232D based generic programmer";
 ;
 
 #------------------------------------------------------------
@@ -975,21 +977,13 @@ programmer parent "ft2232h"
 # ft4232h
 #------------------------------------------------------------
 
-#The FT4232H can be treated as FT2232H, but it has a different USB
-#device ID of 0x6011.
+# The FT4232H can be treated as FT2232H but with a different USB
+# device ID of 0x6011
 
 programmer parent "ft2232h"
-    id                     = "ft4232h";
+    id                     = "ft4232h", "4232h";
     desc                   = "FT4232H based generic programmer";
     usbpid                 = 0x6011;
-;
-
-#------------------------------------------------------------
-# 4232h
-#------------------------------------------------------------
-
-programmer parent "ft4232h"
-    id                     = "4232h";
 ;
 
 #------------------------------------------------------------
@@ -1075,23 +1069,15 @@ programmer parent "ft232h"
 # o-link
 #------------------------------------------------------------
 
-# On the adapter you can read "O-Link". On the PCB is printed "OpenJTAG v3.1"
-# You can find it as "OpenJTAG ARM JTAG USB" in the internet.
-# (But there are also several projects called Open JTAG, eg.
-# http://www.openjtag.org, which are completely different.)
-#   http://www.100ask.net/shop/english.html (website seems to be outdated)
-#   http://item.taobao.com/item.htm?id=1559277013
-#   http://www.micro4you.com/store/openjtag-arm-jtag-usb.html (schematics!)
-# some other sources which call it O-Link
-#   http://www.andahammer.com/olink/
-#   http://www.developmentboard.net/31-o-link-debugger.html
-#   http://armwerks.com/catalog/o-link-debugger-copy/
-# or just have a look at ebay ...
-# It is basically the same entry as jtagkey with different usb ids.
+# On the adapter you can read "O-Link". On the PCB is printed "OpenJTAG v3.1".
+# You can find it as "OpenJTAG ARM JTAG USB" in the internet. Note there are also
+# several projects called Open JTAG, which are completely different. Some other
+# sources call it O-Link or just have a look at ebay ... It is basically the same
+# entry as jtagkey with different usb ids. See www.100ask.net
 
 programmer parent "jtagkey"
     id                     = "o-link";
-    desc                   = "O-Link, OpenJTAG from www.100ask.net";
+    desc                   = "O-Link, OpenJTAG ARM JTAG USB";
     usbvid                 = 0x1457;
     usbpid                 = 0x5118;
     usbvendor              = "www.100ask.net";
@@ -1174,14 +1160,18 @@ programmer
 # Kristech KT-LINK FT2232H interface with IO switching and voltage buffers.
 # Created on 20220410 by CeDeROM Tomasz CEDRO (www.cederom.io).
 # Interface DataSheet: https://kristech.pl/files/KT-LINK-UM-ENG.pdf
+#
 # AVRDUDE FT2232H PIN NUMBER DECODE:
 #  | 0      | 1      | .. | 7      | 8      | 9      | .. | 15     |
 #  | ADBUS0 | ADBUS1 | .. | ADBUS7 | ACBUS0 | ACBUS1 | .. | ACBUS7 |
+#
 # KT-LINK JTAG CONN:
 #  1=Vsense(->EXT13), 19=5V(EXT1->EXT3), 20=GND, 3=TPIRST, 9=TPICLK, 7=TPIDATA.
+#
 # INTERNALS CONFIGURATION ("~" MEANS ACTIVE LOW):
 #  ~TRST_EN=10(ACBUS2), ~CLK_EN=14(ACBUS6), ~SDO_EN=13(ACBUS5),
 #  TMS_SEL=5(ADBUS5), ~TMS_EN=12(ACBUS4), LED=~15(ACBUS7).
+#
 # CONNECTION NOTES:
 #  * Connect EXT connector pin 1 with 3 to get 5V on JTAG connector pin 19.
 #  * Connect JTAG connector pin 1 to 5V (i.e. EXT pin 13 or JTAG pin 19).
@@ -1190,7 +1180,7 @@ programmer
 
 programmer
     id                     = "ktlink";
-    desc                   = "KT-LINK FT2232H interface with IO switching and voltage buffers.";
+    desc                   = "KT-LINK FT2232H interface with IO switching and voltage buffers";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1297,20 +1287,12 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "avrispmkII";
+    id                     = "avrispmkII", "avrisp2";
     desc                   = "Atmel AVR ISP mkII";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-;
-
-#------------------------------------------------------------
-# avrisp2
-#------------------------------------------------------------
-
-programmer parent "avrispmkII"
-    id                     = "avrisp2";
 ;
 
 #------------------------------------------------------------
@@ -1407,7 +1389,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500v2";
+    id                     = "stk500v2", "scratchmonkey";
     desc                   = "Atmel STK500 version 2.x firmware";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
@@ -1420,7 +1402,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500pp";
+    id                     = "stk500pp", "scratchmonkey_pp";
     desc                   = "Atmel STK500 v2 in parallel programming mode";
     type                   = "stk500pp";
     prog_modes             = PM_HVPP;
@@ -1433,7 +1415,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500hvsp";
+    id                     = "stk500hvsp", "scratchmonkey_hvsp";
     desc                   = "Atmel STK500 v2 in high-voltage serial programming mode";
     type                   = "stk500hvsp";
     prog_modes             = PM_HVSP;
@@ -1546,11 +1528,15 @@ programmer
 # arduino-ft232r
 #------------------------------------------------------------
 
-# see http://www.geocities.jp/arduino_diecimila/bootloader/index_en.html
-# Note: pins are numbered from 1!
+# This programmer helps programming the Arduino Diecimila, NG and
+# Duemilanove (but not the Uno) without bootloader or external
+# programmer using the on-board FT232RL chip. Instructions here:
+# https://make.kosakalab.com/arduino/bootloader/index_en.html
+# Note that the -c diecimila avrdude.conf entry mentioned in above post
+# is the same as the -c arduino-ft232r entry here.
 
 programmer
-    id                     = "arduino-ft232r";
+    id                     = "arduino-ft232r", "diecimila";
     desc                   = "Arduino: FT232R connected to ISP";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
@@ -1576,17 +1562,6 @@ programmer
     sck                    = 2;  # RTS = D2 (wire to SCK)
     sdo                    = 0;  # TxD = D0 (wire to TPIDATA via 1k resistor)
     sdi                    = 1;  # RxD = D1 (wire to TPIDATA directly)
-;
-
-#------------------------------------------------------------
-# diecimila
-#------------------------------------------------------------
-
-# website mentioned above uses this id
-
-programmer parent "arduino-ft232r"
-    id                     = "diecimila";
-    desc                   = "alias for arduino-ft232r";
 ;
 
 #------------------------------------------------------------
@@ -1617,9 +1592,10 @@ programmer
 #------------------------------------------------------------
 
 # FTDI USB to serial cable TTL-232R-5V with a custom adapter for ICSP
-# http://www.ftdichip.com/Products/Cables/USBTTLSerial.htm
-# http://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232R_CABLES.pdf
-# For ICSP pinout see for example http://www.atmel.com/images/doc2562.pdf
+#  - https://ftdichip.com/product-category/products/cables/usb-ttl-serial-cable-series/
+#  - http://www.ftdichip.com/Support/Documents/DataSheets/Cables/DS_TTL-232R_CABLES.pdf
+#
+# For ICSP pinout see, e.g., http://ww1.microchip.com/downloads/en/DeviceDoc/doc2562.pdf
 # (Figure 1. ISP6PIN header pinout and Table 1. Connections required for ISP ...)
 # TTL-232R GND 1 Black  -> ICPS GND   (pin 6)
 # TTL-232R CTS 2 Brown  -> ICPS SDO   (pin 4)
@@ -1627,8 +1603,9 @@ programmer
 # TTL-232R TXD 4 Orange -> ICPS RESET (pin 5)
 # TTL-232R RXD 5 Yellow -> ICPS SCK   (pin 3)
 # TTL-232R RTS 6 Green  -> ICPS SDI   (pin 1)
-# Except for VCC and GND, you can connect arbitual pairs as long as
-# the following table is adjusted.
+#
+# Except for VCC and GND, you can connect arbitrary pairs as long as the
+# following table is adjusted.
 
 programmer
     id                     = "ttl232r";
@@ -1646,9 +1623,33 @@ programmer
 # usbasp
 #------------------------------------------------------------
 
+# From http://www.fischl.de/usbasp
+# USBasp is a USB in-circuit programmer for Atmel AVR controllers. It
+# simply consists of an ATmega88 or an ATmega8 and a couple of passive
+# components. The programmer uses a firmware-only USB driver, no
+# special USB controller is needed.
+#
+# Firmware, schematics and drivers are available under above URL, too.
+#
+# Alternative firmware for the external programmer:
+#
+# - https://github.com/mariusgreuel/USBasp
+#   Windows OS descriptor to load WinUSB driver automatically
+#
+# - https://github.com/nerdralph/usbasp
+#   WCID compliant, meaning it should work on Windows without any
+#   driver or .inf install; default SCK clock of 1.5 MHz and automatic
+#   SCK slowing if target does not respond; PORTD is left as input, so
+#   this firmware also works with USBISP modules, eg,
+#   https://www.sciencetronics.com/greenphotons/?p=938
+#
+# - https://github.com/dioannidis/usbasp
+#   As above plus HID UART support, setting unique serial number and
+#   AT89S51/AT89S52 support
+
 programmer
     id                     = "usbasp";
-    desc                   = "USBasp, http://www.fischl.de/usbasp/";
+    desc                   = "USBasp ISP and TPI programmer";
     type                   = "usbasp";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1656,24 +1657,19 @@ programmer
     usbpid                 = 0x05dc; # Obdev's free shared PID
     usbvendor              = "www.fischl.de";
     usbproduct             = "USBasp";
-  # following variants are autodetected for id "usbasp"
 
-  # original usbasp from fischl.de
-  # see above "usbasp"
-
-  # old usbasp from fischl.de
+  # Old usbasp from fischl.de:
   # usbvid                 = 0x03EB; # ATMEL
   # usbpid                 = 0xC7B4; # (unoffical) USBasp
   # usbvendor              = "www.fischl.de";
   # usbproduct             = "USBasp";
-
-  # NIBObee (only if -P nibobee is given on command line)
-  # see below "nibobee"
 ;
 
 #------------------------------------------------------------
 # nibobee
 #------------------------------------------------------------
+
+# http://www.nicai-systems.com/en/nibobee
 
 programmer
     id                     = "nibobee";
@@ -1705,14 +1701,16 @@ programmer
 # usbtiny
 #------------------------------------------------------------
 
-# USBtiny can also be used for TPI programming.
+# https://learn.adafruit.com/usbtinyisp
+#
+# The ISP USBtiny programmer can also be used for TPI programming.
 # In that case, a resistor of 1 kOhm is needed between SDI and SDO
 # pins of the connector, and SDI (pin 1 of the 6-pin connector)
 # connects to TPIDATA.
 
 programmer
     id                     = "usbtiny";
-    desc                   = "USBtiny simple USB programmer, https://learn.adafruit.com/usbtinyisp";
+    desc                   = "USBtiny simple USB programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1784,11 +1782,12 @@ programmer
 # ehajo-isp
 #------------------------------------------------------------
 
-# commercial version of USBtiny, using a separate VID/PID
+# Commercial version of USBtiny using a separate VID/PID from
+# http://www.eHaJo.de (closed from end of 2023)
 
 programmer
     id                     = "ehajo-isp";
-    desc                   = "avr-isp-programmer from eHaJo, http://www.eHaJo.de";
+    desc                   = "AVR ISP programmer from eHaJo.de";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1800,12 +1799,14 @@ programmer
 # iseavrprog
 #------------------------------------------------------------
 
-# commercial version of USBtiny, using a separate VID/PID
+# Commercial version of USBtiny using a separate VID/PID from
+# https://iascaled.com
+#
 # https://github.com/IowaScaledEngineering/ckt-avrprogrammer
 
 programmer
     id                     = "iseavrprog";
-    desc                   = "USBtiny-based programmer, https://iascaled.com";
+    desc                   = "AVR ISP programmer from iascaled.com";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1910,13 +1911,13 @@ programmer
 ;
 
 #------------------------------------------------------------
-# mkbutterfly
+# butterfly_mk and mkbutterfly
 #------------------------------------------------------------
 
-# suggested in http://forum.mikrokopter.de/topic-post48317.html
+# http://forum.mikrokopter.de
 
 programmer
-    id                     = "mkbutterfly";
+    id                     = "butterfly_mk", "mkbutterfly";
     desc                   = "Mikrokopter.de Butterfly for bootloader";
     type                   = "butterfly_mk";
     prog_modes             = PM_SPM;
@@ -1924,19 +1925,11 @@ programmer
 ;
 
 #------------------------------------------------------------
-# butterfly_mk
-#------------------------------------------------------------
-
-programmer parent "mkbutterfly"
-    id                     = "butterfly_mk";
-;
-
-#------------------------------------------------------------
 # jtagmkI
 #------------------------------------------------------------
 
 programmer
-    id                     = "jtagmkI";
+    id                     = "jtagmkI", "jtag1";
     desc                   = "Atmel JTAG ICE (mkI)";
     type                   = "jtagmki";
     prog_modes             = PM_JTAGmkI;
@@ -1946,20 +1939,8 @@ programmer
 ;
 
 #------------------------------------------------------------
-# jtag1
-#------------------------------------------------------------
-
-# easier to type
-
-programmer parent "jtagmkI"
-    id                     = "jtag1";
-;
-
-#------------------------------------------------------------
 # jtag1slow
 #------------------------------------------------------------
-
-# easier to type
 
 programmer parent "jtag1"
     id                     = "jtag1slow";
@@ -1989,8 +1970,6 @@ programmer
 # jtag2slow
 #------------------------------------------------------------
 
-# easier to type
-
 programmer parent "jtagmkII"
     id                     = "jtag2slow";
 ;
@@ -1999,21 +1978,11 @@ programmer parent "jtagmkII"
 # jtag2fast
 #------------------------------------------------------------
 
-# JTAG ICE mkII @ 115200 Bd
+# JTAG ICE mkII @ 115200 Bd (and alias jtag2 the fast version)
 
 programmer parent "jtag2slow"
-    id                     = "jtag2fast";
+    id                     = "jtag2fast", "jtag2";
     baudrate               = 115200;
-;
-
-#------------------------------------------------------------
-# jtag2
-#------------------------------------------------------------
-
-# make the fast one the default, people will love that
-
-programmer parent "jtag2fast"
-    id                     = "jtag2";
 ;
 
 #------------------------------------------------------------
@@ -2055,23 +2024,13 @@ programmer
 # JTAG ICE mkII in AVR32 mode
 
 programmer
-    id                     = "jtagmkII_avr32";
+    id                     = "jtagmkII_avr32", "jtag2avr32";
     desc                   = "Atmel JTAG ICE mkII in AVR32 mode";
     type                   = "jtagmkii_avr32";
     prog_modes             = PM_aWire;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
-;
-
-#------------------------------------------------------------
-# jtag2avr32
-#------------------------------------------------------------
-
-# JTAG ICE mkII in AVR32 mode
-
-programmer parent "jtagmkII_avr32"
-    id                     = "jtag2avr32";
 ;
 
 #------------------------------------------------------------
@@ -2769,12 +2728,12 @@ programmer
 # siprog
 #------------------------------------------------------------
 
+# Serial port adapter http://www.lancos.com/siprogsch.html
 # Same as above, different name
-# reset=!txd sck=rts sdo=dtr sdi=cts
 
 programmer parent "ponyser"
     id                     = "siprog";
-    desc                   = "Lancos SI-Prog <http://www.lancos.com/siprogsch.html>";
+    desc                   = "Lancos SI-Prog (same as ponyser)";
 ;
 
 #------------------------------------------------------------
@@ -4424,8 +4383,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4433,8 +4392,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4443,8 +4402,8 @@ part
         size               = 1;
         initval            = 0xfd;
         bitmask            = 0x03;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxii";
     ;
@@ -4453,8 +4412,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -4519,7 +4478,7 @@ part
     boot_section_size      = 1024;
     stk500_devcode         = 0xb2;
     avr910_devcode         = 0x43;
-    chip_erase_delay       = 9000;
+    chip_erase_delay       = 10000;
     pagel                  = 0xd7;
     bs2                    = 0xa0;
     signature              = 0x1e 0x97 0x02;
@@ -4556,8 +4515,8 @@ part
     memory "eeprom"
         size               = 4096;
         page_size          = 8;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 10000;
+        max_write_delay    = 10000;
         readback           = 0xff 0xff;
         mode               = 0x04;
         delay              = 20;
@@ -4572,8 +4531,8 @@ part
         size               = 0x20000;
         page_size          = 256;
         num_pages          = 512;
-        min_write_delay    = 4500;
-        max_write_delay    = 4500;
+        min_write_delay    = 5000;
+        max_write_delay    = 5000;
         readback           = 0xff 0x00;
         mode               = 0x21;
         delay              = 10;
@@ -4589,8 +4548,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4598,8 +4557,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -4608,8 +4567,8 @@ part
         size               = 1;
         initval            = 0xfd;
         bitmask            = 0x03;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0100--xxxx.xxxx--xxxx.xxii";
     ;
@@ -4618,8 +4577,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -5169,8 +5128,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -5178,8 +5137,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -5188,8 +5147,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 9000;
-        max_write_delay    = 9000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -7059,8 +7018,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7068,8 +7027,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0x99;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7078,8 +7037,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -7254,7 +7213,7 @@ part
     boot_section_size      = 256;
     stk500_devcode         = 0x70;
     avr910_devcode         = 0x76;
-    chip_erase_delay       = 10000;
+    chip_erase_delay       = 9000;
     pagel                  = 0xd7;
     bs2                    = 0xc2;
     signature              = 0x1e 0x93 0x07;
@@ -7321,8 +7280,8 @@ part
     memory "lfuse"
         size               = 1;
         initval            = 0xe1;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.0000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.0000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7330,8 +7289,8 @@ part
     memory "hfuse"
         size               = 1;
         initval            = 0xd9;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.1000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--1010.1000--xxxx.xxxx--iiii.iiii";
     ;
@@ -7340,8 +7299,8 @@ part
         size               = 1;
         initval            = 0xff;
         bitmask            = 0x3f;
-        min_write_delay    = 2000;
-        max_write_delay    = 2000;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
@@ -9348,7 +9307,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny87 has Signature Bytes: 0x1E 0x93 0x87.
+
+    # ATtiny87 has signature bytes 0x1E 0x93 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -9496,7 +9456,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny167 has Signature Bytes: 0x1E 0x94 0x87.
+
+    # ATtiny167 has signature bytes 0x1E 0x94 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -11142,11 +11103,13 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny2313 has Signature Bytes: 0x1E 0x91 0x0A.
+
+    # ATtiny2313 has signature bytes 0x1E 0x91 0x0A
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
 # The Tiny2313 has calibration data for both 4 MHz and 8 MHz.
 # The information in the data sheet of April/2004 is wrong, this works:
 
@@ -11314,7 +11277,8 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny4313 has Signature Bytes: 0x1E 0x92 0x0D.
+
+    # ATtiny4313 has signature bytes 0x1E 0x92 0x0D
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -11594,7 +11558,8 @@ part
         read               = "0101.1000--0000.0000--xxxx.xxxx--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   AT90PWM2 has Signature Bytes: 0x1E 0x93 0x81.
+
+    # AT90PWM2 has signature bytes 0x1E 0x93 0x81
     memory "signature"
         size               = 3;
         read               = "0011.0000--00xx.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12059,7 +12024,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny25 has Signature Bytes: 0x1E 0x91 0x08.
+
+    # ATtiny25 has signature bytes 0x1E 0x91 0x08
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12218,7 +12184,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny45 has Signature Bytes: 0x1E 0x92 0x08. (Data sheet 2586C-AVR-06/05 (doc2586.pdf) indicates otherwise!)
+
+    # ATtiny45 has signature bytes 0x1E 0x92 0x08 (data sheet 2586C-AVR-06/05 doc2586.pdf indicates otherwise)
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12374,7 +12341,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--11ii.iiii";
     ;
-#   ATtiny85 has Signature Bytes: 0x1E 0x93 0x08.
+
+    # ATtiny85 has signature bytes 0x1E 0x93 0x08
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -12874,7 +12842,7 @@ part parent "m2561"
         "ATmega128RFA1-ZUR00:     VFQFN64, Fmax=N/A, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 87;
     n_interrupts           = 72;
-    chip_erase_delay       = 55000;
+    chip_erase_delay       = 18500;
     bs2                    = 0xe2;
     signature              = 0x1e 0xa7 0x01;
     pp_controlstack        =
@@ -12886,16 +12854,58 @@ part parent "m2561"
     ocdrev                 = 3;
 
     memory "eeprom"
+        min_write_delay    = 13000;
+        max_write_delay    = 13000;
         delay              = 50;
     ;
 
     memory "flash"
         size               = 0x20000;
         num_pages          = 512;
-        min_write_delay    = 50000;
-        max_write_delay    = 50000;
         delay              = 50;
         load_ext_addr      = NULL;
+    ;
+
+    memory "lfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "hfuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "efuse"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    memory "lock"
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+    ;
+
+    #####
+    # Three separate flash pages
+    #   - Offset 0x100 in signature row
+    #   - Only programmable with JTAG or HVPP
+    #   - Readable from an application
+    #   - Cannot be read using ISP
+    #   - Not erased by chip erase
+    #
+    memory "usersig"
+        paged              = yes;
+        size               = 768;
+        page_size          = 256;
+        num_pages          = 3;
+        offset             = 0x100;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 50;
+        blocksize          = 256;
+        readsize           = 256;
     ;
 ;
 
@@ -12903,7 +12913,7 @@ part parent "m2561"
 # ATmega256RFR2
 #------------------------------------------------------------
 
-part parent "m2561"
+part parent "m128rfa1"
     desc                   = "ATmega256RFR2";
     id                     = "m256rfr2";
     variants               =
@@ -12913,29 +12923,21 @@ part parent "m2561"
         "ATmega256RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 108;
     n_interrupts           = 77;
-    chip_erase_delay       = 18500;
-    bs2                    = 0xe2;
     signature              = 0x1e 0xa8 0x02;
-    pp_controlstack        =
-        0x0e, 0x1e, 0x0f, 0x1f, 0x2e, 0x3e, 0x2f, 0x3f,
-        0x4e, 0x5e, 0x4f, 0x5f, 0x6e, 0x7e, 0x6f, 0x7f,
-        0x66, 0x76, 0x67, 0x77, 0x6a, 0x7a, 0x6b, 0x7b,
-        0xbe, 0xfd, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00;
-    latchcycles            = 5;
     chiperasepolltimeout   = 20;
+    ocdrev                 = 4;
 
     memory "eeprom"
         size               = 8192;
-        min_write_delay    = 13000;
-        max_write_delay    = 13000;
-        delay              = 50;
         read               = "1010.0000--xxxa.aaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxa.aaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xa.aaaa--aaaa.a000--xxxx.xxxx";
     ;
 
     memory "flash"
-        delay              = 50;
+        size               = 0x40000;
+        num_pages          = 1024;
+        load_ext_addr      = "0100.1101--0000.0000--0000.000a--0000.0000";
     ;
 
     memory "efuse"
@@ -12984,8 +12986,6 @@ part parent "m128rfa1"
 
     memory "eeprom"
         size               = 2048;
-        min_write_delay    = 13000;
-        max_write_delay    = 13000;
         read               = "1010.0000--xxxx.xaaa--aaaa.aaaa--oooo.oooo";
         write              = "1100.0000--xxxx.xaaa--aaaa.aaaa--iiii.iiii";
         writepage          = "1100.0010--00xx.xaaa--aaaa.a000--xxxx.xxxx";
@@ -13190,7 +13190,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny24 has Signature Bytes: 0x1E 0x91 0x0B.
+
+    # ATtiny24 has signature bytes 0x1E 0x91 0x0B
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -13369,7 +13370,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny44 has Signature Bytes: 0x1E 0x92 0x07.
+
+    # ATtiny44 has signature bytes 0x1E 0x92 0x07
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -13547,7 +13549,8 @@ part
         read               = "0101.1000--0000.0000--0000.0000--oooo.oooo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
-#   ATtiny84 has Signature Bytes: 0x1E 0x93 0x0C.
+
+    # ATtiny84 has signature bytes 0x1E 0x93 0x0C
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -17084,6 +17087,7 @@ part parent ".xmega"
     n_interrupts           = 127;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x51;
+
 #   usbpid                 = 0x2f??;
 
     memory "eeprom"

@@ -213,8 +213,8 @@ static PROGRAMMER * pgm;
 int verbose;                    // Verbose output
 int quell_progress;             // Quell progress report and un-verbose output
 int ovsigck;                    // 1 = override sig check, 0 = don't
-const char *partdesc;           // Part id
-
+const char *partdesc;           // Part -p string
+const char *pgmid;              // Programmer -c string
 
 /*
  * usage message
@@ -280,7 +280,7 @@ static void pmshorten(char *desc, const char *modes) {
 
   for(size_t i=0; i<sizeof pairs/sizeof*pairs; i++) {
     size_t elen = strlen(pairs[i].end);
-    if(len > elen && strcasecmp(desc+len-elen, pairs[i].end) == 0 && strcmp(modes, pairs[i].mode) == 0) {
+    if(len > elen && str_caseeq(desc+len-elen, pairs[i].end) && str_eq(modes, pairs[i].mode)) {
       desc[len-elen] = 0;
       break;
     }
@@ -431,7 +431,7 @@ static void replace_backslashes(char *s)
 static int dev_opt(const char *str) {
   return
     !str? 0:
-    !strcmp(str, "*") || !strncmp(str, "*/", 2)? 2:
+    str_eq(str, "*") || str_starts(str, "*/")? 2:
     !!strchr(str, '/');
 }
 
@@ -511,7 +511,6 @@ int main(int argc, char * argv [])
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   char  * port;        /* device port (/dev/xxx) */
   const char *exitspecs; /* exit specs string from command line */
-  const char *programmer; /* programmer id */
   int     explicit_c;  /* 1=explicit -c on command line, 0=not specified there */
   int     explicit_e;  /* 1=explicit -e on command line, 0=not specified there */
   char    sys_config[PATH_MAX]; /* system wide config file */
@@ -560,7 +559,7 @@ int main(int argc, char * argv [])
     progname = argv[0];
 
   // Remove trailing .exe
-  if(strlen(progname) > 4 && strcmp(progname+strlen(progname)-4, ".exe") == 0) {
+  if(str_ends(progname, ".exe")) {
     progname = cfg_strdup("main()", progname); // Don't write to argv[0]
     progname[strlen(progname)-4] = 0;
   }
@@ -604,7 +603,7 @@ int main(int argc, char * argv [])
   quell_progress = 0;
   exitspecs     = NULL;
   pgm           = NULL;
-  programmer    = "";
+  pgmid         = "";
   explicit_c    = 0;
   explicit_e    = 0;
   verbose       = 0;
@@ -704,7 +703,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'c': /* programmer id */
-        programmer = optarg;
+        pgmid = optarg;
         explicit_c = 1;
         break;
 
@@ -1003,15 +1002,15 @@ int main(int argc, char * argv [])
     bitclock = default_bitclock;
   }
 
-  if(!(programmer && *programmer) && *default_programmer)
-    programmer = cache_string(default_programmer);
+  if(!(pgmid && *pgmid) && *default_programmer)
+    pgmid = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
-  int dev_opt_c = dev_opt(programmer); // -c <wildcard>/[sSArt]
-  int dev_opt_p = dev_opt(partdesc);   // -p <wildcard>/[dsSArcow*t]
+  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[sSArt]
+  int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[dsSArcow*t]
 
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
-    dev_output_pgm_part(dev_opt_c, programmer, dev_opt_p, partdesc);
+    dev_output_pgm_part(dev_opt_c, pgmid, dev_opt_p, partdesc);
     exit(0);
   }
 
@@ -1026,15 +1025,15 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (partdesc) {
-    if (strcmp(partdesc, "?") == 0) {
-      if(programmer && *programmer && explicit_c) {
-        PROGRAMMER *pgm = locate_programmer(programmers, programmer);
+  if(partdesc) {
+    if(str_eq(partdesc, "?")) {
+      if(pgmid && *pgmid && explicit_c) {
+        PROGRAMMER *pgm = locate_programmer_set(programmers, pgmid, &pgmid);
         if(!pgm) {
-          programmer_not_found(programmer);
+          programmer_not_found(pgmid);
           exit(1);
         }
-        msg_error("\nValid parts for programmer %s are:\n", programmer);
+        msg_error("\nValid parts for programmer %s are:\n", pgmid);
         list_parts(stderr, "  ", part_list, pgm->prog_modes);
       } else {
         msg_error("\nValid parts are:\n");
@@ -1045,8 +1044,8 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (programmer) {
-    if (strcmp(programmer, "?") == 0) {
+  if(pgmid) {
+    if(str_eq(pgmid, "?")) {
       if(partdesc && *partdesc) {
         AVRPART *p = locate_part(part_list, partdesc);
         if(!p) {
@@ -1063,7 +1062,7 @@ int main(int argc, char * argv [])
       exit(1);
     }
 
-    if (strcmp(programmer, "?type") == 0) {
+    if(str_eq(pgmid, "?type")) {
       msg_error("\nValid programmer types are:\n");
       list_programmer_types(stderr, "  ");
       msg_error("\n");
@@ -1073,14 +1072,14 @@ int main(int argc, char * argv [])
 
   msg_notice("\n");
 
-  if (!programmer || !*programmer) {
+  if(!pgmid || !*pgmid) {
     programmer_not_found(NULL);
     exit(1);
   }
 
-  pgm = locate_programmer(programmers, programmer);
+  pgm = locate_programmer_set(programmers, pgmid, &pgmid);
   if (pgm == NULL) {
-    programmer_not_found(programmer);
+    programmer_not_found(pgmid);
     exit(1);
   }
 
@@ -1104,8 +1103,7 @@ int main(int argc, char * argv [])
       for (LNODEID ln = lfirst(extended_params); ln; ln = lnext(ln)) {
         const char *extended_param = ldata(ln);
         if (str_eq(extended_param, "help")) {
-          char *prg = (char *)ldata(lfirst(pgm->id));
-          msg_error("%s -c %s extended options:\n", progname, prg);
+          msg_error("%s -c %s extended options:\n", progname, pgmid);
           msg_error("  -xhelp    Show this help menu and exit\n");
           exit(0);
         }
@@ -1160,7 +1158,7 @@ int main(int argc, char * argv [])
 
   if (verbose > 0) {
     imsg_notice("Using Port                    : %s\n", port);
-    imsg_notice("Using Programmer              : %s\n", programmer);
+    imsg_notice("Using Programmer              : %s\n", pgmid);
   }
 
   if (baudrate != 0) {
@@ -1180,7 +1178,7 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    pmsg_error("unable to open programmer %s on port %s\n", programmer, port);
+    pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
@@ -1220,7 +1218,7 @@ int main(int argc, char * argv [])
   }
 
   if(verbose > 0) {
-    if ((strcmp(pgm->type, "avr910") == 0)) {
+    if((str_eq(pgm->type, "avr910"))) {
       imsg_notice("avr910_devcode (avrdude.conf) : ");
       if(p->avr910_devcode)
         msg_notice("0x%02x\n", (uint8_t) p->avr910_devcode);
@@ -1306,7 +1304,7 @@ int main(int argc, char * argv [])
     else
       imsg_error("- double check the connections and try again\n");
 
-    if (strcmp(pgm->type, "serialupdi") == 0 || strcmp(pgm->type, "SERBB") == 0)
+    if(str_eq(pgm->type, "serialupdi") || str_eq(pgm->type, "SERBB"))
       imsg_error("- use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
     else
       imsg_error("- use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
@@ -1453,7 +1451,7 @@ int main(int argc, char * argv [])
         m = avr_locate_mem(p, upd->memtype);
         if (m == NULL)
           continue;
-        if ((strcmp(m->desc, memname) == 0) && (upd->op == DEVICE_WRITE)) {
+        if(str_eq(m->desc, memname) && upd->op == DEVICE_WRITE) {
           erase = 1;
           pmsg_info("Note: %s memory has been specified, an erase cycle will be performed.\n", memname);
           imsg_info("To disable this feature, specify the -D option.\n");
