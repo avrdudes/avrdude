@@ -2819,6 +2819,14 @@ programmer
 #------------------------------------------------------------
 
 # This is an HVSP-only device.
+# ATtiny 11 and 12 seem to be a predecessors of the ATtiny13:
+# https://ww1.microchip.com/downloads/en/Appnotes/doc4297.pdf
+#
+# Only the summary data-sheet appears to be availible:
+# https://ww1.microchip.com/downloads/en/DeviceDoc/1006s.pdf
+#
+# Errata:
+# http://ww1.microchip.com/downloads/en/DeviceDoc/DOC1607.PDF
 
 part
     desc                   = "ATtiny11";
@@ -2899,6 +2907,9 @@ part
 #------------------------------------------------------------
 # ATtiny12
 #------------------------------------------------------------
+
+# Only the summary data-sheet appears to be availible:
+# https://ww1.microchip.com/downloads/en/DeviceDoc/1006s.pdf
 
 part
     desc                   = "ATtiny12";
@@ -3007,6 +3018,8 @@ part
 #------------------------------------------------------------
 # ATtiny13
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/doc2535.pdf
 
 part
     desc                   = "ATtiny13";
@@ -3156,6 +3169,8 @@ part
 # ATtiny13A
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/aemDocuments/documents/MCU08/ProductDocuments/DataSheets/ATtiny13A-Data-Sheet-DS40002307A.pdf
+
 part parent "t13"
     desc                   = "ATtiny13A";
     id                     = "t13a";
@@ -3186,6 +3201,8 @@ part parent "t13"
 #------------------------------------------------------------
 # ATtiny15
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/doc1187.pdf
 
 part
     desc                   = "ATtiny15";
@@ -3779,6 +3796,11 @@ part
 # AT90S2343 (also AT90S2323 and ATtiny22)
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/doc1004.pdf
+#
+# AT90S2343 and AT90S2323 seem to be predecessors of the ATtiny25:
+# https://ww1.microchip.com/downloads/en/Appnotes/doc2594.pdf
+
 part
     desc                   = "AT90S2343";
     id                     = "2343";
@@ -3878,6 +3900,11 @@ part
 # AT90S2323
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/doc1004.pdf
+#
+# AT90S2323 and AT90S2343 seem to be predecessors of the ATtiny25:
+# https://ww1.microchip.com/downloads/en/Appnotes/doc2594.pdf
+
 part parent "2343"
     desc                   = "AT90S2323";
     id                     = "2323";
@@ -3895,6 +3922,8 @@ part parent "2343"
 #------------------------------------------------------------
 # ATtiny22
 #------------------------------------------------------------
+
+# A variation of the AT90S2343
 
 part parent "2343"
     desc                   = "ATtiny22";
@@ -10491,6 +10520,8 @@ part parent "t167"
 # ATmega16HVA
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/doc8024.pdf
+
 part
     desc                   = "ATmega16HVA";
     id                     = "m16hva";
@@ -10611,6 +10642,8 @@ part
 #------------------------------------------------------------
 # ATmega8HVA
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/doc8024.pdf
 
 part parent "m16hva"
     desc                   = "ATmega8HVA";
@@ -10818,6 +10851,8 @@ part parent "m32hvb"
 # ATmega64HVE2
 #------------------------------------------------------------
 
+# https://media.digikey.com/pdf/Data%20Sheets/Atmel%20PDFs/ATMEGA32_64HVE2.pdf
+
 part
     desc                   = "ATmega64HVE2";
     id                     = "m64hve2";
@@ -10948,6 +10983,8 @@ part
 #------------------------------------------------------------
 # ATmega32HVE2
 #------------------------------------------------------------
+
+# https://media.digikey.com/pdf/Data%20Sheets/Atmel%20PDFs/ATMEGA32_64HVE2.pdf
 
 part parent "m64hve2"
     desc                   = "ATmega32HVE2";
@@ -11860,6 +11897,8 @@ part parent "pwm316"
 # ATtiny25
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontroller-ATtiny25-ATtiny45-ATtiny85_Datasheet.pdf
+
 part
     desc                   = "ATtiny25";
     id                     = "t25";
@@ -12041,6 +12080,8 @@ part
 # ATtiny45
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontroller-ATtiny25-ATtiny45-ATtiny85_Datasheet.pdf
+
 part
     desc                   = "ATtiny45";
     id                     = "t45";
@@ -12200,6 +12241,8 @@ part
 #------------------------------------------------------------
 # ATtiny85
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontroller-ATtiny25-ATtiny45-ATtiny85_Datasheet.pdf
 
 part
     desc                   = "ATtiny85";
@@ -13056,6 +13099,8 @@ part parent "m64rfr2"
 # ATtiny24
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7701_Automotive-Microcontrollers-ATtiny24-44-84_Datasheet.pdf
+
 part
     desc                   = "ATtiny24";
     id                     = "t24";
@@ -13207,6 +13252,8 @@ part
 # ATtiny24A
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/ATtiny24A-44A-84A-DataSheet-DS40002269A.pdf
+
 part parent "t24"
     desc                   = "ATtiny24A";
     id                     = "t24a";
@@ -13235,6 +13282,8 @@ part parent "t24"
 #------------------------------------------------------------
 # ATtiny44
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7701_Automotive-Microcontrollers-ATtiny24-44-84_Datasheet.pdf
 
 part
     desc                   = "ATtiny44";
@@ -13387,6 +13436,8 @@ part
 # ATtiny44A
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/ATtiny24A-44A-84A-DataSheet-DS40002269A.pdf
+
 part parent "t44"
     desc                   = "ATtiny44A";
     id                     = "t44a";
@@ -13413,6 +13464,8 @@ part parent "t44"
 #------------------------------------------------------------
 # ATtiny84
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-7701_Automotive-Microcontrollers-ATtiny24-44-84_Datasheet.pdf
 
 part
     desc                   = "ATtiny84";
@@ -13566,6 +13619,8 @@ part
 # ATtiny84A
 #------------------------------------------------------------
 
+# https://ww1.microchip.com/downloads/en/DeviceDoc/ATtiny24A-44A-84A-DataSheet-DS40002269A.pdf
+
 part parent "t84"
     desc                   = "ATtiny84A";
     id                     = "t84a";
@@ -13589,6 +13644,8 @@ part parent "t84"
 #------------------------------------------------------------
 # ATtiny441
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-8495-8-bit-AVR-Microcontrollers-ATtiny441-ATtiny841_Datasheet.pdf
 
 part parent "t44"
     desc                   = "ATtiny441";
@@ -13631,6 +13688,8 @@ part parent "t44"
 #------------------------------------------------------------
 # ATtiny841
 #------------------------------------------------------------
+
+# https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-8495-8-bit-AVR-Microcontrollers-ATtiny441-ATtiny841_Datasheet.pdf
 
 part parent "t84"
     desc                   = "ATtiny841";
