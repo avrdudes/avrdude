@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2021-2023 Hans Eirik Bull
  * Copyright (C) 2022-2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
