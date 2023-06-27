@@ -447,8 +447,10 @@ allow_subshells    = no;
 # Here a 2003 webpage about the bsd programmer:
 # http://web.archive.org/web/20030217002616/http://www.bsdhome.com/avrdude/
 #
-# (Unfortunately, the internet archive seems to have lost the schematic
-# drawn by Joerg Wunsch).
+# The internet archive seems to have lost the schematic drawn by Joerg
+# Wunsch, but here is still a copy of the pdf created on 2001-04-25:
+# https://github.com/avrdudes/avrdude/blob/main/supporting-docs/avrprog.pdf
+#
 
 programmer
     id                     = "bsd";
