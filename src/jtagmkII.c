@@ -75,6 +75,9 @@ struct pdata
   /* JTAG chain stuff */
   unsigned char jtagchain[4];
 
+  /* Serial RTS/DTR setting */
+  int rts_mode;
+
   /* The length of the device descriptor is firmware-dependent. */
   size_t device_descriptor_length;
 
@@ -180,6 +183,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const 
 
 void jtagmkII_setup(PROGRAMMER *pgm) {
   pgm->cookie = cfg_malloc("jtagmkII_setup()", sizeof(struct pdata));
+  PDATA(pgm)->rts_mode = RTS_MODE_DEFAULT;
 }
 
 void jtagmkII_teardown(PROGRAMMER *pgm) {
@@ -1215,6 +1219,11 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   int ok;
   const char *ifname;
 
+  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
+    pmsg_info("forcing serial DTR/RTS handshake lines %s\n",
+      PDATA(pgm)->rts_mode == RTS_MODE_LOW ? "LOW" : "HIGH");
+  }
+
   /* Abort and print error if programmer does not support the target microcontroller */
   if((str_starts(pgm->type, "JTAGMKII_UPDI") && !(p->prog_modes & PM_UPDI)) ||
       (str_starts(pgmid, "jtagmkII") && (p->prog_modes & PM_UPDI))) {
@@ -1380,28 +1389,47 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (strncmp(extended_param, "jtagchain=", strlen("jtagchain=")) == 0) {
-      unsigned int ub, ua, bb, ba;
-      if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-        pmsg_error("invalid JTAG chain '%s'\n", extended_param);
-        rv = -1;
+    if (pgm->flag & PGM_FL_IS_JTAG) {
+      if (str_eq(extended_param, "jtagchain=")) {
+        unsigned int ub, ua, bb, ba;
+        if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
+          pmsg_error("invalid JTAG chain '%s'\n", extended_param);
+          rv = -1;
+          continue;
+        }
+        pmsg_notice2("jtagmkII_parseextparms(): JTAG chain parsed as:\n");
+        imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
+          ub, ua, bb, ba);
+        PDATA(pgm)->jtagchain[0] = ub;
+        PDATA(pgm)->jtagchain[1] = ua;
+        PDATA(pgm)->jtagchain[2] = bb;
+        PDATA(pgm)->jtagchain[3] = ba;
+
         continue;
       }
-      pmsg_notice2("jtagmkII_parseextparms(): JTAG chain parsed as:\n");
-      imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
-        ub, ua, bb, ba);
-      PDATA(pgm)->jtagchain[0] = ub;
-      PDATA(pgm)->jtagchain[1] = ua;
-      PDATA(pgm)->jtagchain[2] = bb;
-      PDATA(pgm)->jtagchain[3] = ba;
-
-      continue;
     }
 
-    else if (str_eq(extended_param, "help")) {
+    if (pgm->flag & PGM_FL_IS_PDI) {
+      char rts_mode[5];
+      if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
+        if (str_caseeq(rts_mode, "low")) {
+          PDATA(pgm)->rts_mode = RTS_MODE_LOW;
+        } else if (str_caseeq(rts_mode, "high")) {
+          PDATA(pgm)->rts_mode = RTS_MODE_HIGH;
+        } else {
+          pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
+          return -1;
+        }
+        continue;
+      }
+    }
+
+    if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (str_eq(pgm->type, "JTAGMKII") || str_eq(pgm->type, "DRAGON_JTAG"))
+      if (pgm->flag & PGM_FL_IS_JTAG)
         msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+      if (pgm->flag & PGM_FL_IS_PDI)
+        msg_error("  -xrtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
       msg_error(  "  -xhelp                  Show this help menu and exit\n");
       exit(0);
     }
@@ -1563,6 +1591,12 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
    * drain any extraneous input
    */
   jtagmkII_drain(pgm, 0);
+
+  /* Set RTS/DTR high or low based on the user specified rts_mode */
+  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
+    serial_set_dtr_rts(&pgm->fd, 0);
+    serial_set_dtr_rts(&pgm->fd, PDATA(pgm)->rts_mode == RTS_MODE_LOW ? 1 : 0);
+  }
 
   if (jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0)
     return -1;
@@ -1780,6 +1814,11 @@ void jtagmkII_close(PROGRAMMER * pgm)
   free(resp);
   if (c != RSP_OK) {
     pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(c));
+  }
+
+  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
+    pmsg_info("releasing DTR/RTS handshake lines\n");
+    serial_set_dtr_rts(&pgm->fd, 0);
   }
 
   serial_close(&pgm->fd);
@@ -3687,6 +3726,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = jtagmkII_paged_load;
   pgm->page_erase     = jtagmkII_page_erase;
   pgm->print_parms    = jtagmkII_print_parms;
+  pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
   pgm->page_size      = 256;
