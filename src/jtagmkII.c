@@ -3,7 +3,7 @@
  * Copyright (C) 2005-2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * Derived from stk500 code which is:
- * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2005 Erik Walthinsen
  *
  *

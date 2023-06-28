@@ -431,9 +431,30 @@ allow_subshells    = no;
 # bsd
 #------------------------------------------------------------
 
+# Brian Dean, June 2023: "The programmer was a simple parallel port
+# programmer and was the first  programmer that AVRDUDE supported by
+# bit-banging the pins. Before releasing it open-source, I wrote the
+# driver interface with the yacc definitions so that it would be easy
+# to support multiple programmers without having to modify too much
+# code, one would mainly just need to fill in the appropriate driver
+# functions for any new programmer and retain the API. And then added
+# support for the STK500 programmer which was the dominant serial port
+# programmer at that time. The parallel port was attractive because the
+# STK500 was fairly expensive at the time and people could build a
+# parallel port programmer for very little cost in parts if they didn’t
+# already have them on-hand."
+#
+# Here a 2003 webpage about the bsd programmer:
+# http://web.archive.org/web/20030217002616/http://www.bsdhome.com/avrdude/
+#
+# The internet archive seems to have lost the schematic drawn by Joerg
+# Wunsch, but here is still a copy of the pdf created on 2001-04-25:
+# https://github.com/avrdudes/avrdude/blob/main/supporting-docs/avrprog.pdf
+#
+
 programmer
     id                     = "bsd";
-    desc                   = "Brian Dean's Programmer, http://www.bsdhome.com/avrdude/";
+    desc                   = "Brian S. Dean's parallel programmer";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     vcc                    = 2, 3, 4, 5;
