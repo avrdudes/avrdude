@@ -192,6 +192,8 @@ Changes since version 7.1:
     - Use pgm->id list for alias names of a programmer #1430
     - Fix writing of empty flash memory #1438
     - Provide terminal include command #1439
+    - Add jtag2updi -xrtsdtr extended parameter #1425
+    - Update info on bsd programmer #1450
 
   * Internals:
 
