@@ -216,6 +216,8 @@ add_library(libavrdude
     stk500generic.h
     teensy.c
     teensy.h
+    term.c
+    term.h
     tpi.h
     updi_constants.h
     updi_link.c
@@ -279,8 +281,6 @@ target_link_libraries(libavrdude
 
 add_executable(avrdude
     main.c
-    term.c
-    term.h
     avrintel.c
     avrintel.h
     developer_opts.c
