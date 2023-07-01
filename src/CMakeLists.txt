@@ -145,6 +145,8 @@ add_library(libavrdude
     avrftdi_private.h
     avrftdi_tpi.c
     avrftdi_tpi.h
+    avrintel.c
+    avrintel.h
     avrpart.c
     bitbang.c
     bitbang.h
@@ -281,8 +283,6 @@ target_link_libraries(libavrdude
 
 add_executable(avrdude
     main.c
-    avrintel.c
-    avrintel.h
     developer_opts.c
     developer_opts.h
     developer_opts_private.h
