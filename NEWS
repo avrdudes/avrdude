@@ -110,6 +110,7 @@ Changes since version 7.1:
     - Avrdude can not write usersig in terminal mode #1361
     - avr109 atmega2564rfr2 erase timeout too short #336
     - Add ScratchMonkey #989
+    - Warnings for MSVC build #1452
 
   * Pull requests:
 
@@ -194,6 +195,7 @@ Changes since version 7.1:
     - Provide terminal include command #1439
     - Add jtag2updi -xrtsdtr extended parameter #1425
     - Update info on bsd programmer #1450
+    - Suppress overzealous compiler warnings #1454
 
   * Internals:
 
