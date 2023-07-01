@@ -2725,7 +2725,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
     addrshift = 1;
-    PDATA(pgm)->flash_pageaddr = -1UL; // Invalidate cache
+    PDATA(pgm)->flash_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_FLASH_ISP;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -2737,7 +2737,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(m->desc, "eeprom") == 0) {
-    PDATA(pgm)->eeprom_pageaddr = -1UL; // Invalidate cache
+    PDATA(pgm)->eeprom_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_EEPROM_ISP;
   }
   commandbuf[4] = m->delay;
