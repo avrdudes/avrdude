@@ -32,7 +32,7 @@
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
 #       sdo      = <pin> ;                        # pin number
-#       sii      = <pin> ;                        # pin number
+#       sii      = <pin> ;                        # pin number (HVSP mode)
 #       sdi      = <pin> ;                        # pin number
 #       errled   = <pin> ;                        # pin number
 #       rdyled   = <pin> ;                        # pin number
@@ -185,6 +185,10 @@
 #           loadpage_lo     = <instruction format> ;
 #           loadpage_hi     = <instruction format> ;
 #           writepage       = <instruction format> ;
+#           read_hvsp_data  = <instruction format> ;
+#           read_hvsp_cmd   = <instruction format> ;
+#           write_hvsp_data  = <instruction format> ;
+#           write_hvsp_cmd   = <instruction format> ;
 #       ;
 #   ;
 #
@@ -281,6 +285,15 @@
 #
 #     loadpage_lo = "0100.0000", "000x.xxxx", "xxaa.aaaa", "iiii.iiii";
 #
+# HVSP COMMANDS
+#
+#    In High-Voltage Serial Programming mode two input pins of the MCU are used:
+#    one for inputting the 'instruction' (SII) and one that respects output bits#    besides constant, address and data bits (SDI) - just like in case of the
+#    SPI instuctions. The corresponding bit-strings are specified using the
+#    [read|write]_hvsp_cmd and the [read|write]_hvsp_data configuration elements
+#    respectively.
+#    More information on HVSP is in section 20.6-7 of
+#       https://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-2586-AVR-8-bit-Microcontroller-ATtiny25-ATtiny45-ATtiny85_Datasheet.pdf
 #
 # The following are STK500 part device codes to use for the
 # "devicecode" field of the part.  These came from Atmel's software
