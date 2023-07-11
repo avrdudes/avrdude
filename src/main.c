@@ -1499,7 +1499,7 @@ int main(int argc, char * argv [])
       pgm->flush_cache(pgm, p);
       wrmem |= upd->op == DEVICE_WRITE;
     }
-    if((uflags & UF_NOWRITE) && !terminal++ && upd->cmdline)
+    if((uflags & UF_NOWRITE) && upd->cmdline && !terminal++)
       pmsg_warning("the terminal ignores option -n, that is, it writes to the device\n");
     rc = do_op(pgm, p, upd, uflags);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
