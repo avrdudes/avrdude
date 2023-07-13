@@ -1474,8 +1474,9 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 }
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
-    pgm->page_erase = NULL;
+// pgm->erase might be useful for usersig
+//  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+//    pgm->page_erase = NULL;
 
   return;
 }
@@ -1833,7 +1834,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI))) {
+  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !str_eq(m->desc, "usersig")) {
     pmsg_error("page erase not supported\n");
     return -1;
   }
