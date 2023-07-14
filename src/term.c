@@ -1180,7 +1180,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
     vstr = buf;
   }
 
-  int lmin, lmax, llen;
+  size_t lmin, lmax, llen;
   lmin = lmax = strlen(vstr);
 
   if(o.verb > 0) {
