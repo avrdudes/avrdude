@@ -804,10 +804,15 @@ High fuse byte
 @item lfuse
 Low fuse byte
 @item usersig
-Three extra flash pages for firmware settings in some parts; this memory
-is not erased during a chip erase. @code{-U} programming can only write
-@code{0}s not @code{1}s, so usersig needs to be erased before a file can
-be uploaded to this memory region, e.g., using @code{-T "erase usersig" -U
+Three extra flash pages for firmware settings; this memory is not erased
+during a chip erase. Only some classic parts, ATmega128RFA1 and
+ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
+different to flash in the sense that it can neither be accessed with ISP
+serial programming nor written to by bootloaders. AVRDUDE offers JTAG
+programming of classic-part usersig memories. As with all flash-type
+memories the @code{-U} option can only write 0-bits but not 1-bits.
+Hence, usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using @code{-T "erase usersig" -U
 usersig:w:parameters.hex:i}
 @end table
 

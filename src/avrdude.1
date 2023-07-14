@@ -759,10 +759,17 @@ Low fuse byte
 .It   lock
 Lock byte
 .It usersig
-Three extra flash pages for firmware settings in some parts; this memory
-is not erased during a chip erase. -U programming can only write 0s not
-1s, so usersig needs to be erased before a file can be uploaded to this
-memory region, e.g., using -T "erase usersig" -U usersig:w:parameters.hex:i
+Three extra flash pages for firmware settings; this memory is not erased
+during a chip erase. Only some classic parts, ATmega128RFA1 and
+ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
+different to flash in the sense that it can neither be accessed with ISP
+serial programming nor written to by bootloaders;
+.Nm
+offers JTAG programming of classic-part usersig memories. As with all
+flash-type memories the -U option can only write 0-bits but not 1-bits.
+Hence, usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using -T "erase usersig" -U
+usersig:w:parameters.hex:i
 .El
 .Pp
 ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
