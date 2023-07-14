@@ -12906,28 +12906,6 @@ part parent "m2561"
         min_write_delay    = 4500;
         max_write_delay    = 4500;
     ;
-
-    #####
-    # Three separate flash pages
-    #   - Offset 0x100 in signature row
-    #   - Only programmable with JTAG or HVPP
-    #   - Readable from an application
-    #   - Cannot be read using ISP
-    #   - Not erased by chip erase
-    #
-    memory "usersig"
-        paged              = yes;
-        size               = 768;
-        page_size          = 256;
-        num_pages          = 3;
-        offset             = 0x100;
-        min_write_delay    = 4500;
-        max_write_delay    = 4500;
-        mode               = 0x41;
-        delay              = 50;
-        blocksize          = 256;
-        readsize           = 256;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -12964,13 +12942,35 @@ part parent "m128rfa1"
     memory "efuse"
         initval            = 0xfe;
     ;
+
+    #####
+    # Three separate flash pages
+    #   - Offset 0x100 in signature row
+    #   - Only programmable with JTAG or HVPP
+    #   - Readable from an application
+    #   - Cannot be read using ISP
+    #   - Not erased by chip erase
+    #
+    memory "usersig"
+        paged              = yes;
+        size               = 768;
+        page_size          = 256;
+        num_pages          = 3;
+        offset             = 0x100;
+        min_write_delay    = 4500;
+        max_write_delay    = 4500;
+        mode               = 0x41;
+        delay              = 50;
+        blocksize          = 256;
+        readsize           = 256;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATmega128RFR2
 #------------------------------------------------------------
 
-part parent "m128rfa1"
+part parent "m256rfr2"
     desc                   = "ATmega128RFR2";
     id                     = "m128rfr2";
     variants               =
@@ -12979,12 +12979,17 @@ part parent "m128rfa1"
         "ATmega128RFR2-ZU:  VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
         "ATmega128RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 88;
-    n_interrupts           = 77;
     signature              = 0x1e 0xa7 0x02;
-    chiperasepolltimeout   = 20;
+    ocdrev                 = 3;
 
-    memory "efuse"
-        initval            = 0xfe;
+    memory "eeprom"
+        size               = 4096;
+    ;
+
+    memory "flash"
+        size               = 0x20000;
+        num_pages          = 512;
+        load_ext_addr      = NULL;
     ;
 ;
 
@@ -12992,7 +12997,7 @@ part parent "m128rfa1"
 # ATmega64RFR2
 #------------------------------------------------------------
 
-part parent "m128rfa1"
+part parent "m128rfr2"
     desc                   = "ATmega64RFR2";
     id                     = "m64rfr2";
     variants               =
@@ -13001,9 +13006,7 @@ part parent "m128rfa1"
         "ATmega64RFR2-ZU:  VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]",
         "ATmega64RFR2-ZUR: VFQFN64, Fmax=16 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 3.6 V]";
     mcuid                  = 78;
-    n_interrupts           = 77;
     signature              = 0x1e 0xa6 0x02;
-    chiperasepolltimeout   = 20;
 
     memory "eeprom"
         size               = 2048;
@@ -13018,10 +13021,6 @@ part parent "m128rfa1"
         read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         writepage          = "0100.1100--0aaa.aaaa--axxx.xxxx--xxxx.xxxx";
-    ;
-
-    memory "efuse"
-        initval            = 0xfe;
     ;
 ;
 
