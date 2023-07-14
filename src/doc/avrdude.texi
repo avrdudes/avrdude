@@ -805,7 +805,7 @@ High fuse byte
 Low fuse byte
 @item usersig
 Three extra flash pages for firmware settings; this memory is not erased
-during a chip erase. Only some classic parts, ATmega128RFA1 and
+during a chip erase. Only some classic parts,
 ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
 different to flash in the sense that it can neither be accessed with ISP
 serial programming nor written to by bootloaders. AVRDUDE offers JTAG
