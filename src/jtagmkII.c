@@ -1372,9 +1372,11 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
 }
 
 static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  // Unset page_erase when part or programmer not capable of it
+  // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
   if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
-    pgm->page_erase = NULL;
+    if(!avr_locate_mem(p, "usersig"))
+      pgm->page_erase = NULL;
+
   if(pgm->flag & PGM_FL_IS_DW)
     pgm->page_erase = NULL;
 
@@ -1835,8 +1837,8 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    pmsg_error("not an Xmega nor a UPDI device\n");
+  if (!(p->prog_modes & (PM_PDI | PM_UPDI)) && !str_eq(m->desc, "usersig")) {
+    pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
   if ((pgm->flag & PGM_FL_IS_DW)) {

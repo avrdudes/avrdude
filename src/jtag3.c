@@ -1474,10 +1474,10 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 }
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
   if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
-    pgm->page_erase = NULL;
-
-  return;
+    if(!avr_locate_mem(p, "usersig"))
+      pgm->page_erase = NULL;
 }
 
 static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
@@ -1833,8 +1833,8 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    pmsg_error("page erase not supported\n");
+  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !str_eq(m->desc, "usersig")) {
+    pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
 
@@ -2689,29 +2689,21 @@ static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsi
 
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
   if (p->prog_modes & PM_PDI) {
-    if (addr >= PDATA(pgm)->boot_start)
-      /*
-       * all memories but "flash" are smaller than boot_start anyway, so
-       * no need for an extra check we are operating on "flash"
-       */
-      return addr - PDATA(pgm)->boot_start;
-    else
-      /* normal flash, or anything else */
-      return addr;
+    /*
+     * All memories but "flash" are smaller than boot_start anyway, so
+     * no need for an extra check we are operating on "flash"
+     */
+    if(addr >= PDATA(pgm)->boot_start)
+      addr -= PDATA(pgm)->boot_start;
+  } else if(p->prog_modes & PM_UPDI) { // Modern AVR8X part
+    if(!str_eq(m->desc, "flash"))
+      if(m->size >= 1)
+        addr += m->offset;
+  } else {                      // Classic part
+    if(str_eq(m->desc, "usersig"))
+      addr += m->offset;
   }
 
-  // Non-Xmega device
-  if (p->prog_modes & PM_UPDI) {
-    if (strcmp(m->desc, "flash") == 0) {
-      return addr;
-    }
-    else if (m->size == 1) {
-      addr = m->offset;
-    }
-    else if (m->size > 1) {
-      addr += m->offset;
-    }
-  }
   return addr;
 }
 
