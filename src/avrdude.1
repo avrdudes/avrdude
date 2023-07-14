@@ -758,6 +758,11 @@ High fuse byte
 Low fuse byte
 .It   lock
 Lock byte
+.It usersig
+Three extra flash pages for firmware settings in some parts; this memory
+is not erased during a chip erase. -U programming can only write 0s not
+1s, so usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using -T "erase usersig" -U usersig:w:parameters.hex:i
 .El
 .Pp
 ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
@@ -781,7 +786,8 @@ is 2, 4 or 5, for system configuration
 .It prodsig
 Production signature (calibration) area
 .It usersig
-User signature area of ATxmega devices
+Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
 .El
 .Pp
 Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
@@ -820,7 +826,8 @@ Serial number with a unique ID for the part (10 bytes)
 .It tempsense
 Temperature sensor calibration values
 .It userrow
-Extra page of EEPROM memory that can be used for firmware settings
+Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
 .El
 .Pp
 The
@@ -894,7 +901,7 @@ formats will use the same code for reading lists of numbers separated by
 white space and/or commas. The read routine handles decimal, hexadecimal,
 octal or binary numbers on a number-by-number basis, and the list of
 numbers can therefore be of mixed type. In fact the syntax, is the same as
-for data used by the terminal write command, ie, the file's input data can
+for data used by the terminal write command, i.e., the file's input data can
 also be 2-byte short integers, 4-byte long integers or 8-byte long long
 integers, 4-byte floating point numbers, 8-byte double precision numbers,
 C-type strings with a terminating nul or C-like characters such as '\t'.
@@ -1029,7 +1036,7 @@ or C-style strings and characters. If nothing matches,
 .Ar data
 will be interpreted as the name of a file containing data, which will be
 read and inserted at this point. In order to force the interpretation of a
-data item as file, eg, when the file name would be understood as a number
+data item as file, e.g., when the file name would be understood as a number
 otherwise, the file name can be given a
 .Ar :f
 format specifier. In absence of a format suffix, the terminal will try
@@ -1039,7 +1046,7 @@ For integers, an optional case-insensitive suffix specifies the data size: HH
 8 bit, H/S 16 bit, L 32 bit, LL 64 bit. Suffix D indicates a 64-bit double, F
 a 32-bit float, whilst a floating point number without suffix defaults to
 32-bit float. Hexadecimal floating point notation is supported. An ambiguous
-trailing suffix, eg, 0x1.8D, is read as no-suffix float where D is part of
+trailing suffix, e.g., 0x1.8D, is read as no-suffix float where D is part of
 the mantissa; use a zero exponent 0x1.8p0D to clarify.
 .Pp
 An optional U suffix makes integers unsigned. Ordinary 0x hexadecimal and 0b
@@ -1105,7 +1112,7 @@ EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
 erase needs to be issued before writing arbitrary data. Usersig is
 generally unaffected by a chip erase. When a memory looks like a NOR
-memory, either page erase is deployed (eg, with parts that have PDI/UPDI
+memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
 fully read in, a chip erase command is issued and both EEPROM and flash
 are written back to the device. Hence, it can take minutes to ensure that
@@ -1152,7 +1159,7 @@ and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 .It Ar include [<opts>] <file>
 Include contents of the named file as if it was typed. This is useful for
-batch scripts, eg, recurring initialisation code for fuses. The include
+batch scripts, e.g., recurring initialisation code for fuses. The include
 option -e prints the lines of the file as comments before processing them;
 on a non-zero verbosity level the line numbers are printed, too.
 .It Ar sig
@@ -1185,7 +1192,7 @@ Leave terminal mode and thus
 .It Ar q
 Can be used as an alias for quit.
 .It Ar !<line>
-Run the shell <line> in a subshell, eg, !ls *.hex. Subshell commands take the
+Run the shell <line> in a subshell, e.g., !ls *.hex. Subshell commands take the
 rest of the line as their command. For security reasons, they must
 explictly be enabled by putting
 .Pa allow_subshells = yes;
@@ -1534,7 +1541,7 @@ Show the part for which the bootloader was compiled, then exit.
 .It Ar bootsize=<size>
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
-ie, typically top of flash, so the urclock programmer can look up the
+i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.

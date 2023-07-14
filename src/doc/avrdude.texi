@@ -794,7 +794,7 @@ Classic devices may have the following memory types in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item calibration
-One or more bytes of RC oscillator calibration data.
+One or more bytes of RC oscillator calibration data
 @item efuse
 Extended fuse byte
 @item fuse
@@ -803,6 +803,12 @@ Fuse byte in devices that have only a single fuse byte
 High fuse byte
 @item lfuse
 Low fuse byte
+@item usersig
+Three extra flash pages for firmware settings in some parts; this memory
+is not erased during a chip erase. @code{-U} programming can only write
+@code{0}s not @code{1}s, so usersig needs to be erased before a file can
+be uploaded to this memory region, e.g., using @code{-T "erase usersig" -U
+usersig:w:parameters.hex:i}
 @end table
 
 ATxmega devices have the following memory types in addition to
@@ -825,7 +831,8 @@ Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system con
 @item prodsig
 Production signature (calibration) area
 @item usersig
-User signature area of ATxmega devices
+Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
 @end table
 
 Modern 8-bit AVR devices have the following memory types in addition to
@@ -864,7 +871,8 @@ Serial number with a unique ID for the pary (10 bytes)
 @item tempsense
 Temperature sensor calibration values
 @item userrow
-Extra page of EEPROM memory that can be used for firmware settings
+Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
 
 @end table
 
@@ -935,7 +943,7 @@ When used as input, the @code{m}, @code{d}, @code{h}, @code{o} and
 separated by white space and/or commas. The read routine handles decimal,
 hexadecimal, octal or binary numbers on a number-by-number basis, and the
 list of numbers can therefore be of mixed type. In fact the syntax, is the
-same as for data used by the terminal write command, ie, the file's input
+same as for data used by the terminal write command, i.e., the file's input
 data can also be 2-byte short integers, 4-byte long integers or 8-byte
 long long integers, 4-byte floating point numbers, 8-byte double precision
 numbers, C-type strings with a terminating nul or C-like characters such
@@ -1191,7 +1199,7 @@ Show the part for which the bootloader was compiled, then exit.
 @item @samp{bootsize=<size>}
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
-ie, typically top of flash, so the urclock programmer can look up the
+i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
@@ -2132,7 +2140,7 @@ can be binary, octal, decimal or hexadecimal integers, floating point
 numbers or C-style strings and characters. If nothing matches, @code{data}
 will be interpreted as a name of a file containing data, which will be
 read and inserted at this point. In order to force the interpretation of a
-data item as file, eg, when the file name would be understood as a number
+data item as file, e.g., when the file name would be understood as a number
 otherwise, the file name can be given a @code{:}@emph{f} format specifier.
 In absence of a format suffix, the terminal will try to auto-detect
 the file format.
@@ -2220,7 +2228,7 @@ EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
 erase needs to be issued before writing arbitrary data. Usersig is
 generally unaffected by a chip erase. When a memory looks like a NOR
-memory, either page erase is deployed (eg, with parts that have PDI/UPDI
+memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
 fully read in, a chip erase command is issued and both EEPROM and flash
 are written back to the device. Hence, it can take minutes to ensure that
@@ -2271,7 +2279,7 @@ programming with the chosen programmer: here be dragons.
 
 @item include [@var{opts}] @var{file}
 Include contents of the named file @var{file} as if it was typed. This is
-useful for batch scripts, eg, recurring initialisation code for fuses. The
+useful for batch scripts, e.g., recurring initialisation code for fuses. The
 include option @code{-e} prints the lines of the file as comments before
 processing them; on a non-zero verbosity level the line numbers are
 printed, too.
@@ -2307,7 +2315,7 @@ Leave terminal mode and thus AVRDUDE.
 Can be used as an alias for @code{quit}.
 
 @item !@var{line}
-Run the shell @var{line} in a subshell, eg, @code{!ls *.hex}. Subshell
+Run the shell @var{line} in a subshell, e.g., @code{!ls *.hex}. Subshell
 commands take the rest of the line as their command. For security reasons,
 they must  be enabled explictly by putting @code{allow_subshells = yes;}
 into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
@@ -2738,7 +2746,7 @@ option.
 
 @item allow_subshells = @var{no};
 Whether or not AVRDUDE's interactive terminal is allowed to use subshell
-@code{!} commands. This defaults to no for security reasons, eg, in the
+@code{!} commands. This defaults to no for security reasons, e.g., in the
 rare case @code{avrdude -t} is set up with attached hardware to provide a
 web service, remote ssh or a login on a PC instead of a shell, say, for
 demo or training purposes. In almost all other cases this can be
