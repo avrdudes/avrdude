@@ -1480,10 +1480,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  if (!init_ok) {
-    /*
-     * If we came here by the -tF options, bail out now.
-     */
+  if(!init_ok && !ovsigck) {    // Bail out on failed initialisation unless -F was given
     exitrc = 1;
     goto main_exit;
   }
