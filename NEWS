@@ -110,7 +110,9 @@ Changes since version 7.1:
     - Avrdude can not write usersig in terminal mode #1361
     - avr109 atmega2564rfr2 erase timeout too short #336
     - Add ScratchMonkey #989
-    - Warnings for MSVC build #1452
+    - Warnings for MSVC build #1452, #1460
+    - [Regression] -F flag not correctly honored #1462
+    - Missing access to user signature rows in ATmega256RFR2 et al. #379
 
   * Pull requests:
 
@@ -195,7 +197,10 @@ Changes since version 7.1:
     - Provide terminal include command #1439
     - Add jtag2updi -xrtsdtr extended parameter #1425
     - Update info on bsd programmer #1450
-    - Suppress overzealous compiler warnings #1454
+    - Suppress overzealous compiler warnings #1454, #1461
+    - Bail out on failed initialisation unless -F was given #1463
+    - Fix -n warning for first interactive terminal #1465
+    - Fix classic-part usersig memory for jtag #1466
 
   * Internals:
 
