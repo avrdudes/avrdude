@@ -1838,7 +1838,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
   pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
   if (!(p->prog_modes & (PM_PDI | PM_UPDI)) && !str_eq(m->desc, "usersig")) {
-    pmsg_error("page erase only available for AVR8X/XMEGAs or classic part usersig mem\n");
+    pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
   if ((pgm->flag & PGM_FL_IS_DW)) {
