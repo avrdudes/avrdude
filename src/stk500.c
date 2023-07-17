@@ -1454,6 +1454,7 @@ static void stk500_setup(PROGRAMMER * pgm)
 static void stk500_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 const char stk500_desc[] = "Atmel STK500 Version 1.x firmware";

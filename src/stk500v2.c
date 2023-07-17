@@ -339,6 +339,7 @@ static void stk500v2_jtag3_setup(PROGRAMMER * pgm)
 void stk500v2_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static void stk500v2_jtagmkII_teardown(PROGRAMMER * pgm)
