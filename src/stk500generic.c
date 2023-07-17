@@ -72,7 +72,7 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->teardown)
     pgm->teardown(pgm);
 
-  pmsg_error("cannot open either stk500v1 or stk500v2 programmer\n");
+  pmsg_error("probing stk500v2 failed, as did stk500v1; perhaps try -c stk500v1\n");
   return -1;
 }
 
