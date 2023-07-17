@@ -24,6 +24,8 @@
  * This is a wrapper around the STK500[v1] and STK500v2 programmers.
  * Try to select the programmer type that actually responds, and
  * divert to the actual programmer implementation if successful.
+ * Using -c stk500 instead of the appropriate -c stk500v1 or -c stk500v2
+ * misses out on the extended -x options of the successful programmer.
  */
 
 #include "ac_cfg.h"
@@ -40,38 +42,23 @@
 
 static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   stk500_initpgm(pgm);
-  if (pgm->open(pgm, port) >= 0)
-    {
-      pmsg_info("successfully opened stk500v1 device -- please use -c stk500v1\n");
-      return 0;
-    }
+  if(pgm->open(pgm, port) >= 0) {
+    pmsg_info("successfully opened stk500v1 device; please use -c stk500v1\n");
+    return 0;
+  }
 
   pgm->close(pgm);
 
   stk500v2_initpgm(pgm);
-  if (pgm->open(pgm, port) >= 0)
-    {
-      pmsg_info("successfully opened stk500v2 device -- please use -c stk500v2\n");
-      return 0;
-    }
+  if(pgm->setup)
+    pgm->setup(pgm);
+  if(pgm->open(pgm, port) >= 0) {
+    pmsg_info("successfully opened stk500v2 device; please use -c stk500v2\n");
+    return 0;
+  }
 
   pmsg_error("cannot open either stk500v1 or stk500v2 programmer\n");
   return -1;
-}
-
-static void stk500generic_setup(PROGRAMMER * pgm)
-{
-  /*
-   * Only STK500v2 needs setup/teardown.
-   */
-  stk500v2_initpgm(pgm);
-  pgm->setup(pgm);
-}
-
-static void stk500generic_teardown(PROGRAMMER * pgm)
-{
-  stk500v2_initpgm(pgm);
-  pgm->teardown(pgm);
 }
 
 const char stk500generic_desc[] = "Atmel STK500, autodetect firmware version";
@@ -80,6 +67,4 @@ void stk500generic_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "STK500GENERIC");
 
   pgm->open           = stk500generic_open;
-  pgm->setup          = stk500generic_setup;
-  pgm->teardown       = stk500generic_teardown;
 }
