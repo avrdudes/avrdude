@@ -42,6 +42,8 @@
 
 static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   stk500_initpgm(pgm);
+  if(pgm->setup)
+    pgm->setup(pgm);
   if(pgm->open(pgm, port) >= 0) {
     pmsg_info("successfully opened stk500v1 device; please use -c stk500v1\n");
     return 0;
