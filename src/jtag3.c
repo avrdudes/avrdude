@@ -2562,11 +2562,13 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char prog_mode[2];
   unsigned char buf[3];
 
-  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
-    return;
-  msg_info("%sVtarget         : %.2f V\n", p, b2_to_u16(buf)/1000.0);
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
+      return;
+    msg_info("%sVtarget         : %.2f V\n", p, b2_to_u16(buf)/1000.0);
+  }
 
-  // Print clocks if programmer typ is not TPI
+  // Print clocks if programmer type is not TPI
   if (!str_eq(pgm->type, "JTAGICE3_TPI")) {
     // Get current programming mode and target type from to determine what data to print
     if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)

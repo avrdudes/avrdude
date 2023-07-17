@@ -1394,42 +1394,48 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
 static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
 
-  stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
-  stk500_getparm(pgm, Parm_STK_VADJUST, &vadjust);
-  stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
-  stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
-  stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
-
-  fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
-  fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
-  fmsg_out(fp, "%sOscillator      : ", p);
-  if (osc_pscale == 0)
-    fmsg_out(fp, "Off\n");
-  else {
-    int prescale = 1;
-    double f = STK500_XTAL / 2;
-    const char *unit;
-
-    switch (osc_pscale) {
-      case 2: prescale = 8; break;
-      case 3: prescale = 32; break;
-      case 4: prescale = 64; break;
-      case 5: prescale = 128; break;
-      case 6: prescale = 256; break;
-      case 7: prescale = 1024; break;
-    }
-    f /= prescale;
-    f /= (osc_cmatch + 1);
-    if (f > 1e6) {
-      f /= 1e6;
-      unit = "MHz";
-    } else if (f > 1e3) {
-      f /= 1000;
-      unit = "kHz";
-    } else
-      unit = "Hz";
-    fmsg_out(fp, "%.3f %s\n", f, unit);
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
+    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
   }
+  if (pgm->extra_features & HAS_VAREF_ADJ) {
+    stk500_getparm(pgm, Parm_STK_VADJUST, &vadjust);
+    fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+  }
+  if (pgm->extra_features & HAS_FOSC_ADJ) {
+    stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
+    stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
+    fmsg_out(fp, "%sOscillator      : ", p);
+    if (osc_pscale == 0)
+      fmsg_out(fp, "Off\n");
+    else {
+      int prescale = 1;
+      double f = STK500_XTAL / 2;
+      const char *unit;
+
+      switch (osc_pscale) {
+        case 2: prescale = 8; break;
+        case 3: prescale = 32; break;
+        case 4: prescale = 64; break;
+        case 5: prescale = 128; break;
+        case 6: prescale = 256; break;
+        case 7: prescale = 1024; break;
+      }
+      f /= prescale;
+      f /= (osc_cmatch + 1);
+      if (f > 1e6) {
+        f /= 1e6;
+        unit = "MHz";
+      } else if (f > 1e3) {
+        f /= 1000;
+        unit = "kHz";
+      } else
+        unit = "Hz";
+      fmsg_out(fp, "%.3f %s\n", f, unit);
+    }
+  }
+
+  stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
   fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / STK500_XTAL + 0.05);
 
   return;
