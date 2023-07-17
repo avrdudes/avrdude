@@ -41,19 +41,19 @@
 #include "stk500v2.h"
 
 static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
-  stk500_initpgm(pgm);
-  if(pgm->setup)
-    pgm->setup(pgm);
-  if(pgm->open(pgm, port) >= 0) {
-    pmsg_info("successfully opened stk500v1 device; please use -c stk500v1\n");
-    return 0;
-  }
-
   stk500v2_initpgm(pgm);
   if(pgm->setup)
     pgm->setup(pgm);
   if(pgm->open(pgm, port) >= 0) {
     pmsg_info("successfully opened stk500v2 device; please use -c stk500v2\n");
+    return 0;
+  }
+
+  stk500_initpgm(pgm);
+  if(pgm->setup)
+    pgm->setup(pgm);
+  if(pgm->open(pgm, port) >= 0) {
+    pmsg_info("successfully opened stk500v1 device; please use -c stk500v1\n");
     return 0;
   }
 

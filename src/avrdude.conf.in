@@ -1358,7 +1358,7 @@ programmer
 
 programmer
     id                     = "stk500";
-    desc                   = "Atmel STK500";
+    desc                   = "Atmel STK500 (probes STK500v2 first then STK500v1)";
     type                   = "stk500generic";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
