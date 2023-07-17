@@ -47,8 +47,6 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
     return 0;
   }
 
-  pgm->close(pgm);
-
   stk500v2_initpgm(pgm);
   if(pgm->setup)
     pgm->setup(pgm);
