@@ -3701,7 +3701,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   case PGMTYPE_JTAGICE_MKII:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
     fmsg_out(fp, "%sSCK period      : %.2f us\n", p,
-	    (float) 1000000 / avrispmkIIfreqs[sck_duration]);
+	    1000000 / avrispmkIIfreqs[sck_duration]);
     break;
 
   case PGMTYPE_JTAGICE3:
@@ -3731,7 +3731,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       fmsg_out(fp, "%sVaref 1         : %.2f V\n", p, varef / 100.0);
     }
     stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
-    fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (float) (sck_stk600 + 1) / 8.0);
+    fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (sck_stk600 + 1) / 8.0);
     if (pgm->extra_features & HAS_FOSC_ADJ) {
       stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
       oct = (clock_conf & 0xf000) >> 12u;

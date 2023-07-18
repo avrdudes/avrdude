@@ -2621,7 +2621,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sVout measured   : %.02f V\n", p, (float) analog_raw_data / -200.0);
+        fmsg_out(fp, "%sVout measured   : %.02f V\n", p, analog_raw_data / -200.0);
       }
 
       // Read channel A voltage
@@ -2633,7 +2633,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sCh A voltage    : %.03f V\n", p, (float) analog_raw_data / -200.0);
+        fmsg_out(fp, "%sCh A voltage    : %.03f V\n", p, analog_raw_data / -200.0);
       }
 
       // Read channel A current
@@ -2643,7 +2643,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       if (buf[0] != 0x90)
         pmsg_error("invalid PARM3_ANALOG_A_CURRENT data packet format\n");
       else
-        fmsg_out(fp, "%sCh A current    : %.3f mA\n", p, (float) analog_raw_data * 0.003472);
+        fmsg_out(fp, "%sCh A current    : %.3f mA\n", p, analog_raw_data * 0.003472);
 
       // Read channel B voltage
       if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_ANALOG_B_VOLTAGE, buf, 2) < 0)
@@ -2654,7 +2654,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sCh B voltage    : %.03f V\n", p, (float) analog_raw_data / -200.0);
+        fmsg_out(fp, "%sCh B voltage    : %.03f V\n", p, analog_raw_data / -200.0);
       }
 
       // Read channel B current
@@ -2666,7 +2666,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sCh B current    : %.3f mA\n", p, (float) analog_raw_data * 0.555556);
+        fmsg_out(fp, "%sCh B current    : %.3f mA\n", p, analog_raw_data * 0.555556);
       }
       break;
     }
