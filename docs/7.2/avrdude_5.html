@@ -1,0 +1,528 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on July 19, 2023 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 2.3 Example Command Line Invocations</title>
+
+<meta name="description" content="AVRDUDE: 2.3 Example Command Line Invocations">
+<meta name="keywords" content="AVRDUDE: 2.3 Example Command Line Invocations">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Example-Command-Line-Invocations"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_4.html#Programmers-accepting-extended-parameters" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="Example-Command-Line-Invocations-1"></a>
+<h2 class="section">2.3 Example Command Line Invocations</h2>
+
+<p>AVRDUDE error messages, warnings and progress reports are generally
+written to stderr which can, in bash, be turned off by <code>2&gt;/dev/null</code>
+or by using increasingly more <code>-q</code> options to suppress them. Terminal
+output of commands or that of the <code>-U</code> command with an output file
+named <code>-</code> are written to stdout. In some examples empty lines are
+shown for clarity that are not printed by AVRDUDE or the shell.
+</p>
+<p><strong>Download the file <code>diag.hex</code> to the ATmega128 chip</strong> using the
+STK500 programmer connected to the default serial port:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -p m128 -c stk500 -e -U flash:w:diag.hex
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: erasing chip
+avrdude: reading input file diag.hex for flash
+         with 19278 bytes in 74 section within [0, 0x4b4e]
+avrdude: writing 19278 bytes flash ...
+Writing | ################################################## | 100% 7.60 s
+avrdude: 19278 bytes of flash written
+avrdude: verifying flash memory against diag.hex
+Reading | ################################################## | 100% 6.83 s
+avrdude: 19278 bytes of flash verified
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+<p>Same but in <strong>quell-progress-reporting (silent) mode <code>-qq</code>:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Using <code>&amp;&amp;</code> to confirm that the silent AVRDUDE command went OK:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex &amp;&amp; echo OK
+OK
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Save flash memory in raw binary format to the file named <code>c:/diag flash.bin</code>:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -p m128 -c stk500 -U flash:r:&quot;c:/diag flash.bin&quot;:r
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: reading flash memory ...
+Reading | ################################################## | 100% 46.10s
+avrdude: writing output file c:/diag flash.bin
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+
+<p>Using the default programmer, download the file <code>diag.hex</code> to
+flash, <code>eeprom.hex</code> to EEPROM, and <strong>set the extended, high, and low
+fuse bytes</strong> to 0xff, 0x89, and 0x2e respectively:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -p m128 -U flash:w:diag.hex    \
+                  -U eeprom:w:eeprom.hex \
+                  -U efuse:w:0xff:m      \
+                  -U hfuse:w:0x89:m      \
+                  -U lfuse:w:0x2e:m
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9702 (probably m128)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+avrdude: reading input file diag.hex for flash
+         with 19278 bytes in 74 section within [0, 0x4b4e]
+avrdude: writing 19278 bytes flash ...
+Writing | ################################################## | 100% 7.60 s
+avrdude: 19278 bytes of flash written
+avrdude: verifying flash memory against diag.hex
+Reading | ################################################## | 100% 6.83 s
+avrdude: 19278 bytes of flash verified
+
+[ ... other memory status output skipped for brevity ... ]
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Read the fuses and print their values in different formats (hexadecimal, binary and octal):</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -cusbasp -patmega128 -qq -Ulfuse:r:-:h -Uhfuse:r:-:b -Uefuse:r:-:o
+
+0xbf
+0b11000110
+0377
+</pre></td></tr></table>
+</div>
+
+
+<p>Connect to the JTAG ICE mkII with a <strong>serial number ending in 1C37</strong> via
+USB, and <strong>enter terminal mode</strong>:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -c jtag2 -p m649 -P usb:1c:37 -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: Device signature = 0x1e9603
+
+[ ... terminal mode output skipped for brevity ... ]
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+
+<p><strong>List the serial numbers of all JTAG ICEs attached to USB;</strong> this is
+done by specifying an invalid serial number, and increasing the
+verbosity level:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -c jtag2 -p m128 -P usb:xx -v
+
+[...]
+         Using Port            : usb:xxx
+         Using Programmer      : jtag2
+avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
+avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
+avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C30
+avrdude: usbdev_open(): did not find any (matching) USB device &quot;usb:xxx&quot;
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Write data from stdin (standard input) to EEPROM;</strong> no error output means all went fine:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ echo 'The quick brown fox' | avrdude -c usbasp -p attiny13 -qq -U eeprom:w:-:r
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Execute multiple terminal mode commands separated by semicolons:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ echo 'write eeprom 0 &quot;Bonjour&quot;; write ee 0x18 0x12345678; dump eeprom 0 0x20' | \
+  avrdude -qqcdryrun -patmega328p -t
+
+0000  42 6f 6e 6a 6f 75 72 00  ff ff ff ff ff ff ff ff  |Bonjour.........|
+0010  ff ff ff ff ff ff ff ff  78 56 34 12 ff ff ff ff  |........xV4.....|
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Read EEPROM and write content to stdout (standard output):</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -qq -cusbasp -pattiny13 -Ueeprom:r:-:i
+
+:20000000E2809954686520717569636B2062726F776E20666F78E280990AFFFFFFFFFFFFD3
+:20002000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0
+:00000001FF
+</pre></td></tr></table>
+</div>
+
+<p><strong>Same but redirect stderr (standard error output) to <code>/dev/null</code> instead of using <code>-qq</code>:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -cusbasp -pattiny13 -Ueeprom:r:-:i 2&gt;/dev/null
+
+:20000000E2809954686520717569636B2062726F776E20666F78E280990AFFFFFFFFFFFFD3
+:20002000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0
+:00000001FF
+
+</pre></td></tr></table>
+</div>
+
+
+<p><strong>Using the Avrdude output to print strings present in flash memory:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -pattiny13 -qq -U flash:r:-:r | strings
+
+Main menu
+Distance: %dcm
+Exit
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Factory fuse setting of a device:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -patmega328p/St | grep initval
+
+.ptmm	ATmega328P	lfuse	initval	0x62
+.ptmm	ATmega328P	hfuse	initval	0xd9
+.ptmm	ATmega328P	efuse	initval	0xff
+.ptmm	ATmega328P	lock	initval	0xff
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>List of all parts known to AVRDUDE:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -p*/d | grep = | cut -f2 -d&quot;'&quot;
+
+ATtiny11
+ATtiny12
+ATtiny13
+ATtiny13A
+ATtiny15
+AT89S51
+[...]
+AVR64EA48
+LGT8F88P
+LGT8F168P
+LGT8F328P
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>List of all modern AVR parts (with UPDI interface) known to AVRDUDE:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -p*/d | grep PM_UPDI | cut -f2 -d&quot;'&quot;
+
+ATtiny202
+ATtiny204
+ATtiny402
+[...]
+AVR64EA28
+AVR64EA32
+AVR64EA48
+
+</pre></td></tr></table>
+</div>
+
+
+<p><strong>AVRDUDE in a bash script creating terminal scripts that reset a part to factory settings:</strong>
+</p><div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ cat make-init-scripts
+
+#!/bin/bash
+mkdir /tmp/factory
+for part in $(avrdude -p*/d | grep = | cut -f2 -d&quot;'&quot;); do
+  echo $part
+  avrdude -p$part/St | grep initval | cut -f3,5 | grep -ve-1 \
+  | sed &quot;s/.*/write &amp;/&quot; &gt;/tmp/factory/$part.ini
+done
+</pre></td></tr></table>
+</div>
+
+<p><strong>Run above script and use one of the created terminal scripts:</strong>
+</p><div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ ./make-init-scripts
+
+$ cat /tmp/factory/ATmega328P.ini
+write lfuse	0x62
+write hfuse	0xd9
+write efuse	0xff
+write lock	0xff
+
+$ avrdude -qq -cusbasp -pATmega328P -t &lt; /tmp/factory/ATmega328P.ini
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Output a list of non-bootloader programmers that can be used for a part.</strong>
+Note that |&amp; folds stderr into stdout in a bash shell:
+</p><div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -c? -pavr32ea32 |&amp; grep -v bootloader
+
+Valid programmers for part AVR32EA32 are:
+  atmelice_updi      = Atmel-ICE (ARM/AVR) via UPDI
+  dryrun             = Emulates programming without a programmer via UPDI
+  jtag2updi          = JTAGv2 to UPDI bridge via UPDI
+  jtag3updi          = Atmel AVR JTAGICE3 via UPDI
+  pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
+  pkobn_updi         = Curiosity nano (nEDBG) via UPDI
+  powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
+  serialupdi         = SerialUPDI via UPDI
+  snap_updi          = MPLAB(R) SNAP via UPDI
+  xplainedmini_updi  = Atmel AVR XplainedMini via UPDI
+  xplainedpro_updi   = Atmel AVR XplainedPro via UPDI
+
+</pre></td></tr></table>
+</div>
+
+<p><strong>Print filename of last stored sketch with its date stamp</strong> (only with urclock programmer):
+</p><div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -xshowdate -xshowfilename
+
+2023-05-19 11.13 blink.hex
+
+</pre></td></tr></table>
+</div>
+
+
+<p><strong>Create a bash function <code>avrdude-elf</code></strong> that takes an elf file as input,
+with support for optional Avrdude flags at the end, and <strong>writes to all memories
+specified in the elf file.</strong> In this example, the elf file did not contain any
+EEPROM data:
+</p><div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+# Show all writable memories present for the ATtiny13
+$ echo $(avrdude -pattiny13/ot | grep write | cut -f3 | uniq)
+
+eeprom flash lfuse hfuse lock
+
+# Function that writes to all memories present in the elf file
+</pre><pre class="verbatim">avrdude-elf() {
+  avrdude -cusbasp -pattiny13 -U{eeprom,flash,{l,h}fuse,lock}:w:&quot;$1&quot;:e &quot;${@:2}&quot;
+}
+</pre><pre class="smallexample">
+# Run function where -B8 and -V is appended to the Avrdude command
+$ avrdude-elf program.elf -B8 -V
+
+avrdude: set SCK frequency to 93750 Hz
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e9007 (probably t13)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+
+avrdude: reading input file Blink.elf for eeprom
+         with 0 bytes in 0 sections within [0, -1]
+         using 0 pages and 0 pad bytes
+avrdude: writing 0 bytes eeprom ...
+Writing | ################################################## | 100% 0.00 s
+avrdude: 0 bytes of eeprom written
+
+avrdude: reading input file Blink.elf for flash
+         with 78 bytes in 1 section within [0, 0x4d]
+         using 3 pages and 18 pad bytes
+avrdude: writing 78 bytes flash ...
+Writing | ################################################## | 100% 0.09 s
+avrdude: 78 bytes of flash written
+
+avrdude: reading input file Blink.elf for lfuse
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte lfuse ...
+avrdude: 1 byte of lfuse written
+
+avrdude: reading input file Blink.elf for hfuse
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte hfuse ...
+avrdude: 1 byte of hfuse written
+
+avrdude: reading input file Blink.elf for lock
+         with 1 byte in 1 section within [0, 0]
+avrdude: writing 1 byte lock ...
+avrdude: 1 byte of lock written
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_4.html#Programmers-accepting-extended-parameters" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>July 19, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on July 19, 2023 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 3.2 Terminal Mode Examples</title>
+
+<meta name="description" content="AVRDUDE: 3.2 Terminal Mode Examples">
+<meta name="keywords" content="AVRDUDE: 3.2 Terminal Mode Examples">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Terminal-Mode-Examples"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_7.html#Terminal-Mode-Commands" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="index-Terminal-Mode-1"></a>
+<a name="Terminal-Mode-Examples-1"></a>
+<h2 class="section">3.2 Terminal Mode Examples</h2>
+
+<p><strong>Enter terminal, display part parameters, modify EEPROM, perform a chip erase and quit:</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -qq -c usbasp -p atmega328p -t
+
+avrdude&gt; part
+AVR Part                      : ATmega328P
+Chip Erase delay              : 9000 us
+PAGEL                         : PD7
+BS2                           : PC2
+RESET disposition             : possible i/o
+RETRY pulse                   : SCK
+Serial program mode           : yes
+Parallel program mode         : yes
+Timeout                       : 200
+StabDelay                     : 100
+CmdexeDelay                   : 25
+SyncLoops                     : 32
+PollIndex                     : 3
+PollValue                     : 0x53
+Memory Detail                 :
+
+                                 Block               Page                       Polled
+ Memory Type Alias    Mode Delay Size  Paged  Size   Size #Pages MinW  MaxW   ReadBack
+ ----------- -------- ---- ----- ----- ------ ------ ---- ------ ----- ----- ---------
+ eeprom                 65    20     4 no       1024    4      0  3600  3600 0x00 0x00
+ flash                  65    10   128 yes     32768  128    256  4500  4500 0x00 0x00
+ lfuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ hfuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ efuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ lock                    0     0     0 no          1    1      0  4500  4500 0x00 0x00
+ signature               0     0     0 no          3    1      0     0     0 0x00 0x00
+ calibration             0     0     0 no          1    1      0     0     0 0x00 0x00
+
+avrdude&gt; dump eeprom 0 16
+0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; write eeprom 0 1 2 3 4 0xcafe &quot;Avrdude&quot;
+
+avrdude&gt; dump eeprom 0 16
+0000  01 02 03 04 fe ca 41 76  72 64 75 64 65 00 ff ff  |......Avrdude...|
+
+avrdude&gt; flush
+
+avrdude&gt; erase
+erasing chip ...
+
+avrdude&gt; dump eeprom 0 16
+0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; quit
+</pre></td></tr></table>
+</div>
+
+
+<p><strong>Program the fuse bits of an ATmega328P with a fuse calculator</strong>
+</p><ul>
+<li> Enable full-swing high speed external crystal with long startup time
+</li><li> Remove default clock division by 8
+</li><li> Make reset jump to boot loader
+</li><li> Set the size of the bootloader to 512 bytes (256 words)
+</li><li> Enable brown-out detection at 2.7 V
+</li></ul>
+
+<p>First display the factory defaults, then consult an external fuse
+calculator, select the ATmega328P part, find above settings, note the
+ensuinig new values for the three fuses and reprogram:
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -c usbasp -p atmega328p -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+
+avrdude&gt; dump efuse
+Reading | ################################################## | 100% 0.00 s
+0000  ff                                                |.               |
+
+avrdude&gt; dump hfuse
+Reading | ################################################## | 100% 0.00 s
+0000  d9                                                |.               |
+
+avrdude&gt; dump lfuse
+Reading | ################################################## | 100% 0.00 s
+0000  62                                                |b               |
+
+avrdude&gt; #
+avrdude&gt; # Consult external fuse calculator
+avrdude&gt; #
+avrdude&gt; #
+
+avrdude&gt; write efuse 0xfd
+Writing | ################################################## | 100% 0.01 s
+
+avrdude&gt; write hfuse 0xde
+Writing | ################################################## | 100% 0.01 s
+
+avrdude&gt; write lfuse 0xf7
+Writing | ################################################## | 100% 0.01 s
+
+avrdude&gt; quit
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+
+<p><strong>Program the fuse bits of an ATmega328P with the config command</strong>
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -qq -c usbasp -p atmega328p -t
+
+avrdude&gt; # Show all configurations
+avrdude&gt; config
+config sut_cksel=intrcosc_8mhz_6ck_14ck_65ms # 34
+config ckout=co_disabled # 1
+config ckdiv8=by_8 # 0
+config bootrst=application # 1
+config bootsz=bs_2048w # 0
+config eesave=ee_erased # 1
+config wdton=wdt_programmable # 1
+config spien=isp_enabled # 0
+config dwen=dw_off # 1
+config rstdisbl=external_reset # 1
+config bodlevel=bod_disabled # 7
+config lb=no_lock # 3
+config blb0=no_lock_in_app # 3
+config blb1=no_lock_in_boot # 3
+
+avrdude&gt; # Show possible values for full-swing external crystal
+avrdude&gt; config sut_cksel=extfs
+avrdude warning: (config) ambiguous; known sut_cksel extfs symbols are:
+ - sut_cksel=extfsxtal_258ck_14ck_4ms1 #  6
+ - sut_cksel=extfsxtal_1kck_14ck_65ms  #  7
+ - sut_cksel=extfsxtal_258ck_14ck_65ms # 22
+ - sut_cksel=extfsxtal_16kck_14ck_0ms  # 23
+ - sut_cksel=extfsxtal_1kck_14ck_0ms   # 38
+ - sut_cksel=extfsxtal_16kck_14ck_4ms1 # 39
+ - sut_cksel=extfsxtal_1kck_14ck_4ms1  # 54
+ - sut_cksel=extfsxtal_16kck_14ck_65ms # 55
+
+avrdude&gt; # Set the one with appropriate startup times
+avrdude&gt; c su=55
+
+avrdude&gt; # Unprogram clock division by 8, make reset jump to boot loader
+avrdude&gt; c ckdiv8=1
+avrdude&gt; c bootrst=boot
+avrdude&gt; c bootsz=bs_256w
+
+avrdude&gt; # Query which bod levels exist; set brown-out at 2.7 V
+avrdude&gt; c bodlevel=
+# conf bodlevel=bod_4v3      # 4
+# conf bodlevel=bod_2v7      # 5
+# conf bodlevel=bod_1v8      # 6
+config bodlevel=bod_disabled # 7 (factory)
+avrdude&gt; c bod=*2v7
+
+avrdude&gt; quit
+</pre></td></tr></table>
+</div>
+
+
+
+<p>The following example demonstrates <strong>negative address and length
+bytes</strong>, and the <strong>fill form of the <code>write</code> command using an
+ellipis ...</strong> where the last data item provided is used to fill up the
+indicated memory range.
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -c usbasp -p atmega328p -t
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+
+avrdude&gt; dump flash -64 -33
+Reading | ################################################## | 100% 0.02 s
+7fc0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+7fd0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; dump flash -32 -1
+Reading | ################################################## | 100% 0.00 s
+7fe0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+7ff0  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
+
+avrdude&gt; write flash -64 1234567890 'A' 'V' 'R' 2.718282 0xaa 0xbb 0xcc &quot;Hello World!&quot;
+Caching | ################################################## | 100% 0.00 s
+
+avrdude&gt; write flash -32 -1 0x01 0b00000010 0b11 0x04 0x05 ...
+Caching | ################################################## | 100% 0.00 s
+
+avrdude&gt; read flash -64 -33
+Reading | ################################################## | 100% 0.00 s
+7fc0  d2 02 96 49 41 56 52 55  f8 2d 40 aa bb cc 48 65  |...IAVRU.-@...He|
+7fd0  6c 6c 6f 20 57 6f 72 6c  64 21 00 ff ff ff ff ff  |llo World!......|
+
+avrdude&gt; read flash -32 -1
+Reading | ################################################## | 100% 0.00 s
+7fe0  01 02 03 04 05 05 05 05  05 05 05 05 05 05 05 05  |................|
+7ff0  05 05 05 05 05 05 05 05  05 05 05 05 05 05 05 05  |................|
+
+avrdude&gt; flush
+avrdude: synching cache to device ...
+Writing | ################################################## | 100% 0.05 s
+
+avrdude&gt; quit
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+
+
+<p><strong>Mixing terminal commands and <code>-U</code> memory operations:</strong> the
+example below burns a bootloader, uses a terminal line to write
+application data to flash, loads the application, configures the brownout
+detection level to 2.7 V and, finally, stores the full flash as new hex
+file. Note the use of different quotation marks in <code>bash</code> to pass the
+terminal command lines as single entity to AVRDUDE.
+</p>
+<div class="smallexample">
+<table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">
+$ avrdude -qc dryrun -p m328p \
+          -U urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex \
+          -T 'write flash 0x7D00 0xc0cac01a 0xcafe &quot;secret Coca Cola recipe&quot;' \
+          -U flash:w:cola-vending-machine.hex \
+          -T &quot;config -v bod=*2v7&quot; \
+          -U flash:r:app+data.hex:I
+
+avrdude: AVR device initialized and ready to accept instructions
+avrdude: device signature = 0x1e950f (probably m328p)
+avrdude: Note: flash memory has been specified, an erase cycle will be performed.
+         To disable this feature, specify the -D option.
+avrdude: erasing chip
+
+avrdude: processing -U flash:w:urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex:i
+avrdude: reading input file urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex for flash
+         with 368 bytes in 2 sections within [0x7e80, 0x7fff]
+         using 3 pages and 16 pad bytes
+avrdude: writing 368 bytes flash ...
+avrdude: 368 bytes of flash written
+avrdude: verifying flash memory against urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex
+avrdude: 368 bytes of flash verified
+
+avrdude: processing -T write flash 0x7D00 0xc0cac01a 0xcafe &quot;secret Coca Cola recipe&quot;
+avrdude: synching cache to device ... done
+
+avrdude: processing -U flash:w:cola-vending-machine.hex:i
+avrdude: reading input file cola-vending-machine.hex for flash
+         with 736 bytes in 1 section within [0, 0x2df]
+         using 6 pages and 32 pad bytes
+avrdude: writing 736 bytes flash ...
+avrdude: 736 bytes of flash written
+avrdude: verifying flash memory against cola-vending-machine.hex
+avrdude: 736 bytes of flash verified
+
+avrdude: processing -T config -v bod=*2v7
+config bodlevel=bod_2v7 # 5
+
+avrdude: processing -U flash:r:app+data.hex:I
+avrdude: reading flash memory ...
+avrdude: writing output file app+data.hex
+
+avrdude done.  Thank you.
+
+</pre></td></tr></table>
+</div>
+
+
+
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_7.html#Terminal-Mode-Commands" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_9.html#Configuration-File" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>July 19, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

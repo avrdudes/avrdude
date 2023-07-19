@@ -1,0 +1,774 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on July 19, 2023 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 2.1 Option Descriptions</title>
+
+<meta name="description" content="AVRDUDE: 2.1 Option Descriptions">
+<meta name="keywords" content="AVRDUDE: 2.1 Option Descriptions">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Option-Descriptions"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_4.html#Programmers-accepting-extended-parameters" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="index-Options-_0028command_002dline_0029"></a>
+<a name="Option-Descriptions-1"></a>
+<h2 class="section">2.1 Option Descriptions</h2>
+
+<p>AVRDUDE is a command line tool, used as follows:
+</p>
+<div class="smallexample">
+<pre class="smallexample">avrdude -p partno <var>options</var> &hellip;
+</pre></div>
+
+<p>Command line options are used to control AVRDUDE&rsquo;s behaviour.  The
+following options are recognized:
+</p>
+<dl compact="compact">
+<dt><code>-p <var>partno</var></code></dt>
+<dd><p>This option tells AVRDUDE what part (MCU) is connected to the programmer. The
+<var>partno</var> parameter is the part&rsquo;s id listed in the configuration file. To
+see a list of currently supported MCUs use ? as partno, which will print the
+part ids and official part names. In connection with -v, this will also print a
+list of variant part names followed by an optional colon, the package code and
+some absolute maximum ratings. The part id, their official part name, any of
+the full variant part names or their initial part up to a dash can be used to
+specify a part with the -p option. If a part is unknown to AVRDUDE, it means
+that there is no config file entry for that part, but it can be added to the
+configuration file if you have the Atmel datasheet so that you can enter the
+programming specifications. If <code>-p ?</code> is specified with a specific
+programmer, see <code>-c</code> below, then only those parts are output that the
+programmer expects to be able to handle, together with the programming
+interface(s) that can be used in that combination. In reality there can be
+deviations from this list, particularly if programming is directly via a
+bootloader. Currently, the following MCU types are understood:
+</p>
+<a name="index-Device-support"></a>
+
+
+<p>(*)   The AT90S2323 and ATtiny22 use the same algorithm.
+</p>
+<p>(**)  Flash addressing above 128 KB is not supported by all
+programming hardware.  Known to work are jtag2, stk500v2,
+and bit-bang programmers.
+</p>
+<p>(***)
+The ATtiny11 can only be
+programmed in high-voltage serial mode.
+</p>
+<p>(****)
+The ISP programming protocol of the AT90S1200 differs in subtle ways
+from that of other AVRs.  Thus, not all programmers support this
+device.  Known to work are all direct bitbang programmers, and all
+programmers talking the STK500v2 protocol.
+</p>
+</dd>
+<dt><code>-p <var>wildcard/flags</var></code></dt>
+<dd><p>Run developer options for MCUs that are matched by <var>wildcard</var>. Whilst
+their main use is for developers some <var>flags</var> can be of utility for
+users, e.g.,  <code>avrdude -p m328p/S</code> outputs AVRDUDE&rsquo;s understanding of
+ATmega328P MCU properties; for more information run <code>avrdude -p x/h</code>.
+</p>
+</dd>
+<dt><code>-b <var>baudrate</var></code></dt>
+<dd><p>Override the RS-232 connection baud rate specified in the respective
+programmer&rsquo;s entry of the configuration file.
+</p>
+</dd>
+<dt><code>-B <var>bitclock</var></code></dt>
+<dd><p>Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
+interface. The value is a floating-point number in microseconds.
+Alternatively, the value might be suffixed with &quot;Hz&quot;, &quot;kHz&quot; or
+&quot;MHz&quot; in order to specify the bit clock frequency rather than a
+period. Some programmers default their bit clock value to a 1
+microsecond bit clock period, suitable for target MCUs running at 4
+MHz clock and above. Slower MCUs need a correspondingly higher bit
+clock period. Some programmers reset their bit clock value to the
+default value when the programming software signs off, whilst
+others store the last used bit clock value. It is recommended to
+always specify the bit clock if read/write speed is important.  You
+can use the &rsquo;default_bitclock&rsquo; keyword in your
+<code>~/.config/avrdude/avrdude.rc</code> or <code>~/.avrduderc</code>
+configuration file to assign a default value to keep from having to
+specify this option on every invocation.
+</p>
+<p>Note that some official Microchip programmers store the bitclock setting and
+will continue to use it until a different value is provided. This applies to
+&quot;2nd gen&quot; programmers (AVRISPmkII, AVR Dragon, JTAG ICE mkII, STK600) and
+&quot;3rd gen&quot;programmers (JTAGICE3, Atmel ICE, Power Debugger). &quot;4th gen&quot;
+programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
+until the programmer is disconnected from the computer.
+</p>
+</dd>
+<dt><code>-c <var>programmer-id</var></code></dt>
+<dd><p>Specify the programmer to be used.  AVRDUDE knows about several common
+programmers.  Use this option to specify which one to use.  The
+<var>programmer-id</var> parameter is the programmer&rsquo;s id listed in the
+configuration file.  Specify -c ? to list all programmers in the
+configuration file.  If you have a programmer that is unknown to
+AVRDUDE, and the programmer is controlled via the PC parallel port,
+there&rsquo;s a good chance that it can be easily added to the configuration
+file without any code changes to AVRDUDE.  Simply copy an existing entry
+and change the pin definitions to match that of the unknown programmer.
+If <code>-c ?</code> is specified with a specific part, see <code>-p</code> above, then
+only those programmers are output that expect to be able to handle this part,
+together with the programming interface(s) that can be used in that
+combination. In reality there can be deviations from this list, particularly
+if programming is directly via a bootloader. Currently, the following
+programmer ids are understood and supported:
+</p>
+<a name="index-Programmer-support"></a>
+
+
+
+
+</dd>
+<dt><code>-c <var>wildcard/flags</var></code></dt>
+<dd><p>Run developer options for programmers that are matched by <var>wildcard</var>.
+Whilst their main use is for developers some <var>flags</var> can be of utility
+for users, e.g., <code>avrdude -c usbtiny/S</code> shows AVRDUDE&rsquo;s understanding of
+usbtiny&rsquo;s properties; for more information run <code>avrdude -c x/h</code>.
+</p>
+</dd>
+<dt><code>-C <var>config-file</var></code></dt>
+<dd><p>Use the specified config file for configuration data.  This file
+contains all programmer and part definitions that AVRDUDE knows about.
+If not specified, AVRDUDE looks for the configuration file in the following
+two locations:
+</p>
+<ol>
+<li>
+<code>&lt;directory from which application loaded&gt;/../etc/avrdude.conf</code>
+
+</li><li>
+<code>&lt;directory from which application loaded&gt;/avrdude.conf</code>
+
+</li></ol>
+
+<p>If not found there, the lookup procedure becomes platform dependent. On FreeBSD
+and Linux, AVRDUDE looks at <code>/usr/local/etc/avrdude.conf</code>. See Appendix A
+for the method of searching on Windows.
+</p>
+<p>If <var>config-file</var> is written as <var>+filename</var>
+then this file is read after the system wide and user configuration
+files. This can be used to add entries to the configuration
+without patching your system wide configuration file. It can be used 
+several times, the files are read in same order as given on the command 
+line.
+</p>
+</dd>
+<dt><code>-A</code></dt>
+<dd><p>Disable the automatic removal of trailing-0xFF sequences in file
+input that is to be programmed to flash and in AVR reads from
+flash memory. Normally, trailing 0xFFs can be discarded, as flash
+programming requires the memory be erased to 0xFF beforehand. -A
+should be used when the programmer hardware, or bootloader
+software for that matter, does not carry out chip erase and
+instead handles the memory erase on a page level. The popular
+Arduino bootloader exhibits this behaviour; for this reason -A is
+engaged by default when specifying -c arduino.
+</p>
+</dd>
+<dt><code>-D</code></dt>
+<dd><p>Disable auto erase for flash.  When the -U option with flash memory is 
+specified, avrdude will perform a chip erase before starting any of the 
+programming operations, since it generally is a mistake to program the flash
+without performing an erase first.  This option disables that.
+Auto erase is not used for ATxmega devices as these devices can
+use page erase before writing each page so no explicit chip erase
+is required.
+Note however that any page not affected by the current operation
+will retain its previous contents.
+Setting -D implies -A.
+</p>
+</dd>
+<dt><code>-e</code></dt>
+<dd><p>Causes a chip erase to be executed.  This will reset the contents of the
+flash ROM and EEPROM to the value &lsquo;0xff&rsquo;, and clear all lock bits.
+Except for ATxmega devices which can use page erase,
+it is basically a
+prerequisite command before the flash ROM can be reprogrammed again.
+The only exception would be if the new contents would exclusively cause
+bits to be programmed from the value &lsquo;1&rsquo; to &lsquo;0&rsquo;.  Note that in order
+to reprogram EERPOM cells, no explicit prior chip erase is required
+since the MCU provides an auto-erase cycle in that case before
+programming the cell.
+</p>
+
+</dd>
+<dt><code>-E <var>exitspec</var>[,&hellip;]</code></dt>
+<dd><p>By default, AVRDUDE leaves the parallel port in the same state at exit
+as it has been found at startup.  This option modifies the state of the
+&lsquo;/RESET&rsquo; and &lsquo;Vcc&rsquo; lines the parallel port is left at, according to
+the exitspec arguments provided, as follows:
+</p>
+<dl compact="compact">
+<dt><code>reset</code></dt>
+<dd><p>The &lsquo;/RESET&rsquo; signal will be left activated at program exit, that is it
+will be held low, in order to keep the MCU in reset state afterwards.
+Note in particular that the programming algorithm for the AT90S1200
+device mandates that the &lsquo;/RESET&rsquo; signal is active before powering up
+the MCU, so in case an external power supply is used for this MCU type,
+a previous invocation of AVRDUDE with this option specified is one of
+the possible ways to guarantee this condition. <code>reset</code> is supported
+by the <code>linuxspi</code> and <code>flip2</code> programmer options, as well as
+all parallel port based programmers.
+</p>
+</dd>
+<dt><code>noreset</code></dt>
+<dd><p>The &lsquo;/RESET&rsquo; line will be deactivated at program exit, thus allowing the
+MCU target program to run while the programming hardware remains
+connected. <code>noreset</code> is supported by the <code>linuxspi</code> and
+<code>flip2</code> programmer options, as well as all parallel port based
+programmers.
+</p>
+</dd>
+<dt><code>vcc</code></dt>
+<dd><p>This option will leave those parallel port pins active (i. e. high) that
+can be used to supply &lsquo;Vcc&rsquo; power to the MCU.
+</p>
+</dd>
+<dt><code>novcc</code></dt>
+<dd><p>This option will pull the &lsquo;Vcc&rsquo; pins of the parallel port down at
+program exit.
+</p>
+</dd>
+<dt><code>d_high</code></dt>
+<dd><p>This option will leave the 8 data pins on the parallel port active
+(i. e. high).
+</p>
+</dd>
+<dt><code>d_low</code></dt>
+<dd><p>This option will leave the 8 data pins on the parallel port inactive
+(i. e. low).
+</p>
+</dd>
+</dl>
+
+<p>Multiple <var>exitspec</var> arguments can be separated with commas.
+</p>
+
+</dd>
+<dt><code>-F</code></dt>
+<dd><p>Normally, AVRDUDE tries to verify that the device signature read from
+the part is reasonable before continuing.  Since it can happen from time
+to time that a device has a broken (erased or overwritten) device
+signature but is otherwise operating normally, this options is provided
+to override the check.
+Also, for programmers like the Atmel STK500 and STK600 which can
+adjust parameters local to the programming tool (independent of an
+actual connection to a target controller), this option can be used
+together with &lsquo;<samp>-t</samp>&rsquo; to continue in terminal mode.
+Moreover, the option allows to continue despite failed initialization
+of connection between a programmer and a target.
+</p>
+</dd>
+<dt><code>-i <var>delay</var></code></dt>
+<dd><p>For bitbang-type programmers, delay for approximately
+<var>delay</var>
+microseconds between each bit state change.
+If the host system is very fast, or the target runs off a slow clock
+(like a 32 kHz crystal, or the 128 kHz internal RC oscillator), this
+can become necessary to satisfy the requirement that the ISP clock
+frequency must not be higher than 1/4 of the CPU clock frequency.
+This is implemented as a spin-loop delay to allow even for very
+short delays.
+On Unix-style operating systems, the spin loop is initially calibrated
+against a system timer, so the number of microseconds might be rather
+realistic, assuming a constant system load while AVRDUDE is running.
+On Win32 operating systems, a preconfigured number of cycles per
+microsecond is assumed that might be off a bit for very fast or very
+slow machines.
+</p>
+</dd>
+<dt><code>-l <var>logfile</var></code></dt>
+<dd><p>Use <var>logfile</var> rather than <var>stderr</var> for diagnostics output.
+Note that initial diagnostic messages (during option parsing) are still
+written to <var>stderr</var> anyway.
+</p>
+</dd>
+<dt><code>-n</code></dt>
+<dd><p>No-write: disables writing data to the MCU whilst processing -U (useful for
+debugging AVRDUDE). The terminal mode continues to write to the device.
+</p>
+</dd>
+<dt><code>-O</code></dt>
+<dd><p>Perform a RC oscillator run-time calibration according to Atmel
+application note AVR053.
+This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
+hardware.
+Note that the result will be stored in the EEPROM cell at address 0.
+</p>
+</dd>
+<dt><code>-P <var>port</var></code></dt>
+<dd><p>Use port to identify the device to which the programmer is attached.
+Normally, the default parallel port is used, but if the programmer type
+normally connects to the serial port, the default serial port will be
+used. See Appendix A, Platform Dependent Information, to find out the
+default port names for your platform. If you need to use a different
+parallel or serial port, use this option to specify the alternate port name.
+</p>
+<p>On Win32 operating systems, the parallel ports are referred to as lpt1
+through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
+respectively.  If the parallel port can be accessed through a different
+address, this address can be specified directly, using the common C
+language notation (i. e., hexadecimal values are prefixed by <var>0x</var>).
+</p>
+<p>For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
+<var>port</var> may alternatively be specified as
+<code>usb</code>[:<var>serialno</var>].  In that case, the JTAG ICE mkII will be
+looked up on USB.  If <var>serialno</var> is also specified, it will be
+matched against the serial number read from any JTAG ICE mkII found on
+USB.  The match is done after stripping any existing colons from the
+given serial number, and right-to-left, so only the least significant
+bytes from the serial number need to be given.
+For a trick how to find out the serial numbers of all JTAG ICEs
+attached to USB, see <a href="avrdude_5.html#Example-Command-Line-Invocations">Example Command Line Invocations</a>.
+</p>
+<p>As the AVRISP mkII device can only be talked to over USB, the very
+same method of specifying the port is required there.
+</p>
+<p>For the USB programmer &quot;AVR-Doper&quot; running in HID mode, the port must
+be specified as <var>avrdoper</var>. Libhidapi support is required on Unix
+and Mac OS but not on Windows. For more information about AVR-Doper see
+<a href="http://www.obdev.at/avrusb/avrdoper.html">http://www.obdev.at/avrusb/avrdoper.html</a>.
+</p>
+<p>For the USBtinyISP, which is a simplistic device not implementing
+serial numbers, multiple devices can be distinguished by their
+location in the USB hierarchy.
+See the respective
+See section <a href="avrdude_39.html#Troubleshooting">Troubleshooting</a> entry for examples.
+</p>
+<p>For the XBee programmer the target MCU is to be programmed wirelessly
+over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
+address for the target MCU&rsquo;s own XBee device must be supplied as a
+16-character hexadecimal value as a port prefix, followed by the
+<code>@</code> character, and the serial device to connect to a second
+directly contactable XBee device associated with the same mesh (with
+a default baud rate of 9600).  This may look similar to:
+<code>0013a20000000001dev/tty.serial</code>.
+</p>
+<p>For diagnostic purposes, if the target MCU with an XBeeBoot
+bootloader is connected directly to the serial port, the
+64-bit address field can be omitted.  In this mode the
+default baud rate will be 19200.
+</p>
+<p>For programmers that attach to a serial port using some kind of
+higher level protocol (as opposed to bit-bang style programmers),
+<var>port</var> can be specified as <code>net</code>:<var>host</var>:<var>port</var>.
+In this case, instead of trying to open a local device, a TCP
+network connection to (TCP) <var>port</var> on <var>host</var>
+is established.
+Square brackets may be placed around <var>host</var> to improve
+readability for numeric IPv6 addresses (e.g.
+<code>net:[2001:db8::42]:1337</code>).
+The remote endpoint is assumed to be a terminal or console server
+that connects the network stream to a local serial port where the
+actual programmer has been attached to.
+The port is assumed to be properly configured, for example using a
+transparent 8-bit data connection without parity at 115200 Baud
+for a STK500.
+</p>
+<p>Note: The ability to handle IPv6 hostnames and addresses is limited to
+Posix systems (by now).
+</p>
+</dd>
+<dt><code>-q</code></dt>
+<dd><p>Disable (or quell) output of the progress bar while reading or writing
+to the device.  Specify it a second time for even quieter operation.
+</p>
+</dd>
+<dt><code>-s, -u</code></dt>
+<dd><p>These options used to control the obsolete &quot;safemode&quot; feature which
+is no longer present. They are silently ignored for backwards compatibility.
+</p>
+</dd>
+<dt><code>-T <var>cmd</var></code></dt>
+<dd><p>Run terminal line <var>cmd</var> when it is its turn in relation to other
+<code>-t</code> interactive terminals, <code>-T</code> terminal commands and
+<code>-U</code> memory operations. Except for the simplest of terminal commands
+the argument <var>cmd</var> will most likely need to be set in quotes, see your
+OS shell manual for details. See below for a detailed description of all
+terminal commands.
+</p>
+</dd>
+<dt><code>-t</code></dt>
+<dd><p>Tells AVRDUDE to run an interactive terminal when it is its turn in
+relation to other <code>-t</code> interactive terminals, <code>-T</code>
+terminal commands and <code>-U</code> memory operations.
+</p>
+</dd>
+<dt><code>-U <var>memory</var>:<var>op</var>:<var>filename</var>[:<var>format</var>]</code></dt>
+<dd><p>Perform a memory operation when it is its turn in relation to other
+<code>-t</code> interactive terminals, <code>-T</code> terminal commands and
+<code>-U</code> memory operations. The <var>memory</var> field specifies the memory
+type to operate on. Use the &lsquo;<samp>-T part</samp>&rsquo; option on the command line or
+the <code>part</code> command in the interactive terminal to display all the
+memory types supported by a particular device.
+</p>
+<p>Typically, a device&rsquo;s memory configuration at least contains the memory
+types <code>flash</code>, <code>eeprom</code>, <code>signature</code> and <code>lock</code>, which
+is sometimes known as <code>lockbits</code>. The signature memory contains the
+three device signature bytes, which should be, but not always are, unique
+for the part. The <code>lock</code> memory of one or four bytes typically
+details whether or not external reading/writing of the flash memory, or
+parts of it, is allowed. Parts will also typically have fuse bytes, which
+are read/write memories for configuration of the device and calibration
+memories that typically contain read-only factory calibration values.
+</p>
+<p>Classic devices may have the following memory types in addition to
+<code>eeprom</code>, <code>flash</code>, <code>signature</code> and <code>lock</code>:
+</p><dl compact="compact">
+<dt><code>calibration</code></dt>
+<dd><p>One or more bytes of RC oscillator calibration data
+</p></dd>
+<dt><code>efuse</code></dt>
+<dd><p>Extended fuse byte
+</p></dd>
+<dt><code>fuse</code></dt>
+<dd><p>Fuse byte in devices that have only a single fuse byte
+</p></dd>
+<dt><code>hfuse</code></dt>
+<dd><p>High fuse byte
+</p></dd>
+<dt><code>lfuse</code></dt>
+<dd><p>Low fuse byte
+</p></dd>
+<dt><code>usersig</code></dt>
+<dd><p>Three extra flash pages for firmware settings; this memory is not erased
+during a chip erase. Only some classic parts,
+ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
+different to flash in the sense that it can neither be accessed with ISP
+serial programming nor written to by bootloaders. AVRDUDE offers JTAG
+programming of classic-part usersig memories. As with all flash-type
+memories the <code>-U</code> option can only write 0-bits but not 1-bits.
+Hence, usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using <code>-T &quot;erase usersig&quot; -U
+usersig:w:parameters.hex:i</code>
+</p></dd>
+</dl>
+
+<p>ATxmega devices have the following memory types in addition to
+<code>eeprom</code>, <code>flash</code>, <code>signature</code> and <code>lock</code>:
+</p><dl compact="compact">
+<dt><code>application</code></dt>
+<dd><p>Application flash area
+</p></dd>
+<dt><code>apptable</code></dt>
+<dd><p>Application table flash area
+</p></dd>
+<dt><code>boot</code></dt>
+<dd><p>Boot flash area
+</p></dd>
+<dt><code>fuse0</code></dt>
+<dd><p>A.k.a. jtaguid: JTAG user ID for some devices
+</p></dd>
+<dt><code>fuse1</code></dt>
+<dd><p>Watchdog configuration
+</p></dd>
+<dt><code>fuse6</code></dt>
+<dd><p>Fault detection action configuration TC4/5 for ATxmega E series parts
+</p></dd>
+<dt><code>fuse<em>N</em></code></dt>
+<dd><p>Other fuse bytes of ATxmega devices, where <em>N</em> is 2, 4 or 5, for system configuration
+</p></dd>
+<dt><code>prodsig</code></dt>
+<dd><p>Production signature (calibration) area
+</p></dd>
+<dt><code>usersig</code></dt>
+<dd><p>Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
+</p></dd>
+</dl>
+
+<p>Modern 8-bit AVR devices have the following memory types in addition to
+<code>eeprom</code>, <code>flash</code>, <code>signature</code> and <code>lock</code>:
+</p><dl compact="compact">
+<dt><code>fuse0</code></dt>
+<dd><p>A.k.a. wdtcfg: watchdog configuration
+</p></dd>
+<dt><code>fuse1</code></dt>
+<dd><p>A.k.a. bodcfg: brownout detection configuration
+</p></dd>
+<dt><code>fuse2</code></dt>
+<dd><p>A.k.a. osccfg: oscillator configuration
+</p></dd>
+<dt><code>fuse4</code></dt>
+<dd><p>A.k.a. tcd0cfg (not all devices): timer counter type D configuration
+</p></dd>
+<dt><code>fuse5</code></dt>
+<dd><p>A.k.a. syscfg0: system configuration 0
+</p></dd>
+<dt><code>fuse6</code></dt>
+<dd><p>A.k.a. syscfg1: system configuration 1
+</p></dd>
+<dt><code>fuse7</code></dt>
+<dd><p>A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
+</p></dd>
+<dt><code>fuse8</code></dt>
+<dd><p>A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+</p></dd>
+<dt><code>fuses</code></dt>
+<dd><p>A &quot;logical&quot; memory of 9 bytes containing all fuseN of a part, which can be used to program all fuses at the same time
+</p></dd>
+<dt><code>osc16err</code></dt>
+<dd><p>Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+</p></dd>
+<dt><code>osc20err</code></dt>
+<dd><p>Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+</p></dd>
+<dt><code>osccal16</code></dt>
+<dd><p>Two oscillator calibration bytes for 16 MHz
+</p></dd>
+<dt><code>osccal20</code></dt>
+<dd><p>Two oscillator calibration bytes for 20 MHz
+</p></dd>
+<dt><code>prodsig</code></dt>
+<dd><p>Production signature (calibration) area
+</p></dd>
+<dt><code>sernum</code></dt>
+<dd><p>Serial number with a unique ID for the pary (10 bytes)
+</p></dd>
+<dt><code>tempsense</code></dt>
+<dd><p>Temperature sensor calibration values
+</p></dd>
+<dt><code>userrow</code></dt>
+<dd><p>Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
+</p>
+</dd>
+</dl>
+
+<p>The <var>op</var> field specifies what operation to perform:
+</p>
+<dl compact="compact">
+<dt><code>r</code></dt>
+<dd><p>read the specified device memory and write to the specified file
+</p>
+</dd>
+<dt><code>w</code></dt>
+<dd><p>read the specified file and write it to the specified device memory
+</p>
+</dd>
+<dt><code>v</code></dt>
+<dd><p>read the specified device memory and the specified file and perform a verify operation
+</p>
+</dd>
+</dl>
+
+<p>The <var>filename</var> field indicates the name of the file to read or
+write.  The <var>format</var> field is optional and contains the format of
+the file to read or write.  Possible values are:
+</p>
+<dl compact="compact">
+<dt><code>i</code></dt>
+<dd><p>Intel Hex
+</p>
+</dd>
+<dt><code>I</code></dt>
+<dd><p>Intel Hex with comments on download and tolerance of checksum errors on upload
+</p>
+</dd>
+<dt><code>s</code></dt>
+<dd><p>Motorola S-record
+</p>
+</dd>
+<dt><code>r</code></dt>
+<dd><p>raw binary; little-endian byte order, in the case of the flash ROM data
+</p>
+</dd>
+<dt><code>e</code></dt>
+<dd><p>ELF (Executable and Linkable Format), the final output file from the
+linker; currently only accepted as an input file
+</p>
+</dd>
+<dt><code>m</code></dt>
+<dd><p>immediate mode; actual byte values are specified on the command line,
+separated by commas or spaces in place of the <var>filename</var> field of the
+&lsquo;<samp>-U</samp>&rsquo; option.  This is useful for programming fuse bytes without
+having to create a single-byte file or enter terminal mode.
+</p>
+</dd>
+<dt><code>a</code></dt>
+<dd><p>auto detect; valid for input only, and only if the input is not provided
+at stdin.
+</p>
+</dd>
+<dt><code>d</code></dt>
+<dd><p>decimal; this and the following formats generate one line of output for
+the respective memory section, forming a comma-separated list of the
+values. This can be particularly useful for subsequent processing, like
+for fuse bit settings.
+</p>
+</dd>
+<dt><code>h</code></dt>
+<dd><p>hexadecimal; each value will get the string <em>0x</em> prepended.
+</p>
+</dd>
+<dt><code>o</code></dt>
+<dd><p>octal; each value will get a <em>0</em>
+prepended unless it is less than 8 in which case it gets no prefix.
+</p>
+</dd>
+<dt><code>b</code></dt>
+<dd><p>binary; each value will get the string <em>0b</em> prepended.
+</p></dd>
+</dl>
+
+<p>When used as input, the <code>m</code>, <code>d</code>, <code>h</code>, <code>o</code> and
+<code>b</code> formats will use the same code for reading lists of numbers
+separated by white space and/or commas. The read routine handles decimal,
+hexadecimal, octal or binary numbers on a number-by-number basis, and the
+list of numbers can therefore be of mixed type. In fact the syntax, is the
+same as for data used by the terminal write command, i.e., the file&rsquo;s input
+data can also be 2-byte short integers, 4-byte long integers or 8-byte
+long long integers, 4-byte floating point numbers, 8-byte double precision
+numbers, C-type strings with a terminating nul or C-like characters such
+as <code>'\t'</code>. Numbers are written as little endian to memory. When using
+<code>0x</code> hexadecimal or <code>0b</code> binary input leading zeros are used to
+determine the size of the integer, e.g., <code>0x002a</code> will occupy two
+bytes and write a <code>0x2a</code> to memory followed by <code>0x00</code>, while
+<code>0x01234</code> will occupy 4 bytes. See the description of the terminal
+write command for more details.
+</p>
+<p>In absence of an explicit file format, the default is to use auto detection
+for input files, and raw binary format for output files. Note that if
+<var>filename</var> contains a colon as penultimate character the <var>format</var>
+field is no longer optional since the last character would otherwise be
+misinterpreted as <var>format</var>.
+</p>
+<p>When reading any kind of flash memory area (including the various sub-areas
+in Xmega devices), the resulting output file will be truncated to not contain
+trailing 0xFF bytes which indicate unprogrammed (erased) memory. Thus, if the
+entire memory is unprogrammed, this will result in an output file that has no
+contents at all. This behaviour can be overridden with the <code>-A</code> option.
+</p>
+<p>As an abbreviation, the form <code>-U</code> <var>filename</var>
+is equivalent to specifying
+<code>-U</code> <em>flash:w:</em><var>filename</var><em>:a</em>.
+This will only work if <var>filename</var> does not have a pair of colons in it
+that sandwich a single character as otherwise the first part might be
+interpreted as memory, and the single character as memory operation.
+</p>
+</dd>
+<dt><code>-v</code></dt>
+<dd><p>Enable verbose output.
+More <code>-v</code> options increase verbosity level.
+</p>
+</dd>
+<dt><code>-V</code></dt>
+<dd><p>Disable automatic verify check when uploading data with <code>-U</code>.
+</p>
+</dd>
+<dt><code>-x <var>extended_param</var></code></dt>
+<dd><p>Pass <var>extended_param</var> to the chosen programmer implementation as
+an extended parameter.  The interpretation of the extended parameter
+depends on the programmer itself.  See below for a list of programmers
+accepting extended parameters or issue <code>avrdude -x help ...</code> to
+see the extended options of the chosen programmer.
+</p>
+</dd>
+</dl>
+
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_4.html#Programmers-accepting-extended-parameters" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>July 19, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

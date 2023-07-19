@@ -1,0 +1,712 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<!-- Created on July 19, 2023 by texi2html 5.0
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 2.2 Programmers accepting extended parameters</title>
+
+<meta name="description" content="AVRDUDE: 2.2 Programmers accepting extended parameters">
+<meta name="keywords" content="AVRDUDE: 2.2 Programmers accepting extended parameters">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 5.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+div.display {margin-left: 3.2em}
+div.example {margin-left: 3.2em}
+div.lisp {margin-left: 3.2em}
+div.smalldisplay {margin-left: 3.2em}
+div.smallexample {margin-left: 3.2em}
+div.smalllisp {margin-left: 3.2em}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.nocodebreak {white-space:pre}
+span.nolinebreak {white-space:pre}
+span.roman {font-family:serif; font-weight:normal}
+span.sansserif {font-family:sans-serif; font-weight:normal}
+ul.no-bullet {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Programmers-accepting-extended-parameters"></a>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Option-Descriptions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_5.html#Example-Command-Line-Invocations" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr>
+<a name="Programmers-accepting-extended-parameters-1"></a>
+<h2 class="section">2.2 Programmers accepting extended parameters</h2>
+<a name="index-_002dx-AVR-Dragon"></a>
+<dl compact="compact">
+<dt><code>JTAG ICE mkII/3</code></dt>
+<dt><code>Atmel-ICE</code></dt>
+<dt><code>PICkit 4</code></dt>
+<dt><code>MPLAB SNAP</code></dt>
+<dt><code>Power Debugger</code></dt>
+<dt><code>AVR Dragon</code></dt>
+<dd>
+<p>When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB SNAP,
+Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
+is accepted:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>jtagchain=UB,UA,BB,BA</samp>&rsquo;</code></dt>
+<dd><p>Setup the JTAG scan chain for <var>UB</var> units before, <var>UA</var> units
+after, <var>BB</var> bits before, and <var>BA</var> bits after the target AVR,
+respectively.
+Each AVR unit within the chain shifts by 4 bits.
+Other JTAG units might require a different bit shift count.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>hvupdi</samp>&rsquo;</code></dt>
+<dd><p><var>Power Debugger and Pickit 4 only</var>
+<br>
+High-voltage UPDI programming is used to enable a UPDI pin that has previously
+been set to RESET or GPIO mode. Use &lsquo;<samp>-xhvupdi</samp>&rsquo; to enable high-voltage UPDI
+initialization for supported targets.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>vtarg=VALUE, vtarg</samp>&rsquo;</code></dt>
+<dd><p><var>Power Debugger only</var>
+<br>
+The voltage generator can be enabled by setting a target voltage.
+The current set-voltage can be read by &lsquo;<samp>-xvtarg</samp>&rsquo; alone.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Xplained-Mini"></a>
+</dd>
+<dt><code>Xplained Mini</code></dt>
+<dd>
+<p>The Xplained Mini/Nano programmer (ISP or UPDI, not TPI) type accepts the
+following extended parameters:
+</p>
+<dl compact="compact">
+<dt><code>&lsquo;<samp>suffer=VALUE</samp>&rsquo;, &lsquo;<samp>suffer</samp>&rsquo;</code></dt>
+<dd><p>The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
+The current state can be read by &lsquo;<samp>-xsuffer</samp>&rsquo; alone.
+</p><dl compact="compact">
+<dt><code>Bit 7 ARDUINO:</code></dt>
+<dd><p>Adds control of extra LEDs when set to 0
+</p></dd>
+<dt><code>Bit 6..3:</code></dt>
+<dd><p>Reserved (must be set to 1)
+</p></dd>
+<dt><code>Bit 2 EOF:</code></dt>
+<dd><p>Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
+</p></dd>
+<dt><code>Bit 1 LOWP:</code></dt>
+<dd><p>forc running the mEDBG at 1 MHz when bit set to 0
+</p></dd>
+<dt><code>Bit 0 FUSE:</code></dt>
+<dd><p>Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
+</p></dd>
+</dl>
+</dd>
+</dl>
+
+<dl compact="compact">
+<dt><code>&lsquo;<samp>vtarg_switch=VALUE</samp>&rsquo;, &lsquo;<samp>vtarg_switch</samp>&rsquo;</code></dt>
+<dd><p>The on-board target voltage switch can be turned on or off by writing a 1 or
+a 0. The current state can be read by &lsquo;<samp>-xvtarg_switch</samp>&rsquo; alone.
+Note that the target power switch will always be on after a power cycle.
+Also note that the smaller Xplained Nano boards does not have a target power switch.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Curiosity-Nano"></a>
+</dd>
+<dt><code>Curiosity Nano</code></dt>
+<dd>
+<p>The Curiosity Nano board accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>vtarg=VALUE, vtarg</samp>&rsquo;</code></dt>
+<dd><p>The generated on-board target voltage can be changed by specifying a new voltage.
+The current set-voltage can be read by &lsquo;<samp>-xvtarg</samp>&rsquo; alone.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-STK500"></a>
+<a name="index-_002dx-STK600"></a>
+</dd>
+<dt><code>STK500</code></dt>
+<dt><code>STK600</code></dt>
+<dd>
+<p>The STK500 and STK600 boards accept the following extended parameters:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>vtarg=VALUE, vtarg</samp>&rsquo;</code></dt>
+<dd><p>The generated on-board target voltage can be changed by specifying a new voltage.
+The current set-voltage can be read by &lsquo;<samp>-xvtarg</samp>&rsquo; alone.
+</p></dd>
+<dt><code>&lsquo;<samp>fosc=VALUE[MHz|M|kHz|k|Hz], fosc</samp>&rsquo;</code></dt>
+<dd><p>Set the programmable oscillator frequency in MHz, kHz or Hz.
+The current frequency can be read by &lsquo;<samp>-xfosc</samp>&rsquo; alone.
+</p></dd>
+<dt><code>&lsquo;<samp>varef=VALUE, varef</samp>&rsquo;</code></dt>
+<dd><p>The generated on-board analog reference voltage can be changed by specifying
+a new reference voltage. The current reference voltage can be read by
+&lsquo;<samp>-xvaref</samp>&rsquo; alone.
+</p></dd>
+<dt><code>&lsquo;<samp>varef[0,1]=VALUE, varef[0,1]</samp>&rsquo;</code></dt>
+<dd><p><var>STK600 only</var>
+<br>
+The generated on-board analog reference voltage for channel 0 or channel 1 can
+be changed by specifying a new reference voltage.
+The current reference voltage can be read by &lsquo;<samp>-xvaref0</samp>&rsquo; or
+&lsquo;<samp>-xvaref1</samp>&rsquo; alone.
+</p></dd>
+<dt><code>&lsquo;<samp>attemps[=&lt;1..99&gt;]</samp>&rsquo;</code></dt>
+<dd><p><var>STK500V1 only</var>
+<br>
+Specify how many connection retry attemps to perform before exiting.
+Defaults to 10 if not specified.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-AVR910"></a>
+</dd>
+<dt><code>AVR910</code></dt>
+<dd>
+<p>The AVR910 programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>devcode=VALUE</samp>&rsquo;</code></dt>
+<dd><p>Override the device code selection by using <var>VALUE</var>
+as the device code.
+The programmer is not queried for the list of supported
+device codes, and the specified <var>VALUE</var>
+is not verified but used directly within the
+<code>T</code> command sent to the programmer.
+<var>VALUE</var> can be specified using the conventional number notation of the
+C programming language.
+</p></dd>
+<dt><code>&lsquo;<samp>no_blockmode</samp>&rsquo;</code></dt>
+<dd><p>Disables the default checking for block transfer capability.
+Use 
+&lsquo;<samp>no_blockmode</samp>&rsquo; only if your &lsquo;<samp>AVR910</samp>&rsquo; 
+programmer creates errors during initial sequence.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Arduino"></a>
+</dd>
+<dt><code>Arduino</code></dt>
+<dd>
+<p>The Arduino programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>attemps=VALUE</samp>&rsquo;</code></dt>
+<dd><p>Overide the default number of connection retry attempt by using <var>VALUE</var>.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Urclock"></a>
+</dd>
+<dt><code>Urclock</code></dt>
+<dd>
+<p>The urclock programmer type accepts the following extended parameters:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>showall</samp>&rsquo;</code></dt>
+<dd><p>Show all info for the connected part, then exit. The <code>-xshow...</code> options
+below can be used to assemble a bespoke response consisting of a subset
+(or only one item) of all available relevant information about the
+connected part and bootloader.
+</p></dd>
+<dt><code>&lsquo;<samp>showid</samp>&rsquo;</code></dt>
+<dd><p>Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>id=&lt;E|F&gt;.&lt;addr&gt;.&lt;len&gt;</samp>&rsquo;</code></dt>
+<dd><p>Historically, the Urclock ID was a six-byte unique little-endian number
+stored in Urclock boards at EEPROM address 257. The location of this
+number can be set by the <code>-xid=&lt;E|F&gt;.&lt;addr&gt;.&lt;len&gt;</code> extended parameter. <code>E</code>
+stands for EEPROM and <code>F</code> stands for flash. A negative address addr counts
+from the end of EEPROM and flash, respectively. The length len of the
+Urclock ID can be between 1 and 8 bytes.
+</p></dd>
+<dt><code>&lsquo;<samp>showdate</samp>&rsquo;</code></dt>
+<dd><p>Show the last-modified date of the input file for the flash application,
+then exit. If the input file was stdin, the date will be that of the
+programming. Date and filename are part of the metadata that the urclock
+programmer stores by default in high flash just under the bootloader; see also
+<code>-xnometadata</code>.
+</p></dd>
+<dt><code>&lsquo;<samp>showfilename</samp>&rsquo;</code></dt>
+<dd><p>Show the input filename (or title) of the last flash writing session, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>title=&lt;string&gt;</samp>&rsquo;</code></dt>
+<dd><p>When set, &lt;string&gt; will be used in lieu of the input filename. The maximum
+string length for the title/filename field is 254 bytes including
+terminating nul.
+</p></dd>
+<dt><code>&lsquo;<samp>showapp</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the programmed application, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showstore</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the unused flash between the application and metadata, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showmeta</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the metadata just below the bootloader, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showboot</samp>&rsquo;</code></dt>
+<dd><p>Show the size of the bootloader, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showversion</samp>&rsquo;</code></dt>
+<dd><p>Show bootloader version and capabilities, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>showvector</samp>&rsquo;</code></dt>
+<dd><p>Show the vector number and name of the interrupt table vector used by the
+bootloader for starting the application, then exit. For hardware-supported
+bootloaders this will be vector 0 (Reset), and for vector bootloaders this
+will be any other vector number of the interrupt vector table or the slot
+just behind the vector table with the name <code>VBL_ADDITIONAL_VECTOR</code>.
+</p></dd>
+<dt><code>&lsquo;<samp>showpart</samp>&rsquo;</code></dt>
+<dd><p>Show the part for which the bootloader was compiled, then exit.
+</p></dd>
+<dt><code>&lsquo;<samp>bootsize=&lt;size&gt;</samp>&rsquo;</code></dt>
+<dd><p>Manual override for bootloader size. Urboot bootloaders put the number of
+used bootloader pages into a table at the top of the bootloader section,
+i.e., typically top of flash, so the urclock programmer can look up the
+bootloader size itself. In backward-compatibility mode, when programming
+via other bootloaders, this option can be used to tell the programmer the
+size, and therefore the location, of the bootloader.
+</p></dd>
+<dt><code>&lsquo;<samp>vectornum=&lt;arg&gt;</samp>&rsquo;</code></dt>
+<dd><p>Manual override for vector number. Urboot bootloaders put the vector
+number used by a vector bootloader into a table at the top of flash, so
+this option is normally not needed for urboot bootloaders. However, it is
+useful in backward-compatibility mode (or when the urboot bootloader does
+not offer flash read). Specifying a vector number in these circumstances
+implies a vector bootloader whilst the default assumption would be a
+hardware-supported bootloader.
+</p></dd>
+<dt><code>&lsquo;<samp>eepromrw</samp>&rsquo;</code></dt>
+<dd><p>Manual override for asserting EEPROM read/write capability. Not normally
+needed for urboot bootloaders, but useful for in backward-compatibility
+mode if the bootloader offers EEPROM read/write.
+</p></dd>
+<dt><code>&lsquo;<samp>emulate_ce</samp>&rsquo;</code></dt>
+<dd><p>If an urboot bootloader does not offer a chip erase command it will tell
+the urclock programmer so during handshake. In this case the urclock
+programmer emulates a chip erase, if warranted by user command line
+options, by filling the remainder of unused flash below the bootloader
+with 0xff. If this option is specified, the urclock programmer will assume
+that the bootloader cannot erase the chip itself. The option is useful
+for backwards-compatible bootloaders that do not implement chip erase.
+</p></dd>
+<dt><code>&lsquo;<samp>restore</samp>&rsquo;</code></dt>
+<dd><p>Upload unchanged flash input files and trim below the bootloader if
+needed. This is most useful when one has a backup of the full flash and
+wants to play that back onto the device. No metadata are written in this
+case and no vector patching happens either if it is a vector bootloader.
+However, for vector bootloaders, even under the option <code>-xrestore</code> an
+input file will not be uploaded for which the reset vector does not point
+to the vector bootloader. This is to avoid writing an input file to the
+device that would render the vector bootloader not functional as it would
+not be reached after reset.
+</p></dd>
+<dt><code>&lsquo;<samp>initstore</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash fill the store space between the flash application and
+the metadata section with 0xff.
+</p></dd>
+<dt><code>&lsquo;<samp>nofilename</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash do not store the application input filename (nor a title).
+</p></dd>
+<dt><code>&lsquo;<samp>nodate</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash do not store the application input filename (nor a
+title) and no date either.
+</p></dd>
+<dt><code>&lsquo;<samp>nostore</samp>&rsquo;</code></dt>
+<dd><p>On writing to flash do not store metadata except the metadata code byte
+<code>0xff</code> saying there are no metadata.  In particular, no data store
+frame is programmed.
+</p></dd>
+<dt><code>&lsquo;<samp>nometadata</samp>&rsquo;</code></dt>
+<dd><p>Do not support any metadata. The full flash besides the bootloader is
+available for the application. If the application is smaller than the
+available space then a metadata code byte <code>0xff</code> is stored
+nevertheless to indicate there are no further metadata available. In
+absence of <code>-xnometadata</code>, the default for the urclock programmer is
+to write as much metadata (filename, data and store information) as the
+size of the uploaded application and the other extended options allow. The
+subtle difference between <code>-xnometadata</code> and <code>-xnostore</code> is that
+the latter always explicitly stores in flash that no further metadata are
+available, so that a such prepared flash can always be queried with
+<code>avrdude -xshowall</code>. In contrast to this, it cannot be guaranteed
+that a <code>-xshowall</code> query on flash prepared with <code>-xnometadata</code>
+yields useful results.
+</p></dd>
+<dt><code>&lsquo;<samp>delay=&lt;n&gt;</samp>&rsquo;</code></dt>
+<dd><p>Add a &lt;n&gt; ms delay after reset. This can be useful if a board takes a
+particularly long time to exit from external reset. &lt;n&gt; can be negative,
+in which case the default 120 ms delay after issuing reset will be
+shortened accordingly.
+</p></dd>
+<dt><code>&lsquo;<samp>strict</samp>&rsquo;</code></dt>
+<dd><p>Urclock has a faster, but slightly different strategy than -c arduino to
+synchronise with the bootloader; some stk500v1 bootloaders cannot cope
+with this, and they need the <code>-xstrict</code> option.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Buspirate"></a>
+</dd>
+<dt><code>BusPirate</code></dt>
+<dd>
+<p>The BusPirate programmer type accepts the following extended parameters:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>reset=cs,aux,aux2</samp>&rsquo;</code></dt>
+<dd><p>The default setup assumes the BusPirate&rsquo;s CS output pin connected to
+the RESET pin on AVR side. It is however possible to have multiple AVRs
+connected to the same BP with SDI, SDO and SCK lines common for all of them.
+In such a case one AVR should have its RESET connected to BusPirate&rsquo;s
+<em>CS</em>
+pin, second AVR&rsquo;s RESET connected to BusPirate&rsquo;s
+<em>AUX</em>
+pin and if your BusPirate has an
+<em>AUX2</em>
+pin (only available on BusPirate version v1a with firmware 3.0 or newer)
+use that to activate RESET on the third AVR.
+</p>
+<p>It may be a good idea to decouple the BusPirate and the AVR&rsquo;s SPI buses from
+each other using a 3-state bus buffer. For example 74HC125 or 74HC244 are some
+good candidates with the latches driven by the appropriate reset pin (cs,
+aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
+with programming the AVR in the other design.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>spifreq=<var>0..7</var></samp>&rsquo;</code></dt>
+<dd><table>
+<tr><td width="5%"><code>0</code></td><td width="30%">30 kHz (default)</td></tr>
+<tr><td width="5%"><code>1</code></td><td width="30%">125 kHz</td></tr>
+<tr><td width="5%"><code>2</code></td><td width="30%">250 kHz</td></tr>
+<tr><td width="5%"><code>3</code></td><td width="30%">1 MHz</td></tr>
+<tr><td width="5%"><code>4</code></td><td width="30%">2 MHz</td></tr>
+<tr><td width="5%"><code>5</code></td><td width="30%">2.6 MHz</td></tr>
+<tr><td width="5%"><code>6</code></td><td width="30%">4 MHz</td></tr>
+<tr><td width="5%"><code>7</code></td><td width="30%">8 MHz</td></tr>
+</table>
+
+</dd>
+<dt><code>&lsquo;<samp>rawfreq=0..3</samp>&rsquo;</code></dt>
+<dd><p>Sets the SPI speed and uses the Bus Pirate&rsquo;s binary &ldquo;raw-wire&rdquo; mode instead
+of the default binary SPI mode:
+</p>
+<table>
+<tr><td width="5%"><code>0</code></td><td width="30%">5 kHz</td></tr>
+<tr><td width="5%"><code>1</code></td><td width="30%">50 kHz</td></tr>
+<tr><td width="5%"><code>2</code></td><td width="30%">100 kHz (Firmware v4.2+ only)</td></tr>
+<tr><td width="5%"><code>3</code></td><td width="30%">400 kHz (v4.2+)</td></tr>
+</table>
+
+<p>The only advantage of the &ldquo;raw-wire&rdquo; mode is that different SPI frequencies
+are available. Paged writing is not implemented in this mode.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>ascii</samp>&rsquo;</code></dt>
+<dd><p>Attempt to use ASCII mode even when the firmware supports BinMode (binary
+mode).
+BinMode is supported in firmware 2.7 and newer, older FW&rsquo;s either don&rsquo;t
+have BinMode or their BinMode is buggy. ASCII mode is slower and makes
+the above
+&lsquo;<samp>reset=</samp>&rsquo;, &lsquo;<samp>spifreq=</samp>&rsquo;
+and
+&lsquo;<samp>rawfreq=</samp>&rsquo;
+parameters unavailable. Be aware that ASCII mode is not guaranteed to work
+with newer firmware versions, and is retained only to maintain compatibility
+with older firmware versions.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>nopagedwrite</samp>&rsquo;</code></dt>
+<dd><p>Firmware versions 5.10 and newer support a binary mode SPI command that enables
+whole pages to be written to AVR flash memory at once, resulting in a
+significant write speed increase. If use of this mode is not desirable for some
+reason, this option disables it.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>nopagedread</samp>&rsquo;</code></dt>
+<dd><p>Newer firmware versions support in binary mode SPI command some AVR Extended 
+Commands. Using the &ldquo;Bulk Memory Read from Flash&rdquo; results in a
+significant read speed increase. If use of this mode is not desirable for some
+reason, this option disables it.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>cpufreq=<var>125..4000</var></samp>&rsquo;</code></dt>
+<dd><p>This sets the <em>AUX</em>  pin to output a frequency of <var>n</var> kHz. Connecting
+the <em>AUX</em> pin to the XTAL1 pin of your MCU, you can provide it a clock, 
+for example when it needs an external clock because of wrong fuses settings.
+Make sure the CPU frequency is at least four times the SPI frequency.  
+</p>
+</dd>
+<dt><code>&lsquo;<samp>serial_recv_timeout=<var>1...</var></samp>&rsquo;</code></dt>
+<dd><p>This sets the serial receive timeout to the given value. 
+The timeout happens every time avrdude waits for the BusPirate prompt. 
+Especially in ascii mode this happens very often, so setting a smaller value 
+can speed up programming a lot. 
+The default value is 100ms. Using 10ms might work in most cases.  
+</p>
+</dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p>
+</dd>
+</dl>
+
+<a name="index-_002dx-Micronucleus-bootloader"></a>
+</dd>
+<dt><code>Micronucleus bootloader</code></dt>
+<dd>
+<p>The Micronucleus programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>wait=<var>timeout</var></samp>&rsquo;</code></dt>
+<dd><p>If the device is not connected, wait for the device to be plugged in.
+The optional <var>timeout</var> specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Teensy-bootloader"></a>
+</dd>
+<dt><code>Teensy bootloader</code></dt>
+<dd>
+<p>The Teensy programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>wait=<var>timeout</var></samp>&rsquo;</code></dt>
+<dd><p>If the device is not connected, wait for the device to be plugged in.
+The optional <var>timeout</var> specifies the connection time-out in seconds.
+If no time-out is specified, AVRDUDE will wait indefinitely until the
+device is plugged in.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-Wiring"></a>
+</dd>
+<dt><code>Wiring</code></dt>
+<dd>
+<p>The Wiring programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>snooze=<var>0..32767</var></samp>&rsquo;</code></dt>
+<dd><p>After performing the port open phase, AVRDUDE will wait/snooze for
+<var>snooze</var> milliseconds before continuing to the protocol sync phase.
+No toggling of DTR/RTS is performed if <var>snooze</var> &gt; 0.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-PICkit2"></a>
+</dd>
+<dt><code>PICkit2</code></dt>
+<dd><p>Connection to the PICkit2 programmer:
+</p><table>
+<tr><td width="5%"><code>(AVR)</code></td><td width="30%"><code>(PICkit2)</code></td></tr>
+<tr><td width="5%"><code>RST</code></td><td width="30%"><code>VPP/MCLR (1) </code></td></tr>
+<tr><td width="5%"><code>VDD</code></td><td width="30%"><code>VDD Target (2) -- possibly optional if AVR self powered </code></td></tr>
+<tr><td width="5%"><code>GND</code></td><td width="30%"><code>GND (3) </code></td></tr>
+<tr><td width="5%"><code>SDI</code></td><td width="30%"><code>PGD (4) </code></td></tr>
+<tr><td width="5%"><code>SCLK</code></td><td width="30%"><code>PDC (5) </code></td></tr>
+<tr><td width="5%"><code>OSI</code></td><td width="30%"><code>AUX (6) </code></td></tr>
+</table>
+
+<p>The PICkit2 programmer type accepts the following extended parameters:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>clockrate=<var>rate</var></samp>&rsquo;</code></dt>
+<dd><p>Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
+</p></dd>
+<dt><code>&lsquo;<samp>timeout=<var>usb-transaction-timeout</var></samp>&rsquo;</code></dt>
+<dd><p>Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-USBasp"></a>
+</dd>
+<dt><code>USBasp</code></dt>
+<dd>
+<p>The USBasp programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>section_config</samp>&rsquo;</code></dt>
+<dd><p>Programmer will erase
+configuration section with option &rsquo;-e&rsquo; (chip erase),
+rather than entire chip.
+Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-xbee"></a>
+</dd>
+<dt><code>xbee</code></dt>
+<dd>
+<p>The xbee programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>xbeeresetpin=<var>1..7</var></samp>&rsquo;</code></dt>
+<dd><p>Select the XBee pin <code>DIO&lt;1..7&gt;</code> that is connected to the MCU&rsquo;s
+‘/RESET’ line.  The programmer needs to know which DIO pin to use to
+reset into the bootloader.  The default (3) is the <code>DIO3</code> pin
+(XBee pin 17), but some commercial products use a different XBee
+pin.
+</p>
+<p>The remaining two necessary XBee-to-MCU connections are not selectable
+- the XBee <code>DOUT</code> pin (pin 2) must be connected to the MCU&rsquo;s
+‘RXD’ line, and the XBee <code>DIN</code> pin (pin 3) must be connected to
+the MCU&rsquo;s ‘TXD’ line.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-jtag2updi"></a>
+<a name="index-_002dx-serialupdi"></a>
+</dd>
+<dt><code>jtag2updi</code></dt>
+<dt><code>serialupdi</code></dt>
+<dd>
+<p>The jtag2updi and serialupdi programmer types accept the following extended parameters:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>rtsdtr=low,high</samp>&rsquo;</code></dt>
+<dd><p>Forces RTS/DTR lines to assume low or high state during the whole
+programming session. Some programmers might use this signal to
+indicate UPDI programming state, but this is strictly hardware
+specific.
+</p>
+<p>When not provided, driver/OS default value will be used.
+</p>
+</dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+<a name="index-_002dx-linuxspi"></a>
+</dd>
+<dt><code>linuxspi</code></dt>
+<dd>
+<p>The linuxspi programmer type accepts the following extended parameter:
+</p><dl compact="compact">
+<dt><code>&lsquo;<samp>disable_no_cs</samp>&rsquo;</code></dt>
+<dd><p>Ensures the programmer does not use the SPI_NO_CS bit for the SPI
+driver. This parameter is useful for kernels that do not support
+the CS line being managed outside the application.
+</p></dd>
+<dt><code>&lsquo;<samp>help</samp>&rsquo;</code></dt>
+<dd><p>Show help menu and exit.
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+
+<hr>
+<table class="header" cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Option-Descriptions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_2.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_5.html#Example-Command-Line-Invocations" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Introduction" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_40.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>July 19, 2023</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 5.0</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
