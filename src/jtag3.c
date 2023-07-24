@@ -1425,7 +1425,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       // Read chip silicon revision
       char chip_rev[AVR_CHIP_REVLEN] = {0};
       pgm->read_chip_rev(pgm, p, chip_rev);
-      pmsg_info("chip silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+      pmsg_notice("chip silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
     }
     else
       /* JTAG ID has been returned */
