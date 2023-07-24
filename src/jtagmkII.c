@@ -1353,6 +1353,12 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         "single-byte EEPROM updates not possible\n");
   }
 
+  if (pgm->read_chip_rev) {
+    char chip_rev[AVR_CHIP_REVLEN];
+    pgm->read_chip_rev(pgm, p, chip_rev);
+    pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+  }
+
   return 0;
 }
 
@@ -2129,6 +2135,31 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   return n_bytes;
 }
 
+static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
+  unsigned char cmd[10];
+  unsigned char *resp;
+  int status;
+
+  pmsg_notice2("jtagmkII_read_chip_rev()");
+
+  cmd[0] = CMND_READ_MEMORY;
+  cmd[1] = MTYPE_SRAM;
+  u32_to_b4(cmd + 2, 8);
+  u32_to_b4(cmd + 6, p->syscfg_base + 1);
+  jtagmkII_send(pgm, cmd, 10);
+
+  status = jtagmkII_recv(pgm, &resp);
+  if (status <= 0) {
+    msg_notice2("\n");
+    pmsg_warning("timeout/error communicating with programmer (status %d)\n", status);
+    return -1;
+  }
+
+  memcpy(chip_rev, resp+1, AVR_CHIP_REVLEN);
+  pmsg_debug("jtagmkII_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
+  free(resp);
+  return 0;
+}
 
 static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			      unsigned long addr, unsigned char * value)
@@ -3731,6 +3762,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }
