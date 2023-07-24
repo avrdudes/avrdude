@@ -1421,6 +1421,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       /* Partial Family_ID has been returned */
       pmsg_notice("partial Family_ID returned: \"%c%c%c%c\"\n",
                   resp[3], resp[4], resp[5], resp[6]);
+
+      // Read chip silicon revision
+      char chip_rev[AVR_CHIP_REVLEN] = {0};
+      pgm->read_chip_rev(pgm, p, chip_rev);
+      pmsg_info("chip silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
     }
     else
       /* JTAG ID has been returned */
@@ -2480,6 +2485,27 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
   return 0;
 }
 
+int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
+  int status;
+  unsigned char cmd[12];
+  unsigned char *resp = NULL;
+
+  cmd[0] = SCOPE_AVR;
+  cmd[1] = CMD3_READ_MEMORY;
+  cmd[2] = 0;
+  cmd[3] = MTYPE_SRAM;
+  u32_to_b4(cmd + 4, p->syscfg_base + 1);
+  u32_to_b4(cmd + 8, AVR_CHIP_REVLEN);
+
+  if ((status = jtag3_command(pgm, cmd, 12, &resp, "read chip rev")) < 0)
+    return status;
+
+  memcpy(chip_rev, resp+3, AVR_CHIP_REVLEN);
+  pmsg_debug("jtag3_read_chip_rev(): received chip revision: %d\n", *chip_rev);
+  free(resp);
+  return 0;
+}
+
 int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
   unsigned uaref, utarg;
   unsigned char buf[2];
@@ -3290,6 +3316,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->flag           = PGM_FL_IS_UPDI;
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
+  pgm->read_chip_rev  = jtag3_read_chip_rev;
 
   /*
    * hardware dependent functions
