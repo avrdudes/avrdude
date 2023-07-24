@@ -2501,7 +2501,7 @@ int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev)
     return status;
 
   memcpy(chip_rev, resp+3, AVR_CHIP_REVLEN);
-  pmsg_debug("jtag3_read_chip_rev(): received chip revision: 0x%02x\n", *chip_rev);
+  pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
   free(resp);
   return 0;
 }
