@@ -1423,9 +1423,9 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
                   resp[3], resp[4], resp[5], resp[6]);
 
       // Read chip silicon revision
-      char chip_rev[AVR_CHIP_REVLEN] = {0};
+      char chip_rev[AVR_CHIP_REVLEN];
       pgm->read_chip_rev(pgm, p, chip_rev);
-      pmsg_notice("chip silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+      pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
     }
     else
       /* JTAG ID has been returned */
@@ -2501,7 +2501,7 @@ int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev)
     return status;
 
   memcpy(chip_rev, resp+3, AVR_CHIP_REVLEN);
-  pmsg_debug("jtag3_read_chip_rev(): received chip revision: %d\n", *chip_rev);
+  pmsg_debug("jtag3_read_chip_rev(): received chip revision: 0x%02x\n", *chip_rev);
   free(resp);
   return 0;
 }
