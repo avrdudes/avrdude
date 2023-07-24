@@ -154,7 +154,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
   timeout | stabdelay | cmdexedelay | synchloops | bytedelay | pollindex | pollvalue | predelay | postdelay | pollmethod |
   hventerstabdelay | progmodedelay | latchcycles | togglevtg | poweroffdelay | resetdelayms | resetdelayus | resetdelay | hvleavestabdelay |
   chiperasetime | (chiperase|program(fuse|lock))(polltimeout|pulsewidth) | synchcycles | hvspcmdexedelay |
-  mcu_base | nvm_base | ocd_base | ocdrev |
+  mcu_base | nvm_base | ocd_base | syscfg_base | ocdrev |
   autobaud_sync | idr | rampz | spmcr | eecr | eind |
   paged | size | num_pages | initval | bitmask | n_word_writes | offset | min_write_delay | max_write_delay | pwroff_after_write |
   readback_p1 | readback_p2 | mode | delay | blocksize | readsize ) {

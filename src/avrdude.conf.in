@@ -155,6 +155,7 @@
 #       mcu_base         = <num> ;                # MCU control block in ATxmega devices
 #       nvm_base         = <num> ;                # NVM controller in ATxmega devices
 #       ocd_base         = <num> ;                # OCD module in AVR8X/UPDI devices
+#       syscfg_base      = <num> ;                # Chip revision ID in AVR8X/UPDI devices
 #       ocdrev           = <num> ;                # JTAGICE3 parameter from ATDF files
 #       pgm_enable       = <instruction format> ;
 #       chip_erase       = <instruction format> ;
@@ -18445,6 +18446,7 @@ part
     boot_section_size      = 256;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
 
     memory "fuse0"
         size               = 1;
@@ -20640,6 +20642,7 @@ part
     hvupdi_variant         = 1;
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
+    syscfg_base            = 0x0f00;
 
     memory "fuse0"
         size               = 1;

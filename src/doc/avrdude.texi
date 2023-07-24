@@ -2920,6 +2920,7 @@ part
     mcu_base         = <num> ;                # MCU control block in ATxmega devices
     nvm_base         = <num> ;                # NVM controller in ATxmega devices
     ocd_base         = <num> ;                # OCD module in AVR8X/UPDI devices
+    syscfg_base      = <num> ;                # Chip revision ID in AVR8X/UPDI devices
     ocdrev           = <num> ;                # JTAGICE3 parameter from ATDF files
     pgm_enable       = <instruction format> ;
     chip_erase       = <instruction format> ;

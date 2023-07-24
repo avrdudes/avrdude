@@ -220,6 +220,7 @@ typedef struct opcode {
 
 #define AVR_FAMILYIDLEN 7
 #define AVR_SIBLEN 16
+#define AVR_CHIP_REVLEN 1
 #define CTL_STACK_SIZE 32
 #define FLASH_INSTR_SIZE 3
 #define EEPROM_INSTR_SIZE 20
@@ -307,6 +308,7 @@ typedef struct avrpart {
   unsigned int mcu_base;        /* Base address of MCU control block in ATxmega devices */
   unsigned int nvm_base;        /* Base address of NVM controller in ATxmega devices */
   unsigned int ocd_base;        /* Base address of OCD module in AVR8X/UPDI devices */
+  unsigned int syscfg_base;     /* Base address of revision ID in AVR8X/UPDI devices */
   int           ocdrev;         /* OCD revision (JTAGICE3 parameter, from AS6 XML files) */
 
   /* Bootloader paramater */
@@ -809,6 +811,7 @@ typedef struct programmer_t {
                           unsigned long addr, unsigned char *value);
   int  (*read_sig_bytes) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m);
   int  (*read_sib)       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
+  int  (*read_chip_rev)  (const struct programmer_t *pgm, const AVRPART *p, char *chip_rev);
   int  (*term_keep_alive)(const struct programmer_t *pgm, const AVRPART *p);
   void (*print_parms)    (const struct programmer_t *pgm, FILE *fp);
   int  (*set_vtarget)    (const struct programmer_t *pgm, double v);

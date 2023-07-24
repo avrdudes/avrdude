@@ -130,6 +130,7 @@ Component_t avr_comp[] = {
   part_comp_desc(mcu_base, COMP_INT),
   part_comp_desc(nvm_base, COMP_INT),
   part_comp_desc(ocd_base, COMP_INT),
+  part_comp_desc(syscfg_base, COMP_INT),
   part_comp_desc(ocdrev, COMP_INT),
   part_comp_desc(autobaud_sync, COMP_CHAR),
 
