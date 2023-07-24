@@ -18568,7 +18568,7 @@ part
 
     memory "sernum"
         size               = 10;
-        offset             = 0x1104;
+        offset             = 0x1103;
         readsize           = 1;
     ;
 
