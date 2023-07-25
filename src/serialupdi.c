@@ -122,7 +122,6 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
   memset(sib_info->nvm_string, 0, SIB_INFO_NVM_LENGTH+1);
   memset(sib_info->debug_string, 0, SIB_INFO_DEBUG_LENGTH+1);
   memset(sib_info->pdi_string, 0, SIB_INFO_PDI_LENGTH+1);
-  memset(sib_info->pdi_string, 0, SIB_INFO_PDI_LENGTH+1);
   memset(sib_info->extra_string, 0, SIB_INFO_EXTRA_LENGTH+1);
 
   memcpy(sib_info->family_string, sib_info->sib_string, SIB_INFO_FAMILY_LENGTH);
@@ -631,6 +630,14 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (serialupdi_decode_sib(pgm, sib_info) < 0) {
     pmsg_error("decode SIB_INFO failed\n");
     return -1;
+  }
+
+  if (updi_read_data(pgm, p->syscfg_base+1, &value, 1) < 0) {
+    pmsg_error("Reading chip silicon revision failed\n");
+    return -1;
+  } else {
+    pmsg_debug("Received chip silicon revision 0x%02x\n", value);
+    pmsg_notice("Chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
   }
 
   if (updi_link_init(pgm) < 0) {
