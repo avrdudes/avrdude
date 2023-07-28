@@ -1421,11 +1421,6 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       /* Partial Family_ID has been returned */
       pmsg_notice("partial Family_ID returned: \"%c%c%c%c\"\n",
                   resp[3], resp[4], resp[5], resp[6]);
-
-      // Read chip silicon revision
-      char chip_rev[AVR_CHIP_REVLEN];
-      pgm->read_chip_rev(pgm, p, chip_rev);
-      pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
     }
     else
       /* JTAG ID has been returned */
@@ -1434,6 +1429,13 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   free(resp);
+
+  // Read chip silicon revision
+  if(pgm->read_chip_rev) {
+    char chip_rev[AVR_CHIP_REVLEN];
+    pgm->read_chip_rev(pgm, p, chip_rev);
+    pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+  }
 
   PDATA(pgm)->boot_start = ULONG_MAX;
   if (p->prog_modes & PM_PDI) {
