@@ -1431,7 +1431,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   free(resp);
 
   // Read chip silicon revision
-  if(pgm->read_chip_rev) {
+  if(pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
     char chip_rev[AVR_CHIP_REVLEN];
     pgm->read_chip_rev(pgm, p, chip_rev);
     pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
@@ -2116,17 +2116,17 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (str_eq(mem->desc, "lfuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 0;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
+  } else if (str_eq(mem->desc, "hfuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 1;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
+  } else if (str_eq(mem->desc, "efuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2139,18 +2139,18 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
-  } else if (strcmp(mem->desc, "usersig") == 0 ||
-             strcmp(mem->desc, "userrow") == 0) {
+  } else if (str_eq(mem->desc, "usersig") ||
+             str_eq(mem->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "prodsig") == 0) {
+  } else if (str_eq(mem->desc, "prodsig")) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (strcmp(mem->desc, "sernum") == 0) {
+  } else if (str_eq(mem->desc, "sernum")) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (strcmp(mem->desc, "osccal16") == 0) {
+  } else if (str_eq(mem->desc, "osccal16")) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (strcmp(mem->desc, "osccal20") == 0) {
+  } else if (str_eq(mem->desc, "osccal20")) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (strcmp(mem->desc, "tempsense") == 0) {
+  } else if (str_eq(mem->desc, "tempsense")) {
     cmd[3] = MTYPE_SIGN_JTAG;
   } else if (strcmp(mem->desc, "osc16err") == 0) {
     cmd[3] = MTYPE_SIGN_JTAG;
@@ -3212,6 +3212,7 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
+  pgm->read_chip_rev  = jtag3_read_chip_rev;
 
   /*
    * hardware dependent functions
