@@ -2136,28 +2136,36 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
 }
 
 static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
-  unsigned char cmd[10];
-  unsigned char *resp;
   int status;
-
   pmsg_notice2("jtagmkII_read_chip_rev()");
 
-  cmd[0] = CMND_READ_MEMORY;
-  cmd[1] = MTYPE_SRAM;
-  u32_to_b4(cmd + 2, 8);
-  u32_to_b4(cmd + 6, p->syscfg_base + 1);
-  jtagmkII_send(pgm, cmd, 10);
+  if(p->prog_modes & PM_UPDI) {
+    unsigned char cmd[10];
+    unsigned char *resp;
+    cmd[0] = CMND_READ_MEMORY;
+    cmd[1] = MTYPE_SRAM;
+    u32_to_b4(cmd + 2, 8);
+    u32_to_b4(cmd + 6, p->syscfg_base + 1);
+    jtagmkII_send(pgm, cmd, 10);
 
-  status = jtagmkII_recv(pgm, &resp);
-  if (status <= 0) {
-    msg_notice2("\n");
-    pmsg_warning("timeout/error communicating with programmer (status %d)\n", status);
-    return -1;
+    status = jtagmkII_recv(pgm, &resp);
+    if (status <= 0) {
+      msg_notice2("\n");
+      pmsg_warning("timeout/error communicating with programmer (status %d)\n", status);
+      return -1;
+    }
+    memcpy(chip_rev, resp+1, AVR_CHIP_REVLEN);
+    free(resp);
+  }
+  // XMEGA using JTAG or PDI
+  else if (p->prog_modes & PM_PDI) {
+    AVRMEM *m = avr_locate_mem(p, "revid");
+    if ((status = pgm->read_byte(pgm, p, m, 0, (unsigned char *)chip_rev)) < 0) {
+      return status;
+    }
   }
 
-  memcpy(chip_rev, resp+1, AVR_CHIP_REVLEN);
-  pmsg_debug("jtagmkII_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
-  free(resp);
+  pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
   return 0;
 }
 
@@ -2226,6 +2234,8 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strcmp(mem->desc, "revid") == 0) {
+    cmd[1] = MTYPE_SIGN_JTAG;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
@@ -3666,6 +3676,7 @@ void jtagmkII_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 }
@@ -3729,6 +3740,7 @@ void jtagmkII_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }
@@ -3797,6 +3809,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 }
@@ -3893,6 +3906,7 @@ void jtagmkII_dragon_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }
