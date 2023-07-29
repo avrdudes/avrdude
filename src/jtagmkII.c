@@ -1353,7 +1353,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         "single-byte EEPROM updates not possible\n");
   }
 
-  if (pgm->read_chip_rev) {
+  if (pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
     char chip_rev[AVR_CHIP_REVLEN];
     pgm->read_chip_rev(pgm, p, chip_rev);
     pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
@@ -2163,6 +2163,10 @@ static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char 
     if ((status = pgm->read_byte(pgm, p, m, 0, (unsigned char *)chip_rev)) < 0) {
       return status;
     }
+  }
+  else {
+    pmsg_error("target does not have a chip revision that can be read");
+    return -1;
   }
 
   pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);

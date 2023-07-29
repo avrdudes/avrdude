@@ -2516,6 +2516,10 @@ int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev)
       return status;
     }
   }
+  else {
+    pmsg_error("target does not have a chip revision that can be read");
+    return -1;
+  }
 
   pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
   return 0;
