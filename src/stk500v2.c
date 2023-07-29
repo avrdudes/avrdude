@@ -4192,6 +4192,14 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
         }
     }
 
+    // Read chip silicon revision
+    if(p->prog_modes & PM_PDI) {
+      AVRMEM *m = avr_locate_mem(p, "revid");
+      unsigned char chip_rev[AVR_CHIP_REVLEN];
+      pgm->read_byte(pgm, p, m, 0, chip_rev);
+      pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+    }
+
     return 0;
 }
 
@@ -4306,6 +4314,8 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
     } else if (strcmp(mem->desc, "signature") == 0) {
+        b[1] = XPRG_MEM_TYPE_APPL;
+    } else if (strcmp(mem->desc, "revid") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         b[1] = XPRG_MEM_TYPE_FUSE;
