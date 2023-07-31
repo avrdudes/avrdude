@@ -1207,7 +1207,6 @@ programmer parent "ft2232h"
     id                     = "tumpa";
     desc                   = "TIAO USB Multi-Protocol Adapter";
     usbpid                 = 0x8a98;
-    usbdev                 = "A";
     usbvendor              = "TIAO";
 ;
 
@@ -1229,7 +1228,6 @@ programmer parent "tumpa"
 programmer parent "ft2232h_jtag"
     id                     = "tumpa_jtag";
     desc                   = "TIAO USB Multi-Protocol Adapter (JTAG)";
-    prog_modes             = PM_JTAG;
     usbpid                 = 0x8a98;
     usbvendor              = "TIAO";
     buff                   = ~11;
