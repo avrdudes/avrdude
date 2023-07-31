@@ -1464,6 +1464,18 @@ static int avrftdi_jtag_dr_inout(const PROGRAMMER *pgm, unsigned int dr,
 
 static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
 {
+	if(!ovsigck) {
+		if(str_eq(p->id, "m128a") || str_eq(p->id, "m128") ||
+		   str_eq(p->id, "m64a") || str_eq(p->id, "m64") ||
+		   str_eq(p->id, "m32a") || str_eq(p->id, "m32") ||
+		   str_eq(p->id, "m16a") || str_eq(p->id, "m16") ||
+		   str_eq(p->id, "m162")) {
+			pmsg_error("programmer type %s is known not to work for %s\n", pgm->type, p->desc);
+			imsg_error("exiting; use -F to carry on regardless\n");
+			exit(1);
+		}
+	}
+
 	pgm->powerup(pgm);
 
 	set_pin(pgm, PIN_AVR_RESET, OFF);
