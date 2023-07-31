@@ -333,8 +333,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
     if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xdevcode=<arg> Override device code\n");
       msg_error("  -xno_blockmode  Disable default checking for block transfer capability\n");
       msg_error("  -xhelp          Show this help menu and exit\n");

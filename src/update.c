@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2005  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2005  Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2007 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
@@ -147,7 +147,8 @@ void free_update(UPDATE * u)
 
 char *update_str(const UPDATE *upd) {
   if(upd->cmdline)
-    return str_sprintf("-T %s", upd->cmdline);
+    return str_sprintf("-%c %s",
+      str_eq("interactive terminal", upd->cmdline)? 't': 'T', upd->cmdline);
   return str_sprintf("-U %s:%c:%s:%c",
     upd->memtype,
     upd->op == DEVICE_READ? 'r': upd->op == DEVICE_WRITE? 'w': 'v',
@@ -280,13 +281,16 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
 
 // Basic checks to reveal serious failure before programming (and on autodetect set format)
 int update_dryrun(const AVRPART *p, UPDATE *upd) {
-  static char **wrote;
-  static int nfwritten;
+  static const char **wrote, **termcmds;
+  static int nfwritten, nterms;
 
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
-  if(upd->cmdline)              // Todo: parse terminal command line?
+  if(upd->cmdline) {            // Todo: parse terminal command line?
+    termcmds = realloc(termcmds, sizeof(*termcmds) * (nterms+1));
+    termcmds[nterms++] = upd->cmdline;
     return 0;
+  }
 
   /*
    * Reject an update if memory name is not known amongst any part (suspect a typo)
@@ -304,27 +308,35 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
     if(upd->format != FMT_IMM) {
       // Need to read the file: was it written before, so will be known?
       for(int i = 0; i < nfwritten; i++)
-        if(!wrote || (upd->filename && !strcmp(wrote[i], upd->filename)))
+        if(!wrote || (upd->filename && str_eq(wrote[i], upd->filename)))
+          known = 1;
+      // Could a -T terminal command have created the file?
+      for(int i = 0; i < nterms; i++)
+        if(!termcmds || (upd->filename && str_contains(termcmds[i], upd->filename)))
+          known = 1;
+      // Any -t interactive terminal could have created it
+      for(int i = 0; i < nterms; i++)
+        if(!termcmds || str_eq(termcmds[i], "interactive terminal"))
           known = 1;
 
       errno = 0;
       if(!known && !update_is_readable(upd->filename)) {
         ioerror("readable", upd);
-        ret = LIBAVRDUDE_GENERAL_FAILURE;
-        known = 1;                // Pretend we know it, so no auto detect needed
+        ret = LIBAVRDUDE_SOFTFAIL; // Even so it might still be there later on
+        known = 1;              // Pretend we know it, so no auto detect needed
       }
     }
   }
 
   if(!known && upd->format == FMT_AUTO) {
-    if(!strcmp(upd->filename, "-")) {
+    if(str_eq(upd->filename, "-")) {
       pmsg_error("cannot auto detect file format for stdin/out, specify explicitly\n");
       ret = LIBAVRDUDE_GENERAL_FAILURE;
     } else if((format_detect = fileio_fmt_autodetect(upd->filename)) < 0) {
-      pmsg_error("cannot determine file format for %s, specify explicitly\n", upd->filename);
-      ret = LIBAVRDUDE_GENERAL_FAILURE;
+      pmsg_warning("cannot determine file format for %s, specify explicitly\n", upd->filename);
+      ret = LIBAVRDUDE_SOFTFAIL;
     } else {
-      // Set format now, no need to repeat auto detection later
+      // Set format now (but might be wrong in edge cases, where user needs to specify explicity)
       upd->format = format_detect;
       if(quell_progress < 2)
         pmsg_notice("%s file %s auto detected as %s\n",
@@ -342,9 +354,9 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       errno = 0;
       if(!update_is_writeable(upd->filename)) {
         ioerror("writeable", upd);
-        ret = LIBAVRDUDE_GENERAL_FAILURE;
+        ret = LIBAVRDUDE_SOFTFAIL;
       } else if(upd->filename) { // Record filename (other than stdout) is available for future reads
-        if(strcmp(upd->filename, "-") && (wrote = realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
+        if(!str_eq(upd->filename, "-") && (wrote = realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
           wrote[nfwritten++] = upd->filename;
       }
     }
@@ -375,8 +387,13 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   pmsg_info("processing %s\n", tofree = update_str(upd));
   free(tofree);
 
-  if(upd->cmdline)
-    return terminal_line(pgm, p, upd->cmdline);
+  if(upd->cmdline) {
+    if(!str_eq(upd->cmdline, "interactive terminal"))
+      return terminal_line(pgm, p, upd->cmdline);
+    // Interactive terminal shell
+    clearerr(stdin);
+    return terminal_mode(pgm, p);
+  }
 
   mem = avr_locate_mem(p, upd->memtype);
   if (mem == NULL) {

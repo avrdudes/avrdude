@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2021-2023 Hans Eirik Bull
  * Copyright (C) 2022-2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
@@ -67,11 +67,13 @@ struct command {
 
 static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_help   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -93,11 +95,13 @@ struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
+  { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
   { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "config", cmd_config, _fo(open),            "change or show configuration properties of the part" },
+  { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
@@ -634,6 +638,112 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   return 0;
 }
 
+static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: save <mem> {<addr> <len>} <file>[:<format>]\n"
+      "Function: save memory segments to file (default format :r raw binary)\n"
+    );
+    return -1;
+  }
+
+  AVRMEM *mem, *omem;
+  if(!(omem = avr_locate_mem(p, argv[1]))) {
+    pmsg_error("(save) %s memory type not defined for part %s\n", argv[1], p->desc);
+    return -1;
+  }
+
+  if(argc > 3 && !(argc&1)) {
+    pmsg_error("(save) need pairs <addr> <len> to describe memory segments\n");
+    return -1;
+  }
+
+  // Last char of filename is format if the penultimate char is a colon
+  FILEFMT format = FMT_RBIN;
+  char *fn = argv[argc-1];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // Assume format specified
+    format = fileio_format(fn[len-1]);
+    if(format == FMT_ERROR) {
+      pmsg_error("(save) invalid file format :%c; known formats are\n", fn[len-1]);
+      for(int f, c, i=0; i<62; i++) {
+        c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
+        f = fileio_format(c);
+        if(f != FMT_ERROR)
+          msg_error("  :%c %s\n", c, fileio_fmtstr(f));
+      }
+      return -1;
+    }
+    len -= 2;
+  }
+  char *filename = memcpy(cfg_malloc(__func__, len+1), fn, len);
+
+  mem = avr_dup_mem(omem);
+  int n = argc > 3? (argc-3)/2: 1;
+  Segment_t *seglist = cfg_malloc(__func__, n*sizeof*seglist);
+
+  int ret = -1;
+
+  // Build memory segment list
+  seglist[0].addr = 0;          // Defaults to entire memory
+  seglist[0].len = mem->size;
+  if(argc > 3) {
+    for(int cc = 2, i = 0; i < n; i++, cc+=2) {
+      const char *errstr;
+      seglist[i].addr = str_int(argv[cc], STR_INT32, &errstr);
+      if(errstr) {
+        pmsg_error("(save) address %s: %s\n", argv[cc], errstr);
+        goto done;
+      }
+      seglist[i].len = str_int(argv[cc+1], STR_INT32, &errstr);
+      if(errstr) {
+        pmsg_error("(save) length %s: %s\n", argv[cc], errstr);
+        goto done;
+      }
+    }
+  }
+
+  int nbytes = 0;               // Total number of bytes to save
+  for(int i=0; i<n; i++) {      // Ensure addr and lengths are non-negative
+    if(segment_normalise(mem, seglist+i) < 0)
+      goto done;
+    nbytes += seglist[i].len;
+  }
+
+  if(nbytes <= 0 && !str_eq(filename, "-"))
+    pmsg_warning("(save) no file written owing to empty memory segment%s\n",
+      str_plural(n));
+
+  if(nbytes <= 0) {
+    ret = 0;
+    goto done;
+  }
+
+  // Read memory from device/cache
+  report_progress(0, 1, "Reading");
+  for(int i = 0; i < n; i++) {
+    for(int j = seglist[i].addr; j < seglist[i].addr + seglist[i].len; j++) {
+      int rc = pgm->read_byte_cached(pgm, p, mem, j, mem->buf+j);
+      if(rc < 0) {
+        report_progress(1, -1, NULL);
+        pmsg_error("(save) error reading %s address 0x%0*x of part %s\n",
+          mem->desc, j<16? 1: j<256? 2: j<65536? 4: 5, j, p->desc);
+        return -1;
+      }
+      report_progress(j, nbytes, NULL);
+    }
+  }
+  report_progress(1, 1, NULL);
+
+  ret = fileio_segments(FIO_WRITE, filename, format, p, mem, n, seglist);
+
+ done:
+  avr_free_mem(mem);
+  free(seglist);
+  free(filename);
+
+  return ret < 0? ret: 0;
+}
 
 static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   if(argc > 1) {
@@ -787,7 +897,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   if(rc) {
-    pmsg_error("(erase) programmer %s failed erasing the chip\n", (char *) ldata(lfirst(pgm->id)));
+    pmsg_error("(erase) programmer %s failed erasing the chip\n", pgmid);
     return -1;
   }
 
@@ -811,7 +921,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
-    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, (char *) ldata(lfirst(pgm->id)));
+    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, pgmid);
     return -1;
   }
 
@@ -1070,7 +1180,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
     vstr = buf;
   }
 
-  int lmin, lmax, llen;
+  size_t lmin, lmax, llen;
   lmin = lmax = strlen(vstr);
 
   if(o.verb > 0) {
@@ -1675,8 +1785,11 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     term_out(cmd[i].desc, cmd[i].name);
     term_out("\n");
   }
-  term_out("\n"
-    "For more details about a terminal command cmd type cmd -?\n\n"
+  term_out(
+    "\nFor more details about a terminal command cmd type cmd -?\n\n"
+    "Other:\n"
+    "  !<line> : run the shell <line> in a subshell, eg, !ls *.hex\n"
+    "  # ...   : ignore rest of line (eg, used as comments in scripts)\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
@@ -1785,8 +1898,8 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 /*
  * Simplified shell-like tokenising of a command line, which is broken up
  * into an (argc, argv) style pointer array until
- *   - A token ends with a semicolon, which is set to nul
- *   - A token starts with a comment character #
+ *   - A not end-of-line token ends with a semicolon, which is set to nul
+ *   - A token starts with a comment character # or subshell character !
  *   - The end of the string is encountered
  *
  * Tokenisation takes single and double quoted strings into consideration. In
@@ -1820,16 +1933,23 @@ static char *tokenize(char *s, int *argcp, char ***argvp) {
   buf  = (char *) (argv+nargs+1);
 
   for(n=0, r=s; *r; ) {
-    q = str_nexttok(r, " \t\n\r\v\f", &r);
-    if(*q == '#') {             // Inline comment: ignore rest of line
+    if(n == 0 && *r == '!') {   // Subshell command ! takes rest of line
+      q = r;
       r = q+strlen(q);
-      break;
+    } else {
+      q = str_nexttok(r, " \t\n\r\v\f", &r);
+      if(*q == '#') {           // Inline comment: ignore rest of line
+        r = q+strlen(q);
+        break;
+      }
     }
     strcpy(buf, q);
     if(*buf && !str_eq(buf, ";")) // Don't record empty arguments
       argv[n++] = buf;
-    buf += strlen(q) + 1;
-    if(buf[-2] == ';') {        // Command separator
+
+    size_t len = strlen(q);
+    buf += len + 1;
+    if(n && **argv != '!' && len > 1 && buf[-2] == ';') { // End command
       buf[-2] = 0;
       break;
     }
@@ -1896,14 +2016,36 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
   if (!*q || (*q == '#'))
     return 0;
 
-  // Tokenize command line
+  // Tokenise command line
   do {
     argc = 0; argv = NULL;
     q = tokenize(q, &argc, &argv);
     if(!q)
       return -1;
+
     if(argc <= 0 || !argv)
       continue;
+
+    if(argc == 1 && **argv == '!') {
+      if(allow_subshells) {
+        for(q=argv[0]+1; *q && isspace((unsigned char) *q); q++)
+          continue;
+        errno = 0;
+        int shret = *q? system(q): 0;
+        if(errno)
+          pmsg_warning("system() call returned %d: %s\n", shret, strerror(errno));
+      } else {
+        pmsg_info("by default subshell commands are not allowed in the terminal; to change put\n");
+#if defined(WIN32)
+        imsg_info("allow_subshells = yes; into " USER_CONF_FILE " in the avrdude.exe directory\n");
+#else
+        imsg_info("allow_subshells = yes; into ~/.config/avrdude/avrdude.rc or ~/.avrduderc\n");
+#endif
+      }
+      free(argv);
+      return 0;
+    }
+
     // Run the command
     rc = do_cmd(pgm, p, argc, argv);
     free(argv);
@@ -2066,6 +2208,75 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p) {
 #endif
   return terminal_mode_noninteractive(pgm, p);
 }
+
+
+static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  int help = 0, invalid = 0, echo = 0, itemac=1;
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'e':
+          echo++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(config) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(argc != 2 || help || invalid) {
+    msg_error(
+      "Syntax: include [opts] <file>\n"
+      "Function: include contents of named file as if it was typed\n"
+      "Option:\n"
+      "    -e echo lines as they are processed\n"
+    );
+    return !help || invalid? -1: 0;
+  }
+
+  int lineno = 0, rc = 0;
+  const char *errstr;
+  FILE *fp = fopen(argv[1], "r");
+  if(fp == NULL) {
+    pmsg_ext_error("(include) cannot open file %s: %s\n", argv[1], strerror(errno));
+    return -1;
+  }
+
+  for(char *buffer; (buffer = str_fgets(fp, &errstr)); free(buffer)) {
+    lineno++;
+    if(echo) {
+      term_out("# ");
+      if(verbose > 0)
+       term_out("%d: ", lineno);
+      term_out("%s", buffer);
+      term_out("\v");
+    }
+    if(process_line(buffer, pgm, p) < 0)
+      rc = -1;
+    term_out("\v");
+  }
+  if(errstr) {
+    pmsg_error("(include) read error in file %s: %s\n", argv[1], errstr);
+    return -1;
+  }
+
+  fclose(fp);
+  return rc;
+}
+
 
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;

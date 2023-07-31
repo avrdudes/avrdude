@@ -922,8 +922,7 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
         }
         else if (str_eq(param, "help"))
         {
-            char *prg = (char *)ldata(lfirst(pgm->id));
-            msg_error("%s -c %s extended options:\n", progname, prg);
+            msg_error("%s -c %s extended options:\n", progname, pgmid);
             msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
             msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
             msg_error("  -xhelp       Show this help menu and exit\n");

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004  Brian S. Dean <bsd@bdmicro.com>
  * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -81,6 +81,7 @@ PROGRAMMER *pgm_new(void) {
   // Allocate cache structures for flash and EEPROM, *do not* free in pgm_free()
   pgm->cp_flash = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
   pgm->cp_eeprom = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_usersig = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
 
   // Default values
   pgm->initpgm = NULL;
@@ -179,7 +180,7 @@ void pgm_free(PROGRAMMER *p) {
     }
     // Never free const char *, eg, p->desc, which are set by cache_string()
     // p->cookie is freed by pgm_teardown
-    // Never free cp_eeprom or cp_flash cache structures
+    // Never free cp_flash, cp_eeprom or cp_usersig cache structures
     free(p);
   }
 }
@@ -196,6 +197,8 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
       free(pgm->cp_flash);
     if(pgm->cp_eeprom)
       free(pgm->cp_eeprom);
+    if(pgm->cp_usersig)
+      free(pgm->cp_usersig);
 
     memcpy(pgm, src, sizeof(*pgm));
 
@@ -296,18 +299,24 @@ void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
   pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
-PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid) {
-  PROGRAMMER *p = NULL;
-  int found = 0;
-
-  for(LNODEID ln1=lfirst(programmers); ln1 && !found; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    for(LNODEID ln2=lfirst(p->id); ln2 && !found; ln2=lnext(ln2))
-      if(strcasecmp(configid, (const char *) ldata(ln2)) == 0)
-        found = 1;
+PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *configid, const char **setid) {
+  for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    PROGRAMMER *p = ldata(ln1);
+    for(LNODEID ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+      const char *id = (const char *) ldata(ln2);
+      if(str_caseeq(configid, id)) {
+        if(setid)
+          *setid = id;
+        return p;
+      }
+    }
   }
 
-  return found? p: NULL;
+  return NULL;
+}
+
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid) {
+  return locate_programmer_set(programmers, configid, NULL);
 }
 
 /*

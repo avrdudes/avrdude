@@ -1,6 +1,6 @@
 /*
  * AVRDUDE - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2022, Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2022 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,14 +22,16 @@
  * The Urclock programmer
  *
  *  - Reads/writes flash/EEPROM of boards directly via the MCU bootloader and a serial connection
+ *  - Automatically resets an attached board via RTS/DTR into bootloader mode
  *  - Works best in tandem with the urboot bootloader, but can deal with optiboot and similar
  *  - Implements urprotocol, a communication protocol designed for small bootloader sizes
  *  - Supports vector bootloaders by patching relevant interrupt vectors during upload:
  *     + Vector bootloaders run on all devices, not only those with a dedicated boot section
- *     + Can be considerably smaller than the smallest dedicated boot sections of a part, eg,
+ *     + Can be considerably smaller than the smallest dedicated boot section of a part, eg,
  *       only 256 bytes for ATmega2560 with an otherwise smallest boot section of 1024 bytes
  *  - Checks sizes of applications so they don't overwrite the bootloader
- *  - Provides a 4-byte metadata interface for
+ *  - Keeps the bootloader alive during interactive terminal sessions
+ *  - Provides a 4-byte metadata interface in top flash for
  *     + Allowing applications to utilise unused flash in a similar fashion to EEPROM
  *     + Storing in top flash the file name and last-modified-date of the uploaded application
  *     + Displaying file name and date of the application that was last uploaded
@@ -1755,7 +1757,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
   int classic = !(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire));
 
   pmsg_debug("ur_readEF(%s, %s, %s, %p, 0x%06x, %d, %c)\n",
-    (char *) ldata(lfirst(pgm->id)), p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
+    pgmid, p->desc, mchr=='F'? "flash": "eeprom", buf, badd, len, mchr);
 
   if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
     Return("bootloader does not have flash read capability");
@@ -2103,16 +2105,16 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[0] = Cmnd_STK_CHIP_ERASE;
     buf[1] = Sync_CRC_EOP;
 
-    if(urclock_send(pgm, buf, 2) < 0)
+    if(urclock_send(pgm, buf, 2) < 0 || urclock_res_check(pgm, __func__, 0, NULL, 0) < 0) {
+      serial_recv_timeout = bak_timeout;
       return -1;
-    if(urclock_res_check(pgm, __func__, 0, NULL, 0) < 0)
-      return -1;
-
+    }
   } else {                      // Legacy bootloaders use universal extension
     pmsg_notice2("chip erase via universal STK500v1 command\n");
 
-    if (pgm->cmd == NULL) {     // Should not happen
+    if(pgm->cmd == NULL) {      // Should not happen
       pmsg_error("%s programmer does not provide a cmd() method\n", pgm->type);
+      serial_recv_timeout = bak_timeout;
       return -1;
     }
 
@@ -2123,8 +2125,10 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[2] = (uint8_t) (Subc_STK_UNIVERSAL_CE>>8);
     buf[3] = (uint8_t) (Subc_STK_UNIVERSAL_CE);
 
-    if(urclock_cmd(pgm, buf, buf+4) < 0)
+    if(urclock_cmd(pgm, buf, buf+4) < 0) {
+      serial_recv_timeout = bak_timeout;
       return -1;
+    }
   }
 
   serial_recv_timeout = bak_timeout;
@@ -2496,7 +2500,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
   }
 
   if(help || rc < 0) {
-    msg_error("%s -c %s extended options:\n", progname, (char *) ldata(lfirst(pgm->id)));
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
     for(size_t i=0; i<sizeof options/sizeof*options; i++) {
       msg_error("  -x%s%s%*s%s\n", options[i].name, options[i].assign? "=<arg>": "",
         urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);

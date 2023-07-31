@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2005 Erik Walthinsen
- * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 David Moore
  * Copyright (C) 2006,2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
@@ -1212,8 +1212,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             continue;
         }
         if (str_eq(extended_param, "help")) {
-            char *prg = (char *)ldata(lfirst(pgm->id));
-            msg_error("%s -c %s extended options:\n", progname, prg);
+            msg_error("%s -c %s extended options:\n", progname, pgmid);
             msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
             msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
             msg_error("  -xhelp            Show this help menu and exit\n");

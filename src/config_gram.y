@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -73,6 +73,7 @@ static int pin_name;
 %token K_PAGE_SIZE
 
 %token K_ALIAS
+%token K_ALLOW_SUBSHELLS
 %token K_BUFF
 %token K_CONNTYPE
 %token K_DEDICATED
@@ -237,6 +238,11 @@ def :
     free_token($3);
   } |
 
+  K_ALLOW_SUBSHELLS TKN_EQUAL numexpr TKN_SEMI {
+    allow_subshells = $3->value.number;
+    free_token($3);
+  } |
+
   K_DEFAULT_LINUXGPIO TKN_EQUAL TKN_STRING TKN_SEMI {
     default_linuxgpio = cache_string($3->value.string);
     free_token($3);
@@ -248,7 +254,6 @@ prog_def :
   prog_decl prog_parms
     {
       PROGRAMMER * existing_prog;
-      char * id;
       if (lsize(current_prog->id) == 0) {
         yyerror("required parameter id not specified");
         YYABORT;
@@ -257,17 +262,17 @@ prog_def :
         yyerror("programmer type not specified");
         YYABORT;
       }
-      id = ldata(lfirst(current_prog->id));
-      existing_prog = locate_programmer(programmers, id);
-      if (existing_prog) {
-        { /* temporarily set lineno to lineno of programmer start */
+      for(LNODEID ln = lfirst(current_prog->id); ln; ln = lnext(ln)) {
+        char *id = ldata(ln);
+        if((existing_prog = locate_programmer(programmers, id))) {
+          // Temporarily set lineno to lineno of programmer start
           int temp = cfg_lineno; cfg_lineno = current_prog->lineno;
           yywarning("programmer %s overwrites previous definition %s:%d.",
-                id, existing_prog->config_file, existing_prog->lineno);
+            id, existing_prog->config_file, existing_prog->lineno);
           cfg_lineno = temp;
+          lrmv_d(programmers, existing_prog);
+          pgm_free(existing_prog);
         }
-        lrmv_d(programmers, existing_prog);
-        pgm_free(existing_prog);
       }
       current_prog->comments = cfg_move_comments();
       LISTADD(programmers, current_prog);

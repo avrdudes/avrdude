@@ -336,7 +336,7 @@ typedef struct avrmem {
   int pwroff_after_write;     /* after this memory type is written to,
                                  the device must be powered off and
                                  back on, see errata
-                                 http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf */
+                                 https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf */
   unsigned char readback[2];  /* polled read-back values */
 
   int mode;                   /* stk500 v2 xml file parameter */
@@ -840,7 +840,7 @@ typedef struct programmer_t {
                           unsigned int addr);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
-  AVR_Cache *cp_flash, *cp_eeprom;
+  AVR_Cache *cp_flash, *cp_eeprom, *cp_usersig;
 
   const char *config_file;      // Config file where defined
   int  lineno;                  // Config file line number
@@ -868,6 +868,8 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
+
+PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, const char **setid);
 
 PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
@@ -952,6 +954,10 @@ int avr_memtype_is_eeprom_type(const char *mem);
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem);
 
+int avr_memtype_is_usersig_type(const char *mem);
+
+int avr_mem_is_usersig_type(const AVRMEM *mem);
+
 int avr_mem_is_known(const char *str);
 
 int avr_mem_might_be_known(const char *str);
@@ -994,6 +1000,7 @@ typedef enum {
   FMT_IHEX,
   FMT_RBIN,
   FMT_IMM,
+  FMT_EEGG,
   FMT_HEX,
   FMT_DEC,
   FMT_OCT,
@@ -1010,6 +1017,10 @@ struct fioparms {
   char * rw;
   unsigned int fileoffset;
 };
+
+typedef struct {
+  int addr, len;
+} Segment_t;
 
 enum {
   FIO_READ,
@@ -1034,7 +1045,12 @@ int fileio_fmt_autodetect_fp(FILE *f);
 int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
-      const AVRPART *p, const char *memtype, int size);
+  const AVRPART *p, const char *memtype, int size);
+
+int segment_normalise(const AVRMEM *mem, Segment_t *segp);
+
+int fileio_segments(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *seglist);
 
 #ifdef __cplusplus
 }
@@ -1131,14 +1147,15 @@ void walk_programmer_types(/*LISTID programmer_types,*/ walk_programmer_types_cb
 
 /* formerly config.h */
 
-extern LISTID       part_list;
-extern LISTID       programmers;
+extern LISTID      part_list;
+extern LISTID      programmers;
 extern const char *default_programmer;
 extern const char *default_parallel;
 extern const char *default_serial;
 extern const char *default_spi;
-extern double       default_bitclock;
-extern char const * default_linuxgpio;
+extern double      default_bitclock;
+extern char const *default_linuxgpio;
+extern int         allow_subshells;
 
 /* This name is fixed, it's only here for symmetry with
  * default_parallel and default_serial. */
@@ -1232,6 +1249,7 @@ int str_caseeq(const char *str1, const char *str2);
 int str_match(const char *pattern, const char *string);
 int str_casematch(const char *pattern, const char *string);
 char *str_sprintf(const char *fmt, ...);
+char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);

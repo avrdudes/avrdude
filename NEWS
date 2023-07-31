@@ -5,17 +5,38 @@ Approximate change log for AVRDUDE by version.
 (For detailed changes, see the version control system logs.)
 
 ----------------------------------------------------------------------
-Changes since version 7.1:
+Changes since version 7.2:
+
+  * Major changes compared to the previous version:
+
+  * New devices supported:
+
+  * New programmers supported:
+
+  * Issues fixed:
+
+  * Pull requests:
+
+  * Internals:
+
+
+Changes in version 7.2:
 
   * Major changes compared to the previous version:
 
     - libgpiod support for linuxgpio #1299
-    - Support -U UPDI EEPROM write #1318
+    - Support jtag2updi -U UPDI EEPROM write #1318
     - avrdude.conf reconciled with ATDFs #1343
+    - avrdude -p part/s now also shows part variants #1343
     - New programmer dryrun for testing #1347
-    - Can write files in terminal write #1358
-    - Terminal command config #1365
     - New -T cmd to mix terminal with -U commands #1373
+    - Run -t interactive terminals in CLI option order #1402
+    - Terminal
+        + Command config (mnemonic fuse setting) #1365
+        + Write to memory from files #1358
+        + Command save memory to file #1396
+        + Subshell command ! #1397
+        + Command include file #1429
 
   * New devices supported:
 
@@ -66,9 +87,11 @@ Changes since version 7.1:
 
     - dryrun
     - raspberry_pi_gpio
-    - Flysquatter2
+    - Flyswatter2
     - CH341A
     - Kanda AVRISP-U
+    - arduino_as_isp
+    - scratchmonkey, scratchmonkey_pp, scratchmonkey_hvsp
 
   * Issues fixed:
 
@@ -93,6 +116,18 @@ Changes since version 7.1:
     - -c urclock should progressively shrink metadata #1352
     - Write errors in fuses/lock bits with unused bits #1371
     - Some SPI read/write commands incompatible with .ATDF #1370
+    - Avrdude can segfault writing ihex or srec files #1390
+    - Avrdude srec format too lax when writing #1391
+    - Avrdude fails with AT90S8515 #433
+    - AT90S8515 STK500v2: only odd bytes are programmed #500
+    - STK500v2 ATtiny15 problem #509
+    - Downgrade missing USB device warning #1398
+    - Avrdude can not write usersig in terminal mode #1361
+    - avr109 atmega2564rfr2 erase timeout too short #336
+    - Add ScratchMonkey #989
+    - Warnings for MSVC build #1452, #1460
+    - [Regression] -F flag not correctly honored #1462
+    - Missing access to user signature rows in ATmega256RFR2 et al. #379
 
   * Pull requests:
 
@@ -116,7 +151,7 @@ Changes since version 7.1:
     - Make terminal write address optional for 1-byte memories #1315
     - Print meaningful error message when using the serialupdi and
       bitbanged UART ISP programmers #1317
-    - Support -U UPDI EEPROM write #1318
+    - Support jtag2updi -U EEPROM write #1318
     - Fix return value in usbtiny_cmd() and wrong error msg #1323
     - Add CH341A programmer #1215
     - Terminal read, write and erase with address intervals #1320
@@ -144,6 +179,43 @@ Changes since version 7.1:
     - Prevent terminal write error for unchanged r/o region #1375
     - Remove pgm->page_erase() function when unable to do so #1376
     - Write fuse/lock only when terminal config changes them #1378
+    - Provide programmer arduino_as_isp #1383
+    - Provide debug messages for the dryrun programmer #1385
+    - Rewrite fileio functions to cater for memory segments #1392
+    - Add more documentation for programmers #1393, #1394, #1395
+    - Provide terminal save command #1396
+    - Provide terminal subshell command ! #1397
+    - Fix stk500v2.c's write_byte() for old parts #1386
+    - Document terminal comments #1399
+    - Expand authorship of documentation #1400
+    - Fix memory leak in avrcache.c #1401
+    - Run -t interactive terminals when it is their turn with
+      respect to -t/-T/-U command line option order #1402
+    - Mute missing USB device warning for lower verbosity #1403
+    - Implement bytewise cache for usersig #1404
+    - Relax checks before executing the -T/-U operations #1405
+    - Define usersig memory for ATmega*RF[AR]* parts #1406
+    - Increase timeout for emulated butterfly chip erase #1411
+    - Update reference to AT90S4433 datasheet #1415
+    - Update alf programmer info and URL #1416
+    - Update URLs for 89isp programmer #1417
+    - Update ft2232h programmer info and URLs #1418
+    - Update butterfly_mk info #1419
+    - Remove outdated web URLs for O-Link #1420
+    - Update URLs for the ttl232r programmer #1421
+    - Update usbasp programmer info #1422
+    - Remove comment and URL for arduino-ft232r programmer #1423
+    - Enable -c programmers to access -c string #1424
+    - Add scratchmonkey programmers #1429
+    - Use pgm->id list for alias names of a programmer #1430
+    - Fix writing of empty flash memory #1438
+    - Provide terminal include command #1439
+    - Add jtag2updi -xrtsdtr extended parameter #1425
+    - Update info on bsd programmer #1450
+    - Suppress overzealous compiler warnings #1454, #1461
+    - Bail out on failed initialisation unless -F was given #1463
+    - Fix -n warning for first interactive terminal #1465
+    - Fix classic-part usersig memory for jtag #1466
 
   * Internals:
 

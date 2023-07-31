@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2008,2014 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
@@ -108,7 +108,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   for (attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if (strcmp(pgm->type, "Arduino") == 0 && attempt > 0) {
+    if (str_eq(pgm->type, "Arduino") && attempt > 0) {
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
@@ -403,7 +403,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
 
   // MIB510 does not need extparams
-  if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0)
+  if (str_eq(pgmid, "mib510"))
     n_extparms = 0;
   else if ((maj > 1) || ((maj == 1) && (min > 10)))
     n_extparms = 4;
@@ -749,8 +749,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
       if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
@@ -844,8 +843,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
   stk500_drain(pgm, 0);
 
   // MIB510 init
-  if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0 &&
-      mib510_isp(pgm, 1) != 0)
+  if (str_eq(pgmid, "mib510") && mib510_isp(pgm, 1) != 0)
     return -1;
 
   if (stk500_getsync(pgm) < 0)
@@ -858,7 +856,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
 static void stk500_close(PROGRAMMER * pgm)
 {
   // MIB510 close
-  if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0)
+  if (str_eq(pgmid, "mib510"))
     (void)mib510_isp(pgm, 0);
 
   serial_close(&pgm->fd);
@@ -967,8 +965,9 @@ static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   if(avr_mem_is_eeprom_type(m)) {
     *memtypep = 'E';
-    // Word addr for bootloaders where part is a "classic" part (eg, optiboot, arduinoisp, ...), byte addr otherwise
-    *a_divp = (pgm->prog_modes & PM_SPM) && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
+    // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
+    *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp")) \
+       && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
     return 0;
   }
 
@@ -1003,7 +1002,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+    if (str_eq(pgmid, "mib510")) {
       block_size = 256;
     } else {
       if (n - addr < page_size)
@@ -1075,7 +1074,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   n = addr + n_bytes;
   for (; addr < n; addr += block_size) {
     // MIB510 uses fixed blocks size of 256 bytes
-    if (strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+    if(str_eq(pgmid, "mib510")) {
       block_size = 256;
     } else {
       if (n - addr < page_size)
@@ -1119,7 +1118,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     if (stk500_recv(pgm, buf, 1) < 0)
       return -1;
 
-    if(strcmp(ldata(lfirst(pgm->id)), "mib510") == 0) {
+    if(str_eq(pgmid, "mib510")) {
       if (buf[0] != Resp_STK_INSYNC) {
         msg_error("\n");
         pmsg_error("protocol expects sync byte 0x%02x but got 0x%02x\n", Resp_STK_INSYNC, buf[0]);
@@ -1385,7 +1384,7 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
     }
     msg_info("%sTopcard         : %s\n", p, n);
   }
-  if(strcmp(pgm->type, "Arduino") != 0)
+  if(!str_eq(pgm->type, "Arduino"))
     stk500_print_parms1(pgm, p, stderr);
 
   return;

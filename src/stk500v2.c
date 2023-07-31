@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2005 Erik Walthinsen
- * Copyright (C) 2002-2004 Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 David Moore
  * Copyright (C) 2006,2007,2010 Joerg Wunsch <j@uriah.heep.sax.de>
  *
@@ -754,6 +754,9 @@ retry:
       unsigned int siglen = resp[2];
       if (siglen >= strlen("STK500_2") &&
 	  memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
+	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+      } else if (siglen >= strlen("SCRATCHMONKEY") &&
+	  memcmp(resp + 3, "SCRATCHMONKEY", strlen("SCRATCHMONKEY")) == 0) {
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       } else if (siglen >= strlen("AVRISP_2") &&
 		 memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
@@ -1807,6 +1810,10 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
       stk600_setup_isp(pgm);
     }
   }
+  AVRMEM *mem = avr_locate_mem(p, "flash");
+  if(mem && mem->op[AVR_OP_WRITE_LO]) // Old part that can only write flash bytewise
+    if(mem->page_size < 2)  // Override page size, as STK500v2/EDBG uses flash word addresses
+      mem->page_size = 2;
 
   return;
 }
@@ -1928,8 +1935,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
         msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
@@ -2042,9 +2048,8 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
-      if (str_starts(prg, "xplainedmini")) {
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
+      if(str_starts(pgmid, "xplainedmini")) {
         msg_error("  -xsuffer              Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
         msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");
@@ -2720,6 +2725,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   // determine which command is to be used
   if (strcmp(m->desc, "flash") == 0) {
     addrshift = 1;
+    PDATA(pgm)->flash_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_FLASH_ISP;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -2731,6 +2737,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       use_ext_addr = (1U << 31);
     }
   } else if (strcmp(m->desc, "eeprom") == 0) {
+    PDATA(pgm)->eeprom_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_EEPROM_ISP;
   }
   commandbuf[4] = m->delay;

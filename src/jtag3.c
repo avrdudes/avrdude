@@ -879,7 +879,7 @@ int jtag3_getsync(const PROGRAMMER *pgm, int mode) {
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
   if ((pgm->flag & PGM_FL_IS_EDBG) &&
-      !str_starts(ldata(lfirst(pgm->id)), "xplainedmini")) {
+      !str_starts(pgmid, "xplainedmini")) {
     if (jtag3_edbg_prepare(pgm) < 0) {
       return -1;
     }
@@ -1474,10 +1474,10 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 }
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
   if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
-    pgm->page_erase = NULL;
-
-  return;
+    if(!avr_locate_mem(p, "usersig"))
+      pgm->page_erase = NULL;
 }
 
 static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
@@ -1583,13 +1583,12 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     else if (str_eq(extended_param, "help")) {
-      char *prg = (char *)ldata(lfirst(pgm->id));
-      msg_error("%s -c %s extended options:\n", progname, prg);
+      msg_error("%s -c %s extended options:\n", progname, pgmid);
       if (str_eq(pgm->type, "JTAGICE3"))
         msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if (str_eq(prg, "powerdebugger_updi") || str_eq(prg, "pickit4_updi"))
+      if (str_eq(pgmid, "powerdebugger_updi") || str_eq(pgmid, "pickit4_updi"))
         msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if (str_starts(prg, "xplainedmini") && !str_eq(prg, "xplainedmini_tpi")) {
+      if (str_starts(pgmid, "xplainedmini") && !str_eq(pgmid, "xplainedmini_tpi")) {
         msg_error("  -xsuffer                Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
         msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
@@ -1820,7 +1819,7 @@ void jtag3_close(PROGRAMMER * pgm) {
   /* XplainedMini boards do not need this, and early revisions had a
    * firmware bug where they complained about it. */
   if ((pgm->flag & PGM_FL_IS_EDBG) &&
-      !str_starts(ldata(lfirst(pgm->id)), "xplainedmini")) {
+      !str_starts(pgmid, "xplainedmini")) {
     jtag3_edbg_signoff(pgm);
   }
 
@@ -1834,8 +1833,8 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    pmsg_error("page erase not supported\n");
+  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !str_eq(m->desc, "usersig")) {
+    pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
 
@@ -2690,29 +2689,21 @@ static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsi
 
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
   if (p->prog_modes & PM_PDI) {
-    if (addr >= PDATA(pgm)->boot_start)
-      /*
-       * all memories but "flash" are smaller than boot_start anyway, so
-       * no need for an extra check we are operating on "flash"
-       */
-      return addr - PDATA(pgm)->boot_start;
-    else
-      /* normal flash, or anything else */
-      return addr;
+    /*
+     * All memories but "flash" are smaller than boot_start anyway, so
+     * no need for an extra check we are operating on "flash"
+     */
+    if(addr >= PDATA(pgm)->boot_start)
+      addr -= PDATA(pgm)->boot_start;
+  } else if(p->prog_modes & PM_UPDI) { // Modern AVR8X part
+    if(!str_eq(m->desc, "flash"))
+      if(m->size >= 1)
+        addr += m->offset;
+  } else {                      // Classic part
+    if(str_eq(m->desc, "usersig"))
+      addr += m->offset;
   }
 
-  // Non-Xmega device
-  if (p->prog_modes & PM_UPDI) {
-    if (strcmp(m->desc, "flash") == 0) {
-      return addr;
-    }
-    else if (m->size == 1) {
-      addr = m->offset;
-    }
-    else if (m->size > 1) {
-      addr += m->offset;
-    }
-  }
   return addr;
 }
 

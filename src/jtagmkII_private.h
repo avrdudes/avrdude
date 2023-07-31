@@ -321,6 +321,12 @@
 #define AVR32_SET4RUNNING            0x0008
 //#define AVR32_RESET_COMMON           (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE )
 
+typedef enum
+{
+  RTS_MODE_DEFAULT,
+  RTS_MODE_LOW,
+  RTS_MODE_HIGH
+} jtagmkii_rts_mode;
 
 #if !defined(JTAGMKII_PRIVATE_EXPORTED)
 /*

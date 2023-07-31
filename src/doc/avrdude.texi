@@ -28,7 +28,8 @@ This file documents the avrdude program.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Copyright @copyright{} Brian Dean, J@"org Wunsch
+Copyright @copyright{} Hans Eirik Bull, Brian Dean, Stefan R@"uger and
+J@"org Wunsch
 
 Permission is granted to make and distribute verbatim copies of
 this manual provided the copyright notice and this permission notice
@@ -57,15 +58,16 @@ the terms of the GNU Free Documentation License (FDL), version 1.3.
 
 @titlepage
 @title AVRDUDE
-@subtitle A program for download/uploading AVR microcontroller flash and eeprom.
-@subtitle For AVRDUDE, Version @value{VERSION}, @value{UPDATED}.
-@author by Brian S. Dean
+@subtitle A program for downloading/uploading AVR microcontroller flash, EEPROM and more
+@subtitle for AVRDUDE, Version @value{VERSION}, @value{UPDATED}
+@author by Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and
+@author J@"org Wunsch
 
 @page
 
 Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
-Copyright @copyright{} Brian S. Dean, J@"org Wunsch
+Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org Wunsch
 @sp 2
 
 Permission is granted to make and distribute verbatim copies of
@@ -99,7 +101,7 @@ For avrdude version @value{VERSION}, @value{UPDATED}.
 
 Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
-Copyright @copyright{} Brian S. Dean, J@"org Wunsch
+Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org Wunsch
 @end ifinfo
 
 @menu
@@ -373,13 +375,13 @@ savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
 addition to FreeBSD, AVRDUDE now runs on Linux and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
-Weddington, and Joerg Wunsch.
+Weddington, and J@"org Wunsch.
 
 In 2022, the project moved to Github (@url{https://github.com/avrdudes/avrdude/}).
 
 And in the spirit of many open source projects, this manual also draws
 on the work of others.  The initial revision was composed of parts of
-the original Unix manual page written by Joerg Wunsch, the original web
+the original Unix manual page written by J@"org Wunsch, the original web
 site documentation by Brian Dean, and from the comments describing the
 fields in the AVRDUDE configuration file by Brian Dean.  The texi
 formatting was modeled after that of the Simulavr documentation by Ted
@@ -758,26 +760,25 @@ These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 
 @item -T @var{cmd}
-Slots a terminal command line @var{cmd} into the intermixed list of
-@code{-T} terminal commands and @code{-U} memory operations. The terminal
-command line is executed when it is its turn in the mixed list. Except for
-the simplest of terminal commands the argument @var{cmd} will most likely
-need to be set in quotes, see your OS shell manual for details.
+Run terminal line @var{cmd} when it is its turn in relation to other
+@code{-t} interactive terminals, @code{-T} terminal commands and
+@code{-U} memory operations. Except for the simplest of terminal commands
+the argument @var{cmd} will most likely need to be set in quotes, see your
+OS shell manual for details. See below for a detailed description of all
+terminal commands.
 
 @item -t
-Tells AVRDUDE to enter the interactive terminal shell before uploading or
-downloading files via the @code{-U} option or processing other @code{-T}
-terminal commands, if any.  See below for a detailed description of the
-terminal mode.
+Tells AVRDUDE to run an interactive terminal when it is its turn in
+relation to other @code{-t} interactive terminals, @code{-T}
+terminal commands and @code{-U} memory operations.
 
-@item -U @var{memtype}:@var{op}:@var{filename}[:@var{format}]
-Perform a memory operation.
-Multiple @option{-U} options can be specified in order to operate on
-multiple memories on the same command-line invocation.  The
-@var{memtype} field specifies the memory type to operate on. Use
-the @option{-v} option on the command line or the @code{part} command from
-terminal mode to display all the memory types supported by a particular
-device.
+@item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
+Perform a memory operation when it is its turn in relation to other
+@code{-t} interactive terminals, @code{-T} terminal commands and
+@code{-U} memory operations. The @var{memory} field specifies the memory
+type to operate on. Use the @option{-T part} option on the command line or
+the @code{part} command in the interactive terminal to display all the
+memory types supported by a particular device.
 
 Typically, a device's memory configuration at least contains the memory
 types @code{flash}, @code{eeprom}, @code{signature} and @code{lock}, which
@@ -793,7 +794,7 @@ Classic devices may have the following memory types in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item calibration
-One or more bytes of RC oscillator calibration data.
+One or more bytes of RC oscillator calibration data
 @item efuse
 Extended fuse byte
 @item fuse
@@ -802,6 +803,17 @@ Fuse byte in devices that have only a single fuse byte
 High fuse byte
 @item lfuse
 Low fuse byte
+@item usersig
+Three extra flash pages for firmware settings; this memory is not erased
+during a chip erase. Only some classic parts,
+ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
+different to flash in the sense that it can neither be accessed with ISP
+serial programming nor written to by bootloaders. AVRDUDE offers JTAG
+programming of classic-part usersig memories. As with all flash-type
+memories the @code{-U} option can only write 0-bits but not 1-bits.
+Hence, usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using @code{-T "erase usersig" -U
+usersig:w:parameters.hex:i}
 @end table
 
 ATxmega devices have the following memory types in addition to
@@ -824,7 +836,8 @@ Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system con
 @item prodsig
 Production signature (calibration) area
 @item usersig
-User signature area of ATxmega devices
+Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
 @end table
 
 Modern 8-bit AVR devices have the following memory types in addition to
@@ -863,7 +876,8 @@ Serial number with a unique ID for the pary (10 bytes)
 @item tempsense
 Temperature sensor calibration values
 @item userrow
-Extra page of EEPROM memory that can be used for firmware settings
+Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
 
 @end table
 
@@ -934,7 +948,7 @@ When used as input, the @code{m}, @code{d}, @code{h}, @code{o} and
 separated by white space and/or commas. The read routine handles decimal,
 hexadecimal, octal or binary numbers on a number-by-number basis, and the
 list of numbers can therefore be of mixed type. In fact the syntax, is the
-same as for data used by the terminal write command, ie, the file's input
+same as for data used by the terminal write command, i.e., the file's input
 data can also be 2-byte short integers, 4-byte long integers or 8-byte
 long long integers, 4-byte floating point numbers, 8-byte double precision
 numbers, C-type strings with a terminating nul or C-like characters such
@@ -1190,7 +1204,7 @@ Show the part for which the bootloader was compiled, then exit.
 @item @samp{bootsize=<size>}
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
-ie, typically top of flash, so the urclock programmer can look up the
+i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
@@ -1455,10 +1469,12 @@ the MCU's ‘TXD’ line.
 Show help menu and exit.
 @end table
 
+@cindex @code{-x} jtag2updi
 @cindex @code{-x} serialupdi
+@item jtag2updi
 @item serialupdi
 
-The serialupdi programmer type accepts the following extended parameter:
+The jtag2updi and serialupdi programmer types accept the following extended parameters:
 @table @code
 @item @samp{rtsdtr=low,high}
 Forces RTS/DTR lines to assume low or high state during the whole
@@ -1959,7 +1975,7 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides a
 command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
-The @var{addr} and @var{len} parameters of the dump, read, write, and erase
+The @var{addr} and @var{len} parameters of the dump, read, write, save and erase
 commands can be negative with the same syntax as substring computations in
 perl or python. The table below details their meaning with respect to an
 example memory of size @code{sz=0x800}.
@@ -2037,34 +2053,35 @@ The following commands are implemented for all programmers:
 
 @table @code
 
-@item dump @var{memtype} @var{addr} @var{len}
+@item dump @var{memory} @var{addr} @var{len}
 Read from the specified memory interval (see above), and display in the usual hexadecimal and
 ASCII form.
 
-@item dump @var{memtype} @var{addr}
+@item dump @var{memory} @var{addr}
 Read from memory addr as many bytes as the most recent dump memory addr len command with this
 very memory had specified (default 256 bytes), and display them.
 
-@item dump @var{memtype}
+@item dump @var{memory}
 Continue dumping from the memory and location where the most recent dump command left off; if no
 previous dump command has addressed a memory an error message will be shown.
 
-@item dump @var{memtype} @var{addr} @dots{}
-Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memtype} @var{addr} -1}).
+@item dump @var{memory} @var{addr} @dots{}
+Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memory} @var{addr} -1}).
 
-@item dump @var{memtype} @dots{}
-Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memtype} 0 -1}).
+@item dump @var{memory} @dots{}
+Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memory} 0 -1}).
 
 @item read
 Can be used as an alias for dump.
 
-@item write @var{memtype} @var{addr} @var{data[,]} @{@var{data[,]}@}
+@item write @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
 Manually program the respective memory cells, starting at address
-@var{addr}, using the data items provided. The terminal implements
-reading from and writing to flash and EEPROM type memories normally
+@var{addr}, using the data items provided. The terminal implements reading
+from and writing to flash, EEPROM and usersig type memories normally
 through a cache and paged access functions. All other memories are
 directly written to without use of a cache. Some older parts without paged
-access will also have flash and EEPROM directly accessed without cache.
+access, depending on the programmer, might also have flash and EEPROM
+directly accessed without cache.
 
 Items @var{data} can have the following formats:
 
@@ -2128,7 +2145,7 @@ can be binary, octal, decimal or hexadecimal integers, floating point
 numbers or C-style strings and characters. If nothing matches, @code{data}
 will be interpreted as a name of a file containing data, which will be
 read and inserted at this point. In order to force the interpretation of a
-data item as file, eg, when the file name would be understood as a number
+data item as file, e.g., when the file name would be understood as a number
 otherwise, the file name can be given a @code{:}@emph{f} format specifier.
 In absence of a format suffix, the terminal will try to auto-detect
 the file format.
@@ -2178,15 +2195,26 @@ as it is the same as @code{0xFFFFffffFFFFffffU}.
 One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
-@item write @var{memtype} @var{addr} @var{data}
+@item write @var{memory} @var{addr} @var{data}
 The start address @code{addr} may be omitted if the size of the memory
-being written to is 1 byte in size.
+being written to is one byte.
 
-@item write @var{memtype} @var{addr} @var{len} @var{data[,]} @{@var{data[,]}@} @dots{}
+@item write @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
 The ellipsis @dots{} form writes the data to the entire memory intervall
 addressed by @var{addr len} and, if necessary, pads the remaining space by
 repeating the last data item. The fill write command does not write beyond
 the specified memory area even if more data than needed were given.
+
+@item save @var{memory} @var{@{addr len@}} @var{file[:format]}
+Save one or more memory segments to a file in a format specified by the
+@code{:}format letter. The default is @code{:r} for raw binary. Each
+memory segment is described by an address and length pair. In absence of
+any memory segments the entire memory is saved to the file. Only Motorola
+S-Record (@code{:s}) and Intel Hex (@code{:i} or @code{:I}) formats store
+address information with the saved data.  Avrdude cannot currently save
+ELF file formats. All the other file formats lose the address information
+and concatenate the chosen memory segments into the output file. If the
+file name is - then avrdude writes to stdout.
 
 @item erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
@@ -2199,21 +2227,24 @@ Erase the entire specified memory.
 Erase a section of the specified memory.
 
 @item flush
-Synchronise with the device all pending cached writes to EEPROM or flash.
-With some programmer and part combinations, flash (and sometimes EEPROM,
-too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
-When this is detected, either page erase is deployed (e.g., with parts that
-have PDI/UPDI interfaces), or if that is not available, both EEPROM and
-flash caches are fully read in, a chip erase command is issued and both
-EEPROM and flash are written back to the device. Hence, it can take
-minutes to ensure that a single previously cleared bit is set and,
-therefore, this command should be used sparingly.
+Synchronise with the device all pending writes to flash, EEPROM and
+usersig. With some programmer and part combinations, flash (and sometimes
+EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
+never set them. For NOR memories a page erase or, if not available, a chip
+erase needs to be issued before writing arbitrary data. Usersig is
+generally unaffected by a chip erase. When a memory looks like a NOR
+memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
+interfaces), or if that is not available, both EEPROM and flash caches are
+fully read in, a chip erase command is issued and both EEPROM and flash
+are written back to the device. Hence, it can take minutes to ensure that
+a single previously cleared bit is set and, therefore, this routine should
+be called sparingly.
 
 @item abort
 Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
-cache discarding all previous writes to the flash and EEPROM cache.
+cache discarding all previous writes to the flash, EEPROM and usersig cache.
 
 @item config [@var{opts}]
 Show all configuration properties of the part; these are usually bitfields
@@ -2251,6 +2282,13 @@ It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
+@item include [@var{opts}] @var{file}
+Include contents of the named file @var{file} as if it was typed. This is
+useful for batch scripts, e.g., recurring initialisation code for fuses. The
+include option @code{-e} prints the lines of the file as comments before
+processing them; on a non-zero verbosity level the line numbers are
+printed, too.
+
 @item sig
 Display the device signature bytes.
 
@@ -2280,6 +2318,16 @@ Leave terminal mode and thus AVRDUDE.
 
 @item q
 Can be used as an alias for @code{quit}.
+
+@item !@var{line}
+Run the shell @var{line} in a subshell, e.g., @code{!ls *.hex}. Subshell
+commands take the rest of the line as their command. For security reasons,
+they must  be enabled explictly by putting @code{allow_subshells = yes;}
+into your @code{$@{HOME@}/.config/avrdude/avrdude.rc} or
+@code{$@{HOME@}/.avrduderc} file.
+
+@item # @var{comment}
+Place comments onto the terminal line (useful for scripts).
 
 @end table
 
@@ -2701,6 +2749,15 @@ option.
 Assign the default bitclock value.  Can be overridden using the @option{-B}
 option.
 
+@item allow_subshells = @var{no};
+Whether or not AVRDUDE's interactive terminal is allowed to use subshell
+@code{!} commands. This defaults to no for security reasons, e.g., in the
+rare case @code{avrdude -t} is set up with attached hardware to provide a
+web service, remote ssh or a login on a PC instead of a shell, say, for
+demo or training purposes. In almost all other cases this can be
+overridden in the personal @code{avrddude.rc} or @code{.avrduderc}
+configuration file with @var{yes}.
+
 @end table
 
 
@@ -2869,7 +2926,7 @@ part
     # parameters for bootloaders
     autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 
-    memory <memtype>
+    memory <memory>
         paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
         offset          = <num> ;             # memory offset
         size            = <num> ;             # bytes
@@ -3061,7 +3118,7 @@ defined for the programmer, a message indicating that the device needs a
 power-cycle is printed out.  This flag was added to work around a
 problem with the at90s4433/2333's; see the at90s4433 errata at:
 
-         @url{http://www.atmel.com/dyn/resources/prod_documents/doc1280.pdf}
+         @url{https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf}
 
 @item
 The boot loader from application note AVR109 (and thus also the AVR
@@ -3592,7 +3649,7 @@ compiler version that still supports MinGW builds, or use MinGW
 @noindent
 AVRDUDE on Windows looks for a system configuration file name of
 @code{avrdude.conf} and looks for a user override configuration file of
-@code{avrdude.rc}.
+@code{avrdude.rc} in the same directory where avrdude.exe is located.
 
 @c
 @c Node

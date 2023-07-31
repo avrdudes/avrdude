@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bsdhome.com>
+ * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2011 Darell Tan <darell.tan@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -1438,6 +1438,14 @@ int avr_memtype_is_eeprom_type(const char *memtype) {
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
   return avr_memtype_is_eeprom_type(mem->desc);
+}
+
+int avr_memtype_is_usersig_type(const char *memtype) {
+  return memtype && (str_eq(memtype, "usersig") || str_eq(memtype, "userrow"));
+}
+
+int avr_mem_is_usersig_type(const AVRMEM *mem) {
+  return avr_memtype_is_usersig_type(mem->desc);
 }
 
 int avr_mem_is_known(const char *str) {

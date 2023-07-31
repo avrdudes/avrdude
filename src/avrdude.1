@@ -1,6 +1,7 @@
 .\"
 .\" avrdude - A Downloader/Uploader for AVR device programmers
-.\" Copyright (C) 2001, 2002, 2003, 2005 - 2020  Joerg Wunsch
+.\" Copyright (C) 2001, 2002, 2003, 2005 - 2023 Hans Eirik Bull,
+.\" Stefan Rueger and Joerg Wunsch
 .\"
 .\" This program is free software; you can redistribute it and/or modify
 .\" it under the terms of the GNU General Public License as published by
@@ -46,7 +47,7 @@
 .Op Fl q
 .Op Fl T Ar cmd
 .Op Fl t
-.Op Fl U Ar memtype:op:filename:filefmt
+.Op Fl U Ar memory:op:filename:filefmt
 .Op Fl v
 .Op Fl x Ar extended_param
 .Op Fl V
@@ -696,31 +697,31 @@ to the device.  Specify it more often for even quieter operations.
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 .It Fl T Ar cmd
-Slots a terminal command line
+Run terminal line
 .Ar cmd
-into the intermixed list of -T terminal commands and -U memory operations.
-The terminal command line is executed when it is its turn in the mixed list.
-Except for the simplest of terminal commands the argument
+when it is its turn in relation to other -t interactive terminals
+-T terminal commands and -U memory operations. Except for the simplest
+of terminal commands the argument
 .Ar cmd
 will most likely need to be set in quotes, see your OS shell manual for
-details.
+details. See below for a detailed description of all terminal commands.
 .It Fl t
 Tells
 .Nm
-to enter the interactive terminal shell before up- or downloading files
-via the -U option or processing other -T terminal commands, if any. See
-below for a detailed description of the terminal mode.
-.It Xo Fl U Ar memtype Ns
+to run an interactive terminal when it is its turn in relation to
+other -t interactive terminals, -T terminal commands and -U memory
+operations.
+.It Xo Fl U Ar memory Ns
 .Ar \&: Ns Ar op Ns
 .Ar \&: Ns Ar filename Ns
 .Op \&: Ns Ar format
 .Xc
-Perform a memory operation as indicated. Multiple -U operations are
-allowed. The
-.Ar memtype
-field specifies the memory type to operate on.
-The available memory types are device-dependent, the actual
-configuration can be viewed with the
+Perform a memory operation as indicated  when it is its turn in relation to
+other -t interactive terminals, -T terminal commands and -U memory
+operations. The
+.Ar memory
+field specifies the memory to operate on. The available memory types are
+device-dependent, the actual configuration can be viewed with the
 .Cm part
 command in terminal mode.
 Typically, a device's memory configuration at least contains
@@ -757,6 +758,18 @@ High fuse byte
 Low fuse byte
 .It   lock
 Lock byte
+.It usersig
+Three extra flash pages for firmware settings; this memory is not erased
+during a chip erase. Only some classic parts,
+ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
+different to flash in the sense that it can neither be accessed with ISP
+serial programming nor written to by bootloaders;
+.Nm
+offers JTAG programming of classic-part usersig memories. As with all
+flash-type memories the -U option can only write 0-bits but not 1-bits.
+Hence, usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using -T "erase usersig" -U
+usersig:w:parameters.hex:i
 .El
 .Pp
 ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
@@ -780,7 +793,8 @@ is 2, 4 or 5, for system configuration
 .It prodsig
 Production signature (calibration) area
 .It usersig
-User signature area of ATxmega devices
+Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
 .El
 .Pp
 Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
@@ -819,7 +833,8 @@ Serial number with a unique ID for the part (10 bytes)
 .It tempsense
 Temperature sensor calibration values
 .It userrow
-Extra page of EEPROM memory that can be used for firmware settings
+Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
 .El
 .Pp
 The
@@ -893,7 +908,7 @@ formats will use the same code for reading lists of numbers separated by
 white space and/or commas. The read routine handles decimal, hexadecimal,
 octal or binary numbers on a number-by-number basis, and the list of
 numbers can therefore be of mixed type. In fact the syntax, is the same as
-for data used by the terminal write command, ie, the file's input data can
+for data used by the terminal write command, i.e., the file's input data can
 also be 2-byte short integers, 4-byte long integers or 8-byte long long
 integers, 4-byte floating point numbers, 8-byte double precision numbers,
 C-type strings with a terminating nul or C-like characters such as '\t'.
@@ -962,7 +977,7 @@ The
 .Ar addr
 and
 .Ar len
-parameters of the dump, read, write and erase commands can be
+parameters of the dump, read, write, save and erase commands can be
 negative with the same syntax as substring computations in perl or python.
 The table below details their meaning with respect to an example memory of size
 sz=0x800.
@@ -1016,11 +1031,11 @@ Can be used as an alias for dump.
 Manually program the respective memory cells, starting at address
 .Ar addr ,
 using the data items provided.
-The terminal implements reading from and writing to flash and EEPROM type
-memories normally through a cache and paged access functions. All other
-memories are directly written to without use of a cache. Some
-older parts without paged access will also have flash and EEPROM directly
-accessed without cache.
+The terminal implements reading from and writing to flash, EEPROM and
+usersig type memories normally through a cache and paged access functions.
+All other memories are directly written to without use of a cache. Some
+older parts without paged access, depending on the programmer, might also
+have flash and EEPROM directly accessed without cache.
 .Pp
 .Ar data
 can be binary, octal, decimal or hexadecimal integers, floating point numbers
@@ -1028,7 +1043,7 @@ or C-style strings and characters. If nothing matches,
 .Ar data
 will be interpreted as the name of a file containing data, which will be
 read and inserted at this point. In order to force the interpretation of a
-data item as file, eg, when the file name would be understood as a number
+data item as file, e.g., when the file name would be understood as a number
 otherwise, the file name can be given a
 .Ar :f
 format specifier. In absence of a format suffix, the terminal will try
@@ -1038,7 +1053,7 @@ For integers, an optional case-insensitive suffix specifies the data size: HH
 8 bit, H/S 16 bit, L 32 bit, LL 64 bit. Suffix D indicates a 64-bit double, F
 a 32-bit float, whilst a floating point number without suffix defaults to
 32-bit float. Hexadecimal floating point notation is supported. An ambiguous
-trailing suffix, eg, 0x1.8D, is read as no-suffix float where D is part of
+trailing suffix, e.g., 0x1.8D, is read as no-suffix float where D is part of
 the mantissa; use a zero exponent 0x1.8p0D to clarify.
 .Pp
 An optional U suffix makes integers unsigned. Ordinary 0x hexadecimal and 0b
@@ -1069,7 +1084,7 @@ items is ignored to facilitate copy & paste of lists.
 The start address
 .Ar addr
 may be omitted if the size of the memory being written to is
-1 byte in size.
+one byte.
 .It Ar write memory addr len data[,] {data[,]} ...
 The ellipsis ... form writes the data to the entire memory intervall addressed by
 .Ar addr len
@@ -1077,6 +1092,19 @@ and, if necessary, pads the remaining space by repeating the last
 .Ar data
 item. The fill write command does not write beyond the specified memory area
 even if more data than needed were given.
+.It Ar save memory {addr len} file[:format]
+Save one or more memory segments to a file in a format specified by the
+:format letter. The default is :r for raw binary. Each memory segment is
+described by an address and length pair. In absence of any memory segments
+the entire memory is saved to the file. Only Motorola S-Record (:s) and
+Intel Hex (:i or :I) formats store address information with the saved
+data.
+.Nm Avrdude
+cannot currently save ELF file formats. All the other file formats lose
+the address information and concatenate the chosen memory segments into
+the output file. If the file name is - then
+.Nm
+writes to stdout.
 .It Ar erase
 Perform a chip erase and discard all pending writes to EEPROM and flash.
 Note that EEPROM will be preserved if the EESAVE fuse bit is set.
@@ -1085,23 +1113,26 @@ Erase the entire specified memory.
 .It Ar erase memory addr len
 Erase a section of the specified memory.
 .It Ar flush
-Synchronise with the device all pending cached writes to EEPROM or flash.
-With some programmer and part combinations, flash (and sometimes EEPROM,
-too) looks like a NOR memory, ie, one can only write 0 bits, not 1 bits.
-When this is detected, either page erase is deployed (e.g., with parts that
-have PDI/UPDI interfaces), or if that is not available, both EEPROM and
-flash caches are fully read in, a chip erase command is issued and both
-EEPROM and flash are written back to the device. Hence, it can take
-minutes to ensure that a single previously cleared bit is set and,
-therefore, this command should be used sparingly.
+Synchronise with the device all pending writes to flash, EEPROM and
+usersig. With some programmer and part combinations, flash (and sometimes
+EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
+never set them. For NOR memories a page erase or, if not available, a chip
+erase needs to be issued before writing arbitrary data. Usersig is
+generally unaffected by a chip erase. When a memory looks like a NOR
+memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
+interfaces), or if that is not available, both EEPROM and flash caches are
+fully read in, a chip erase command is issued and both EEPROM and flash
+are written back to the device. Hence, it can take minutes to ensure that
+a single previously cleared bit is set and, therefore, this routine should
+be called sparingly.
 .It Ar abort
 Normally, caches are only ever
 actually written to the device when using the
 .Ar flush
 command, at the end of the terminal session after typing
 .Ar quit ,
-or after EOF on input is encountered. The abort command resets
-the cache discarding all previous writes to the flash and EEPROM cache.
+or after EOF on input is encountered. The abort command resets the cache
+discarding all previous writes to the flash, EEPROM and usersig cache.
 .It Ar config {<-f|-a|-v>}
 Show all configuration properties of the part; these are usually bitfields
 in fuses or lock bits bytes that can take on values, which typically have
@@ -1133,6 +1164,11 @@ can be uniquely resolved.
 It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
+.It Ar include [<opts>] <file>
+Include contents of the named file as if it was typed. This is useful for
+batch scripts, e.g., recurring initialisation code for fuses. The include
+option -e prints the lines of the file as comments before processing them;
+on a non-zero verbosity level the line numbers are printed, too.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
@@ -1162,6 +1198,18 @@ Leave terminal mode and thus
 .Nm avrdude .
 .It Ar q
 Can be used as an alias for quit.
+.It Ar !<line>
+Run the shell <line> in a subshell, e.g., !ls *.hex. Subshell commands take the
+rest of the line as their command. For security reasons, they must
+explictly be enabled by putting
+.Pa allow_subshells = yes;
+into your
+.Pa ${HOME}/.config/avrdude/avrdude.rc
+or
+.Pa ${HOME}/.avrduderc
+file.
+.It Ar # <comment>
+Place comments onto the terminal line (useful for scripts).
 .El
 .Pp
 The terminal commands below may only be implemented on some specific programmers, and may therefore not be available in the help menu.
@@ -1500,7 +1548,7 @@ Show the part for which the bootloader was compiled, then exit.
 .It Ar bootsize=<size>
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
-ie, typically top of flash, so the urclock programmer can look up the
+i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
@@ -1738,6 +1786,7 @@ line.
 .It Ar help
 Show help menu and exit.
 .El
+.It Ar jtag2updi
 .It Ar serialupdi
 .Bl -tag -offset indent -width indent
 .It Ar rtsdtr=low,high
@@ -1830,11 +1879,14 @@ The AVR microcontroller product description can be found at
 .\" .Sh HISTORY
 .Sh AUTHORS
 .Nm Avrdude
-was written by Brian S. Dean <bsd@bsdhome.com>.
+was initially written by Brian S. Dean <bsd@bdmicro.com>.
 .Pp
-This man page by
-.ie t J\(:org Wunsch.
-.el Joerg Wunsch.
+This man page is by
+.ie t J\(:org Wunsch
+.el Joerg Wunsch
+with updates from Hans Eirik Bull and Stefan R\(:uger
+.el Stefan Rueger
+amongst others.
 .Sh BUGS
 Please report bugs via
 .Dl "https://github.com/avrdudes/avrdude/issues"
