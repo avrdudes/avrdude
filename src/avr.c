@@ -1405,6 +1405,7 @@ const char *avr_mem_order[100] = {
   "tempsense",    "signature",    "prodsig",      "sernum",
   "calibration",  "osccal16",     "osccal20",     "osc16err",
   "osc20err",     "usersig",      "userrow",      "data",
+  "sib",
 };
 
 void avr_add_mem_order(const char *str) {
