@@ -15847,6 +15847,12 @@ part
     nvm_base               = 0x01c0;
     autobaud_sync          = 0x20;
 
+    memory "io"
+        size               = 0x1000;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "fuse1"
         size               = 1;
         initval            = 0x00;
@@ -18453,6 +18459,12 @@ part
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
 
+    memory "io"
+        size               = 0x1000;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "fuse0"
         size               = 1;
         initval            = 0x00;
@@ -19780,6 +19792,12 @@ part parent ".avr8x_tiny"
     n_interrupts           = 30;
     signature              = 0x1e 0x92 0x2c;
 
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "eeprom"
         size               = 128;
         page_size          = 32;
@@ -19828,6 +19846,12 @@ part parent ".avr8x_tiny"
     n_interrupts           = 30;
     signature              = 0x1e 0x92 0x2b;
 
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "eeprom"
         size               = 128;
         page_size          = 32;
@@ -19867,6 +19891,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 294;
     n_interrupts           = 30;
     signature              = 0x1e 0x92 0x2a;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 128;
@@ -19911,6 +19941,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 301;
     n_interrupts           = 30;
     signature              = 0x1e 0x93 0x29;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 128;
@@ -19960,6 +19996,12 @@ part parent ".avr8x_tiny"
     n_interrupts           = 30;
     signature              = 0x1e 0x93 0x28;
 
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "eeprom"
         size               = 128;
         page_size          = 32;
@@ -19999,6 +20041,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 303;
     n_interrupts           = 30;
     signature              = 0x1e 0x93 0x27;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 128;
@@ -20043,6 +20091,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 310;
     n_interrupts           = 30;
     signature              = 0x1e 0x94 0x2a;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 256;
@@ -20092,6 +20146,12 @@ part parent ".avr8x_tiny"
     n_interrupts           = 30;
     signature              = 0x1e 0x94 0x29;
 
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "eeprom"
         size               = 256;
         page_size          = 32;
@@ -20131,6 +20191,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 312;
     n_interrupts           = 30;
     signature              = 0x1e 0x94 0x28;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 256;
@@ -20175,6 +20241,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 316;
     n_interrupts           = 30;
     signature              = 0x1e 0x95 0x28;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 256;
@@ -20224,6 +20296,12 @@ part parent ".avr8x_tiny"
     n_interrupts           = 30;
     signature              = 0x1e 0x95 0x27;
 
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
+
     memory "eeprom"
         size               = 256;
         page_size          = 64;
@@ -20263,6 +20341,12 @@ part parent ".avr8x_tiny"
     mcuid                  = 318;
     n_interrupts           = 30;
     signature              = 0x1e 0x95 0x26;
+
+    memory "io"
+        size               = 0x1080;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "eeprom"
         size               = 256;
@@ -20648,6 +20732,12 @@ part
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
+
+    memory "io"
+        size               = 0x1040;
+        offset             = 0x0000;
+        readsize           = 1;
+    ;
 
     memory "fuse0"
         size               = 1;
