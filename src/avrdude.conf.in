@@ -15891,11 +15891,6 @@ part
         offset             = 0x1000090;
     ;
 
-    memory "revid"
-        size               = 1;
-        offset             = 0x1000093;
-    ;
-
     memory "prodsig"
         size               = 50;
         page_size          = 50;
