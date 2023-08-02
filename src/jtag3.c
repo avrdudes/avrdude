@@ -2160,7 +2160,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "revid") == 0) {
+  } else if (strcmp(mem->desc, "io") == 0) {
     cmd[3] = MTYPE_SRAM;
   } else if (strcmp(mem->desc, "signature") == 0) {
     static unsigned char signature_cache[2];
@@ -2313,6 +2313,8 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strcmp(mem->desc, "io") == 0) {
+    cmd[3] = MTYPE_SRAM;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[3] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2490,34 +2492,16 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
 }
 
 int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
-  int status;
-
-  if(p->prog_modes & PM_UPDI) {
-    unsigned char cmd[12];
-    unsigned char *resp = NULL;
-
-    cmd[0] = SCOPE_AVR;
-    cmd[1] = CMD3_READ_MEMORY;
-    cmd[2] = 0;
-    cmd[3] = MTYPE_SRAM;
-    u32_to_b4(cmd + 4, p->syscfg_base + 1);
-    u32_to_b4(cmd + 8, AVR_CHIP_REVLEN);
-
-    if ((status = jtag3_command(pgm, cmd, 12, &resp, "read chip rev")) < 0)
+  // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    AVRMEM *m = avr_locate_mem(p, "io");
+    int status = pgm->read_byte(pgm, p, m,
+        p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
+        (unsigned char *)chip_rev);
+    if (status < 0)
       return status;
-
-    memcpy(chip_rev, resp+3, AVR_CHIP_REVLEN);
-    free(resp);
-  }
-  // XMEGA using JTAG or PDI
-  else if (p->prog_modes & PM_PDI) {
-    AVRMEM *m = avr_locate_mem(p, "revid");
-    if ((status = pgm->read_byte(pgm, p, m, 0, (unsigned char *)chip_rev)) < 0) {
-      return status;
-    }
-  }
-  else {
-    pmsg_error("target does not have a chip revision that can be read");
+  } else {
+    pmsg_error("target does not have a chip revision that can be read\n");
     return -1;
   }
 
@@ -2735,12 +2719,10 @@ static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsi
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
   if (p->prog_modes & PM_PDI) {
     /*
-     * All memories but "flash" and "revid" are smaller than boot_start anyway,
-     * so no need for an extra check we are operating on "flash"
+     * All memories but "flash" are smaller than boot_start anyway, so
+     * no need for an extra check we are operating on "flash"
      */
-    if(str_eq(m->desc, "revid"))
-      addr += m->offset;
-    else if(addr >= PDATA(pgm)->boot_start)
+    if(addr >= PDATA(pgm)->boot_start)
       addr -= PDATA(pgm)->boot_start;
   } else if(p->prog_modes & PM_UPDI) { // Modern AVR8X part
     if(!str_eq(m->desc, "flash"))

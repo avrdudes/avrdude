@@ -2136,40 +2136,20 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
 }
 
 static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
-  int status;
-  pmsg_notice2("jtagmkII_read_chip_rev()");
-
-  if(p->prog_modes & PM_UPDI) {
-    unsigned char cmd[10];
-    unsigned char *resp;
-    cmd[0] = CMND_READ_MEMORY;
-    cmd[1] = MTYPE_SRAM;
-    u32_to_b4(cmd + 2, 8);
-    u32_to_b4(cmd + 6, p->syscfg_base + 1);
-    jtagmkII_send(pgm, cmd, 10);
-
-    status = jtagmkII_recv(pgm, &resp);
-    if (status <= 0) {
-      msg_notice2("\n");
-      pmsg_warning("timeout/error communicating with programmer (status %d)\n", status);
-      return -1;
-    }
-    memcpy(chip_rev, resp+1, AVR_CHIP_REVLEN);
-    free(resp);
-  }
-  // XMEGA using JTAG or PDI
-  else if (p->prog_modes & PM_PDI) {
-    AVRMEM *m = avr_locate_mem(p, "revid");
-    if ((status = pgm->read_byte(pgm, p, m, 0, (unsigned char *)chip_rev)) < 0) {
+  // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    AVRMEM *m = avr_locate_mem(p, "io");
+    int status = pgm->read_byte(pgm, p, m,
+        p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
+        (unsigned char *)chip_rev);
+    if (status < 0)
       return status;
-    }
-  }
-  else {
-    pmsg_error("target does not have a chip revision that can be read");
+  } else {
+    pmsg_error("target does not have a chip revision that can be read\n");
     return -1;
   }
 
-  pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
+  pmsg_debug("jtagmkII_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
   return 0;
 }
 
@@ -2238,8 +2218,10 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "revid") == 0) {
-    cmd[1] = MTYPE_SIGN_JTAG;
+  } else if (strcmp(mem->desc, "io") == 0) {
+    cmd[1] = MTYPE_FLASH;
+    AVRMEM *data = avr_locate_mem(p, "data");
+    addr += data->offset;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
@@ -2406,6 +2388,10 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strcmp(mem->desc, "io") == 0) {
+    cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
+    AVRMEM *data = avr_locate_mem(p, "data");
+    addr += data->offset;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)

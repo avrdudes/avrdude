@@ -4192,11 +4192,11 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
         }
     }
 
-    // Read chip silicon revision
+    // Read XMEGA chip silicon revision
     if(p->prog_modes & PM_PDI) {
-      AVRMEM *m = avr_locate_mem(p, "revid");
+      AVRMEM *m = avr_locate_mem(p, "io");
       unsigned char chip_rev[AVR_CHIP_REVLEN];
-      pgm->read_byte(pgm, p, m, 0, chip_rev);
+      pgm->read_byte(pgm, p, m, p->mcu_base+3, chip_rev);
       pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
     }
 
@@ -4239,6 +4239,10 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
         memcode = XPRG_MEM_TYPE_BOOT;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memcode = XPRG_MEM_TYPE_EEPROM;
+    } else if (strcmp(mem->desc, "io") == 0) {
+        memcode = XPRG_MEM_TYPE_APPL;
+        AVRMEM *data = avr_locate_mem(p, "data");
+        addr += data->offset;
     } else if (strncmp(mem->desc, "lock", strlen("lock")) == 0) {
         memcode = XPRG_MEM_TYPE_LOCKBITS;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
@@ -4280,7 +4284,6 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
         if (mem->blocksize != 0)
             write_size = mem->blocksize;
     }
-
     b[0] = XPRG_CMD_WRITE_MEM;
     b[1] = memcode;
     b[2] = 0;			/* pagemode: non-paged write */
@@ -4313,9 +4316,11 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         b[1] = XPRG_MEM_TYPE_BOOT;
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
-    } else if (strcmp(mem->desc, "signature") == 0) {
+    } else if (strcmp(mem->desc, "io") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
-    } else if (strcmp(mem->desc, "revid") == 0) {
+        AVRMEM *data = avr_locate_mem(p, "data");
+        addr += data->offset;
+    } else if (strcmp(mem->desc, "signature") == 0) {
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
         b[1] = XPRG_MEM_TYPE_FUSE;
@@ -4389,6 +4394,10 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
             use_ext_addr = (1UL << 31);
     } else if (strcmp(mem->desc, "eeprom") == 0) {
         memtype = XPRG_MEM_TYPE_EEPROM;
+    } else if (strcmp(mem->desc, "io") == 0) {
+        memtype = XPRG_MEM_TYPE_APPL;
+        AVRMEM *data = avr_locate_mem(p, "data");
+        addr += data->offset;
     } else if (strcmp(mem->desc, "signature") == 0) {
         memtype = XPRG_MEM_TYPE_APPL;
     } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
