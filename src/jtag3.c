@@ -1896,7 +1896,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   block_size = jtag3_memaddr(pgm, p, m, addr);
   if(block_size != addr)
-    msg_notice2("          mapped to address: 0x%04x\n", block_size);
+    imsg_notice2("mapped to address: 0x%04x\n", block_size);
   block_size = 0;
 
   if (!(pgm->flag & PGM_FL_IS_DW) && jtag3_program_enable(pgm) < 0)
@@ -2004,7 +2004,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   block_size = jtag3_memaddr(pgm, p, m, addr);
   if(block_size != addr)
-    msg_notice2("          mapped to address: 0x%04x\n", block_size);
+    imsg_notice2("mapped to address: 0x%04x\n", block_size);
   block_size = 0;
 
   if (!(pgm->flag & PGM_FL_IS_DW) && jtag3_program_enable(pgm) < 0)
@@ -2089,14 +2089,15 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   pmsg_notice2("jtag3_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
   paddr = jtag3_memaddr(pgm, p, mem, addr);
-  if(paddr != addr)
+  if (paddr != addr)
     imsg_notice2("mapped to address: 0x%lx\n", paddr);
   paddr = 0;
 
-  if(mem->size < 1) {
+  if (mem->size < 1) {
     pmsg_error("cannot read byte from %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
     return -1;
-  } else if(addr >= (unsigned long) mem->size) {
+  }
+  if (addr >= (unsigned long) mem->size) {
     pmsg_error("cannot read byte from %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
       p->desc, mem->desc, addr, mem->size-1);
     return -1;
@@ -2343,11 +2344,20 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   }
-
-  if (unsupp) {
-    pmsg_error("debugWire interface does not support writing to memory %s\n", mem->desc);
-    return -1;
-  }
+  // Read-only memories or unsupported by debugWire
+  if(str_eq(mem->desc, "osc16err") || str_eq(mem->desc, "osccal16") ||
+     str_eq(mem->desc, "osc20err") || str_eq(mem->desc, "osccal20") ||
+     str_eq(mem->desc, "prodsig") || str_eq(mem->desc, "sernum") ||
+     str_eq(mem->desc, "sib") || unsupp) {
+      unsigned char is;
+      if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+        return 0;
+      if (unsupp && pgm->flag & PGM_FL_IS_DW)
+        pmsg_error("debugWire interface does not support writing to memory %s\n", mem->desc);
+      else
+        pmsg_error("cannot write to read-only memory %s %s\n", p->desc, mem->desc);
+      return -1;
+   }
 
   if (pagesize != 0) {
     /* flash or EEPROM write: use paged algorithm */
