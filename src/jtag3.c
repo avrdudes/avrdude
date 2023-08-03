@@ -89,6 +89,9 @@ struct pdata
   bool vtarg_set;
   double vtarg_data;
 
+  /* SIB string cache */
+  char sib_string[AVR_SIBLEN];
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
 };
@@ -1430,6 +1433,12 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   free(resp);
 
+  if (pgm->read_sib) {
+    if (pgm->read_sib(pgm, p, PDATA(pgm)->sib_string) < 0) {
+      pmsg_warning("cannot read SIB string from target %s\n", p->desc);
+    }
+  }
+
   PDATA(pgm)->boot_start = ULONG_MAX;
   if (p->prog_modes & PM_PDI) {
     // Find the border between application and boot area
@@ -2081,8 +2090,17 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   paddr = jtag3_memaddr(pgm, p, mem, addr);
   if(paddr != addr)
-    msg_notice2("          mapped to address: 0x%lx\n", paddr);
+    imsg_notice2("mapped to address: 0x%lx\n", paddr);
   paddr = 0;
+
+  if(mem->size < 1) {
+    pmsg_error("cannot read byte from %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
+    return -1;
+  } else if(addr >= (unsigned long) mem->size) {
+    pmsg_error("cannot read byte from %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
+      p->desc, mem->desc, addr, mem->size-1);
+    return -1;
+  }
 
   if (!(pgm->flag & PGM_FL_IS_DW))
     if ((status = jtag3_program_enable(pgm)) < 0)
@@ -2153,6 +2171,13 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (str_eq(mem->desc, "sib")) {
+    if(!*PDATA(pgm)->sib_string) {
+      pmsg_error("cannot read byte from %s sib as memory not initialised\n", p->desc);
+      return -1;
+    }
+    *value = PDATA(pgm)->sib_string[addr];
+    return 0;
   } else if (strcmp(mem->desc, "signature") == 0) {
     static unsigned char signature_cache[2];
 
@@ -2252,7 +2277,16 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   mapped_addr = jtag3_memaddr(pgm, p, mem, addr);
   if(mapped_addr != addr)
-    msg_notice2("          mapped to address: 0x%lx\n", mapped_addr);
+    imsg_notice2("mapped to address: 0x%lx\n", mapped_addr);
+
+  if(mem->size < 1) {
+    pmsg_error("cannot write byte to %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
+    return -1;
+  } else if(addr >= (unsigned long) mem->size) {
+    pmsg_error("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
+      p->desc, mem->desc, addr, mem->size-1);
+    return -1;
+  }
 
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_WRITE_MEMORY;
@@ -2310,8 +2344,10 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       unsupp = 1;
   }
 
-  if (unsupp)
+  if (unsupp) {
+    pmsg_error("debugWire interface does not support writing to memory %s\n", mem->desc);
     return -1;
+  }
 
   if (pagesize != 0) {
     /* flash or EEPROM write: use paged algorithm */
