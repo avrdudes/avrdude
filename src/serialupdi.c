@@ -730,7 +730,7 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
   if(str_eq(mem->desc, "osc16err") || str_eq(mem->desc, "osccal16") ||
      str_eq(mem->desc, "osc20err") || str_eq(mem->desc, "osccal20") ||
      str_eq(mem->desc, "prodsig") || str_eq(mem->desc, "sernum") ||
-     str_eq(mem->desc, "sib")) {
+     str_eq(mem->desc, "signature") || str_eq(mem->desc, "sib")) {
 
     unsigned char is;
     if(serialupdi_read_byte(pgm, p, mem, addr, &is) >= 0 && is == value)
