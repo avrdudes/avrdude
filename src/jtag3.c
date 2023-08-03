@@ -2334,26 +2334,17 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if (strcmp(mem->desc, "usersig") == 0 ||
              strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "prodsig") == 0) {
-    cmd[3] = MTYPE_PRODSIG;
   } else if (str_starts(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
-    cmd[3] = MTYPE_OSCCAL_BYTE;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (strcmp(mem->desc, "signature") == 0) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
   }
   // Read-only memories or unsupported by debugWire
-  if(str_eq(mem->desc, "osc16err") || str_eq(mem->desc, "osccal16") ||
-     str_eq(mem->desc, "osc20err") || str_eq(mem->desc, "osccal20") ||
-     str_eq(mem->desc, "prodsig") || str_eq(mem->desc, "sernum") ||
-     str_eq(mem->desc, "sib") || unsupp) {
+  if(str_eq(mem->desc, "calibration") || str_eq(mem->desc, "osc16err") ||
+     str_eq(mem->desc, "osccal16") || str_eq(mem->desc, "osc20err") ||
+     str_eq(mem->desc, "osccal20") || str_eq(mem->desc, "prodsig") ||
+     str_eq(mem->desc, "sernum") || str_eq(mem->desc, "sib") ||
+     str_eq(mem->desc, "signature") || str_eq(mem->desc, "temperature") || unsupp) {
       unsigned char is;
       if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
         return 0;
