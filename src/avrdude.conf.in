@@ -18600,6 +18600,11 @@ part
         # SRAM, only used to supply the offset
         offset             = 0x1000000;
     ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20781,6 +20786,11 @@ part
     memory "data"
         # SRAM, only used to supply the offset
         offset             = 0x1000000;
+    ;
+
+    memory "sib"
+        size               = 32;
+        readsize           = 1;
     ;
 ;
 
