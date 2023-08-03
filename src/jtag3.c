@@ -2173,6 +2173,11 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if (str_eq(mem->desc, "sib")) {
+    if(addr >= AVR_SIBLEN) {
+      pmsg_error("cannot read byte from %s sib as address 0x%04lx outside range [0, 0x%04x]\n",
+        p->desc, addr, AVR_SIBLEN-1);
+      return -1;
+    }
     if(!*PDATA(pgm)->sib_string) {
       pmsg_error("cannot read byte from %s sib as memory not initialised\n", p->desc);
       return -1;
