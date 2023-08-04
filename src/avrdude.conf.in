@@ -32,6 +32,10 @@
 #       sck      = <pin> ;                        # pin number
 #       sdo      = <pin> ;                        # pin number
 #       sdi      = <pin> ;                        # pin number
+#       tck      = <pin> ;                        # pin number
+#       tdi      = <pin> ;                        # pin number
+#       tdo      = <pin> ;                        # pin number
+#       tms      = <pin> ;                        # pin number
 #       errled   = <pin> ;                        # pin number
 #       rdyled   = <pin> ;                        # pin number
 #       pgmled   = <pin> ;                        # pin number
@@ -995,6 +999,26 @@ programmer parent "ft2232h"
 ;
 
 #------------------------------------------------------------
+# ft2232h_jtag
+#------------------------------------------------------------
+
+programmer
+    id                     = "ft2232h_jtag";
+    desc                   = "FT2232H based generic programmer";
+    type                   = "avrftdi_jtag";
+    prog_modes             = PM_JTAG;
+    connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6010;
+    usbdev                 = "A";
+# JTAG-signals - lower ADBUS-Nibble (default)
+    tck                    = 0; # AD0 (TCK)
+    tdi                    = 1; # AD1 (TDI)
+    tdo                    = 2; # AD2 (TDO)
+    tms                    = 3; # AD3 (TMS)
+;
+
+#------------------------------------------------------------
 # ft4232h
 #------------------------------------------------------------
 
@@ -1050,6 +1074,26 @@ programmer
     sck                    = 0; # AD0 (TCK)
     sdo                    = 1; # AD1 (TDI)
     sdi                    = 2; # AD2 (TDO)
+;
+
+#------------------------------------------------------------
+# ft232h_jtag
+#------------------------------------------------------------
+
+programmer
+    id                     = "ft232h_jtag";
+    desc                   = "FT232H based generic JTAG programmer";
+    type                   = "avrftdi_jtag";
+    prog_modes             = PM_JTAG;
+    connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6014;
+    usbdev                 = "A";
+# JTAG-signals
+    tck                    = 0; # AD0 (TCK)
+    tdi                    = 1; # AD1 (TDI)
+    tdo                    = 2; # AD2 (TDO)
+    tms                    = 3; # AD3 (TMS)
 ;
 
 #------------------------------------------------------------
@@ -1156,22 +1200,38 @@ programmer
 # tumpa
 #------------------------------------------------------------
 
-# submitted as bug #46020
+# First SPI connector
+# User manual: https://www.tiaowiki.com/w/TIAO_USB_Multi_Protocol_Adapter_User%27s_Manual
 
-programmer
+programmer parent "ft2232h"
     id                     = "tumpa";
     desc                   = "TIAO USB Multi-Protocol Adapter";
-    type                   = "avrftdi";
-    prog_modes             = PM_TPI | PM_ISP;
-    connection_type        = usb;
-    usbvid                 = 0x0403;
     usbpid                 = 0x8a98;
-    usbdev                 = "A";
     usbvendor              = "TIAO";
-    reset                  = 3; # TMS 7
-    sck                    = 0; # TCK 9
-    sdo                    = 1; # TDI 5
-    sdi                    = 2; # TDO 13
+;
+
+#------------------------------------------------------------
+# tumpa-b
+#------------------------------------------------------------
+
+# Second SPI connector
+
+programmer parent "tumpa"
+    id                     = "tumpa-b";
+    usbdev                 = "B";
+;
+
+#------------------------------------------------------------
+# tumpa_jtag
+#------------------------------------------------------------
+
+programmer parent "ft2232h_jtag"
+    id                     = "tumpa_jtag";
+    desc                   = "TIAO USB Multi-Protocol Adapter (JTAG)";
+    usbpid                 = 0x8a98;
+    usbvendor              = "TIAO";
+    buff                   = ~11;
+    reset                  = 4; # RST AD4 (Pin 15)
 ;
 
 #------------------------------------------------------------

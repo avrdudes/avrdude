@@ -109,6 +109,10 @@ static int pin_name;
 %token K_SCK
 %token K_SIGNATURE
 %token K_SIZE
+%token K_TCK
+%token K_TDI
+%token K_TDO
+%token K_TMS
 %token K_USB
 %token K_USBPID
 %token K_TYPE
@@ -562,6 +566,10 @@ prog_parm_pins:
   K_SCK    TKN_EQUAL {pin_name = PIN_AVR_SCK; clear_pin(pin_name);  } pin_number { free_token($1); } |
   K_SDO    TKN_EQUAL {pin_name = PIN_AVR_SDO; clear_pin(pin_name);  } pin_number |
   K_SDI    TKN_EQUAL {pin_name = PIN_AVR_SDI; clear_pin(pin_name);  } pin_number |
+  K_TCK    TKN_EQUAL {pin_name = PIN_JTAG_TCK; clear_pin(pin_name); } pin_number |
+  K_TDI    TKN_EQUAL {pin_name = PIN_JTAG_TDI; clear_pin(pin_name); } pin_number |
+  K_TDO    TKN_EQUAL {pin_name = PIN_JTAG_TDO; clear_pin(pin_name); } pin_number |
+  K_TMS    TKN_EQUAL {pin_name = PIN_JTAG_TMS; clear_pin(pin_name); } pin_number |
   K_ERRLED TKN_EQUAL {pin_name = PIN_LED_ERR; clear_pin(pin_name);  } pin_number |
   K_RDYLED TKN_EQUAL {pin_name = PIN_LED_RDY; clear_pin(pin_name);  } pin_number |
   K_PGMLED TKN_EQUAL {pin_name = PIN_LED_PGM; clear_pin(pin_name);  } pin_number |
