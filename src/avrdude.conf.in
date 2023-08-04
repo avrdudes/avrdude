@@ -73,6 +73,7 @@
 #   #    the behavior of the mEDBG programmer/debugger chip. See the Xplained Mini/Nano
 #   #    documentation for more information
 #   #  - HAS_VTARG_SWITCH: Programer has a programmable target power switch
+#   #  - HAS_VTARG_READ: Programmer can read the target voltage
 #   #  - HAS_VTARG_ADJ: Programmer has an adjustable target power source that can
 #   #    be controlled with Avrdude
 #   #  - HAS_FOSC_ADJ: Programmer has a programable frequency generator that
@@ -2306,6 +2307,7 @@ programmer
     desc                   = "Atmel AVR XplainedPro in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2111;
 ;
@@ -2319,6 +2321,7 @@ programmer
     desc                   = "Atmel AVR XplainedPro in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;
@@ -2333,6 +2336,7 @@ programmer
     desc                   = "Atmel AVR XplainedPro in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;

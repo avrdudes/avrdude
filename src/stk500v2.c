@@ -3640,45 +3640,51 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
 
   memset(vtarget_jtag, 0, sizeof vtarget_jtag);
 
-  if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
-    PROGRAMMER *pgmcp = pgm_dup(pgm);
-    pgmcp->cookie = PDATA(pgm)->chained_pdata;
-    jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
-    pgm_free(pgmcp);
-    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget_jtag) / 1000.0);
-  } else if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
-    stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
-    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
+      PROGRAMMER *pgmcp = pgm_dup(pgm);
+      pgmcp->cookie = PDATA(pgm)->chained_pdata;
+      jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
+      pgm_free(pgmcp);
+      fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget_jtag) / 1000.0);
+    } else if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
+      stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
+      fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+    }
   }
 
   switch (PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
-    stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
-    stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
     fmsg_out(fp, "%sSCK period      : %.1f us\n", p,
 	    stk500v2_sck_to_us(pgm, sck_duration));
-    fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
-    fmsg_out(fp, "%sOscillator      : ", p);
-    if (osc_pscale == 0)
-      fmsg_out(fp, "Off\n");
-    else {
-      prescale = 1;
-      f = STK500V2_XTAL / 2;
+    if (pgm->extra_features & HAS_VAREF_ADJ) {
+      stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
+      fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+    }
+    if (pgm->extra_features & HAS_FOSC_ADJ) {
+      stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
+      stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
+      fmsg_out(fp, "%sOscillator      : ", p);
+      if (osc_pscale == 0)
+        fmsg_out(fp, "Off\n");
+      else {
+        prescale = 1;
+        f = STK500V2_XTAL / 2;
 
-      switch (osc_pscale) {
-        case 2: prescale = 8; break;
-        case 3: prescale = 32; break;
-        case 4: prescale = 64; break;
-        case 5: prescale = 128; break;
-        case 6: prescale = 256; break;
-        case 7: prescale = 1024; break;
+        switch (osc_pscale) {
+          case 2: prescale = 8; break;
+          case 3: prescale = 32; break;
+          case 4: prescale = 64; break;
+          case 5: prescale = 128; break;
+          case 6: prescale = 256; break;
+          case 7: prescale = 1024; break;
+        }
+        f /= prescale;
+        f /= (osc_cmatch + 1);
+        f = f_to_kHz_MHz(f, &unit);
+        fmsg_out(fp, "%.3f %s\n", f, unit);
       }
-      f /= prescale;
-      f /= (osc_cmatch + 1);
-      f = f_to_kHz_MHz(f, &unit);
-      fmsg_out(fp, "%.3f %s\n", f, unit);
     }
     break;
 
@@ -3686,7 +3692,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   case PGMTYPE_JTAGICE_MKII:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
     fmsg_out(fp, "%sSCK period      : %.2f us\n", p,
-	    (float) 1000000 / avrispmkIIfreqs[sck_duration]);
+	    1000000 / avrispmkIIfreqs[sck_duration]);
     break;
 
   case PGMTYPE_JTAGICE3:
@@ -3709,20 +3715,22 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     break;
 
   case PGMTYPE_STK600:
-    stk500v2_getparm2(pgm, PARAM2_AREF0, &varef);
-    fmsg_out(fp, "%sVaref 0         : %.2f V\n", p, varef / 100.0);
-    stk500v2_getparm2(pgm, PARAM2_AREF1, &varef);
-    fmsg_out(fp, "%sVaref 1         : %.2f V\n", p, varef / 100.0);
+    if (pgm->extra_features & HAS_VAREF_ADJ) {
+      stk500v2_getparm2(pgm, PARAM2_AREF0, &varef);
+      fmsg_out(fp, "%sVaref 0         : %.2f V\n", p, varef / 100.0);
+      stk500v2_getparm2(pgm, PARAM2_AREF1, &varef);
+      fmsg_out(fp, "%sVaref 1         : %.2f V\n", p, varef / 100.0);
+    }
     stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
-    fmsg_out(fp, "%sSCK period      : %.2f us\n", p,
-	    (float) (sck_stk600 + 1) / 8.0);
-    stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
-    oct = (clock_conf & 0xf000) >> 12u;
-    dac = (clock_conf & 0x0ffc) >> 2u;
-    f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
-    f = f_to_kHz_MHz(f, &unit);
-    fmsg_out(fp, "%sOscillator      : %.3f %s\n",
-            p, f, unit);
+    fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (sck_stk600 + 1) / 8.0);
+    if (pgm->extra_features & HAS_FOSC_ADJ) {
+      stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
+      oct = (clock_conf & 0xf000) >> 12u;
+      dac = (clock_conf & 0x0ffc) >> 2u;
+      f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
+      f = f_to_kHz_MHz(f, &unit);
+      fmsg_out(fp, "%sOscillator      : %.3f %s\n", p, f, unit);
+    }
     break;
 
   default:

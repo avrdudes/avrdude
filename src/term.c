@@ -105,7 +105,7 @@ struct command cmd[] = {
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
-  { "parms", cmd_parms, _fo(print_parms),       "display adjustable parameters" },
+  { "parms", cmd_parms, _fo(print_parms),       "display useful parameters" },
   { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
   { "varef", cmd_varef, _fo(set_varef),         "set the analog reference voltage" },
   { "fosc",  cmd_fosc,  _fo(set_fosc),          "set the oscillator frequency" },
@@ -1631,7 +1631,7 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   if(argc > 1) {
     msg_error(
       "Syntax: parms\n"
-      "Function: display adjustable parameters\n"
+      "Function: display useful parameters\n"
     );
     return -1;
   }
