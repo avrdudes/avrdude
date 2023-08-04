@@ -339,6 +339,7 @@ static void stk500v2_jtag3_setup(PROGRAMMER * pgm)
 void stk500v2_teardown(PROGRAMMER * pgm)
 {
   free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static void stk500v2_jtagmkII_teardown(PROGRAMMER * pgm)
@@ -2123,14 +2124,9 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   if (serdev && serdev->usbsn)
     pgm->usbsn = serdev->usbsn;
 
-  /*
-   * drain any extraneous input
-   */
-  stk500v2_drain(pgm, 0);
-
-  stk500v2_getsync(pgm);
-
-  stk500v2_drain(pgm, 0);
+  // Drain any extraneous input, synchronise and drain again
+  if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)
+    return -1;
 
   if (pgm->bitclock != 0.0) {
     if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
@@ -2180,14 +2176,9 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  /*
-   * drain any extraneous input
-   */
-  stk500v2_drain(pgm, 0);
-
-  stk500v2_getsync(pgm);
-
-  stk500v2_drain(pgm, 0);
+  // Drain any extraneous input, synchronise and drain again
+  if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)
+    return -1;
 
   if (pgm->bitclock != 0.0) {
     if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
