@@ -219,7 +219,7 @@ typedef struct opcode {
 #define HAS_VAREF_ADJ         32
 
 #define AVR_FAMILYIDLEN 7
-#define AVR_SIBLEN 16
+#define AVR_SIBLEN 32
 #define CTL_STACK_SIZE 32
 #define FLASH_INSTR_SIZE 3
 #define EEPROM_INSTR_SIZE 20
