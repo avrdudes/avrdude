@@ -367,10 +367,10 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   sendbuf.dd.ucIDRAddress = p->idr;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (strcmp(m->desc, "flash") == 0) {
+    if (str_eq(m->desc, "flash")) {
       PDATA(pgm)->flash_pagesize = m->page_size;
       u16_to_b2(sendbuf.dd.uiFlashPageSize, PDATA(pgm)->flash_pagesize);
-    } else if (strcmp(m->desc, "eeprom") == 0) {
+    } else if (str_eq(m->desc, "eeprom")) {
       sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -678,12 +678,12 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   }
 
   cmd[0] = CMD_WRITE_MEM;
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     cmd[1] = MTYPE_FLASH_PAGE;
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
     is_flash = 1;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->eeprom_pagesize;
@@ -786,10 +786,10 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   page_size = m->readsize;
 
   cmd[0] = CMD_READ_MEM;
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     cmd[1] = MTYPE_FLASH_PAGE;
     is_flash = 1;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     cmd[1] = MTYPE_EEPROM_PAGE;
   }
 
@@ -867,33 +867,33 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   cmd[0] = CMD_READ_MEM;
 
-  if (strcmp(mem->desc, "flash") == 0) {
+  if (str_eq(mem->desc, "flash")) {
     cmd[1] = MTYPE_FLASH_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
     is_flash = 1;
-  } else if (strcmp(mem->desc, "eeprom") == 0) {
+  } else if (str_eq(mem->desc, "eeprom")) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (str_eq(mem->desc, "lfuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 0;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
+  } else if (str_eq(mem->desc, "hfuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
+  } else if (str_eq(mem->desc, "efuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     addr = 2;
-  } else if (strcmp(mem->desc, "lock") == 0) {
+  } else if (str_eq(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
+  } else if (str_eq(mem->desc, "calibration")) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
-  } else if (strcmp(mem->desc, "signature") == 0) {
+  } else if (str_eq(mem->desc, "signature")) {
     cmd[1] = MTYPE_SIGN_JTAG;
   }
 
@@ -972,34 +972,34 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   writedata = data;
   cmd[0] = CMD_WRITE_MEM;
-  if (strcmp(mem->desc, "flash") == 0) {
+  if (str_eq(mem->desc, "flash")) {
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
-  } else if (strcmp(mem->desc, "eeprom") == 0) {
+  } else if (str_eq(mem->desc, "eeprom")) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
     need_dummy_read = 1;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (str_eq(mem->desc, "lfuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
     addr = 0;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
+  } else if (str_eq(mem->desc, "hfuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
     addr = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
+  } else if (str_eq(mem->desc, "efuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
     addr = 2;
-  } else if (strcmp(mem->desc, "lock") == 0) {
+  } else if (str_eq(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
     need_dummy_read = 1;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
+  } else if (str_eq(mem->desc, "calibration")) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     need_dummy_read = 1;
-  } else if (strcmp(mem->desc, "signature") == 0) {
+  } else if (str_eq(mem->desc, "signature")) {
     cmd[1] = MTYPE_SIGN_JTAG;
   }
 
