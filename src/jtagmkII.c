@@ -2605,10 +2605,11 @@ static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   char clkbuf[20];
   double clk;
 
-  if (jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget) < 0)
-    return;
-
-  fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget) / 1000.0);
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    if (jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget) < 0)
+      return;
+    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget) / 1000.0);
+  }
 
   if ((pgm->flag & PGM_FL_IS_JTAG)) {
     if (jtagmkII_getparm(pgm, PAR_OCD_JTAG_CLK, jtag_clock) < 0)

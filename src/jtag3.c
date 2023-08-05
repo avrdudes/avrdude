@@ -89,6 +89,9 @@ struct pdata
   bool vtarg_set;
   double vtarg_data;
 
+  /* SIB string cache */
+  char sib_string[AVR_SIBLEN];
+
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
 };
@@ -1430,6 +1433,12 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   free(resp);
 
+  if (pgm->read_sib) {
+    if (pgm->read_sib(pgm, p, PDATA(pgm)->sib_string) < 0) {
+      pmsg_warning("cannot read SIB string from target %s\n", p->desc);
+    }
+  }
+
   // Read chip silicon revision
   if(pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
     char chip_rev[AVR_CHIP_REVLEN];
@@ -1894,7 +1903,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   block_size = jtag3_memaddr(pgm, p, m, addr);
   if(block_size != addr)
-    msg_notice2("          mapped to address: 0x%04x\n", block_size);
+    imsg_notice2("mapped to address: 0x%04x\n", block_size);
   block_size = 0;
 
   if (!(pgm->flag & PGM_FL_IS_DW) && jtag3_program_enable(pgm) < 0)
@@ -2002,7 +2011,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   block_size = jtag3_memaddr(pgm, p, m, addr);
   if(block_size != addr)
-    msg_notice2("          mapped to address: 0x%04x\n", block_size);
+    imsg_notice2("mapped to address: 0x%04x\n", block_size);
   block_size = 0;
 
   if (!(pgm->flag & PGM_FL_IS_DW) && jtag3_program_enable(pgm) < 0)
@@ -2087,9 +2096,19 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   pmsg_notice2("jtag3_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
   paddr = jtag3_memaddr(pgm, p, mem, addr);
-  if(paddr != addr)
-    msg_notice2("          mapped to address: 0x%lx\n", paddr);
+  if (paddr != addr)
+    imsg_notice2("mapped to address: 0x%lx\n", paddr);
   paddr = 0;
+
+  if (mem->size < 1) {
+    pmsg_error("cannot read byte from %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
+    return -1;
+  }
+  if (addr >= (unsigned long) mem->size) {
+    pmsg_error("cannot read byte from %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
+      p->desc, mem->desc, addr, mem->size-1);
+    return -1;
+  }
 
   if (!(pgm->flag & PGM_FL_IS_DW))
     if ((status = jtag3_program_enable(pgm)) < 0)
@@ -2162,6 +2181,18 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       unsupp = 1;
   } else if (strcmp(mem->desc, "io") == 0) {
     cmd[3] = MTYPE_SRAM;
+  } else if (str_eq(mem->desc, "sib")) {
+    if(addr >= AVR_SIBLEN) {
+      pmsg_error("cannot read byte from %s sib as address 0x%04lx outside range [0, 0x%04x]\n",
+        p->desc, addr, AVR_SIBLEN-1);
+      return -1;
+    }
+    if(!*PDATA(pgm)->sib_string) {
+      pmsg_error("cannot read byte from %s sib as memory not initialised\n", p->desc);
+      return -1;
+    }
+    *value = PDATA(pgm)->sib_string[addr];
+    return 0;
   } else if (strcmp(mem->desc, "signature") == 0) {
     static unsigned char signature_cache[2];
 
@@ -2261,7 +2292,16 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   mapped_addr = jtag3_memaddr(pgm, p, mem, addr);
   if(mapped_addr != addr)
-    msg_notice2("          mapped to address: 0x%lx\n", mapped_addr);
+    imsg_notice2("mapped to address: 0x%lx\n", mapped_addr);
+
+  if(mem->size < 1) {
+    pmsg_error("cannot write byte to %s %s owing to its size %d\n", p->desc, mem->desc, mem->size);
+    return -1;
+  } else if(addr >= (unsigned long) mem->size) {
+    pmsg_error("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]\n",
+      p->desc, mem->desc, addr, mem->size-1);
+    return -1;
+  }
 
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_WRITE_MEMORY;
@@ -2303,26 +2343,28 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if (strcmp(mem->desc, "usersig") == 0 ||
              strcmp(mem->desc, "userrow") == 0) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "prodsig") == 0) {
-    cmd[3] = MTYPE_PRODSIG;
   } else if (str_starts(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
-    cmd[3] = MTYPE_OSCCAL_BYTE;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (strcmp(mem->desc, "io") == 0) {
+  } else if (strcmp(mem->desc, "io") == 0)
     cmd[3] = MTYPE_SRAM;
-  } else if (strcmp(mem->desc, "signature") == 0) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  }
 
-  if (unsupp)
-    return -1;
+  // Read-only memories or unsupported by debugWire
+  if(str_eq(mem->desc, "calibration") || str_eq(mem->desc, "osc16err") ||
+     str_eq(mem->desc, "osccal16") || str_eq(mem->desc, "osc20err") ||
+     str_eq(mem->desc, "osccal20") || str_eq(mem->desc, "prodsig") ||
+     str_eq(mem->desc, "sernum") || str_eq(mem->desc, "sib") ||
+     str_eq(mem->desc, "signature") || str_eq(mem->desc, "temperature") || unsupp) {
+      unsigned char is;
+      if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+        return 0;
+      if (unsupp && pgm->flag & PGM_FL_IS_DW)
+        pmsg_error("debugWire interface does not support writing to memory %s\n", mem->desc);
+      else
+        pmsg_error("cannot write to read-only memory %s %s\n", p->desc, mem->desc);
+      return -1;
+   }
 
   if (pagesize != 0) {
     /* flash or EEPROM write: use paged algorithm */
@@ -2591,11 +2633,13 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char prog_mode[2];
   unsigned char buf[3];
 
-  if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
-    return;
-  msg_info("%sVtarget         : %.2f V\n", p, b2_to_u16(buf)/1000.0);
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0)
+      return;
+    msg_info("%sVtarget         : %.2f V\n", p, b2_to_u16(buf)/1000.0);
+  }
 
-  // Print clocks if programmer typ is not TPI
+  // Print clocks if programmer type is not TPI
   if (!str_eq(pgm->type, "JTAGICE3_TPI")) {
     // Get current programming mode and target type from to determine what data to print
     if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, prog_mode, 1) < 0)
@@ -2648,7 +2692,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sVout measured   : %.02f V\n", p, (float) analog_raw_data / -200.0);
+        fmsg_out(fp, "%sVout measured   : %.02f V\n", p, analog_raw_data / -200.0);
       }
 
       // Read channel A voltage
@@ -2660,7 +2704,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sCh A voltage    : %.03f V\n", p, (float) analog_raw_data / -200.0);
+        fmsg_out(fp, "%sCh A voltage    : %.03f V\n", p, analog_raw_data / -200.0);
       }
 
       // Read channel A current
@@ -2670,7 +2714,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       if (buf[0] != 0x90)
         pmsg_error("invalid PARM3_ANALOG_A_CURRENT data packet format\n");
       else
-        fmsg_out(fp, "%sCh A current    : %.3f mA\n", p, (float) analog_raw_data * 0.003472);
+        fmsg_out(fp, "%sCh A current    : %.3f mA\n", p, analog_raw_data * 0.003472);
 
       // Read channel B voltage
       if (jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_ANALOG_B_VOLTAGE, buf, 2) < 0)
@@ -2681,7 +2725,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sCh B voltage    : %.03f V\n", p, (float) analog_raw_data / -200.0);
+        fmsg_out(fp, "%sCh B voltage    : %.03f V\n", p, analog_raw_data / -200.0);
       }
 
       // Read channel B current
@@ -2693,7 +2737,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
       else {
         if (analog_raw_data & 0x0800)
           analog_raw_data |= 0xF000;
-        fmsg_out(fp, "%sCh B current    : %.3f mA\n", p, (float) analog_raw_data * 0.555556);
+        fmsg_out(fp, "%sCh B current    : %.3f mA\n", p, analog_raw_data * 0.555556);
       }
       break;
     }

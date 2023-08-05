@@ -1179,8 +1179,7 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
   const char *clkstr;
   double clk;
 
-  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0 ||
-      jtagmkI_getparm(pgm, PARM_CLOCK, &jtag_clock) < 0)
+  if (jtagmkI_getparm(pgm, PARM_CLOCK, &jtag_clock) < 0)
     return;
 
   switch ((unsigned)jtag_clock) {
@@ -1209,7 +1208,11 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
     clk = 1e6;
   }
 
-  fmsg_out(fp, "%sVtarget       : %.1f V\n", p, 6.25 * (unsigned)vtarget / 255.0);
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
+      return;
+    fmsg_out(fp, "%sVtarget       : %.1f V\n", p, 6.25 * (unsigned)vtarget / 255.0);
+  }
   fmsg_out(fp, "%sJTAG clock    : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
 
   return;

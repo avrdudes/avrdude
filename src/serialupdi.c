@@ -680,15 +680,43 @@ static int serialupdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return -1;
 }
 
+#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
+
 static int serialupdi_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                 unsigned long addr, unsigned char * value)
 {
+  pmsg_debug("%s(%s, 0x%04lx)\n", __func__, mem->desc, addr);
+  if(mem->size < 1)
+    Return("cannot read byte from %s %s owing to its size %d", p->desc, mem->desc, mem->size);
+
+  if(addr >= (unsigned long) mem->size)
+    Return("cannot read byte from %s %s as address 0x%04lx outside range [0, 0x%04x]",
+      p->desc, mem->desc, addr, mem->size-1);
+
+  if(str_eq(mem->desc, "sib")) {
+    if(addr >= SIB_INFO_STRING_LENGTH)
+      Return("cannot read byte from %s sib as address 0x%04lx outside range [0, 0x%04x]",
+        p->desc, addr, SIB_INFO_STRING_LENGTH-1);
+    if(!*updi_get_sib_info(pgm)->sib_string) // This should never happen
+      Return("cannot read byte from %s sib as memory not initialised", p->desc);
+    *value = updi_get_sib_info(pgm)->sib_string[addr];
+    return 0;
+  }
+
   return updi_read_byte(pgm, mem->offset + addr, value);
 }
 
 static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                                  unsigned long addr, unsigned char value)
 {
+  pmsg_debug("%s(%s, 0x%04lx, 0x%02x)\n", __func__, mem->desc, addr, value);
+  if(mem->size < 1)
+    Return("cannot write byte to %s %s owing to its size %d", p->desc, mem->desc, mem->size);
+
+  if(addr >= (unsigned long) mem->size)
+    Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
+      p->desc, mem->desc, addr, mem->size-1);
+
   if (strstr(mem->desc, "fuse") != 0) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
@@ -705,6 +733,19 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     buffer[0]=value;
     return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
   }
+  // Read-only memories
+  if(str_eq(mem->desc, "osc16err") || str_eq(mem->desc, "osccal16") ||
+     str_eq(mem->desc, "osc20err") || str_eq(mem->desc, "osccal20") ||
+     str_eq(mem->desc, "prodsig") || str_eq(mem->desc, "sernum") ||
+     str_eq(mem->desc, "signature") || str_eq(mem->desc, "sib")) {
+
+    unsigned char is;
+    if(serialupdi_read_byte(pgm, p, mem, addr, &is) >= 0 && is == value)
+      return 0;
+
+    Return("cannot write to read-only memory %s %s", p->desc, mem->desc);
+  }
+
   return updi_write_byte(pgm, mem->offset + addr, value);
 }
 

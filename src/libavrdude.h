@@ -219,7 +219,7 @@ typedef struct opcode {
 #define HAS_VAREF_ADJ         32
 
 #define AVR_FAMILYIDLEN 7
-#define AVR_SIBLEN 16
+#define AVR_SIBLEN 32
 #define AVR_CHIP_REVLEN 1
 #define CTL_STACK_SIZE 32
 #define FLASH_INSTR_SIZE 3
@@ -426,6 +426,10 @@ enum {
   PIN_AVR_SCK,
   PIN_AVR_SDO,
   PIN_AVR_SDI,
+  PIN_JTAG_TCK,
+  PIN_JTAG_TDI,
+  PIN_JTAG_TDO,
+  PIN_JTAG_TMS,
   PIN_LED_ERR,
   PIN_LED_RDY,
   PIN_LED_PGM,
@@ -863,6 +867,7 @@ void programmer_display(PROGRAMMER * pgm, const char * p);
 #define SHOW_ALL_PINS (~0u)
 #define SHOW_PPI_PINS ((1<<PPI_AVR_VCC)|(1<<PPI_AVR_BUFF))
 #define SHOW_AVR_PINS ((1<<PIN_AVR_RESET)|(1<<PIN_AVR_SCK)|(1<<PIN_AVR_SDO)|(1<<PIN_AVR_SDI))
+#define SHOW_JTAG_PINS ((1<<PIN_JTAG_TCK)|(1<<PIN_JTAG_TDI)|(1<<PIN_JTAG_TDO)|(1<<PIN_JTAG_TMS))
 #define SHOW_LED_PINS ((1<<PIN_LED_ERR)|(1<<PIN_LED_RDY)|(1<<PIN_LED_PGM)|(1<<PIN_LED_VFY))
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show);
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
