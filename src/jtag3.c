@@ -2135,29 +2135,22 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_eq(mem->desc, "lfuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
-    addr = 0;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    cmd[3] = MTYPE_FUSE_BITS;
-    addr = 1;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    cmd[3] = MTYPE_FUSE_BITS;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
+    else if (str_starts(mem->desc, "fuse") && !(p->prog_modes & PM_UPDI))
+      addr = mem->offset & 7;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if (str_starts(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_starts(mem->desc, "fuse")) {
-    cmd[3] = MTYPE_FUSE_BITS;
-    if (!(p->prog_modes & PM_UPDI))
-      addr = mem->offset & 7;
   } else if (str_eq(mem->desc, "usersig") ||
              str_eq(mem->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
@@ -2321,32 +2314,25 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       pagesize = PDATA(pgm)->eeprom_pagesize;
     }
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_eq(mem->desc, "lfuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
-    addr = 0;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    cmd[3] = MTYPE_FUSE_BITS;
-    addr = 1;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    cmd[3] = MTYPE_FUSE_BITS;
-    addr = 2;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_starts(mem->desc, "fuse")) {
-    cmd[3] = MTYPE_FUSE_BITS;
-    if (!(p->prog_modes & PM_UPDI))
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
+    else if (str_starts(mem->desc, "fuse") && !(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
-  } else if (str_eq(mem->desc, "usersig") ||
-             str_eq(mem->desc, "userrow")) {
-    cmd[3] = MTYPE_USERSIG;
+    if (pgm->flag & PGM_FL_IS_DW)
+      unsupp = 1;
   } else if (str_starts(mem->desc, "lock")) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (str_eq(mem->desc, "usersig") ||
+             str_eq(mem->desc, "userrow")) {
+    cmd[3] = MTYPE_USERSIG;
   } else if (str_eq(mem->desc, "io"))
     cmd[3] = MTYPE_SRAM;
 
