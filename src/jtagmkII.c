@@ -2184,27 +2184,20 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
       cache_ptr = PDATA(pgm)->eeprom_pagecache;
     }
-  } else if (str_eq(mem->desc, "lfuse")) {
+    } else if (str_contains(mem->desc, "fuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
-    addr = 0;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 1;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if (str_starts(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_starts(mem->desc, "fuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
   } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
   } else if (str_eq(mem->desc, "prodsig")) {
@@ -2229,24 +2222,23 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       unsigned char parm[4];
 
       switch (addr) {
-      case 0:
-	*value = 0x1E;		/* Atmel vendor ID */
-	break;
+        case 0:
+          *value = 0x1E;		/* Atmel vendor ID */
+          break;
 
-      case 1:
-      case 2:
-	if (jtagmkII_getparm(pgm, PAR_TARGET_SIGNATURE, parm) < 0)
-	  return -1;
-	*value = parm[2 - addr];
-	break;
+        case 1:
+        case 2:
+          if (jtagmkII_getparm(pgm, PAR_TARGET_SIGNATURE, parm) < 0)
+            return -1;
+          *value = parm[2 - addr];
+          break;
 
-      default:
-	pmsg_error("illegal address %lu for signature memory\n", addr);
-	return -1;
-      }
+        default:
+          pmsg_error("illegal address %lu for signature memory\n", addr);
+          return -1;
+        }
       return 0;
     }
-
   }
 
   /*
@@ -2353,23 +2345,16 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless DX
       need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_eq(mem->desc, "lfuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
-    addr = 0;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 1;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 2;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (str_starts(mem->desc, "fuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
   } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
   } else if (str_eq(mem->desc, "prodsig")) {
