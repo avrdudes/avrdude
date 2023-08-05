@@ -2081,7 +2081,7 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
 
   PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
 
-  if(strcasecmp(port, "avrdoper") == 0){
+  if(str_caseeq(port, "avrdoper")){
 #if defined(HAVE_LIBHIDAPI)
     serdev = &avrdoper_serdev;
     PDATA(pgm)->pgmtype = PGMTYPE_STK500;
