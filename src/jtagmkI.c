@@ -880,15 +880,14 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_eq(mem->desc, "lfuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
-    addr = 0;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
   } else if (str_eq(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
   } else if (str_eq(mem->desc, "calibration")) {
@@ -981,18 +980,15 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     need_progmode = 0;
     need_dummy_read = 1;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_eq(mem->desc, "lfuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
-    addr = 0;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    need_dummy_read = 1;
-    addr = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    need_dummy_read = 1;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
   } else if (str_eq(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
     need_dummy_read = 1;
