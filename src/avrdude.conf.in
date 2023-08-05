@@ -18673,7 +18673,7 @@ part
     ;
 
     memory "io"
-        size               = 4096;
+        size               = 4352;
         readsize           = 1;
     ;
 
@@ -19875,10 +19875,6 @@ part parent ".avr8x_tiny"
     memory "lock"
         initval            = 0xc5;
     ;
-
-    memory "io"
-        size               = 4224;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -19927,10 +19923,6 @@ part parent ".avr8x_tiny"
     memory "lock"
         initval            = 0xc5;
     ;
-
-    memory "io"
-        size               = 4224;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -19970,10 +19962,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
@@ -20018,10 +20006,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
@@ -20071,10 +20055,6 @@ part parent ".avr8x_tiny"
     memory "lock"
         initval            = 0xc5;
     ;
-
-    memory "io"
-        size               = 4224;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -20114,10 +20094,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
@@ -20162,10 +20138,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
@@ -20215,10 +20187,6 @@ part parent ".avr8x_tiny"
     memory "lock"
         initval            = 0xc5;
     ;
-
-    memory "io"
-        size               = 4224;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -20258,10 +20226,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
@@ -20306,10 +20270,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
@@ -20359,10 +20319,6 @@ part parent ".avr8x_tiny"
     memory "lock"
         initval            = 0xc5;
     ;
-
-    memory "io"
-        size               = 4224;
-    ;
 ;
 
 #------------------------------------------------------------
@@ -20402,10 +20358,6 @@ part parent ".avr8x_tiny"
 
     memory "lock"
         initval            = 0xc5;
-    ;
-
-    memory "io"
-        size               = 4224;
     ;
 ;
 
