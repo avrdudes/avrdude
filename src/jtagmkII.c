@@ -2335,14 +2335,14 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
        addr &= ~1L;
      }
      writesize = 2;
-     if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless it's a DX part
+     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
        need_progmode = 0;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (str_eq(mem->desc, "eeprom")) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
-    if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless DX
+    if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (str_contains(mem->desc, "fuse")) {
