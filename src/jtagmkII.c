@@ -1353,6 +1353,12 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         "single-byte EEPROM updates not possible\n");
   }
 
+  if (pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
+    char chip_rev[AVR_CHIP_REVLEN];
+    pgm->read_chip_rev(pgm, p, chip_rev);
+    pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+  }
+
   return 0;
 }
 
@@ -2129,6 +2135,23 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   return n_bytes;
 }
 
+static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
+  // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    AVRMEM *m = avr_locate_mem(p, "io");
+    int status = pgm->read_byte(pgm, p, m,
+        p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
+        (unsigned char *)chip_rev);
+    if (status < 0)
+      return status;
+  } else {
+    pmsg_error("target does not have a chip revision that can be read\n");
+    return -1;
+  }
+
+  pmsg_debug("jtagmkII_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
+  return 0;
+}
 
 static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			      unsigned long addr, unsigned char * value)
@@ -2195,6 +2218,10 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strcmp(mem->desc, "io") == 0) {
+    cmd[1] = MTYPE_FLASH;
+    AVRMEM *data = avr_locate_mem(p, "data");
+    addr += data->offset;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
@@ -2361,6 +2388,10 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strcmp(mem->desc, "io") == 0) {
+    cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
+    AVRMEM *data = avr_locate_mem(p, "data");
+    addr += data->offset;
   } else if (strcmp(mem->desc, "signature") == 0) {
     cmd[1] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -3636,6 +3667,7 @@ void jtagmkII_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 }
@@ -3699,6 +3731,7 @@ void jtagmkII_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }
@@ -3732,6 +3765,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }
@@ -3766,6 +3800,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
 }
@@ -3862,6 +3897,7 @@ void jtagmkII_dragon_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
+  pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
 }

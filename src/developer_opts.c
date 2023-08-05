@@ -788,6 +788,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout(intcmp, "0x%04x", mcu_base);
   _if_partout(intcmp, "0x%04x", nvm_base);
   _if_partout(intcmp, "0x%04x", ocd_base);
+  _if_partout(intcmp, "0x%04x", syscfg_base);
   _if_partout(intcmp, "%d", ocdrev);
   _if_partout(intcmp, "0x%02x", autobaud_sync);
 

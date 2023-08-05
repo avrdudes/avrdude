@@ -1439,6 +1439,13 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Read chip silicon revision
+  if(pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
+    char chip_rev[AVR_CHIP_REVLEN];
+    pgm->read_chip_rev(pgm, p, chip_rev);
+    pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+  }
+
   PDATA(pgm)->boot_start = ULONG_MAX;
   if (p->prog_modes & PM_PDI) {
     // Find the border between application and boot area
@@ -2128,17 +2135,17 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (str_eq(mem->desc, "lfuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 0;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
+  } else if (str_eq(mem->desc, "hfuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 1;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
+  } else if (str_eq(mem->desc, "efuse")) {
     cmd[3] = MTYPE_FUSE_BITS;
     addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2151,18 +2158,18 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_FUSE_BITS;
     if (!(p->prog_modes & PM_UPDI))
       addr = mem->offset & 7;
-  } else if (strcmp(mem->desc, "usersig") == 0 ||
-             strcmp(mem->desc, "userrow") == 0) {
+  } else if (str_eq(mem->desc, "usersig") ||
+             str_eq(mem->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "prodsig") == 0) {
+  } else if (str_eq(mem->desc, "prodsig")) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (strcmp(mem->desc, "sernum") == 0) {
+  } else if (str_eq(mem->desc, "sernum")) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (strcmp(mem->desc, "osccal16") == 0) {
+  } else if (str_eq(mem->desc, "osccal16")) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (strcmp(mem->desc, "osccal20") == 0) {
+  } else if (str_eq(mem->desc, "osccal20")) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (strcmp(mem->desc, "tempsense") == 0) {
+  } else if (str_eq(mem->desc, "tempsense")) {
     cmd[3] = MTYPE_SIGN_JTAG;
   } else if (strcmp(mem->desc, "osc16err") == 0) {
     cmd[3] = MTYPE_SIGN_JTAG;
@@ -2172,6 +2179,8 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else if (strcmp(mem->desc, "io") == 0) {
+    cmd[3] = MTYPE_SRAM;
   } else if (str_eq(mem->desc, "sib")) {
     if(addr >= AVR_SIBLEN) {
       pmsg_error("cannot read byte from %s sib as address 0x%04lx outside range [0, 0x%04x]\n",
@@ -2338,7 +2347,9 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  }
+  } else if (strcmp(mem->desc, "io") == 0)
+    cmd[3] = MTYPE_SRAM;
+
   // Read-only memories or unsupported by debugWire
   if(str_eq(mem->desc, "calibration") || str_eq(mem->desc, "osc16err") ||
      str_eq(mem->desc, "osccal16") || str_eq(mem->desc, "osc20err") ||
@@ -2519,6 +2530,24 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
   sib[AVR_SIBLEN] = 0; // Zero terminate string
   pmsg_debug("jtag3_read_sib(): received SIB: %s\n", sib);
   free(resp);
+  return 0;
+}
+
+int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
+  // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    AVRMEM *m = avr_locate_mem(p, "io");
+    int status = pgm->read_byte(pgm, p, m,
+        p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
+        (unsigned char *)chip_rev);
+    if (status < 0)
+      return status;
+  } else {
+    pmsg_error("target does not have a chip revision that can be read\n");
+    return -1;
+  }
+
+  pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
   return 0;
 }
 
@@ -3213,6 +3242,7 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_JTAG;
+  pgm->read_chip_rev  = jtag3_read_chip_rev;
 
   /*
    * hardware dependent functions
@@ -3292,6 +3322,7 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
+  pgm->read_chip_rev  = jtag3_read_chip_rev;
 
   /*
    * hardware dependent functions
@@ -3334,6 +3365,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->flag           = PGM_FL_IS_UPDI;
   pgm->unlock         = jtag3_unlock_erase_key;
   pgm->read_sib       = jtag3_read_sib;
+  pgm->read_chip_rev  = jtag3_read_chip_rev;
 
   /*
    * hardware dependent functions
