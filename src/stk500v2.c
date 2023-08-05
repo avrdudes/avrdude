@@ -2261,15 +2261,14 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
-    addr = 0;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
-    addr = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
   } else if (str_eq(mem->desc, "lock")) {
     buf[0] = mode == PPMODE? CMD_READ_LOCK_PP: CMD_READ_LOCK_HVSP;
   } else if (str_eq(mem->desc, "calibration")) {
@@ -2391,15 +2390,14 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return 0;
   }
 
-  if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse")) {
+  if (str_contains(mem->desc, "fuse")) {
     buf[0] = CMD_READ_FUSE_ISP;
-    addr = 0;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    buf[0] = CMD_READ_FUSE_ISP;
-    addr = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    buf[0] = CMD_READ_FUSE_ISP;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
   } else if (str_eq(mem->desc, "lock")) {
     buf[0] = CMD_READ_LOCK_ISP;
   } else if (str_eq(mem->desc, "calibration")) {
@@ -2474,21 +2472,16 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse")) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
-    addr = 0;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
-    addr = 1;
-    pulsewidth = p->programfusepulsewidth;
-    timeout = p->programfusepolltimeout;
-  } else if (str_eq(mem->desc, "efuse")) {
-    buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
-    addr = 2;
-    pulsewidth = p->programfusepulsewidth;
-    timeout = p->programfusepolltimeout;
+    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
   } else if (str_eq(mem->desc, "lock")) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_LOCK_PP: CMD_PROGRAM_LOCK_HVSP;
     pulsewidth = p->programlockpulsewidth;
@@ -2611,11 +2604,11 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
       cache_ptr = PDATA(pgm)->flash_pagecache;
       if ((mem->mode & 1) == 0)
 	/* old, unpaged device, really write single bytes */
-	pagesize = 1;
+        pagesize = 1;
     } else {
       pagesize = mem->page_size;
       if (pagesize == 0)
-	pagesize = 1;
+        pagesize = 1;
       paddr = addr & ~(pagesize - 1);
       paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
       cache_ptr = PDATA(pgm)->eeprom_pagecache;
@@ -2640,15 +2633,14 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   memset(buf, 0, sizeof buf);
-  if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse")) {
+  if (str_contains(mem->desc, "fuse")) {
     buf[0] = CMD_PROGRAM_FUSE_ISP;
-    addr = 0;
-  } else if (str_eq(mem->desc, "hfuse")) {
-    buf[0] = CMD_PROGRAM_FUSE_ISP;
-    addr = 1;
-  } else if (str_eq(mem->desc, "efuse")) {
-    buf[0] = CMD_PROGRAM_FUSE_ISP;
-    addr = 2;
+    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
   } else if (str_eq(mem->desc, "lock")) {
     buf[0] = CMD_PROGRAM_LOCK_ISP;
   } else {
