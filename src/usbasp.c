@@ -561,7 +561,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     /* try alternatives */
     if(str_eq(pgmid, "usbasp")) {
     /* for id usbasp autodetect some variants */
-      if(strcasecmp(port, "nibobee") == 0) {
+      if(str_caseeq(port, "nibobee")) {
         pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
         if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
 		        USBASP_NIBOBEE_PID, "NIBObee") != 0) {

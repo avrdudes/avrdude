@@ -981,9 +981,9 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
     extended_param = ldata(ln);
 
     if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
-      if (strcasecmp(rts_mode, "low") == 0) {
+      if (str_caseeq(rts_mode, "low")) {
         updi_set_rts_mode(pgm, RTS_MODE_LOW);
-      } else if (strcasecmp(rts_mode, "high") == 0) {
+      } else if (str_caseeq(rts_mode, "high")) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
         pmsg_error("RTS/DTR mode must be LOW or HIGH\n");

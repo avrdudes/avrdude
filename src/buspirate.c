@@ -342,11 +342,11 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			char *resetpin;
 			while ((resetpin = strtok(preset, ","))) {
 				preset = NULL; /* for subsequent strtok() calls */
-				if (strcasecmp(resetpin, "cs") == 0)
+				if (str_caseeq(resetpin, "cs"))
 					PDATA(pgm)->reset |= BP_RESET_CS;
-				else if (strcasecmp(resetpin, "aux") == 0 || strcasecmp(reset, "aux1") == 0)
+				else if (str_caseeq(resetpin, "aux") || str_caseeq(reset, "aux1"))
 					PDATA(pgm)->reset |= BP_RESET_AUX;
-				else if (strcasecmp(resetpin, "aux2") == 0)
+				else if (str_caseeq(resetpin, "aux2"))
 					PDATA(pgm)->reset |= BP_RESET_AUX2;
 				else {
 					pmsg_error("reset must be either CS or AUX\n");

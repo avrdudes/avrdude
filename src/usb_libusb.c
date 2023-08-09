@@ -179,7 +179,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		       * right-to-left.
 		       */
 		      x = strlen(string) - strlen(serno);
-		      if (strcasecmp(string + x, serno) != 0)
+		      if (!str_caseeq(string + x, serno))
 			{
                           pmsg_debug("usbdev_open(): serial number does not match\n");
 			  usb_close(udev);
