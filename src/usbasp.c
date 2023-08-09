@@ -439,7 +439,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
 		}
             } else {
                 pmsg_notice2("seen device from vendor >%s<\n", string);
-                if ((vendorName != NULL) && (vendorName[0] != 0) && (strcmp(string, vendorName) != 0))
+                if ((vendorName != NULL) && (vendorName[0] != 0) && !str_eq(string, vendorName))
                     errorCode = USB_ERROR_NOTFOUND;
             }
             /* if productName not given ignore it (any product matches) */
@@ -451,7 +451,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
 		}
             } else {
                 pmsg_notice2("seen product >%s<\n", string);
-                if((productName != NULL) && (productName[0] != 0) && (strcmp(string, productName) != 0))
+                if((productName != NULL) && (productName[0] != 0) && !str_eq(string, productName))
                     errorCode = USB_ERROR_NOTFOUND;
             }
             if (errorCode == 0)
@@ -508,7 +508,7 @@ static int           didUsbInit = 0;
 		    }
                 } else {
                     pmsg_notice2("seen device from vendor >%s<\n", string);
-                    if((vendorName != NULL) && (vendorName[0] != 0) && (strcmp(string, vendorName) != 0))
+                    if((vendorName != NULL) && (vendorName[0] != 0) && !str_eq(string, vendorName))
                         errorCode = USB_ERROR_NOTFOUND;
                 }
                 /* if productName not given ignore it (any product matches) */
@@ -521,7 +521,7 @@ static int           didUsbInit = 0;
 		    }
                 } else {
                     pmsg_notice2("seen product >%s<\n", string);
-                    if((productName != NULL) && (productName[0] != 0) && (strcmp(string, productName) != 0))
+                    if((productName != NULL) && (productName[0] != 0) && !str_eq(string, productName))
                         errorCode = USB_ERROR_NOTFOUND;
                 }
                 if (errorCode == 0)
@@ -771,9 +771,9 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   pmsg_debug("usbasp_program_paged_load(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     function = USBASP_FUNC_READFLASH;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     function = USBASP_FUNC_READEEPROM;
   } else {
     return -2;
@@ -836,9 +836,9 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
   pmsg_debug("usbasp_program_paged_write(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     function = USBASP_FUNC_WRITEFLASH;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     function = USBASP_FUNC_WRITEEEPROM;
   } else {
     return -2;
@@ -1172,7 +1172,7 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   writed = 0;
 
   /* must erase fuse first */
-  if(strcmp(m->desc, "fuse") == 0)
+  if(str_eq(m->desc, "fuse"))
   {
     /* Set PR */
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));

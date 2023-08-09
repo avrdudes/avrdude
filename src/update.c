@@ -239,7 +239,7 @@ int update_is_writeable(const char *fn) {
     return 0;
 
   // Assume writing to stdout will be OK
-  if(!strcmp(fn, "-"))
+  if(str_eq(fn, "-"))
     return 1;
 
   // File exists? If so return whether it's readable and an OK file type
@@ -260,7 +260,7 @@ int update_is_readable(const char *fn) {
     return 0;
 
   // Assume reading from stdin will be OK
-  if(!strcmp(fn, "-"))
+  if(str_eq(fn, "-"))
     return 1;
 
   // File exists, is readable by the process and an OK file type?
@@ -471,7 +471,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     // Patch flash input, eg, for vector bootloaders
     if(pgm->flash_readhook) {
       AVRMEM *mem = avr_locate_mem(p, upd->memtype);
-      if(mem && !strcmp(mem->desc, "flash")) {
+      if(mem && str_eq(mem->desc, "flash")) {
         rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
         if (rc < 0) {
           pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));

@@ -456,7 +456,7 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   int size;
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
-  if ((strcmp(m->desc, "flash") == 0) || (strcmp(m->desc, "eeprom") == 0))
+  if (str_eq(m->desc, "flash") || str_eq(m->desc, "eeprom"))
   {
     cmd[0] = 'B';
     cmd[1] = 0;
@@ -476,7 +476,7 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
       butterfly_set_addr(pgm, addr);
     }
   }
-  else if (strcmp(m->desc, "lock") == 0)
+  else if (str_eq(m->desc, "lock"))
   {
     cmd[0] = 'l';
     cmd[1] = value;
@@ -515,9 +515,9 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
     }
     // Defaults to flash read ('F')
     char msg[4] = {'g', 0x00, 0x02, 'F'};
-    if (strcmp(m->desc, "prodsig") == 0)
+    if (str_eq(m->desc, "prodsig"))
       msg[3] = 'P';
-    else if (strcmp(m->desc, "usersig") == 0)
+    else if (str_eq(m->desc, "usersig"))
       msg[3] = 'U';
     butterfly_send(pgm, msg, 4);
     /* Read back the program mem word (MSB first) */
@@ -552,26 +552,26 @@ static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 {
   char cmd;
 
-  if (strcmp(m->desc, "flash")   == 0 ||
-      strcmp(m->desc, "prodsig") == 0 ||
-      strcmp(m->desc, "usersig") == 0) {
+  if (str_eq(m->desc, "flash")   ||
+      str_eq(m->desc, "prodsig") ||
+      str_eq(m->desc, "usersig")) {
     return butterfly_read_byte_flash(pgm, p, m, addr, value);
   }
 
-  if (strcmp(m->desc, "eeprom") == 0) {
+  if (str_eq(m->desc, "eeprom")) {
     return butterfly_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
-  if (strcmp(m->desc, "lfuse") == 0) {
+  if (str_eq(m->desc, "lfuse")) {
     cmd = 'F';
   }
-  else if (strcmp(m->desc, "hfuse") == 0) {
+  else if (str_eq(m->desc, "hfuse")) {
     cmd = 'N';
   }
-  else if (strcmp(m->desc, "efuse") == 0) {
+  else if (str_eq(m->desc, "efuse")) {
     cmd = 'Q';
   }
-  else if (strcmp(m->desc, "lock") == 0) {
+  else if (str_eq(m->desc, "lock")) {
     cmd = 'r';
   }
   else
@@ -595,9 +595,9 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
   unsigned int wr_size = 2;
 
-  if (strcmp(m->desc, "flash")  &&
-      strcmp(m->desc, "eeprom") &&
-      strcmp(m->desc, "usersig"))
+  if (!str_eq(m->desc, "flash")  &&
+      !str_eq(m->desc, "eeprom") &&
+      !str_eq(m->desc, "usersig"))
     return -2;
 
   if (m->desc[0] == 'e')
@@ -652,9 +652,9 @@ static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
   int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
   /* check parameter syntax: only "flash", "eeprom" or "usersig" is allowed */
-  if (strcmp(m->desc, "flash")  &&
-      strcmp(m->desc, "eeprom") &&
-      strcmp(m->desc, "usersig"))
+  if (!str_eq(m->desc, "flash")  &&
+      !str_eq(m->desc, "eeprom") &&
+      !str_eq(m->desc, "usersig"))
     return -2;
 
   if (m->desc[0] == 'e')

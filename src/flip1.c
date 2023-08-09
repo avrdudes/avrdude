@@ -371,7 +371,7 @@ int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
   if (FLIP1(pgm)->dfu == NULL)
     return -1;
 
-  if (strcmp(mem->desc, "signature") == 0) {
+  if (str_eq(mem->desc, "signature")) {
     if (flip1_read_sig_bytes(pgm, part, mem) < 0)
       return -1;
     if (addr >= (unsigned long) mem->size) {
@@ -808,9 +808,9 @@ const char * flip1_mem_unit_str(enum flip1_mem_unit mem_unit)
 }
 
 enum flip1_mem_unit flip1_mem_unit(const char *name) {
-  if (strcmp(name, "flash") == 0)
+  if (str_eq(name, "flash"))
     return FLIP1_MEM_UNIT_FLASH;
-  if (strcmp(name, "eeprom") == 0)
+  if (str_eq(name, "eeprom"))
     return FLIP1_MEM_UNIT_EEPROM;
   return FLIP1_MEM_UNIT_UNKNOWN;
 }

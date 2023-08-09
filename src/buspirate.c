@@ -233,7 +233,7 @@ static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 		if (readline == NULL)
 			return -1;
 	/* keep reading until we get what we sent there */
-	} while (strcmp(readline, str) != 0);
+	} while (!str_eq(readline, str));
 
 	/* by now we should be in sync */
 	return 0;
@@ -251,7 +251,6 @@ static int buspirate_expect(const PROGRAMMER *pgm, char *send,
 				char *expect, int wait_for_prompt)
 {
 	int got_it = 0;
-	size_t expect_len = strlen(expect);
 	char *rcvd;
 
 	buspirate_send(pgm, send);
@@ -260,7 +259,7 @@ static int buspirate_expect(const PROGRAMMER *pgm, char *send,
 		if (rcvd == NULL) {
 			return -1;
 		}
-		if (strncmp(rcvd, expect, expect_len) == 0) {
+		if (str_starts(rcvd, expect)) {
 			if (! wait_for_prompt) {
 				serial_drain(&pgm->fd, 0);
 				return 1;
@@ -293,7 +292,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
 	for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
 		extended_param = ldata(ln);
-		if (strcmp(extended_param, "ascii") == 0) {
+		if (str_eq(extended_param, "ascii")) {
 			PDATA(pgm)->flag |= BP_FLAG_XPARM_FORCE_ASCII;
 			continue;
 		}
@@ -651,7 +650,7 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 			return -1;
 		}
 		if (spi_cmd == -1 && sscanf(rcvd, "%2d. %10s", &cmd, mode)) {
-			if (strcmp(mode, "SPI") == 0)
+			if (str_eq(mode, "SPI"))
 				spi_cmd = cmd;
 		}
 		if (buspirate_is_prompt(rcvd))
@@ -678,7 +677,7 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 			snprintf(buf, sizeof(buf), "%d\n", cmd);
 		}
 		if (buspirate_is_prompt(rcvd)) {
-			if (strncmp(rcvd, "SPI>", 4) == 0) {
+			if (str_starts(rcvd, "SPI>")) {
 				msg_info("BusPirate is now configured for SPI\n");
 				break;
 			}
@@ -736,10 +735,10 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 			pmsg_error("programmer is not responding\n");
 			return;
 		}
-		if (strncmp(rcvd, "Are you sure?", 13) == 0) {
+		if (str_starts(rcvd, "Are you sure?")) {
 			buspirate_send_bin(pgm, (const unsigned char*)accept_str, strlen(accept_str));
 		}
-		if (strncmp(rcvd, "RESET", 5) == 0) {
+		if (str_starts(rcvd, "RESET")) {
 			print_banner = 1;
 			continue;
 		}
@@ -903,7 +902,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	}
 
 	// determine what type of memory to read, only flash is supported
-	if (strcmp(m->desc, "flash") != 0) {
+	if (!str_eq(m->desc, "flash")) {
 		return -1;
 	}
 
@@ -964,7 +963,7 @@ static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 		return -1;
 	}
 
-	if (strcmp(m->desc,"flash") != 0) {
+	if (!str_eq(m->desc,"flash")) {
 		/* Only flash memory currently supported. */
 		return -1;
 	}

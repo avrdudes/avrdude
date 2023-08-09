@@ -137,7 +137,7 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
   if(!(op = mem->op[opnum]))
     return -1;
 
-  isflash = !strcmp(mem->desc, "flash"); // ISP parts have only one flash-like memory
+  isflash = str_eq(mem->desc, "flash"); // ISP parts have only one flash-like memory
   memsize = mem->size >> isflash;        // word addresses for flash
   pagesize = mem->page_size >> isflash;
 
@@ -434,7 +434,7 @@ AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
   match = NULL;
   for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(l && strncmp(m->desc, desc, l) == 0) { // Partial initial match
+    if(l && str_starts(m->desc, desc)) { // Partial initial match
       match = m;
       matches++;
       if(m->desc[l] == 0)       // Exact match; return straight away
@@ -459,7 +459,7 @@ AVRMEM *avr_locate_mem_noalias(const AVRPART *p, const char *desc) {
   match = NULL;
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(l && strncmp(m->desc, desc, l) == 0) { // Partial initial match
+    if(l && str_starts(m->desc, desc)) { // Partial initial match
       match = m;
       matches++;
       if(m->desc[l] == 0)       // Exact match; return straight away
@@ -511,7 +511,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
 
   if (m != NULL) {
     // Only print memory section if the previous section printed isn't identical
-    if(prev_mem_offset != m->offset || prev_mem_size != m->size || (strcmp(p->family_id, "") == 0)) {
+    if(prev_mem_offset != m->offset || prev_mem_size != m->size || str_eq(p->family_id, "")) {
       prev_mem_offset = m->offset;
       prev_mem_size = m->size;
       AVRMEM_ALIAS *ap = avr_find_memalias(p, m);

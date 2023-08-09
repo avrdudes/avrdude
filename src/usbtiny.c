@@ -304,12 +304,12 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   int vid, pid;
 
   // if no -P was given or '-P usb' was given
-  if(strcmp(name, "usb") == 0)
+  if(str_eq(name, "usb"))
     name = NULL;
   else {
     // calculate bus and device names from -P option
     const size_t usb_len = strlen("usb");
-    if(strncmp(name, "usb", usb_len) == 0 && ':' == name[usb_len]) {
+    if(str_starts(name, "usb") && ':' == name[usb_len]) {
         bus_name = name + usb_len + 1;
         dev_name = strchr(bus_name, ':');
         if(NULL != dev_name)
@@ -347,8 +347,8 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||
-       strcmp(bus->dirname, bus_name) ||
-       strcmp(dev->filename, dev_name)))
+       !str_eq(bus->dirname, bus_name) ||
+       !str_eq(dev->filename, dev_name)))
       continue;
 	PDATA(pgm)->usb_handle = usb_open(dev);           // attempt to connect to device
 
@@ -643,8 +643,7 @@ static int usbtiny_paged_load (const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char cmd[8];
 
   // First determine what we're doing
-  function = strcmp(m->desc, "eeprom")==0?
-    USBTINY_EEPROM_READ: USBTINY_FLASH_READ;
+  function = str_eq(m->desc, "eeprom")? USBTINY_EEPROM_READ: USBTINY_FLASH_READ;
 
   // paged_load() only called for pages, so OK to set ext addr once at start
   if((lext = m->op[AVR_OP_LOAD_EXT_ADDR])) {
@@ -714,7 +713,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   int delay;        // delay required between SPI commands
 
   // First determine what we're doing
-  if (strcmp( m->desc, "flash" ) == 0) {
+  if (str_eq(m->desc, "flash")) {
     function = USBTINY_FLASH_WRITE;
   } else {
     function = USBTINY_EEPROM_WRITE;

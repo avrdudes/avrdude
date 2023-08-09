@@ -630,7 +630,7 @@ part_parm :
         TOKEN *t = lrmv_n(string_list, 1);
         int found = 0;
         for(LNODEID ln = lfirst(current_part->variants); ln; ln = lnext(ln)) {
-          if(!strcmp((char *) ldata(ln), t->value.string)) {
+          if(str_eq((char *) ldata(ln), t->value.string)) {
             found = 1;
             break;
           }
@@ -1358,7 +1358,7 @@ static int parse_cmdbits(OPCODE * op, int opnum)
           if(bitno < 8 || bitno > 23)
             yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
           else if((bn & 31) != sb) {
-            if(strncasecmp(current_part->desc, "AT89S5", 6)) // Exempt AT89S5x from warning
+            if(!str_casestarts(current_part->desc, "AT89S5")) // Exempt AT89S5x from warning
               yywarning("a%d would normally be expected to be a%d", bn, sb);
           } else if(bn < 0 || bn > 31)
             yywarning("invalid address bit a%d, using a%d", bn, bn & 31);

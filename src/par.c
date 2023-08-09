@@ -338,22 +338,22 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
 
   s = str;
   while((cp = strtok(s, ","))) {
-    if(strcmp(cp, "reset") == 0)
+    if(str_eq(cp, "reset"))
       pgm->exit_reset = EXIT_RESET_ENABLED;
 
-    else if(strcmp(cp, "noreset") == 0)
+    else if(str_eq(cp, "noreset"))
       pgm->exit_reset = EXIT_RESET_DISABLED;
 
-    else if(strcmp(cp, "vcc") == 0)
+    else if(str_eq(cp, "vcc"))
       pgm->exit_vcc = EXIT_VCC_ENABLED;
 
-    else if(strcmp(cp, "novcc") == 0)
+    else if(str_eq(cp, "novcc"))
       pgm->exit_vcc = EXIT_VCC_DISABLED;
 
-    else if(strcmp(cp, "d_high") == 0)
+    else if(str_eq(cp, "d_high"))
       pgm->exit_datahigh = EXIT_DATAHIGH_ENABLED;
 
-    else if(strcmp(cp, "d_low") == 0)
+    else if(str_eq(cp, "d_low"))
       pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
 
     else {
