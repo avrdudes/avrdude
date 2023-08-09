@@ -880,7 +880,7 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
     if (str_eq(mem->desc, "lfuse"))
       addr = 0;
@@ -980,7 +980,7 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     need_progmode = 0;
     need_dummy_read = 1;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
     if (str_eq(mem->desc, "lfuse"))

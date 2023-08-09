@@ -2261,7 +2261,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
     if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
       addr = 0;
@@ -2390,7 +2390,7 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return 0;
   }
 
-  if (str_contains(mem->desc, "fuse")) {
+  if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     buf[0] = CMD_READ_FUSE_ISP;
     if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
       addr = 0;
@@ -2472,7 +2472,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
@@ -2633,7 +2633,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   memset(buf, 0, sizeof buf);
-  if (str_contains(mem->desc, "fuse")) {
+  if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     buf[0] = CMD_PROGRAM_FUSE_ISP;
     if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
       addr = 0;

@@ -2135,7 +2135,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[3] = MTYPE_FUSE_BITS;
     if (str_eq(mem->desc, "lfuse"))
       addr = 0;
@@ -2314,7 +2314,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       pagesize = PDATA(pgm)->eeprom_pagesize;
     }
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[3] = MTYPE_FUSE_BITS;
     if (str_eq(mem->desc, "lfuse"))
       addr = 0;

@@ -2184,7 +2184,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
       cache_ptr = PDATA(pgm)->eeprom_pagecache;
     }
-    } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
     if (str_eq(mem->desc, "lfuse"))
       addr = 0;
@@ -2345,7 +2345,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_contains(mem->desc, "fuse")) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
     if (str_eq(mem->desc, "lfuse"))
       addr = 0;
