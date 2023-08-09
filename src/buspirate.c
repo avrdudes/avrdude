@@ -669,7 +669,7 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 		if (rcvd == NULL) {
 			return -1;
 		}
-		if (strstr(rcvd, "Normal (H=3.3V, L=GND)")) {
+		if (str_contains(rcvd, "Normal (H=3.3V, L=GND)")) {
 			/* BP firmware 2.1 defaults to Open-drain output.
 			 * That doesn't work on my board, even with pull-up
 			 * resistors. Select 3.3V output mode instead. */

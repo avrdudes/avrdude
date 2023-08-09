@@ -345,7 +345,7 @@ int dev_message(int msglvl, const char *fmt, ...) {
 int dev_has_subsstr_comms(const LISTID comms, const char *subs) {
   if(comms)
     for(LNODEID ln=lfirst(comms); ln; ln=lnext(ln))
-       if(strstr((char *) ldata(ln), subs))
+       if(str_contains((char *) ldata(ln), subs))
          return 1;
   return 0;
 }

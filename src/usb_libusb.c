@@ -155,7 +155,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		   * whether we have to search for a HID interface
 		   * below.
 		   */
-		  if(strstr(product, "CMSIS-DAP") != NULL)
+		  if(str_contains(product, "CMSIS-DAP"))
 		  {
 		      pinfo.usbinfo.flags |= PINFO_FL_USEHID;
 		      /* The JTAGICE3 running the CMSIS-DAP firmware doesn't
@@ -163,7 +163,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      fd->usb.eep = 0;
 		  }
 
-		  if(strstr(product, "mEDBG") != NULL)
+		  if(str_contains(product, "mEDBG"))
 		  {
 		      /* The AVR Xplained Mini uses different endpoints. */
 		      fd->usb.rep = 0x81;
