@@ -1198,6 +1198,13 @@ int main(int argc, char * argv [])
     goto main_exit;
   }
 
+  if(!ovsigck && !(p->prog_modes & pgm->prog_modes)) {
+    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
+    imsg_error("lack a common programming mode; use -F to override this check\n");
+    exitrc = 1;
+    goto main_exit;
+  }
+
   if (exitspecs != NULL) {
     if (pgm->parseexitspecs == NULL) {
       pmsg_warning("-E option not supported by this programmer type\n");

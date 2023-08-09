@@ -830,7 +830,7 @@ programmer
     id                     = "dryrun";
     desc                   = "Emulates programming without a programmer";
     type                   = "dryrun";
-    prog_modes             = PM_TPI | PM_ISP | PM_UPDI | PM_PDI;
+    prog_modes             = PM_TPI | PM_ISP | PM_PDI | PM_UPDI | PM_aWire;
 ;
 
 #------------------------------------------------------------
