@@ -47,7 +47,7 @@ int upidxsig(const uint8_t *sigs) {
 // Given the long name of a part return index in uP table or -1 if not found
 int upidxname(const char *name) {
   for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++)
-    if(str_caseeq(name, uP_table[i].name))
+    if(0 == strcasecmp(name, uP_table[i].name))
       return i;
 
   return -1;
