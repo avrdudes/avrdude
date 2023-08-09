@@ -1083,6 +1083,12 @@ int main(int argc, char * argv [])
     exit(1);
   }
 
+  if(!ovsigck && partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
+    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
+    imsg_error("lack a common programming mode; use -F to override this check\n");
+    exit(1);
+  }
+
   if (pgm->initpgm) {
     pgm->initpgm(pgm);
   } else {
@@ -1194,13 +1200,6 @@ int main(int argc, char * argv [])
   p = locate_part(part_list, partdesc);
   if (p == NULL) {
     part_not_found(partdesc);
-    exitrc = 1;
-    goto main_exit;
-  }
-
-  if(!ovsigck && !(p->prog_modes & pgm->prog_modes)) {
-    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
-    imsg_error("lack a common programming mode; use -F to override this check\n");
     exitrc = 1;
     goto main_exit;
   }
