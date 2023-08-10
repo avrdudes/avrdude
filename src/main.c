@@ -1019,7 +1019,7 @@ int main(int argc, char * argv [])
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
       PROGRAMMER *pgm = ldata(ln2);
       int pm = pgm->prog_modes & p->prog_modes;
-      if(pm & (pm-1))
+      if((pm & (pm-1)) && !str_eq(pgmid, "dryrun"))
         pmsg_warning("%s and %s share multiple modes (%s)\n",
           pgm->id? (char *) ldata(lfirst(pgm->id)): "???", p->desc, avr_prog_modes(pm));
     }
