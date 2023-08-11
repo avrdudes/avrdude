@@ -1018,10 +1018,10 @@ int main(int argc, char * argv [])
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
       PROGRAMMER *pgm = ldata(ln2);
+      const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
-      if((pm & (pm-1)) && !str_eq(pgmid, "dryrun"))
-        pmsg_warning("%s and %s share multiple modes (%s)\n",
-          pgm->id? (char *) ldata(lfirst(pgm->id)): "???", p->desc, avr_prog_modes(pm));
+      if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
+        pmsg_warning("%s and %s share multiple modes (%s)\n", pnam, p->desc, avr_prog_modes(pm));
     }
   }
 
