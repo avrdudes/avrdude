@@ -2980,6 +2980,10 @@ part
     memory "calibration"
         size               = 1;
     ;
+
+    memory "io"
+        size               = 64;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -3087,6 +3091,10 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 64;
     ;
 ;
 
@@ -3236,6 +3244,11 @@ part
         size               = 2;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -3375,6 +3388,10 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 64;
     ;
 ;
 
@@ -4513,6 +4530,11 @@ part
         size               = 4;
         read               = "0011.1000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -4678,6 +4700,11 @@ part
         size               = 4;
         read               = "0011.1000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -4837,6 +4864,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -4973,6 +5005,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -5111,6 +5148,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5247,6 +5289,11 @@ part
     memory "calibration"
         size               = 4;
         read               = "0011.1000--000x.xxxx--0000.00aa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
     ;
 ;
 
@@ -5416,6 +5463,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -5724,6 +5776,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5944,6 +6001,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -6128,6 +6190,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--00xx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -6432,6 +6499,11 @@ part parent "m169"
         readback           = 0x00 0x00;
         delay              = 10;
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -6474,6 +6546,11 @@ part parent "m169"
         readback           = 0x00 0x00;
         delay              = 10;
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -6510,6 +6587,11 @@ part parent "m169"
     memory "flash"
         readback           = 0x00 0x00;
         delay              = 10;
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -6650,6 +6732,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -6922,6 +7009,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7137,6 +7229,11 @@ part
     memory "calibration"
         size               = 4;
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
     ;
 ;
 
@@ -7400,6 +7497,11 @@ part
         size               = 4;
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7550,6 +7652,11 @@ part
         size               = 4;
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7678,6 +7785,11 @@ part
         size               = 4;
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7803,6 +7915,11 @@ part
     memory "calibration"
         size               = 4;
         read               = "0011.1000--xxxx.xxxx--0000.00aa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
     ;
 ;
 
@@ -7945,6 +8062,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
     ;
 ;
 
@@ -8114,6 +8236,11 @@ part
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -8278,6 +8405,11 @@ part
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -8363,6 +8495,11 @@ part
 
     memory "calibration"
         size               = 1;
+    ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
     ;
 ;
 
@@ -8515,6 +8652,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -8759,6 +8901,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -9008,6 +9155,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9246,6 +9398,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9404,6 +9561,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9553,6 +9715,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9698,6 +9865,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -9845,6 +10017,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9989,6 +10166,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -10182,6 +10364,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -10692,6 +10879,11 @@ part
         size               = 1;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10843,6 +11035,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -11029,6 +11226,11 @@ part
         size               = 1;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11203,6 +11405,11 @@ part
         size               = 2;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11374,6 +11581,11 @@ part
         size               = 2;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11513,6 +11725,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -11684,6 +11901,11 @@ part parent "pwm2"
         readback           = 0x00 0x00;
         delay              = 10;
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11712,6 +11934,11 @@ part parent "pwm2"
     memory "flash"
         readback           = 0x00 0x00;
         delay              = 10;
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -11868,6 +12095,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -12121,6 +12353,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12281,6 +12518,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12438,6 +12680,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12580,6 +12827,11 @@ part
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 480;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12720,6 +12972,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 480;
+        offset             = 0x20;
     ;
 ;
 
@@ -12885,6 +13142,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 480;
+        offset             = 0x20;
     ;
 ;
 
@@ -13286,6 +13548,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13466,6 +13733,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13645,6 +13917,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13711,6 +13988,10 @@ part parent "t44"
         bitmask            = 0xff;
         write              = "1010.1100--1010.0100--xxxx.xxxx--iiii.iiii";
     ;
+
+    memory "io"
+        size               = 224;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13752,6 +14033,10 @@ part parent "t84"
     memory "efuse"
         bitmask            = 0xff;
         write              = "1010.1100--1010.0100--xxxx.xxxx--iiii.iiii";
+    ;
+
+    memory "io"
+        size               = 224;
     ;
 ;
 
@@ -13897,6 +14182,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 64;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14035,6 +14325,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -14177,6 +14472,11 @@ part
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14315,6 +14615,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -14472,6 +14777,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -14633,6 +14943,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14773,6 +15088,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -14916,6 +15236,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15058,6 +15383,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15199,6 +15529,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -15345,6 +15680,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--0000.0000--xxxx.xxxx--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -15545,6 +15885,11 @@ part
         size               = 1;
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15744,6 +16089,11 @@ part
     memory "calibration"
         size               = 1;
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
@@ -18152,6 +18502,11 @@ part
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18229,6 +18584,10 @@ part parent ".reduced_core_tiny"
         offset             = 0x4000;
         blocksize          = 128;
     ;
+
+    memory "io"
+        size               = 64;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18267,6 +18626,10 @@ part parent ".reduced_core_tiny"
         page_size          = 16;
         offset             = 0x4000;
         blocksize          = 128;
+    ;
+
+    memory "io"
+        size               = 64;
     ;
 ;
 
@@ -18319,6 +18682,10 @@ part parent ".reduced_core_tiny"
         bitmask            = 0x77;
         n_word_writes      = 2;
     ;
+
+    memory "io"
+        size               = 64;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18350,6 +18717,10 @@ part parent ".reduced_core_tiny"
     memory "fuse"
         bitmask            = 0x77;
         n_word_writes      = 4;
+    ;
+
+    memory "io"
+        size               = 64;
     ;
 ;
 
@@ -18384,6 +18755,10 @@ part parent ".reduced_core_tiny"
         bitmask            = 0x0f;
     ;
 
+    memory "io"
+        size               = 64;
+    ;
+
     memory "sigrow"
         size               = 16;
         page_size          = 16;
@@ -18416,6 +18791,10 @@ part parent ".reduced_core_tiny"
 
     memory "fuse"
         bitmask            = 0x0f;
+    ;
+
+    memory "io"
+        size               = 64;
     ;
 
     memory "sigrow"
@@ -18500,6 +18879,11 @@ part
 
     memory "signature"
         size               = 3;
+    ;
+
+    memory "io"
+        size               = 224;
+        offset             = 0x20;
     ;
 ;
 
