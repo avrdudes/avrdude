@@ -770,6 +770,10 @@ flash-type memories the -U option can only write 0-bits but not 1-bits.
 Hence, usersig needs to be erased before a file can be uploaded to this
 memory region, e.g., using -T "erase usersig" -U
 usersig:w:parameters.hex:i
+.It io
+Volatile register memory; it cannot be accessed by external programming
+methods only by bootloaders, which has limited use unless the bootloader
+jumps to the application directly, i.e., without a WDT reset
 .El
 .Pp
 ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
@@ -795,6 +799,10 @@ Production signature (calibration) area
 .It usersig
 Additional flash memory page that can be used for firmware settings; this
 memory is not erased during a chip erase
+.It io
+Volatile register memory;
+.Nm
+can read this memory but not write to it using external programming
 .El
 .Pp
 Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
@@ -837,6 +845,13 @@ Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
 .It sib
 Special system information block memory with information about AVR family, chip revision etc.
+.It io
+Volatile register memory;
+.Nm
+can program this memory but this is of limited utility because anything
+written to the io memory will be undefined or lost after reset; writing to
+individual registers in the terminal can still be used, e.g., to test I/O
+ports
 .El
 .Pp
 The
