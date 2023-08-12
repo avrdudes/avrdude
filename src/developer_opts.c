@@ -850,10 +850,12 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
     if(injct)
       for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
-        if(meminj[i].mcu)
-          if(str_casematch(meminj[i].mcu, p->desc) && str_match(meminj[i].mem, m->desc))
+        if(meminj[i].mcu && str_casematch(meminj[i].mcu, p->desc))
+          if(str_match(meminj[i].mem, m->desc)) {
             dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
               meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
+            meminj[i].mcu = NULL;
+          }
 
     if(!tsv) {
       dev_cout(m->comments, ";", 0, 0);
@@ -882,12 +884,24 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     }
   }
 
-  if(injct)
+  if(injct) {
     for(size_t i=0; i<sizeof ptinj/sizeof*ptinj; i++)
       if(ptinj[i].mcu)
         if(str_casematch(ptinj[i].mcu, p->desc))
           dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
             ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
+
+    for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
+      if(meminj[i].mcu && str_casematch(meminj[i].mcu, p->desc)) {
+        if(!tsv)
+          dev_info("    memory \"%s\"\n", meminj[i].mem);
+        dev_part_strct_entry(tsv, ".ptmm", p->desc, meminj[i].mem,
+          meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
+        meminj[i].mcu = NULL;
+        if(!tsv)
+          dev_info("    ;\n");
+      }
+  }
 
   if(!tsv) {
     dev_cout(p->comments, ";", 0, 0);
