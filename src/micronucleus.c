@@ -654,14 +654,14 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
     char* dev_name = NULL;
 
     // if no -P was given or '-P usb' was given
-    if (strcmp(port, "usb") == 0)
+    if (str_eq(port, "usb"))
     {
         port = NULL;
     }
     else
     {
         // calculate bus and device names from -P option
-        if (strncmp(port, "usb", 3) == 0 && ':' == port[3])
+        if (str_starts(port, "usb") && ':' == port[3])
         {
             bus_name = port + 4;
             dev_name = strchr(bus_name, ':');
@@ -738,7 +738,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
                     // if -P was given, match device by device name and bus name
                     if (port != NULL)
                     {
-                        if (dev_name == NULL || strcmp(bus->dirname, bus_name) || strcmp(device->filename, dev_name))
+                        if (dev_name == NULL || !str_eq(bus->dirname, bus_name) || !str_eq(device->filename, dev_name))
                         {
                             continue;
                         }
@@ -814,10 +814,10 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
 {
     pmsg_debug("micronucleus_read_byte(desc=%s, addr=0x%04lX)\n", mem->desc, addr);
 
-    if (strcmp(mem->desc, "lfuse") == 0 ||
-        strcmp(mem->desc, "hfuse") == 0 ||
-        strcmp(mem->desc, "efuse") == 0 ||
-        strcmp(mem->desc, "lock") == 0)
+    if (str_eq(mem->desc, "lfuse") ||
+        str_eq(mem->desc, "hfuse") ||
+        str_eq(mem->desc, "efuse") ||
+        str_eq(mem->desc, "lock"))
     {
         *value = 0xFF;
         return 0;
@@ -850,7 +850,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 {
     pmsg_debug("micronucleus_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
 
-    if (strcmp(mem->desc, "flash") == 0)
+    if (str_eq(mem->desc, "flash"))
     {
         pdata_t* pdata = PDATA(pgm);
 

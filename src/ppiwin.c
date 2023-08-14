@@ -101,7 +101,7 @@ void ppi_open(const char *port, union filedescriptor *fdp) {
     fd = -1;
     for(i = 0; i < DEVICE_MAX; i++)
     {
-        if(strcmp(winports[i].name, port) == 0)
+        if(str_eq(winports[i].name, port))
         {
             /* Set the file descriptor with the Windows parallel port base address. */
             fd = winports[i].base_address;

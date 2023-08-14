@@ -151,7 +151,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     struct gpiohandle_request req;
     int ret;
 
-    if (!strcmp(port, "unknown")) {
+    if (str_eq(port, "unknown")) {
         port = port_default;
     }
 
@@ -385,11 +385,11 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     s = str;
     while ((cp = strtok(s, ","))) {
         s = NULL;
-        if (!strcmp(cp, "reset")) {
+        if (str_eq(cp, "reset")) {
             pgm->exit_reset = EXIT_RESET_ENABLED;
             continue;
         }
-        if (!strcmp(cp, "noreset")) {
+        if (str_eq(cp, "noreset")) {
             pgm->exit_reset = EXIT_RESET_DISABLED;
             continue;
         }

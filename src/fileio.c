@@ -759,7 +759,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
   int rv = 0;
 
   if (p->prog_modes & PM_aWire) { // AVR32
-    if (strcmp(mem->desc, "flash") == 0) {
+    if (str_eq(mem->desc, "flash")) {
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
       *fileoff = 0;
@@ -767,48 +767,48 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       rv = -1;
     }
   } else {
-    if (strcmp(mem->desc, "flash") == 0 ||
-        strcmp(mem->desc, "boot") == 0 ||
-        strcmp(mem->desc, "application") == 0 ||
-        strcmp(mem->desc, "apptable") == 0) {
+    if (str_eq(mem->desc, "flash") ||
+        str_eq(mem->desc, "boot") ||
+        str_eq(mem->desc, "application") ||
+        str_eq(mem->desc, "apptable")) {
       *lowbound = 0;
       *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "data") == 0) { // SRAM for XMEGAs
+    } else if (str_eq(mem->desc, "data")) { // SRAM for XMEGAs
       *lowbound = 0x802000;
       *highbound = 0x80ffff;
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "eeprom") == 0) {
+    } else if (str_eq(mem->desc, "eeprom")) {
       *lowbound = 0x810000;
       *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "lfuse") == 0 || strcmp(mem->desc, "fuses") == 0) {
+    } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuses")) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "hfuse") == 0) {
+    } else if (str_eq(mem->desc, "hfuse")) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 1;
-    } else if (strcmp(mem->desc, "efuse") == 0) {
+    } else if (str_eq(mem->desc, "efuse")) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 2;
-    } else if (strncmp(mem->desc, "fuse", 4) == 0 &&
+    } else if (str_starts(mem->desc, "fuse") &&
                (mem->desc[4] >= '0' && mem->desc[4] <= '9')) {
       /* Xmega fuseN */
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = mem->desc[4] - '0';
-    } else if (strncmp(mem->desc, "lock", 4) == 0) { // Lock or lockbits
+    } else if (str_starts(mem->desc, "lock")) { // Lock or lockbits
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
       *fileoff = 0;
-    } else if (strcmp(mem->desc, "signature") == 0) { // Read only
+    } else if (str_eq(mem->desc, "signature")) { // Read only
       *lowbound = 0x840000;
       *highbound = 0x84ffff;
       *fileoff = 0;
-    } else if (strncmp(mem->desc, "user", 4) == 0) { // Usersig or userrow
+    } else if (str_starts(mem->desc, "user")) { // Usersig or userrow
       *lowbound = 0x850000;
       *highbound = 0x85ffff;
       *fileoff = 0;
@@ -842,9 +842,9 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
    * than one sub-segment.
    */
   if ((p->prog_modes & PM_PDI) != 0 &&
-      (strcmp(mem->desc, "boot") == 0 ||
-       strcmp(mem->desc, "application") == 0 ||
-       strcmp(mem->desc, "apptable") == 0)) {
+      (str_eq(mem->desc, "boot") ||
+       str_eq(mem->desc, "application") ||
+       str_eq(mem->desc, "apptable"))) {
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (flashmem == NULL) {
       pmsg_error("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);

@@ -118,7 +118,7 @@ const PROGRAMMER_TYPE programmers_types[] = { // Name(s) the programmers call th
 
 const PROGRAMMER_TYPE *locate_programmer_type(const char *id) {
   for(size_t i = 0; i < sizeof programmers_types/sizeof*programmers_types; i++)
-    if(strcasecmp(id, programmers_types[i].id) == 0)
+    if(str_caseeq(id, programmers_types[i].id))
       return programmers_types + i;
 
   return NULL;

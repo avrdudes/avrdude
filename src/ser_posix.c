@@ -389,7 +389,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
    * If the port is of the form "net:<host>:<port>", then
    * handle it as a TCP connection to a terminal server.
    */
-  if (strncmp(port, "net:", strlen("net:")) == 0) {
+  if (str_starts(port, "net:")) {
     return net_open(port + strlen("net:"), fdp);
   }
 

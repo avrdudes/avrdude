@@ -939,7 +939,7 @@ void cfg_update_mcuid(AVRPART *part) {
 
   // Find an entry that shares the same name, overwrite mcuid with known, existing mcuid
   for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++) {
-    if(strcasecmp(part->desc, uP_table[i].name) == 0) {
+    if(str_caseeq(part->desc, uP_table[i].name)) {
       if(part->mcuid != (int) uP_table[i].mcuid) {
         if(part->mcuid >= 0 && verbose >= MSG_DEBUG)
           yywarning("overwriting mcuid of part %s to be %d", part->desc, uP_table[i].mcuid);

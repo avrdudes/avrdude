@@ -401,7 +401,7 @@ int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (strcmp(mem->desc, "flash") == 0)
+    if (str_eq(mem->desc, "flash"))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -422,7 +422,7 @@ int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (strcmp(mem->desc, "flash") == 0)
+    if (str_eq(mem->desc, "flash"))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -444,7 +444,7 @@ int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (strcmp(mem->desc, "flash") == 0)
+    if (str_eq(mem->desc, "flash"))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -475,7 +475,7 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (strcmp(mem->desc, "flash") == 0)
+    if (str_eq(mem->desc, "flash"))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -500,11 +500,11 @@ int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   s = str;
   while ((cp = strtok(s, ","))) {
     s = NULL;
-    if (!strcmp(cp, "reset")) {
+    if (str_eq(cp, "reset")) {
       pgm->exit_reset = EXIT_RESET_ENABLED;
       continue;
     }
-    if (!strcmp(cp, "noreset")) {
+    if (str_eq(cp, "noreset")) {
       pgm->exit_reset = EXIT_RESET_DISABLED;
       continue;
     }
@@ -900,11 +900,11 @@ const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit)
 }
 
 enum flip2_mem_unit flip2_mem_unit(const char *name) {
-  if (strcmp(name, "application") == 0)
+  if (str_eq(name, "application"))
     return FLIP2_MEM_UNIT_FLASH;
-  if (strcmp(name, "eeprom") == 0)
+  if (str_eq(name, "eeprom"))
     return FLIP2_MEM_UNIT_EEPROM;
-  if (strcmp(name, "signature") == 0)
+  if (str_eq(name, "signature"))
     return FLIP2_MEM_UNIT_SIGNATURE;
   return FLIP2_MEM_UNIT_UNKNOWN;
 }

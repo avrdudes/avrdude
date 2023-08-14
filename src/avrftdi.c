@@ -1253,9 +1253,9 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 static int avrftdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 		unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
-	if (strcmp(m->desc, "flash") == 0)
+	if (str_eq(m->desc, "flash"))
 		return avrftdi_flash_write(pgm, p, m, page_size, addr, n_bytes);
-	else if (strcmp(m->desc, "eeprom") == 0)
+	else if (str_eq(m->desc, "eeprom"))
 		return avrftdi_eeprom_write(pgm, p, m, page_size, addr, n_bytes);
 	else
 		return -2;
@@ -1264,9 +1264,9 @@ static int avrftdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 static int avrftdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 		unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
-	if (strcmp(m->desc, "flash") == 0)
+	if (str_eq(m->desc, "flash"))
 		return avrftdi_flash_read(pgm, p, m, page_size, addr, n_bytes);
-	else if(strcmp(m->desc, "eeprom") == 0)
+	else if(str_eq(m->desc, "eeprom"))
 		return avrftdi_eeprom_read(pgm, p, m, page_size, addr, n_bytes);
 	else
 		return -2;
@@ -1541,7 +1541,7 @@ static int avrftdi_jtag_chip_erase(const PROGRAMMER *pgm, const AVRPART *p)
 static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		const AVRMEM *m, unsigned long addr, unsigned char *value)
 {
-	if (strcmp(m->desc, "lfuse") == 0) {
+	if (str_eq(m->desc, "lfuse")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1549,7 +1549,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3200, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0xff;
 
-	} else if (strcmp(m->desc, "hfuse") == 0) {
+	} else if (str_eq(m->desc, "hfuse")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1557,7 +1557,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3e00, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3f00, 15) & 0xff;
 
-	} else if (strcmp(m->desc, "efuse") == 0) {
+	} else if (str_eq(m->desc, "efuse")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1565,7 +1565,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3a00, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3b00, 15) & 0xff;
 
-	} else if (strcmp(m->desc, "lock") == 0) {
+	} else if (str_eq(m->desc, "lock")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1573,7 +1573,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3600, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0xff;
 
-	} else if (strcmp(m->desc, "signature") == 0) {
+	} else if (str_eq(m->desc, "signature")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_SIGCAL_READ, 15);
 		avrftdi_jtag_dr_out(pgm, 0x0300 | (addr & 0xff), 15);
@@ -1582,7 +1582,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3200, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0xff;
 
-	} else if (strcmp(m->desc, "calibration") == 0) {
+	} else if (str_eq(m->desc, "calibration")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_SIGCAL_READ, 15);
 		avrftdi_jtag_dr_out(pgm, 0x0300 | (addr & 0xff), 15);
@@ -1601,7 +1601,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		const AVRMEM *m, unsigned long addr, unsigned char value)
 {
-	if (strcmp(m->desc, "lfuse") == 0) {
+	if (str_eq(m->desc, "lfuse")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
 
@@ -1618,7 +1618,7 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0x0200))
 			;
 
-	} else if (strcmp(m->desc, "hfuse") == 0) {
+	} else if (str_eq(m->desc, "hfuse")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
 
@@ -1635,7 +1635,7 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0x0200))
 			;
 
-	} else if (strcmp(m->desc, "efuse") == 0) {
+	} else if (str_eq(m->desc, "efuse")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
 
@@ -1652,7 +1652,7 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3b00, 15) & 0x0200))
 			;
 
-	} else if (strcmp(m->desc, "lock") == 0) {
+	} else if (str_eq(m->desc, "lock")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_LOCK_WRITE, 15);
 
@@ -1683,7 +1683,7 @@ static int avrftdi_jtag_paged_write(const PROGRAMMER *pgm, const AVRPART *p,
 	unsigned int maxaddr = addr + n_bytes;
 	unsigned char byte;
 
-	if (strcmp(m->desc, "flash") == 0) {
+	if (str_eq(m->desc, "flash")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FLASH_WRITE, 15);
 
@@ -1710,7 +1710,7 @@ static int avrftdi_jtag_paged_write(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0x0200))
 			;
 
-	} else if (strcmp(m->desc, "eeprom") == 0) {
+	} else if (str_eq(m->desc, "eeprom")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_EEPROM_WRITE, 15);
 
@@ -1758,7 +1758,7 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
     buf = alloca(n_bytes * 8 + 1);
     ptr = buf;
 
-	if (strcmp(m->desc, "flash") == 0) {
+	if (str_eq(m->desc, "flash")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FLASH_READ, 15);
 
@@ -1798,7 +1798,7 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
 			m->buf[addr + i] = (buf[i * 2] >> 1) | (buf[(i * 2) + 1] << 2);
 		}
 
-	} else if (strcmp(m->desc, "eeprom") == 0) {
+	} else if (str_eq(m->desc, "eeprom")) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_EEPROM_READ, 15);
 

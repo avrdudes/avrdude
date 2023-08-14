@@ -664,9 +664,9 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
 
   pmsg_debug("jtagmkII_getsync()\n");
 
-  if (strncmp(pgm->type, "JTAG", strlen("JTAG")) == 0) {
+  if (str_starts(pgm->type, "JTAG")) {
     is_dragon = 0;
-  } else if (strncmp(pgm->type, "DRAGON", strlen("DRAGON")) == 0) {
+  } else if (str_starts(pgm->type, "DRAGON")) {
     is_dragon = 1;
   } else {
     pmsg_error("programmer is neither JTAG ICE mkII nor AVR Dragon\n");
@@ -919,7 +919,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     (p->flags & AVRPART_ENABLEPAGEPROGRAMMING) != 0;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     AVRMEM *m = ldata(ln);
-    if (strcmp(m->desc, "flash") == 0) {
+    if (str_eq(m->desc, "flash")) {
       if (m->page_size > 256)
         PDATA(pgm)->flash_pagesize = 256;
       else
@@ -931,7 +931,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
 	memcpy(sendbuf.dd.ucFlashInst, p->flash_instr, FLASH_INSTR_SIZE);
 	memcpy(sendbuf.dd.ucEepromInst, p->eeprom_instr, EEPROM_INSTR_SIZE);
       }
-    } else if (strcmp(m->desc, "eeprom") == 0) {
+    } else if (str_eq(m->desc, "eeprom")) {
       sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -980,32 +980,31 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
 
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (strcmp(m->desc, "flash") == 0) {
+    if (str_eq(m->desc, "flash")) {
       if (m->page_size > 256)
         PDATA(pgm)->flash_pagesize = 256;
       else
         PDATA(pgm)->flash_pagesize = m->page_size;
       u16_to_b2(sendbuf.dd.flash_page_size, m->page_size);
-    } else if (strcmp(m->desc, "eeprom") == 0) {
+    } else if (str_eq(m->desc, "eeprom")) {
       sendbuf.dd.eeprom_page_size = m->page_size;
       u16_to_b2(sendbuf.dd.eeprom_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_eeprom_offset, m->offset);
-    } else if (strcmp(m->desc, "application") == 0) {
+    } else if (str_eq(m->desc, "application")) {
       u32_to_b4(sendbuf.dd.app_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_app_offset, m->offset);
-    } else if (strcmp(m->desc, "boot") == 0) {
+    } else if (str_eq(m->desc, "boot")) {
       u16_to_b2(sendbuf.dd.boot_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_boot_offset, m->offset);
-    } else if (strcmp(m->desc, "fuse1") == 0) {
+    } else if (str_eq(m->desc, "fuse1")) {
       u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset & ~7);
-    } else if (strncmp(m->desc, "lock", 4) == 0) {
+    } else if (str_starts(m->desc, "lock")) {
       u32_to_b4(sendbuf.dd.nvm_lock_offset, m->offset);
-    } else if (strcmp(m->desc, "usersig") == 0 ||
-               strcmp(m->desc, "userrow") == 0) {
+    } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
       u32_to_b4(sendbuf.dd.nvm_user_sig_offset, m->offset);
-    } else if (strcmp(m->desc, "prodsig") == 0) {
+    } else if (str_eq(m->desc, "prodsig")) {
       u32_to_b4(sendbuf.dd.nvm_prod_sig_offset, m->offset);
-    } else if (strcmp(m->desc, "data") == 0) {
+    } else if (str_eq(m->desc, "data")) {
       u32_to_b4(sendbuf.dd.nvm_data_offset, m->offset);
     }
   }
@@ -1470,7 +1469,7 @@ static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
@@ -1522,7 +1521,7 @@ static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
@@ -1574,7 +1573,7 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
@@ -1633,7 +1632,7 @@ static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
@@ -1686,7 +1685,7 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
@@ -1739,7 +1738,7 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
@@ -1856,17 +1855,16 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return -1;
 
   cmd[0] = CMND_XMEGA_ERASE;
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     if (jtagmkII_memtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[1] = XMEGA_ERASE_APP_PAGE;
     else
       cmd[1] = XMEGA_ERASE_BOOT_PAGE;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     cmd[1] = XMEGA_ERASE_EEPROM_PAGE;
-  } else if (strcmp(m->desc, "usersig") == 0 ||
-             strcmp(m->desc, "userrow") == 0) {
+  } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
     cmd[1] = XMEGA_ERASE_USERSIG;
-  } else if (strcmp(m->desc, "boot") == 0) {
+  } else if (str_eq(m->desc, "boot")) {
     cmd[1] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[1] = XMEGA_ERASE_APP_PAGE;
@@ -1943,13 +1941,13 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   cmd[0] = CMND_WRITE_MEMORY;
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     cmd[1] = jtagmkII_memtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI))
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     if (pgm->flag & PGM_FL_IS_DW) {
       /*
        * jtagmkII_paged_write() to EEPROM attempted while in
@@ -1967,10 +1965,9 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     }
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (strcmp(m->desc, "usersig") == 0 ||
-             strcmp(m->desc, "userrow") == 0) {
+  } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (strcmp(m->desc, "boot") == 0) {
+  } else if (str_eq(m->desc, "boot")) {
     cmd[1] = MTYPE_BOOT_FLASH;
   } else if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
@@ -2062,21 +2059,20 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   page_size = m->readsize;
 
   cmd[0] = CMND_READ_MEMORY;
-  if (strcmp(m->desc, "flash") == 0) {
+  if (str_eq(m->desc, "flash")) {
     cmd[1] = jtagmkII_memtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI))
       /* dynamically decide between flash/boot memtype */
       dynamic_memtype = 1;
-  } else if (strcmp(m->desc, "eeprom") == 0) {
+  } else if (str_eq(m->desc, "eeprom")) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
-  } else if (strcmp(m->desc, "prodsig") == 0) {
+  } else if (str_eq(m->desc, "prodsig")) {
     cmd[1] = MTYPE_PRODSIG;
-  } else if (strcmp(m->desc, "usersig") == 0 ||
-             strcmp(m->desc, "userrow") == 0) {
+  } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (strcmp(m->desc, "boot") == 0) {
+  } else if (str_eq(m->desc, "boot")) {
     cmd[1] = MTYPE_BOOT_FLASH;
   } else if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
@@ -2188,41 +2184,33 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
       cache_ptr = PDATA(pgm)->eeprom_pagecache;
     }
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
-    addr = 0;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 1;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 2;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (strncmp(mem->desc, "lock", 4) == 0) {
+  } else if (str_starts(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
-    cmd[1] = MTYPE_FUSE_BITS;
-  } else if (strcmp(mem->desc, "usersig") == 0 ||
-             strcmp(mem->desc, "userrow") == 0) {
+  } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "prodsig") == 0) {
+  } else if (str_eq(mem->desc, "prodsig")) {
     cmd[1] = MTYPE_PRODSIG;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
+  } else if (str_eq(mem->desc, "calibration")) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "io") == 0) {
+  } else if (str_eq(mem->desc, "io")) {
     cmd[1] = MTYPE_FLASH;
     AVRMEM *data = avr_locate_mem(p, "data");
     addr += data->offset;
-  } else if (strcmp(mem->desc, "signature") == 0) {
+  } else if (str_eq(mem->desc, "signature")) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
     if (pgm->flag & PGM_FL_IS_DW) {
@@ -2234,24 +2222,23 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       unsigned char parm[4];
 
       switch (addr) {
-      case 0:
-	*value = 0x1E;		/* Atmel vendor ID */
-	break;
+        case 0:
+          *value = 0x1E;		/* Atmel vendor ID */
+          break;
 
-      case 1:
-      case 2:
-	if (jtagmkII_getparm(pgm, PAR_TARGET_SIGNATURE, parm) < 0)
-	  return -1;
-	*value = parm[2 - addr];
-	break;
+        case 1:
+        case 2:
+          if (jtagmkII_getparm(pgm, PAR_TARGET_SIGNATURE, parm) < 0)
+            return -1;
+          *value = parm[2 - addr];
+          break;
 
-      default:
-	pmsg_error("illegal address %lu for signature memory\n", addr);
-	return -1;
-      }
+        default:
+          pmsg_error("illegal address %lu for signature memory\n", addr);
+          return -1;
+        }
       return 0;
     }
-
   }
 
   /*
@@ -2340,7 +2327,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   writedata = data;
   cmd[0] = CMND_WRITE_MEMORY;
   cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_SPM;
-  if (strcmp(mem->desc, "flash") == 0) {
+  if (str_eq(mem->desc, "flash")) {
      if ((addr & 1) == 1) {
        /* odd address = high byte */
        writedata = 0xFF;	/* don't modify the low byte */
@@ -2348,51 +2335,43 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
        addr &= ~1L;
      }
      writesize = 2;
-     if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless it's a DX part
+     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
        need_progmode = 0;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
-  } else if (strcmp(mem->desc, "eeprom") == 0) {
+  } else if (str_eq(mem->desc, "eeprom")) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
-    if(strcmp(p->family_id, "AVR    ") && strcmp(p->family_id, "    AVR")) // Unless DX
+    if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (strcmp(mem->desc, "lfuse") == 0) {
+  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
-    addr = 0;
+    if (str_eq(mem->desc, "lfuse"))
+      addr = 0;
+    else if (str_eq(mem->desc, "hfuse"))
+      addr = 1;
+    else if (str_eq(mem->desc, "efuse"))
+      addr = 2;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "hfuse") == 0) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 1;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (strcmp(mem->desc, "efuse") == 0) {
-    cmd[1] = MTYPE_FUSE_BITS;
-    addr = 2;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (strncmp(mem->desc, "fuse", strlen("fuse")) == 0) {
-    cmd[1] = MTYPE_FUSE_BITS;
-  } else if (strcmp(mem->desc, "usersig") == 0 ||
-             strcmp(mem->desc, "userrow") == 0) {
+  } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (strcmp(mem->desc, "prodsig") == 0) {
+  } else if (str_eq(mem->desc, "prodsig")) {
     cmd[1] = MTYPE_PRODSIG;
-  } else if (strncmp(mem->desc, "lock", 4) == 0) {
+  } else if (str_starts(mem->desc, "lock")) {
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "calibration") == 0) {
+  } else if (str_eq(mem->desc, "calibration")) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (strcmp(mem->desc, "io") == 0) {
+  } else if (str_eq(mem->desc, "io")) {
     cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
     AVRMEM *data = avr_locate_mem(p, "data");
     addr += data->offset;
-  } else if (strcmp(mem->desc, "signature") == 0) {
+  } else if (str_eq(mem->desc, "signature")) {
     cmd[1] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -3229,7 +3208,7 @@ static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
    * the meaning of the "baud" parameter to be the USB device ID to
    * search for.
    */
-  if (strncmp(port, "usb", 3) == 0) {
+  if (str_starts(port, "usb")) {
 #if defined(HAVE_LIBUSB)
     serdev = &usb_serdev;
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;

@@ -717,18 +717,18 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
       p->desc, mem->desc, addr, mem->size-1);
 
-  if (strstr(mem->desc, "fuse") != 0) {
+  if (str_contains(mem->desc, "fuse")) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
-  if (strcmp(mem->desc, "lock") == 0) {
+  if (str_eq(mem->desc, "lock")) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
-  if (strcmp(mem->desc, "eeprom") == 0) {
+  if (str_eq(mem->desc, "eeprom")) {
     unsigned char buffer[1];
     buffer[0]=value;
     return updi_nvm_write_eeprom(pgm, p, mem->offset + addr, buffer, 1);
   }
-  if (strcmp(mem->desc, "flash") == 0) {
+  if (str_eq(mem->desc, "flash")) {
     unsigned char buffer[1];
     buffer[0]=value;
     return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
@@ -800,16 +800,16 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
     while (remaining_bytes > 0) {
 
-      if (strcmp(m->desc, "eeprom")==0) {
+      if (str_eq(m->desc, "eeprom")) {
         rc = updi_nvm_write_eeprom(pgm, p, m->offset + write_offset, m->buf + write_offset, 
                                    remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (strcmp(m->desc, "flash")==0) {
+      } else if (str_eq(m->desc, "flash")) {
         rc = updi_nvm_write_flash(pgm, p, m->offset + write_offset, m->buf + write_offset, 
                                   remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (strcmp(m->desc, "userrow")==0) {
+      } else if (str_eq(m->desc, "userrow")) {
         rc = serialupdi_write_userrow(pgm, p, m, page_size, write_offset, 
                                       remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (strcmp(m->desc, "fuses")==0) {
+      } else if (str_eq(m->desc, "fuses")) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         return -1;
       } else {
@@ -828,13 +828,13 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
     }
     return write_bytes;
   } else {
-    if (strcmp(m->desc, "eeprom")==0) {
+    if (str_eq(m->desc, "eeprom")) {
       rc = updi_nvm_write_eeprom(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
-    } else if (strcmp(m->desc, "flash")==0) {
+    } else if (str_eq(m->desc, "flash")) {
       rc = updi_nvm_write_flash(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
-    } else if (strcmp(m->desc, "userrow")==0) {
+    } else if (str_eq(m->desc, "userrow")) {
       rc = serialupdi_write_userrow(pgm, p, m, page_size, addr, n_bytes);
-    } else if (strcmp(m->desc, "fuses")==0) {
+    } else if (str_eq(m->desc, "fuses")) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         rc = -1;
     } else {
@@ -981,9 +981,9 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
     extended_param = ldata(ln);
 
     if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
-      if (strcasecmp(rts_mode, "low") == 0) {
+      if (str_caseeq(rts_mode, "low")) {
         updi_set_rts_mode(pgm, RTS_MODE_LOW);
-      } else if (strcasecmp(rts_mode, "high") == 0) {
+      } else if (str_caseeq(rts_mode, "high")) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
         pmsg_error("RTS/DTR mode must be LOW or HIGH\n");

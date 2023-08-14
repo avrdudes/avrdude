@@ -109,7 +109,7 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    * function, where we actually open the device.
    */
 
-  if (strncmp(port_spec, "usb", 3) != 0) {
+  if (!str_starts(port_spec, "usb")) {
     pmsg_error("invalid port specification %s for USB device\n", port_spec);
     return NULL;
   }
@@ -184,10 +184,10 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
 
   for (bus = usb_busses; !found && bus != NULL; bus = bus->next) {
     for (dev = bus->devices; !found && dev != NULL; dev = dev->next) {
-      if (dfu->bus_name != NULL && strcmp(bus->dirname, dfu->bus_name))
+      if (dfu->bus_name != NULL && !str_eq(bus->dirname, dfu->bus_name))
          continue;
       if (dfu->dev_name != NULL) {
-        if (strcmp(dev->filename, dfu->dev_name))
+        if (!str_eq(dev->filename, dfu->dev_name))
           continue;
       } else if (vid != dev->descriptor.idVendor)
         continue;
