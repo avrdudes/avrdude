@@ -814,6 +814,10 @@ memories the @code{-U} option can only write 0-bits but not 1-bits.
 Hence, usersig needs to be erased before a file can be uploaded to this
 memory region, e.g., using @code{-T "erase usersig" -U
 usersig:w:parameters.hex:i}
+@item io
+Volatile register memory; it cannot be accessed by external programming
+methods only by bootloaders, which has limited use unless the bootloader
+jumps to the application directly, i.e., without a WDT reset
 @end table
 
 ATxmega devices have the following memory types in addition to
@@ -838,6 +842,9 @@ Production signature (calibration) area
 @item usersig
 Additional flash memory page that can be used for firmware settings; this
 memory is not erased during a chip erase
+@item io
+Volatile register memory; AVRDUDE can read this memory but not write to it
+using external programming
 @end table
 
 Modern 8-bit AVR devices have the following memory types in addition to
@@ -880,7 +887,11 @@ Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
 @item sib
 Special system information block memory with information about AVR family, chip revision etc.
-
+@item io
+Volatile register memory; AVRDUDE can program this memory but this is of
+limited utility because anything written to the io memory will be undefined or
+lost after reset; writing to individual registers in the terminal can
+still be used, e.g., to test I/O ports
 @end table
 
 The @var{op} field specifies what operation to perform:
