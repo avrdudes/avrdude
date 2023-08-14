@@ -21,6 +21,7 @@ Changes since version 7.2:
     - HAS_VTARG_READ not utilized in source code #1469
     - -c stk500 only works with stk500v2 firmware #1467
     - Read silicon revision from modern AVRs #1472
+    - Dryrun doesn't overlap XMEGA flash memories #1485
 
   * Pull requests:
 
@@ -29,6 +30,10 @@ Changes since version 7.2:
     - Utilize HAS_VTARG_READ defined in avrdude.conf #1470
     - Provide sib memory for AVR8X parts #1480
     - Read chip revision and add IO memory for PDI/UPDI parts #1474
+    - Replace string comparison functions #1482
+    - Fix overapping XMEGA flash memories for dryrun #1486
+    - Exit if part and programmer are incompatible #1487
+    - Add io memory for classic parts #1488
 
   * Internals:
 
