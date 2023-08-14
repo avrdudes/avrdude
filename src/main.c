@@ -1018,10 +1018,10 @@ int main(int argc, char * argv [])
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
       PROGRAMMER *pgm = ldata(ln2);
+      const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
-      if(pm & (pm-1))
-        pmsg_warning("%s and %s share multiple modes (%s)\n",
-          pgm->id? (char *) ldata(lfirst(pgm->id)): "???", p->desc, avr_prog_modes(pm));
+      if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
+        pmsg_warning("%s and %s share multiple modes (%s)\n", pnam, p->desc, avr_prog_modes(pm));
     }
   }
 
@@ -1080,6 +1080,12 @@ int main(int argc, char * argv [])
   pgm = locate_programmer_set(programmers, pgmid, &pgmid);
   if (pgm == NULL) {
     programmer_not_found(pgmid);
+    exit(1);
+  }
+
+  if(!ovsigck && partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
+    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
+    imsg_error("lack a common programming mode; use -F to override this check\n");
     exit(1);
   }
 

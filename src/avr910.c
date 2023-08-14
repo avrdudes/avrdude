@@ -233,9 +233,9 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (!dev_supported) {
       if(ovsigck)
-        pmsg_warning("selected device is not supported by programmer %s\n", p->id);
+        pmsg_warning("selected device %s is not supported by programmer %s\n", p->desc, pgmid);
       else {
-        pmsg_error("selected device is not supported by programmer %s\n", p->id);
+        pmsg_error("selected device %s is not supported by programmer %s\n", p->desc, pgmid);
 	return -1;
       }
     }

@@ -165,10 +165,11 @@ static int dryrun_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(!pm)
     Return("programmer %s and part %s have no common programming mode", pgmid, p->desc);
-   if(pm & (pm-1))
-      Return("%s and %s share multiple programming modes (%s)",
-        pgmid, p->desc, avr_prog_modes(pm));
-*/
+  if(pm & (pm-1))
+    Return("%s and %s share multiple programming modes (%s)",
+      pgmid, p->desc, avr_prog_modes(pm));
+ *
+ */
 
   return pgm->program_enable(pgm, p);
 }
