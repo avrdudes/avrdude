@@ -795,7 +795,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *highbound = 0x82ffff;
       *fileoff = 2;
     } else if (str_starts(mem->desc, "fuse") &&
-      mem->desc[4] && isxdigit(0xff & mem->desc[4]) && ¬mem->desc[5]) {
+      mem->desc[4] && isxdigit(0xff & mem->desc[4]) && !mem->desc[5]) {
       /* Xmega or modern AVR fuseX */
       *lowbound = 0x820000;
       *highbound = 0x82ffff;

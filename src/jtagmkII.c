@@ -997,7 +997,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
       u16_to_b2(sendbuf.dd.boot_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_boot_offset, m->offset);
     } else if (str_eq(m->desc, "fuse1")) {
-      u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset & ~7);
+      u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset & ~15);
     } else if (str_starts(m->desc, "lock")) {
       u32_to_b4(sendbuf.dd.nvm_lock_offset, m->offset);
     } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
@@ -2186,7 +2186,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
   } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse"))
+    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
       addr = 0;
     else if (str_eq(mem->desc, "hfuse"))
       addr = 1;
@@ -2347,7 +2347,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse"))
+    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
       addr = 0;
     else if (str_eq(mem->desc, "hfuse"))
       addr = 1;
