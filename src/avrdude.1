@@ -823,8 +823,10 @@ A.k.a. syscfg1: system configuration 1
 A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
 .It fuse8
 A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+.It fusea
+A.k.a. pdicfg: configures/locks updi access; it is the only fuse that consists of two bytes
 .It fuses
-A "logical" memory of 9 bytes containing all fuseN of a part, which can be
+A "logical" memory of up to 16 bytes containing all fuseX of a part, which can be
 used to program all fuses at the same time
 .It osc16err
 Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
@@ -840,6 +842,8 @@ Production signature (calibration) area
 Serial number with a unique ID for the part (10 bytes)
 .It tempsense
 Temperature sensor calibration values
+.It bootrow
+Extra page of memory; it is not erased during chip erase
 .It userrow
 Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -1048,7 +1052,7 @@ Can be used as an alias for dump.
 Manually program the respective memory cells, starting at address
 .Ar addr ,
 using the data items provided.
-The terminal implements reading from and writing to flash, EEPROM and
+The terminal implements reading from and writing to flash, EEPROM, bootrow and
 usersig type memories normally through a cache and paged access functions.
 All other memories are directly written to without use of a cache. Some
 older parts without paged access, depending on the programmer, might also
@@ -1130,11 +1134,11 @@ Erase the entire specified memory.
 .It Ar erase memory addr len
 Erase a section of the specified memory.
 .It Ar flush
-Synchronise with the device all pending writes to flash, EEPROM and
+Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
-erase needs to be issued before writing arbitrary data. Usersig is
+erase needs to be issued before writing arbitrary data. Bootrow and usersig are
 generally unaffected by a chip erase. When a memory looks like a NOR
 memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
@@ -1149,7 +1153,7 @@ actually written to the device when using the
 command, at the end of the terminal session after typing
 .Ar quit ,
 or after EOF on input is encountered. The abort command resets the cache
-discarding all previous writes to the flash, EEPROM and usersig cache.
+discarding all previous writes to the flash, EEPROM, bootrow and usersig cache.
 .It Ar config {<-f|-a|-v>}
 Show all configuration properties of the part; these are usually bitfields
 in fuses or lock bits bytes that can take on values, which typically have
