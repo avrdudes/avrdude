@@ -1165,10 +1165,10 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
 int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
-  if(str_eq(mem->desc, "fuses") && addr < 10) { // Get right fuse in fuses memory
+  if(str_eq(mem->desc, "fuses") && addr >=0 && addr < 16) { // Get right fuse in fuses memory
     char memtype[64];
     AVRMEM *dfuse;
-    sprintf(memtype, "fuse%d", addr);
+    sprintf(memtype, "fuse%x", addr);
     if((dfuse = avr_locate_mem(p, memtype)) && dfuse->size == 1)
       bitmask = dfuse->bitmask;
   }
@@ -1401,11 +1401,12 @@ const char *avr_mem_order[100] = {
   "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
   "fuse6",        "syscfg1",      "fuse7",        "append",
   "codesize",     "fuse8",        "fuse9",        "bootend",
-  "bootsize",     "fuses",        "lock",         "lockbits",
-  "tempsense",    "signature",    "prodsig",      "sernum",
-  "calibration",  "osccal16",     "osccal20",     "osc16err",
-  "osc20err",     "usersig",      "userrow",      "data",
-  "io",           "sib",
+  "bootsize",     "fusea"         "pdicfg",       "fuses",
+  "lock",         "lockbits",     "tempsense",    "signature",
+  "prodsig",      "sernum",       "calibration",  "osccal16",
+  "osccal20",     "osc16err",     "osc20err",     "bootrow",
+  "usersig",      "userrow",      "data",         "io",
+  "sib",
 };
 
 void avr_add_mem_order(const char *str) {
@@ -1441,8 +1442,8 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem) {
   return avr_memtype_is_eeprom_type(mem->desc);
 }
 
-int avr_memtype_is_usersig_type(const char *memtype) {
-  return memtype && (str_eq(memtype, "usersig") || str_eq(memtype, "userrow"));
+int avr_memtype_is_usersig_type(const char *memtype) { // Bootrow is subsumed under usersig type
+  return memtype && (str_eq(memtype, "bootrow") || str_eq(memtype, "usersig") || str_eq(memtype, "userrow"));
 }
 
 int avr_mem_is_usersig_type(const AVRMEM *mem) {

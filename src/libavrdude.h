@@ -843,7 +843,7 @@ typedef struct programmer_t {
                           unsigned int addr);
   int (*flush_cache)     (const struct programmer_t *pgm, const AVRPART *p);
   int (*reset_cache)     (const struct programmer_t *pgm, const AVRPART *p);
-  AVR_Cache *cp_flash, *cp_eeprom, *cp_usersig;
+  AVR_Cache *cp_flash, *cp_eeprom, *cp_bootrow, *cp_usersig;
 
   const char *config_file;      // Config file where defined
   int  lineno;                  // Config file line number
