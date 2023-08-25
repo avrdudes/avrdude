@@ -7490,7 +7490,7 @@ part
 
     memory "signature"
         size               = 3;
-        read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.0000--00xx.xxxx--xxxx.xxaa--oooo.oooo";
     ;
 
     memory "calibration"
@@ -8646,7 +8646,7 @@ part
 
     memory "signature"
         size               = 3;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.0000--0000.0000--0000.00aa--oooo.oooo";
     ;
 
     memory "calibration"
@@ -9559,7 +9559,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -9705,7 +9705,6 @@ part
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--xxxx.xxii";
     ;
 
-    # ATtiny167 has signature bytes 0x1E 0x94 0x87
     memory "signature"
         size               = 3;
         read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
@@ -9713,7 +9712,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -10363,7 +10362,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -10520,10 +10519,6 @@ part parent "t167"
         read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
     ;
-
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
-    ;
 ;
 
 #------------------------------------------------------------
@@ -10553,9 +10548,6 @@ part parent "m88"
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
     ;
 
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
-    ;
 ;
 
 #------------------------------------------------------------
@@ -10577,10 +10569,6 @@ part parent "m168"
 
     memory "lock"
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
-    ;
-
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
 ;
 
@@ -10606,9 +10594,6 @@ part parent "m328"
         read               = "0101.1000--0000.0000--xxxx.xxxx--11oo.oooo";
     ;
 
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
-    ;
 ;
 
 #------------------------------------------------------------
@@ -10659,10 +10644,6 @@ part parent "t87"
         read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
     ;
-
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
-    ;
 ;
 
 #------------------------------------------------------------
@@ -10705,10 +10686,6 @@ part parent "t167"
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
-    ;
-
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
 ;
 
@@ -10753,10 +10730,6 @@ part parent "t167"
         max_write_delay    = 4500;
         read               = "0101.1000--0000.0000--xxxx.xxxx--1111.11oo";
         write              = "1010.1100--111x.xxxx--xxxx.xxxx--1111.11ii";
-    ;
-
-    memory "calibration"
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
 ;
 
@@ -10877,7 +10850,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -11034,7 +11007,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -11224,7 +11197,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -11724,7 +11697,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -12094,7 +12067,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -12350,7 +12323,7 @@ part
     ;
 
     memory "calibration"
-        size               = 1;
+        size               = 2;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
@@ -12515,7 +12488,7 @@ part
     ;
 
     memory "calibration"
-        size               = 1;
+        size               = 2;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
@@ -12677,7 +12650,7 @@ part
     ;
 
     memory "calibration"
-        size               = 1;
+        size               = 2;
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
@@ -13546,7 +13519,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -13731,7 +13704,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -13915,7 +13888,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -14180,7 +14153,7 @@ part
 
     memory "calibration"
         size               = 1;
-        read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
+        read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
     memory "io"
@@ -14609,7 +14582,7 @@ part
 
     memory "signature"
         size               = 3;
-        read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
 
     memory "calibration"
@@ -14771,7 +14744,7 @@ part
 
     memory "signature"
         size               = 3;
-        read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+        read               = "0011.0000--000x.xxxx--xxxx.xxaa--oooo.oooo";
     ;
 
     memory "calibration"
