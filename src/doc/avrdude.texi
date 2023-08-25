@@ -885,7 +885,9 @@ Serial number with a unique ID for the pary (10 bytes)
 @item tempsense
 Temperature sensor calibration values
 @item bootrow
-Extra page of memory that is not erased during a chip erase
+Extra page of memory that is only accessible by the MCU in bootloader
+code; UDPI can read and write this memory only when the device is
+unlocked; bootrow is not erased during chip erase
 @item userrow
 Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
