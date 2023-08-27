@@ -866,8 +866,10 @@ A.k.a. syscfg1: system configuration 1
 A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
 @item fuse8
 A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
+@item fusea
+A.k.a. pdicfg: configures/locks updi access; it is the only fuse that consists of two bytes
 @item fuses
-A "logical" memory of 9 bytes containing all fuseN of a part, which can be used to program all fuses at the same time
+A "logical" memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
 @item osc16err
 Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
 @item osc20err
@@ -882,6 +884,10 @@ Production signature (calibration) area
 Serial number with a unique ID for the pary (10 bytes)
 @item tempsense
 Temperature sensor calibration values
+@item bootrow
+Extra page of memory that is only accessible by the MCU in bootloader
+code; UDPI can read and write this memory only when the device is
+unlocked; bootrow is not erased during chip erase
 @item userrow
 Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -2090,7 +2096,7 @@ Can be used as an alias for dump.
 @item write @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
 Manually program the respective memory cells, starting at address
 @var{addr}, using the data items provided. The terminal implements reading
-from and writing to flash, EEPROM and usersig type memories normally
+from and writing to flash, EEPROM, bootrow and usersig type memories normally
 through a cache and paged access functions. All other memories are
 directly written to without use of a cache. Some older parts without paged
 access, depending on the programmer, might also have flash and EEPROM
@@ -2240,11 +2246,11 @@ Erase the entire specified memory.
 Erase a section of the specified memory.
 
 @item flush
-Synchronise with the device all pending writes to flash, EEPROM and
+Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
-erase needs to be issued before writing arbitrary data. Usersig is
+erase needs to be issued before writing arbitrary data. Bootrow and usersig are
 generally unaffected by a chip erase. When a memory looks like a NOR
 memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
@@ -2257,7 +2263,8 @@ be called sparingly.
 Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
-cache discarding all previous writes to the flash, EEPROM and usersig cache.
+cache discarding all previous writes to the flash, EEPROM, bootrow and
+usersig cache.
 
 @item config [@var{opts}]
 Show all configuration properties of the part; these are usually bitfields
@@ -2302,7 +2309,7 @@ include option @code{-e} prints the lines of the file as comments before
 processing them; on a non-zero verbosity level the line numbers are
 printed, too.
 
-@item sig
+@item sing
 Display the device signature bytes.
 
 @item part
@@ -3369,18 +3376,13 @@ part parent    ".avrdx"
 ;
 @end example
 
-USERROW memory has not been defined for new devices except for 
-experimental addition for AVR128DB28. The point of USERROW is to 
-provide ability to write configuration details to already locked
-device and currently SerialUPDI interface supports this feature,
-but it hasn't been tested on wide variety of chips. Treat this as
-something experimental at this point. Please note: on locked devices
-it's not possible to read back USERROW contents when written, so
-the automatic verification will most likely fail and to prevent
-error messages, use @option{-V}.
+The point of USERROW is to  provide ability to write configuration details
+to already locked device and currently SerialUPDI interface supports this
+feature. Please note: on locked devices it's not possible to read back
+USERROW contents when written, so the automatic verification will most
+likely fail and to prevent error messages, use @option{-V}.
 
-Please note that SerialUPDI interface is pretty new and some
-issues are to be expected. In case you run into them, please
+In case you run into issues with the SerialUPDI interface, please
 make sure to run the intended command with debug output enabled
 (@option{-v -v -v}) and provide this verbose output with your
 bug report. You can also try to perform the same action using

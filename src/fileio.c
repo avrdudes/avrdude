@@ -782,7 +782,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x810000;
       *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuses")) {
+    } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse") || str_eq(mem->desc, "fuses")) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 0;
@@ -795,11 +795,11 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *highbound = 0x82ffff;
       *fileoff = 2;
     } else if (str_starts(mem->desc, "fuse") &&
-               (mem->desc[4] >= '0' && mem->desc[4] <= '9')) {
-      /* Xmega fuseN */
+      mem->desc[4] && isxdigit(0xff & mem->desc[4]) && !mem->desc[5]) {
+      /* Xmega or modern AVR fuseX */
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
-      *fileoff = mem->desc[4] - '0';
+      *fileoff = strtol(mem->desc+4, NULL, 16);
     } else if (str_starts(mem->desc, "lock")) { // Lock or lockbits
       *lowbound = 0x830000;
       *highbound = 0x83ffff;

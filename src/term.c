@@ -958,7 +958,7 @@ typedef union {                 // Lock memory can be 1 or 4 bytes
 } fl_t;
 
 typedef struct {                // Fuses and lock bits
-  uint8_t fuses[16];
+  uint16_t fuses[16];           // pdicfg fuse has two bytes
   uint32_t lock;
   int fread[16], lread;
   int islock;
@@ -967,7 +967,7 @@ typedef struct {                // Fuses and lock bits
 
 typedef struct {
   const Configitem_t *t;        // Configuration bitfield table
-  const char *memstr;           // Could be "lockbits"
+  const char *memstr;           // Memory name but could also be "lockbits"
   const char *alt;              // Set when memstr is an alias
   int match;                    // Matched by user request
   int ok, val, initval;         // Has value val been read OK? Initval == -1 if not known
@@ -984,7 +984,9 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
   int islock;
 
   islock = str_starts(cci->memstr, "lock");
-  if((islock && cci->t->memoffset != 0) || (!islock && (cci->t->memoffset < 0 || cci->t->memoffset >= (int) sizeof fl->fuses))) {
+  if((islock && cci->t->memoffset != 0) ||
+    (!islock && (cci->t->memoffset < 0 || cci->t->memoffset >= (int) (sizeof fl->fuses/sizeof*fl->fuses)))) {
+
     err = cache_string(tofree = str_sprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
     free(tofree);
     goto back;
@@ -1009,7 +1011,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
     goto back;
   }
 
-  if((islock && mem->size != 4 && mem->size != 1) || (!islock && mem->size != 1)) {
+  if((islock && mem->size != 4 && mem->size != 1) || (!islock && mem->size != 2 && mem->size != 1)) {
     err = cache_string(tofree = str_sprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
     free(tofree);
     goto back;
@@ -1028,7 +1030,10 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
     fl->lread = 1;
   } else {
     fl->fread[cci->t->memoffset] = 1;
-    fl->fuses[cci->t->memoffset] = *m.b;
+    int result = 0;
+    for(int i=mem->size-1; i>=0; i--)
+      result <<= 8, result |= m.b[i];
+    fl->fuses[cci->t->memoffset] = result;
   }
   fl->islock = islock;
   fl->current = m.i;
@@ -1122,8 +1127,10 @@ static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int va
 
   if(!vp && cti->vlist)         // No symbolic value despite symbol list?
     strcpy(buf, "reserved");    // Enter reserved instead of the number
-  else if (m > 255)             // 4-byte lock
+  else if (m > 65535)           // 4-byte lock
     sprintf(buf, "0x%08x", value);
+  else if (m > 255)             // 2-byte fuse
+    sprintf(buf, "0x%04x", value);
   else
     sprintf(buf, "%*d", o.vmax >= 100? 3: o.vmax >= 10? 2: 1, value);
 
@@ -1533,7 +1540,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
     goto finished;
   }
 
-  if((fusel.islock && mem->size != 4 && mem->size != 1) || (!fusel.islock && mem->size != 1)) {
+  if((fusel.islock && mem->size != 4 && mem->size != 1) || (!fusel.islock && mem->size != 2 && mem->size != 1)) {
     pmsg_error("(config) %s's %s memory has unexpected size %d\n", p->desc, mem->desc, mem->size);
     ret = -1;
     goto finished;

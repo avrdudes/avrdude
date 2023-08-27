@@ -18990,7 +18990,7 @@ part
     ;
 
     memory "fuses"
-        size               = 9;
+        size               = 10;
         page_size          = 10;
         offset             = 0x1280;
         readsize           = 10;
@@ -21196,7 +21196,7 @@ part
     ;
 
     memory "fuses"
-        size               = 9;
+        size               = 16;
         page_size          = 16;
         offset             = 0x1050;
         readsize           = 16;
@@ -23095,6 +23095,97 @@ part parent ".avrex"
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+;
+
+#------------------------------------------------------------
+# AVR16EB14
+#------------------------------------------------------------
+
+part parent ".avrex"
+    desc                   = "AVR16EB14";
+    id                     = "avr16eb14";
+    variants               =
+        "AVR16EB14-SOIC/TSSOP: SOIC14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 380;
+    signature              = 0x1e 0x94 0x49;
+
+    memory "eeprom"
+        size               = 512;
+        page_size          = 8;
+        offset             = 0x1400;
+        readsize           = 256;
+    ;
+
+    memory "flash"
+        size               = 0x4000;
+        page_size          = 64;
+        offset             = 0x800000;
+        readsize           = 256;
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
+
+    memory "bootrow"
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 256;
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16EB20
+#------------------------------------------------------------
+
+part parent "avr16eb14"
+    desc                   = "AVR16EB20";
+    id                     = "avr16eb20";
+    variants               =
+        "AVR16EB20-SSOP: SOIC20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR16EB20-VQFN: VQFN20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 381;
+    signature              = 0x1e 0x94 0x40;
+;
+
+#------------------------------------------------------------
+# AVR16EB28
+#------------------------------------------------------------
+
+part parent "avr16eb14"
+    desc                   = "AVR16EB28";
+    id                     = "avr16eb28";
+    variants               =
+        "AVR16EB28-SSOP/SPDIP: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR16EB28-VQFN:       VQFN28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 382;
+    signature              = 0x1e 0x94 0x3f;
+;
+
+#------------------------------------------------------------
+# AVR16EB32
+#------------------------------------------------------------
+
+part parent "avr16eb14"
+    desc                   = "AVR16EB32";
+    id                     = "avr16eb32";
+    variants               =
+        "AVR16EB32-VQFN/TQFP: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 383;
+    signature              = 0x1e 0x94 0x3e;
 ;
 
 #------------------------------------------------------------

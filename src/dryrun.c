@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
 #include <unistd.h>
 #include <stdarg.h>
 #include <time.h>
@@ -113,7 +114,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
 
   if(!dry.dp) {
-    unsigned char inifuses[10]; // For fuses, which is made up from fuse0, fuse1, ...
+    unsigned char inifuses[16]; // For fuses, which is made up from fuse0, fuse1, ...
     AVRMEM *fusesm = NULL;
     dry.dp = avr_dup_part(p);   // Allocate dryrun part
 
@@ -126,13 +127,14 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       } else if(str_eq(m->desc, "fuses")) {
         fusesm = m;
       } else if(str_contains(m->desc, "fuse") || str_contains(m->desc, "lock")) {
-        // Lock can have 4 bytes: still allow initialisation from initval
+        // Lock, eg, can have 4 bytes: still allow initialisation from initval
         if(m->initval != -1 && m->size >=1 && m->size <= (int) sizeof(m->initval)) {
           memcpy(m->buf, &m->initval, m->size); // FIXME: relying on little endian here
-          if(str_starts(m->desc, "fuse") && m->desc[4] && m->size == 1) {
-            int fno = m->desc[4]-'0';
-            if(fno >= 0 && fno < (int) sizeof inifuses)
-              inifuses[fno] = m->initval;
+          if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {
+            int fno = strtol(m->desc+4, NULL, 16);
+            if(fno >= 0)
+              for(int i = 0; i < m->size && fno+i < (int) sizeof inifuses; i++)
+                inifuses[fno+i] = m->initval >> 8*i;
           }
         } else {
           memset(m->buf, 0xff, m->size);
@@ -333,16 +335,22 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   dmem->buf[addr] = data;
 
-  if(str_eq(dmem->desc, "fuses") && addr < 10) { // Copy the byte to corresponding fuse[0-9]
+  if(str_eq(dmem->desc, "fuses") && addr < 16) { // Copy the byte to corresponding fuse[0-9a-f]
     char memtype[64];
-    sprintf(memtype, "fuse%ld", addr);
-    if((dfuse = avr_locate_mem(dry.dp, memtype)) && dfuse->size == 1)
+    sprintf(memtype, "fuse%lx", addr);
+    if((dfuse = avr_locate_mem(dry.dp, memtype)))
       dfuse->buf[0] = data;
-  } else if(str_starts(m->desc, "fuse")) { // Copy fuseN byte into fuses memory
-    int fno = m->desc[4]-'0';
-    if(fno >= 0 && fno < 10)
-      if((dfuse = avr_locate_mem(dry.dp, "fuses")) && dfuse->size > fno)
-        dfuse->buf[fno] = data;
+    else if(addr > 0) {         // Could be high byte of two-byte fuse
+      sprintf(memtype, "fuse%lx", addr-1);
+      if((dfuse = avr_locate_mem(dry.dp, memtype)))
+        dfuse->buf[1] = data;
+    }
+  } else if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {
+    // Copy fuseX byte into fuses memory
+    int fno = strtol(m->desc+4, NULL, 16);
+    if(fno >= 0)
+      if((dfuse = avr_locate_mem(dry.dp, "fuses"))  && (int) (fno+addr) < dfuse->size)
+        dfuse->buf[fno+addr] = data;
   }
 
   return 0;
