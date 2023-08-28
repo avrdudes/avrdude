@@ -163,6 +163,7 @@ libavrdude_a_SOURCES = \
 	ser_avrdoper.c \
 	ser_posix.c \
 	ser_win32.c \
+	serialadapter.c \
 	solaris_ecpp.h \
 	stk500.c \
 	stk500.h \

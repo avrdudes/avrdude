@@ -570,7 +570,7 @@ void capture_lvalue_kw(const char *kw, int lineno) {
     }
   }
 
-  if(str_eq(kw, "programmer") || str_eq(kw, "part") || str_eq(kw, "memory"))
+  if(str_eq(kw, "programmer") || str_eq(kw, "serialadapter") || str_eq(kw, "part") || str_eq(kw, "memory"))
     kw = "*";                   // Show comment before programmer/part/memory
 
   if(lkw)

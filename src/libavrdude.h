@@ -851,6 +851,12 @@ typedef struct programmer_t {
   char flag;                    // For use by pgm->initpgm()
 } PROGRAMMER;
 
+typedef PROGRAMMER SERIALADAPTER; // Only a subset is needed for serial adapters
+int is_programmer(const PROGRAMMER *p);
+int is_serialadapter(const SERIALADAPTER *p);
+void list_serialadapters(FILE *f, const char *prefix, LISTID programmers);
+void serialadapter_not_found(const char *sea_id);
+
 #define NO_PIN   (PIN_MAX + 1U) // Magic pinno[] value for unused pins
 
 #ifdef __cplusplus

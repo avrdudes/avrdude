@@ -1359,10 +1359,11 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     if(cp)
       dev_print_comment(cp->comms);
 
+    const char *prog_sea = is_programmer(pgm)? "programmer": is_serialadapter(pgm)? "serialadapter": "programmer";
     if(pgm->parent_id && *pgm->parent_id)
-      dev_info("programmer parent \"%s\"\n", pgm->parent_id);
+      dev_info("%s parent \"%s\"\n", prog_sea, pgm->parent_id);
     else
-      dev_info("programmer\n");
+      dev_info("%s\n", prog_sea);
   }
 
   if(tsv)
