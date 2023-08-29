@@ -4,11 +4,11 @@
 #
 # This file contains configuration data used by AVRDUDE which describes
 # the programming hardware pinouts and also provides part definitions.
-# AVRDUDE's "-C" command line option specifies the location of the
-# configuration file.  The "-c" option names the programmer configuration
-# which must match one of the entry's "id" parameter.  The "-p" option
+# AVRDUDE's -C command line option specifies the location of the
+# configuration file.  The -c option names the programmer configuration
+# which must match one of the entry's id parameter.  The -p option
 # identifies which part AVRDUDE is going to be programming and must match
-# one of the parts' "id" parameter.
+# one of the parts' id parameters.
 #
 # DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
 # time a "make install" is run.  For user-specific additions, use the
@@ -21,12 +21,12 @@
 #       id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
 #       desc     = <description> ;                # quoted string
 #       type     = <type>;                        # programmer type, quoted string
-#                                                 # supported types can be listed by "-c ?type"
+#                                                 # list known types with -c ?type
 #       prog_modes = PM_<i/f> {| PM_<i/f>}        # interfaces, eg, PM_SPM|PM_PDI (1)
-#       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER|HAS_VTARG_ADJ (2)
+#       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER (2)
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                        # baudrate for avr910-programmer
-#       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
+#       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s) (3)
 #       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
@@ -40,8 +40,8 @@
 #       rdyled   = <pin> ;                        # pin number
 #       pgmled   = <pin> ;                        # pin number
 #       vfyled   = <pin> ;                        # pin number
-#       usbvid   = <hexnum> ;                     # USB VID (Vendor ID)
-#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID) (3)
+#       usbvid   = <hexnum> ;                     # USB vendor ID
+#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB product ID (4)
 #       usbdev   = <interface> ;                  # USB interface or other device info
 #       usbvendor = <vendorname> ;                # USB Vendor Name
 #       usbproduct = <productname> ;              # USB Product Name
@@ -49,8 +49,7 @@
 #       hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
 #   ;
 #
-#   # To invert a pin use = ~ <num>
-#   # To invert a pin list (all pins get inverted) use ~ ( <num1> [, <num2> ... ] )
+#   # Notes
 #   #
 #   # (1) The following program modes are known:
 #   #  - PM_SPM: Bootloaders, self-programming with SPM opcodes or NVM Controllers
@@ -81,16 +80,19 @@
 #   #  - HAS_VAREF_ADJ: Programmer has an adjustable analog reference voltage that
 #   #    can be controlled with Avrdude
 #   #
-#   # (3) Not all programmer types can process a list of PIDs
+#   # (3) To invert the polarity of a pin use a tilde: ~<num>
+#   #     To invert the polarity of all pins in a list use ~(<num1> [, <num2> ... ])
+#   #
+#   # (4) Not all programmer types can process a list of PIDs
 #
 #   serialadapter                                 # same as programmer albeit only for usb parameters
 #       parent <id>                               # optional serialadapter or programmer parent
 #       id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
 #       desc     = <description> ;                # quoted string
-#       baudrate = <num> ;                        # optional default baudrate
+#       baudrate = <num> ;                        # optional default baudrate, eg, in .avrduderc
 #       usbvid   = <hexnum> ;                     # USB vendor ID
 #       usbpid   = <hexnum> [, <hexnum> ...] ;    # list of USB product IDs
-#       usbsn    = <serialno> ;                   # USB Serial Number in private .avrduderc files
+#       usbsn    = <serialno> ;                   # USB Serial Number in per-user .avrduderc
 #   ;
 #
 #   part
@@ -934,7 +936,7 @@ programmer
 # The drivers will look for a specific device and use the first one
 # found. If you have mulitple devices, and they give out serial
 # numbers, a different entry for each of them can be created in a
-# personal ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
+# per-user ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
 # field added to distinguish between them.
 #
 # Note that the pin numbers for the main ISP signals (reset, sck,
@@ -1593,8 +1595,7 @@ programmer
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
-    baudrate               = 250000; # For use as serial adapter
-    usbvid                 = 0x0403; # "
+    usbvid                 = 0x0403; # For use as serial adapter
     usbpid                 = 0x6001; # "
     reset                  = 4;  # DTR
     sck                    = 0;  # TxD
@@ -2908,25 +2909,35 @@ programmer
     hvupdi_support         = 1;
 ;
 
+#
+# SERIAL ADAPTER DEFINITIONS
+#
+
+# A serialadapter is a programmer that has only USB parameters defined; it
+# can be used for a -P <serialadapter|programmer>[:<serial number>] port
+# specification instead of the created serial port. Per-user serialadapter
+# definitions in ~/.avrduderc or avrdude.rc files can add a serial number
+# to assign a particular board a specific id and default upload baud rate:
+#
+# serialadapter parent "ft232r"
+#     id                     = "bike-shed-door";
+#     usbsn                  = "0123456789";
+#     baudrate               = 250000;
+# ;
+#
+# This is particularly useful for uploading to a bootloader as it allows
+# specifying the port as -P bike-shed-door rather than having to figure
+# out which serial port name the operating system has assigned to the
+# plugged in bike-shed-door board at runtime. Note that each programmer
+# that defines usbpid can also be utilised as a serialadapter.
+
 #------------------------------------------------------------
 # ch340
 #------------------------------------------------------------
 
-# A serialadapter is a programmer that has only USB parameters defined;
-# they can be used for a -P <serialadapter|programmer>[:<serial number>]
-# port specification instead of the serial port that the serial adapter
-# creates, eg, instead of /dev/ttyUSB3. Personal serialadapter definitions
-# in the ~/.avrduderc or avrdude.rc files can add a serial number using
-# the definition usbsn = "012345679"; to give a particular board a
-# specific unique name (id). This is particularly useful when uploading
-# directly to a board with a bootloader as it allows to assign boards
-# unique names rather than having to figure out which a varying serial
-# port name the Operating System has assigned at runtime.
-
 serialadapter
     id                     = "ch340";
     desc                   = "WCH CH340 USB to serial adapter";
-    baudrate               = 250000;
     usbvid                 = 0x1a86;
     usbpid                 = 0x7523;
 ;

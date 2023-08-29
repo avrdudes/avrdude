@@ -55,7 +55,7 @@ void list_serialadapters(FILE *fp, const char *prefix, LISTID programmers) {
         continue;
       fprintf(fp, "%s%-*s = [usbvid 0x%04x, usbpid", prefix, maxlen, id, sea->usbvid);
       for(ln3=lfirst(sea->usbpid); ln3; ln3=lnext(ln3))
-        fprintf(fp, " 0x%04x", *(int*)(ldata(ln3)));
+        fprintf(fp, " 0x%04x", *(int *) ldata(ln3));
       if(sea->usbsn && *sea->usbsn)
         fprintf(fp, ", usbsn %s", sea->usbsn);
       fprintf(fp, "]\n");
@@ -73,5 +73,3 @@ void serialadapter_not_found(const char *sea_id) {
   list_serialadapters(stderr, "  ", programmers);
   msg_error("\n");
 }
-
-
