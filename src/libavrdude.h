@@ -753,6 +753,7 @@ typedef struct programmer_t {
   LISTID comments;              // Used by developer options -c*/[ASsr...]
   const char *parent_id;        // Used by developer options
   int prog_modes;               // Programming interfaces, see #define PM_...
+  int is_serialadapter;         // Programmer is also a serialadapter
   int extra_features;
   struct pindef_t pin[N_PINS];
   conntype_t conntype;

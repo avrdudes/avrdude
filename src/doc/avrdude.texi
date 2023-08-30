@@ -2909,8 +2909,8 @@ serialadapter
 
 Technically, a @code{serialadapter} is implemented as @code{programmer}
 that has only USB parameters defined. It can be used for a @code{-P
-<serialadapter|programmer>[:<serial number>]} port specification instead
-of the created serial port. Per-user serialadapter definitions in
+<serialadapter>[:<serial number>]} port specification instead of the
+created serial port. Per-user serialadapter definitions in
 @code{~/.avrduderc} or @code{avrdude.rc} files can add a serial number to
 assign a particular board a specific id and default upload baud rate:
 
@@ -2927,7 +2927,8 @@ This is particularly useful for uploading to a bootloader as it allows
 specifying the port as @code{-P bike-shed-door} rather than having to
 figure out which serial port name the operating system has assigned to the
 plugged in bike-shed-door board at runtime. Note that each programmer that
-defines usbpid can also be utilised as a serialadapter.
+defines @code{usbpid} and sets @code{is_serialadapter = yes} can also be
+utilised as a serialadapter.
 
 @c
 @c Node

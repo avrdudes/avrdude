@@ -23,6 +23,7 @@
 #       type     = <type>;                        # programmer type, quoted string
 #                                                 # list known types with -c ?type
 #       prog_modes = PM_<i/f> {| PM_<i/f>}        # interfaces, eg, PM_SPM|PM_PDI (1)
+#       is_serialadapter = <yes|no>               # programmer is also a serialadapter
 #       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER (2)
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                        # baudrate for avr910-programmer
@@ -947,7 +948,7 @@ programmer
 # See also https://ftdichip.com/wp-content/uploads/2020/07/DS_FT2232H.pdf
 
 programmer
-    id                     = "ft2232h", "avrftdi", "2232h";
+    id                     = "avrftdi", "2232h";
     desc                   = "FT2232H/D based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
@@ -963,13 +964,22 @@ programmer
 ;
 
 #------------------------------------------------------------
+# ft2232h
+#------------------------------------------------------------
+
+programmer parent "2232h"
+    id                     = "ft2232h";
+    is_serialadapter       = yes;
+;
+
+#------------------------------------------------------------
 # 2232HIO
 #------------------------------------------------------------
 
 # This is an implementation of the above with a buffer IC (74AC244) and
 # 4 LEDs directly attached, all active low.
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "2232hio";
     desc                   = "2232hio based on FT2232H with buffer and LEDs";
     buff                   = ~4;
@@ -987,7 +997,7 @@ programmer parent "ft2232h"
 # Tigard - FT2232H based multi-protocol tool for hardware hacking
 # https://github.com/tigard-tools/tigard
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "tigard";
     desc                   = "Tigard interface board";
     usbdev                 = "B";
@@ -1003,7 +1013,7 @@ programmer parent "ft2232h"
 # Adds a buffer and a LED indicating that the programming is in progress.
 # https://www.kanda.com/products/Kanda/AVRISP-U.html
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "avrisp-u";
     desc                   = "Kanda AVRISP-U";
     usbsn                  = "AVR";
@@ -1040,7 +1050,17 @@ programmer
 # device ID of 0x6011
 
 programmer parent "ft2232h"
-    id                     = "ft4232h", "4232h";
+    id                     = "ft4232h";
+    desc                   = "FT4232H based generic programmer";
+    usbpid                 = 0x6011;
+;
+
+#------------------------------------------------------------
+# 4232h
+#------------------------------------------------------------
+
+programmer parent "2232h"
+    id                     = "4232h";
     desc                   = "FT4232H based generic programmer";
     usbpid                 = 0x6011;
 ;
@@ -1079,6 +1099,7 @@ programmer
     desc                   = "FT232H based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    is_serialadapter       = yes;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
@@ -1125,6 +1146,7 @@ programmer
 programmer parent "ft232h"
     id                     = "um232h";
     desc                   = "UM232H module from FTDI";
+    is_serialadapter       = no;
 ;
 
 #------------------------------------------------------------
@@ -1139,7 +1161,7 @@ programmer parent "ft232h"
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 
-programmer parent "ft232h"
+programmer parent "um232h"
     id                     = "c232hm";
     desc                   = "C232HM cable from FTDI";
 ;
@@ -1217,7 +1239,7 @@ programmer
 # First SPI connector
 # User manual: https://www.tiaowiki.com/w/TIAO_USB_Multi_Protocol_Adapter_User%27s_Manual
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "tumpa";
     desc                   = "TIAO USB Multi-Protocol Adapter";
     usbpid                 = 0x8a98;
@@ -1594,6 +1616,7 @@ programmer
     desc                   = "FT232R based generic programmer";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    is_serialadapter       = yes;
     connection_type        = usb;
     usbvid                 = 0x0403; # For use as serial adapter
     usbpid                 = 0x6001; # "
@@ -1962,6 +1985,7 @@ programmer
     desc                   = "ch341a programmer (AVR must have minimum F_CPU of 6.8 MHz)";
     type                   = "ch341a";
     prog_modes             = PM_ISP;
+    is_serialadapter       = yes;
     connection_type        = usb;
     usbvid                 = 0x1a86;
     usbpid                 = 0x5512;
@@ -2914,7 +2938,7 @@ programmer
 #
 
 # A serialadapter is a programmer that has only USB parameters defined; it
-# can be used for a -P <serialadapter|programmer>[:<serial number>] port
+# can be used for a -P <serialadapter>[:<serial number>] port
 # specification instead of the created serial port. Per-user serialadapter
 # definitions in ~/.avrduderc or avrdude.rc files can add a serial number
 # to assign a particular board a specific id and default upload baud rate:
@@ -2929,7 +2953,8 @@ programmer
 # specifying the port as -P bike-shed-door rather than having to figure
 # out which serial port name the operating system has assigned to the
 # plugged in bike-shed-door board at runtime. Note that each programmer
-# that defines usbpid can also be utilised as a serialadapter.
+# that defines usbpid and sets is_serialadapter = yes can also be utilised
+# as a serialadapter.
 
 #------------------------------------------------------------
 # ch340
