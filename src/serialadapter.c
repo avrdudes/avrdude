@@ -1,6 +1,7 @@
 /*
  * AVRDUDE - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2023 Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2023 Hans Eirik Bull
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,137 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+
+#ifdef HAVE_LIBSERIALPORT
+
+#include <libserialport.h>
+
+int find_serialport_adapter(const SERIALADAPTER *ser, char *serport, char *sernum) {
+  int rv = -1;
+  /* A pointer to a null-terminated array of pointers to
+   * struct sp_port, which will contain the ports found */
+  struct sp_port **port_list;
+
+  /* Call sp_list_ports() to get the ports. The port_list
+   * pointer will be updated to refer to the array created */
+  enum sp_return result = sp_list_ports(&port_list);
+
+  if (result != SP_OK) {
+    pmsg_error("sp_list_ports() failed!\n");
+    return -1;
+  }
+
+  for (int i = 0; port_list[i]; i++) {
+    struct sp_port *prt = port_list[i];
+    int usb_vid, usb_pid;
+    sp_get_port_usb_vid_pid(prt, &usb_vid, &usb_pid);
+
+    // USB VID match
+    if(usb_vid == ser->usbvid) {
+      for (LNODEID usbpid = lfirst(ser->usbpid); usbpid; usbpid = lnext(usbpid)) {
+        // USB PID match
+        if (usb_pid == *(int *)(ldata(usbpid))) {
+          // SN present
+          if (sernum && sernum[0]) {
+            // SN matches
+            char *s = sp_get_port_usb_serial(prt);
+            if(s) {
+              if (str_eq(sernum, s)) {
+                strcpy(serport, sp_get_port_name(prt));
+                rv = 0;
+              }
+            }
+            // SN does not match
+            else {
+              continue;
+            }
+          }
+          // SN not present
+          else {
+            char *p = sp_get_port_name(prt);
+            if(p) {
+              strcpy(serport, p);
+              rv = 0;
+            }
+            else
+              rv = -1;
+          }
+        }
+      }
+    }
+  }
+
+  sp_free_port_list(port_list); // Free the array created by sp_list_ports()
+  return rv;
+}
+
+int find_serialport_vid_pid(char *serport, int vid, int pid, char *sernum) {
+  int rv = -1;
+  /* A pointer to a null-terminated array of pointers to
+   * struct sp_port, which will contain the ports found */
+  struct sp_port **port_list;
+
+  /* Call sp_list_ports() to get the ports. The port_list
+   * pointer will be updated to refer to the array created */
+  enum sp_return result = sp_list_ports(&port_list);
+
+  if (result != SP_OK) {
+    pmsg_error("sp_list_ports() failed!\n");
+    return -1;
+  }
+
+  for (int i = 0; port_list[i]; i++) {
+    struct sp_port *prt = port_list[i];
+    int usb_vid, usb_pid;
+    sp_get_port_usb_vid_pid(prt, &usb_vid, &usb_pid);
+
+    // USB VID and PIDmatch
+    if(usb_vid == vid && usb_pid == pid) {
+      // SN present
+      if (sernum && sernum[0]) {
+        // SN matches
+        char *s = sp_get_port_usb_serial(prt);
+        if(s) {
+          if (str_eq(sernum, s)) {
+            strcpy(serport, sp_get_port_name(prt));
+            rv = 0;
+          }
+        }
+        // SN does not match
+        else {
+          continue;
+        }
+      }
+      // SN not present
+      else {
+        char *p = sp_get_port_name(prt);
+        if(p) {
+          strcpy(serport, p);
+          rv = 0;
+        }
+        else
+          rv = -1;
+      }
+    }
+  }
+
+  sp_free_port_list(port_list); // Free the array created by sp_list_ports()
+  return rv;
+}
+
+#else
+
+int find_serialport_adapter(const SERIALADAPTER *ser, char *port, char *sernum) {
+  pmsg_error("Avrdude built without libserialport support; please compile again with libserialport installed\n");
+  return -1;
+}
+
+int find_serialport_vid_pid(char *port, int vid, int pid, char *sernum) {
+  pmsg_error("Avrdude built without libserialport support; please compile again with libserialport installed\n");
+  return -1;
+}
+
+#endif
 
 void list_serialadapters(FILE *fp, const char *prefix, LISTID programmers) {
   LNODEID ln1, ln2, ln3;

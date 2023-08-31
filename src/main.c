@@ -1158,6 +1158,55 @@ int main(int argc, char * argv [])
     }
   }
 
+  // Divide the port string into tokens separated by colon(s).
+  // There are four ways a port string can be presented:
+  // 1) -P [serialadapter]
+  // 2) -P [serialadapter]:[sernum]
+  // 3) -P [usbvid]:[usbpid]
+  // 4) -P [usbvid]:[usbpid]:[sernum]
+  char port_str[strlen(port)];
+  char port_tok[3][strlen(port)];
+  memset(port_tok, 0, sizeof(port_tok));
+  strcpy(port_str, (const char *)port);
+	char *tok = strtok(port_str, ":");
+	for (int i = 0; i < 3; i++) {
+    if (!tok)
+      break;
+    strcpy(port_tok[i], tok);
+    tok = strtok(NULL, ":");
+  }
+
+  // Use libserialport to find the actual serial port
+  const char *seradapter;
+  SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
+  if (is_serialadapter(ser)) {
+    if (find_serialport_adapter(ser, port, port_tok[1]) < 0) {
+      if (port_tok[1] && port_tok[1][0])
+        pmsg_error("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
+      else
+        pmsg_error("serial adapter %s not found\n", seradapter);
+      exit(1);
+    }
+  } else if (is_programmer(ser)) {
+    if (port_tok[1] && port_tok[1][0])
+      pmsg_error("invalid serial adapter %s with serial number %s specified\n", seradapter, port_tok[1]);
+    else
+      pmsg_error("invalid serial adapter %s specified\n", port_tok[0]);
+    exit(1);
+  } else {
+    // Port or usb vid/pid
+    int vid, pid;
+    if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
+      if(find_serialport_vid_pid(port, vid, pid, port_tok[2]) < 0) {
+        if (port_tok[2] && port_tok[2][0])
+          pmsg_error("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
+        else
+          pmsg_error("serial adapter with USB VID %s and PID %s not found\n", port_tok[0], port_tok[1]);
+        exit(1);
+      }
+    }
+  }
+
   /*
    * open the programmer
    */
