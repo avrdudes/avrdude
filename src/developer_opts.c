@@ -140,76 +140,6 @@ static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa
 
 // Programming modes
 
-/*
- * p->flags no longer used for programming modes, use p->prog_modes
- *
-
- remove this comment in 2023
-
-static char *prog_modes_str_flags(const AVRPART *p) {
-  static char type[1024];
-
-  *type = 0;
-
-  if(!(p->flags & AVRPART_HAS_TPI) // TPI devices don't have the SPM opcode
-     && !str_eq(p->id, "t4")       // Nor have these early ones
-     && !str_eq(p->id, "t5")
-     && !str_eq(p->id, "t9")
-     && !str_eq(p->id, "t10")
-     && !str_eq(p->id, "t11")
-     && !str_eq(p->id, "t12")
-     && !str_eq(p->id, "t15")
-     && !str_eq(p->id, "t20")
-     && !str_eq(p->id, "t26")
-     && !str_eq(p->id, "t28")
-     && !str_eq(p->id, "t40"))
-   strcpy(type, "PM_SPM");
-
-  switch(p->flags & (AVRPART_HAS_PDI | AVRPART_AVR32 | AVRPART_HAS_TPI | AVRPART_HAS_UPDI)) {
-  case AVRPART_HAS_TPI:         // AVR8L family
-    strcat(type, "|PM_TPI");
-    break;
-  case 0:                       //  AVR8 family, "classic" parts
-    if(p->flags & AVRPART_SERIALOK) // ATmega406 has no ISP
-      strcat(type, "|PM_ISP");
-    break;
-  case AVRPART_HAS_PDI:         // AVR8_XMEGA family
-    strcat(type, "|PM_PDI");
-    break;
-  case AVRPART_HAS_UPDI:        // AVR8X family
-     strcat(type, "|PM_UPDI");
-     break;
-  case AVRPART_AVR32:           // AVR32 family
-    strcat(type, "|PM_aWire");
-    break;
-  default:
-    strcat(type, "|PM_UNKNOWN");
-  }
-
-  switch(p->ctl_stack_type) {
-    case CTL_STACK_PP:
-      strcat(type, "|PM_HVPP");
-      break;
-    case CTL_STACK_HVSP:
-      strcat(type, "|PM_HVSP");
-      break;
-    default:
-      break;
-  }
-
-  if(p->flags & AVRPART_HAS_DW)
-    strcat(type, "|PM_debugWIRE");
-
-  if(p->flags & AVRPART_HAS_JTAG)
-    strcat(type, "|PM_JTAG");
-
-  return type + (*type == '|');
-}
-
- *
- */
-
-
 static char *prog_modes_str(int pm) {
   static char type[1024];
 
@@ -448,6 +378,10 @@ static void dev_stack_out(bool tsv, const AVRPART *p, const char *name, const un
 
 static int intcmp(int a, int b) {
   return a-b;
+}
+
+static int boolcmp(int a, int b) {
+  return !!a-!!b;
 }
 
 
@@ -1359,10 +1293,11 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     if(cp)
       dev_print_comment(cp->comms);
 
+    const char *prog_sea = is_programmer(pgm)? "programmer": is_serialadapter(pgm)? "serialadapter": "programmer";
     if(pgm->parent_id && *pgm->parent_id)
-      dev_info("programmer parent \"%s\"\n", pgm->parent_id);
+      dev_info("%s parent \"%s\"\n", prog_sea, pgm->parent_id);
     else
-      dev_info("programmer\n");
+      dev_info("%s\n", prog_sea);
   }
 
   if(tsv)
@@ -1390,6 +1325,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
   _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", prog_modes_str(pgm->prog_modes)), prog_modes);
+  _if_pgmout_str(boolcmp, cfg_strdup("dev_pgm_strct()", pgm->is_serialadapter? "yes": "no"), is_serialadapter);
   _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));

@@ -753,6 +753,7 @@ typedef struct programmer_t {
   LISTID comments;              // Used by developer options -c*/[ASsr...]
   const char *parent_id;        // Used by developer options
   int prog_modes;               // Programming interfaces, see #define PM_...
+  int is_serialadapter;         // Programmer is also a serialadapter
   int extra_features;
   struct pindef_t pin[N_PINS];
   conntype_t conntype;
@@ -850,6 +851,12 @@ typedef struct programmer_t {
   void *cookie;                 // For private use by the programmer
   char flag;                    // For use by pgm->initpgm()
 } PROGRAMMER;
+
+typedef PROGRAMMER SERIALADAPTER; // Only a subset is needed for serial adapters
+int is_programmer(const PROGRAMMER *p);
+int is_serialadapter(const SERIALADAPTER *p);
+void list_serialadapters(FILE *fp, const char *prefix, LISTID programmers);
+void serialadapter_not_found(const char *sea_id);
 
 #define NO_PIN   (PIN_MAX + 1U) // Magic pinno[] value for unused pins
 

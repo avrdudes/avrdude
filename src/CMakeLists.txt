@@ -214,6 +214,7 @@ add_library(libavrdude
     ser_avrdoper.c
     ser_posix.c
     ser_win32.c
+    serialadapter.c
     serialupdi.c
     serialupdi.h
     solaris_ecpp.h
@@ -286,6 +287,7 @@ target_link_libraries(libavrdude
     ${LIB_LIBFTDI}
     ${LIB_LIBFTDI1}
     ${LIB_LIBREADLINE}
+    ${LIB_LIBSERIALPORT}
     ${LIB_NCURSES}
     ${LIB_LIBGPIOD}
     ${EXTRA_WINDOWS_LIBRARIES}

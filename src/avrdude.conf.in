@@ -4,11 +4,11 @@
 #
 # This file contains configuration data used by AVRDUDE which describes
 # the programming hardware pinouts and also provides part definitions.
-# AVRDUDE's "-C" command line option specifies the location of the
-# configuration file.  The "-c" option names the programmer configuration
-# which must match one of the entry's "id" parameter.  The "-p" option
+# AVRDUDE's -C command line option specifies the location of the
+# configuration file.  The -c option names the programmer configuration
+# which must match one of the entry's id parameter.  The -p option
 # identifies which part AVRDUDE is going to be programming and must match
-# one of the parts' "id" parameter.
+# one of the parts' id parameters.
 #
 # DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
 # time a "make install" is run.  For user-specific additions, use the
@@ -21,12 +21,13 @@
 #       id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
 #       desc     = <description> ;                # quoted string
 #       type     = <type>;                        # programmer type, quoted string
-#                                                 # supported types can be listed by "-c ?type"
+#                                                 # list known types with -c ?type
 #       prog_modes = PM_<i/f> {| PM_<i/f>}        # interfaces, eg, PM_SPM|PM_PDI (1)
-#       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER|HAS_VTARG_ADJ (2)
+#       is_serialadapter = <yes|no>               # programmer is also a serialadapter
+#       extra_features = HAS_<fea> {| HAS_<fea>}  # extra features, eg, HAS_SUFFER (2)
 #       connection_type = parallel | serial | usb | spi
 #       baudrate = <num> ;                        # baudrate for avr910-programmer
-#       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
+#       vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s) (3)
 #       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
@@ -40,8 +41,8 @@
 #       rdyled   = <pin> ;                        # pin number
 #       pgmled   = <pin> ;                        # pin number
 #       vfyled   = <pin> ;                        # pin number
-#       usbvid   = <hexnum> ;                     # USB VID (Vendor ID)
-#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID) (3)
+#       usbvid   = <hexnum> ;                     # USB vendor ID
+#       usbpid   = <hexnum> [, <hexnum> ...] ;    # USB product ID (4)
 #       usbdev   = <interface> ;                  # USB interface or other device info
 #       usbvendor = <vendorname> ;                # USB Vendor Name
 #       usbproduct = <productname> ;              # USB Product Name
@@ -49,8 +50,7 @@
 #       hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
 #   ;
 #
-#   # To invert a pin use = ~ <num>
-#   # To invert a pin list (all pins get inverted) use ~ ( <num1> [, <num2> ... ] )
+#   # Notes
 #   #
 #   # (1) The following program modes are known:
 #   #  - PM_SPM: Bootloaders, self-programming with SPM opcodes or NVM Controllers
@@ -81,7 +81,20 @@
 #   #  - HAS_VAREF_ADJ: Programmer has an adjustable analog reference voltage that
 #   #    can be controlled with Avrdude
 #   #
-#   # (3) Not all programmer types can process a list of PIDs
+#   # (3) To invert the polarity of a pin use a tilde: ~<num>
+#   #     To invert the polarity of all pins in a list use ~(<num1> [, <num2> ... ])
+#   #
+#   # (4) Not all programmer types can process a list of PIDs
+#
+#   serialadapter                                 # same as programmer albeit only for usb parameters
+#       parent <id>                               # optional serialadapter or programmer parent
+#       id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
+#       desc     = <description> ;                # quoted string
+#       baudrate = <num> ;                        # optional default baudrate, eg, in .avrduderc
+#       usbvid   = <hexnum> ;                     # USB vendor ID
+#       usbpid   = <hexnum> [, <hexnum> ...] ;    # list of USB product IDs
+#       usbsn    = <serialno> ;                   # USB Serial Number in per-user .avrduderc
+#   ;
 #
 #   part
 #       desc             = <description> ;        # quoted string, the long part name, eg, "ATmega328p"
@@ -924,7 +937,7 @@ programmer
 # The drivers will look for a specific device and use the first one
 # found. If you have mulitple devices, and they give out serial
 # numbers, a different entry for each of them can be created in a
-# persnonal ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
+# per-user ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
 # field added to distinguish between them.
 #
 # Note that the pin numbers for the main ISP signals (reset, sck,
@@ -935,7 +948,7 @@ programmer
 # See also https://ftdichip.com/wp-content/uploads/2020/07/DS_FT2232H.pdf
 
 programmer
-    id                     = "ft2232h", "avrftdi", "2232h";
+    id                     = "avrftdi", "2232h";
     desc                   = "FT2232H/D based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
@@ -951,13 +964,22 @@ programmer
 ;
 
 #------------------------------------------------------------
+# ft2232h
+#------------------------------------------------------------
+
+programmer parent "2232h"
+    id                     = "ft2232h";
+    is_serialadapter       = yes;
+;
+
+#------------------------------------------------------------
 # 2232HIO
 #------------------------------------------------------------
 
 # This is an implementation of the above with a buffer IC (74AC244) and
 # 4 LEDs directly attached, all active low.
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "2232hio";
     desc                   = "2232hio based on FT2232H with buffer and LEDs";
     buff                   = ~4;
@@ -975,7 +997,7 @@ programmer parent "ft2232h"
 # Tigard - FT2232H based multi-protocol tool for hardware hacking
 # https://github.com/tigard-tools/tigard
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "tigard";
     desc                   = "Tigard interface board";
     usbdev                 = "B";
@@ -991,7 +1013,7 @@ programmer parent "ft2232h"
 # Adds a buffer and a LED indicating that the programming is in progress.
 # https://www.kanda.com/products/Kanda/AVRISP-U.html
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "avrisp-u";
     desc                   = "Kanda AVRISP-U";
     usbsn                  = "AVR";
@@ -1028,7 +1050,17 @@ programmer
 # device ID of 0x6011
 
 programmer parent "ft2232h"
-    id                     = "ft4232h", "4232h";
+    id                     = "ft4232h";
+    desc                   = "FT4232H based generic programmer";
+    usbpid                 = 0x6011;
+;
+
+#------------------------------------------------------------
+# 4232h
+#------------------------------------------------------------
+
+programmer parent "2232h"
+    id                     = "4232h";
     desc                   = "FT4232H based generic programmer";
     usbpid                 = 0x6011;
 ;
@@ -1067,6 +1099,7 @@ programmer
     desc                   = "FT232H based generic programmer";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
+    is_serialadapter       = yes;
     connection_type        = usb;
     usbvid                 = 0x0403;
     usbpid                 = 0x6014;
@@ -1113,6 +1146,7 @@ programmer
 programmer parent "ft232h"
     id                     = "um232h";
     desc                   = "UM232H module from FTDI";
+    is_serialadapter       = no;
 ;
 
 #------------------------------------------------------------
@@ -1127,7 +1161,7 @@ programmer parent "ft232h"
 # Use the -b flag to set the SPI clock rate eg -b 3750000 is the fastest I could get
 # a 16MHz Atmega1280 to program reliably.  The 232H is conveniently 5V tolerant.
 
-programmer parent "ft232h"
+programmer parent "um232h"
     id                     = "c232hm";
     desc                   = "C232HM cable from FTDI";
 ;
@@ -1205,7 +1239,7 @@ programmer
 # First SPI connector
 # User manual: https://www.tiaowiki.com/w/TIAO_USB_Multi_Protocol_Adapter_User%27s_Manual
 
-programmer parent "ft2232h"
+programmer parent "2232h"
     id                     = "tumpa";
     desc                   = "TIAO USB Multi-Protocol Adapter";
     usbpid                 = 0x8a98;
@@ -1582,7 +1616,10 @@ programmer
     desc                   = "FT232R based generic programmer";
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
+    is_serialadapter       = yes;
     connection_type        = usb;
+    usbvid                 = 0x0403; # For use as serial adapter
+    usbpid                 = 0x6001; # "
     reset                  = 4;  # DTR
     sck                    = 0;  # TxD
     sdo                    = 2;  # RTS
@@ -1740,7 +1777,6 @@ programmer
     usbpid                 = 0x05dc; # Obdev's free shared PID
     usbvendor              = "www.fischl.de";
     usbproduct             = "USBasp";
-
   # Old usbasp from fischl.de:
   # usbvid                 = 0x03EB; # ATMEL
   # usbpid                 = 0xC7B4; # (unoffical) USBasp
@@ -1949,6 +1985,7 @@ programmer
     desc                   = "ch341a programmer (AVR must have minimum F_CPU of 6.8 MHz)";
     type                   = "ch341a";
     prog_modes             = PM_ISP;
+    is_serialadapter       = yes;
     connection_type        = usb;
     usbvid                 = 0x1a86;
     usbpid                 = 0x5512;
@@ -2894,6 +2931,40 @@ programmer
     connection_type        = serial;
     baudrate               = 115200;
     hvupdi_support         = 1;
+;
+
+#
+# SERIAL ADAPTER DEFINITIONS
+#
+
+# A serialadapter is a programmer that has only USB parameters defined; it
+# can be used for a -P <serialadapter>[:<serial number>] port
+# specification instead of the created serial port. Per-user serialadapter
+# definitions in ~/.avrduderc or avrdude.rc files can add a serial number
+# to assign a particular board a specific id and default upload baud rate:
+#
+# serialadapter parent "ft232r"
+#     id                     = "bike-shed-door";
+#     usbsn                  = "0123456789";
+#     baudrate               = 250000;
+# ;
+#
+# This is particularly useful for uploading to a bootloader as it allows
+# specifying the port as -P bike-shed-door rather than having to figure
+# out which serial port name the operating system has assigned to the
+# plugged in bike-shed-door board at runtime. Note that each programmer
+# that defines usbpid and sets is_serialadapter = yes can also be utilised
+# as a serialadapter.
+
+#------------------------------------------------------------
+# ch340
+#------------------------------------------------------------
+
+serialadapter
+    id                     = "ch340";
+    desc                   = "WCH CH340 USB to serial adapter";
+    usbvid                 = 0x1a86;
+    usbpid                 = 0x7523;
 ;
 
 #

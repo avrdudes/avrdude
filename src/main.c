@@ -298,6 +298,8 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
   // Compute max length of programmer names
   for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     pgm = ldata(ln1);
+    if(!is_programmer(pgm))
+      continue;
     for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2))
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
@@ -310,6 +312,8 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
 
   for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     pgm = ldata(ln1);
+    if(!is_programmer(pgm))
+      continue;
     for(ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
       // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
@@ -1018,6 +1022,8 @@ int main(int argc, char * argv [])
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
       PROGRAMMER *pgm = ldata(ln2);
+      if(!is_programmer(pgm))
+        continue;
       const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
       if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
@@ -1029,7 +1035,7 @@ int main(int argc, char * argv [])
     if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
         PROGRAMMER *pgm = locate_programmer_set(programmers, pgmid, &pgmid);
-        if(!pgm) {
+        if(!pgm || !is_programmer(pgm)) {
           programmer_not_found(pgmid);
           exit(1);
         }
@@ -1078,7 +1084,7 @@ int main(int argc, char * argv [])
   }
 
   pgm = locate_programmer_set(programmers, pgmid, &pgmid);
-  if (pgm == NULL) {
+  if (pgm == NULL || !is_programmer(pgm)) {
     programmer_not_found(pgmid);
     exit(1);
   }

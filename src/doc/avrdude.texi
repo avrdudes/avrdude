@@ -2736,6 +2736,7 @@ the executable.
 @menu
 * AVRDUDE Defaults::            
 * Programmer Definitions::      
+* Serial Adapter Definitions::
 * Part Definitions::            
 * Other Notes::                 
 @end menu
@@ -2775,7 +2776,7 @@ Whether or not AVRDUDE's interactive terminal is allowed to use subshell
 rare case @code{avrdude -t} is set up with attached hardware to provide a
 web service, remote ssh or a login on a PC instead of a shell, say, for
 demo or training purposes. In almost all other cases this can be
-overridden in the personal @code{avrddude.rc} or @code{.avrduderc}
+overridden in the per-user @code{avrddude.rc} or @code{.avrduderc}
 configuration file with @var{yes}.
 
 @end table
@@ -2784,7 +2785,8 @@ configuration file with @var{yes}.
 @c
 @c Node
 @c
-@node Programmer Definitions, Part Definitions, AVRDUDE Defaults, Configuration File
+@node Programmer Definitions, Serial Adapter Definitions, AVRDUDE Defaults, Configuration File
+@cindex @code{programmer}
 @section Programmer Definitions
 
 @noindent
@@ -2796,22 +2798,27 @@ programmer
     id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
     desc     = <description> ;                # quoted string
     type     = <type>;                        # programmer type, quoted string
-                                              # supported types can be listed by "-c ?type"
-    prog_modes = PM_<i/f> @{ | PM_<i/f> @}      # interfaces, e.g., PM_SPM|PM_PDI
+                                              # list known types with -c ?type
+    prog_modes = PM_<i/f> @{| PM_<i/f>@}        # interfaces, e.g., PM_SPM|PM_PDI (1)
+    extra_features = HAS_<fea> @{| HAS_<fea>@}  # extra features, e.g., HAS_SUFFER (2)
     connection_type = parallel | serial | usb | spi
     baudrate = <num> ;                        # baudrate for avr910-programmer
-    vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s)
+    vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s) (3)
     buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
     reset    = <pin> ;                        # pin number
     sck      = <pin> ;                        # pin number
     sdo      = <pin> ;                        # pin number
     sdi      = <pin> ;                        # pin number
+    tck      = <pin> ;                        # pin number
+    tdi      = <pin> ;                        # pin number
+    tdo      = <pin> ;                        # pin number
+    tms      = <pin> ;                        # pin number
     errled   = <pin> ;                        # pin number
     rdyled   = <pin> ;                        # pin number
     pgmled   = <pin> ;                        # pin number
     vfyled   = <pin> ;                        # pin number
-    usbvid   = <hexnum> ;                     # USB VID (Vendor ID)
-    usbpid   = <hexnum> [, <hexnum> ...] ;    # USB PID (Product ID)
+    usbvid   = <hexnum> ;                     # USB vendor ID
+    usbpid   = <hexnum> [, <hexnum> ...] ;    # USB product ID (4)
     usbdev   = <interface> ;                  # USB interface or other device info
     usbvendor = <vendorname> ;                # USB Vendor Name
     usbproduct = <productname> ;              # USB Product Name
@@ -2825,7 +2832,12 @@ If a parent is specified, all settings of it (except its ids) are used for the n
 programmer. These values can be changed by new setting them for the new programmer.
 
 @noindent
-Known programming modes are
+@strong{Notes}
+
+@enumerate
+
+@item Known programming modes are
+
 @itemize @bullet
 @item @code{PM_SPM}: Bootloaders, self-programming with SPM opcodes or NVM Controllers
 @item @code{PM_TPI}: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
@@ -2842,12 +2854,29 @@ Known programming modes are
 @item @code{PM_aWire}: AVR32 parts
 @end itemize
 
-@noindent
-To invert a bit in the pin definitions, use @code{= ~ <num>}. To invert a pin list
-(all pins get inverted) use @code{~ ( <num1> [, <num2> ... ] )}.
+@item The following extra programmer features are known
 
-@noindent
-Not all programmer types can handle a list of USB PIDs.
+@itemize @bullet
+@item @code{HAS_SUFFER}: Only present on Xplained Mini/Nano programmers;
+  the Super User Fantastic Feature Enable Register allows the user to modify
+  the behavior of the mEDBG programmer/debugger chip, see the Xplained Mini/Nano
+  documentation for more information
+@item @code{HAS_VTARG_SWITCH}: Programer has a programmable target power switch
+@item @code{HAS_VTARG_READ}: Programmer can read the target voltage
+@item @code{HAS_VTARG_ADJ}: Programmer has an adjustable target power source that can
+  be controlled with Avrdude
+@item @code{HAS_FOSC_ADJ}: Programmer has a programable frequency generator that
+  can clock an AVR directly through its XTAL1 pin
+@item @code{HAS_VAREF_ADJ}: Programmer has an adjustable analog reference voltage that
+  can be controlled with Avrdude
+@end itemize
+
+@item To invert the polarity of a pin, use a tilde @code{~<num>}; to invert
+the polarity of all pins in a list use @code{~(<num1> [, <num2> ... ])}
+
+@item Not all programmer types can handle a list of USB PIDs
+
+@end enumerate
 
 @noindent
 The following programmer types are currently implemented:
@@ -2859,7 +2888,53 @@ The following programmer types are currently implemented:
 @c
 @c Node
 @c
-@node Part Definitions, Other Notes, Programmer Definitions, Configuration File
+@node Serial Adapter Definitions, Part Definitions, Programmer Definitions, Configuration File
+@cindex @code{serialadapter}
+@section Serial Adapter Definitions
+
+@noindent
+The format of a serial adapter definition is as follows:
+
+@smallexample
+serialadapter
+    parent <id>                               # optional serialadapter or programmer parent
+    id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
+    desc     = <description> ;                # quoted string
+    baudrate = <num> ;                        # optional default baudrate, eg, in .avrduderc
+    usbvid   = <hexnum> ;                     # USB vendor ID
+    usbpid   = <hexnum> [, <hexnum> ...] ;    # list of USB product IDs
+    usbsn    = <serialno> ;                   # USB Serial Number in per-user .avrduderc
+;
+@end smallexample
+
+Technically, a @code{serialadapter} is implemented as @code{programmer}
+that has only USB parameters defined. It can be used for a @code{-P
+<serialadapter>[:<serial number>]} port specification instead of the
+created serial port. Per-user serialadapter definitions in
+@code{~/.avrduderc} or @code{avrdude.rc} files can add a serial number to
+assign a particular board a specific id and default upload baud rate:
+
+@smallexample
+serialadapter parent "ft232r"
+    id                     = "bike-shed-door";
+    usbsn                  = "0123456789";
+    baudrate               = 250000;
+;
+@end smallexample
+
+@noindent
+This is particularly useful for uploading to a bootloader as it allows
+specifying the port as @code{-P bike-shed-door} rather than having to
+figure out which serial port name the operating system has assigned to the
+plugged in bike-shed-door board at runtime. Note that each programmer that
+defines @code{usbpid} and sets @code{is_serialadapter = yes} can also be
+utilised as a serialadapter.
+
+@c
+@c Node
+@c
+@node Part Definitions, Other Notes, Serial Adapter Definitions, Configuration File
+@cindex @code{part}
 @section Part Definitions
 
 @smallexample
@@ -3003,7 +3078,7 @@ arithemtic and bitwise operators.
 
 @noindent
 Parts can also inherit parameters from previously defined parts using
-the following syntax. In this case specified integer and  string values
+the following syntax. In this case specified integer and string values
 override parameter values from the parent part. New  memory definitions
 are added to the definitions inherited from the  parent. If, however, a
 new memory definition refers to an existing one of the same name for
@@ -3023,7 +3098,7 @@ Example format for part inheritance:
    part parent <id>                              # String identifying parent
        id               = <id> ;                 # Id string for new part
        <any set of other parameters from the list above>
-     ;
+   ;
 @end smallexample
 
 @c
@@ -3828,16 +3903,9 @@ Solutions: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
 
 @item
-Problem: Updating the flash ROM from terminal mode does not work with the
-JTAG ICEs.
-
-Solution: None at this time.  Currently, the JTAG ICE code cannot
-write to the flash ROM one byte at a time.
-
-@item
 Problem: Page-mode programming the EEPROM (using the -U option) does
-not erase EEPROM cells before writing, and thus cannot overwrite any
-previous value != 0xff.
+not erase EEPROM cells before writing, and thus cannot necessarily overwrite
+previous values that are different to 0xff.
 
 Solution: None.  This is an inherent feature of the way JTAG EEPROM
 programming works, and is documented that way in the Atmel AVR

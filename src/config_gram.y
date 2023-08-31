@@ -258,7 +258,7 @@ prog_def :
         yyerror("required parameter id not specified");
         YYABORT;
       }
-      if (current_prog->initpgm == NULL) {
+      if (current_prog->initpgm == NULL && current_prog->prog_modes) {
         yyerror("programmer type not specified");
         YYABORT;
       }

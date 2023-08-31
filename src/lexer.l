@@ -148,7 +148,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
      }
 
 
-(?x: desc | prog_modes | extra_features | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
+(?x: desc | prog_modes | is_serialadapter | extra_features | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
   family_id | mcuid | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
   hvupdi_variant | stk500_devcode | avr910_devcode | chip_erase_delay | pagel | bs2 |
   timeout | stabdelay | cmdexedelay | synchloops | bytedelay | pollindex | pollvalue | predelay | postdelay | pollmethod |
@@ -224,7 +224,7 @@ part             { yylval=NULL; ccap(); current_strct = COMP_AVRPART; return K_P
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); ccap(); return K_PGM_ENABLE; }
 pgmled           { yylval=NULL; ccap(); return K_PGMLED; }
 pp_controlstack  { yylval=NULL; ccap(); return K_PP_CONTROLSTACK; }
-programmer       { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER; return K_PROGRAMMER; }
+(programmer|serialadapter) { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER; return K_PROGRAMMER; }
 rdyled           { yylval=NULL; ccap(); return K_RDYLED; }
 read             { yylval=new_token(K_READ); ccap(); return K_READ; }
 read_hi          { yylval=new_token(K_READ_HI); ccap(); return K_READ_HI; }

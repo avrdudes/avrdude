@@ -68,6 +68,7 @@ Component_t avr_comp[] = {
   // PROGRAMMER
   pgm_comp_desc(desc, COMP_STRING),
   pgm_comp_desc(prog_modes, COMP_INT),
+  pgm_comp_desc(is_serialadapter, COMP_INT),
   pgm_comp_desc(extra_features, COMP_INT),
   pgm_comp_desc(baudrate, COMP_INT),
   pgm_comp_desc(usbvid, COMP_INT),
@@ -570,7 +571,7 @@ void capture_lvalue_kw(const char *kw, int lineno) {
     }
   }
 
-  if(str_eq(kw, "programmer") || str_eq(kw, "part") || str_eq(kw, "memory"))
+  if(str_eq(kw, "programmer") || str_eq(kw, "serialadapter") || str_eq(kw, "part") || str_eq(kw, "memory"))
     kw = "*";                   // Show comment before programmer/part/memory
 
   if(lkw)
