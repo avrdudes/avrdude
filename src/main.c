@@ -1164,8 +1164,8 @@ int main(int argc, char * argv [])
   // 2) -P [serialadapter]:[sernum]
   // 3) -P [usbvid]:[usbpid]
   // 4) -P [usbvid]:[usbpid]:[sernum]
-  char port_str[strlen(port)];
-  char port_tok[3][strlen(port)];
+  char port_str[256];
+  char port_tok[3][256];
   memset(port_tok, 0, sizeof(port_tok));
   strcpy(port_str, (const char *)port);
 	char *tok = strtok(port_str, ":");
