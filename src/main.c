@@ -1191,7 +1191,6 @@ int main(int argc, char * argv [])
         pmsg_error("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
       else
         pmsg_error("serial adapter %s not found\n", seradapter);
-      exit(1);
     }
   } else {
     // Port or usb vid/pid
@@ -1202,7 +1201,6 @@ int main(int argc, char * argv [])
           pmsg_error("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
         else
           pmsg_error("serial adapter with USB VID %s and PID %s not found\n", port_tok[0], port_tok[1]);
-        exit(1);
       }
     }
   }
