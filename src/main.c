@@ -1181,14 +1181,14 @@ int main(int argc, char * argv [])
   SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
   if (is_serialadapter(ser)) {
     if (find_serialport_adapter(ser, port, port_tok[1]) < 0) {
-      if (port_tok[1] && port_tok[1][0])
+      if (port_tok[1][0])
         pmsg_error("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
       else
         pmsg_error("serial adapter %s not found\n", seradapter);
       exit(1);
     }
   } else if (is_programmer(ser)) {
-    if (port_tok[1] && port_tok[1][0])
+    if (port_tok[1][0])
       pmsg_error("invalid serial adapter %s with serial number %s specified\n", seradapter, port_tok[1]);
     else
       pmsg_error("invalid serial adapter %s specified\n", port_tok[0]);
@@ -1198,7 +1198,7 @@ int main(int argc, char * argv [])
     int vid, pid;
     if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
       if(find_serialport_vid_pid(port, vid, pid, port_tok[2]) < 0) {
-        if (port_tok[2] && port_tok[2][0])
+        if (port_tok[2][0])
           pmsg_error("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
         else
           pmsg_error("serial adapter with USB VID %s and PID %s not found\n", port_tok[0], port_tok[1]);
