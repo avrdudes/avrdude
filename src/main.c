@@ -759,7 +759,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'P':
-        port = optarg;
+        port = cfg_strdup(__func__, optarg);
         break;
 
       case 'q' : /* Quell progress output */
@@ -1134,25 +1134,31 @@ int main(int argc, char * argv [])
     switch (pgm->conntype)
     {
       case CONNTYPE_PARALLEL:
-        port = cfg_strdup("main()", default_parallel);
+        port = cfg_strdup(__func__, default_parallel);
         break;
 
       case CONNTYPE_SERIAL:
-        port = cfg_strdup("main()", default_serial);
+        port = cfg_strdup(__func__, default_serial);
         break;
 
       case CONNTYPE_USB:
-        port = DEFAULT_USB;
+        port = cfg_strdup(__func__, DEFAULT_USB);
         break;
 
       case CONNTYPE_SPI:
+        port = cfg_strdup(__func__,
 #ifdef HAVE_LINUXSPI
-        port = cfg_strdup("main()", *default_spi? default_spi: "unknown");
+         *default_spi? default_spi:
 #endif
+           "unknown");
         break;
 
       case CONNTYPE_LINUXGPIO:
-        port = cfg_strdup("main()", default_linuxgpio);
+        port = cfg_strdup(__func__, default_linuxgpio);
+        break;
+
+      default:
+        port = cfg_strdup(__func__, "unknown");
         break;
 
     }
@@ -1164,23 +1170,23 @@ int main(int argc, char * argv [])
   // 2) -P [serialadapter]:[sernum]
   // 3) -P [usbvid]:[usbpid]
   // 4) -P [usbvid]:[usbpid]:[sernum]
-  char port_str[256];
+  char *portdup = cfg_strdup(__func__, port);
   char port_tok[3][256];
   memset(port_tok, 0, sizeof(port_tok));
-  strcpy(port_str, (const char *)port);
-	char *tok = strtok(port_str, ":");
-	for (int i = 0; i < 3; i++) {
+  char *tok = strtok(portdup, ":");
+  for (int i = 0; i < 3; i++) {
     if (!tok)
       break;
-    strcpy(port_tok[i], tok);
+    strncpy(port_tok[i], tok, sizeof port_tok[i] - 1);
     tok = strtok(NULL, ":");
   }
+  free(portdup);
 
   // Use libserialport to find the actual serial port
   const char *seradapter;
   SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
   if (is_serialadapter(ser)) {
-    if (find_serialport_adapter(ser, port, port_tok[1]) < 0) {
+    if (find_serialport_adapter(&port, ser, port_tok[1]) < 0) {
       if (port_tok[1][0])
         pmsg_error("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
       else
@@ -1197,7 +1203,7 @@ int main(int argc, char * argv [])
     // Port or usb vid/pid
     int vid, pid;
     if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
-      if(find_serialport_vid_pid(port, vid, pid, port_tok[2]) < 0) {
+      if(find_serialport_vid_pid(&port, vid, pid, port_tok[2]) < 0) {
         if (port_tok[2][0])
           pmsg_error("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
         else

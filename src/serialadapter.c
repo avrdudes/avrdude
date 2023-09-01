@@ -29,7 +29,25 @@
 
 #include <libserialport.h>
 
-int find_serialport_adapter(const SERIALADAPTER *ser, char *serport, char *sernum) {
+
+// Set new port string freeing any previously set one
+static int sa_setport(char **portp, const char *sp_port) {
+  if(!sp_port) {
+    pmsg_warning("port string to be assigned is NULL\n");
+    return -1;
+  }
+
+  if(portp) {
+    if(*portp)
+      free(*portp);
+    *portp = cfg_strdup(__func__, sp_port);
+  }
+
+  return 0;
+}
+
+
+int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
   int rv = -1;
   /* A pointer to a null-terminated array of pointers to
    * struct sp_port, which will contain the ports found */
@@ -56,28 +74,14 @@ int find_serialport_adapter(const SERIALADAPTER *ser, char *serport, char *sernu
         if (usb_pid == *(int *)(ldata(usbpid))) {
           // SN present
           if (sernum && sernum[0]) {
-            // SN matches
             char *s = sp_get_port_usb_serial(prt);
-            if(s) {
-              if (str_eq(sernum, s)) {
-                strcpy(serport, sp_get_port_name(prt));
-                rv = 0;
-              }
-            }
-            // SN does not match
-            else {
-              continue;
-            }
+            // SN matches
+            if(s && str_eq(sernum, s))
+              rv = sa_setport(portp, sp_get_port_name(prt));
           }
           // SN not present
           else {
-            char *p = sp_get_port_name(prt);
-            if(p) {
-              strcpy(serport, p);
-              rv = 0;
-            }
-            else
-              rv = -1;
+            rv = sa_setport(portp, sp_get_port_name(prt));
           }
         }
       }
@@ -88,7 +92,7 @@ int find_serialport_adapter(const SERIALADAPTER *ser, char *serport, char *sernu
   return rv;
 }
 
-int find_serialport_vid_pid(char *serport, int vid, int pid, char *sernum) {
+int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   int rv = -1;
   /* A pointer to a null-terminated array of pointers to
    * struct sp_port, which will contain the ports found */
@@ -112,28 +116,14 @@ int find_serialport_vid_pid(char *serport, int vid, int pid, char *sernum) {
     if(usb_vid == vid && usb_pid == pid) {
       // SN present
       if (sernum && sernum[0]) {
-        // SN matches
         char *s = sp_get_port_usb_serial(prt);
-        if(s) {
-          if (str_eq(sernum, s)) {
-            strcpy(serport, sp_get_port_name(prt));
-            rv = 0;
-          }
-        }
-        // SN does not match
-        else {
-          continue;
-        }
+        // SN matches
+        if(s && str_eq(sernum, s))
+          rv = sa_setport(portp, sp_get_port_name(prt));
       }
       // SN not present
       else {
-        char *p = sp_get_port_name(prt);
-        if(p) {
-          strcpy(serport, p);
-          rv = 0;
-        }
-        else
-          rv = -1;
+        rv = sa_setport(portp, sp_get_port_name(prt));
       }
     }
   }
@@ -144,13 +134,13 @@ int find_serialport_vid_pid(char *serport, int vid, int pid, char *sernum) {
 
 #else
 
-int find_serialport_adapter(const SERIALADAPTER *ser, char *port, char *sernum) {
-  pmsg_error("Avrdude built without libserialport support; please compile again with libserialport installed\n");
+int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
+  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }
 
-int find_serialport_vid_pid(char *port, int vid, int pid, char *sernum) {
-  pmsg_error("Avrdude built without libserialport support; please compile again with libserialport installed\n");
+int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) {
+  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }
 
