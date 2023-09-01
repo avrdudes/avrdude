@@ -1193,12 +1193,6 @@ int main(int argc, char * argv [])
         pmsg_error("serial adapter %s not found\n", seradapter);
       exit(1);
     }
-  } else if (is_programmer(ser)) {
-    if (port_tok[1][0])
-      pmsg_error("invalid serial adapter %s with serial number %s specified\n", seradapter, port_tok[1]);
-    else
-      pmsg_error("invalid serial adapter %s specified\n", port_tok[0]);
-    exit(1);
   } else {
     // Port or usb vid/pid
     int vid, pid;
