@@ -29,6 +29,13 @@
 
 #include <libserialport.h>
 
+struct serports {
+  int vid;
+  int pid;
+  bool match;
+  char sernum[128];
+  char port[128];
+};
 
 // Set new port string freeing any previously set one
 static int sa_setport(char **portp, const char *sp_port) {
@@ -62,29 +69,74 @@ int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *
     return -1;
   }
 
-  for (int i = 0; port_list[i]; i++) {
+  struct serports sp[32];
+  memset(sp, 0, sizeof(sp));
+  int i;
+  for (i = 0; port_list[i]; i++) {
     struct sp_port *prt = port_list[i];
-    int usb_vid, usb_pid;
-    sp_get_port_usb_vid_pid(prt, &usb_vid, &usb_pid);
 
-    // USB VID match
-    if(usb_vid == ser->usbvid) {
+    // Fill sp struct with port information
+    if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
+      sp[i].vid = sp[i].pid = 0;
+    if(sp_get_port_name(prt))
+      strcpy(sp[i].port, sp_get_port_name(prt));
+    if(sp_get_port_usb_serial(prt))
+      strcpy(sp[i].sernum, sp_get_port_usb_serial(prt));
+
+    // Check for USB VID/PID/SN match
+    if(sp[i].vid == ser->usbvid) {
       for (LNODEID usbpid = lfirst(ser->usbpid); usbpid; usbpid = lnext(usbpid)) {
         // USB PID match
-        if (usb_pid == *(int *)(ldata(usbpid))) {
+        if (sp[i].pid == *(int *)(ldata(usbpid))) {
+          sp[i].match = true;
           // SN present
           if (sernum && sernum[0]) {
-            char *s = sp_get_port_usb_serial(prt);
             // SN matches
-            if(s && str_eq(sernum, s))
-              rv = sa_setport(portp, sp_get_port_name(prt));
-          }
-          // SN not present
-          else {
-            rv = sa_setport(portp, sp_get_port_name(prt));
+            if(str_eq(sernum, sp[i].sernum))
+              sp[i].match = true;
+            // SN does not match
+            else
+              sp[i].match = false;
           }
         }
       }
+    }
+    else
+      sp[i].match = false;
+  }
+
+  bool is_unique = true;
+  for(int j = 0; j < i; j++) {
+    static bool m;
+    if (m && sp[j].match) {
+      pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
+      for(int k = 0; k < i; k++) {
+        if (sp[k].match) {
+          int l = k;
+          for (; l < i; l++) {
+            if(!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum))
+              break;
+          }
+          // SN is unique
+          if(l == i && sp[k].sernum[0])
+            msg_warning("-P %s or -P %s:%s\n", sp[k].port, *portp, sp[k].sernum);
+          // SN is not present or not unique for the part
+          else
+            msg_warning("-P %s (via %s serial adapter)\n", sp[k].port, *portp);
+        }
+      }
+      is_unique = false;
+      break;
+    }
+    if(sp[j].match)
+      m = true;
+  }
+
+  // Overwrite portp is passed port is unique
+  if (is_unique) {
+    for (int k = 0; k < i; k++) {
+      if (sp[k].match)
+        rv = sa_setport(portp, sp[k].port);
     }
   }
 
@@ -107,24 +159,69 @@ int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) 
     return -1;
   }
 
-  for (int i = 0; port_list[i]; i++) {
+  struct serports sp[32];
+  int i;
+  memset(sp, 0, sizeof(sp));
+  for (i = 0; port_list[i]; i++) {
     struct sp_port *prt = port_list[i];
-    int usb_vid, usb_pid;
-    sp_get_port_usb_vid_pid(prt, &usb_vid, &usb_pid);
 
-    // USB VID and PIDmatch
-    if(usb_vid == vid && usb_pid == pid) {
+    // Fill sp struct with port information
+    if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
+      sp[i].vid = sp[i].pid = 0;
+    if(sp_get_port_name(prt))
+      strcpy(sp[i].port, sp_get_port_name(prt));
+    if(sp_get_port_usb_serial(prt))
+      strcpy(sp[i].sernum, sp_get_port_usb_serial(prt));
+
+    // Check for USB VID/PID/SN match
+    if(sp[i].vid == vid && sp[i].pid == pid) {
+      sp[i].match = true;
       // SN present
       if (sernum && sernum[0]) {
-        char *s = sp_get_port_usb_serial(prt);
         // SN matches
-        if(s && str_eq(sernum, s))
-          rv = sa_setport(portp, sp_get_port_name(prt));
+        if(str_eq(sernum, sp[i].sernum))
+          sp[i].match = true;
+        // SN does not match
+        else
+          sp[i].match = false;
       }
-      // SN not present
-      else {
-        rv = sa_setport(portp, sp_get_port_name(prt));
+    }
+    else
+      sp[i].match = false;
+  }
+
+  bool is_unique = true;
+  for(int j = 0; j < i; j++) {
+    static bool m;
+    if (m && sp[j].match) {
+      pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
+      for(int k = 0; k < i; k++) {
+        if (sp[k].match) {
+          int l = k;
+          for (; l < i; l++) {
+            if(!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum))
+              break;
+          }
+          // SN is unique
+          if(l == i && sp[k].sernum[0])
+            msg_warning("-P %s or -P %s:%s\n", sp[k].port, *portp, sp[k].sernum);
+          // SN is not present or not unique for the part
+          else
+            msg_warning("-P %s (via %s serial adapter)\n", sp[k].port, *portp);
+        }
       }
+      is_unique = false;
+      break;
+    }
+    if(sp[j].match)
+      m = true;
+  }
+
+  // Overwrite portp is passed port is unique
+  if (is_unique) {
+    for (int k = 0; k < i; k++) {
+      if (sp[k].match)
+        rv = sa_setport(portp, sp[k].port);
     }
   }
 
