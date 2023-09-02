@@ -1170,37 +1170,39 @@ int main(int argc, char * argv [])
   // 2) -P [serialadapter]:[sernum]
   // 3) -P [usbvid]:[usbpid]
   // 4) -P [usbvid]:[usbpid]:[sernum]
-  char *portdup = cfg_strdup(__func__, port);
-  char port_tok[3][256];
-  memset(port_tok, 0, sizeof(port_tok));
-  char *tok = strtok(portdup, ":");
-  for (int i = 0; i < 3; i++) {
-    if (!tok)
-      break;
-    strncpy(port_tok[i], tok, sizeof port_tok[i] - 1);
-    tok = strtok(NULL, ":");
-  }
-  free(portdup);
-
-  // Use libserialport to find the actual serial port
-  const char *seradapter;
-  SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
-  if (is_serialadapter(ser)) {
-    if (find_serialport_adapter(&port, ser, port_tok[1]) < 0) {
-      if (port_tok[1][0])
-        pmsg_warning("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
-      else
-        pmsg_warning("serial adapter %s not found\n", seradapter);
+  if(pgm->conntype == CONNTYPE_SERIAL) {
+    char *portdup = cfg_strdup(__func__, port);
+    char port_tok[3][256];
+    memset(port_tok, 0, sizeof(port_tok));
+    char *tok = strtok(portdup, ":");
+    for (int i = 0; i < 3; i++) {
+      if (!tok)
+        break;
+      strncpy(port_tok[i], tok, sizeof port_tok[i] - 1);
+      tok = strtok(NULL, ":");
     }
-  } else {
-    // Port or usb vid/pid
-    int vid, pid;
-    if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
-      if(find_serialport_vid_pid(&port, vid, pid, port_tok[2]) < 0) {
-        if (port_tok[2][0])
-          pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
+    free(portdup);
+
+    // Use libserialport to find the actual serial port
+    const char *seradapter;
+    SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
+    if (is_serialadapter(ser)) {
+      if (find_serialport_adapter(&port, ser, port_tok[1]) < 0) {
+        if (port_tok[1][0])
+          pmsg_warning("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
         else
-          pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", port_tok[0], port_tok[1]);
+          pmsg_warning("serial adapter %s not found\n", seradapter);
+      }
+    } else {
+      // Port or usb vid/pid
+      int vid, pid;
+      if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
+        if(find_serialport_vid_pid(&port, vid, pid, port_tok[2]) < 0) {
+          if (port_tok[2][0])
+            pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
+          else
+            pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", port_tok[0], port_tok[1]);
+        }
       }
     }
   }
