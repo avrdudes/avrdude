@@ -1168,19 +1168,17 @@ int main(int argc, char * argv [])
   // There are several ways a port string can be presented:
   // 1) -P [serialadapter]
   // 2) -P [serialadapter]:[sernum]
-  // 3) -P [usbvid]:[usbpid]
-  // 4) -P [usbvid]:[usbpid]:[sernum]
-  // 5) -P usb:[usbvid]:[usbpid]
-  // 6) -P usb:[usbvid]:[usbpid]:[sernum]
+  // 3) -P usb:[usbvid]:[usbpid]
+  // 4) -P usb:[usbvid]:[usbpid]:[sernum]
   if(pgm->conntype == CONNTYPE_SERIAL) {
     char *portdup = cfg_strdup(__func__, port);
-    char port_tok[4][256];
-    memset(port_tok, 0, sizeof(port_tok));
+    char *port_tok[4];
     char *tok = strtok(portdup, ":");
-    for (int i = 0; i < 4; i++) {
+    int tokens;
+    for (tokens = 0; tokens < 4; tokens++) {
       if (!tok)
         break;
-      strncpy(port_tok[i], tok, sizeof port_tok[i] - 1);
+      port_tok[tokens] = cfg_strdup(__func__, tok);
       tok = strtok(NULL, ":");
     }
     free(portdup);
@@ -1207,6 +1205,8 @@ int main(int argc, char * argv [])
         }
       }
     }
+    for (int i = 0; i < tokens; i++)
+      free(port_tok[i]);
   }
 
   /*
