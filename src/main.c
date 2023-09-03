@@ -1187,7 +1187,7 @@ int main(int argc, char * argv [])
     const char *seradapter;
     SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
     if (is_serialadapter(ser)) {
-      if (find_serialport_adapter(&port, ser, port_tok[1]) < 0) {
+      if (setport_from_serialadapter(&port, ser, port_tok[1]) < 0) {
         if (port_tok[1][0])
           pmsg_warning("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
         else
@@ -1197,7 +1197,7 @@ int main(int argc, char * argv [])
       // Port or usb vid/pid
       int vid, pid;
       if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
-        if(find_serialport_vid_pid(&port, vid, pid, port_tok[2]) < 0) {
+        if(setport_from_vid_pid(&port, vid, pid, port_tok[2]) < 0) {
           if (port_tok[2][0])
             pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
           else

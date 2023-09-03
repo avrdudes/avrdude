@@ -54,7 +54,7 @@ static int sa_setport(char **portp, const char *sp_port) {
 }
 
 
-int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
+int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
   int rv = -1;
   /* A pointer to a null-terminated array of pointers to
    * struct sp_port, which will contain the ports found */
@@ -153,7 +153,7 @@ int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *
   return rv;
 }
 
-int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) {
+int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   int rv = -1;
   /* A pointer to a null-terminated array of pointers to
    * struct sp_port, which will contain the ports found */
@@ -249,12 +249,12 @@ int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) 
 
 #else
 
-int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
+int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
   pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }
 
-int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) {
+int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }
