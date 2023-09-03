@@ -1165,17 +1165,19 @@ int main(int argc, char * argv [])
   }
 
   // Divide the port string into tokens separated by colon(s).
-  // There are four ways a port string can be presented:
+  // There are several ways a port string can be presented:
   // 1) -P [serialadapter]
   // 2) -P [serialadapter]:[sernum]
   // 3) -P [usbvid]:[usbpid]
   // 4) -P [usbvid]:[usbpid]:[sernum]
+  // 5) -P usb:[usbvid]:[usbpid]
+  // 6) -P usb:[usbvid]:[usbpid]:[sernum]
   if(pgm->conntype == CONNTYPE_SERIAL) {
     char *portdup = cfg_strdup(__func__, port);
-    char port_tok[3][256];
+    char port_tok[4][256];
     memset(port_tok, 0, sizeof(port_tok));
     char *tok = strtok(portdup, ":");
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       if (!tok)
         break;
       strncpy(port_tok[i], tok, sizeof port_tok[i] - 1);
@@ -1195,13 +1197,23 @@ int main(int argc, char * argv [])
       }
     } else {
       // Port or usb vid/pid
+      char *vidptr, *pidptr, *snptr = NULL;
+      if (str_caseeq(port_tok[0], "usb")) {
+       vidptr = port_tok[1];
+       pidptr = port_tok[2];
+       snptr  = port_tok[3];
+      } else {
+       vidptr = port_tok[0];
+       pidptr = port_tok[1];
+       snptr  = port_tok[2];
+      }
       int vid, pid;
-      if (sscanf(port_tok[0], "%x", &vid) > 0 && sscanf(port_tok[1], "%x", &pid) > 0) {
-        if(setport_from_vid_pid(&port, vid, pid, port_tok[2]) < 0) {
-          if (port_tok[2][0])
-            pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[0], port_tok[1], port_tok[2]);
+      if (sscanf(vidptr, "%x", &vid) > 0 && sscanf(pidptr, "%x", &pid) > 0) {
+        if(setport_from_vid_pid(&port, vid, pid, snptr) < 0) {
+          if (snptr[0])
+            pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", vidptr, pidptr, snptr);
           else
-            pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", port_tok[0], port_tok[1]);
+            pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", vidptr, pidptr);
         }
       }
     }

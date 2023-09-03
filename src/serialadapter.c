@@ -96,7 +96,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
           // SN present
           if (sernum && sernum[0]) {
             // SN matches
-            if (str_starts(sp[i].sernum, sernum))
+            if (sp[i].sernum && str_starts(sp[i].sernum, sernum))
               sp[i].match = true;
             // SN does not match
             else
@@ -173,7 +173,6 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   for (n = 0; port_list[n]; n++)
     continue;
   struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
-
   int i;
   for (i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
@@ -192,7 +191,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
       // SN present
       if (sernum && sernum[0]) {
         // SN matches
-        if (str_starts(sp[i].sernum, sernum))
+        if (sp[i].sernum && str_starts(sp[i].sernum, sernum))
           sp[i].match = true;
         // SN does not match
         else
