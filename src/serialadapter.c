@@ -281,7 +281,7 @@ int print_available_serialports() {
     for(int j = 0; j < n; j++) {
       msg_info("-P %s", sp[j].port);
       if (sp[j].vid && sp[j].pid) {
-        msg_info(" or -P %04x:%04x", sp[j].vid, sp[j].pid);
+        msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
         if(sp[j].sernum)
           msg_info(":%s", sp[j].sernum);
       }
