@@ -33,8 +33,8 @@ struct serports {
   int vid;
   int pid;
   bool match;
-  char sernum[128];
-  char port[128];
+  char *sernum;
+  char *port;
 };
 
 // Set new port string freeing any previously set one
@@ -69,19 +69,23 @@ int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *
     return -1;
   }
 
-  struct serports sp[32];
-  memset(sp, 0, sizeof(sp));
+  // Count the number of available ports and allocate space according to the needed size
+  int n;
+  for (n = 0; port_list[n]; n++)
+    continue;
+  struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
+
   int i;
-  for (i = 0; port_list[i]; i++) {
+  for (i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
 
     // Fill sp struct with port information
     if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
       sp[i].vid = sp[i].pid = 0;
     if(sp_get_port_name(prt))
-      strcpy(sp[i].port, sp_get_port_name(prt));
+      sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
     if(sp_get_port_usb_serial(prt))
-      strcpy(sp[i].sernum, sp_get_port_usb_serial(prt));
+      sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
 
     // Check for USB VID/PID/SN match
     if(sp[i].vid == ser->usbvid) {
@@ -114,7 +118,7 @@ int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *
         if (sp[k].match) {
           int l = k;
           for (; l < i; l++) {
-            if(!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum))
+            if(!sp[k].sernum || (!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum)))
               break;
           }
           // SN is unique
@@ -140,6 +144,11 @@ int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *
     }
   }
 
+  for(int n = 0; i < n; i++) {
+    free(sp[i].sernum);
+    free(sp[i].port);
+  }
+  free(sp);
   sp_free_port_list(port_list); // Free the array created by sp_list_ports()
   return rv;
 }
@@ -159,19 +168,23 @@ int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) 
     return -1;
   }
 
-  struct serports sp[32];
+  // Count the number of available ports and allocate space according to the needed size
+  int n;
+  for (n = 0; port_list[n]; n++)
+    continue;
+  struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
+
   int i;
-  memset(sp, 0, sizeof(sp));
-  for (i = 0; port_list[i]; i++) {
+  for (i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
 
     // Fill sp struct with port information
     if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
       sp[i].vid = sp[i].pid = 0;
     if(sp_get_port_name(prt))
-      strcpy(sp[i].port, sp_get_port_name(prt));
+      sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
     if(sp_get_port_usb_serial(prt))
-      strcpy(sp[i].sernum, sp_get_port_usb_serial(prt));
+      sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
 
     // Check for USB VID/PID/SN match
     if(sp[i].vid == vid && sp[i].pid == pid) {
@@ -199,7 +212,7 @@ int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) 
         if (sp[k].match) {
           int l = k;
           for (; l < i; l++) {
-            if(!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum))
+            if(!sp[k].sernum || (!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum)))
               break;
           }
           // SN is unique
@@ -225,6 +238,11 @@ int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) 
     }
   }
 
+  for(int n = 0; i < n; i++) {
+    free(sp[i].sernum);
+    free(sp[i].port);
+  }
+  free(sp);
   sp_free_port_list(port_list); // Free the array created by sp_list_ports()
   return rv;
 }
