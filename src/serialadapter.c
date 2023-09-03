@@ -96,7 +96,7 @@ int find_serialport_adapter(char **portp, const SERIALADAPTER *ser, const char *
           // SN present
           if (sernum && sernum[0]) {
             // SN matches
-            if(str_eq(sernum, sp[i].sernum))
+            if (str_starts(sp[i].sernum, sernum))
               sp[i].match = true;
             // SN does not match
             else
@@ -192,7 +192,7 @@ int find_serialport_vid_pid(char **portp, int vid, int pid, const char *sernum) 
       // SN present
       if (sernum && sernum[0]) {
         // SN matches
-        if(str_eq(sernum, sp[i].sernum))
+        if (str_starts(sp[i].sernum, sernum))
           sp[i].match = true;
         // SN does not match
         else
