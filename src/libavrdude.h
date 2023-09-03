@@ -1251,7 +1251,7 @@ extern "C" {
 
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum);
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum);
-int print_available_serialports();
+int print_available_serialports(LISTID programmers);
 
 int str_starts(const char *str, const char *starts);
 int str_eq(const char *str1, const char *str2);

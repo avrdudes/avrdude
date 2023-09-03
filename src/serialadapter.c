@@ -246,7 +246,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   return rv;
 }
 
-int print_available_serialports() {
+int print_available_serialports(LISTID programmers) {
   struct sp_port **port_list;
 
   /* Call sp_list_ports() to get the ports. The port_list
@@ -276,14 +276,32 @@ int print_available_serialports() {
       sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
   }
 
-  if(sp[0].port) {
+  if (sp[0].port) {
     msg_info("Possible candidate serial ports are:\n");
-    for(int j = 0; j < n; j++) {
+    for (int j = 0; j < n; j++) {
       msg_info("-P %s", sp[j].port);
       if (sp[j].vid && sp[j].pid) {
-        msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
-        if(sp[j].sernum)
+        char *serid = NULL;
+        // Loop though all programmers
+        for (LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+          SERIALADAPTER *sea = ldata(ln1);
+          if (!is_serialadapter(sea))
+            continue;
+          // Loop though the USB pid list
+          for (LNODEID ln2 = lfirst(sea->usbpid); ln2; ln2=lnext(ln2)) {
+            // Serial adapter USB VID and PID matches
+            if (sp[j].vid == sea->usbvid && sp[j].pid == *(int *)ldata(ln2))
+              serid = lfirst(lfirst(sea->id));
+          }
+        }
+        if (serid)
+          msg_info(" or -P %s", serid);
+        else
+          msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
+        if (sp[j].sernum)
           msg_info(":%s", sp[j].sernum);
+        if (!serid)
+          msg_info(" (serial adapter unknown to avrdude.conf)");
       }
       msg_info("\n");
     }
@@ -291,7 +309,7 @@ int print_available_serialports() {
     msg_info("Also note there may be other direct serial ports not listed above.\n");
   }
 
-  for(int k = 0; k < n; k++) {
+  for (int k = 0; k < n; k++) {
     free(sp[k].sernum);
     free(sp[k].port);
   }
@@ -312,7 +330,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   return -1;
 }
 
-int print_available_serialports() {
+int print_available_serialports(LISTID programmers) {
   return -1;
 }
 
