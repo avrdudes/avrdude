@@ -1252,6 +1252,7 @@ int main(int argc, char * argv [])
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
+    print_available_serialports();
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;

@@ -144,9 +144,9 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
     }
   }
 
-  for(int n = 0; i < n; i++) {
-    free(sp[i].sernum);
-    free(sp[i].port);
+  for(int l = 0; l < n; l++) {
+    free(sp[l].sernum);
+    free(sp[l].port);
   }
   free(sp);
   sp_free_port_list(port_list); // Free the array created by sp_list_ports()
@@ -237,13 +237,67 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
     }
   }
 
-  for(int n = 0; i < n; i++) {
-    free(sp[i].sernum);
-    free(sp[i].port);
+  for(int l = 0; l < n; l++) {
+    free(sp[l].sernum);
+    free(sp[l].port);
   }
   free(sp);
   sp_free_port_list(port_list); // Free the array created by sp_list_ports()
   return rv;
+}
+
+int print_available_serialports() {
+  struct sp_port **port_list;
+
+  /* Call sp_list_ports() to get the ports. The port_list
+   * pointer will be updated to refer to the array created */
+  enum sp_return result = sp_list_ports(&port_list);
+
+  if (result != SP_OK) {
+    pmsg_error("sp_list_ports() failed!\n");
+    return -1;
+  }
+
+  // Count the number of available ports and allocate space according to the needed size
+  int n;
+  for (n = 0; port_list[n]; n++)
+    continue;
+  struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
+
+  int i;
+  for (i = 0; i < n; i++) {
+    struct sp_port *prt = port_list[i];
+    // Fill sp struct with port information
+    if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
+      sp[i].vid = sp[i].pid = 0;
+    if(sp_get_port_name(prt))
+      sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
+    if(sp_get_port_usb_serial(prt))
+      sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
+  }
+
+  if(sp[0].port) {
+    msg_info("Possible candidate serial ports are:\n");
+    for(int j = 0; j < n; j++) {
+      msg_info("-P %s", sp[j].port);
+      if (sp[j].vid && sp[j].pid) {
+        msg_info(" or -P %04x:%04x", sp[j].vid, sp[j].pid);
+        if(sp[j].sernum)
+          msg_info(":%s", sp[j].sernum);
+      }
+      msg_info("\n");
+    }
+    msg_info("Note that above ports may not necessarily be connected to a target board or an AVR programmer.\n");
+    msg_info("Also note there may be other direct serial ports not listed above.\n");
+  }
+
+  for(int k = 0; k < n; k++) {
+    free(sp[k].sernum);
+    free(sp[k].port);
+  }
+  free(sp);
+  sp_free_port_list(port_list); // Free the array created by sp_list_ports()
+  return 0;
 }
 
 #else
@@ -255,6 +309,10 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
 
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
+  return -1;
+}
+
+int print_available_serialports() {
   return -1;
 }
 
