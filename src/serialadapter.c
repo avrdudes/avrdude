@@ -135,6 +135,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
         }
       }
       is_unique = false;
+      rv = -2;
       break;
     }
     if (sp[j].match)
@@ -229,6 +230,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
         }
       }
       is_unique = false;
+      rv = -2;
       break;
     }
     if (sp[j].match)
