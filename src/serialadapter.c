@@ -272,8 +272,7 @@ int print_available_serialports(LISTID programmers) {
     continue;
   struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
 
-  int i;
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
     // Fill sp struct with port information
     if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
@@ -282,6 +281,17 @@ int print_available_serialports(LISTID programmers) {
       sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
     if (sp_get_port_usb_serial(prt))
       sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
+    else
+      sp[i].sernum = cfg_malloc(__func__, 1);
+  }
+
+  // Flag non-unique serial adapters
+  for (int j = 0; j < n; j++) {
+    for (int k = j+1; k < n; k++) {
+      if ((sp[j].vid == sp[k].vid && sp[j].pid == sp[k].pid) &&
+         ((!sp[j].sernum[0] && !sp[k].sernum[0]) || str_eq(sp[j].sernum, sp[k].sernum)))
+          sp[j].match = sp[k].match = true;
+    }
   }
 
   if (sp[0].port) {
@@ -302,12 +312,21 @@ int print_available_serialports(LISTID programmers) {
               serid = lfirst(lfirst(sea->id));
           }
         }
-        if (serid)
-          msg_info(" or -P %s", serid);
-        else
-          msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
-        if (sp[j].sernum)
-          msg_info(":%s", sp[j].sernum);
+        if (serid) {
+          if (!sp[j].match)
+            msg_info(" or -P %s", serid);
+          else
+            msg_info(" (via %s serial adapter)", serid);
+        }
+        else {
+          if (!sp[j].match) {
+            msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
+            if (sp[j].sernum && sp[j].sernum[0])
+              msg_info(":%s", sp[j].sernum);
+          }
+          else
+            msg_info(" via usb:%04x:%04x", sp[j].vid, sp[j].pid);
+        }
         if (!serid)
           msg_info(" (serial adapter unknown to avrdude.conf)");
       }
