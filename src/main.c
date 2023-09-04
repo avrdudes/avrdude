@@ -1176,8 +1176,10 @@ int main(int argc, char * argv [])
     char *tok = strtok(portdup, ":");
     int tokens;
     for (tokens = 0; tokens < 4; tokens++) {
-      if (!tok)
-        break;
+      if (!tok) {
+        port_tok[tokens] = cfg_malloc(__func__, 1);
+        continue;
+      }
       port_tok[tokens] = cfg_strdup(__func__, tok);
       tok = strtok(NULL, ":");
     }
