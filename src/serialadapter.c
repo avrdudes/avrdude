@@ -96,9 +96,9 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
           // SN present
           if ((sernum && sernum[0]) || ser->usbsn[0]) {
             // SN matches
-            if ((sp[i].sernum && str_starts(sp[i].sernum, sernum)) ||
-               (str_starts(sernum , "...") && str_ends(sp[i].sernum, sernum+3)) ||
-               (sp[i].sernum &&str_eq(sernum, ser->usbsn) && str_eq(sp[i].sernum, sernum)))
+            if ((sernum[0] && sp[i].sernum && str_starts(sp[i].sernum, sernum)) ||
+               (sernum[0] && str_starts(sernum , "...") && str_ends(sp[i].sernum, sernum+3)) ||
+               (sp[i].sernum && str_eq(sp[i].sernum, sernum && sernum[0]? sernum: ser->usbsn)))
               sp[i].match = true;
             // SN does not match
             else

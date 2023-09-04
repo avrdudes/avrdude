@@ -1191,10 +1191,12 @@ int main(int argc, char * argv [])
     SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
     if (is_serialadapter(ser)) {
       if (setport_from_serialadapter(&port, ser, port_tok[1]) < 0) {
+        pmsg_warning("serial adapter %s", seradapter);
         if (port_tok[1][0])
-          pmsg_warning("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
-        else
-          pmsg_warning("serial adapter %s not found\n", seradapter);
+          msg_warning(" with serial number %s", port_tok[1]);
+        else if (ser->usbsn)
+          msg_warning(" with serial number %s", ser->usbsn);
+        msg_warning(" not found\n");
         print_ports = true;
       }
     } else {
