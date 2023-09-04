@@ -1170,7 +1170,7 @@ int main(int argc, char * argv [])
   // 2) -P [serialadapter]:[sernum]
   // 3) -P usb:[usbvid]:[usbpid]
   // 4) -P usb:[usbvid]:[usbpid]:[sernum]
-  bool print_ports = false;
+  bool print_ports = true;
   if (pgm->conntype == CONNTYPE_SERIAL) {
     char *portdup = cfg_strdup(__func__, port);
     char *port_tok[4];
@@ -1190,26 +1190,31 @@ int main(int argc, char * argv [])
     const char *seradapter;
     SERIALADAPTER *ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
     if (is_serialadapter(ser)) {
-      if (setport_from_serialadapter(&port, ser, port_tok[1]) == -1) {
+      int rv = setport_from_serialadapter(&port, ser, port_tok[1]);
+      if (rv == -1) {
         pmsg_warning("serial adapter %s", seradapter);
         if (port_tok[1][0])
           msg_warning(" with serial number %s", port_tok[1]);
         else if (ser->usbsn && ser->usbsn[0])
           msg_warning(" with serial number %s", ser->usbsn);
         msg_warning(" not found\n");
-        print_ports = true;
       }
+      else if (rv == -2)
+        print_ports = false;
     } else {
       // Port or usb:[vid]:[pid]
       int vid, pid;
       if (sscanf(port_tok[1], "%x", &vid) > 0 && sscanf(port_tok[2], "%x", &pid) > 0) {
-        if (setport_from_vid_pid(&port, vid, pid, port_tok[3]) == -1) {
+        int rv = setport_from_vid_pid(&port, vid, pid, port_tok[3]);
+        if (rv == -1) {
           if (port_tok[3][0])
             pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[1], port_tok[2], port_tok[3]);
           else
             pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", port_tok[1], port_tok[2]);
           print_ports = true;
         }
+        else if (rv == -2)
+          print_ports = false;
       }
     }
     for (int i = 0; i < tokens; i++)
