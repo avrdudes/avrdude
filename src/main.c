@@ -1170,7 +1170,8 @@ int main(int argc, char * argv [])
   // 2) -P [serialadapter]:[sernum]
   // 3) -P usb:[usbvid]:[usbpid]
   // 4) -P usb:[usbvid]:[usbpid]:[sernum]
-  if(pgm->conntype == CONNTYPE_SERIAL) {
+  bool print_ports = false;
+  if (pgm->conntype == CONNTYPE_SERIAL) {
     char *portdup = cfg_strdup(__func__, port);
     char *port_tok[4];
     char *tok = strtok(portdup, ":");
@@ -1194,16 +1195,18 @@ int main(int argc, char * argv [])
           pmsg_warning("serial adapter %s with serial number %s not found\n", seradapter, port_tok[1]);
         else
           pmsg_warning("serial adapter %s not found\n", seradapter);
+        print_ports = true;
       }
     } else {
       // Port or usb:[vid]:[pid]
       int vid, pid;
       if (sscanf(port_tok[1], "%x", &vid) > 0 && sscanf(port_tok[2], "%x", &pid) > 0) {
-        if(setport_from_vid_pid(&port, vid, pid, port_tok[3]) < 0) {
+        if (setport_from_vid_pid(&port, vid, pid, port_tok[3]) < 0) {
           if (port_tok[3][0])
             pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[1], port_tok[2], port_tok[3]);
           else
             pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", port_tok[1], port_tok[2]);
+          print_ports = true;
         }
       }
     }
@@ -1244,7 +1247,8 @@ int main(int argc, char * argv [])
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
-    print_available_serialports(programmers);
+    if (print_ports && pgm->conntype == CONNTYPE_SERIAL)
+      print_available_serialports(programmers);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
