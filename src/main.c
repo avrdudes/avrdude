@@ -1241,7 +1241,7 @@ int main(int argc, char * argv [])
     imsg_notice("Overriding Baud Rate          : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
-  else if (ser->baudrate) {
+  else if (ser && ser->baudrate) {
     imsg_notice("Default Baud Rate             : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
