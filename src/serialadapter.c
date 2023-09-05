@@ -29,13 +29,13 @@
 
 #include <libserialport.h>
 
-struct serports {
+typedef struct {
   int vid;
   int pid;
   bool match;
   char *sernum;
   char *port;
-};
+} SERPORT;
 
 // Set new port string freeing any previously set one
 static int sa_setport(char **portp, const char *sp_port) {
@@ -53,6 +53,58 @@ static int sa_setport(char **portp, const char *sp_port) {
   return 0;
 }
 
+
+// Is the actual serial number sn matched by the query q?
+static int sa_snmatch(const char *sn, const char *q) {
+  return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
+}
+
+// Returns how many connected devices are matched by vid, pid and serial number
+static int sa_num_matches_by_ids(int vid, int pid, const char *snq, SERPORT *sp, int n) {
+  int nm = 0;
+  for(int i = 0; i < n; i++)
+    nm += sp && sp[i].vid == vid && sp[i].pid == pid && sa_snmatch(sp[i].sernum, snq);
+
+  return nm;
+}
+
+// Returns how many connected devices are matched by the avrdude.conf serial adapter sea
+static int sa_num_matches_by_sea(const SERIALADAPTER *sea, SERPORT *sp, int n) {
+  int nm = 0;
+  if(sea)
+    for(LNODEID pid = lfirst(sea->usbpid); pid; pid = lnext(pid)) // Assume pid not twice in list
+      nm += sa_num_matches_by_ids(sea->usbvid, *(int *) ldata(pid), sea->usbsn, sp, n);
+
+  return nm;
+}
+
+// Print " or -P ..." for all avrdude.conf serial adapters uniquely matching the target and return number of matches
+static int list_matching_serialadapters(SERPORT *target, SERPORT *sp, int n) {
+  LNODEID ln1, ln2, ln3;
+  SERIALADAPTER *sea;
+  int nm = 0;
+
+  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    sea = ldata(ln1);
+    if(!is_serialadapter(sea))
+      continue;
+    for(ln2=lfirst(sea->id); ln2; ln2=lnext(ln2)) {
+      const char *id = ldata(ln2);
+      if (*id == 0 || *id == '.')
+        continue;
+      for(ln3=lfirst(sea->usbpid); ln3; ln3=lnext(ln3))
+        if(sa_num_matches_by_ids(sea->usbvid, *(int *) ldata(ln3), sea->usbsn, target, 1))
+          if(1 == sa_num_matches_by_ids(sea->usbvid, *(int *) ldata(ln3), sea->usbsn, sp, n)) {
+            msg_info(" or -P %s", id);
+            if(*sea->usbsn)
+              msg_info(":%s", sea->usbsn);
+            nm++;
+          }
+    }
+  }
+
+  return nm;
+}
 
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
   int rv = -1;
@@ -73,7 +125,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
   int n;
   for (n = 0; port_list[n]; n++)
     continue;
-  struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
+  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
 
   int i;
   for (i = 0; i < n; i++) {
@@ -178,7 +230,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   int n;
   for (n = 0; port_list[n]; n++)
     continue;
-  struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
+  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
   int i;
   for (i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
@@ -270,7 +322,7 @@ int print_available_serialports(LISTID programmers) {
   int n;
   for (n = 0; port_list[n]; n++)
     continue;
-  struct serports *sp = cfg_malloc(__func__, n*sizeof*sp);
+  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
 
   for (int i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
