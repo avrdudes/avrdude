@@ -1176,49 +1176,45 @@ int main(int argc, char * argv [])
     char *portdup = cfg_strdup(__func__, port);
     char *port_tok[4];
     char *tok = strtok(portdup, ":");
-    int tokens;
-    for (tokens = 0; tokens < 4; tokens++) {
-      if (!tok) {
-        port_tok[tokens] = cfg_malloc(__func__, 1);
-        continue;
-      }
+    int tokens, maxtokens = tok && str_eq(tok, DEFAULT_USB)? 4: 2;
+    for(tokens = 0; tokens < maxtokens && tok; tokens++, tok = strtok(NULL, ":"))
       port_tok[tokens] = cfg_strdup(__func__, tok);
-      tok = strtok(NULL, ":");
-    }
     free(portdup);
+    while(tokens < 4)
+      port_tok[tokens++] = cfg_strdup(__func__, "");
 
     // Use libserialport to find the actual serial port
-    const char *seradapter;
-    ser = locate_programmer_set(programmers, port_tok[0], &seradapter);
+    ser = locate_programmer(programmers, port_tok[0]);
     if (is_serialadapter(ser)) {
       int rv = setport_from_serialadapter(&port, ser, port_tok[1]);
       if (rv == -1) {
-        pmsg_warning("serial adapter %s", seradapter);
+        pmsg_warning("serial adapter %s", port_tok[0]);
         if (port_tok[1][0])
           msg_warning(" with serial number %s", port_tok[1]);
         else if (ser->usbsn && ser->usbsn[0])
           msg_warning(" with serial number %s", ser->usbsn);
-        msg_warning(" not found\n");
+        msg_warning(" not connected to host\n");
       }
       else if (rv == -2)
         print_ports = false;
-    } else {
+      if(rv)
+        ser = NULL;
+    } else if(str_eq(port_tok[0], DEFAULT_USB)) {
       // Port or usb:[vid]:[pid]
       int vid, pid;
       if (sscanf(port_tok[1], "%x", &vid) > 0 && sscanf(port_tok[2], "%x", &pid) > 0) {
         int rv = setport_from_vid_pid(&port, vid, pid, port_tok[3]);
         if (rv == -1) {
           if (port_tok[3][0])
-            pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not found\n", port_tok[1], port_tok[2], port_tok[3]);
+            pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not connected\n", port_tok[1], port_tok[2], port_tok[3]);
           else
-            pmsg_warning("serial adapter with USB VID %s and PID %s not found\n", port_tok[1], port_tok[2]);
-          print_ports = true;
+            pmsg_warning("serial adapter with USB VID %s and PID %s not connected\n", port_tok[1], port_tok[2]);
         }
         else if (rv == -2)
           print_ports = false;
       }
     }
-    for (int i = 0; i < tokens; i++)
+    for (int i = 0; i < 4; i++)
       free(port_tok[i]);
   }
 
