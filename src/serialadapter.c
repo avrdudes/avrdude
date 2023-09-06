@@ -53,57 +53,9 @@ static int sa_setport(char **portp, const char *sp_port) {
   return 0;
 }
 
-
 // Is the actual serial number sn matched by the query q?
 static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
-}
-
-// Returns how many connected devices are matched by vid, pid and serial number
-static int sa_num_matches_by_ids(int vid, int pid, const char *snq, SERPORT *sp, int n) {
-  int nm = 0;
-  for(int i = 0; i < n; i++)
-    nm += sp && sp[i].vid == vid && sp[i].pid == pid && sa_snmatch(sp[i].sernum, snq);
-
-  return nm;
-}
-
-// Returns how many connected devices are matched by the avrdude.conf serial adapter sea
-static int sa_num_matches_by_sea(const SERIALADAPTER *sea, SERPORT *sp, int n) {
-  int nm = 0;
-  if(sea)
-    for(LNODEID pid = lfirst(sea->usbpid); pid; pid = lnext(pid)) // Assume pid not twice in list
-      nm += sa_num_matches_by_ids(sea->usbvid, *(int *) ldata(pid), sea->usbsn, sp, n);
-
-  return nm;
-}
-
-// Print " or -P ..." for all avrdude.conf serial adapters uniquely matching the target and return number of matches
-static int list_matching_serialadapters(SERPORT *target, SERPORT *sp, int n) {
-  LNODEID ln1, ln2, ln3;
-  SERIALADAPTER *sea;
-  int nm = 0;
-
-  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-    sea = ldata(ln1);
-    if(!is_serialadapter(sea))
-      continue;
-    for(ln2=lfirst(sea->id); ln2; ln2=lnext(ln2)) {
-      const char *id = ldata(ln2);
-      if (*id == 0 || *id == '.')
-        continue;
-      for(ln3=lfirst(sea->usbpid); ln3; ln3=lnext(ln3))
-        if(sa_num_matches_by_ids(sea->usbvid, *(int *) ldata(ln3), sea->usbsn, target, 1))
-          if(1 == sa_num_matches_by_ids(sea->usbvid, *(int *) ldata(ln3), sea->usbsn, sp, n)) {
-            msg_info(" or -P %s", id);
-            if(*sea->usbsn)
-              msg_info(":%s", sea->usbsn);
-            nm++;
-          }
-    }
-  }
-
-  return nm;
 }
 
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
@@ -145,19 +97,15 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
         if (sp[i].pid == *(int *)(ldata(usbpid))) {
           sp[i].match = true;
           // SN present
-          if ((sernum && sernum[0]) || ser->usbsn[0]) {
+          if (sernum[0] || ser->usbsn[0]) {
             // SN matches
-            if ((sernum[0] && sp[i].sernum && str_starts(sp[i].sernum, sernum)) ||
-               (sernum[0] && str_starts(sernum , "...") && str_ends(sp[i].sernum, sernum+3)) ||
-               (sp[i].sernum && str_eq(sp[i].sernum, sernum && sernum[0]? sernum: ser->usbsn)))
+            if ((sa_snmatch(sp[i].sernum, sernum) && sernum[0]) ||
+                (sa_snmatch(sp[i].sernum, ser->usbsn) && ser->usbsn[0] && !sernum[0]))
               sp[i].match = true;
             // SN does not match
             else
               sp[i].match = false;
           }
-          // SN present in avrduderc but did not match
-          else if (!sernum[0] && ser->usbsn[0])
-            sp[i].match = false;
         }
       }
     }
@@ -247,8 +195,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
       // SN present
       if (sernum && sernum[0]) {
         // SN matches
-        if ((sp[i].sernum && str_starts(sp[i].sernum, sernum)) ||
-            (str_starts(sernum , "...") && str_ends(sp[i].sernum, sernum+3)))
+        if (sa_snmatch(sp[i].sernum, sernum))
           sp[i].match = true;
         // SN does not match
         else
