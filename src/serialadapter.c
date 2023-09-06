@@ -127,8 +127,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
     continue;
   SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
 
-  int i;
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
 
     // Fill sp struct with port information
@@ -167,19 +166,19 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
   }
 
   bool is_unique = true;
-  for (int j = 0; j < i; j++) {
+  for (int j = 0; j < n; j++) {
     static bool m;
     if (m && sp[j].match) {
       pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-      for (int k = 0; k < i; k++) {
+      for (int k = 0; k < n; k++) {
         if (sp[k].match) {
           int l = k;
-          for (; l < i; l++) {
+          for (; l < n; l++) {
             if (!sp[k].sernum || (!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum)))
               break;
           }
           // SN is unique
-          if (l == i && sp[k].sernum[0])
+          if (l == n && sp[k].sernum[0])
             msg_warning("-P %s or -P %s:%s\n", sp[k].port, *portp, sp[k].sernum);
           // SN is not present or not unique for the part
           else
@@ -196,7 +195,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
 
   // Overwrite portp is passed port is unique
   if (is_unique) {
-    for (int k = 0; k < i; k++) {
+    for (int k = 0; k < n; k++) {
       if (sp[k].match)
         rv = sa_setport(portp, sp[k].port);
     }
@@ -231,8 +230,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   for (n = 0; port_list[n]; n++)
     continue;
   SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
-  int i;
-  for (i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++) {
     struct sp_port *prt = port_list[i];
 
     // Fill sp struct with port information
@@ -262,19 +260,19 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   }
 
   bool is_unique = true;
-  for (int j = 0; j < i; j++) {
+  for (int j = 0; j < n; j++) {
     static bool m;
     if (m && sp[j].match) {
       pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-      for (int k = 0; k < i; k++) {
+      for (int k = 0; k < n; k++) {
         if (sp[k].match) {
           int l = k;
-          for (; l < i; l++) {
+          for (; l < n; l++) {
             if (!sp[k].sernum || (!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum)))
               break;
           }
           // SN is unique
-          if (l == i && sp[k].sernum[0])
+          if (l == n && sp[k].sernum[0])
             msg_warning("-P %s or -P %s:%s\n", sp[k].port, *portp, sp[k].sernum);
           // SN is not present or not unique for the part
           else
@@ -291,7 +289,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
 
   // Overwrite portp is passed port is unique
   if (is_unique) {
-    for (int k = 0; k < i; k++) {
+    for (int k = 0; k < n; k++) {
       if (sp[k].match)
         rv = sa_setport(portp, sp[k].port);
     }
@@ -340,9 +338,8 @@ int print_available_serialports(LISTID programmers) {
   // Flag non-unique serial adapters
   for (int j = 0; j < n; j++) {
     for (int k = j+1; k < n; k++) {
-      if ((sp[j].vid == sp[k].vid && sp[j].pid == sp[k].pid) &&
-         ((!sp[j].sernum[0] && !sp[k].sernum[0]) || str_eq(sp[j].sernum, sp[k].sernum)))
-          sp[j].match = sp[k].match = true;
+      if ((sp[j].vid == sp[k].vid && sp[j].pid == sp[k].pid))
+        sp[j].match = sp[k].match = true;
     }
   }
 
@@ -367,8 +364,12 @@ int print_available_serialports(LISTID programmers) {
         if (serid) {
           if (!sp[j].match)
             msg_info(" or -P %s", serid);
-          else
-            msg_info(" (via %s serial adapter)", serid);
+          else {
+            if(sp[j].sernum && sp[j].sernum[0])
+              msg_info(" or -P %s:%s", serid, sp[j].sernum);
+            else
+              msg_info(" (via %s serial adapter)", serid);
+          }
         }
         else {
           if (!sp[j].match) {
