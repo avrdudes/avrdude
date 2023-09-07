@@ -304,8 +304,19 @@ int print_available_serialports(LISTID programmers) {
           // Loop though the USB pid list
           for (LNODEID ln2 = lfirst(sea->usbpid); ln2; ln2=lnext(ln2)) {
             // Serial adapter USB VID and PID matches
-            if (sp[j].vid == sea->usbvid && sp[j].pid == *(int *)ldata(ln2))
-              serid = lfirst(lfirst(sea->id));
+            if (sp[j].vid == sea->usbvid && sp[j].pid == *(int *)ldata(ln2)) {
+              // Loop though all matching IDs
+              for (LNODEID ln3 = lfirst(sea->id); ln3; ln3=lnext(ln3)) {
+                // SN present and matches
+                if (sp[j].sernum[0] || sea->usbsn[0]) {
+                  if (sa_snmatch(sp[j].sernum, sea->usbsn))
+                    serid = ldata(ln3);
+                }
+                // SN not present
+                else
+                  serid = ldata(ln3);
+              }
+            }
           }
         }
         if (serid) {
