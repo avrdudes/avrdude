@@ -295,52 +295,53 @@ int print_available_serialports(LISTID programmers) {
     for (int j = 0; j < n; j++) {
       msg_info("-P %s", sp[j].port);
       if (sp[j].vid && sp[j].pid) {
-        char *serid = NULL;
+        bool serid = false;
+        LNODEID ln1, ln2, ln3;
         // Loop though all programmers
-        for (LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+        for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
           SERIALADAPTER *sea = ldata(ln1);
           if (!is_serialadapter(sea))
             continue;
-          // Loop though the USB pid list
-          for (LNODEID ln2 = lfirst(sea->usbpid); ln2; ln2=lnext(ln2)) {
+          // Loop though USB pid list
+          for (ln2 = lfirst(sea->usbpid); ln2; ln2=lnext(ln2)) {
             // Serial adapter USB VID and PID matches
             if (sp[j].vid == sea->usbvid && sp[j].pid == *(int *)ldata(ln2)) {
-              // Loop though all matching IDs
-              for (LNODEID ln3 = lfirst(sea->id); ln3; ln3=lnext(ln3)) {
-                // SN present and matches
-                if (sp[j].sernum[0] || sea->usbsn[0]) {
-                  if (sa_snmatch(sp[j].sernum, sea->usbsn))
-                    serid = ldata(ln3);
+              // Loop though IDs
+              for (ln3 = lfirst(sea->id); ln3; ln3=lnext(ln3)) {
+                // Multiple matches
+                if (sp[j].match) {
+                  // SN present and matches
+                  if (sa_snmatch(sp[j].sernum, sea->usbsn) && (sp[j].sernum[0] || sea->usbsn[0])) {
+                    serid = true;
+                    msg_info(", -P %s:%s", ldata(ln3), sp[j].sernum);
+                  }
+                  // SN not present or no match
+                  else {
+                    serid = true;
+                    msg_info(" (via %s serial adapter)", ldata(ln3));
+                    goto end;
+                  }
+                } else {
+                  serid = true;
+                  msg_info(", -P %s", ldata(ln3));
                 }
-                // SN not present
-                else
-                  serid = ldata(ln3);
               }
             }
           }
         }
-        if (serid) {
-          if (!sp[j].match)
-            msg_info(" or -P %s", serid);
-          else {
-            if(sp[j].sernum && sp[j].sernum[0])
-              msg_info(" or -P %s:%s", serid, sp[j].sernum);
-            else
-              msg_info(" (via %s serial adapter)", serid);
-          }
-        }
-        else {
+        // Print USB vid/pid/sn if serial adapter is not known
+        if (!serid) {
           if (!sp[j].match) {
             msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
-            if (sp[j].sernum && sp[j].sernum[0])
+            if (sp[j].sernum[0])
               msg_info(":%s", sp[j].sernum);
           }
           else
             msg_info(" via usb:%04x:%04x", sp[j].vid, sp[j].pid);
-        }
-        if (!serid)
           msg_info(" (serial adapter unknown to avrdude.conf)");
+        }
       }
+      end:
       msg_info("\n");
     }
     msg_info("Note that above ports may not necessarily be connected to a target board or an AVR programmer.\n");
