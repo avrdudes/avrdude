@@ -321,7 +321,7 @@ int print_available_serialports(LISTID programmers) {
                     msg_info(" (via %s serial adapter)", ldata(ln3));
                     goto end;
                   }
-                } else {
+                } else if (sa_snmatch(sp[j].sernum, sea->usbsn) || (!sp[j].sernum[0] && !sea->usbsn[0])) {
                   serid = true;
                   msg_info(", -P %s", ldata(ln3));
                 }
