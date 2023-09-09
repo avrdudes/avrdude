@@ -58,38 +58,50 @@ static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
 }
 
-int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
-  int rv = -1;
-  /* A pointer to a null-terminated array of pointers to
-   * struct sp_port, which will contain the ports found */
+// Get serial port data and store it to a struct that this function returns a pointer to.
+// Store the number of serial ports to int pointer n.
+static SERPORT *get_libserialport_data(int *n) {
   struct sp_port **port_list;
-
-  /* Call sp_list_ports() to get the ports. The port_list
-   * pointer will be updated to refer to the array created */
   enum sp_return result = sp_list_ports(&port_list);
 
   if (result != SP_OK) {
     pmsg_error("sp_list_ports() failed!\n");
-    return -1;
+    sp_free_port_list(port_list);
+    *n = -1;
+    return NULL;
   }
 
-  // Count the number of available ports and allocate space according to the needed size
-  int n;
-  for (n = 0; port_list[n]; n++)
+  int i;
+  for (i = 0; port_list[i]; i++)
     continue;
-  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
+  *n = i;
+  SERPORT *s = cfg_malloc(__func__, i*sizeof*s);
 
-  for (int i = 0; i < n; i++) {
-    struct sp_port *prt = port_list[i];
-
-    // Fill sp struct with port information
-    if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
-      sp[i].vid = sp[i].pid = 0;
+  // Fill  struct with port information
+  for (int j = 0; j < i; j++) {
+    struct sp_port *prt = port_list[j];
+    if (sp_get_port_usb_vid_pid(prt, &s[j].vid, &s[j].pid) != SP_OK)
+      s[j].vid = s[j].pid = 0;
     if (sp_get_port_name(prt))
-      sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
+      s[j].port = cfg_strdup(__func__, sp_get_port_name(prt));
     if (sp_get_port_usb_serial(prt))
-      sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
+      s[j].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
+    else
+      s[j].sernum = cfg_malloc(__func__, 1);
+  }
+  sp_free_port_list(port_list);
+  return s;
+}
 
+int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
+  // Get serial port information from libserialport
+  int n;
+  SERPORT *sp = get_libserialport_data(&n);
+  if (n < 0)
+    return -1;
+
+  int rv = -1;
+  for (int i = 0; i < n; i++) {
     // Check for USB VID/PID/SN match
     if (sp[i].vid == ser->usbvid) {
       for (LNODEID usbpid = lfirst(ser->usbpid); usbpid; usbpid = lnext(usbpid)) {
@@ -154,41 +166,17 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
     free(sp[l].port);
   }
   free(sp);
-  sp_free_port_list(port_list); // Free the array created by sp_list_ports()
   return rv;
 }
 
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
-  int rv = -1;
-  /* A pointer to a null-terminated array of pointers to
-   * struct sp_port, which will contain the ports found */
-  struct sp_port **port_list;
-
-  /* Call sp_list_ports() to get the ports. The port_list
-   * pointer will be updated to refer to the array created */
-  enum sp_return result = sp_list_ports(&port_list);
-
-  if (result != SP_OK) {
-    pmsg_error("sp_list_ports() failed!\n");
-    return -1;
-  }
-
-  // Count the number of available ports and allocate space according to the needed size
+  // Get serial port information from libserialport
   int n;
-  for (n = 0; port_list[n]; n++)
-    continue;
-  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
+  SERPORT *sp = get_libserialport_data(&n);
+  if (n < 0)
+    return -1;
+
   for (int i = 0; i < n; i++) {
-    struct sp_port *prt = port_list[i];
-
-    // Fill sp struct with port information
-    if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
-      sp[i].vid = sp[i].pid = 0;
-    if (sp_get_port_name(prt))
-      sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
-    if (sp_get_port_usb_serial(prt))
-      sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
-
     // Check for USB VID/PID/SN match
     if (sp[i].vid == vid && sp[i].pid == pid) {
       sp[i].match = true;
@@ -247,40 +235,15 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
     free(sp[l].port);
   }
   free(sp);
-  sp_free_port_list(port_list); // Free the array created by sp_list_ports()
   return rv;
 }
 
 int print_available_serialports(LISTID programmers) {
-  struct sp_port **port_list;
-
-  /* Call sp_list_ports() to get the ports. The port_list
-   * pointer will be updated to refer to the array created */
-  enum sp_return result = sp_list_ports(&port_list);
-
-  if (result != SP_OK) {
-    pmsg_error("sp_list_ports() failed!\n");
-    return -1;
-  }
-
-  // Count the number of available ports and allocate space according to the needed size
+  // Get serial port information from libserialport
   int n;
-  for (n = 0; port_list[n]; n++)
-    continue;
-  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
-
-  for (int i = 0; i < n; i++) {
-    struct sp_port *prt = port_list[i];
-    // Fill sp struct with port information
-    if (sp_get_port_usb_vid_pid(prt, &sp[i].vid, &sp[i].pid) != SP_OK)
-      sp[i].vid = sp[i].pid = 0;
-    if (sp_get_port_name(prt))
-      sp[i].port = cfg_strdup(__func__, sp_get_port_name(prt));
-    if (sp_get_port_usb_serial(prt))
-      sp[i].sernum = cfg_strdup(__func__, sp_get_port_usb_serial(prt));
-    else
-      sp[i].sernum = cfg_malloc(__func__, 1);
-  }
+  SERPORT *sp = get_libserialport_data(&n);
+  if (n < 0)
+    return -1;
 
   // Flag non-unique serial adapters
   for (int j = 0; j < n; j++) {
@@ -353,7 +316,6 @@ int print_available_serialports(LISTID programmers) {
     free(sp[k].port);
   }
   free(sp);
-  sp_free_port_list(port_list); // Free the array created by sp_list_ports()
   return 0;
 }
 
