@@ -646,58 +646,58 @@ int main(int argc, char * argv [])
         }
         break;
 
-      case 'B':	/* specify JTAG ICE bit clock period */
-	bitclock = strtod(optarg, &e);
-	if (*e != 0) {
-	  /* trailing unit of measure present */
-	  int suffixlen = strlen(e);
-	  switch (suffixlen) {
-	  case 2:
-	    if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
-	      bitclock = 0.0;
-	    else
-	      /* convert from Hz to microseconds */
-	      bitclock = 1E6 / bitclock;
-	    break;
+      case 'B': /* specify JTAG ICE bit clock period */
+        bitclock = strtod(optarg, &e);
+        if (*e != 0) {
+          /* trailing unit of measure present */
+          int suffixlen = strlen(e);
+          switch (suffixlen) {
+          case 2:
+            if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
+              bitclock = 0.0;
+            else
+              /* convert from Hz to microseconds */
+              bitclock = 1E6 / bitclock;
+            break;
 
-	  case 3:
-	    if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
-	      bitclock = 0.0;
-	    else {
-	      switch (e[0]) {
-	      case 'M':
-	      case 'm':		/* no Millihertz here :) */
-		bitclock = 1.0 / bitclock;
-		break;
+          case 3:
+            if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
+              bitclock = 0.0;
+            else {
+              switch (e[0]) {
+              case 'M':
+              case 'm': /* no Millihertz here :) */
+                bitclock = 1.0 / bitclock;
+                break;
 
-	      case 'k':
-		bitclock = 1E3 / bitclock;
-		break;
+              case 'k':
+                bitclock = 1E3 / bitclock;
+                break;
 
-	      default:
-		bitclock = 0.0;
-		break;
-	      }
-	    }
-	    break;
+              default:
+                bitclock = 0.0;
+                break;
+              }
+            }
+            break;
 
-	  default:
-	    bitclock = 0.0;
-	    break;
-	  }
-	  if (bitclock == 0.0)
-	    pmsg_error("invalid bit clock unit of measure '%s'\n", e);
-	}
-	if ((e == optarg) || bitclock == 0.0) {
-	  pmsg_error("invalid bit clock period specified '%s'\n", optarg);
+          default:
+            bitclock = 0.0;
+            break;
+          }
+          if (bitclock == 0.0)
+            pmsg_error("invalid bit clock unit of measure '%s'\n", e);
+        }
+        if ((e == optarg) || bitclock == 0.0) {
+          pmsg_error("invalid bit clock period specified '%s'\n", optarg);
           exit(1);
         }
         break;
 
-      case 'i':	/* specify isp clock delay */
-	ispdelay = str_int(optarg, STR_INT32, &errstr);
-	if(errstr || ispdelay == 0) {
-	  pmsg_error("invalid isp clock delay %s specified", optarg);
+      case 'i': /* specify isp clock delay */
+        ispdelay = str_int(optarg, STR_INT32, &errstr);
+        if(errstr || ispdelay == 0) {
+          pmsg_error("invalid isp clock delay %s specified", optarg);
           if(errstr)
             msg_error(": %s\n", errstr);
           else
@@ -743,16 +743,16 @@ int main(int argc, char * argv [])
         break;
 
       case 'l':
-	logfile = optarg;
-	break;
+        logfile = optarg;
+        break;
 
       case 'n':
         uflags |= UF_NOWRITE;
         break;
 
       case 'O': /* perform RC oscillator calibration */
-	calibrate = 1;
-	break;
+        calibrate = 1;
+        break;
 
       case 'p' : /* specify AVR part */
         partdesc = optarg;
