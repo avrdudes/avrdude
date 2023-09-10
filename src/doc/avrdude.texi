@@ -373,7 +373,7 @@ Windows programming software.
 For many years, the AVRDUDE source resided in public repositories on
 savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
-addition to FreeBSD, AVRDUDE now runs on Linux and Windows.  The
+addition to FreeBSD, AVRDUDE now runs on Linux, MacOS and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
 Weddington, and J@"org Wunsch.
 
@@ -686,6 +686,20 @@ normally connects to the serial port, the default serial port will be
 used. See Appendix A, Platform Dependent Information, to find out the
 default port names for your platform. If you need to use a different
 parallel or serial port, use this option to specify the alternate port name.
+
+If AVRDUDE has been configured with libserialport support, a serial port can
+be specified using a predefined serial adapter type in @var{avrdude.conf} or
+@var{.avrduderc}, i. e. @code{ch340} or @code{ft232r}. If more than one serial
+adapter of the same type is connected, they can be distinguished by appending a
+serial number, i. e. @code{ft232r:12345678}. Note that the USB to serial chip
+has to have a serial number for this to work. AVRDUDE can check for leading and
+trailing serial number matches as well. In the above example, @code{ft232r:1234}
+would also result in a match, and so would @code{ft232r:...5678}.
+
+If the USB to serial chip is not known to AVRDUDE, it can be specified using
+the USB VID, PID and an optional serial number, following the serial number
+matching rules described above, e.g @code{usb:0x2341:0x0043} or
+@code{usb:2341:0043:12345678}.
 
 On Win32 operating systems, the parallel ports are referred to as lpt1
 through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,

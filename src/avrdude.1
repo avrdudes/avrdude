@@ -610,6 +610,32 @@ serial port, the
 port is the default.  If you need to use a different parallel or
 serial port, use this option to specify the alternate port name.
 .Pp
+If
+.Nm
+has been configured with libserialport support, a serial port can be specified
+using a predefined serial adapter type in avrdude.conf or avrduderc, i. e.
+.Ar ch340
+or
+.Ar ft232r .
+If more than one serial adapter of the same type is connected, they can be
+distinguished by appending a serial number, i. e.
+.Ar ft232r:12345678 .
+Note that the USB to serial chip has to have a serial number for this to work.
+.Nm Avrdude
+can check for leading and trailing serial number matches as well.
+In the above example,
+.Ar ft232r:1234
+would also result in a match, and so would
+.Ar ft232r:...5678 .
+.Pp
+If the USB to serial chip is not known to
+.Nm ,
+it can be specified using the USB VID, PID and an optional serial number,
+following the serial number matching rules described above, e.g
+.Ar usb:0x2341:0x0043
+or
+.Ar usb:2341:0043:12345678 .
+.Pp
 On Win32 operating systems, the parallel ports are referred to as lpt1
 through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
 respectively.  If the parallel port can be accessed through a different
@@ -984,7 +1010,6 @@ See below for a list of programmers accepting extended parameters
 or issue
 .Nm
 -x help ... to see the extended options of the chosen programmer.
-
 .El
 .Ss Terminal mode
 In this mode,
