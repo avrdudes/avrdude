@@ -197,6 +197,7 @@ if test x$have_libserialport = xyes; then
    AC_DEFINE([HAVE_LIBSERIALPORT])
    AC_CHECK_HEADERS([libserialport.h])
 fi
+AC_SUBST(LIBSERIALPORT, $LIBSERIALPORT)
 
 AH_TEMPLATE([HAVE_LIBFTDI1],
             [Define if FTDI support is enabled via libftdi1])
