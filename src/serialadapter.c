@@ -77,7 +77,7 @@ static SERPORT *get_libserialport_data(int *n) {
   *n = i;
   SERPORT *s = cfg_malloc(__func__, i*sizeof*s);
 
-  // Fill  struct with port information
+  // Fill struct with port information
   for (int j = 0; j < i; j++) {
     struct sp_port *prt = port_list[j];
     if (sp_get_port_usb_vid_pid(prt, &s[j].vid, &s[j].pid) != SP_OK)
@@ -176,6 +176,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   if (n < 0)
     return -1;
 
+  int rv = -1;
   for (int i = 0; i < n; i++) {
     // Check for USB VID/PID/SN match
     if (sp[i].vid == vid && sp[i].pid == pid) {
