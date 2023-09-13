@@ -33,6 +33,7 @@ typedef struct {
   int vid;
   int pid;
   bool match;
+  bool unique;
   char *sernum;
   char *port;
 } SERPORT;
@@ -109,8 +110,39 @@ static int sa_num_matches_by_sea(const SERIALADAPTER *sea, SERPORT *sp, const ch
   return matches;
 }
 
+static int sa_num_matches_by_vid_pid(int vid, int pid, SERPORT *sp, const char *sernum, int n) {
+  int matches = 0;
+  for (int i = 0; i < n; i++) {
+    if (sp[i].vid == vid) {
+      if (sp[i].pid == pid) {
+        if(sa_snmatch(sp[i].sernum, sernum)) // also matches NULL
+          matches++;
+      }
+    }
+  }
+  return matches;
+}
+
+static int sa_flag_unique(SERPORT *sp, int n) {
+  int unique_cnt = 0;
+  for (int i = 0; i < n; i++) {
+    bool unique = true;
+    for (int j = 0; j < n; j++) {
+      if (i != j) {
+        if (sp[i].vid == sp[j].vid && sp[i].pid == sp[j].pid) {
+          if ((sa_snmatch(sp[i].sernum, sp[j].sernum) && !sp[j].sernum) ||
+              (!sp[i].sernum == !sp[j].sernum))
+            unique = false;
+        }
+      }
+    }
+    unique_cnt += unique;
+    sp[i].unique = true;
+  }
+  return unique_cnt;
+}
+
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
-  // Get serial port information from libserialport
   int n;
   SERPORT *sp = get_libserialport_data(&n);
   if (n < 0)
@@ -120,36 +152,20 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
   for (int i = 0; i < n; i++)
     sp[i].match = sa_num_matches_by_sea(ser, &sp[i], sernum, 1);
 
-  bool is_unique = true;
-  for (int j = 0; j < n; j++) {
-    static bool m;
-    if (m && sp[j].match) {
-      pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-      for (int k = 0; k < n; k++) {
-        if (sp[k].match) {
-          int l = k;
-          for (; l < n; l++) {
-            if (!sp[k].sernum || (!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum)))
-              break;
-          }
-          // SN is unique
-          if (l == n && sp[k].sernum[0])
-            msg_warning("-P %s or -P %s:%s\n", sp[k].port, *portp, sp[k].sernum);
-          // SN is not present or not unique for the part
-          else
-            msg_warning("-P %s (via %s serial adapter)\n", sp[k].port, *portp);
-        }
-      }
-      is_unique = false;
-      rv = -2;
-      break;
+  // Non-unique serial adapter specified
+  if (1 < sa_num_matches_by_sea(ser, sp, sernum, n)) {
+    pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
+    sa_flag_unique(sp, n);
+    for (int j = 0; j < n; j++) {
+      if (sp[j].unique && sp[j].sernum[0])
+        msg_warning("-P %s or -P %s:%s\n", sp[j].port, *portp, sp[j].sernum);
+      else
+        msg_warning("-P %s (via %s serial adapter)\n", sp[j].port, *portp);
     }
-    if (sp[j].match)
-      m = true;
+    rv = -2;
   }
-
-  // Overwrite portp is passed port is unique
-  if (is_unique) {
+  // Unique serial adapter specified
+  else {
     for (int k = 0; k < n; k++) {
       if (sp[k].match)
         rv = sa_setport(portp, sp[k].port);
@@ -172,50 +188,23 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
     return -1;
 
   int rv = -1;
-  for (int i = 0; i < n; i++) {
-    // Check for USB VID/PID/SN match
-    if (sp[i].vid == vid && sp[i].pid == pid) {
-      // SN present and matches
-      if(sernum && sa_snmatch(sp[i].sernum, sernum))
-        sp[i].match = true;
-      // SN does not present or no match
+  for (int i = 0; i < n; i++)
+    sp[i].match = sa_num_matches_by_vid_pid(vid, pid, &sp[i], sernum, n);
+
+  // Non-unique serial adapter specified
+  if (1 < sa_num_matches_by_vid_pid(vid, pid, sp, sernum, n)) {
+    pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
+    sa_flag_unique(sp, n);
+    for (int j = 0; j < n; j++) {
+      if (sp[j].unique && sp[j].sernum[0])
+        msg_warning("-P %s or -P %s:%s\n", sp[j].port, *portp, sp[j].sernum);
       else
-        sp[i].match = false;
+        msg_warning("-P %s (via %s serial adapter)\n", sp[j].port, *portp);
     }
-    else
-      sp[i].match = false;
+    rv = -2;
   }
-
-  bool is_unique = true;
-  for (int j = 0; j < n; j++) {
-    static bool m;
-    if (m && sp[j].match) {
-      pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-      for (int k = 0; k < n; k++) {
-        if (sp[k].match) {
-          int l = k;
-          for (; l < n; l++) {
-            if (!sp[k].sernum || (!sp[k].sernum[0] && str_eq(sp[k].sernum, sp[l].sernum)))
-              break;
-          }
-          // SN is unique
-          if (l == n && sp[k].sernum[0])
-            msg_warning("-P %s or -P %s:%s\n", sp[k].port, *portp, sp[k].sernum);
-          // SN is not present or not unique for the part
-          else
-            msg_warning("-P %s (via %s serial adapter)\n", sp[k].port, *portp);
-        }
-      }
-      is_unique = false;
-      rv = -2;
-      break;
-    }
-    if (sp[j].match)
-      m = true;
-  }
-
-  // Overwrite portp is passed port is unique
-  if (is_unique) {
+  // Unique serial adapter specified
+  else {
     for (int k = 0; k < n; k++) {
       if (sp[k].match)
         rv = sa_setport(portp, sp[k].port);
