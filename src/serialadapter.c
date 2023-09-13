@@ -107,17 +107,13 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
       for (LNODEID usbpid = lfirst(ser->usbpid); usbpid; usbpid = lnext(usbpid)) {
         // USB PID match
         if (sp[i].pid == *(int *)(ldata(usbpid))) {
-          sp[i].match = true;
-          // SN present
-          if (sernum[0] || ser->usbsn[0]) {
-            // SN matches
-            if ((sa_snmatch(sp[i].sernum, sernum) && sernum[0]) ||
-                (sa_snmatch(sp[i].sernum, ser->usbsn) && ser->usbsn[0] && !sernum[0]))
-              sp[i].match = true;
-            // SN does not match
-            else
-              sp[i].match = false;
-          }
+          const char *sn = *sernum? sernum: ser->usbsn;
+          // SN present and matches
+          if(sn && sa_snmatch(sp[i].sernum, sn))
+            sp[i].match = true;
+          // SN does not present or no match
+          else
+            sp[i].match = false;
         }
       }
     }
@@ -180,16 +176,12 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   for (int i = 0; i < n; i++) {
     // Check for USB VID/PID/SN match
     if (sp[i].vid == vid && sp[i].pid == pid) {
-      sp[i].match = true;
-      // SN present
-      if (sernum && sernum[0]) {
-        // SN matches
-        if (sa_snmatch(sp[i].sernum, sernum))
-          sp[i].match = true;
-        // SN does not match
-        else
-          sp[i].match = false;
-      }
+      // SN present and matches
+      if(sernum && sa_snmatch(sp[i].sernum, sernum))
+        sp[i].match = true;
+      // SN does not present or no match
+      else
+        sp[i].match = false;
     }
     else
       sp[i].match = false;
