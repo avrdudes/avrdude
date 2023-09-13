@@ -1164,24 +1164,26 @@ int main(int argc, char * argv [])
     }
   }
 
-  // Divide the port string into tokens separated by colon(s).
-  // There are several ways a port string can be presented:
-  // 1) -P [serialadapter]
-  // 2) -P [serialadapter]:[sernum]
-  // 3) -P usb:[usbvid]:[usbpid]
-  // 4) -P usb:[usbvid]:[usbpid]:[sernum]
+  /*
+   * Divide a serialadapter port string into tokens separated by colons.
+   * There are two ways such a port string can be presented:
+   *   1) -P <serialadapter>[:<sernum>]
+   *   2) -P usb:<usbvid>:<usbpid>[:<sernum>]
+   * In either case the serial number is optional. The USB vendor and
+   * product ids are hexadecimal numbers.
+   */
   bool print_ports = true;
   SERIALADAPTER *ser = NULL;
   if (pgm->conntype == CONNTYPE_SERIAL) {
     char *portdup = cfg_strdup(__func__, port);
-    char *port_tok[4];
-    char *tok = strtok(portdup, ":");
-    int tokens, maxtokens = tok && str_eq(tok, DEFAULT_USB)? 4: 2;
-    for(tokens = 0; tokens < maxtokens && tok; tokens++, tok = strtok(NULL, ":"))
-      port_tok[tokens] = cfg_strdup(__func__, tok);
+    char *port_tok[4], *tok = portdup;
+    for(int t = 0, maxt = str_starts(portdup, DEFAULT_USB ":")? 4: 2; t < 4; t++) {
+      char *save = tok && t < maxt? tok: "";
+      if(t < maxt-1 && tok && (tok = strchr(tok, ':')))
+        *tok++ = 0;
+      port_tok[t] = cfg_strdup(__func__, save);
+    }
     free(portdup);
-    while(tokens < 4)
-      port_tok[tokens++] = cfg_strdup(__func__, "");
 
     // Use libserialport to find the actual serial port
     ser = locate_programmer(programmers, port_tok[0]);
