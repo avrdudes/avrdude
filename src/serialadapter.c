@@ -93,6 +93,22 @@ static SERPORT *get_libserialport_data(int *n) {
   return s;
 }
 
+static int sa_num_matches_by_sea(const SERIALADAPTER *sea, SERPORT *sp, const char *sernum, int n) {
+  int matches = 0;
+  for (int i = 0; i < n; i++) {
+    if (sp[i].vid == sea->usbvid) {
+      for (LNODEID usbpid = lfirst(sea->usbpid); usbpid; usbpid = lnext(usbpid)) {
+        if (sp[i].pid == *(int *)(ldata(usbpid))) {
+          const char *sn = *sernum? sernum: sea->usbsn;
+          if(sa_snmatch(sp[i].sernum, sn)) // also matches NULL
+            matches++;
+        }
+      }
+    }
+  }
+  return matches;
+}
+
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
   // Get serial port information from libserialport
   int n;
@@ -101,25 +117,8 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
     return -1;
 
   int rv = -1;
-  for (int i = 0; i < n; i++) {
-    // Check for USB VID/PID/SN match
-    if (sp[i].vid == ser->usbvid) {
-      for (LNODEID usbpid = lfirst(ser->usbpid); usbpid; usbpid = lnext(usbpid)) {
-        // USB PID match
-        if (sp[i].pid == *(int *)(ldata(usbpid))) {
-          const char *sn = *sernum? sernum: ser->usbsn;
-          // SN present and matches
-          if(sn && sa_snmatch(sp[i].sernum, sn))
-            sp[i].match = true;
-          // SN does not present or no match
-          else
-            sp[i].match = false;
-        }
-      }
-    }
-    else
-      sp[i].match = false;
-  }
+  for (int i = 0; i < n; i++)
+    sp[i].match = sa_num_matches_by_sea(ser, &sp[i], sernum, 1);
 
   bool is_unique = true;
   for (int j = 0; j < n; j++) {
