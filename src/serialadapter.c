@@ -59,6 +59,26 @@ static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
 }
 
+// Flag serial adapters in SERPORT struct if they appear unique
+static int sa_flag_unique(SERPORT *sp, int n) {
+  int unique_cnt = 0;
+  for (int i = 0; i < n; i++) {
+    bool unique = true;
+    for (int j = 0; j < n; j++) {
+      if (i != j) {
+        if (sp[i].vid == sp[j].vid && sp[i].pid == sp[j].pid) {
+          if ((sa_snmatch(sp[i].sernum, sp[j].sernum) && !sp[j].sernum) ||
+              (!sp[i].sernum == !sp[j].sernum))
+            unique = false;
+        }
+      }
+    }
+    unique_cnt += unique;
+    sp[i].unique = true;
+  }
+  return unique_cnt;
+}
+
 // Get serial port data and store it to a struct that this function returns a pointer to.
 // Store the number of serial ports to int pointer n.
 static SERPORT *get_libserialport_data(int *n) {
@@ -90,6 +110,8 @@ static SERPORT *get_libserialport_data(int *n) {
     else
       s[j].sernum = cfg_malloc(__func__, 1);
   }
+  sa_flag_unique(s, i);
+
   sp_free_port_list(port_list);
   return s;
 }
@@ -123,39 +145,16 @@ static int sa_num_matches_by_vid_pid(int vid, int pid, SERPORT *sp, const char *
   return matches;
 }
 
-static int sa_flag_unique(SERPORT *sp, int n) {
-  int unique_cnt = 0;
-  for (int i = 0; i < n; i++) {
-    bool unique = true;
-    for (int j = 0; j < n; j++) {
-      if (i != j) {
-        if (sp[i].vid == sp[j].vid && sp[i].pid == sp[j].pid) {
-          if ((sa_snmatch(sp[i].sernum, sp[j].sernum) && !sp[j].sernum) ||
-              (!sp[i].sernum == !sp[j].sernum))
-            unique = false;
-        }
-      }
-    }
-    unique_cnt += unique;
-    sp[i].unique = true;
-  }
-  return unique_cnt;
-}
-
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
+  int rv = -1;
   int n;
   SERPORT *sp = get_libserialport_data(&n);
   if (n < 0)
-    return -1;
-
-  int rv = -1;
-  for (int i = 0; i < n; i++)
-    sp[i].match = sa_num_matches_by_sea(ser, &sp[i], sernum, 1);
+    return rv;
 
   // Non-unique serial adapter specified
   if (1 < sa_num_matches_by_sea(ser, sp, sernum, n)) {
     pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-    sa_flag_unique(sp, n);
     for (int j = 0; j < n; j++) {
       if (sp[j].unique && sp[j].sernum[0])
         msg_warning("-P %s or -P %s:%s\n", sp[j].port, *portp, sp[j].sernum);
@@ -167,7 +166,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
   // Unique serial adapter specified
   else {
     for (int k = 0; k < n; k++) {
-      if (sp[k].match)
+      if (sa_num_matches_by_sea(ser, &sp[k], sernum, 1))
         rv = sa_setport(portp, sp[k].port);
     }
   }
@@ -181,20 +180,15 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
 }
 
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
-  // Get serial port information from libserialport
+  int rv = -1;
   int n;
   SERPORT *sp = get_libserialport_data(&n);
   if (n < 0)
-    return -1;
-
-  int rv = -1;
-  for (int i = 0; i < n; i++)
-    sp[i].match = sa_num_matches_by_vid_pid(vid, pid, &sp[i], sernum, n);
+    return rv;
 
   // Non-unique serial adapter specified
   if (1 < sa_num_matches_by_vid_pid(vid, pid, sp, sernum, n)) {
     pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-    sa_flag_unique(sp, n);
     for (int j = 0; j < n; j++) {
       if (sp[j].unique && sp[j].sernum[0])
         msg_warning("-P %s or -P %s:%s\n", sp[j].port, *portp, sp[j].sernum);
@@ -206,7 +200,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   // Unique serial adapter specified
   else {
     for (int k = 0; k < n; k++) {
-      if (sp[k].match)
+      if (sa_num_matches_by_vid_pid(vid, pid, &sp[k], sernum, 1))
         rv = sa_setport(portp, sp[k].port);
     }
   }
