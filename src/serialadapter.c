@@ -117,7 +117,7 @@ static int sa_num_matches_by_sea(const SERIALADAPTER *sea, SERPORT *sp, const ch
       for (LNODEID usbpid = lfirst(sea->usbpid); usbpid; usbpid = lnext(usbpid)) {
         if (sp[i].pid == *(int *)(ldata(usbpid))) {
           const char *sn = *sernum? sernum: sea->usbsn;
-          if(sa_snmatch(sp[i].sernum, sn)) // also matches NULL
+          if (sa_snmatch(sp[i].sernum, sn)) // Also matches if second argument is NULL
             matches++;
         }
       }
@@ -131,7 +131,7 @@ static int sa_num_matches_by_vid_pid(int vid, int pid, SERPORT *sp, const char *
   for (int i = 0; i < n; i++) {
     if (sp[i].vid == vid) {
       if (sp[i].pid == pid) {
-        if(sa_snmatch(sp[i].sernum, sernum)) // also matches NULL
+        if (sa_snmatch(sp[i].sernum, sernum)) // Also matches if second argument is NULL
           matches++;
       }
     }
