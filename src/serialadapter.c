@@ -149,25 +149,25 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const cha
   // Non-unique serial adapter specified
   if (1 < sa_num_matches_by_sea(ser, sp, sernum, n)) {
     pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-    for (int j = 0; j < n; j++) {
-      if (sp[j].unique && sp[j].sernum[0])
-        msg_warning("-P %s or -P %s:%s\n", sp[j].port, *portp, sp[j].sernum);
+    for (int i = 0; i < n; i++) {
+      if (sp[i].unique && sp[i].sernum[0])
+        msg_warning("-P %s or -P %s:%s\n", sp[i].port, *portp, sp[i].sernum);
       else
-        msg_warning("-P %s (via %s serial adapter)\n", sp[j].port, *portp);
+        msg_warning("-P %s (via %s serial adapter)\n", sp[i].port, *portp);
     }
     rv = -2;
   }
   // Unique serial adapter specified
   else {
-    for (int k = 0; k < n; k++) {
-      if (sa_num_matches_by_sea(ser, &sp[k], sernum, 1))
-        rv = sa_setport(portp, sp[k].port);
+    for (int j = 0; j < n; j++) {
+      if (sa_num_matches_by_sea(ser, &sp[j], sernum, 1))
+        rv = sa_setport(portp, sp[j].port);
     }
   }
 
-  for (int l = 0; l < n; l++) {
-    free(sp[l].sernum);
-    free(sp[l].port);
+  for (int k = 0; k < n; k++) {
+    free(sp[k].sernum);
+    free(sp[k].port);
   }
   free(sp);
   return rv;
@@ -183,25 +183,25 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   // Non-unique serial adapter specified
   if (1 < sa_num_matches_by_vid_pid(vid, pid, sp, sernum, n)) {
     pmsg_warning("-P %s is not unique; consider one of the below\n", *portp);
-    for (int j = 0; j < n; j++) {
-      if (sp[j].unique && sp[j].sernum[0])
-        msg_warning("-P %s or -P %s:%s\n", sp[j].port, *portp, sp[j].sernum);
+    for (int i = 0; i < n; i++) {
+      if (sp[i].unique && sp[i].sernum[0])
+        msg_warning("-P %s or -P %s:%s\n", sp[i].port, *portp, sp[i].sernum);
       else
-        msg_warning("-P %s (via %s serial adapter)\n", sp[j].port, *portp);
+        msg_warning("-P %s (via %s serial adapter)\n", sp[i].port, *portp);
     }
     rv = -2;
   }
   // Unique serial adapter specified
   else {
-    for (int k = 0; k < n; k++) {
-      if (sa_num_matches_by_vid_pid(vid, pid, &sp[k], sernum, 1))
-        rv = sa_setport(portp, sp[k].port);
+    for (int j = 0; j < n; j++) {
+      if (sa_num_matches_by_vid_pid(vid, pid, &sp[j], sernum, 1))
+        rv = sa_setport(portp, sp[j].port);
     }
   }
 
-  for (int l = 0; l < n; l++) {
-    free(sp[l].sernum);
-    free(sp[l].port);
+  for (int k = 0; k < n; k++) {
+    free(sp[k].sernum);
+    free(sp[k].port);
   }
   free(sp);
   return rv;
