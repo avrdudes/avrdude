@@ -59,26 +59,6 @@ static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
 }
 
-// Flag serial adapters in SERPORT struct if they appear unique
-static int sa_flag_unique(SERPORT *sp, int n) {
-  int unique_cnt = 0;
-  for (int i = 0; i < n; i++) {
-    bool unique = true;
-    for (int j = 0; j < n; j++) {
-      if (i != j) {
-        if (sp[i].vid == sp[j].vid && sp[i].pid == sp[j].pid) {
-          if ((sa_snmatch(sp[i].sernum, sp[j].sernum) && !sp[j].sernum) ||
-              (!sp[i].sernum == !sp[j].sernum))
-            unique = false;
-        }
-      }
-    }
-    unique_cnt += unique;
-    sp[i].unique = true;
-  }
-  return unique_cnt;
-}
-
 // Get serial port data and store it to a struct that this function returns a pointer to.
 // Store the number of serial ports to int pointer n.
 static SERPORT *get_libserialport_data(int *n) {
@@ -110,7 +90,21 @@ static SERPORT *get_libserialport_data(int *n) {
     else
       s[j].sernum = cfg_malloc(__func__, 1);
   }
-  sa_flag_unique(s, i);
+  // Flag unique serial adapters
+  for (int j = 0; j < i; j++) {
+    bool unique = true;
+    for (int k = 0; k < i; k++) {
+      if (j != k) {
+        if (s[j].vid == s[k].vid && s[j].pid == s[k].pid) {
+          if ((sa_snmatch(s[j].sernum, s[k].sernum) && !s[k].sernum) ||
+              (!s[j].sernum && !s[k].sernum)) {
+            unique = false;
+            }
+        }
+      }
+    }
+    s[j].unique = unique;
+  }
 
   sp_free_port_list(port_list);
   return s;
