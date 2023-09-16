@@ -34,6 +34,7 @@ typedef struct {
   int pid;
   bool match;
   bool unique;
+  bool known;
   char *sernum;
   char *port;
 } SERPORT;
@@ -90,19 +91,21 @@ static SERPORT *get_libserialport_data(int *n) {
     else
       s[j].sernum = cfg_malloc(__func__, 1);
   }
-  // Flag unique serial adapters
+  // Flag matching and unique serial adapters
   for (int j = 0; j < i; j++) {
+    bool match = false;
     bool unique = true;
     for (int k = 0; k < i; k++) {
       if (j != k) {
         if (s[j].vid == s[k].vid && s[j].pid == s[k].pid) {
-          if ((sa_snmatch(s[j].sernum, s[k].sernum) && !s[k].sernum) ||
-              (!s[j].sernum && !s[k].sernum)) {
+          match = true;
+          if ((sa_snmatch(s[j].sernum, s[k].sernum) && s[k].sernum) ||
+              (!s[j].sernum && !s[k].sernum))
             unique = false;
-            }
         }
       }
     }
+    s[j].match = match;
     s[j].unique = unique;
   }
 
@@ -117,7 +120,7 @@ static int sa_num_matches_by_sea(const SERIALADAPTER *sea, SERPORT *sp, const ch
       for (LNODEID usbpid = lfirst(sea->usbpid); usbpid; usbpid = lnext(usbpid)) {
         if (sp[i].pid == *(int *)(ldata(usbpid))) {
           const char *sn = *sernum? sernum: sea->usbsn;
-          if (sa_snmatch(sp[i].sernum, sn)) // Also matches if second argument is NULL
+          if (sa_snmatch(sp[i].sernum, sn)) // Also matches if second argument is ""
             matches++;
         }
       }
@@ -131,12 +134,16 @@ static int sa_num_matches_by_vid_pid(int vid, int pid, SERPORT *sp, const char *
   for (int i = 0; i < n; i++) {
     if (sp[i].vid == vid) {
       if (sp[i].pid == pid) {
-        if (sa_snmatch(sp[i].sernum, sernum)) // Also matches if second argument is NULL
+        if (sa_snmatch(sp[i].sernum, sernum)) // Also matches if second argument is ""
           matches++;
       }
     }
   }
   return matches;
+}
+
+static int sa_is_known(int vid, int pid, SERPORT *sp) {
+  return (sp[0].vid == vid && sp[0].pid == pid);
 }
 
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
@@ -214,58 +221,44 @@ int print_available_serialports(LISTID programmers) {
   if (n < 0)
     return -1;
 
-  // Flag non-unique serial adapters
-  for (int j = 0; j < n; j++) {
-    for (int k = j+1; k < n; k++) {
-      if ((sp[j].vid == sp[k].vid && sp[j].pid == sp[k].pid))
-        sp[j].match = sp[k].match = true;
-    }
-  }
-
   if (sp[0].port) {
     msg_info("Possible candidate serial ports are:\n");
     for (int j = 0; j < n; j++) {
       msg_info("-P %s", sp[j].port);
       if (sp[j].vid && sp[j].pid) {
-        bool serid = false;
-        LNODEID ln1, ln2, ln3;
         // Loop though all programmers
-        for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+        for (LNODEID ln1 = lfirst(programmers); ln1; ln1=lnext(ln1)) {
           SERIALADAPTER *sea = ldata(ln1);
           if (!is_serialadapter(sea))
             continue;
           // Loop though USB pid list
-          for (ln2 = lfirst(sea->usbpid); ln2; ln2=lnext(ln2)) {
-            // Serial adapter USB VID and PID matches
-            if (sp[j].vid == sea->usbvid && sp[j].pid == *(int *)ldata(ln2)) {
+          for (LNODEID ln2 = lfirst(sea->usbpid); ln2; ln2=lnext(ln2)) {
+            // Serial adapter USB VID and PID known
+            if (sa_is_known(sea->usbvid, *(int *)ldata(ln2), &sp[j])) {
+              sp[j].known = true;
               // Loop though IDs
-              for (ln3 = lfirst(sea->id); ln3; ln3=lnext(ln3)) {
-                // Multiple matches
+              for (LNODEID ln3 = lfirst(sea->id); ln3; ln3=lnext(ln3)) {
+                // Serial adapter has the same VID/PID as one or more adapters
                 if (sp[j].match) {
                   // SN present and matches
-                  if (sa_snmatch(sp[j].sernum, sea->usbsn) && (sp[j].sernum[0] || sea->usbsn[0])) {
-                    serid = true;
+                  if (sa_snmatch(sp[j].sernum, sea->usbsn) && sp[j].sernum[0])
                     msg_info(", -P %s:%s", ldata(ln3), sp[j].sernum);
-                  }
                   // SN not present or no match
                   else {
-                    serid = true;
                     msg_info(" (via %s serial adapter)", ldata(ln3));
                     goto end;
                   }
-                } else if (sa_snmatch(sp[j].sernum, sea->usbsn) || (!sp[j].sernum[0] && !sea->usbsn[0])) {
-                  serid = true;
+                } else if (sp[j].unique)
                   msg_info(", -P %s", ldata(ln3));
-                }
               }
             }
           }
         }
         // Print USB vid/pid/sn if serial adapter is not known
-        if (!serid) {
-          if (!sp[j].match) {
+        if (!sp[j].known) {
+          if (sp[j].unique) {
             msg_info(" or -P usb:%04x:%04x", sp[j].vid, sp[j].pid);
-            if (sp[j].sernum[0])
+            if (sp[j].match && sp[j].sernum[0])
               msg_info(":%s", sp[j].sernum);
           }
           else
