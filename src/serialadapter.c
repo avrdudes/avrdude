@@ -232,7 +232,7 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
     }
   }
 
-  if(Pi == 0) {                 // No unique serial adapter, so maybe vid:pid[:sn] works?
+  if(Pi == 0 && sp[i].vid) {    // No unique serial adapter, so maybe vid:pid[:sn] works?
     if(sa_unique_by_ids(sp[i].vid, sp[i].pid, "", sp, n, i))
       Plist[Pi++] = str_sprintf("usb:%04x:%04x", sp[i].vid, sp[i].pid);
     else if(*sn && sa_unique_by_ids(sp[i].vid, sp[i].pid, sn, sp, n, i))
