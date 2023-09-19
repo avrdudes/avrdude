@@ -28,6 +28,7 @@
 #ifdef HAVE_LIBSERIALPORT
 
 #include <libserialport.h>
+#include <ctype.h>
 
 typedef struct {
   int vid, pid;
@@ -55,6 +56,51 @@ static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
 }
 
+// Returns a pointer to the start of a trailing number in the string or NULL if not there
+char *str_endnumber(const char *str) {
+  const char *ret = NULL;
+
+  for(const char *end = str + strlen(str)-1; end >= str; end--)
+    if(isdigit((unsigned char) *end))
+      ret = end;
+    else
+      break;
+
+  return (char *) ret;
+}
+
+// Order two SERPORTs port strings: base first then trailing numbers, if any
+static int sa_portcmp(const void *p, const void *q) {
+  int ret;
+  const char *a = ((SERPORT *) p)->port, *b = ((SERPORT *) q)->port;
+  const char *na = str_endnumber(a), *nb = str_endnumber(b);
+  size_t la = strlen(a) - (na? strlen(na): 0), lb = strlen(b) - (nb? strlen(nb): 0);
+
+  // Compare string bases first
+  if(la && lb && (ret = strncasecmp(a, b, la < lb? la: lb)))
+    return ret;
+  if((ret = la-lb))
+    return ret;
+
+  // If string bases are the same then compare trailing numbers
+  if(na && nb) {
+    long long d;
+    if((d = atoll(na)-atoll(nb)))
+      return d < 0? -1: 1;
+  } else if(na)
+    return 1;
+  else if(nb)
+    return -1;
+
+  // Ports are the same (this should not happen) but still compare vid, pid and sn
+  if((ret = ((SERPORT *) p)->vid - ((SERPORT *) q)->vid))
+    return ret;
+  if((ret = ((SERPORT *) p)->pid - ((SERPORT *) q)->pid))
+    return ret;
+
+  return strcmp(((SERPORT *) p)->sernum, ((SERPORT *) q)->sernum);
+}
+
 // Get serial port data; allocate a SERPORT array sp, store data and return it
 static SERPORT *get_libserialport_data(int *np) {
   struct sp_port **port_list = NULL;
@@ -76,13 +122,18 @@ static SERPORT *get_libserialport_data(int *np) {
     struct sp_port *p = port_list[i];
     char *q;
     // Fill sp struct with port information
-    if(sp_get_port_usb_vid_pid(p, &sp[j].vid, &sp[j].pid) == SP_OK && (q = sp_get_port_name(p))) {
+    if((q = sp_get_port_name(p))) {
+      if(sp_get_port_usb_vid_pid(p, &sp[j].vid, &sp[j].pid) != SP_OK)
+        sp[j].vid = sp[j].pid = 0;
       sp[j].port = cfg_strdup(__func__, q);
       sp[j].sernum = cfg_strdup(__func__, (q = sp_get_port_usb_serial(p))? q: "");
       j++;
     }
   }
-  if(j <= 0)
+
+  if(j > 0)
+    qsort(sp, j, sizeof*sp, sa_portcmp);
+  else
     free(sp), sp = NULL;
 
   sp_free_port_list(port_list);
@@ -92,16 +143,40 @@ static SERPORT *get_libserialport_data(int *np) {
   return sp;
 }
 
+// Returns a NULL-terminated malloc'd list of items in SERPORT list spa that are not in spb
+SERPORT **sa_spa_not_spb(SERPORT *spa, int na, SERPORT *spb, int nb) {
+  SERPORT **ret = cfg_malloc(__func__, (na+1)*sizeof*ret);
+  int ia = 0, ib = 0, ir = 0;
+
+  // Use the comm algorithm on two sorted SERPORT lists
+  while(ia < na && ib < nb) {
+    int d = sa_portcmp(spa+ia, spb+ib);
+    if(d < 0)
+      ret[ir++] = spa+ia++;
+    else if(d > 0)
+      ib++;
+    else
+      ia++, ib++;
+  }
+  while(ia < na)
+    ret[ir++] = spa+ia++;
+
+  ret[ir] = NULL;
+  return ret;
+}
+
 // Return number of SERPORTs that a serial adapter matches
 static int sa_num_matches_by_sea(const SERIALADAPTER *sea, const char *sernum, const SERPORT *sp, int n) {
   const char *sn = *sernum? sernum: sea->usbsn;
   int matches = 0;
 
   for(int i = 0; i < n; i++)
-    if(sp[i].vid == sea->usbvid) // usbpid list must not contain same pid twice
+    if(sp[i].vid == sea->usbvid)
       for(LNODEID usbpid = lfirst(sea->usbpid); usbpid; usbpid = lnext(usbpid))
-        if(sp[i].pid == *(int *) ldata(usbpid) && sa_snmatch(sp[i].sernum, sn))
+        if(sp[i].pid == *(int *) ldata(usbpid) && sa_snmatch(sp[i].sernum, sn)) {
           matches++;
+          break;
+        }
 
   return matches;
 }
@@ -117,14 +192,14 @@ static int sa_num_matches_by_ids(int vid, int pid, const char *sernum, const SER
   return matches;
 }
 
-// Is the i-th SERPORT the only response to the serial adapter?
+// Is the i-th SERPORT the only match with the serial adapter wrt all plugged-in ones?
 static int sa_unique_by_sea(const SERIALADAPTER *sea, const char *sn, const SERPORT *sp, int n, int i) {
-  return sa_num_matches_by_sea(sea, sn, sp, n) == 1 && sa_num_matches_by_sea(sea, sn, (sp)+(i), 1);
+  return sa_num_matches_by_sea(sea, sn, sp, n) == 1 && sa_num_matches_by_sea(sea, sn, sp+i, 1);
 }
 
-// Is the i-th SERPORT the only response to (vid, pid, sn)?
+// Is the i-th SERPORT the only match with (vid, pid, sn) wrt all plugged-in ones?
 static int sa_unique_by_ids(int vid, int pid, const char *sn, const SERPORT *sp, int n, int i) {
-  return sa_num_matches_by_ids(vid, pid, sn, sp, n) == 1 && sa_num_matches_by_ids(vid, pid, sn, (sp)+(i), 1);
+  return sa_num_matches_by_ids(vid, pid, sn, sp, n) == 1 && sa_num_matches_by_ids(vid, pid, sn, sp+i, 1);
 }
 
 // Return a malloc'd list of -P specifications that uniquely address sp[i]
