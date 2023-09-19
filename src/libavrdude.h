@@ -1269,6 +1269,7 @@ char *str_uc(char *s);
 char *str_lcfirst(char *s);
 char *str_ucfirst(char *s);
 char *str_utoa(unsigned n, char *buf, int base);
+char *str_endnumber(const char *str);
 const char *str_plural(int x);
 const char *str_inname(const char *fn);
 const char *str_outname(const char *fn);

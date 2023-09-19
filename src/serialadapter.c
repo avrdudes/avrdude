@@ -56,19 +56,6 @@ static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
 }
 
-// Returns a pointer to the start of a trailing number in the string or NULL if not there
-char *str_endnumber(const char *str) {
-  const char *ret = NULL;
-
-  for(const char *end = str + strlen(str)-1; end >= str; end--)
-    if(isdigit((unsigned char) *end))
-      ret = end;
-    else
-      break;
-
-  return (char *) ret;
-}
-
 // Order two SERPORTs port strings: base first then trailing numbers, if any
 static int sa_portcmp(const void *p, const void *q) {
   int ret;
