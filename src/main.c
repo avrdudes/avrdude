@@ -224,19 +224,19 @@ static void usage(void)
   msg_error(
     "Usage: %s [options]\n"
     "Options:\n"
-    "  -p <partno>            Specify AVR device\n"
+    "  -p <partno>            Specify AVR device; -p ? lists all known parts\n"
     "  -p <wildcard>/<flags>  Run developer options for matched AVR devices,\n"
     "                         e.g., -p ATmega328P/s or /S for part definition\n"
     "  -b <baudrate>          Override RS-232 baud rate\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
-    "  -c <programmer>        Specify programmer type\n"
+    "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
     "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
     "                         e.g., -c 'ur*'/s for programmer info/definition\n"
     "  -A                     Disable trailing-0xff removal for file/AVR read\n"
     "  -D                     Disable auto erase for flash memory; implies -A\n"
     "  -i <delay>             ISP Clock Delay [in microseconds]\n"
-    "  -P <port>              Specify connection port\n"
+    "  -P <port>              Connection; -P ?s or -P ?sa lists serial ones\n"
     "  -F                     Override invalid signature or initial checks\n"
     "  -e                     Perform a chip erase\n"
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
@@ -1031,6 +1031,17 @@ int main(int argc, char * argv [])
     }
   }
 
+  if(port) {
+    if(str_eq(port, "?s")) {
+      list_available_serialports(programmers);
+      exit(0);
+    } else if(str_eq(port, "?sa")) {
+      msg_error("\vValid serial adapters are:\n");
+      list_serialadapters(stderr, "  ", programmers);
+      exit(0);
+    }
+  }
+
   if(partdesc) {
     if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
@@ -1257,7 +1268,7 @@ int main(int argc, char * argv [])
   if (rc < 0) {
     pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL)
-      print_available_serialports(programmers);
+      list_available_serialports(programmers);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;

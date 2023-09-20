@@ -110,9 +110,9 @@ static SERPORT *get_libserialport_data(int *np) {
     char *q;
     // Fill sp struct with port information
     if((q = sp_get_port_name(p))) {
+      sp[j].port = cfg_strdup(__func__, q);
       if(sp_get_port_usb_vid_pid(p, &sp[j].vid, &sp[j].pid) != SP_OK)
         sp[j].vid = sp[j].pid = 0;
-      sp[j].port = cfg_strdup(__func__, q);
       sp[j].sernum = cfg_strdup(__func__, (q = sp_get_port_usb_serial(p))? q: "");
       j++;
     }
@@ -302,8 +302,8 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   return rv;
 }
 
-// Print available serial ports
-int print_available_serialports(LISTID programmers) {
+// List available serial ports
+int list_available_serialports(LISTID programmers) {
   // Get serial port information from libserialport
   int n;
   SERPORT *sp = get_libserialport_data(&n);
@@ -339,7 +339,8 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   return -1;
 }
 
-int print_available_serialports(LISTID programmers) {
+int list_available_serialports(LISTID programmers) {
+  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }
 
