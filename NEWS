@@ -9,6 +9,8 @@ Changes since version 7.2:
 
   * Major changes compared to the previous version:
 
+    - Connect target via -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
+
   * New devices supported:
 
     - AVR16EB14, AVR16EB20, AVR16EB28, AVR16EB32
@@ -38,6 +40,8 @@ Changes since version 7.2:
     - Add io memory for classic parts #1488
     - Add AVR-EB parts #1491
     - Review calibration read command in avrdude.conf #1495
+    - Provide serialadapter entity in avrdude.conf #1497
+    - Add -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
 
   * Internals:
 
