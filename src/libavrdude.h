@@ -1249,6 +1249,10 @@ typedef struct {
 extern "C" {
 #endif
 
+int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum);
+int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum);
+int list_available_serialports(LISTID programmers);
+
 int str_starts(const char *str, const char *starts);
 int str_eq(const char *str1, const char *str2);
 int str_contains(const char *str, const char *substr);
@@ -1265,6 +1269,7 @@ char *str_uc(char *s);
 char *str_lcfirst(char *s);
 char *str_ucfirst(char *s);
 char *str_utoa(unsigned n, char *buf, int base);
+char *str_endnumber(const char *str);
 const char *str_plural(int x);
 const char *str_inname(const char *fn);
 const char *str_outname(const char *fn);

@@ -601,20 +601,53 @@ Note that the result will be stored in the EEPROM cell at address 0.
 .It Fl P Ar port
 Use
 .Ar port
-to identify the device to which the programmer is attached.  By
-default the
-.Pa /dev/ppi0
-port is used, but if the programmer type normally connects to the
-serial port, the
-.Pa /dev/cuaa0
-port is the default.  If you need to use a different parallel or
-serial port, use this option to specify the alternate port name.
+to identify the connection through which the programmer is attached. This
+can be a parallel, serial, spi or linuxgpio connection. The programmer
+normally specifies the connection type; in absence of a -P specification,
+system-dependent default values
+.Pa default_parallel ,
+.Pa default_serial ,
+.Pa default_spi ,
+or
+.Pa default_linuxgpio
+from the configuration file are used. If you need to use a different port,
+use this option to specify the alternate port name.
+.Pp
+If
+.Nm
+has been configured with libserialport support, a serial port can be specified
+using a predefined serial adapter type in avrdude.conf or .avrduderc, e.g.,
+.Ar ch340
+or
+.Ar ft232r .
+If more than one serial adapter of the same type is connected, they can be
+distinguished by appending a serial number, e.g.,
+.Ar ft232r:12345678 .
+Note that the USB to serial chip has to have a serial number for this to work.
+.Nm Avrdude
+can check for leading and trailing serial number matches as well.
+In the above example,
+.Ar ft232r:1234
+would also result in a match, and so would
+.Ar ft232r:...5678 .
+If the USB to serial chip is not known to
+.Nm ,
+it can be specified using the hexadecimal USB vendor ID, hexadecimal
+product ID and an optional serial number, following the serial number
+matching rules described above, e.g.,
+.Ar usb:0x2341:0x0043
+or
+.Ar usb:2341:0043:12345678 .
+To see a list of currently plugged-in serial ports use -P ?s. In order to
+see a list of all possible serial adapters known to
+.Nm
+use -P ?sa.
 .Pp
 On Win32 operating systems, the parallel ports are referred to as lpt1
 through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
 respectively.  If the parallel port can be accessed through a different
 address, this address can be specified directly, using the common C
-language notation (i. e., hexadecimal values are prefixed by
+language notation (i.e., hexadecimal values are prefixed by
 .Ql 0x
 ).
 .Pp
@@ -984,7 +1017,6 @@ See below for a list of programmers accepting extended parameters
 or issue
 .Nm
 -x help ... to see the extended options of the chosen programmer.
-
 .El
 .Ss Terminal mode
 In this mode,
@@ -1873,7 +1905,7 @@ avrdude: Target prepared for ISP, signed off.
 avrdude: Please restart avrdude without power-cycling the target.
 .Ed
 .Pp
-If the target AVR has been set up for debugWire mode (i. e. the
+If the target AVR has been set up for debugWire mode (i.e., the
 .Em DWEN
 fuse is programmed), normal ISP connection attempts will fail as
 the
@@ -1919,7 +1951,7 @@ one byte at a time.
 For that reason, updating the flash ROM from terminal mode does not
 work.
 .Pp
-Page-mode programming the EEPROM through JTAG (i.e. through an
+Page-mode programming the EEPROM through JTAG (i.e., through an
 .Fl U
 option) requires a prior chip erase.
 This is an inherent feature of the way JTAG EEPROM programming works.

@@ -2967,6 +2967,50 @@ serialadapter
     usbpid                 = 0x7523;
 ;
 
+#------------------------------------------------------------
+# ch9102
+#------------------------------------------------------------
+
+serialadapter
+    id                     = "ch9102";
+    desc                   = "WCH CH9102 USB to serial adapter";
+    usbvid                 = 0x1a86;
+    usbpid                 = 0x55d4;
+;
+
+#------------------------------------------------------------
+# cp210x
+#------------------------------------------------------------
+
+serialadapter
+    id                     = "cp210x";
+    desc                   = "Silabs CP210x USB to serial adapter";
+    usbvid                 = 0x10c4;
+    usbpid                 = 0xea60, 0xea70, 0xea71;
+;
+
+#------------------------------------------------------------
+# ft231x / ft234x / ft230x
+#------------------------------------------------------------
+
+serialadapter
+    id                     = "ft231x", "ft234x", "ft230x";
+    desc                   = "FTDI FT23X series USB to serial adapter";
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6015;
+;
+
+#------------------------------------------------------------
+# pl2303
+#------------------------------------------------------------
+
+serialadapter
+    id                     = "pl2303";
+    desc                   = "Profilic PL2303 USB to serial adapter";
+    usbvid                 = 0x067b;
+    usbpid                 = 0x2303;
+;
+
 #
 # PART DEFINITIONS
 #

@@ -99,3 +99,6 @@
 
 /* Define to 1 if you have the `readline' library (-lreadline). */
 #cmakedefine HAVE_LIBREADLINE 1
+
+/* Define to 1 if you have the `serialport' library */
+#cmakedefine HAVE_LIBSERIALPORT 1

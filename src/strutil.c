@@ -363,6 +363,19 @@ char *str_utoa(unsigned n, char *buf, int base) {
   return buf;
 }
 
+// Returns a pointer to the start of a trailing number in the string or NULL if not there
+char *str_endnumber(const char *str) {
+  const char *ret = NULL;
+
+  for(const char *end = str + strlen(str)-1; end >= str; end--)
+    if(isdigit((unsigned char) *end))
+      ret = end;
+    else
+      break;
+
+  return (char *) ret;
+}
+
 
 // Convenience functions for printing
 const char *str_plural(int x) {

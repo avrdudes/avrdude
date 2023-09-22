@@ -185,6 +185,19 @@ if test x$have_libhidapi = xyes; then
 fi
 AC_SUBST(LIBHIDAPI, $LIBHIDAPI)
 
+AH_TEMPLATE([HAVE_LIBSERIALPORT],
+            [Define if libserialport is found])
+AC_CHECK_LIB([serialport], [sp_open], [have_libserialport=yes])
+if test x$have_libserialport = xyes; then
+   case $target in
+       *)
+               LIBSERIALPORT="-lserialport"
+               ;;
+   esac
+   AC_DEFINE([HAVE_LIBSERIALPORT])
+   AC_CHECK_HEADERS([libserialport.h])
+fi
+AC_SUBST(LIBSERIALPORT, $LIBSERIALPORT)
 
 AH_TEMPLATE([HAVE_LIBFTDI1],
             [Define if FTDI support is enabled via libftdi1])
@@ -602,6 +615,12 @@ if test x$have_readline = xyes; then
    echo "DO HAVE    libreadline"
 else
    echo "DON'T HAVE libreadline"
+fi
+
+if test x$have_libserialport = xyes; then
+   echo "DO HAVE    libserialport"
+else
+   echo "DON'T HAVE libserialport"
 fi
 
 if test x$have_pthread = xyes; then

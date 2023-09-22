@@ -373,7 +373,7 @@ Windows programming software.
 For many years, the AVRDUDE source resided in public repositories on
 savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
-addition to FreeBSD, AVRDUDE now runs on Linux and Windows.  The
+addition to FreeBSD, AVRDUDE now runs on Linux, MacOS and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
 Weddington, and J@"org Wunsch.
 
@@ -680,12 +680,30 @@ hardware.
 Note that the result will be stored in the EEPROM cell at address 0.
 
 @item -P @var{port}
-Use port to identify the device to which the programmer is attached.
-Normally, the default parallel port is used, but if the programmer type
-normally connects to the serial port, the default serial port will be
-used. See Appendix A, Platform Dependent Information, to find out the
-default port names for your platform. If you need to use a different
-parallel or serial port, use this option to specify the alternate port name.
+
+Use @var{port} to identify the connection through which the programmer is
+attached. This can be a parallel, serial, spi or linuxgpio connection. The
+programmer normally specifies the connection type; in absence of a @code{-P}
+specification, system-dependent default values @code{default_parallel},
+@code{default_serial}, @code{default_spi}, or @code{default_linuxgpio} from
+the configuration file are used. If you need to use a different port, use this
+option to specify the alternate port name.
+
+If avrdude has been configured with libserialport support, a serial port can
+be specified using a predefined serial adapter type in @var{avrdude.conf} or
+@var{.avrduderc}, e.g., @code{ch340} or @code{ft232r}. If more than one serial
+adapter of the same type is connected, they can be distinguished by appending
+a serial number, e.g., @code{ft232r:12345678}. Note that the USB to serial
+chip has to have a serial number for this to work. Avrdude can check for
+leading and trailing serial number matches as well. In the above example,
+@code{ft232r:1234} would also result in a match, and so would
+@code{ft232r:...5678}. If the USB to serial chip is not known to avrdude, it
+can be specified using the hexadecimal USB vendor ID, hexadecimal product ID
+and an optional serial number, following the serial number matching rules
+described above, e.g., @code{usb:0x2341:0x0043} or
+@code{usb:2341:0043:12345678}. To see a list of currently plugged-in serial
+ports use @code{-P ?s}. In order to see a list of all possible serial adapters
+known to avrdude use @code{-P ?sa}.
 
 On Win32 operating systems, the parallel ports are referred to as lpt1
 through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
@@ -1762,7 +1780,7 @@ $ avrdude -cusbasp -pattiny13 -Ueeprom:r:-:i 2>/dev/null
 $ avrdude -pattiny13 -qq -U flash:r:-:r | strings
 
 Main menu
-Distance: %dcm
+Distance: %d cm
 Exit
 
 @end cartouche
@@ -1827,6 +1845,52 @@ AVR64EA48
 @end smallexample
 
 @page
+
+@noindent
+@strong{List of all curently plugged-in serial devices known to the libserialport library:}
+
+@smallexample
+@cartouche
+
+$ avrdude -P ?s
+Possible candidate serial ports are:
+  -P /dev/ttyUSB0 or -P ft232r:A600K203
+  -P /dev/ttyUSB1 or -P ft232r:MCU8
+  -P /dev/ttyUSB3, -P ch340 or -P ch340-115k
+Note that above ports might not be connected to a target board or an AVR programmer.
+Also note there may be other direct serial ports not listed above.
+
+@end cartouche
+@end smallexample
+
+
+@noindent
+@strong{List of all serial adapters known to AVRDUDE, i.e., defined in avrdude.conf:}
+
+@smallexample
+@cartouche
+
+$ avrdude -P ?sa
+Valid serial adapters are:
+  ch340      = [usbvid 0x1a86, usbpid 0x7523]
+  ch340-115k = [usbvid 0x1a86, usbpid 0x7523]
+  ch341a     = [usbvid 0x1a86, usbpid 0x5512]
+  ch9102     = [usbvid 0x1a86, usbpid 0x55d4]
+  cp210x     = [usbvid 0x10c4, usbpid 0xea60 0xea70 0xea71]
+  ft2232h    = [usbvid 0x0403, usbpid 0x6010]
+  ft231x     = [usbvid 0x0403, usbpid 0x6015]
+  ft234x     = [usbvid 0x0403, usbpid 0x6015]
+  ft230x     = [usbvid 0x0403, usbpid 0x6015]
+  ft232h     = [usbvid 0x0403, usbpid 0x6014]
+  ft232r     = [usbvid 0x0403, usbpid 0x6001]
+  ft4232h    = [usbvid 0x0403, usbpid 0x6011]
+  pl2303     = [usbvid 0x067b, usbpid 0x2303]
+
+@end cartouche
+@end smallexample
+
+@page
+
 @noindent
 @strong{AVRDUDE in a bash script creating terminal scripts that reset a part to factory settings:}
 @smallexample

@@ -224,19 +224,19 @@ static void usage(void)
   msg_error(
     "Usage: %s [options]\n"
     "Options:\n"
-    "  -p <partno>            Specify AVR device\n"
+    "  -p <partno>            Specify AVR device; -p ? lists all known parts\n"
     "  -p <wildcard>/<flags>  Run developer options for matched AVR devices,\n"
     "                         e.g., -p ATmega328P/s or /S for part definition\n"
     "  -b <baudrate>          Override RS-232 baud rate\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
-    "  -c <programmer>        Specify programmer type\n"
+    "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
     "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
     "                         e.g., -c 'ur*'/s for programmer info/definition\n"
     "  -A                     Disable trailing-0xff removal for file/AVR read\n"
     "  -D                     Disable auto erase for flash memory; implies -A\n"
     "  -i <delay>             ISP Clock Delay [in microseconds]\n"
-    "  -P <port>              Specify connection port\n"
+    "  -P <port>              Connection; -P ?s or -P ?sa lists serial ones\n"
     "  -F                     Override invalid signature or initial checks\n"
     "  -e                     Perform a chip erase\n"
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
@@ -646,58 +646,58 @@ int main(int argc, char * argv [])
         }
         break;
 
-      case 'B':	/* specify JTAG ICE bit clock period */
-	bitclock = strtod(optarg, &e);
-	if (*e != 0) {
-	  /* trailing unit of measure present */
-	  int suffixlen = strlen(e);
-	  switch (suffixlen) {
-	  case 2:
-	    if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
-	      bitclock = 0.0;
-	    else
-	      /* convert from Hz to microseconds */
-	      bitclock = 1E6 / bitclock;
-	    break;
+      case 'B': /* specify JTAG ICE bit clock period */
+        bitclock = strtod(optarg, &e);
+        if (*e != 0) {
+          /* trailing unit of measure present */
+          int suffixlen = strlen(e);
+          switch (suffixlen) {
+          case 2:
+            if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
+              bitclock = 0.0;
+            else
+              /* convert from Hz to microseconds */
+              bitclock = 1E6 / bitclock;
+            break;
 
-	  case 3:
-	    if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
-	      bitclock = 0.0;
-	    else {
-	      switch (e[0]) {
-	      case 'M':
-	      case 'm':		/* no Millihertz here :) */
-		bitclock = 1.0 / bitclock;
-		break;
+          case 3:
+            if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
+              bitclock = 0.0;
+            else {
+              switch (e[0]) {
+              case 'M':
+              case 'm': /* no Millihertz here :) */
+                bitclock = 1.0 / bitclock;
+                break;
 
-	      case 'k':
-		bitclock = 1E3 / bitclock;
-		break;
+              case 'k':
+                bitclock = 1E3 / bitclock;
+                break;
 
-	      default:
-		bitclock = 0.0;
-		break;
-	      }
-	    }
-	    break;
+              default:
+                bitclock = 0.0;
+                break;
+              }
+            }
+            break;
 
-	  default:
-	    bitclock = 0.0;
-	    break;
-	  }
-	  if (bitclock == 0.0)
-	    pmsg_error("invalid bit clock unit of measure '%s'\n", e);
-	}
-	if ((e == optarg) || bitclock == 0.0) {
-	  pmsg_error("invalid bit clock period specified '%s'\n", optarg);
+          default:
+            bitclock = 0.0;
+            break;
+          }
+          if (bitclock == 0.0)
+            pmsg_error("invalid bit clock unit of measure '%s'\n", e);
+        }
+        if ((e == optarg) || bitclock == 0.0) {
+          pmsg_error("invalid bit clock period specified '%s'\n", optarg);
           exit(1);
         }
         break;
 
-      case 'i':	/* specify isp clock delay */
-	ispdelay = str_int(optarg, STR_INT32, &errstr);
-	if(errstr || ispdelay == 0) {
-	  pmsg_error("invalid isp clock delay %s specified", optarg);
+      case 'i': /* specify isp clock delay */
+        ispdelay = str_int(optarg, STR_INT32, &errstr);
+        if(errstr || ispdelay == 0) {
+          pmsg_error("invalid isp clock delay %s specified", optarg);
           if(errstr)
             msg_error(": %s\n", errstr);
           else
@@ -743,23 +743,23 @@ int main(int argc, char * argv [])
         break;
 
       case 'l':
-	logfile = optarg;
-	break;
+        logfile = optarg;
+        break;
 
       case 'n':
         uflags |= UF_NOWRITE;
         break;
 
       case 'O': /* perform RC oscillator calibration */
-	calibrate = 1;
-	break;
+        calibrate = 1;
+        break;
 
       case 'p' : /* specify AVR part */
         partdesc = optarg;
         break;
 
       case 'P':
-        port = optarg;
+        port = cfg_strdup(__func__, optarg);
         break;
 
       case 'q' : /* Quell progress output */
@@ -1031,6 +1031,17 @@ int main(int argc, char * argv [])
     }
   }
 
+  if(port) {
+    if(str_eq(port, "?s")) {
+      list_available_serialports(programmers);
+      exit(0);
+    } else if(str_eq(port, "?sa")) {
+      msg_error("\vValid serial adapters are:\n");
+      list_serialadapters(stderr, "  ", programmers);
+      exit(0);
+    }
+  }
+
   if(partdesc) {
     if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
@@ -1134,28 +1145,90 @@ int main(int argc, char * argv [])
     switch (pgm->conntype)
     {
       case CONNTYPE_PARALLEL:
-        port = cfg_strdup("main()", default_parallel);
+        port = cfg_strdup(__func__, default_parallel);
         break;
 
       case CONNTYPE_SERIAL:
-        port = cfg_strdup("main()", default_serial);
+        port = cfg_strdup(__func__, default_serial);
         break;
 
       case CONNTYPE_USB:
-        port = DEFAULT_USB;
+        port = cfg_strdup(__func__, DEFAULT_USB);
         break;
 
       case CONNTYPE_SPI:
+        port = cfg_strdup(__func__,
 #ifdef HAVE_LINUXSPI
-        port = cfg_strdup("main()", *default_spi? default_spi: "unknown");
+         *default_spi? default_spi:
 #endif
+           "unknown");
         break;
 
       case CONNTYPE_LINUXGPIO:
-        port = cfg_strdup("main()", default_linuxgpio);
+        port = cfg_strdup(__func__, default_linuxgpio);
+        break;
+
+      default:
+        port = cfg_strdup(__func__, "unknown");
         break;
 
     }
+  }
+
+  /*
+   * Divide a serialadapter port string into tokens separated by colons.
+   * There are two ways such a port string can be presented:
+   *   1) -P <serialadapter>[:<sernum>]
+   *   2) -P usb:<usbvid>:<usbpid>[:<sernum>]
+   * In either case the serial number is optional. The USB vendor and
+   * product ids are hexadecimal numbers.
+   */
+  bool print_ports = true;
+  SERIALADAPTER *ser = NULL;
+  if (pgm->conntype == CONNTYPE_SERIAL) {
+    char *portdup = cfg_strdup(__func__, port);
+    char *port_tok[4], *tok = portdup;
+    for(int t = 0, maxt = str_starts(portdup, DEFAULT_USB ":")? 4: 2; t < 4; t++) {
+      char *save = tok && t < maxt? tok: "";
+      if(t < maxt-1 && tok && (tok = strchr(tok, ':')))
+        *tok++ = 0;
+      port_tok[t] = cfg_strdup(__func__, save);
+    }
+    free(portdup);
+
+    // Use libserialport to find the actual serial port
+    ser = locate_programmer(programmers, port_tok[0]);
+    if (is_serialadapter(ser)) {
+      int rv = setport_from_serialadapter(&port, ser, port_tok[1]);
+      if (rv == -1) {
+        pmsg_warning("serial adapter %s", port_tok[0]);
+        if (port_tok[1][0])
+          msg_warning(" with serial number %s", port_tok[1]);
+        else if (ser->usbsn && ser->usbsn[0])
+          msg_warning(" with serial number %s", ser->usbsn);
+        msg_warning(" not connected to host\n");
+      }
+      else if (rv == -2)
+        print_ports = false;
+      if(rv)
+        ser = NULL;
+    } else if(str_eq(port_tok[0], DEFAULT_USB)) {
+      // Port or usb:[vid]:[pid]
+      int vid, pid;
+      if (sscanf(port_tok[1], "%x", &vid) > 0 && sscanf(port_tok[2], "%x", &pid) > 0) {
+        int rv = setport_from_vid_pid(&port, vid, pid, port_tok[3]);
+        if (rv == -1) {
+          if (port_tok[3][0])
+            pmsg_warning("serial adapter with USB VID %s and PID %s and serial number %s not connected\n", port_tok[1], port_tok[2], port_tok[3]);
+          else
+            pmsg_warning("serial adapter with USB VID %s and PID %s not connected\n", port_tok[1], port_tok[2]);
+        }
+        else if (rv == -2)
+          print_ports = false;
+      }
+    }
+    for (int i = 0; i < 4; i++)
+      free(port_tok[i]);
   }
 
   /*
@@ -1177,20 +1250,25 @@ int main(int argc, char * argv [])
     imsg_notice("Overriding Baud Rate          : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
-
+  else if (ser && ser->baudrate) {
+    imsg_notice("Default Baud Rate             : %d\n", ser->baudrate);
+    pgm->baudrate = ser->baudrate;
+  }
   if (bitclock != 0.0) {
     imsg_notice("Setting bit clk period        : %.1f\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
-    imsg_notice("Setting isp clock delay        : %3i\n", ispdelay);
+    imsg_notice("Setting isp clock delay       : %3i\n", ispdelay);
     pgm->ispdelay = ispdelay;
   }
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
+    if (print_ports && pgm->conntype == CONNTYPE_SERIAL)
+      list_available_serialports(programmers);
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
