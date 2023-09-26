@@ -180,7 +180,7 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
     pmsg_notice2("wiring_open(): asserting DTR/RTS\n");
 
     serial_set_dtr_rts(&pgm->fd, 1);
-    usleep(50*1000);
+    usleep(80*1000);
 
     /* Set high, so a direct connection to reset works. */
     serial_set_dtr_rts(&pgm->fd, 0);
