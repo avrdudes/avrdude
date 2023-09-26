@@ -1666,7 +1666,7 @@ query on flash prepared with -xnometadata yields useful results.
 .It Ar delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
-in which case the default 120 ms delay after issuing reset will be
+in which case the default 100 ms delay after issuing reset will be
 shortened accordingly.
 .It Ar strict
 Urclock has a faster, but slightly different strategy than -c arduino to
@@ -1782,15 +1782,20 @@ Show help menu and exit.
 .El
 .It Ar Wiring
 When using the Wiring programmer type, the
-following optional extended parameter is accepted:
+following optional extended parameters are accepted:
 .Bl -tag -offset indent -width indent
-.It Ar snooze=<0..32767>
+.It Ar snooze=<n>
 After performing the port open phase, AVRDUDE will wait/snooze for
 .Ar snooze
 milliseconds before continuing to the protocol sync phase.
 No toggling of DTR/RTS is performed if
 .Ar snooze
 is greater than 0.
+.It Ar delay=<n>
+Add a <n> milliseconds delay after resetting the part through toggling the
+DTR/RTS lines. This can be useful if a board takes a particularly long
+time to exit from external reset. <n> can be negative, in which case the
+default 80 ms delay after issuing reset will be shortened accordingly.
 .It Ar help
 Show help menu and exit.
 .El
