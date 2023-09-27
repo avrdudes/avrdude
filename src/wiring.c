@@ -146,14 +146,15 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
     // Pull the RTS/DTR line low to reset AVR
     pmsg_notice2("wiring_open(): asserting DTR/RTS\n");
     serial_set_dtr_rts(&pgm->fd, 1);
-    usleep(20*1000);
 
+    // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+    usleep(100);
     // Set the RTS/DTR line back to high, so direct connection to reset works
     serial_set_dtr_rts(&pgm->fd, 0);
 
     int delay = WIRINGPDATA(pgm)->delay;
-    if((80+delay) > 0)
-      usleep((80+delay)*1000); // Wait until board comes out of reset
+    if((100+delay) > 0)
+      usleep((100+delay)*1000); // Wait until board comes out of reset
   }
 
   // Drain any extraneous input

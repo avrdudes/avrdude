@@ -1304,7 +1304,7 @@ yields useful results.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
-in which case the default 100 ms delay after issuing reset will be
+in which case the default 120 ms delay after issuing reset will be
 shortened accordingly.
 @item @samp{strict}
 Urclock has a faster, but slightly different strategy than -c arduino to
@@ -1447,7 +1447,7 @@ No toggling of DTR/RTS is performed if @var{snooze} > 0.
 @item @samp{delay=<n>}
 Add a <n> milliseconds delay after reset. This can be useful if a board
 takes a particularly long time to exit from external reset. <n> can be
-negative, in which case the default 80 ms delay after issuing reset will
+negative, in which case the default 100 ms delay after issuing reset will
 be shortened accordingly.
 @item @samp{help}
 Show help menu and exit.

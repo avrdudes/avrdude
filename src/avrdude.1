@@ -1666,7 +1666,7 @@ query on flash prepared with -xnometadata yields useful results.
 .It Ar delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
-in which case the default 100 ms delay after issuing reset will be
+in which case the default 120 ms delay after issuing reset will be
 shortened accordingly.
 .It Ar strict
 Urclock has a faster, but slightly different strategy than -c arduino to
@@ -1795,7 +1795,7 @@ is greater than 0.
 Add a <n> milliseconds delay after resetting the part through toggling the
 DTR/RTS lines. This can be useful if a board takes a particularly long
 time to exit from external reset. <n> can be negative, in which case the
-default 80 ms delay after issuing reset will be shortened accordingly.
+default 100 ms delay after issuing reset will be shortened accordingly.
 .It Ar help
 Show help menu and exit.
 .El
