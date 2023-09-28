@@ -26,6 +26,7 @@ Changes since version 7.2:
     - -c stk500 only works with stk500v2 firmware #1467
     - Read silicon revision from modern AVRs #1472
     - Dryrun doesn't overlap XMEGA flash memories #1485
+    - 7e94ed4442b breaks flashing GT2560 boards #1503
 
   * Pull requests:
 
@@ -42,6 +43,8 @@ Changes since version 7.2:
     - Review calibration read command in avrdude.conf #1495
     - Provide serialadapter entity in avrdude.conf #1497
     - Add -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
+    - Add -xdelay=n to wiring and improve reset timing #1505
+    - Reduce stk500v2_getsync() timeout #1506
 
   * Internals:
 
