@@ -737,6 +737,9 @@ int stk500v2_getsync(const PROGRAMMER *pgm) {
       PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3)
     return 0;
 
+  long bak_serial_recv_timeout = serial_recv_timeout;
+  serial_recv_timeout = 200;
+
 retry:
   tries++;
 
@@ -749,8 +752,7 @@ retry:
 
   // if we got bytes returned, check to see what came back
   if (status > 0) {
-    if ((resp[0] == CMD_SIGN_ON) && (resp[1] == STATUS_CMD_OK) &&
-	(status > 3)) {
+    if (resp[0] == CMD_SIGN_ON && resp[1] == STATUS_CMD_OK && status > 3) {
       // success!
       unsigned int siglen = resp[2];
       if (siglen >= strlen("STK500_2") &&
@@ -775,10 +777,12 @@ retry:
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
       pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname[PDATA(pgm)->pgmtype]);
+      serial_recv_timeout = bak_serial_recv_timeout;
       return 0;
     } else {
       if (tries > RETRIES) {
         pmsg_error("cannot communicate with device: resp=0x%02x\n", resp[0]);
+        serial_recv_timeout = bak_serial_recv_timeout;
         return -6;
       } else
         goto retry;
@@ -788,6 +792,7 @@ retry:
   } else if (status == -1) {
     if (tries > RETRIES) {
       pmsg_error("timeout communicating with programmer\n");
+      serial_recv_timeout = bak_serial_recv_timeout;
       return -1;
     } else
       goto retry;
@@ -800,6 +805,7 @@ retry:
       goto retry;
   }
 
+  serial_recv_timeout = bak_serial_recv_timeout;
   return 0;
 }
 
