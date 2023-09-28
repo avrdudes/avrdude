@@ -97,10 +97,12 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   usleep(250 * 1000);
   // Pull the RTS/DTR line low to reset AVR
   serial_set_dtr_rts(&pgm->fd, 1);
-  usleep(50 * 1000);
-  // Set the RTS/DTR line back to high
+  // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+  usleep(100);
+  // Set the RTS/DTR line back to high, so direct connection to reset works
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(50 * 1000);
+
+  usleep(100 * 1000);
 
   /*
    * drain any extraneous input

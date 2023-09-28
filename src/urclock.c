@@ -2220,12 +2220,13 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   usleep(20*1000);
   // Pull the RTS/DTR line low to reset AVR
   serial_set_dtr_rts(&pgm->fd, 1);
-  usleep(20*1000);
-  // Set the RTS/DTR line back to high
+  // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+  usleep(100);
+  // Set the RTS/DTR line back to high, so direct connection to reset works
   serial_set_dtr_rts(&pgm->fd, 0);
 
-  if((100+ur.delay) > 0)
-    usleep((100+ur.delay)*1000); // Wait until board comes out of reset
+  if((120+ur.delay) > 0)
+    usleep((120+ur.delay)*1000); // Wait until board comes out of reset
 
   pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)

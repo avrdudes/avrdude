@@ -112,9 +112,11 @@ int stk500_getsync(const PROGRAMMER *pgm) {
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
-      usleep(20*1000);
-      // Set the RTS/DTR line back to high
+      // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+      usleep(100);
+      // Set the RTS/DTR line back to high, so direct connection to reset works
       serial_set_dtr_rts(&pgm->fd, 0);
+      usleep(20*1000);
       stk500_drain(pgm, 0);
     }
 
