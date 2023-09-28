@@ -925,7 +925,10 @@ programmer
 # ft2232h
 #------------------------------------------------------------
 
-# Interfaces with the chips on these programmers:
+# FTDI USB to serial converters can be used for ISP programming of
+# classic AVRs, and quite a few programmers are based on this. The
+# ft2232h programmer, named after the FTDI converter chip,
+# interfaces with the chips on these programmers (and more):
 #  - http://real.kiev.ua/old/avreal/en/adapters
 #  - http://www.amontec.com/jtagkey.shtml and .../jtagkey-tiny.shtml
 #  - http://www.olimex.com/dev/arm-usb-ocd.html, arm-usb-tiny.html
@@ -934,18 +937,18 @@ programmer
 #  - http://dangerousprototypes.com/docs/FT2232_breakout_board
 #  - http://flashrom.org/FT2232SPI_Programmer
 #
-# The drivers will look for a specific device and use the first one
-# found. If you have mulitple devices, and they give out serial
+# The programmer will look for a specific device and use the first
+# one found. If you have multiple devices, and they give out serial
 # numbers, a different entry for each of them can be created in a
 # per-user ~/.avrduderc or avrdude.rc entry and the usbsn = "...";
 # field added to distinguish between them.
 #
-# Note that the pin numbers for the main ISP signals (reset, sck,
-# sdo, sdi) are fixed and cannot be changed, since they must match
-# the way the Multi-Protocol Synchronous Serial Engine (MPSSE) of
-# these FTDI ICs has been designed.
+# Avrftdi-type programmers utilise the Multi-Protocol Synchronous Serial
+# Engine (MPSSE) of the FTDI ICs, which determines the pin numbers for the
+# main ISP signals (sck, sdo, sdi). The reset pin can differ, though.
 #
-# See also https://ftdichip.com/wp-content/uploads/2020/07/DS_FT2232H.pdf
+# Data sheet of the FT2232H chip:
+#   https://ftdichip.com/wp-content/uploads/2020/08/DS_FT2232H.pdf
 
 programmer
     id                     = "avrftdi", "2232h";
@@ -967,6 +970,9 @@ programmer
 # ft2232h
 #------------------------------------------------------------
 
+# The ft2232h programmer is the same as above 2232h but it can be
+# used to address the port of a particular board via -P ft2232h
+
 programmer parent "2232h"
     id                     = "ft2232h";
     is_serialadapter       = yes;
@@ -976,8 +982,8 @@ programmer parent "2232h"
 # 2232HIO
 #------------------------------------------------------------
 
-# This is an implementation of the above with a buffer IC (74AC244) and
-# 4 LEDs directly attached, all active low.
+# This is an implementation of the above 2232h with a buffer IC
+# (74AC244) and 4 LEDs directly attached, all active low.
 
 programmer parent "2232h"
     id                     = "2232hio";
@@ -1026,9 +1032,11 @@ programmer parent "2232h"
 # ft2232h_jtag
 #------------------------------------------------------------
 
+# Here a FTDI ft2232h chip is used for JTAG programming.
+
 programmer
     id                     = "ft2232h_jtag";
-    desc                   = "FT2232H based generic programmer";
+    desc                   = "FT2232H based generic JTAG programmer";
     type                   = "avrftdi_jtag";
     prog_modes             = PM_JTAG;
     connection_type        = usb;
@@ -1081,13 +1089,13 @@ programmer
     usbdev                 = "A";
     buff                   = ~4;
 #   ISP-signals => 20 - Pin connector on JTAGKey
+#   The colours are on the 20 pin breakout cable from Amontec
     reset                  = 3; # TMS 7 violet
     sck                    = 0; # TCK 9 white
     sdo                    = 1; # TDI 5 green
     sdi                    = 2; # TDO 13 orange
 #   VTG           VREF 1 brown with red tip
 #   GND           GND 20 black
-# The colors are on the 20 pin breakout cable from Amontec
 ;
 
 #------------------------------------------------------------
@@ -1594,6 +1602,12 @@ programmer
 #------------------------------------------------------------
 # ft245r
 #------------------------------------------------------------
+
+# Ftdi_syncbb-type programmers utilise FTDI chips for programming
+# in a bit-banging mode. In contrast to avrftdi-type programmers,
+# the pin mapping to the main ISP signals (reset, sck, sdo, sdi) is
+# somewhat arbitrary and will be determined by the actual routing
+# of the FTDI IC pins to the ISP header of the physical programmer.
 
 programmer
     id                     = "ft245r";
