@@ -526,6 +526,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtod() error checking */
   const char  *errstr; /* for str_int() error checking */
   int     baudrate;    /* override default programmer baud rate */
+  int     touch_baudrate; /* baudrate to use when "touching" a serial port */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     init_ok;     /* Device initialization worked well */
@@ -635,7 +636,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qr:stT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -764,6 +765,10 @@ int main(int argc, char * argv [])
 
       case 'q' : /* Quell progress output */
         quell_progress++ ;
+        break;
+
+      case 'r' :
+        touch_baudrate = str_int(optarg, STR_INT32, &errstr);
         break;
 
       case 't': /* enter terminal mode */
@@ -1230,6 +1235,9 @@ int main(int argc, char * argv [])
     for (int i = 0; i < 4; i++)
       free(port_tok[i]);
   }
+
+  if(touch_baudrate)
+    touch_serialport(&port, touch_baudrate);
 
   /*
    * open the programmer

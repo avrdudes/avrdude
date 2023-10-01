@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -300,6 +301,48 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
   free(sp);
 
   return rv;
+}
+
+int touch_serialport(char **portp, int baudrate) {
+  int n1, n2;
+  SERPORT *sp1, *sp2, **diff;
+  sp1 = get_libserialport_data(&n1);
+  if(!sp1 || n1 <= 0)
+    return -1;
+
+  pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
+  struct sp_port *prt;
+  struct sp_port_config *cfg;
+  sp_get_port_by_name(*portp, &prt);
+  sp_open(prt, SP_MODE_READ);
+  sp_set_baudrate(prt, baudrate);
+  sp_set_bits(prt, 8);
+  sp_set_parity(prt, SP_PARITY_NONE);
+  sp_set_stopbits(prt, 1);
+  sp_set_flowcontrol(prt, SP_FLOWCONTROL_NONE);
+  sp_new_config(&cfg);
+  sp_get_config(prt, cfg);
+  sp_set_config_dtr(cfg, SP_DTR_OFF);
+  sp_close(prt);
+	sp_free_port(prt);
+  usleep(1000000);
+
+  for(int i = 0; i < 5; i++) {
+    sp2 = get_libserialport_data(&n2);
+    diff = sa_spa_not_spb(sp2, n2, sp1, n1);
+    if(*diff && (*diff)->port) {
+      pmsg_notice("new port %s discovered\n", (*diff)->port);
+      if(portp) {
+        if(*portp)
+          free(*portp);
+        *portp = cfg_strdup(__func__, (*diff)->port);
+      }
+      break;
+    }
+    usleep(500000);
+  }
+
+  return 0;
 }
 
 // List available serial ports
