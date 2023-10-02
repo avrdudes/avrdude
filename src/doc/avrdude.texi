@@ -470,11 +470,10 @@ Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
 
 @item -r @var{baudrate}
-Sets the baudrate used to open and close a serial port prior to establishing
-communication with the programmer, often referred to a "port touch".
-The most common speed used for this is 1200 baud. Common hardware that
-requires this in order to enter programming mode is the Arduino Leonardo,
-Arduino Micro/Pro Micro and the Arduino Nano Every.
+Opens the serial port at 1200 baud and immedeatly closes it, prior to
+establishing communication with the programmer. This is commonly knows as A
+"1200bps touch", and is used to trigger programming mode for certain boards
+like Arduino Leonardo, Arduino Micro/Pro Micro and the Arduino Nano Every.
 
 @item -B @var{bitclock}
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP

@@ -228,8 +228,8 @@ static void usage(void)
     "  -p <wildcard>/<flags>  Run developer options for matched AVR devices,\n"
     "                         e.g., -p ATmega328P/s or /S for part definition\n"
     "  -b <baudrate>          Override RS-232 baud rate\n"
-    "  -r <baudrate>          Open and close (\"touch\") the serial port before\n"
-    "                         establishing connection with the programmer."
+    "  -r                     Open and close (\"touch\") the serial port at\n"
+    "                         1200 baud before establishing connection\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
     "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
@@ -528,7 +528,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtod() error checking */
   const char  *errstr; /* for str_int() error checking */
   int     baudrate;    /* override default programmer baud rate */
-  int     touch_baudrate = 0; /* baudrate to use when "touching" a serial port */
+  bool    touch_1200bps = false; /* "touch" serial port prior to programming */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     init_ok;     /* Device initialization worked well */
@@ -638,7 +638,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qr:stT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qrstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -770,7 +770,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'r' :
-        touch_baudrate = str_int(optarg, STR_INT32, &errstr);
+        touch_1200bps = true;
         break;
 
       case 't': /* enter terminal mode */
@@ -1238,8 +1238,8 @@ int main(int argc, char * argv [])
       free(port_tok[i]);
   }
 
-  if(touch_baudrate && pgm->conntype == CONNTYPE_SERIAL)
-    touch_serialport(&port, touch_baudrate);
+  if(touch_1200bps && pgm->conntype == CONNTYPE_SERIAL)
+    touch_serialport(&port, 1200);
 
   /*
    * open the programmer
