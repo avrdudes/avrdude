@@ -337,8 +337,10 @@ int touch_serialport(char **portp, int baudrate) {
           free(*portp);
         *portp = cfg_strdup(__func__, (*diff)->port);
       }
+      free(diff);
       break;
     }
+    free(diff);
     usleep(500000);
   }
 
