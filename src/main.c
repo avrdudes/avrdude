@@ -526,7 +526,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtod() error checking */
   const char  *errstr; /* for str_int() error checking */
   int     baudrate;    /* override default programmer baud rate */
-  int     touch_baudrate; /* baudrate to use when "touching" a serial port */
+  int     touch_baudrate = 0; /* baudrate to use when "touching" a serial port */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     init_ok;     /* Device initialization worked well */
