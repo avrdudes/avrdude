@@ -228,6 +228,8 @@ static void usage(void)
     "  -p <wildcard>/<flags>  Run developer options for matched AVR devices,\n"
     "                         e.g., -p ATmega328P/s or /S for part definition\n"
     "  -b <baudrate>          Override RS-232 baud rate\n"
+    "  -r <baudrate>          Open and close (\"touch\") the serial port before\n"
+    "                         establishing connection with the programmer."
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
     "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
