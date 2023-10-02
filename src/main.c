@@ -1238,7 +1238,7 @@ int main(int argc, char * argv [])
       free(port_tok[i]);
   }
 
-  if(touch_baudrate)
+  if(touch_baudrate && pgm->conntype == CONNTYPE_SERIAL)
     touch_serialport(&port, touch_baudrate);
 
   /*
