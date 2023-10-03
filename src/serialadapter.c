@@ -131,6 +131,13 @@ static SERPORT *get_libserialport_data(int *np) {
   return sp;
 }
 
+// Free memory allocated from get_libserialport_data()
+static void free_libserialport_data(SERPORT *sp, int n) {
+  for(int k = 0; sp && k < n; k++)
+    free(sp[k].sernum), free(sp[k].port);
+  free(sp);
+}
+
 // Returns a NULL-terminated malloc'd list of items in SERPORT list spa that are not in spb
 SERPORT **sa_spa_not_spb(SERPORT *spa, int na, SERPORT *spb, int nb) {
   SERPORT **ret = cfg_malloc(__func__, (na+1)*sizeof*ret);
@@ -267,10 +274,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *sea, const cha
       if(m == 0 || sa_num_matches_by_sea(sea, sernum, sp+i, 1) == 1)
         sa_print_specs(sp, n, i);
   }
-
-  for(int k = 0; k < n; k++)
-    free(sp[k].sernum), free(sp[k].port);
-  free(sp);
+  free_libserialport_data(sp, n);
 
   return rv;
 }
@@ -295,54 +299,69 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
       if(m == 0 || sa_num_matches_by_ids(vid, pid, sernum, sp+i, 1) == 1)
         sa_print_specs(sp, n, i);
   }
-
-  for(int k = 0; k < n; k++)
-    free(sp[k].sernum), free(sp[k].port);
-  free(sp);
+  free_libserialport_data(sp, n);
 
   return rv;
 }
 
+// Potentially change port *portp after opening & closing it with baudrate
 int touch_serialport(char **portp, int baudrate) {
-  int n1, n2;
+  int n1, n2, rc, touched;
   SERPORT *sp1, *sp2, **diff;
   sp1 = get_libserialport_data(&n1);
-  if(!sp1 || n1 <= 0)
+  if(!sp1 || n1 <= 0 || !portp)
     return -1;
 
   pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
   struct sp_port *prt;
   struct sp_port_config *cfg;
-  sp_get_port_by_name(*portp, &prt);
-  sp_open(prt, SP_MODE_READ);
-  sp_set_baudrate(prt, baudrate);
-  sp_set_bits(prt, 8);
-  sp_set_parity(prt, SP_PARITY_NONE);
-  sp_set_stopbits(prt, 1);
-  sp_set_flowcontrol(prt, SP_FLOWCONTROL_NONE);
-  sp_new_config(&cfg);
-  sp_get_config(prt, cfg);
-  sp_set_config_dtr(cfg, SP_DTR_OFF);
-  sp_close(prt);
-	sp_free_port(prt);
-  usleep(1000000);
+  char *errs[] = {
+    "getting info for", "opening", "setting the baud rate for", "setting the character size for",
+    "setting parity to none for", "setting 1 stopbit for", "unsetting flow of control",
+    "allocating a new condiguration for", "getting configuration for", "setting DTR off for",
+    "closing", "all OK (one should never see this printed)",
+  };
 
-  for(int i = 0; i < 5; i++) {
-    sp2 = get_libserialport_data(&n2);
-    diff = sa_spa_not_spb(sp2, n2, sp1, n1);
-    if(*diff && (*diff)->port) {
-      pmsg_notice("new port %s discovered\n", (*diff)->port);
-      if(portp) {
+  touched = 0;
+  if((rc = sp_get_port_by_name(*portp, &prt)) == SP_OK && ++touched) {
+    if((rc = sp_open(prt, SP_MODE_READ)) == SP_OK && ++touched) {
+      if((rc = sp_set_baudrate(prt, baudrate)) == SP_OK && ++touched)
+        if((rc = sp_set_bits(prt, 8)) == SP_OK && ++touched)
+          if((rc = sp_set_parity(prt, SP_PARITY_NONE)) == SP_OK && ++touched)
+            if((rc = sp_set_stopbits(prt, 1)) == SP_OK && ++touched)
+              if((rc = sp_set_flowcontrol(prt, SP_FLOWCONTROL_NONE)) == SP_OK && ++touched)
+                if((rc = sp_new_config(&cfg)) == SP_OK && ++touched)
+                  if((rc = sp_get_config(prt, cfg)) == SP_OK && ++touched)
+                    if((rc = sp_set_config_dtr(cfg, SP_DTR_OFF)) == SP_OK)
+                      ++touched;
+      if((rc = sp_close(prt)) == SP_OK)
+        ++touched;
+    }
+    sp_free_port(prt);
+  }
+
+  if(touched < 11) {
+    pmsg_error("%s() failed %s port %s: %s\n", __func__, errs[touched], *portp,
+      rc==SP_ERR_FAIL? sp_last_error_message(): "unknown reason");
+    return -1;
+  }
+
+  for(int i = 5; i > 0; i--) {
+    usleep(200*1000);
+    if((sp2 = get_libserialport_data(&n2))) {
+      diff = sa_spa_not_spb(sp2, n2, sp1, n1);
+      if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
+        pmsg_notice("new port %s discovered\n", (*diff)->port);
         if(*portp)
           free(*portp);
         *portp = cfg_strdup(__func__, (*diff)->port);
+        i = 1;                  // Leave loop
       }
       free(diff);
-      break;
+      free_libserialport_data(sp2, n2);
     }
-    free(diff);
-    usleep(500000);
   }
+  free_libserialport_data(sp1, n1);
 
   return 0;
 }
