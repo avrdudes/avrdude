@@ -306,48 +306,27 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
 
 // Potentially change port *portp after opening & closing it with baudrate
 int touch_serialport(char **portp, int baudrate) {
-  int n1, n2, rc, touched;
+  int i, n1, n2;
   SERPORT *sp1, *sp2, **diff;
   sp1 = get_libserialport_data(&n1);
   if(!sp1 || n1 <= 0 || !portp)
     return -1;
 
   pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
-  struct sp_port *prt;
-  struct sp_port_config *cfg;
-  char *errs[] = {
-    "getting info for", "opening", "setting the baud rate for", "setting the character size for",
-    "setting parity to none for", "setting 1 stopbit for", "unsetting flow of control",
-    "allocating a new condiguration for", "getting configuration for", "setting DTR off for",
-    "closing", "all OK (one should never see this printed)",
-  };
-
-  touched = 0;
-  if((rc = sp_get_port_by_name(*portp, &prt)) == SP_OK && ++touched) {
-    if((rc = sp_open(prt, SP_MODE_READ)) == SP_OK && ++touched) {
-      if((rc = sp_set_baudrate(prt, baudrate)) == SP_OK && ++touched)
-        if((rc = sp_set_bits(prt, 8)) == SP_OK && ++touched)
-          if((rc = sp_set_parity(prt, SP_PARITY_NONE)) == SP_OK && ++touched)
-            if((rc = sp_set_stopbits(prt, 1)) == SP_OK && ++touched)
-              if((rc = sp_set_flowcontrol(prt, SP_FLOWCONTROL_NONE)) == SP_OK && ++touched)
-                if((rc = sp_new_config(&cfg)) == SP_OK && ++touched)
-                  if((rc = sp_get_config(prt, cfg)) == SP_OK && ++touched)
-                    if((rc = sp_set_config_dtr(cfg, SP_DTR_OFF)) == SP_OK)
-                      ++touched;
-      if((rc = sp_close(prt)) == SP_OK)
-        ++touched;
-    }
-    sp_free_port(prt);
-  }
-
-  if(touched < 11) {
-    pmsg_error("%s() failed %s port %s: %s\n", __func__, errs[touched], *portp,
-      rc==SP_ERR_FAIL? sp_last_error_message(): "unknown reason");
+  union pinfo pinfo;
+  union filedescriptor fd;
+  pinfo.serialinfo.baud = baudrate;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
+  if(serial_open(*portp, pinfo, &fd) == -1) {
+    pmsg_error("%s() failed to open port %s at %d baud\n", __func__, *portp, baudrate);
     return -1;
   }
+  serial_set_dtr_rts(&fd, 0);
+  serial_close(&fd);
 
-  for(int i = 5; i > 0; i--) {
-    usleep(200*1000);
+  pmsg_info("waiting for new port...");
+  for(i = 10; i > 0; i--) {
+    usleep(80*1000);
     if((sp2 = get_libserialport_data(&n2))) {
       diff = sa_spa_not_spb(sp2, n2, sp1, n1);
       if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
@@ -355,13 +334,14 @@ int touch_serialport(char **portp, int baudrate) {
         if(*portp)
           free(*portp);
         *portp = cfg_strdup(__func__, (*diff)->port);
-        i = 1;                  // Leave loop
+        i = -1;                 // Leave loop
       }
-      free(diff);
+      free(diff); 
       free_libserialport_data(sp2, n2);
     }
   }
   free_libserialport_data(sp1, n1);
+  msg_info(" using %s port %s\n", i<0? "new": "same", *portp);
 
   return 0;
 }
