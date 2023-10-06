@@ -1276,8 +1276,11 @@ int main(int argc, char * argv [])
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
-    if (print_ports && pgm->conntype == CONNTYPE_SERIAL)
+    if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
       list_available_serialports(programmers);
+      if(touch_1200bps == 1)
+        pmsg_info("alternatively, try -rr or -rrr for longer delays\n");
+    }
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;
