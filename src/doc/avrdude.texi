@@ -469,11 +469,14 @@ ATmega328P MCU properties; for more information run @code{avrdude -p x/h}.
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
 
-@item -r @var{baudrate}
-Opens the serial port at 1200 baud and immedeatly closes it, prior to
-establishing communication with the programmer. This is commonly knows as A
-"1200bps touch", and is used to trigger programming mode for certain boards
-like Arduino Leonardo, Arduino Micro/Pro Micro and the Arduino Nano Every.
+@item -r
+Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
+for each @code{-r} on the command line and then establishes communication
+with the programmer. This is commonly known as a "1200bps touch", and is
+used to trigger programming mode for certain boards like Arduino Leonardo,
+Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
+therefore multiple @code{-r} options are sometimes needed for slower, less
+powerful hosts.
 
 @item -B @var{bitclock}
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP

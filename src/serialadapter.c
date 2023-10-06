@@ -305,7 +305,7 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
 }
 
 // Potentially change port *portp after opening & closing it with baudrate
-int touch_serialport(char **portp, int baudrate) {
+int touch_serialport(char **portp, int baudrate, int nwaits) {
   int i, n1, n2;
   SERPORT *sp1, *sp2, **diff;
   sp1 = get_libserialport_data(&n1);
@@ -313,6 +313,7 @@ int touch_serialport(char **portp, int baudrate) {
     return -1;
 
   pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
+
   union pinfo pinfo;
   union filedescriptor fd;
   pinfo.serialinfo.baud = baudrate;
@@ -324,9 +325,14 @@ int touch_serialport(char **portp, int baudrate) {
   serial_set_dtr_rts(&fd, 0);
   serial_close(&fd);
 
+  int nloops = 32, nap = 50;
+#if defined(__arm__)
+  nwaits += 2;
+#endif
   pmsg_info("waiting for new port...");
-  for(i = 10; i > 0; i--) {
-    usleep(80*1000);
+  usleep(400*nwaits*1000);
+  for(i = nloops; i > 0; i--) {
+    usleep(nap*1000);
     if((sp2 = get_libserialport_data(&n2))) {
       diff = sa_spa_not_spb(sp2, n2, sp1, n1);
       if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
@@ -334,6 +340,7 @@ int touch_serialport(char **portp, int baudrate) {
         if(*portp)
           free(*portp);
         *portp = cfg_strdup(__func__, (*diff)->port);
+        msg_info(" %d ms:", (nloops-i+1)*nap + nwaits*400);
         i = -1;                 // Leave loop
       }
       free(diff); 

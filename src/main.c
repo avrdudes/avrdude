@@ -228,8 +228,6 @@ static void usage(void)
     "  -p <wildcard>/<flags>  Run developer options for matched AVR devices,\n"
     "                         e.g., -p ATmega328P/s or /S for part definition\n"
     "  -b <baudrate>          Override RS-232 baud rate\n"
-    "  -r                     Open and close (\"touch\") the serial port at\n"
-    "                         1200 baud before establishing connection\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
     "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
@@ -239,6 +237,8 @@ static void usage(void)
     "  -D                     Disable auto erase for flash memory; implies -A\n"
     "  -i <delay>             ISP Clock Delay [in microseconds]\n"
     "  -P <port>              Connection; -P ?s or -P ?sa lists serial ones\n"
+    "  -r                     Reconnect to -P port after \"touching\" it; wait\n"
+    "                         400 ms for each -r; needed for some USB boards\n"
     "  -F                     Override invalid signature or initial checks\n"
     "  -e                     Perform a chip erase\n"
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
@@ -528,7 +528,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtod() error checking */
   const char  *errstr; /* for str_int() error checking */
   int     baudrate;    /* override default programmer baud rate */
-  bool    touch_1200bps = false; /* "touch" serial port prior to programming */
+  int     touch_1200bps; /* "touch" serial port prior to programming */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     init_ok;     /* Device initialization worked well */
@@ -615,6 +615,7 @@ int main(int argc, char * argv [])
   explicit_e    = 0;
   verbose       = 0;
   baudrate      = 0;
+  touch_1200bps = 0;
   bitclock      = 0.0;
   ispdelay      = 0;
   is_open       = 0;
@@ -770,7 +771,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'r' :
-        touch_1200bps = true;
+        touch_1200bps++;
         break;
 
       case 't': /* enter terminal mode */
@@ -1182,6 +1183,13 @@ int main(int argc, char * argv [])
     }
   }
 
+  if(port[0] == 0 || str_eq(port, "unknown")) {
+    msg_error("\n");
+    pmsg_error("no port has been specified on the command line or in the config file\n");
+    imsg_error("specify a port using the -P option and try again\n\n");
+    exit(1);
+  }
+
   /*
    * Divide a serialadapter port string into tokens separated by colons.
    * There are two ways such a port string can be presented:
@@ -1236,21 +1244,12 @@ int main(int argc, char * argv [])
     }
     for (int i = 0; i < 4; i++)
       free(port_tok[i]);
+    if(touch_1200bps && touch_serialport(&port, 1200, touch_1200bps) < 0)
+      exit(1);
   }
 
-  if(touch_1200bps && pgm->conntype == CONNTYPE_SERIAL)
-    touch_serialport(&port, 1200);
 
-  /*
-   * open the programmer
-   */
-  if (port[0] == 0) {
-    msg_error("\n");
-    pmsg_error("no port has been specified on the command line or in the config file\n");
-    imsg_error("specify a port using the -P option and try again\n\n");
-    exit(1);
-  }
-
+  // Open the programmer
   if (verbose > 0) {
     imsg_notice("Using Port                    : %s\n", port);
     imsg_notice("Using Programmer              : %s\n", pgmid);
