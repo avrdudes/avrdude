@@ -395,7 +395,7 @@ int list_available_serialports(LISTID programmers) {
   return -1;
 }
 
-int touch_serialport(char **portp, int baudrate) {
+int touch_serialport(char **portp, int baudrate, int nwaits) {
   pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }
