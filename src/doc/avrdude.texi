@@ -475,7 +475,7 @@ for each @code{-r} on the command line and then establishes communication
 with the programmer. This is commonly known as a "1200bps touch", and is
 used to trigger programming mode for certain boards like Arduino Leonardo,
 Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
-therefore multiple @code{-r} options are sometimes needed for slower, less
+therefore multiple @code{-r} options, are sometimes needed for slower, less
 powerful hosts.
 
 @item -B @var{bitclock}
