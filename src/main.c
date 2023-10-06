@@ -1275,7 +1275,7 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
+    pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
       list_available_serialports(programmers);
       if(touch_1200bps == 1)
