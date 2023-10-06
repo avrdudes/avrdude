@@ -668,7 +668,7 @@ struct serial_device {
   int (*open)(const char *port, union pinfo pinfo, union filedescriptor *fd);
   int (*setparams)(const union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
-  void (*rawclose)(union filedescriptor *fd); // Don't restore terminal attributes
+  void (*rawclose)(union filedescriptor *fd); // Don't restore terminal attributes (Linux)
 
   int (*send)(const union filedescriptor *fd, const unsigned char * buf, size_t buflen);
   int (*recv)(const union filedescriptor *fd, unsigned char * buf, size_t buflen);
@@ -692,6 +692,7 @@ extern struct serial_device usbhid_serdev;
 #define serial_open (serdev->open)
 #define serial_setparams (serdev->setparams)
 #define serial_close (serdev->close)
+#define serial_rawclose (serdev->rawclose)
 #define serial_send (serdev->send)
 #define serial_recv (serdev->recv)
 #define serial_drain (serdev->drain)

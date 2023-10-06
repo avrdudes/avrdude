@@ -352,7 +352,6 @@ error:
   return ret;
 }
 
-
 static int ser_set_dtr_rts(const union filedescriptor *fdp, int is_on) {
   unsigned int	ctl;
   int           r;
@@ -431,6 +430,11 @@ static void ser_close(union filedescriptor *fd) {
   close(fd->ifd);
 }
 
+// Close but don't restore attributes
+static void ser_rawclose(union filedescriptor *fd) {
+  saved_original_termios = 0;
+  close(fd->ifd);
+}
 
 static int ser_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
   int rc;
@@ -598,6 +602,7 @@ struct serial_device serial_serdev =
   .open = ser_open,
   .setparams = ser_setparams,
   .close = ser_close,
+  .rawclose = ser_rawclose,
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,

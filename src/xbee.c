@@ -1505,6 +1505,7 @@ static int xbeedev_set_dtr_rts(const union filedescriptor *fdp, int is_on)
 static struct serial_device xbee_serdev_frame = {
   .open = xbeedev_open,
   .close = xbeedev_close,
+  .rawclose = xbeedev_close,
   .send = xbeedev_send,
   .recv = xbeedev_recv,
   .drain = xbeedev_drain,

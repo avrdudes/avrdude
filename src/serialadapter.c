@@ -323,7 +323,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
     return -1;
   }
   serial_set_dtr_rts(&fd, 0);
-  serial_close(&fd);
+  serial_rawclose(&fd);
 
   int nloops = 32, nap = 50;
 #if defined(__arm__)

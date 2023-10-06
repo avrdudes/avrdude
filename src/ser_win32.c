@@ -756,6 +756,7 @@ struct serial_device serial_serdev =
   .open = ser_open,
   .setparams = ser_setparams,
   .close = ser_close,
+  .rawclose = ser_close,
   .send = ser_send,
   .recv = ser_recv,
   .drain = ser_drain,
