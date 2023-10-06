@@ -1401,7 +1401,7 @@ const char *avr_mem_order[100] = {
   "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
   "fuse6",        "syscfg1",      "fuse7",        "append",
   "codesize",     "fuse8",        "fuse9",        "bootend",
-  "bootsize",     "fusea"         "pdicfg",       "fuses",
+  "bootsize",     "fusea",        "pdicfg",       "fuses",
   "lock",         "lockbits",     "tempsense",    "signature",
   "prodsig",      "sernum",       "calibration",  "osccal16",
   "osccal20",     "osc16err",     "osc20err",     "bootrow",
