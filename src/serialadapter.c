@@ -325,12 +325,12 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
   serial_set_dtr_rts(&fd, 0);
   serial_rawclose(&fd);
 
-  int nloops = 32, nap = 50;
-#if defined(__arm__)
+  const int nloops = 32, nap = 50;
+#if (defined(__arm__) || defined(__aarch64__)) && !defined(__APPLE__)
   nwaits += 2;
 #endif
   pmsg_info("waiting for new port...");
-  usleep(400*nwaits*1000);
+  usleep(400*1000*nwaits);
   for(i = nloops; i > 0; i--) {
     usleep(nap*1000);
     if((sp2 = get_libserialport_data(&n2))) {
