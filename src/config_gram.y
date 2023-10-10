@@ -1355,11 +1355,13 @@ static int parse_cmdbits(OPCODE * op, int opnum)
         switch(*s) {
         case 'a':
           sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
-          if(bitno < 8 || bitno > 23)
-            yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
-          else if((bn & 31) != sb) {
-            if(!str_casestarts(current_part->desc, "AT89S5")) // Exempt AT89S5x from warning
-              yywarning("a%d would normally be expected to be a%d", bn, sb);
+          if(bitno < 8 || bitno > 23) {
+            if(!current_mem || !str_eq(current_mem->desc, "sigrow")) // Exempt sigrow
+              yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
+          } else if((bn & 31) != sb) {
+            if(!current_part || !str_casestarts(current_part->desc, "AT89S5")) // Exempt AT89S5x from warning
+              if(!current_mem || !str_eq(current_mem->desc, "sigrow")) // Exempt sigrow
+                yywarning("a%d would normally be expected to be a%d", bn, sb);
           } else if(bn < 0 || bn > 31)
             yywarning("invalid address bit a%d, using a%d", bn, bn & 31);
 
