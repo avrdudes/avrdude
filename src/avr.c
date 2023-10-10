@@ -1403,10 +1403,10 @@ const char *avr_mem_order[100] = {
   "codesize",     "fuse8",        "fuse9",        "bootend",
   "bootsize",     "fusea",        "pdicfg",       "fuses",
   "lock",         "lockbits",     "tempsense",    "signature",
-  "prodsig",      "sernum",       "calibration",  "osccal16",
-  "osccal20",     "osc16err",     "osc20err",     "bootrow",
-  "usersig",      "userrow",      "data",         "io",
-  "sib",
+  "sigrow",       "sigrow_pb",    "prodsig",      "sernum",
+  "calibration",  "osccal16",     "osccal20",     "osc16err",
+  "osc20err",     "bootrow",      "usersig",      "userrow",
+  "data",         "io",           "sib",
 };
 
 void avr_add_mem_order(const char *str) {
@@ -1427,7 +1427,8 @@ int avr_memtype_is_flash_type(const char *memtype) {
      str_eq(memtype, "flash") ||
      str_eq(memtype, "application") ||
      str_eq(memtype, "apptable") ||
-     str_eq(memtype, "boot"));
+     str_eq(memtype, "boot") ||
+     str_eq(memtype, "sigrow_pb"));
 }
 
 int avr_mem_is_flash_type(const AVRMEM *mem) {
