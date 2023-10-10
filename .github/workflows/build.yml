@@ -50,6 +50,7 @@ jobs:
           libhidapi-dev
           libftdi1-dev
           libreadline-dev
+          libserialport-dev
           texinfo
           texlive
           texi2html
@@ -112,6 +113,7 @@ jobs:
           libhidapi-dev:${{matrix.arch}}
           libftdi1-dev:${{matrix.arch}}
           libreadline-dev:${{matrix.arch}}
+          libsearialport-dev:${{matrix.arch}}
       - name: Configure
         run: >-
           cmake
@@ -162,6 +164,7 @@ jobs:
           hidapi
           libftdi
           readline
+          libsearialport
       - name: Configure
         run: >-
           cmake
@@ -267,6 +270,7 @@ jobs:
             mingw-w64-${{matrix.env}}-libusb-compat-git
             mingw-w64-${{matrix.env}}-hidapi
             mingw-w64-${{matrix.env}}-libftdi
+            mingw-w64-${{matrix.env}}-libsearialport
       - name: Configure
         run: >-
           cmake
