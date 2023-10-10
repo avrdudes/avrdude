@@ -113,7 +113,7 @@ jobs:
           libhidapi-dev:${{matrix.arch}}
           libftdi1-dev:${{matrix.arch}}
           libreadline-dev:${{matrix.arch}}
-          libsearialport-dev:${{matrix.arch}}
+          libserialport-dev:${{matrix.arch}}
       - name: Configure
         run: >-
           cmake
@@ -164,7 +164,7 @@ jobs:
           hidapi
           libftdi
           readline
-          libsearialport
+          libserialport
       - name: Configure
         run: >-
           cmake
@@ -270,7 +270,7 @@ jobs:
             mingw-w64-${{matrix.env}}-libusb-compat-git
             mingw-w64-${{matrix.env}}-hidapi
             mingw-w64-${{matrix.env}}-libftdi
-            mingw-w64-${{matrix.env}}-libsearialport
+            mingw-w64-${{matrix.env}}-libserialport
       - name: Configure
         run: >-
           cmake
