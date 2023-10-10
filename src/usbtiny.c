@@ -721,9 +721,9 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   delay = 0;
   if (! m->paged) {
-    unsigned int poll_value;
-    // Does this chip not support paged writes?
-    poll_value = (m->readback[1] << 8) | m->readback[0];
+    unsigned int poll_value = (m->readback[1] << 8) | m->readback[0];
+    if(!poll_value)
+      poll_value = 0xffff;
     if (usb_control(pgm, USBTINY_POLL_BYTES, poll_value, 0 ) < 0)
       return -1;
     delay = m->max_write_delay;
