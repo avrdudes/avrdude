@@ -109,6 +109,7 @@ static const char *pgmname[] =
   "JTAG ICE mkII",
   "STK600",
   "JTAGICE3",
+  "ScratchMonkey",
 };
 
 struct jtagispentry
@@ -755,26 +756,21 @@ retry:
     if (resp[0] == CMD_SIGN_ON && resp[1] == STATUS_CMD_OK && status > 3) {
       // success!
       unsigned int siglen = resp[2];
-      if (siglen >= strlen("STK500_2") &&
-	  memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
-	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
-      } else if (siglen >= strlen("SCRATCHMONKEY") &&
-	  memcmp(resp + 3, "SCRATCHMONKEY", strlen("SCRATCHMONKEY")) == 0) {
-	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
-      } else if (siglen >= strlen("AVRISP_2") &&
-		 memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
-	PDATA(pgm)->pgmtype = PGMTYPE_AVRISP;
-      } else if (siglen >= strlen("AVRISP_MK2") &&
-		 memcmp(resp + 3, "AVRISP_MK2", strlen("AVRISP_MK2")) == 0) {
-	PDATA(pgm)->pgmtype = PGMTYPE_AVRISP_MKII;
-      } else if (siglen >= strlen("STK600") &&
-	  memcmp(resp + 3, "STK600", strlen("STK600")) == 0) {
-	PDATA(pgm)->pgmtype = PGMTYPE_STK600;
+      if (siglen >= strlen("STK500_2") && memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
+        PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+      } else if (siglen >= strlen("AVRISP_2") && memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
+        PDATA(pgm)->pgmtype = PGMTYPE_AVRISP;
+      } else if (siglen >= strlen("AVRISP_MK2") && memcmp(resp + 3, "AVRISP_MK2", strlen("AVRISP_MK2")) == 0) {
+        PDATA(pgm)->pgmtype = PGMTYPE_AVRISP_MKII;
+      } else if (siglen >= strlen("STK600") && memcmp(resp + 3, "STK600", strlen("STK600")) == 0) {
+        PDATA(pgm)->pgmtype = PGMTYPE_STK600;
+      } else if (siglen >= strlen("SCRATCHMONKEY") && memcmp(resp + 3, "SCRATCHMONKEY", strlen("SCRATCHMONKEY")) == 0) {
+        PDATA(pgm)->pgmtype = PGMTYPE_SCRATCHMONKEY;
       } else {
-	resp[siglen + 3] = 0;
+        resp[siglen + 3] = 0;
         pmsg_notice("stk500v2_getsync(): got response from unknown "
-          "programmer %s, assuming STK500\n", resp + 3);
-	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+                    "programmer %s, assuming STK500\n", resp + 3);
+        PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
       pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname[PDATA(pgm)->pgmtype]);
       serial_recv_timeout = bak_serial_recv_timeout;
@@ -1234,7 +1230,8 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if ((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
        PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
-       PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0
+       PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII ||
+       PDATA(pgm)->pgmtype == PGMTYPE_SCRATCHMONKEY) != 0
       && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
     /*
      * This is an ATxmega device, must use XPROG protocol for the
@@ -2756,7 +2753,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     commandbuf[6] = cmds[0];
 
   // otherwise, we need to load different commands in
-  } 
+  }
   else {
     commandbuf[3] = m->mode | 0x80;		// yes, write the words to flash
 
@@ -5103,4 +5100,181 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
+}
+
+
+/*
+ * ScratchMonkey specific functions
+ * Arduino micro, nano, uno have these LED connections
+ *  D5  RDY_LED (e.g. green
+ *  D6  VFY_LED (e.g. yellow)
+ *  D7  PGM_LED (e.g. orange)
+ *  D8  ERR_LED (e.g. red)
+ */
+
+enum {
+  PARAM_SCRATCHMONKEY_STATUS_LEDS = 0x2A,
+  SCRATCHMONKEY_RDY_LED           = 1<<0, // D5
+  SCRATCHMONKEY_PGM_LED           = 1<<1, // D7
+  SCRATCHMONKEY_VFY_LED           = 1<<2, // D6
+  SCRATCHMONKEY_ERR_LED           = 1<<3, // D8
+};
+
+static int scratchmonkey_leds = 0;
+
+static void scratchmonkey_led_state(const PROGRAMMER * pgm, int flag, int value)
+{
+  int new_leds = scratchmonkey_leds;
+  if (value)
+    new_leds |= flag;
+  else
+    new_leds &= ~flag;
+
+  if (new_leds != scratchmonkey_leds) {
+    scratchmonkey_leds = new_leds;
+    stk500v2_setparm_real(pgm, PARAM_SCRATCHMONKEY_STATUS_LEDS, scratchmonkey_leds);
+  }
+}
+
+static int scratchmonkey_rdy_led(const struct programmer_t * pgm, int value)
+{
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_RDY_LED, value);
+  return 0;
+}
+
+static int scratchmonkey_pgm_led(const struct programmer_t * pgm, int value)
+{
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_PGM_LED, value);
+  return 0;
+}
+
+static int scratchmonkey_vfy_led(const struct programmer_t * pgm, int value)
+{
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_VFY_LED, value);
+  return 0;
+}
+
+static int scratchmonkey_err_led(const struct programmer_t * pgm, int value)
+{
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_ERR_LED, value);
+  return 0;
+}
+
+
+const char stk500v2_scratchmonkey_desc[] = "ScratchMonkey V2 in ISP/TPI/PDI mode";
+
+void stk500v2_scratchmonkey_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "SCRATCHMONKEY");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500v2_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500v2_disable;
+  pgm->program_enable = stk500v2_program_enable;
+  pgm->chip_erase     = stk500v2_chip_erase;
+  pgm->cmd            = stk500v2_cmd;
+  pgm->open           = stk500v2_open;
+  pgm->close          = stk500v2_close;
+  pgm->read_byte      = avr_read_byte_default;
+  pgm->write_byte     = avr_write_byte_default;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500v2_paged_write;
+  pgm->paged_load     = stk500v2_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
+  pgm->page_size      = 256;
+
+  /*
+   * We provide LEDs if we have enough pins available
+   */
+  pgm->rdy_led        = scratchmonkey_rdy_led;
+  pgm->err_led        = scratchmonkey_err_led;
+  pgm->pgm_led        = scratchmonkey_pgm_led;
+  pgm->vfy_led        = scratchmonkey_vfy_led;
+}
+
+const char stk500v2_scratchmonkey_pp_desc[] = "ScratchMonkey V2 in parallel programming mode";
+
+void stk500v2_scratchmonkey_pp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "SCRATCHMONKEY_PP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500pp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500pp_disable;
+  pgm->program_enable = stk500pp_program_enable;
+  pgm->chip_erase     = stk500pp_chip_erase;
+  pgm->open           = stk500v2_open;
+  pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500pp_read_byte;
+  pgm->write_byte     = stk500pp_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500pp_paged_write;
+  pgm->paged_load     = stk500pp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
+  pgm->page_size      = 256;
+
+  /*
+   * We provide LEDs if we have enough pins available
+   */
+  pgm->rdy_led        = scratchmonkey_rdy_led;
+  pgm->err_led        = scratchmonkey_err_led;
+  pgm->pgm_led        = scratchmonkey_pgm_led;
+  pgm->vfy_led        = scratchmonkey_vfy_led;
+}
+
+const char stk500v2_scratchmonkey_hvsp_desc[] = "ScratchMonkey V2 in high-voltage serial programming mode";
+
+void stk500v2_scratchmonkey_hvsp_initpgm(PROGRAMMER * pgm)
+{
+  strcpy(pgm->type, "SCRATCHMONKEY_HVSP");
+
+  /*
+   * mandatory functions
+   */
+  pgm->initialize     = stk500hvsp_initialize;
+  pgm->display        = stk500v2_display;
+  pgm->enable         = stk500v2_enable;
+  pgm->disable        = stk500hvsp_disable;
+  pgm->program_enable = stk500hvsp_program_enable;
+  pgm->chip_erase     = stk500hvsp_chip_erase;
+  pgm->open           = stk500v2_open;
+  pgm->close          = stk500v2_close;
+  pgm->read_byte      = stk500hvsp_read_byte;
+  pgm->write_byte     = stk500hvsp_write_byte;
+
+  /*
+   * optional functions
+   */
+  pgm->paged_write    = stk500hvsp_paged_write;
+  pgm->paged_load     = stk500hvsp_paged_load;
+  pgm->print_parms    = stk500v2_print_parms;
+  pgm->setup          = stk500v2_setup;
+  pgm->teardown       = stk500v2_teardown;
+  pgm->page_size      = 256;
+
+  /*
+   * We provide LEDs if we have enough pins available
+   */
+  pgm->rdy_led        = scratchmonkey_rdy_led;
+  pgm->err_led        = scratchmonkey_err_led;
+  pgm->pgm_led        = scratchmonkey_pgm_led;
+  pgm->vfy_led        = scratchmonkey_vfy_led;
 }

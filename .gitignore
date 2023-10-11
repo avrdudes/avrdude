@@ -65,3 +65,10 @@ x86/
 
 # Visual Studio code
 .vscode/
+
+*~
+.*~
+*.bak
+*.new
+*.old
+*.orig

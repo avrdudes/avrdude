@@ -98,6 +98,9 @@ const PROGRAMMER_TYPE programmers_types[] = { // Name(s) the programmers call th
   {"micronucleus", micronucleus_initpgm, micronucleus_desc}, // "micronucleus" or "Micronucleus V2.0"
   {"par", par_initpgm, par_desc}, // "PPI"
   {"pickit2", pickit2_initpgm, pickit2_desc}, // "pickit2"
+  {"scratchmonkey", stk500v2_scratchmonkey_initpgm, stk500v2_scratchmonkey_desc},
+  {"scratchmonkey_hvsp", stk500v2_scratchmonkey_hvsp_initpgm, stk500v2_scratchmonkey_hvsp_desc},
+  {"scratchmonkey_pp", stk500v2_scratchmonkey_pp_initpgm, stk500v2_scratchmonkey_pp_desc},
   {"serbb", serbb_initpgm, serbb_desc}, // "SERBB"
   {"serialupdi", serialupdi_initpgm, serialupdi_desc}, // "serialupdi"
   {"stk500", stk500_initpgm, stk500_desc}, // "STK500"

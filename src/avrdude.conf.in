@@ -1514,7 +1514,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500v2", "scratchmonkey";
+    id                     = "stk500v2";
     desc                   = "Atmel STK500 version 2.x firmware";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
@@ -1527,7 +1527,7 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500pp", "scratchmonkey_pp";
+    id                     = "stk500pp";
     desc                   = "Atmel STK500 v2 in parallel programming mode";
     type                   = "stk500pp";
     prog_modes             = PM_HVPP;
@@ -1540,12 +1540,49 @@ programmer
 #------------------------------------------------------------
 
 programmer
-    id                     = "stk500hvsp", "scratchmonkey_hvsp";
+    id                     = "stk500hvsp";
     desc                   = "Atmel STK500 v2 in high-voltage serial programming mode";
     type                   = "stk500hvsp";
     prog_modes             = PM_HVSP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
     connection_type        = serial;
+;
+
+
+#------------------------------------------------------------
+# scratchmonkey
+#------------------------------------------------------------
+
+programmer
+  id    = "scratchmonkey";
+  desc  = "ScratchMonkey (STK500 v2 protocol)";
+  type  = "scratchmonkey";
+  prog_modes = PM_TPI | PM_ISP;
+  connection_type = serial;
+;
+
+#------------------------------------------------------------
+# scratchmonkey_pp
+#------------------------------------------------------------
+
+programmer
+  id    = "scratchmonkey_pp";
+  desc  = "ScratchMonkey (STK500 v2) , parallel programming mode";
+  type  = "scratchmonkey_pp";
+  prog_modes = PM_HVPP;
+  connection_type = serial;
+;
+
+#------------------------------------------------------------
+# scratchmonkey_hvsp
+#------------------------------------------------------------
+
+programmer
+  id    = "scratchmonkey_hvsp";
+  desc  = "ScratchMonkey (STK500 v2), high-voltage serial programming mode";
+  type  = "scratchmonkey_hvsp";
+  prog_modes = PM_HVSP;
+  connection_type = serial;
 ;
 
 #------------------------------------------------------------

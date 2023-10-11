@@ -266,7 +266,8 @@ struct pdata
         PGMTYPE_AVRISP_MKII,
         PGMTYPE_JTAGICE_MKII,
         PGMTYPE_STK600,
-        PGMTYPE_JTAGICE3
+        PGMTYPE_JTAGICE3,
+        PGMTYPE_SCRATCHMONKEY,
     }
         pgmtype;
 
