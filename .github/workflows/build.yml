@@ -270,6 +270,9 @@ jobs:
             mingw-w64-${{matrix.env}}-libusb-compat-git
             mingw-w64-${{matrix.env}}-hidapi
             mingw-w64-${{matrix.env}}-libftdi
+            mingw-w64-${{matrix.env}}-readline
+            mingw-w64-${{matrix.env}}-ncurses
+            mingw-w64-${{matrix.env}}-termcap
             mingw-w64-${{matrix.env}}-libserialport
       - name: Configure
         run: >-
