@@ -1245,7 +1245,7 @@ int main(int argc, char * argv [])
     for (int i = 0; i < 4; i++)
       free(port_tok[i]);
     if(touch_1200bps && touch_serialport(&port, 1200, touch_1200bps) < 0)
-      exit(1);
+      goto skipopen;
   }
 
 
@@ -1276,6 +1276,7 @@ int main(int argc, char * argv [])
   rc = pgm->open(pgm, port);
   if (rc < 0) {
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
+skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
       list_available_serialports(programmers);
       if(touch_1200bps == 1)
