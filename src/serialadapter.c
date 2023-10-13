@@ -322,6 +322,8 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
     pmsg_error("%s() failed to open port %s at %d baud\n", __func__, *portp, baudrate);
     return -1;
   }
+  serial_set_dtr_rts(&fd, 1);
+  usleep(100);
   serial_set_dtr_rts(&fd, 0);
   serial_rawclose(&fd);
 
