@@ -791,6 +791,12 @@ High fuse byte
 Low fuse byte
 .It   lock
 Lock byte
+.It prodsig
+Signature, calibration byte and serial number in a small read-only memory,
+which is only documented to be available for ATmega324PB, ATmega328PB,
+ATtiny102 and ATtiny104; programmers may or may not be able to read this memory
+.It sigrow
+Memory alias for prodsig
 .It usersig
 Three extra flash pages for firmware settings; this memory is not erased
 during a chip erase. Only some classic parts,
@@ -828,7 +834,13 @@ Other fuse bytes of ATxmega devices, where
 .Em N
 is 2, 4 or 5, for system configuration
 .It prodsig
-Production signature (calibration) area
+The production signature row is a read-only memory section for factory
+programmed data such as the signature and calibration values for
+oscillators or analogue modules; it also contains a serial number that
+consists of the production lot number, wafer number and wafer coordinates
+for the part
+.It sigrow
+Memory alias for prodsig
 .It usersig
 Additional flash memory page that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -870,9 +882,12 @@ Two oscillator calibration bytes for 16 MHz
 .It osccal20
 Two oscillator calibration bytes for 20 MHz
 .It prodsig
-Production signature (calibration) area
+Read-only memory section for factory programmed data such as the
+signature, calibration values and serial number
+.It sigrow
+Memory alias for prodsig
 .It sernum
-Serial number with a unique ID for the part (10 bytes)
+Serial number with a unique ID for the part (10 or 16 bytes)
 .It tempsense
 Temperature sensor calibration values
 .It bootrow
