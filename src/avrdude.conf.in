@@ -18880,7 +18880,7 @@ part parent ".reduced_core_tiny"
     memory "prodsig"
         size               = 16;
         page_size          = 16;
-        offset             = 0x3fc6;
+        offset             = 0x3fc0;
     ;
 
     memory "sigrow"
@@ -18922,7 +18922,7 @@ part parent ".reduced_core_tiny"
     memory "prodsig"
         size               = 16;
         page_size          = 16;
-        offset             = 0x3fc6;
+        offset             = 0x3fc0;
     ;
 
     memory "sigrow"
