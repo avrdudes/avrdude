@@ -16405,6 +16405,10 @@ part
         readsize           = 50;
     ;
 
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
     memory "data"
         # SRAM, only used to supply the offset
         offset             = 0x1000000;
@@ -19288,6 +19292,10 @@ part
         readsize           = 64;
     ;
 
+    memory "sigrow"
+        alias "prodsig";
+    ;
+
     memory "sernum"
         size               = 10;
         offset             = 0x1103;
@@ -21516,6 +21524,10 @@ part
         page_size          = 128;
         offset             = 0x1100;
         readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
     ;
 
     memory "sernum"
