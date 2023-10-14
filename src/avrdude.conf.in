@@ -16557,6 +16557,7 @@ part parent "x16a4u"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 ;
@@ -16717,6 +16718,7 @@ part parent "x32a4u"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 ;
@@ -16838,6 +16840,7 @@ part parent ".xmega-a"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 
@@ -16876,6 +16879,7 @@ part parent "x32a4u"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 ;
@@ -16963,6 +16967,7 @@ part parent "x64a4u"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17021,6 +17026,7 @@ part parent "x64a4u"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17050,6 +17056,7 @@ part parent "x64a1"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 ;
@@ -17244,6 +17251,7 @@ part parent ".xmega"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 
@@ -17276,6 +17284,7 @@ part parent "x128c3"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17342,6 +17351,7 @@ part parent "x128c3"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17383,6 +17393,7 @@ part parent "x128a1"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 ;
@@ -17576,6 +17587,7 @@ part parent ".xmega-a"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 
@@ -17741,6 +17753,7 @@ part parent ".xmega"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 
@@ -17773,6 +17786,7 @@ part parent "x192c3"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17856,6 +17870,7 @@ part parent "x192c3"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17908,6 +17923,7 @@ part parent "x192a1"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -17969,6 +17985,7 @@ part parent ".xmega"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 
@@ -18001,6 +18018,7 @@ part parent "x256c3"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -18094,6 +18112,7 @@ part parent "x256a1"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -18146,6 +18165,7 @@ part parent "x256a1"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -18196,6 +18216,7 @@ part parent "x256a1"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -18245,6 +18266,7 @@ part parent "x256a1"
 
     memory "prodsig"
         size               = 52;
+        page_size          = 1;
         readsize           = 52;
     ;
 ;
@@ -18306,6 +18328,7 @@ part parent ".xmega"
 
     memory "prodsig"
         size               = 64;
+        page_size          = 64;
         readsize           = 64;
     ;
 
@@ -19259,9 +19282,10 @@ part
     ;
 
     memory "prodsig"
-        size               = 61;
-        offset             = 0x1103;
-        readsize           = 61;
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 64;
     ;
 
     memory "sernum"
@@ -21211,8 +21235,9 @@ part parent ".avr8x_mega"
     ;
 
     memory "prodsig"
-        size               = 125;
-        readsize           = 125;
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
     ;
 ;
 
@@ -21255,8 +21280,9 @@ part parent ".avr8x_mega"
     ;
 
     memory "prodsig"
-        size               = 125;
-        readsize           = 125;
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
     ;
 ;
 
@@ -21303,8 +21329,9 @@ part parent ".avr8x_mega"
     ;
 
     memory "prodsig"
-        size               = 125;
-        readsize           = 125;
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
     ;
 ;
 
@@ -21348,8 +21375,9 @@ part parent ".avr8x_mega"
     ;
 
     memory "prodsig"
-        size               = 125;
-        readsize           = 125;
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
     ;
 ;
 
@@ -21484,9 +21512,10 @@ part
     ;
 
     memory "prodsig"
-        size               = 125;
-        offset             = 0x1103;
-        readsize           = 125;
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1100;
+        readsize           = 128;
     ;
 
     memory "sernum"
@@ -23402,7 +23431,7 @@ part parent ".avrex"
     ;
 
     memory "prodsig"
-        offset             = 0x1083;
+        offset             = 0x1080;
     ;
 
     memory "bootrow"
