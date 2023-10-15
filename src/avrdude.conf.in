@@ -16419,9 +16419,12 @@ part
 
     memory "prodsig"
         size               = 50;
-        page_size          = 50;
         offset             = 0x8e0200;
         readsize           = 50;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
     ;
 
     memory "data"
@@ -16535,6 +16538,11 @@ part parent ".xmega-a"
         initval            = 0xfe;
     ;
 
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -16567,6 +16575,12 @@ part parent "x16a4u"
     memory "fuse4"
         initval            = 0xff;
         bitmask            = 0x1e;
+    ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
     ;
 ;
 
@@ -16685,6 +16699,11 @@ part parent ".xmega-a"
         initval            = 0xfe;
     ;
 
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -16717,6 +16736,12 @@ part parent "x32a4u"
     memory "fuse4"
         initval            = 0xff;
         bitmask            = 0x1e;
+    ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
     ;
 ;
 
@@ -16835,6 +16860,12 @@ part parent ".xmega-a"
         initval            = 0xfe;
     ;
 
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -16866,6 +16897,12 @@ part parent "x32a4u"
     memory "fuse4"
         initval            = 0xff;
         bitmask            = 0x1e;
+    ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
     ;
 ;
 
@@ -16949,6 +16986,12 @@ part parent "x64a4u"
         initval            = 0xff;
         bitmask            = 0x1e;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17002,6 +17045,12 @@ part parent "x64a4u"
     memory "fuse2"
         bitmask            = 0x43;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17025,6 +17074,12 @@ part parent "x64a1"
 
     memory "fuse2"
         bitmask            = 0x63;
+    ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
     ;
 ;
 
@@ -17216,6 +17271,12 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
     memory "usersig"
         size               = 512;
         page_size          = 512;
@@ -17242,6 +17303,12 @@ part parent "x128c3"
     mcuid                  = 262;
     n_interrupts           = 114;
     signature              = 0x1e 0x97 0x48;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17303,6 +17370,12 @@ part parent "x128c3"
         initval            = 0xfe;
         bitmask            = 0x1f;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17338,6 +17411,12 @@ part parent "x128a1"
 
     memory "fuse2"
         bitmask            = 0x63;
+    ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
     ;
 ;
 
@@ -17528,6 +17607,12 @@ part parent ".xmega-a"
         initval            = 0xfe;
     ;
 
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -17599,6 +17684,11 @@ part parent ".xmega"
 
     memory "fuse4"
         bitmask            = 0x1f;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
     ;
 
     memory "usersig"
@@ -17683,6 +17773,12 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
     memory "usersig"
         size               = 512;
         page_size          = 512;
@@ -17709,6 +17805,12 @@ part parent "x192c3"
     mcuid                  = 270;
     n_interrupts           = 114;
     signature              = 0x1e 0x97 0x49;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17787,6 +17889,12 @@ part parent "x192c3"
         initval            = 0xfe;
         bitmask            = 0x1f;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17833,6 +17941,12 @@ part parent "x192a1"
 
     memory "lock"
         initval            = 0xff;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
     ;
 ;
 
@@ -17891,6 +18005,12 @@ part parent ".xmega"
         readsize           = 256;
     ;
 
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
     memory "usersig"
         size               = 512;
         page_size          = 512;
@@ -17917,6 +18037,12 @@ part parent "x256c3"
     mcuid                  = 277;
     n_interrupts           = 114;
     signature              = 0x1e 0x98 0x44;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18005,6 +18131,12 @@ part parent "x256a1"
     memory "lock"
         initval            = 0xff;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18052,6 +18184,12 @@ part parent "x256a1"
     memory "lock"
         initval            = 0xff;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18097,6 +18235,12 @@ part parent "x256a1"
     memory "lock"
         initval            = 0xff;
     ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18140,6 +18284,12 @@ part parent "x256a1"
 
     memory "lock"
         initval            = 0xff;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        page_size          = 1;
+        readsize           = 52;
     ;
 ;
 
@@ -18196,6 +18346,12 @@ part parent ".xmega"
         page_size          = 512;
         offset             = 0x860000;
         readsize           = 256;
+    ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
     ;
 
     memory "usersig"
@@ -18287,6 +18443,11 @@ part parent ".xmega-e"
         bitmask            = 0x43;
     ;
 
+    memory "prodsig"
+        size               = 54;
+        readsize           = 54;
+    ;
+
     memory "usersig"
         size               = 128;
         page_size          = 128;
@@ -18358,6 +18519,11 @@ part parent ".xmega-e"
         bitmask            = 0x43;
     ;
 
+    memory "prodsig"
+        size               = 54;
+        readsize           = 54;
+    ;
+
     memory "usersig"
         size               = 128;
         page_size          = 128;
@@ -18427,6 +18593,11 @@ part parent ".xmega-e"
 
     memory "fuse2"
         bitmask            = 0x43;
+    ;
+
+    memory "prodsig"
+        size               = 54;
+        readsize           = 54;
     ;
 
     memory "usersig"
@@ -19141,10 +19312,14 @@ part
     ;
 
     memory "prodsig"
-        size               = 61;
-        page_size          = 61;
-        offset             = 0x1103;
-        readsize           = 61;
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 64;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
     ;
 
     memory "sernum"
@@ -21092,6 +21267,12 @@ part parent ".avr8x_mega"
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21130,6 +21311,12 @@ part parent ".avr8x_mega"
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
     ;
 ;
 
@@ -21174,6 +21361,12 @@ part parent ".avr8x_mega"
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21213,6 +21406,12 @@ part parent ".avr8x_mega"
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "prodsig"
+        size               = 128;
+        page_size          = 128;
+        readsize           = 128;
     ;
 ;
 
@@ -21347,10 +21546,14 @@ part
     ;
 
     memory "prodsig"
-        size               = 125;
-        page_size          = 125;
-        offset             = 0x1103;
-        readsize           = 125;
+        size               = 128;
+        page_size          = 128;
+        offset             = 0x1100;
+        readsize           = 128;
+    ;
+
+    memory "sigrow"
+        alias "prodsig";
     ;
 
     memory "sernum"
@@ -23249,17 +23452,6 @@ part parent ".avrex"
         readsize           = 256;
     ;
 
-    memory "lock"
-        initval            = 0x5cc5c55c;
-    ;
-
-    memory "bootrow"
-        size               = 64;
-        page_size          = 64;
-        offset             = 0x1100;
-        readsize           = 256;
-    ;
-
     memory "fusea"
         size               = 2;
         initval            = 0x03;
@@ -23270,6 +23462,21 @@ part parent ".avrex"
 
     memory "pdicfg"
         alias "fusea";
+    ;
+
+    memory "lock"
+        initval            = 0x5cc5c55c;
+    ;
+
+    memory "prodsig"
+        offset             = 0x1080;
+    ;
+
+    memory "bootrow"
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 256;
     ;
 ;
 
