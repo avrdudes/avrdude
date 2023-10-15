@@ -1403,10 +1403,10 @@ const char *avr_mem_order[100] = {
   "codesize",     "fuse8",        "fuse9",        "bootend",
   "bootsize",     "fusea",        "pdicfg",       "fuses",
   "lock",         "lockbits",     "tempsense",    "signature",
-  "prodsig",      "sernum",       "calibration",  "osccal16",
-  "osccal20",     "osc16err",     "osc20err",     "bootrow",
-  "usersig",      "userrow",      "data",         "io",
-  "sib",
+  "sigrow",       "prodsig",      "sernum",       "calibration",
+  "osccal16",     "osccal20",     "osc16err",     "osc20err",
+  "bootrow",      "usersig",      "userrow",      "data",
+  "io",           "sib",
 };
 
 void avr_add_mem_order(const char *str) {
