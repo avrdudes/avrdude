@@ -27,6 +27,9 @@ Changes since version 7.2:
     - Read silicon revision from modern AVRs #1472
     - Dryrun doesn't overlap XMEGA flash memories #1485
     - 7e94ed4442b breaks flashing GT2560 boards #1503
+    - Cross-platform support for 1200bps touch #1500
+    - Read ATmega324PB and ATmega328PB serial number #1509
+    - EEPROM file generates error with 7.2 #1508
 
   * Pull requests:
 
@@ -45,6 +48,12 @@ Changes since version 7.2:
     - Add -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
     - Add -xdelay=n to wiring and improve reset timing #1505
     - Reduce stk500v2_getsync() timeout #1506
+    - libserialport github action #1512
+    - Support serial port "touch" using libserialport #1507
+    - Read sigrow for ATmega32[48]PB using ISP #1510
+    - Adapt stk500 readback values for usbtiny.c #1511
+    - Add LED support for ScratchMonkey programmer #1517
+    - Review and update prodsig memories for U/PDI parts #1518
 
   * Internals:
 
