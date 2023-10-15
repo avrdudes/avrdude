@@ -237,6 +237,8 @@ static void usage(void)
     "  -D                     Disable auto erase for flash memory; implies -A\n"
     "  -i <delay>             ISP Clock Delay [in microseconds]\n"
     "  -P <port>              Connection; -P ?s or -P ?sa lists serial ones\n"
+    "  -r                     Reconnect to -P port after \"touching\" it; wait\n"
+    "                         400 ms for each -r; needed for some USB boards\n"
     "  -F                     Override invalid signature or initial checks\n"
     "  -e                     Perform a chip erase\n"
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
@@ -526,6 +528,7 @@ int main(int argc, char * argv [])
   char  * e;           /* for strtod() error checking */
   const char  *errstr; /* for str_int() error checking */
   int     baudrate;    /* override default programmer baud rate */
+  int     touch_1200bps; /* "touch" serial port prior to programming */
   double  bitclock;    /* Specify programmer bit clock (JTAG ICE) */
   int     ispdelay;    /* Specify the delay for ISP clock */
   int     init_ok;     /* Device initialization worked well */
@@ -612,6 +615,7 @@ int main(int argc, char * argv [])
   explicit_e    = 0;
   verbose       = 0;
   baudrate      = 0;
+  touch_1200bps = 0;
   bitclock      = 0.0;
   ispdelay      = 0;
   is_open       = 0;
@@ -635,7 +639,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qstT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qrstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -764,6 +768,10 @@ int main(int argc, char * argv [])
 
       case 'q' : /* Quell progress output */
         quell_progress++ ;
+        break;
+
+      case 'r' :
+        touch_1200bps++;
         break;
 
       case 't': /* enter terminal mode */
@@ -1175,6 +1183,13 @@ int main(int argc, char * argv [])
     }
   }
 
+  if(port[0] == 0 || str_eq(port, "unknown")) {
+    msg_error("\n");
+    pmsg_error("no port has been specified on the command line or in the config file\n");
+    imsg_error("specify a port using the -P option and try again\n\n");
+    exit(1);
+  }
+
   /*
    * Divide a serialadapter port string into tokens separated by colons.
    * There are two ways such a port string can be presented:
@@ -1229,18 +1244,12 @@ int main(int argc, char * argv [])
     }
     for (int i = 0; i < 4; i++)
       free(port_tok[i]);
+    if(touch_1200bps && touch_serialport(&port, 1200, touch_1200bps) < 0)
+      goto skipopen;
   }
 
-  /*
-   * open the programmer
-   */
-  if (port[0] == 0) {
-    msg_error("\n");
-    pmsg_error("no port has been specified on the command line or in the config file\n");
-    imsg_error("specify a port using the -P option and try again\n\n");
-    exit(1);
-  }
 
+  // Open the programmer
   if (verbose > 0) {
     imsg_notice("Using Port                    : %s\n", port);
     imsg_notice("Using Programmer              : %s\n", pgmid);
@@ -1266,9 +1275,13 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    pmsg_error("unable to open programmer %s on port %s\n", pgmid, port);
-    if (print_ports && pgm->conntype == CONNTYPE_SERIAL)
+    pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
+skipopen:
+    if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
       list_available_serialports(programmers);
+      if(touch_1200bps == 1)
+        pmsg_info("alternatively, try -rr or -rrr for longer delays\n");
+    }
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
     goto main_exit;

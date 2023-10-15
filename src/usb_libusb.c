@@ -578,6 +578,7 @@ struct serial_device usb_serdev =
 {
   .open = usbdev_open,
   .close = usbdev_close,
+  .rawclose = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv,
   .drain = usbdev_drain,
@@ -591,6 +592,7 @@ struct serial_device usb_serdev_frame =
 {
   .open = usbdev_open,
   .close = usbdev_close,
+  .rawclose = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv_frame,
   .drain = usbdev_drain,

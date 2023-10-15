@@ -29,6 +29,7 @@
 .Nm
 .Fl p Ar partno
 .Op Fl b Ar baudrate
+.Op Fl r
 .Op Fl B Ar bitclock
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
@@ -365,6 +366,14 @@ for more information run avrdude -p x/h.
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
+.It Fl r
+Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
+for each -r on the command line and then establishes communication with
+the programmer. This is commonly known as a "1200bps touch", and is used
+to trigger programming mode for certain boards like Arduino Leonardo,
+Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
+therefore multiple -r options, are sometimes needed for slower, less
+powerful hosts.
 .It Fl B Ar bitclock
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
 interface. The value is a floating-point number in microseconds.

@@ -352,6 +352,7 @@ struct serial_device avrdoper_serdev =
 {
   .open = avrdoper_open,
   .close = avrdoper_close,
+  .rawclose = avrdoper_close,
   .send = avrdoper_send,
   .recv = avrdoper_recv,
   .drain = avrdoper_drain,

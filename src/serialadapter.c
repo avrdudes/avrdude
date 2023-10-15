@@ -21,6 +21,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -128,6 +129,13 @@ static SERPORT *get_libserialport_data(int *np) {
   if(np)
     *np = j;
   return sp;
+}
+
+// Free memory allocated from get_libserialport_data()
+static void free_libserialport_data(SERPORT *sp, int n) {
+  for(int k = 0; sp && k < n; k++)
+    free(sp[k].sernum), free(sp[k].port);
+  free(sp);
 }
 
 // Returns a NULL-terminated malloc'd list of items in SERPORT list spa that are not in spb
@@ -266,10 +274,7 @@ int setport_from_serialadapter(char **portp, const SERIALADAPTER *sea, const cha
       if(m == 0 || sa_num_matches_by_sea(sea, sernum, sp+i, 1) == 1)
         sa_print_specs(sp, n, i);
   }
-
-  for(int k = 0; k < n; k++)
-    free(sp[k].sernum), free(sp[k].port);
-  free(sp);
+  free_libserialport_data(sp, n);
 
   return rv;
 }
@@ -294,12 +299,60 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
       if(m == 0 || sa_num_matches_by_ids(vid, pid, sernum, sp+i, 1) == 1)
         sa_print_specs(sp, n, i);
   }
-
-  for(int k = 0; k < n; k++)
-    free(sp[k].sernum), free(sp[k].port);
-  free(sp);
+  free_libserialport_data(sp, n);
 
   return rv;
+}
+
+// Potentially change port *portp after opening & closing it with baudrate
+int touch_serialport(char **portp, int baudrate, int nwaits) {
+  int i, n1, n2;
+  SERPORT *sp1, *sp2, **diff;
+  sp1 = get_libserialport_data(&n1);
+  if(!sp1 || n1 <= 0 || !portp)
+    return -1;
+
+  pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
+
+  union pinfo pinfo;
+  union filedescriptor fd;
+  pinfo.serialinfo.baud = baudrate;
+  pinfo.serialinfo.cflags = SERIAL_8N1;
+  if(serial_open(*portp, pinfo, &fd) == -1) {
+    pmsg_error("%s() failed to open port %s at %d baud\n", __func__, *portp, baudrate);
+    return -1;
+  }
+  serial_set_dtr_rts(&fd, 1);
+  usleep(100);
+  serial_set_dtr_rts(&fd, 0);
+  serial_rawclose(&fd);
+
+  const int nloops = 32, nap = 50;
+#if (defined(__arm__) || defined(__aarch64__)) && !defined(__APPLE__)
+  nwaits += 2;
+#endif
+  pmsg_info("waiting for new port...");
+  usleep(400*1000*nwaits);
+  for(i = nloops; i > 0; i--) {
+    usleep(nap*1000);
+    if((sp2 = get_libserialport_data(&n2))) {
+      diff = sa_spa_not_spb(sp2, n2, sp1, n1);
+      if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
+        pmsg_notice("new port %s discovered\n", (*diff)->port);
+        if(*portp)
+          free(*portp);
+        *portp = cfg_strdup(__func__, (*diff)->port);
+        msg_info(" %d ms:", (nloops-i+1)*nap + nwaits*400);
+        i = -1;                 // Leave loop
+      }
+      free(diff); 
+      free_libserialport_data(sp2, n2);
+    }
+  }
+  free_libserialport_data(sp1, n1);
+  msg_info(" using %s port %s\n", i<0? "new": "same", *portp);
+
+  return 0;
 }
 
 // List available serial ports
@@ -340,6 +393,11 @@ int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
 }
 
 int list_available_serialports(LISTID programmers) {
+  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
+  return -1;
+}
+
+int touch_serialport(char **portp, int baudrate, int nwaits) {
   pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
   return -1;
 }

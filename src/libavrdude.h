@@ -668,6 +668,7 @@ struct serial_device {
   int (*open)(const char *port, union pinfo pinfo, union filedescriptor *fd);
   int (*setparams)(const union filedescriptor *fd, long baud, unsigned long cflags);
   void (*close)(union filedescriptor *fd);
+  void (*rawclose)(union filedescriptor *fd); // Don't restore terminal attributes (Linux)
 
   int (*send)(const union filedescriptor *fd, const unsigned char * buf, size_t buflen);
   int (*recv)(const union filedescriptor *fd, unsigned char * buf, size_t buflen);
@@ -691,6 +692,7 @@ extern struct serial_device usbhid_serdev;
 #define serial_open (serdev->open)
 #define serial_setparams (serdev->setparams)
 #define serial_close (serdev->close)
+#define serial_rawclose (serdev->rawclose)
 #define serial_send (serdev->send)
 #define serial_recv (serdev->recv)
 #define serial_drain (serdev->drain)
@@ -1252,6 +1254,7 @@ extern "C" {
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum);
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum);
 int list_available_serialports(LISTID programmers);
+int touch_serialport(char **portp, int baudrate, int nwaits);
 
 int str_starts(const char *str, const char *starts);
 int str_eq(const char *str1, const char *str2);
