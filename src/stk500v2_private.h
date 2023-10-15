@@ -270,6 +270,8 @@ struct pdata
     }
         pgmtype;
 
+  int is_scratchmonkey, scratchmonkey_leds;
+
   /* Get/set flags for Xplained Mini SUFFER register */
   bool suffer_get;
   bool suffer_set;

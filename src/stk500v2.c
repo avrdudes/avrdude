@@ -100,16 +100,21 @@ struct carddata
   const char *name;
 };
 
-static const char *pgmname[] =
-{
-  "unknown",
-  "STK500",
-  "AVRISP",
-  "AVRISP mkII",
-  "JTAG ICE mkII",
-  "STK600",
-  "JTAGICE3",
-};
+static const char *pgmname(const PROGRAMMER *pgm) {
+  unsigned int i = PDATA(pgm)->pgmtype;
+  const char *name[] = { // Parallel to PGMTYPE_ definitions in stk500v2_private.h
+    "unknown",
+    "STK500",
+    "AVRISP",
+    "AVRISP mkII",
+    "JTAG ICE mkII",
+    "STK600",
+    "JTAGICE3",
+  };
+
+  return i==PGMTYPE_STK500 && PDATA(pgm)->is_scratchmonkey? "SCRATCHMONKEY": // STK500 with LEDs
+    i<sizeof name/sizeof *name? name[i]: "None";
+}
 
 struct jtagispentry
 {
@@ -725,7 +730,6 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
 }
 
 
-
 int stk500v2_getsync(const PROGRAMMER *pgm) {
   int tries = 0;
   unsigned char buf[1], resp[32];
@@ -748,35 +752,32 @@ retry:
   stk500v2_send(pgm, buf, 1);
 
   // try to get the response back and see where we got
+  memset(resp, 0, sizeof resp);
   status = stk500v2_recv(pgm, resp, sizeof(resp));
 
   // if we got bytes returned, check to see what came back
   if (status > 0) {
     if (resp[0] == CMD_SIGN_ON && resp[1] == STATUS_CMD_OK && status > 3) {
       // success!
-      unsigned int siglen = resp[2];
-      if (siglen >= strlen("STK500_2") &&
-	  memcmp(resp + 3, "STK500_2", strlen("STK500_2")) == 0) {
+      char *name = (char *) resp + 3;
+      if(str_starts(name, "STK500_2")) {
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
-      } else if (siglen >= strlen("SCRATCHMONKEY") &&
-	  memcmp(resp + 3, "SCRATCHMONKEY", strlen("SCRATCHMONKEY")) == 0) {
+      } else if(str_starts(name, "SCRATCHMONKEY")) {
+	PDATA(pgm)->is_scratchmonkey = 1;
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
-      } else if (siglen >= strlen("AVRISP_2") &&
-		 memcmp(resp + 3, "AVRISP_2", strlen("AVRISP_2")) == 0) {
+      } else if(str_starts(name, "AVRISP_2")) {
 	PDATA(pgm)->pgmtype = PGMTYPE_AVRISP;
-      } else if (siglen >= strlen("AVRISP_MK2") &&
-		 memcmp(resp + 3, "AVRISP_MK2", strlen("AVRISP_MK2")) == 0) {
+      } else if(str_starts(name, "AVRISP_MK2")) {
 	PDATA(pgm)->pgmtype = PGMTYPE_AVRISP_MKII;
-      } else if (siglen >= strlen("STK600") &&
-	  memcmp(resp + 3, "STK600", strlen("STK600")) == 0) {
+      } else if(str_starts(name, "STK600")) {
 	PDATA(pgm)->pgmtype = PGMTYPE_STK600;
       } else {
-	resp[siglen + 3] = 0;
-        pmsg_notice("stk500v2_getsync(): got response from unknown "
-          "programmer %s, assuming STK500\n", resp + 3);
+        unsigned int len = resp[2];
+	resp[len + 3 >= sizeof resp? sizeof resp - 1: len + 3] = 0;
+        pmsg_notice("%s(): unknown programmer %s, assuming STK500\n", __func__, name);
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
-      pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname[PDATA(pgm)->pgmtype]);
+      pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname(pgm));
       serial_recv_timeout = bak_serial_recv_timeout;
       return 0;
     } else {
@@ -1402,7 +1403,6 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   return pgm->program_enable(pgm, p);
 }
-
 
 
 /*
@@ -2077,6 +2077,44 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
 }
 
 
+// ScratchMonkey LED functions (Arduino Micro, Nano and UNO)
+enum {
+  SCRATCHMONKEY_RDY_LED = 1,    // D5 (green)
+  SCRATCHMONKEY_PGM_LED = 2,    // D6 (yellow)
+  SCRATCHMONKEY_VFY_LED = 4,    // D7 (orange)
+  SCRATCHMONKEY_ERR_LED = 8,    // D8 (red)
+  PARAM_SCRATCHMONKEY_STATUS_LEDS = 0x2A,
+};
+
+static void scratchmonkey_led_state(const PROGRAMMER *pgm, int flag, int value) {
+  if(value)
+    PDATA(pgm)->scratchmonkey_leds |= flag;
+  else
+    PDATA(pgm)->scratchmonkey_leds &= ~flag;
+
+  stk500v2_setparm_real(pgm, PARAM_SCRATCHMONKEY_STATUS_LEDS, PDATA(pgm)->scratchmonkey_leds);
+}
+
+static int scratchmonkey_rdy_led(const struct programmer_t *pgm, int value) {
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_RDY_LED, value);
+  return 0;
+}
+
+static int scratchmonkey_pgm_led(const struct programmer_t *pgm, int value) {
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_PGM_LED, value);
+  return 0;
+}
+
+static int scratchmonkey_vfy_led(const struct programmer_t *pgm, int value) {
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_VFY_LED, value);
+  return 0;
+}
+
+static int scratchmonkey_err_led(const struct programmer_t *pgm, int value) {
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_ERR_LED, value);
+  return 0;
+}
+
 static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo = { .serialinfo.baud = 115200, .serialinfo.cflags = SERIAL_8N1 };
 
@@ -2137,6 +2175,13 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   if (pgm->bitclock != 0.0) {
     if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
+  }
+
+  if(PDATA(pgm)->is_scratchmonkey) {
+    pgm->rdy_led = scratchmonkey_rdy_led;
+    pgm->err_led = scratchmonkey_err_led;
+    pgm->pgm_led = scratchmonkey_pgm_led;
+    pgm->vfy_led = scratchmonkey_vfy_led;
   }
 
   return 0;
@@ -3553,19 +3598,11 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char maj = 0, min = 0, hdw = 0, topcard = 0,
                 maj_s1 = 0, min_s1 = 0, maj_s2 = 0, min_s2 = 0;
   unsigned int rev = 0;
-  const char *topcard_name, *pgmname;
+  const char *topcard_name;
 
-  switch (PDATA(pgm)->pgmtype) {
-    case PGMTYPE_UNKNOWN:     pgmname = "Unknown"; break;
-    case PGMTYPE_STK500:      pgmname = "STK500"; break;
-    case PGMTYPE_AVRISP:      pgmname = "AVRISP"; break;
-    case PGMTYPE_AVRISP_MKII: pgmname = "AVRISP mkII"; break;
-    case PGMTYPE_STK600:      pgmname = "STK600"; break;
-    default:                  pgmname = "None";
-  }
   if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE_MKII &&
       PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
-    msg_info("%sProgrammer Model: %s\n", p, pgmname);
+    msg_info("%sProgrammer Model: %s\n", p, pgmname(pgm));
     stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
