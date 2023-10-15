@@ -2326,6 +2326,11 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
   } else if (str_eq(mem->desc, "signature")) {
     buf[0] = mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP;
+  } else if (str_eq(mem->desc, "prodsig")) {
+    buf[0] = addr&1?
+      (mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP):
+      (mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP);
+    addr /= 2;
   }
 
   /*
@@ -2455,7 +2460,10 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     buf[0] = CMD_READ_OSCCAL_ISP;
   } else if (str_eq(mem->desc, "signature")) {
     buf[0] = CMD_READ_SIGNATURE_ISP;
+  } else if (str_eq(mem->desc, "prodsig")) {
+    buf[0] = addr&1? CMD_READ_OSCCAL_ISP: CMD_READ_SIGNATURE_ISP;
   }
+
 
   if ((op = mem->op[AVR_OP_READ]) == NULL) {
     pmsg_error("invalid operation AVR_OP_READ on %s memory\n", mem->desc);
