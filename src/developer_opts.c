@@ -584,9 +584,9 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       dev_print_comment(cp->comms);
 
     if(p->parent_id && *p->parent_id)
-      dev_info("part parent \"%s\"\n", p->parent_id);
+      dev_info("part parent \"%s\" # %s\n", p->parent_id, p->id);
     else
-      dev_info("part\n");
+      dev_info("part # %s\n", p->id);
   }
 
   _if_partout_str(strcmp, descstr, desc);
@@ -1295,9 +1295,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
     const char *prog_sea = is_programmer(pgm)? "programmer": is_serialadapter(pgm)? "serialadapter": "programmer";
     if(pgm->parent_id && *pgm->parent_id)
-      dev_info("%s parent \"%s\"\n", prog_sea, pgm->parent_id);
+      dev_info("%s parent \"%s\" # %s\n", prog_sea, pgm->parent_id, ldata(lfirst(pgm->id)));
     else
-      dev_info("%s\n", prog_sea);
+      dev_info("%s # %s\n", prog_sea, ldata(lfirst(pgm->id)));
   }
 
   if(tsv)
