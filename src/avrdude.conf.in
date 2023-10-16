@@ -16412,11 +16412,6 @@ part # .xmega
         offset             = 0x8f0027;
     ;
 
-    memory "signature"
-        size               = 3;
-        offset             = 0x1000090;
-    ;
-
     memory "prodsig"
         size               = 50;
         offset             = 0x8e0200;
@@ -16425,6 +16420,11 @@ part # .xmega
 
     memory "sigrow"
         alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1000090;
     ;
 
     memory "data"
@@ -19299,18 +19299,6 @@ part # .avr8x
         readsize           = 1;
     ;
 
-    memory "tempsense"
-        size               = 2;
-        offset             = 0x1120;
-        readsize           = 1;
-    ;
-
-    memory "signature"
-        size               = 3;
-        offset             = 0x1100;
-        readsize           = 3;
-    ;
-
     memory "prodsig"
         size               = 64;
         page_size          = 64;
@@ -19320,6 +19308,18 @@ part # .avr8x
 
     memory "sigrow"
         alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1100;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 2;
+        offset             = 0x1120;
+        readsize           = 1;
     ;
 
     memory "sernum"
@@ -21533,18 +21533,6 @@ part # .avrdx
         readsize           = 4;
     ;
 
-    memory "tempsense"
-        size               = 4;
-        offset             = 0x1104;
-        readsize           = 1;
-    ;
-
-    memory "signature"
-        size               = 3;
-        offset             = 0x1100;
-        readsize           = 3;
-    ;
-
     memory "prodsig"
         size               = 128;
         page_size          = 128;
@@ -21554,6 +21542,18 @@ part # .avrdx
 
     memory "sigrow"
         alias "prodsig";
+    ;
+
+    memory "signature"
+        size               = 3;
+        offset             = 0x1100;
+        readsize           = 3;
+    ;
+
+    memory "tempsense"
+        size               = 4;
+        offset             = 0x1104;
+        readsize           = 1;
     ;
 
     memory "sernum"
@@ -23468,16 +23468,16 @@ part parent ".avrex" # avr16eb14
         initval            = 0x5cc5c55c;
     ;
 
-    memory "tempsense"
-        offset             = 0x1084;
+    memory "prodsig"
+        offset             = 0x1080;
     ;
 
     memory "signature"
         offset             = 0x1080;
     ;
 
-    memory "prodsig"
-        offset             = 0x1080;
+    memory "tempsense"
+        offset             = 0x1084;
     ;
 
     memory "sernum"
