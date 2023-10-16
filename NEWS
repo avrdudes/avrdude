@@ -54,6 +54,7 @@ Changes since version 7.2:
     - Adapt stk500 readback values for usbtiny.c #1511
     - Add LED support for ScratchMonkey programmer #1517
     - Review and update prodsig memories for U/PDI parts #1518
+    - Add id as comment to avrdude.conf definitions #1519
 
   * Internals:
 
