@@ -23468,8 +23468,20 @@ part parent ".avrex" # avr16eb14
         initval            = 0x5cc5c55c;
     ;
 
+    memory "tempsense"
+        offset             = 0x1084;
+    ;
+
+    memory "signature"
+        offset             = 0x1080;
+    ;
+
     memory "prodsig"
         offset             = 0x1080;
+    ;
+
+    memory "sernum"
+        offset             = 0x1090;
     ;
 
     memory "bootrow"
@@ -23477,6 +23489,10 @@ part parent ".avrex" # avr16eb14
         page_size          = 64;
         offset             = 0x1100;
         readsize           = 256;
+    ;
+
+    memory "userrow"
+        offset             = 0x1200;
     ;
 ;
 
