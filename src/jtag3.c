@@ -2341,7 +2341,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
      str_eq(mem->desc, "osccal16") || str_eq(mem->desc, "osc20err") ||
      str_eq(mem->desc, "osccal20") || str_eq(mem->desc, "prodsig") ||
      str_eq(mem->desc, "sernum") || str_eq(mem->desc, "sib") ||
-     str_eq(mem->desc, "signature") || str_eq(mem->desc, "temperature") || unsupp) {
+     str_eq(mem->desc, "signature") || str_eq(mem->desc, "tempsense") || unsupp) {
       unsigned char is;
       if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
         return 0;
