@@ -894,6 +894,12 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     cmd[1] = MTYPE_OSCCAL_BYTE;
   } else if (str_eq(mem->desc, "signature")) {
     cmd[1] = MTYPE_SIGN_JTAG;
+  } else if (str_eq(mem->desc, "prodsig")) {
+    cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+    addr /= 2;
+  } else {
+    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    return -1;
   }
 
   /*
@@ -997,6 +1003,9 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     need_dummy_read = 1;
   } else if (str_eq(mem->desc, "signature")) {
     cmd[1] = MTYPE_SIGN_JTAG;
+  } else {
+    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    return -1;
   }
 
   if (need_progmode) {
