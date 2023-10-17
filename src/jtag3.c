@@ -2155,7 +2155,14 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
              str_eq(mem->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
   } else if (str_eq(mem->desc, "prodsig")) {
-    cmd[3] = MTYPE_PRODSIG;
+    if (p->prog_modes & (PM_PDI | PM_UPDI)) {
+      cmd[3] = MTYPE_PRODSIG;
+    } else {
+      cmd[3] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+      addr /= 2;
+      if (pgm->flag & PGM_FL_IS_DW)
+        unsupp = 1;
+    }
   } else if (str_eq(mem->desc, "sernum")) {
     cmd[3] = MTYPE_SIGN_JTAG;
   } else if (str_eq(mem->desc, "osccal16")) {
@@ -2217,6 +2224,9 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       msg_error("address out of range for signature memory: %lu\n", addr);
       return -1;
     }
+  } else {
+    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    return -1;
   }
 
   /*
