@@ -115,7 +115,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
   if(!dry.dp) {
     unsigned char inifuses[16]; // For fuses, which is made up from fuse0, fuse1, ...
-    AVRMEM *fusesm = NULL;
+    AVRMEM *fusesm = NULL, *prodsigm = NULL, *calm;
     dry.dp = avr_dup_part(p);   // Allocate dryrun part
 
     memset(inifuses, 0xff, sizeof inifuses);
@@ -141,8 +141,52 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         }
       } else if(str_eq(m->desc, "signature") && (int) sizeof(dry.dp->signature) == m->size) {
         memcpy(m->buf, dry.dp->signature, m->size);
-      } else if(str_contains(m->desc, "calibration")) {
-        memset(m->buf, 0x55, m->size); // ASCII 0x55 is 'U' for uncalibrated :)
+      } else if(str_eq(m->desc, "calibration")) {
+        memset(m->buf, 'U', m->size); // 'U' for uncalibrated or unknown :)
+      } else if(str_eq(m->desc, "osc16err")) {
+        memset(m->buf, 'e', m->size);
+      } else if(str_eq(m->desc, "osc20err")) {
+        memset(m->buf, 'E', m->size);
+      } else if(str_eq(m->desc, "osccal16")) {
+        memset(m->buf, 'o', m->size);
+      } else if(str_eq(m->desc, "osccal20")) {
+        memset(m->buf, 'O', m->size);
+      } else if(str_eq(m->desc, "sib")) {
+        memset(m->buf, 'S', m->size);
+      } else if( str_eq(m->desc, "tempsense")) {
+        memset(m->buf, 'T', m->size); // 'T' for temperature calibration values
+      } else if(str_eq(m->desc, "sernum")) {
+        for(int i = 0; i < m->size; i++) // Set serial number UTSRQPONM...
+          m->buf[i] = 'U'-i >= 'A'? 'U'-i: 0xff;
+      } else if(str_eq(m->desc, "prodsig") && m->size >= 6) {
+        prodsigm = m;
+        memset(m->buf, 0xff, m->size);
+        if(p->prog_modes & PM_PDI) {
+          m->buf[0] = m->buf[1] = 'U';
+        } else if(!(p->prog_modes & PM_UPDI)) { // Classic parts: signature at even addresses
+          for(int i=0; i<3; i++)
+            m->buf[2*i] = dry.dp->signature[i];
+        }
+      }
+    }
+    if(prodsigm) {
+      if(p->prog_modes & PM_UPDI) {
+        for (LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
+          AVRMEM *m = ldata(ln);
+          if(m->buf == prodsigm->buf) // Skip prodsig memory
+            continue;
+          int off = m->offset - prodsigm->offset;
+          int cpy = m->size;
+          // Submemory of prodsig, eg, signature and tempsense? Copy into prodsig
+          if(off >= 0 && off+cpy <= prodsigm->size)
+            memcpy(prodsigm->buf + off, m->buf, cpy);
+        }
+      }
+      if(!(p->prog_modes & (PM_PDI|PM_UPDI)) && (calm = avr_locate_mem(dry.dp, "calibration"))) {
+        // Calibration bytes of classic parts are interspersed with signature
+        for(int i=0; i<calm->size; i++)
+          if(2*i+1 < prodsigm->size)
+            prodsigm->buf[2*i+1] = 'U';
       }
     }
     if(fusesm) {
@@ -320,7 +364,11 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(str_contains(dmem->desc, "calibration") || str_eq(dmem->desc, "signature"))
+  if(str_eq(dmem->desc, "calibration") || str_eq(dmem->desc, "osc16err") ||
+     str_eq(dmem->desc, "osccal16") || str_eq(dmem->desc, "osc20err") ||
+     str_eq(dmem->desc, "osccal20") || str_eq(dmem->desc, "prodsig") ||
+     str_eq(dmem->desc, "sernum") || str_eq(dmem->desc, "sib") ||
+     str_eq(dmem->desc, "signature") || str_eq(dmem->desc, "tempsense"))
     Return("cannot write to write-protected memory %s %s", dry.dp->desc, dmem->desc);
 
   if(addr >= (unsigned long) dmem->size)
