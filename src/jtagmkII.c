@@ -2201,7 +2201,12 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
   } else if (str_eq(mem->desc, "prodsig")) {
-    cmd[1] = MTYPE_PRODSIG;
+    if (p->prog_modes & (PM_PDI | PM_UPDI)) {
+      cmd[1] = MTYPE_PRODSIG;
+    } else {
+      cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+      addr /= 2;
+    }
   } else if (str_eq(mem->desc, "calibration")) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2239,6 +2244,9 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         }
       return 0;
     }
+  } else {
+    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    return -1;
   }
 
   /*
@@ -2375,6 +2383,9 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
+  } else {
+    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    return -1;
   }
 
   if (unsupp)
