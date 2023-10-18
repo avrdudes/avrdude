@@ -50,11 +50,14 @@ Changes since version 7.2:
     - Reduce stk500v2_getsync() timeout #1506
     - libserialport github action #1512
     - Support serial port "touch" using libserialport #1507
-    - Read sigrow for ATmega32[48]PB using ISP #1510
+    - Read prodsig of classic parts #1510 #1520-21 #1524-26
     - Adapt stk500 readback values for usbtiny.c #1511
     - Add LED support for ScratchMonkey programmer #1517
     - Review and update prodsig memories for U/PDI parts #1518
     - Add id as comment to avrdude.conf definitions #1519
+    - Model prodsig for -c dryrun #1522
+    - Fix tempsense size, AVR-EB memory offsets and avrdude.conf
+      memory order #1523
 
   * Internals:
 
