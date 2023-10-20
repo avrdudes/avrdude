@@ -134,8 +134,8 @@ int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
 }
 
 
-#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? pgm->read_byte: avr_read_byte_default)
-#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? pgm->write_byte: avr_write_byte_default)
+#define fallback_read_byte (pgm->read_byte != avr_read_byte_cached? led_read_byte: avr_read_byte_default)
+#define fallback_write_byte (pgm->write_byte != avr_write_byte_cached? led_write_byte: avr_write_byte_default)
 
 /*
  * Read the page containing addr from the device into buf
@@ -156,6 +156,9 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   if(pgsize == 1)
     return fallback_read_byte(pgm, p, mem, addr, buf);
 
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
+
   unsigned char *pagecopy = cfg_malloc(__func__, pgsize);
   memcpy(pagecopy, mem->buf + base, pgsize);
   if((rc = pgm->paged_load(pgm, p, mem, pgsize, base, pgsize)) >= 0)
@@ -174,6 +177,10 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
       memcpy(buf, pagecopy, pgsize);
   }
   free(pagecopy);
+
+  if(rc < 0)
+    led_set(pgm, LED_ERR);
+  led_clr(pgm, LED_PGM);
 
   return rc;
 }
@@ -280,6 +287,8 @@ static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int base, int nlOnErr) {
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
   // Write modified page cont to device; if unsuccessful try bytewise access
   if(avr_write_page_default(pgm, p, mem, base, cp->cont + base) < 0) {
     if(pgm->read_byte != avr_read_byte_cached && pgm->write_byte != avr_write_byte_cached) {
@@ -291,16 +300,16 @@ static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p
             if(nlOnErr && quell_progress)
               msg_info("\n");
             pmsg_error("%s access error at addr 0x%04x\n", mem->desc, base+i);
-            return LIBAVRDUDE_GENERAL_FAILURE;
+            goto error;
           }
 
-      return LIBAVRDUDE_SUCCESS;  // Bytewise writes & reads successful
+      goto success;             // Bytewise writes & reads successful
     }
     report_progress(1, -1, NULL);
     if(nlOnErr && quell_progress)
       msg_info("\n");
     pmsg_error("write %s page error at addr 0x%04x\n", mem->desc, base);
-    return LIBAVRDUDE_GENERAL_FAILURE;
+    goto error;
   }
   // Read page back from device and update copy to what is on device
   if(avr_read_page_default(pgm, p, mem, base, cp->copy + base) < 0) {
@@ -308,10 +317,17 @@ static int writeCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p
     if(nlOnErr && quell_progress)
       msg_info("\n");
     pmsg_error("unable to read %s page at addr 0x%04x\n", mem->desc, base);
-    return LIBAVRDUDE_GENERAL_FAILURE;
+    goto error;
   }
 
+success:
+  led_clr(pgm, LED_PGM);
   return LIBAVRDUDE_SUCCESS;
+
+error:
+  led_set(pgm, LED_ERR);
+  led_clr(pgm, LED_PGM);
+  return LIBAVRDUDE_GENERAL_FAILURE;
 }
 
 
@@ -568,7 +584,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       for(int iwr = 0, pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
         if(cp->iscached[pgno] && memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
           if(!chiperase && mems[i].pgerase && pgm->page_erase)
-            pgm->page_erase(pgm, p, mem, n);
+            led_page_erase(pgm, p, mem, n);
           if(writeCachePage(cp, pgm, p, mem, n, 1) < 0)
             return LIBAVRDUDE_GENERAL_FAILURE;
           if(memcmp(cp->copy + n, cp->cont + n, cp->page_size)) {
@@ -690,7 +706,7 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
   };
   int rc;
 
-  if((rc = pgm->chip_erase(pgm, p)) < 0)
+  if((rc = led_chip_erase(pgm, p)) < 0)
     return rc;
 
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {

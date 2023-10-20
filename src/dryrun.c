@@ -437,25 +437,25 @@ static int dryrun_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unused
 
 
 static int dryrun_rdy_led(const PROGRAMMER *pgm, int value) {
-  pmsg_debug("%s(%d)\n", __func__, value);
+  pmsg_info("%s(%d)\n", __func__, value);
 
   return 0;
 }
 
 static int dryrun_err_led(const PROGRAMMER *pgm, int value) {
-  pmsg_debug("%s(%d)\n", __func__, value);
+  pmsg_info("%s(%d)\n", __func__, value);
 
   return 0;
 }
 
 static int dryrun_pgm_led(const PROGRAMMER *pgm, int value) {
-  pmsg_debug("%s(%d)\n", __func__, value);
+  pmsg_info("%s(%d)\n", __func__, value);
 
   return 0;
 }
 
 static int dryrun_vfy_led(const PROGRAMMER *pgm, int value) {
-  pmsg_debug("%s(%d)\n", __func__, value);
+  pmsg_info("%s(%d)\n", __func__, value);
 
   return 0;
 }

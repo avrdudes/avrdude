@@ -108,30 +108,8 @@ static int butterfly_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
 }
 
 
-static int butterfly_rdy_led(const PROGRAMMER *pgm, int value) {
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static int butterfly_err_led(const PROGRAMMER *pgm, int value) {
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static int butterfly_pgm_led(const PROGRAMMER *pgm, int value) {
-  /* Do nothing. */
-
-  return 0;
-}
-
-
-static int butterfly_vfy_led(const PROGRAMMER *pgm, int value) {
-  /* Do nothing. */
-
+static int butterfly_default_led(const PROGRAMMER *pgm, int value) {
+  // No LED: do nothing
   return 0;
 }
 
@@ -716,10 +694,10 @@ void butterfly_initpgm(PROGRAMMER *pgm) {
   /*
    * mandatory functions
    */
-  pgm->rdy_led        = butterfly_rdy_led;
-  pgm->err_led        = butterfly_err_led;
-  pgm->pgm_led        = butterfly_pgm_led;
-  pgm->vfy_led        = butterfly_vfy_led;
+  pgm->rdy_led        = butterfly_default_led;
+  pgm->err_led        = butterfly_default_led;
+  pgm->pgm_led        = butterfly_default_led;
+  pgm->vfy_led        = butterfly_default_led;
   pgm->initialize     = butterfly_initialize;
   pgm->display        = butterfly_display;
   pgm->enable         = butterfly_enable;

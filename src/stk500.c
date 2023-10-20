@@ -204,15 +204,11 @@ static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  pgm->pgm_led(pgm, ON);
-
   memset(cmd, 0, sizeof(cmd));
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
   usleep(p->chip_erase_delay);
   pgm->initialize(pgm, p);
-
-  pgm->pgm_led(pgm, OFF);
 
   return 0;
 }

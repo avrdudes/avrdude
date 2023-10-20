@@ -290,19 +290,19 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 /*
  * Mandatory callbacks which boil down to GPIO.
  */
-static int set_led_pgm(const PROGRAMMER *pgm, int value) {
-	return set_pin(pgm, PIN_LED_PGM, value);
-}
-
-static int set_led_rdy(const PROGRAMMER *pgm, int value) {
+static int avrftdi_rdy_led(const PROGRAMMER *pgm, int value) {
 	return set_pin(pgm, PIN_LED_RDY, value);
 }
 
-static int set_led_err(const PROGRAMMER *pgm, int value) {
+static int avrftdi_err_led(const PROGRAMMER *pgm, int value) {
 	return set_pin(pgm, PIN_LED_ERR, value);
 }
 
-static int set_led_vfy(const PROGRAMMER *pgm, int value) {
+static int avrftdi_pgm_led(const PROGRAMMER *pgm, int value) {
+	return set_pin(pgm, PIN_LED_PGM, value);
+}
+
+static int avrftdi_vfy_led(const PROGRAMMER *pgm, int value) {
 	return set_pin(pgm, PIN_LED_VFY, value);
 }
 
@@ -859,13 +859,6 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 
 	if(avrftdi_pin_setup(pgm))
 		return -1;
-
-	/**********************************************
-	 * set the ready LED and set our direction up *
-	 **********************************************/
-
-	set_led_rdy(pgm,0);
-	set_led_pgm(pgm,1);
 
 	return 0;
 }
@@ -1858,10 +1851,10 @@ void avrftdi_initpgm(PROGRAMMER *pgm)
 	pgm->setpin = set_pin;
 	pgm->setup = avrftdi_setup;
 	pgm->teardown = avrftdi_teardown;
-	pgm->rdy_led = set_led_rdy;
-	pgm->err_led = set_led_err;
-	pgm->pgm_led = set_led_pgm;
-	pgm->vfy_led = set_led_vfy;
+	pgm->rdy_led = avrftdi_rdy_led;
+	pgm->err_led = avrftdi_err_led;
+	pgm->pgm_led = avrftdi_pgm_led;
+	pgm->vfy_led = avrftdi_vfy_led;
 }
 
 void avrftdi_jtag_initpgm(PROGRAMMER *pgm)
@@ -1890,10 +1883,10 @@ void avrftdi_jtag_initpgm(PROGRAMMER *pgm)
 	pgm->paged_load = avrftdi_jtag_paged_read;
 	pgm->setup = avrftdi_setup;
 	pgm->teardown = avrftdi_teardown;
-	pgm->rdy_led = set_led_rdy;
-	pgm->err_led = set_led_err;
-	pgm->pgm_led = set_led_pgm;
-	pgm->vfy_led = set_led_vfy;
+	pgm->rdy_led = avrftdi_rdy_led;
+	pgm->err_led = avrftdi_err_led;
+	pgm->pgm_led = avrftdi_pgm_led;
+	pgm->vfy_led = avrftdi_vfy_led;
 	pgm->page_size = 256;
 	pgm->flag = PGM_FL_IS_JTAG;
 }

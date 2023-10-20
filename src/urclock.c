@@ -221,6 +221,32 @@
 #include "urclock.h"
 #include "urclock_private.h"
 
+static int dryrun_rdy_led(const PROGRAMMER *pgm, int value) {
+  pmsg_info("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+static int dryrun_err_led(const PROGRAMMER *pgm, int value) {
+  pmsg_info("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+static int dryrun_pgm_led(const PROGRAMMER *pgm, int value) {
+  pmsg_info("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+static int dryrun_vfy_led(const PROGRAMMER *pgm, int value) {
+  pmsg_info("%s(%d)\n", __func__, value);
+
+  return 0;
+}
+
+
+
 #define urmax(a, b) ((a) > (b)? (a): (b))
 #define urmin(a, b) ((a) < (b)? (a): (b))
 
@@ -2542,6 +2568,10 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->read_sig_bytes = urclock_read_sig_bytes;
 
   // Mandatory functions
+  pgm->rdy_led = dryrun_rdy_led;
+  pgm->err_led = dryrun_err_led;
+  pgm->pgm_led = dryrun_pgm_led;
+  pgm->vfy_led = dryrun_vfy_led;
   pgm->initialize = urclock_initialize;
   pgm->display = urclock_display;
   pgm->enable = urclock_enable;

@@ -385,9 +385,8 @@ static int  pickit2_pgm_led(const PROGRAMMER *pgm, int value) {
 }
 
 static int  pickit2_vfy_led(const PROGRAMMER *pgm, int value) {
-    // no such thing - maybe just call pgm_led
-
-    return pgm->pgm_led(pgm, value);
+    // no such thing
+    return 0;
 }
 
 static void pickit2_powerup(const PROGRAMMER *pgm) {
@@ -441,16 +440,12 @@ static int  pickit2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
         return -1;
     }
 
-    pgm->pgm_led(pgm, ON);
-
     memset(cmd, 0, sizeof(cmd));
 
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
     pgm->cmd(pgm, cmd, res);
     usleep(p->chip_erase_delay);
     pgm->initialize(pgm, p);
-
-    pgm->pgm_led(pgm, OFF);
 
     return 0;
 }
@@ -470,8 +465,6 @@ static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     uint8_t data = 0, cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
     unsigned int addr_base;
     unsigned int max_addr = addr + n_bytes;
-
-    pgm->pgm_led(pgm, ON);
 
     if (lext) {
        memset(cmd, 0, sizeof(cmd));
@@ -523,7 +516,6 @@ static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         if (bytes_read < 0)
         {
             pmsg_error("failed @ pgm->spi()\n");
-            pgm->err_led(pgm, ON);
             return -1;
         }
 
@@ -541,8 +533,6 @@ static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
         addr_base += blockSize;
     }
-
-    pgm->pgm_led(pgm, OFF);
 
     return n_bytes;
 }
@@ -615,8 +605,6 @@ static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     unsigned int addr_base;
     unsigned int max_addr = addr + n_bytes;
 
-    pgm->pgm_led(pgm, ON);
-
     for (addr_base = addr; addr_base < max_addr; )
     {
         uint32_t blockSize;
@@ -671,7 +659,6 @@ static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
 
             if (writeop == NULL)
             {
-                pgm->err_led(pgm, ON);
                 // not supported!
                 return -1;
             }
@@ -686,7 +673,6 @@ static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
         if (bytes_read < 0)
         {
             pmsg_error("failed @ pgm->spi()\n");
-            pgm->err_led(pgm, ON);
             return -1;
         }
 
@@ -703,8 +689,6 @@ static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
             usleep(mem->max_write_delay);
         }
     }
-
-    pgm->pgm_led(pgm, OFF);
 
     return n_bytes;
 }
