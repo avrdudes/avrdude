@@ -1183,9 +1183,10 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       continue;
 
     if (do_write) {
-      if(avr_write_byte(pgm, p, m, i, data))
+      if(avr_write_byte(pgm, p, m, i, data)) {
         msg_error(" ***failed;\n");
         led_set(pgm, LED_ERR);
+      }
     }
 
     if (flush_page) {           // Time to flush the page with a page write
