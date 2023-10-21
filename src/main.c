@@ -1609,13 +1609,12 @@ main_exit:
 
   // Program complete
   if (is_open) {
+    // Clear rdy LED and summarise interaction in err, pgm and vfy LEDs
+    led_set(pgm, LED_END);
     pgm->powerdown(pgm);
     pgm->disable(pgm);
     pgm->close(pgm);
   }
-
-  // Clear rdy LED and summarise interaction in err, pgm and vfy LEDs
-  led_set(pgm, LED_END);
 
   msg_info("\n%s done.  Thank you.\n\n", progname);
 
