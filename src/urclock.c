@@ -1129,6 +1129,14 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
     {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
     { 3072, 0, 0x3242ddd3, 0xd3347c5d }, // optiboot_lgt8f328p.hex
+    { 1024, 0, 0xe244a3c6, 0xc7ceaadf }, // optiboot_atmega644.hex
+    { 1024, 0, 0xe244a3c6, 0x063b24dd }, // optiboot_atmega1284p.hex
+    { 1024, 0, 0xe244a3c6, 0x6e5d8d92 }, // optiboot_balanduino644.hex
+    { 1024, 0, 0xe244a3c6, 0xed2e78d7 }, // optiboot_atmega1284p_8m.hex
+    { 1024, 0, 0xe244a3c6, 0x57215b62 }, // optiboot_atmega644p.hex
+    { 1024, 0, 0xe244a3c6, 0x365954f4 }, // optiboot_atmega644p_8m.hex
+    { 1024, 0, 0xe244a3c6, 0x6f120e6a }, // optiboot_atmega644_8m.hex
+    { 1024, 0, 0xe244a3c6, 0x79b266ae }, // optiboot_balanduino.hex
 #include "urclock_hash.h"                // Selected from https://github.com/MCUdude/optiboot_flash
   };
 
