@@ -81,7 +81,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     };
 
     while (avr_tpi_poll_nvmbsy(pgm))
-        ;
+      continue;
 
     err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
     if(err) {
@@ -91,7 +91,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     while (avr_tpi_poll_nvmbsy(pgm))
-        ;
+      continue;
 
     led_clr(pgm, LED_PGM);
     return 0;
@@ -204,7 +204,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     }
 
     while (avr_tpi_poll_nvmbsy(pgm))
-      ;
+      continue;
 
     /* setup for read */
     avr_tpi_setup_rw(pgm, mem, addr, TPI_NVMCMD_NO_OPERATION);
@@ -372,7 +372,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     led_set(pgm, LED_PGM);
 
     while (avr_tpi_poll_nvmbsy(pgm))
-      ;
+      contine;
 
     /* setup for read (NOOP) */
     avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
@@ -669,7 +669,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     }
 
     while (avr_tpi_poll_nvmbsy(pgm))
-      ;
+      continue;
 
     /* must erase fuse first */
     if (str_eq(mem->desc, "fuse")) {
@@ -683,7 +683,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         goto error;
 
       while (avr_tpi_poll_nvmbsy(pgm))
-        ;
+        continue;
     }
 
     /* setup for WORD_WRITE */
@@ -700,7 +700,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       goto error;
 
     while (avr_tpi_poll_nvmbsy(pgm))
-      ;
+      continue;
 
     goto success;
   }
@@ -963,7 +963,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     }
 
     while (avr_tpi_poll_nvmbsy(pgm))
-      ;
+      continue;
 
     /* setup for WORD_WRITE */
     avr_tpi_setup_rw(pgm, m, 0, TPI_NVMCMD_WORD_WRITE);
