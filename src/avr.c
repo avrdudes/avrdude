@@ -372,7 +372,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     led_set(pgm, LED_PGM);
 
     while (avr_tpi_poll_nvmbsy(pgm))
-      contine;
+      continue;
 
     /* setup for read (NOOP) */
     avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
