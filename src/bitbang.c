@@ -344,8 +344,6 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 {
   int i, r;
 
-  pgm->pgm_led(pgm, ON);
-
   for (i=0; i<cmd_len; i++) {
     bitbang_tpi_tx(pgm, cmd[i]);
   }
@@ -371,7 +369,6 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
     msg_notice2("]\n");
   }
 
-  pgm->pgm_led(pgm, OFF);
   if (r == -1)
     return -1;
   return 0;
@@ -420,7 +417,6 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
 
   if (p->prog_modes & PM_TPI) {
-    pgm->pgm_led(pgm, ON);
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
@@ -445,8 +441,6 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
     while (avr_tpi_poll_nvmbsy(pgm));
 
-    pgm->pgm_led(pgm, OFF);
-
     return 0;
   }
 
@@ -455,16 +449,12 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  pgm->pgm_led(pgm, ON);
-
   memset(cmd, 0, sizeof(cmd));
 
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
   usleep(p->chip_erase_delay);
   pgm->initialize(pgm, p);
-
-  pgm->pgm_led(pgm, OFF);
 
   return 0;
 }

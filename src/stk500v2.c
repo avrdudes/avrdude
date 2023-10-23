@@ -979,8 +979,6 @@ static int stk500v2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  pgm->pgm_led(pgm, ON);
-
   buf[0] = CMD_CHIP_ERASE_ISP;
   buf[1] = p->chip_erase_delay / 1000;
   buf[2] = 0;	// use delay (?)
@@ -992,8 +990,6 @@ static int stk500v2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pgm->initialize(pgm, p); // should not be needed
   }
 
-  pgm->pgm_led(pgm, OFF);
-
   return result >= 0? 0: -1;
 }
 
@@ -1003,8 +999,6 @@ static int stk500v2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int stk500hv_chip_erase(const PROGRAMMER *pgm, const AVRPART *p, enum hvmode mode) {
   int result;
   unsigned char buf[3];
-
-  pgm->pgm_led(pgm, ON);
 
   if (mode == PPMODE) {
     buf[0] = CMD_CHIP_ERASE_PP;
@@ -1018,8 +1012,6 @@ static int stk500hv_chip_erase(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
   result = stk500v2_command(pgm, buf, 3, sizeof(buf));
   usleep(p->chip_erase_delay);
   pgm->initialize(pgm, p);
-
-  pgm->pgm_led(pgm, OFF);
 
   return result >= 0? 0: -1;
 }
@@ -2100,6 +2092,11 @@ static int scratchmonkey_rdy_led(const struct programmer_t *pgm, int value) {
   return 0;
 }
 
+static int scratchmonkey_err_led(const struct programmer_t *pgm, int value) {
+  scratchmonkey_led_state(pgm, SCRATCHMONKEY_ERR_LED, value);
+  return 0;
+}
+
 static int scratchmonkey_pgm_led(const struct programmer_t *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_PGM_LED, value);
   return 0;
@@ -2107,11 +2104,6 @@ static int scratchmonkey_pgm_led(const struct programmer_t *pgm, int value) {
 
 static int scratchmonkey_vfy_led(const struct programmer_t *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_VFY_LED, value);
-  return 0;
-}
-
-static int scratchmonkey_err_led(const struct programmer_t *pgm, int value) {
-  scratchmonkey_led_state(pgm, SCRATCHMONKEY_ERR_LED, value);
   return 0;
 }
 

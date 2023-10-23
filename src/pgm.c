@@ -95,6 +95,7 @@ PROGRAMMER *pgm_new(void) {
     pin_clear_all(&(pgm->pin[i]));
   }
 
+  pgm->leds = cfg_malloc(__func__, sizeof(leds_t));
   /*
    * mandatory functions - these are called without checking to see
    * whether they are assigned or not
@@ -179,8 +180,9 @@ void pgm_free(PROGRAMMER *p) {
       ldestroy_cb(p->hvupdi_support, free);
       p->hvupdi_support = NULL;
     }
+    free(p->leds); p->leds = NULL;
     // Never free const char *, eg, p->desc, which are set by cache_string()
-    // p->cookie is freed by pgm_teardown
+    // p->cookie was freed by pgm_teardown
     // Never free cp_flash, cp_eeprom, cp_bootrow or cp_usersig cache structures
     free(p);
   }
@@ -203,7 +205,11 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     if(pgm->cp_usersig)
       free(pgm->cp_usersig);
 
+    leds_t *ls = pgm->leds;
     memcpy(pgm, src, sizeof(*pgm));
+    if(ls && src->leds)
+      memcpy(ls, src->leds, sizeof *ls);
+    pgm->leds = ls;
 
     pgm->id = lcreat(NULL, 0);
     pgm->usbpid = lcreat(NULL, 0);

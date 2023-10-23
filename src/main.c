@@ -1388,13 +1388,8 @@ skipopen:
    */
   pgm->enable(pgm, p);
 
-  /*
-   * turn off all the status leds
-   */
-  pgm->rdy_led(pgm, OFF);
-  pgm->err_led(pgm, OFF);
-  pgm->pgm_led(pgm, OFF);
-  pgm->vfy_led(pgm, OFF);
+  // Turn off all the status LEDs and reset LED states
+  led_set(pgm, LED_BEG);
 
   /*
    * initialize the chip in preparation for accepting commands
@@ -1419,8 +1414,8 @@ skipopen:
     }
   }
 
-  /* indicate ready */
-  pgm->rdy_led(pgm, ON);
+  // Indicate programmer is ready
+  led_set(pgm, LED_RDY);
 
   pmsg_info("AVR device initialized and ready to accept instructions\n");
 
@@ -1612,17 +1607,12 @@ skipopen:
 
 main_exit:
 
-  /*
-   * program complete
-   */
-
+  // Program complete
   if (is_open) {
+    // Clear rdy LED and summarise interaction in err, pgm and vfy LEDs
+    led_set(pgm, LED_END);
     pgm->powerdown(pgm);
-
     pgm->disable(pgm);
-
-    pgm->rdy_led(pgm, OFF);
-
     pgm->close(pgm);
   }
 

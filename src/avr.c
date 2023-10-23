@@ -53,12 +53,15 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
 
   if (p->prog_modes & PM_TPI) {
-    pgm->pgm_led(pgm, ON);
+    led_clr(pgm, LED_ERR);
+    led_set(pgm, LED_PGM);
 
     /* Set Pointer Register */
     mem = avr_locate_mem(p, "flash");
     if (mem == NULL) {
       pmsg_error("no flash memory to erase for part %s\n", p->desc);
+      led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_PGM);
       return -1;
     }
 
@@ -78,16 +81,19 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     };
 
     while (avr_tpi_poll_nvmbsy(pgm))
-        ;
+      continue;
 
     err = pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
-    if(err)
+    if(err) {
+      led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_PGM);
       return err;
+    }
 
-    while (avr_tpi_poll_nvmbsy(pgm));
+    while (avr_tpi_poll_nvmbsy(pgm))
+      continue;
 
-    pgm->pgm_led(pgm, OFF);
-
+    led_clr(pgm, LED_PGM);
     return 0;
   } else {
     pmsg_error("part has no TPI\n");
@@ -179,7 +185,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   unsigned char cmd[4];
   unsigned char res[4];
   unsigned char data;
-  int r;
+  int rc;
   OPCODE * readop, * lext;
 
   if (pgm->cmd == NULL) {
@@ -188,27 +194,28 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     return -1;
   }
 
-  pgm->pgm_led(pgm, ON);
-  pgm->err_led(pgm, OFF);
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
 
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
       pmsg_error("%s programmer does not support TPI\n", pgm->type);
-      return -1;
+      goto error;
     }
 
-    while (avr_tpi_poll_nvmbsy(pgm));
+    while (avr_tpi_poll_nvmbsy(pgm))
+      continue;
 
     /* setup for read */
     avr_tpi_setup_rw(pgm, mem, addr, TPI_NVMCMD_NO_OPERATION);
 
     /* load byte */
     cmd[0] = TPI_CMD_SLD;
-    r = pgm->cmd_tpi(pgm, cmd, 1, value, 1);
-    if (r == -1) 
-      return -1;
+    rc = pgm->cmd_tpi(pgm, cmd, 1, value, 1);
+    if (rc == -1)
+      goto error;
 
-    return 0;
+    goto success;
   }
 
   /*
@@ -229,7 +236,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 #if DEBUG
     pmsg_error("operation not supported on memory type %s\n", mem->desc);
 #endif
-    return -1;
+    goto error;
   }
 
   /*
@@ -241,26 +248,34 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
     avr_set_bits(lext, cmd);
     avr_set_addr(lext, cmd, addr);
-    r = pgm->cmd(pgm, cmd, res);
-    if (r < 0)
-      return r;
+    rc = pgm->cmd(pgm, cmd, res);
+    if(rc < 0)
+      goto rcerror;
   }
 
   memset(cmd, 0, sizeof(cmd));
 
   avr_set_bits(readop, cmd);
   avr_set_addr(readop, cmd, addr);
-  r = pgm->cmd(pgm, cmd, res);
-  if (r < 0)
-    return r;
+  rc = pgm->cmd(pgm, cmd, res);
+  if(rc < 0)
+    goto rcerror;
+
   data = 0;
   avr_get_output(readop, res, &data);
-
-  pgm->pgm_led(pgm, OFF);
-
   *value = data;
 
+success:
+  led_clr(pgm, LED_PGM);
   return 0;
+
+error:
+  rc = -1;
+
+rcerror:
+  led_set(pgm, LED_ERR);
+  led_clr(pgm, LED_PGM);
+  return rc;
 }
 
 
@@ -344,6 +359,9 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   if(mem->size < 0)             // Sanity check
     return -1;
 
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
+
   /*
    * start with all 0xff
    */
@@ -353,7 +371,8 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   if ((p->prog_modes & PM_TPI) && mem->page_size > 1 &&
       mem->size % mem->page_size == 0 && pgm->cmd_tpi != NULL) {
 
-    while (avr_tpi_poll_nvmbsy(pgm));
+    while (avr_tpi_poll_nvmbsy(pgm))
+      continue;
 
     /* setup for read (NOOP) */
     avr_tpi_setup_rw(pgm, mem, 0, TPI_NVMCMD_NO_OPERATION);
@@ -373,11 +392,16 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         lastaddr++;
         if (rc == -1) {
           pmsg_error("unable to read address 0x%04lx\n", i);
+          report_progress(1, -1, NULL);
+          led_set(pgm, LED_ERR);
+          led_clr(pgm, LED_PGM);
           return -1;
         }
       }
       report_progress(i, mem->size, NULL);
     }
+
+    led_clr(pgm, LED_PGM);
     return avr_mem_hiaddr(mem);
   }
 
@@ -436,14 +460,20 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
       nread++;
       report_progress(nread, npages, NULL);
     }
-    if (!failure)
+    if (!failure) {
+      led_clr(pgm, LED_PGM);
       return avr_mem_hiaddr(mem);
+    }
     /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
   if (str_eq(mem->desc, "signature")) {
     if (pgm->read_sig_bytes) {
-      return pgm->read_sig_bytes(pgm, p, mem);
+      int rc = pgm->read_sig_bytes(pgm, p, mem);
+      if (rc < 0)
+        led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_PGM);
+      return rc;
     }
   }
 
@@ -454,15 +484,22 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         pmsg_error("unable to read byte at address 0x%04lx\n", i);
         if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
           pmsg_error("read operation not supported for memory %s\n", mem->desc);
+          report_progress(1, -1, NULL);
+          led_set(pgm, LED_ERR);
+          led_clr(pgm, LED_PGM);
           return LIBAVRDUDE_NOTSUPPORTED;
         }
         pmsg_error("read operation failed for memory %s\n", mem->desc);
+        report_progress(1, -1, NULL);
+        led_set(pgm, LED_ERR);
+        led_clr(pgm, LED_PGM);
         return LIBAVRDUDE_SOFTFAIL;
       }
     }
     report_progress(i, mem->size, NULL);
   }
 
+  led_clr(pgm, LED_PGM);
   return avr_mem_hiaddr(mem);
 }
 
@@ -477,16 +514,19 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
   unsigned char res[4];
   OPCODE * wp, * lext;
 
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
+
   if (pgm->cmd == NULL) {
     pmsg_error("%s programmer uses avr_write_page() but does not\n", pgm->type);
     imsg_error("provide a cmd() method\n");
-    return -1;
+    goto error;
   }
 
   wp = mem->op[AVR_OP_WRITEPAGE];
   if (wp == NULL) {
     pmsg_error("memory %s not configured for page writes\n", mem->desc);
-    return -1;
+    goto error;
   }
 
   /*
@@ -495,9 +535,6 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
    */
   if ((mem->op[AVR_OP_LOADPAGE_LO]) || (mem->op[AVR_OP_READ_LO]))
     addr = addr / 2;
-
-  pgm->pgm_led(pgm, ON);
-  pgm->err_led(pgm, OFF);
 
   /*
    * If this device has a "load extended address" command, issue it.
@@ -508,14 +545,15 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
 
     avr_set_bits(lext, cmd);
     avr_set_addr(lext, cmd, addr);
-    pgm->cmd(pgm, cmd, res);
+    if(pgm->cmd(pgm, cmd, res) < 0)
+      goto error;
   }
 
   memset(cmd, 0, sizeof(cmd));
-
   avr_set_bits(wp, cmd);
   avr_set_addr(wp, cmd, addr);
-  pgm->cmd(pgm, cmd, res);
+  if(pgm->cmd(pgm, cmd, res) < 0)
+    goto error;
 
   /*
    * since we don't know what voltage the target AVR is powered by, be
@@ -523,8 +561,13 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
    */
   usleep(mem->max_write_delay);
 
-  pgm->pgm_led(pgm, OFF);
+  led_clr(pgm, LED_PGM);
   return 0;
+
+error:
+  led_set(pgm, LED_ERR);
+  led_clr(pgm, LED_PGM);
+  return -1;
 }
 
 
@@ -603,10 +646,13 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   int rc;
   int readok=0;
 
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
+
   if (pgm->cmd == NULL) {
     pmsg_error("%s programmer uses avr_write_byte_default() but does not\n", pgm->type);
     imsg_error("provide a cmd() method\n");
-    return -1;
+    goto error;
   }
 
   data = avr_bitmask_data(pgm, p, mem, addr, data);
@@ -614,18 +660,19 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   if (p->prog_modes & PM_TPI) {
     if (pgm->cmd_tpi == NULL) {
       pmsg_error("%s programmer does not support TPI\n", pgm->type);
-      return -1;
+      goto error;
     }
 
     if (str_eq(mem->desc, "flash")) {
       pmsg_error("writing a byte to flash is not supported for %s\n", p->desc);
-      return -1;
+      goto error;
     } else if ((mem->offset + addr) & 1) {
       pmsg_error("writing a byte to an odd location is not supported for %s\n", p->desc);
-      return -1;
+      goto error;
     }
 
-    while (avr_tpi_poll_nvmbsy(pgm));
+    while (avr_tpi_poll_nvmbsy(pgm))
+      continue;
 
     /* must erase fuse first */
     if (str_eq(mem->desc, "fuse")) {
@@ -635,9 +682,11 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       /* write dummy byte */
       cmd[0] = TPI_CMD_SST;
       cmd[1] = 0xFF;
-      rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+      if((rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0)) < 0)
+        goto error;
 
-      while (avr_tpi_poll_nvmbsy(pgm));
+      while (avr_tpi_poll_nvmbsy(pgm))
+        continue;
     }
 
     /* setup for WORD_WRITE */
@@ -645,15 +694,18 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
     cmd[0] = TPI_CMD_SST_PI;
     cmd[1] = data;
-    rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+    if((rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0)) < 0)
+      goto error;
     /* dummy high byte to start WORD_WRITE */
     cmd[0] = TPI_CMD_SST_PI;
     cmd[1] = data;
-    rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+    if((rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0)) < 0)
+      goto error;
 
-    while (avr_tpi_poll_nvmbsy(pgm));
+    while (avr_tpi_poll_nvmbsy(pgm))
+      continue;
 
-    return 0;
+    goto success;
   }
 
   if (!mem->paged && (p->flags & AVRPART_IS_AT90S1200) == 0) {
@@ -670,17 +722,15 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     rc = pgm->read_byte(pgm, p, mem, addr, &b);
     if (rc != 0) {
       if (rc != -1) {
-        return -2;
+        rc = -2;
+        goto rcerror;
       }
-      /*
-       * the read operation is not support on this memory type
-       */
+      // Read operation is not support on this memory type
     }
     else {
       readok = 1;
-      if (b == data) {
-        return 0;
-      }
+      if (b == data)
+        goto success;
     }
   }
 
@@ -710,19 +760,16 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 #if DEBUG
     pmsg_error("write not supported for memory type %s\n", mem->desc);
 #endif
-    return -1;
+    goto error;
   }
 
 
-  pgm->pgm_led(pgm, ON);
-  pgm->err_led(pgm, OFF);
-
   memset(cmd, 0, sizeof(cmd));
-
   avr_set_bits(writeop, cmd);
   avr_set_addr(writeop, cmd, caddr);
   avr_set_input(writeop, cmd, data);
-  pgm->cmd(pgm, cmd, res);
+  if(pgm->cmd(pgm, cmd, res) < 0)
+    goto error;
 
   if (mem->paged) {
     /*
@@ -730,8 +777,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
      * page complete immediately, we only need to delay when we commit
      * the whole page via the avr_write_page() routine.
      */
-    pgm->pgm_led(pgm, OFF);
-    return 0;
+    goto success;
   }
 
   if (readok == 0) {
@@ -740,8 +786,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
      * the max programming time and then return 
      */
     usleep(mem->max_write_delay); /* maximum write delay */
-    pgm->pgm_led(pgm, OFF);
-    return 0;
+    goto success;
   }
 
   tries = 0;
@@ -759,9 +804,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       usleep(mem->max_write_delay);
       rc = pgm->read_byte(pgm, p, mem, addr, &r);
       if (rc != 0) {
-        pgm->pgm_led(pgm, OFF);
-        pgm->err_led(pgm, OFF);
-        return -5;
+        rc = -5;
+        goto rcerror;
       }
     }
     else {
@@ -770,9 +814,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         // Do polling, but timeout after max_write_delay
         rc = pgm->read_byte(pgm, p, mem, addr, &r);
         if (rc != 0) {
-          pgm->pgm_led(pgm, OFF);
-          pgm->err_led(pgm, ON);
-          return -4;
+          rc = -4;
+          goto rcerror;
         }
         prog_time = avr_ustimestamp();
       } while (r != data &&  mem->max_write_delay >= 0 &&
@@ -795,7 +838,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
        * memory bits but not all.  We only actually power-off the
        * device if the data read back does not match what we wrote.
        */
-      pgm->pgm_led(pgm, OFF);
+
       pmsg_info("this device must be powered off and back on to continue\n");
       if ((pgm->pinno[PPI_AVR_VCC] & PIN_MASK) <= PIN_MAX) {
         pmsg_info("attempting to do this now ...\n");
@@ -806,11 +849,12 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
           pmsg_error("initialization failed, rc=%d\n", rc);
           imsg_error("cannot re-initialize device after programming the %s bits\n", mem->desc);
           imsg_error("you must manually power-down the device and restart %s to continue\n", progname);
-          return -3;
+          rc = -3;
+          goto rcerror;
         }
         
         pmsg_info("device was successfully re-initialized\n");
-        return 0;
+        goto success;
       }
     }
 
@@ -821,15 +865,22 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
        * been plenty of time, the memory cell still doesn't match what
        * we wrote.  Indicate a write error.
        */
-      pgm->pgm_led(pgm, OFF);
-      pgm->err_led(pgm, ON);
-      
-      return -6;
+      rc = -6;
+      goto rcerror;
     }
   }
 
-  pgm->pgm_led(pgm, OFF);
+success:
+  led_clr(pgm, LED_PGM);
   return 0;
+
+error:
+  rc = -1;
+
+rcerror:
+  led_set(pgm, LED_ERR);
+  led_clr(pgm, LED_PGM);
+  return rc;
 }
 
 
@@ -875,16 +926,13 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int 
  * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
  */
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int size, int auto_erase) {
-  int              rc;
   int              wsize;
   unsigned int     i, lastaddr;
   unsigned char    data;
-  int              werror;
   unsigned char    cmd[4];
 
-  pgm->err_led(pgm, OFF);
-
-  werror  = 0;
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
 
   wsize = m->size;
   if (size < wsize) {
@@ -894,19 +942,31 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     imsg_warning("Only %d bytes will actually be written\n", wsize);
   }
 
-  if(wsize <= 0)
+  if(wsize <= 0) {
+    if(wsize < 0)
+      led_set(pgm, LED_ERR);
+    led_clr(pgm, LED_PGM);
     return wsize;
+  }
 
   if ((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
     unsigned int    chunk; /* number of words for each write command */
     unsigned int    j, writeable_chunk;
 
     if (wsize == 1) {
-      /* fuse (configuration) memory: only single byte to write */
-      return avr_write_byte(pgm, p, m, 0, m->buf[0]) == 0? 1: LIBAVRDUDE_GENERAL_FAILURE;
+      // Fuse (configuration) memory: only single byte to write
+      if(avr_write_byte(pgm, p, m, 0, m->buf[0])) {
+        led_set(pgm, LED_ERR);
+        led_clr(pgm, LED_PGM);
+        return LIBAVRDUDE_GENERAL_FAILURE;
+      } else {
+        led_clr(pgm, LED_PGM);
+        return 1;
+      }
     }
 
-    while (avr_tpi_poll_nvmbsy(pgm));
+    while (avr_tpi_poll_nvmbsy(pgm))
+      continue;
 
     /* setup for WORD_WRITE */
     avr_tpi_setup_rw(pgm, m, 0, TPI_NVMCMD_WORD_WRITE);
@@ -920,6 +980,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       msg_error("\n");
       pmsg_error("unsupported n_word_writes value of %d for %s memory\n",
         m->n_word_writes, m->desc);
+      led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_PGM);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     chunk = m->n_word_writes > 0 ? 2*m->n_word_writes : 2;
@@ -944,7 +1006,12 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
         cmd[0] = TPI_CMD_SST_PI;
         for (j = 0; j < chunk; j++) {
           cmd[1] = m->buf[i+j];
-          rc = pgm->cmd_tpi(pgm, cmd, 2, NULL, 0);
+          if(pgm->cmd_tpi(pgm, cmd, 2, NULL, 0) < 0) {
+            report_progress(1, -1, NULL);
+            led_set(pgm, LED_ERR);
+            led_clr(pgm, LED_PGM);
+            return LIBAVRDUDE_GENERAL_FAILURE;
+          }
         }
 
         lastaddr += chunk;
@@ -954,6 +1021,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       report_progress(i, wsize, NULL);
     }
 
+    led_clr(pgm, LED_PGM);
     return i;
   }
 
@@ -991,7 +1059,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     if((pgsize & (pgsize-1)) || pgsize < 1) {
       pmsg_error("effective page size %d implausible\n", pgsize);
       avr_free_mem(cm);
-      return -1;
+      led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_PGM);
+      return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
     uint8_t *spc = cfg_malloc(__func__, cm->page_size);
@@ -1053,7 +1123,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
         }
 
       if (need_write) {
-        rc = 0;
+        int rc = 0;
         if (auto_erase && pgm->page_erase)
           rc = pgm->page_erase(pgm, p, cm, pageaddr);
         if (rc >= 0)
@@ -1062,7 +1132,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
       } else {
-        pmsg_debug("avr_write_mem(): skipping page %u: no interesting data\n", pageaddr / cm->page_size);
+        pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr / cm->page_size);
       }
       nwritten++;
       report_progress(nwritten, npages, NULL);
@@ -1071,8 +1141,10 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     avr_free_mem(cm);
     free(spc);
 
-    if (!failure)
+    if (!failure) {
+      led_clr(pgm, LED_PGM);
       return wsize;
+    }
     /* else: fall back to byte-at-a-time write, for historical reasons */
   }
 
@@ -1114,30 +1186,24 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       continue;
 
     if (do_write) {
-      rc = avr_write_byte(pgm, p, m, i, data);
-      if (rc) {
+      if(avr_write_byte(pgm, p, m, i, data)) {
         msg_error(" ***failed;\n");
-        pgm->err_led(pgm, ON);
-        werror = 1;
+        led_set(pgm, LED_ERR);
       }
     }
 
     if (flush_page) {           // Time to flush the page with a page write
       flush_page = 0;
-      rc = avr_write_page(pgm, p, m, i);
-      if (rc) {
+
+      if(avr_write_page(pgm, p, m, i)) {
         msg_error(" *** page %d (addresses 0x%04x - 0x%04x) failed to write\n\n",
           i / m->page_size, i - m->page_size + 1, i);
-        pgm->err_led(pgm, ON);
-          werror = 1;
+        led_set(pgm, LED_ERR);
       }
     }
-
-    // Ensure error led stays on lest it was cleared in avr_write_byte()
-    if (werror)
-      pgm->err_led(pgm, ON);
   }
 
+  led_clr(pgm, LED_PGM);
   return i;
 }
 
@@ -1468,7 +1534,7 @@ int avr_mem_might_be_known(const char *str) {
 
 
 int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  return pgm->chip_erase(pgm, p);
+  return led_chip_erase(pgm, p);
 }
 
 int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {

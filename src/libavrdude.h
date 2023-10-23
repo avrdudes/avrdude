@@ -708,8 +708,8 @@ typedef struct {                // Memory cache for a subset of cached pages
 
 /* formerly pgm.h */
 
-#define ON  1
-#define OFF 0
+#define OFF                  0 // Many contexts: reset, power, LEDs, ...
+#define ON                   1 // Many contexts
 
 #define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
@@ -739,6 +739,25 @@ typedef enum {
   CONNTYPE_SPI,
   CONNTYPE_LINUXGPIO
 } conntype_t;
+
+
+#define LED_N                 4 // Max number of LEDs driven by programmers
+#define LED_RDY               0 // led_set(pgm, LED_RDY) or led_clr(pgm, LED_RDY)
+#define LED_ERR               1 // led_set(pgm, LED_ERR) or led_clr(pgm, LED_ERR)
+#define LED_PGM               2 // led_set(pgm, LED_PGM) or led_clr(pgm, LED_PGM)
+#define LED_VFY               3 // led_set(pgm, LED_VFY) or led_clr(pgm, LED_VFY)
+#define LED_BEG            (-1) // led_set(pgm, LED_BEG) initally clear all LEDs
+#define LED_END            (-2) // led_set(pgm, LED_END) set error codes at extit
+#define LED_NOP            (-3) // led_set(pgm, LED_NOP) periodic nop for blinking
+
+#ifndef LED_FMAX
+#define LED_FMAX           2.51 // Hz (max frequency at which LEDs change)
+#endif
+
+typedef struct {
+  int now, chg, phy, end, set;  // LED states (current, change needed next period, physical, at end, ever set)
+  unsigned long ms[LED_N];      // Time in ms after last physical change
+} leds_t;
 
 /*
  * Any changes in PROGRAMMER, please also ensure changes are made in
@@ -781,6 +800,7 @@ typedef struct programmer_t {
   int ispdelay;                 // ISP clock delay
   int page_size;                // Page size if the programmer supports paged write/load
   double bitclock;              // JTAG ICE clock period in microseconds
+  leds_t *leds;                 // State of LEDs as tracked by led_...()  functions in leds.c
 
   int  (*rdy_led)        (const struct programmer_t *pgm, int value);
   int  (*err_led)        (const struct programmer_t *pgm, int value);
@@ -1286,6 +1306,20 @@ void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
+
+int led_set(const PROGRAMMER *pgm, int led);
+int led_clr(const PROGRAMMER *pgm, int led);
+int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
+int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned long addr, unsigned char value);
+int led_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned long addr, unsigned char *value);
+int led_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int baseaddr, unsigned int n_bytes);
+int led_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int page_size, unsigned int baseaddr, unsigned int n_bytes);
+int led_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int baseaddr);
 
 int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p);
 int terminal_mode_noninteractive(const PROGRAMMER *pgm, const AVRPART *p);

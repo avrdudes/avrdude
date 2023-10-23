@@ -535,7 +535,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
     }
     if (verbose > 4) {
       msg_trace2("%s  Memory Ops:\n"
-                      "%s    Oeration     Inst Bit  Bit Type  Bitno  Value\n"
+                      "%s    Operation    Inst Bit  Bit Type  Bitno  Value\n"
                       "%s    -----------  --------  --------  -----  -----\n",
                       prefix, prefix, prefix);
       for (i=0; i<AVR_OP_MAX; i++) {

@@ -426,19 +426,19 @@ static int set_vcc(const PROGRAMMER *pgm, int value) {
 /* these functions are callbacks, which go into the
  * PROGRAMMER data structure ("optional functions")
  */
-static int set_led_pgm(const PROGRAMMER *pgm, int value) {
-    return set_pin(pgm, PIN_LED_PGM, value);
-}
-
-static int set_led_rdy(const PROGRAMMER *pgm, int value) {
+static int ft245_rdy_led(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_RDY, value);
 }
 
-static int set_led_err(const PROGRAMMER *pgm, int value) {
+static int ft245_err_led(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_ERR, value);
 }
 
-static int set_led_vfy(const PROGRAMMER *pgm, int value) {
+static int ft245_pgm_led(const PROGRAMMER *pgm, int value) {
+    return set_pin(pgm, PIN_LED_PGM, value);
+}
+
+static int ft245_vfy_led(const PROGRAMMER *pgm, int value) {
     return set_pin(pgm, PIN_LED_VFY, value);
 }
 
@@ -785,8 +785,6 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 			  int cmd_len, unsigned char *res, int res_len) {
     int i, ret = 0;
 
-    pgm->pgm_led(pgm, ON);
-
     for (i = 0; i < cmd_len; ++i)
 	ft245r_tpi_tx(pgm, cmd[i]);
     for (i = 0; i < res_len; ++i)
@@ -802,7 +800,6 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 	msg_notice2("]\n");
     }
 
-    pgm->pgm_led(pgm, OFF);
     return ret;
 }
 
@@ -1233,10 +1230,10 @@ void ft245r_initpgm(PROGRAMMER *pgm) {
     pgm->paged_write = ft245r_paged_write;
     pgm->paged_load = ft245r_paged_load;
 
-    pgm->rdy_led        = set_led_rdy;
-    pgm->err_led        = set_led_err;
-    pgm->pgm_led        = set_led_pgm;
-    pgm->vfy_led        = set_led_vfy;
+    pgm->rdy_led        = ft245_rdy_led;
+    pgm->err_led        = ft245_err_led;
+    pgm->pgm_led        = ft245_pgm_led;
+    pgm->vfy_led        = ft245_vfy_led;
     pgm->powerup        = ft245r_powerup;
     pgm->powerdown      = ft245r_powerdown;
 

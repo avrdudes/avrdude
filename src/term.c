@@ -597,8 +597,6 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\v");
 
-  pgm->err_led(pgm, OFF);
-  bool werror = false;
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
   for (i = 0; i < len + bytes_grown; i++) {
     report_progress(i, len + bytes_grown, NULL);
@@ -613,10 +611,8 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
       pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
-      werror = true;
     } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
       imsg_error("%*sreadback from %s failed\n", 8, "", mem->desc);
-      werror = true;
     } else {                    // Read back byte b is now set
       int bitmask = avr_mem_bitmask(p, mem, addr+i);
       if((b & bitmask) != (buf[i] & bitmask)) {
@@ -624,12 +620,8 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
         if(bitmask != 0xff)
           msg_error(" using bit mask 0x%02x", bitmask);
         msg_error("\n");
-        werror = true;
       }
-   }
-
-    if (werror)
-      pgm->err_led(pgm, ON);
+    }
   }
   report_progress(1, 1, NULL);
 
@@ -776,8 +768,7 @@ static int cmd_abort(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   unsigned char cmd[4], res[4];
   const char *errptr;
-  int i;
-  int len;
+  int rc, len;
 
   if(argc > 5 || (argc < 5 && !spi_mode) || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(spi_mode?
@@ -799,7 +790,7 @@ static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   len = argc - 1;
 
   /* load command bytes */
-  for (i=1; i<argc; i++) {
+  for (int i=1; i<argc; i++) {
     cmd[i-1] = str_int(argv[i], STR_UINT8, &errptr);
     if(errptr) {
       pmsg_error("(send) byte %s: %s\n", argv[i], errptr);
@@ -807,22 +798,24 @@ static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     }
   }
 
-  pgm->err_led(pgm, OFF);
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
 
-  if (spi_mode)
-    pgm->spi(pgm, cmd, res, argc-1);
-  else
-    pgm->cmd(pgm, cmd, res);
+  rc = spi_mode? pgm->spi(pgm, cmd, res, argc-1): pgm->cmd(pgm, cmd, res);
 
-  /*
-   * display results
-   */
-  term_out("results:");
-  for (i=0; i<len; i++)
-    term_out(" %02x", res[i]);
-  term_out("\n");
+  if(rc < 0)
+    led_set(pgm, LED_ERR);
+  led_clr(pgm, LED_PGM);
 
-  return 0;
+  if(rc >= 0) {
+    term_out("results:");
+    for(int i=0; i<len; i++)
+      term_out(" %02x", res[i]);
+    term_out("\n");
+  } else
+    pmsg_error("(send) pgm->%s() command failed\n", spi_mode? "spi": "cmd");
+
+  return rc < 0? -1: 0;
 }
 
 
@@ -1019,7 +1012,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
 
   fl_t m = {.i = 0};
   for(int i=0; i<mem->size; i++)
-    if(pgm->read_byte(pgm, p, mem, i, m.b+i) < 0) {
+    if(led_read_byte(pgm, p, mem, i, m.b+i) < 0) {
       err = cache_string(tofree = str_sprintf("cannot read %s's %s memory", p->desc, mem->desc));
       free(tofree);
       goto back;
@@ -1548,7 +1541,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
 
   if(towrite.i != fusel.current) {
     for(int i=0; i<mem->size; i++)
-      if(pgm->write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
+      if(led_write_byte(pgm, p, mem, i, towrite.b[i]) < 0) {
         pmsg_error("(config) cannot write to %s's %s memory\n", p->desc, mem->desc);
         ret = -1;
         goto finished;
@@ -2054,7 +2047,15 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Run the command
+    led_clr(pgm, LED_ERR);
+    led_set(pgm, LED_PGM);
+
     rc = do_cmd(pgm, p, argc, argv);
+
+    if(rc<0)
+      led_set(pgm, LED_ERR);
+    led_clr(pgm, LED_PGM);
+
     free(argv);
   } while(*q);
 
@@ -2174,6 +2175,7 @@ static int terminal_mode_interactive(const PROGRAMMER *pgm, const AVRPART *p) {
     if(n%16 == 0) {             // Every 100 ms (16*6.25 us) reset bootloader watchdog timer
       if(pgm->term_keep_alive)
         pgm->term_keep_alive(pgm, NULL);
+      led_set(pgm, LED_NOP);
     }
     usleep(6250);
     if(readytoread() > 0 && term_running)

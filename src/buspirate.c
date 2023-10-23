@@ -983,9 +983,6 @@ static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 	if (n_data_bytes%page_size >0)
 		n_page_writes++;
 
-	/* Ensure error LED is off: */
-	pgm->err_led(pgm, OFF);
-
 	/* Loop over pages: */
 	for (page=0; page<n_page_writes; page++) {
 
@@ -1026,22 +1023,14 @@ static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 		buspirate_send_bin(pgm, &send_byte, 1); /* High byte */
 		buspirate_send_bin(pgm, &send_byte, 1); /* Low byte */
 
-		/* Set programming LED: */
-		pgm->pgm_led(pgm, ON);
-
 		/* Send command buffer: */
 		buspirate_send_bin(pgm, cmd_buf, 4*this_page_size);
 
 		/* Check for write failure: */
 		if ((buspirate_recv_bin(pgm, &recv_byte, 1) == EOF) || (recv_byte != 0x01)) {
 			pmsg_error("write then read did not succeed\n");
-			pgm->pgm_led(pgm, OFF);
-			pgm->err_led(pgm, ON);
 			return -1;
 		}
-
-		/* Unset programming LED: */
-		pgm->pgm_led(pgm, OFF);
 
 		/* Write loaded page to flash: */
 		avr_write_page(pgm, p, m, addr);
@@ -1087,16 +1076,12 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 		return -1;
 	}
 
-	pgm->pgm_led(pgm, ON);
-
 	memset(cmd, 0, sizeof(cmd));
 
 	avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
 	pgm->cmd(pgm, cmd, res);
 	usleep(p->chip_erase_delay);
 	pgm->initialize(pgm, p);
-
-	pgm->pgm_led(pgm, OFF);
 
 	return 0;
 }

@@ -189,6 +189,7 @@ add_library(libavrdude
     jtag3.c
     jtag3.h
     jtag3_private.h
+    leds.c
     libavrdude.h
     linuxgpio.c
     linuxgpio.h

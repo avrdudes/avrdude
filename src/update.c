@@ -528,7 +528,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   case DEVICE_VERIFY:
     // Verify that the in memory file is the same as what is on the chip
-    pgm->vfy_led(pgm, ON);
+    led_set(pgm, LED_VFY);
 
     int userverify = upd->op == DEVICE_VERIFY; // Explicit -U :v by user
 
@@ -544,12 +544,17 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
       if (rc < 0) {
         pmsg_error("read from file %s failed\n", str_inname(upd->filename));
+        led_set(pgm, LED_ERR);
+        led_clr(pgm, LED_VFY);
         return LIBAVRDUDE_GENERAL_FAILURE;
       }
       size = rc;
 
-      if(memstats(p, upd->memtype, size, &fs) < 0)
+      if(memstats(p, upd->memtype, size, &fs) < 0) {
+        led_set(pgm, LED_ERR);
+        led_clr(pgm, LED_VFY);
         return LIBAVRDUDE_GENERAL_FAILURE;
+      }
     } else {
       // Correct size of last read to include potentially cut off, trailing 0xff (flash)
       size = fs.lastaddr+1;
@@ -570,7 +575,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     report_progress (1,1,NULL);
     if (rc < 0) {
       pmsg_error("unable to read all of %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
-      pgm->err_led(pgm, ON);
+      led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_VFY);
       avr_free_part(v);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
@@ -581,7 +587,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     rc = avr_verify(pgm, p, v, upd->memtype, size);
     if (rc < 0) {
       pmsg_error("verification mismatch\n");
-      pgm->err_led(pgm, ON);
+      led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_VFY);
       avr_free_part(v);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
@@ -589,7 +596,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     int verified = fs.nbytes+fs.ntrailing;
     pmsg_info("%d byte%s of %s%s verified\n", verified, str_plural(verified), mem->desc, alias_mem_desc);
 
-    pgm->vfy_led(pgm, OFF);
+    led_clr(pgm, LED_VFY);
     avr_free_part(v);
     break;
 
