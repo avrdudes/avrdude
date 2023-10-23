@@ -756,7 +756,7 @@ typedef enum {
 
 typedef struct {
   int now, chg, phy, end, set;  // LED states (current, change needed next period, physical, at end, ever set)
-  unsigned long ms[LED_N];      // time in ms after last physical change
+  unsigned long ms[LED_N];      // Time in ms after last physical change
 } leds_t;
 
 /*

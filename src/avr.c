@@ -359,6 +359,9 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   if(mem->size < 0)             // Sanity check
     return -1;
 
+  led_clr(pgm, LED_ERR);
+  led_set(pgm, LED_PGM);
+
   /*
    * start with all 0xff
    */
@@ -367,9 +370,6 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   /* supports "paged load" thru post-increment */
   if ((p->prog_modes & PM_TPI) && mem->page_size > 1 &&
       mem->size % mem->page_size == 0 && pgm->cmd_tpi != NULL) {
-
-    led_clr(pgm, LED_ERR);
-    led_set(pgm, LED_PGM);
 
     while (avr_tpi_poll_nvmbsy(pgm))
       continue;
@@ -449,7 +449,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
           break;
         }
       if (need_read) {
-        rc = led_paged_load(pgm, p, mem, mem->page_size,
+        rc = pgm->paged_load(pgm, p, mem, mem->page_size,
                             pageaddr, mem->page_size);
         if (rc < 0)
           /* paged load failed, fall back to byte-at-a-time read below */
@@ -460,19 +460,22 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
       nread++;
       report_progress(nread, npages, NULL);
     }
-    if (!failure)
+    if (!failure) {
+      led_clr(pgm, LED_PGM);
       return avr_mem_hiaddr(mem);
+    }
     /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
   if (str_eq(mem->desc, "signature")) {
     if (pgm->read_sig_bytes) {
-      return pgm->read_sig_bytes(pgm, p, mem);
+      int rc = pgm->read_sig_bytes(pgm, p, mem);
+      if (rc < 0)
+        led_set(pgm, LED_ERR);
+      led_clr(pgm, LED_PGM);
+      return rc;
     }
   }
-
-  led_clr(pgm, LED_ERR);
-  led_set(pgm, LED_PGM);
 
   for (i=0; i < (unsigned long) mem->size; i++) {
     if (vmem == NULL || (vmem->tags[i] & TAG_ALLOCATED) != 0) {
