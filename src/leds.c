@@ -22,7 +22,14 @@
 #include "libavrdude.h"
 
 /*
- * Handle physical LEDs for programmers that have them
+ * Handle LEDs for some programmers
+ *
+ * Some hardware programmers have LEDs, and the firmware controls them
+ * fully without AVRDUDE having a way to influence the LED states. Other
+ * programmers have LEDs and expect the host downloader/uploader to handle
+ * them. For the latter type of programmers AVRDUDE provides support of
+ * four LEDs (RDY, ERR, PGM and VFY) which can be set via corresponding
+ * pgm->xxx_led(pgm, on_off) calls.
  *
  * The RDY LED is set once the programmer is initialised and switched
  * off when AVRDUDE exits. During reading, writing or erasing the target
@@ -36,7 +43,7 @@
  *
  * | PGM | VFY | ERR | Semantics                                        |
  * | --- | --- | --- | ------------------------------------------------ |
- * | off | off | off | OK: all tasks done w/o errors                    |
+ * | off | off | off | OK: all tasks done without errors                |
  * | off | off | on  | Some error not related to read/write/erase       |
  * | on  | off | on  | Read/write/erase error                           |
  * | off | on  | on  | Verification error but no read/write/erase error |

@@ -99,7 +99,7 @@ programs to Atmel AVR microcontrollers.
 
 For avrdude version @value{VERSION}, @value{UPDATED}.
 
-Use @uref{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
+Use @url{https://github.com/avrdudes/avrdude/issues} to report bugs and ask questions.
 
 Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org Wunsch
 @end ifinfo
@@ -174,7 +174,8 @@ be taken about voltage level compatibility. Also, although not strictly
 required, it is strongly advisable to protect the GPIO pins from 
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
-the 74HC244. Have a look at http://kolev.info/blog/2013/01/06/avrdude-linuxgpio/ for a more
+the 74HC244. Have a look at
+@url{https://kolev.info/blog/2013/01/06/avrdude-linuxgpio/} for a more
 detailed tutorial about using this programmer type.
 
 Under a Linux installation with direct access to the SPI bus and GPIO
@@ -293,7 +294,7 @@ below for details.
 Urprotocol is a leaner version of the STK500 1.x protocol that is designed
 to be backwards compatible with STK500 v1.x; it allows bootloaders to be
 much smaller, e.g., as implemented in the urboot project
-@uref{https://github.com/stefanrueger/urboot}. The programmer type ``urclock''
+@url{https://github.com/stefanrueger/urboot}. The programmer type ``urclock''
 caters for these urboot bootloaders. Owing to its backward compatibility,
 bootloaders that can be served by the arduino programmer can normally also
 be served by the urclock programmer. This may require specifying the size
@@ -737,7 +738,7 @@ same method of specifying the port is required there.
 For the USB programmer "AVR-Doper" running in HID mode, the port must
 be specified as @var{avrdoper}. Libhidapi support is required on Unix
 and Mac OS but not on Windows. For more information about AVR-Doper see
-@url{http://www.obdev.at/avrusb/avrdoper.html}.
+@url{https://www.obdev.at/products/vusb/avrdoper.html}.
 
 For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
@@ -3336,6 +3337,7 @@ Reading fuse and lock bits is fully supported.
 * Atmel STK600::
 * Atmel DFU bootloader using FLIP version 1::
 * SerialUPDI programmer::
+* Programmer LED management::
 @end menu
 
 @c
@@ -3467,7 +3469,7 @@ versions of the bootloader.
 @c
 @c Node
 @c
-@node SerialUPDI programmer, , Atmel DFU bootloader using FLIP version 1, Programmer Specific Information
+@node SerialUPDI programmer, Programmer LED management, Atmel DFU bootloader using FLIP version 1, Programmer Specific Information
 @cindex SerialUPDI
 @section SerialUPDI programmer
 
@@ -3480,15 +3482,16 @@ SerialUPDI programmer has been tested using FT232RL USB->UART interface
 with the following connection layout (copied from Spence Kohde's page linked
 above):
 
+@noindent
 @example
---------------------                                 To Target device
-                DTR|                                  __________________
-                Rx |--------------,------------------| UPDI---\/\/---------->
-  Tx---/\/\/\---Tx |-------|<|---'          .--------| Gnd    470 ohm 
-    resistor    Vcc|---------------------------------| Vcc
-        1k      CTS|                     .`          |__________________
-                Gnd|--------------------' 
---------------------
+------------------                              To Target device
+              DTR|                               _______________
+              Rx |-----------,------------------| UPDI---\/\/------->
+Tx---/\/\/\---Tx |----|<|---'          .--------| Gnd    470 ohm
+  resistor    Vcc|------------------------------| Vcc
+      1k      CTS|                  .`          |_______________
+              Gnd|-----------------'
+------------------
 @end example
 
 There are several limitations in current SerialUPDI/AVRDUDE integration,
@@ -3559,6 +3562,44 @@ utility with @option{-v debug} and provide its output too.
 You will notice that both outputs are pretty similar, and this
 was implemented like that on purpose - it was supposed to make
 analysis of UPDI protocol quirks easier.
+
+@c
+@c Node
+@c
+@node Programmer LED management, , SerialUPDI programmer, Programmer Specific Information
+@cindex LED management
+@section Programmer LED management
+
+Some hardware programmers have LEDs, and the firmware controls them fully
+without AVRDUDE having a way to influence their LED states. Other
+programmers have LEDs and expect the host downloader/uploader to handle
+them, for example bit-banging programmers, ftdi-based programmers or
+linuxgpio programmers. For those programmers AVRDUDE provides support of
+four LEDs (RDY, ERR, PGM and VFY) which can be set via corresponding
+subroutines in the code for the respective @code{-c} programmer.
+
+The RDY LED is set once the programmer is initialised and switched off
+when AVRDUDE exits. During reading, writing or erasing the target the PGM
+LED flashes with around 2.5 Hz, whilst the VFY LED comes on during -U
+verification of the uploaded contents. Errors are indicated with the ERR
+LED.
+
+Assuming AVRDUDE got to the point where LEDs are accessible and the RDY
+LED was switched on then, on exit, AVRDUDE will leave the LEDs in the
+following states:
+
+@multitable @columnfractions .075 .075 .075 .075 .6
+@item @tab @strong{PGM} @tab @strong{VFY} @tab @strong{ERR} @tab @strong{Semantics}
+@item @tab off @tab off @tab off @tab OK: all tasks done without errors
+@item @tab off @tab off @tab on  @tab Some error not related to read, write or erase
+@item @tab on  @tab off @tab on  @tab Read, write or erase error
+@item @tab off @tab on  @tab on  @tab Verification error but no read, write or erase error
+@item @tab on  @tab on  @tab on  @tab Verification error and read, write or erase error
+@end multitable
+
+@noindent
+Other combinations should not show after exit.
+
 
 @c
 @c Node
