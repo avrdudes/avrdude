@@ -30,6 +30,7 @@ Changes since version 7.2:
     - Cross-platform support for 1200bps touch #1500
     - Read ATmega324PB and ATmega328PB serial number #1509
     - EEPROM file generates error with 7.2 #1508
+    - PGM LED not activated for flash or eeprom write #1514
 
   * Pull requests:
 
@@ -58,6 +59,9 @@ Changes since version 7.2:
     - Model prodsig for -c dryrun #1522
     - Fix tempsense size, AVR-EB memory offsets and avrdude.conf
       memory order #1523
+    - Review and update LED support #1528
+    - Fix SerialUPDI with NVM v3 controller #1531
+    - Add bootloader hashes from the Sanguino Arduino repo #1533
 
   * Internals:
 
