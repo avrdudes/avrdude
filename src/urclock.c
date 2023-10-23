@@ -1101,6 +1101,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     return;
 
   Blhash_t blist[] = {
+    // From https://github.com/arduino/ArduinoCore-avr/tree/master/bootloaders
     { 1024, 0, 0x35445c45, 0x9ef77953 }, // ATmegaBOOT-prod-firmware-2009-11-07.hex
     { 1024, 0, 0x32b1376c, 0xceba80bb }, // ATmegaBOOT.hex
     { 2048, 0, 0x08426ba2, 0x29e81e21 }, // ATmegaBOOT_168.hex
@@ -1120,6 +1121,8 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  512, 0, 0xd2001ddb, 0x16c9663b }, // optiboot_atmega328.hex v4.4
     {  512, 0, 0x49c1e9a4, 0xa450759b }, // optiboot_atmega328.hex v8.3
     {  512, 0, 0xc54dcd6c, 0x5bfc5d06 }, // optiboot_atmega8.hex
+
+    // From https://github.com/nerdralph/picoboot
     {  256, 0, 0x5a01c55b, 0x5a01c55b }, // picobootArduino168.hex
     {  256, 0, 0x1451061b, 0x1451061b }, // picobootArduino168v3b2.hex
     {  512, 0, 0x3242ddd3, 0x53348738 }, // picobootArduino328.hex
@@ -1128,7 +1131,20 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
     {  256, 0, 0xaa62bafc, 0xaa62bafc }, // picobootArduino8v3rc1.hex
     {  256, 0, 0x56263965, 0x56263965 }, // picobootSTK500-168p.hex
     {  512, 0, 0x3242ddd3, 0x5ba5f5f6 }, // picobootSTK500-328p.hex
+
+    // From https://github.com/LGTMCU/Larduino_HSP/tree/master/hardware/LGT/avr/bootloaders/lgt8fx8p
     { 3072, 0, 0x3242ddd3, 0xd3347c5d }, // optiboot_lgt8f328p.hex
+
+    // From https://github.com/Lauszus/Sanguino
+    { 1024, 0, 0xe244a3c6, 0xc7ceaadf }, // optiboot_atmega644.hex
+    { 1024, 0, 0xe244a3c6, 0x063b24dd }, // optiboot_atmega1284p.hex
+    { 1024, 0, 0xe244a3c6, 0x6e5d8d92 }, // optiboot_balanduino644.hex
+    { 1024, 0, 0xe244a3c6, 0xed2e78d7 }, // optiboot_atmega1284p_8m.hex
+    { 1024, 0, 0xe244a3c6, 0x57215b62 }, // optiboot_atmega644p.hex
+    { 1024, 0, 0xe244a3c6, 0x365954f4 }, // optiboot_atmega644p_8m.hex
+    { 1024, 0, 0xe244a3c6, 0x6f120e6a }, // optiboot_atmega644_8m.hex
+    { 1024, 0, 0xe244a3c6, 0x79b266ae }, // optiboot_balanduino.hex
+
 #include "urclock_hash.h"                // Selected from https://github.com/MCUdude/optiboot_flash
   };
 
