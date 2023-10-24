@@ -151,7 +151,7 @@ static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
 static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
-static unsigned char jtagmkII_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
+static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
 static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 
 // AVR32
@@ -1856,7 +1856,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   cmd[0] = CMND_XMEGA_ERASE;
   if (str_eq(m->desc, "flash")) {
-    if (jtagmkII_memtype(pgm, p, addr) == MTYPE_FLASH)
+    if (jtagmkII_mtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[1] = XMEGA_ERASE_APP_PAGE;
     else
       cmd[1] = XMEGA_ERASE_BOOT_PAGE;
@@ -1924,7 +1924,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   unsigned int maxaddr = addr + n_bytes;
   unsigned char *cmd;
   unsigned char *resp;
-  int status, tries, dynamic_memtype = 0;
+  int status, tries, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
   pmsg_notice2("jtagmkII_paged_write(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
@@ -1943,10 +1943,10 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   cmd[0] = CMND_WRITE_MEMORY;
   if (str_eq(m->desc, "flash")) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
-    cmd[1] = jtagmkII_memtype(pgm, p, addr);
+    cmd[1] = jtagmkII_mtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI))
-      /* dynamically decide between flash/boot memtype */
-      dynamic_memtype = 1;
+      /* dynamically decide between flash/boot mtype */
+      dynamic_mtype = 1;
   } else if (str_eq(m->desc, "eeprom")) {
     if (pgm->flag & PGM_FL_IS_DW) {
       /*
@@ -1983,8 +1983,8 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     pmsg_debug("jtagmkII_paged_write(): "
       "block_size at addr %d is %d\n", addr, block_size);
 
-    if (dynamic_memtype)
-      cmd[1] = jtagmkII_memtype(pgm, p, addr);
+    if (dynamic_mtype)
+      cmd[1] = jtagmkII_mtype(pgm, p, addr);
 
     u32_to_b4(cmd + 2, page_size);
     u32_to_b4(cmd + 6, jtagmkII_memaddr(pgm, p, m, addr));
@@ -2048,7 +2048,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned int maxaddr = addr + n_bytes;
   unsigned char cmd[10];
   unsigned char *resp;
-  int status, tries, dynamic_memtype = 0;
+  int status, tries, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
   pmsg_notice2("jtagmkII_paged_load(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
@@ -2060,10 +2060,10 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   cmd[0] = CMND_READ_MEMORY;
   if (str_eq(m->desc, "flash")) {
-    cmd[1] = jtagmkII_memtype(pgm, p, addr);
+    cmd[1] = jtagmkII_mtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI))
-      /* dynamically decide between flash/boot memtype */
-      dynamic_memtype = 1;
+      /* dynamically decide between flash/boot mtype */
+      dynamic_mtype = 1;
   } else if (str_eq(m->desc, "eeprom")) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2088,8 +2088,8 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     pmsg_debug("jtagmkII_paged_load(): "
       "block_size at addr %d is %d\n", addr, block_size);
 
-    if (dynamic_memtype)
-      cmd[1] = jtagmkII_memtype(pgm, p, addr);
+    if (dynamic_mtype)
+      cmd[1] = jtagmkII_mtype(pgm, p, addr);
 
     u32_to_b4(cmd + 2, block_size);
     u32_to_b4(cmd + 6, jtagmkII_memaddr(pgm, p, m, addr));
@@ -2629,7 +2629,7 @@ static void jtagmkII_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   jtagmkII_print_parms1(pgm, "", fp);
 }
 
-static unsigned char jtagmkII_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
+static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
   if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     if (addr >= PDATA(pgm)->boot_start)
       return MTYPE_BOOT_FLASH;

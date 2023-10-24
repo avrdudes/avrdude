@@ -329,10 +329,10 @@ int avr_mem_hiaddr(const AVRMEM * mem)
  *
  * Return the number of bytes read, or < 0 if an error occurs.
  */
-int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, const AVRPART *v) {
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, const AVRPART *v) {
+  AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("no %s memory for part %s\n", memtype, p->desc);
+    pmsg_error("no %s memory for part %s\n", memstr, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -907,10 +907,10 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
  *
  * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
  */
-int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase) {
-  AVRMEM *m = avr_locate_mem(p, memtype);
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase) {
+  AVRMEM *m = avr_locate_mem(p, memstr);
   if (m == NULL) {
-    pmsg_error("no %s memory for part %s\n", memtype, p->desc);
+    pmsg_error("no %s memory for part %s\n", memstr, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -1232,10 +1232,10 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
   if(str_eq(mem->desc, "fuses") && addr >=0 && addr < 16) { // Get right fuse in fuses memory
-    char memtype[64];
+    char memstr[64];
     AVRMEM *dfuse;
-    sprintf(memtype, "fuse%x", addr);
-    if((dfuse = avr_locate_mem(p, memtype)) && dfuse->size == 1)
+    sprintf(memstr, "fuse%x", addr);
+    if((dfuse = avr_locate_mem(p, memstr)) && dfuse->size == 1)
       bitmask = dfuse->bitmask;
   }
 
@@ -1281,21 +1281,21 @@ int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
  *
  * Return the number of bytes verified, or -1 if they don't match.
  */
-int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memtype, int size) {
+int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memstr, int size) {
   int i;
   unsigned char * buf1, * buf2;
   int vsize;
   AVRMEM * a, * b;
 
-  a = avr_locate_mem(p, memtype);
+  a = avr_locate_mem(p, memstr);
   if (a == NULL) {
-    pmsg_error("memory type %s not defined for part %s\n", memtype, p->desc);
+    pmsg_error("memory type %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
 
-  b = avr_locate_mem(v, memtype);
+  b = avr_locate_mem(v, memstr);
   if (b == NULL) {
-    pmsg_error("memory type %s not defined for part %s\n", memtype, v->desc);
+    pmsg_error("memory type %s not defined for part %s\n", memstr, v->desc);
     return -1;
   }
 
@@ -1305,7 +1305,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 
   if (vsize < size) {
     pmsg_warning("requested verification for %d bytes\n", size);
-    imsg_warning("%s memory region only contains %d bytes\n", memtype, vsize);
+    imsg_warning("%s memory region only contains %d bytes\n", memstr, vsize);
     imsg_warning("only %d bytes will be verified\n", vsize);
     size = vsize;
   }
@@ -1342,12 +1342,12 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memtype);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
           imsg_warning("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memtype);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
           imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
         }
@@ -1488,32 +1488,32 @@ void avr_add_mem_order(const char *str) {
   exit(1);
 }
 
-int avr_memtype_is_flash_type(const char *memtype) {
-  return memtype && (
-     str_eq(memtype, "flash") ||
-     str_eq(memtype, "application") ||
-     str_eq(memtype, "apptable") ||
-     str_eq(memtype, "boot"));
+int avr_memstr_is_flash_type(const char *memstr) {
+  return memstr && (
+     str_eq(memstr, "flash") ||
+     str_eq(memstr, "application") ||
+     str_eq(memstr, "apptable") ||
+     str_eq(memstr, "boot"));
 }
 
 int avr_mem_is_flash_type(const AVRMEM *mem) {
-  return avr_memtype_is_flash_type(mem->desc);
+  return avr_memstr_is_flash_type(mem->desc);
 }
 
-int avr_memtype_is_eeprom_type(const char *memtype) {
-  return memtype && str_eq(memtype, "eeprom");
+int avr_memstr_is_eeprom_type(const char *memstr) {
+  return memstr && str_eq(memstr, "eeprom");
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
-  return avr_memtype_is_eeprom_type(mem->desc);
+  return avr_memstr_is_eeprom_type(mem->desc);
 }
 
-int avr_memtype_is_usersig_type(const char *memtype) { // Bootrow is subsumed under usersig type
-  return memtype && (str_eq(memtype, "bootrow") || str_eq(memtype, "usersig") || str_eq(memtype, "userrow"));
+int avr_memstr_is_usersig_type(const char *memstr) { // Bootrow is subsumed under usersig type
+  return memstr && (str_eq(memstr, "bootrow") || str_eq(memstr, "usersig") || str_eq(memstr, "userrow"));
 }
 
 int avr_mem_is_usersig_type(const AVRMEM *mem) {
-  return avr_memtype_is_usersig_type(mem->desc);
+  return avr_memstr_is_usersig_type(mem->desc);
 }
 
 int avr_mem_is_known(const char *str) {

@@ -232,7 +232,7 @@ typedef struct opcode {
  *  - lexer.l
  *  - Either Component_t avr_comp[] of config.c or in config_gram.y
  *  - dev_part_strct() in developer_opts.c
- *  - avr_new_part() and/or avr_new_memtype() in avrpart.c for
+ *  - avr_new_part() and/or avr_new_mem() in avrpart.c for
  *    initialisation; note that all const char * must be initialised with ""
  */
 typedef struct avrpart {
@@ -379,7 +379,7 @@ const char *opcodename(int opnum);
 char *opcode2str(const OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
-AVRMEM * avr_new_memtype(void);
+AVRMEM * avr_new_mem(void);
 AVRMEM_ALIAS * avr_new_memalias(void);
 int avr_initmem(const AVRPART *p);
 AVRMEM * avr_dup_mem(const AVRMEM *m);
@@ -937,7 +937,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
 int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
 
-int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memtype, const AVRPART *v);
+int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const AVRPART *v);
 
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
@@ -962,7 +962,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
 
-int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase);
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase);
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 
@@ -978,15 +978,15 @@ char *avr_prog_modes(int pm);
 
 void avr_add_mem_order(const char *str);
 
-int avr_memtype_is_flash_type(const char *mem);
+int avr_memstr_is_flash_type(const char *mem);
 
 int avr_mem_is_flash_type(const AVRMEM *mem);
 
-int avr_memtype_is_eeprom_type(const char *mem);
+int avr_memstr_is_eeprom_type(const char *mem);
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem);
 
-int avr_memtype_is_usersig_type(const char *mem);
+int avr_memstr_is_usersig_type(const char *mem);
 
 int avr_mem_is_usersig_type(const AVRMEM *mem);
 
@@ -1077,7 +1077,7 @@ int fileio_fmt_autodetect_fp(FILE *f);
 int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, const char *memtype, int size);
+  const AVRPART *p, const char *memstr, int size);
 
 int segment_normalise(const AVRMEM *mem, Segment_t *segp);
 
@@ -1107,7 +1107,7 @@ enum updateflags {
 
 typedef struct update_t {
   const char *cmdline;          // -T line is stored here and takes precedence if it exists
-  char *memtype;                // Memory name for -U
+  char *memstr;                 // Memory name for -U
   int   op;                     // Symbolic memory operation DEVICE_... for -U
   char *filename;               // Filename for -U, can be -
   int   format;                 // File format FMT_...
@@ -1136,7 +1136,7 @@ extern void free_update(UPDATE *upd);
 char *update_str(const UPDATE *upd);
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
-int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
+int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp);
 
 // Helper functions for dry run to determine file access
 int update_is_okfile(const char *fn);
@@ -1301,7 +1301,7 @@ bool is_bigendian();
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
-Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memtype);
+Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);

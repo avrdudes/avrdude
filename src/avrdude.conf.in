@@ -180,7 +180,7 @@
 #       # parameters for bootloaders
 #       autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 #
-#       memory <memtype>
+#       memory <memstr>
 #           paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
 #           offset          = <num> ;             # memory offset
 #           size            = <num> ;             # bytes

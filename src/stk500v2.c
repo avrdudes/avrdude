@@ -4231,7 +4231,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
     return 0;
 }
 
-static unsigned char stk600_xprog_memtype(const PROGRAMMER *pgm, unsigned long addr) {
+static unsigned char stk600_xprog_mtype(const PROGRAMMER *pgm, unsigned long addr) {
     if (addr >= PDATA(pgm)->boot_start)
         return XPRG_MEM_TYPE_BOOT;
     else
@@ -4259,7 +4259,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
     memset(b, 0, sizeof(b));
 
     if (str_eq(mem->desc, "flash")) {
-        memcode = stk600_xprog_memtype(pgm, addr);
+        memcode = stk600_xprog_mtype(pgm, addr);
     } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
         memcode = XPRG_MEM_TYPE_APPL;
     } else if (str_eq(mem->desc, "boot")) {
@@ -4334,7 +4334,7 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
     unsigned char b[8];
 
     if (str_eq(mem->desc, "flash")) {
-        b[1] = stk600_xprog_memtype(pgm, addr);
+        b[1] = stk600_xprog_mtype(pgm, addr);
     } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (str_eq(mem->desc, "boot")) {
@@ -4383,8 +4383,8 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
 {
     unsigned char *b;
     unsigned int offset;
-    unsigned char memtype;
-    int n_bytes_orig = n_bytes, dynamic_memtype = 0;
+    unsigned char mtype;
+    int n_bytes_orig = n_bytes, dynamic_mtype = 0;
     unsigned long use_ext_addr = 0;
 
     /*
@@ -4400,36 +4400,36 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
      * "TIF address space".
      */
     if (str_eq(mem->desc, "flash")) {
-        memtype = 0;
-        dynamic_memtype = 1;
+        mtype = 0;
+        dynamic_mtype = 1;
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
     } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+        mtype = XPRG_MEM_TYPE_APPL;
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
     } else if (str_eq(mem->desc, "boot")) {
-        memtype = XPRG_MEM_TYPE_BOOT;
+        mtype = XPRG_MEM_TYPE_BOOT;
         // Do we have to consider the total amount of flash
         // instead to decide whether to use extended addressing?
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
     } else if (str_eq(mem->desc, "eeprom")) {
-        memtype = XPRG_MEM_TYPE_EEPROM;
+        mtype = XPRG_MEM_TYPE_EEPROM;
     } else if (str_eq(mem->desc, "io")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+        mtype = XPRG_MEM_TYPE_APPL;
         AVRMEM *data = avr_locate_mem(p, "data");
         addr += data->offset;
     } else if (str_eq(mem->desc, "signature")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+        mtype = XPRG_MEM_TYPE_APPL;
     } else if (str_starts(mem->desc, "fuse")) {
-        memtype = XPRG_MEM_TYPE_FUSE;
+        mtype = XPRG_MEM_TYPE_FUSE;
     } else if (str_starts(mem->desc, "lock")) {
-        memtype = XPRG_MEM_TYPE_LOCKBITS;
+        mtype = XPRG_MEM_TYPE_LOCKBITS;
     } else if (str_eq(mem->desc, "calibration") || str_eq(mem->desc, "prodsig")) {
-        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+        mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
-        memtype = XPRG_MEM_TYPE_USERSIG;
+        mtype = XPRG_MEM_TYPE_USERSIG;
     } else {
         pmsg_error("unknown paged memory %s\n", mem->desc);
         return -1;
@@ -4448,11 +4448,11 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
     }
 
     while (n_bytes != 0) {
-	if (dynamic_memtype)
-	    memtype = stk600_xprog_memtype(pgm, addr - mem->offset);
+	if (dynamic_mtype)
+	    mtype = stk600_xprog_mtype(pgm, addr - mem->offset);
 
 	b[0] = XPRG_CMD_READ_MEM;
-	b[1] = memtype;
+	b[1] = mtype;
 	b[2] = addr >> 24;
 	b[3] = addr >> 16;
 	b[4] = addr >> 8;
@@ -4483,8 +4483,8 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 {
     unsigned char *b;
     unsigned int offset;
-    unsigned char memtype;
-    int n_bytes_orig = n_bytes, dynamic_memtype = 0;
+    unsigned char mtype;
+    int n_bytes_orig = n_bytes, dynamic_mtype = 0;
     size_t writesize;
     unsigned long use_ext_addr = 0;
     unsigned char writemode;
@@ -4504,40 +4504,40 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
      * "TIF address space".
      */
     if (str_eq(mem->desc, "flash")) {
-        memtype = 0;
-        dynamic_memtype = 1;
+        mtype = 0;
+        dynamic_mtype = 1;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
     } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+        mtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
     } else if (str_eq(mem->desc, "boot")) {
-        memtype = XPRG_MEM_TYPE_BOOT;
+        mtype = XPRG_MEM_TYPE_BOOT;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         // Do we have to consider the total amount of flash
         // instead to decide whether to use extended addressing?
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
     } else if (str_eq(mem->desc, "eeprom")) {
-        memtype = XPRG_MEM_TYPE_EEPROM;
+        mtype = XPRG_MEM_TYPE_EEPROM;
         writemode = (1 << XPRG_MEM_WRITE_WRITE) | (1 << XPRG_MEM_WRITE_ERASE);
     } else if (str_eq(mem->desc, "signature")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+        mtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else if (str_starts(mem->desc, "fuse")) {
-        memtype = XPRG_MEM_TYPE_FUSE;
+        mtype = XPRG_MEM_TYPE_FUSE;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else if (str_starts(mem->desc, "lock")) {
-        memtype = XPRG_MEM_TYPE_LOCKBITS;
+        mtype = XPRG_MEM_TYPE_LOCKBITS;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else if (str_eq(mem->desc, "calibration")) {
-        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+        mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
-        memtype = XPRG_MEM_TYPE_USERSIG;
+        mtype = XPRG_MEM_TYPE_USERSIG;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
         pmsg_error("unknown paged memory %s\n", mem->desc);
@@ -4558,8 +4558,8 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 
     while (n_bytes != 0) {
 
-	if (dynamic_memtype)
-	    memtype = stk600_xprog_memtype(pgm, addr - mem->offset);
+	if (dynamic_mtype)
+	    mtype = stk600_xprog_mtype(pgm, addr - mem->offset);
 
 	if (page_size > 256) {
 	    /*
@@ -4585,7 +4585,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
                     writesize = 256;
                 }
 		b[0] = XPRG_CMD_WRITE_MEM;
-		b[1] = memtype;
+		b[1] = mtype;
 		b[2] = writemode;
 		b[3] = addr >> 24;
 		b[4] = addr >> 16;
@@ -4618,7 +4618,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
                 writesize = page_size;
             }
 	    b[0] = XPRG_CMD_WRITE_MEM;
-	    b[1] = memtype;
+	    b[1] = mtype;
 	    b[2] = writemode;
 	    b[3] = addr >> 24;
 	    b[4] = addr >> 16;
@@ -4677,7 +4677,7 @@ static int stk600_xprog_page_erase(const PROGRAMMER *pgm, const AVRPART *p, cons
     unsigned char b[6];
 
     if (str_eq(m->desc, "flash")) {
-      b[1] = stk600_xprog_memtype(pgm, addr) == XPRG_MEM_TYPE_APPL?
+      b[1] = stk600_xprog_mtype(pgm, addr) == XPRG_MEM_TYPE_APPL?
         XPRG_ERASE_APP_PAGE: XPRG_ERASE_BOOT_PAGE;
     } else if (str_eq(m->desc, "application") || str_eq(m->desc, "apptable")) {
       b[1] = XPRG_ERASE_APP_PAGE;

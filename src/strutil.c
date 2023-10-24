@@ -553,7 +553,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
  * function, but is also used for generic string to integer conversions in str_int() below. Both
  * routines define the "character" of how avrdude understands strings in (most) of its dealings.
  * The granularity of type is an bitwise-or combination of bits making up STR_INTEGER; STR_FLOAT;
- * STR_DOUBLE or STR_STRING. The arguments part and memtype are only needed for input from files.
+ * STR_DOUBLE or STR_STRING. The arguments part and memstr are only needed for input from files.
  */
 
 #define Return(...) do { \
@@ -574,7 +574,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
   (ll) < INT16_MIN || (ll) > INT16_MAX? 4: \
   (ll) < INT8_MIN  || (ll) > INT8_MAX? 2: 1)
 
-Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *memtype) {
+Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *memstr) {
   char *end_ptr;
   Str2data *sd = cfg_malloc(__func__, sizeof *sd);
   char *str = cfg_strdup(__func__, s);
@@ -766,7 +766,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     }
   }
 
-  if(type & STR_FILE && part && memtype) { // File name containing data to be loaded
+  if(type & STR_FILE && part && memstr) { // File name containing data to be loaded
     int format = FMT_AUTO;
     FILE *f;
     char fmtstr[4] = { 0 };
@@ -790,12 +790,12 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     }
     // Obtain a copy of the part incl all memories
     AVRPART *dp = avr_dup_part(part);
-    AVRMEM *mem = avr_locate_mem(dp, memtype);
+    AVRMEM *mem = avr_locate_mem(dp, memstr);
     if(!mem) {
       avr_free_part(dp);
-      Return("memory type %s not configured for device %s", memtype, part->desc);
+      Return("memory type %s not configured for device %s", memstr, part->desc);
     }
-    int rc = fileio(FIO_READ_FOR_VERIFY, str, format, dp, memtype, -1);
+    int rc = fileio(FIO_READ_FOR_VERIFY, str, format, dp, memstr, -1);
     if(rc < 0) {
       avr_free_part(dp);
       Return("unable to read the%s %s file", fmtstr, fileio_fmtstr(format));

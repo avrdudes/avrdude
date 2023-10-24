@@ -384,13 +384,13 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   dmem->buf[addr] = data;
 
   if(str_eq(dmem->desc, "fuses") && addr < 16) { // Copy the byte to corresponding fuse[0-9a-f]
-    char memtype[64];
-    sprintf(memtype, "fuse%lx", addr);
-    if((dfuse = avr_locate_mem(dry.dp, memtype)))
+    char memstr[64];
+    sprintf(memstr, "fuse%lx", addr);
+    if((dfuse = avr_locate_mem(dry.dp, memstr)))
       dfuse->buf[0] = data;
     else if(addr > 0) {         // Could be high byte of two-byte fuse
-      sprintf(memtype, "fuse%lx", addr-1);
-      if((dfuse = avr_locate_mem(dry.dp, memtype)))
+      sprintf(memstr, "fuse%lx", addr-1);
+      if((dfuse = avr_locate_mem(dry.dp, memstr)))
         dfuse->buf[1] = data;
     }
   } else if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {

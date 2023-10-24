@@ -743,7 +743,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       continue;
 
     if(base && !bm)
-      bm = avr_new_memtype();
+      bm = avr_new_mem();
 
     if(!tsv) {
       if(!memorycmp(bm, m)) {   // Same memory bit for bit, only instantiate on injected parameters

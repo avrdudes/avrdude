@@ -127,7 +127,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
-static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
+static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 
 
@@ -1862,7 +1862,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[2] = 0;
 
   if (avr_mem_is_flash_type(m)) {
-    if (p->prog_modes & PM_UPDI || jtag3_memtype(pgm, p, addr) == MTYPE_FLASH)
+    if (p->prog_modes & PM_UPDI || jtag3_mtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[3] = XMEGA_ERASE_APP_PAGE;
     else
       cmd[3] = XMEGA_ERASE_BOOT_PAGE;
@@ -1896,7 +1896,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   unsigned int maxaddr = addr + n_bytes;
   unsigned char *cmd;
   unsigned char *resp;
-  int status, dynamic_memtype = 0;
+  int status, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
   pmsg_notice2("jtag3_paged_write(.., %s, %d, 0x%04x, %d)\n", m->desc, page_size, addr, n_bytes);
@@ -1922,10 +1922,10 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   cmd[2] = 0;
   if (str_eq(m->desc, "flash")) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
-    cmd[3] = jtag3_memtype(pgm, p, addr);
+    cmd[3] = jtag3_mtype(pgm, p, addr);
     if (p->prog_modes & PM_PDI)
-      /* dynamically decide between flash/boot memtype */
-      dynamic_memtype = 1;
+      /* dynamically decide between flash/boot mtype */
+      dynamic_mtype = 1;
   } else if (str_eq(m->desc, "eeprom")) {
     if (pgm->flag & PGM_FL_IS_DW) {
       /*
@@ -1963,8 +1963,8 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     pmsg_debug("jtag3_paged_write(): "
       "block_size at addr %d is %d\n", addr, block_size);
 
-    if (dynamic_memtype)
-      cmd[3] = jtag3_memtype(pgm, p, addr);
+    if (dynamic_mtype)
+      cmd[3] = jtag3_mtype(pgm, p, addr);
 
     u32_to_b4(cmd + 8, page_size);
     u32_to_b4(cmd + 4, jtag3_memaddr(pgm, p, m, addr));
@@ -2003,7 +2003,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   unsigned int maxaddr = addr + n_bytes;
   unsigned char cmd[12];
   unsigned char *resp;
-  int status, dynamic_memtype = 0;
+  int status, dynamic_mtype = 0;
   long otimeout = serial_recv_timeout;
 
   pmsg_notice2("jtag3_paged_load(.., %s, %d, 0x%04x, %d)\n",
@@ -2024,10 +2024,10 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[2] = 0;
 
   if (str_eq(m->desc, "flash")) {
-    cmd[3] = jtag3_memtype(pgm, p, addr);
+    cmd[3] = jtag3_mtype(pgm, p, addr);
     if (p->prog_modes & PM_PDI)
-      /* dynamically decide between flash/boot memtype */
-      dynamic_memtype = 1;
+      /* dynamically decide between flash/boot mtype */
+      dynamic_mtype = 1;
   } else if (str_eq(m->desc, "eeprom")) {
     cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
@@ -2055,8 +2055,8 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     pmsg_debug("jtag3_paged_load(): "
                "block_size at addr %d is %d\n", addr, block_size);
 
-    if (dynamic_memtype)
-      cmd[3] = jtag3_memtype(pgm, p, addr);
+    if (dynamic_mtype)
+      cmd[3] = jtag3_mtype(pgm, p, addr);
 
     u32_to_b4(cmd + 8, block_size);
     u32_to_b4(cmd + 4, jtag3_memaddr(pgm, p, m, addr));
@@ -2745,7 +2745,7 @@ static void jtag3_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   jtag3_print_parms1(pgm, "", fp);
 }
 
-static unsigned char jtag3_memtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
+static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
   if (p->prog_modes & PM_PDI) {
     if (addr >= PDATA(pgm)->boot_start)
       return MTYPE_BOOT_FLASH;
@@ -2776,22 +2776,22 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
   return addr;
 }
 
-unsigned char tpi_get_memtype(const AVRMEM *mem) {
-  unsigned char memtype;
+unsigned char tpi_get_mtype(const AVRMEM *mem) {
+  unsigned char mtype;
   if (str_eq(mem->desc, "fuse")) {
-    memtype = XPRG_MEM_TYPE_FUSE;
+    mtype = XPRG_MEM_TYPE_FUSE;
   } else if (str_eq(mem->desc, "lock")) {
-    memtype = XPRG_MEM_TYPE_LOCKBITS;
+    mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else if (str_eq(mem->desc, "calibration")) {
-    memtype = XPRG_MEM_TYPE_LOCKBITS;
+    mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else if (str_eq(mem->desc, "signature")) {
-    memtype = XPRG_MEM_TYPE_LOCKBITS;
+    mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else if (str_eq(mem->desc, "sigrow")) {
-    memtype = XPRG_MEM_TYPE_LOCKBITS;
+    mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else {
-    memtype = XPRG_MEM_TYPE_APPL;
+    mtype = XPRG_MEM_TYPE_APPL;
   }
-  return memtype;
+  return mtype;
 }
 
 /*
@@ -2959,7 +2959,7 @@ static int jtag3_read_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AV
   paddr = mem->offset + addr;
 
   cmd[0] = XPRG_CMD_READ_MEM;
-  cmd[1] = tpi_get_memtype(mem);
+  cmd[1] = tpi_get_mtype(mem);
   u32_to_b4_big_endian((cmd+2), paddr);  // Address
   u16_to_b2_big_endian((cmd+6), 1);      // Size
 
@@ -3025,7 +3025,7 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   cmd[0] = XPRG_CMD_WRITE_MEM;
-  cmd[1] = tpi_get_memtype(mem);
+  cmd[1] = tpi_get_mtype(mem);
   cmd[2] = 0;  // Page Mode - Not used
   u32_to_b4_big_endian((cmd+3), paddr);      // Address
   u16_to_b2_big_endian((cmd+7), data_size);  // Size
@@ -3100,7 +3100,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
     imsg_notice2("mapped to address: 0x%04x\n", (addr+m->offset));
 
   cmd[0] = XPRG_CMD_READ_MEM;
-  cmd[1] = tpi_get_memtype(m);
+  cmd[1] = tpi_get_mtype(m);
 
   if(m->blocksize > (int) page_size)
     page_size = m->blocksize;
@@ -3166,7 +3166,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
   }
 
   cmd[0] = XPRG_CMD_WRITE_MEM;
-  cmd[1] = tpi_get_memtype(m);
+  cmd[1] = tpi_get_mtype(m);
   cmd[2] = 0;  // Page Mode; Not used - ignored
 
   serial_recv_timeout = 100;

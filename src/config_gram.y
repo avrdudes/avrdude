@@ -988,7 +988,7 @@ part_parm :
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if(!mem) {
-        mem = avr_new_memtype();
+        mem = avr_new_mem();
         mem->desc = cache_string($2->value.string);
         ladd(current_part->mem, mem);
       }

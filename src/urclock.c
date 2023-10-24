@@ -1867,7 +1867,7 @@ static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urcl
       mchr = 'F';
   }
 
-  const char *memtype = mchr == 'E'? "eeprom": "flash";
+  const char *memstr = mchr == 'E'? "eeprom": "flash";
 
   size = mchr == 'F'? ur.uP.flashsize: ur.uP.eepromsize;
 
@@ -1877,11 +1877,11 @@ static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urcl
 
     if(addr < 0 || addr >= size)
       Return("effective address %d of -xids=%s string out of %s range [0, 0x%04x]\n",
-        addr, ur.iddesc, memtype, size-1);
+        addr, ur.iddesc, memstr, size-1);
 
     if(addr+len > size)
       Return("memory range [0x%04x, 0x%04x] of -xid=%s out of %s range [0, 0x%04x]\n",
-        addr, addr+len-1, ur.iddesc, memtype, size-1);
+        addr, addr+len-1, ur.iddesc, memstr, size-1);
   }
 
   memset(spc, 0, sizeof spc);

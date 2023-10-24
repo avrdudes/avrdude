@@ -327,8 +327,8 @@ static char * bittype(int type)
  *** Elementary functions dealing with AVRMEM structures
  ***/
 
-AVRMEM *avr_new_memtype(void) {
-  AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_memtype()", sizeof(*m));
+AVRMEM *avr_new_mem(void) {
+  AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_mem()", sizeof(*m));
   m->desc = cache_string("");
   m->page_size = 1;             // Ensure not 0
   m->initval = -1;              // Unknown value represented as -1
@@ -363,7 +363,7 @@ int avr_initmem(const AVRPART *p) {
 
 
 AVRMEM *avr_dup_mem(const AVRMEM *m) {
-  AVRMEM *n = avr_new_memtype();
+  AVRMEM *n = avr_new_mem();
 
   if(m) {
     *n = *m;

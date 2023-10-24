@@ -92,7 +92,7 @@ struct flip1_cmd
 struct flip1_cmd_header         /* for memory read/write */
 {
   unsigned char cmd;
-  unsigned char memtype;
+  unsigned char memchr;
   unsigned char start_addr[2];
   unsigned char end_addr[2];
   unsigned char padding[26];

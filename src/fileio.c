@@ -1432,11 +1432,11 @@ int fileio_fmt_autodetect(const char *fname) {
 
 
 int fileio(int op, const char *filename, FILEFMT format,
-  const AVRPART *p, const char *memtype, int size) {
+  const AVRPART *p, const char *memstr, int size) {
 
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+  AVRMEM *mem = avr_locate_mem(p, memstr);
   if(mem == NULL) {
-    pmsg_error("memory type %s not configured for device %s\n", memtype, p->desc);
+    pmsg_error("memory type %s not configured for device %s\n", memstr, p->desc);
     return -1;
   }
 

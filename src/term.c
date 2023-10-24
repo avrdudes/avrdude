@@ -231,14 +231,14 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   }
 
   enum { read_size = 256 };
-  char *memtype;
+  char *memstr;
   if(argc > 1)
-    memtype = argv[1];
+    memstr = argv[1];
   else
-    memtype = (char*)read_mem[i].mem->desc;
-  const AVRMEM *mem = avr_locate_mem(p, memtype);
+    memstr = (char*)read_mem[i].mem->desc;
+  const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("(%s) %s memory type not defined for part %s\n", cmd, memtype, p->desc);
+    pmsg_error("(%s) %s memory type not defined for part %s\n", cmd, memstr, p->desc);
     return -1;
   }
 
@@ -425,10 +425,10 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   int write_mode;               // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
-  char *memtype = argv[1];      // Memory name string
-  const AVRMEM *mem = avr_locate_mem(p, memtype);
+  char *memstr = argv[1];       // Memory name string
+  const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("(write) %s memory type not defined for part %s\n", memtype, p->desc);
+    pmsg_error("(write) %s memory type not defined for part %s\n", memstr, p->desc);
     return -1;
   }
   int maxsize = mem->size;
@@ -831,13 +831,13 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   if (argc > 1) {
-    char *memtype = argv[1];
-    const AVRMEM *mem = avr_locate_mem(p, memtype);
+    char *memstr = argv[1];
+    const AVRMEM *mem = avr_locate_mem(p, memstr);
     if (mem == NULL) {
       pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
       return -1;
     }
-    char *args[] = {"write", memtype, "", "", "0xff", "...", NULL};
+    char *args[] = {"write", memstr, "", "", "0xff", "...", NULL};
     // erase <mem>
     if (argc == 2) {
       args[2] = "0";
@@ -907,14 +907,14 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
 
-  char *memtype = argv[1];
-  const AVRMEM *mem = avr_locate_mem(p, memtype);
+  char *memstr = argv[1];
+  const AVRMEM *mem = avr_locate_mem(p, memstr);
   if(!mem) {
-    pmsg_error("(pgerase) %s memory type not defined for part %s\n", memtype, p->desc);
+    pmsg_error("(pgerase) %s memory type not defined for part %s\n", memstr, p->desc);
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
-    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, pgmid);
+    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memstr, pgmid);
     return -1;
   }
 
@@ -1362,7 +1362,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
     locktype = "lockbits";
   for(int i=0; i<nc; i++) {
     cc[i].t = ct+i;
-    const char *mt = str_starts(ct[i].memtype, "lock")? locktype: ct[i].memtype;
+    const char *mt = str_starts(ct[i].memstr, "lock")? locktype: ct[i].memstr;
     cc[i].memstr = mt;
     const AVRMEM *mem = avr_locate_mem(p, mt);
     if(!mem) {

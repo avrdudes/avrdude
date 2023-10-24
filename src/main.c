@@ -244,7 +244,7 @@ static void usage(void)
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
     "  -t                     Run an interactive terminal when it is its turn\n"
     "  -T <terminal cmd line> Run terminal line when it is its turn\n"
-    "  -U <memtype>:r|w|v:<filename>[:format]\n"
+    "  -U <memstr>:r|w|v:<filename>[:format]\n"
     "                         Carry out memory operation when it is its turn\n"
     "                         Multiple -t, -T and -U options can be specified\n"
     "  -n                     Do not write to the device whilst processing -U\n"
@@ -1340,12 +1340,12 @@ skipopen:
   int doexit = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    if (upd->memtype == NULL && upd->cmdline == NULL) {
+    if (upd->memstr == NULL && upd->cmdline == NULL) {
       const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
-      pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
+      pmsg_notice2("defaulting memstr in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
         upd->filename, mtype);
-      upd->memtype = cfg_strdup("main()", mtype);
+      upd->memstr = cfg_strdup("main()", mtype);
     }
     rc = update_dryrun(p, upd);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL)
@@ -1544,9 +1544,9 @@ skipopen:
       uflags &= ~UF_AUTO_ERASE;
       for (ln=lfirst(updates); ln; ln=lnext(ln)) {
         upd = ldata(ln);
-        if(!upd->memtype)
+        if(!upd->memstr)
           continue;
-        m = avr_locate_mem(p, upd->memtype);
+        m = avr_locate_mem(p, upd->memstr);
         if (m == NULL)
           continue;
         if(str_eq(m->desc, memname) && upd->op == DEVICE_WRITE) {
@@ -1600,7 +1600,7 @@ skipopen:
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
-    } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memtype_is_flash_type(upd->memtype))
+    } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memstr_is_flash_type(upd->memstr))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
   pgm->flush_cache(pgm, p);

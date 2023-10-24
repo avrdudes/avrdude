@@ -26,7 +26,7 @@ typedef struct {
   const char *name;             // Name of this configuration item
   int nvalues;                  // Number of (symbolic) values
   const Valueitem_t *vlist;     // Pointer to nvalues value items
-  const char *memtype;          // Fuse/Lock memory for this configuration
+  const char *memstr;           // Fuse/Lock memory for this configuration
   int memoffset;                // Byte offset within fuses (always 0 for lock)
   int mask;                     // Bit mask of fuse/lock memory
   int lsh;                      // Values need shifting left by lsh to be in mask
