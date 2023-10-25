@@ -1861,7 +1861,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[1] = CMD3_ERASE_MEMORY;
   cmd[2] = 0;
 
-  if (avr_mem_is_flash_type(m)) {
+  if (mem_is_in_flash(m)) {
     if (p->prog_modes & PM_UPDI || jtag3_mtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[3] = XMEGA_ERASE_APP_PAGE;
     else
@@ -2119,13 +2119,13 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   cmd[2] = 0;
 
   cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_FLASH_PAGE;
-  if (avr_mem_is_flash_type(mem)) {
+  if (mem_is_in_flash(mem)) {
     addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash */
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
-  } else if (avr_mem_is_eeprom_type(mem)) {
+  } else if (mem_is_eeprom(mem)) {
     if ( (pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & PM_PDI) || (p->prog_modes & PM_UPDI) ) {
       cmd[3] = MTYPE_EEPROM;
     } else {

@@ -302,7 +302,7 @@ int avr_mem_hiaddr(const AVRMEM * mem)
     return mem->size;
 
   /* if the memory is not a flash-type memory do not remove trailing 0xff */
-  if(!avr_mem_is_flash_type(mem))
+  if(!mem_is_in_flash(mem))
     return mem->size;
 
   /* return the highest non-0xff address regardless of how much
@@ -1154,7 +1154,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
   int page_tainted = 0;
   int flush_page = 0;
-  int paged = avr_mem_is_flash_type(m) && m->paged;
+  int paged = mem_is_in_flash(m) && m->paged;
 
   if(paged)
     wsize = (wsize+1)/2*2;      // Round up write size for word boundary
@@ -1319,7 +1319,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
           if(vroerror < 10) {
             if(!(verror + vroerror))
               pmsg_warning("verification mismatch%s\n",
-                avr_mem_is_flash_type(a)? " in r/o areas, expected for vectors and/or bootloader": "");
+                mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
             imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location)\n",
               buf1[i], buf2[i], i);
           } else if(vroerror == 10)

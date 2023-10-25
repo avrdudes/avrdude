@@ -137,7 +137,7 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
   if(!(op = mem->op[opnum]))
     return -1;
 
-  isflash = avr_mem_is_flash_type(mem);
+  isflash = mem_is_in_flash(mem);
   memsize = mem->size >> isflash;        // word addresses for flash
   pagesize = mem->page_size >> isflash;
 

@@ -950,7 +950,7 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned in
 
 
 static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int *memchrp, int *a_divp) {
-  if(avr_mem_is_flash_type(m)) {
+  if(mem_is_in_flash(m)) {
     *memchrp = 'F';
     if(!(pgm->prog_modes & PM_SPM)) // Programmer *not* for bootloaders: original stk500v1 protocol
       *a_divp = m->op[AVR_OP_LOADPAGE_LO] || m->op[AVR_OP_READ_LO]? 2: 1;
@@ -961,7 +961,7 @@ static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     return 0;
   }
 
-  if(avr_mem_is_eeprom_type(m)) {
+  if(mem_is_eeprom(m)) {
     *memchrp = 'E';
     // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
     *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp")) \

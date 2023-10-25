@@ -2269,8 +2269,8 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   if(n_bytes) {
     // Paged writes only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
@@ -2301,8 +2301,8 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   if(n_bytes) {
     // Paged reads only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
@@ -2356,8 +2356,8 @@ int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem
   unsigned long addr, unsigned char *value) {
 
   // Bytewise read only valid for flash and eeprom
-  int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
-  if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
+  int mchr = mem_is_in_flash(mem)? 'F': 'E';
+  if(mchr == 'E' && !mem_is_eeprom(mem)) {
     if(str_eq(mem->desc, "signature") && pgm->read_sig_bytes) {
        if((int) addr < 0 || (int) addr >= mem->size) {
          return -1;
@@ -2405,7 +2405,7 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unused,
   const AVRMEM *mem, unsigned int addr) {
 
-  if(avr_mem_is_flash_type(mem)) {
+  if(mem_is_in_flash(mem)) {
     if(addr > (unsigned int) ur.pfend)
       return 1;
     if(addr < (unsigned int) ur.pfstart)
@@ -2420,7 +2420,7 @@ static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unu
           return 1;
       }
     }
-  } else if(!avr_mem_is_eeprom_type(mem))
+  } else if(!mem_is_eeprom(mem))
     return 1;
 
   return 0;

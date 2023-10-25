@@ -122,7 +122,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     // Initialise the device with fuse factory setting and erase flash/EEPROM to 0xff
     for (LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
       AVRMEM *m = ldata(ln);
-      if(avr_mem_is_flash_type(m) || avr_mem_is_eeprom_type(m)) {
+      if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
         memset(m->buf, 0xff, m->size);
       } else if(str_eq(m->desc, "fuses")) {
         fusesm = m;
@@ -264,8 +264,8 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     unsigned int end;
 
     // Paged writes only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -290,7 +290,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         if(str_eq(dmem->desc, "flash")) {
           for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
             dm2 = ldata(ln);
-            if(avr_mem_is_flash_type(dm2) && !str_eq(dm2->desc, "flash")) { // Overlapping region?
+            if(mem_is_in_flash(dm2) && !str_eq(dm2->desc, "flash")) { // Overlapping region?
               unsigned int cpaddr = addr + dmem->offset - dm2->offset;
               if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
                 memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
@@ -322,8 +322,8 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     unsigned int end;
 
     // Paged load only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
