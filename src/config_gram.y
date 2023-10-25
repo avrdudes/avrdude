@@ -991,8 +991,8 @@ part_parm :
         mem = avr_new_mem();
         mem->desc = cache_string($2->value.string);
         ladd(current_part->mem, mem);
+        mem->type = avr_get_mem_type($2->value.string);
       }
-      avr_add_mem_order($2->value.string);
       current_mem = mem;
       free_token($2);
     }

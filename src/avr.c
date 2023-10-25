@@ -1459,29 +1459,65 @@ char *avr_prog_modes(int pm) {
 
 
 // Typical order in which memories show in avrdude.conf, runtime adds unknown ones (if any)
-const char *avr_mem_order[100] = {
-  "eeprom",       "flash",        "application",  "apptable",
-  "boot",         "lfuse",        "hfuse",        "efuse",
-  "fuse",         "fuse0",        "wdtcfg",       "fuse1",
-  "bodcfg",       "fuse2",        "osccfg",       "fuse3",
-  "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
-  "fuse6",        "syscfg1",      "fuse7",        "append",
-  "codesize",     "fuse8",        "fuse9",        "bootend",
-  "bootsize",     "fusea",        "pdicfg",       "fuses",
-  "lock",         "lockbits",     "prodsig",      "sigrow",
-  "signature",    "calibration",  "tempsense",    "sernum",
-  "osccal16",     "osccal20",     "osc16err",     "osc20err",
-  "bootrow",      "usersig",      "userrow",      "data",
-  "io",           "sib",
+memtable_t avr_mem_order[100] = {
+  {"eeprom",      MEM_EEPROM},
+  {"flash",       MEM_FLASH | MEM_IN_FLASH},
+  {"application", MEM_APPLICATION | MEM_IN_FLASH},
+  {"apptable",    MEM_APPTABLE | MEM_IN_FLASH},
+  {"boot",        MEM_BOOT | MEM_IN_FLASH},
+  {"fuses",       MEM_FUSES},
+  {"lfuse",       MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"hfuse",       MEM_FUSE1 | MEM_IS_A_FUSE},
+  {"efuse",       MEM_FUSE2 | MEM_IS_A_FUSE},
+  {"fuse",        MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"fuse0",       MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"wdtcfg",      MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"fuse1",       MEM_FUSE1 | MEM_IS_A_FUSE},
+  {"bodcfg",      MEM_FUSE1 | MEM_IS_A_FUSE},
+  {"fuse2",       MEM_FUSE2 | MEM_IS_A_FUSE},
+  {"osccfg",      MEM_FUSE2 | MEM_IS_A_FUSE},
+  {"fuse4",       MEM_FUSE4 | MEM_IS_A_FUSE},
+  {"tcd0cfg",     MEM_FUSE4 | MEM_IS_A_FUSE},
+  {"fuse5",       MEM_FUSE5 | MEM_IS_A_FUSE},
+  {"syscfg0",     MEM_FUSE5 | MEM_IS_A_FUSE},
+  {"fuse6",       MEM_FUSE6 | MEM_IS_A_FUSE},
+  {"syscfg1",     MEM_FUSE6 | MEM_IS_A_FUSE},
+  {"fuse7",       MEM_FUSE7 | MEM_IS_A_FUSE},
+  {"append",      MEM_FUSE7 | MEM_IS_A_FUSE},
+  {"codesize",    MEM_FUSE7 | MEM_IS_A_FUSE},
+  {"fuse8",       MEM_FUSE8 | MEM_IS_A_FUSE},
+  {"bootend",     MEM_FUSE8 | MEM_IS_A_FUSE},
+  {"bootsize",    MEM_FUSE8 | MEM_IS_A_FUSE},
+  {"fusea",       MEM_FUSEA | MEM_IS_A_FUSE},
+  {"pdicfg",      MEM_FUSEA | MEM_IS_A_FUSE},
+  {"lock",        MEM_LOCK},
+  {"lockbits",    MEM_LOCK},
+  {"prodsig",     MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
+  {"sigrow",      MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
+  {"signature",   MEM_SIGNATURE | MEM_IN_SIGROW | MEM_READONLY},
+  {"calibration", MEM_CALIBRATION | MEM_IN_SIGROW | MEM_READONLY},
+  {"tempsense",   MEM_TEMPSENSE | MEM_IN_SIGROW | MEM_READONLY},
+  {"sernum",      MEM_SERNUM | MEM_IN_SIGROW | MEM_READONLY},
+  {"osccal16",    MEM_OSCCAL16 | MEM_IN_SIGROW | MEM_READONLY},
+  {"osccal20",    MEM_OSCCAL20 | MEM_IN_SIGROW | MEM_READONLY},
+  {"osc16err",    MEM_OSC16ERR | MEM_IN_SIGROW | MEM_READONLY},
+  {"osc20err",    MEM_OSC20ERR | MEM_IN_SIGROW | MEM_READONLY},
+  {"bootrow",     MEM_BOOTROW | MEM_USER_TYPE},
+  {"usersig",     MEM_USERROW | MEM_USER_TYPE},
+  {"userrow",     MEM_USERROW | MEM_USER_TYPE},
+  {"data",        MEM_SRAM},
+  {"io",          MEM_IO},
+  {"sib",         MEM_SIB | MEM_READONLY},
 };
 
-void avr_add_mem_order(const char *str) {
+int avr_get_mem_type(const char *str) {
   for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {
-    if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
-      return;
-    if(!avr_mem_order[i]) {
-      avr_mem_order[i] = cfg_strdup("avr_mem_order()", str);
-      return;
+    if(avr_mem_order[i].str && str_eq(avr_mem_order[i].str, str))
+      return avr_mem_order[i].type;
+    if(!avr_mem_order[i].str) {
+      pmsg_warning("avr_mem_order[] does not know %s; add to array and recompile\n", str);
+      avr_mem_order[i].str = cfg_strdup(__func__, str);
+      return avr_mem_order[i].type;
     }
   }
   pmsg_error("avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n");
@@ -1519,7 +1555,7 @@ int avr_mem_is_usersig_type(const AVRMEM *mem) {
 int avr_mem_is_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
+      if(avr_mem_order[i].str && str_eq(avr_mem_order[i].str, str))
         return 1;
   return 0;
 }
@@ -1527,7 +1563,7 @@ int avr_mem_is_known(const char *str) {
 int avr_mem_might_be_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && str_starts(avr_mem_order[i], str))
+      if(avr_mem_order[i].str && str_starts(avr_mem_order[i].str, str))
         return 1;
   return 0;
 }

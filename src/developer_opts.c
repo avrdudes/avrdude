@@ -492,8 +492,8 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
 
   // Fill in all memories we got in defined order
   di = 0;
-  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
-    m = dev_locate_mem(p, avr_mem_order[mi]);
+  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi].str; mi++) {
+    m = dev_locate_mem(p, avr_mem_order[mi].str);
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
         pmsg_error("ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n");
@@ -730,11 +730,11 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     if(!base || opcodecmp(p->op[i], base->op[i], i))
       dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv), p->comments);
 
-  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
+  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi].str; mi++) {
     AVRMEM *m, *bm;
 
-    m = dev_locate_mem(p, avr_mem_order[mi]);
-    bm = base? dev_locate_mem(base, avr_mem_order[mi]): NULL;
+    m = dev_locate_mem(p, avr_mem_order[mi].str);
+    bm = base? dev_locate_mem(base, avr_mem_order[mi].str): NULL;
 
     if(!m && bm && !tsv)
       dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13-strlen(bm->desc): 0, "");
@@ -941,12 +941,12 @@ void dev_output_part_defs(char *partdesc) {
     AVRPART *p = ldata(ln1);
     if(p->mem)
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm))
-        avr_add_mem_order(((AVRMEM *) ldata(lnm))->desc);
+        avr_get_mem_type(((AVRMEM *) ldata(lnm))->desc);
 
     // Same for aliased memories (though probably not needed)
     if(p->mem_alias)
       for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm))
-        avr_add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
+        avr_get_mem_type(((AVRMEM_ALIAS *) ldata(lnm))->desc);
   }
 
   if((nprinted = dev_nprinted)) {

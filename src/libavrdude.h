@@ -322,10 +322,92 @@ typedef struct avrpart {
   int           lineno;         /* config file line number */
 } AVRPART;
 
+
+typedef unsigned int memtype_t;
+typedef struct {
+  const char *str;
+  memtype_t type;
+} memtable_t;
+
+// The least significant 4 bits of type are the offset of a fuse in fuses mem
+#define MEM_FUSEOFF_MASK     15 // Mask for offset
+#define MEM_FUSE0             0 // fuse lfuse fuse0 wdtcfg
+#define MEM_FUSE1             1 // hfuse fuse1 bodcfg
+#define MEM_FUSE2             2 // efuse fuse2 osccfg
+#define MEM_FUSE4             4 // fuse4 tcd0cfg
+#define MEM_FUSE5             5 // fuse5 syscfg0
+#define MEM_FUSE6             6 // fuse6 syscfg1
+#define MEM_FUSE7             7 // fuse7 append codesize
+#define MEM_FUSE8             8 // fuse8 bootend bootsize
+#define MEM_FUSEA            10 // fusea pdicfg
+
+// Individual memories that may have different names in different parts
+#define MEM_EEPROM      (1<< 4) // eeprom
+#define MEM_FLASH       (1<< 5) // flash
+#define MEM_APPLICATION (1<< 6) // application
+#define MEM_APPTABLE    (1<< 7) // apptable
+#define MEM_BOOT        (1<< 8) // boot
+#define MEM_FUSES       (1<< 9) // fuses
+#define MEM_LOCK        (1<<10) // lock lockbits
+#define MEM_SIGROW      (1<<11) // prodsig sigrow
+#define MEM_SIGNATURE   (1<<12) // signature
+#define MEM_CALIBRATION (1<<13) // calibration
+#define MEM_TEMPSENSE   (1<<14) // tempsense
+#define MEM_SERNUM      (1<<15) // sernum
+#define MEM_OSCCAL16    (1<<16) // osccal16
+#define MEM_OSCCAL20    (1<<17) // osccal20
+#define MEM_OSC16ERR    (1<<18) // osc16err
+#define MEM_OSC20ERR    (1<<19) // osc20err
+#define MEM_BOOTROW     (1<<20) // bootrow
+#define MEM_USERROW     (1<<21) // userrow usersig
+#define MEM_SRAM        (1<<22) // data
+#define MEM_IO          (1<<23) // io
+#define MEM_SIB         (1<<24) // sib
+
+// Attributes
+#define MEM_IN_FLASH    (1<<27) // flash application apptable boot
+#define MEM_IS_A_FUSE   (1<<28) // fuse [elh]fuse fuseN wdtcfg bodcfg osccfg tcd0cfg syscfg0 syscfg1 append codesize bootend bootsize pdicfg
+#define MEM_USER_TYPE   (1<<29) // userrow usersig bootrow
+#define MEM_IN_SIGROW   (1<<30) // prodsig sigrow signature calibration sernum tempsense osccal16 osccal20 osc16err osc20err
+#define MEM_READONLY   (1U<<31) // sib prodsig sigrow signature sernum tempsense calibration osccal16 osccal20 osc16err osc20err
+
+// Fuse offset and memory type/attribute macros
+#define mem_is_eeprom(mem) (!!((mem)->type & MEM_EEPROM))
+#define mem_is_flash(mem) (!!((mem)->type & MEM_FLASH))
+#define mem_is_application(mem) (!!((mem)->type & MEM_APPLICATION))
+#define mem_is_apptable(mem) (!!((mem)->type & MEM_APPTABLE))
+#define mem_is_boot(mem) (!!((mem)->type & MEM_BOOT))
+#define mem_is_fuses(mem) (!!((mem)->type & MEM_FUSES))
+#define mem_is_lock(mem) (!!((mem)->type & MEM_LOCK))
+#define mem_is_sigrow(mem) (!!((mem)->type & MEM_SIGROW))
+#define mem_is_signature(mem) (!!((mem)->type & MEM_SIGNATURE))
+#define mem_is_calibration(mem) (!!((mem)->type & MEM_CALIBRATION))
+#define mem_is_tempsense(mem) (!!((mem)->type & MEM_TEMPSENSE))
+#define mem_is_sernum(mem) (!!((mem)->type & MEM_SERNUM))
+#define mem_is_osccal16(mem) (!!((mem)->type & MEM_OSCCAL16))
+#define mem_is_osccal20(mem) (!!((mem)->type & MEM_OSCCAL20))
+#define mem_is_osc16err(mem) (!!((mem)->type & MEM_OSC16ERR))
+#define mem_is_osc20err(mem) (!!((mem)->type & MEM_OSC20ERR))
+#define mem_is_bootrow(mem) (!!((mem)->type & MEM_BOOTROW))
+#define mem_is_userrow(mem) (!!((mem)->type & MEM_USERROW))
+#define mem_is_sram(mem) (!!((mem)->type & MEM_SRAM))
+#define mem_is_io(mem) (!!((mem)->type & MEM_IO))
+#define mem_is_sib(mem) (!!((mem)->type & MEM_SIB))
+
+#define mem_is_in_flash(mem) (!!((mem)->type & MEM_IN_FLASH))
+#define mem_is_a_fuse(mem) (!!((mem)->type & MEM_IS_A_FUSE))
+#define mem_is_in_fuses(mem) (!!((mem)->type & (MEM_FUSES | MEM_IS_A_FUSE))) // If fuses exists, that is
+#define mem_is_user_type(mem) (!!((mem)->type & MEM_USER_TYPE))
+#define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
+#define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
+
+#define mem_fuse_offset(mem) ((mem)->type & MEM_FUSEOFF_MASK) // Valid if mem_is_a_fuse(mem)
+
 typedef struct avrmem {
   const char *desc;           /* memory description ("flash", "eeprom", etc) */
+  memtype_t type;             /* internally used type, cannot be set in conf files */
   LISTID comments;            // Used by developer options -p*/[ASsr...]
-  int paged;                  /* page addressed (e.g. ATmega flash) */
+  int paged;                  /* 16-bit page addressed, e.g., ATmega flash but not EEPROM */
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
   int num_pages;              /* number of pages (if page addressed) */
@@ -335,7 +417,7 @@ typedef struct avrmem {
   unsigned int offset;        /* offset in IO memory (ATxmega) */
   int min_write_delay;        /* microseconds */
   int max_write_delay;        /* microseconds */
-  int pwroff_after_write;     /* after this memory type is written to,
+  int pwroff_after_write;     /* after this memory is written to,
                                  the device must be powered off and
                                  back on, see errata
                                  https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf */
@@ -921,7 +1003,7 @@ void sort_programmers(LISTID programmers);
 typedef void (*FP_UpdateProgress)(int percent, double etime, const char *hdr, int finish);
 
 extern struct avrpart parts[];
-extern const char *avr_mem_order[100];
+extern memtable_t avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
@@ -976,7 +1058,7 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
 char *avr_prog_modes(int pm);
 
-void avr_add_mem_order(const char *str);
+int avr_get_mem_type(const char *str);
 
 int avr_memstr_is_flash_type(const char *mem);
 
