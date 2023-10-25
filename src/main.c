@@ -1586,6 +1586,7 @@ skipopen:
 
   int wrmem = 0, terminal = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    const AVRMEM *m;
     upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
       wrmem = 0;
@@ -1600,7 +1601,7 @@ skipopen:
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
-    } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memstr_is_flash_type(upd->memstr))
+    } else if(rc == 0 && upd->op == DEVICE_WRITE && (m = avr_locate_mem(p, upd->memstr)) && mem_is_in_flash(m))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
   pgm->flush_cache(pgm, p);

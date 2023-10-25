@@ -1524,32 +1524,16 @@ int avr_get_mem_type(const char *str) {
   exit(1);
 }
 
-int avr_memstr_is_flash_type(const char *memstr) {
-  return memstr && (
-     str_eq(memstr, "flash") ||
-     str_eq(memstr, "application") ||
-     str_eq(memstr, "apptable") ||
-     str_eq(memstr, "boot"));
-}
-
 int avr_mem_is_flash_type(const AVRMEM *mem) {
-  return avr_memstr_is_flash_type(mem->desc);
-}
-
-int avr_memstr_is_eeprom_type(const char *memstr) {
-  return memstr && str_eq(memstr, "eeprom");
+  return mem_is_in_flash(mem);
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
-  return avr_memstr_is_eeprom_type(mem->desc);
-}
-
-int avr_memstr_is_usersig_type(const char *memstr) { // Bootrow is subsumed under usersig type
-  return memstr && (str_eq(memstr, "bootrow") || str_eq(memstr, "usersig") || str_eq(memstr, "userrow"));
+  return mem_is_eeprom(mem);
 }
 
 int avr_mem_is_usersig_type(const AVRMEM *mem) {
-  return avr_memstr_is_usersig_type(mem->desc);
+  return mem_is_user_type(mem);
 }
 
 int avr_mem_is_known(const char *str) {

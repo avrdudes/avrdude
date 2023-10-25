@@ -400,6 +400,7 @@ typedef struct {
 #define mem_is_user_type(mem) (!!((mem)->type & MEM_USER_TYPE))
 #define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
 #define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
+#define mem_is_paged_type(mem) (!!((mem)->type & (MEM_IN_FLASH | MEM_EEPROM | MEM_USER_TYPE)))
 
 #define mem_fuse_offset(mem) ((mem)->type & MEM_FUSEOFF_MASK) // Valid if mem_is_a_fuse(mem)
 
@@ -1060,15 +1061,9 @@ char *avr_prog_modes(int pm);
 
 int avr_get_mem_type(const char *str);
 
-int avr_memstr_is_flash_type(const char *mem);
-
 int avr_mem_is_flash_type(const AVRMEM *mem);
 
-int avr_memstr_is_eeprom_type(const char *mem);
-
 int avr_mem_is_eeprom_type(const AVRMEM *mem);
-
-int avr_memstr_is_usersig_type(const char *mem);
 
 int avr_mem_is_usersig_type(const AVRMEM *mem);
 
