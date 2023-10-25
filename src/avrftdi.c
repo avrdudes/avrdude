@@ -1584,7 +1584,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3600, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0xff;
 
-	} else if (str_eq(m->desc, "prodsig")) {
+	} else if (mem_is_sigrow(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_SIGCAL_READ, 15);
 		avrftdi_jtag_dr_out(pgm, 0x0300 | (addr/2 & 0xff), 15);

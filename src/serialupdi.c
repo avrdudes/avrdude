@@ -734,11 +734,7 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
   }
   // Read-only memories
-  if(mem_is_osc16err(mem) || mem_is_osccal16(mem) ||
-     mem_is_osc20err(mem) || mem_is_osccal20(mem) ||
-     str_eq(mem->desc, "prodsig") || mem_is_sernum(mem) ||
-     mem_is_signature(mem) || mem_is_sib(mem)) {
-
+  if(mem_is_readonly(mem)) {
     unsigned char is;
     if(serialupdi_read_byte(pgm, p, mem, addr, &is) >= 0 && is == value)
       return 0;
@@ -806,7 +802,7 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       } else if (mem_is_flash(m)) {
         rc = updi_nvm_write_flash(pgm, p, m->offset + write_offset, m->buf + write_offset, 
                                   remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (str_eq(m->desc, "userrow")) {
+      } else if (mem_is_userrow(m)) {
         rc = serialupdi_write_userrow(pgm, p, m, page_size, write_offset, 
                                       remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
       } else if (mem_is_fuses(m)) {
@@ -832,7 +828,7 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       rc = updi_nvm_write_eeprom(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
     } else if (mem_is_flash(m)) {
       rc = updi_nvm_write_flash(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
-    } else if (str_eq(m->desc, "userrow")) {
+    } else if (mem_is_userrow(m)) {
       rc = serialupdi_write_userrow(pgm, p, m, page_size, addr, n_bytes);
     } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");

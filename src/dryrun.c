@@ -158,7 +158,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       } else if(mem_is_sernum(m)) {
         for(int i = 0; i < m->size; i++) // Set serial number UTSRQPONM...
           m->buf[i] = 'U'-i >= 'A'? 'U'-i: 0xff;
-      } else if(str_eq(m->desc, "prodsig") && m->size >= 6) {
+      } else if(mem_is_sigrow(m) && m->size >= 6) {
         prodsigm = m;
         memset(m->buf, 0xff, m->size);
         if(p->prog_modes & PM_PDI) {
@@ -364,12 +364,13 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(mem_is_calibration(dmem) || mem_is_osc16err(dmem) ||
-     mem_is_osccal16(dmem) || mem_is_osc20err(dmem) ||
-     mem_is_osccal20(dmem) || str_eq(dmem->desc, "prodsig") ||
-     mem_is_sernum(dmem) || mem_is_sib(dmem) ||
-     mem_is_signature(dmem) || mem_is_tempsense(dmem))
+  if(mem_is_readonly(dmem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
+      return 0;
+
     Return("cannot write to write-protected memory %s %s", dry.dp->desc, dmem->desc);
+  }
 
   if(addr >= (unsigned long) dmem->size)
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",

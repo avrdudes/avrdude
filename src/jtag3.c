@@ -1207,10 +1207,9 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_fuse_offset, m->offset & ~15);
       } else if (str_starts(m->desc, "lock")) {
         u32_to_b4(xd.nvm_lock_offset, m->offset);
-      } else if (str_eq(m->desc, "usersig") ||
-                 str_eq(m->desc, "userrow")) {
+      } else if (mem_is_userrow(m)) {
         u32_to_b4(xd.nvm_user_sig_offset, m->offset);
-      } else if (str_eq(m->desc, "prodsig")) {
+      } else if (mem_is_sigrow(m)) {
         u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
       } else if (mem_is_data(m)) {
         u32_to_b4(xd.nvm_data_offset, m->offset);
@@ -1256,8 +1255,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u16_to_b2(xd.eeprom_bytes, m->size);
         u16_to_b2(xd.eeprom_base, m->offset);
       }
-      else if (str_eq(m->desc, "usersig") ||
-               str_eq(m->desc, "userrow")) {
+      else if (mem_is_userrow(m)) {
         u16_to_b2(xd.user_sig_bytes, m->size);
         u16_to_b2(xd.user_sig_base, m->offset);
       }
@@ -1849,7 +1847,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !str_eq(m->desc, "usersig")) {
+  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -1868,8 +1866,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       cmd[3] = XMEGA_ERASE_BOOT_PAGE;
   } else if (mem_is_eeprom(m)) {
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
-  } else if (str_eq(m->desc, "usersig") ||
-             str_eq(m->desc, "userrow")) {
+  } else if (mem_is_userrow(m)) {
     cmd[3] = XMEGA_ERASE_USERSIG;
   } else {
     cmd[3] = XMEGA_ERASE_APP_PAGE;
@@ -1944,8 +1941,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     }
     cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_eq(m->desc, "usersig") ||
-             str_eq(m->desc, "userrow")) {
+  } else if (mem_is_userrow(m)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
@@ -2032,10 +2028,9 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
-  } else if (str_eq(m->desc, "prodsig")) {
+  } else if (mem_is_sigrow(m)) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (str_eq(m->desc, "usersig") ||
-             str_eq(m->desc, "userrow")) {
+  } else if (mem_is_userrow(m)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
@@ -2151,10 +2146,9 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "usersig") ||
-             str_eq(mem->desc, "userrow")) {
+  } else if (mem_is_userrow(mem)) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     if (p->prog_modes & (PM_PDI | PM_UPDI)) {
       cmd[3] = MTYPE_PRODSIG;
     } else {
@@ -2340,18 +2334,13 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "usersig") ||
-             str_eq(mem->desc, "userrow")) {
+  } else if (mem_is_userrow(mem)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_io(mem))
     cmd[3] = MTYPE_SRAM;
 
   // Read-only memories or unsupported by debugWire
-  if(mem_is_calibration(mem) || mem_is_osc16err(mem) ||
-     mem_is_osccal16(mem) || mem_is_osc20err(mem) ||
-     mem_is_osccal20(mem) || str_eq(mem->desc, "prodsig") ||
-     mem_is_sernum(mem) || mem_is_sib(mem) ||
-     mem_is_signature(mem) || mem_is_tempsense(mem) || unsupp) {
+  if(mem_is_readonly(mem) || unsupp) {
       unsigned char is;
       if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
         return 0;
@@ -2769,7 +2758,7 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
       if(m->size >= 1)
         addr += m->offset;
   } else {                      // Classic part
-    if(str_eq(m->desc, "usersig"))
+    if(mem_is_userrow(m))
       addr += m->offset;
   }
 
@@ -2786,7 +2775,7 @@ unsigned char tpi_get_mtype(const AVRMEM *mem) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else if (mem_is_signature(mem)) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else if (str_eq(mem->desc, "sigrow")) {
+  } else if (mem_is_sigrow(mem)) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else {
     mtype = XPRG_MEM_TYPE_APPL;

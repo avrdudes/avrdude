@@ -894,7 +894,7 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     cmd[1] = MTYPE_OSCCAL_BYTE;
   } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
     addr /= 2;
   } else {

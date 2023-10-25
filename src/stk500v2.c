@@ -2318,7 +2318,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
   } else if (mem_is_signature(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     buf[0] = addr&1?
       (mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP):
       (mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP);
@@ -2452,7 +2452,7 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     buf[0] = CMD_READ_OSCCAL_ISP;
   } else if (mem_is_signature(mem)) {
     buf[0] = CMD_READ_SIGNATURE_ISP;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     buf[0] = addr&1? CMD_READ_OSCCAL_ISP: CMD_READ_SIGNATURE_ISP;
   }
 
@@ -4280,7 +4280,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
              * fuses.
              */
             need_erase = 1;
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
+    } else if (mem_is_userrow(mem)) {
         memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
         pmsg_error("unknown memory %s\n", mem->desc);
@@ -4351,9 +4351,9 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         b[1] = XPRG_MEM_TYPE_FUSE;
     } else if (str_starts(mem->desc, "lock")) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (mem_is_calibration(mem) || str_eq(mem->desc, "prodsig")) {
+    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
+    } else if (mem_is_userrow(mem)) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
     } else {
         pmsg_error("unknown memory %s\n", mem->desc);
@@ -4426,9 +4426,9 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
         mtype = XPRG_MEM_TYPE_FUSE;
     } else if (str_starts(mem->desc, "lock")) {
         mtype = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (mem_is_calibration(mem) || str_eq(mem->desc, "prodsig")) {
+    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
         mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
+    } else if (mem_is_userrow(mem)) {
         mtype = XPRG_MEM_TYPE_USERSIG;
     } else {
         pmsg_error("unknown paged memory %s\n", mem->desc);
@@ -4536,7 +4536,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     } else if (mem_is_calibration(mem)) {
         mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
+    } else if (mem_is_userrow(mem)) {
         mtype = XPRG_MEM_TYPE_USERSIG;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
@@ -4685,7 +4685,7 @@ static int stk600_xprog_page_erase(const PROGRAMMER *pgm, const AVRPART *p, cons
       b[1] = XPRG_ERASE_BOOT_PAGE;
     } else if (mem_is_eeprom(m)) {
       b[1] = XPRG_ERASE_EEPROM_PAGE;
-    } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
+    } else if (mem_is_userrow(m)) {
       b[1] = XPRG_ERASE_USERSIG;
     } else {
       pmsg_error("unknown paged memory %s\n", m->desc);
