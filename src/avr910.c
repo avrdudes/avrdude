@@ -403,7 +403,7 @@ static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 {
   char cmd[2];
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     if (addr & 0x01) {
       cmd[0] = 'C';             /* Write Program Mem high byte */
     }
@@ -413,7 +413,7 @@ static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
     addr >>= 1;
   }
-  else if (str_eq(m->desc, "eeprom")) {
+  else if (mem_is_eeprom(m)) {
     cmd[0] = 'D';
   }
   else {
@@ -468,11 +468,11 @@ static int avr910_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, cons
 static int avr910_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                             unsigned long addr, unsigned char * value)
 {
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     return avr910_read_byte_flash(pgm, p, m, addr, value);
   }
 
-  if (str_eq(m->desc, "eeprom")) {
+  if (mem_is_eeprom(m)) {
     return avr910_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
@@ -574,9 +574,9 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 {
   int rval = 0;
   if (PDATA(pgm)->use_blockmode == 0) {
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       rval = avr910_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       rval = avr910_paged_write_eeprom(pgm, p, m, page_size, addr, n_bytes);
     } else {
       rval = -2;
@@ -589,7 +589,7 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     unsigned int blocksize = PDATA(pgm)->buffersize;
     int wr_size;
 
-    if (!str_eq(m->desc, "flash") && !str_eq(m->desc, "eeprom"))
+    if (!mem_is_flash(m) && !mem_is_eeprom(m))
       return -2;
 
     if (m->desc[0] == 'e') {
@@ -640,10 +640,10 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   max_addr = addr + n_bytes;
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     cmd[0] = 'R';
     rd_size = 2;                /* read two bytes per addr */
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[0] = 'd';
     rd_size = 1;
   } else {

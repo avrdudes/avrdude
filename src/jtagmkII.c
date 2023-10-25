@@ -919,7 +919,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     (p->flags & AVRPART_ENABLEPAGEPROGRAMMING) != 0;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     AVRMEM *m = ldata(ln);
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       if (m->page_size > 256)
         PDATA(pgm)->flash_pagesize = 256;
       else
@@ -931,7 +931,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
 	memcpy(sendbuf.dd.ucFlashInst, p->flash_instr, FLASH_INSTR_SIZE);
 	memcpy(sendbuf.dd.ucEepromInst, p->eeprom_instr, EEPROM_INSTR_SIZE);
       }
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -980,20 +980,20 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
 
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       if (m->page_size > 256)
         PDATA(pgm)->flash_pagesize = 256;
       else
         PDATA(pgm)->flash_pagesize = m->page_size;
       u16_to_b2(sendbuf.dd.flash_page_size, m->page_size);
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       sendbuf.dd.eeprom_page_size = m->page_size;
       u16_to_b2(sendbuf.dd.eeprom_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_eeprom_offset, m->offset);
-    } else if (str_eq(m->desc, "application")) {
+    } else if (mem_is_application(m)) {
       u32_to_b4(sendbuf.dd.app_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_app_offset, m->offset);
-    } else if (str_eq(m->desc, "boot")) {
+    } else if (mem_is_boot(m)) {
       u16_to_b2(sendbuf.dd.boot_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_boot_offset, m->offset);
     } else if (str_eq(m->desc, "fuse1")) {
@@ -1004,7 +1004,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
       u32_to_b4(sendbuf.dd.nvm_user_sig_offset, m->offset);
     } else if (str_eq(m->desc, "prodsig")) {
       u32_to_b4(sendbuf.dd.nvm_prod_sig_offset, m->offset);
-    } else if (str_eq(m->desc, "data")) {
+    } else if (mem_is_data(m)) {
       u32_to_b4(sendbuf.dd.nvm_data_offset, m->offset);
     }
   }
@@ -1855,16 +1855,16 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return -1;
 
   cmd[0] = CMND_XMEGA_ERASE;
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     if (jtagmkII_mtype(pgm, p, addr) == MTYPE_FLASH)
       cmd[1] = XMEGA_ERASE_APP_PAGE;
     else
       cmd[1] = XMEGA_ERASE_BOOT_PAGE;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[1] = XMEGA_ERASE_EEPROM_PAGE;
   } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
     cmd[1] = XMEGA_ERASE_USERSIG;
-  } else if (str_eq(m->desc, "boot")) {
+  } else if (mem_is_boot(m)) {
     cmd[1] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[1] = XMEGA_ERASE_APP_PAGE;
@@ -1941,13 +1941,13 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   cmd[0] = CMND_WRITE_MEMORY;
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     cmd[1] = jtagmkII_mtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI))
       /* dynamically decide between flash/boot mtype */
       dynamic_mtype = 1;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     if (pgm->flag & PGM_FL_IS_DW) {
       /*
        * jtagmkII_paged_write() to EEPROM attempted while in
@@ -1967,7 +1967,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (str_eq(m->desc, "boot")) {
+  } else if (mem_is_boot(m)) {
     cmd[1] = MTYPE_BOOT_FLASH;
   } else if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
@@ -2059,12 +2059,12 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   page_size = m->readsize;
 
   cmd[0] = CMND_READ_MEMORY;
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     cmd[1] = jtagmkII_mtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI))
       /* dynamically decide between flash/boot mtype */
       dynamic_mtype = 1;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
@@ -2072,7 +2072,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_PRODSIG;
   } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (str_eq(m->desc, "boot")) {
+  } else if (mem_is_boot(m)) {
     cmd[1] = MTYPE_BOOT_FLASH;
   } else if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
@@ -2207,15 +2207,15 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
       addr /= 2;
     }
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "io")) {
+  } else if (mem_is_io(mem)) {
     cmd[1] = MTYPE_FLASH;
     AVRMEM *data = avr_locate_mem(p, "data");
     addr += data->offset;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
     if (pgm->flag & PGM_FL_IS_DW) {
@@ -2335,7 +2335,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   writedata = data;
   cmd[0] = CMND_WRITE_MEMORY;
   cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_SPM;
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
      if ((addr & 1) == 1) {
        /* odd address = high byte */
        writedata = 0xFF;	/* don't modify the low byte */
@@ -2348,7 +2348,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
-  } else if (str_eq(mem->desc, "eeprom")) {
+  } else if (mem_is_eeprom(mem)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
@@ -2371,15 +2371,15 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "io")) {
+  } else if (mem_is_io(mem)) {
     cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
     AVRMEM *data = avr_locate_mem(p, "data");
     addr += data->offset;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;

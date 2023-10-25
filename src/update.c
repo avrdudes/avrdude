@@ -471,7 +471,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     // Patch flash input, eg, for vector bootloaders
     if(pgm->flash_readhook) {
       AVRMEM *mem = avr_locate_mem(p, upd->memstr);
-      if(mem && str_eq(mem->desc, "flash")) {
+      if(mem && mem_is_flash(mem)) {
         rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
         if (rc < 0) {
           pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));

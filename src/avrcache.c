@@ -629,7 +629,7 @@ int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
   }
 
   AVR_Cache *cp = mem_is_eeprom(mem)? pgm->cp_eeprom: mem_is_in_flash(mem)? pgm->cp_flash:
-    str_eq(mem->desc, "bootrow")? pgm->cp_bootrow: pgm->cp_usersig;
+    mem_is_bootrow(mem)? pgm->cp_bootrow: pgm->cp_usersig;
 
   if(!cp->cont)                 // Init cache if needed
     if(initCache(cp, pgm, p) < 0)
@@ -669,7 +669,7 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     return avr_flush_cache(pgm, p);
 
   AVR_Cache *cp = mem_is_eeprom(mem)? pgm->cp_eeprom: mem_is_in_flash(mem)? pgm->cp_flash:
-    str_eq(mem->desc, "bootrow")? pgm->cp_bootrow: pgm->cp_usersig;
+    mem_is_bootrow(mem)? pgm->cp_bootrow: pgm->cp_usersig;
 
   if(!cp->cont)                 // Init cache if needed
     if(initCache(cp, pgm, p) < 0)
@@ -772,7 +772,7 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   }
 
   AVR_Cache *cp = mem_is_eeprom(mem)? pgm->cp_eeprom: mem_is_in_flash(mem)? pgm->cp_flash:
-    str_eq(mem->desc, "bootrow")? pgm->cp_bootrow: pgm->cp_usersig;
+    mem_is_bootrow(mem)? pgm->cp_bootrow: pgm->cp_usersig;
 
   if(!cp->cont)                 // Init cache if needed
     if(initCache(cp, pgm, p) < 0)

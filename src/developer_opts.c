@@ -982,12 +982,12 @@ void dev_output_part_defs(char *partdesc) {
     if(p->mem) {
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
         AVRMEM *m = ldata(lnm);
-        if(!flashsize && str_eq(m->desc, "flash")) {
+        if(!flashsize && mem_is_flash(m)) {
           flashsize = m->size;
           flashpagesize = m->page_size;
           flashoffset = m->offset;
         }
-        if(!eepromsize && str_eq(m->desc, "eeprom")) {
+        if(!eepromsize && mem_is_eeprom(m)) {
           eepromsize = m->size;
           eepromoffset = m->offset;
           eeprompagesize = m->page_size;
@@ -1154,7 +1154,7 @@ void dev_output_part_defs(char *partdesc) {
         for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
           AVRMEM *m = ldata(lnm);
           // Write delays not needed for read-only calibration and signature memories
-          if(!str_eq(m->desc, "calibration") && !str_eq(m->desc, "signature")) {
+          if(!mem_is_calibration(m) && !mem_is_signature(m)) {
             if(p->prog_modes & PM_ISP) {
               if(m->min_write_delay == m->max_write_delay)
                  dev_info(".wd_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);

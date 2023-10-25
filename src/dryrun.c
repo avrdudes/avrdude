@@ -124,7 +124,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       AVRMEM *m = ldata(ln);
       if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
         memset(m->buf, 0xff, m->size);
-      } else if(str_eq(m->desc, "fuses")) {
+      } else if(mem_is_fuses(m)) {
         fusesm = m;
       } else if(str_contains(m->desc, "fuse") || str_contains(m->desc, "lock")) {
         // Lock, eg, can have 4 bytes: still allow initialisation from initval
@@ -139,23 +139,23 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         } else {
           memset(m->buf, 0xff, m->size);
         }
-      } else if(str_eq(m->desc, "signature") && (int) sizeof(dry.dp->signature) == m->size) {
+      } else if(mem_is_signature(m) && (int) sizeof(dry.dp->signature) == m->size) {
         memcpy(m->buf, dry.dp->signature, m->size);
-      } else if(str_eq(m->desc, "calibration")) {
+      } else if(mem_is_calibration(m)) {
         memset(m->buf, 'U', m->size); // 'U' for uncalibrated or unknown :)
-      } else if(str_eq(m->desc, "osc16err")) {
+      } else if(mem_is_osc16err(m)) {
         memset(m->buf, 'e', m->size);
-      } else if(str_eq(m->desc, "osc20err")) {
+      } else if(mem_is_osc20err(m)) {
         memset(m->buf, 'E', m->size);
-      } else if(str_eq(m->desc, "osccal16")) {
+      } else if(mem_is_osccal16(m)) {
         memset(m->buf, 'o', m->size);
-      } else if(str_eq(m->desc, "osccal20")) {
+      } else if(mem_is_osccal20(m)) {
         memset(m->buf, 'O', m->size);
-      } else if(str_eq(m->desc, "sib")) {
+      } else if(mem_is_sib(m)) {
         memset(m->buf, 'S', m->size);
-      } else if( str_eq(m->desc, "tempsense")) {
+      } else if( mem_is_tempsense(m)) {
         memset(m->buf, 'T', m->size); // 'T' for temperature calibration values
-      } else if(str_eq(m->desc, "sernum")) {
+      } else if(mem_is_sernum(m)) {
         for(int i = 0; i < m->size; i++) // Set serial number UTSRQPONM...
           m->buf[i] = 'U'-i >= 'A'? 'U'-i: 0xff;
       } else if(str_eq(m->desc, "prodsig") && m->size >= 6) {
@@ -287,7 +287,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F') {
-        if(str_eq(dmem->desc, "flash")) {
+        if(mem_is_flash(dmem)) {
           for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
             dm2 = ldata(ln);
             if(mem_is_in_flash(dm2) && !str_eq(dm2->desc, "flash")) { // Overlapping region?
@@ -364,11 +364,11 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(str_eq(dmem->desc, "calibration") || str_eq(dmem->desc, "osc16err") ||
-     str_eq(dmem->desc, "osccal16") || str_eq(dmem->desc, "osc20err") ||
-     str_eq(dmem->desc, "osccal20") || str_eq(dmem->desc, "prodsig") ||
-     str_eq(dmem->desc, "sernum") || str_eq(dmem->desc, "sib") ||
-     str_eq(dmem->desc, "signature") || str_eq(dmem->desc, "tempsense"))
+  if(mem_is_calibration(dmem) || mem_is_osc16err(dmem) ||
+     mem_is_osccal16(dmem) || mem_is_osc20err(dmem) ||
+     mem_is_osccal20(dmem) || str_eq(dmem->desc, "prodsig") ||
+     mem_is_sernum(dmem) || mem_is_sib(dmem) ||
+     mem_is_signature(dmem) || mem_is_tempsense(dmem))
     Return("cannot write to write-protected memory %s %s", dry.dp->desc, dmem->desc);
 
   if(addr >= (unsigned long) dmem->size)
@@ -383,7 +383,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   dmem->buf[addr] = data;
 
-  if(str_eq(dmem->desc, "fuses") && addr < 16) { // Copy the byte to corresponding fuse[0-9a-f]
+  if(mem_is_fuses(dmem) && addr < 16) { // Copy the byte to corresponding fuse[0-9a-f]
     char memstr[64];
     sprintf(memstr, "fuse%lx", addr);
     if((dfuse = avr_locate_mem(dry.dp, memstr)))

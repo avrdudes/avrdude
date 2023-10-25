@@ -467,7 +467,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
-  if (str_eq(mem->desc, "signature")) {
+  if (mem_is_signature(mem)) {
     if (pgm->read_sig_bytes) {
       int rc = pgm->read_sig_bytes(pgm, p, mem);
       if (rc < 0)
@@ -663,7 +663,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       goto error;
     }
 
-    if (str_eq(mem->desc, "flash")) {
+    if (mem_is_flash(mem)) {
       pmsg_error("writing a byte to flash is not supported for %s\n", p->desc);
       goto error;
     } else if ((mem->offset + addr) & 1) {
@@ -1231,7 +1231,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
 int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
-  if(str_eq(mem->desc, "fuses") && addr >=0 && addr < 16) { // Get right fuse in fuses memory
+  if(mem_is_fuses(mem) && addr >=0 && addr < 16) { // Get right fuse in fuses memory
     char memstr[64];
     AVRMEM *dfuse;
     sprintf(memstr, "fuse%x", addr);

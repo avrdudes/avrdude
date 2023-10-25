@@ -771,9 +771,9 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   pmsg_debug("usbasp_program_paged_load(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBASP_FUNC_READFLASH;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     function = USBASP_FUNC_READEEPROM;
   } else {
     return -2;
@@ -836,9 +836,9 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
   pmsg_debug("usbasp_program_paged_write(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBASP_FUNC_WRITEFLASH;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     function = USBASP_FUNC_WRITEEEPROM;
   } else {
     return -2;

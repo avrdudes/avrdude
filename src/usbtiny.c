@@ -643,7 +643,7 @@ static int usbtiny_paged_load (const PROGRAMMER *pgm, const AVRPART *p, const AV
   unsigned char cmd[8];
 
   // First determine what we're doing
-  function = str_eq(m->desc, "eeprom")? USBTINY_EEPROM_READ: USBTINY_FLASH_READ;
+  function = mem_is_eeprom(m)? USBTINY_EEPROM_READ: USBTINY_FLASH_READ;
 
   // paged_load() only called for pages, so OK to set ext addr once at start
   if((lext = m->op[AVR_OP_LOAD_EXT_ADDR])) {
@@ -713,7 +713,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   int delay;        // delay required between SPI commands
 
   // First determine what we're doing
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBTINY_FLASH_WRITE;
   } else {
     function = USBTINY_EEPROM_WRITE;

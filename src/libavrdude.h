@@ -390,7 +390,7 @@ typedef struct {
 #define mem_is_osc20err(mem) (!!((mem)->type & MEM_OSC20ERR))
 #define mem_is_bootrow(mem) (!!((mem)->type & MEM_BOOTROW))
 #define mem_is_userrow(mem) (!!((mem)->type & MEM_USERROW))
-#define mem_is_sram(mem) (!!((mem)->type & MEM_SRAM))
+#define mem_is_data(mem) (!!((mem)->type & MEM_SRAM))
 #define mem_is_io(mem) (!!((mem)->type & MEM_IO))
 #define mem_is_sib(mem) (!!((mem)->type & MEM_SIB))
 

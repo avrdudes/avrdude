@@ -759,7 +759,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
   int rv = 0;
 
   if (p->prog_modes & PM_aWire) { // AVR32
-    if (str_eq(mem->desc, "flash")) {
+    if (mem_is_flash(mem)) {
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
       *fileoff = 0;
@@ -767,22 +767,22 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       rv = -1;
     }
   } else {
-    if (str_eq(mem->desc, "flash") ||
-        str_eq(mem->desc, "boot") ||
-        str_eq(mem->desc, "application") ||
-        str_eq(mem->desc, "apptable")) {
+    if (mem_is_flash(mem) ||
+        mem_is_boot(mem) ||
+        mem_is_application(mem) ||
+        mem_is_apptable(mem)) {
       *lowbound = 0;
       *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "data")) { // SRAM for XMEGAs
+    } else if (mem_is_data(mem)) { // SRAM for XMEGAs
       *lowbound = 0x802000;
       *highbound = 0x80ffff;
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "eeprom")) {
+    } else if (mem_is_eeprom(mem)) {
       *lowbound = 0x810000;
       *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse") || str_eq(mem->desc, "fuses")) {
+    } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse") || mem_is_fuses(mem)) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
       *fileoff = 0;
@@ -804,7 +804,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "signature")) { // Read only
+    } else if (mem_is_signature(mem)) { // Read only
       *lowbound = 0x840000;
       *highbound = 0x84ffff;
       *fileoff = 0;
@@ -842,9 +842,9 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
    * than one sub-segment.
    */
   if ((p->prog_modes & PM_PDI) != 0 &&
-      (str_eq(mem->desc, "boot") ||
-       str_eq(mem->desc, "application") ||
-       str_eq(mem->desc, "apptable"))) {
+      (mem_is_boot(mem) ||
+       mem_is_application(mem) ||
+       mem_is_apptable(mem))) {
     AVRMEM *flashmem = avr_locate_mem(p, "flash");
     if (flashmem == NULL) {
       pmsg_error("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);

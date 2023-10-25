@@ -371,7 +371,7 @@ int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
   if (FLIP1(pgm)->dfu == NULL)
     return -1;
 
-  if (str_eq(mem->desc, "signature")) {
+  if (mem_is_signature(mem)) {
     if (flip1_read_sig_bytes(pgm, part, mem) < 0)
       return -1;
     if (addr >= (unsigned long) mem->size) {

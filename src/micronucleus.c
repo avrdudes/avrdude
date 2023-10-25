@@ -850,7 +850,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 {
     pmsg_debug("micronucleus_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
 
-    if (str_eq(mem->desc, "flash"))
+    if (mem_is_flash(mem))
     {
         pdata_t* pdata = PDATA(pgm);
 

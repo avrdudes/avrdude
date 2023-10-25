@@ -2358,7 +2358,7 @@ int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem
   // Bytewise read only valid for flash and eeprom
   int mchr = mem_is_in_flash(mem)? 'F': 'E';
   if(mchr == 'E' && !mem_is_eeprom(mem)) {
-    if(str_eq(mem->desc, "signature") && pgm->read_sig_bytes) {
+    if(mem_is_signature(mem) && pgm->read_sig_bytes) {
        if((int) addr < 0 || (int) addr >= mem->size) {
          return -1;
        }

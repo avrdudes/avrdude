@@ -1186,21 +1186,21 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
       m = ldata(ln);
-      if (str_eq(m->desc, "flash")) {
+      if (mem_is_flash(m)) {
         if (m->readsize != 0 && m->readsize < m->page_size)
           PDATA(pgm)->flash_pagesize = m->readsize;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
         u16_to_b2(xd.flash_page_size, m->page_size);
-      } else if (str_eq(m->desc, "eeprom")) {
+      } else if (mem_is_eeprom(m)) {
         PDATA(pgm)->eeprom_pagesize = m->page_size;
         xd.eeprom_page_size = m->page_size;
         u16_to_b2(xd.eeprom_size, m->size);
         u32_to_b4(xd.nvm_eeprom_offset, m->offset);
-      } else if (str_eq(m->desc, "application")) {
+      } else if (mem_is_application(m)) {
         u32_to_b4(xd.app_size, m->size);
         u32_to_b4(xd.nvm_app_offset, m->offset);
-      } else if (str_eq(m->desc, "boot")) {
+      } else if (mem_is_boot(m)) {
         u16_to_b2(xd.boot_size, m->size);
         u32_to_b4(xd.nvm_boot_offset, m->offset);
       } else if (str_eq(m->desc, "fuse1")) {
@@ -1212,7 +1212,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_user_sig_offset, m->offset);
       } else if (str_eq(m->desc, "prodsig")) {
         u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
-      } else if (str_eq(m->desc, "data")) {
+      } else if (mem_is_data(m)) {
         u32_to_b4(xd.nvm_data_offset, m->offset);
       }
     }
@@ -1231,7 +1231,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
       m = ldata(ln);
-      if (str_eq(m->desc, "flash")) {
+      if (mem_is_flash(m)) {
         u16_to_b2(xd.prog_base, m->offset&0xFFFF);
         xd.prog_base_msb = m->offset>>16;
 
@@ -1249,7 +1249,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         else
           xd.address_mode = UPDI_ADDRESS_MODE_16BIT;
       }
-      else if (str_eq(m->desc, "eeprom")) {
+      else if (mem_is_eeprom(m)) {
         PDATA(pgm)->eeprom_pagesize = m->page_size;
         xd.eeprom_page_size = m->page_size;
 
@@ -1261,12 +1261,12 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u16_to_b2(xd.user_sig_bytes, m->size);
         u16_to_b2(xd.user_sig_base, m->offset);
       }
-      else if (str_eq(m->desc, "signature")) {
+      else if (mem_is_signature(m)) {
         u16_to_b2(xd.signature_base, m->offset);
         xd.device_id[0] = p->signature[1];
         xd.device_id[1] = p->signature[2];
       }
-      else if (str_eq(m->desc, "fuses")) {
+      else if (mem_is_fuses(m)) {
         xd.fuses_bytes = m->size;
         u16_to_b2(xd.fuses_base, m->offset);
       }
@@ -1338,7 +1338,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
       m = ldata(ln);
-      if (str_eq(m->desc, "flash")) {
+      if (mem_is_flash(m)) {
         if (m->readsize != 0 && m->readsize < m->page_size)
           PDATA(pgm)->flash_pagesize = m->readsize;
         else
@@ -1347,7 +1347,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(md.flash_size, (flashsize = m->size));
         // do we need it?  just a wild guess
         u32_to_b4(md.boot_address, (m->size - m->page_size * 4) / 2);
-      } else if (str_eq(m->desc, "eeprom")) {
+      } else if (mem_is_eeprom(m)) {
         PDATA(pgm)->eeprom_pagesize = m->page_size;
         md.eeprom_page_size = m->page_size;
         u16_to_b2(md.eeprom_size, m->size);
@@ -1866,7 +1866,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       cmd[3] = XMEGA_ERASE_APP_PAGE;
     else
       cmd[3] = XMEGA_ERASE_BOOT_PAGE;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
   } else if (str_eq(m->desc, "usersig") ||
              str_eq(m->desc, "userrow")) {
@@ -1920,13 +1920,13 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   cmd[0] = SCOPE_AVR;
   cmd[1] = CMD3_WRITE_MEMORY;
   cmd[2] = 0;
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     cmd[3] = jtag3_mtype(pgm, p, addr);
     if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot mtype */
       dynamic_mtype = 1;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     if (pgm->flag & PGM_FL_IS_DW) {
       /*
        * jtag3_paged_write() to EEPROM attempted while in
@@ -1947,7 +1947,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   } else if (str_eq(m->desc, "usersig") ||
              str_eq(m->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (str_eq(m->desc, "boot")) {
+  } else if (mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
   } else if (p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[3] = MTYPE_FLASH;
@@ -2023,12 +2023,12 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[1] = CMD3_READ_MEMORY;
   cmd[2] = 0;
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     cmd[3] = jtag3_mtype(pgm, p, addr);
     if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot mtype */
       dynamic_mtype = 1;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
     if (pgm->flag & PGM_FL_IS_DW)
       return -1;
@@ -2037,7 +2037,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if (str_eq(m->desc, "usersig") ||
              str_eq(m->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (str_eq(m->desc, "boot")) {
+  } else if (mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
   } else if (p->prog_modes & PM_PDI) {
     cmd[3] = MTYPE_FLASH;
@@ -2163,25 +2163,25 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if (pgm->flag & PGM_FL_IS_DW)
         unsupp = 1;
     }
-  } else if (str_eq(mem->desc, "sernum")) {
+  } else if (mem_is_sernum(mem)) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "osccal16")) {
+  } else if (mem_is_osccal16(mem)) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "osccal20")) {
+  } else if (mem_is_osccal20(mem)) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "tempsense")) {
+  } else if (mem_is_tempsense(mem)) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "osc16err")) {
+  } else if (mem_is_osc16err(mem)) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "osc20err")) {
+  } else if (mem_is_osc20err(mem)) {
     cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_eq(mem->desc, "io")) {
+  } else if (mem_is_io(mem)) {
     cmd[3] = MTYPE_SRAM;
-  } else if (str_eq(mem->desc, "sib")) {
+  } else if (mem_is_sib(mem)) {
     if(addr >= AVR_SIBLEN) {
       pmsg_error("cannot read byte from %s sib as address 0x%04lx outside range [0, 0x%04x]\n",
         p->desc, addr, AVR_SIBLEN-1);
@@ -2193,7 +2193,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     }
     *value = PDATA(pgm)->sib_string[addr];
     return 0;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     static unsigned char signature_cache[2];
 
     cmd[3] = MTYPE_SIGN_JTAG;
@@ -2310,13 +2310,13 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[1] = CMD3_WRITE_MEMORY;
   cmd[2] = 0;
   cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_SPM;
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
      cache_ptr = PDATA(pgm)->flash_pagecache;
      pagesize = PDATA(pgm)->flash_pagesize;
      PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
-  } else if (str_eq(mem->desc, "eeprom")) {
+  } else if (mem_is_eeprom(mem)) {
     if (pgm->flag & PGM_FL_IS_DW) {
       cmd[3] = MTYPE_EEPROM;
     } else {
@@ -2343,15 +2343,15 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   } else if (str_eq(mem->desc, "usersig") ||
              str_eq(mem->desc, "userrow")) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (str_eq(mem->desc, "io"))
+  } else if (mem_is_io(mem))
     cmd[3] = MTYPE_SRAM;
 
   // Read-only memories or unsupported by debugWire
-  if(str_eq(mem->desc, "calibration") || str_eq(mem->desc, "osc16err") ||
-     str_eq(mem->desc, "osccal16") || str_eq(mem->desc, "osc20err") ||
-     str_eq(mem->desc, "osccal20") || str_eq(mem->desc, "prodsig") ||
-     str_eq(mem->desc, "sernum") || str_eq(mem->desc, "sib") ||
-     str_eq(mem->desc, "signature") || str_eq(mem->desc, "tempsense") || unsupp) {
+  if(mem_is_calibration(mem) || mem_is_osc16err(mem) ||
+     mem_is_osccal16(mem) || mem_is_osc20err(mem) ||
+     mem_is_osccal20(mem) || str_eq(mem->desc, "prodsig") ||
+     mem_is_sernum(mem) || mem_is_sib(mem) ||
+     mem_is_signature(mem) || mem_is_tempsense(mem) || unsupp) {
       unsigned char is;
       if(jtag3_read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
         return 0;
@@ -2765,7 +2765,7 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
     if(addr >= PDATA(pgm)->boot_start)
       addr -= PDATA(pgm)->boot_start;
   } else if(p->prog_modes & PM_UPDI) { // Modern AVR8X part
-    if(!str_eq(m->desc, "flash"))
+    if(!mem_is_flash(m))
       if(m->size >= 1)
         addr += m->offset;
   } else {                      // Classic part
@@ -2782,9 +2782,9 @@ unsigned char tpi_get_mtype(const AVRMEM *mem) {
     mtype = XPRG_MEM_TYPE_FUSE;
   } else if (str_eq(mem->desc, "lock")) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
   } else if (str_eq(mem->desc, "sigrow")) {
     mtype = XPRG_MEM_TYPE_LOCKBITS;
@@ -2981,7 +2981,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   cmd[0] = XPRG_CMD_ERASE;
   if (str_eq(mem->desc, "fuse")) {
     cmd[1] = XPRG_ERASE_CONFIG;
-  } else if (str_eq(mem->desc, "flash")) {
+  } else if (mem_is_flash(mem)) {
     cmd[1] = XPRG_ERASE_APP;
   } else {
     pmsg_error("jtag3_erase_tpi() unsupported memory: %s\n", mem->desc);
