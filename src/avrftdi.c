@@ -1534,7 +1534,7 @@ static int avrftdi_jtag_chip_erase(const PROGRAMMER *pgm, const AVRPART *p)
 static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		const AVRMEM *m, unsigned long addr, unsigned char *value)
 {
-	if (str_eq(m->desc, "lfuse")) {
+	if (mem_is_lfuse(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1542,7 +1542,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3200, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0xff;
 
-	} else if (str_eq(m->desc, "hfuse")) {
+	} else if (mem_is_hfuse(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1550,7 +1550,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3e00, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3f00, 15) & 0xff;
 
-	} else if (str_eq(m->desc, "efuse")) {
+	} else if (mem_is_efuse(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1558,7 +1558,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		avrftdi_jtag_dr_out(pgm, 0x3a00, 15);
 		*value = avrftdi_jtag_dr_inout(pgm, 0x3b00, 15) & 0xff;
 
-	} else if (str_eq(m->desc, "lock")) {
+	} else if (mem_is_lock(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_READ, 15);
 
@@ -1603,7 +1603,7 @@ static int avrftdi_jtag_read_byte(const PROGRAMMER *pgm, const AVRPART *p,
 static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		const AVRMEM *m, unsigned long addr, unsigned char value)
 {
-	if (str_eq(m->desc, "lfuse")) {
+	if (mem_is_lfuse(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
 
@@ -1620,7 +1620,7 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0x0200))
 			;
 
-	} else if (str_eq(m->desc, "hfuse")) {
+	} else if (mem_is_hfuse(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
 
@@ -1637,7 +1637,7 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3700, 15) & 0x0200))
 			;
 
-	} else if (str_eq(m->desc, "efuse")) {
+	} else if (mem_is_efuse(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_FUSE_WRITE, 15);
 
@@ -1654,7 +1654,7 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3b00, 15) & 0x0200))
 			;
 
-	} else if (str_eq(m->desc, "lock")) {
+	} else if (mem_is_lock(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
 		avrftdi_jtag_dr_out(pgm, 0x2300 | JTAG_DR_PROG_LOCK_WRITE, 15);
 

@@ -234,7 +234,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (readop == NULL) {
 #if DEBUG
-    pmsg_error("operation not supported on memory type %s\n", mem->desc);
+    pmsg_error("operation not supported on memory %s\n", mem->desc);
 #endif
     goto error;
   }
@@ -322,7 +322,7 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 
 
 /*
- * Read the entirety of the specified memory type into the corresponding
+ * Read the entirety of the specified memory into the corresponding
  * buffer of the avrpart pointed to by p. If v is non-NULL, verify against
  * v's memory area, only those cells that are tagged TAG_ALLOCATED are
  * verified.
@@ -675,7 +675,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       continue;
 
     /* must erase fuse first */
-    if (str_eq(mem->desc, "fuse")) {
+    if (mem_is_a_fuse(mem)) { // TPI parts only have one fuse
       /* setup for SECTION_ERASE (high byte) */
       avr_tpi_setup_rw(pgm, mem, addr | 1, TPI_NVMCMD_SECTION_ERASE);
 
@@ -758,7 +758,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (writeop == NULL) {
 #if DEBUG
-    pmsg_error("write not supported for memory type %s\n", mem->desc);
+    pmsg_error("write not supported for memory %s\n", mem->desc);
 #endif
     goto error;
   }
@@ -782,7 +782,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (readok == 0) {
     /*
-     * read operation not supported for this memory type, just wait
+     * read operation not supported for this memory, just wait
      * the max programming time and then return 
      */
     usleep(mem->max_write_delay); /* maximum write delay */
@@ -833,7 +833,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     else if (mem->pwroff_after_write) {
       /*
        * The device has been flagged as power-off after write to this
-       * memory type.  The reason we don't just blindly follow the
+       * memory.  The reason we don't just blindly follow the
        * flag is that the power-off advice may only apply to some
        * memory bits but not all.  We only actually power-off the
        * device if the data read back does not match what we wrote.
@@ -1230,13 +1230,19 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
 // Obtain bitmask for byte in memory (classic, TPI, PDI and UPDI parts)
 int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
+
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
   if(mem_is_fuses(mem) && addr >=0 && addr < 16) { // Get right fuse in fuses memory
-    char memstr[64];
-    AVRMEM *dfuse;
-    sprintf(memstr, "fuse%x", addr);
-    if((dfuse = avr_locate_mem(p, memstr)) && dfuse->size == 1)
+    AVRMEM *dfuse = avr_locate_fuse_by_offset(p, addr);
+    if(dfuse) {
       bitmask = dfuse->bitmask;
+      if(dfuse->size == 2 && addr == (int) mem_fuse_offset(dfuse)+1) // High byte of 2-byte fuse
+        bitmask >>= 8;
+    }
+  } else if(mem_is_a_fuse(mem) && mem->size == 2 && addr == 1) {
+    bitmask >>= 8;
+  } else if(mem_is_lock(mem) && mem->size > 1 && mem->size <= 4 && addr >= 0 && addr < mem->size) {
+    bitmask >>= (8*addr);
   }
 
   return bitmask & 0xff;
@@ -1289,13 +1295,13 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 
   a = avr_locate_mem(p, memstr);
   if (a == NULL) {
-    pmsg_error("memory type %s not defined for part %s\n", memstr, p->desc);
+    pmsg_error("memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
 
   b = avr_locate_mem(v, memstr);
   if (b == NULL) {
-    pmsg_error("memory type %s not defined for part %s\n", memstr, v->desc);
+    pmsg_error("memory %s not defined for part %s\n", memstr, v->desc);
     return -1;
   }
 
@@ -1466,10 +1472,10 @@ memtable_t avr_mem_order[100] = {
   {"apptable",    MEM_APPTABLE | MEM_IN_FLASH},
   {"boot",        MEM_BOOT | MEM_IN_FLASH},
   {"fuses",       MEM_FUSES},
+  {"fuse",        MEM_FUSE0 | MEM_IS_A_FUSE},
   {"lfuse",       MEM_FUSE0 | MEM_IS_A_FUSE},
   {"hfuse",       MEM_FUSE1 | MEM_IS_A_FUSE},
   {"efuse",       MEM_FUSE2 | MEM_IS_A_FUSE},
-  {"fuse",        MEM_FUSE0 | MEM_IS_A_FUSE},
   {"fuse0",       MEM_FUSE0 | MEM_IS_A_FUSE},
   {"wdtcfg",      MEM_FUSE0 | MEM_IS_A_FUSE},
   {"fuse1",       MEM_FUSE1 | MEM_IS_A_FUSE},

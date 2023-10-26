@@ -454,7 +454,7 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
       butterfly_set_addr(pgm, addr);
     }
   }
-  else if (str_eq(m->desc, "lock"))
+  else if (mem_is_lock(m))
   {
     cmd[0] = 'l';
     cmd[1] = value;
@@ -538,16 +538,16 @@ static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return butterfly_read_byte_eeprom(pgm, p, m, addr, value);
   }
 
-  if (str_eq(m->desc, "lfuse")) {
+  if (mem_is_lfuse(m)) {
     cmd = 'F';
   }
-  else if (str_eq(m->desc, "hfuse")) {
+  else if (mem_is_hfuse(m)) {
     cmd = 'N';
   }
-  else if (str_eq(m->desc, "efuse")) {
+  else if (mem_is_efuse(m)) {
     cmd = 'Q';
   }
-  else if (str_eq(m->desc, "lock")) {
+  else if (mem_is_lock(m)) {
     cmd = 'r';
   }
   else

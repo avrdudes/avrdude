@@ -96,28 +96,18 @@ UPDATE *parse_op(const char *s) {
 
 
 UPDATE *dup_update(const UPDATE *upd) {
-  UPDATE * u;
-
-  u = (UPDATE *) cfg_malloc("dup_update()", sizeof(UPDATE));
-
-  memcpy(u, upd, sizeof(UPDATE));
-
-  if (upd->memstr != NULL)
-    u->memstr = cfg_strdup("dup_update()", upd->memstr);
-  else
-    u->memstr = NULL;
-  u->filename = cfg_strdup("dup_update()", upd->filename);
+  UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
+  memcpy(u, upd, sizeof*u);
+  u->memstr = upd->memstr? cfg_strdup(__func__, upd->memstr): NULL;
+  u->filename = cfg_strdup(__func__, upd->filename);
 
   return u;
 }
 
 UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
-  UPDATE * u;
-
-  u = (UPDATE *) cfg_malloc("new_update()", sizeof(UPDATE));
-
-  u->memstr = cfg_strdup("new_update()", memstr);
-  u->filename = cfg_strdup("new_update()", fname);
+  UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
+  u->memstr = cfg_strdup(__func__, memstr);
+  u->filename = cfg_strdup(__func__, fname);
   u->op = op;
   u->format = filefmt;
 
@@ -127,22 +117,17 @@ UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
 UPDATE *cmd_update(const char *cmd) {
   UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
   u->cmdline = cmd;
+
   return u;
 }
 
-void free_update(UPDATE * u)
-{
-    if (u != NULL) {
-	if(u->memstr != NULL) {
-	    free(u->memstr);
-	    u->memstr = NULL;
-	}
-	if(u->filename != NULL) {
-	    free(u->filename);
-	    u->filename = NULL;
-	}
-	free(u);
-    }
+void free_update(UPDATE *u) {
+  if(u) {
+    free(u->memstr);
+    free(u->filename);
+    memset(u, 0, sizeof *u);
+    free(u);
+  }
 }
 
 char *update_str(const UPDATE *upd) {

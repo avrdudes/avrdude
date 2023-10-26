@@ -126,15 +126,14 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         memset(m->buf, 0xff, m->size);
       } else if(mem_is_fuses(m)) {
         fusesm = m;
-      } else if(str_contains(m->desc, "fuse") || str_contains(m->desc, "lock")) {
+      } else if(mem_is_a_fuse(m) || mem_is_lock(m)) {
         // Lock, eg, can have 4 bytes: still allow initialisation from initval
         if(m->initval != -1 && m->size >=1 && m->size <= (int) sizeof(m->initval)) {
           memcpy(m->buf, &m->initval, m->size); // FIXME: relying on little endian here
-          if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {
-            int fno = strtol(m->desc+4, NULL, 16);
-            if(fno >= 0)
-              for(int i = 0; i < m->size && fno+i < (int) sizeof inifuses; i++)
-                inifuses[fno+i] = m->initval >> 8*i;
+          if(mem_is_a_fuse(m)) {
+            int fno = mem_fuse_offset(m);
+            for(int i = 0; i < m->size && fno+i < (int) sizeof inifuses; i++) // pdicfg has 2 bytes
+              inifuses[fno+i] = m->initval >> 8*i;
           }
         } else {
           memset(m->buf, 0xff, m->size);
@@ -290,7 +289,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         if(mem_is_flash(dmem)) {
           for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
             dm2 = ldata(ln);
-            if(mem_is_in_flash(dm2) && !str_eq(dm2->desc, "flash")) { // Overlapping region?
+            if(mem_is_in_flash(dm2) && !mem_is_flash(dm2)) { // Overlapping region?
               unsigned int cpaddr = addr + dmem->offset - dm2->offset;
               if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
                 memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
@@ -384,22 +383,19 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   dmem->buf[addr] = data;
 
-  if(mem_is_fuses(dmem) && addr < 16) { // Copy the byte to corresponding fuse[0-9a-f]
-    char memstr[64];
-    sprintf(memstr, "fuse%lx", addr);
-    if((dfuse = avr_locate_mem(dry.dp, memstr)))
-      dfuse->buf[0] = data;
-    else if(addr > 0) {         // Could be high byte of two-byte fuse
-      sprintf(memstr, "fuse%lx", addr-1);
-      if((dfuse = avr_locate_mem(dry.dp, memstr)))
-        dfuse->buf[1] = data;
+  if(mem_is_fuses(dmem) && addr < 16) { // Copy the byte to corresponding individual fuse
+    for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
+      if(mem_is_a_fuse(dfuse = ldata(ln))) {
+        if(addr == mem_fuse_offset(dfuse))
+          dfuse->buf[0] = data;
+        else if(dfuse->size == 2 && addr-1 == mem_fuse_offset(dfuse)) // High byte of 2-byte fuse
+          dfuse->buf[1] = data;
+      }
     }
-  } else if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {
-    // Copy fuseX byte into fuses memory
-    int fno = strtol(m->desc+4, NULL, 16);
-    if(fno >= 0)
-      if((dfuse = avr_locate_mem(dry.dp, "fuses"))  && (int) (fno+addr) < dfuse->size)
-        dfuse->buf[fno+addr] = data;
+  } else if(mem_is_a_fuse(m) && (dfuse = avr_locate_mem(dry.dp, "fuses"))) { // Copy fuse to fuses
+    int fidx = addr + mem_fuse_offset(m);
+    if(fidx >=0 && fidx < dfuse->size)
+      dfuse->buf[fidx] = data;
   }
 
   return 0;

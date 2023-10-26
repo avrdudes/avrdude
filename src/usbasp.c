@@ -1171,8 +1171,8 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   pr = addr + m->offset;
   writed = 0;
 
-  /* must erase fuse first */
-  if(str_eq(m->desc, "fuse"))
+  /* must erase fuse first, TPI parts only have one fuse */
+  if(mem_is_a_fuse(m))
   {
     /* Set PR */
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));

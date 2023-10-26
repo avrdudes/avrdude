@@ -2304,15 +2304,11 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_LOCK_PP: CMD_READ_LOCK_HVSP;
   } else if (mem_is_calibration(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
@@ -2323,6 +2319,9 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       (mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP):
       (mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP);
     addr /= 2;
+  } else {
+    pmsg_error("unsupported memory %s\n", mem->desc);
+    return -1;
   }
 
   /*
@@ -2438,15 +2437,11 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return 0;
   }
 
-  if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = CMD_READ_FUSE_ISP;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = CMD_READ_LOCK_ISP;
   } else if (mem_is_calibration(mem)) {
     buf[0] = CMD_READ_OSCCAL_ISP;
@@ -2454,8 +2449,10 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     buf[0] = CMD_READ_SIGNATURE_ISP;
   } else if (mem_is_sigrow(mem)) {
     buf[0] = addr&1? CMD_READ_OSCCAL_ISP: CMD_READ_SIGNATURE_ISP;
+  } else {
+    pmsg_error("unsupported memory %s\n", mem->desc);
+    return -1;
   }
-
 
   if ((op = mem->op[AVR_OP_READ]) == NULL) {
     pmsg_error("invalid operation AVR_OP_READ on %s memory\n", mem->desc);
@@ -2523,22 +2520,14 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_lock(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
-    buf[0] = mode == PPMODE? CMD_PROGRAM_LOCK_PP: CMD_PROGRAM_LOCK_HVSP;
-    pulsewidth = p->programlockpulsewidth;
-    timeout = p->programlockpolltimeout;
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
   } else {
-    pmsg_error("unsupported memory type %s\n", mem->desc);
+    pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
   }
 
@@ -2684,18 +2673,14 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   memset(buf, 0, sizeof buf);
-  if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = CMD_PROGRAM_FUSE_ISP;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = CMD_PROGRAM_LOCK_ISP;
   } else {
-    pmsg_error("unsupported memory type: %s\n", mem->desc);
+    pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
   }
 
@@ -4270,20 +4255,16 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
         memcode = XPRG_MEM_TYPE_APPL;
         AVRMEM *data = avr_locate_mem(p, "data");
         addr += data->offset;
-    } else if (str_starts(mem->desc, "lock")) {
+    } else if (mem_is_lock(mem)) {
         memcode = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (str_starts(mem->desc, "fuse")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
         memcode = XPRG_MEM_TYPE_FUSE;
         if (p->prog_modes & PM_TPI)
-            /*
-             * TPI devices need a mystic erase prior to writing their
-             * fuses.
-             */
             need_erase = 1;
     } else if (mem_is_userrow(mem)) {
         memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
-        pmsg_error("unknown memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     addr += mem->offset;
@@ -4347,16 +4328,16 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         addr += data->offset;
     } else if (mem_is_signature(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
-    } else if (str_starts(mem->desc, "fuse")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
         b[1] = XPRG_MEM_TYPE_FUSE;
-    } else if (str_starts(mem->desc, "lock")) {
+    } else if (mem_is_lock(mem)) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
     } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (mem_is_userrow(mem)) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
     } else {
-        pmsg_error("unknown memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     addr += mem->offset;
@@ -4422,16 +4403,16 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
         addr += data->offset;
     } else if (mem_is_signature(mem)) {
         mtype = XPRG_MEM_TYPE_APPL;
-    } else if (str_starts(mem->desc, "fuse")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
         mtype = XPRG_MEM_TYPE_FUSE;
-    } else if (str_starts(mem->desc, "lock")) {
+    } else if (mem_is_lock(mem)) {
         mtype = XPRG_MEM_TYPE_LOCKBITS;
     } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
         mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (mem_is_userrow(mem)) {
         mtype = XPRG_MEM_TYPE_USERSIG;
     } else {
-        pmsg_error("unknown paged memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     offset = addr;
@@ -4527,10 +4508,10 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     } else if (mem_is_signature(mem)) {
         mtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_starts(mem->desc, "fuse")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
         mtype = XPRG_MEM_TYPE_FUSE;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_starts(mem->desc, "lock")) {
+    } else if (mem_is_lock(mem)) {
         mtype = XPRG_MEM_TYPE_LOCKBITS;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else if (mem_is_calibration(mem)) {
@@ -4540,7 +4521,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
         mtype = XPRG_MEM_TYPE_USERSIG;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
-        pmsg_error("unknown paged memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     offset = addr;

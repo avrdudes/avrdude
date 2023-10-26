@@ -717,10 +717,10 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
       p->desc, mem->desc, addr, mem->size-1);
 
-  if (str_contains(mem->desc, "fuse")) {
+  if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
-  if (str_eq(mem->desc, "lock")) {
+  if (mem_is_lock(mem)) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
   if (mem_is_eeprom(mem)) {
@@ -809,7 +809,7 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         return -1;
       } else {
-        pmsg_error("invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
+        pmsg_error("invalid memory <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
         rc = -1;
       }
 
@@ -834,7 +834,7 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         rc = -1;
     } else {
-      pmsg_error("invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
+      pmsg_error("invalid memory: <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
       rc = -1;
     }
     return rc;

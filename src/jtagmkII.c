@@ -962,7 +962,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
-  int status;
+  int status, fuseinit = 0;
   unsigned char *resp, c;
   LNODEID ln;
   AVRMEM * m;
@@ -996,9 +996,9 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     } else if (mem_is_boot(m)) {
       u16_to_b2(sendbuf.dd.boot_size, m->size);
       u32_to_b4(sendbuf.dd.nvm_boot_offset, m->offset);
-    } else if (str_eq(m->desc, "fuse1")) {
+    } else if(mem_is_a_fuse(m) && !fuseinit++) { // Any fuse is OK
       u32_to_b4(sendbuf.dd.nvm_fuse_offset, m->offset & ~15);
-    } else if (str_starts(m->desc, "lock")) {
+    } else if (mem_is_lock(m)) {
       u32_to_b4(sendbuf.dd.nvm_lock_offset, m->offset);
     } else if (mem_is_userrow(m)) {
       u32_to_b4(sendbuf.dd.nvm_user_sig_offset, m->offset);
@@ -1213,7 +1213,6 @@ static unsigned char jtagmkII_get_baud(long baud)
  * initialize the AVR device and prepare it to accept commands
  */
 static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  AVRMEM hfuse;
   unsigned char b;
   int ok;
   const char *ifname;
@@ -1344,8 +1343,8 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    hfuse.desc = cache_string("hfuse");
-    if (jtagmkII_read_byte(pgm, p, &hfuse, 1, &b) < 0)
+    AVRMEM *hf = avr_locate_mem(p, "hfuse");
+    if (!hf || jtagmkII_read_byte(pgm, p, hf, 1, &b) < 0)
       return -1;
     if ((b & OCDEN) != 0)
       pmsg_warning("OCDEN fuse not programmed, "
@@ -1944,8 +1943,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   if (mem_is_flash(m)) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     cmd[1] = jtagmkII_mtype(pgm, p, addr);
-    if (p->prog_modes & (PM_PDI | PM_UPDI))
-      /* dynamically decide between flash/boot mtype */
+    if (p->prog_modes & (PM_PDI | PM_UPDI)) // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if (mem_is_eeprom(m)) {
     if (pgm->flag & PGM_FL_IS_DW) {
@@ -2061,8 +2059,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   cmd[0] = CMND_READ_MEMORY;
   if (mem_is_flash(m)) {
     cmd[1] = jtagmkII_mtype(pgm, p, addr);
-    if (p->prog_modes & (PM_PDI | PM_UPDI))
-      /* dynamically decide between flash/boot mtype */
+    if (p->prog_modes & (PM_PDI | PM_UPDI)) // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if (mem_is_eeprom(m)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
@@ -2184,17 +2181,13 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
       cache_ptr = PDATA(pgm)->eeprom_pagecache;
     }
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_starts(mem->desc, "lock")) {
+  } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2245,7 +2238,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       return 0;
     }
   } else {
-    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
   }
 
@@ -2353,21 +2346,17 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if (mem_is_userrow(mem)) {
     cmd[1] = MTYPE_USERSIG;
   } else if (mem_is_sigrow(mem)) {
     cmd[1] = MTYPE_PRODSIG;
-  } else if (str_starts(mem->desc, "lock")) {
+  } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2384,7 +2373,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else {
-    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
   }
 

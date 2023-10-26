@@ -1180,6 +1180,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     struct xmega_device_desc xd;
     LNODEID ln;
     AVRMEM * m;
+    int fuseinit = 0;
 
     u16_to_b2(xd.nvm_base_addr, p->nvm_base);
     u16_to_b2(xd.mcu_base_addr, p->mcu_base);
@@ -1203,9 +1204,9 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       } else if (mem_is_boot(m)) {
         u16_to_b2(xd.boot_size, m->size);
         u32_to_b4(xd.nvm_boot_offset, m->offset);
-      } else if (str_eq(m->desc, "fuse1")) {
-        u32_to_b4(xd.nvm_fuse_offset, m->offset & ~15);
-      } else if (str_starts(m->desc, "lock")) {
+      } else if (mem_is_a_fuse(m) && !fuseinit++) { // Any fuse is OK
+         u32_to_b4(xd.nvm_fuse_offset, m->offset & ~15);
+      } else if (mem_is_lock(m)) {
         u32_to_b4(xd.nvm_lock_offset, m->offset);
       } else if (mem_is_userrow(m)) {
         u32_to_b4(xd.nvm_user_sig_offset, m->offset);
@@ -1268,7 +1269,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         xd.fuses_bytes = m->size;
         u16_to_b2(xd.fuses_base, m->offset);
       }
-      else if (str_eq(m->desc, "lock")) {
+      else if (mem_is_lock(m)) {
         u16_to_b2(xd.lockbits_base, m->offset);
       }
     }
@@ -2130,19 +2131,12 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-    else if (str_starts(mem->desc, "fuse") && !(p->prog_modes & PM_UPDI))
-      addr = mem->offset & 7;
+    addr = mem_is_a_fuse(mem)? mem_fuse_offset(mem): 0;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_starts(mem->desc, "lock")) {
+  } else if (mem_is_lock(mem)) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2219,7 +2213,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return -1;
     }
   } else {
-    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
   }
 
@@ -2318,19 +2312,12 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       pagesize = PDATA(pgm)->eeprom_pagesize;
     }
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-    else if (str_starts(mem->desc, "fuse") && !(p->prog_modes & PM_UPDI))
-      addr = mem->offset & 7;
+    addr = mem_is_a_fuse(mem)? mem_fuse_offset(mem): 0;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (str_starts(mem->desc, "lock")) {
+  } else if (mem_is_lock(mem)) {
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2765,22 +2752,14 @@ static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const
   return addr;
 }
 
-unsigned char tpi_get_mtype(const AVRMEM *mem) {
-  unsigned char mtype;
-  if (str_eq(mem->desc, "fuse")) {
-    mtype = XPRG_MEM_TYPE_FUSE;
-  } else if (str_eq(mem->desc, "lock")) {
-    mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else if (mem_is_calibration(mem)) {
-    mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else if (mem_is_signature(mem)) {
-    mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else if (mem_is_sigrow(mem)) {
-    mtype = XPRG_MEM_TYPE_LOCKBITS;
-  } else {
-    mtype = XPRG_MEM_TYPE_APPL;
-  }
-  return mtype;
+static unsigned char tpi_get_mtype(const AVRMEM *m) {
+  return
+    mem_is_a_fuse(m)? XPRG_MEM_TYPE_FUSE:
+    mem_is_lock(m)? XPRG_MEM_TYPE_LOCKBITS:
+    mem_is_calibration(m)? XPRG_MEM_TYPE_LOCKBITS: // Sic, uses offset to distingish memories
+    mem_is_signature(m)? XPRG_MEM_TYPE_LOCKBITS:
+    mem_is_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
+    XPRG_MEM_TYPE_APPL;         // Sic, TPI parts do not have eeprom
 }
 
 /*
@@ -2968,7 +2947,7 @@ static int jtag3_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   unsigned long paddr = 0UL;
 
   cmd[0] = XPRG_CMD_ERASE;
-  if (str_eq(mem->desc, "fuse")) {
+  if (mem_is_a_fuse(mem)) {
     cmd[1] = XPRG_ERASE_CONFIG;
   } else if (mem_is_flash(mem)) {
     cmd[1] = XPRG_ERASE_APP;

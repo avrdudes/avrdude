@@ -421,20 +421,20 @@ void avr_free_memalias(AVRMEM_ALIAS *m) {
 }
 
 AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
-  AVRMEM_ALIAS * m, * match;
+  AVRMEM_ALIAS *m, *match;
   LNODEID ln;
-  int matches;
+  int matches, d1;
   size_t l;
 
-  if(!p || !desc || !p->mem_alias)
+  if(!p || !desc || !(d1 = *desc) || !p->mem_alias)
     return NULL;
 
   l = strlen(desc);
   matches = 0;
   match = NULL;
-  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+  for(ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(l && str_starts(m->desc, desc)) { // Partial initial match
+    if(d1 == *m->desc && !strncmp(m->desc, desc, l)) { // Partial initial match
       match = m;
       matches++;
       if(m->desc[l] == 0)       // Exact match; return straight away
@@ -446,20 +446,20 @@ AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
 }
 
 AVRMEM *avr_locate_mem_noalias(const AVRPART *p, const char *desc) {
-  AVRMEM * m, * match;
+  AVRMEM *m, *match;
   LNODEID ln;
-  int matches;
+  int matches, d1;
   size_t l;
 
-  if(!p || !desc || !p->mem)
+  if(!p || !desc || !(d1 = *desc) || !p->mem)
     return NULL;
 
   l = strlen(desc);
   matches = 0;
   match = NULL;
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+  for(ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(l && str_starts(m->desc, desc)) { // Partial initial match
+    if(d1 == *m->desc && !strncmp(m->desc, desc, l)) { // Partial initial match
       match = m;
       matches++;
       if(m->desc[l] == 0)       // Exact match; return straight away
@@ -482,6 +482,19 @@ AVRMEM *avr_locate_mem(const AVRPART *p, const char *desc) {
   return a? a->aliased_mem: NULL;
 }
 
+// Return the first fuse which has off as offset or which has high byte and off-1 as offset
+AVRMEM *avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off) {
+  AVRMEM *m;
+
+  if(p && p->mem)
+    for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+      if(mem_is_a_fuse(m = ldata(ln)))
+        if(off == mem_fuse_offset(m) || (m->size == 2 && off-1 == mem_fuse_offset(m)))
+          return m;
+
+  return NULL;
+}
+
 AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   if(p && p->mem_alias && m_orig)
     for(LNODEID ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
@@ -492,7 +505,6 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
 
   return NULL;
 }
-
 
 void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
                      const AVRPART *p, int verbose) {

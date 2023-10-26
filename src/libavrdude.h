@@ -401,6 +401,18 @@ typedef struct {
 #define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
 #define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
 #define mem_is_paged_type(mem) (!!((mem)->type & (MEM_IN_FLASH | MEM_EEPROM | MEM_USER_TYPE)))
+#define mem_is_lfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0))
+#define mem_is_hfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1))
+#define mem_is_efuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2))
+#define mem_is_fuse0(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0))
+#define mem_is_fuse1(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1))
+#define mem_is_fuse2(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2))
+#define mem_is_fuse4(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4))
+#define mem_is_fuse5(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5))
+#define mem_is_fuse6(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE6))
+#define mem_is_fuse7(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE7))
+#define mem_is_fuse8(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE8))
+#define mem_is_fusea(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSEA))
 
 #define mem_fuse_offset(mem) ((mem)->type & MEM_FUSEOFF_MASK) // Valid if mem_is_a_fuse(mem)
 
@@ -470,6 +482,7 @@ void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
 AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
+AVRMEM * avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
@@ -481,8 +494,7 @@ AVRPART * avr_dup_part(const AVRPART *d);
 void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
-AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig,
-                                   int sigsize);
+AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,

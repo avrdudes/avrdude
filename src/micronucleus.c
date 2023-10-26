@@ -814,10 +814,7 @@ static int micronucleus_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
 {
     pmsg_debug("micronucleus_read_byte(desc=%s, addr=0x%04lX)\n", mem->desc, addr);
 
-    if (str_eq(mem->desc, "lfuse") ||
-        str_eq(mem->desc, "hfuse") ||
-        str_eq(mem->desc, "efuse") ||
-        str_eq(mem->desc, "lock"))
+    if (mem_is_a_fuse(mem) || mem_is_lock(mem))
     {
         *value = 0xFF;
         return 0;
@@ -897,7 +894,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     }
     else
     {
-        pmsg_error("unsupported memory type: %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
 }
