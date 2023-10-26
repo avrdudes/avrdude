@@ -238,7 +238,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     memstr = (char*)read_mem[i].mem->desc;
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("(%s) %s memory type not defined for part %s\n", cmd, memstr, p->desc);
+    pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
     return -1;
   }
 
@@ -337,7 +337,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
       report_progress(1, -1, NULL);
       pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) read_mem[i].addr + j, p->desc);
       if (rc == -1)
-        imsg_error("%*sread operation not supported on memory type %s\n", 7, "", mem->desc);
+        imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       free(buf);
       return -1;
     }
@@ -428,7 +428,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   char *memstr = argv[1];       // Memory name string
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("(write) %s memory type not defined for part %s\n", memstr, p->desc);
+    pmsg_error("(write) memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
   int maxsize = mem->size;
@@ -610,7 +610,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
     } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
       if (rc == -1)
-        imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
+        imsg_error("%*swrite operation not supported on memory %s\n", 8, "", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
       imsg_error("%*sreadback from %s failed\n", 8, "", mem->desc);
     } else {                    // Read back byte b is now set
@@ -641,7 +641,7 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 
   AVRMEM *mem, *omem;
   if(!(omem = avr_locate_mem(p, argv[1]))) {
-    pmsg_error("(save) %s memory type not defined for part %s\n", argv[1], p->desc);
+    pmsg_error("(save) memory %s not defined for part %s\n", argv[1], p->desc);
     return -1;
   }
 
@@ -834,7 +834,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
     char *memstr = argv[1];
     const AVRMEM *mem = avr_locate_mem(p, memstr);
     if (mem == NULL) {
-      pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
+      pmsg_error("(erase) memory %s not defined for part %s\n", argv[1], p->desc);
       return -1;
     }
     char *args[] = {"write", memstr, "", "", "0xff", "...", NULL};
@@ -910,7 +910,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
   char *memstr = argv[1];
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if(!mem) {
-    pmsg_error("(pgerase) %s memory type not defined for part %s\n", memstr, p->desc);
+    pmsg_error("(pgerase) memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
@@ -999,7 +999,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
 
   const AVRMEM *mem = avr_locate_mem(p, cci->memstr);
   if(!mem) {
-    err = cache_string(tofree = str_sprintf("%s memory type not defined for part %s", cci->memstr, p->desc));
+    err = cache_string(tofree = str_sprintf("memory %s not defined for part %s", cci->memstr, p->desc));
     free(tofree);
     goto back;
   }
@@ -1528,7 +1528,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
   const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
-    pmsg_error("(config) %s memory type not defined for part %s\n", cc[ci].memstr, p->desc);
+    pmsg_error("(config) memory %s not defined for part %s\n", cc[ci].memstr, p->desc);
     ret = -1;
     goto finished;
   }
@@ -1793,7 +1793,7 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
-    "The part command displays valid memory types for use with dump and write.\n");
+    "The part command displays valid memories for use with dump and write.\n");
   return 0;
 }
 

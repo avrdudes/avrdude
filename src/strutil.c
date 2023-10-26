@@ -793,7 +793,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     AVRMEM *mem = avr_locate_mem(dp, memstr);
     if(!mem) {
       avr_free_part(dp);
-      Return("memory type %s not configured for device %s", memstr, part->desc);
+      Return("memory %s not configured for device %s", memstr, part->desc);
     }
     int rc = fileio(FIO_READ_FOR_VERIFY, str, format, dp, memstr, -1);
     if(rc < 0) {

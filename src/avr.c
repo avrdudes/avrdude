@@ -725,7 +725,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         rc = -2;
         goto rcerror;
       }
-      // Read operation is not support on this memory type
+      // Read operation is not support on this memory
     }
     else {
       readok = 1;

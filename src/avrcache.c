@@ -50,9 +50,9 @@
  * int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
  *
  * avr_read_byte_cached() and avr_write_byte_cached() use a cache if paged
- * routines are available and if the device memory type is flash, EEPROM,
- * bootrow or usersig. The AVRXMEGA memories application, apptable and boot
- * are subsumed under flash. Userrow is subsumed under usersig provided
+ * routines are available and if the device memory is flash, EEPROM, bootrow
+ * or usersig. The AVRXMEGA memories application, apptable and boot are
+ * subsumed under flash. Userrow is subsumed under usersig provided
  * avrdude.conf has a memory alias from usersig to userrow. In all other
  * cases the cached read/write functions fall back to pgm->read_byte() and
  * pgm->write_byte(), respectively. Bytewise cached read always gets its data

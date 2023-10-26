@@ -282,7 +282,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
    * but accept when the specific part does not have it (allow unifying i/faces)
    */
   if(!avr_mem_might_be_known(upd->memstr)) {
-    pmsg_error("unknown memory type %s\n", upd->memstr);
+    pmsg_error("unknown memory %s\n", upd->memstr);
     ret = LIBAVRDUDE_GENERAL_FAILURE;
   } else if(p && !avr_locate_mem(p, upd->memstr))
     ret = LIBAVRDUDE_SOFTFAIL;
@@ -485,7 +485,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     }
     size = rc;
 
-    // Write the buffer contents to the selected memory type
+    // Write the buffer contents to the selected memory
     pmsg_info("writing %d byte%s %s%s ...\n", fs.nbytes,
       str_plural(fs.nbytes), mem->desc, alias_mem_desc);
 
