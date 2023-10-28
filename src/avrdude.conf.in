@@ -432,6 +432,9 @@
 # ATmega8       0x76
 # ATmega169     0x78
 
+# Buildtime configuration
+avrdude_version = "@AVRDUDE_FULL_VERSION@";
+
 #
 # Overall avrdude defaults; suitable for ~/.config/avrdude/avrdude.rc
 #

@@ -120,6 +120,7 @@ add_custom_command(
     OUTPUT avrdude.conf
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
     COMMAND ${CMAKE_COMMAND}
+        -D "AVRDUDE_FULL_VERSION=${AVRDUDE_FULL_VERSION}"
         -D HAVE_PARPORT=$<BOOL:${HAVE_PARPORT}>
         -D HAVE_LINUXSPI=$<BOOL:${HAVE_LINUXSPI}>
         -D HAVE_LINUXGPIO=$<BOOL:${HAVE_LINUXGPIO}>
