@@ -50,7 +50,7 @@ endif()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
-if(WIN32)
+if(WIN32 OR MINGW)
     set(EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
     set(EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
 endif()
@@ -112,7 +112,7 @@ endif()
 
 configure_file(cmake_config.h.in ac_cfg.h)
 configure_file(avrdude.spec.in avrdude.spec)
-if(WIN32)
+if(WIN32 OR MINGW)
     configure_file(windows.rc.in windows.rc)
 endif()
 
