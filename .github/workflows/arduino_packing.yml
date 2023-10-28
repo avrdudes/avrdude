@@ -1,4 +1,4 @@
-name: release
+name: avrdude_packing
 
 env:
   # The name of the project
@@ -8,7 +8,6 @@ env:
 
 on:
   push:
-  pull_request:
 
 jobs:
   build:
