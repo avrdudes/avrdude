@@ -543,8 +543,9 @@ AC_CONFIG_FILES([
        Makefile
 ])
 
-# Pass into avrdude.conf.in
-AVRDUDE_FULL_VERSION='$(VERSION)'
+# Pass version number into avrdude.conf
+AVRDUDE_FULL_VERSION=$PACKAGE_VERSION
+AC_SUBST(AVRDUDE_FULL_VERSION, $AVRDUDE_FULL_VERSION)
 
 # The procedure to create avrdude.conf involves two steps.  First,
 # normal autoconf substitution will be applied, resulting in
