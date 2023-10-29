@@ -433,7 +433,7 @@
 # ATmega169     0x78
 
 # Avrdude build version
-avrdude_version = "@AVRDUDE_FULL_VERSION@";
+#avrdude_version = "@AVRDUDE_FULL_VERSION@";
 
 #
 # Overall avrdude defaults; suitable for ~/.config/avrdude/avrdude.rc
