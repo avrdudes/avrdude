@@ -1,6 +1,6 @@
 # $Id$ -*- text -*-
 #
-# AVRDUDE Configuration File
+# AVRDUDE @AVRDUDE_FULL_VERSION@ Configuration File
 #
 # This file contains configuration data used by AVRDUDE which describes
 # the programming hardware pinouts and also provides part definitions.
@@ -432,7 +432,7 @@
 # ATmega8       0x76
 # ATmega169     0x78
 
-# Buildtime configuration
+# Avrdude build version
 avrdude_version = "@AVRDUDE_FULL_VERSION@";
 
 #
