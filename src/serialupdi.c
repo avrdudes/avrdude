@@ -632,22 +632,26 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  if (updi_read_data(pgm, p->syscfg_base+1, &value, 1) < 0) {
-    pmsg_error("Reading chip silicon revision failed\n");
-    return -1;
-  } else {
-    pmsg_debug("Received chip silicon revision 0x%02x\n", value);
-    pmsg_notice("Chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
-  }
-
   if (updi_link_init(pgm) < 0) {
     pmsg_error("UPDI link initialization failed\n");
     return -1;
   }
 
   pmsg_notice("entering NVM programming mode\n");
-    /* try, but ignore failure */
-  serialupdi_enter_progmode(pgm);
+
+  /* try, but ignore failure */
+  /* It will always fail if the device is locked */
+  /* The device will be unlocked by erasing the chip after this. */
+  if (serialupdi_enter_progmode(pgm) == 0) {
+    /* If successful, you can run silicon check */
+    if (updi_read_data(pgm, p->syscfg_base+1, &value, 1) < 0) {
+      pmsg_error("Reading chip silicon revision failed\n");
+      return -1;
+    } else {
+      pmsg_debug("Received chip silicon revision 0x%02x\n", value);
+      pmsg_notice("Chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
+    }
+  }
 
   return 0;
 }
