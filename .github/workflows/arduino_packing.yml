@@ -7,7 +7,12 @@ env:
   ARTIFACT_NAME: dist
 
 on:
+  label:
+    types:
+      - created
   push:
+    branches:
+      - main
 
 jobs:
   build:
