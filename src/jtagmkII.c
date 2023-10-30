@@ -2208,9 +2208,6 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_io(mem)) {
-    cmd[1] = MTYPE_FLASH;
-    addr += avr_data_offset(p);
   } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
@@ -2240,6 +2237,20 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         }
       return 0;
     }
+  } else if (mem_is_in_sigrow(mem)) {
+    AVRMEM *sr = avr_locate_sigrow(p);
+    int doff;
+    if ((p->prog_modes & (PM_PDI | PM_UPDI)) && sr && (doff = mem->offset-sr->offset) >= 0 &&
+      (int) (addr + doff) < sr->size) {
+      cmd[1] = MTYPE_PRODSIG;
+      addr += doff;
+    } else {
+      pmsg_error("unable to handle memory %s\n", mem->desc);
+      return -1;
+    }
+  } else if (mem_is_io(mem)) {
+    cmd[1] = MTYPE_FLASH;
+    addr += avr_data_offset(p);
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
