@@ -2511,21 +2511,22 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
    */
   unsigned char buf[2 + 4], *resp, c;
   size_t size;
+  const char *parstr = "???";
 
   pmsg_notice2("jtagmkII_setparm()\n");
 
   switch (parm) {
-  case PAR_HW_VERSION: size = 2; break;
-  case PAR_FW_VERSION: size = 4; break;
-  case PAR_EMULATOR_MODE: size = 1; break;
-  case PAR_BAUD_RATE: size = 1; break;
-  case PAR_OCD_VTARGET: size = 2; break;
-  case PAR_OCD_JTAG_CLK: size = 1; break;
-  case PAR_TIMERS_RUNNING: size = 1; break;
-  case PAR_EXTERNAL_RESET: size = 1; break;
-  case PAR_DAISY_CHAIN_INFO: size = 4; break;
-  case PAR_PDI_OFFSET_START:
-  case PAR_PDI_OFFSET_END: size = 4; break;
+  case PAR_HW_VERSION: size = 2; parstr ="hw_version"; break;
+  case PAR_FW_VERSION: size = 4; parstr ="fw_version"; break;
+  case PAR_EMULATOR_MODE: size = 1; parstr ="emulator_mode"; break;
+  case PAR_BAUD_RATE: size = 1; parstr ="baud_rate"; break;
+  case PAR_OCD_VTARGET: size = 2; parstr ="ocd_vtarget"; break;
+  case PAR_OCD_JTAG_CLK: size = 1; parstr ="ocd_jtag_clk"; break;
+  case PAR_TIMERS_RUNNING: size = 1; parstr ="timers_running"; break;
+  case PAR_EXTERNAL_RESET: size = 1; parstr ="external_reset"; break;
+  case PAR_DAISY_CHAIN_INFO: size = 4; parstr ="daisy_chain_info"; break;
+  case PAR_PDI_OFFSET_START: size = 4; parstr ="pdi_offset_start"; break;
+  case PAR_PDI_OFFSET_END: size = 4; parstr ="pdi_offset_end"; break;
   default:
     pmsg_error("unknown parameter 0x%02x\n", parm);
     return -1;
@@ -2534,8 +2535,8 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
   buf[0] = CMND_SET_PARAMETER;
   buf[1] = parm;
   memcpy(buf + 2, value, size);
-  pmsg_notice2("jtagmkII_setparm(): "
-    "Sending set parameter command (parm 0x%02x, %u bytes): ", parm, (unsigned)size);
+  pmsg_notice2("%s() sending set parameter command "
+    "(parm %s 0x%02x, %u bytes): ", __func__, parstr, parm, (unsigned) size);
   jtagmkII_send(pgm, buf, size + 2);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -2552,7 +2553,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to set parameter command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to set parameter %s: %s\n", parstr, jtagmkII_get_rc(c));
     return -1;
   }
 
