@@ -74,6 +74,7 @@ static int pin_name;
 
 %token K_ALIAS
 %token K_ALLOW_SUBSHELLS
+%token K_AVRDUDE_CONF_VERSION
 %token K_BUFF
 %token K_CONNTYPE
 %token K_DEDICATED
@@ -212,6 +213,11 @@ def :
   prog_def TKN_SEMI |
 
   part_def TKN_SEMI |
+
+  K_AVRDUDE_CONF_VERSION TKN_EQUAL TKN_STRING TKN_SEMI {
+    avrdude_conf_version = cache_string($3->value.string);
+    free_token($3);
+  } |
 
   K_DEFAULT_PROGRAMMER TKN_EQUAL TKN_STRING TKN_SEMI {
     default_programmer = cache_string($3->value.string);

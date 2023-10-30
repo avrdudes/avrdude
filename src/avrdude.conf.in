@@ -2,13 +2,17 @@
 #
 # AVRDUDE Configuration File
 #
-# This file contains configuration data used by AVRDUDE which describes
-# the programming hardware pinouts and also provides part definitions.
+
+avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
+
+# This file contains AVRDUDE's default configuration data describing
+# programming hardware pinouts and part definitions. Normally, it
+# requires AVRDUDE be of the same or higher version than above string.
 # AVRDUDE's -C command line option specifies the location of the
-# configuration file.  The -c option names the programmer configuration
-# which must match one of the entry's id parameter.  The -p option
-# identifies which part AVRDUDE is going to be programming and must match
-# one of the parts' id parameters.
+# configuration file. The -c option names the programmer configuration
+# which must match one of the entry's id parameter. The -p option
+# identifies which part AVRDUDE is going to be programming and must
+# match one of the parts' id parameters.
 #
 # DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
 # time a "make install" is run.  For user-specific additions, use the
@@ -431,9 +435,6 @@
 # ATmega16      0x74
 # ATmega8       0x76
 # ATmega169     0x78
-
-# Buildtime configuration
-avrdude_version = "@AVRDUDE_FULL_VERSION@";
 
 #
 # Overall avrdude defaults; suitable for ~/.config/avrdude/avrdude.rc
