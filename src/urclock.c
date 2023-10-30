@@ -1039,7 +1039,7 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
       p->prog_modes & PM_TPI? F_AVR8L:
       p->prog_modes & (PM_ISP | PM_HVPP | PM_HVSP)? F_AVR8: 0;
     memcpy(ur.uP.sigs, p->signature, sizeof ur.uP.sigs);
-    if((mem = avr_locate_mem(p, "flash"))) {
+    if((mem = avr_locate_flash(p))) {
       ur.uP.flashoffset = mem->offset;
       ur.uP.flashsize = mem->size;
       ur.uP.pagesize = mem->page_size;
@@ -1050,7 +1050,7 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
     }
     ur.uP.nboots = -1;
     ur.uP.bootsize = -1;
-    if((mem = avr_locate_mem(p, "eeprom"))) {
+    if((mem = avr_locate_eeprom(p))) {
       ur.uP.eepromoffset = mem->offset;
       ur.uP.eepromsize = mem->size;
       ur.uP.eeprompagesize = mem->page_size;
@@ -1260,7 +1260,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *flm;
   int rc;
 
-  if(!(flm = avr_locate_mem(p, "flash")))
+  if(!(flm = avr_locate_flash(p)))
     Return("cannot obtain flash memory for %s", p->desc);
 
   if(flm->page_size > (int) sizeof spc)
@@ -2152,7 +2152,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(!emulated) {               // Write jump to boot section to reset vector
     if(ur.boothigh && ur.blstart && ur.vbllevel==1) {
-      AVRMEM *flm = avr_locate_mem(p, "flash");
+      AVRMEM *flm = avr_locate_flash(p);
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
         unsigned char *page = cfg_malloc(__func__, flm->page_size);

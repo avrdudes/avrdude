@@ -73,7 +73,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
   pmsg_debug("%s()\n", __func__);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
-  if(!(flm = avr_locate_mem(dry.dp, "flash")))
+  if(!(flm = avr_locate_flash(dry.dp)))
     Return("cannot locate %s flash memory for chip erase", dry.dp->desc);
   if(flm->size < 1)
     Return("cannot erase %s flash memory owing to its size %d", dry.dp->desc, flm->size);
@@ -181,7 +181,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
             memcpy(prodsigm->buf + off, m->buf, cpy);
         }
       }
-      if(!(p->prog_modes & (PM_PDI|PM_UPDI)) && (calm = avr_locate_mem(dry.dp, "calibration"))) {
+      if(!(p->prog_modes & (PM_PDI|PM_UPDI)) && (calm = avr_locate_calibration(dry.dp))) {
         // Calibration bytes of classic parts are interspersed with signature
         for(int i=0; i<calm->size; i++)
           if(2*i+1 < prodsigm->size)
@@ -295,7 +295,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
                 memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
             }
           }
-        } else if((dm2 = avr_locate_mem(dry.dp, "flash"))) {
+        } else if((dm2 = avr_locate_flash(dry.dp))) {
           unsigned int cpaddr = addr + dmem->offset - dm2->offset;
           if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
             memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
@@ -392,7 +392,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
           dfuse->buf[1] = data;
       }
     }
-  } else if(mem_is_a_fuse(m) && (dfuse = avr_locate_mem(dry.dp, "fuses"))) { // Copy fuse to fuses
+  } else if(mem_is_a_fuse(m) && (dfuse = avr_locate_fuses(dry.dp))) { // Copy fuse to fuses
     int fidx = addr + mem_fuse_offset(m);
     if(fidx >=0 && fidx < dfuse->size)
       dfuse->buf[fidx] = data;

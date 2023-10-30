@@ -371,6 +371,57 @@ typedef struct {
 #define MEM_IN_SIGROW   (1<<30) // prodsig sigrow signature calibration sernum tempsense osccal16 osccal20 osc16err osc20err
 #define MEM_READONLY   (1U<<31) // sib prodsig sigrow signature sernum tempsense calibration osccal16 osccal20 osc16err osc20err
 
+// Marcos to locate a memory type or a fuse
+#define avr_locate_eeprom(p) avr_locate_mem_by_type((p), MEM_EEPROM)
+#define avr_locate_flash(p) avr_locate_mem_by_type((p), MEM_FLASH)
+#define avr_locate_application(p) avr_locate_mem_by_type((p), MEM_APPLICATION)
+#define avr_locate_apptable(p) avr_locate_mem_by_type((p), MEM_APPTABLE)
+#define avr_locate_boot(p) avr_locate_mem_by_type((p), MEM_BOOT)
+#define avr_locate_fuses(p) avr_locate_mem_by_type((p), MEM_FUSES)
+#define avr_locate_lock(p) avr_locate_mem_by_type((p), MEM_LOCK)
+#define avr_locate_lockbits(p) avr_locate_mem_by_type((p), MEM_LOCK)
+#define avr_locate_prodsig(p) avr_locate_mem_by_type((p), MEM_SIGROW)
+#define avr_locate_sigrow(p) avr_locate_mem_by_type((p), MEM_SIGROW)
+#define avr_locate_signature(p) avr_locate_mem_by_type((p), MEM_SIGNATURE)
+#define avr_locate_calibration(p) avr_locate_mem_by_type((p), MEM_CALIBRATION)
+#define avr_locate_tempsense(p) avr_locate_mem_by_type((p), MEM_TEMPSENSE)
+#define avr_locate_sernum(p) avr_locate_mem_by_type((p), MEM_SERNUM)
+#define avr_locate_osccal16(p) avr_locate_mem_by_type((p), MEM_OSCCAL16)
+#define avr_locate_osccal20(p) avr_locate_mem_by_type((p), MEM_OSCCAL20)
+#define avr_locate_osc16err(p) avr_locate_mem_by_type((p), MEM_OSC16ERR)
+#define avr_locate_osc20err(p) avr_locate_mem_by_type((p), MEM_OSC20ERR)
+#define avr_locate_bootrow(p) avr_locate_mem_by_type((p), MEM_BOOTROW)
+#define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERROW)
+#define avr_locate_userrow(p) avr_locate_mem_by_type((p), MEM_USERROW)
+#define avr_locate_data(p) avr_locate_mem_by_type((p), MEM_SRAM)
+#define avr_locate_io(p) avr_locate_mem_by_type((p), MEM_IO)
+#define avr_locate_sib(p) avr_locate_mem_by_type((p), MEM_SIB)
+
+#define avr_locate_fuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_lfuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_hfuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
+#define avr_locate_efuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_fuse0(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_wdtcfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_fuse1(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
+#define avr_locate_bodcfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
+#define avr_locate_fuse2(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_osccfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_fuse4(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
+#define avr_locate_tcd0cfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
+#define avr_locate_fuse5(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
+#define avr_locate_syscfg0(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
+#define avr_locate_fuse6(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE6)
+#define avr_locate_syscfg1(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE6)
+#define avr_locate_fuse7(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE7)
+#define avr_locate_append(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE7)
+#define avr_locate_codesize(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE7)
+#define avr_locate_fuse8(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE8)
+#define avr_locate_bootend(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE8)
+#define avr_locate_bootsize(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE8)
+#define avr_locate_fusea(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSEA)
+#define avr_locate_pdicfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSEA)
+
 // Fuse offset and memory type/attribute macros
 #define mem_is_eeprom(mem) (!!((mem)->type & MEM_EEPROM))
 #define mem_is_flash(mem) (!!((mem)->type & MEM_FLASH))
@@ -483,6 +534,8 @@ void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
 AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
 AVRMEM * avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off);
+AVRMEM * avr_locate_mem_by_type(const AVRPART *p, memtype_t type);
+unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,

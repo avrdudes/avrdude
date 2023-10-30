@@ -57,7 +57,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     led_set(pgm, LED_PGM);
 
     /* Set Pointer Register */
-    mem = avr_locate_mem(p, "flash");
+    mem = avr_locate_flash(p);
     if (mem == NULL) {
       pmsg_error("no flash memory to erase for part %s\n", p->desc);
       led_set(pgm, LED_ERR);
@@ -1372,17 +1372,16 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   int rc;
   int i;
 
-  a = avr_locate_mem(p, "eeprom");
-  if (a == NULL) {
+  a = avr_locate_eeprom(p);
+  if (a == NULL)
     return -1;
-  }
 
   for (i=4; i>0; i--) {
     rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
-  if (rc < 0) {
-    pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
-    return -1;
-  }
+    if (rc < 0) {
+      pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
+      return -1;
+    }
     cycle_count = (cycle_count << 8) | v1;
   }
 
@@ -1408,10 +1407,9 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
   int rc;
   int i;
 
-  a = avr_locate_mem(p, "eeprom");
-  if (a == NULL) {
+  a = avr_locate_eeprom(p);
+  if (a == NULL)
     return -1;
-  }
 
   for (i=1; i<=4; i++) {
     v1 = cycles & 0xff;

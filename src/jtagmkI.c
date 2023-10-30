@@ -550,7 +550,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (jtagmkI_reset(pgm) < 0)
     return -1;
 
-  AVRMEM *hf = avr_locate_mem(p, "hfuse");
+  AVRMEM *hf = avr_locate_hfuse(p);
   if (!hf || jtagmkI_read_byte(pgm, p, hf, 1, &b) < 0)
     return -1;
   if ((b & OCDEN) != 0)

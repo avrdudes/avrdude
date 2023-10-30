@@ -1235,8 +1235,8 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      */
     if (p->prog_modes & PM_PDI) {
       // Find the border between application and boot area
-      AVRMEM *bootmem = avr_locate_mem(p, "boot");
-      AVRMEM *flashmem = avr_locate_mem(p, "flash");
+      AVRMEM *bootmem = avr_locate_boot(p);
+      AVRMEM *flashmem = avr_locate_flash(p);
       if (bootmem == NULL || flashmem == NULL) {
         pmsg_error("cannot locate flash or boot memories\n");
       } else {
@@ -1809,7 +1809,7 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
       stk600_setup_isp(pgm);
     }
   }
-  AVRMEM *mem = avr_locate_mem(p, "flash");
+  AVRMEM *mem = avr_locate_flash(p);
   if(mem && mem->op[AVR_OP_WRITE_LO]) // Old part that can only write flash bytewise
     if(mem->page_size < 2)  // Override page size, as STK500v2/EDBG uses flash word addresses
       mem->page_size = 2;
@@ -4128,7 +4128,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
             pmsg_error("no nvm_base parameter for PDI device\n");
             return -1;
         }
-        if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
+        if ((mem = avr_locate_eeprom(p)) != NULL) {
             if (mem->page_size <= 1) {
                 pmsg_error("no EEPROM page_size parameter for PDI device\n");
                 return -1;
@@ -4207,10 +4207,12 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
 
     // Read XMEGA chip silicon revision
     if(p->prog_modes & PM_PDI) {
-      AVRMEM *m = avr_locate_mem(p, "io");
+      AVRMEM *m = avr_locate_io(p);
       unsigned char chip_rev[AVR_CHIP_REVLEN];
-      pgm->read_byte(pgm, p, m, p->mcu_base+3, chip_rev);
-      pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+      if(m && pgm->read_byte(pgm, p, m, p->mcu_base+3, chip_rev) >= 0)
+        pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+      else
+        pmsg_warning("cannot read silicon revision; is avrdude.conf up to date?\n");
     }
 
     return 0;
@@ -4253,8 +4255,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
         memcode = XPRG_MEM_TYPE_EEPROM;
     } else if (mem_is_io(mem)) {
         memcode = XPRG_MEM_TYPE_APPL;
-        AVRMEM *data = avr_locate_mem(p, "data");
-        addr += data->offset;
+        addr += avr_data_offset(p);
     } else if (mem_is_lock(mem)) {
         memcode = XPRG_MEM_TYPE_LOCKBITS;
     } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
@@ -4324,8 +4325,7 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         b[1] = XPRG_MEM_TYPE_EEPROM;
     } else if (mem_is_io(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        AVRMEM *data = avr_locate_mem(p, "data");
-        addr += data->offset;
+        addr += avr_data_offset(p);
     } else if (mem_is_signature(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
     } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
@@ -4399,8 +4399,7 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
         mtype = XPRG_MEM_TYPE_EEPROM;
     } else if (mem_is_io(mem)) {
         mtype = XPRG_MEM_TYPE_APPL;
-        AVRMEM *data = avr_locate_mem(p, "data");
-        addr += data->offset;
+        addr += avr_data_offset(p);
     } else if (mem_is_signature(mem)) {
         mtype = XPRG_MEM_TYPE_APPL;
     } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
@@ -4632,7 +4631,7 @@ static int stk600_xprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned int addr = 0;
 
     if (p->prog_modes & PM_TPI) {
-        if ((mem = avr_locate_mem(p, "flash")) == NULL) {
+        if ((mem = avr_locate_flash(p)) == NULL) {
             pmsg_error("no FLASH definition found for TPI device\n");
             return -1;
         }

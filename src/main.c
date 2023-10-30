@@ -1469,7 +1469,7 @@ skipopen:
       }
     }
 
-    sig = avr_locate_mem(p, "signature");
+    sig = avr_locate_signature(p);
     if (sig == NULL)
       pmsg_warning("signature memory not defined for device %s\n", p->desc);
 

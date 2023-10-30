@@ -858,7 +858,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
   if(rc == LIBAVRDUDE_SOFTFAIL) {
     pmsg_info("(erase) emulating chip erase by writing 0xff to flash ");
-    const AVRMEM *flm = avr_locate_mem(p, "flash");
+    const AVRMEM *flm = avr_locate_flash(p);
     if(!flm) {
       msg_error("but flash not defined for part %s?\n", p->desc);
       return -1;
@@ -1357,9 +1357,8 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
   cc = cfg_malloc(__func__, sizeof *cc*nc);
   fc = cfg_malloc(__func__, sizeof *fc*nc);
 
-  char *locktype = "lock";
-  if(!avr_locate_mem(p, "lock") && avr_locate_mem(p, "lockbits"))
-    locktype = "lockbits";
+  AVRMEM *m = avr_locate_lock(p);
+  const char *locktype = m? m->desc: "lock";
   for(int i=0; i<nc; i++) {
     cc[i].t = ct+i;
     const char *mt = str_starts(ct[i].memstr, "lock")? locktype: ct[i].memstr;
@@ -1591,17 +1590,15 @@ static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   }
 
   rc = avr_signature(pgm, p);
-  if (rc != 0) {
+  if(rc != 0)
     pmsg_error("(sig) error reading signature data, rc=%d\n", rc);
-  }
 
-  m = avr_locate_mem(p, "signature");
-  if (m == NULL) {
+  m = avr_locate_signature(p);
+  if(m == NULL) {
     pmsg_error("(sig) signature data not defined for device %s\n", p->desc);
-  }
-  else {
+  } else {
     term_out("Device signature = 0x");
-    for (i=0; i<m->size; i++)
+    for(i=0; i<m->size; i++)
       term_out("%02x", m->buf[i]);
     term_out("\n");
   }

@@ -263,8 +263,8 @@ static int loadCachePage(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p,
 
 
 static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
-  AVRMEM *basemem = avr_locate_mem(p,
-    cp == pgm->cp_flash? "flash": cp == pgm->cp_eeprom? "eeprom": cp == pgm->cp_bootrow? "bootrow": "usersig");
+  AVRMEM *basemem = cp == pgm->cp_flash? avr_locate_flash(p): cp == pgm->cp_eeprom? avr_locate_eeprom(p):
+    cp == pgm->cp_bootrow? avr_locate_bootrow(p): avr_locate_usersig(p);
 
   if(!basemem || !avr_has_paged_access(pgm, basemem))
     return LIBAVRDUDE_GENERAL_FAILURE;
@@ -377,10 +377,10 @@ typedef struct {
 // Write flash, EEPROM, bootrow and usersig caches to device and free them
 int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
   CacheDesc_t mems[] = {
-    { avr_locate_mem(p, "flash"), pgm->cp_flash, 1, 0, -1, 0 },
-    { avr_locate_mem(p, "eeprom"), pgm->cp_eeprom, 0, 1, -1, 0 },
-    { avr_locate_mem(p, "bootrow"), pgm->cp_bootrow, 0, 0, -1, 0 },
-    { avr_locate_mem(p, "usersig"), pgm->cp_usersig, 0, 0, -1, 0 },
+    { avr_locate_flash(p), pgm->cp_flash, 1, 0, -1, 0 },
+    { avr_locate_eeprom(p), pgm->cp_eeprom, 0, 1, -1, 0 },
+    { avr_locate_bootrow(p), pgm->cp_bootrow, 0, 0, -1, 0 },
+    { avr_locate_usersig(p), pgm->cp_usersig, 0, 0, -1, 0 },
   };
 
   int chpages = 0;
@@ -698,8 +698,8 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 // Erase the chip and set the cache accordingly
 int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
   CacheDesc_t mems[3] = {
-    { avr_locate_mem(p, "flash"), pgm->cp_flash, 1, 0, -1, 0 },
-    { avr_locate_mem(p, "eeprom"), pgm->cp_eeprom, 0, 1, -1, 0 },
+    { avr_locate_flash(p), pgm->cp_flash, 1, 0, -1, 0 },
+    { avr_locate_eeprom(p), pgm->cp_eeprom, 0, 1, -1, 0 },
     // bootrow/usersig is unaffected by CE
   };
   int rc;

@@ -129,7 +129,7 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
             // To use this workaround, the -F option is required.
             pmsg_error("cannot detect board type (HID usage is 0)\n");
 
-            AVRMEM* mem = avr_locate_mem(p, "flash");
+            AVRMEM* mem = avr_locate_flash(p);
             if (mem == NULL)
             {
                 pmsg_error("no flash memory defined for part %s\n", p->desc);

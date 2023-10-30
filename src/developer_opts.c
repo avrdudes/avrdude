@@ -1010,7 +1010,7 @@ void dev_output_part_defs(char *partdesc) {
       if(!p->op[AVR_OP_CHIP_ERASE])
         ok &= ~DEV_SPI_EN_CE_SIG;
 
-      if((m = avr_locate_mem(p, "flash"))) {
+      if((m = avr_locate_flash(p))) {
         if((oc = m->op[AVR_OP_LOAD_EXT_ADDR])) {
           // @@@ to do: check whether address is put at lsb of third byte
         } else
@@ -1060,7 +1060,7 @@ void dev_output_part_defs(char *partdesc) {
       } else
         ok &= ~(DEV_SPI_PROGMEM_PAGED | DEV_SPI_PROGMEM);
 
-      if((m = avr_locate_mem(p, "eeprom"))) {
+      if((m = avr_locate_eeprom(p))) {
         if((oc = m->op[AVR_OP_READ])) {
           if(cmdok)
             checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
@@ -1087,33 +1087,33 @@ void dev_output_part_defs(char *partdesc) {
       } else
         ok &= ~(DEV_SPI_EEPROM_PAGED | DEV_SPI_EEPROM);
 
-      if((m = avr_locate_mem(p, "signature")) && (oc = m->op[AVR_OP_READ])) {
+      if((m = avr_locate_signature(p)) && (oc = m->op[AVR_OP_READ])) {
         if(cmdok)
           checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
       } else
         ok &= ~DEV_SPI_EN_CE_SIG;
 
-      if((m = avr_locate_mem(p, "calibration")) && (oc = m->op[AVR_OP_READ])) {
+      if((m = avr_locate_calibration(p)) && (oc = m->op[AVR_OP_READ])) {
         if(cmdok)
           checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
       } else
         ok &= ~DEV_SPI_CALIBRATION;
 
       // Actually, some AT90S... parts cannot read, only write lock bits :-0
-      if( ! ((m = avr_locate_mem(p, "lock")) && m->op[AVR_OP_WRITE]))
+      if( !((m = avr_locate_lock(p)) && m->op[AVR_OP_WRITE]))
         ok &= ~DEV_SPI_LOCK;
 
-      if(((m = avr_locate_mem(p, "fuse")) || (m = avr_locate_mem(p, "lfuse"))) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+      if((m = avr_locate_fuse(p)) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
         nfuses++;
       else
         ok &= ~DEV_SPI_LFUSE;
 
-      if((m = avr_locate_mem(p, "hfuse")) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+      if((m = avr_locate_hfuse(p)) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
         nfuses++;
       else
         ok &= ~DEV_SPI_HFUSE;
 
-      if((m = avr_locate_mem(p, "efuse")) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+      if((m = avr_locate_efuse(p)) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
         nfuses++;
       else
         ok &= ~DEV_SPI_EFUSE;

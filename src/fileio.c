@@ -825,7 +825,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
    * than one sub-segment.
    */
   if ((p->prog_modes & PM_PDI) && mem_is_in_flash(mem) && !mem_is_flash(mem)) {
-    AVRMEM *flashmem = avr_locate_mem(p, "flash");
+    AVRMEM *flashmem = avr_locate_flash(p);
     if (flashmem == NULL) {
       pmsg_error("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);
       return -1;

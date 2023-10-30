@@ -119,7 +119,7 @@ static int butterfly_default_led(const PROGRAMMER *pgm, int value) {
  */
 static int butterfly_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   long bak_timeout = serial_recv_timeout;
-  AVRMEM *fl = avr_locate_mem(p, "flash");
+  AVRMEM *fl = avr_locate_flash(p);
   int ret = 0;
 
   // Estimated time it takes to erase all pages in bootloader

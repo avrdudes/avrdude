@@ -1205,7 +1205,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u16_to_b2(xd.boot_size, m->size);
         u32_to_b4(xd.nvm_boot_offset, m->offset);
       } else if (mem_is_a_fuse(m) && !fuseinit++) { // Any fuse is OK
-         u32_to_b4(xd.nvm_fuse_offset, m->offset & ~15);
+        u32_to_b4(xd.nvm_fuse_offset, m->offset & ~15);
       } else if (mem_is_lock(m)) {
         u32_to_b4(xd.nvm_lock_offset, m->offset);
       } else if (mem_is_userrow(m)) {
@@ -1448,8 +1448,8 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   PDATA(pgm)->boot_start = ULONG_MAX;
   if (p->prog_modes & PM_PDI) {
     // Find the border between application and boot area
-    AVRMEM *bootmem = avr_locate_mem(p, "boot");
-    AVRMEM *flashmem = avr_locate_mem(p, "flash");
+    AVRMEM *bootmem = avr_locate_boot(p);
+    AVRMEM *flashmem = avr_locate_flash(p);
     if (bootmem == NULL || flashmem == NULL) {
       pmsg_error("cannot locate flash or boot memories in description\n");
     } else {
@@ -1491,7 +1491,7 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
   if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
-    if(!avr_locate_mem(p, "usersig"))
+    if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 }
 
@@ -2508,7 +2508,11 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
 int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
   // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
   if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-    AVRMEM *m = avr_locate_mem(p, "io");
+    AVRMEM *m = avr_locate_io(p);
+    if(!m) {
+      pmsg_error("cannot locate io memory; is avrdude.conf up to date?\n");
+      return -1;
+    }
     int status = pgm->read_byte(pgm, p, m,
         p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
         (unsigned char *)chip_rev);
@@ -3019,7 +3023,7 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
   int status;
   unsigned long paddr = 0UL;
 
-  AVRMEM *m = avr_locate_mem(p, "flash");
+  AVRMEM *m = avr_locate_flash(p);
   if (m == NULL) {
     pmsg_error("no flash memory for part %s\n", p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;

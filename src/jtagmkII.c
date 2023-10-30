@@ -907,7 +907,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   sendbuf.dd.ucSPMCRAddress = p->spmcr;
   sendbuf.dd.ucRAMPZAddress = p->rampz;
   sendbuf.dd.ucIDRAddress = p->idr;
-  if((flm = avr_locate_mem(p, "flash")) && p->boot_section_size > 0) {
+  if((flm = avr_locate_flash(p)) && p->boot_section_size > 0) {
     unsigned int sbls = (flm->size - p->boot_section_size)/2; // Words
     sendbuf.dd.uiStartSmallestBootLoaderSection[0] = sbls;
     sendbuf.dd.uiStartSmallestBootLoaderSection[1] = sbls>>8;
@@ -1292,8 +1292,8 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   PDATA(pgm)->boot_start = ULONG_MAX;
   if ((p->prog_modes & (PM_PDI | PM_UPDI))) {
     // Find the border between application and boot area
-    AVRMEM *bootmem = avr_locate_mem(p, "boot");
-    AVRMEM *flashmem = avr_locate_mem(p, "flash");
+    AVRMEM *bootmem = avr_locate_boot(p);
+    AVRMEM *flashmem = avr_locate_flash(p);
     if (bootmem == NULL || flashmem == NULL) {
       if(str_starts(pgmid, "jtagmkII"))
         pmsg_error("cannot locate flash or boot memories in description\n");
@@ -1343,7 +1343,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    AVRMEM *hf = avr_locate_mem(p, "hfuse");
+    AVRMEM *hf = avr_locate_hfuse(p);
     if (!hf || jtagmkII_read_byte(pgm, p, hf, 1, &b) < 0)
       return -1;
     if ((b & OCDEN) != 0)
@@ -1378,7 +1378,7 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
 static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
   if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
-    if(!avr_locate_mem(p, "usersig"))
+    if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 
   if(pgm->flag & PGM_FL_IS_DW)
@@ -2131,7 +2131,11 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
 static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
   // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
   if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-    AVRMEM *m = avr_locate_mem(p, "io");
+    AVRMEM *m = avr_locate_io(p);
+    if(!m) {
+      pmsg_error("cannot locate io memory; is avrdude.conf up to date?\n");
+      return -1;
+    }
     int status = pgm->read_byte(pgm, p, m,
         p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
         (unsigned char *)chip_rev);
@@ -2206,8 +2210,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       unsupp = 1;
   } else if (mem_is_io(mem)) {
     cmd[1] = MTYPE_FLASH;
-    AVRMEM *data = avr_locate_mem(p, "data");
-    addr += data->offset;
+    addr += avr_data_offset(p);
   } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
 
@@ -2366,8 +2369,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
       unsupp = 1;
   } else if (mem_is_io(mem)) {
     cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
-    AVRMEM *data = avr_locate_mem(p, "data");
-    addr += data->offset;
+    addr += avr_data_offset(p);
   } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
     if (pgm->flag & PGM_FL_IS_DW)

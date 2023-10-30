@@ -445,31 +445,15 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   buf[5] = 1; /* polling supported - XXX need this in config file */
   buf[6] = 1; /* programming is self-timed - XXX need in config file */
 
-  m = avr_locate_mem(p, "lock");
-  if (m)
-    buf[7] = m->size;
-  else
-    buf[7] = 0;
+  buf[7] = (m = avr_locate_lock(p))? m->size: 0;
 
-  /*
-   * number of fuse bytes
-   */
+  // Number of fuse bytes (for classic parts)
   buf[8] = 0;
-  m = avr_locate_mem(p, "fuse");
-  if (m)
-    buf[8] += m->size;
-  m = avr_locate_mem(p, "lfuse");
-  if (m)
-    buf[8] += m->size;
-  m = avr_locate_mem(p, "hfuse");
-  if (m)
-    buf[8] += m->size;
-  m = avr_locate_mem(p, "efuse");
-  if (m)
-    buf[8] += m->size;
+  for(int fu = 0; fu < 3; fu++)
+    if((m = avr_locate_fuse_by_offset(p, fu)))
+      buf[8] += m->size;
 
-  m = avr_locate_mem(p, "flash");
-  if (m) {
+  if ((m = avr_locate_flash(p))) {
     buf[9] = m->readback[0];
     buf[10] = m->readback[1];
     if (m->paged) {
@@ -480,10 +464,9 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[18] = (m->size >> 16) & 0xff;
     buf[19] = (m->size >> 8) & 0xff;
     buf[20] = m->size & 0xff;
-  }
-  else {
+  } else {
     buf[9]  = 0xff;
-    buf[10]  = 0xff;
+    buf[10] = 0xff;
     buf[13] = 0;
     buf[14] = 0;
     buf[17] = 0;
@@ -492,14 +475,12 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[20] = 0;
   }
 
-  m = avr_locate_mem(p, "eeprom");
-  if (m) {
+  if ((m = avr_locate_eeprom(p))) {
     buf[11] = m->readback[0];
     buf[12] = m->readback[1];
     buf[15] = (m->size >> 8) & 0x00ff;
     buf[16] = m->size & 0x00ff;
-  }
-  else {
+  } else {
     buf[11] = 0xff;
     buf[12] = 0xff;
     buf[15] = 0;
@@ -819,7 +800,7 @@ static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
   if(pgm->prog_modes & PM_SPM)  // For bootloaders (eg, arduino)
     if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Classic parts, eg, optiboot with word addresses
-      if((mem = avr_locate_mem(p, "eeprom")))
+      if((mem = avr_locate_eeprom(p)))
         if(mem->page_size == 1)   // Increase pagesize if it is 1
           mem->page_size = 16;
   return;

@@ -495,6 +495,29 @@ AVRMEM *avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off) {
   return NULL;
 }
 
+// Return the first memory that shares the type including fuses identified by offset in fuses
+AVRMEM *avr_locate_mem_by_type(const AVRPART *p, memtype_t type) {
+  AVRMEM *m;
+  memtype_t off = type & MEM_FUSEOFF_MASK;
+  type &= ~(memtype_t) MEM_FUSEOFF_MASK;
+
+  if(p && p->mem)
+    for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+      if((m = ldata(ln))->type & type)
+        if(type != MEM_IS_A_FUSE || off == mem_fuse_offset(m))
+          return m;
+
+  return NULL;
+}
+
+// Return offset of memory data
+unsigned int avr_data_offset(const AVRPART *p) {
+  AVRMEM *data = avr_locate_data(p);
+  if(!data)
+    pmsg_warning("cannot locate data memory; is avrdude.conf up to date?\n");
+  return data? data->offset: 0;
+}
+
 AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   if(p && p->mem_alias && m_orig)
     for(LNODEID ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
