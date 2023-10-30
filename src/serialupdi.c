@@ -739,7 +739,7 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     if(serialupdi_read_byte(pgm, p, mem, addr, &is) >= 0 && is == value)
       return 0;
 
-    Return("cannot write to read-only memory %s %s", p->desc, mem->desc);
+    Return("cannot write to read-only memory %s", mem->desc);
   }
 
   return updi_write_byte(pgm, mem->offset + addr, value);

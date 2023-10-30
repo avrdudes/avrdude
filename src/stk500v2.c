@@ -2520,12 +2520,16 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (mem_is_a_fuse(mem) || mem_is_lock(mem)) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
     if(mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
+    buf[0] = mode == PPMODE? CMD_PROGRAM_LOCK_PP: CMD_PROGRAM_LOCK_HVSP;
+    pulsewidth = p->programlockpulsewidth;
+    timeout = p->programlockpolltimeout;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
@@ -2679,6 +2683,12 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
       addr = mem_fuse_offset(mem);
   } else if (mem_is_lock(mem)) {
     buf[0] = CMD_PROGRAM_LOCK_ISP;
+  } else if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+    pmsg_error("cannot write to read-only memory %s\n", mem->desc);
+    return -1;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;

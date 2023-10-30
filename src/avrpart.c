@@ -495,7 +495,7 @@ AVRMEM *avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off) {
   return NULL;
 }
 
-// Return the first memory that shares the type including fuses identified by offset in fuses
+// Return the first memory that shares the type incl any fuse identified by offset in fuses
 AVRMEM *avr_locate_mem_by_type(const AVRPART *p, memtype_t type) {
   AVRMEM *m;
   memtype_t off = type & MEM_FUSEOFF_MASK;
