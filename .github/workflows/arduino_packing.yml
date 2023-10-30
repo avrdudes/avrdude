@@ -44,12 +44,6 @@ jobs:
       image: ghcr.io/arduino/crossbuild:0.2.2
     
     steps:
-    
-    # this repo should contain only the patches that could not be upstreamed and the release CI nothing else
-    - name: Checkout avrdude-packing repository
-      uses: actions/checkout@v3
-      with:
-        path: avrdude-packing
 
     - name: Checkout avrdude repository
       uses: actions/checkout@v3
