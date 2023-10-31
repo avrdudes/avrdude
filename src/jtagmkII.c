@@ -1004,6 +1004,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
       u32_to_b4(sendbuf.dd.nvm_user_sig_offset, m->offset);
     } else if (mem_is_sigrow(m)) {
       u32_to_b4(sendbuf.dd.nvm_prod_sig_offset, m->offset);
+      pmsg_notice2("prod_sig_offset addr 0x%05x\n", m->offset);
     } else if (mem_is_data(m)) {
       u32_to_b4(sendbuf.dd.nvm_data_offset, m->offset);
     }
@@ -2200,6 +2201,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if (mem_is_sigrow(mem)) {
     if (p->prog_modes & (PM_PDI | PM_UPDI)) {
       cmd[1] = MTYPE_PRODSIG;
+      pmsg_notice2("is_sigrow addr 0x%05lx\n", addr);
     } else {
       cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
       addr /= 2;
@@ -2239,6 +2241,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
   } else if ((p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_in_sigrow(mem)) {
     cmd[1] = MTYPE_PRODSIG;
+    pmsg_notice2("in_sigrow addr 0x%05lx\n", addr);
   } else if (mem_is_io(mem)) {
     cmd[1] = MTYPE_FLASH;
     addr += avr_data_offset(p);
