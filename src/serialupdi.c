@@ -165,6 +165,11 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
       updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V3);
       updi_set_datalink_mode(pgm, UPDI_LINK_MODE_24BIT);
       break;
+    case '5':
+      pmsg_notice("NVM type 5: 24-bit, page oriented (alias type 3)\n");
+      updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V3);
+      updi_set_datalink_mode(pgm, UPDI_LINK_MODE_24BIT);
+      break;
     default:
       pmsg_warning("unsupported NVM type: %c, please update software\n", sib_info->nvm_version);
       return -1;

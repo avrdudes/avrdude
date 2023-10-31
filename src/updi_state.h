@@ -37,9 +37,10 @@ typedef enum
 
 typedef enum
 {
-  UPDI_NVM_MODE_V0,
-  UPDI_NVM_MODE_V2,
-  UPDI_NVM_MODE_V3
+  UPDI_NVM_MODE_V0,   // tinyAVR-0/1/2 and megaAVR-0 series
+  UPDI_NVM_MODE_V2,   // AVR_DA/DB/DD series
+  UPDI_NVM_MODE_V3,   // AVR_EA series
+  UPDI_NVM_MODE_V5    // AVR_EB series (NEW)
 } updi_nvm_mode;
 
 #define SIB_INFO_STRING_LENGTH 32
