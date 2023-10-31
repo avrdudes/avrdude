@@ -585,7 +585,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   // Check size of uploded application and protect bootloader from being overwritten
   if((ur.boothigh && size > maxsize) || (!ur.boothigh && firstbeg <= ur.blend))
-    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]",
+    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]; consider -xrestore",
       firstbeg, size-1, ur.blstart, ur.blend);
 
   if(size > maxsize)
@@ -2455,7 +2455,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"vectornum", &ur.xvectornum, ARG,    "Treat bootloader as vector b/loader using this vector"},
     {"eepromrw", &ur.xeepromrw, NA,       "Assert bootloader EEPROM read/write capability"},
     {"emulate_ce", &ur.xemulate_ce, NA,   "Emulate chip erase"},
-    {"restore", &ur.restore, NA,          "Restore a flash backup as is trimming the bootloader"},
+    {"restore", &ur.restore, NA,          "Restore a flash backup and trim the bootloader"},
     {"initstore", &ur.initstore, NA,      "Fill store with 0xff on writing to flash"},
     //@@@  {"copystore", &ur.copystore, NA, "Copy over store on writing to flash"},
     {"nofilename", &ur.nofilename, NA,    "Do not store filename on writing to flash"},
