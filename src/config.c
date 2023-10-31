@@ -36,6 +36,8 @@
 
 #include "config_gram.h"
 
+const char *avrdude_conf_version;
+
 const char *default_programmer;
 const char *default_parallel;
 const char *default_serial;

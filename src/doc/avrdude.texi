@@ -2843,6 +2843,9 @@ the executable.
 
 @table @code
 
+@item avrdude_conf_version = "@var{build-time-version}";
+Automatically set during the build process.
+
 @item default_parallel = "@var{default-parallel-device}";
 Assign the default parallel port device.  Can be overridden using the
 @option{-P} option.
