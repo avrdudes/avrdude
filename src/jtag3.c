@@ -2133,7 +2133,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if(mem_is_a_fuse(mem))
+    if(!(p->prog_modes & PM_UPDI) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2315,7 +2315,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if(mem_is_a_fuse(mem))
+    if(!(p->prog_modes & PM_UPDI) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
