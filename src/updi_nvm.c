@@ -1065,7 +1065,6 @@ int updi_nvm_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     case UPDI_NVM_MODE_V2:
       return nvm_chip_erase_V2(pgm, p);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_chip_erase_V3(pgm, p);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1081,7 +1080,6 @@ int updi_nvm_erase_flash_page(const PROGRAMMER *pgm, const AVRPART *p, uint32_t 
     case UPDI_NVM_MODE_V2:
       return nvm_erase_flash_page_V2(pgm, p, address);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_erase_flash_page_V3(pgm, p, address);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1097,7 +1095,6 @@ int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p) {
     case UPDI_NVM_MODE_V2:
       return nvm_erase_eeprom_V2(pgm, p);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_erase_eeprom_V3(pgm, p);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1113,7 +1110,6 @@ int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
     case UPDI_NVM_MODE_V2:
       return nvm_erase_user_row_V2(pgm, p, address, size);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_erase_user_row_V3(pgm, p, address, size);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1129,7 +1125,6 @@ int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addre
     case UPDI_NVM_MODE_V2:
       return nvm_write_flash_V2(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_write_flash_V3(pgm, p, address, buffer, size);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1145,7 +1140,6 @@ int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
     case UPDI_NVM_MODE_V2:
       return nvm_write_user_row_V2(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_write_user_row_V3(pgm, p, address, buffer, size);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1161,7 +1155,6 @@ int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addr
     case UPDI_NVM_MODE_V2:
       return nvm_write_eeprom_V2(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_write_eeprom_V3(pgm, p, address, buffer, size);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
@@ -1177,7 +1170,6 @@ int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
     case UPDI_NVM_MODE_V2:
       return nvm_write_fuse_V2(pgm, p, address, value);
     case UPDI_NVM_MODE_V3:
-    case UPDI_NVM_MODE_V5:
       return nvm_write_fuse_V3(pgm, p, address, value);
     default:
       pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
