@@ -75,6 +75,15 @@ if(MSVC)
     set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
         "msvc"
         )
+elseif(MINGW)
+    set(LIB_MATH m)
+    add_compile_options(-Wall -Wextra -Wno-unused-parameter)
+    set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
+        "mingw/readline.cpp"
+        )
+    set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
+        "mingw"
+        )
 else()
     set(LIB_MATH m)
     add_compile_options(-Wall -Wextra -Wno-unused-parameter)

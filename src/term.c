@@ -2089,7 +2089,7 @@ static int term_running;
 
 // Any character in standard input available (without sleeping)?
 static int readytoread() {
-#ifdef _MSC_VER
+#ifdef _MSC_VER || MINGW
     return rl_input_available();
 #elif defined(WIN32)
   HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);

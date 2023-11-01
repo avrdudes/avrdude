@@ -225,6 +225,8 @@ if(HAVE_LIBREADLINE)
     find_library(LIB_NCURSES NAMES ncurses)
 elseif(MSVC)
     set(HAVE_LIBREADLINE 1)
+elseif(MINGW)
+    set(HAVE_LIBREADLINE 1)
 endif()
 
 #-------------------------------------
