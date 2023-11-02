@@ -849,7 +849,7 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
     char *p;
 
     dev_print_comment(cfg_get_prologue());
-
+    dev_info("avrdude_conf_version = %s;\n\n", p = cfg_escape(avrdude_conf_version)); free(p);
     dev_info("default_programmer = %s;\n", p = cfg_escape(default_programmer)); free(p);
     dev_info("default_parallel   = %s;\n", p = cfg_escape(default_parallel)); free(p);
     dev_info("default_serial     = %s;\n", p = cfg_escape(default_serial)); free(p);

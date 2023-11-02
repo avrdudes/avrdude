@@ -1323,6 +1323,7 @@ void walk_programmer_types(/*LISTID programmer_types,*/ walk_programmer_types_cb
 
 extern LISTID      part_list;
 extern LISTID      programmers;
+extern const char *avrdude_conf_version;
 extern const char *default_programmer;
 extern const char *default_parallel;
 extern const char *default_serial;

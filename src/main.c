@@ -571,6 +571,8 @@ int main(int argc, char * argv [])
     progname[strlen(progname)-4] = 0;
   }
 
+  avrdude_conf_version = "";
+
   default_programmer = "";
   default_parallel   = "";
   default_serial     = "";
