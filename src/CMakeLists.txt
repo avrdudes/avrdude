@@ -50,9 +50,15 @@ endif()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
+
+set(EXTRA_WINDOWS_SOURCES)
+set(EXTRA_WINDOWS_INCLUDES)
+set(EXTRA_WINDOWS_RESOURCES)
+set(EXTRA_WINDOWS_LIBRARIES)
+
 if(WIN32 OR MINGW)
-    set(EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
-    set(EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
+    list(APPEND EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
+    list(APPEND EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
 endif()
 
 if(MSVC)
@@ -66,24 +72,18 @@ if(MSVC)
     add_compile_options(/wd4244) # warning C4244: conversion from '...' to '...', possible loss of data
     add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
 
-    set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
+    list(APPEND EXTRA_WINDOWS_SOURCES
         "msvc/getopt.c"
         "msvc/gettimeofday.c"
         "msvc/usleep.cpp"
         "msvc/readline.cpp"
         )
-    set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
-        "msvc"
-        )
+    list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
 elseif(MINGW)
     set(LIB_MATH m)
     add_compile_options(-Wall -Wextra -Wno-unused-parameter)
-    set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
-        "mingw/readline.cpp"
-        )
-    set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
-        "mingw"
-        )
+    list(APPEND EXTRA_WINDOWS_SOURCES "mingw/readline.cpp")
+    list(APPEND EXTRA_WINDOWS_INCLUDES "mingw")
 else()
     set(LIB_MATH m)
     add_compile_options(-Wall -Wextra -Wno-unused-parameter)
@@ -269,7 +269,7 @@ add_library(libavrdude
     xbee.c
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
-    "${EXTRA_WINDOWS_SOURCES}"
+    ${EXTRA_WINDOWS_SOURCES}
     )
 
 set_target_properties(libavrdude PROPERTIES
@@ -283,8 +283,9 @@ target_include_directories(libavrdude
     PUBLIC
     "${PROJECT_SOURCE_DIR}"
     "${PROJECT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
     "${LIBUSB_COMPAT_DIR}"
-    "${EXTRA_WINDOWS_INCLUDES}"
+    ${EXTRA_WINDOWS_INCLUDES}
     )
 
 target_link_libraries(libavrdude
@@ -311,7 +312,7 @@ add_executable(avrdude
     developer_opts_private.h
     whereami.c
     whereami.h
-    "${EXTRA_WINDOWS_RESOURCES}"
+    ${EXTRA_WINDOWS_RESOURCES}
     )
 
 target_link_libraries(avrdude PUBLIC libavrdude)
