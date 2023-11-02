@@ -498,7 +498,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 
   printout:
   if(verbose > 3)
-    pmsg_trace("recv: ", p, n & USB_RECV_LENGTH_MASK);
+    trace_buffer("usbdev_recv_frame: ", p, n & USB_RECV_LENGTH_MASK);
 
   return n;
 }
