@@ -19202,6 +19202,12 @@ part # .avr8x
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
 
+    memory "fuses"
+        size               = 10;
+        offset             = 0x1280;
+        readsize           = 1;
+    ;
+
     memory "fuse0"
         size               = 1;
         initval            = 0x00;
@@ -19288,13 +19294,6 @@ part # .avr8x
 
     memory "bootsize"
         alias "fuse8";
-    ;
-
-    memory "fuses"
-        size               = 10;
-        page_size          = 10;
-        offset             = 0x1280;
-        readsize           = 10;
     ;
 
     memory "lock"
@@ -21436,6 +21435,12 @@ part # .avrdx
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
 
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
     memory "fuse0"
         size               = 1;
         initval            = 0x00;
@@ -21522,13 +21527,6 @@ part # .avrdx
 
     memory "bootend"
         alias "fuse8";
-    ;
-
-    memory "fuses"
-        size               = 16;
-        page_size          = 16;
-        offset             = 0x1050;
-        readsize           = 16;
     ;
 
     memory "lock"
