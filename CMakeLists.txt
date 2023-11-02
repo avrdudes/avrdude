@@ -219,14 +219,16 @@ endif()
 # -------------------------------------
 # Find libreadline
 
-find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
-if(HAVE_LIBREADLINE)
-    set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
-    find_library(LIB_NCURSES NAMES ncurses)
-elseif(MSVC)
-    set(HAVE_LIBREADLINE 1)
+if(MSVC)
+    set(HAVE_LIBREADLINE "Embedded MSVC")
 elseif(MINGW)
-    set(HAVE_LIBREADLINE 1)
+    set(HAVE_LIBREADLINE "Embedded MINGW")
+else()
+    find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
+    if(HAVE_LIBREADLINE)
+        set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
+        find_library(LIB_NCURSES NAMES ncurses)
+    endif()
 endif()
 
 #-------------------------------------
