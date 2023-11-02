@@ -1145,6 +1145,9 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
 
 void report_progress(int completed, int total, const char *hdr);
 
+void trace_buffer(char *what, const unsigned char *buf, size_t buflen);
+void trace2_buffer(char *what, const unsigned char *buf, size_t buflen);
+
 int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
 
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);

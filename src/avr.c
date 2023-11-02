@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -1616,4 +1617,24 @@ void report_progress(int completed, int total, const char *hdr) {
     last = percent;
     update_progress(percent, t - start_time, hdr, total < 0? -1: !!total);
   }
+}
+
+
+// Output comms buffer
+void trace_buffer(char *what, const unsigned char *buf, size_t buflen) {
+  pmsg_trace("%s", what);
+  while(buflen--) {
+    unsigned char c = *buf++;
+    msg_trace("%c [%02x]%s", isascii(c) && isprint(c)? c: '.', c, buflen? " ": "");
+  }
+  msg_trace("\n");
+}
+
+void trace2_buffer(char *what, const unsigned char *buf, size_t buflen) {
+  pmsg_trace2("%s", what);
+  while(buflen--) {
+    unsigned char c = *buf++;
+    msg_trace2("%c [%02x]%s", isascii(c) && isprint(c)? c: '.', c, buflen? " ": "");
+  }
+  msg_trace2("\n");
 }

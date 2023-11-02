@@ -256,12 +256,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 	if (str_casestarts(port, "com")) {
 
 	    // prepend "\\\\.\\" to name, required for port # >= 10
-	    newname = malloc(strlen("\\\\.\\") + strlen(port) + 1);
-
-	    if (newname == 0) {
-		pmsg_error("out of memory\n");
-		exit(1);
-	    }
+	    newname = cfg_malloc(__func__, strlen("\\\\.\\") + strlen(port) + 1);
 	    strcpy(newname, "\\\\.\\");
 	    strcat(newname, port);
 
@@ -346,42 +341,23 @@ static int ser_set_dtr_rts(const union filedescriptor *fd, int is_on) {
 	}
 }
 
-static int net_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
+static int net_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
 	LPVOID lpMsgBuf;
 	int rc;
-	const unsigned char *p = buf;
-	size_t len = buflen;
 
 	if (fd->ifd < 0) {
 		pmsg_notice("net_send(): connection not open\n");
-		exit(1);
+		return -1;
 	}
 
-	if (!len) {
+	if (!len)
 		return 0;
-	}
 
-	if (verbose > 3) {
-		pmsg_trace("send: ");
-
-		while (buflen) {
-			unsigned char c = *buf;
-			if (isprint(c)) {
-				msg_trace("%c ", c);
-			} else {
-				msg_trace(". ");
-			}
-			msg_trace("[%02x] ", c);
-
-			buf++;
-			buflen--;
-		}
-
-		msg_trace("\n");
-	}
+	if (verbose > 3)
+		trace_buffer("net_send: ", buf, len);
 
 	while (len) {
-		rc = send(fd->ifd, (const char *) p, (len > 1024)? 1024: len, 0);
+		rc = send(fd->ifd, (const char *) buf, len > 1024? 1024: len, 0);
 		if (rc < 0) {
 			FormatMessage(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -395,9 +371,9 @@ static int net_send(const union filedescriptor *fd, const unsigned char * buf, s
 				NULL);
 			pmsg_error("unable to send: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
-			exit(1);
+			return -1;
 		}
-		p += rc;
+		buf += rc;
 		len -= rc;
 	}
 
@@ -405,15 +381,12 @@ static int net_send(const union filedescriptor *fd, const unsigned char * buf, s
 }
 
 
-static int ser_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
-	if (serial_over_ethernet) {
-		return net_send(fd, buf, buflen);
-	}
+static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
+	if (serial_over_ethernet)
+		return net_send(fd, buf, len);
 
-	size_t len = buflen;
 	unsigned char c='\0';
 	DWORD written;
-        const unsigned char * b = buf;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
 
@@ -423,35 +396,19 @@ static int ser_send(const union filedescriptor *fd, const unsigned char * buf, s
 	}
 
 	if (!len)
-  return 0;
+		return 0;
 
 	if (verbose > 3)
-	{
-		pmsg_trace("send: ");
-
-		while (len) {
-			c = *b;
-			if (isprint(c)) {
-				msg_trace("%c ", c);
-			}
-			else {
-				msg_trace(". ");
-			}
-			msg_trace("[%02x] ", c);
-			b++;
-			len--;
-		}
-		msg_trace("\n");
-	}
+		trace_buffer("ser_send: ", buf, len);
 	
 	serial_w32SetTimeOut(hComPort,500);
 
-	if (!WriteFile (hComPort, buf, buflen, &written, NULL)) {
+	if (!WriteFile (hComPort, buf, len, &written, NULL)) {
 		pmsg_error("unable to write: %s\n", "sorry no info avail"); // TODO
 		return -1;
 	}
 
-	if (written != buflen) {
+	if (written != len) {
 		pmsg_error("size/send mismatch\n");
 		return -1;
 	}
@@ -460,7 +417,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char * buf, s
 }
 
 
-static int net_recv(const union filedescriptor *fd, unsigned char * buf, size_t buflen) {
+static int net_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
 	LPVOID lpMsgBuf;
 	struct timeval timeout, to2;
 	fd_set rfds;
@@ -471,7 +428,7 @@ static int net_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 
 	if (fd->ifd < 0) {
 		pmsg_error("connection not open\n");
-		exit(1);
+		return -1;
 	}
 
 	timeout.tv_sec  = serial_recv_timeout / 1000L;
@@ -506,7 +463,7 @@ reselect:
 					NULL);
 				pmsg_error("select(): %s\n", (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
-				exit(1);
+				return -1;
 			}
 		}
 
@@ -524,42 +481,23 @@ reselect:
 				NULL);
 			pmsg_error("unable to read: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
-			exit(1);
+			return -1;
 		}
 		p += rc;
 		len += rc;
 	}
 
-	p = buf;
-
-	if (verbose > 3) {
-		pmsg_trace("Recv: ");
-
-		while (len) {
-			unsigned char c = *p;
-			if (isprint(c)) {
-				msg_trace("%c ", c);
-			} else {
-				msg_trace(". ");
-			}
-			msg_trace("[%02x] ", c);
-
-			p++;
-			len--;
-		}
-		msg_trace("\n");
-	}
+	if (verbose > 3)
+		trace_buffer("net_recv: ", buf, len);
 
 	return 0;
 }
 
-static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t buflen) {
-	if (serial_over_ethernet) {
+static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
+	if (serial_over_ethernet)
 		return net_recv(fd, buf, buflen);
-	}
 
 	unsigned char c;
-	unsigned char * p = buf;
 	DWORD read;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
@@ -582,9 +520,9 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
 			(LPTSTR) &lpMsgBuf,
 			0,
-			NULL 	);
+			NULL);
 		pmsg_error("unable to read: %s\n", (char*) lpMsgBuf);
-		LocalFree( lpMsgBuf );
+		LocalFree(lpMsgBuf);
 		return -1;
 	}
 
@@ -594,28 +532,10 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
 		return -1;
 	}
 
-	p = buf;
-
 	if (verbose > 3)
-	{
-		pmsg_trace("recv: ");
+		trace_buffer("ser_recv: ", buf, read);
 
-		while (read) {
-			c = *p;
-			if (isprint(c)) {
-				msg_trace("%c ", c);
-			}
-			else {
-				msg_trace(". ");
-			}
-			msg_trace("[%02x] ", c);
-
-			p++;
-			read--;
-		}
-		msg_trace("\n");
-	}
-  return 0;
+	return 0;
 }
 
 static int net_drain(const union filedescriptor *fd, int display) {
@@ -628,7 +548,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 
 	if (fd->ifd < 0) {
 		pmsg_error("connection not open\n");
-		exit(1);
+		return -1;
 	}
 
 	if (display) {
@@ -667,7 +587,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 					NULL);
 				pmsg_error("select(): %s\n", (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
-				exit(1);
+				return -1;
 			}
 		}
 
@@ -685,7 +605,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 				NULL);
 			pmsg_error("unable to read: %s\n", (char *) lpMsgBuf);
 			LocalFree(lpMsgBuf);
-			exit(1);
+			return -1;
 		}
 
 		if (display) {

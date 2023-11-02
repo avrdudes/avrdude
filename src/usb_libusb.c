@@ -349,25 +349,8 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
     mlen -= tx_size;
   } while (mlen > 0);
 
-  if (verbose > 3)
-  {
-      pmsg_trace("sent: ");
-
-      while (i) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace("%c ", c);
-        }
-        else {
-          msg_trace(". ");
-        }
-        msg_trace("[%02x] ", c);
-
-        p++;
-        i--;
-      }
-      msg_trace("\n");
-  }
+  if(verbose > 3)
+    trace_buffer("usbdev_send: ", p, i);
   return 0;
 }
 
@@ -424,25 +407,8 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
       i += amnt;
     }
 
-  if (verbose > 4)
-  {
-      pmsg_trace2("recv: ");
-
-      while (i) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace2("%c ", c);
-        }
-        else {
-          msg_trace2(". ");
-        }
-        msg_trace2("[%02x] ", c);
-
-        p++;
-        i--;
-      }
-      msg_trace2("\n");
-  }
+  if(verbose > 4)
+    trace2_buffer("usbdev_recv: ", p, i);
 
   return 0;
 }
@@ -460,8 +426,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv, n;
-  int i;
-  unsigned char * p = buf;
+  unsigned char *p = buf;
 
   if (udev == NULL)
     return -1;
@@ -532,26 +497,9 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 */
 
   printout:
-  if (verbose > 3)
-  {
-      i = n & USB_RECV_LENGTH_MASK;
-      pmsg_trace("recv: ");
+  if(verbose > 3)
+    pmsg_trace("recv: ", p, n & USB_RECV_LENGTH_MASK);
 
-      while (i) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace("%c ", c);
-        }
-        else {
-          msg_trace(". ");
-        }
-        msg_trace("[%02x] ", c);
-
-        p++;
-        i--;
-      }
-      msg_trace("\n");
-  }
   return n;
 }
 

@@ -620,27 +620,9 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
        */
       memmove(*msg, *msg + 8, rv);
 
-      if (verbose == 4)
-      {
-          int i = rv;
-          unsigned char *p = *msg;
-          pmsg_trace("recv: ");
+      if(verbose > 3)
+        trace_buffer("jtagmkII_recv: ", *msg, rv);
 
-          while (i) {
-            unsigned char c = *p;
-            if (isprint(c)) {
-              msg_trace("%c ", c);
-            }
-            else {
-              msg_trace(". ");
-            }
-            msg_trace("[%02x] ", c);
-
-            p++;
-            i--;
-          }
-          msg_trace("\n");
-      }
       return rv;
     }
     if (r_seqno == 0xffff) {
@@ -1010,8 +992,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  pmsg_notice2("jtagmkII_set_xmega_params(): "
-    "Sending set Xmega params command: ");
+  pmsg_notice2("%s() sending set Xmega params command: ", __func__);
   jtagmkII_send(pgm, (unsigned char *)&sendbuf, sizeof sendbuf);
 
   status = jtagmkII_recv(pgm, &resp);
