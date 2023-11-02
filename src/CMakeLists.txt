@@ -80,6 +80,8 @@ if(MSVC)
         )
     list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
 elseif(MINGW)
+    enable_language(CXX)
+
     set(LIB_MATH m)
     add_compile_options(-Wall -Wextra -Wno-unused-parameter)
     list(APPEND EXTRA_WINDOWS_SOURCES "mingw/readline.cpp")
