@@ -354,7 +354,7 @@ static int net_send(const union filedescriptor *fd, const unsigned char *buf, si
 		return 0;
 
 	if (verbose > 3)
-		trace_buffer("net_send: ", buf, len);
+		trace_buffer(__func__, buf, len);
 
 	while (len) {
 		rc = send(fd->ifd, (const char *) buf, len > 1024? 1024: len, 0);
@@ -399,7 +399,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 		return 0;
 
 	if (verbose > 3)
-		trace_buffer("ser_send: ", buf, len);
+		trace_buffer(__func__, buf, len);
 	
 	serial_w32SetTimeOut(hComPort,500);
 
@@ -488,7 +488,7 @@ reselect:
 	}
 
 	if (verbose > 3)
-		trace_buffer("net_recv: ", buf, len);
+		trace_buffer(__func__, buf, len);
 
 	return 0;
 }
@@ -533,7 +533,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 	}
 
 	if (verbose > 3)
-		trace_buffer("ser_recv: ", buf, read);
+		trace_buffer(__func__, buf, read);
 
 	return 0;
 }

@@ -440,7 +440,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
   int rc;
 
   if(verbose > 3)
-    trace_buffer("ser_send: ", buf, len);
+    trace_buffer(__func__, buf, len);
 
   while(len) {
     rc = write(fd->ifd, buf, len > 1024? 1024: len);
@@ -499,7 +499,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
   }
 
   if(verbose > 3)
-    trace_buffer("ser_recv: ", buf, len);
+    trace_buffer(__func__, buf, len);
 
   return 0;
 }

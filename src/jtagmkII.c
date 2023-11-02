@@ -621,7 +621,7 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
       memmove(*msg, *msg + 8, rv);
 
       if(verbose > 3)
-        trace_buffer("jtagmkII_recv: ", *msg, rv);
+        trace_buffer(__func__, *msg, rv);
 
       return rv;
     }
