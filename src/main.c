@@ -216,11 +216,19 @@ int ovsigck;                    // 1 = override sig check, 0 = don't
 const char *partdesc;           // Part -p string
 const char *pgmid;              // Programmer -c string
 
+static char usr_config[PATH_MAX]; // Per-user config file
+
 /*
  * usage message
  */
 static void usage(void)
 {
+  char *home = getenv("HOME");
+  size_t l = home? strlen(home): 0;
+  char *cfg = home && str_casestarts(usr_config, home)?
+     str_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
+     str_sprintf("%s", usr_config);
+
   msg_error(
     "Usage: %s [options]\n"
     "Options:\n"
@@ -230,6 +238,8 @@ static void usage(void)
     "  -b <baudrate>          Override RS-232 baud rate\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
+    "  -C +<config-file>      Specify additional config file, can be repeated\n"
+    "  -N                     Do not load %s%s\n"
     "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
     "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
     "                         e.g., -c 'ur*'/s for programmer info/definition\n"
@@ -256,7 +266,9 @@ static void usage(void)
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
     "  -?                     Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
-    progname, version);
+    progname, strlen(cfg) < 24? "config file ": "", cfg, version);
+
+  free(cfg);
 }
 
 
@@ -515,12 +527,12 @@ int main(int argc, char * argv [])
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
+  int     no_avrduderc; /* 1=don't load personal conf file */
   char  * port;        /* device port (/dev/xxx) */
   const char *exitspecs; /* exit specs string from command line */
   int     explicit_c;  /* 1=explicit -c on command line, 0=not specified there */
   int     explicit_e;  /* 1=explicit -e on command line, 0=not specified there */
   char    sys_config[PATH_MAX]; /* system wide config file */
-  char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
   char    executable_dirpath[PATH_MAX]; /* absolute path to folder with executable */
   bool    executable_abspath_found = false; /* absolute path to executable found */
@@ -607,6 +619,7 @@ int main(int argc, char * argv [])
   port          = NULL;
   erase         = 0;
   calibrate     = 0;
+  no_avrduderc  = 0;
   p             = NULL;
   ovsigck       = 0;
   quell_progress = 0;
@@ -637,11 +650,22 @@ int main(int argc, char * argv [])
     return 0;
   }
 
+   // Determine the location of personal configuration file
+#if defined(WIN32)
+  win_usr_config_set(usr_config);
+#else
+  usr_config[0] = 0;
+  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
+    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
+  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
+#endif
+
 
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qrstT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -754,6 +778,10 @@ int main(int argc, char * argv [])
 
       case 'n':
         uflags |= UF_NOWRITE;
+        break;
+
+      case 'N':
+        no_avrduderc = 1;
         break;
 
       case 'O': /* perform RC oscillator calibration */
@@ -938,21 +966,6 @@ int main(int argc, char * argv [])
   msg_trace2("sys_config_found = %s\n", sys_config_found ? "true" : "false");
   msg_trace2("\n");
 
-  /*
-   * USER CONFIG
-   * -----------
-   * Determine the location of '.avrduderc'.
-   */
-#if defined(WIN32)
-  win_usr_config_set(usr_config);
-#else
-  usr_config[0] = 0;
-  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
-    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
-  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
-    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
-#endif
-
   if (quell_progress == 0)
     terminal_setup_update_progress();
 
@@ -980,7 +993,7 @@ int main(int argc, char * argv [])
     free(real_sys_config);
   }
 
-  if (usr_config[0] != 0) {
+  if (usr_config[0] != 0 && !no_avrduderc) {
     imsg_notice("User configuration file is %s\n", usr_config);
 
     rc = stat(usr_config, &sb);
