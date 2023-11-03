@@ -2336,7 +2336,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       if (unsupp && pgm->flag & PGM_FL_IS_DW)
         pmsg_error("debugWire interface does not support writing to memory %s\n", mem->desc);
       else
-        pmsg_error("cannot write to read-only memory %s %s\n", p->desc, mem->desc);
+        pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
       return -1;
    }
 
@@ -2355,10 +2355,8 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     memcpy(mem->buf + addr, cache_ptr, pagesize);
     /* step #3: write back */
     i = jtag3_paged_write(pgm, p, mem, pagesize, addr, pagesize);
-    if (i < 0)
-      return -1;
-    else
-      return 0;
+
+    return i < 0? -1: 0;
   }
 
   /* non-paged writes go here */
@@ -2977,6 +2975,15 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
   unsigned char* resp;
   int status;
   unsigned long paddr = 0UL;
+
+  if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    return -1;
+  }
 
   status = jtag3_erase_tpi(pgm, p, mem, addr);
   if (status < 0) {
