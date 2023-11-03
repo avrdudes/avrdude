@@ -385,7 +385,6 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 	if (serial_over_ethernet)
 		return net_send(fd, buf, len);
 
-	unsigned char c='\0';
 	DWORD written;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
@@ -497,7 +496,6 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 	if (serial_over_ethernet)
 		return net_recv(fd, buf, buflen);
 
-	unsigned char c;
 	DWORD read;
 
 	HANDLE hComPort=(HANDLE)fd->pfd;
