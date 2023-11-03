@@ -166,7 +166,7 @@
 #define EVT_ERROR_PHY_OPT_RECEIVED_BREAK    0xFA
 #define EVT_RESULT_PHY_NO_ACTIVITY          0xFB
 
-/* memory types for CMND_{READ,WRITE}_MEMORY */
+/* memories for CMND_{READ,WRITE}_MEMORY */
 #define MTYPE_IO_SHADOW   0x30	/* cached IO registers? */
 #define MTYPE_SRAM        0x20	/* target's SRAM or [ext.] IO registers */
 #define MTYPE_EEPROM      0x22	/* EEPROM, what way? */
@@ -278,7 +278,7 @@
 # define PAGEPROG_NOT_ALLOWED                    0x00
 # define PAGEPROG_ALLOWED                        0x01
 
-/* Xmega erase memory types, for CMND_XMEGA_ERASE */
+/* Xmega erase memories for CMND_XMEGA_ERASE */
 #define XMEGA_ERASE_CHIP        0x00
 #define XMEGA_ERASE_APP         0x01
 #define XMEGA_ERASE_BOOT        0x02

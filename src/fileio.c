@@ -759,7 +759,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
   int rv = 0;
 
   if (p->prog_modes & PM_aWire) { // AVR32
-    if (str_eq(mem->desc, "flash")) {
+    if (mem_is_flash(mem)) {
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
       *fileoff = 0;
@@ -767,48 +767,31 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       rv = -1;
     }
   } else {
-    if (str_eq(mem->desc, "flash") ||
-        str_eq(mem->desc, "boot") ||
-        str_eq(mem->desc, "application") ||
-        str_eq(mem->desc, "apptable")) {
+    if (mem_is_in_flash(mem)) {
       *lowbound = 0;
       *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "data")) { // SRAM for XMEGAs
+    } else if (mem_is_data(mem)) { // SRAM for XMEGAs
       *lowbound = 0x802000;
       *highbound = 0x80ffff;
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "eeprom")) {
+    } else if (mem_is_eeprom(mem)) {
       *lowbound = 0x810000;
       *highbound = 0x81ffff;    // Max 64 KiB
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse") || str_eq(mem->desc, "fuses")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
       *lowbound = 0x820000;
       *highbound = 0x82ffff;
-      *fileoff = 0;
-    } else if (str_eq(mem->desc, "hfuse")) {
-      *lowbound = 0x820000;
-      *highbound = 0x82ffff;
-      *fileoff = 1;
-    } else if (str_eq(mem->desc, "efuse")) {
-      *lowbound = 0x820000;
-      *highbound = 0x82ffff;
-      *fileoff = 2;
-    } else if (str_starts(mem->desc, "fuse") &&
-      mem->desc[4] && isxdigit(0xff & mem->desc[4]) && !mem->desc[5]) {
-      /* Xmega or modern AVR fuseX */
-      *lowbound = 0x820000;
-      *highbound = 0x82ffff;
-      *fileoff = strtol(mem->desc+4, NULL, 16);
-    } else if (str_starts(mem->desc, "lock")) { // Lock or lockbits
+      *fileoff = mem_is_a_fuse(mem)? mem_fuse_offset(mem): 0;
+    } else if (mem_is_lock(mem)) { // Lock or lockbits
       *lowbound = 0x830000;
       *highbound = 0x83ffff;
       *fileoff = 0;
-    } else if (str_eq(mem->desc, "signature")) { // Read only
+    } else if (mem_is_signature(mem)) { // Read only
       *lowbound = 0x840000;
       *highbound = 0x84ffff;
       *fileoff = 0;
-    } else if (str_starts(mem->desc, "user")) { // Usersig or userrow
+    } else if (mem_is_userrow(mem)) { // usersig or userrow
       *lowbound = 0x850000;
       *highbound = 0x85ffff;
       *fileoff = 0;
@@ -841,11 +824,8 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
    * sections out of an ELF file that contains section data for more
    * than one sub-segment.
    */
-  if ((p->prog_modes & PM_PDI) != 0 &&
-      (str_eq(mem->desc, "boot") ||
-       str_eq(mem->desc, "application") ||
-       str_eq(mem->desc, "apptable"))) {
-    AVRMEM *flashmem = avr_locate_mem(p, "flash");
+  if ((p->prog_modes & PM_PDI) && mem_is_in_flash(mem) && !mem_is_flash(mem)) {
+    AVRMEM *flashmem = avr_locate_flash(p);
     if (flashmem == NULL) {
       pmsg_error("no flash memory region found, cannot compute bounds of %s sub-region\n", mem->desc);
       return -1;
@@ -1432,11 +1412,11 @@ int fileio_fmt_autodetect(const char *fname) {
 
 
 int fileio(int op, const char *filename, FILEFMT format,
-  const AVRPART *p, const char *memtype, int size) {
+  const AVRPART *p, const char *memstr, int size) {
 
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+  AVRMEM *mem = avr_locate_mem(p, memstr);
   if(mem == NULL) {
-    pmsg_error("memory type %s not configured for device %s\n", memtype, p->desc);
+    pmsg_error("memory %s not configured for device %s\n", memstr, p->desc);
     return -1;
   }
 

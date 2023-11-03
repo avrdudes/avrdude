@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <ctype.h>
 #include <sys/time.h>
 #include <time.h>
 
@@ -57,7 +58,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     led_set(pgm, LED_PGM);
 
     /* Set Pointer Register */
-    mem = avr_locate_mem(p, "flash");
+    mem = avr_locate_flash(p);
     if (mem == NULL) {
       pmsg_error("no flash memory to erase for part %s\n", p->desc);
       led_set(pgm, LED_ERR);
@@ -234,7 +235,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   if (readop == NULL) {
 #if DEBUG
-    pmsg_error("operation not supported on memory type %s\n", mem->desc);
+    pmsg_error("operation not supported on memory %s\n", mem->desc);
 #endif
     goto error;
   }
@@ -302,7 +303,7 @@ int avr_mem_hiaddr(const AVRMEM * mem)
     return mem->size;
 
   /* if the memory is not a flash-type memory do not remove trailing 0xff */
-  if(!avr_mem_is_flash_type(mem))
+  if(!mem_is_in_flash(mem))
     return mem->size;
 
   /* return the highest non-0xff address regardless of how much
@@ -322,17 +323,17 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 
 
 /*
- * Read the entirety of the specified memory type into the corresponding
+ * Read the entirety of the specified memory into the corresponding
  * buffer of the avrpart pointed to by p. If v is non-NULL, verify against
  * v's memory area, only those cells that are tagged TAG_ALLOCATED are
  * verified.
  *
  * Return the number of bytes read, or < 0 if an error occurs.
  */
-int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, const AVRPART *v) {
-  AVRMEM *mem = avr_locate_mem(p, memtype);
+int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, const AVRPART *v) {
+  AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("no %s memory for part %s\n", memtype, p->desc);
+    pmsg_error("no %s memory for part %s\n", memstr, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -467,7 +468,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     /* else: fall back to byte-at-a-time read, for historical reasons */
   }
 
-  if (str_eq(mem->desc, "signature")) {
+  if (mem_is_signature(mem)) {
     if (pgm->read_sig_bytes) {
       int rc = pgm->read_sig_bytes(pgm, p, mem);
       if (rc < 0)
@@ -663,7 +664,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       goto error;
     }
 
-    if (str_eq(mem->desc, "flash")) {
+    if (mem_is_flash(mem)) {
       pmsg_error("writing a byte to flash is not supported for %s\n", p->desc);
       goto error;
     } else if ((mem->offset + addr) & 1) {
@@ -675,7 +676,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       continue;
 
     /* must erase fuse first */
-    if (str_eq(mem->desc, "fuse")) {
+    if (mem_is_a_fuse(mem)) { // TPI parts only have one fuse
       /* setup for SECTION_ERASE (high byte) */
       avr_tpi_setup_rw(pgm, mem, addr | 1, TPI_NVMCMD_SECTION_ERASE);
 
@@ -725,7 +726,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         rc = -2;
         goto rcerror;
       }
-      // Read operation is not support on this memory type
+      // Read operation is not support on this memory
     }
     else {
       readok = 1;
@@ -758,7 +759,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (writeop == NULL) {
 #if DEBUG
-    pmsg_error("write not supported for memory type %s\n", mem->desc);
+    pmsg_error("write not supported for memory %s\n", mem->desc);
 #endif
     goto error;
   }
@@ -782,7 +783,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if (readok == 0) {
     /*
-     * read operation not supported for this memory type, just wait
+     * read operation not supported for this memory, just wait
      * the max programming time and then return 
      */
     usleep(mem->max_write_delay); /* maximum write delay */
@@ -833,7 +834,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     else if (mem->pwroff_after_write) {
       /*
        * The device has been flagged as power-off after write to this
-       * memory type.  The reason we don't just blindly follow the
+       * memory.  The reason we don't just blindly follow the
        * flag is that the power-off advice may only apply to some
        * memory bits but not all.  We only actually power-off the
        * device if the data read back does not match what we wrote.
@@ -907,10 +908,10 @@ int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
  *
  * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
  */
-int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase) {
-  AVRMEM *m = avr_locate_mem(p, memtype);
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase) {
+  AVRMEM *m = avr_locate_mem(p, memstr);
   if (m == NULL) {
-    pmsg_error("no %s memory for part %s\n", memtype, p->desc);
+    pmsg_error("no %s memory for part %s\n", memstr, p->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -1154,7 +1155,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
   int page_tainted = 0;
   int flush_page = 0;
-  int paged = avr_mem_is_flash_type(m) && m->paged;
+  int paged = mem_is_in_flash(m) && m->paged;
 
   if(paged)
     wsize = (wsize+1)/2*2;      // Round up write size for word boundary
@@ -1230,13 +1231,19 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
 // Obtain bitmask for byte in memory (classic, TPI, PDI and UPDI parts)
 int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
+
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
-  if(str_eq(mem->desc, "fuses") && addr >=0 && addr < 16) { // Get right fuse in fuses memory
-    char memtype[64];
-    AVRMEM *dfuse;
-    sprintf(memtype, "fuse%x", addr);
-    if((dfuse = avr_locate_mem(p, memtype)) && dfuse->size == 1)
+  if(mem_is_fuses(mem) && addr >=0 && addr < 16) { // Get right fuse in fuses memory
+    AVRMEM *dfuse = avr_locate_fuse_by_offset(p, addr);
+    if(dfuse) {
       bitmask = dfuse->bitmask;
+      if(dfuse->size == 2 && addr == (int) mem_fuse_offset(dfuse)+1) // High byte of 2-byte fuse
+        bitmask >>= 8;
+    }
+  } else if(mem_is_a_fuse(mem) && mem->size == 2 && addr == 1) {
+    bitmask >>= 8;
+  } else if(mem_is_lock(mem) && mem->size > 1 && mem->size <= 4 && addr >= 0 && addr < mem->size) {
+    bitmask >>= (8*addr);
   }
 
   return bitmask & 0xff;
@@ -1281,21 +1288,21 @@ int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
  *
  * Return the number of bytes verified, or -1 if they don't match.
  */
-int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memtype, int size) {
+int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memstr, int size) {
   int i;
   unsigned char * buf1, * buf2;
   int vsize;
   AVRMEM * a, * b;
 
-  a = avr_locate_mem(p, memtype);
+  a = avr_locate_mem(p, memstr);
   if (a == NULL) {
-    pmsg_error("memory type %s not defined for part %s\n", memtype, p->desc);
+    pmsg_error("memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
 
-  b = avr_locate_mem(v, memtype);
+  b = avr_locate_mem(v, memstr);
   if (b == NULL) {
-    pmsg_error("memory type %s not defined for part %s\n", memtype, v->desc);
+    pmsg_error("memory %s not defined for part %s\n", memstr, v->desc);
     return -1;
   }
 
@@ -1305,7 +1312,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 
   if (vsize < size) {
     pmsg_warning("requested verification for %d bytes\n", size);
-    imsg_warning("%s memory region only contains %d bytes\n", memtype, vsize);
+    imsg_warning("%s memory region only contains %d bytes\n", memstr, vsize);
     imsg_warning("only %d bytes will be verified\n", vsize);
     size = vsize;
   }
@@ -1319,7 +1326,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
           if(vroerror < 10) {
             if(!(verror + vroerror))
               pmsg_warning("verification mismatch%s\n",
-                avr_mem_is_flash_type(a)? " in r/o areas, expected for vectors and/or bootloader": "");
+                mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
             imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location)\n",
               buf1[i], buf2[i], i);
           } else if(vroerror == 10)
@@ -1342,12 +1349,12 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memtype);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
           imsg_warning("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memtype);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
           imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
         }
@@ -1366,17 +1373,16 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   int rc;
   int i;
 
-  a = avr_locate_mem(p, "eeprom");
-  if (a == NULL) {
+  a = avr_locate_eeprom(p);
+  if (a == NULL)
     return -1;
-  }
 
   for (i=4; i>0; i--) {
     rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
-  if (rc < 0) {
-    pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
-    return -1;
-  }
+    if (rc < 0) {
+      pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
+      return -1;
+    }
     cycle_count = (cycle_count << 8) | v1;
   }
 
@@ -1402,10 +1408,9 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
   int rc;
   int i;
 
-  a = avr_locate_mem(p, "eeprom");
-  if (a == NULL) {
+  a = avr_locate_eeprom(p);
+  if (a == NULL)
     return -1;
-  }
 
   for (i=1; i<=4; i++) {
     v1 = cycles & 0xff;
@@ -1459,67 +1464,87 @@ char *avr_prog_modes(int pm) {
 
 
 // Typical order in which memories show in avrdude.conf, runtime adds unknown ones (if any)
-const char *avr_mem_order[100] = {
-  "eeprom",       "flash",        "application",  "apptable",
-  "boot",         "lfuse",        "hfuse",        "efuse",
-  "fuse",         "fuse0",        "wdtcfg",       "fuse1",
-  "bodcfg",       "fuse2",        "osccfg",       "fuse3",
-  "fuse4",        "tcd0cfg",      "fuse5",        "syscfg0",
-  "fuse6",        "syscfg1",      "fuse7",        "append",
-  "codesize",     "fuse8",        "fuse9",        "bootend",
-  "bootsize",     "fusea",        "pdicfg",       "fuses",
-  "lock",         "lockbits",     "prodsig",      "sigrow",
-  "signature",    "calibration",  "tempsense",    "sernum",
-  "osccal16",     "osccal20",     "osc16err",     "osc20err",
-  "bootrow",      "usersig",      "userrow",      "data",
-  "io",           "sib",
+memtable_t avr_mem_order[100] = {
+  {"eeprom",      MEM_EEPROM},
+  {"flash",       MEM_FLASH | MEM_IN_FLASH},
+  {"application", MEM_APPLICATION | MEM_IN_FLASH},
+  {"apptable",    MEM_APPTABLE | MEM_IN_FLASH},
+  {"boot",        MEM_BOOT | MEM_IN_FLASH},
+  {"fuses",       MEM_FUSES},
+  {"fuse",        MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"lfuse",       MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"hfuse",       MEM_FUSE1 | MEM_IS_A_FUSE},
+  {"efuse",       MEM_FUSE2 | MEM_IS_A_FUSE},
+  {"fuse0",       MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"wdtcfg",      MEM_FUSE0 | MEM_IS_A_FUSE},
+  {"fuse1",       MEM_FUSE1 | MEM_IS_A_FUSE},
+  {"bodcfg",      MEM_FUSE1 | MEM_IS_A_FUSE},
+  {"fuse2",       MEM_FUSE2 | MEM_IS_A_FUSE},
+  {"osccfg",      MEM_FUSE2 | MEM_IS_A_FUSE},
+  {"fuse4",       MEM_FUSE4 | MEM_IS_A_FUSE},
+  {"tcd0cfg",     MEM_FUSE4 | MEM_IS_A_FUSE},
+  {"fuse5",       MEM_FUSE5 | MEM_IS_A_FUSE},
+  {"syscfg0",     MEM_FUSE5 | MEM_IS_A_FUSE},
+  {"fuse6",       MEM_FUSE6 | MEM_IS_A_FUSE},
+  {"syscfg1",     MEM_FUSE6 | MEM_IS_A_FUSE},
+  {"fuse7",       MEM_FUSE7 | MEM_IS_A_FUSE},
+  {"append",      MEM_FUSE7 | MEM_IS_A_FUSE},
+  {"codesize",    MEM_FUSE7 | MEM_IS_A_FUSE},
+  {"fuse8",       MEM_FUSE8 | MEM_IS_A_FUSE},
+  {"bootend",     MEM_FUSE8 | MEM_IS_A_FUSE},
+  {"bootsize",    MEM_FUSE8 | MEM_IS_A_FUSE},
+  {"fusea",       MEM_FUSEA | MEM_IS_A_FUSE},
+  {"pdicfg",      MEM_FUSEA | MEM_IS_A_FUSE},
+  {"lock",        MEM_LOCK},
+  {"lockbits",    MEM_LOCK},
+  {"prodsig",     MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
+  {"sigrow",      MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
+  {"signature",   MEM_SIGNATURE | MEM_IN_SIGROW | MEM_READONLY},
+  {"calibration", MEM_CALIBRATION | MEM_IN_SIGROW | MEM_READONLY},
+  {"tempsense",   MEM_TEMPSENSE | MEM_IN_SIGROW | MEM_READONLY},
+  {"sernum",      MEM_SERNUM | MEM_IN_SIGROW | MEM_READONLY},
+  {"osccal16",    MEM_OSCCAL16 | MEM_IN_SIGROW | MEM_READONLY},
+  {"osccal20",    MEM_OSCCAL20 | MEM_IN_SIGROW | MEM_READONLY},
+  {"osc16err",    MEM_OSC16ERR | MEM_IN_SIGROW | MEM_READONLY},
+  {"osc20err",    MEM_OSC20ERR | MEM_IN_SIGROW | MEM_READONLY},
+  {"bootrow",     MEM_BOOTROW | MEM_USER_TYPE},
+  {"usersig",     MEM_USERROW | MEM_USER_TYPE},
+  {"userrow",     MEM_USERROW | MEM_USER_TYPE},
+  {"data",        MEM_SRAM},
+  {"io",          MEM_IO},
+  {"sib",         MEM_SIB | MEM_READONLY},
 };
 
-void avr_add_mem_order(const char *str) {
+int avr_get_mem_type(const char *str) {
   for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {
-    if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
-      return;
-    if(!avr_mem_order[i]) {
-      avr_mem_order[i] = cfg_strdup("avr_mem_order()", str);
-      return;
+    if(avr_mem_order[i].str && str_eq(avr_mem_order[i].str, str))
+      return avr_mem_order[i].type;
+    if(!avr_mem_order[i].str) {
+      pmsg_warning("avr_mem_order[] does not know %s; add to array and recompile\n", str);
+      avr_mem_order[i].str = cfg_strdup(__func__, str);
+      return avr_mem_order[i].type;
     }
   }
   pmsg_error("avr_mem_order[] under-dimensioned in avr.c; increase and recompile\n");
   exit(1);
 }
 
-int avr_memtype_is_flash_type(const char *memtype) {
-  return memtype && (
-     str_eq(memtype, "flash") ||
-     str_eq(memtype, "application") ||
-     str_eq(memtype, "apptable") ||
-     str_eq(memtype, "boot"));
-}
-
 int avr_mem_is_flash_type(const AVRMEM *mem) {
-  return avr_memtype_is_flash_type(mem->desc);
-}
-
-int avr_memtype_is_eeprom_type(const char *memtype) {
-  return memtype && str_eq(memtype, "eeprom");
+  return mem_is_in_flash(mem);
 }
 
 int avr_mem_is_eeprom_type(const AVRMEM *mem) {
-  return avr_memtype_is_eeprom_type(mem->desc);
-}
-
-int avr_memtype_is_usersig_type(const char *memtype) { // Bootrow is subsumed under usersig type
-  return memtype && (str_eq(memtype, "bootrow") || str_eq(memtype, "usersig") || str_eq(memtype, "userrow"));
+  return mem_is_eeprom(mem);
 }
 
 int avr_mem_is_usersig_type(const AVRMEM *mem) {
-  return avr_memtype_is_usersig_type(mem->desc);
+  return mem_is_user_type(mem);
 }
 
 int avr_mem_is_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && str_eq(avr_mem_order[i], str))
+      if(avr_mem_order[i].str && str_eq(avr_mem_order[i].str, str))
         return 1;
   return 0;
 }
@@ -1527,7 +1552,7 @@ int avr_mem_is_known(const char *str) {
 int avr_mem_might_be_known(const char *str) {
   if(str && *str)
     for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++)
-      if(avr_mem_order[i] && str_starts(avr_mem_order[i], str))
+      if(avr_mem_order[i].str && str_starts(avr_mem_order[i].str, str))
         return 1;
   return 0;
 }
@@ -1592,4 +1617,15 @@ void report_progress(int completed, int total, const char *hdr) {
     last = percent;
     update_progress(percent, t - start_time, hdr, total < 0? -1: !!total);
   }
+}
+
+
+// Output comms buffer
+void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen) {
+  pmsg_trace("%s: ", funstr);
+  while(buflen--) {
+    unsigned char c = *buf++;
+    msg_trace("%c [%02x]%s", isascii(c) && isprint(c)? c: '.', c, buflen? " ": "");
+  }
+  msg_trace("\n");
 }

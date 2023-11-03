@@ -232,7 +232,7 @@ typedef struct opcode {
  *  - lexer.l
  *  - Either Component_t avr_comp[] of config.c or in config_gram.y
  *  - dev_part_strct() in developer_opts.c
- *  - avr_new_part() and/or avr_new_memtype() in avrpart.c for
+ *  - avr_new_part() and/or avr_new_mem() in avrpart.c for
  *    initialisation; note that all const char * must be initialised with ""
  */
 typedef struct avrpart {
@@ -322,10 +322,156 @@ typedef struct avrpart {
   int           lineno;         /* config file line number */
 } AVRPART;
 
+
+typedef unsigned int memtype_t;
+typedef struct {
+  const char *str;
+  memtype_t type;
+} memtable_t;
+
+// The least significant 4 bits of type are the offset of a fuse in fuses mem
+#define MEM_FUSEOFF_MASK     15 // Mask for offset
+#define MEM_FUSE0             0 // fuse lfuse fuse0 wdtcfg
+#define MEM_FUSE1             1 // hfuse fuse1 bodcfg
+#define MEM_FUSE2             2 // efuse fuse2 osccfg
+#define MEM_FUSE4             4 // fuse4 tcd0cfg
+#define MEM_FUSE5             5 // fuse5 syscfg0
+#define MEM_FUSE6             6 // fuse6 syscfg1
+#define MEM_FUSE7             7 // fuse7 append codesize
+#define MEM_FUSE8             8 // fuse8 bootend bootsize
+#define MEM_FUSEA            10 // fusea pdicfg
+
+// Individual memories that may have different names in different parts
+#define MEM_EEPROM      (1<< 4) // eeprom
+#define MEM_FLASH       (1<< 5) // flash
+#define MEM_APPLICATION (1<< 6) // application
+#define MEM_APPTABLE    (1<< 7) // apptable
+#define MEM_BOOT        (1<< 8) // boot
+#define MEM_FUSES       (1<< 9) // fuses
+#define MEM_LOCK        (1<<10) // lock lockbits
+#define MEM_SIGROW      (1<<11) // prodsig sigrow
+#define MEM_SIGNATURE   (1<<12) // signature
+#define MEM_CALIBRATION (1<<13) // calibration
+#define MEM_TEMPSENSE   (1<<14) // tempsense
+#define MEM_SERNUM      (1<<15) // sernum
+#define MEM_OSCCAL16    (1<<16) // osccal16
+#define MEM_OSCCAL20    (1<<17) // osccal20
+#define MEM_OSC16ERR    (1<<18) // osc16err
+#define MEM_OSC20ERR    (1<<19) // osc20err
+#define MEM_BOOTROW     (1<<20) // bootrow
+#define MEM_USERROW     (1<<21) // userrow usersig
+#define MEM_SRAM        (1<<22) // data
+#define MEM_IO          (1<<23) // io
+#define MEM_SIB         (1<<24) // sib
+
+// Attributes
+#define MEM_IN_FLASH    (1<<27) // flash application apptable boot
+#define MEM_IS_A_FUSE   (1<<28) // fuse [elh]fuse fuseN wdtcfg bodcfg osccfg tcd0cfg syscfg0 syscfg1 append codesize bootend bootsize pdicfg
+#define MEM_USER_TYPE   (1<<29) // userrow usersig bootrow
+#define MEM_IN_SIGROW   (1<<30) // prodsig sigrow signature calibration sernum tempsense osccal16 osccal20 osc16err osc20err
+#define MEM_READONLY   (1U<<31) // sib prodsig sigrow signature sernum tempsense calibration osccal16 osccal20 osc16err osc20err
+
+// Marcos to locate a memory type or a fuse
+#define avr_locate_eeprom(p) avr_locate_mem_by_type((p), MEM_EEPROM)
+#define avr_locate_flash(p) avr_locate_mem_by_type((p), MEM_FLASH)
+#define avr_locate_application(p) avr_locate_mem_by_type((p), MEM_APPLICATION)
+#define avr_locate_apptable(p) avr_locate_mem_by_type((p), MEM_APPTABLE)
+#define avr_locate_boot(p) avr_locate_mem_by_type((p), MEM_BOOT)
+#define avr_locate_fuses(p) avr_locate_mem_by_type((p), MEM_FUSES)
+#define avr_locate_lock(p) avr_locate_mem_by_type((p), MEM_LOCK)
+#define avr_locate_lockbits(p) avr_locate_mem_by_type((p), MEM_LOCK)
+#define avr_locate_prodsig(p) avr_locate_mem_by_type((p), MEM_SIGROW)
+#define avr_locate_sigrow(p) avr_locate_mem_by_type((p), MEM_SIGROW)
+#define avr_locate_signature(p) avr_locate_mem_by_type((p), MEM_SIGNATURE)
+#define avr_locate_calibration(p) avr_locate_mem_by_type((p), MEM_CALIBRATION)
+#define avr_locate_tempsense(p) avr_locate_mem_by_type((p), MEM_TEMPSENSE)
+#define avr_locate_sernum(p) avr_locate_mem_by_type((p), MEM_SERNUM)
+#define avr_locate_osccal16(p) avr_locate_mem_by_type((p), MEM_OSCCAL16)
+#define avr_locate_osccal20(p) avr_locate_mem_by_type((p), MEM_OSCCAL20)
+#define avr_locate_osc16err(p) avr_locate_mem_by_type((p), MEM_OSC16ERR)
+#define avr_locate_osc20err(p) avr_locate_mem_by_type((p), MEM_OSC20ERR)
+#define avr_locate_bootrow(p) avr_locate_mem_by_type((p), MEM_BOOTROW)
+#define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERROW)
+#define avr_locate_userrow(p) avr_locate_mem_by_type((p), MEM_USERROW)
+#define avr_locate_data(p) avr_locate_mem_by_type((p), MEM_SRAM)
+#define avr_locate_io(p) avr_locate_mem_by_type((p), MEM_IO)
+#define avr_locate_sib(p) avr_locate_mem_by_type((p), MEM_SIB)
+
+#define avr_locate_fuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_lfuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_hfuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
+#define avr_locate_efuse(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_fuse0(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_wdtcfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE0)
+#define avr_locate_fuse1(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
+#define avr_locate_bodcfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE1)
+#define avr_locate_fuse2(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_osccfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE2)
+#define avr_locate_fuse4(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
+#define avr_locate_tcd0cfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE4)
+#define avr_locate_fuse5(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
+#define avr_locate_syscfg0(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE5)
+#define avr_locate_fuse6(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE6)
+#define avr_locate_syscfg1(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE6)
+#define avr_locate_fuse7(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE7)
+#define avr_locate_append(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE7)
+#define avr_locate_codesize(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE7)
+#define avr_locate_fuse8(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE8)
+#define avr_locate_bootend(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE8)
+#define avr_locate_bootsize(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSE8)
+#define avr_locate_fusea(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSEA)
+#define avr_locate_pdicfg(p) avr_locate_mem_by_type((p), MEM_IS_A_FUSE | MEM_FUSEA)
+
+// Fuse offset and memory type/attribute macros
+#define mem_is_eeprom(mem) (!!((mem)->type & MEM_EEPROM))
+#define mem_is_flash(mem) (!!((mem)->type & MEM_FLASH))
+#define mem_is_application(mem) (!!((mem)->type & MEM_APPLICATION))
+#define mem_is_apptable(mem) (!!((mem)->type & MEM_APPTABLE))
+#define mem_is_boot(mem) (!!((mem)->type & MEM_BOOT))
+#define mem_is_fuses(mem) (!!((mem)->type & MEM_FUSES))
+#define mem_is_lock(mem) (!!((mem)->type & MEM_LOCK))
+#define mem_is_sigrow(mem) (!!((mem)->type & MEM_SIGROW))
+#define mem_is_signature(mem) (!!((mem)->type & MEM_SIGNATURE))
+#define mem_is_calibration(mem) (!!((mem)->type & MEM_CALIBRATION))
+#define mem_is_tempsense(mem) (!!((mem)->type & MEM_TEMPSENSE))
+#define mem_is_sernum(mem) (!!((mem)->type & MEM_SERNUM))
+#define mem_is_osccal16(mem) (!!((mem)->type & MEM_OSCCAL16))
+#define mem_is_osccal20(mem) (!!((mem)->type & MEM_OSCCAL20))
+#define mem_is_osc16err(mem) (!!((mem)->type & MEM_OSC16ERR))
+#define mem_is_osc20err(mem) (!!((mem)->type & MEM_OSC20ERR))
+#define mem_is_bootrow(mem) (!!((mem)->type & MEM_BOOTROW))
+#define mem_is_userrow(mem) (!!((mem)->type & MEM_USERROW))
+#define mem_is_data(mem) (!!((mem)->type & MEM_SRAM))
+#define mem_is_io(mem) (!!((mem)->type & MEM_IO))
+#define mem_is_sib(mem) (!!((mem)->type & MEM_SIB))
+
+#define mem_is_in_flash(mem) (!!((mem)->type & MEM_IN_FLASH))
+#define mem_is_a_fuse(mem) (!!((mem)->type & MEM_IS_A_FUSE))
+#define mem_is_in_fuses(mem) (!!((mem)->type & (MEM_FUSES | MEM_IS_A_FUSE))) // If fuses exists, that is
+#define mem_is_user_type(mem) (!!((mem)->type & MEM_USER_TYPE))
+#define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
+#define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
+#define mem_is_paged_type(mem) (!!((mem)->type & (MEM_IN_FLASH | MEM_EEPROM | MEM_USER_TYPE)))
+#define mem_is_lfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0))
+#define mem_is_hfuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1))
+#define mem_is_efuse(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2))
+#define mem_is_fuse0(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE0))
+#define mem_is_fuse1(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE1))
+#define mem_is_fuse2(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE2))
+#define mem_is_fuse4(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE4))
+#define mem_is_fuse5(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE5))
+#define mem_is_fuse6(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE6))
+#define mem_is_fuse7(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE7))
+#define mem_is_fuse8(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSE8))
+#define mem_is_fusea(m) (((m)->type&(MEM_IS_A_FUSE|MEM_FUSEOFF_MASK)) == (MEM_IS_A_FUSE|MEM_FUSEA))
+
+#define mem_fuse_offset(mem) ((mem)->type & MEM_FUSEOFF_MASK) // Valid if mem_is_a_fuse(mem)
+
 typedef struct avrmem {
   const char *desc;           /* memory description ("flash", "eeprom", etc) */
+  memtype_t type;             /* internally used type, cannot be set in conf files */
   LISTID comments;            // Used by developer options -p*/[ASsr...]
-  int paged;                  /* page addressed (e.g. ATmega flash) */
+  int paged;                  /* 16-bit page addressed, e.g., ATmega flash but not EEPROM */
   int size;                   /* total memory size in bytes */
   int page_size;              /* size of memory page (if page addressed) */
   int num_pages;              /* number of pages (if page addressed) */
@@ -335,7 +481,7 @@ typedef struct avrmem {
   unsigned int offset;        /* offset in IO memory (ATxmega) */
   int min_write_delay;        /* microseconds */
   int max_write_delay;        /* microseconds */
-  int pwroff_after_write;     /* after this memory type is written to,
+  int pwroff_after_write;     /* after this memory is written to,
                                  the device must be powered off and
                                  back on, see errata
                                  https://www.microchip.com/content/dam/mchp/documents/OTH/ProductDocuments/DataSheets/doc1042.pdf */
@@ -379,7 +525,7 @@ const char *opcodename(int opnum);
 char *opcode2str(const OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
-AVRMEM * avr_new_memtype(void);
+AVRMEM * avr_new_mem(void);
 AVRMEM_ALIAS * avr_new_memalias(void);
 int avr_initmem(const AVRPART *p);
 AVRMEM * avr_dup_mem(const AVRMEM *m);
@@ -387,6 +533,9 @@ void     avr_free_mem(AVRMEM * m);
 void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
 AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
+AVRMEM * avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off);
+AVRMEM * avr_locate_mem_by_type(const AVRPART *p, memtype_t type);
+unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
@@ -398,8 +547,7 @@ AVRPART * avr_dup_part(const AVRPART *d);
 void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
-AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig,
-                                   int sigsize);
+AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
@@ -838,7 +986,7 @@ typedef struct programmer_t {
                           unsigned long addr, unsigned char *value);
   int  (*read_sig_bytes) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m);
   int  (*read_sib)       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
-  int  (*read_chip_rev)  (const struct programmer_t *pgm, const AVRPART *p, char *chip_rev);
+  int  (*read_chip_rev)  (const struct programmer_t *pgm, const AVRPART *p, unsigned char *chip_rev);
   int  (*term_keep_alive)(const struct programmer_t *pgm, const AVRPART *p);
   void (*print_parms)    (const struct programmer_t *pgm, FILE *fp);
   int  (*set_vtarget)    (const struct programmer_t *pgm, double v);
@@ -921,7 +1069,7 @@ void sort_programmers(LISTID programmers);
 typedef void (*FP_UpdateProgress)(int percent, double etime, const char *hdr, int finish);
 
 extern struct avrpart parts[];
-extern const char *avr_mem_order[100];
+extern memtable_t avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
@@ -937,7 +1085,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
 int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
 
-int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memtype, const AVRPART *v);
+int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const AVRPART *v);
 
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
@@ -962,7 +1110,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
 
-int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memtype, int size, int auto_erase);
+int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase);
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 
@@ -976,17 +1124,11 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
 char *avr_prog_modes(int pm);
 
-void avr_add_mem_order(const char *str);
-
-int avr_memtype_is_flash_type(const char *mem);
+int avr_get_mem_type(const char *str);
 
 int avr_mem_is_flash_type(const AVRMEM *mem);
 
-int avr_memtype_is_eeprom_type(const char *mem);
-
 int avr_mem_is_eeprom_type(const AVRMEM *mem);
-
-int avr_memtype_is_usersig_type(const char *mem);
 
 int avr_mem_is_usersig_type(const AVRMEM *mem);
 
@@ -1002,6 +1144,8 @@ int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p);
 
 void report_progress(int completed, int total, const char *hdr);
+
+void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
 
 int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
 
@@ -1077,7 +1221,7 @@ int fileio_fmt_autodetect_fp(FILE *f);
 int fileio_fmt_autodetect(const char *fname);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, const char *memtype, int size);
+  const AVRPART *p, const char *memstr, int size);
 
 int segment_normalise(const AVRMEM *mem, Segment_t *segp);
 
@@ -1107,7 +1251,7 @@ enum updateflags {
 
 typedef struct update_t {
   const char *cmdline;          // -T line is stored here and takes precedence if it exists
-  char *memtype;                // Memory name for -U
+  char *memstr;                 // Memory name for -U
   int   op;                     // Symbolic memory operation DEVICE_... for -U
   char *filename;               // Filename for -U, can be -
   int   format;                 // File format FMT_...
@@ -1136,7 +1280,7 @@ extern void free_update(UPDATE *upd);
 char *update_str(const UPDATE *upd);
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
-int memstats(const AVRPART *p, const char *memtype, int size, Filestats *fsp);
+int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp);
 
 // Helper functions for dry run to determine file access
 int update_is_okfile(const char *fn);
@@ -1302,7 +1446,7 @@ bool is_bigendian();
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
-Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memtype);
+Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);

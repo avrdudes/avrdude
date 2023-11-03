@@ -32,6 +32,9 @@ Changes since version 7.2:
     - EEPROM file generates error with 7.2 #1508
     - PGM LED not activated for flash or eeprom write #1514
     - Adding the Avrdude build version to avrdude.conf #1475
+    - Harmonise WIN32 and POSIX serial comms timeout #1249
+    - Old avrdude.conf can result in a segmentation fault #1544
+    - Support AVR EB series #1546
 
   * Pull requests:
 
@@ -65,6 +68,11 @@ Changes since version 7.2:
     - Add bootloader hashes from the Sanguino Arduino repo #1533
     - Support MinGW cross compiler #1539
     - Add avrdude_conf_version to grammar #1542 #1547
+    - Change execution order in silicon revision check #1543
+    - Add Arduino avrdude_packing github action for git man #1540
+    - Introduce memory types in lieu of memory name comparisons #1538
+    - Allow UPDI_SIB of AVR_EB in serialupdi #1549
+    - Harmonise WIN32 and POSIX serial comms timeout #1550
 
   * Internals:
 

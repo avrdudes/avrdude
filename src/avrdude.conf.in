@@ -184,7 +184,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       # parameters for bootloaders
 #       autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 #
-#       memory <memtype>
+#       memory <memstr>
 #           paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
 #           offset          = <num> ;             # memory offset
 #           size            = <num> ;             # bytes
@@ -244,13 +244,13 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 # NOTES:
 #   * 'devicecode' is the device code used by the STK500 (see codes
 #       listed below)
-#   * Not all memory types will implement all instructions
+#   * Not all memories will implement all instructions
 #   * AVR Fuse bits and Lock bits are implemented as a type of memory
-#   * Example memory types are:
+#   * Example memories are:
 #       "flash", "eeprom", "fuse", "lfuse" (low fuse), "hfuse" (high
 #       fuse), "signature", "calibration", "lock"
-#   * The memory type specified on the avrdude command line must match
-#     one of the memory types defined for the specified chip
+#   * The memory specified on the avrdude command line must match
+#     one of the memories defined for the specified chip
 #   * The pwroff_after_write flag causes avrdude to attempt to
 #     power the device off and back on after an unsuccessful write to
 #     the affected memory area if VCC programmer pins are defined. If
@@ -19202,6 +19202,12 @@ part # .avr8x
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
 
+    memory "fuses"
+        size               = 10;
+        offset             = 0x1280;
+        readsize           = 1;
+    ;
+
     memory "fuse0"
         size               = 1;
         initval            = 0x00;
@@ -19288,13 +19294,6 @@ part # .avr8x
 
     memory "bootsize"
         alias "fuse8";
-    ;
-
-    memory "fuses"
-        size               = 10;
-        page_size          = 10;
-        offset             = 0x1280;
-        readsize           = 10;
     ;
 
     memory "lock"
@@ -21436,6 +21435,12 @@ part # .avrdx
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
 
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
+
     memory "fuse0"
         size               = 1;
         initval            = 0x00;
@@ -21522,13 +21527,6 @@ part # .avrdx
 
     memory "bootend"
         alias "fuse8";
-    ;
-
-    memory "fuses"
-        size               = 16;
-        page_size          = 16;
-        offset             = 0x1050;
-        readsize           = 16;
     ;
 
     memory "lock"

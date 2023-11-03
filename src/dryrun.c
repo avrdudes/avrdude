@@ -73,7 +73,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
   pmsg_debug("%s()\n", __func__);
   if(!dry.dp)
     Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
-  if(!(flm = avr_locate_mem(dry.dp, "flash")))
+  if(!(flm = avr_locate_flash(dry.dp)))
     Return("cannot locate %s flash memory for chip erase", dry.dp->desc);
   if(flm->size < 1)
     Return("cannot erase %s flash memory owing to its size %d", dry.dp->desc, flm->size);
@@ -122,43 +122,42 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     // Initialise the device with fuse factory setting and erase flash/EEPROM to 0xff
     for (LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
       AVRMEM *m = ldata(ln);
-      if(avr_mem_is_flash_type(m) || avr_mem_is_eeprom_type(m)) {
+      if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
         memset(m->buf, 0xff, m->size);
-      } else if(str_eq(m->desc, "fuses")) {
+      } else if(mem_is_fuses(m)) {
         fusesm = m;
-      } else if(str_contains(m->desc, "fuse") || str_contains(m->desc, "lock")) {
+      } else if(mem_is_a_fuse(m) || mem_is_lock(m)) {
         // Lock, eg, can have 4 bytes: still allow initialisation from initval
         if(m->initval != -1 && m->size >=1 && m->size <= (int) sizeof(m->initval)) {
           memcpy(m->buf, &m->initval, m->size); // FIXME: relying on little endian here
-          if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {
-            int fno = strtol(m->desc+4, NULL, 16);
-            if(fno >= 0)
-              for(int i = 0; i < m->size && fno+i < (int) sizeof inifuses; i++)
-                inifuses[fno+i] = m->initval >> 8*i;
+          if(mem_is_a_fuse(m)) {
+            int fno = mem_fuse_offset(m);
+            for(int i = 0; i < m->size && fno+i < (int) sizeof inifuses; i++) // pdicfg has 2 bytes
+              inifuses[fno+i] = m->initval >> 8*i;
           }
         } else {
           memset(m->buf, 0xff, m->size);
         }
-      } else if(str_eq(m->desc, "signature") && (int) sizeof(dry.dp->signature) == m->size) {
+      } else if(mem_is_signature(m) && (int) sizeof(dry.dp->signature) == m->size) {
         memcpy(m->buf, dry.dp->signature, m->size);
-      } else if(str_eq(m->desc, "calibration")) {
+      } else if(mem_is_calibration(m)) {
         memset(m->buf, 'U', m->size); // 'U' for uncalibrated or unknown :)
-      } else if(str_eq(m->desc, "osc16err")) {
+      } else if(mem_is_osc16err(m)) {
         memset(m->buf, 'e', m->size);
-      } else if(str_eq(m->desc, "osc20err")) {
+      } else if(mem_is_osc20err(m)) {
         memset(m->buf, 'E', m->size);
-      } else if(str_eq(m->desc, "osccal16")) {
+      } else if(mem_is_osccal16(m)) {
         memset(m->buf, 'o', m->size);
-      } else if(str_eq(m->desc, "osccal20")) {
+      } else if(mem_is_osccal20(m)) {
         memset(m->buf, 'O', m->size);
-      } else if(str_eq(m->desc, "sib")) {
+      } else if(mem_is_sib(m)) {
         memset(m->buf, 'S', m->size);
-      } else if( str_eq(m->desc, "tempsense")) {
+      } else if( mem_is_tempsense(m)) {
         memset(m->buf, 'T', m->size); // 'T' for temperature calibration values
-      } else if(str_eq(m->desc, "sernum")) {
+      } else if(mem_is_sernum(m)) {
         for(int i = 0; i < m->size; i++) // Set serial number UTSRQPONM...
           m->buf[i] = 'U'-i >= 'A'? 'U'-i: 0xff;
-      } else if(str_eq(m->desc, "prodsig") && m->size >= 6) {
+      } else if(mem_is_sigrow(m) && m->size >= 6) {
         prodsigm = m;
         memset(m->buf, 0xff, m->size);
         if(p->prog_modes & PM_PDI) {
@@ -182,7 +181,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
             memcpy(prodsigm->buf + off, m->buf, cpy);
         }
       }
-      if(!(p->prog_modes & (PM_PDI|PM_UPDI)) && (calm = avr_locate_mem(dry.dp, "calibration"))) {
+      if(!(p->prog_modes & (PM_PDI|PM_UPDI)) && (calm = avr_locate_calibration(dry.dp))) {
         // Calibration bytes of classic parts are interspersed with signature
         for(int i=0; i<calm->size; i++)
           if(2*i+1 < prodsigm->size)
@@ -264,8 +263,8 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     unsigned int end;
 
     // Paged writes only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -287,16 +286,16 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F') {
-        if(str_eq(dmem->desc, "flash")) {
+        if(mem_is_flash(dmem)) {
           for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
             dm2 = ldata(ln);
-            if(avr_mem_is_flash_type(dm2) && !str_eq(dm2->desc, "flash")) { // Overlapping region?
+            if(mem_is_in_flash(dm2) && !mem_is_flash(dm2)) { // Overlapping region?
               unsigned int cpaddr = addr + dmem->offset - dm2->offset;
               if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
                 memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
             }
           }
-        } else if((dm2 = avr_locate_mem(dry.dp, "flash"))) {
+        } else if((dm2 = avr_locate_flash(dry.dp))) {
           unsigned int cpaddr = addr + dmem->offset - dm2->offset;
           if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
             memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
@@ -322,8 +321,8 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     unsigned int end;
 
     // Paged load only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -364,12 +363,13 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(str_eq(dmem->desc, "calibration") || str_eq(dmem->desc, "osc16err") ||
-     str_eq(dmem->desc, "osccal16") || str_eq(dmem->desc, "osc20err") ||
-     str_eq(dmem->desc, "osccal20") || str_eq(dmem->desc, "prodsig") ||
-     str_eq(dmem->desc, "sernum") || str_eq(dmem->desc, "sib") ||
-     str_eq(dmem->desc, "signature") || str_eq(dmem->desc, "tempsense"))
+  if(mem_is_readonly(dmem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
+      return 0;
+
     Return("cannot write to write-protected memory %s %s", dry.dp->desc, dmem->desc);
+  }
 
   if(addr >= (unsigned long) dmem->size)
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
@@ -383,22 +383,19 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   dmem->buf[addr] = data;
 
-  if(str_eq(dmem->desc, "fuses") && addr < 16) { // Copy the byte to corresponding fuse[0-9a-f]
-    char memtype[64];
-    sprintf(memtype, "fuse%lx", addr);
-    if((dfuse = avr_locate_mem(dry.dp, memtype)))
-      dfuse->buf[0] = data;
-    else if(addr > 0) {         // Could be high byte of two-byte fuse
-      sprintf(memtype, "fuse%lx", addr-1);
-      if((dfuse = avr_locate_mem(dry.dp, memtype)))
-        dfuse->buf[1] = data;
+  if(mem_is_fuses(dmem) && addr < 16) { // Copy the byte to corresponding individual fuse
+    for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
+      if(mem_is_a_fuse(dfuse = ldata(ln))) {
+        if(addr == mem_fuse_offset(dfuse))
+          dfuse->buf[0] = data;
+        else if(dfuse->size == 2 && addr-1 == mem_fuse_offset(dfuse)) // High byte of 2-byte fuse
+          dfuse->buf[1] = data;
+      }
     }
-  } else if(str_starts(m->desc, "fuse") && m->desc[4] && isxdigit(0xff & m->desc[4]) && !m->desc[5]) {
-    // Copy fuseX byte into fuses memory
-    int fno = strtol(m->desc+4, NULL, 16);
-    if(fno >= 0)
-      if((dfuse = avr_locate_mem(dry.dp, "fuses"))  && (int) (fno+addr) < dfuse->size)
-        dfuse->buf[fno+addr] = data;
+  } else if(mem_is_a_fuse(m) && (dfuse = avr_locate_fuses(dry.dp))) { // Copy fuse to fuses
+    int fidx = addr + mem_fuse_offset(m);
+    if(fidx >=0 && fidx < dfuse->size)
+      dfuse->buf[fidx] = data;
   }
 
   return 0;

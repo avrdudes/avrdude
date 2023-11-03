@@ -156,7 +156,7 @@
 #define EVT3_SLEEP                 0x11 /* General scope, also wakeup */
 #define EVT3_POWER                 0x10 /* General scope */
 
-/* memory types */
+/* memories */
 #define MTYPE_SRAM        0x20	/* target's SRAM or [ext.] IO registers */
 #define MTYPE_EEPROM      0x22	/* EEPROM, what way? */
 #define MTYPE_SPM         0xA0	/* flash through LPM/SPM */
@@ -260,7 +260,7 @@
 #define PARM3_UPDI_HV_AUTO_POWER_TOGGLE 0x02  /* Toggle power automatically and then apply a high-voltage pulse */
 #define PARM3_UPDI_HV_USER_POWER_TOGGLE 0x03  /* The user toggles power, and the tool applies a high-voltage pulse on power-up */
 
-/* Xmega erase memory types, for CMND_XMEGA_ERASE */
+/* Xmega erase memories for CMND_XMEGA_ERASE */
 #define XMEGA_ERASE_CHIP        0x00
 #define XMEGA_ERASE_APP         0x01
 #define XMEGA_ERASE_BOOT        0x02
@@ -345,7 +345,7 @@
 #define XPRG_ERR_ILLEGAL_PARAM              0x04
 #define XPRG_ERR_UNKNOWN_COMMAND            0x10
 
-// TPI Memory types
+// TPI Memories
 #define XPRG_MEM_TYPE_APPL                  0x01
 #define XPRG_MEM_TYPE_BOOT                  0x02
 #define XPRG_MEM_TYPE_EEPROM                0x03

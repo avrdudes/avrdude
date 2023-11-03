@@ -902,7 +902,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	}
 
 	// determine what type of memory to read, only flash is supported
-	if (!str_eq(m->desc, "flash")) {
+	if (!mem_is_flash(m)) {
 		return -1;
 	}
 

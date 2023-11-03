@@ -436,42 +436,19 @@ static void ser_rawclose(union filedescriptor *fd) {
   close(fd->ifd);
 }
 
-static int ser_send(const union filedescriptor *fd, const unsigned char * buf, size_t buflen) {
+static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
   int rc;
-  const unsigned char * p = buf;
-  size_t len = buflen;
 
-  if (!len)
-    return 0;
+  if(verbose > 3)
+    trace_buffer(__func__, buf, len);
 
-  if (verbose > 3)
-  {
-      pmsg_trace("send: ");
-
-      while (buflen) {
-        unsigned char c = *buf;
-        if (isprint(c)) {
-          msg_trace("%c ", c);
-        }
-        else {
-          msg_trace(". ");
-        }
-        msg_trace("[%02x] ", c);
-
-        buf++;
-        buflen--;
-      }
-
-      msg_trace("\n");
-  }
-
-  while (len) {
-    rc = write(fd->ifd, p, (len > 1024) ? 1024 : len);
+  while(len) {
+    rc = write(fd->ifd, buf, len > 1024? 1024: len);
     if (rc < 0) {
       pmsg_ext_error("unable to write: %s\n", strerror(errno));
       return -1;
     }
-    p += rc;
+    buf += rc;
     len -= rc;
   }
 
@@ -479,12 +456,12 @@ static int ser_send(const union filedescriptor *fd, const unsigned char * buf, s
 }
 
 
-static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t buflen) {
+static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
   struct timeval timeout, to2;
   fd_set rfds;
   int nfds;
   int rc;
-  unsigned char * p = buf;
+  unsigned char *p = buf;
   size_t len = 0;
 
   timeout.tv_sec  = serial_recv_timeout / 1000L;
@@ -512,7 +489,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
       }
     }
 
-    rc = read(fd->ifd, p, (buflen - len > 1024) ? 1024 : buflen - len);
+    rc = read(fd->ifd, p, buflen - len > 1024? 1024: buflen - len);
     if (rc < 0) {
       pmsg_ext_error("unable to read: %s\n", strerror(errno));
       return -1;
@@ -521,27 +498,8 @@ static int ser_recv(const union filedescriptor *fd, unsigned char * buf, size_t 
     len += rc;
   }
 
-  p = buf;
-
-  if (verbose > 3)
-  {
-      pmsg_trace("recv: ");
-
-      while (len) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace("%c ", c);
-        }
-        else {
-          msg_trace(". ");
-        }
-        msg_trace("[%02x] ", c);
-
-        p++;
-        len--;
-      }
-      msg_trace("\n");
-  }
+  if(verbose > 3)
+    trace_buffer(__func__, buf, len);
 
   return 0;
 }

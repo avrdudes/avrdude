@@ -492,8 +492,8 @@ static int avrpart_deep_copy(AVRPARTdeep *d, const AVRPART *p) {
 
   // Fill in all memories we got in defined order
   di = 0;
-  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
-    m = dev_locate_mem(p, avr_mem_order[mi]);
+  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi].str; mi++) {
+    m = dev_locate_mem(p, avr_mem_order[mi].str);
     if(m) {
       if(di >= sizeof d->mems/sizeof *d->mems) {
         pmsg_error("ran out of mems[] space, increase size in AVRMEMdeep of developer_opts.c and recompile\n");
@@ -730,11 +730,11 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     if(!base || opcodecmp(p->op[i], base->op[i], i))
       dev_part_strct_entry(tsv, ".ptop", p->desc, "part", opcodename(i), opcode2str(p->op[i], i, !tsv), p->comments);
 
-  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi]; mi++) {
+  for(size_t mi=0; mi < sizeof avr_mem_order/sizeof *avr_mem_order && avr_mem_order[mi].str; mi++) {
     AVRMEM *m, *bm;
 
-    m = dev_locate_mem(p, avr_mem_order[mi]);
-    bm = base? dev_locate_mem(base, avr_mem_order[mi]): NULL;
+    m = dev_locate_mem(p, avr_mem_order[mi].str);
+    bm = base? dev_locate_mem(base, avr_mem_order[mi].str): NULL;
 
     if(!m && bm && !tsv)
       dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13-strlen(bm->desc): 0, "");
@@ -743,7 +743,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       continue;
 
     if(base && !bm)
-      bm = avr_new_memtype();
+      bm = avr_new_mem();
 
     if(!tsv) {
       if(!memorycmp(bm, m)) {   // Same memory bit for bit, only instantiate on injected parameters
@@ -941,12 +941,12 @@ void dev_output_part_defs(char *partdesc) {
     AVRPART *p = ldata(ln1);
     if(p->mem)
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm))
-        avr_add_mem_order(((AVRMEM *) ldata(lnm))->desc);
+        avr_get_mem_type(((AVRMEM *) ldata(lnm))->desc);
 
     // Same for aliased memories (though probably not needed)
     if(p->mem_alias)
       for(LNODEID lnm=lfirst(p->mem_alias); lnm; lnm=lnext(lnm))
-        avr_add_mem_order(((AVRMEM_ALIAS *) ldata(lnm))->desc);
+        avr_get_mem_type(((AVRMEM_ALIAS *) ldata(lnm))->desc);
   }
 
   if((nprinted = dev_nprinted)) {
@@ -982,12 +982,12 @@ void dev_output_part_defs(char *partdesc) {
     if(p->mem) {
       for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
         AVRMEM *m = ldata(lnm);
-        if(!flashsize && str_eq(m->desc, "flash")) {
+        if(!flashsize && mem_is_flash(m)) {
           flashsize = m->size;
           flashpagesize = m->page_size;
           flashoffset = m->offset;
         }
-        if(!eepromsize && str_eq(m->desc, "eeprom")) {
+        if(!eepromsize && mem_is_eeprom(m)) {
           eepromsize = m->size;
           eepromoffset = m->offset;
           eeprompagesize = m->page_size;
@@ -1010,7 +1010,7 @@ void dev_output_part_defs(char *partdesc) {
       if(!p->op[AVR_OP_CHIP_ERASE])
         ok &= ~DEV_SPI_EN_CE_SIG;
 
-      if((m = avr_locate_mem(p, "flash"))) {
+      if((m = avr_locate_flash(p))) {
         if((oc = m->op[AVR_OP_LOAD_EXT_ADDR])) {
           // @@@ to do: check whether address is put at lsb of third byte
         } else
@@ -1060,7 +1060,7 @@ void dev_output_part_defs(char *partdesc) {
       } else
         ok &= ~(DEV_SPI_PROGMEM_PAGED | DEV_SPI_PROGMEM);
 
-      if((m = avr_locate_mem(p, "eeprom"))) {
+      if((m = avr_locate_eeprom(p))) {
         if((oc = m->op[AVR_OP_READ])) {
           if(cmdok)
             checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
@@ -1087,33 +1087,33 @@ void dev_output_part_defs(char *partdesc) {
       } else
         ok &= ~(DEV_SPI_EEPROM_PAGED | DEV_SPI_EEPROM);
 
-      if((m = avr_locate_mem(p, "signature")) && (oc = m->op[AVR_OP_READ])) {
+      if((m = avr_locate_signature(p)) && (oc = m->op[AVR_OP_READ])) {
         if(cmdok)
           checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
       } else
         ok &= ~DEV_SPI_EN_CE_SIG;
 
-      if((m = avr_locate_mem(p, "calibration")) && (oc = m->op[AVR_OP_READ])) {
+      if((m = avr_locate_calibration(p)) && (oc = m->op[AVR_OP_READ])) {
         if(cmdok)
           checkaddr(m->size, 1, AVR_OP_READ, oc, p, m);
       } else
         ok &= ~DEV_SPI_CALIBRATION;
 
       // Actually, some AT90S... parts cannot read, only write lock bits :-0
-      if( ! ((m = avr_locate_mem(p, "lock")) && m->op[AVR_OP_WRITE]))
+      if( !((m = avr_locate_lock(p)) && m->op[AVR_OP_WRITE]))
         ok &= ~DEV_SPI_LOCK;
 
-      if(((m = avr_locate_mem(p, "fuse")) || (m = avr_locate_mem(p, "lfuse"))) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+      if((m = avr_locate_fuse(p)) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
         nfuses++;
       else
         ok &= ~DEV_SPI_LFUSE;
 
-      if((m = avr_locate_mem(p, "hfuse")) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+      if((m = avr_locate_hfuse(p)) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
         nfuses++;
       else
         ok &= ~DEV_SPI_HFUSE;
 
-      if((m = avr_locate_mem(p, "efuse")) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
+      if((m = avr_locate_efuse(p)) && m->op[AVR_OP_READ] && m->op[AVR_OP_WRITE])
         nfuses++;
       else
         ok &= ~DEV_SPI_EFUSE;
@@ -1154,7 +1154,7 @@ void dev_output_part_defs(char *partdesc) {
         for(LNODEID lnm=lfirst(p->mem); lnm; lnm=lnext(lnm)) {
           AVRMEM *m = ldata(lnm);
           // Write delays not needed for read-only calibration and signature memories
-          if(!str_eq(m->desc, "calibration") && !str_eq(m->desc, "signature")) {
+          if(!mem_is_calibration(m) && !mem_is_signature(m)) {
             if(p->prog_modes & PM_ISP) {
               if(m->min_write_delay == m->max_write_delay)
                  dev_info(".wd_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);

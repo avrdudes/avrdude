@@ -585,7 +585,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   // Check size of uploded application and protect bootloader from being overwritten
   if((ur.boothigh && size > maxsize) || (!ur.boothigh && firstbeg <= ur.blend))
-    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]",
+    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]; consider -xrestore",
       firstbeg, size-1, ur.blstart, ur.blend);
 
   if(size > maxsize)
@@ -1039,7 +1039,7 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
       p->prog_modes & PM_TPI? F_AVR8L:
       p->prog_modes & (PM_ISP | PM_HVPP | PM_HVSP)? F_AVR8: 0;
     memcpy(ur.uP.sigs, p->signature, sizeof ur.uP.sigs);
-    if((mem = avr_locate_mem(p, "flash"))) {
+    if((mem = avr_locate_flash(p))) {
       ur.uP.flashoffset = mem->offset;
       ur.uP.flashsize = mem->size;
       ur.uP.pagesize = mem->page_size;
@@ -1050,7 +1050,7 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
     }
     ur.uP.nboots = -1;
     ur.uP.bootsize = -1;
-    if((mem = avr_locate_mem(p, "eeprom"))) {
+    if((mem = avr_locate_eeprom(p))) {
       ur.uP.eepromoffset = mem->offset;
       ur.uP.eepromsize = mem->size;
       ur.uP.eeprompagesize = mem->page_size;
@@ -1260,7 +1260,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *flm;
   int rc;
 
-  if(!(flm = avr_locate_mem(p, "flash")))
+  if(!(flm = avr_locate_flash(p)))
     Return("cannot obtain flash memory for %s", p->desc);
 
   if(flm->page_size > (int) sizeof spc)
@@ -1867,7 +1867,7 @@ static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urcl
       mchr = 'F';
   }
 
-  const char *memtype = mchr == 'E'? "eeprom": "flash";
+  const char *memstr = mchr == 'E'? "eeprom": "flash";
 
   size = mchr == 'F'? ur.uP.flashsize: ur.uP.eepromsize;
 
@@ -1877,11 +1877,11 @@ static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urcl
 
     if(addr < 0 || addr >= size)
       Return("effective address %d of -xids=%s string out of %s range [0, 0x%04x]\n",
-        addr, ur.iddesc, memtype, size-1);
+        addr, ur.iddesc, memstr, size-1);
 
     if(addr+len > size)
       Return("memory range [0x%04x, 0x%04x] of -xid=%s out of %s range [0, 0x%04x]\n",
-        addr, addr+len-1, ur.iddesc, memtype, size-1);
+        addr, addr+len-1, ur.iddesc, memstr, size-1);
   }
 
   memset(spc, 0, sizeof spc);
@@ -2152,7 +2152,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(!emulated) {               // Write jump to boot section to reset vector
     if(ur.boothigh && ur.blstart && ur.vbllevel==1) {
-      AVRMEM *flm = avr_locate_mem(p, "flash");
+      AVRMEM *flm = avr_locate_flash(p);
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
         unsigned char *page = cfg_malloc(__func__, flm->page_size);
@@ -2269,8 +2269,8 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   if(n_bytes) {
     // Paged writes only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
@@ -2301,8 +2301,8 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   if(n_bytes) {
     // Paged reads only valid for flash and eeprom
-    mchr = avr_mem_is_flash_type(m)? 'F': 'E';
-    if(mchr == 'E' && !avr_mem_is_eeprom_type(m))
+    mchr = mem_is_in_flash(m)? 'F': 'E';
+    if(mchr == 'E' && !mem_is_eeprom(m))
       return -2;
 
     if(mchr == 'F' && ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH))
@@ -2356,9 +2356,9 @@ int urclock_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem
   unsigned long addr, unsigned char *value) {
 
   // Bytewise read only valid for flash and eeprom
-  int mchr = avr_mem_is_flash_type(mem)? 'F': 'E';
-  if(mchr == 'E' && !avr_mem_is_eeprom_type(mem)) {
-    if(str_eq(mem->desc, "signature") && pgm->read_sig_bytes) {
+  int mchr = mem_is_in_flash(mem)? 'F': 'E';
+  if(mchr == 'E' && !mem_is_eeprom(mem)) {
+    if(mem_is_signature(mem) && pgm->read_sig_bytes) {
        if((int) addr < 0 || (int) addr >= mem->size) {
          return -1;
        }
@@ -2405,7 +2405,7 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unused,
   const AVRMEM *mem, unsigned int addr) {
 
-  if(avr_mem_is_flash_type(mem)) {
+  if(mem_is_in_flash(mem)) {
     if(addr > (unsigned int) ur.pfend)
       return 1;
     if(addr < (unsigned int) ur.pfstart)
@@ -2420,7 +2420,7 @@ static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unu
           return 1;
       }
     }
-  } else if(!avr_mem_is_eeprom_type(mem))
+  } else if(!mem_is_eeprom(mem))
     return 1;
 
   return 0;
@@ -2455,7 +2455,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"vectornum", &ur.xvectornum, ARG,    "Treat bootloader as vector b/loader using this vector"},
     {"eepromrw", &ur.xeepromrw, NA,       "Assert bootloader EEPROM read/write capability"},
     {"emulate_ce", &ur.xemulate_ce, NA,   "Emulate chip erase"},
-    {"restore", &ur.restore, NA,          "Restore a flash backup as is trimming the bootloader"},
+    {"restore", &ur.restore, NA,          "Restore a flash backup and trim the bootloader"},
     {"initstore", &ur.initstore, NA,      "Fill store with 0xff on writing to flash"},
     //@@@  {"copystore", &ur.copystore, NA, "Copy over store on writing to flash"},
     {"nofilename", &ur.nofilename, NA,    "Do not store filename on writing to flash"},
