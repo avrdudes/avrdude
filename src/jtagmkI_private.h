@@ -132,7 +132,7 @@
 #define JTAG_BITRATE_250_kHz 0xfd
 #define JTAG_BITRATE_125_kHz 0xfb
 
-/* memory types for CMND_{READ,WRITE}_MEMORY */
+/* memories for CMND_{READ,WRITE}_MEMORY */
 #define MTYPE_IO_SHADOW 0x30	/* cached IO registers? */
 #define MTYPE_SRAM 0x20		/* target's SRAM or [ext.] IO registers */
 #define MTYPE_EEPROM 0x22	/* EEPROM, what way? */

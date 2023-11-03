@@ -771,9 +771,9 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   pmsg_debug("usbasp_program_paged_load(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBASP_FUNC_READFLASH;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     function = USBASP_FUNC_READEEPROM;
   } else {
     return -2;
@@ -836,9 +836,9 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
   pmsg_debug("usbasp_program_paged_write(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBASP_FUNC_WRITEFLASH;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     function = USBASP_FUNC_WRITEEEPROM;
   } else {
     return -2;
@@ -1171,8 +1171,8 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   pr = addr + m->offset;
   writed = 0;
 
-  /* must erase fuse first */
-  if(str_eq(m->desc, "fuse"))
+  /* must erase fuse first, TPI parts only have one fuse */
+  if(mem_is_a_fuse(m))
   {
     /* Set PR */
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));

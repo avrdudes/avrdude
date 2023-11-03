@@ -767,7 +767,7 @@ device-dependent, the actual configuration can be viewed with the
 .Cm part
 command in terminal mode.
 Typically, a device's memory configuration at least contains
-the memory types
+the memories
 .Ar flash ,
 .Ar eeprom ,
 .Ar signature
@@ -786,7 +786,7 @@ will also typically have fuse bytes, which are read/write memories for
 configuration of the device and calibration memories that typically
 contain read-only factory calibration values.
 .Pp
-Classic devices may have the following memory types in addition to eeprom, flash, signature and lock:
+Classic devices may have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "  calibration" -compact
 .It   calibration
 One or more bytes of RC oscillator calibration data
@@ -824,7 +824,7 @@ methods only by bootloaders, which has limited use unless the bootloader
 jumps to the application directly, i.e., without a WDT reset
 .El
 .Pp
-ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
+ATxmega devices have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "calibration" -compact
 .It application
 Application flash area
@@ -859,7 +859,7 @@ Volatile register memory;
 can read this memory but not write to it using external programming
 .El
 .Pp
-Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
+Modern 8-bit AVR devices have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "calibration" -compact
 .It fuse0
 A.k.a. wdtcfg: watchdog configuration
@@ -1252,7 +1252,7 @@ on a non-zero verbosity level the line numbers are printed, too.
 Display the device signature bytes.
 .It Ar part
 Display the current part settings and parameters.  Includes chip
-specific information including all memory types supported by the
+specific information including all memories supported by the
 device, read/write timing, etc.
 .It Ar verbose Op Ar level
 Change (when

@@ -1235,8 +1235,8 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      */
     if (p->prog_modes & PM_PDI) {
       // Find the border between application and boot area
-      AVRMEM *bootmem = avr_locate_mem(p, "boot");
-      AVRMEM *flashmem = avr_locate_mem(p, "flash");
+      AVRMEM *bootmem = avr_locate_boot(p);
+      AVRMEM *flashmem = avr_locate_flash(p);
       if (bootmem == NULL || flashmem == NULL) {
         pmsg_error("cannot locate flash or boot memories\n");
       } else {
@@ -1360,14 +1360,14 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   PDATA(pgm)->eeprom_pagesize = 1;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       if (m->page_size > 1) {
         if (m->page_size > 256)
           PDATA(pgm)->flash_pagesize = 256;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
       }
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       if (m->page_size > 1)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
@@ -1508,14 +1508,14 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   PDATA(pgm)->eeprom_pagesize = 1;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       if (m->page_size > 1) {
         if (m->page_size > 256)
           PDATA(pgm)->flash_pagesize = 256;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
       }
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       if (m->page_size > 1)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
@@ -1674,14 +1674,14 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
   PDATA(pgm)->eeprom_pagesize = 1;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       if (m->page_size > 1) {
         if (m->page_size > 256)
           PDATA(pgm)->flash_pagesize = 256;
         else
           PDATA(pgm)->flash_pagesize = m->page_size;
       }
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       if (m->page_size > 1)
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
@@ -1809,7 +1809,7 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
       stk600_setup_isp(pgm);
     }
   }
-  AVRMEM *mem = avr_locate_mem(p, "flash");
+  AVRMEM *mem = avr_locate_flash(p);
   if(mem && mem->op[AVR_OP_WRITE_LO]) // Old part that can only write flash bytewise
     if(mem->page_size < 2)  // Override page size, as STK500v2/EDBG uses flash word addresses
       mem->page_size = 2;
@@ -2278,7 +2278,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   pmsg_notice2("stk500hv_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
     cmdlen = 3;
     pagesize = PDATA(pgm)->flash_pagesize;
@@ -2295,7 +2295,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if (mem->op[AVR_OP_LOAD_EXT_ADDR] != NULL) {
       use_ext_addr = (1U << 31);
     }
-  } else if (str_eq(mem->desc, "eeprom")) {
+  } else if (mem_is_eeprom(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_EEPROM_PP: CMD_READ_EEPROM_HVSP;
     cmdlen = 3;
     pagesize = mem->page_size;
@@ -2304,25 +2304,24 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_LOCK_PP: CMD_READ_LOCK_HVSP;
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     buf[0] = addr&1?
       (mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP):
       (mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP);
     addr /= 2;
+  } else {
+    pmsg_error("unsupported memory %s\n", mem->desc);
+    return -1;
   }
 
   /*
@@ -2407,9 +2406,9 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   pmsg_notice2("stk500isp_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
-  if (str_eq(mem->desc, "flash") || str_eq(mem->desc, "eeprom")) {
+  if (mem_is_flash(mem) || mem_is_eeprom(mem)) {
     // use paged access, and cache result
-    if (str_eq(mem->desc, "flash")) {
+    if (mem_is_flash(mem)) {
       pagesize = PDATA(pgm)->flash_pagesize;
       paddr = addr & ~(pagesize - 1);
       paddr_ptr = &PDATA(pgm)->flash_pageaddr;
@@ -2438,24 +2437,22 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return 0;
   }
 
-  if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = CMD_READ_FUSE_ISP;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = CMD_READ_LOCK_ISP;
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     buf[0] = CMD_READ_OSCCAL_ISP;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     buf[0] = CMD_READ_SIGNATURE_ISP;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     buf[0] = addr&1? CMD_READ_OSCCAL_ISP: CMD_READ_SIGNATURE_ISP;
+  } else {
+    pmsg_error("unsupported memory %s\n", mem->desc);
+    return -1;
   }
-
 
   if ((op = mem->op[AVR_OP_READ]) == NULL) {
     pmsg_error("invalid operation AVR_OP_READ on %s memory\n", mem->desc);
@@ -2499,7 +2496,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   pmsg_notice2("stk500hv_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
@@ -2515,7 +2512,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if (mem->op[AVR_OP_LOAD_EXT_ADDR] != NULL) {
       use_ext_addr = (1U << 31);
     }
-  } else if (str_eq(mem->desc, "eeprom")) {
+  } else if (mem_is_eeprom(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
     pagesize = mem->page_size;
     if (pagesize == 0)
@@ -2523,22 +2520,18 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     pulsewidth = p->programfusepulsewidth;
     timeout = p->programfusepolltimeout;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_LOCK_PP: CMD_PROGRAM_LOCK_HVSP;
     pulsewidth = p->programlockpulsewidth;
     timeout = p->programlockpolltimeout;
   } else {
-    pmsg_error("unsupported memory type %s\n", mem->desc);
+    pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
   }
 
@@ -2647,8 +2640,8 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
 
   pmsg_notice2("stk500isp_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
-  if (str_eq(mem->desc, "flash") || str_eq(mem->desc, "eeprom")) {
-    if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem) || mem_is_eeprom(mem)) {
+    if (mem_is_flash(mem)) {
       pagesize = PDATA(pgm)->flash_pagesize;
       paddr = addr & ~(pagesize - 1);
       paddr_ptr = &PDATA(pgm)->flash_pageaddr;
@@ -2684,18 +2677,20 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   }
 
   memset(buf, 0, sizeof buf);
-  if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = CMD_PROGRAM_FUSE_ISP;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     buf[0] = CMD_PROGRAM_LOCK_ISP;
+  } else if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+    pmsg_error("cannot write to read-only memory %s\n", mem->desc);
+    return -1;
   } else {
-    pmsg_error("unsupported memory type: %s\n", mem->desc);
+    pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
   }
 
@@ -2751,7 +2746,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   use_ext_addr = 0;
 
   // determine which command is to be used
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     addrshift = 1;
     PDATA(pgm)->flash_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_FLASH_ISP;
@@ -2764,7 +2759,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     if (m->op[AVR_OP_LOAD_EXT_ADDR] != NULL) {
       use_ext_addr = (1U << 31);
     }
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     PDATA(pgm)->eeprom_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_EEPROM_ISP;
   }
@@ -2884,7 +2879,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   use_ext_addr = 0;
 
   // determine which command is to be used
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     addrshift = 1;
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
@@ -2897,7 +2892,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     if (m->op[AVR_OP_LOAD_EXT_ADDR] != NULL) {
       use_ext_addr = (1U << 31);
     }
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
   }
@@ -3002,7 +2997,7 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   use_ext_addr = 0;
 
   // determine which command is to be used
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     commandbuf[0] = CMD_READ_FLASH_ISP;
     rop = m->op[AVR_OP_READ_LO];
     addrshift = 1;
@@ -3016,7 +3011,7 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
       use_ext_addr = (1U << 31);
     }
   }
-  else if (str_eq(m->desc, "eeprom")) {
+  else if (mem_is_eeprom(m)) {
     commandbuf[0] = CMD_READ_EEPROM_ISP;
   }
 
@@ -3092,7 +3087,7 @@ static int stk500hv_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   use_ext_addr = 0;
 
   // determine which command is to be used
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     commandbuf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
     addrshift = 1;
     /*
@@ -3105,7 +3100,7 @@ static int stk500hv_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
       use_ext_addr = (1U << 31);
     }
   }
-  else if (str_eq(m->desc, "eeprom")) {
+  else if (mem_is_eeprom(m)) {
     commandbuf[0] = mode == PPMODE? CMD_READ_EEPROM_PP: CMD_READ_EEPROM_HVSP;
   }
 
@@ -4143,7 +4138,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
             pmsg_error("no nvm_base parameter for PDI device\n");
             return -1;
         }
-        if ((mem = avr_locate_mem(p, "eeprom")) != NULL) {
+        if ((mem = avr_locate_eeprom(p)) != NULL) {
             if (mem->page_size <= 1) {
                 pmsg_error("no EEPROM page_size parameter for PDI device\n");
                 return -1;
@@ -4222,16 +4217,18 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
 
     // Read XMEGA chip silicon revision
     if(p->prog_modes & PM_PDI) {
-      AVRMEM *m = avr_locate_mem(p, "io");
+      AVRMEM *m = avr_locate_io(p);
       unsigned char chip_rev[AVR_CHIP_REVLEN];
-      pgm->read_byte(pgm, p, m, p->mcu_base+3, chip_rev);
-      pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+      if(m && pgm->read_byte(pgm, p, m, p->mcu_base+3, chip_rev) >= 0)
+        pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
+      else
+        pmsg_warning("cannot read silicon revision; is avrdude.conf up to date?\n");
     }
 
     return 0;
 }
 
-static unsigned char stk600_xprog_memtype(const PROGRAMMER *pgm, unsigned long addr) {
+static unsigned char stk600_xprog_mtype(const PROGRAMMER *pgm, unsigned long addr) {
     if (addr >= PDATA(pgm)->boot_start)
         return XPRG_MEM_TYPE_BOOT;
     else
@@ -4258,32 +4255,27 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
 
     memset(b, 0, sizeof(b));
 
-    if (str_eq(mem->desc, "flash")) {
-        memcode = stk600_xprog_memtype(pgm, addr);
-    } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
+    if (mem_is_flash(mem)) {
+        memcode = stk600_xprog_mtype(pgm, addr);
+    } else if (mem_is_application(mem) || mem_is_apptable(mem)) {
         memcode = XPRG_MEM_TYPE_APPL;
-    } else if (str_eq(mem->desc, "boot")) {
+    } else if (mem_is_boot(mem)) {
         memcode = XPRG_MEM_TYPE_BOOT;
-    } else if (str_eq(mem->desc, "eeprom")) {
+    } else if (mem_is_eeprom(mem)) {
         memcode = XPRG_MEM_TYPE_EEPROM;
-    } else if (str_eq(mem->desc, "io")) {
+    } else if (mem_is_io(mem)) {
         memcode = XPRG_MEM_TYPE_APPL;
-        AVRMEM *data = avr_locate_mem(p, "data");
-        addr += data->offset;
-    } else if (str_starts(mem->desc, "lock")) {
+        addr += avr_data_offset(p);
+    } else if (mem_is_lock(mem)) {
         memcode = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (str_starts(mem->desc, "fuse")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
         memcode = XPRG_MEM_TYPE_FUSE;
         if (p->prog_modes & PM_TPI)
-            /*
-             * TPI devices need a mystic erase prior to writing their
-             * fuses.
-             */
             need_erase = 1;
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
+    } else if (mem_is_userrow(mem)) {
         memcode = XPRG_MEM_TYPE_USERSIG;
     } else {
-        pmsg_error("unknown memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     addr += mem->offset;
@@ -4333,30 +4325,29 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
 {
     unsigned char b[8];
 
-    if (str_eq(mem->desc, "flash")) {
-        b[1] = stk600_xprog_memtype(pgm, addr);
-    } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
+    if (mem_is_flash(mem)) {
+        b[1] = stk600_xprog_mtype(pgm, addr);
+    } else if (mem_is_application(mem) || mem_is_apptable(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
-    } else if (str_eq(mem->desc, "boot")) {
+    } else if (mem_is_boot(mem)) {
         b[1] = XPRG_MEM_TYPE_BOOT;
-    } else if (str_eq(mem->desc, "eeprom")) {
+    } else if (mem_is_eeprom(mem)) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
-    } else if (str_eq(mem->desc, "io")) {
+    } else if (mem_is_io(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
-        AVRMEM *data = avr_locate_mem(p, "data");
-        addr += data->offset;
-    } else if (str_eq(mem->desc, "signature")) {
+        addr += avr_data_offset(p);
+    } else if (mem_is_signature(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
-    } else if (str_starts(mem->desc, "fuse")) {
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
         b[1] = XPRG_MEM_TYPE_FUSE;
-    } else if (str_starts(mem->desc, "lock")) {
+    } else if (mem_is_lock(mem)) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (str_eq(mem->desc, "calibration") || str_eq(mem->desc, "prodsig")) {
+    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
+    } else if (mem_is_userrow(mem)) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
     } else {
-        pmsg_error("unknown memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     addr += mem->offset;
@@ -4383,8 +4374,8 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
 {
     unsigned char *b;
     unsigned int offset;
-    unsigned char memtype;
-    int n_bytes_orig = n_bytes, dynamic_memtype = 0;
+    unsigned char mtype;
+    int n_bytes_orig = n_bytes, dynamic_mtype = 0;
     unsigned long use_ext_addr = 0;
 
     /*
@@ -4399,39 +4390,38 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
      * This is probably what AVR079 means when writing about the
      * "TIF address space".
      */
-    if (str_eq(mem->desc, "flash")) {
-        memtype = 0;
-        dynamic_memtype = 1;
+    if (mem_is_flash(mem)) {
+        mtype = 0;
+        dynamic_mtype = 1;
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
-    } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+    } else if (mem_is_application(mem) || mem_is_apptable(mem)) {
+        mtype = XPRG_MEM_TYPE_APPL;
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
-    } else if (str_eq(mem->desc, "boot")) {
-        memtype = XPRG_MEM_TYPE_BOOT;
+    } else if (mem_is_boot(mem)) {
+        mtype = XPRG_MEM_TYPE_BOOT;
         // Do we have to consider the total amount of flash
         // instead to decide whether to use extended addressing?
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
-    } else if (str_eq(mem->desc, "eeprom")) {
-        memtype = XPRG_MEM_TYPE_EEPROM;
-    } else if (str_eq(mem->desc, "io")) {
-        memtype = XPRG_MEM_TYPE_APPL;
-        AVRMEM *data = avr_locate_mem(p, "data");
-        addr += data->offset;
-    } else if (str_eq(mem->desc, "signature")) {
-        memtype = XPRG_MEM_TYPE_APPL;
-    } else if (str_starts(mem->desc, "fuse")) {
-        memtype = XPRG_MEM_TYPE_FUSE;
-    } else if (str_starts(mem->desc, "lock")) {
-        memtype = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (str_eq(mem->desc, "calibration") || str_eq(mem->desc, "prodsig")) {
-        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
-        memtype = XPRG_MEM_TYPE_USERSIG;
+    } else if (mem_is_eeprom(mem)) {
+        mtype = XPRG_MEM_TYPE_EEPROM;
+    } else if (mem_is_io(mem)) {
+        mtype = XPRG_MEM_TYPE_APPL;
+        addr += avr_data_offset(p);
+    } else if (mem_is_signature(mem)) {
+        mtype = XPRG_MEM_TYPE_APPL;
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
+        mtype = XPRG_MEM_TYPE_FUSE;
+    } else if (mem_is_lock(mem)) {
+        mtype = XPRG_MEM_TYPE_LOCKBITS;
+    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
+        mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+    } else if (mem_is_userrow(mem)) {
+        mtype = XPRG_MEM_TYPE_USERSIG;
     } else {
-        pmsg_error("unknown paged memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     offset = addr;
@@ -4448,11 +4438,11 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
     }
 
     while (n_bytes != 0) {
-	if (dynamic_memtype)
-	    memtype = stk600_xprog_memtype(pgm, addr - mem->offset);
+	if (dynamic_mtype)
+	    mtype = stk600_xprog_mtype(pgm, addr - mem->offset);
 
 	b[0] = XPRG_CMD_READ_MEM;
-	b[1] = memtype;
+	b[1] = mtype;
 	b[2] = addr >> 24;
 	b[3] = addr >> 16;
 	b[4] = addr >> 8;
@@ -4483,8 +4473,8 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 {
     unsigned char *b;
     unsigned int offset;
-    unsigned char memtype;
-    int n_bytes_orig = n_bytes, dynamic_memtype = 0;
+    unsigned char mtype;
+    int n_bytes_orig = n_bytes, dynamic_mtype = 0;
     size_t writesize;
     unsigned long use_ext_addr = 0;
     unsigned char writemode;
@@ -4503,44 +4493,44 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
      * This is probably what AVR079 means when writing about the
      * "TIF address space".
      */
-    if (str_eq(mem->desc, "flash")) {
-        memtype = 0;
-        dynamic_memtype = 1;
+    if (mem_is_flash(mem)) {
+        mtype = 0;
+        dynamic_mtype = 1;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
-    } else if (str_eq(mem->desc, "application") || str_eq(mem->desc, "apptable")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+    } else if (mem_is_application(mem) || mem_is_apptable(mem)) {
+        mtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
-    } else if (str_eq(mem->desc, "boot")) {
-        memtype = XPRG_MEM_TYPE_BOOT;
+    } else if (mem_is_boot(mem)) {
+        mtype = XPRG_MEM_TYPE_BOOT;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
         // Do we have to consider the total amount of flash
         // instead to decide whether to use extended addressing?
         if (mem->size > 64 * 1024)
             use_ext_addr = (1UL << 31);
-    } else if (str_eq(mem->desc, "eeprom")) {
-        memtype = XPRG_MEM_TYPE_EEPROM;
+    } else if (mem_is_eeprom(mem)) {
+        mtype = XPRG_MEM_TYPE_EEPROM;
         writemode = (1 << XPRG_MEM_WRITE_WRITE) | (1 << XPRG_MEM_WRITE_ERASE);
-    } else if (str_eq(mem->desc, "signature")) {
-        memtype = XPRG_MEM_TYPE_APPL;
+    } else if (mem_is_signature(mem)) {
+        mtype = XPRG_MEM_TYPE_APPL;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_starts(mem->desc, "fuse")) {
-        memtype = XPRG_MEM_TYPE_FUSE;
+    } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
+        mtype = XPRG_MEM_TYPE_FUSE;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_starts(mem->desc, "lock")) {
-        memtype = XPRG_MEM_TYPE_LOCKBITS;
+    } else if (mem_is_lock(mem)) {
+        mtype = XPRG_MEM_TYPE_LOCKBITS;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_eq(mem->desc, "calibration")) {
-        memtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
+    } else if (mem_is_calibration(mem)) {
+        mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
-    } else if (str_eq(mem->desc, "usersig") || str_eq(mem->desc, "userrow")) {
-        memtype = XPRG_MEM_TYPE_USERSIG;
+    } else if (mem_is_userrow(mem)) {
+        mtype = XPRG_MEM_TYPE_USERSIG;
         writemode = (1 << XPRG_MEM_WRITE_WRITE);
     } else {
-        pmsg_error("unknown paged memory %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
     offset = addr;
@@ -4558,8 +4548,8 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 
     while (n_bytes != 0) {
 
-	if (dynamic_memtype)
-	    memtype = stk600_xprog_memtype(pgm, addr - mem->offset);
+	if (dynamic_mtype)
+	    mtype = stk600_xprog_mtype(pgm, addr - mem->offset);
 
 	if (page_size > 256) {
 	    /*
@@ -4585,7 +4575,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
                     writesize = 256;
                 }
 		b[0] = XPRG_CMD_WRITE_MEM;
-		b[1] = memtype;
+		b[1] = mtype;
 		b[2] = writemode;
 		b[3] = addr >> 24;
 		b[4] = addr >> 16;
@@ -4618,7 +4608,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
                 writesize = page_size;
             }
 	    b[0] = XPRG_CMD_WRITE_MEM;
-	    b[1] = memtype;
+	    b[1] = mtype;
 	    b[2] = writemode;
 	    b[3] = addr >> 24;
 	    b[4] = addr >> 16;
@@ -4651,7 +4641,7 @@ static int stk600_xprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned int addr = 0;
 
     if (p->prog_modes & PM_TPI) {
-        if ((mem = avr_locate_mem(p, "flash")) == NULL) {
+        if ((mem = avr_locate_flash(p)) == NULL) {
             pmsg_error("no FLASH definition found for TPI device\n");
             return -1;
         }
@@ -4676,16 +4666,16 @@ static int stk600_xprog_page_erase(const PROGRAMMER *pgm, const AVRPART *p, cons
 {
     unsigned char b[6];
 
-    if (str_eq(m->desc, "flash")) {
-      b[1] = stk600_xprog_memtype(pgm, addr) == XPRG_MEM_TYPE_APPL?
+    if (mem_is_flash(m)) {
+      b[1] = stk600_xprog_mtype(pgm, addr) == XPRG_MEM_TYPE_APPL?
         XPRG_ERASE_APP_PAGE: XPRG_ERASE_BOOT_PAGE;
-    } else if (str_eq(m->desc, "application") || str_eq(m->desc, "apptable")) {
+    } else if (mem_is_application(m) || mem_is_apptable(m)) {
       b[1] = XPRG_ERASE_APP_PAGE;
-    } else if (str_eq(m->desc, "boot")) {
+    } else if (mem_is_boot(m)) {
       b[1] = XPRG_ERASE_BOOT_PAGE;
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       b[1] = XPRG_ERASE_EEPROM_PAGE;
-    } else if (str_eq(m->desc, "usersig") || str_eq(m->desc, "userrow")) {
+    } else if (mem_is_userrow(m)) {
       b[1] = XPRG_ERASE_USERSIG;
     } else {
       pmsg_error("unknown paged memory %s\n", m->desc);

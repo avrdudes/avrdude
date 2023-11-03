@@ -693,7 +693,7 @@ static int serialupdi_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
     Return("cannot read byte from %s %s as address 0x%04lx outside range [0, 0x%04x]",
       p->desc, mem->desc, addr, mem->size-1);
 
-  if(str_eq(mem->desc, "sib")) {
+  if(mem_is_sib(mem)) {
     if(addr >= SIB_INFO_STRING_LENGTH)
       Return("cannot read byte from %s sib as address 0x%04lx outside range [0, 0x%04x]",
         p->desc, addr, SIB_INFO_STRING_LENGTH-1);
@@ -717,33 +717,29 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     Return("cannot write byte to %s %s as address 0x%04lx outside range [0, 0x%04x]",
       p->desc, mem->desc, addr, mem->size-1);
 
-  if (str_contains(mem->desc, "fuse")) {
+  if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
-  if (str_eq(mem->desc, "lock")) {
+  if (mem_is_lock(mem)) {
     return updi_nvm_write_fuse(pgm, p, mem->offset + addr, value);
   }
-  if (str_eq(mem->desc, "eeprom")) {
+  if (mem_is_eeprom(mem)) {
     unsigned char buffer[1];
     buffer[0]=value;
     return updi_nvm_write_eeprom(pgm, p, mem->offset + addr, buffer, 1);
   }
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
     unsigned char buffer[1];
     buffer[0]=value;
     return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
   }
   // Read-only memories
-  if(str_eq(mem->desc, "osc16err") || str_eq(mem->desc, "osccal16") ||
-     str_eq(mem->desc, "osc20err") || str_eq(mem->desc, "osccal20") ||
-     str_eq(mem->desc, "prodsig") || str_eq(mem->desc, "sernum") ||
-     str_eq(mem->desc, "signature") || str_eq(mem->desc, "sib")) {
-
+  if(mem_is_readonly(mem)) {
     unsigned char is;
     if(serialupdi_read_byte(pgm, p, mem, addr, &is) >= 0 && is == value)
       return 0;
 
-    Return("cannot write to read-only memory %s %s", p->desc, mem->desc);
+    Return("cannot write to read-only memory %s", mem->desc);
   }
 
   return updi_write_byte(pgm, mem->offset + addr, value);
@@ -800,20 +796,20 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
     while (remaining_bytes > 0) {
 
-      if (str_eq(m->desc, "eeprom")) {
+      if (mem_is_eeprom(m)) {
         rc = updi_nvm_write_eeprom(pgm, p, m->offset + write_offset, m->buf + write_offset, 
                                    remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (str_eq(m->desc, "flash")) {
+      } else if (mem_is_flash(m)) {
         rc = updi_nvm_write_flash(pgm, p, m->offset + write_offset, m->buf + write_offset, 
                                   remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (str_eq(m->desc, "userrow")) {
+      } else if (mem_is_userrow(m)) {
         rc = serialupdi_write_userrow(pgm, p, m, page_size, write_offset, 
                                       remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
-      } else if (str_eq(m->desc, "fuses")) {
+      } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         return -1;
       } else {
-        pmsg_error("invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
+        pmsg_error("invalid memory <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
         rc = -1;
       }
 
@@ -828,17 +824,17 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
     }
     return write_bytes;
   } else {
-    if (str_eq(m->desc, "eeprom")) {
+    if (mem_is_eeprom(m)) {
       rc = updi_nvm_write_eeprom(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
-    } else if (str_eq(m->desc, "flash")) {
+    } else if (mem_is_flash(m)) {
       rc = updi_nvm_write_flash(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
-    } else if (str_eq(m->desc, "userrow")) {
+    } else if (mem_is_userrow(m)) {
       rc = serialupdi_write_userrow(pgm, p, m, page_size, addr, n_bytes);
-    } else if (str_eq(m->desc, "fuses")) {
+    } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         rc = -1;
     } else {
-      pmsg_error("invalid memory type: <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
+      pmsg_error("invalid memory: <%s:%d>, 0x%06X, %d (0x%04X)\n", m->desc, page_size, addr, n_bytes, n_bytes);
       rc = -1;
     }
     return rc;

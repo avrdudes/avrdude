@@ -994,11 +994,11 @@ part_parm :
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if(!mem) {
-        mem = avr_new_memtype();
+        mem = avr_new_mem();
         mem->desc = cache_string($2->value.string);
         ladd(current_part->mem, mem);
+        mem->type = avr_get_mem_type($2->value.string);
       }
-      avr_add_mem_order($2->value.string);
       current_mem = mem;
       free_token($2);
     }
@@ -1362,11 +1362,11 @@ static int parse_cmdbits(OPCODE * op, int opnum)
         case 'a':
           sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
           if(bitno < 8 || bitno > 23) {
-            if(!current_mem || !str_eq(current_mem->desc, "prodsig")) // Known exemption
+            if(!current_mem || !mem_is_sigrow(current_mem)) // Known exemption
               yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
           } else if((bn & 31) != sb) {
             if(!current_part || !str_casestarts(current_part->desc, "AT89S5")) // Exempt AT89S5x
-              if(!current_mem || !str_eq(current_mem->desc, "prodsig")) // and prodsig
+              if(!current_mem || !mem_is_sigrow(current_mem)) // and prodsig
                 yywarning("a%d would normally be expected to be a%d", bn, sb);
           } else if(bn < 0 || bn > 31)
             yywarning("invalid address bit a%d, using a%d", bn, bn & 31);

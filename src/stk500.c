@@ -445,31 +445,15 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   buf[5] = 1; /* polling supported - XXX need this in config file */
   buf[6] = 1; /* programming is self-timed - XXX need in config file */
 
-  m = avr_locate_mem(p, "lock");
-  if (m)
-    buf[7] = m->size;
-  else
-    buf[7] = 0;
+  buf[7] = (m = avr_locate_lock(p))? m->size: 0;
 
-  /*
-   * number of fuse bytes
-   */
+  // Number of fuse bytes (for classic parts)
   buf[8] = 0;
-  m = avr_locate_mem(p, "fuse");
-  if (m)
-    buf[8] += m->size;
-  m = avr_locate_mem(p, "lfuse");
-  if (m)
-    buf[8] += m->size;
-  m = avr_locate_mem(p, "hfuse");
-  if (m)
-    buf[8] += m->size;
-  m = avr_locate_mem(p, "efuse");
-  if (m)
-    buf[8] += m->size;
+  for(int fu = 0; fu < 3; fu++)
+    if((m = avr_locate_fuse_by_offset(p, fu)))
+      buf[8] += m->size;
 
-  m = avr_locate_mem(p, "flash");
-  if (m) {
+  if ((m = avr_locate_flash(p))) {
     buf[9] = m->readback[0];
     buf[10] = m->readback[1];
     if (m->paged) {
@@ -480,10 +464,9 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[18] = (m->size >> 16) & 0xff;
     buf[19] = (m->size >> 8) & 0xff;
     buf[20] = m->size & 0xff;
-  }
-  else {
+  } else {
     buf[9]  = 0xff;
-    buf[10]  = 0xff;
+    buf[10] = 0xff;
     buf[13] = 0;
     buf[14] = 0;
     buf[17] = 0;
@@ -492,14 +475,12 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[20] = 0;
   }
 
-  m = avr_locate_mem(p, "eeprom");
-  if (m) {
+  if ((m = avr_locate_eeprom(p))) {
     buf[11] = m->readback[0];
     buf[12] = m->readback[1];
     buf[15] = (m->size >> 8) & 0x00ff;
     buf[16] = m->size & 0x00ff;
-  }
-  else {
+  } else {
     buf[11] = 0xff;
     buf[12] = 0xff;
     buf[15] = 0;
@@ -819,7 +800,7 @@ static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
   if(pgm->prog_modes & PM_SPM)  // For bootloaders (eg, arduino)
     if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Classic parts, eg, optiboot with word addresses
-      if((mem = avr_locate_mem(p, "eeprom")))
+      if((mem = avr_locate_eeprom(p)))
         if(mem->page_size == 1)   // Increase pagesize if it is 1
           mem->page_size = 16;
   return;
@@ -949,9 +930,9 @@ static int stk500_loadaddr(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned in
 }
 
 
-static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int *memtypep, int *a_divp) {
-  if(avr_mem_is_flash_type(m)) {
-    *memtypep = 'F';
+static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int *memchrp, int *a_divp) {
+  if(mem_is_in_flash(m)) {
+    *memchrp = 'F';
     if(!(pgm->prog_modes & PM_SPM)) // Programmer *not* for bootloaders: original stk500v1 protocol
       *a_divp = m->op[AVR_OP_LOADPAGE_LO] || m->op[AVR_OP_READ_LO]? 2: 1;
     else if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire)))
@@ -961,8 +942,8 @@ static int set_memtype_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     return 0;
   }
 
-  if(avr_mem_is_eeprom_type(m)) {
-    *memtypep = 'E';
+  if(mem_is_eeprom(m)) {
+    *memchrp = 'E';
     // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
     *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp")) \
        && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
@@ -978,14 +959,14 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
                               unsigned int addr, unsigned int n_bytes)
 {
   unsigned char* buf = alloca(page_size + 16);
-  int memtype;
+  int memchr;
   int a_div;
   int block_size;
   int tries;
   unsigned int n;
   unsigned int i;
 
-  if(set_memtype_a_div(pgm, p, m, &memtype, &a_div) < 0)
+  if(set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0)
     return -2;
 
   n = addr + n_bytes;
@@ -1019,7 +1000,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[i++] = Cmnd_STK_PROG_PAGE;
     buf[i++] = (block_size >> 8) & 0xff;
     buf[i++] = block_size & 0xff;
-    buf[i++] = memtype;
+    buf[i++] = memchr;
     memcpy(&buf[i], &m->buf[addr], block_size);
     i += block_size;
     buf[i++] = Sync_CRC_EOP;
@@ -1060,13 +1041,13 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
                              unsigned int addr, unsigned int n_bytes)
 {
   unsigned char buf[16];
-  int memtype;
+  int memchr;
   int a_div;
   int tries;
   unsigned int n;
   int block_size;
 
-  if(set_memtype_a_div(pgm, p, m, &memtype, &a_div) < 0)
+  if(set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0)
     return -2;
 
   n = addr + n_bytes;
@@ -1088,7 +1069,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     buf[0] = Cmnd_STK_READ_PAGE;
     buf[1] = (block_size >> 8) & 0xff;
     buf[2] = block_size & 0xff;
-    buf[3] = memtype;
+    buf[3] = memchr;
     buf[4] = Sync_CRC_EOP;
     stk500_send(pgm, buf, 5);
 

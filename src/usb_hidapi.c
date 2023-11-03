@@ -224,16 +224,12 @@ static void usbhid_close(union filedescriptor *fd) {
 static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
   hid_device *udev = (hid_device *)fd->usb.handle;
   int rv;
-  int i = mlen;
-  const unsigned char * p = bp;
   unsigned char usbbuf[USBDEV_MAX_XFER_3 + 1];
-
-  int tx_size;
+  const int tx_size = mlen < USBDEV_MAX_XFER_3? mlen: USBDEV_MAX_XFER_3;
 
   if (udev == NULL)
     return -1;
 
-  tx_size = (mlen < USBDEV_MAX_XFER_3)? mlen: USBDEV_MAX_XFER_3;
   usbbuf[0] = 0; /* No report ID used */
   memcpy(usbbuf + 1, bp, tx_size);
   rv = hid_write(udev, usbbuf, tx_size + 1);
@@ -244,22 +240,9 @@ static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, 
   if (rv != tx_size + 1)
     pmsg_error("short write to USB: %d bytes out of %d written\n", rv, tx_size + 1);
 
-  if (verbose > 4) {
-    pmsg_trace2("sent: ");
+  if(verbose > 4)
+    trace_buffer(__func__, bp, tx_size);
 
-    while (i) {
-      unsigned char c = *p;
-      if (isprint(c))
-        msg_trace2("%c ", c);
-      else
-        msg_trace2(". ");
-      msg_trace2("[%02x] ", c);
-
-      p++;
-      i--;
-    }
-    msg_trace2("\n");
-  }
   return 0;
 }
 
@@ -277,22 +260,8 @@ static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_
   else if ((size_t) i != nbytes)
     pmsg_error("short read, read only %d out of %lu bytes\n", i, (unsigned long) nbytes);
 
-  if (verbose > 4) {
-    pmsg_trace2("recv: ");
-
-    while (i) {
-      unsigned char c = *p;
-      if (isprint(c))
-        msg_trace2("%c ", c);
-      else
-        msg_trace2(". ");
-      msg_trace2("[%02x] ", c);
-
-      p++;
-      i--;
-    }
-    msg_trace2("\n");
-  }
+  if (verbose > 4 && i > 0)
+    trace_buffer(__func__, p, i);
 
   return rv;
 }
