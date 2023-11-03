@@ -185,7 +185,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 #
 #       memory <memstr>
-#           paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
+#           paged           = <yes/no> ;          # yes/no (flash of classic parts only)
 #           offset          = <num> ;             # memory offset
 #           size            = <num> ;             # bytes
 #           page_size       = <num> ;             # bytes
@@ -14223,7 +14223,6 @@ part # t43u
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
     memory "eeprom"
-        paged              = yes;
         size               = 64;
         page_size          = 4;
         num_pages          = 16;
