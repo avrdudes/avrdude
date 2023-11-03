@@ -1440,7 +1440,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   // Read chip silicon revision
   if(pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
-    char chip_rev[AVR_CHIP_REVLEN];
+    unsigned char chip_rev[AVR_CHIP_REVLEN];
     pgm->read_chip_rev(pgm, p, chip_rev);
     pmsg_notice("silicon revision: %x.%x\n", chip_rev[0] >> 4, chip_rev[0] & 0x0f);
   }
@@ -2507,7 +2507,7 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
   return 0;
 }
 
-int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev) {
+int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev) {
   // XMEGA using JTAG or PDI, tinyAVR0/1/2, megaAVR0, AVR-Dx, AVR-Ex using UPDI
   if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     AVRMEM *m = avr_locate_io(p);
@@ -2516,8 +2516,7 @@ int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, char *chip_rev)
       return -1;
     }
     int status = pgm->read_byte(pgm, p, m,
-        p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1,
-        (unsigned char *)chip_rev);
+        p->prog_modes & PM_PDI? p->mcu_base+3 :p->syscfg_base+1, chip_rev);
     if (status < 0)
       return status;
   } else {

@@ -986,7 +986,7 @@ typedef struct programmer_t {
                           unsigned long addr, unsigned char *value);
   int  (*read_sig_bytes) (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m);
   int  (*read_sib)       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
-  int  (*read_chip_rev)  (const struct programmer_t *pgm, const AVRPART *p, char *chip_rev);
+  int  (*read_chip_rev)  (const struct programmer_t *pgm, const AVRPART *p, unsigned char *chip_rev);
   int  (*term_keep_alive)(const struct programmer_t *pgm, const AVRPART *p);
   void (*print_parms)    (const struct programmer_t *pgm, FILE *fp);
   int  (*set_vtarget)    (const struct programmer_t *pgm, double v);
