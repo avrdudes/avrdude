@@ -319,6 +319,10 @@ add_executable(avrdude
 
 target_link_libraries(avrdude PUBLIC libavrdude)
 
+if(MINGW)
+    target_link_options(avrdude PRIVATE -static)
+endif()
+
 # =====================================
 # Install
 # =====================================
