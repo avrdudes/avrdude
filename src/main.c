@@ -1032,6 +1032,7 @@ int main(int argc, char * argv [])
     exit(0);
   }
 
+  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
@@ -1040,7 +1041,7 @@ int main(int argc, char * argv [])
         continue;
       const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
-      if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
+      if((pm & (pm-1)) && !str_eq(pnam, "dryrun") && !(dry && pgm->initpgm == dry->initpgm))
         pmsg_warning("%s and %s share multiple modes (%s)\n", pnam, p->desc, avr_prog_modes(pm));
     }
   }
