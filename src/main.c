@@ -995,6 +995,11 @@ int main(int argc, char * argv [])
     }
   }
 
+  if(!str_starts(avrdude_conf_version, version)) {
+    pmsg_warning("System wide configuration file version (%s)\n", avrdude_conf_version);
+    imsg_warning("does not match Avrdude build version (%s)\n", version);
+  }
+
   if (lsize(additional_config_files) > 0) {
     LNODEID ln1;
     const char * p = NULL;
