@@ -579,6 +579,14 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
+  // Change xtal
+  if (PDATA(pgm)->xtal != STK500_XTAL) {
+    const char *unit_get = {"Hz"};
+    double freq = PDATA(pgm)->xtal;
+    freq = f_to_kHz_MHz(freq, &unit_get);
+    msg_info("Programmer xtal frequency set to %.3f %s\n", freq, unit_get);
+  }
+
   // Read or write clock generator frequency
   if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
     // Read current target voltage set value
@@ -590,7 +598,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
     if(osc_pscale) {
       int prescale = 1;
-      f_get = STK500_XTAL / 2;
+      f_get = PDATA(pgm)->xtal / 2;
       switch (osc_pscale) {
         case 2: prescale = 8; break;
         case 3: prescale = 32; break;
@@ -713,6 +721,8 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
             PDATA(pgm)->fosc_data =  v * 1e6;
           else if (*endp == 'k' || *endp == 'K')
             PDATA(pgm)->fosc_data =  v * 1e3;
+          else if (*endp == 0)
+            PDATA(pgm)->fosc_data = v;
           PDATA(pgm)->fosc_set = true;
           continue;
         }
@@ -721,6 +731,33 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           PDATA(pgm)->fosc_get = true;
          continue;
         }
+      }
+    }
+
+    else if (str_starts(extended_param, "xtal")) {
+      // Set clock generator frequency
+      if (str_starts(extended_param, "xtal=")) {
+        char xtal_str[16] = {0};
+        int sscanf_success = sscanf(extended_param, "xtal=%10s", xtal_str);
+        if (sscanf_success < 1) {
+          pmsg_error("invalid xtal value '%s'\n", extended_param);
+          rv = -1;
+          break;
+        }
+        char *endp;
+        double v = strtod(xtal_str, &endp);
+        if (endp == xtal_str){
+          pmsg_error("cannot parse xtal value %s\n", xtal_str);
+          rv = -1;
+          break;
+        }
+        if (*endp == 'm' || *endp == 'M')
+          PDATA(pgm)->xtal =  v * 1e6;
+        else if (*endp == 'k' || *endp == 'K')
+          PDATA(pgm)->xtal =  v * 1e3;
+        else if (*endp == 0)
+          PDATA(pgm)->xtal =  v;
+        continue;
       }
     }
 
@@ -741,6 +778,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         msg_error("  -xfosc                Read oscillator clock frequency\n");
         msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
       }
+      msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
       exit(0);
     }
@@ -1166,7 +1204,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
 
   prescale = cmatch = 0;
   if (v > 0.0) {
-    if (v > STK500_XTAL / 2) {
+    if (v > PDATA(pgm)->xtal / 2) {
       const char *unit;
       if (v > 1e6) {
         v /= 1e6;
@@ -1176,21 +1214,21 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
         unit = "kHz";
       } else
         unit = "Hz";
-      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, STK500_XTAL/2e6);
-      fosc = STK500_XTAL / 2;
+      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, PDATA(pgm)->xtal/2e6);
+      fosc = PDATA(pgm)->xtal / 2;
     } else
       fosc = (unsigned) v;
 
     for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
-      if (fosc >= STK500_XTAL / (256 * ps[idx] * 2)) {
+      if (fosc >= PDATA(pgm)->xtal / (256 * ps[idx] * 2)) {
         /* this prescaler value can handle our frequency */
         prescale = idx + 1;
-        cmatch = (unsigned)(STK500_XTAL / (2 * fosc * ps[idx])) - 1;
+        cmatch = (unsigned)(PDATA(pgm)->xtal / (2 * fosc * ps[idx])) - 1;
         break;
       }
     }
     if (idx == sizeof(ps) / sizeof(ps[0])) {
-      pmsg_warning("f = %u Hz too low, %u Hz min\n", fosc, STK500_XTAL / (256 * 1024 * 2));
+      pmsg_warning("f = %u Hz too low, %u Hz min\n", fosc, PDATA(pgm)->xtal / (256 * 1024 * 2));
       return -1;
     }
   }
@@ -1214,7 +1252,7 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   int dur;
   double min, max;
 
-  min = 8.0 / STK500_XTAL;
+  min = 8.0 / PDATA(pgm)->xtal;
   max = 255 * min;
   dur = v / min + 0.5;
 
@@ -1388,7 +1426,7 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
       fmsg_out(fp, "Off\n");
     else {
       int prescale = 1;
-      double f = STK500_XTAL / 2;
+      double f = PDATA(pgm)->xtal / 2;
       const char *unit;
 
       switch (osc_pscale) {
@@ -1414,7 +1452,7 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
   }
 
   stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
-  fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / STK500_XTAL + 0.05);
+  fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.05);
 
   return;
 }
@@ -1433,6 +1471,7 @@ static void stk500_setup(PROGRAMMER * pgm)
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff;
   PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
+  PDATA(pgm)->xtal = STK500_XTAL;
 }
 
 static void stk500_teardown(PROGRAMMER * pgm)
