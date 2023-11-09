@@ -91,11 +91,11 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   buf[0] = Cmnd_STK_GET_SYNC;
   buf[1] = Sync_CRC_EOP;
-  
+
   /*
-   * First send and drain a few times to get rid of line noise 
+   * First send and drain a few times to get rid of line noise
    */
-   
+
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
   stk500_send(pgm, buf, 2);
@@ -221,7 +221,7 @@ static int stk500_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   int tries=0;
 
  retry:
-  
+
   tries++;
 
   buf[0] = Cmnd_STK_ENTER_PROGMODE;
@@ -276,7 +276,7 @@ static int stk500_set_extended_parms(const PROGRAMMER *pgm, int n,
   int i;
 
  retry:
-  
+
   tries++;
 
   buf[0] = Cmnd_STK_SET_DEVICE_EXT;
@@ -441,7 +441,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 #if 0
   pmsg_info("stk500_initialize(): n_extparms = %d\n", n_extparms);
 #endif
-    
+
   buf[5] = 1; /* polling supported - XXX need this in config file */
   buf[6] = 1; /* programming is self-timed - XXX need in config file */
 
@@ -635,25 +635,22 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_starts(extended_param, "vtarg")) {
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+      if ((pgm->extra_features & HAS_VTARG_ADJ) && (str_starts(extended_param, "vtarg=")))  {
         // Set target voltage
-        if (str_starts(extended_param, "vtarg=") ) {
-          double vtarg_set_val = 0;
-          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
-          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
-          if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value '%s'\n", extended_param);
-            rv = -1;
-            break;
-          }
-          PDATA(pgm)->vtarg_set = true;
-          continue;
+        double vtarg_set_val = 0;
+        int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+        PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+        if (sscanf_success < 1 || vtarg_set_val < 0) {
+          pmsg_error("invalid vtarg value '%s'\n", extended_param);
+          rv = -1;
+          break;
         }
+        PDATA(pgm)->vtarg_set = true;
+        continue;
+      } else if ((pgm->extra_features & HAS_VTARG_READ) && str_eq(extended_param, "vtarg")) {
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
-          PDATA(pgm)->vtarg_get = true;
-          continue;
-        }
+        PDATA(pgm)->vtarg_get = true;
+        continue;
       }
     }
 
@@ -691,7 +688,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_starts(extended_param, "fosc")) {
-      if (pgm->extra_features & HAS_VAREF_ADJ) {
+      if (pgm->extra_features & HAS_FOSC_ADJ) {
         // Set clock generator frequency
         if (str_starts(extended_param, "fosc=")) {
           char fosc_str[16] = {0};
@@ -730,8 +727,10 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+      if (pgm->extra_features & HAS_VTARG_READ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
+      }
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
       }
       if (pgm->extra_features & HAS_VAREF_ADJ) {
@@ -758,7 +757,7 @@ static void stk500_disable(const PROGRAMMER *pgm) {
   int tries=0;
 
  retry:
-  
+
   tries++;
 
   buf[0] = Cmnd_STK_LEAVE_PROGMODE;
@@ -1181,7 +1180,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
       fosc = STK500_XTAL / 2;
     } else
       fosc = (unsigned) v;
-    
+
     for (idx = 0; idx < sizeof(ps) / sizeof(ps[0]); idx++) {
       if (fosc >= STK500_XTAL / (256 * ps[idx] * 2)) {
         /* this prescaler value can handle our frequency */
@@ -1195,11 +1194,11 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
       return -1;
     }
   }
-  
+
   if ((rc = stk500_setparm(pgm, Parm_STK_OSC_PSCALE, prescale)) != 0
       || (rc = stk500_setparm(pgm, Parm_STK_OSC_CMATCH, cmatch)) != 0)
     return rc;
-  
+
   return 0;
 }
 
@@ -1218,7 +1217,7 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   min = 8.0 / STK500_XTAL;
   max = 255 * min;
   dur = v / min + 0.5;
-  
+
   if (v < min) {
       dur = 1;
       pmsg_warning("p = %.1f us too small, using %.1f us\n",
@@ -1228,7 +1227,7 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
       pmsg_warning("p = %.1f us too large, using %.1f us\n",
         v/1e-6, dur*min/1e-6);
   }
-  
+
   return stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur);
 }
 
@@ -1286,7 +1285,7 @@ static int stk500_getparm(const PROGRAMMER *pgm, unsigned parm, unsigned *value)
   return 0;
 }
 
-  
+
 static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) {
   unsigned char buf[16];
   int tries = 0;
@@ -1338,7 +1337,7 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
   }
 }
 
-  
+
 static void stk500_display(const PROGRAMMER *pgm, const char *p) {
   unsigned maj, min, hdw, topcard;
 
