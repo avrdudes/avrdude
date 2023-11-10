@@ -46,10 +46,10 @@
 #define MAX_SYNC_ATTEMPTS 10
 
 static double f_to_kHz_MHz(double f, const char **unit) {
-  if (f > 1e6) {
+  if (f >= 1e6) {
     f /= 1e6;
     *unit = "MHz";
-  } else if (f > 1e3) {
+  } else if (f >= 1e3) {
     f /= 1000;
     *unit = "kHz";
   } else
@@ -579,14 +579,6 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  // Change xtal
-  if (PDATA(pgm)->xtal != STK500_XTAL) {
-    const char *unit_get = {"Hz"};
-    double freq = PDATA(pgm)->xtal;
-    freq = f_to_kHz_MHz(freq, &unit_get);
-    msg_info("Programmer xtal frequency set to %.3f %s\n", freq, unit_get);
-  }
-
   // Read or write clock generator frequency
   if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
     // Read current target voltage set value
@@ -721,8 +713,8 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
             PDATA(pgm)->fosc_data =  v * 1e6;
           else if (*endp == 'k' || *endp == 'K')
             PDATA(pgm)->fosc_data =  v * 1e3;
-          else if (*endp == 0)
-            PDATA(pgm)->fosc_data = v;
+          else if (*endp == 0 || *endp == 'h' || *endp == 'H')
+            PDATA(pgm)->fosc_data =  v;
           PDATA(pgm)->fosc_set = true;
           continue;
         }
@@ -751,12 +743,12 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           rv = -1;
           break;
         }
-        if (*endp == 'm' || *endp == 'M')
-          PDATA(pgm)->xtal =  v * 1e6;
+        if (*endp == 'm' || *endp == 'M') // fits also e.g. "nnnnMHz"
+          PDATA(pgm)->xtal = v * 1e6;
         else if (*endp == 'k' || *endp == 'K')
-          PDATA(pgm)->xtal =  v * 1e3;
-        else if (*endp == 0)
-          PDATA(pgm)->xtal =  v;
+          PDATA(pgm)->xtal = v * 1e3;
+        else if (*endp == 0 || *endp == 'h' || *endp == 'H') // "nnnn" or "nnnnHz"
+          PDATA(pgm)->xtal = v;
         continue;
       }
     }
@@ -1206,10 +1198,10 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
   if (v > 0.0) {
     if (v > PDATA(pgm)->xtal / 2) {
       const char *unit;
-      if (v > 1e6) {
+      if (v >= 1e6) {
         v /= 1e6;
         unit = "MHz";
-      } else if (v > 1e3) {
+      } else if (v >= 1e3) {
         v /= 1e3;
         unit = "kHz";
       } else
@@ -1439,10 +1431,10 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
       }
       f /= prescale;
       f /= (osc_cmatch + 1);
-      if (f > 1e6) {
+      if (f >= 1e6) {
         f /= 1e6;
         unit = "MHz";
-      } else if (f > 1e3) {
+      } else if (f >= 1e3) {
         f /= 1000;
         unit = "kHz";
       } else
@@ -1452,7 +1444,19 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
   }
 
   stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
-  fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.05);
+  fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.0499);
+
+  const char *unit;
+  double f = PDATA(pgm)->xtal;
+  if (f >= 1e6) {
+    f /= 1e6;
+    unit = "MHz";
+  } else if (f >= 1e3) {
+    f /= 1000;
+    unit = "kHz";
+  } else
+    unit = "Hz";
+  fmsg_out(fp, "%sXTAL frequency  : %.3f %s\n", p, f, unit);
 
   return;
 }
@@ -1471,7 +1475,11 @@ static void stk500_setup(PROGRAMMER * pgm)
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff;
   PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
-  PDATA(pgm)->xtal = STK500_XTAL;
+  // nanoSTK (Arduino Nano HW) uses 16 MHz
+  if (str_starts(pgmid, "nanoSTK"))
+    PDATA(pgm)->xtal = 16000000U;
+  else
+    PDATA(pgm)->xtal = STK500_XTAL;
 }
 
 static void stk500_teardown(PROGRAMMER * pgm)
