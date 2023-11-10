@@ -635,25 +635,22 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_starts(extended_param, "vtarg")) {
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+      if ((pgm->extra_features & HAS_VTARG_ADJ) && (str_starts(extended_param, "vtarg=")))  {
         // Set target voltage
-        if (str_starts(extended_param, "vtarg=") ) {
-          double vtarg_set_val = 0;
-          int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
-          PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
-          if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value '%s'\n", extended_param);
-            rv = -1;
-            break;
-          }
-          PDATA(pgm)->vtarg_set = true;
-          continue;
+        double vtarg_set_val = 0;
+        int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
+        PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
+        if (sscanf_success < 1 || vtarg_set_val < 0) {
+          pmsg_error("invalid vtarg value '%s'\n", extended_param);
+          rv = -1;
+          break;
         }
+        PDATA(pgm)->vtarg_set = true;
+        continue;
+      } else if ((pgm->extra_features & HAS_VTARG_READ) && str_eq(extended_param, "vtarg")) {
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
-          PDATA(pgm)->vtarg_get = true;
-          continue;
-        }
+        PDATA(pgm)->vtarg_get = true;
+        continue;
       }
     }
 
@@ -691,7 +688,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_starts(extended_param, "fosc")) {
-      if (pgm->extra_features & HAS_VAREF_ADJ) {
+      if (pgm->extra_features & HAS_FOSC_ADJ) {
         // Set clock generator frequency
         if (str_starts(extended_param, "fosc=")) {
           char fosc_str[16] = {0};
@@ -730,8 +727,10 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+      if (pgm->extra_features & HAS_VTARG_READ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
+      }
+      if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
       }
       if (pgm->extra_features & HAS_VAREF_ADJ) {
