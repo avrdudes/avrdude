@@ -255,6 +255,15 @@ static int usbasp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned long addr, unsigned char data) {
 
+  if(mem_is_readonly(m)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", m->desc, p->desc);
+    return -1;
+  }
+
   return PDATA(pgm)->use_tpi?
     usbasp_tpi_write_byte(pgm, p, m, addr, data):
     avr_write_byte_default(pgm, p, m, addr, data);
