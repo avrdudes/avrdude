@@ -1671,6 +1671,13 @@ static int avrftdi_jtag_write_byte(const PROGRAMMER *pgm, const AVRPART *p,
 		while (!(avrftdi_jtag_dr_inout(pgm, 0x3300, 15) & 0x0200))
 			;
 
+	} else if(mem_is_readonly(m)) {
+		unsigned char is;
+		if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == value)
+			return 0;
+
+		pmsg_error("cannot write to read-only memory %s of %s\n", m->desc, p->desc);
+		return -1;
 	} else {
 		return -1;
 	}
