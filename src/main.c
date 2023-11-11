@@ -1111,10 +1111,11 @@ int main(int argc, char * argv [])
   }
 
   if(partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
-    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
-    imsg_error("lack a common programming mode; use -F to override this check\n");
-    if(!ovsigck)
+    pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, p->desc);
+    if(!ovsigck) {
+      imsg_error("use -F to override this check\n");
       exit(1);
+    }
   }
 
   if (pgm->initpgm) {
