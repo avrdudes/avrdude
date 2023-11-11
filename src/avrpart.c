@@ -501,7 +501,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
   static unsigned int prev_mem_offset;
   static int prev_mem_size;
   const char *table_padding = "-------------------------------";
-  static int m_desc_digits_max = strlen("Memory");
+  static int m_desc_digits_max;
   static int m_size_digits_max;
   static int m_offset_digits_max;
 
