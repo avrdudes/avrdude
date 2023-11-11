@@ -1253,25 +1253,25 @@ int main(int argc, char * argv [])
 
   // Open the programmer
   if (verbose > 0) {
-    imsg_notice("Using Port                    : %s\n", port);
-    imsg_notice("Using Programmer              : %s\n", pgmid);
+    imsg_notice("Using Port              : %s\n", port);
+    imsg_notice("Using Programmer        : %s\n", pgmid);
   }
 
   if (baudrate != 0) {
-    imsg_notice("Overriding Baud Rate          : %d\n", baudrate);
+    imsg_notice("Overriding Baud Rate    : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
   else if (ser && ser->baudrate) {
-    imsg_notice("Default Baud Rate             : %d\n", ser->baudrate);
+    imsg_notice("Default Baud Rate       : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
   if (bitclock != 0.0) {
-    imsg_notice("Setting bit clk period        : %.1f\n", bitclock);
+    imsg_notice("Setting bit clk period  : %.1f\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
-    imsg_notice("Setting isp clock delay       : %3i\n", ispdelay);
+    imsg_notice("Setting isp clock delay : %3i\n", ispdelay);
     pgm->ispdelay = ispdelay;
   }
 

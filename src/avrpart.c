@@ -538,7 +538,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
 
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     fprintf(f,
-      "%s| %-*s | %-*s | Pg size | %-*s |\n"
+      "\n%s| %-*s | %-*s | Pg size | %-*s |\n"
       "%s|-%*.*s-|-%*.*s-|---------|-%*.*s-|\n",
       prefix,
       m_desc_digits_max+1, "Memory",
@@ -550,7 +550,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       m_offset_digits_max+2, m_offset_digits_max+2, table_padding);
     } else {
     fprintf(f,
-      "%s| %-*s | %-*s | Pg size |\n"
+      "\n%s| %-*s | %-*s | Pg size |\n"
       "%s|-%*.*s-|-%*.*s-|---------|\n",
       prefix,
       m_desc_digits_max+1, "Memory",
@@ -772,48 +772,46 @@ void sort_avrparts(LISTID avrparts)
   lsort(avrparts,(int (*)(void*, void*)) sort_avrparts_compare);
 }
 
+static char *prog_modes_str(int pm) {
+  static char type[1024];
 
-static char * reset_disp_str(int r)
-{
-  switch (r) {
-    case RESET_DEDICATED : return "dedicated";
-    case RESET_IO        : return "possible i/o";
-    default              : return "<invalid>";
-  }
+  strcpy(type, "0");
+  if(pm & PM_SPM)
+    strcat(type, " | PM_SPM");
+  if(pm & PM_TPI)
+    strcat(type, " | PM_TPI");
+  if(pm & PM_ISP)
+    strcat(type, " | PM_ISP");
+  if(pm & PM_PDI)
+    strcat(type, " | PM_PDI");
+  if(pm & PM_UPDI)
+    strcat(type, " | PM_UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, " | PM_HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, " | PM_HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, " | PM_debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, " | PM_JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, " | PM_JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, " | PM_XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, " | PM_AVR32JTAG");
+  if(pm & PM_aWire)
+    strcat(type, " | PM_aWire");
+
+  return type + (type[1] == 0? 0: 4);
 }
-
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   LNODEID ln;
   AVRMEM * m;
 
-  fprintf(  f, "%sAVR Part                      : %s\n", prefix, p->desc);
-  if (p->chip_erase_delay)
-    fprintf(f, "%sChip Erase delay              : %d us\n", prefix, p->chip_erase_delay);
-  if (p->pagel)
-    fprintf(f, "%sPAGEL                         : P%02X\n", prefix, p->pagel);
-  if (p->bs2)
-    fprintf(f, "%sBS2                           : P%02X\n", prefix, p->bs2);
-  fprintf(  f, "%sRESET disposition             : %s\n", prefix, reset_disp_str(p->reset_disposition));
-  fprintf(  f, "%sRETRY pulse                   : %s\n", prefix, avr_pin_name(p->retry_pulse));
-  fprintf(  f, "%sSerial program mode           : %s\n", prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no");
-  fprintf(  f, "%sParallel program mode         : %s\n", prefix, (p->flags & AVRPART_PARALLELOK) ?
-         ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no");
-  if(p->timeout)
-    fprintf(f, "%sTimeout                       : %d\n", prefix, p->timeout);
-  if(p->stabdelay)
-    fprintf(f, "%sStabDelay                     : %d\n", prefix, p->stabdelay);
-  if(p->cmdexedelay)
-    fprintf(f, "%sCmdexeDelay                   : %d\n", prefix, p->cmdexedelay);
-  if(p->synchloops)
-    fprintf(f, "%sSyncLoops                     : %d\n", prefix, p->synchloops);
-  if(p->bytedelay)
-    fprintf(f, "%sByteDelay                     : %d\n", prefix, p->bytedelay);
-  if(p->pollindex)
-    fprintf(f, "%sPollIndex                     : %d\n", prefix, p->pollindex);
-  if(p->pollvalue)
-    fprintf(f, "%sPollValue                     : 0x%02x\n", prefix, p->pollvalue);
-  fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
+  fprintf(f, "%sAVR Part                : %s\n", prefix, p->desc);
+  fprintf(f, "%sProgramming modes       : %s\n", prefix, prog_modes_str(p->prog_modes));
 
   avr_mem_display(prefix, f, NULL, p, verbose);
 
