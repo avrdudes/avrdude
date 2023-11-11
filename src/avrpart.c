@@ -290,39 +290,6 @@ int avr_get_output_index(const OPCODE *op) {
 }
 
 
-static char * avr_op_str(int op)
-{
-  switch (op) {
-    case AVR_OP_READ        : return "READ"; break;
-    case AVR_OP_WRITE       : return "WRITE"; break;
-    case AVR_OP_READ_LO     : return "READ_LO"; break;
-    case AVR_OP_READ_HI     : return "READ_HI"; break;
-    case AVR_OP_WRITE_LO    : return "WRITE_LO"; break;
-    case AVR_OP_WRITE_HI    : return "WRITE_HI"; break;
-    case AVR_OP_LOADPAGE_LO : return "LOADPAGE_LO"; break;
-    case AVR_OP_LOADPAGE_HI : return "LOADPAGE_HI"; break;
-    case AVR_OP_LOAD_EXT_ADDR : return "LOAD_EXT_ADDR"; break;
-    case AVR_OP_WRITEPAGE   : return "WRITEPAGE"; break;
-    case AVR_OP_CHIP_ERASE  : return "CHIP_ERASE"; break;
-    case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;
-    default : return "<unknown opcode>"; break;
-  }
-}
-
-
-static char * bittype(int type)
-{
-  switch (type) {
-    case AVR_CMDBIT_IGNORE  : return "IGNORE"; break;
-    case AVR_CMDBIT_VALUE   : return "VALUE"; break;
-    case AVR_CMDBIT_ADDRESS : return "ADDRESS"; break;
-    case AVR_CMDBIT_INPUT   : return "INPUT"; break;
-    case AVR_CMDBIT_OUTPUT  : return "OUTPUT"; break;
-    default : return "<unknown bit type>"; break;
-  }
-}
-
-
 /***
  *** Elementary functions dealing with AVRMEM structures
  ***/
@@ -533,61 +500,103 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
                      const AVRPART *p, int verbose) {
   static unsigned int prev_mem_offset;
   static int prev_mem_size;
-  int i, j;
-  char * optr;
+  const char *table_padding = "-------------------------------";
+  static int m_desc_digits_max = strlen("Memory");
+  static int m_size_digits_max;
+  static int m_offset_digits_max;
 
-  if (m == NULL || verbose > 2) {
-      fprintf(f,
-              "%s                                Block Poll               Page                       Polled\n"
-              "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
-            prefix, prefix, prefix);
+  if (m == NULL) {
+    for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+      m = ldata(ln);
+      int m_size = m->size;
+      int m_offset = m->offset;
+      int m_desc_cnt = 0;
+      int m_size_cnt = 0;
+      int m_offset_cnt = 0;
+
+      // Mem desc digits
+      AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+      const char *m_desc_a = a? a->desc: "";
+      m_desc_cnt = strlen(m->desc) + strlen(m_desc_a);
+      if(m_desc_digits_max < m_desc_cnt)
+        m_desc_digits_max = m_desc_cnt;
+      // Mem size digits
+      do {
+        m_size /= 10;
+        ++m_size_cnt;
+      } while (m_size != 0);
+      if(m_size_digits_max < m_size_cnt)
+        m_size_digits_max = m_size_cnt;
+      // Mem offset digits
+      do {
+        m_offset /= 16;
+        ++m_offset_cnt;
+      } while (m_offset != 0);
+      if(m_offset_digits_max < m_offset_cnt)
+        m_offset_digits_max = m_offset_cnt;
+    }
+
+    if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    fprintf(f,
+      "%s| %-*s | %-*s | Pg size | %-*s |\n"
+      "%s|-%*.*s-|-%*.*s-|---------|-%*.*s-|\n",
+      prefix,
+      m_desc_digits_max+1, "Memory",
+      m_size_digits_max, "Size",
+      m_offset_digits_max+2, "Offset",
+      prefix,
+      m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
+      m_size_digits_max, m_size_digits_max, table_padding,
+      m_offset_digits_max+2, m_offset_digits_max+2, table_padding);
+    } else {
+    fprintf(f,
+      "%s| %-*s | %-*s | Pg size |\n"
+      "%s|-%*.*s-|-%*.*s-|---------|\n",
+      prefix,
+      m_desc_digits_max+1, "Memory",
+      m_size_digits_max, "Size",
+      prefix,
+      m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
+      m_size_digits_max, m_size_digits_max, table_padding);
+    }
   }
 
-  if (m != NULL) {
+  else {
     // Only print memory section if the previous section printed isn't identical
     if(prev_mem_offset != m->offset || prev_mem_size != m->size || str_eq(p->family_id, "")) {
       prev_mem_offset = m->offset;
       prev_mem_size = m->size;
-      AVRMEM_ALIAS *ap = avr_find_memalias(p, m);
-      /* Show alias if the current and the next memory section has the same offset
-      and size, we're not out of band and a family_id is present */
-      const char *mem_desc_alias = ap? ap->desc: "";
-      fprintf(f,
-              "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
-              prefix,
-              m->desc,
-              mem_desc_alias,
-              m->mode, m->delay, m->blocksize, m->pollindex,
-              m->paged ? "yes" : "no",
-              m->size,
-              m->page_size,
-              m->num_pages,
-              m->min_write_delay,
-              m->max_write_delay,
-              m->readback[0],
-              m->readback[1]);
-    }
-    if (verbose > 4) {
-      msg_trace2("%s  Memory Ops:\n"
-                      "%s    Operation    Inst Bit  Bit Type  Bitno  Value\n"
-                      "%s    -----------  --------  --------  -----  -----\n",
-                      prefix, prefix, prefix);
-      for (i=0; i<AVR_OP_MAX; i++) {
-        if (m->op[i]) {
-          for (j=31; j>=0; j--) {
-            if (j==31)
-              optr = avr_op_str(i);
-            else
-              optr = " ";
-          fprintf(f,
-                  "%s    %-11s  %8d  %8s  %5d  %5d\n",
-                  prefix, optr, j,
-                  bittype(m->op[i]->bit[j].type),
-                  m->op[i]->bit[j].bitno,
-                  m->op[i]->bit[j].value);
-          }
-        }
+
+      int m_offset = m->offset;
+      int m_offset_cnt = 0;
+      int m_offset_digits = 0;
+
+      // Workaround to get the 0x prefix where it should be
+      do {
+        m_offset /= 16;
+        ++m_offset_cnt;
+      } while (m_offset != 0);
+      if(m_offset_digits < m_offset_cnt)
+        m_offset_digits = m_offset_cnt;
+
+      AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+      const char *m_desc_a = a? a->desc: "";
+      char d[256];
+      sprintf(d,"%s%s%s", m->desc, a? "/": "", m_desc_a);
+
+      if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+        fprintf(f, "%s| %-*s| %*d | %7d | %*s0x%x |\n",
+          prefix,
+          m_desc_digits_max+2, d,
+          m_size_digits_max < 4? 4: m_size_digits_max, m->size,
+          m->page_size,
+          m_offset_digits_max-m_offset_digits, "", m->offset);
+      } else {
+        fprintf(f, "%s| %-*s| %*d | %7d |\n",
+          prefix,
+          m_desc_digits_max+2, d,
+          m_size_digits_max < 4? 4: m_size_digits_max, m->size,
+          m->page_size);
       }
     }
   }
@@ -814,12 +823,11 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   strcat(buf, "  ");
   px = buf;
 
-  if (verbose <= 2)
-    avr_mem_display(px, f, NULL, p, verbose);
+  avr_mem_display(prefix, f, NULL, p, verbose);
 
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    avr_mem_display(px, f, m, p, verbose);
+    avr_mem_display(prefix, f, m, p, verbose);
   }
 
   if (buf)
