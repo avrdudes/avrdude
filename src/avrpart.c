@@ -784,8 +784,6 @@ static char * reset_disp_str(int r)
 
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
-  char * buf;
-  const char * px;
   LNODEID ln;
   AVRMEM * m;
 
@@ -817,21 +815,12 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
     fprintf(f, "%sPollValue                     : 0x%02x\n", prefix, p->pollvalue);
   fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
 
-  px = prefix;
-  buf = (char *) cfg_malloc("avr_display()", strlen(prefix) + 5);
-  strcpy(buf, prefix);
-  strcat(buf, "  ");
-  px = buf;
-
   avr_mem_display(prefix, f, NULL, p, verbose);
 
   for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
     avr_mem_display(prefix, f, m, p, verbose);
   }
-
-  if (buf)
-    free(buf);
 }
 
 
