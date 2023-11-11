@@ -442,11 +442,15 @@ static int dev_opt(const char *str) {
 }
 
 
-static void programmer_not_found(const char *programmer) {
+static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
   msg_error("\n");
-  if(programmer && *programmer)
-    pmsg_error("cannot find programmer id %s\n", programmer);
-  else {
+  if(programmer && *programmer) {
+    if(!pgm || !pgm->id || !lsize(pgm->id))
+      pmsg_error("cannot find programmer id %s\n", programmer);
+    else
+      pmsg_error("programmer %s lacks %s setting\n", programmer,
+        !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
+  } else {
     pmsg_error("no programmer has been specified on the command line or in the\n");
     imsg_error("config file(s); specify one using the -c option and try again\n");
   }
@@ -1028,6 +1032,7 @@ int main(int argc, char * argv [])
     exit(0);
   }
 
+  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
@@ -1036,7 +1041,7 @@ int main(int argc, char * argv [])
         continue;
       const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
-      if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
+      if((pm & (pm-1)) && !str_eq(pnam, "dryrun") && !(dry && pgm->initpgm == dry->initpgm))
         pmsg_warning("%s and %s share multiple modes (%s)\n", pnam, p->desc, avr_prog_modes(pm));
     }
   }
@@ -1057,7 +1062,7 @@ int main(int argc, char * argv [])
       if(pgmid && *pgmid && explicit_c) {
         PROGRAMMER *pgm = locate_programmer_set(programmers, pgmid, &pgmid);
         if(!pgm || !is_programmer(pgm)) {
-          programmer_not_found(pgmid);
+          programmer_not_found(pgmid, pgm);
           exit(1);
         }
         msg_error("\nValid parts for programmer %s are:\n", pgmid);
@@ -1100,13 +1105,13 @@ int main(int argc, char * argv [])
   msg_notice("\n");
 
   if(!pgmid || !*pgmid) {
-    programmer_not_found(NULL);
+    programmer_not_found(NULL, NULL);
     exit(1);
   }
 
   pgm = locate_programmer_set(programmers, pgmid, &pgmid);
   if (pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid);
+    programmer_not_found(pgmid, pgm);
     exit(1);
   }
 
