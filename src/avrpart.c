@@ -611,6 +611,57 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
   }
 }
 
+static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
+  const char *table_padding = "-------------------------------";
+  const char *var_table_column[] = {"Variants", "Package", "F max", "T range", "V range"};
+  char var_tok[5][50];
+  int var_tok_len[5] = {0};
+
+  if(lsize(p->variants)) {
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
+      sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
+      for(int i = 0; i < 5; i++) {
+        if(var_tok_len[i] < (int)strlen(var_tok[i]))
+          var_tok_len[i] = strlen(var_tok[i]);
+        if(var_tok_len[i] < (int)strlen(var_table_column[i]))
+          var_tok_len[i] = strlen(var_table_column[i]);
+      }
+    }
+
+    fprintf(f,
+      "\n%s| %-*s | %-*s | %-*s | %-*s | %-*s |\n"
+        "%s|-%*.*s-|-%*.*s-|-%*.*s-|-%*.*s-|-%*.*s-|\n",
+      prefix,
+      var_tok_len[0], var_table_column[0],
+      var_tok_len[1], var_table_column[1],
+      var_tok_len[2], var_table_column[2],
+      var_tok_len[3], var_table_column[3],
+      var_tok_len[4], var_table_column[4],
+      prefix,
+      var_tok_len[0], var_tok_len[0], table_padding,
+      var_tok_len[1], var_tok_len[1], table_padding,
+      var_tok_len[2], var_tok_len[2], table_padding,
+      var_tok_len[3], var_tok_len[3], table_padding,
+      var_tok_len[4], var_tok_len[4], table_padding);
+
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
+      sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
+      fprintf(f,
+        "%s| %-*s | %-*s | %-*s | %-*s | %-*s |\n",
+        prefix,
+        var_tok_len[0], var_tok[0],
+        var_tok_len[1], var_tok[1],
+        var_tok_len[2], var_tok[2],
+        var_tok_len[3], var_tok[3],
+        var_tok_len[4], var_tok[4]);
+    }
+    return 0;
+  }
+  return -1;
+}
+
 
 /*
  * Elementary functions dealing with AVRPART structures
@@ -815,17 +866,18 @@ static char *prog_modes_str(int pm) {
   return type + (type[1] == 0? 0: 4);
 }
 
-void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
-  LNODEID ln;
-  AVRMEM * m;
 
+void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(f, "%sAVR Part                : %s\n", prefix, p->desc);
   fprintf(f, "%sProgramming modes       : %s\n", prefix, prog_modes_str(p->prog_modes));
 
-  avr_mem_display(prefix, f, NULL, p, verbose);
+  // Print variants table
+  avr_variants_display(prefix, f, p);
 
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
+  // Print memory table
+  avr_mem_display(prefix, f, NULL, p, verbose);
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
     avr_mem_display(prefix, f, m, p, verbose);
   }
 }
