@@ -500,6 +500,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
                      const AVRPART *p, int verbose) {
   static unsigned int prev_mem_offset;
   static int prev_mem_size;
+  const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
   const char *table_padding = "-------------------------------";
   static int m_desc_digits_max;
   static int m_size_digits_max;
@@ -520,6 +521,8 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       m_desc_cnt = strlen(m->desc) + strlen(m_desc_a);
       if(m_desc_digits_max < m_desc_cnt)
         m_desc_digits_max = m_desc_cnt;
+      if(m_desc_digits_max < (int)strlen(table_colum[0]))
+        m_desc_digits_max = strlen(table_colum[0]);
       // Mem size digits
       do {
         m_size /= 10;
@@ -527,6 +530,8 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       } while (m_size != 0);
       if(m_size_digits_max < m_size_cnt)
         m_size_digits_max = m_size_cnt;
+      if(m_size_digits_max < (int)strlen(table_colum[1]))
+        m_size_digits_max = strlen(table_colum[1]);
       // Mem offset digits
       do {
         m_offset /= 16;
@@ -534,29 +539,31 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       } while (m_offset != 0);
       if(m_offset_digits_max < m_offset_cnt)
         m_offset_digits_max = m_offset_cnt;
+      if(m_offset_digits_max < (int)strlen(table_colum[3]))
+        m_offset_digits_max = strlen(table_colum[3]);
     }
 
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
       fprintf(f,
-        "\n%s| %-*s | %-*s | Pg size | %-*s |\n"
+        "\n%s| %-*s | %-*s | %s | %-*s |\n"
         "%s|-%*.*s-|-%*.*s-|---------|-%*.*s-|\n",
         prefix,
-        m_desc_digits_max+1, "Memory",
-        m_size_digits_max, "Size",
-        m_offset_digits_max+2, "Offset",
+        m_desc_digits_max+1, table_colum[0],
+        m_size_digits_max, table_colum[1],
+        table_colum[2],
+        m_offset_digits_max+2, table_colum[3],
         prefix,
         m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
         m_size_digits_max, m_size_digits_max, table_padding,
         m_offset_digits_max+2, m_offset_digits_max+2, table_padding);
     } else {
-      if(m_size_digits_max < 4)
-        m_size_digits_max = 4;
       fprintf(f,
-        "\n%s| %-*s | %-*s | Pg size |\n"
+        "\n%s| %-*s | %-*s | %s |\n"
         "%s|-%*.*s-|-%*.*s-|---------|\n",
         prefix,
-        m_desc_digits_max+1, "Memory",
-        m_size_digits_max, "Size",
+        m_desc_digits_max+1, table_colum[0],
+        m_size_digits_max, table_colum[1],
+        table_colum[2],
         prefix,
         m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
         m_size_digits_max, m_size_digits_max, table_padding);
