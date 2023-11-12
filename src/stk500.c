@@ -862,6 +862,11 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
   if (stk500_getsync(pgm) < 0)
     return -1;
 
+  if (pgm->bitclock != 0.0) {
+    if (pgm->set_sck_period(pgm, pgm->bitclock) != 0)
+      return -1;
+  }
+
   return 0;
 }
 
