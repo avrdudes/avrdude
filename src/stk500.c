@@ -554,10 +554,10 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned int vtarg_read;
     stk500_getparm(pgm, Parm_STK_VTARGET, &vtarg_read);
     if (PDATA(pgm)->vtarg_get)
-      msg_info("Target voltage value read as %.2fV\n", (vtarg_read / 10.0));
+      msg_info("Target voltage value read as %.2f V\n", (vtarg_read / 10.0));
     // Write target voltage value
     else {
-      msg_info("Changing target voltage from %.2f to %.2fV\n", (vtarg_read / 10.0), PDATA(pgm)->vtarg_data);
+      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read / 10.0), PDATA(pgm)->vtarg_data);
       if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
         return -1;
     }
@@ -569,10 +569,10 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned int varef_read;
     stk500_getparm(pgm, Parm_STK_VADJUST, &varef_read);
     if (PDATA(pgm)->varef_get)
-      msg_info("Analog reference voltage value read as %.2fV\n", (varef_read / 10.0));
+      msg_info("Analog reference voltage value read as %.2f V\n", (varef_read / 10.0));
     // Write analog reference voltage
     else {
-      msg_info("Changing analog reference voltage from %.2f to %.2fV\n",
+      msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
         (varef_read / 10.0), PDATA(pgm)->varef_data);
       if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
         return -1;
@@ -637,7 +637,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     else if (str_starts(extended_param, "vtarg")) {
       if ((pgm->extra_features & HAS_VTARG_ADJ) && (str_starts(extended_param, "vtarg=")))  {
         // Set target voltage
-        double vtarg_set_val = 0;
+        double vtarg_set_val = -1; // default = invlid value
         int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
         PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
         if (sscanf_success < 1 || vtarg_set_val < 0) {
@@ -657,7 +657,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     else if (str_starts(extended_param, "varef")) {
       if (pgm->extra_features & HAS_VAREF_ADJ) {
         int sscanf_success = 0;
-        double varef_set_val = 0;
+        double varef_set_val = -1;
         // Get new analog reference voltage for channel 0
         if (str_starts(extended_param, "varef=")) {
           sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
@@ -704,7 +704,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
             if (str_eq(fosc_str, "off"))
               PDATA(pgm)->fosc_data = 0.0;
             else {
-              pmsg_error("cannot parse fosc value %s\n", fosc_str);
+              pmsg_error("invalid fosc value '%s'\n", fosc_str);
               rv = -1;
               break;
             }
@@ -739,7 +739,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         char *endp;
         double v = strtod(xtal_str, &endp);
         if (endp == xtal_str){
-          pmsg_error("cannot parse xtal value %s\n", xtal_str);
+          pmsg_error("invalid xtal value '%s'\n", xtal_str);
           rv = -1;
           break;
         }
@@ -749,6 +749,11 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           PDATA(pgm)->xtal = v * 1e3;
         else if (*endp == 0 || *endp == 'h' || *endp == 'H') // "nnnn" or "nnnnHz"
           PDATA(pgm)->xtal = v;
+        else {
+          pmsg_error("invalid xtal value '%s'\n", xtal_str);
+          rv = -1;
+          break;
+        }
         continue;
       }
     }

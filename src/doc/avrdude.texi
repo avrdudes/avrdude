@@ -1157,7 +1157,7 @@ The STK500 and STK600 boards accept the following extended parameters:
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by @samp{-xvtarg} alone.
-@item @samp{fosc=VALUE[MHz|M|kHz|k|Hz], fosc}
+@item @samp{fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc}
 Set the programmable oscillator frequency in MHz, kHz or Hz.
 The current frequency can be read by @samp{-xfosc} alone.
 @item @samp{varef=VALUE, varef}
@@ -1176,6 +1176,9 @@ The current reference voltage can be read by @samp{-xvaref0} or
 @*
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+@item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
+Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
+original STK500. Used by avrdude for the correct calculation of fosc and sck.
 @item @samp{help}
 Show help menu and exit.
 @end table
