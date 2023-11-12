@@ -537,27 +537,29 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
     }
 
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-    fprintf(f,
-      "\n%s| %-*s | %-*s | Pg size | %-*s |\n"
-      "%s|-%*.*s-|-%*.*s-|---------|-%*.*s-|\n",
-      prefix,
-      m_desc_digits_max+1, "Memory",
-      m_size_digits_max, "Size",
-      m_offset_digits_max+2, "Offset",
-      prefix,
-      m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
-      m_size_digits_max, m_size_digits_max, table_padding,
-      m_offset_digits_max+2, m_offset_digits_max+2, table_padding);
+      fprintf(f,
+        "\n%s| %-*s | %-*s | Pg size | %-*s |\n"
+        "%s|-%*.*s-|-%*.*s-|---------|-%*.*s-|\n",
+        prefix,
+        m_desc_digits_max+1, "Memory",
+        m_size_digits_max, "Size",
+        m_offset_digits_max+2, "Offset",
+        prefix,
+        m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
+        m_size_digits_max, m_size_digits_max, table_padding,
+        m_offset_digits_max+2, m_offset_digits_max+2, table_padding);
     } else {
-    fprintf(f,
-      "\n%s| %-*s | %-*s | Pg size |\n"
-      "%s|-%*.*s-|-%*.*s-|---------|\n",
-      prefix,
-      m_desc_digits_max+1, "Memory",
-      m_size_digits_max, "Size",
-      prefix,
-      m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
-      m_size_digits_max, m_size_digits_max, table_padding);
+      if(m_size_digits_max < 4)
+        m_size_digits_max = 4;
+      fprintf(f,
+        "\n%s| %-*s | %-*s | Pg size |\n"
+        "%s|-%*.*s-|-%*.*s-|---------|\n",
+        prefix,
+        m_desc_digits_max+1, "Memory",
+        m_size_digits_max, "Size",
+        prefix,
+        m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
+        m_size_digits_max, m_size_digits_max, table_padding);
     }
   }
 
