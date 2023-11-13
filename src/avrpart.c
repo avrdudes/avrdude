@@ -504,21 +504,24 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
   const char *table_padding = "-------------------------------";
   static int m_desc_digits_max;
   static int m_size_digits_max;
+  static int m_pgsize_digits_max;
   static int m_offset_digits_max;
 
   if (m == NULL) {
     for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
       m = ldata(ln);
       int m_size = m->size;
+      int m_pg_size = m->page_size;
       int m_offset = m->offset;
       int m_desc_cnt = 0;
       int m_size_cnt = 0;
+      int m_pg_size_cnt = 0;
       int m_offset_cnt = 0;
 
       // Mem desc digits
       AVRMEM_ALIAS *a = avr_find_memalias(p, m);
       const char *m_desc_a = a? a->desc: "";
-      m_desc_cnt = strlen(m->desc) + strlen(m_desc_a);
+      m_desc_cnt = strlen(m->desc) + strlen(a? "/": "") + strlen(m_desc_a);
       if(m_desc_digits_max < m_desc_cnt)
         m_desc_digits_max = m_desc_cnt;
       if(m_desc_digits_max < (int)strlen(table_colum[0]))
@@ -532,6 +535,15 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
         m_size_digits_max = m_size_cnt;
       if(m_size_digits_max < (int)strlen(table_colum[1]))
         m_size_digits_max = strlen(table_colum[1]);
+      // Mem pg size digits
+      do {
+        m_pg_size /= 10;
+        ++m_pg_size_cnt;
+      } while (m_pg_size != 0);
+      if(m_pgsize_digits_max < m_pg_size_cnt)
+        m_pgsize_digits_max = m_pg_size_cnt;
+      if(m_pgsize_digits_max < (int)strlen(table_colum[2]))
+        m_pgsize_digits_max = strlen(table_colum[2]);
       // Mem offset digits
       do {
         m_offset /= 16;
@@ -542,31 +554,34 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       if(m_offset_digits_max < (int)strlen(table_colum[3]))
         m_offset_digits_max = strlen(table_colum[3]);
     }
+    m_offset_digits_max += strlen("0x");
 
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
       fprintf(f,
-        "\n%s| %-*s | %-*s | %s | %-*s |\n"
-        "%s|-%*.*s-|-%*.*s-|---------|-%*.*s-|\n",
+        "\n%s| %-*s  %-*s  %-*s  %*s |\n"
+        "%s|-%*.*s--%*.*s--%*.*s--%*.*s-|\n",
         prefix,
-        m_desc_digits_max+1, table_colum[0],
+        m_desc_digits_max, table_colum[0],
         m_size_digits_max, table_colum[1],
-        table_colum[2],
-        m_offset_digits_max+2, table_colum[3],
+        m_pgsize_digits_max, table_colum[2],
+        m_offset_digits_max, table_colum[3],
         prefix,
-        m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
+        m_desc_digits_max, m_desc_digits_max, table_padding,
         m_size_digits_max, m_size_digits_max, table_padding,
-        m_offset_digits_max+2, m_offset_digits_max+2, table_padding);
+        m_pgsize_digits_max, m_pgsize_digits_max, table_padding,
+        m_offset_digits_max, m_offset_digits_max, table_padding);
     } else {
       fprintf(f,
-        "\n%s| %-*s | %-*s | %s |\n"
-        "%s|-%*.*s-|-%*.*s-|---------|\n",
+        "\n%s| %-*s  %-*s  %-*s |\n"
+        "%s|-%*.*s--%*.*s--%*.*s-|\n",
         prefix,
-        m_desc_digits_max+1, table_colum[0],
+        m_desc_digits_max, table_colum[0],
         m_size_digits_max, table_colum[1],
-        table_colum[2],
+        m_pgsize_digits_max, table_colum[2],
         prefix,
-        m_desc_digits_max+1, m_desc_digits_max+1, table_padding,
-        m_size_digits_max, m_size_digits_max, table_padding);
+        m_desc_digits_max, m_desc_digits_max, table_padding,
+        m_size_digits_max, m_size_digits_max, table_padding,
+        m_pgsize_digits_max, m_pgsize_digits_max, table_padding);
     }
   }
 
@@ -587,6 +602,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       } while (m_offset != 0);
       if(m_offset_digits < m_offset_cnt)
         m_offset_digits = m_offset_cnt;
+      m_offset_digits += strlen("0x");
 
       AVRMEM_ALIAS *a = avr_find_memalias(p, m);
       const char *m_desc_a = a? a->desc: "";
@@ -594,18 +610,18 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       sprintf(d,"%s%s%s", m->desc, a? "/": "", m_desc_a);
 
       if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-        fprintf(f, "%s| %-*s| %*d | %7d | %*s0x%x |\n",
+        fprintf(f, "%s| %-*s  %*d  %*d  %*s0x%x |\n",
           prefix,
-          m_desc_digits_max+2, d,
+          m_desc_digits_max, d,
           m_size_digits_max < 4? 4: m_size_digits_max, m->size,
-          m->page_size,
+          m_pgsize_digits_max, m->page_size,
           m_offset_digits_max-m_offset_digits, "", m->offset);
       } else {
-        fprintf(f, "%s| %-*s| %*d | %7d |\n",
+        fprintf(f, "%s| %-*s  %*d  %*d |\n",
           prefix,
-          m_desc_digits_max+2, d,
+          m_desc_digits_max, d,
           m_size_digits_max < 4? 4: m_size_digits_max, m->size,
-          m->page_size);
+          m_pgsize_digits_max, m->page_size);
       }
     }
   }
@@ -630,26 +646,26 @@ static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
     }
 
     fprintf(f,
-      "\n%s| %-*s | %-*s | %-*s | %-*s | %-*s |\n"
-        "%s|-%*.*s-|-%*.*s-|-%*.*s-|-%*.*s-|-%*.*s-|\n",
+      "\n%s| %-*s  %-*s  %-*s  %-*s  %-*s |\n"
+        "%s|-%*.*s--%*.*s--%*.*s--%*.*s--%*.*s-|\n",
       prefix,
       var_tok_len[0], var_table_column[0],
       var_tok_len[1], var_table_column[1],
       var_tok_len[2], var_table_column[2],
-      var_tok_len[3], var_table_column[3],
-      var_tok_len[4], var_table_column[4],
+      var_tok_len[3]+2, var_table_column[3],
+      var_tok_len[4]+2, var_table_column[4],
       prefix,
       var_tok_len[0], var_tok_len[0], table_padding,
       var_tok_len[1], var_tok_len[1], table_padding,
       var_tok_len[2], var_tok_len[2], table_padding,
-      var_tok_len[3], var_tok_len[3], table_padding,
-      var_tok_len[4], var_tok_len[4], table_padding);
+      var_tok_len[3]+2, var_tok_len[3]+2, table_padding,
+      var_tok_len[4]+2, var_tok_len[4]+2, table_padding);
 
     for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
       sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
         var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
       fprintf(f,
-        "%s| %-*s | %-*s | %-*s | %-*s | %-*s |\n",
+        "%s| %-*s  %-*s  %-*s  [%-*s]  [%-*s] |\n",
         prefix,
         var_tok_len[0], var_tok[0],
         var_tok_len[1], var_tok[1],
