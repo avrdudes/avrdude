@@ -837,33 +837,33 @@ static char *prog_modes_str(int pm) {
 
   strcpy(type, "0");
   if(pm & PM_SPM)
-    strcat(type, " | PM_SPM");
+    strcat(type, ", SPM");
   if(pm & PM_TPI)
-    strcat(type, " | PM_TPI");
+    strcat(type, ", TPI");
   if(pm & PM_ISP)
-    strcat(type, " | PM_ISP");
+    strcat(type, ", ISP");
   if(pm & PM_PDI)
-    strcat(type, " | PM_PDI");
+    strcat(type, ", PDI");
   if(pm & PM_UPDI)
-    strcat(type, " | PM_UPDI");
+    strcat(type, ", UPDI");
   if(pm & PM_HVSP)
-    strcat(type, " | PM_HVSP");
+    strcat(type, ", HVSP");
   if(pm & PM_HVPP)
-    strcat(type, " | PM_HVPP");
+    strcat(type, ", HVPP");
   if(pm & PM_debugWIRE)
-    strcat(type, " | PM_debugWIRE");
+    strcat(type, ", debugWIRE");
   if(pm & PM_JTAG)
-    strcat(type, " | PM_JTAG");
+    strcat(type, ", JTAG");
   if(pm & PM_JTAGmkI)
-    strcat(type, " | PM_JTAGmkI");
+    strcat(type, ", JTAGmkI");
   if(pm & PM_XMEGAJTAG)
-    strcat(type, " | PM_XMEGAJTAG");
+    strcat(type, ", XMEGAJTAG");
   if(pm & PM_AVR32JTAG)
-    strcat(type, " | PM_AVR32JTAG");
+    strcat(type, ", AVR32JTAG");
   if(pm & PM_aWire)
-    strcat(type, " | PM_aWire");
+    strcat(type, ", aWire");
 
-  return type + (type[1] == 0? 0: 4);
+  return type + (type[1] == 0? 0: 3);
 }
 
 
