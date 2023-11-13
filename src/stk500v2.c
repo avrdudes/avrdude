@@ -405,6 +405,14 @@ f_to_kHz_MHz(double f, const char **unit)
   return f;
 }
 
+static int get_decimals(double f) {
+  if (f >= 1e6)
+    return 6;
+  if (f >= 1e3)
+    return 3;
+  return 0;
+}
+
 static int stk500v2_send_mk2(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   if (serial_send(&pgm->fd, data, len) != 0) {
     pmsg_error("unable to send command to serial port\n");
@@ -1340,7 +1348,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       f_get = f_to_kHz_MHz(f_get, &unit_get);
       if (PDATA(pgm)->fosc_get)
           msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
-      // Write target voltage value
+      // Write new osc freq
       else {
         const char *unit_set;
         double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
@@ -1833,7 +1841,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            pmsg_error("invalid vtarg value %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1886,7 +1894,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         if (PDATA(pgm)->varef_set) {
           PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || varef_set_val < 0) {
-            pmsg_error("invalid varef value '%s'\n", extended_param);
+            pmsg_error("invalid varef value %s\n", extended_param);
             PDATA(pgm)->varef_set = false;
             rv = -1;
             break;
@@ -1903,7 +1911,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           char fosc_str[16] = {0};
           int sscanf_success = sscanf(extended_param, "fosc=%10s", fosc_str);
           if (sscanf_success < 1) {
-            pmsg_error("invalid fosc value '%s'\n", extended_param);
+            pmsg_error("invalid fosc value %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1913,7 +1921,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
             if (str_eq(fosc_str, "off"))
               PDATA(pgm)->fosc_data = 0.0;
             else {
-              pmsg_error("invalid fosc value '%s'\n", fosc_str);
+              pmsg_error("invalid fosc value %s\n", fosc_str);
               rv = -1;
               break;
             }
@@ -1925,7 +1933,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           else if (*endp == 'h' || *endp == 'H' || *endp == 0)
             PDATA(pgm)->fosc_data =  v;
           else {
-            pmsg_error("invalid fosc value '%s'\n", fosc_str);
+            pmsg_error("invalid fosc value %s\n", fosc_str);
             rv = -1;
             break;
           }
@@ -1946,14 +1954,14 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         char xtal_str[16] = {0};
         int sscanf_success = sscanf(extended_param, "xtal=%10s", xtal_str);
         if (sscanf_success < 1) {
-          pmsg_error("invalid xtal value '%s'\n", extended_param);
+          pmsg_error("invalid xtal value %s\n", extended_param);
           rv = -1;
           break;
         }
         char *endp;
         double v = strtod(xtal_str, &endp);
         if (endp == xtal_str){
-          pmsg_error("invalid xtal value '%s'\n", xtal_str);
+          pmsg_error("invalid xtal value %s\n", xtal_str);
           rv = -1;
           break;
         }
@@ -1964,7 +1972,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         else if (*endp == 0 || *endp == 'h' || *endp == 'H') // "nnnn" or "nnnnHz"
           PDATA(pgm)->xtal = (unsigned)v;
         else {
-          pmsg_error("invalid xtal value '%s'\n", xtal_str);
+          pmsg_error("invalid xtal value %s\n", xtal_str);
           rv = -1;
           break;
         }
@@ -2001,7 +2009,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       exit(0);
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter %s\n", extended_param);
     rv = -1;
   }
   return rv;
@@ -2026,7 +2034,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         // Set SUFFER value
         if (str_starts(extended_param, "suffer=")) {
           if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
+            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -2050,7 +2058,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         if (str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
+            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -2071,7 +2079,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            pmsg_error("invalid vtarg value %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -2102,7 +2110,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       exit(0);
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter %s\n", extended_param);
     rv = -1;
   }
   return rv;
@@ -3375,13 +3383,13 @@ static int stk500v2_set_sck_period(const PROGRAMMER *pgm, double v) {
   unsigned char dur;
   double f = 1 / v;
 
-  if (f >= PDATA(pgm)->xtal / 4)       // 1.8432E6
+  if (f >= PDATA(pgm)->xtal / 4.0)       // 1.8432E6
     d = 0;
-  else if (f > PDATA(pgm)->xtal / 16)  // 460.8E3
+  else if (f > PDATA(pgm)->xtal / 16.0)  // 460.8E3
     d = 1;
-  else if (f > PDATA(pgm)->xtal / 64)  // 115.2E3
+  else if (f > PDATA(pgm)->xtal / 64.0)  // 115.2E3
     d = 2;
-  else if (f > PDATA(pgm)->xtal / 128) // 57.6E3
+  else if (f > PDATA(pgm)->xtal / 128.0) // 57.6E3
     d = 3;
   else
     d = (unsigned int)ceil(1 / (24 * f / (double)PDATA(pgm)->xtal) - 10.0 / 12.0);
@@ -3396,13 +3404,13 @@ static double stk500v2_sck_to_us(const PROGRAMMER *pgm, unsigned char dur) {
   double x;
 
   if (dur == 0)
-    return  4E6 / PDATA(pgm)->xtal;  // 0.5425;
+    return  4.E6 / PDATA(pgm)->xtal;  // 0.5425;
   if (dur == 1)
-    return 16E6 / PDATA(pgm)->xtal;  // 2.17;
+    return 16.E6 / PDATA(pgm)->xtal;  // 2.17;
   if (dur == 2)
-    return 64E6 / PDATA(pgm)->xtal;  // 8.68;
+    return 64.E6 / PDATA(pgm)->xtal;  // 8.68;
   if (dur == 3)
-    return 128E6 / PDATA(pgm)->xtal; // 17.36;
+    return 128.E6 / PDATA(pgm)->xtal; // 17.36;
 
   x = (double)dur + 10.0 / 12.0;
   x = 1.0 / x;
@@ -3703,6 +3711,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   int prescale;
   double f;
   const char *unit;
+  int decimals = 6;
 
   memset(vtarget_jtag, 0, sizeof vtarget_jtag);
 
@@ -3746,25 +3755,20 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
         }
         f /= prescale;
         f /= (osc_cmatch + 1);
+        decimals = get_decimals(f);
         f = f_to_kHz_MHz(f, &unit);
-        fmsg_out(fp, "%.3f %s\n", f, unit);
+        fmsg_out(fp, "%.*f %s\n", f, decimals, unit);
       }
     }
     fmsg_out(fp, "%sSCK period      : %.1f us\n", p,
 	    stk500v2_sck_to_us(pgm, sck_duration));
 
-  const char *unit;
-  double f = PDATA(pgm)->xtal;
-  if (f >= 1e6) {
-    f /= 1e6;
-    unit = "MHz";
-  } else if (f >= 1e3) {
-    f /= 1000;
-    unit = "kHz";
-  } else
-    unit = "Hz";
-  fmsg_out(fp, "%sXTAL frequency  : %.3f %s\n", p, f, unit);
-    break;
+    //const char *unit;
+    double f = PDATA(pgm)->xtal;
+    decimals = get_decimals(f);
+    f = f_to_kHz_MHz(f, &unit);
+    fmsg_out(fp, "%sXTAL frequency  : %.*f %s\n", p, f, decimals, unit);
+      break;
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
