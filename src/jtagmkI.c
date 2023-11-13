@@ -968,7 +968,7 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned char resp[1], writedata;
   int len, need_progmode = 1, need_dummy_read = 0;
 
-  pmsg_notice2("jtagmkI_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("jtagmkI_write_byte(.., %s, 0x%lx, 0x%02x)\n", mem->desc, addr, data);
 
   writedata = data;
   cmd[0] = CMD_WRITE_MEM;
@@ -989,11 +989,13 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
     need_dummy_read = 1;
-  } else if (mem_is_calibration(mem)) {
-    cmd[1] = MTYPE_OSCCAL_BYTE;
-    need_dummy_read = 1;
-  } else if (mem_is_signature(mem)) {
-    cmd[1] = MTYPE_SIGN_JTAG;
+  } else if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    return -1;
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
     return -1;

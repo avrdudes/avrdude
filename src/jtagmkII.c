@@ -2342,30 +2342,29 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
       unsupp = 1;
   } else if (mem_is_userrow(mem)) {
     cmd[1] = MTYPE_USERSIG;
-  } else if (mem_is_sigrow(mem)) {
-    cmd[1] = MTYPE_PRODSIG;
   } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
-  } else if (mem_is_calibration(mem)) {
-    cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if (mem_is_io(mem)) {
     cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
     addr += avr_data_offset(p);
-  } else if (mem_is_signature(mem)) {
-    cmd[1] = MTYPE_SIGN_JTAG;
-    if (pgm->flag & PGM_FL_IS_DW)
-      unsupp = 1;
+  } else if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    return -1;
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
   }
 
-  if (unsupp)
+  if (unsupp) {
+    pmsg_error("unsupported memory %s in debugWIRE mode\n", mem->desc);
     return -1;
+  }
 
   if (need_progmode) {
     if (jtagmkII_program_enable(pgm) < 0)

@@ -216,11 +216,19 @@ int ovsigck;                    // 1 = override sig check, 0 = don't
 const char *partdesc;           // Part -p string
 const char *pgmid;              // Programmer -c string
 
+static char usr_config[PATH_MAX]; // Per-user config file
+
 /*
  * usage message
  */
 static void usage(void)
 {
+  char *home = getenv("HOME");
+  size_t l = home? strlen(home): 0;
+  char *cfg = home && str_casestarts(usr_config, home)?
+     str_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
+     str_sprintf("%s", usr_config);
+
   msg_error(
     "Usage: %s [options]\n"
     "Options:\n"
@@ -230,6 +238,8 @@ static void usage(void)
     "  -b <baudrate>          Override RS-232 baud rate\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
+    "  -C +<config-file>      Specify additional config file, can be repeated\n"
+    "  -N                     Do not load %s%s\n"
     "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
     "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
     "                         e.g., -c 'ur*'/s for programmer info/definition\n"
@@ -256,7 +266,9 @@ static void usage(void)
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
     "  -?                     Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
-    progname, version);
+    progname, strlen(cfg) < 24? "config file ": "", cfg, version);
+
+  free(cfg);
 }
 
 
@@ -442,11 +454,15 @@ static int dev_opt(const char *str) {
 }
 
 
-static void programmer_not_found(const char *programmer) {
+static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
   msg_error("\n");
-  if(programmer && *programmer)
-    pmsg_error("cannot find programmer id %s\n", programmer);
-  else {
+  if(programmer && *programmer) {
+    if(!pgm || !pgm->id || !lsize(pgm->id))
+      pmsg_error("cannot find programmer id %s\n", programmer);
+    else
+      pmsg_error("programmer %s lacks %s setting\n", programmer,
+        !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
+  } else {
     pmsg_error("no programmer has been specified on the command line or in the\n");
     imsg_error("config file(s); specify one using the -c option and try again\n");
   }
@@ -515,12 +531,12 @@ int main(int argc, char * argv [])
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
+  int     no_avrduderc; /* 1=don't load personal conf file */
   char  * port;        /* device port (/dev/xxx) */
   const char *exitspecs; /* exit specs string from command line */
   int     explicit_c;  /* 1=explicit -c on command line, 0=not specified there */
   int     explicit_e;  /* 1=explicit -e on command line, 0=not specified there */
   char    sys_config[PATH_MAX]; /* system wide config file */
-  char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
   char    executable_dirpath[PATH_MAX]; /* absolute path to folder with executable */
   bool    executable_abspath_found = false; /* absolute path to executable found */
@@ -607,6 +623,7 @@ int main(int argc, char * argv [])
   port          = NULL;
   erase         = 0;
   calibrate     = 0;
+  no_avrduderc  = 0;
   p             = NULL;
   ovsigck       = 0;
   quell_progress = 0;
@@ -637,11 +654,22 @@ int main(int argc, char * argv [])
     return 0;
   }
 
+   // Determine the location of personal configuration file
+#if defined(WIN32)
+  win_usr_config_set(usr_config);
+#else
+  usr_config[0] = 0;
+  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
+    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
+  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
+#endif
+
 
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qrstT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -754,6 +782,10 @@ int main(int argc, char * argv [])
 
       case 'n':
         uflags |= UF_NOWRITE;
+        break;
+
+      case 'N':
+        no_avrduderc = 1;
         break;
 
       case 'O': /* perform RC oscillator calibration */
@@ -938,21 +970,6 @@ int main(int argc, char * argv [])
   msg_trace2("sys_config_found = %s\n", sys_config_found ? "true" : "false");
   msg_trace2("\n");
 
-  /*
-   * USER CONFIG
-   * -----------
-   * Determine the location of '.avrduderc'.
-   */
-#if defined(WIN32)
-  win_usr_config_set(usr_config);
-#else
-  usr_config[0] = 0;
-  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
-    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
-  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
-    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
-#endif
-
   if (quell_progress == 0)
     terminal_setup_update_progress();
 
@@ -980,7 +997,7 @@ int main(int argc, char * argv [])
     free(real_sys_config);
   }
 
-  if (usr_config[0] != 0) {
+  if (usr_config[0] != 0 && !no_avrduderc) {
     imsg_notice("User configuration file is %s\n", usr_config);
 
     rc = stat(usr_config, &sb);
@@ -993,6 +1010,11 @@ int main(int argc, char * argv [])
         exit(1);
       }
     }
+  }
+
+  if(!str_eq(avrdude_conf_version, version)) {
+    pmsg_warning("System wide configuration file version (%s)\n", avrdude_conf_version);
+    imsg_warning("does not match Avrdude build version (%s)\n", version);
   }
 
   if (lsize(additional_config_files) > 0) {
@@ -1028,6 +1050,7 @@ int main(int argc, char * argv [])
     exit(0);
   }
 
+  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
@@ -1036,7 +1059,7 @@ int main(int argc, char * argv [])
         continue;
       const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
-      if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
+      if((pm & (pm-1)) && !str_eq(pnam, "dryrun") && !(dry && pgm->initpgm == dry->initpgm))
         pmsg_warning("%s and %s share multiple modes (%s)\n", pnam, p->desc, avr_prog_modes(pm));
     }
   }
@@ -1057,7 +1080,7 @@ int main(int argc, char * argv [])
       if(pgmid && *pgmid && explicit_c) {
         PROGRAMMER *pgm = locate_programmer_set(programmers, pgmid, &pgmid);
         if(!pgm || !is_programmer(pgm)) {
-          programmer_not_found(pgmid);
+          programmer_not_found(pgmid, pgm);
           exit(1);
         }
         msg_error("\nValid parts for programmer %s are:\n", pgmid);
@@ -1100,20 +1123,22 @@ int main(int argc, char * argv [])
   msg_notice("\n");
 
   if(!pgmid || !*pgmid) {
-    programmer_not_found(NULL);
+    programmer_not_found(NULL, NULL);
     exit(1);
   }
 
   pgm = locate_programmer_set(programmers, pgmid, &pgmid);
   if (pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid);
+    programmer_not_found(pgmid, pgm);
     exit(1);
   }
 
-  if(!ovsigck && partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
-    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
-    imsg_error("lack a common programming mode; use -F to override this check\n");
-    exit(1);
+  if(partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
+    pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, p->desc);
+    if(!ovsigck) {
+      imsg_error("use -F to override this check\n");
+      exit(1);
+    }
   }
 
   if (pgm->initpgm) {

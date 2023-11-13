@@ -2530,6 +2530,13 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     buf[0] = mode == PPMODE? CMD_PROGRAM_LOCK_PP: CMD_PROGRAM_LOCK_HVSP;
     pulsewidth = p->programlockpulsewidth;
     timeout = p->programlockpolltimeout;
+  } else if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    return -1;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
@@ -2687,7 +2694,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
     unsigned char is;
     if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
       return 0;
-    pmsg_error("cannot write to read-only memory %s\n", mem->desc);
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
     return -1;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
@@ -4274,7 +4281,14 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
             need_erase = 1;
     } else if (mem_is_userrow(mem)) {
         memcode = XPRG_MEM_TYPE_USERSIG;
-    } else {
+    } else if(mem_is_readonly(mem)) {
+      unsigned char is;
+      if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+        return 0;
+
+      pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+      return -1;
+      } else {
         pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }

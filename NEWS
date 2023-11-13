@@ -35,6 +35,10 @@ Changes since version 7.2:
     - Harmonise WIN32 and POSIX serial comms timeout #1249
     - Old avrdude.conf can result in a segmentation fault #1544
     - Support AVR EB series #1546
+    - Programmer in .avrduderc not recognised #1551
+    - JTAG signature write ineffective #1527
+    - Control forced loading of ~/.avrduderc #1548
+    - Warn if avrdude and avrdude.conf versions don't match #1562
 
   * Pull requests:
 
@@ -73,9 +77,17 @@ Changes since version 7.2:
     - Introduce memory types in lieu of memory name comparisons #1538
     - Allow UPDI_SIB of AVR_EB in serialupdi #1549
     - Harmonise WIN32 and POSIX serial comms timeout #1550
+    - Test programmers for prog_modes and type #1557
+    - Remove paged eeprom property from ATtiny43U #1556
+    - Review write_byte() functions #1554
+    - Provide option -N for do not load personal config file #1555
+    - Print warning when avrdude and avrdude.conf versions doesn't match #1564
+    - Always warn if part and programmer are incompatible #1563
 
   * Internals:
 
+    - Introduce memory types in lieu of memory name comparisons #1538
+      This will enable to decouple memory names from function
 
 Changes in version 7.2:
 

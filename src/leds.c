@@ -196,6 +196,9 @@ int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned long addr, unsigned char value) {
 
+  if(mem_is_readonly(m))
+    return pgm->write_byte(pgm, p, m, addr, value);
+
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
 
