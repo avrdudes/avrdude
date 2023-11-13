@@ -504,7 +504,6 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
   const char *table_padding = "-------------------------------";
   static int m_char_max[4] = {0};
 
-
   if (m == NULL) {
     for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
       m = ldata(ln);
@@ -534,6 +533,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
     }
     m_char_max[3] += strlen("0x");
 
+    // Print memory table header
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
       fprintf(f,
         "\n%s| %-*s  %-*s  %-*s  %*s |\n"
@@ -569,11 +569,10 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       prev_mem_offset = m->offset;
       prev_mem_size = m->size;
 
+      // Workaround to get the 0x prefix where it should be
       int m_offset = m->offset;
       int m_offset_cnt = 0;
       int m_offset_digits = 0;
-
-      // Workaround to get the 0x prefix where it should be
       do {
         m_offset /= 16;
         ++m_offset_cnt;
@@ -587,6 +586,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       char d[256];
       sprintf(d,"%s%s%s", m->desc, a? "/": "", m_desc_a);
 
+      // Print memory table content
       if(p->prog_modes & (PM_PDI | PM_UPDI)) {
         fprintf(f, "%s| %-*s  %*d  %*d  %*s0x%x |\n",
           prefix,
@@ -612,6 +612,7 @@ static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
   int var_tok_len[5] = {0};
 
   if(lsize(p->variants)) {
+    // Split variants strings into tokens and find their strlen
     for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
       sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
         var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
@@ -623,6 +624,7 @@ static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
       }
     }
 
+    // Print variants table header
     fprintf(f,
       "\n%s| %-*s  %-*s  %-*s  %-*s  %-*s |\n"
         "%s|-%*.*s--%*.*s--%*.*s--%*.*s--%*.*s-|\n",
@@ -639,6 +641,7 @@ static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
       var_tok_len[3]+2, var_tok_len[3]+2, table_padding,
       var_tok_len[4]+2, var_tok_len[4]+2, table_padding);
 
+    // Print variants table content
     for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
       sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
         var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
