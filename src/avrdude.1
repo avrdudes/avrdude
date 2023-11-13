@@ -33,6 +33,7 @@
 .Op Fl B Ar bitclock
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
+.Op Fl N
 .Op Fl A
 .Op Fl D
 .Op Fl e
@@ -45,6 +46,7 @@
 .Op Fl n
 .Op Fl O
 .Op Fl P Ar port
+.Op Fl r
 .Op Fl q
 .Op Fl T Ar cmd
 .Op Fl t
@@ -444,6 +446,10 @@ files. This can be used to add entries to the configuration
 without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command
 line.
+.It Fl N
+Do not load the personal configuration file that is usually located at
+~/.config/avrdude/avrdude.rc, ~/.avrduderc or in the same directory as the
+avrdude executable
 .It Fl A
 Disable the automatic removal of trailing-0xFF sequences in file
 input that is to be programmed to flash and in AVR reads from
