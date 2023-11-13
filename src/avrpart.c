@@ -510,7 +510,6 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
       m = ldata(ln);
       int m_size[] = {0, m->size, m->page_size, m->offset};
       const int m_base[] = {0, 10, 10, 16};
-      int m_char_cnt[4] = {0};
 
       // Mem desc charcter length
       AVRMEM_ALIAS *a = avr_find_memalias(p, m);
@@ -532,34 +531,6 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
         if(m_char_max[i] < (int)strlen(table_colum[i]))
           m_char_max[i] = strlen(table_colum[i]);
       }
-/*
-      cnt = 0;
-      do {
-        m_size /= 10;
-        ++m_size_cnt;
-      } while (m_size != 0);
-      if(m_size_digits_max < m_size_cnt)
-        m_size_digits_max = m_size_cnt;
-      if(m_size_digits_max < (int)strlen(table_colum[1]))
-        m_size_digits_max = strlen(table_colum[1]);
-      // Mem pg size digits
-      do {
-        m_pgsize /= 10;
-        ++m_pgsize_cnt;
-      } while (m_pgsize != 0);
-      if(m_pgsize_digits_max < m_pgsize_cnt)
-        m_pgsize_digits_max = m_pgsize_cnt;
-      if(m_pgsize_digits_max < (int)strlen(table_colum[2]))
-        m_pgsize_digits_max = strlen(table_colum[2]);
-      // Mem offset digits
-      do {
-        m_offset /= 16;
-        ++m_offset_cnt;
-      } while (m_offset != 0);
-      if(m_offset_digits_max < m_offset_cnt)
-        m_offset_digits_max = m_offset_cnt;
-      if(m_offset_digits_max < (int)strlen(table_colum[3]))
-        m_offset_digits_max = strlen(table_colum[3]);*/
     }
     m_char_max[3] += strlen("0x");
 
