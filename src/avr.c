@@ -1528,8 +1528,8 @@ memtable_t avr_mem_order[100] = {
   {"bootrow",     MEM_BOOTROW | MEM_USER_TYPE},
   {"usersig",     MEM_USERROW | MEM_USER_TYPE},
   {"userrow",     MEM_USERROW | MEM_USER_TYPE},
-  {"sram",        MEM_SRAM},
   {"io",          MEM_IO},
+  {"sram",        MEM_SRAM},
   {"sib",         MEM_SIB | MEM_READONLY},
 };
 

@@ -3114,13 +3114,13 @@ part # t11
         size               = 1;
     ;
 
+    memory "io"
+        size               = 64;
+    ;
+
     memory "sram"
         size               = 32;
         offset             = 0x60;
-    ;
-
-    memory "io"
-        size               = 64;
     ;
 ;
 
@@ -3231,13 +3231,13 @@ part # t12
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
+    memory "io"
+        size               = 64;
+    ;
+
     memory "sram"
         size               = 32;
         offset             = 0x60;
-    ;
-
-    memory "io"
-        size               = 64;
     ;
 ;
 
@@ -3388,14 +3388,14 @@ part # t13
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 64;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 64;
+        offset             = 0x60;
     ;
 ;
 
@@ -3538,13 +3538,13 @@ part # t15
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
+    memory "io"
+        size               = 64;
+    ;
+
     memory "sram"
         size               = 32;
         offset             = 0x60;
-    ;
-
-    memory "io"
-        size               = 64;
     ;
 ;
 
@@ -4728,14 +4728,14 @@ part # m64
         read               = "0011.1000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -4903,14 +4903,14 @@ part # m128
         read               = "0011.1000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -5072,14 +5072,14 @@ part # c128
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -5219,14 +5219,14 @@ part # c64
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -5366,14 +5366,14 @@ part # c32
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -5513,14 +5513,14 @@ part # m16
         read               = "0011.1000--000x.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x60;
     ;
 ;
 
@@ -5692,14 +5692,14 @@ part # m324p
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -6022,14 +6022,14 @@ part # m644
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -6252,14 +6252,14 @@ part # m1284
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 0x4000;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x100;
     ;
 ;
 
@@ -6447,14 +6447,14 @@ part # m162
         read               = "0011.1000--00xx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -7004,14 +7004,14 @@ part # m329
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -7285,14 +7285,14 @@ part # m649
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -7511,14 +7511,14 @@ part # m32
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x60;
     ;
 ;
 
@@ -7788,14 +7788,14 @@ part # m8
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x60;
     ;
 ;
 
@@ -7948,14 +7948,14 @@ part # m8515
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
     ;
 ;
 
@@ -8086,14 +8086,14 @@ part # m8535
         read               = "0011.1000--00xx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
     ;
 ;
 
@@ -8222,14 +8222,14 @@ part # t26
         read               = "0011.1000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 128;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -8374,14 +8374,14 @@ part # t261
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 128;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -8552,14 +8552,14 @@ part # t461
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 256;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
     ;
 ;
 
@@ -8726,14 +8726,14 @@ part # t861
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
     ;
 ;
 
@@ -8822,14 +8822,14 @@ part # t28
         size               = 1;
     ;
 
-    memory "sram"
-        size               = 32;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x60;
     ;
 ;
 
@@ -8984,14 +8984,14 @@ part # m48
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -9238,14 +9238,14 @@ part # m88
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -9496,14 +9496,14 @@ part # m168
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -9744,14 +9744,14 @@ part # t828
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -9912,14 +9912,14 @@ part # t87
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -10070,14 +10070,14 @@ part # t167
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -10226,14 +10226,14 @@ part # t48
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 256;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x100;
     ;
 ;
 
@@ -10382,14 +10382,14 @@ part # t88
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -10537,14 +10537,14 @@ part # m328
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -10749,14 +10749,14 @@ part # m64m1
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -11248,14 +11248,14 @@ part # m16hva
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -11410,14 +11410,14 @@ part # m16hvb
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -11609,14 +11609,14 @@ part # m64hve2
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -11793,14 +11793,14 @@ part # t2313
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 128;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -11974,14 +11974,14 @@ part # t4313
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 256;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
     ;
 ;
 
@@ -12124,14 +12124,14 @@ part # pwm1
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -12504,14 +12504,14 @@ part # pwm161
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -12774,14 +12774,14 @@ part # t25
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 128;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -12944,14 +12944,14 @@ part # t45
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 256;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
     ;
 ;
 
@@ -13111,14 +13111,14 @@ part # t85
         read               = "0011.1000--000x.xxxx--0000.000a--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
     ;
 ;
 
@@ -13263,14 +13263,14 @@ part # m640
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 8192;
-        offset             = 0x200;
-    ;
-
     memory "io"
         size               = 480;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x200;
     ;
 ;
 
@@ -13414,14 +13414,14 @@ part # m1280
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 8192;
-        offset             = 0x200;
-    ;
-
     memory "io"
         size               = 480;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x200;
     ;
 ;
 
@@ -13589,14 +13589,14 @@ part # m2560
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 8192;
-        offset             = 0x200;
-    ;
-
     memory "io"
         size               = 480;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x200;
     ;
 ;
 
@@ -14015,14 +14015,14 @@ part # t24
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 128;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -14205,14 +14205,14 @@ part # t44
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 256;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
     ;
 ;
 
@@ -14394,14 +14394,14 @@ part # t84
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
     ;
 ;
 
@@ -14470,12 +14470,12 @@ part parent "t44" # t441
         write              = "1010.1100--1010.0100--xxxx.xxxx--iiii.iiii";
     ;
 
-    memory "sram"
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
+    ;
+
+    memory "sram"
+        offset             = 0x100;
     ;
 ;
 
@@ -14520,12 +14520,12 @@ part parent "t84" # t841
         write              = "1010.1100--1010.0100--xxxx.xxxx--iiii.iiii";
     ;
 
-    memory "sram"
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
+    ;
+
+    memory "sram"
+        offset             = 0x100;
     ;
 ;
 
@@ -14671,14 +14671,14 @@ part # t43u
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 256;
-        offset             = 0x60;
-    ;
-
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
     ;
 ;
 
@@ -14820,14 +14820,14 @@ part # m16u4
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1280;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1280;
+        offset             = 0x100;
     ;
 ;
 
@@ -14971,14 +14971,14 @@ part # m32u4
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2560;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2560;
+        offset             = 0x100;
     ;
 ;
 
@@ -15120,14 +15120,14 @@ part # usb646
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -15287,14 +15287,14 @@ part # usb1286
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 8192;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x100;
     ;
 ;
 
@@ -15457,14 +15457,14 @@ part # usb162
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -15608,14 +15608,14 @@ part # usb82
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -15760,14 +15760,14 @@ part # m32u2
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -15912,14 +15912,14 @@ part # m16u2
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -16064,14 +16064,14 @@ part # m8u2
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 512;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -16220,14 +16220,14 @@ part # m165p
         read               = "0011.1000--0000.0000--xxxx.xxxx--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -16429,14 +16429,14 @@ part # m325
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -16639,14 +16639,14 @@ part # m645
         read               = "0011.1000--0000.0000--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 4096;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -16862,13 +16862,13 @@ part # .xmega
         offset             = 0x1000090;
     ;
 
-    memory "sram"
-        offset             = 0x2000;
-    ;
-
     memory "io"
         size               = 4096;
         readsize           = 1;
+    ;
+
+    memory "sram"
+        offset             = 0x2000;
     ;
 ;
 
@@ -19278,14 +19278,14 @@ part # t1634
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
     ;
 
-    memory "sram"
-        size               = 1024;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -19468,12 +19468,12 @@ part parent ".reduced_core_tiny" # t20
         n_word_writes      = 2;
     ;
 
-    memory "sram"
-        size               = 128;
-    ;
-
     memory "io"
         size               = 64;
+    ;
+
+    memory "sram"
+        size               = 128;
     ;
 ;
 
@@ -19508,12 +19508,12 @@ part parent ".reduced_core_tiny" # t40
         n_word_writes      = 4;
     ;
 
-    memory "sram"
-        size               = 256;
-    ;
-
     memory "io"
         size               = 64;
+    ;
+
+    memory "sram"
+        size               = 256;
     ;
 ;
 
@@ -19682,14 +19682,14 @@ part # m406
         size               = 3;
     ;
 
-    memory "sram"
-        size               = 2048;
-        offset             = 0x100;
-    ;
-
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
