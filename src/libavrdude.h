@@ -360,7 +360,7 @@ typedef struct {
 #define MEM_OSC20ERR    (1<<19) // osc20err
 #define MEM_BOOTROW     (1<<20) // bootrow
 #define MEM_USERROW     (1<<21) // userrow usersig
-#define MEM_SRAM        (1<<22) // data
+#define MEM_SRAM        (1<<22) // sram
 #define MEM_IO          (1<<23) // io
 #define MEM_SIB         (1<<24) // sib
 
@@ -393,7 +393,7 @@ typedef struct {
 #define avr_locate_bootrow(p) avr_locate_mem_by_type((p), MEM_BOOTROW)
 #define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERROW)
 #define avr_locate_userrow(p) avr_locate_mem_by_type((p), MEM_USERROW)
-#define avr_locate_data(p) avr_locate_mem_by_type((p), MEM_SRAM)
+#define avr_locate_sram(p) avr_locate_mem_by_type((p), MEM_SRAM)
 #define avr_locate_io(p) avr_locate_mem_by_type((p), MEM_IO)
 #define avr_locate_sib(p) avr_locate_mem_by_type((p), MEM_SIB)
 
@@ -441,7 +441,7 @@ typedef struct {
 #define mem_is_osc20err(mem) (!!((mem)->type & MEM_OSC20ERR))
 #define mem_is_bootrow(mem) (!!((mem)->type & MEM_BOOTROW))
 #define mem_is_userrow(mem) (!!((mem)->type & MEM_USERROW))
-#define mem_is_data(mem) (!!((mem)->type & MEM_SRAM))
+#define mem_is_sram(mem) (!!((mem)->type & MEM_SRAM))
 #define mem_is_io(mem) (!!((mem)->type & MEM_IO))
 #define mem_is_sib(mem) (!!((mem)->type & MEM_SIB))
 

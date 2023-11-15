@@ -1212,10 +1212,10 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_user_sig_offset, m->offset);
       } else if (mem_is_sigrow(m)) {
         u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
-      } else if (mem_is_data(m)) {
-        u32_to_b4(xd.nvm_data_offset, m->offset);
       }
     }
+    if(p->prog_modes & (PM_PDI | PM_UPDI))
+      u32_to_b4(xd.nvm_data_offset, DATA_OFFSET);
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;

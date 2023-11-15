@@ -512,10 +512,7 @@ AVRMEM *avr_locate_mem_by_type(const AVRPART *p, memtype_t type) {
 
 // Return offset of memory data
 unsigned int avr_data_offset(const AVRPART *p) {
-  AVRMEM *data = avr_locate_data(p);
-  if(!data)
-    pmsg_warning("cannot locate data memory; is avrdude.conf up to date?\n");
-  return data? data->offset: 0;
+  return p->prog_modes & (PM_PDI | PM_UPDI)? 0x1000000: 0;
 }
 
 AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {

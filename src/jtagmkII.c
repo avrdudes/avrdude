@@ -987,10 +987,10 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     } else if (mem_is_sigrow(m)) {
       u32_to_b4(sendbuf.dd.nvm_prod_sig_offset, m->offset);
       pmsg_notice2("prod_sig_offset addr 0x%05x\n", m->offset);
-    } else if (mem_is_data(m)) {
-      u32_to_b4(sendbuf.dd.nvm_data_offset, m->offset);
     }
   }
+  if(p->prog_modes & (PM_PDI | PM_UPDI))
+    u32_to_b4(sendbuf.dd.nvm_data_offset, DATA_OFFSET);
 
   pmsg_notice2("%s() sending set Xmega params command: ", __func__);
   jtagmkII_send(pgm, (unsigned char *)&sendbuf, sizeof sendbuf);
