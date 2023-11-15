@@ -401,12 +401,15 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[32];
   AVRMEM * m;
   int tries;
-  unsigned maj, min;
+  unsigned maj = 0, min = 0;
   int rc;
   int n_extparms;
 
-  stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
-  stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
+  if ((rc = stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj)) < 0
+     || (rc = stk500_getparm(pgm, Parm_STK_SW_MINOR, &min)) < 0 ) {
+    pmsg_error("cannot obtain SW version\n");
+    return rc;
+  }
 
   // MIB510 does not need extparams
   if (str_eq(pgmid, "mib510"))
@@ -559,8 +562,11 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // Read or write target voltage
   if (PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
     // Read current target voltage set value
-    unsigned int vtarg_read;
-    stk500_getparm(pgm, Parm_STK_VTARGET, &vtarg_read);
+    unsigned int vtarg_read = 0;
+    if ((rc = stk500_getparm(pgm, Parm_STK_VTARGET, &vtarg_read)) < 0) {
+      pmsg_error("cannot obtain V[target]\n");
+      return rc;
+    }
     if (PDATA(pgm)->vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read / 10.0));
     // Write target voltage value
@@ -574,8 +580,11 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // Read or write analog reference voltage
   if (PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
     // Read current analog reference voltage
-    unsigned int varef_read;
-    stk500_getparm(pgm, Parm_STK_VADJUST, &varef_read);
+    unsigned int varef_read = 0;
+    if ((rc = stk500_getparm(pgm, Parm_STK_VADJUST, &varef_read)) < 0) {
+      pmsg_error("cannot obtain V[aref]\n");
+      return rc;
+    }
     if (PDATA(pgm)->varef_get)
       msg_info("Analog reference voltage value read as %.2f V\n", (varef_read / 10.0));
     // Write analog reference voltage
@@ -590,12 +599,15 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // Read or write clock generator frequency
   if (PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
     // Read current target voltage set value
-    unsigned int osc_pscale;
-    unsigned int osc_cmatch;
+    unsigned int osc_pscale = 0;
+    unsigned int osc_cmatch = 0;
     const char *unit_get = {"Hz"};
     double f_get = 0.0;
-    stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
-    stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
+    if ((rc = stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale)) < 0
+      || (rc = stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch) < 0)) {
+      pmsg_error("cannot obtain fosc values\n");
+      return rc;
+    }
     if(osc_pscale) {
       int prescale = 1;
       f_get = PDATA(pgm)->xtal / 2;
@@ -1165,19 +1177,19 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
 
 static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
-  unsigned uaref, utarg;
+  unsigned uaref = 0;
+  unsigned utarg = (unsigned)((v + 0.049) * 10);
+  int rc = 0;
 
-  utarg = (unsigned)((v + 0.049) * 10);
-
-  if (stk500_getparm(pgm, Parm_STK_VADJUST, &uaref) != 0) {
+  if ((rc = stk500_getparm(pgm, Parm_STK_VADJUST, &uaref)) != 0) {
     pmsg_error("cannot obtain V[aref]\n");
-    return -1;
+    return rc;
   }
 
   if (uaref > utarg) {
     pmsg_warning("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
-    if (stk500_setparm(pgm, Parm_STK_VADJUST, utarg) != 0)
-      return -1;
+    if ((rc = stk500_setparm(pgm, Parm_STK_VADJUST, utarg)) != 0)
+      return rc;
   }
   return stk500_setparm(pgm, Parm_STK_VTARGET, utarg);
 }
@@ -1186,13 +1198,13 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
 static int stk500_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
                             double v)
 {
-  unsigned uaref, utarg;
+  unsigned utarg = 0;
+  unsigned uaref = (unsigned)((v + 0.049) * 10);
+  int rc = 0;
 
-  uaref = (unsigned)((v + 0.049) * 10);
-
-  if (stk500_getparm(pgm, Parm_STK_VTARGET, &utarg) != 0) {
+  if ((rc = stk500_getparm(pgm, Parm_STK_VTARGET, &utarg)) != 0) {
     pmsg_error("cannot obtain V[target]\n");
-    return -1;
+    return rc;
   }
 
   if (uaref > utarg) {
@@ -1387,7 +1399,7 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
 
   
 static void stk500_display(const PROGRAMMER *pgm, const char *p) {
-  unsigned maj, min, hdw, topcard;
+  unsigned maj = 0, min = 0, hdw = 0, topcard = 0;
 
   stk500_getparm(pgm, Parm_STK_HW_VER, &hdw);
   stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
@@ -1418,7 +1430,8 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
 
 
 static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
-  unsigned vtarget, vadjust, osc_pscale, osc_cmatch, sck_duration;
+  unsigned vtarget = 0, vadjust = 0;
+  unsigned osc_pscale = 0, osc_cmatch = 0, sck_duration = 0;
   const char *unit;
   int decimals;
 
@@ -1452,7 +1465,7 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
       f /= (osc_cmatch + 1);
       decimals = get_decimals(f);
       f = f_to_kHz_MHz(f, &unit);
-      fmsg_out(fp, "%.*f %s\n", f, decimals, unit);
+      fmsg_out(fp, "%.*f %s\n", decimals, f, unit);
     }
   }
 
