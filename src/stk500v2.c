@@ -4270,7 +4270,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
         memcode = XPRG_MEM_TYPE_BOOT;
     } else if (mem_is_eeprom(mem)) {
         memcode = XPRG_MEM_TYPE_EEPROM;
-    } else if (mem_is_io(mem)) {
+    } else if (mem_is_io(mem) || mem_is_sram(mem)) {
         memcode = XPRG_MEM_TYPE_APPL;
         addr += avr_data_offset(p);
     } else if (mem_is_lock(mem)) {
@@ -4347,7 +4347,7 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         b[1] = XPRG_MEM_TYPE_BOOT;
     } else if (mem_is_eeprom(mem)) {
         b[1] = XPRG_MEM_TYPE_EEPROM;
-    } else if (mem_is_io(mem)) {
+    } else if (mem_is_io(mem) || mem_is_sram(mem)) {
         b[1] = XPRG_MEM_TYPE_APPL;
         addr += avr_data_offset(p);
     } else if (mem_is_signature(mem)) {
@@ -4421,7 +4421,7 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
             use_ext_addr = (1UL << 31);
     } else if (mem_is_eeprom(mem)) {
         mtype = XPRG_MEM_TYPE_EEPROM;
-    } else if (mem_is_io(mem)) {
+    } else if (mem_is_io(mem) || mem_is_sram(mem)) {
         mtype = XPRG_MEM_TYPE_APPL;
         addr += avr_data_offset(p);
     } else if (mem_is_signature(mem)) {

@@ -2168,7 +2168,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_io(mem)) {
+  } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[3] = MTYPE_SRAM;
   } else if (mem_is_sib(mem)) {
     if(addr >= AVR_SIBLEN) {
@@ -2325,7 +2325,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       unsupp = 1;
   } else if (mem_is_userrow(mem)) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (mem_is_io(mem))
+  } else if (mem_is_io(mem) || mem_is_sram(mem))
     cmd[3] = MTYPE_SRAM;
 
   // Read-only memories or unsupported by debugWire

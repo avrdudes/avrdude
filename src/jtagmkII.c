@@ -2222,7 +2222,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if ((p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_in_sigrow(mem)) {
     cmd[1] = MTYPE_PRODSIG;
     pmsg_notice2("in_sigrow addr 0x%05lx\n", addr);
-  } else if (mem_is_io(mem)) {
+  } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH;
     addr += avr_data_offset(p);
   } else {
@@ -2346,7 +2346,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_io(mem)) {
+  } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
     addr += avr_data_offset(p);
   } else if(mem_is_readonly(mem)) {
