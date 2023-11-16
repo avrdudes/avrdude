@@ -105,7 +105,7 @@ struct command cmd[] = {
   { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
-  { "variants", cmd_variants, _fo(open),        "display all chip variants known to Avrdude"},
+  { "variants", cmd_variants, _fo(open),        "display all target chip variants known to Avrdude"},
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display useful parameters" },
   { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
