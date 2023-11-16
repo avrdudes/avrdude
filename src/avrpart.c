@@ -583,21 +583,21 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
 
       AVRMEM_ALIAS *a = avr_find_memalias(p, m);
       const char *m_desc_a = a? a->desc: "";
-      char d[256];
-      sprintf(d,"%s%s%s", m->desc, a? "/": "", m_desc_a);
+      char m_desc_str[256];
+      sprintf(m_desc_str,"%s%s%s", m->desc, a? "/": "", m_desc_a);
 
       // Print memory table content
       if(p->prog_modes & (PM_PDI | PM_UPDI)) {
         fprintf(f, "%s %-*s  %*d  %*d  %*s0x%x \n",
           prefix,
-          m_char_max[0], d,
+          m_char_max[0], m_desc_str,
           m_char_max[1] < 4? 4: m_char_max[1], m->size,
           m_char_max[2], m->page_size,
           m_char_max[3]-m_offset_digits, "", m->offset);
       } else {
         fprintf(f, "%s%-*s  %*d  %*d\n",
           prefix,
-          m_char_max[0], d,
+          m_char_max[0], m_desc_str,
           m_char_max[1] < 4? 4: m_char_max[1], m->size,
           m_char_max[2], m->page_size);
       }
