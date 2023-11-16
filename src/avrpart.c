@@ -868,9 +868,6 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(f, "%sAVR Part                : %s\n", prefix, p->desc);
   fprintf(f, "%sProgramming modes       : %s\n", prefix, prog_modes_str(p->prog_modes));
 
-  // Print variants table
-  avr_variants_display(f, p, prefix);
-
   // Print memory table
   avr_mem_display(prefix, f, NULL, p, verbose);
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
