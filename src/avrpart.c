@@ -605,7 +605,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
   }
 }
 
-static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
+int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
   const char *table_padding = "-------------------------------";
   const char *var_table_column[] = {"Variants", "Package", "F max", "T range", "V range"};
   char var_tok[5][50];
@@ -869,7 +869,7 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(f, "%sProgramming modes       : %s\n", prefix, prog_modes_str(p->prog_modes));
 
   // Print variants table
-  avr_variants_display(prefix, f, p);
+  avr_variants_display(f, p, prefix);
 
   // Print memory table
   avr_mem_display(prefix, f, NULL, p, verbose);
