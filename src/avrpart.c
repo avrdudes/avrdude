@@ -536,7 +536,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
     // Print memory table header
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
       fprintf(f,
-        "\n%s %-*s  %-*s  %-*s  %*s \n"
+        "\n%s %-*s  %*s  %-*s  %*s \n"
         "%s-%*.*s--%*.*s--%*.*s--%*.*s-\n",
         prefix,
         m_char_max[0], table_colum[0],
@@ -550,7 +550,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
         m_char_max[3], m_char_max[3], table_padding);
     } else {
       fprintf(f,
-        "\n%s %-*s  %-*s  %-*s \n"
+        "\n%s %-*s  %*s  %-*s \n"
         "%s-%*.*s--%*.*s--%*.*s-\n",
         prefix,
         m_char_max[0], table_colum[0],
