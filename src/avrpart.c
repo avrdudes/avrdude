@@ -536,8 +536,8 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
     // Print memory table header
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
       fprintf(f,
-        "\n%s| %-*s  %-*s  %-*s  %*s |\n"
-        "%s|-%*.*s--%*.*s--%*.*s--%*.*s-|\n",
+        "\n%s %-*s  %-*s  %-*s  %*s \n"
+        "%s-%*.*s--%*.*s--%*.*s--%*.*s-\n",
         prefix,
         m_char_max[0], table_colum[0],
         m_char_max[1], table_colum[1],
@@ -550,8 +550,8 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
         m_char_max[3], m_char_max[3], table_padding);
     } else {
       fprintf(f,
-        "\n%s| %-*s  %-*s  %-*s |\n"
-        "%s|-%*.*s--%*.*s--%*.*s-|\n",
+        "\n%s %-*s  %-*s  %-*s \n"
+        "%s-%*.*s--%*.*s--%*.*s-\n",
         prefix,
         m_char_max[0], table_colum[0],
         m_char_max[1], table_colum[1],
@@ -588,14 +588,14 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
 
       // Print memory table content
       if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-        fprintf(f, "%s| %-*s  %*d  %*d  %*s0x%x |\n",
+        fprintf(f, "%s %-*s  %*d  %*d  %*s0x%x \n",
           prefix,
           m_char_max[0], d,
           m_char_max[1] < 4? 4: m_char_max[1], m->size,
           m_char_max[2], m->page_size,
           m_char_max[3]-m_offset_digits, "", m->offset);
       } else {
-        fprintf(f, "%s| %-*s  %*d  %*d |\n",
+        fprintf(f, "%s %-*s  %*d  %*d \n",
           prefix,
           m_char_max[0], d,
           m_char_max[1] < 4? 4: m_char_max[1], m->size,
@@ -626,8 +626,8 @@ static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
 
     // Print variants table header
     fprintf(f,
-      "\n%s| %-*s  %-*s  %-*s  %-*s  %-*s |\n"
-        "%s|-%*.*s--%*.*s--%*.*s--%*.*s--%*.*s-|\n",
+      "\n%s %-*s  %-*s  %-*s  %-*s  %-*s \n"
+        "%s-%*.*s--%*.*s--%*.*s--%*.*s--%*.*s-\n",
       prefix,
       var_tok_len[0], var_table_column[0],
       var_tok_len[1], var_table_column[1],
@@ -646,7 +646,7 @@ static int avr_variants_display(const char *prefix, FILE *f, const AVRPART *p) {
       sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
         var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
       fprintf(f,
-        "%s| %-*s  %-*s  %-*s  [%-*s]  [%-*s] |\n",
+        "%s %-*s  %-*s  %-*s  [%-*s]  [%-*s] \n",
         prefix,
         var_tok_len[0], var_tok[0],
         var_tok_len[1], var_tok[1],
