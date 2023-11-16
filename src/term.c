@@ -76,6 +76,7 @@ static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_variants(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_help   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_quit   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_send   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -104,6 +105,7 @@ struct command cmd[] = {
   { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
+  { "variants", cmd_variants, _fo(open),        "display all chip variants known to Avrdude"},
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display useful parameters" },
   { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
@@ -1576,6 +1578,23 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 }
 
 
+static int cmd_variants(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  if(argc > 1) {
+    msg_error(
+      "Syntax: variants\n"
+      "Function: display all variants of %s known to Avrdude\n", p->desc
+    );
+    return -1;
+  }
+
+  term_out("\v");
+  avr_variants_display(stdout, p, "");
+  term_out("\v");
+
+  return 0;
+}
+
+
 static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int i;
   int rc;
@@ -1778,15 +1797,15 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   for(int i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
-    term_out("  %-7s : ", cmd[i].name);
+    term_out("  %-8s : ", cmd[i].name);
     term_out(cmd[i].desc, cmd[i].name);
     term_out("\n");
   }
   term_out(
     "\nFor more details about a terminal command cmd type cmd -?\n\n"
     "Other:\n"
-    "  !<line> : run the shell <line> in a subshell, eg, !ls *.hex\n"
-    "  # ...   : ignore rest of line (eg, used as comments in scripts)\n\n"
+    "  !<line>  : run the shell <line> in a subshell, eg, !ls *.hex\n"
+    "  # ...    : ignore rest of line (eg, used as comments in scripts)\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
