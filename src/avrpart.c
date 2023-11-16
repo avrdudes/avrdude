@@ -833,8 +833,6 @@ static char *prog_modes_str(int pm) {
   static char type[1024];
 
   strcpy(type, "0");
-  if(pm & PM_SPM)
-    strcat(type, ", SPM");
   if(pm & PM_TPI)
     strcat(type, ", TPI");
   if(pm & PM_ISP)
@@ -859,6 +857,8 @@ static char *prog_modes_str(int pm) {
     strcat(type, ", AVR32JTAG");
   if(pm & PM_aWire)
     strcat(type, ", aWire");
+  if(pm & PM_SPM)
+    strcat(type, ", SPM");
 
   return type + (type[1] == 0? 0: 3);
 }
