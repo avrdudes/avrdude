@@ -712,7 +712,8 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         // Set clock generator frequency
         if (str_starts(extended_param, "fosc=")) {
           char fosc_str[16] = {0};
-          int sscanf_success = sscanf(extended_param, "fosc=%10s", fosc_str);
+          // allow spaces in fosc_str
+          int sscanf_success = sscanf(extended_param, "fosc=%15[0-9.eE MmKkHhZzof]", fosc_str);
           if (sscanf_success < 1) {
             pmsg_error("invalid fosc value %s\n", extended_param);
             rv = -1;
@@ -720,8 +721,10 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           }
           char *endp;
           double v = strtod(fosc_str, &endp);
-          if (endp == fosc_str){
-            if (str_eq(fosc_str, "off"))
+          if (endp == fosc_str){ // no number
+            while ( *endp == ' ' ) // remove leading spaces
+              ++endp;
+            if (str_starts(endp, "off"))
               PDATA(pgm)->fosc_data = 0.0;
             else {
               pmsg_error("invalid fosc value %s\n", fosc_str);
@@ -729,6 +732,8 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
               break;
             }
           }
+          while ( *endp == ' ' ) // remove leading spaces before unit
+            ++endp;
           if (*endp == 'm' || *endp == 'M')
             PDATA(pgm)->fosc_data =  v * 1e6;
           else if (*endp == 'k' || *endp == 'K')
@@ -750,7 +755,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       // Set clock generator frequency
       if (str_starts(extended_param, "xtal=")) {
         char xtal_str[16] = {0};
-        int sscanf_success = sscanf(extended_param, "xtal=%10s", xtal_str);
+        int sscanf_success = sscanf(extended_param, "xtal=%15[0-9.eE MmKkHhZz]", xtal_str);
         if (sscanf_success < 1) {
           pmsg_error("invalid xtal value %s\n", extended_param);
           rv = -1;
@@ -763,17 +768,14 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           rv = -1;
           break;
         }
+        while ( *endp == ' ' ) // remove leading spaces before unit
+          ++endp;
         if (*endp == 'm' || *endp == 'M') // fits also e.g. "nnnnMHz"
           PDATA(pgm)->xtal = v * 1e6;
         else if (*endp == 'k' || *endp == 'K')
           PDATA(pgm)->xtal = v * 1e3;
         else if (*endp == 0 || *endp == 'h' || *endp == 'H') // "nnnn" or "nnnnHz"
           PDATA(pgm)->xtal = v;
-        else {
-          pmsg_error("invalid xtal value %s\n", xtal_str);
-          rv = -1;
-          break;
-        }
         continue;
       }
     }
