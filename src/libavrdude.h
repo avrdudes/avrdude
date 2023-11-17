@@ -538,8 +538,7 @@ AVRMEM * avr_locate_mem_by_type(const AVRPART *p, memtype_t type);
 unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
-void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
-                     const AVRPART *p, int verbose);
+void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);

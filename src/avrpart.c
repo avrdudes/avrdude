@@ -496,74 +496,72 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   return NULL;
 }
 
-void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
-                     const AVRPART *p, int verbose) {
-  static unsigned int prev_mem_offset;
-  static int prev_mem_size;
+void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
+  unsigned int prev_mem_offset = 0;
+  int prev_mem_size = 0;
   const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
   const char *table_padding = "-------------------------------";
-  static int m_char_max[4] = {0};
+  int m_char_max[4] = {0};
 
-  if (m == NULL) {
-    for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-      m = ldata(ln);
-      int m_size[] = {0, m->size, m->page_size, m->offset};
-      const int m_base[] = {0, 10, 10, 16};
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
+    int m_size[] = {0, m->size, m->page_size, m->offset};
+    const int m_base[] = {0, 10, 10, 16};
 
-      // Mem desc charcter length
-      AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-      const char *m_desc_a = a? a->desc: "";
-      int cnt = strlen(m->desc) + strlen(a? "/": "") + strlen(m_desc_a);
-      if(m_char_max[0] < cnt)
-        m_char_max[0] = cnt;
-      if(m_char_max[0] < (int)strlen(table_colum[0]))
-        m_char_max[0] = strlen(table_colum[0]);
-      // Mem size/pgsize/offset character length
-      for(int i = 1; i < 4; i++) {
-        cnt = 0;
-        do {
-          m_size[i] /= m_base[i];
-          ++cnt;
-        } while (m_size[i] != 0);
-        if(m_char_max[i] < cnt)
-          m_char_max[i] = cnt;
-        if(m_char_max[i] < (int)strlen(table_colum[i]))
-          m_char_max[i] = strlen(table_colum[i]);
-      }
-    }
-    m_char_max[3] += strlen("0x");
-
-    // Print memory table header
-    if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-      fprintf(f,
-        "\n%s%-*s  %*s  %-*s  %*s\n"
-        "%s%*.*s--%*.*s--%*.*s--%*.*s\n",
-        prefix,
-        m_char_max[0], table_colum[0],
-        m_char_max[1], table_colum[1],
-        m_char_max[2], table_colum[2],
-        m_char_max[3], table_colum[3],
-        prefix,
-        m_char_max[0], m_char_max[0], table_padding,
-        m_char_max[1], m_char_max[1], table_padding,
-        m_char_max[2], m_char_max[2], table_padding,
-        m_char_max[3], m_char_max[3], table_padding);
-    } else {
-      fprintf(f,
-        "\n%s%-*s  %*s  %-*s\n"
-        "%s%*.*s--%*.*s--%*.*s\n",
-        prefix,
-        m_char_max[0], table_colum[0],
-        m_char_max[1], table_colum[1],
-        m_char_max[2], table_colum[2],
-        prefix,
-        m_char_max[0], m_char_max[0], table_padding,
-        m_char_max[1], m_char_max[1], table_padding,
-        m_char_max[2], m_char_max[2], table_padding);
+    // Mem desc charcter length
+    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    const char *m_desc_a = a? a->desc: "";
+    int cnt = strlen(m->desc) + strlen(a? "/": "") + strlen(m_desc_a);
+    if(m_char_max[0] < cnt)
+      m_char_max[0] = cnt;
+    if(m_char_max[0] < (int)strlen(table_colum[0]))
+      m_char_max[0] = strlen(table_colum[0]);
+    // Mem size/pgsize/offset character length
+    for(int i = 1; i < 4; i++) {
+      cnt = 0;
+      do {
+        m_size[i] /= m_base[i];
+        ++cnt;
+      } while (m_size[i] != 0);
+      if(m_char_max[i] < cnt)
+        m_char_max[i] = cnt;
+      if(m_char_max[i] < (int)strlen(table_colum[i]))
+        m_char_max[i] = strlen(table_colum[i]);
     }
   }
+  m_char_max[3] += strlen("0x");
 
-  else {
+  // Print memory table header
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    fprintf(f,
+      "\n%s%-*s  %*s  %-*s  %*s\n"
+      "%s%*.*s--%*.*s--%*.*s--%*.*s\n",
+      prefix,
+      m_char_max[0], table_colum[0],
+      m_char_max[1], table_colum[1],
+      m_char_max[2], table_colum[2],
+      m_char_max[3], table_colum[3],
+      prefix,
+      m_char_max[0], m_char_max[0], table_padding,
+      m_char_max[1], m_char_max[1], table_padding,
+      m_char_max[2], m_char_max[2], table_padding,
+      m_char_max[3], m_char_max[3], table_padding);
+  } else {
+    fprintf(f,
+      "\n%s%-*s  %*s  %-*s\n"
+      "%s%*.*s--%*.*s--%*.*s\n",
+      prefix,
+      m_char_max[0], table_colum[0],
+      m_char_max[1], table_colum[1],
+      m_char_max[2], table_colum[2],
+      prefix,
+      m_char_max[0], m_char_max[0], table_padding,
+      m_char_max[1], m_char_max[1], table_padding,
+      m_char_max[2], m_char_max[2], table_padding);
+  }
+
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
     // Only print memory section if the previous section printed isn't identical
     if(prev_mem_offset != m->offset || prev_mem_size != m->size || str_eq(p->family_id, "")) {
       prev_mem_offset = m->offset;
@@ -868,12 +866,7 @@ void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(f, "%sAVR Part                : %s\n", prefix, p->desc);
   fprintf(f, "%sProgramming modes       : %s\n", prefix, prog_modes_str(p->prog_modes));
 
-  // Print memory table
-  avr_mem_display(prefix, f, NULL, p, verbose);
-  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    AVRMEM *m = ldata(ln);
-    avr_mem_display(prefix, f, m, p, verbose);
-  }
+  avr_mem_display(f, p, prefix);
 }
 
 
