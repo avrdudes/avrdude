@@ -1132,6 +1132,8 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem);
 
 int avr_mem_is_usersig_type(const AVRMEM *mem);
 
+int avr_mem_cmp(void *mem1, void *mem2);
+
 int avr_mem_is_known(const char *str);
 
 int avr_mem_might_be_known(const char *str);
