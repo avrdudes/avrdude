@@ -588,7 +588,7 @@ void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
 
       // Print memory table content
       if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-        fprintf(f, "%s %-*s  %*d  %*d  %*s0x%x \n",
+        fprintf(f, "%s%-*s  %*d  %*d  %*s0x%x \n",
           prefix,
           m_char_max[0], m_desc_str,
           m_char_max[1] < 4? 4: m_char_max[1], m->size,
