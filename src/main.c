@@ -1402,7 +1402,8 @@ skipopen:
 
   if (verbose > 0 && quell_progress < 2) {
     avr_display(stderr, p, progbuf, verbose);
-    msg_notice("\n");
+    if (verbose > 1)
+      msg_notice("\n");
     programmer_display(pgm, progbuf);
   }
 
