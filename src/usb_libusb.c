@@ -170,7 +170,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      fd->usb.wep = 0x02;
 		  }
 
-                  pmsg_notice("usbdev_open(): found %s, serno: %s\n", product, string);
+                  pmsg_notice2("usbdev_open(): found %s, serno: %s\n", product, string);
 		  if (serno != NULL)
 		    {
 		      /*
