@@ -1570,6 +1570,9 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 
   term_out("\v");
   avr_display(stdout, p, "", 0);
+  avr_mem_display(stdout, p, "");
+  if(verbose)
+    avr_variants_display(stdout, p, "");
   term_out("\v");
 
   return 0;
