@@ -76,7 +76,6 @@ static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_variants(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_help   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_quit   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_send   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -105,7 +104,6 @@ struct command cmd[] = {
   { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
-  { "variants", cmd_variants, _fo(open),        "display all target chip variants known to Avrdude"},
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display useful parameters" },
   { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
@@ -1572,23 +1570,6 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 
   term_out("\v");
   avr_display(stdout, p, "", 0);
-  term_out("\v");
-
-  return 0;
-}
-
-
-static int cmd_variants(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
-  if(argc > 1) {
-    msg_error(
-      "Syntax: variants\n"
-      "Function: display all variants of %s known to Avrdude\n", p->desc
-    );
-    return -1;
-  }
-
-  term_out("\v");
-  avr_variants_display(stdout, p, "");
   term_out("\v");
 
   return 0;
