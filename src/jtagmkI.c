@@ -1075,6 +1075,22 @@ static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v) {
 }
 
 
+static int jtagmkI_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char dur = 0;
+  if (jtagmkI_getparm(pgm, PARM_CLOCK, &dur) < 0)
+    return -1;
+  if (dur == JTAG_BITRATE_1_MHz)
+    *v = 1e6;
+  else if (dur == JTAG_BITRATE_500_kHz)
+    *v = 500e3;
+  else if (dur == JTAG_BITRATE_250_kHz)
+    *v = 250e3;
+  else
+    *v = 125e3;
+  return 0;
+}
+
+
 /*
  * Read an emulator parameter.  The result is exactly one byte,
  * multi-byte parameters get two different parameter names for
@@ -1202,6 +1218,15 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
 }
 
 
+static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned char vtarget = 0;
+  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
+    return - 1;
+  *v = 6.25 * (unsigned)vtarget / 255.0;
+  return 0;
+}
+
+
 static void jtagmkI_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   jtagmkI_print_parms1(pgm, "", fp);
 }
@@ -1232,7 +1257,11 @@ void jtagmkI_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = jtagmkI_paged_load;
   pgm->print_parms    = jtagmkI_print_parms;
   pgm->set_sck_period = jtagmkI_set_sck_period;
+  pgm->get_sck_period = jtagmkI_get_sck_period;
   pgm->setup          = jtagmkI_setup;
   pgm->teardown       = jtagmkI_teardown;
   pgm->page_size      = 256;
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    pgm->get_vtarget  = jtagmkI_get_vtarget;
+  }
 }
