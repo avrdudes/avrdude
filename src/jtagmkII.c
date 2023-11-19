@@ -679,28 +679,28 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
 	hwver = (unsigned)resp[9];
 	memcpy(PDATA(pgm)->serno, resp + 10, 6);
 	if (status > 17) {
-	  msg_notice("JTAG ICE mkII sign-on message:\n");
-	  msg_notice("Communications protocol version: %u\n",
+	  imsg_notice2("JTAG ICE mkII sign-on message:\n");
+	  imsg_notice2("Communications protocol version: %u\n",
 		  (unsigned)resp[1]);
-	  msg_notice("M_MCU:\n");
-	  msg_notice("  boot-loader FW version:        %u\n",
+	  imsg_notice2("M_MCU:\n");
+	  imsg_notice2("  boot-loader FW version:        %u\n",
 		  (unsigned)resp[2]);
-	  msg_notice("  firmware version:              %u.%02u\n",
+	  imsg_notice2("  firmware version:              %u.%02u\n",
 		  (unsigned)resp[4], (unsigned)resp[3]);
-	  msg_notice("  hardware version:              %u\n",
+	  imsg_notice2("  hardware version:              %u\n",
 		  (unsigned)resp[5]);
-	  msg_notice("S_MCU:\n");
-	  msg_notice("  boot-loader FW version:        %u\n",
+	  imsg_notice2("S_MCU:\n");
+	  imsg_notice2("  boot-loader FW version:        %u\n",
 		  (unsigned)resp[6]);
-	  msg_notice("  firmware version:              %u.%02u\n",
+	  imsg_notice2("  firmware version:              %u.%02u\n",
 		  (unsigned)resp[8], (unsigned)resp[7]);
-	  msg_notice("  hardware version:              %u\n",
+	  imsg_notice2("  hardware version:              %u\n",
 		  (unsigned)resp[9]);
-	  msg_notice("Serial number:                   "
+	  imsg_notice2("Serial number:                   "
 		  "%02x:%02x:%02x:%02x:%02x:%02x\n",
 		  PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2], PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
 	  resp[status - 1] = '\0';
-	  msg_notice("Device ID:                       %s\n",
+	  imsg_notice2("Device ID:                       %s\n",
 		  resp + 16);
 	}
 	free(resp);
@@ -2551,12 +2551,11 @@ static void jtagmkII_display(const PROGRAMMER *pgm, const char *p) {
   if (jtagmkII_getparm(pgm, PAR_HW_VERSION, hw) < 0 ||
       jtagmkII_getparm(pgm, PAR_FW_VERSION, fw) < 0)
     return;
-
-  msg_info("%sM_MCU HW version: %d\n", p, hw[0]);
-  msg_info("%sM_MCU FW version: %d.%02d\n", p, fw[1], fw[0]);
-  msg_info("%sS_MCU HW version: %d\n", p, hw[1]);
-  msg_info("%sS_MCU FW version: %d.%02d\n", p, fw[3], fw[2]);
-  msg_info("%sSerial number   : %02x:%02x:%02x:%02x:%02x:%02x\n", p,
+  msg_info("%sMain MCU HW version   : %d\n", p, hw[0]);
+  msg_info("%sMain MCU FW version   : %d.%02d\n", p, fw[1], fw[0]);
+  msg_info("%sSec. MCU HW version   : %d\n", p, hw[1]);
+  msg_info("%sSec. MCU FW version   : %d.%02d\n", p, fw[3], fw[2]);
+  msg_info("%sSerial number         : %02x:%02x:%02x:%02x:%02x:%02x\n", p,
     PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2],
     PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
 
@@ -2574,7 +2573,7 @@ static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   if (pgm->extra_features & HAS_VTARG_READ) {
     if (jtagmkII_getparm(pgm, PAR_OCD_VTARGET, vtarget) < 0)
       return;
-    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget) / 1000.0);
+    fmsg_out(fp, "%sVtarget               : %.1f V\n", p, b2_to_u16(vtarget) / 1000.0);
   }
 
   if ((pgm->flag & PGM_FL_IS_JTAG)) {
@@ -2593,8 +2592,7 @@ static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     } else {
       sprintf(clkbuf, "%.1f kHz", 5.35e3 / (double)jtag_clock[0]);
       clk = 5.35e6 / (double)jtag_clock[0];
-
-      fmsg_out(fp, "%sJTAG clock      : %s (%.1f us)\n", p, clkbuf, 1.0e6 / clk);
+      fmsg_out(fp, "%sJTAG clock            : %s (%.1f us)\n", p, clkbuf, 1.0e6 / clk);
     }
   }
 

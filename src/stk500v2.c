@@ -3604,21 +3604,21 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
 
   if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE_MKII &&
       PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
-    msg_info("%sProgrammer Model: %s\n", p, pgmname(pgm));
+    msg_info("%sProgrammer model      : %s\n", p, pgmname(pgm));
     stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
     stk500v2_getparm(pgm, PARAM_SW_MINOR, &min);
-    msg_info("%sHardware Version: %d\n", p, hdw);
+    msg_info("%sHW version            : %d\n", p, hdw);
     if (pgm->usbsn && *pgm->usbsn)
-      msg_info("%sSerial number   : %s\n", p, pgm->usbsn);
-    msg_info("%sFirmware Version Controller : %d.%02d\n", p, maj, min);
+      msg_info("%sSerial number         : %s\n", p, pgm->usbsn);
+    msg_info("%sFW Version Controller : %d.%02d\n", p, maj, min);
     if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY1, &maj_s1);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY1, &min_s1);
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY2, &maj_s2);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY2, &min_s2);
-      msg_info("%sFirmware Version Periphery 1: %d.%02d\n", p, maj_s1, min_s1);
-      msg_info("%sFirmware Version Periphery 2: %d.%02d\n", p, maj_s2, min_s2);
+      msg_info("%sFW Version Periphery 1: %d.%02d\n", p, maj_s1, min_s1);
+      msg_info("%sFW Version Periphery 2: %d.%02d\n", p, maj_s2, min_s2);
     }
   }
 
@@ -3633,22 +3633,22 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
       case 0xDD: topcard_name = "STK520"; break;
       default: topcard_name = "Unknown"; break;
     }
-    msg_info("%sTopcard         : %s\n", p, topcard_name);
+    msg_info("%sTopcard               : %s\n", p, topcard_name);
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
     stk500v2_getparm(pgm, PARAM_ROUTINGCARD_ID, &topcard);
-    msg_info("%sRouting card    : %s\n", p,
+    msg_info("%sRouting card          : %s\n", p,
 	    stk600_get_cardname(routing_cards,
 				sizeof routing_cards / sizeof routing_cards[0],
 				topcard));
     stk500v2_getparm(pgm, PARAM_SOCKETCARD_ID, &topcard);
-    msg_info("%sSocket card     : %s\n", p,
+    msg_info("%sSocket card           : %s\n", p,
 	    stk600_get_cardname(socket_cards,
 				sizeof socket_cards / sizeof socket_cards[0],
 				topcard));
     stk500v2_getparm2(pgm, PARAM2_RC_ID_TABLE_REV, &rev);
-    msg_info("%sRC_ID table rev : %d\n", p, rev);
+    msg_info("%sRC_ID table rev       : %d\n", p, rev);
     stk500v2_getparm2(pgm, PARAM2_EC_ID_TABLE_REV, &rev);
-    msg_info("%sEC_ID table rev : %d\n", p, rev);
+    msg_info("%sEC_ID table rev       : %d\n", p, rev);
   } else if (PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
     PROGRAMMER *pgmcp = pgm_dup(pgm);
     pgmcp->cookie = PDATA(pgm)->chained_pdata;
@@ -3677,26 +3677,26 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       pgmcp->cookie = PDATA(pgm)->chained_pdata;
       jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
       pgm_free(pgmcp);
-      fmsg_out(fp, "%sVtarget         : %.1f V\n", p, b2_to_u16(vtarget_jtag) / 1000.0);
+      fmsg_out(fp, "%sVtarget               : %.1f V\n", p, b2_to_u16(vtarget_jtag) / 1000.0);
     } else if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
       stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
-      fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+      fmsg_out(fp, "%sVtarget               : %.1f V\n", p, vtarget / 10.0);
     }
   }
 
   switch (PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    fmsg_out(fp, "%sSCK period      : %.1f us\n", p,
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p,
 	    stk500v2_sck_to_us(pgm, sck_duration));
     if (pgm->extra_features & HAS_VAREF_ADJ) {
       stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust);
-      fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+      fmsg_out(fp, "%sVaref                 : %.1f V\n", p, vadjust / 10.0);
     }
     if (pgm->extra_features & HAS_FOSC_ADJ) {
       stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale);
       stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &osc_cmatch);
-      fmsg_out(fp, "%sOscillator      : ", p);
+      fmsg_out(fp, "%sOscillator            : ", p);
       if (osc_pscale == 0)
         fmsg_out(fp, "Off\n");
       else {
@@ -3722,7 +3722,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    fmsg_out(fp, "%sSCK period      : %.2f us\n", p,
+    fmsg_out(fp, "%sSCK period            : %.2f us\n", p,
 	    1000000 / avrispmkIIfreqs[sck_duration]);
     break;
 
@@ -3732,7 +3732,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       cmd[0] = CMD_GET_SCK;
       if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 && stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
 	      unsigned int sck = cmd[1] | (cmd[2] << 8);
-	      fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (1E6 / (1000.0 * sck)));
+	      fmsg_out(fp, "%sSCK period            : %.2f us\n", p, (1E6 / (1000.0 * sck)));
       }
       PROGRAMMER *pgmcp = pgm_dup(pgm);
       pgmcp->cookie = PDATA(pgm)->chained_pdata;
@@ -3748,24 +3748,24 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
   case PGMTYPE_STK600:
     if (pgm->extra_features & HAS_VAREF_ADJ) {
       stk500v2_getparm2(pgm, PARAM2_AREF0, &varef);
-      fmsg_out(fp, "%sVaref 0         : %.2f V\n", p, varef / 100.0);
+      fmsg_out(fp, "%sVaref 0               : %.2f V\n", p, varef / 100.0);
       stk500v2_getparm2(pgm, PARAM2_AREF1, &varef);
-      fmsg_out(fp, "%sVaref 1         : %.2f V\n", p, varef / 100.0);
+      fmsg_out(fp, "%sVaref 1               : %.2f V\n", p, varef / 100.0);
     }
     stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
-    fmsg_out(fp, "%sSCK period      : %.2f us\n", p, (sck_stk600 + 1) / 8.0);
+    fmsg_out(fp, "%sSCK period            : %.2f us\n", p, (sck_stk600 + 1) / 8.0);
     if (pgm->extra_features & HAS_FOSC_ADJ) {
       stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf);
       oct = (clock_conf & 0xf000) >> 12u;
       dac = (clock_conf & 0x0ffc) >> 2u;
       f = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
       f = f_to_kHz_MHz(f, &unit);
-      fmsg_out(fp, "%sOscillator      : %.3f %s\n", p, f, unit);
+      fmsg_out(fp, "%sOscillator            : %.3f %s\n", p, f, unit);
     }
     break;
 
   default:
-    fmsg_out(fp, "%sSCK period      : %.1f us\n", p,
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p,
 	  sck_duration * 8.0e6 / STK500V2_XTAL + 0.05);
     break;
   }

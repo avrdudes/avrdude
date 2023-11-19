@@ -266,8 +266,8 @@ static void pgm_default_6 (const PROGRAMMER *pgm, const char *p) {
 
 
 void programmer_display(PROGRAMMER *pgm, const char * p) {
-  msg_info("%sProgrammer Type         : %s\n", p, pgm->type);
-  msg_info("%sDescription             : %s\n", p, pgm->desc);
+  msg_info("%sProgrammer Type       : %s\n", p, pgm->type);
+  msg_info("%sDescription           : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
 }
