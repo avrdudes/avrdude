@@ -3462,7 +3462,7 @@ static int stk500v2_get_sck_period(const PROGRAMMER *pgm, double *v) {
   unsigned char dur;
   int rv = 0;
 
-  if ((rv = stk500v2_getparm(pgm, PARAM2_SCK_DURATION, &dur))< 0) {
+  if ((rv = stk500v2_getparm(pgm, PARAM_SCK_DURATION, &dur))< 0) {
     pmsg_error("cannot obtain sck duration\n");
     return rv;
   }
