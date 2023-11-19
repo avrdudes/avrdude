@@ -3243,6 +3243,18 @@ static int stk500v2_set_vtarget(const PROGRAMMER *pgm, double v) {
 }
 
 
+static int stk500v2_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned char utarg = 0;
+
+  if (stk500v2_getparm(pgm, PARAM_VTARGET, &utarg) != 0) {
+    pmsg_error("cannot obtain V[target]\n");
+    return -1;
+  }
+  *v = utarg / 10.0;
+  return 0;
+}
+
+
 static int stk500v2_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
                               double v)
 {
@@ -3260,6 +3272,19 @@ static int stk500v2_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused
     return -1;
   }
   return stk500v2_setparm(pgm, PARAM_VADJUST, uaref);
+}
+
+
+static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
+                              double *v)
+{
+  unsigned char uaref = 0;
+  if (stk500v2_getparm(pgm, PARAM_VTARGET, &uaref) != 0) {
+    pmsg_error("cannot obtain V[aref]\n");
+    return -1;
+  }
+  *v = uaref / 10.0;
+  return 0;
 }
 
 
@@ -3311,6 +3336,28 @@ static int stk500v2_set_fosc(const PROGRAMMER *pgm, double v) {
 
   return 0;
 }
+
+
+static int stk500v2_get_fosc(const PROGRAMMER *pgm, double *v) {
+  unsigned char prescale=0, cmatch=0;
+  double fosc = 0;
+  static unsigned ps[] = {
+    1, 8, 32, 64, 128, 256, 1024
+  };
+  int rc;
+
+  if ((rc = stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &prescale)) != 0
+      || (rc = stk500v2_getparm(pgm, PARAM_OSC_CMATCH, &cmatch)) != 0)
+    return rc;
+
+  if (prescale) {
+  fosc = STK500V2_XTAL / ((cmatch + 1) * 2 * ps[prescale - 1]);
+  } else
+    fosc = 0;
+  *v = fosc;
+  return 0;
+}
+
 
 /* The list of SCK frequencies supported by the AVRISP mkII, as listed
  * in AVR069 */
@@ -3410,6 +3457,19 @@ static int stk500v2_set_sck_period(const PROGRAMMER *pgm, double v) {
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, dur);
 }
+
+static int stk500v2_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char dur;
+  int rv = 0;
+
+  if ((rv = stk500v2_getparm(pgm, PARAM2_SCK_DURATION, &dur))< 0) {
+    pmsg_error("cannot obtain sck duration\n");
+    return rv;
+  }
+  *v = dur * 8.0 / STK500V2_XTAL;
+  return 0;
+}
+
 
 static double stk500v2_sck_to_us(const PROGRAMMER *pgm, unsigned char dur) {
   double x;
@@ -4826,6 +4886,7 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
@@ -4837,10 +4898,16 @@ void stk500v2_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = stk500v2_set_vtarget;
-  if (pgm->extra_features & HAS_VAREF_ADJ)
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = stk500v2_get_vtarget;
+  if (pgm->extra_features & HAS_VAREF_ADJ) {
     pgm->set_varef    = stk500v2_set_varef;
-  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->get_varef    = stk500v2_get_varef;
+  }
+  if (pgm->extra_features & HAS_FOSC_ADJ) {
     pgm->set_fosc     = stk500v2_set_fosc;
+    pgm->get_fosc     = stk500v2_get_fosc;
+  }
 }
 
 const char stk500pp_desc[] = "Atmel STK500 V2 in parallel programming mode";
