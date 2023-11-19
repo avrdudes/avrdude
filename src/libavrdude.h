@@ -547,6 +547,7 @@ void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
+const char *avr_prog_modes_str(int pm);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
 
