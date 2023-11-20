@@ -570,12 +570,14 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
 
     // Print memory table content
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+      char *m_offset = print_num("0x%04x", m->offset);
       fprintf(f, "%s%-*s  %*d  %*d  %*s \n",
         prefix,
         m_char_max[0], m_desc_str,
         m_char_max[1], m->size,
         m_char_max[2], m->page_size,
-        m_char_max[3], print_num("0x%04x", m->offset));
+        m_char_max[3], m_offset);
+      free(m_offset);
     } else {
       fprintf(f, "%s%-*s  %*d  %*d\n",
         prefix,
