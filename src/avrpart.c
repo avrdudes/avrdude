@@ -497,8 +497,6 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
 }
 
 void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
-  unsigned int prev_mem_offset = 0;
-  int prev_mem_size = 0;
   const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
   const char *table_padding = "-------------------------------";
   int m_char_max[4] = {0};
@@ -562,43 +560,38 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
 
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
-    // Only print memory section if the previous section printed isn't identical
-    if(prev_mem_offset != m->offset || prev_mem_size != m->size || str_eq(p->family_id, "")) {
-      prev_mem_offset = m->offset;
-      prev_mem_size = m->size;
 
-      // Workaround to get the 0x prefix where it should be
-      int m_offset = m->offset;
-      int m_offset_cnt = 0;
-      int m_offset_digits = 0;
-      do {
-        m_offset /= 16;
-        ++m_offset_cnt;
-      } while (m_offset != 0);
-      if(m_offset_digits < m_offset_cnt)
-        m_offset_digits = m_offset_cnt;
-      m_offset_digits += strlen("0x");
+    // Workaround to get the 0x prefix where it should be
+    int m_offset = m->offset;
+    int m_offset_cnt = 0;
+    int m_offset_digits = 0;
+    do {
+      m_offset /= 16;
+      ++m_offset_cnt;
+    } while (m_offset != 0);
+    if(m_offset_digits < m_offset_cnt)
+      m_offset_digits = m_offset_cnt;
+    m_offset_digits += strlen("0x");
 
-      AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-      const char *m_desc_a = a? a->desc: "";
-      char m_desc_str[256];
-      sprintf(m_desc_str,"%s%s%s", m->desc, a? "/": "", m_desc_a);
+    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    const char *m_desc_a = a? a->desc: "";
+    char m_desc_str[256];
+    sprintf(m_desc_str,"%s%s%s", m->desc, a? "/": "", m_desc_a);
 
-      // Print memory table content
-      if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-        fprintf(f, "%s%-*s  %*d  %*d  %*s0x%x \n",
-          prefix,
-          m_char_max[0], m_desc_str,
-          m_char_max[1] < 4? 4: m_char_max[1], m->size,
-          m_char_max[2], m->page_size,
-          m_char_max[3]-m_offset_digits, "", m->offset);
-      } else {
-        fprintf(f, "%s%-*s  %*d  %*d\n",
-          prefix,
-          m_char_max[0], m_desc_str,
-          m_char_max[1] < 4? 4: m_char_max[1], m->size,
-          m_char_max[2], m->page_size);
-      }
+    // Print memory table content
+    if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+      fprintf(f, "%s%-*s  %*d  %*d  %*s0x%x \n",
+        prefix,
+        m_char_max[0], m_desc_str,
+        m_char_max[1] < 4? 4: m_char_max[1], m->size,
+        m_char_max[2], m->page_size,
+        m_char_max[3]-m_offset_digits, "", m->offset);
+    } else {
+      fprintf(f, "%s%-*s  %*d  %*d\n",
+        prefix,
+        m_char_max[0], m_desc_str,
+        m_char_max[1] < 4? 4: m_char_max[1], m->size,
+        m_char_max[2], m->page_size);
     }
   }
 }
