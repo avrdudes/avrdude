@@ -496,6 +496,18 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   return NULL;
 }
 
+static char *print_num(const char *fmt, int n) {
+  return str_sprintf(n<10? "%d": fmt, n);
+}
+
+static int num_len(const char *fmt, int n) {
+  char *p = print_num(fmt, n);
+  int ret = strlen(p);
+  free(p);
+
+  return ret;
+}
+
 void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
   const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
   const char *table_padding = "-------------------------------";
@@ -504,30 +516,21 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
     int m_size[] = {0, m->size, m->page_size, m->offset};
-    const int m_base[] = {0, 10, 10, 16};
 
-    // Mem desc charcter length
+    // Mem desc/size/pgsize/offset string length
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    const char *m_desc_a = a? a->desc: "";
-    int cnt = strlen(m->desc) + strlen(a? "/": "") + strlen(m_desc_a);
-    if(m_char_max[0] < cnt)
-      m_char_max[0] = cnt;
-    if(m_char_max[0] < (int)strlen(table_colum[0]))
-      m_char_max[0] = strlen(table_colum[0]);
-    // Mem size/pgsize/offset character length
-    for(int i = 1; i < 4; i++) {
-      cnt = 0;
-      do {
-        m_size[i] /= m_base[i];
-        ++cnt;
-      } while (m_size[i] != 0);
-      if(m_char_max[i] < cnt)
-        m_char_max[i] = cnt;
+    int len;
+    for(int i = 0; i < 4; i++) {
+      if(!m_size[i])
+        len = strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: ""); // desc
+      else
+        len = num_len(str_eq(table_colum[i], "Offset")? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
+      if(m_char_max[i] < len)
+        m_char_max[i] = len;
       if(m_char_max[i] < (int)strlen(table_colum[i]))
         m_char_max[i] = strlen(table_colum[i]);
     }
   }
-  m_char_max[3] += strlen("0x");
 
   // Print memory table header
   if(p->prog_modes & (PM_PDI | PM_UPDI)) {
@@ -561,38 +564,26 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
 
-    // Workaround to get the 0x prefix where it should be
-    int m_offset = m->offset;
-    int m_offset_cnt = 0;
-    int m_offset_digits = 0;
-    do {
-      m_offset /= 16;
-      ++m_offset_cnt;
-    } while (m_offset != 0);
-    if(m_offset_digits < m_offset_cnt)
-      m_offset_digits = m_offset_cnt;
-    m_offset_digits += strlen("0x");
-
+    // Create mem desc string including alias if present
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    const char *m_desc_a = a? a->desc: "";
-    char m_desc_str[256];
-    sprintf(m_desc_str,"%s%s%s", m->desc, a? "/": "", m_desc_a);
+    char *m_desc_str = str_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
 
     // Print memory table content
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-      fprintf(f, "%s%-*s  %*d  %*d  %*s0x%x \n",
+      fprintf(f, "%s%-*s  %*d  %*d  %*s \n",
         prefix,
         m_char_max[0], m_desc_str,
-        m_char_max[1] < 4? 4: m_char_max[1], m->size,
+        m_char_max[1], m->size,
         m_char_max[2], m->page_size,
-        m_char_max[3]-m_offset_digits, "", m->offset);
+        m_char_max[3], print_num("0x%04x", m->offset));
     } else {
       fprintf(f, "%s%-*s  %*d  %*d\n",
         prefix,
         m_char_max[0], m_desc_str,
-        m_char_max[1] < 4? 4: m_char_max[1], m->size,
+        m_char_max[1], m->size,
         m_char_max[2], m->page_size);
     }
+    free(m_desc_str);
   }
 }
 
