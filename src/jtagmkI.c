@@ -1091,6 +1091,15 @@ static int jtagmkI_get_sck_period(const PROGRAMMER *pgm, double *v) {
 }
 
 
+static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned char vtarget = 0;
+  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
+    return - 1;
+  *v = 6.25 * (unsigned)vtarget / 255.0;
+  return 0;
+}
+
+
 /*
  * Read an emulator parameter.  The result is exactly one byte,
  * multi-byte parameters get two different parameter names for
@@ -1174,7 +1183,8 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
 
 
 static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
-  unsigned char vtarget, jtag_clock;
+  unsigned char jtag_clock = 0;
+  double vtarget = 0;
   const char *clkstr;
   double clk;
 
@@ -1208,22 +1218,13 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
   }
 
   if (pgm->extra_features & HAS_VTARG_READ) {
-    if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
+    if (jtagmkI_get_vtarget(pgm, &vtarget) < 0)
       return;
-    fmsg_out(fp, "%sVtarget               : %.1f V\n", p, 6.25 * (unsigned)vtarget / 255.0);
+    fmsg_out(fp, "%sVtarget       : %.1f V\n", p, vtarget);
   }
   fmsg_out(fp, "%sJTAG clock            : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
 
   return;
-}
-
-
-static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
-  unsigned char vtarget = 0;
-  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
-    return - 1;
-  *v = 6.25 * (unsigned)vtarget / 255.0;
-  return 0;
 }
 
 
