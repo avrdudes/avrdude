@@ -1819,15 +1819,15 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   for(int i=0; i<NCMDS; i++) {
     if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
       continue;
-    term_out("  %-8s : ", cmd[i].name);
+    term_out("  %-7s : ", cmd[i].name);
     term_out(cmd[i].desc, cmd[i].name);
     term_out("\n");
   }
   term_out(
     "\nFor more details about a terminal command cmd type cmd -?\n\n"
     "Other:\n"
-    "  !<line>  : run the shell <line> in a subshell, eg, !ls *.hex\n"
-    "  # ...    : ignore rest of line (eg, used as comments in scripts)\n\n"
+    "  !<line> : run the shell <line> in a subshell, eg, !ls *.hex\n"
+    "  # ...   : ignore rest of line (eg, used as comments in scripts)\n\n"
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
