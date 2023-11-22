@@ -298,6 +298,9 @@ struct pdata
   bool fosc_set;
   double fosc_data;
 
+  // Set STK500 XTAL frequency
+  unsigned xtal;
+
   const AVRPART *lastpart;
 
   /* Start address of Xmega boot area */
