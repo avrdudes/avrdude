@@ -70,6 +70,7 @@
 #include "jtag3_private.h"
 
 #define STK500V2_XTAL 7372800U
+#define SCRATCHMONKEY_XTAL 16000000U
 
 // Timeout (in seconds) for waiting for serial response
 #define SERIAL_TIMEOUT 2
@@ -300,7 +301,10 @@ void stk500v2_setup(PROGRAMMER * pgm)
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;
   PDATA(pgm)->boot_start = ULONG_MAX;
-  PDATA(pgm)->xtal = STK500V2_XTAL;
+  if (str_starts(pgmid, "scratchmonkey"))
+    PDATA(pgm)->xtal = SCRATCHMONKEY_XTAL;
+  else
+    PDATA(pgm)->xtal = STK500V2_XTAL;
 }
 
 static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
@@ -3758,7 +3762,7 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
     break;
 
   default:
-    return sck_duration * 8.0e6 / STK500V2_XTAL + 0.05;
+    return sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.05;
     break;
   }
   return 0;
@@ -3806,7 +3810,7 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
       return 0.0;
     else {
       prescale = 1;
-      fosc = STK500V2_XTAL / 2;
+      fosc = PDATA(pgm)->xtal / 2;
 
       switch (osc_pscale) {
         case 2: prescale = 8; break;
@@ -3849,30 +3853,36 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
 
 static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   double f;
+  int decimals;
   const char *unit;
 
   if (pgm->extra_features & HAS_VTARG_READ) {
-    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, stk500v2_vtarget_value(pgm));
+    fmsg_out(fp, "%sVtarget               : %.1f V\n", p, stk500v2_vtarget_value(pgm));
   }
 
   switch (PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
-    fmsg_out(fp, "%sSCK period      : %.1f us\n", p,
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p,
              stk500v2_sck_duration_value(pgm));
 
     if (pgm->extra_features & HAS_VAREF_ADJ) {
-      fmsg_out(fp, "%sVaref           : %.1f V\n", p, stk500v2_varef_value(pgm));
+      fmsg_out(fp, "%sVaref                 : %.1f V\n", p, stk500v2_varef_value(pgm));
     }
     if (pgm->extra_features & HAS_FOSC_ADJ) {
-      fmsg_out(fp, "%sOscillator      : ", p);
+      fmsg_out(fp, "%sOscillator            : ", p);
       f = stk500v2_fosc_value(pgm);
       if (f == 0.0)
         fmsg_out(fp, "Off\n");
       else {
+        decimals = get_decimals(f);
         f = f_to_kHz_MHz(f, &unit);
-        fmsg_out(fp, "%.3f %s\n", f, unit);
+        fmsg_out(fp, "%.*f %s\n", decimals, f, unit);
       }
     }
+    double f = PDATA(pgm)->xtal;
+    decimals = get_decimals(f);
+    f = f_to_kHz_MHz(f, &unit);
+    fmsg_out(fp, "%sXTAL frequency        : %.*f %s\n", p, decimals, f, unit);
     break;
 
   case PGMTYPE_AVRISP_MKII:
