@@ -3870,18 +3870,10 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
         fmsg_out(fp, "Off\n");
       else {
         f = f_to_kHz_MHz(f, &unit);
-        fmsg_out(fp, "%.*f %s\n", decimals, f, unit);
+        fmsg_out(fp, "%.3f %s\n", f, unit);
       }
     }
-    fmsg_out(fp, "%sSCK period            : %.1f us\n", p,
-	    stk500v2_sck_to_us(pgm, sck_duration));
-
-    //const char *unit;
-    double f = PDATA(pgm)->xtal;
-    decimals = get_decimals(f);
-    f = f_to_kHz_MHz(f, &unit);
-    fmsg_out(fp, "%sXTAL frequency        : %.*f %s\n", p, decimals, f, unit);
-      break;
+    break;
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
