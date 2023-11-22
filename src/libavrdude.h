@@ -538,8 +538,7 @@ AVRMEM * avr_locate_mem_by_type(const AVRPART *p, memtype_t type);
 unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
-void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
-                     const AVRPART *p, int verbose);
+void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
@@ -548,7 +547,9 @@ void      avr_free_part(AVRPART * d);
 AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
+const char *avr_prog_modes_str(int pm);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
+int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
                                  const char *cfgname, int cfglineno,

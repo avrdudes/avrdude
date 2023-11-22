@@ -1407,9 +1407,8 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
   stk500_getparm(pgm, Parm_STK_SW_MAJOR, &maj);
   stk500_getparm(pgm, Parm_STK_SW_MINOR, &min);
   stk500_getparm(pgm, Param_STK500_TOPCARD_DETECT, &topcard);
-
-  msg_info("%sHardware Version: %d\n", p, hdw);
-  msg_info("%sFirmware Version: %d.%d\n", p, maj, min);
+  msg_info("%sHW Version            : %d\n", p, hdw);
+  msg_info("%sFW Version            : %d.%d\n", p, maj, min);
   if (topcard < 3) {
     const char *n = "Unknown";
 
@@ -1422,7 +1421,7 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
         n = "STK501";
         break;
     }
-    msg_info("%sTopcard         : %s\n", p, n);
+    msg_info("%sTopcard               : %s\n", p, n);
   }
   if(!str_eq(pgm->type, "Arduino"))
     stk500_print_parms1(pgm, p, stderr);
@@ -1439,16 +1438,16 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
 
   if (pgm->extra_features & HAS_VTARG_READ) {
     stk500_getparm(pgm, Parm_STK_VTARGET, &vtarget);
-    fmsg_out(fp, "%sVtarget         : %.1f V\n", p, vtarget / 10.0);
+    fmsg_out(fp, "%sVtarget               : %.1f V\n", p, vtarget / 10.0);
   }
   if (pgm->extra_features & HAS_VAREF_ADJ) {
     stk500_getparm(pgm, Parm_STK_VADJUST, &vadjust);
-    fmsg_out(fp, "%sVaref           : %.1f V\n", p, vadjust / 10.0);
+    fmsg_out(fp, "%sVaref                 : %.1f V\n", p, vadjust / 10.0);
   }
   if (pgm->extra_features & HAS_FOSC_ADJ) {
     stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &osc_pscale);
     stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &osc_cmatch);
-    fmsg_out(fp, "%sOscillator      : ", p);
+    fmsg_out(fp, "%sOscillator            : ", p);
     if (osc_pscale == 0)
       fmsg_out(fp, "Off\n");
     else {
@@ -1472,12 +1471,12 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
   }
 
   stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
-  fmsg_out(fp, "%sSCK period      : %.1f us\n", p, sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.0499);
+  fmsg_out(fp, "%sSCK period            : %.1f us\n", p, sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.0499);
 
   double f = PDATA(pgm)->xtal;
   decimals = get_decimals(f);
   f = f_to_kHz_MHz(f, &unit);
-  fmsg_out(fp, "%sXTAL frequency  : %.*f %s\n", p, decimals, f, unit);
+  fmsg_out(fp, "%sXTAL frequency        : %.*f %s\n", p, decimals, f, unit);
 
   return;
 }

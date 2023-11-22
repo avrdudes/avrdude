@@ -1257,9 +1257,12 @@ on a non-zero verbosity level the line numbers are printed, too.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
-Display the current part settings and parameters.  Includes chip
-specific information including all memories supported by the
-device, read/write timing, etc.
+Display the current part information, including supported programming modes,
+memory and variants tables. Use
+.Ar -m
+to only print the memory table, and
+.Ar -v
+to only print the variants table.
 .It Ar verbose Op Ar level
 Change (when
 .Ar level

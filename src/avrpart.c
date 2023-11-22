@@ -290,39 +290,6 @@ int avr_get_output_index(const OPCODE *op) {
 }
 
 
-static char * avr_op_str(int op)
-{
-  switch (op) {
-    case AVR_OP_READ        : return "READ"; break;
-    case AVR_OP_WRITE       : return "WRITE"; break;
-    case AVR_OP_READ_LO     : return "READ_LO"; break;
-    case AVR_OP_READ_HI     : return "READ_HI"; break;
-    case AVR_OP_WRITE_LO    : return "WRITE_LO"; break;
-    case AVR_OP_WRITE_HI    : return "WRITE_HI"; break;
-    case AVR_OP_LOADPAGE_LO : return "LOADPAGE_LO"; break;
-    case AVR_OP_LOADPAGE_HI : return "LOADPAGE_HI"; break;
-    case AVR_OP_LOAD_EXT_ADDR : return "LOAD_EXT_ADDR"; break;
-    case AVR_OP_WRITEPAGE   : return "WRITEPAGE"; break;
-    case AVR_OP_CHIP_ERASE  : return "CHIP_ERASE"; break;
-    case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;
-    default : return "<unknown opcode>"; break;
-  }
-}
-
-
-static char * bittype(int type)
-{
-  switch (type) {
-    case AVR_CMDBIT_IGNORE  : return "IGNORE"; break;
-    case AVR_CMDBIT_VALUE   : return "VALUE"; break;
-    case AVR_CMDBIT_ADDRESS : return "ADDRESS"; break;
-    case AVR_CMDBIT_INPUT   : return "INPUT"; break;
-    case AVR_CMDBIT_OUTPUT  : return "OUTPUT"; break;
-    default : return "<unknown bit type>"; break;
-  }
-}
-
-
 /***
  *** Elementary functions dealing with AVRMEM structures
  ***/
@@ -529,68 +496,153 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   return NULL;
 }
 
-void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
-                     const AVRPART *p, int verbose) {
-  static unsigned int prev_mem_offset;
-  static int prev_mem_size;
-  int i, j;
-  char * optr;
+static char *print_num(const char *fmt, int n) {
+  return str_sprintf(n<10? "%d": fmt, n);
+}
 
-  if (m == NULL || verbose > 2) {
-      fprintf(f,
-              "%s                                Block Poll               Page                       Polled\n"
-              "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
-            prefix, prefix, prefix);
+static int num_len(const char *fmt, int n) {
+  char *p = print_num(fmt, n);
+  int ret = strlen(p);
+  free(p);
+
+  return ret;
+}
+
+void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
+  const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
+  const char *table_padding = "-------------------------------";
+  const int memory_col = 0, offset_col = 3;
+  int m_char_max[4];
+
+  for(int i = 0; i < 4; i++)
+    m_char_max[i] = strlen(table_colum[i]);
+
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
+    int m_size[] = {0, m->size, m->page_size, m->offset};
+
+    // Mem desc/size/pgsize/offset string length
+    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    for(int i = 0; i < 4; i++) {
+      int len = i == memory_col?
+        (int) (strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: "")): // desc
+        num_len(i == offset_col? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
+      if(m_char_max[i] < len)
+        m_char_max[i] = len;
+    }
   }
 
-  if (m != NULL) {
-    // Only print memory section if the previous section printed isn't identical
-    if(prev_mem_offset != m->offset || prev_mem_size != m->size || str_eq(p->family_id, "")) {
-      prev_mem_offset = m->offset;
-      prev_mem_size = m->size;
-      AVRMEM_ALIAS *ap = avr_find_memalias(p, m);
-      /* Show alias if the current and the next memory section has the same offset
-      and size, we're not out of band and a family_id is present */
-      const char *mem_desc_alias = ap? ap->desc: "";
-      fprintf(f,
-              "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
-              prefix,
-              m->desc,
-              mem_desc_alias,
-              m->mode, m->delay, m->blocksize, m->pollindex,
-              m->paged ? "yes" : "no",
-              m->size,
-              m->page_size,
-              m->num_pages,
-              m->min_write_delay,
-              m->max_write_delay,
-              m->readback[0],
-              m->readback[1]);
+  // Print memory table header
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    fprintf(f,
+      "\n%s%-*s  %*s  %-*s  %*s\n"
+      "%s%.*s--%.*s--%.*s--%.*s\n",
+      prefix,
+      m_char_max[0], table_colum[0],
+      m_char_max[1], table_colum[1],
+      m_char_max[2], table_colum[2],
+      m_char_max[3], table_colum[3],
+      prefix,
+      m_char_max[0], table_padding,
+      m_char_max[1], table_padding,
+      m_char_max[2], table_padding,
+      m_char_max[3], table_padding);
+  } else {
+    fprintf(f,
+      "\n%s%-*s  %*s  %-*s\n"
+      "%s%.*s--%.*s--%.*s\n",
+      prefix,
+      m_char_max[0], table_colum[0],
+      m_char_max[1], table_colum[1],
+      m_char_max[2], table_colum[2],
+      prefix,
+      m_char_max[0], table_padding,
+      m_char_max[1], table_padding,
+      m_char_max[2], table_padding);
+  }
+
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
+
+    // Create mem desc string including alias if present
+    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    char *m_desc_str = str_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
+
+    // Print memory table content
+    if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+      char *m_offset = print_num("0x%04x", m->offset);
+      fprintf(f, "%s%-*s  %*d  %*d  %*s \n",
+        prefix,
+        m_char_max[0], m_desc_str,
+        m_char_max[1], m->size,
+        m_char_max[2], m->page_size,
+        m_char_max[3], m_offset);
+      free(m_offset);
+    } else {
+      fprintf(f, "%s%-*s  %*d  %*d\n",
+        prefix,
+        m_char_max[0], m_desc_str,
+        m_char_max[1], m->size,
+        m_char_max[2], m->page_size);
     }
-    if (verbose > 4) {
-      msg_trace2("%s  Memory Ops:\n"
-                      "%s    Operation    Inst Bit  Bit Type  Bitno  Value\n"
-                      "%s    -----------  --------  --------  -----  -----\n",
-                      prefix, prefix, prefix);
-      for (i=0; i<AVR_OP_MAX; i++) {
-        if (m->op[i]) {
-          for (j=31; j>=0; j--) {
-            if (j==31)
-              optr = avr_op_str(i);
-            else
-              optr = " ";
-          fprintf(f,
-                  "%s    %-11s  %8d  %8s  %5d  %5d\n",
-                  prefix, optr, j,
-                  bittype(m->op[i]->bit[j].type),
-                  m->op[i]->bit[j].bitno,
-                  m->op[i]->bit[j].value);
-          }
-        }
+    free(m_desc_str);
+  }
+}
+
+int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
+  const char *table_padding = "-------------------------------";
+  const char *var_table_column[] = {"Variants", "Package", "F max", "T range", "V range"};
+  char var_tok[5][50];
+  int var_tok_len[5];
+
+  for(int i = 0; i < 5; i++)
+    var_tok_len[i] = strlen(var_table_column[i]);
+
+  if(lsize(p->variants)) {
+    // Split, eg, "ATtiny841-SSU:  SOIC14, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[1.7 V, 5.5 V]"
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=%48[^]]], Vcc=%48[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]))
+        for(int i = 0; i < 5; i++)
+          if(var_tok_len[i] < (int) strlen(var_tok[i]))
+            var_tok_len[i] = strlen(var_tok[i]) + (i>2); // Add 1 for closing interval bracket
+
+    // Print variants table header
+    fprintf(f,
+      "\n%s%-*s  %-*s  %-*s  %-*s  %-*s\n"
+        "%s%.*s--%.*s--%.*s--%.*s--%.*s\n",
+      prefix,
+      var_tok_len[0], var_table_column[0],
+      var_tok_len[1], var_table_column[1],
+      var_tok_len[2], var_table_column[2],
+      var_tok_len[3], var_table_column[3],
+      var_tok_len[4], var_table_column[4],
+      prefix,
+      var_tok_len[0], table_padding,
+      var_tok_len[1], table_padding,
+      var_tok_len[2], table_padding,
+      var_tok_len[3], table_padding,
+      var_tok_len[4], table_padding);
+
+    // Print variants table content
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=%48[^]]], Vcc=%48[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4])) {
+        strcat(var_tok[3], "]");
+        strcat(var_tok[4], "]");
+        fprintf(f,
+          "%s%-*s  %-*s  %-*s  %-*s  %-*s\n",
+          prefix,
+          var_tok_len[0], var_tok[0],
+          var_tok_len[1], var_tok[1],
+          var_tok_len[2], var_tok[2],
+          var_tok_len[3], var_tok[3],
+          var_tok_len[4], var_tok[4]);
       }
-    }
+
+    return 0;
   }
+  return -1;
 }
 
 
@@ -763,67 +815,49 @@ void sort_avrparts(LISTID avrparts)
   lsort(avrparts,(int (*)(void*, void*)) sort_avrparts_compare);
 }
 
+const char *avr_prog_modes_str(int pm) {
+  static char type[1024];
 
-static char * reset_disp_str(int r)
-{
-  switch (r) {
-    case RESET_DEDICATED : return "dedicated";
-    case RESET_IO        : return "possible i/o";
-    default              : return "<invalid>";
-  }
+  strcpy(type, "0");
+  if(pm & PM_TPI)
+    strcat(type, ", TPI");
+  if(pm & PM_ISP)
+    strcat(type, ", ISP");
+  if(pm & PM_PDI)
+    strcat(type, ", PDI");
+  if(pm & PM_UPDI)
+    strcat(type, ", UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, ", HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, ", HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, ", debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, ", JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, ", JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, ", XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, ", AVR32JTAG");
+  if(pm & PM_aWire)
+    strcat(type, ", aWire");
+  if(pm & PM_SPM)
+    strcat(type, ", SPM");
+
+  return type + (type[1] == 0? 0: 3);
 }
 
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
-  char * buf;
-  const char * px;
-  LNODEID ln;
-  AVRMEM * m;
+  fprintf(f, "%sAVR Part              : %s\n", prefix, p->desc);
+  fprintf(f, "%sProgramming modes     : %s\n", prefix, avr_prog_modes_str(p->prog_modes));
 
-  fprintf(  f, "%sAVR Part                      : %s\n", prefix, p->desc);
-  if (p->chip_erase_delay)
-    fprintf(f, "%sChip Erase delay              : %d us\n", prefix, p->chip_erase_delay);
-  if (p->pagel)
-    fprintf(f, "%sPAGEL                         : P%02X\n", prefix, p->pagel);
-  if (p->bs2)
-    fprintf(f, "%sBS2                           : P%02X\n", prefix, p->bs2);
-  fprintf(  f, "%sRESET disposition             : %s\n", prefix, reset_disp_str(p->reset_disposition));
-  fprintf(  f, "%sRETRY pulse                   : %s\n", prefix, avr_pin_name(p->retry_pulse));
-  fprintf(  f, "%sSerial program mode           : %s\n", prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no");
-  fprintf(  f, "%sParallel program mode         : %s\n", prefix, (p->flags & AVRPART_PARALLELOK) ?
-         ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no");
-  if(p->timeout)
-    fprintf(f, "%sTimeout                       : %d\n", prefix, p->timeout);
-  if(p->stabdelay)
-    fprintf(f, "%sStabDelay                     : %d\n", prefix, p->stabdelay);
-  if(p->cmdexedelay)
-    fprintf(f, "%sCmdexeDelay                   : %d\n", prefix, p->cmdexedelay);
-  if(p->synchloops)
-    fprintf(f, "%sSyncLoops                     : %d\n", prefix, p->synchloops);
-  if(p->bytedelay)
-    fprintf(f, "%sByteDelay                     : %d\n", prefix, p->bytedelay);
-  if(p->pollindex)
-    fprintf(f, "%sPollIndex                     : %d\n", prefix, p->pollindex);
-  if(p->pollvalue)
-    fprintf(f, "%sPollValue                     : 0x%02x\n", prefix, p->pollvalue);
-  fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
-
-  px = prefix;
-  buf = (char *) cfg_malloc("avr_display()", strlen(prefix) + 5);
-  strcpy(buf, prefix);
-  strcat(buf, "  ");
-  px = buf;
-
-  if (verbose <= 2)
-    avr_mem_display(px, f, NULL, p, verbose);
-
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    avr_mem_display(px, f, m, p, verbose);
+  if(verbose > 1) {
+    avr_mem_display(f, p, prefix);
+    avr_variants_display(f, p, prefix);
   }
-
-  if (buf)
-    free(buf);
 }
 
 

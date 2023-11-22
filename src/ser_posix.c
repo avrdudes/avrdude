@@ -139,7 +139,7 @@ static speed_t serial_baud_lookup(long baud, bool *nonstandard) {
    * If a non-standard BAUD rate is used, issue
    * a warning (if we are verbose) and return the raw rate
    */
-  pmsg_notice("serial_baud_lookup(): using non-standard baud rate: %ld\n", baud);
+  pmsg_notice2("serial_baud_lookup(): using non-standard baud rate: %ld\n", baud);
 
   *nonstandard = true;
 

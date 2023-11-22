@@ -1560,16 +1560,57 @@ finished:
 
 
 static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
-  if(argc > 1) {
+  int help = 0, onlymem = 0, onlyvariants = 0, invalid = 0, itemac = 1;
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'v':
+          onlyvariants++;
+          break;
+        case 'm':
+          onlymem++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(part) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(argc > 1 || help || invalid || (onlymem && onlyvariants)) {
+    if(onlymem && onlyvariants)
+      pmsg_error("(part) cannot mix -v and -m\n");
     msg_error(
       "Syntax: part\n"
-      "Function: display the current part information\n"
+      "Function: display the current part information including memory and variants\n"
+      "Options:\n"
+      "    -m only display memory information\n"
+      "    -v only display variants information\n"
     );
     return -1;
   }
 
-  term_out("\v");
-  avr_display(stdout, p, "", 0);
+  if(onlymem)
+    avr_mem_display(stdout, p, "");
+  else if(onlyvariants)
+    avr_variants_display(stdout, p, "");
+  else {
+    term_out("%s with programming modes %s\n", p->desc, avr_prog_modes_str(p->prog_modes));
+    avr_mem_display(stdout, p, "");
+    avr_variants_display(stdout, p, "");
+  }
   term_out("\v");
 
   return 0;

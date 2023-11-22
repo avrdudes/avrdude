@@ -2415,9 +2415,9 @@ printed, too.
 Display the device signature bytes.
 
 @item part
-Display the current part settings and parameters.  Includes chip
-specific information including all memories supported by the
-device, read/write timing, etc.
+Display the current part information, including supported programming modes,
+memory and variants tables. Use @var{-m} to only print the memory table,
+and @var{-v} to only print the variants table.
 
 @item verbose [@var{level}]
 Change (when @var{level} is provided), or display the verbosity
