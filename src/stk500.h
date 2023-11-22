@@ -57,6 +57,8 @@ struct pdata {
   bool fosc_get;
   bool fosc_set;
   double fosc_data;
+
+  unsigned xtal;                // Set STK500 XTAL frequency
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))

@@ -1522,7 +1522,7 @@ The generated on-board target voltage can be changed by specifying a new voltage
 The current set-voltage can be read by
 .Ar -xvtarg
 alone.
-.It Ar fosc=VALUE[MHz|M|kHz|k|Hz], fosc
+.It Ar fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc
 Set the programmable oscillator frequency. The current frequency can be read by
 .Ar -xfosc
 alone.
@@ -1546,6 +1546,9 @@ alone.
 .sp 0.5
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+.It Ar xtal=VALUE[MHz|M|kHz|k|Hz|H]
+Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
+original STK500. Used by avrdude for the correct calculation of fosc and sck.
 .It Ar help
 Show help menu and exit.
 .El
