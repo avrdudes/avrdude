@@ -599,13 +599,13 @@ int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
     var_tok_len[i] = strlen(var_table_column[i]);
 
   if(lsize(p->variants)) {
-    // Split variants strings into tokens and find their strlen
+    // Split, eg, "ATtiny841-SSU:  SOIC14, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[1.7 V, 5.5 V]"
     for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
-      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=%48[^]]], Vcc=%48[^]]]",
         var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]))
         for(int i = 0; i < 5; i++)
-          if(var_tok_len[i] < (int)strlen(var_tok[i]))
-            var_tok_len[i] = strlen(var_tok[i]);
+          if(var_tok_len[i] < (int) strlen(var_tok[i]))
+            var_tok_len[i] = strlen(var_tok[i]) + (i>2); // Add 1 for closing interval bracket
 
     // Print variants table header
     fprintf(f,
@@ -615,27 +615,30 @@ int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
       var_tok_len[0], var_table_column[0],
       var_tok_len[1], var_table_column[1],
       var_tok_len[2], var_table_column[2],
-      var_tok_len[3]+2, var_table_column[3],
-      var_tok_len[4]+2, var_table_column[4],
+      var_tok_len[3], var_table_column[3],
+      var_tok_len[4], var_table_column[4],
       prefix,
       var_tok_len[0], table_padding,
       var_tok_len[1], table_padding,
       var_tok_len[2], table_padding,
-      var_tok_len[3]+2, table_padding,
-      var_tok_len[4]+2, table_padding);
+      var_tok_len[3], table_padding,
+      var_tok_len[4], table_padding);
 
     // Print variants table content
     for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
-      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
-        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=%48[^]]], Vcc=%48[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4])) {
+        strcat(var_tok[3], "]");
+        strcat(var_tok[4], "]");
         fprintf(f,
-          "%s%-*s  %-*s  %-*s  [%-*s]  [%-*s]\n",
+          "%s%-*s  %-*s  %-*s  %-*s  %-*s\n",
           prefix,
           var_tok_len[0], var_tok[0],
           var_tok_len[1], var_tok[1],
           var_tok_len[2], var_tok[2],
           var_tok_len[3], var_tok[3],
           var_tok_len[4], var_tok[4]);
+      }
 
     return 0;
   }
