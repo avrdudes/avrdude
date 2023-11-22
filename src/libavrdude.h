@@ -992,9 +992,13 @@ typedef struct programmer_t {
   int  (*term_keep_alive)(const struct programmer_t *pgm, const AVRPART *p);
   void (*print_parms)    (const struct programmer_t *pgm, FILE *fp);
   int  (*set_vtarget)    (const struct programmer_t *pgm, double v);
+  int  (*get_vtarget)    (const struct programmer_t *pgm, double *v);
   int  (*set_varef)      (const struct programmer_t *pgm, unsigned int chan, double v);
+  int  (*get_varef)      (const struct programmer_t *pgm, unsigned int chan, double *v);
   int  (*set_fosc)       (const struct programmer_t *pgm, double v);
+  int  (*get_fosc)       (const struct programmer_t *pgm, double *v);
   int  (*set_sck_period) (const struct programmer_t *pgm, double v);
+  int  (*get_sck_period) (const struct programmer_t *pgm, double *v);
   int  (*setpin)         (const struct programmer_t *pgm, int pinfunc, int value);
   int  (*getpin)         (const struct programmer_t *pgm, int pinfunc);
   int  (*highpulsepin)   (const struct programmer_t *pgm, int pinfunc);

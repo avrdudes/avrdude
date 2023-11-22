@@ -1197,6 +1197,20 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
 }
 
 
+static int stk500_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned utarg = 0;
+  int rv;
+
+  if ((rv = stk500_getparm(pgm, Parm_STK_VTARGET, &utarg)) != 0) {
+    pmsg_error("cannot obtain V[target]\n");
+    return rv;
+  }
+
+  *v = utarg / 10.0;
+  return 0;
+}
+
+
 static int stk500_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
                             double v)
 {
@@ -1215,6 +1229,21 @@ static int stk500_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused *
     return -1;
   }
   return stk500_setparm(pgm, Parm_STK_VADJUST, uaref);
+}
+
+
+static int stk500_get_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
+                            double *v) {
+  unsigned uaref = 0;
+  int rv;
+
+  if ((rv = stk500_getparm(pgm, Parm_STK_VADJUST, &uaref)) != 0) {
+    pmsg_error("cannot obtain V[aref]\n");
+    return rv;
+  }
+
+  *v = uaref / 10.0;
+  return 0;
 }
 
 
@@ -1252,8 +1281,9 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
       }
     }
     if (idx == sizeof(ps) / sizeof(ps[0])) {
-      pmsg_warning("f = %u Hz too low, %u Hz min\n", fosc, PDATA(pgm)->xtal / (256 * 1024 * 2));
-      return -1;
+      pmsg_warning("f = %u Hz too low, using %u Hz\n", fosc, PDATA(pgm)->xtal / (256 * 1024 * 2));
+      prescale = idx;
+      cmatch = 255;
     }
   }
   
@@ -1261,6 +1291,27 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
       || (rc = stk500_setparm(pgm, Parm_STK_OSC_CMATCH, cmatch)) != 0)
     return rc;
   
+  return 0;
+}
+
+
+static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
+  unsigned prescale=0, cmatch=0;
+  double fosc = 0;
+  static unsigned ps[] = {
+    1, 8, 32, 64, 128, 256, 1024
+  };
+  int rc;
+
+  if ((rc = stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &prescale)) != 0
+      || (rc = stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &cmatch)) != 0)
+    return rc;
+
+  if (prescale) {
+  fosc = STK500_XTAL / ((cmatch + 1) * 2 * ps[prescale - 1]);
+  } else
+    fosc = 0;
+  *v = fosc;
   return 0;
 }
 
@@ -1291,6 +1342,19 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   }
   
   return stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur);
+}
+
+
+static int stk500_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned dur;
+  int rv = 0;
+
+  if ((rv = stk500_getparm(pgm, Parm_STK_SCK_DURATION, &dur))< 0) {
+    pmsg_error("cannot obtain sck duration\n");
+    return rv;
+  }
+  *v = dur * 8.0 / STK500_XTAL;
+  return 0;
 }
 
 
@@ -1535,6 +1599,7 @@ void stk500_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500_paged_load;
   pgm->print_parms    = stk500_print_parms;
   pgm->set_sck_period = stk500_set_sck_period;
+  pgm->get_sck_period = stk500_get_sck_period;
   pgm->parseextparams = stk500_parseextparms;
   pgm->setup          = stk500_setup;
   pgm->teardown       = stk500_teardown;
@@ -1545,8 +1610,14 @@ void stk500_initpgm(PROGRAMMER *pgm) {
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget    = stk500_set_vtarget;
-  if (pgm->extra_features & HAS_VAREF_ADJ)
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget    = stk500_get_vtarget;
+  if (pgm->extra_features & HAS_VAREF_ADJ) {
     pgm->set_varef      = stk500_set_varef;
-  if (pgm->extra_features & HAS_FOSC_ADJ)
+    pgm->get_varef      = stk500_get_varef;
+  }
+  if (pgm->extra_features & HAS_FOSC_ADJ) {
     pgm->set_fosc       = stk500_set_fosc;
+    pgm->get_fosc       = stk500_get_fosc;
+  }
 }

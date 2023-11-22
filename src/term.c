@@ -1681,8 +1681,17 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
 static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int rc;
-  double v;
+  double v = 0;
   char *endp;
+
+  if (argc == 1){
+    if ((rc = pgm->get_vtarget(pgm, &v)) != 0) {
+      pmsg_error("(vtarg) unable to get V[target] (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("Vtarget = %.1f V\n", v);
+    return 0;
+  }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1706,8 +1715,24 @@ static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
 static int cmd_fosc(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int rc;
-  double v;
+  double v = 0;
   char *endp;
+
+  if (argc == 1 ) { // query fosc
+    if ((rc = pgm->get_fosc(pgm, &v)) != 0) {
+      pmsg_error("(fosc) unable to get oscillator frequency (rc = %d)\n", rc);
+      return -3;
+    }
+    if (v >= 1e6)
+      term_out("fosc = %.6f MHz\n", v / 1e6);
+    else if (v >= 1e3)
+      term_out("fosc = %.3f kHz\n", v / 1e3);
+    else if (v)
+      term_out("fosc = %.0f Hz\n", v);
+    else
+      term_out("fosc off\n");
+    return 0;
+  }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1742,6 +1767,14 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   double v;
   char *endp;
 
+  if (argc == 1){
+    if ((rc = pgm->get_sck_period(pgm, &v)) != 0) {
+      pmsg_error("(fosc) unable to get sck period (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("SCK period = %.1f us\n", v * 1e6 );
+    return 0;
+  }
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: sck <value>\n"
@@ -1768,6 +1801,15 @@ static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   unsigned int chan;
   double v;
   char *endp;
+
+  if (argc == 1) { // varef w/o parameter returns vlue of channel 0
+    if ((rc = pgm->get_varef(pgm, 0, &v)) != 0) {
+      pmsg_error("(varef) unable to get V[aref] (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("Varef = %.1f V\n", v);
+    return 0;
+  }
 
   if (argc < 2 || argc > 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(

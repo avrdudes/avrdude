@@ -146,9 +146,13 @@ PROGRAMMER *pgm_new(void) {
   pgm->term_keep_alive= NULL;
   pgm->print_parms    = NULL;
   pgm->set_vtarget    = NULL;
+  pgm->get_vtarget    = NULL;
   pgm->set_varef      = NULL;
+  pgm->get_varef      = NULL;
   pgm->set_fosc       = NULL;
+  pgm->get_fosc       = NULL;
   pgm->set_sck_period = NULL;
+  pgm->get_sck_period = NULL;
   pgm->setpin         = NULL;
   pgm->getpin         = NULL;
   pgm->highpulsepin   = NULL;
