@@ -1528,8 +1528,8 @@ memtable_t avr_mem_order[100] = {
   {"bootrow",     MEM_BOOTROW | MEM_USER_TYPE},
   {"usersig",     MEM_USERROW | MEM_USER_TYPE},
   {"userrow",     MEM_USERROW | MEM_USER_TYPE},
-  {"data",        MEM_SRAM},
   {"io",          MEM_IO},
+  {"sram",        MEM_SRAM},
   {"sib",         MEM_SIB | MEM_READONLY},
 };
 
@@ -1558,6 +1558,39 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem) {
 int avr_mem_is_usersig_type(const AVRMEM *mem) {
   return mem_is_user_type(mem);
 }
+
+static int mem_group(AVRMEM *mem) {
+  return
+    !mem? -1:
+    mem_is_eeprom(mem)? 0:
+    mem_is_in_flash(mem)? 1:
+    mem_is_in_fuses(mem)? 2:
+    mem_is_lock(mem)? 3:
+    mem_is_in_sigrow(mem)? 4:
+    mem_is_user_type(mem)? 5:
+    mem_is_io(mem)? 6:
+    mem_is_sram(mem)? 7:
+    mem_is_sib(mem)? 8: 9;
+}
+
+// Return sort order of memories
+int avr_mem_cmp(void *mem1, void *mem2) {
+  AVRMEM *m1 = mem1, *m2 = mem2;
+
+  int diff = mem_group(m1) - mem_group(m2); // First sort by group
+  if(diff)
+    return diff;
+  if(!m1)                       // Sanity, if called with NULL pointers
+    return 0;
+  diff = m1->offset - m2->offset; // Sort by offset within each group
+  if(diff)
+    return diff;
+  diff = m2->size - m1->size;   // Sic: larger size is listed first, eg, fuses before fuse0
+  if(diff)
+    return diff;
+  return strcmp(m1->desc, m2->desc);
+}
+
 
 int avr_mem_is_known(const char *str) {
   if(str && *str)

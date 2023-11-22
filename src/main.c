@@ -1033,6 +1033,11 @@ int main(int argc, char * argv [])
     }
   }
 
+  // Sort memories of all parts in canonical order
+  for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1))
+    if((p = ldata(ln1))->mem)
+      lsort(p->mem, avr_mem_cmp);
+
   // set bitclock from configuration files unless changed by command line
   if (default_bitclock > 0 && bitclock == 0.0) {
     bitclock = default_bitclock;

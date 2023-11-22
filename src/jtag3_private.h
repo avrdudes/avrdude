@@ -379,6 +379,7 @@
 #define TPI_NVMCMD_ADDRESS                  0x33
 #define TPI_NVMCSR_ADDRESS                  0x32
 
+#define DATA_OFFSET                    0x1000000
 
 #if !defined(JTAG3_PRIVATE_EXPORTED)
 

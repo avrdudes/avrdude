@@ -987,10 +987,10 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     } else if (mem_is_sigrow(m)) {
       u32_to_b4(sendbuf.dd.nvm_prod_sig_offset, m->offset);
       pmsg_notice2("prod_sig_offset addr 0x%05x\n", m->offset);
-    } else if (mem_is_data(m)) {
-      u32_to_b4(sendbuf.dd.nvm_data_offset, m->offset);
     }
   }
+  if(p->prog_modes & (PM_PDI | PM_UPDI))
+    u32_to_b4(sendbuf.dd.nvm_data_offset, DATA_OFFSET);
 
   pmsg_notice2("%s() sending set Xmega params command: ", __func__);
   jtagmkII_send(pgm, (unsigned char *)&sendbuf, sizeof sendbuf);
@@ -2222,7 +2222,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if ((p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_in_sigrow(mem)) {
     cmd[1] = MTYPE_PRODSIG;
     pmsg_notice2("in_sigrow addr 0x%05lx\n", addr);
-  } else if (mem_is_io(mem)) {
+  } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH;
     addr += avr_data_offset(p);
   } else {
@@ -2346,7 +2346,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_io(mem)) {
+  } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH; // Works with jtag2updi, does not work with any xmega
     addr += avr_data_offset(p);
   } else if(mem_is_readonly(mem)) {

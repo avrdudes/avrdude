@@ -1212,10 +1212,10 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_user_sig_offset, m->offset);
       } else if (mem_is_sigrow(m)) {
         u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
-      } else if (mem_is_data(m)) {
-        u32_to_b4(xd.nvm_data_offset, m->offset);
       }
     }
+    if(p->prog_modes & (PM_PDI | PM_UPDI))
+      u32_to_b4(xd.nvm_data_offset, DATA_OFFSET);
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;
@@ -2168,7 +2168,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_io(mem)) {
+  } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[3] = MTYPE_SRAM;
   } else if (mem_is_sib(mem)) {
     if(addr >= AVR_SIBLEN) {
@@ -2325,7 +2325,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       unsupp = 1;
   } else if (mem_is_userrow(mem)) {
     cmd[3] = MTYPE_USERSIG;
-  } else if (mem_is_io(mem))
+  } else if (mem_is_io(mem) || mem_is_sram(mem))
     cmd[3] = MTYPE_SRAM;
 
   // Read-only memories or unsupported by debugWire

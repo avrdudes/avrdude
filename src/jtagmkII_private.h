@@ -321,6 +321,8 @@
 #define AVR32_SET4RUNNING            0x0008
 //#define AVR32_RESET_COMMON           (AVR32_RESET_READ | AVR32_RESET_WRITE | AVR32_RESET_CHIP_ERASE )
 
+#define DATA_OFFSET               0x1000000
+
 typedef enum
 {
   RTS_MODE_DEFAULT,

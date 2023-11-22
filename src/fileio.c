@@ -771,8 +771,8 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0;
       *highbound = 0x7Fffff;    // Max 8 MiB
       *fileoff = 0;
-    } else if (mem_is_data(mem)) { // SRAM for XMEGAs
-      *lowbound = 0x802000;
+    } else if (mem_is_io(mem) || mem_is_sram(mem)) { // IO & SRAM in data space
+      *lowbound = 0x800000 + mem->offset;
       *highbound = 0x80ffff;
       *fileoff = 0;
     } else if (mem_is_eeprom(mem)) {
