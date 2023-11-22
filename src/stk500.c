@@ -1478,7 +1478,6 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
   f = f_to_kHz_MHz(f, &unit);
   fmsg_out(fp, "%sXTAL frequency        : %.*f %s\n", p, decimals, f, unit);
 
-
   return;
 }
 
