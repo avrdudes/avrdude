@@ -523,9 +523,8 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
 
     // Mem desc/size/pgsize/offset string length
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    int len;
     for(int i = 0; i < 4; i++) {
-      len = i == memory_col?
+      int len = i == memory_col?
         (int) (strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: "")): // desc
         num_len(i == offset_col? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
       if(m_char_max[i] < len)
@@ -537,29 +536,29 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
   if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     fprintf(f,
       "\n%s%-*s  %*s  %-*s  %*s\n"
-      "%s%*.*s--%*.*s--%*.*s--%*.*s\n",
+      "%s%.*s--%.*s--%.*s--%.*s\n",
       prefix,
       m_char_max[0], table_colum[0],
       m_char_max[1], table_colum[1],
       m_char_max[2], table_colum[2],
       m_char_max[3], table_colum[3],
       prefix,
-      m_char_max[0], m_char_max[0], table_padding,
-      m_char_max[1], m_char_max[1], table_padding,
-      m_char_max[2], m_char_max[2], table_padding,
-      m_char_max[3], m_char_max[3], table_padding);
+      m_char_max[0], table_padding,
+      m_char_max[1], table_padding,
+      m_char_max[2], table_padding,
+      m_char_max[3], table_padding);
   } else {
     fprintf(f,
       "\n%s%-*s  %*s  %-*s\n"
-      "%s%*.*s--%*.*s--%*.*s\n",
+      "%s%.*s--%.*s--%.*s\n",
       prefix,
       m_char_max[0], table_colum[0],
       m_char_max[1], table_colum[1],
       m_char_max[2], table_colum[2],
       prefix,
-      m_char_max[0], m_char_max[0], table_padding,
-      m_char_max[1], m_char_max[1], table_padding,
-      m_char_max[2], m_char_max[2], table_padding);
+      m_char_max[0], table_padding,
+      m_char_max[1], table_padding,
+      m_char_max[2], table_padding);
   }
 
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
@@ -594,25 +593,24 @@ int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
   const char *table_padding = "-------------------------------";
   const char *var_table_column[] = {"Variants", "Package", "F max", "T range", "V range"};
   char var_tok[5][50];
-  int var_tok_len[5] = {0};
+  int var_tok_len[5];
+
+  for(int i = 0; i < 5; i++)
+    var_tok_len[i] = strlen(var_table_column[i]);
 
   if(lsize(p->variants)) {
     // Split variants strings into tokens and find their strlen
-    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
-      sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
-        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
-      for(int i = 0; i < 5; i++) {
-        if(var_tok_len[i] < (int)strlen(var_tok[i]))
-          var_tok_len[i] = strlen(var_tok[i]);
-        if(var_tok_len[i] < (int)strlen(var_table_column[i]))
-          var_tok_len[i] = strlen(var_table_column[i]);
-      }
-    }
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]))
+        for(int i = 0; i < 5; i++)
+          if(var_tok_len[i] < (int)strlen(var_tok[i]))
+            var_tok_len[i] = strlen(var_tok[i]);
 
     // Print variants table header
     fprintf(f,
       "\n%s%-*s  %-*s  %-*s  %-*s  %-*s\n"
-        "%s%*.*s--%*.*s--%*.*s--%*.*s--%*.*s\n",
+        "%s%.*s--%.*s--%.*s--%.*s--%.*s\n",
       prefix,
       var_tok_len[0], var_table_column[0],
       var_tok_len[1], var_table_column[1],
@@ -620,25 +618,25 @@ int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
       var_tok_len[3]+2, var_table_column[3],
       var_tok_len[4]+2, var_table_column[4],
       prefix,
-      var_tok_len[0], var_tok_len[0], table_padding,
-      var_tok_len[1], var_tok_len[1], table_padding,
-      var_tok_len[2], var_tok_len[2], table_padding,
-      var_tok_len[3]+2, var_tok_len[3]+2, table_padding,
-      var_tok_len[4]+2, var_tok_len[4]+2, table_padding);
+      var_tok_len[0], table_padding,
+      var_tok_len[1], table_padding,
+      var_tok_len[2], table_padding,
+      var_tok_len[3]+2, table_padding,
+      var_tok_len[4]+2, table_padding);
 
     // Print variants table content
-    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln)) {
-      sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
-        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]);
-      fprintf(f,
-        "%s%-*s  %-*s  %-*s  [%-*s]  [%-*s]\n",
-        prefix,
-        var_tok_len[0], var_tok[0],
-        var_tok_len[1], var_tok[1],
-        var_tok_len[2], var_tok[2],
-        var_tok_len[3], var_tok[3],
-        var_tok_len[4], var_tok[4]);
-    }
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=[%49[^]]], Vcc=[%49[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]))
+        fprintf(f,
+          "%s%-*s  %-*s  %-*s  [%-*s]  [%-*s]\n",
+          prefix,
+          var_tok_len[0], var_tok[0],
+          var_tok_len[1], var_tok[1],
+          var_tok_len[2], var_tok[2],
+          var_tok_len[3], var_tok[3],
+          var_tok_len[4], var_tok[4]);
+
     return 0;
   }
   return -1;
