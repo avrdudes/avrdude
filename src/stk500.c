@@ -1308,7 +1308,7 @@ static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
     return rc;
 
   if (prescale) {
-  fosc = STK500_XTAL / ((cmatch + 1) * 2 * ps[prescale - 1]);
+  fosc = PDATA(pgm)->xtal / ((cmatch + 1) * 2 * ps[prescale - 1]);
   } else
     fosc = 0;
   *v = fosc;
@@ -1353,7 +1353,7 @@ static int stk500_get_sck_period(const PROGRAMMER *pgm, double *v) {
     pmsg_error("cannot obtain sck duration\n");
     return rv;
   }
-  *v = dur * 8.0 / STK500_XTAL;
+  *v = dur * 8.0 / PDATA(pgm)->xtal;
   return 0;
 }
 
