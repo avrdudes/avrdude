@@ -511,7 +511,11 @@ static int num_len(const char *fmt, int n) {
 void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
   const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
   const char *table_padding = "-------------------------------";
-  int m_char_max[4] = {0};
+  const int memory_col = 0, offset_col = 3;
+  int m_char_max[4];
+
+  for(int i = 0; i < 4; i++)
+    m_char_max[i] = strlen(table_colum[i]);
 
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
@@ -521,14 +525,11 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
     int len;
     for(int i = 0; i < 4; i++) {
-      if(!m_size[i])
-        len = strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: ""); // desc
-      else
-        len = num_len(str_eq(table_colum[i], "Offset")? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
+      len = i == memory_col?
+        (int) (strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: "")): // desc
+        num_len(i == offset_col? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
       if(m_char_max[i] < len)
         m_char_max[i] = len;
-      if(m_char_max[i] < (int)strlen(table_colum[i]))
-        m_char_max[i] = strlen(table_colum[i]);
     }
   }
 
