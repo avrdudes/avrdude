@@ -39,6 +39,8 @@ Changes since version 7.2:
     - JTAG signature write ineffective #1527
     - Control forced loading of ~/.avrduderc #1548
     - Warn if avrdude and avrdude.conf versions don't match #1562
+    - Terminal part command could need an update #1558
+    - Proposal: Add memory sram #1559
 
   * Pull requests:
 
@@ -83,6 +85,11 @@ Changes since version 7.2:
     - Provide option -N for do not load personal config file #1555
     - Print warning when avrdude and avrdude.conf versions doesn't match #1564
     - Always warn if part and programmer are incompatible #1563
+    - Provide -x xtal=... option for STK500 v1 and v2 #1566
+    - Update part cmd #1568
+    - Update src/CMakeLists.txt #1569
+    - Add memory sram and remove memory data #1571
+    - Add GNU readline to mingw github action #1576
 
   * Internals:
 
