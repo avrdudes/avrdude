@@ -493,6 +493,108 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   return NULL;
 }
 
+const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name) {
+  const Configitem_t *match = NULL;
+  int matches = 0, n1;
+
+  if(!cfg || !name || !(n1 = *name))
+    return NULL;
+
+  size_t l = strlen(name);
+  for(int i = 0; i < nc; i++) {
+    if(n1 == *cfg[i].name && !strncmp(cfg[i].name, name, l)) { // Partial initial match
+      match = cfg+i;
+      matches++;
+      if(cfg[i].name[l] == 0)   // Exact match; return straight away
+        return match;
+    }
+  }
+
+  return matches == 1? match: NULL;
+}
+
+// Return memory associated with config item and fill in pointer to Configitem_t record
+static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPART *p,
+  const char *cname, const Configitem_t **cp, int *valp) {
+
+  int id = p->mcuid;
+
+  if(id < 0 || id >= (int) (sizeof uP_table/sizeof *uP_table)) {
+    pmsg_error("%s does not have a valid mcuid (%d)\n", p->desc, id);
+    return NULL;
+  }
+
+  int nc = uP_table[id].nconfigs;
+  const Configitem_t *cfg = uP_table[id].cfgtable;
+  if(nc < 1 || !cfg) {
+    pmsg_error("%s does not have config information in avrintel.c\n", p->desc);
+    return NULL;
+  }
+
+  const Configitem_t *c = avr_locate_config(cfg, nc, cname);
+  if(!c) {
+    pmsg_error("%s does not have a unique config item matched by %s\n", p->desc, cname);
+    return NULL;
+  }
+
+  AVRMEM *mem = str_starts(c->memstr, "lock")? avr_locate_lock(p): avr_locate_fuse_by_offset(p, c->memoffset);
+  if(!mem)
+    mem = avr_locate_mem(p, c->memstr);
+  if(!mem) {
+    pmsg_error("%s does not have the memory %s needed for config item %s\n", p->desc, c->memstr, cname);
+    return NULL;
+  }
+
+  if(mem->size < 1 || mem->size > 4) {
+    pmsg_error("cannot handle size %d of %s's memory %s for config item %s\n", mem->size, p->desc, c->memstr, cname);
+    return NULL;
+  }
+
+  int fusel = 0;
+  for(int i = 0; i < mem->size; i++)
+    if(led_read_byte(pgm, p, mem, i, (unsigned char *) &fusel + i) < 0) {
+      pmsg_error("cannot read from  %s's %s memory\n", p->desc, mem->desc);
+      return NULL;
+    }
+
+  *cp = c;
+  *valp = fusel;
+  return mem;
+}
+
+int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
+  const Configitem_t *c;
+  int fusel;
+
+  if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
+    return -1;
+
+  *valuep = (fusel & c->mask) >> c->lsh;
+  return 0;
+}
+
+int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value) {
+  AVRMEM *mem;
+  const Configitem_t *c;
+  int fusel;
+
+  if(!(mem=avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel)))
+    return -1;
+
+  int newval = (fusel & ~c->mask) | ((value << c->lsh) & c->mask);
+
+  if(newval != fusel) {
+    for(int i = 0; i < mem->size; i++)
+      if(led_write_byte(pgm, p, mem, i, ((unsigned char *) &newval)[i]) < 0) {
+        pmsg_error("cannot write to %s's %s memory\n", p->desc, mem->desc);
+        return -1;
+      }
+  }
+
+  return 0;
+}
+
+
 static char *print_num(const char *fmt, int n) {
   return str_sprintf(n<10? "%d": fmt, n);
 }

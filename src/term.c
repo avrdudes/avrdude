@@ -35,7 +35,6 @@
 #include <errno.h>
 
 #include "libavrdude.h"
-#include "avrintel.h"
 
 #if defined(HAVE_LIBREADLINE)
 #include <readline/readline.h>

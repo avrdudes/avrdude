@@ -32,7 +32,6 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
-#include "avrintel.h"
 
 #include "config_gram.h"
 
