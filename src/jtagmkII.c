@@ -95,17 +95,6 @@ struct pdata
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
-/*
- * The OCDEN fuse is bit 7 of the high fuse (hfuse).  In order to
- * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, OCDEN
- * needs to be programmed.
- *
- * OCDEN should probably rather be defined via the configuration, but
- * if this ever changes to a different fuse byte for one MCU, quite
- * some code here needs to be generalized anyway.
- */
-#define OCDEN (1 << 7)
-
 #define RC(x) { x, #x },
 static struct {
   unsigned int code;
@@ -1325,12 +1314,9 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->prog_modes & (PM_PDI | PM_UPDI))) {
-    AVRMEM *hf = avr_locate_hfuse(p);
-    if (!hf || jtagmkII_read_byte(pgm, p, hf, 1, &b) < 0)
-      return -1;
-    if ((b & OCDEN) != 0)
-      pmsg_warning("OCDEN fuse not programmed, "
-        "single-byte EEPROM updates not possible\n");
+    int ocden = 0;
+    if(avr_get_config_value(pgm, p, "ocden", &ocden) == 0 && ocden) // ocden == 1 means disabled
+      pmsg_warning("OCDEN fuse not programmed, single-byte EEPROM updates not possible\n");
   }
 
   if (pgm->read_chip_rev && p->prog_modes & (PM_PDI | PM_UPDI)) {
