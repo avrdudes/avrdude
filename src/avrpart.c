@@ -517,15 +517,20 @@ const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const cha
 static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPART *p,
   const char *cname, const Configitem_t **cp, int *valp) {
 
-  int id = p->mcuid;
+  int idx = -1;
 
-  if(id < 0 || id >= (int) (sizeof uP_table/sizeof *uP_table)) {
-    pmsg_error("%s does not have a valid mcuid (%d)\n", p->desc, id);
+  if(p->mcuid >= 0)
+    idx = upidxmcuid(p->mcuid);
+  if(idx < 0 && p->desc && *p->desc)
+    idx = upidxname(p->desc);
+  if(idx < 0) {
+    pmsg_error("uP_table neither knows mcuid %d nor part %s\n",
+      p->mcuid, p->desc && *p->desc? p->desc: "???");
     return NULL;
   }
 
-  int nc = uP_table[id].nconfigs;
-  const Configitem_t *cfg = uP_table[id].cfgtable;
+  int nc = uP_table[idx].nconfigs;
+  const Configitem_t *cfg = uP_table[idx].cfgtable;
   if(nc < 1 || !cfg) {
     pmsg_error("%s does not have config information in avrintel.c\n", p->desc);
     return NULL;
