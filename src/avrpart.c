@@ -512,15 +512,121 @@ int avr_locate_upidx(const AVRPART *p) {
 }
 
 // Return pointer to config table for the part and set number of config bitfields
-const Configitem_t *avr_locate_configitems(const AVRPART *p, int *nc) {
+const Configitem_t *avr_locate_configitems(const AVRPART *p, int *ncp) {
   int idx = avr_locate_upidx(p);
   if(idx < 0)
     return NULL;
 
-  *nc = uP_table[idx].nconfigs;
+  *ncp = uP_table[idx].nconfigs;
   return uP_table[idx].cfgtable;
 }
 
+// Return pointer to ISR table for the part and set number of interrupts
+const char * const *avr_locate_isrtable(const AVRPART *p, int *nip) {
+  int idx = avr_locate_upidx(p);
+  if(idx < 0)
+    return NULL;
+
+  *nip = uP_table[idx].ninterrupts;
+  return uP_table[idx].isrtable;
+}
+
+// Return pointer to register file for the part and set number of registers
+const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp) {
+  int idx = avr_locate_upidx(p);
+  if(idx < 0)
+    return NULL;
+
+  *nrp = uP_table[idx].nregisters;
+  return uP_table[idx].regf;
+}
+
+/*
+ * Return pointer to a register that uniquely matches the argument reg or
+ * NULL if no or more than one register matches the reg argument.
+ *
+ * Register names have the form module.name or module.instance.name. The
+ * caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If reg is a full, existing register name, eg,
+ * porta.out then a pointer to that register entry is returned irrespective
+ * of the matching function. avr_locate_register() also tries to match the
+ * last colon-separated segments (instance.name or name) using the provided
+ * matching function. If reg is the same as instance.name or name then the
+ * matching function switches to str_eq(). This allows the only ADC register
+ * adc.adc to be addressed by adc under a lax str_begins() matching even
+ * though there are other registers that start with adc, eg, adc.adcsra.
+ */
+
+const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, const char *reg,
+  int (*match)(const char *, const char*)) {
+
+  if(!rgf || nr < 1 || !reg || !match)
+    return NULL;
+
+  const Register_file_t *ret = NULL;
+  int nmatches = 0, eqmatch = match == str_eq;
+
+  for(int i = 0; i < nr; i++) {
+    int reg_matched = 0;
+    // Match against module.instance.name, instance.name or name
+    for(const char *p = rgf[i].reg; p; p = strchr(p, '.'), p = p? p+1: p)
+      if(match(p, reg)) {
+        if(p == rgf[i].reg && (eqmatch || str_eq(p, reg))) // Reg is full name: return straight away
+          return rgf+i;
+        if(!eqmatch && str_eq(p, reg)) // reg same as segment: switch to str_eq() matching
+          return avr_locate_register(rgf, nr, reg, str_eq);
+        if(!reg_matched++)      // Record a matching register only once
+          nmatches++, ret = rgf+i;
+      }
+  }
+
+  return nmatches == 1? ret: NULL;
+}
+
+/*
+ * Return a NULL terminated malloc'd list of pointers to matching registers
+ *
+ * Register names have the form module.name or module.instance.name. The
+ * caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If reg is a full, existing register name, eg,
+ * porta.out then the returned list is confined to this specific entry
+ * irrespective of the matching function. avr_locate_registerlist() also
+ * tries to match the last colon-separated segments (instance.name or name)
+ * using the provided matching function. If the argument reg is the same as
+ * instance.name or name then the matching function switches to str_eq()
+ * reducing the returned list to those that match that full segment. This
+ * behaviour can be suppressed by specifying a pattern for reg, eg, adc*
+ * together with the matching function str_matched_by.
+ */
+const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
+  int (*match)(const char *, const char*)) {
+
+  const Register_file_t **ret = cfg_malloc(__func__, sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
+  int eqmatch = match == str_eq;
+
+  if(rgf && reg && match)
+    for(int i = 0; i < nr; i++) {
+      int reg_matched = 0;
+      // Match against module.instance.name, instance.name or name
+      for(const char *p = rgf[i].reg; p; p = strchr(p, '.'), p = p? p+1: p)
+        if(match(p, reg)) {
+          if(p == rgf[i].reg && (eqmatch || str_eq(p, reg))) { // Reg is full name: return only that
+            ret[0] = rgf+i;
+            ret[1] = NULL;
+            return ret;
+          }
+          if(!eqmatch && str_eq(p, reg)) { // reg same as segment: switch to str_eq() match
+            free(ret);
+            return avr_locate_registerlist(rgf, nr, reg, str_eq);
+          }
+          if(!reg_matched++)      // Record a matching register only once
+            *r++ = rgf+i;
+        }
+    }
+  *r = NULL;
+
+  return ret;
+}
 
 /*
  * Return pointer to a configuration bitfield that uniquely matches the
