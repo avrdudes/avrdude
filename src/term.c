@@ -72,6 +72,7 @@ static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -100,6 +101,7 @@ struct command cmd[] = {
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
   { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "config", cmd_config, _fo(open),            "change or show configuration properties of the part" },
+  { "regfile", cmd_regfile, _fo(open),          "I/O register addresses and contents" },
   { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
@@ -1250,6 +1252,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
     term_out("#\n");
 }
 
+// Show or change configuration properties of the part
 static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   Cfg_opts_t o = { 0 };
   int help = 0, invalid = 0, itemac=1;
@@ -1348,7 +1351,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
   nc = uP_table[idx].nconfigs;
   ct = uP_table[idx].cfgtable;
   if(nc <= 0 || !ct) {
-    pmsg_error("(config) part %s does not have a configuration table\n", p->desc);
+    pmsg_error("(config) no configutation table defined for %s\n", p->desc);
     return -1;
   }
 
@@ -1557,6 +1560,181 @@ finished:
   return ret;
 }
 
+// Show or change I/O registers of the part (programmer permitting)
+static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  int show_addr = 0, offset = 0, show_size = 0, show_mem = 0, verb = 0, help = 0, invalid = 0, itemac = 1;
+  AVRMEM *io = avr_locate_io(p);
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'm':
+          show_mem++;
+          offset = io? io->offset: 0; // Fall through
+        case 'a':
+          show_addr++;
+          break;
+        case 's':
+          show_size++;
+          break;
+        case 'v':
+          verb++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(regfile) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(argc > 2 || help || invalid) {
+    msg_error(
+      "Syntax: regfile [<opts>] [<reg>[=<value>]] [<opts>]\n"
+      "Function: Show or change I/O registers of the part (programmer permitting)\n"
+      "Options:\n"
+      "    -a show register I/O addresses\n"
+      "    -m show memory (lds/sts) addresses, not I/O addresses\n"
+      "    -s show register sizes\n"
+      "    -v show register explanation\n"
+      "    -h show this help message\n"
+      "\n"
+      "Regfile alone shows all register names and their contents if possible.\n"
+      "\n"
+      "avrdude> regfile <register>\n"
+      "\n"
+      "shows the contents of <register>. Wildcards or initial strings are permitted (but\n"
+      "not both), in which case all contents of matching registers are displayed.\n"
+      "\n"
+      "avrdude> regfile <register>=<value>\n"
+      "\n"
+      "modifies the corresponding register contents if the programmer can do that.\n"
+      "This is normally only possible with modern (UPDI) AVR parts.\n"
+    );
+    return !help || invalid? -1: 0;
+  }
+
+  if(!io)
+    pmsg_warning("(regfile) no IO memory defined for %s\n", p->desc);
+
+  int do_read = p->prog_modes & (PM_UPDI | PM_PDI);
+  int nr;
+  const Register_file_t *rf = avr_locate_register_file(p, &nr);
+
+  if(!rf || nr <= 0) {
+    pmsg_error("(regfile) .atdf file not published for %s: unknown register file\n", p->desc);
+    return -1;
+  }
+
+  char *reg = argc > 1? argv[1]: "", *rhs = strrchr(reg, '=');
+  if(rhs)                       // Right-hand side of assignment
+    *rhs++ = 0;                 // Terminate lhs
+
+  // Create malloc'd NULL-terminated list of register pointers
+  const Register_file_t *r, **rl, **rlist;
+  rlist = avr_locate_registerlist(rf, nr, reg, str_is_pattern(reg)? str_matched_by: str_contains);
+
+  if(rhs) {                     // Write to single register
+    if(!do_read || !io) {
+      pmsg_error("(regfile) cannot write to %s's registers\n", p->desc);
+      goto error;
+    }
+
+    if(!*rlist) {
+      pmsg_error("(regfile) register %s not found in register file\n", *reg? reg: "''");
+      imsg_error("type regfile for all possible values\n", reg);
+      goto error;
+    }
+
+    if(rlist[1]) {
+      pmsg_error("(regfile) register %s not unique (", reg);
+      for(rl = rlist; *rl; rl++)
+         msg_error("%s%s", rl[0]->reg, rl[1]? ", ": ")\n");
+      goto error;
+    }
+
+    r = *rlist;
+    if(r->size > 4 || r->size < 1 || r->size == 3) {
+      pmsg_warning("(regfile) unexpected size %d of %s\n", r->size, r->reg);
+      goto error;
+    }
+
+    const char *errptr;
+    uint32_t toassign = str_int(rhs, STR_UINT32, &errptr);
+    if(errptr) {
+      pmsg_error("(regfile) cannot parse assignment %s: %s\n", rhs, errptr);
+      goto error;
+    }
+
+    for(int i = 0; i < r->size; i++)
+      if(led_write_byte(pgm, p, io, r->addr+i, ((unsigned char *) &toassign)[i]) < 0) {
+        pmsg_warning("(reg_file) cannot write to %s\n", r->reg);
+        goto error;
+      }
+
+    goto success;
+  }
+
+  // Read I/O registers
+
+  int maxsize = 0, maxlen = 0, addrlen = 2;
+  for(rl = rlist; (r = *rl); rl++) {
+    int len = strlen(r->reg);
+    if(len > maxlen)
+      maxlen = len;
+    if(r->size > maxsize)
+      maxsize = r->size;
+    if(rl[1] == NULL)
+      addrlen = (uint32_t) (r->addr+offset) > 0xfffu? 4: (uint32_t) (r->addr+offset) > 0xffu? 3: 2;
+  }
+
+  for(rl = rlist; (r = *rl); rl++) {
+    if(r->size > 4 || r->size < 1 || r->size == 3) {
+      pmsg_warning("(regfile) unexpected size %d of %s\n", r->size, r->reg);
+      continue;
+    }
+    if(show_addr)
+      term_out("%s 0x%0*x: ", show_mem? "mem": "I/O", addrlen, r->addr+offset);
+    if(show_size)
+      term_out("(%d) ", r->size);
+    if(do_read && io) {
+      uint32_t value = 0;
+      for(int i = 0; i < r->size; i++)
+        if(do_read && led_read_byte(pgm, p, io, r->addr+i, (unsigned char *) &value + i) < 0) {
+          do_read = 0;
+          pmsg_warning("(reg_file) cannot read %s\n", r->reg);
+        }
+      if(do_read) {
+        if(r->mask != -1)
+          value &= r->mask;
+        term_out("%*s0x%0*x ", 2*(maxsize-r->size), "", 2*r->size, value);
+      }
+    }
+    term_out("%s", r->reg);
+    int c = *r->caption;
+    if(verb)
+      term_out("%*s # %c%s", maxlen-strlen(r->reg), "", c? toupper(c): ' ', c? r->caption+1: "");
+    term_out("\n");
+  }
+
+success:
+  free(rlist);
+  return 0;
+
+error:
+  free(rlist);
+  return -1;
+}
 
 static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int help = 0, onlymem = 0, onlyvariants = 0, invalid = 0, itemac = 1;
