@@ -41,6 +41,7 @@ Changes since version 7.2:
     - Warn if avrdude and avrdude.conf versions don't match #1562
     - Terminal part command could need an update #1558
     - Proposal: Add memory sram #1559
+    - jtagmkI.c/jtagmkII.c rely on OCDEN being hfuse bit 7 #1537
 
   * Pull requests:
 
@@ -90,6 +91,7 @@ Changes since version 7.2:
     - Update src/CMakeLists.txt #1569
     - Add memory sram and remove memory data #1571
     - Add GNU readline to mingw github action #1576
+    - Provide libavrude functions to access part config values #1577
 
   * Internals:
 
