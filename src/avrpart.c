@@ -493,6 +493,173 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   return NULL;
 }
 
+// Return index in uP_table for part or -1
+int avr_locate_upidx(const AVRPART *p) {
+  int idx = -1;
+
+  if(!p)
+    return -1;
+  if(p->mcuid >= 0)
+    idx = upidxmcuid(p->mcuid);
+  if(idx < 0 && p->desc && *p->desc)
+    idx = upidxname(p->desc);
+
+  if(idx < 0)
+    pmsg_error("uP_table neither knows mcuid %d nor part %s\n",
+      p->mcuid, p->desc && *p->desc? p->desc: "???");
+
+  return idx;
+}
+
+// Return pointer to config table for the part and set number of config bitfields
+const Configitem_t *avr_locate_configitems(const AVRPART *p, int *nc) {
+  int idx = avr_locate_upidx(p);
+  if(idx < 0)
+    return NULL;
+
+  *nc = uP_table[idx].nconfigs;
+  return uP_table[idx].cfgtable;
+}
+
+
+/*
+ * Return pointer to a configuration bitfield that uniquely matches the
+ * argument name. Return NULL if none matches or more than one do.
+ *
+ * The caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If name is the full name of a configuration bitfield
+ * then a pointer to that is returned irrespective of the matching function.
+ */
+const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
+  int (*match)(const char *, const char*)) {
+
+  if(!cfg || nc < 1 || !name || !match)
+    return NULL;
+
+  const Configitem_t *ret = NULL;
+  int nmatches = 0;
+
+  for(int i = 0; i < nc; i++) {
+    if(match(cfg[i].name, name)) {
+      if(match == str_eq || str_eq(cfg[i].name, name)) // Full name specified: return straight away
+        return cfg+i;
+      nmatches++, ret = cfg+i;
+    }
+  }
+
+  return nmatches == 1? ret: NULL;
+}
+
+/*
+ * Return a NULL terminated malloc'd list of pointers to config bitfields
+ *
+ * The caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If name is a full, existing config name then the
+ * returned list is confined to this specific entry irrespective of the
+ * matching function.
+ */
+const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
+  int (*match)(const char *, const char*)) {
+
+  const Configitem_t **ret = cfg_malloc(__func__, sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
+
+  if(cfg && name && match) {
+    for(int i = 0; i < nc; i++)
+      if(match(cfg[i].name, name)) {
+        if(match == str_eq || str_eq(cfg[i].name, name)) { // Full name specified: return straight away
+          ret[0] = cfg+i;
+          ret[1] = NULL;
+          return ret;
+        }
+        *r++ = cfg+i;
+      }
+  }
+  *r = NULL;
+
+  return ret;
+}
+
+// Return memory associated with config item and fill in pointer to Configitem_t record
+static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPART *p,
+  const char *cname, const Configitem_t **cp, int *valp) {
+
+  int nc = 0;
+  const Configitem_t *cfg = avr_locate_configitems(p, &nc);
+
+  if(!cfg || nc < 1) {
+    pmsg_error("avrintel.c does not hold configuration information for %s\n", p->desc);
+    return NULL;
+  }
+
+  const Configitem_t *c = avr_locate_config(cfg, nc, cname, str_contains);
+  if(!c) {
+    pmsg_error("%s does not have a unique config item matched by %s\n", p->desc, cname);
+    return NULL;
+  }
+
+  AVRMEM *mem = str_starts(c->memstr, "lock")? avr_locate_lock(p): avr_locate_fuse_by_offset(p, c->memoffset);
+  if(!mem)
+    mem = avr_locate_mem(p, c->memstr);
+  if(!mem) {
+    pmsg_error("%s does not have the memory %s needed for config item %s\n", p->desc, c->memstr, cname);
+    return NULL;
+  }
+
+  if(mem->size < 1 || mem->size > 4) {
+    pmsg_error("cannot handle size %d of %s's memory %s for config item %s\n", mem->size, p->desc, c->memstr, cname);
+    return NULL;
+  }
+
+  int fusel = 0;
+  for(int i = 0; i < mem->size; i++)
+    if(led_read_byte(pgm, p, mem, i, (unsigned char *) &fusel + i) < 0) {
+      pmsg_error("cannot read from  %s's %s memory\n", p->desc, mem->desc);
+      return NULL;
+    }
+
+  *cp = c;
+  *valp = fusel;
+  return mem;
+}
+
+// Initialise *valuep with configuration value of named configuration bitfield
+int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
+  const Configitem_t *c;
+  int fusel;
+
+  if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
+    return -1;
+
+  *valuep = (fusel & c->mask) >> c->lsh;
+  return 0;
+}
+
+// Set configuration value of named configuration bitfield to value
+int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value) {
+  AVRMEM *mem;
+  const Configitem_t *c;
+  int fusel;
+
+  if(!(mem=avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel)))
+    return -1;
+
+  if((value << c->lsh) & ~c->mask)
+    pmsg_warning("value 0x%02x has bits set outside bitfield mask 0x%02x\n", value, c->mask >> c->lsh);
+
+  int newval = (fusel & ~c->mask) | ((value << c->lsh) & c->mask);
+
+  if(newval != fusel) {
+    for(int i = 0; i < mem->size; i++)
+      if(led_write_byte(pgm, p, mem, i, ((unsigned char *) &newval)[i]) < 0) {
+        pmsg_error("cannot write to %s's %s memory\n", p->desc, mem->desc);
+        return -1;
+      }
+  }
+
+  return 0;
+}
+
+
 static char *print_num(const char *fmt, int n) {
   return str_sprintf(n<10? "%d": fmt, n);
 }

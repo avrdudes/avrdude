@@ -25,6 +25,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include "avrintel.h"
 
 typedef uint32_t pinmask_t;
 /*
@@ -1418,6 +1419,15 @@ typedef struct {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+int avr_locate_upidx(const AVRPART *p);
+const Configitem_t *avr_locate_configitems(const AVRPART *p, int *nc);
+const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
+  int (*match)(const char *, const char*));
+const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
+  int (*match)(const char *, const char*));
+int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep);
+int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value);
 
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum);
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum);

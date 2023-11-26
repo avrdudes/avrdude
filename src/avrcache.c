@@ -29,7 +29,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "avrintel.h"
 
 /*
  * Provides an API for cached bytewise access
