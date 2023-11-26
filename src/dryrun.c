@@ -119,7 +119,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     dry.dp = avr_dup_part(p);   // Allocate dryrun part
 
     memset(inifuses, 0xff, sizeof inifuses);
-    // Initialise the device with fuse factory setting and erase flash/EEPROM to 0xff
+    // Initialise the device with factory setting and erase flash/EEPROM to 0xff
     for (LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
       AVRMEM *m = ldata(ln);
       if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
@@ -166,6 +166,15 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
           for(int i=0; i<3; i++)
             m->buf[2*i] = dry.dp->signature[i];
         }
+      } else if(mem_is_io(m)) { // Initialise reset values (if known)
+        int nr;
+        const Register_file_t *rf = avr_locate_register_file(p, &nr);
+        if(rf)
+          for(int i = 0; i < nr; i++)
+            if(rf[i].initval != -1 && rf[i].size > 0 && rf[i].size < 5)
+              if(rf[i].addr >= 0 && rf[i].addr+rf[i].size <= m->size)
+                for(int k = 0; k < rf[i].size; k++) // FIXME: Assume little endian compiler
+                  m->buf[rf[i].addr+k] = ((unsigned char *) &rf[i].initval)[k];
       }
     }
     if(prodsigm) {
