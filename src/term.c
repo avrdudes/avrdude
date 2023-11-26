@@ -1999,29 +1999,33 @@ static char *tokenize(char *s, int *argcp, char ***argvp) {
 
 
 static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
-  int i;
   int hold, matches;
   size_t len;
 
   len = strlen(argv[0]);
   matches = 0;
-  for (i=0; i<NCMDS; i++) {
-    if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
-      continue;
-    if(len && strncasecmp(argv[0], cmd[i].name, len)==0) { // Partial initial match
-      hold = i;
-      matches++;
-      if(cmd[i].name[len] == 0) { // Exact match
-        matches = 1;
-        break;
+  for(int i = 0; i < NCMDS; i++)
+    if(*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+      if(len && strncasecmp(argv[0], cmd[i].name, len)==0) { // Partial initial match
+        hold = i;
+        matches++;
+        if(cmd[i].name[len] == 0) { // Exact match
+          matches = 1;
+          break;
+        }
       }
-    }
-  }
 
   if(matches == 1)
     return cmd[hold].func(pgm, p, argc, argv);
 
-  pmsg_error("(cmd) command %s is %s\n", argv[0], matches > 1? "ambiguous": "invalid");
+  pmsg_error("(cmd) command %s is %s", argv[0], matches > 1? "ambiguous": "invalid");
+  if(matches > 1)
+    for(int ch = ':', i = 0; i < NCMDS; i++)
+      if(*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+        if(len && strncasecmp(argv[0], cmd[i].name, len)==0)
+          msg_error("%c %s", ch, cmd[i].name), ch = ',';
+  msg_error("\n");
+
   return -1;
 }
 
