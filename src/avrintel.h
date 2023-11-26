@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 15.08.2023
+ * 27.11.2023
  *
  */
 
@@ -34,6 +34,15 @@ typedef struct {
   const char *ccomment;         // Expanded semantic name for this configuration item
 } Configitem_t;
 
+typedef struct {
+  const char *reg;              // Name of I/O register
+  int addr;                     // Address of register in IO memory
+  int size;                     // Size of register (1, 2 or 4 bytes)
+  int mask;                     // Bit mask for register, if any (-1 means none/unknown)
+  int initval;                  // Reset value, if any (-1 means none/unknown)
+  const char *caption;          // Expanded semantic name
+} Register_file_t;
+
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part
   uint16_t mcuid;               // ID of MCU in 0..2039
@@ -55,6 +64,8 @@ typedef struct {                // Value of -1 typically means unknown
   const char * const *isrtable; // Interrupt vector table vector names
   uint8_t nconfigs;             // Number of configuration bitfields in fuses/locks
   const Configitem_t *cfgtable; // Configuration bitfield table
+  uint16_t nregisters;          // Number of I/O registers
+  const Register_file_t *regf;  // Register file
 } uPcore_t;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
@@ -2168,6 +2179,507 @@ extern const Configitem_t    cfgtab_avr32db28[16];
 #define cfgtab_avr128db32    cfgtab_avr32db28
 #define cfgtab_avr128db48    cfgtab_avr32db28
 #define cfgtab_avr128db64    cfgtab_avr32db28
+
+// I/O Register files
+
+extern const Register_file_t rgftab_atmega328[81];
+#define rgftab_atmega328p    rgftab_atmega328
+
+extern const Register_file_t rgftab_atmega16m1[136];
+#define rgftab_atmega32m1    rgftab_atmega16m1
+
+extern const Register_file_t rgftab_atmega32hvbrevb[91];
+#define rgftab_atmega16hvb   rgftab_atmega32hvbrevb
+#define rgftab_atmega16hvbrevb rgftab_atmega32hvbrevb
+#define rgftab_atmega32hvb   rgftab_atmega32hvbrevb
+
+extern const Register_file_t rgftab_atmega328pb[123];
+
+extern const Register_file_t rgftab_atmega8515[52];
+
+extern const Register_file_t rgftab_attiny102[55];
+#define rgftab_attiny104     rgftab_attiny102
+
+extern const Register_file_t rgftab_attiny28[20];
+
+extern const Register_file_t rgftab_attiny441[101];
+#define rgftab_attiny841     rgftab_attiny441
+
+extern const Register_file_t rgftab_at90pwm81[84];
+
+extern const Register_file_t rgftab_at90can128[137];
+#define rgftab_at90can32     rgftab_at90can128
+#define rgftab_at90can64     rgftab_at90can128
+
+extern const Register_file_t rgftab_at90usb162[92];
+#define rgftab_at90usb82     rgftab_at90usb162
+
+extern const Register_file_t rgftab_ata5700m322[337];
+
+extern const Register_file_t rgftab_ata5781[262];
+#define rgftab_ata5782       rgftab_ata5781
+#define rgftab_ata5783       rgftab_ata5781
+#define rgftab_ata8210       rgftab_ata5781
+#define rgftab_ata8215       rgftab_ata5781
+
+extern const Register_file_t rgftab_ata5790[112];
+
+extern const Register_file_t rgftab_ata6285[79];
+#define rgftab_ata6286       rgftab_ata6285
+
+extern const Register_file_t rgftab_atxmega16e5[438];
+#define rgftab_atxmega8e5    rgftab_atxmega16e5
+#define rgftab_atxmega32e5   rgftab_atxmega16e5
+
+extern const Register_file_t rgftab_atxmega128a3[680];
+#define rgftab_atxmega64a3   rgftab_atxmega128a3
+#define rgftab_atxmega192a3  rgftab_atxmega128a3
+#define rgftab_atxmega256a3  rgftab_atxmega128a3
+
+extern const Register_file_t rgftab_atxmega128a3u[792];
+#define rgftab_atxmega64a3u  rgftab_atxmega128a3u
+#define rgftab_atxmega192a3u rgftab_atxmega128a3u
+#define rgftab_atxmega256a3u rgftab_atxmega128a3u
+
+extern const Register_file_t rgftab_attiny204[235];
+#define rgftab_attiny404     rgftab_attiny204
+
+extern const Register_file_t rgftab_attiny1624[307];
+#define rgftab_attiny424     rgftab_attiny1624
+#define rgftab_attiny824     rgftab_attiny1624
+#define rgftab_attiny3224    rgftab_attiny1624
+
+extern const Register_file_t rgftab_avr32dd14[401];
+#define rgftab_avr16dd14     rgftab_avr32dd14
+#define rgftab_avr16dd20     rgftab_avr32dd14
+#define rgftab_avr16dd28     rgftab_avr32dd14
+#define rgftab_avr16dd32     rgftab_avr32dd14
+#define rgftab_avr32dd20     rgftab_avr32dd14
+#define rgftab_avr32dd28     rgftab_avr32dd14
+#define rgftab_avr32dd32     rgftab_avr32dd14
+#define rgftab_avr64dd14     rgftab_avr32dd14
+#define rgftab_avr64dd20     rgftab_avr32dd14
+#define rgftab_avr64dd28     rgftab_avr32dd14
+#define rgftab_avr64dd32     rgftab_avr32dd14
+
+extern const Register_file_t rgftab_avr64ea48[502];
+#define rgftab_avr16ea48     rgftab_avr64ea48
+#define rgftab_avr32ea48     rgftab_avr64ea48
+
+extern const Register_file_t rgftab_attiny4[36];
+#define rgftab_attiny9       rgftab_attiny4
+
+extern const Register_file_t rgftab_attiny5[41];
+#define rgftab_attiny10      rgftab_attiny5
+
+extern const Register_file_t rgftab_attiny20[61];
+
+extern const Register_file_t rgftab_attiny40[63];
+
+extern const Register_file_t rgftab_attiny11[14];
+
+extern const Register_file_t rgftab_attiny12[18];
+
+extern const Register_file_t rgftab_attiny13[35];
+
+extern const Register_file_t rgftab_attiny13a[37];
+
+extern const Register_file_t rgftab_attiny15[28];
+
+extern const Register_file_t rgftab_attiny24[55];
+#define rgftab_attiny24a     rgftab_attiny24
+
+extern const Register_file_t rgftab_attiny25[55];
+
+extern const Register_file_t rgftab_attiny26[37];
+
+extern const Register_file_t rgftab_attiny43u[54];
+
+extern const Register_file_t rgftab_attiny44[55];
+#define rgftab_attiny44a     rgftab_attiny44
+
+extern const Register_file_t rgftab_attiny45[55];
+#define rgftab_attiny85      rgftab_attiny45
+
+extern const Register_file_t rgftab_attiny48[74];
+
+extern const Register_file_t rgftab_attiny84[55];
+#define rgftab_attiny84a     rgftab_attiny84
+
+extern const Register_file_t rgftab_attiny87[80];
+#define rgftab_attiny167     rgftab_attiny87
+
+extern const Register_file_t rgftab_attiny88[74];
+
+extern const Register_file_t rgftab_attiny261[63];
+#define rgftab_attiny261a    rgftab_attiny261
+
+extern const Register_file_t rgftab_attiny461[63];
+#define rgftab_attiny461a    rgftab_attiny461
+
+extern const Register_file_t rgftab_attiny828[94];
+
+extern const Register_file_t rgftab_attiny861[63];
+#define rgftab_attiny861a    rgftab_attiny861
+
+extern const Register_file_t rgftab_attiny1634[89];
+
+extern const Register_file_t rgftab_attiny2313[54];
+
+extern const Register_file_t rgftab_attiny2313a[58];
+
+extern const Register_file_t rgftab_attiny4313[58];
+
+extern const Register_file_t rgftab_atmega8[61];
+#define rgftab_atmega8a      rgftab_atmega8
+
+extern const Register_file_t rgftab_atmega8hva[74];
+#define rgftab_atmega16hva   rgftab_atmega8hva
+
+extern const Register_file_t rgftab_atmega8u2[92];
+#define rgftab_atmega16u2    rgftab_atmega8u2
+#define rgftab_atmega32u2    rgftab_atmega8u2
+
+extern const Register_file_t rgftab_atmega16[70];
+
+extern const Register_file_t rgftab_atmega16a[70];
+
+extern const Register_file_t rgftab_atmega16u4[139];
+#define rgftab_atmega32u4    rgftab_atmega16u4
+
+extern const Register_file_t rgftab_atmega32[68];
+
+extern const Register_file_t rgftab_atmega32a[66];
+
+extern const Register_file_t rgftab_atmega32c1[117];
+
+extern const Register_file_t rgftab_atmega48[81];
+#define rgftab_atmega48p     rgftab_atmega48
+
+extern const Register_file_t rgftab_atmega48a[82];
+#define rgftab_atmega48pa    rgftab_atmega48a
+
+extern const Register_file_t rgftab_atmega48pb[95];
+
+extern const Register_file_t rgftab_atmega64[103];
+#define rgftab_atmega64a     rgftab_atmega64
+
+extern const Register_file_t rgftab_atmega64c1[122];
+
+extern const Register_file_t rgftab_atmega64m1[136];
+
+extern const Register_file_t rgftab_atmega64hve2[89];
+
+extern const Register_file_t rgftab_atmega64rfr2[269];
+#define rgftab_atmega644rfr2 rgftab_atmega64rfr2
+
+extern const Register_file_t rgftab_atmega88[81];
+#define rgftab_atmega88a     rgftab_atmega88
+#define rgftab_atmega88p     rgftab_atmega88
+#define rgftab_atmega88pa    rgftab_atmega88
+#define rgftab_atmega168     rgftab_atmega88
+#define rgftab_atmega168a    rgftab_atmega88
+#define rgftab_atmega168p    rgftab_atmega88
+#define rgftab_atmega168pa   rgftab_atmega88
+
+extern const Register_file_t rgftab_atmega88pb[95];
+#define rgftab_atmega168pb   rgftab_atmega88pb
+
+extern const Register_file_t rgftab_atmega128[103];
+
+extern const Register_file_t rgftab_atmega128a[103];
+
+extern const Register_file_t rgftab_atmega128rfa1[237];
+
+extern const Register_file_t rgftab_atmega128rfr2[270];
+#define rgftab_atmega1284rfr2 rgftab_atmega128rfr2
+
+extern const Register_file_t rgftab_atmega162[79];
+
+extern const Register_file_t rgftab_atmega164a[96];
+#define rgftab_atmega164p    rgftab_atmega164a
+#define rgftab_atmega164pa   rgftab_atmega164a
+#define rgftab_atmega324a    rgftab_atmega164a
+#define rgftab_atmega324p    rgftab_atmega164a
+#define rgftab_atmega324pa   rgftab_atmega164a
+
+extern const Register_file_t rgftab_atmega165a[86];
+#define rgftab_atmega165p    rgftab_atmega165a
+#define rgftab_atmega165pa   rgftab_atmega165a
+
+extern const Register_file_t rgftab_atmega169a[106];
+#define rgftab_atmega169p    rgftab_atmega169a
+#define rgftab_atmega169pa   rgftab_atmega169a
+
+extern const Register_file_t rgftab_atmega256rfr2[271];
+
+extern const Register_file_t rgftab_atmega324pb[134];
+
+extern const Register_file_t rgftab_atmega325[86];
+#define rgftab_atmega325a    rgftab_atmega325
+#define rgftab_atmega325p    rgftab_atmega325
+#define rgftab_atmega325pa   rgftab_atmega325
+
+extern const Register_file_t rgftab_atmega329[106];
+
+extern const Register_file_t rgftab_atmega329a[106];
+#define rgftab_atmega329pa   rgftab_atmega329a
+
+extern const Register_file_t rgftab_atmega329p[106];
+
+extern const Register_file_t rgftab_atmega406[79];
+
+extern const Register_file_t rgftab_atmega640[160];
+
+extern const Register_file_t rgftab_atmega644[88];
+
+extern const Register_file_t rgftab_atmega644a[93];
+#define rgftab_atmega644p    rgftab_atmega644a
+#define rgftab_atmega644pa   rgftab_atmega644a
+
+extern const Register_file_t rgftab_atmega645[86];
+#define rgftab_atmega645a    rgftab_atmega645
+#define rgftab_atmega645p    rgftab_atmega645
+
+extern const Register_file_t rgftab_atmega649[106];
+#define rgftab_atmega649a    rgftab_atmega649
+#define rgftab_atmega649p    rgftab_atmega649
+
+extern const Register_file_t rgftab_atmega1280[161];
+#define rgftab_atmega2560    rgftab_atmega1280
+
+extern const Register_file_t rgftab_atmega1281[138];
+
+extern const Register_file_t rgftab_atmega1284[104];
+#define rgftab_atmega1284p   rgftab_atmega1284
+
+extern const Register_file_t rgftab_atmega2561[139];
+
+extern const Register_file_t rgftab_atmega2564rfr2[271];
+
+extern const Register_file_t rgftab_atmega3250[94];
+#define rgftab_atmega3250a   rgftab_atmega3250
+#define rgftab_atmega3250p   rgftab_atmega3250
+#define rgftab_atmega3250pa  rgftab_atmega3250
+
+extern const Register_file_t rgftab_atmega3290[118];
+#define rgftab_atmega3290a   rgftab_atmega3290
+
+extern const Register_file_t rgftab_atmega3290p[118];
+
+extern const Register_file_t rgftab_atmega3290pa[118];
+
+extern const Register_file_t rgftab_atmega6450[94];
+#define rgftab_atmega6450a   rgftab_atmega6450
+#define rgftab_atmega6450p   rgftab_atmega6450
+
+extern const Register_file_t rgftab_atmega6490[118];
+#define rgftab_atmega6490a   rgftab_atmega6490
+#define rgftab_atmega6490p   rgftab_atmega6490
+
+extern const Register_file_t rgftab_atmega8535[67];
+
+extern const Register_file_t rgftab_at90pwm1[92];
+
+extern const Register_file_t rgftab_at90pwm2b[100];
+
+extern const Register_file_t rgftab_at90pwm3[115];
+
+extern const Register_file_t rgftab_at90pwm3b[115];
+
+extern const Register_file_t rgftab_at90pwm161[86];
+
+extern const Register_file_t rgftab_at90pwm216[102];
+
+extern const Register_file_t rgftab_at90pwm316[117];
+
+extern const Register_file_t rgftab_at90usb646[157];
+#define rgftab_at90usb647    rgftab_at90usb646
+#define rgftab_at90usb1287   rgftab_at90usb646
+
+extern const Register_file_t rgftab_at90usb1286[132];
+
+extern const Register_file_t rgftab_ata5272[80];
+#define rgftab_ata5505       rgftab_ata5272
+
+extern const Register_file_t rgftab_ata5702m322[378];
+
+extern const Register_file_t rgftab_ata5787[292];
+
+extern const Register_file_t rgftab_ata5790n[117];
+#define rgftab_ata5791       rgftab_ata5790n
+
+extern const Register_file_t rgftab_ata5795[84];
+
+extern const Register_file_t rgftab_ata5831[279];
+#define rgftab_ata5832       rgftab_ata5831
+#define rgftab_ata5833       rgftab_ata5831
+#define rgftab_ata8510       rgftab_ata5831
+#define rgftab_ata8515       rgftab_ata5831
+
+extern const Register_file_t rgftab_ata5835[307];
+
+extern const Register_file_t rgftab_ata6612c[81];
+#define rgftab_ata6613c      rgftab_ata6612c
+
+extern const Register_file_t rgftab_ata6614q[81];
+
+extern const Register_file_t rgftab_ata6616c[81];
+#define rgftab_ata6617c      rgftab_ata6616c
+#define rgftab_ata664251     rgftab_ata6616c
+
+extern const Register_file_t rgftab_atxmega16a4[553];
+#define rgftab_atxmega32a4   rgftab_atxmega16a4
+
+extern const Register_file_t rgftab_atxmega16a4u[630];
+#define rgftab_atxmega32a4u  rgftab_atxmega16a4u
+
+extern const Register_file_t rgftab_atxmega16c4[482];
+#define rgftab_atxmega32c4   rgftab_atxmega16c4
+
+extern const Register_file_t rgftab_atxmega16d4[460];
+#define rgftab_atxmega32d4   rgftab_atxmega16d4
+
+extern const Register_file_t rgftab_atxmega32c3[569];
+#define rgftab_atxmega64c3   rgftab_atxmega32c3
+#define rgftab_atxmega128c3  rgftab_atxmega32c3
+#define rgftab_atxmega192c3  rgftab_atxmega32c3
+#define rgftab_atxmega256c3  rgftab_atxmega32c3
+
+extern const Register_file_t rgftab_atxmega32d3[567];
+#define rgftab_atxmega64d3   rgftab_atxmega32d3
+#define rgftab_atxmega128d3  rgftab_atxmega32d3
+#define rgftab_atxmega192d3  rgftab_atxmega32d3
+#define rgftab_atxmega256d3  rgftab_atxmega32d3
+
+extern const Register_file_t rgftab_atxmega64a1[814];
+#define rgftab_atxmega128a1  rgftab_atxmega64a1
+
+extern const Register_file_t rgftab_atxmega64a1u[943];
+#define rgftab_atxmega128a1u rgftab_atxmega64a1u
+
+extern const Register_file_t rgftab_atxmega64b1[574];
+#define rgftab_atxmega128b1  rgftab_atxmega64b1
+
+extern const Register_file_t rgftab_atxmega64b3[458];
+#define rgftab_atxmega128b3  rgftab_atxmega64b3
+
+extern const Register_file_t rgftab_atxmega64a4u[632];
+#define rgftab_atxmega128a4u rgftab_atxmega64a4u
+
+extern const Register_file_t rgftab_atxmega64d4[460];
+#define rgftab_atxmega128d4  rgftab_atxmega64d4
+
+extern const Register_file_t rgftab_atxmega256a3b[665];
+
+extern const Register_file_t rgftab_atxmega256a3bu[780];
+
+extern const Register_file_t rgftab_atxmega384c3[603];
+
+extern const Register_file_t rgftab_atxmega384d3[560];
+
+extern const Register_file_t rgftab_attiny202[217];
+#define rgftab_attiny402     rgftab_attiny202
+
+extern const Register_file_t rgftab_attiny212[247];
+#define rgftab_attiny412     rgftab_attiny212
+
+extern const Register_file_t rgftab_attiny214[265];
+#define rgftab_attiny414     rgftab_attiny214
+
+extern const Register_file_t rgftab_attiny406[253];
+
+extern const Register_file_t rgftab_attiny416[283];
+
+extern const Register_file_t rgftab_attiny416auto[283];
+
+extern const Register_file_t rgftab_attiny417[283];
+#define rgftab_attiny816     rgftab_attiny417
+#define rgftab_attiny817     rgftab_attiny417
+
+extern const Register_file_t rgftab_attiny426[308];
+#define rgftab_attiny427     rgftab_attiny426
+#define rgftab_attiny826     rgftab_attiny426
+#define rgftab_attiny827     rgftab_attiny426
+#define rgftab_attiny1626    rgftab_attiny426
+#define rgftab_attiny1627    rgftab_attiny426
+#define rgftab_attiny3226    rgftab_attiny426
+#define rgftab_attiny3227    rgftab_attiny426
+
+extern const Register_file_t rgftab_attiny804[255];
+#define rgftab_attiny806     rgftab_attiny804
+#define rgftab_attiny807     rgftab_attiny804
+#define rgftab_attiny1604    rgftab_attiny804
+#define rgftab_attiny1606    rgftab_attiny804
+#define rgftab_attiny1607    rgftab_attiny804
+
+extern const Register_file_t rgftab_attiny814[265];
+
+extern const Register_file_t rgftab_attiny1614[308];
+
+extern const Register_file_t rgftab_attiny1616[326];
+#define rgftab_attiny1617    rgftab_attiny1616
+
+extern const Register_file_t rgftab_attiny3216[326];
+#define rgftab_attiny3217    rgftab_attiny3216
+
+extern const Register_file_t rgftab_atmega808[406];
+#define rgftab_atmega1608    rgftab_atmega808
+
+extern const Register_file_t rgftab_atmega809[432];
+#define rgftab_atmega1609    rgftab_atmega809
+
+extern const Register_file_t rgftab_atmega3208[406];
+#define rgftab_atmega4808    rgftab_atmega3208
+
+extern const Register_file_t rgftab_atmega3209[432];
+#define rgftab_atmega4809    rgftab_atmega3209
+
+extern const Register_file_t rgftab_avr16eb14[390];
+
+extern const Register_file_t rgftab_avr16eb20[391];
+#define rgftab_avr16eb28     rgftab_avr16eb20
+#define rgftab_avr16eb32     rgftab_avr16eb20
+
+extern const Register_file_t rgftab_avr16ea28[402];
+#define rgftab_avr16ea32     rgftab_avr16ea28
+#define rgftab_avr32ea28     rgftab_avr16ea28
+#define rgftab_avr32ea32     rgftab_avr16ea28
+#define rgftab_avr64ea28     rgftab_avr16ea28
+#define rgftab_avr64ea32     rgftab_avr16ea28
+
+extern const Register_file_t rgftab_avr32da28[432];
+
+extern const Register_file_t rgftab_avr32db28[462];
+#define rgftab_avr64db28     rgftab_avr32db28
+#define rgftab_avr128db28    rgftab_avr32db28
+
+extern const Register_file_t rgftab_avr32da32[447];
+
+extern const Register_file_t rgftab_avr32db32[477];
+#define rgftab_avr64db32     rgftab_avr32db32
+#define rgftab_avr128db32    rgftab_avr32db32
+
+extern const Register_file_t rgftab_avr32da48[600];
+
+extern const Register_file_t rgftab_avr32db48[643];
+#define rgftab_avr64db48     rgftab_avr32db48
+#define rgftab_avr128db48    rgftab_avr32db48
+
+extern const Register_file_t rgftab_avr64da28[433];
+#define rgftab_avr128da28    rgftab_avr64da28
+
+extern const Register_file_t rgftab_avr64da32[448];
+#define rgftab_avr128da32    rgftab_avr64da32
+
+extern const Register_file_t rgftab_avr64da48[601];
+#define rgftab_avr128da48    rgftab_avr64da48
+
+extern const Register_file_t rgftab_avr64da64[659];
+#define rgftab_avr128da64    rgftab_avr64da64
+
+extern const Register_file_t rgftab_avr64db64[698];
+#define rgftab_avr128db64    rgftab_avr64db64
 
 int upidxmcuid(int mcuid);
 int upidxsig(const uint8_t *sigs);
