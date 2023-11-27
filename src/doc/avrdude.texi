@@ -857,6 +857,9 @@ usersig:w:parameters.hex:i}
 Volatile register memory; it cannot be accessed by external programming
 methods only by bootloaders, which has limited use unless the bootloader
 jumps to the application directly, i.e., without a WDT reset
+@item sram
+Volatile RAM memory; like @code{io} it cannot be accessed by external
+programming
 @end table
 
 ATxmega devices have the following memories in addition to
@@ -890,6 +893,8 @@ memory is not erased during a chip erase
 @item io
 Volatile register memory; AVRDUDE can read this memory but not write to it
 using external programming
+@item sram
+Volatile RAM memory; cannot be usefully accessed by external programming
 @end table
 
 Modern 8-bit AVR devices have the following memories in addition to
@@ -946,6 +951,8 @@ Volatile register memory; AVRDUDE can program this memory but this is of
 limited utility because anything written to the io memory will be undefined or
 lost after reset; writing to individual registers in the terminal can
 still be used, e.g., to test I/O ports
+@item sram
+Volatile RAM memory; can be read and written but contents will be lost after reset
 @end table
 
 The @var{op} field specifies what operation to perform:
@@ -2404,6 +2411,38 @@ It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
+@item regfile [@var{opts}]
+@code{regfile} with no further argument displays the register file of a
+part, i.e., all register names and their contents in  @code{io} memory, if
+possible: note that external programming cannot read the registers of
+classic parts (ISP or TPI interfaces).
+
+Option @code{-a} displays the register I/O addresses in addition;
+@code{-m} displays the register memory addresses used for
+@code{lds}/@code{sts} opcodes instead of the I/O addresses. Option
+@code{-s} also shows the size of the register in bytes whilst @code{-v}
+shows a slightly expanded register explanation alongside each register.
+
+@item regfile [@var{opts}] @var{reg} [@var{opts}]
+
+@code{regfile} together with a register name @var{reg} shows all those
+registers that are matched by @var{reg}. Wildcards or partial strings are
+permitted but not both. Register names have the form @var{module.name} or
+@var{module.instance.name}. If the provided @var{reg} is a full, existing
+register name, e.g., @code{porta.out} then that is the only register that
+is displayed even though that might be a partial name of another register,
+eg, @code{porta.outdir}. If the provided @var{reg} is the same as
+@var{instance.name} or @var{name} then partial matching is no longer
+utilised and all module registers with that exact @var{instance.name} or
+@var{name} are shown. Partial matching can be forced through use of
+wildcards, e.g., using @code{porta.out*}
+
+@item regfile [@var{opts}] @var{reg}=@var{value} [@var{opts}]
+This sets a single register addressed by @var{reg} to the given
+@var{value}. Only external programming of modern parts (those with UPDI
+interface) can read from and write to register io memory, but as that
+memory is volatile, the contents will be lost after reset.
+
 @item include [@var{opts}] @var{file}
 Include contents of the named file @var{file} as if it was typed. This is
 useful for batch scripts, e.g., recurring initialisation code for fuses. The
@@ -2411,7 +2450,7 @@ include option @code{-e} prints the lines of the file as comments before
 processing them; on a non-zero verbosity level the line numbers are
 printed, too.
 
-@item sing
+@item signature
 Display the device signature bytes.
 
 @item part
@@ -2685,6 +2724,73 @@ config bodlevel=bod_disabled # 7 (factory)
 avrdude> c bod=*2v7
 
 avrdude> quit
+@end cartouche
+@end smallexample
+
+@page
+@noindent
+@strong{Show and change registers}
+
+@smallexample
+@cartouche
+
+$ avrdude -c xplainedpro_updi -p ATtiny817 \
+  -T "reg ctrlc" -T "reg usart0.baud=0x1234" -T "reg -asv usart0"
+
+avrdude_pr1580: AVR device initialized and ready to accept instructions
+avrdude_pr1580: device signature = 0x1e9320 (probably t817)
+
+avrdude_pr1580: processing -T reg ctrlc
+0x00 portmux.ctrlc
+0x00 adc0.ctrlc
+0x03 usart0.ctrlc
+0x00 tca0.ctrlc
+0x00 tcd0.ctrlc
+
+avrdude_pr1580: processing -T reg usart0.baud=0x1234
+
+avrdude_pr1580: processing -T reg -asv usart0
+I/O 0x800: (1)   0x00 usart0.rxdatal  # Receive data low byte
+I/O 0x801: (1)   0x00 usart0.rxdatah  # Receive data high byte
+I/O 0x802: (1)   0x00 usart0.txdatal  # Transmit data low byte
+I/O 0x803: (1)   0x00 usart0.txdatah  # Transmit data high byte
+I/O 0x804: (1)   0x20 usart0.status   # Status register
+I/O 0x805: (1)   0x00 usart0.ctrla    # Control register A
+I/O 0x806: (1)   0x00 usart0.ctrlb    # Control register B
+I/O 0x807: (1)   0x03 usart0.ctrlc    # Control register C
+I/O 0x808: (2) 0x1234 usart0.baud     # Baud rate register (16 bits)
+I/O 0x80b: (1)   0x00 usart0.dbgctrl  # Debug control register
+I/O 0x80c: (1)   0x00 usart0.evctrl   # Event control register
+I/O 0x80d: (1)   0x00 usart0.txplctrl # IRCOM transmitter pulse length control register
+I/O 0x80e: (1)   0x00 usart0.rxplctrl # IRCOM receiver pulse length control register
+
+avrdude_pr1580 done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@strong{Show register file of a classic part}
+
+@smallexample
+@cartouche
+
+$ avrdude -qq -p ATtiny11 -c dryrun -T "regfile -av"
+
+I/O 0x08: ac.acsr     # Analog comparator control and status register
+I/O 0x16: portb.pinb  # Port B input register
+I/O 0x17: portb.ddrb  # Port B data direction register
+I/O 0x18: portb.portb # Port B data register
+I/O 0x21: wdt.wdtcr   # Watchdog timer control register
+I/O 0x32: tc0.tcnt0   # Timer/counter 0
+I/O 0x33: tc0.tccr0   # T/C 0 control register
+I/O 0x34: cpu.mcusr   # MCU status register
+I/O 0x35: cpu.mcucr   # MCU control register
+I/O 0x38: tc0.tifr    # T/C interrupt flag register
+I/O 0x39: tc0.timsk   # T/C interrupt mask register
+I/O 0x3a: exint.gifr  # General interrupt flag register
+I/O 0x3b: exint.gimsk # General interrupt mask register
+I/O 0x3f: cpu.sreg    # Status register
+
 @end cartouche
 @end smallexample
 
