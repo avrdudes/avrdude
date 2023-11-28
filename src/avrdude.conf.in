@@ -3026,8 +3026,7 @@ serialadapter # pl2303
     id                     = "pl2303";
     desc                   = "Profilic PL2303 USB to serial adapter";
     usbvid                 = 0x067b;
-    usbpid                 =
-        0x2303, 0x2304, 0x23a3, 0x23b3, 0x23c3, 0x23d3, 0x23e3, 0x23f4;
+    usbpid                 = 0x2303, 0x2304, 0x23a3, 0x23b3, 0x23c3, 0x23d3, 0x23e3, 0x23f4;
 ;
 
 #
