@@ -301,10 +301,7 @@ void stk500v2_setup(PROGRAMMER * pgm)
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;
   PDATA(pgm)->boot_start = ULONG_MAX;
-  if (str_starts(pgmid, "scratchmonkey"))
-    PDATA(pgm)->xtal = SCRATCHMONKEY_XTAL;
-  else
-    PDATA(pgm)->xtal = STK500V2_XTAL;
+  PDATA(pgm)->xtal = str_starts(pgmid, "scratchmonkey") ? SCRATCHMONKEY_XTAL : STK500V2_XTAL;
 }
 
 static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
@@ -3719,11 +3716,14 @@ static double stk500v2_vtarget_value(const PROGRAMMER *pgm) {
     jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
     pgm_free(pgmcp);
     return b2_to_u16(vtarget_jtag) / 1000.0;
-  } else if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
+  }
+
+  if (PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
     unsigned char vtarget = 0;
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
     return vtarget / 10.0;
   }
+
   return 0;
 }
 
@@ -3736,13 +3736,11 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
   case PGMTYPE_STK500:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
     return stk500v2_sck_to_us(pgm, sck_duration);
-    break;
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
     stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
     return 1.0e6 / avrispmkIIfreqs[sck_duration];
-    break;
 
   case PGMTYPE_JTAGICE3:
     {
@@ -3754,16 +3752,13 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
       }
       return 0;
     }
-    break;
 
   case PGMTYPE_STK600:
     stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
     return (sck_stk600 + 1) / 8.0;
-    break;
 
   default:
     return sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.05;
-    break;
   }
   return 0;
 }
@@ -3771,7 +3766,6 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
 
 static double stk500v2_varef_value(const PROGRAMMER *pgm) {
   unsigned char vadjust = 0;
-
   if (stk500v2_getparm(pgm, PARAM_VADJUST, &vadjust) < 0)
     return 0;
   return vadjust / 10.0;
@@ -3808,30 +3802,27 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
       return 0.0;
     if (osc_pscale == 0)
       return 0.0;
-    else {
-      prescale = 1;
-      fosc = PDATA(pgm)->xtal / 2;
 
-      switch (osc_pscale) {
-        case 2: prescale = 8; break;
-        case 3: prescale = 32; break;
-        case 4: prescale = 64; break;
-        case 5: prescale = 128; break;
-        case 6: prescale = 256; break;
-        case 7: prescale = 1024; break;
-      }
-      fosc /= prescale;
-      fosc /= (osc_cmatch + 1);
-      return fosc;
+    prescale = 1;
+    fosc = PDATA(pgm)->xtal / 2;
+
+    switch (osc_pscale) {
+      case 2: prescale = 8; break;
+      case 3: prescale = 32; break;
+      case 4: prescale = 64; break;
+      case 5: prescale = 128; break;
+      case 6: prescale = 256; break;
+      case 7: prescale = 1024; break;
     }
-    break;
+    fosc /= prescale;
+    fosc /= (osc_cmatch + 1);
+    return fosc;
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
     if (stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0)
       return 0.0;
     return 1e6 / avrispmkIIfreqs[sck_duration];
-    break;
 
   case PGMTYPE_STK600:
     if (stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf) < 0)
@@ -3840,14 +3831,10 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
     dac = (clock_conf & 0x0ffc) >> 2u;
     fosc = pow(2, (double)oct) * 2078.0 / (2 - (double)dac / 1024.0);
     return fosc;
-    break;
 
   default:
     return 0.0;
-    break;
   }
-
-  return 0.0;
 }
 
 
@@ -3887,7 +3874,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
-    fmsg_out(fp, "%sSCK period      : %.2f us\n", p, stk500v2_sck_duration_value(pgm));
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
     break;
 
   case PGMTYPE_JTAGICE3:
@@ -3896,7 +3883,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       cmd[0] = CMD_GET_SCK;
       if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 && stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
 	      unsigned int sck = cmd[1] | (cmd[2] << 8);
-	      fmsg_out(fp, "%sSCK period            : %.2f us\n", p, (1E6 / (1000.0 * sck)));
+	      fmsg_out(fp, "%sSCK period            : %.1f us\n", p, (1E6 / (1000.0 * sck)));
       }
       PROGRAMMER *pgmcp = pgm_dup(pgm);
       pgmcp->cookie = PDATA(pgm)->chained_pdata;
@@ -3911,10 +3898,10 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
 
   case PGMTYPE_STK600:
     if (pgm->extra_features & HAS_VAREF_ADJ) {
-      fmsg_out(fp, "%sVaref 0         : %.2f V\n", p, stk600_varef_0_value(pgm));
-      fmsg_out(fp, "%sVaref 1         : %.2f V\n", p, stk600_varef_1_value(pgm));
+      fmsg_out(fp, "%sVaref 0               : %.2f V\n", p, stk600_varef_0_value(pgm));
+      fmsg_out(fp, "%sVaref 1               : %.2f V\n", p, stk600_varef_1_value(pgm));
     }
-    fmsg_out(fp, "%sSCK period      : %.2f us\n", p, stk500v2_sck_duration_value(pgm));
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
     if (pgm->extra_features & HAS_FOSC_ADJ) {
       f = stk500v2_sck_duration_value(pgm);
       f = f_to_kHz_MHz(f, &unit);
@@ -3923,7 +3910,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     break;
 
   default:
-    fmsg_out(fp, "%sSCK period      : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
     break;
   }
 

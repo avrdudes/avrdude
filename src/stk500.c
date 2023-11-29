@@ -1190,8 +1190,10 @@ static int stk500_set_vtarget(const PROGRAMMER *pgm, double v) {
 
   if (uaref > utarg) {
     pmsg_warning("reducing V[aref] from %.1f to %.1f\n", uaref / 10.0, v);
-    if ((rc = stk500_setparm(pgm, Parm_STK_VADJUST, utarg)) != 0)
+    if ((rc = stk500_setparm(pgm, Parm_STK_VADJUST, utarg)) != 0) {
+      pmsg_error("cannot set V[aref]\n");
       return rc;
+    }
   }
   return stk500_setparm(pgm, Parm_STK_VTARGET, utarg);
 }
@@ -1228,7 +1230,10 @@ static int stk500_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused *
       "V[target] = %.1f\n", utarg/10.0);
     return -1;
   }
-  return stk500_setparm(pgm, Parm_STK_VADJUST, uaref);
+
+  if ((rc = stk500_setparm(pgm, Parm_STK_VADJUST, uaref)) < 0)
+    pmsg_error("cannot set V[aref]\n");
+  return rc;
 }
 
 
@@ -1253,7 +1258,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
     1, 8, 32, 64, 128, 256, 1024
   };
   size_t idx;
-  int rc;
+  int rc = 0;
 
   prescale = cmatch = 0;
   if (v > 0.0) {
@@ -1287,31 +1292,39 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
     }
   }
   
-  if ((rc = stk500_setparm(pgm, Parm_STK_OSC_PSCALE, prescale)) != 0
-      || (rc = stk500_setparm(pgm, Parm_STK_OSC_CMATCH, cmatch)) != 0)
+  if ((rc = stk500_setparm(pgm, Parm_STK_OSC_PSCALE, prescale)) != 0 ) {
+    pmsg_error("cannot set Parm_STK_OSC_PSCALE\n");
     return rc;
-  
+  }
+
+  if ((rc = stk500_setparm(pgm, Parm_STK_OSC_CMATCH, cmatch)) != 0) {
+    pmsg_error("cannot set Parm_STK_OSC_CMATCH\n");
+    return rc;
+  }
+
   return 0;
 }
 
 
 static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
   unsigned prescale=0, cmatch=0;
-  double fosc = 0;
   static unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
   int rc;
 
-  if ((rc = stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &prescale)) != 0
-      || (rc = stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &cmatch)) != 0)
+  if ((rc = stk500_getparm(pgm, Parm_STK_OSC_PSCALE, &prescale)) != 0) {
+    pmsg_error("cannot get Parm_STK_OSC_PSCALE\n");
     return rc;
+}
 
-  if (prescale) {
-  fosc = PDATA(pgm)->xtal / ((cmatch + 1) * 2 * ps[prescale - 1]);
-  } else
-    fosc = 0;
-  *v = fosc;
+  if ((rc = stk500_getparm(pgm, Parm_STK_OSC_CMATCH, &cmatch)) != 0) {
+    pmsg_error("cannot get Parm_STK_OSC_CMATCH\n");
+    return rc;
+  }
+
+  *v = !prescale ? 0 : PDATA(pgm)->xtal / ((cmatch + 1) * 2 * ps[prescale - 1]);
+
   return 0;
 }
 
@@ -1326,11 +1339,12 @@ static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
 static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   int dur;
   double min, max;
+  int rv = 0;
 
   min = 8.0 / PDATA(pgm)->xtal;
   max = 255 * min;
   dur = v / min + 0.5;
-  
+
   if (v < min) {
       dur = 1;
       pmsg_warning("p = %.1f us too small, using %.1f us\n",
@@ -1340,8 +1354,12 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
       pmsg_warning("p = %.1f us too large, using %.1f us\n",
         v/1e-6, dur*min/1e-6);
   }
-  
-  return stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur);
+
+  if ((rv = stk500_setparm(pgm, Parm_STK_SCK_DURATION, dur)) < 0) {
+    pmsg_error("cannot set Parm_STK_SCK_DURATION\n");
+    return rv;
+  }
+  return 0;
 }
 
 
@@ -1349,8 +1367,8 @@ static int stk500_get_sck_period(const PROGRAMMER *pgm, double *v) {
   unsigned dur;
   int rv = 0;
 
-  if ((rv = stk500_getparm(pgm, Parm_STK_SCK_DURATION, &dur))< 0) {
-    pmsg_error("cannot obtain sck duration\n");
+  if ((rv = stk500_getparm(pgm, Parm_STK_SCK_DURATION, &dur)) < 0) {
+    pmsg_error("cannot obtain Parm_STK_SCK_DURATION\n");
     return rv;
   }
   *v = dur * 8.0 / PDATA(pgm)->xtal;

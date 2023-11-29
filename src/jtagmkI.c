@@ -1085,16 +1085,22 @@ static int jtagmkI_get_sck_period(const PROGRAMMER *pgm, double *v) {
     *v = 500e3;
   else if (dur == JTAG_BITRATE_250_kHz)
     *v = 250e3;
-  else
+  else if (dur == JTAG_BITRATE_125_kHz)
     *v = 125e3;
+  else { // something went wrong
+    pmsg_error("wrong JTAG_BITRATE ID %02X\n", dur);
+    return -1;
+  }
   return 0;
 }
 
 
 static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
   unsigned char vtarget = 0;
-  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
-    return - 1;
+  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0) {
+    pmsg_error("jtagmkI_getparm PARM_OCD_VTARGET failed\n");
+    return -1;
+  }
   *v = 6.25 * (unsigned)vtarget / 255.0;
   return 0;
 }
