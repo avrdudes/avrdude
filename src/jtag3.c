@@ -2539,7 +2539,7 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
   uaref = b2_to_u16(buf);
   u16_to_b2(buf, utarg);
 
-  pmsg_info("jtag3_set_vtarget(): changing V[target] from %.1f to %.1f\n", uaref / 1000.0, v);
+  pmsg_notice2("jtag3_set_vtarget(): changing V[target] from %.1f to %.1f\n", uaref / 1000.0, v);
 
   if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
     pmsg_error("cannot confirm new V[target] value\n");
