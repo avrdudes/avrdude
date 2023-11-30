@@ -1179,8 +1179,8 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
   if (jtagmkI_getparm(pgm, PARM_HW_VERSION, &hw) < 0 ||
       jtagmkI_getparm(pgm, PARM_SW_VERSION, &fw) < 0)
     return;
-  msg_info("%sICE HW version          : 0x%02x\n", p, hw);
-  msg_info("%sICE FW version          : 0x%02x\n", p, fw);
+  msg_info("%sICE HW version        : 0x%02x\n", p, hw);
+  msg_info("%sICE FW version        : 0x%02x\n", p, fw);
 
   jtagmkI_print_parms1(pgm, p, stderr);
 
@@ -1226,7 +1226,7 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
   if (pgm->extra_features & HAS_VTARG_READ) {
     if (jtagmkI_get_vtarget(pgm, &vtarget) < 0)
       return;
-    fmsg_out(fp, "%sVtarget       : %.1f V\n", p, vtarget);
+    fmsg_out(fp, "%sVtarget               : %.1f V\n", p, vtarget);
   }
   fmsg_out(fp, "%sJTAG clock            : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
 

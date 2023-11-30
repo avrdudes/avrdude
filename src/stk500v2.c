@@ -3849,9 +3849,6 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
 
   switch (PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
-    fmsg_out(fp, "%sSCK period            : %.1f us\n", p,
-             stk500v2_sck_duration_value(pgm));
-
     if (pgm->extra_features & HAS_VAREF_ADJ) {
       fmsg_out(fp, "%sVaref                 : %.1f V\n", p, stk500v2_varef_value(pgm));
     }
@@ -3866,6 +3863,10 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
         fmsg_out(fp, "%.*f %s\n", decimals, f, unit);
       }
     }
+    // SCK duration is always available
+    fmsg_out(fp, "%sSCK period            : %.1f us\n", p,
+             stk500v2_sck_duration_value(pgm));
+    // XTAL frequency is always available
     double f = PDATA(pgm)->xtal;
     decimals = get_decimals(f);
     f = f_to_kHz_MHz(f, &unit);
