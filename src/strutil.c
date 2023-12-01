@@ -209,6 +209,22 @@ int str_casematch(const char *pattern, const char *string) {
   return str_match_core(pattern, string, fold);
 }
 
+int str_matched_by(const char *string, const char *pattern) {
+  return str_match_core(pattern, string, nofold);
+}
+
+int str_casematched_by(const char *string, const char *pattern) {
+  return str_match_core(pattern, string, fold);
+}
+
+// Does the string contain wildcard pattern matching elements?
+int str_is_pattern(const char *str) {
+  for(;;)
+    switch(*str++) {
+      case 0: return 0;
+      case '*': case '?': case '[': case '\\': return 1;
+    }
+}
 
 // Return a malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {

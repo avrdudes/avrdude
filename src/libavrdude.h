@@ -1425,7 +1425,13 @@ extern "C" {
 #endif
 
 int avr_locate_upidx(const AVRPART *p);
-const Configitem_t *avr_locate_configitems(const AVRPART *p, int *nc);
+const Configitem_t *avr_locate_configitems(const AVRPART *p, int *ncp);
+const char * const *avr_locate_isrtable(const AVRPART *p, int *nip);
+const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp);
+const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, const char *reg,
+ int (*match)(const char *, const char*));
+const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
+ int (*match)(const char *, const char*));
 const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
   int (*match)(const char *, const char*));
 const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
@@ -1447,6 +1453,9 @@ int str_caseends(const char *str, const char *ends);
 int str_caseeq(const char *str1, const char *str2);
 int str_match(const char *pattern, const char *string);
 int str_casematch(const char *pattern, const char *string);
+int str_matched_by(const char *string, const char *pattern);
+int str_casematched_by(const char *string, const char *pattern);
+int str_is_pattern(const char *str);
 char *str_sprintf(const char *fmt, ...);
 char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
