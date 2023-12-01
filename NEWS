@@ -42,6 +42,8 @@ Changes since version 7.2:
     - Terminal part command could need an update #1558
     - Proposal: Add memory sram #1559
     - jtagmkI.c/jtagmkII.c rely on OCDEN being hfuse bit 7 #1537
+    - Certain terminal commands may be confusing #1570
+    - Upload port required for -cdryrun on MacOS #1578
 
   * Pull requests:
 
@@ -92,11 +94,16 @@ Changes since version 7.2:
     - Add memory sram and remove memory data #1571
     - Add GNU readline to mingw github action #1576
     - Provide libavrude functions to access part config values #1577
+    - Add get_vtarget/varef/fosc/sck_period for programmers #1574
+    - Provide terminal regfile command #1580
+    - Ignore port settings when using -c dryrun #1581
+    - Add more PL2303 compatible USB PIDs #1583
 
   * Internals:
 
     - Introduce memory types in lieu of memory name comparisons #1538
       This will enable to decouple memory names from function
+    - Added a knowledgebase on register files of parts
 
 Changes in version 7.2:
 
