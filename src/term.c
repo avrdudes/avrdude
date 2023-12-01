@@ -105,10 +105,10 @@ struct command cmd[] = {
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display useful parameters" },
-  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
-  { "varef", cmd_varef, _fo(set_varef),         "set the analog reference voltage" },
-  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set the oscillator frequency" },
-  { "sck",   cmd_sck,   _fo(set_sck_period),    "set the SCK period" },
+  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set or get the target voltage" },
+  { "varef", cmd_varef, _fo(set_varef),         "set or get the analog reference voltage" },
+  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set or get the oscillator frequency" },
+  { "sck",   cmd_sck,   _fo(set_sck_period),    "set or get the SCK period" },
   { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
   { "verbose", cmd_verbose, _fo(open),          "display or set -v verbosity level" },
@@ -1681,8 +1681,17 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
 static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int rc;
-  double v;
+  double v = 0;
   char *endp;
+
+  if (argc == 1 && pgm->get_vtarget){ // no parameter: query vtarg if fkt exists
+    if ((rc = pgm->get_vtarget(pgm, &v)) != 0) {
+      pmsg_error("(vtarg) unable to get V[target] (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("Vtarget = %.1f V\n", v);
+    return 0;
+  }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1706,8 +1715,24 @@ static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
 static int cmd_fosc(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int rc;
-  double v;
+  double v = 0;
   char *endp;
+
+  if (argc == 1 && pgm->get_fosc) { // query fosc
+    if ((rc = pgm->get_fosc(pgm, &v)) != 0) {
+      pmsg_error("(fosc) unable to get oscillator frequency (rc = %d)\n", rc);
+      return -3;
+    }
+    if (v >= 1e6)
+      term_out("fosc = %.6f MHz\n", v / 1e6);
+    else if (v >= 1e3)
+      term_out("fosc = %.3f kHz\n", v / 1e3);
+    else if (v)
+      term_out("fosc = %.0f Hz\n", v);
+    else
+      term_out("fosc off\n");
+    return 0;
+  }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1742,6 +1767,15 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   double v;
   char *endp;
 
+  if (argc == 1 && pgm->get_sck_period){
+    if ((rc = pgm->get_sck_period(pgm, &v)) != 0) {
+      pmsg_error("(fosc) unable to get sck period (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("SCK period = %.1f us\n", v * 1e6 );
+    return 0;
+  }
+
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: sck <value>\n"
@@ -1768,6 +1802,15 @@ static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   unsigned int chan;
   double v;
   char *endp;
+
+  if (argc == 1 && pgm->get_varef) { // varef w/o parameter returns value of channel 0
+    if ((rc = pgm->get_varef(pgm, 0, &v)) != 0) {
+      pmsg_error("(varef) unable to get V[aref] (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("Varef = %.1f V\n", v);
+    return 0;
+  }
 
   if (argc < 2 || argc > 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
