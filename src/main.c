@@ -1215,7 +1215,8 @@ int main(int argc, char * argv [])
     }
   }
 
-  if(port[0] == 0 || str_eq(port, "unknown")) {
+  int is_dryrun = str_eq(pgmid, "dryrun") || (dry && pgm->initpgm == dry->initpgm);
+  if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
     pmsg_error("no port has been specified on the command line or in the config file\n");
     imsg_error("specify a port using the -P option and try again\n\n");
@@ -1283,7 +1284,8 @@ int main(int argc, char * argv [])
 
   // Open the programmer
   if (verbose > 0) {
-    imsg_notice("Using port            : %s\n", port);
+    if(!is_dryrun)
+      imsg_notice("Using port            : %s\n", port);
     imsg_notice("Using programmer      : %s\n", pgmid);
   }
 
