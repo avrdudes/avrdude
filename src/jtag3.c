@@ -2402,6 +2402,49 @@ static int jtag3_set_sck_period(const PROGRAMMER *pgm, double v) {
 }
 
 
+static int jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char conn, arch;
+  unsigned char buf[3];
+  *v = 0;
+
+  if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, &conn, 1) < 0) {
+    pmsg_error("%s(): cannot obtain connection type\n", __func__);
+    return -1;
+  }
+  if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &arch, 1) < 0) {
+    pmsg_error("%s(): cannot obtain target architecture\n", __func__);
+    return -1;
+  }
+
+  if (conn == PARM3_CONN_JTAG) {
+    if (arch == PARM3_ARCH_XMEGA) {
+      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0) {
+        pmsg_error("%s(): cannot read Xmega JTAG clock speed\n", __func__);
+        return -1;
+      }
+    } else {
+      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0) {
+        pmsg_error("%s(): cannot read JTAG clock speed\n", __func__);
+        return -1;
+      }
+    }
+  } else if (conn & (PARM3_CONN_PDI | PARM3_CONN_UPDI)) {
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0) {
+      pmsg_error("%s(): cannot read PDI/UPDI clock speed\n", __func__);
+      return -1;
+    }
+  }
+
+  if (b2_to_u16(buf) <= 0) {
+    pmsg_error("%s(): cannot calculate programmer clock speed\n", __func__);
+    return -1;
+  }
+  *v = 1.0/(1000*b2_to_u16(buf));
+
+  return 0;
+}
+
+
 /*
  * Read (an) emulator parameter(s).
  */
@@ -3212,6 +3255,7 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->get_sck_period = jtag3_get_sck_period;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
@@ -3292,6 +3336,7 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->get_sck_period = jtag3_get_sck_period;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
@@ -3333,6 +3378,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->get_sck_period = jtag3_get_sck_period;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
