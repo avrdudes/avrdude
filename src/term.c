@@ -110,7 +110,7 @@ struct command cmd[] = {
   { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set or get the target voltage" },
   { "varef", cmd_varef, _fo(set_varef),         "set or get the analog reference voltage" },
   { "fosc",  cmd_fosc,  _fo(set_fosc),          "set or get the oscillator frequency" },
-  { "sck",   cmd_sck,   _fo(set_sck_period),    "set or get the SCK period" },
+  { "sck",   cmd_sck,   _fo(set_sck_period),    "set or get the SCK period or frequency" },
   { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
   { "verbose", cmd_verbose, _fo(open),          "display or set -v verbosity level" },
@@ -1947,26 +1947,64 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
 
   if (argc == 1 && pgm->get_sck_period){
     if ((rc = pgm->get_sck_period(pgm, &v)) != 0) {
-      pmsg_error("(fosc) unable to get sck period (rc = %d)\n", rc);
+      pmsg_error("(fosc) unable to get SCK period (rc = %d)\n", rc);
       return -3;
     }
-    term_out("SCK period = %.1f us\n", v * 1e6 );
+    term_out("SCK period = %.1f us\n", v * 1e6);
+    term_out("SCK freq   = %d kHz\n", (int)(0.001/v));
     return 0;
   }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: sck <value>\n"
-      "Function: set the SCK period\n"
+      "Function: set the SCK period in us or frequency in [kM]Hz\n"
     );
     return -1;
   }
+
   v = strtod(argv[1], &endp);
-  if (endp == argv[1]) {
-    pmsg_error("(sck) cannot parse period %s\n", argv[1]);
+  if (*endp != 0) {
+    int suffixlen = strlen(endp);
+    switch (suffixlen) {
+      case 2:
+        if ((endp[0] != 'h' && endp[0] != 'H') || endp[1] != 'z')
+          v = 0.0;
+        else
+          v = 1e6 / v;
+        break;
+      case 3:
+        if ((endp[1] != 'h' && endp[1] != 'H') || endp[2] != 'z')
+          v = 0.0;
+        else {
+          switch (endp[0]) {
+          case 'M':
+          case 'm':
+            v = 1.0 / v;
+            break;
+          case 'k':
+            v = 1e3 / v;
+            break;
+          default:
+            v = 0.0;
+            break;
+          }
+        }
+        break;
+      default:
+        v = 0.0;
+        break;
+    }
+    if (v == 0.0) {
+      pmsg_error("(sck) invalid SCK unit of measure '%s'\n", endp);
+      return -1;
+    }
+  }
+  if ((endp == argv[1]) || v == 0.0) {
+    pmsg_error("(sck) invalid SCK period specified '%s'\n", argv[1]);
     return -1;
   }
-  v *= 1e-6;                    // Convert from microseconds to seconds
+  v *= 1e-6; // us to s
   if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
     pmsg_error("(sck) unable to set SCK period (rc = %d)\n", rc);
     return -3;
