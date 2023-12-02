@@ -2404,7 +2404,7 @@ static int jtag3_set_sck_period(const PROGRAMMER *pgm, double v) {
 
 static int jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
   unsigned char conn, arch;
-  unsigned char buf[3];
+  unsigned char buf[2];
   *v = 0;
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, &conn, 1) < 0) {
@@ -2589,6 +2589,18 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
     return -1;
   }
 
+  return 0;
+}
+
+static int jtag3_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned char buf[2];
+
+  if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0) {
+    pmsg_error("%s(): cannot read target voltage\n", __func__);
+    return -1;
+  }
+
+  *v = b2_to_u16(buf)/1000.0;
   return 0;
 }
 
@@ -3266,6 +3278,8 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3305,6 +3319,8 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3347,6 +3363,8 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3391,6 +3409,8 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3426,4 +3446,10 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_TPI;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
 }
