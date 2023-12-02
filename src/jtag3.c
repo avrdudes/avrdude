@@ -2499,7 +2499,7 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
     return status;
 
   memcpy(sib, resp+3, AVR_SIBLEN);
-  sib[AVR_SIBLEN] = 0; // Zero terminate string
+  sib[AVR_SIBLEN-1] = 0; // Zero terminate string
   pmsg_debug("jtag3_read_sib(): received SIB: %s\n", sib);
   free(resp);
   return 0;
