@@ -410,25 +410,16 @@ static int check_for_port_argument_match(const char *port, char *bus, char *devi
     char *colon_pointer = strchr(port, ':');
     if (colon_pointer) {
       // Value contains ':' character. Compare with bus/device.
-      if (strncmp(port, bus, colon_pointer - port)) {
-        return 1;
-      }
-      port = colon_pointer + 1;
-      if (strcmp(port, device)) {
-        return 1;
-      }
-      return 0;
-    } else {
-      // serial number case
-      if (!str_eq(serial_num, port)) {
-        return 1;
-      } else {
+      if (strncmp(port, bus, colon_pointer - port))
         return 0;
-      }
+      port = colon_pointer + 1;
+      return str_eq(port, device);
     }
+    // serial number case
+    return (*port && str_ends(serial_num, port));
   }
   // Invalid -P option.
-  return 1; 
+  return 0; 
 }
 
 /*
@@ -498,11 +489,11 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
               if(!str_eq(port, "usb")) {
                 // -P option given
                 libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber, (unsigned char*)string, sizeof(string));
-                char bus_num[4];
+                char bus_num[21];
                 sprintf(bus_num, "%d", libusb_get_bus_number(dev));
-                char dev_addr[4];
+                char dev_addr[21];
                 sprintf(dev_addr, "%d", libusb_get_device_address(dev));
-                if (check_for_port_argument_match(port, bus_num, dev_addr, string)) {
+                if (!check_for_port_argument_match(port, bus_num, dev_addr, string)) {
                     errorCode = USB_ERROR_NOTFOUND;
                 }
               }                
@@ -582,7 +573,7 @@ static int           didUsbInit = 0;
                     // -P option given
                     usb_get_string_simple(handle, dev->descriptor.iSerialNumber,
                                           string, sizeof(string));
-                    if (check_for_port_argument_match(port, bus->dirname, dev->filename, string)) {
+                    if (!check_for_port_argument_match(port, bus->dirname, dev->filename, string)) {
                         errorCode = USB_ERROR_NOTFOUND;
                     }
                   }
