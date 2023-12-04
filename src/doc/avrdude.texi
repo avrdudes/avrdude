@@ -739,8 +739,11 @@ and Mac OS but not on Windows. For more information about AVR-Doper see
 For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.
-See the respective
-@xref{Troubleshooting} entry for examples.
+See the respective @ref{Troubleshooting} entry for examples.
+
+For USBasp, multiple devices can be distinguished by either USB connection
+or serial number.
+See the respective @ref{Troubleshooting} entry for examples.
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -4232,6 +4235,14 @@ avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
 avrdude -c usbtiny -p atmega8 \
   -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
 @end example
+
+For USBasp, the same format for @var{-P usb} can be used to match usb bus/device. Alternatively,
+device serial number can be specified as follows (for serial number '1234').
+
+@example
+avrdude -c USBasp -p atmega8 -P usb:1234
+@end example
+
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWire mode.
