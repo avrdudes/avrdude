@@ -3919,7 +3919,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     }
     fmsg_out(fp, "%sSCK period            : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
     if (pgm->extra_features & HAS_FOSC_ADJ) {
-      f = stk500v2_sck_duration_value(pgm);
+      f = stk500v2_fosc_value(pgm);
       f = f_to_kHz_MHz(f, &unit);
       fmsg_out(fp, "%sOscillator            : %.3f %s\n", p, f, unit);
     }
@@ -5195,6 +5195,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
   pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
   pgm->set_fosc       = stk600_set_fosc;
+  pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
   pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
