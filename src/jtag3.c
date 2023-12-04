@@ -2408,35 +2408,35 @@ static int jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
   *v = 0;
 
   if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, &conn, 1) < 0) {
-    pmsg_error("%s(): cannot obtain connection type\n", __func__);
+    pmsg_error("cannot obtain connection type\n");
     return -1;
   }
   if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &arch, 1) < 0) {
-    pmsg_error("%s(): cannot obtain target architecture\n", __func__);
+    pmsg_error("cannot obtain target architecture\n");
     return -1;
   }
 
   if (conn == PARM3_CONN_JTAG) {
     if (arch == PARM3_ARCH_XMEGA) {
       if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0) {
-        pmsg_error("%s(): cannot read Xmega JTAG clock speed\n", __func__);
+        pmsg_error("cannot read Xmega JTAG clock speed\n");
         return -1;
       }
     } else {
       if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0) {
-        pmsg_error("%s(): cannot read JTAG clock speed\n", __func__);
+        pmsg_error("cannot read JTAG clock speed\n");
         return -1;
       }
     }
   } else if (conn & (PARM3_CONN_PDI | PARM3_CONN_UPDI)) {
     if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0) {
-      pmsg_error("%s(): cannot read PDI/UPDI clock speed\n", __func__);
+      pmsg_error("cannot read PDI/UPDI clock speed\n");
       return -1;
     }
   }
 
   if (b2_to_u16(buf) <= 0) {
-    pmsg_error("%s(): cannot calculate programmer clock speed\n", __func__);
+    pmsg_error("cannot calculate programmer clock speed\n");
     return -1;
   }
   *v = 1.0/(1000*b2_to_u16(buf));
@@ -2596,7 +2596,7 @@ static int jtag3_get_vtarget(const PROGRAMMER *pgm, double *v) {
   unsigned char buf[2];
 
   if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0) {
-    pmsg_error("%s(): cannot read target voltage\n", __func__);
+    pmsg_error("cannot read target voltage\n");
     return -1;
   }
 
