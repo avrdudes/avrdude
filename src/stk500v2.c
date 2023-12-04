@@ -5196,6 +5196,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
   pgm->set_varef      = stk600_set_varef;
   pgm->set_fosc       = stk600_set_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
