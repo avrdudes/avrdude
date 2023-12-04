@@ -2592,7 +2592,7 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
   return 0;
 }
 
-static int jtag3_get_vtarget(const PROGRAMMER *pgm, double *v) {
+int jtag3_get_vtarget(const PROGRAMMER *pgm, double *v) {
   unsigned char buf[2];
 
   if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0) {

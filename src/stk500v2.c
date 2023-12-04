@@ -3541,6 +3541,21 @@ static int stk500v2_jtag3_set_sck_period(const PROGRAMMER *pgm, double v) {
   return 0;
 }
 
+static int stk500v2_jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char cmd[4];
+  *v = 0;
+
+  cmd[0] = CMD_GET_SCK;
+  if (stk500v2_jtag3_send(pgm, cmd, 1) < 0 || stk500v2_jtag3_recv(pgm, cmd, 4) < 2) {
+    pmsg_error("cannot read ISP clock speed\n");
+    return -1;
+  }
+
+  unsigned int sck = cmd[1] | (cmd[2] << 8);
+  *v = 1 / (1000.0 * sck);
+  return 0;
+}
+
 static int stk500v2_getparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char *value) {
   unsigned char buf[32];
 
@@ -5285,6 +5300,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_jtag3_set_sck_period;
+  pgm->get_sck_period = stk500v2_jtag3_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->parseextparams = stk500v2_jtag3_parseextparms;
   pgm->setup          = stk500v2_jtag3_setup;
@@ -5295,5 +5311,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    * hardware dependent functions
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
-    pgm->set_vtarget  = jtag3_set_vtarget;
+    pgm->set_vtarget = jtag3_set_vtarget;
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget = jtag3_get_vtarget;
 }
