@@ -3237,10 +3237,20 @@ static int stk500v2_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused
 }
 
 
-static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
-                              double *v)
+static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan, double *v)
 {
-  *v = stk500v2_varef_value(pgm);
+  if(PDATA(pgm)->pgmtype == PGMTYPE_STK500)
+    *v = stk500v2_varef_value(pgm);
+  else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+    if(chan == 0)
+      *v = stk600_varef_0_value(pgm);
+    else if(chan == 1)
+      *v = stk600_varef_1_value(pgm);
+    else {
+      pmsg_error("invalid Varef channel %d specified\n", chan);
+      return -1;
+    }
+  }
   return 0;
 }
 
@@ -5194,6 +5204,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
   pgm->set_vtarget    = stk600_set_vtarget;
   pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
+  pgm->get_varef      = stk500v2_get_varef;
   pgm->set_fosc       = stk600_set_fosc;
   pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
