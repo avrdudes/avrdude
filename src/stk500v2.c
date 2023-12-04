@@ -5192,6 +5192,7 @@ void stk600_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
   pgm->set_fosc       = stk600_set_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
