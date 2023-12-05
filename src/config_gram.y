@@ -240,7 +240,7 @@ def :
     free_token($3);
   } |
 
-  K_DEFAULT_BAUDRATE TKN_EQUAL numexpr TKN_SEMI {
+  K_DEFAULT_BAUDRATE TKN_EQUAL TKN_NUMBER TKN_SEMI {
     default_baudrate = $3->value.number;
     free_token($3);
   } |
