@@ -368,6 +368,12 @@ for more information run avrdude -p x/h.
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
 programmer's entry of the configuration file.
+You can use the 'default_baudrate' keyword in your
+.Pa ${HOME}/.config/avrdude/avrdude.rc
+or
+.Pa ${HOME}/.avrduderc
+file to assign a default value to keep from having to specify this
+option on every invocation.
 .It Fl r
 Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
 for each -r on the command line and then establishes communication with

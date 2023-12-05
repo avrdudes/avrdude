@@ -41,6 +41,7 @@ const char *default_programmer;
 const char *default_parallel;
 const char *default_serial;
 const char *default_spi;
+int default_baudrate;
 double default_bitclock;
 char const *default_linuxgpio;
 int allow_subshells;

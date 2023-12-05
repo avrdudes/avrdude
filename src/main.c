@@ -593,6 +593,7 @@ int main(int argc, char * argv [])
   default_parallel   = "";
   default_serial     = "";
   default_spi        = "";
+  default_baudrate   = 0;
   default_bitclock   = 0.0;
   default_linuxgpio  = "";
   allow_subshells    = 0;
@@ -1037,6 +1038,11 @@ int main(int argc, char * argv [])
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1))
     if((p = ldata(ln1))->mem)
       lsort(p->mem, avr_mem_cmp);
+
+  // set bitclock from configuration files unless changed by command line
+  if (default_baudrate > 0 && baudrate == 0) {
+    baudrate = default_baudrate;
+  }
 
   // set bitclock from configuration files unless changed by command line
   if (default_bitclock > 0 && bitclock == 0.0) {

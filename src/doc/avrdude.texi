@@ -468,7 +468,11 @@ ATmega328P MCU properties; for more information run @code{avrdude -p x/h}.
 
 @item -b @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
-programmer's entry of the configuration file.
+programmer's entry of the configuration file.  You
+can use the 'default_baudrate' keyword in your
+@code{~/.config/avrdude/avrdude.rc} or @code{~/.avrduderc}
+configuration file to assign a default value to keep from having to
+specify this option on every invocation.
 
 @item -B @var{bitclock}
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
@@ -2975,6 +2979,10 @@ using the @option{-P} option.
 
 @item default_programmer = "@var{default-programmer-id}";
 Assign the default programmer id.  Can be overridden using the @option{-c}
+option.
+
+@item default_baudrate = "@var{default-baudrate}";
+Assign the default baudrate value.  Can be overridden using the @option{-b}
 option.
 
 @item default_bitclock = "@var{default-bitclock}";
