@@ -401,9 +401,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 
 static int check_for_port_argument_match(const char *port, char *bus, char *device, char *serial_num) {
 
-  if (verbose) {
-    pmsg_notice("usbOpenDevice(): found USBasp, bus:device: %s:%s, serial_number: %s\n", bus, device, serial_num);
-  }  
+  pmsg_notice("usbOpenDevice(): found USBasp, bus:device: %s:%s, serial_number: %s\n", bus, device, serial_num);
   const size_t usb_len = strlen("usb");
   if(str_starts(port, "usb") && ':' == port[usb_len]) {
     port += usb_len + 1;
@@ -416,7 +414,7 @@ static int check_for_port_argument_match(const char *port, char *bus, char *devi
       return str_eq(port, device);
     }
     // serial number case
-    return (*port && str_ends(serial_num, port));
+    return *port && str_ends(serial_num, port);
   }
   // Invalid -P option.
   return 0; 
@@ -493,9 +491,8 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
                 sprintf(bus_num, "%d", libusb_get_bus_number(dev));
                 char dev_addr[21];
                 sprintf(dev_addr, "%d", libusb_get_device_address(dev));
-                if (!check_for_port_argument_match(port, bus_num, dev_addr, string)) {
+                if (!check_for_port_argument_match(port, bus_num, dev_addr, string))
                     errorCode = USB_ERROR_NOTFOUND;
-                }
               }                
             }
             if (errorCode == 0)
@@ -573,9 +570,8 @@ static int           didUsbInit = 0;
                     // -P option given
                     usb_get_string_simple(handle, dev->descriptor.iSerialNumber,
                                           string, sizeof(string));
-                    if (!check_for_port_argument_match(port, bus->dirname, dev->filename, string)) {
+                    if (!check_for_port_argument_match(port, bus->dirname, dev->filename, string))
                         errorCode = USB_ERROR_NOTFOUND;
-                    }
                   }
                 }
                 if (errorCode == 0)
