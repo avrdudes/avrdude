@@ -1978,7 +1978,7 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
           v = 0.0;
         break;
       case 2:
-        if (endp[0] == 'u' && endp[1] == 's');
+        if (endp[0] == 'u' || endp[0] == 'U');
         else if ((endp[0] != 'h' && endp[0] != 'H') || endp[1] != 'z')
           v = 0.0;
         else

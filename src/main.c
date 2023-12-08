@@ -686,14 +686,23 @@ int main(int argc, char * argv [])
           /* trailing unit of measure present */
           int suffixlen = strlen(e);
           switch (suffixlen) {
+          case 1:
+            if (e[0] == 'm' || e[0] == 'M')
+              bitclock = 1.0 / bitclock;
+            else if (e[0] == 'k' || e[0] == 'K')
+              bitclock = 1e3 / bitclock;
+            else if (e[0] == 'h' || e[0] == 'H')
+              bitclock = 1e6 / bitclock;
+            else if (e[0] != 'u')
+              bitclock = 0.0;
+            break;
           case 2:
-            if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
+            if (e[0] == 'u' || e[0] == 'U');
+            else if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
               bitclock = 0.0;
             else
-              /* convert from Hz to microseconds */
-              bitclock = 1E6 / bitclock;
+              bitclock = 1e6 / bitclock;
             break;
-
           case 3:
             if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
               bitclock = 0.0;
