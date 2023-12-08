@@ -5242,9 +5242,13 @@ void stk600pp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
+  pgm->get_varef      = stk500v2_get_varef;
   pgm->set_fosc       = stk600_set_fosc;
+  pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
@@ -5277,9 +5281,13 @@ void stk600hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
+  pgm->get_varef      = stk500v2_get_varef;
   pgm->set_fosc       = stk600_set_fosc;
+  pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
