@@ -1967,8 +1967,19 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   if (*endp != 0) {
     int suffixlen = strlen(endp);
     switch (suffixlen) {
+      case 1:
+        if (endp[0] == 'm' || endp[0] == 'M' || endp[0] == 'u')
+          v = 1.0 / v;
+        else if (endp[0] == 'k' || endp[0] == 'K')
+          v = 1e3 / v;
+        else if (endp[0] == 'h' || endp[0] == 'H')
+          v = 1e6 / v;
+        else
+          v = 0.0;
+        break;
       case 2:
-        if ((endp[0] != 'h' && endp[0] != 'H') || endp[1] != 'z')
+        if (endp[0] == 'u' && endp[1] == 's');
+        else if ((endp[0] != 'h' && endp[0] != 'H') || endp[1] != 'z')
           v = 0.0;
         else
           v = 1e6 / v;
