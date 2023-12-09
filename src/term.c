@@ -1964,55 +1964,20 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   }
 
   v = strtod(argv[1], &endp);
-  if (*endp != 0) {
-    int suffixlen = strlen(endp);
-    switch (suffixlen) {
-      case 1:
-        if (endp[0] == 'm' || endp[0] == 'M')
-          v = 1.0 / v;
-        else if (endp[0] == 'k' || endp[0] == 'K')
-          v = 1e3 / v;
-        else if (endp[0] == 'h' || endp[0] == 'H')
-          v = 1e6 / v;
-        else if (endp[0] != 'u')
-          v = 0.0;
-        break;
-      case 2:
-        if (endp[0] == 'u' || endp[0] == 'U');
-        else if ((endp[0] != 'h' && endp[0] != 'H') || endp[1] != 'z')
-          v = 0.0;
-        else
-          v = 1e6 / v;
-        break;
-      case 3:
-        if ((endp[1] != 'h' && endp[1] != 'H') || endp[2] != 'z')
-          v = 0.0;
-        else {
-          switch (endp[0]) {
-          case 'M':
-          case 'm':
-            v = 1.0 / v;
-            break;
-          case 'k':
-            v = 1e3 / v;
-            break;
-          default:
-            v = 0.0;
-            break;
-          }
-        }
-        break;
-      default:
-        v = 0.0;
-        break;
-    }
-    if (v == 0.0) {
-      pmsg_error("(sck) invalid SCK unit of measure '%s'\n", endp);
-      return -1;
-    }
+  if ((endp == argv[1]) || v <= 0.0) {
+    pmsg_error("(sck) invalid bit clock period %s\n", argv[1]);
+    return -1;
   }
-  if ((endp == argv[1]) || v == 0.0) {
-    pmsg_error("(sck) invalid SCK period specified '%s'\n", argv[1]);
+  if(*endp == 0 || str_caseeq(endp, "us")) // us is optional and the default
+    ;
+  else if(str_caseeq(endp, "m") || str_caseeq(endp, "mhz"))
+    v = 1 / v;
+  else if(str_caseeq(endp, "k") || str_caseeq(endp, "khz"))
+    v = 1e3 / v;
+  else if(str_caseeq(endp, "hz"))
+    v = 1e6 / v;
+  else {
+    pmsg_error("(sck) invalid bit clock unit %s\n", endp);
     return -1;
   }
   v *= 1e-6; // us to s

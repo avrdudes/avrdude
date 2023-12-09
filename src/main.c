@@ -680,59 +680,24 @@ int main(int argc, char * argv [])
         }
         break;
 
-      case 'B': /* specify JTAG ICE bit clock period */
+      case 'B': /* specify bit clock period */
         bitclock = strtod(optarg, &e);
-        if (*e != 0) {
-          /* trailing unit of measure present */
-          int suffixlen = strlen(e);
-          switch (suffixlen) {
-          case 1:
-            if (e[0] == 'm' || e[0] == 'M')
-              bitclock = 1.0 / bitclock;
-            else if (e[0] == 'k' || e[0] == 'K')
-              bitclock = 1e3 / bitclock;
-            else if (e[0] == 'h' || e[0] == 'H')
-              bitclock = 1e6 / bitclock;
-            else if (e[0] != 'u')
-              bitclock = 0.0;
-            break;
-          case 2:
-            if (e[0] == 'u' || e[0] == 'U');
-            else if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
-              bitclock = 0.0;
-            else
-              bitclock = 1e6 / bitclock;
-            break;
-          case 3:
-            if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
-              bitclock = 0.0;
-            else {
-              switch (e[0]) {
-              case 'M':
-              case 'm': /* no Millihertz here :) */
-                bitclock = 1.0 / bitclock;
-                break;
-
-              case 'k':
-                bitclock = 1E3 / bitclock;
-                break;
-
-              default:
-                bitclock = 0.0;
-                break;
-              }
-            }
-            break;
-
-          default:
-            bitclock = 0.0;
-            break;
-          }
-          if (bitclock == 0.0)
-            pmsg_error("invalid bit clock unit of measure '%s'\n", e);
+        if ((e == optarg) || bitclock <= 0.0) {
+          pmsg_error("invalid bit clock period %s\n", optarg);
+          exit(1);
         }
-        if ((e == optarg) || bitclock == 0.0) {
-          pmsg_error("invalid bit clock period specified '%s'\n", optarg);
+        while(*e && isascii(*e & 0xff) && isspace(*e & 0xff))
+          e++;
+        if(*e == 0 || str_caseeq(e, "us")) // us is optional and the default
+          ;
+        else if(str_caseeq(e, "m") || str_caseeq(e, "mhz"))
+          bitclock = 1 / bitclock;
+        else if(str_caseeq(e, "k") || str_caseeq(e, "khz"))
+          bitclock = 1e3 / bitclock;
+        else if(str_caseeq(e, "hz"))
+          bitclock = 1e6 / bitclock;
+        else {
+          pmsg_error("invalid bit clock unit %s\n", e);
           exit(1);
         }
         break;
