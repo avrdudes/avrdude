@@ -2436,8 +2436,6 @@ static int jtagmkII_get_sck_period(const PROGRAMMER *pgm, double *v) {
     clk = 6.4e6;
   else if (buf[0] == 1)
     clk = 2.8e6;
-  else if (buf[0] <= 5)
-    clk = 5.35e6 / buf[0];
   else
     clk = 5.35e6 / buf[0];
 
