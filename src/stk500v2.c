@@ -3562,6 +3562,10 @@ static int stk500v2_jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
   }
 
   unsigned int sck = cmd[1] | (cmd[2] << 8);
+  if(!sck) {
+    pmsg_error("reported ISP clock speed not valid\n");
+    return -1;
+  }
   *v = 1 / (1000.0 * sck);
   return 0;
 }
