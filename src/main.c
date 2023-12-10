@@ -453,12 +453,71 @@ static int dev_opt(const char *str) {
     !!strchr(str, '/');
 }
 
+static int cmp_ptr(const void *a, const void *b) {
+   return (*(int*)a - *(int*)b);
+}
+
+static int suggest_programmers(const char *programmer, LISTID programmers) {
+  const int max_distance = 3;
+
+  int idx = 0;
+  int pgmid_maxlen = 0;
+  typedef struct {
+    int distance;
+    char *pgmid;
+    char *desc;
+  } pgm_distance;
+
+  pgm_distance *d = malloc(1);
+  sort_programmers(programmers);
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    PROGRAMMER *pgm = ldata(ln1);
+    if(!is_programmer(pgm))
+      continue;
+    for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
+      const char *id = ldata(ln2);
+      // Find the distance between the user specified programmer and id
+      int dist = levenshtein(programmer, id, 1, 1, 1, 1);
+      if(dist <= max_distance) {
+        pgm_distance *d_realloc = realloc(d, (idx+1)*sizeof(*d));
+        if(d_realloc)
+          d = d_realloc;
+        else {
+          pmsg_error("memory reallocation failed\n");
+          return -1;
+        }
+        d[idx].distance = dist;
+        d[idx].pgmid = cfg_strdup(__func__, id);
+        d[idx].desc = cfg_strdup(__func__, pgm->desc);
+        idx++;
+        if(strlen(id) > (size_t)pgmid_maxlen)
+          pgmid_maxlen = (int)strlen(id);
+      }
+    }
+  }
+  // Sort list so programmers with the smallest distance gets printed first
+  qsort(d, idx, sizeof(*d), cmp_ptr);
+  msg_info("similar matches:\n");
+  for(int i = 0; i < idx; i++)
+    msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+  msg_info("(use -c? to see all possible programmers for this part)\n");
+  for(int i = 0; i < idx; i++) {
+    if(d[i].pgmid)
+      free(d[i].pgmid);
+      free(d[i].desc);
+  }
+  free(d);
+  return idx;
+}
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
+  int pgm_suggestions = 0;
   msg_error("\n");
   if(programmer && *programmer) {
-    if(!pgm || !pgm->id || !lsize(pgm->id))
+    if(!pgm || !pgm->id || !lsize(pgm->id)) {
       pmsg_error("cannot find programmer id %s\n", programmer);
+      pgm_suggestions = suggest_programmers(programmer, programmers);
+    }
     else
       pmsg_error("programmer %s lacks %s setting\n", programmer,
         !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
@@ -467,9 +526,11 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
     imsg_error("config file(s); specify one using the -c option and try again\n");
   }
 
-  msg_error("\nValid programmers are:\n");
-  list_programmers(stderr, "  ", programmers, ~0);
-  msg_error("\n");
+  if(pgm_suggestions <= 0) {
+    msg_error("\nValid programmers are:\n");
+    list_programmers(stderr, "  ", programmers, ~0);
+    msg_error("\n");
+  }
 }
 
 static void part_not_found(const char *partdesc) {
