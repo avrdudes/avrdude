@@ -1031,3 +1031,79 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
 
   return (char *) q;
 }
+
+/*
+ * This function implements the Damerau-Levenshtein algorithm to
+ * calculate a distance between strings.
+ *
+ * Basically, it says how many letters need to be swapped, substituted,
+ * deleted from, or added to str1, at least, to get str2.
+ *
+ * The idea is to build a distance matrix for the substrings of both
+ * strings.  To avoid a large space complexity, only the last three rows
+ * are kept in memory (if swaps had the same or higher cost as one deletion
+ * plus one insertion, only two rows would be needed).
+ *
+ * At any stage, "i + 1" denotes the length of the current substring of
+ * str1 that the distance is calculated for.
+ *
+ * row2 holds the current row, row1 the previous row (i.e. for the substring
+ * of str1 of length "i"), and row0 the row before that.
+ *
+ * In other words, at the start of the big loop, row2[j + 1] contains the
+ * Damerau-Levenshtein distance between the substring of str1 of length
+ * "i" and the substring of str2 of length "j + 1".
+ *
+ * All the big loop does is determine the partial minimum-cost paths.
+ *
+ * It does so by calculating the costs of the path ending in characters
+ * i (in str1) and j (in str2), respectively, given that the last
+ * operation is a substitution, a swap, a deletion, or an insertion.
+ *
+ * This implementation allows the costs to be weighted:
+ *
+ * - swap
+ * - subst (as in "Substitution")
+ * - add (for insertion, AKA "Add")
+ * - del (as in "Deletion")
+ *
+ * Note that this algorithm calculates a distance _iff_ d == a.
+ */
+
+int levenshtein(const char *str1, const char *str2,
+  int swap, int subst, int add, int del) {
+
+  int i, j, len1 = strlen(str1), len2 = strlen(str2);
+  int *row0 = calloc(len2 + 1, sizeof(int*));
+  int *row1 = calloc(len2 + 1, sizeof(int*));
+  int *row2 = calloc(len2 + 1, sizeof(int*));
+
+  for (j = 0; j <= len2; j++)
+    row1[j] = j * add;
+  for (i = 0; i < len1; i++) {
+    row2[0] = (i+1) * del;
+    for (j = 0; j < len2; j++) {
+      // Substitution
+      row2[j+1] = row1[j] + subst * (str1[i] != str2[j]);
+      // Swap
+      if (i > 0 && j > 0 && str1[i-1] == str2[j] &&
+        str1[i] == str2[j-1] && row2[j+1] > row0[j-1] + swap)
+        row2[j+1] = row0[j-1] + swap;
+      // Deletion
+      if (row2[j+1] > row1[j+1] + del)
+        row2[j+1] = row1[j+1] + del;
+      // Insertion
+      if (row2[j+1] > row2[j] + add)
+        row2[j+1] = row2[j] + add;
+    }
+    int *temp = row0;
+    row0 = row1;
+    row1 = row2;
+    row2 = temp;
+  }
+  i = row1[len2];
+  free(row0);
+  free(row1);
+  free(row2);
+  return i;
+}
