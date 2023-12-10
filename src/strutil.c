@@ -1067,7 +1067,7 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
  * - add (for insertion, AKA "Add")
  * - del (as in "Deletion")
  *
- * Note that this algorithm calculates a distance _iff_ d == a.
+ * Note that this algorithm calculates a distance _iff_ del == add.
  */
 
 int levenshtein(const char *str1, const char *str2,
