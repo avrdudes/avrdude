@@ -497,10 +497,12 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
   }
   // Sort list so programmers with the smallest distance gets printed first
   qsort(d, idx, sizeof(*d), cmp_ptr);
-  msg_info("similar matches:\n");
-  for(int i = 0; i < idx; i++)
-    msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
-  msg_info("use -c? to see all possible programmers for this part\n");
+  if(idx) {
+    msg_info("similar matches:\n");
+    for(int i = 0; i < idx; i++)
+      msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+    msg_info("use -c? to see all possible programmers for this part\n");
+  }
   for(int i = 0; i < idx; i++) {
     if(d[i].pgmid)
       free(d[i].pgmid);
