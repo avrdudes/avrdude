@@ -1033,6 +1033,8 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
 }
 
 /*
+ * From https://github.com/git/git/blob/master/levenshtein.c
+ *
  * This function implements the Damerau-Levenshtein algorithm to
  * calculate a distance between strings.
  *
