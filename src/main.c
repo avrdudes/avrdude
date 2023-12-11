@@ -458,53 +458,64 @@ static int cmp_ptr(const void *a, const void *b) {
 }
 
 static int suggest_programmers(const char *programmer, LISTID programmers) {
-  const int max_distance = 3;
-
-  int idx = 0;
+  const int max_distance = 4; // Don't show suggestions if they are way far out
+  int smallest_distance = 0xffff;
   int pgmid_maxlen = 0;
   typedef struct {
-    int distance;
+    int dist;
     const char *pgmid;
     const char *desc;
   } pgm_distance;
 
-  pgm_distance *d = malloc(1);
   sort_programmers(programmers);
+
+  // Count number of possible programmer ids
+  int nid = 0;
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    PROGRAMMER *pgm = ldata(ln1);
+    if(!is_programmer(pgm))
+      continue;
+    for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
+      nid++;
+  }
+
+  pgm_distance *d = cfg_malloc(__func__, nid*sizeof*d);
+
+  // fill d[] struct
+  int idx = 0;
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     PROGRAMMER *pgm = ldata(ln1);
     if(!is_programmer(pgm))
       continue;
     for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
-      const char *id = ldata(ln2);
-      // Find the distance between the user specified programmer and id
-      int dist = levenshtein(programmer, id, 1, 1, 1, 1);
-      if(dist <= max_distance) {
-        pgm_distance *d_realloc = realloc(d, (idx+1)*sizeof(*d));
-        if(d_realloc)
-          d = d_realloc;
-        else {
-          pmsg_error("memory reallocation failed\n");
-          return -1;
-        }
-        d[idx].distance = dist;
-        d[idx].pgmid = id;
-        d[idx].desc = pgm->desc;
-        idx++;
-        if(strlen(id) > (size_t)pgmid_maxlen)
-          pgmid_maxlen = (int)strlen(id);
+      d[idx].pgmid = ldata(ln2);
+      d[idx].desc = pgm->desc;
+      d[idx].dist = levenshtein(programmer, d[idx].pgmid, 1, 1, 1, 1);
+      if(d[idx].dist <= max_distance) {
+        if(smallest_distance > d[idx].dist)
+          smallest_distance = d[idx].dist;
+        if(strlen(d[idx].pgmid) > (size_t)pgmid_maxlen)
+          pgmid_maxlen = (int)strlen(d[idx].pgmid);
       }
+      idx++;
     }
   }
+
   // Sort list so programmers with the smallest distance gets printed first
-  qsort(d, idx, sizeof(*d), cmp_ptr);
-  if(idx) {
+  qsort(d, nid, sizeof(*d), cmp_ptr);
+  int suggestions = 0;
+  if(pgmid_maxlen) {
     msg_info("similar matches:\n");
-    for(int i = 0; i < idx; i++)
-      msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+    for(int i = 0; i < nid; i++) {
+      if(d[i].dist == smallest_distance) {
+        msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+        suggestions++;
+      }
+    }
     msg_info("use -c? to see all possible programmers for this part\n");
   }
   free(d);
-  return idx;
+  return suggestions;
 }
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
