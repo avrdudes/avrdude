@@ -464,8 +464,8 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
   int pgmid_maxlen = 0;
   typedef struct {
     int distance;
-    char *pgmid;
-    char *desc;
+    const char *pgmid;
+    const char *desc;
   } pgm_distance;
 
   pgm_distance *d = malloc(1);
@@ -487,8 +487,8 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
           return -1;
         }
         d[idx].distance = dist;
-        d[idx].pgmid = cfg_strdup(__func__, id);
-        d[idx].desc = cfg_strdup(__func__, pgm->desc);
+        d[idx].pgmid = id;
+        d[idx].desc = pgm->desc;
         idx++;
         if(strlen(id) > (size_t)pgmid_maxlen)
           pgmid_maxlen = (int)strlen(id);
@@ -502,11 +502,6 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
     for(int i = 0; i < idx; i++)
       msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
     msg_info("use -c? to see all possible programmers for this part\n");
-  }
-  for(int i = 0; i < idx; i++) {
-    if(d[i].pgmid)
-      free(d[i].pgmid);
-      free(d[i].desc);
   }
   free(d);
   return idx;
