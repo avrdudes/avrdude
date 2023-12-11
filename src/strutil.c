@@ -1076,9 +1076,9 @@ int levenshtein(const char *str1, const char *str2,
   int swap, int subst, int add, int del) {
 
   int i, j, len1 = strlen(str1), len2 = strlen(str2);
-  int *row0 = calloc(len2 + 1, sizeof(int*));
-  int *row1 = calloc(len2 + 1, sizeof(int*));
-  int *row2 = calloc(len2 + 1, sizeof(int*));
+  int *row0 = cfg_malloc(__func__, (len2+1)*sizeof*row0);
+  int *row1 = cfg_malloc(__func__, (len2+1)*sizeof*row1);
+  int *row2 = cfg_malloc(__func__, (len2+1)*sizeof*row2);
 
   for (j = 0; j <= len2; j++)
     row1[j] = j * add;
