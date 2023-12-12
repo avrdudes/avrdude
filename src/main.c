@@ -522,32 +522,31 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
     for(size_t i = 0; i < n; i++)
       if(d[i].common_modes)
         msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
-    msg_info("use -c? to see all possible programmers\n");
   }
   free(d);
   return n;
 }
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
-  int pgm_suggestions = 0;
   msg_error("\n");
-  if(programmer && *programmer) {
-    if(!pgm || !pgm->id || !lsize(pgm->id)) {
-      pmsg_error("cannot find programmer id %s\n", programmer);
-      pgm_suggestions = suggest_programmers(programmer, programmers);
-    }
-    else
-      pmsg_error("programmer %s lacks %s setting\n", programmer,
-        !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
-  } else {
-    pmsg_error("no programmer has been specified on the command line or in the\n");
-    imsg_error("config file(s); specify one using the -c option and try again\n");
-  }
-
-  if(pgm_suggestions <= 0) {
+  if(str_eq(programmer, "?")) {
     msg_error("\nValid programmers are:\n");
     list_programmers(stderr, "  ", programmers, ~0);
     msg_error("\n");
+  } else {
+    if(programmer && *programmer) {
+      if(!pgm || !pgm->id || !lsize(pgm->id)) {
+        pmsg_error("cannot find programmer id %s\n", programmer);
+        suggest_programmers(programmer, programmers);
+        msg_info("use -c? to see all possible programmers\n");
+      }
+      else
+        pmsg_error("programmer %s lacks %s setting\n", programmer,
+          !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
+    } else {
+      pmsg_error("no programmer has been specified on the command line or in the\n");
+      imsg_error("config file(s); specify one using the -c option and try again\n");
+    }
   }
 }
 
