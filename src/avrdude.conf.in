@@ -2799,7 +2799,7 @@ programmer # pavr
 
 programmer # pickit2
     id                     = "pickit2";
-    desc                   = "MicroChip's PICkit2 Programmer";
+    desc                   = "Microchip PICkit2 programmer in ISP mode";
     type                   = "pickit2";
     prog_modes             = PM_ISP;
     connection_type        = usb;
