@@ -24,6 +24,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
 
 #include "libavrdude.h"
 
@@ -1104,6 +1105,115 @@ int levenshtein(const char *str1, const char *str2,
     row2 = temp;
   }
   i = row1[len2];
+  free(row0);
+  free(row1);
+  free(row2);
+  return i;
+}
+
+
+// Alphanumeric chars get the full weight, all others such as hyphen or underscore get less
+static size_t wchr(size_t w, unsigned char c) {
+  return isascii(c) && isalnum(c)? w: w >= 8? w/8: 1;
+}
+
+// Index of character in string or -1 of not found
+static int chridx(char *str, char c) {
+  char *e = strchr(str, c);
+  return e? e-str: -1;
+}
+
+// (x, y) position of key on keyboard 1 being the centre
+static void xypos(char c, double *x, double *y) {
+  int num = chridx("1234567890", c);
+  int upp = chridx("qwertyuiop", c);
+  int mid = chridx("asdfghjkl", c);
+  int low = chridx("zxcvbnm", c);
+
+  // My laptop's keyboard layout: your mileage may vary (smr)
+  *x = num >= 0? num: upp >= 0? upp + 0.5: mid >= 0? mid + 0.75: low >= 0? low + 1.25: -3.0;
+  *y = num >= 0? 0.0: upp >= 0? 1.0:       mid >= 0? 2.0:        low >= 0? 3.0:        -3.0;
+}
+
+
+// Weight by keyboard distance
+static size_t qwertydist(size_t w, unsigned char c1, unsigned char c2) {
+  if(c1 == c2)
+    return 0;
+
+  double x1, y1, x2, y2;
+  xypos(tolower(c1), &x1, &y1);
+  xypos(tolower(c2), &x2, &y2);
+
+  if(x1 == x2 && y1 == y2)
+    return w;
+
+  size_t ret = isalpha(c1) && isalpha(c2) && isupper(c1) != isupper(c2)? w/8: 0;
+  ret += sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2))/2.5 * w;
+
+  return ret > w? w: ret > 0? ret: 1;
+}
+
+// Substitution cost considering qwerty keyboard typos and case
+static size_t csubs(size_t w, unsigned char c1, unsigned char c2) {
+  if(c1 >= 128 || c2 >= 128)
+    return c1 != c2? w: 0;
+
+  if(w < 8)
+    w = 8;
+
+  static size_t wmat[128][128];
+  if(!wmat[0][1])               // Initialize weight matrix
+    for(size_t k1 = 0; k1 < 128; k1++)
+      for(size_t k2 = 0; k2 < 128; k2++)
+        wmat[k1][k2] =
+          k1 == k2? 0:
+          !isalnum(k1) && !isalnum(k2)? w/8:
+          !isalnum(k1) || !isalnum(k2)? w:
+          isalpha(k1) && isalpha(k2) && tolower(k1) == tolower(k2)? w/8:
+          qwertydist(w, k1, k2);
+
+  return wmat[c1][c2];
+}
+
+// Cost of morphing s1 to s2 modelling typos and mix-up of non-alphanumeric letters
+size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
+  const size_t swap = 3;        // Transposing neighbouring letters is an easy mistake to make
+  const size_t subst = 32, add = 32, del = 32; // Must be multiples of 8
+  size_t i, j, len1 = strlen(s1), len2 = strlen(s2);
+  size_t *row0 = cfg_malloc(__func__, (len2+1)*sizeof*row0);
+  size_t *row1 = cfg_malloc(__func__, (len2+1)*sizeof*row1);
+  size_t *row2 = cfg_malloc(__func__, (len2+1)*sizeof*row2);
+  unsigned char *str1 = (unsigned char *) s1, *str2 = (unsigned char *) s2;
+
+  for(j = 0; j < len2; j++)
+    row1[j+1] = row1[j]+ wchr(add, str2[j]);
+  for(i = 0; i < len1; i++) {
+    row2[0] = 0;
+    for(size_t k = 0; k <= i; k++)
+      row2[0] += wchr(del, str1[k]);
+    for(j = 0; j < len2; j++) {
+      // Substitution of str1[i] with str2[j]
+      row2[j+1] = row1[j] + (str1[i] != str2[j]? csubs(subst, str1[i], str2[j]): 0);
+      // Swap: str1[i-1]str1[i] is same as str2[j]str2[j-1]
+      if(i > 0 && j > 0 && str1[i-1] == str2[j] && str1[i] == str2[j-1] && row2[j+1] > row0[j-1] + swap)
+        row2[j+1] = row0[j-1] + swap;
+      // Deletion of str1[i]
+      size_t wdel = wchr(del, str1[i]);
+      if(row2[j+1] > row1[j+1] + wdel)
+        row2[j+1] = row1[j+1] + wdel;
+      // Insertion of str2[j]
+      size_t wadd = wchr(add, str2[j]);
+      if(row2[j+1] > row2[j] + wadd)
+        row2[j+1] = row2[j] + wadd;
+      // Todo: fat finger, eg, typing test as tesdt or tedst
+    }
+    size_t *temp = row0;
+    row0 = row1;
+    row1 = row2;
+    row2 = temp;
+  }
+  i = row1[len2];               // Last row2[len2]
   free(row0);
   free(row1);
   free(row2);
