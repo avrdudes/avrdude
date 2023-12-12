@@ -453,69 +453,72 @@ static int dev_opt(const char *str) {
     !!strchr(str, '/');
 }
 
-static int cmp_ptr(const void *a, const void *b) {
-   return (*(int*)a - *(int*)b);
+typedef struct {
+  size_t dist;
+  const char *pgmid;
+  const char *desc;
+} pgm_distance;
+
+static int cmp_pgmid(const void *a, const void *b) {
+   const pgm_distance *pa = a, *pb = b;
+
+   int ret = pa->dist - pb->dist;
+   if(ret)
+     return ret;
+   return strcmp(pa->pgmid, pb->pgmid);
 }
 
 static int suggest_programmers(const char *programmer, LISTID programmers) {
-  const int max_distance = 4; // Don't show suggestions if they are way far out
-  int smallest_distance = 0xffff;
-  int pgmid_maxlen = 0;
-  typedef struct {
-    int dist;
-    const char *pgmid;
-    const char *desc;
-  } pgm_distance;
+  const int max_distance = 64; // Don't show suggestions if they are way far out
 
-  sort_programmers(programmers);
-
-  // Count number of possible programmer ids
-  int nid = 0;
+  size_t nid = 0;               // Number of possible programmer ids
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     PROGRAMMER *pgm = ldata(ln1);
-    if(!is_programmer(pgm))
-      continue;
-    for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
-      nid++;
+    if(is_programmer(pgm))
+      for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
+        nid++;
   }
 
   pgm_distance *d = cfg_malloc(__func__, nid*sizeof*d);
 
-  // fill d[] struct
-  int idx = 0;
+  // Fill d[] struct
+  size_t idx = 0;
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     PROGRAMMER *pgm = ldata(ln1);
     if(!is_programmer(pgm))
       continue;
     for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
-      d[idx].pgmid = ldata(ln2);
-      d[idx].desc = pgm->desc;
-      d[idx].dist = levenshtein(programmer, d[idx].pgmid, 1, 1, 1, 1);
-      if(d[idx].dist <= max_distance) {
-        if(smallest_distance > d[idx].dist)
-          smallest_distance = d[idx].dist;
-        if(strlen(d[idx].pgmid) > (size_t)pgmid_maxlen)
-          pgmid_maxlen = (int)strlen(d[idx].pgmid);
+      if(idx < nid) {
+        d[idx].pgmid = ldata(ln2);
+        d[idx].desc = pgm->desc;
+        d[idx].dist = str_weighted_damerau_levenshtein(d[idx].pgmid, programmer);
+        idx++;
       }
-      idx++;
     }
   }
 
-  // Sort list so programmers with the smallest distance gets printed first
-  qsort(d, nid, sizeof(*d), cmp_ptr);
-  int suggestions = 0;
-  if(pgmid_maxlen) {
-    msg_info("similar matches:\n");
-    for(int i = 0; i < nid; i++) {
-      if(d[i].dist == smallest_distance) {
-        msg_info("%-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
-        suggestions++;
-      }
+  size_t n = 0, pgmid_maxlen = 0;
+  if(nid) {                     // Sort list so programmers according to string distance
+    qsort(d, nid, sizeof(*d), cmp_pgmid);
+    size_t dst = d[nid > 2? 2: nid-1].dist; // Print at least 3 close suggestions if possible
+    if(dst > max_distance)
+      dst = max_distance;
+    for(; n < nid; n++) {
+      if(d[n].dist > dst)
+        break;
+      size_t len = strlen(d[n].pgmid);
+      if(len > pgmid_maxlen)
+        pgmid_maxlen = len;
     }
-    msg_info("use -c? to see all possible programmers for this part\n");
+  }
+  if(n) {
+    msg_info("similar programmer name%s:\n", str_plural(n));
+    for(size_t i = 0; i < n; i++)
+      msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+    msg_info("use -c? to see all possible programmers\n");
   }
   free(d);
-  return suggestions;
+  return n;
 }
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
@@ -595,7 +598,6 @@ int main(int argc, char * argv [])
   struct stat      sb;
   UPDATE         * upd;
   LNODEID        * ln;
-
 
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */

@@ -1073,7 +1073,7 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
  * Note that this algorithm calculates a distance _iff_ del == add.
  */
 
-int levenshtein(const char *str1, const char *str2,
+int str_levenshtein(const char *str1, const char *str2,
   int swap, int subst, int add, int del) {
 
   int i, j, len1 = strlen(str1), len2 = strlen(str2);
