@@ -455,6 +455,7 @@ static int dev_opt(const char *str) {
 
 typedef struct {
   size_t dist;
+  int common_modes;
   const char *pgmid;
   const char *desc;
 } pgm_distance;
@@ -471,7 +472,7 @@ static int cmp_pgmid(const void *a, const void *b) {
 static int suggest_programmers(const char *programmer, LISTID programmers) {
   const int max_distance = 64; // Don't show suggestions if they are way far out
 
-  size_t nid = 0;               // Number of possible programmer ids
+  size_t nid = 0;              // Number of possible programmer ids
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     PROGRAMMER *pgm = ldata(ln1);
     if(is_programmer(pgm))
@@ -483,6 +484,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 
   // Fill d[] struct
   size_t idx = 0;
+  AVRPART *p = locate_part(part_list, partdesc);
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     PROGRAMMER *pgm = ldata(ln1);
     if(!is_programmer(pgm))
@@ -492,12 +494,14 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
         d[idx].pgmid = ldata(ln2);
         d[idx].desc = pgm->desc;
         d[idx].dist = str_weighted_damerau_levenshtein(d[idx].pgmid, programmer);
+        if(p)
+          d[idx].common_modes = p->prog_modes & pgm->prog_modes;
         idx++;
       }
     }
   }
 
-  size_t n = 0, pgmid_maxlen = 0;
+  size_t n = 0, pgmid_maxlen = 0, comp = 0;
   if(nid) {                     // Sort list so programmers according to string distance
     qsort(d, nid, sizeof(*d), cmp_pgmid);
     size_t dst = d[nid > 2? 2: nid-1].dist; // Print at least 3 close suggestions if possible
@@ -509,12 +513,15 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
       size_t len = strlen(d[n].pgmid);
       if(len > pgmid_maxlen)
         pgmid_maxlen = len;
+      if(d[n].common_modes)
+        comp++;
     }
   }
-  if(n) {
+  if(comp) {
     msg_info("similar programmer name%s:\n", str_plural(n));
     for(size_t i = 0; i < n; i++)
-      msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+      if(d[i].common_modes)
+        msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
     msg_info("use -c? to see all possible programmers\n");
   }
   free(d);
