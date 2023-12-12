@@ -1040,11 +1040,6 @@ int main(int argc, char * argv [])
       lsort(p->mem, avr_mem_cmp);
 
   // set bitclock from configuration files unless changed by command line
-  if (default_baudrate > 0 && baudrate == 0) {
-    baudrate = default_baudrate;
-  }
-
-  // set bitclock from configuration files unless changed by command line
   if (default_bitclock > 0 && bitclock == 0.0) {
     bitclock = default_bitclock;
   }
@@ -1295,14 +1290,28 @@ int main(int argc, char * argv [])
     imsg_notice("Using programmer      : %s\n", pgmid);
   }
 
-  if (baudrate != 0) {
+  // set baudrate from "default_baudrate"
+  // unless changed by command line "-b" or set by "pgm->baudrate"
+  //if (baudrate == 0 && pgm->baudrate == 0)
+  //  baudrate = default_baudrate;
+
+  if (baudrate) { // command line option -b
     imsg_notice("Setting baud rate     : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
+  else if (pgm->baudrate == 0 && default_baudrate) {
+    imsg_notice("Default baud rate     : %d\n", default_baudrate);
+    pgm->baudrate = default_baudrate;
+  }
   else if (ser && ser->baudrate) {
-    imsg_notice("Default baud rate     : %d\n", ser->baudrate);
+    imsg_notice("Serial baud rate      : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
+  else if (pgm->baudrate)
+    imsg_notice("Programmer baud rate  : %d\n", pgm->baudrate);
+  else
+    imsg_notice("Programmer baud rate  : NOT SET\n");
+
   if (bitclock != 0.0) {
     imsg_notice("Setting bit clk period: %.1f us\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;
