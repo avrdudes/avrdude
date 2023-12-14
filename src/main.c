@@ -528,7 +528,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
   msg_error("\n");
-  if(str_eq(programmer, "?")) {
+  if(programmer && str_eq(programmer, "?")) {
     msg_error("\nValid programmers are:\n");
     list_programmers(stderr, "  ", programmers, ~0);
     msg_error("\n");
