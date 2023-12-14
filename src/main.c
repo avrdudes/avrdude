@@ -1309,8 +1309,6 @@ int main(int argc, char * argv [])
   }
   else if (pgm->baudrate)
     imsg_notice("Programmer baud rate  : %d\n", pgm->baudrate);
-  else
-    imsg_notice("Programmer baud rate  : NOT SET\n");
 
   if (bitclock != 0.0) {
     imsg_notice("Setting bit clk period: %.1f us\n", bitclock);
