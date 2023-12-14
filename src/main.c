@@ -494,8 +494,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
         d[idx].pgmid = ldata(ln2);
         d[idx].desc = pgm->desc;
         d[idx].dist = str_weighted_damerau_levenshtein(d[idx].pgmid, programmer);
-        if(p)
-          d[idx].common_modes = p->prog_modes & pgm->prog_modes;
+        d[idx].common_modes = pgm->prog_modes & (p? p->prog_modes: -1);
         idx++;
       }
     }
