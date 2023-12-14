@@ -518,7 +518,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
     }
   }
   if(comp) {
-    msg_info("similar programmer name%s:\n", str_plural(n));
+    msg_info("similar programmer name%s:\n", str_plural(comp));
     for(size_t i = 0; i < n; i++)
       if(d[i].common_modes)
         msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
