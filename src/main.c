@@ -1290,16 +1290,16 @@ int main(int argc, char * argv [])
     imsg_notice("Using programmer      : %s\n", pgmid);
   }
 
-  // set baudrate from "default_baudrate"
-  // unless changed by command line "-b" or set by "pgm->baudrate"
-  //if (baudrate == 0 && pgm->baudrate == 0)
-  //  baudrate = default_baudrate;
-
-  if (baudrate) { // command line option -b
-    imsg_notice("Setting baud rate     : %d\n", baudrate);
+  if (baudrate && !pgm->baudrate && !default_baudrate) { // none set
+      imsg_notice("Setting baud rate     : %d\n", baudrate);
+      pgm->baudrate = baudrate;
+  }
+  else if (baudrate && ((pgm->baudrate && pgm->baudrate != baudrate)
+          || (!pgm->baudrate && default_baudrate != baudrate))) {
+    imsg_notice("Overriding baud rate  : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
-  else if (pgm->baudrate == 0 && default_baudrate) {
+  else if (!pgm->baudrate && default_baudrate) {
     imsg_notice("Default baud rate     : %d\n", default_baudrate);
     pgm->baudrate = default_baudrate;
   }
@@ -1307,7 +1307,7 @@ int main(int argc, char * argv [])
     imsg_notice("Serial baud rate      : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
-  else if (pgm->baudrate)
+  else if (pgm->baudrate != 0)
     imsg_notice("Programmer baud rate  : %d\n", pgm->baudrate);
 
   if (bitclock != 0.0) {
