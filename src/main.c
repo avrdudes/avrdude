@@ -503,17 +503,15 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
   int n = 0, pgmid_maxlen = 0, comp = 0, len;
   if(nid) {                     // Sort list so programmers according to string distance
     qsort(d, nid, sizeof(*d), cmp_pgmid);
-    size_t dst = d[nid > 2? 2: nid-1].dist; // Print at least 3 close suggestions if possible
+    size_t dst = d[nid > 2? 2: nid-1].dist;
     if(dst > max_distance)
       dst = max_distance;
-    for(; n < nid; n++) {
-      if(d[n].dist > dst)
-        break;
-      if((len = strlen(d[n].pgmid)) > pgmid_maxlen)
-        pgmid_maxlen = len;
-      if(d[n].common_modes)
+    for(; n < nid && d[n].dist <= dst; n++)
+      if(d[n].common_modes) {
+        if((len = strlen(d[n].pgmid)) > pgmid_maxlen)
+          pgmid_maxlen = len;
         comp++;
-    }
+      }
   }
   if(comp) {
     msg_info("similar programmer name%s:\n", str_plural(comp));
