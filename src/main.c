@@ -494,7 +494,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
         d[idx].pgmid = ldata(ln2);
         d[idx].desc = pgm->desc;
         d[idx].dist = str_weighted_damerau_levenshtein(d[idx].pgmid, programmer);
-        d[idx].common_modes = pgm->prog_modes & (p? p->prog_modes: -1);
+        d[idx].common_modes = pgm->prog_modes & (p? p->prog_modes: ~0);
         idx++;
       }
     }
@@ -523,7 +523,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
   return n;
 }
 
-static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
+static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pmode) {
   msg_error("\v");
   if(!programmer || !*programmer) {
     pmsg_error("no programmer has been specified on the command line or in the\n");
@@ -543,9 +543,9 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
   // If there were partial matches then they were not unique: count and list them
   int pmatches = 0, maxlen = 0, len;
   for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
-    PROGRAMMER *p = ldata(ln1);
-    if(is_programmer(p))
-      for(LNODEID ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+    PROGRAMMER *pg = ldata(ln1);
+    if(is_programmer(pg) && (pg->prog_modes & pmode))
+      for(LNODEID ln2=lfirst(pg->id); ln2; ln2=lnext(ln2)) {
         const char *id = (const char *) ldata(ln2);
         if(str_casestarts(id, programmer)) { // Partial initial match
           pmatches++;
@@ -557,12 +557,12 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm) {
   if(pmatches) {
     msg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
     for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
-     PROGRAMMER *p = ldata(ln1);
-      if(is_programmer(p))
-        for(LNODEID ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+     PROGRAMMER *pg = ldata(ln1);
+      if(is_programmer(pg) && (pg->prog_modes & pmode))
+        for(LNODEID ln2=lfirst(pg->id); ln2; ln2=lnext(ln2)) {
           const char *id = (const char *) ldata(ln2);
           if(str_casestarts(id, programmer))
-            msg_error("  %-*s = %s\n", maxlen, id, p->desc);
+            msg_error("  %-*s = %s\n", maxlen, id, pg->desc);
       }
     }
   } else if(!pgm || !pgm->id || !lsize(pgm->id)) {
@@ -1184,9 +1184,9 @@ int main(int argc, char * argv [])
   if(partdesc) {
     if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
-        PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid);
+        PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
         if(!pgm || !is_programmer(pgm)) {
-          programmer_not_found(pgmid, pgm);
+          programmer_not_found(pgmid, pgm, ~0);
           exit(1);
         }
         msg_error("\nValid parts for programmer %s are:\n", pgmid);
@@ -1229,17 +1229,18 @@ int main(int argc, char * argv [])
   msg_notice("\n");
 
   if(!pgmid || !*pgmid) {
-    programmer_not_found(NULL, NULL);
+    programmer_not_found(NULL, NULL, ~0);
     exit(1);
   }
 
-  pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid);
+  p = partdesc  && *partdesc? locate_part(part_list, partdesc): NULL;
+  pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, p);
   if (pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid, pgm);
+    programmer_not_found(pgmid, pgm, p? p->prog_modes: ~0);
     exit(1);
   }
 
-  if(partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
+  if(p && !(p->prog_modes & pgm->prog_modes)) {
     pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, p->desc);
     if(!ovsigck) {
       imsg_error("use -F to override this check\n");

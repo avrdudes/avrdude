@@ -313,9 +313,9 @@ void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
 }
 
 // Locate a real programmer entry by partial initial id and set the matching id
-PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *pgid, const char **setid) {
-  PROGRAMMER *p, *matchp;
-  int matches, p1;
+PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *pgid, const char **setid, AVRPART *prt) {
+  PROGRAMMER *pgm, *matchp;
+  int matches, p1, pmode = prt? prt->prog_modes: -1;
   const char *matchid;
   size_t l;
 
@@ -326,12 +326,12 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
   matches = 0;
   matchp = NULL;
   for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
-    p = ldata(ln1);
-    if(is_programmer(p))
-      for(LNODEID ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+    pgm = ldata(ln1);
+    if(is_programmer(pgm) && (pgm->prog_modes & pmode))
+      for(LNODEID ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
         const char *id = (const char *) ldata(ln2);
         if(p1 == *id && !strncasecmp(id, pgid, l)) { // Partial initial match
-          matchp = p;
+          matchp = pgm;
           matchid = id;
           matches++;
           if(id[l] == 0) {      // Exact match; return straight away
