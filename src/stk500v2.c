@@ -3237,10 +3237,20 @@ static int stk500v2_set_varef(const PROGRAMMER *pgm, unsigned int chan /* unused
 }
 
 
-static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan /* unused */,
-                              double *v)
+static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan, double *v)
 {
-  *v = stk500v2_varef_value(pgm);
+  if(PDATA(pgm)->pgmtype == PGMTYPE_STK500)
+    *v = stk500v2_varef_value(pgm);
+  else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+    if(chan == 0)
+      *v = stk600_varef_0_value(pgm);
+    else if(chan == 1)
+      *v = stk600_varef_1_value(pgm);
+    else {
+      pmsg_error("invalid Varef channel %d specified\n", chan);
+      return -1;
+    }
+  }
   return 0;
 }
 
@@ -3538,6 +3548,25 @@ static int stk500v2_jtag3_set_sck_period(const PROGRAMMER *pgm, double v) {
     return -1;
   if (stk500v2_jtag3_recv(pgm, value, 3) < 0)
     return -1;
+  return 0;
+}
+
+static int stk500v2_jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char cmd[4];
+  *v = 0;
+
+  cmd[0] = CMD_GET_SCK;
+  if (stk500v2_jtag3_send(pgm, cmd, 1) < 0 || stk500v2_jtag3_recv(pgm, cmd, 4) < 2) {
+    pmsg_error("cannot read ISP clock speed\n");
+    return -1;
+  }
+
+  unsigned int sck = cmd[1] | (cmd[2] << 8);
+  if(!sck) {
+    pmsg_error("reported ISP clock speed not valid\n");
+    return -1;
+  }
+  *v = 1 / (1000.0 * sck);
   return 0;
 }
 
@@ -3904,7 +3933,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     }
     fmsg_out(fp, "%sSCK period            : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
     if (pgm->extra_features & HAS_FOSC_ADJ) {
-      f = stk500v2_sck_duration_value(pgm);
+      f = stk500v2_fosc_value(pgm);
       f = f_to_kHz_MHz(f, &unit);
       fmsg_out(fp, "%sOscillator            : %.3f %s\n", p, f, unit);
     }
@@ -5048,6 +5077,7 @@ void stk500v2_jtagmkII_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->setup          = stk500v2_jtagmkII_setup;
   pgm->teardown       = stk500v2_jtagmkII_teardown;
@@ -5082,6 +5112,8 @@ void stk500v2_dragon_isp_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->get_sck_period = stk500v2_get_sck_period;
+  pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->setup          = stk500v2_jtagmkII_setup;
   pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
@@ -5113,6 +5145,7 @@ void stk500v2_dragon_pp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->setup          = stk500v2_jtagmkII_setup;
   pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
@@ -5144,6 +5177,7 @@ void stk500v2_dragon_hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_set_sck_period_mk2;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->setup          = stk500v2_jtagmkII_setup;
   pgm->teardown       = stk500v2_jtagmkII_teardown;
   pgm->page_size      = 256;
@@ -5177,9 +5211,13 @@ void stk600_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
+  pgm->get_varef      = stk500v2_get_varef;
   pgm->set_fosc       = stk600_set_fosc;
+  pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
@@ -5213,9 +5251,13 @@ void stk600pp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500pp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
+  pgm->get_varef      = stk500v2_get_varef;
   pgm->set_fosc       = stk600_set_fosc;
+  pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
@@ -5248,9 +5290,13 @@ void stk600hvsp_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = stk500hvsp_paged_load;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_vtarget    = stk600_set_vtarget;
+  pgm->get_vtarget    = stk500v2_get_vtarget;
   pgm->set_varef      = stk600_set_varef;
+  pgm->get_varef      = stk500v2_get_varef;
   pgm->set_fosc       = stk600_set_fosc;
+  pgm->get_fosc       = stk500v2_get_fosc;
   pgm->set_sck_period = stk600_set_sck_period;
+  pgm->get_sck_period = stk500v2_get_sck_period;
   pgm->parseextparams = stk500v2_parseextparms;
   pgm->setup          = stk500v2_setup;
   pgm->teardown       = stk500v2_teardown;
@@ -5285,6 +5331,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = NULL;
   pgm->print_parms    = stk500v2_print_parms;
   pgm->set_sck_period = stk500v2_jtag3_set_sck_period;
+  pgm->get_sck_period = stk500v2_jtag3_get_sck_period;
   pgm->perform_osccal = stk500v2_perform_osccal;
   pgm->parseextparams = stk500v2_jtag3_parseextparms;
   pgm->setup          = stk500v2_jtag3_setup;
@@ -5295,5 +5342,7 @@ void stk500v2_jtag3_initpgm(PROGRAMMER *pgm) {
    * hardware dependent functions
    */
   if (pgm->extra_features & HAS_VTARG_ADJ)
-    pgm->set_vtarget  = jtag3_set_vtarget;
+    pgm->set_vtarget = jtag3_set_vtarget;
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget = jtag3_get_vtarget;
 }
