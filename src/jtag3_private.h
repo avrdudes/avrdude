@@ -381,6 +381,11 @@
 
 #define DATA_OFFSET                    0x1000000
 
+// Constants for setting a PICkit4 or SNAP in AVR or PIC mode
+#define PK4_SNAP_MODE_DEFAULT 0 // Do not switch mode
+#define PK4_SNAP_MODE_AVR     1 // Switch to AVR mode
+#define PK4_SNAP_MODE_PIC     2 // Switch to PIC mode
+
 #if !defined(JTAG3_PRIVATE_EXPORTED)
 
 struct mega_device_desc {

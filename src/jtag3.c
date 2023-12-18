@@ -89,6 +89,9 @@ struct pdata
   bool vtarg_set;
   double vtarg_data;
 
+  /* Flag for PICkit4/SNAP mode switching */
+  int pk4_snap_mode;
+
   /* SIB string cache */
   char sib_string[AVR_SIBLEN];
 
@@ -1597,6 +1600,27 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       }
     }
 
+    else if (str_starts(extended_param, "mode=") &&
+      (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+      char mode[3];
+      int sscanf_success = sscanf(extended_param, "mode=%3s", mode);
+      if (sscanf_success < 1 || (!str_caseeq(mode, "avr") && !str_caseeq(mode, "pic"))) {
+        pmsg_error("invalid mode setting '%s'\n", extended_param);
+        rv = -1;
+        break;
+      }
+      // Flag a switch to AVR mode
+      if (str_caseeq(mode, "avr")) {
+        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_AVR;
+        continue;
+      }
+      // Flag a switch to PIC mode
+      if (str_caseeq(mode, "pic")) {
+        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
+        continue;
+      }
+    }
+
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       if (str_eq(pgm->type, "JTAGICE3"))
@@ -1612,6 +1636,9 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if (pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg                 Read on-board target supply voltage\n");
         msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
+      }
+      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
+        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode\n");
       }
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
       exit(0);
@@ -1686,6 +1713,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 #endif
   if (rv < 0) {
     // Check if SNAP or PICkit4 is in PIC mode
+    unsigned char enter_avr_mode[3] = {0xf0, 0x01};
+    unsigned char pk4_snap_reset[] = {0xed};
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
       if (str_starts(ldata(ln), "snap")) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
@@ -1698,8 +1727,15 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         }
         if(pic_mode >= 0) {
           msg_error("\n");
-          pmsg_error("MPLAB SNAP in PIC mode detected!\n");
-          imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
+          pmsg_error("MPLAB SNAP in PIC mode detected\n");
+          if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
+            imsg_error("switching to AVR mode\n");
+            serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
+            usleep(250*1000);
+            serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+            imsg_error("please re-run Avrdude\n\n");
+          } else
+            imsg_error("Use -xmode=avr to enter AVR mode\n\n");
           return -1;
         }
       } else if(str_starts(ldata(ln), "pickit4")) {
@@ -1713,8 +1749,15 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         }
         if(pic_mode >= 0) {
           msg_error("\n");
-          pmsg_error("PICkit4 in PIC mode detected!\n");
-          imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
+          pmsg_error("PICkit4 in PIC mode detected.\n");
+          if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
+            imsg_error("switching to AVR mode\n");
+            serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
+            usleep(250*1000);
+            serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+            imsg_error("please re-run Avrdude\n\n");
+          } else
+            imsg_error("Use -xmode=avr to enter AVR mode\n\n");
           return -1;
         }
       }
@@ -1737,6 +1780,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 
     return -1;
   }
+
+  if (PDATA(pgm)->pk4_snap_mode)
+    pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
 
   if (pgm->fd.usb.eep == 0) {
     /* The event EP has been deleted by usb_open(), so we are
