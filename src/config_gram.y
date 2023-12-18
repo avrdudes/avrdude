@@ -78,6 +78,7 @@ static int pin_name;
 %token K_BUFF
 %token K_CONNTYPE
 %token K_DEDICATED
+%token K_DEFAULT_BAUDRATE
 %token K_DEFAULT_BITCLOCK
 %token K_DEFAULT_PARALLEL
 %token K_DEFAULT_PROGRAMMER
@@ -236,6 +237,11 @@ def :
 
   K_DEFAULT_SPI TKN_EQUAL TKN_STRING TKN_SEMI {
     default_spi = cache_string($3->value.string);
+    free_token($3);
+  } |
+
+  K_DEFAULT_BAUDRATE TKN_EQUAL TKN_NUMBER TKN_SEMI {
+    default_baudrate = $3->value.number;
     free_token($3);
   } |
 

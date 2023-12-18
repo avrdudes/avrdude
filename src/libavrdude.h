@@ -1338,6 +1338,7 @@ extern const char *default_programmer;
 extern const char *default_parallel;
 extern const char *default_serial;
 extern const char *default_spi;
+extern int         default_baudrate;
 extern double      default_bitclock;
 extern char const *default_linuxgpio;
 extern int         allow_subshells;
