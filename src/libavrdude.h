@@ -1056,7 +1056,7 @@ void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p);
 
 PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, const char **setid);
-
+PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *id, const char **setid, AVRPART *prt);
 PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
 typedef void (*walk_programmers_cb)(const char *name, const char *desc,
@@ -1478,6 +1478,8 @@ void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
+int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
+size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);

@@ -2702,7 +2702,7 @@ programmer # pickit4_tpi
 
 programmer # snap
     id                     = "snap", "snap_jtag";
-    desc                   = "MPLAB(R) Snap in JTAG mode";
+    desc                   = "MPLAB(R) SNAP in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
@@ -2800,7 +2800,7 @@ programmer # pavr
 
 programmer # pickit2
     id                     = "pickit2";
-    desc                   = "MicroChip's PICkit2 Programmer";
+    desc                   = "Microchip PICkit 2 programmer in ISP mode";
     type                   = "pickit2";
     prog_modes             = PM_ISP;
     connection_type        = usb;

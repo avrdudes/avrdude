@@ -1652,7 +1652,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 
     if(!*rlist) {
       pmsg_error("(regfile) register %s not found in register file\n", *reg? reg: "''");
-      imsg_error("type regfile for all possible values\n", reg);
+      imsg_error("type regfile for all possible values\n");
       goto error;
     }
 
@@ -1723,7 +1723,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     term_out("%s", r->reg);
     int c = *r->caption;
     if(verb)
-      term_out("%*s # %c%s", maxlen-strlen(r->reg), "", c? toupper(c): ' ', c? r->caption+1: "");
+      term_out("%*s # %c%s", maxlen - (int) strlen(r->reg), "", c? toupper(c): ' ', c? r->caption+1: "");
     term_out("\n");
   }
 
