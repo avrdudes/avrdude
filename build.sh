@@ -28,23 +28,28 @@ usage()
 {
 	echo "Build script for avrdude"
 	echo
-	echo "Syntax: build.sh -h -f <flags>"
+	echo "Syntax: build.sh -h -f <flags> -j <num>"
 	echo "Options"
 	echo "-h          Display this usage information and exit"
 	echo "-f <flags>  Extra build flags to pass to cmake"
+	echo "-j <num>    Run num build jobs in parallel"
 	echo
 }
 
 ostype=$(uname | tr '[A-Z]' '[a-z]')
 
 build_flags=""
+cmake_build="cmake --build ."
 
-while getopts :hf: OPT; do
+while getopts :hf:j: OPT; do
   case "$OPT" in
     f)    
 	   build_flags="$OPTARG" 
 	   ;;
-    h | *)    
+    j)
+	   cmake_build="cmake --build . -- -j$OPTARG";
+	   ;;
+    h | *)
 	   usage
 	   exit
 	   ;;
@@ -103,7 +108,7 @@ mkdir -p build_${ostype}
 cd build_${ostype}
 cmake ${build_flags} ${extra_enable} -D CMAKE_BUILD_TYPE=${build_type} .. ||\
     { echo "CMake failed."; exit 1; }
-cmake --build . ||\
+${cmake_build} ||\
     { echo "Build failed."; exit 1; }
 
 cat <<EOF
