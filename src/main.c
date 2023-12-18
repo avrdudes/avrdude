@@ -593,6 +593,7 @@ int main(int argc, char * argv [])
   default_parallel   = "";
   default_serial     = "";
   default_spi        = "";
+  default_baudrate   = 0;
   default_bitclock   = 0.0;
   default_linuxgpio  = "";
   allow_subshells    = 0;
@@ -680,50 +681,24 @@ int main(int argc, char * argv [])
         }
         break;
 
-      case 'B': /* specify JTAG ICE bit clock period */
+      case 'B': /* specify bit clock period */
         bitclock = strtod(optarg, &e);
-        if (*e != 0) {
-          /* trailing unit of measure present */
-          int suffixlen = strlen(e);
-          switch (suffixlen) {
-          case 2:
-            if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
-              bitclock = 0.0;
-            else
-              /* convert from Hz to microseconds */
-              bitclock = 1E6 / bitclock;
-            break;
-
-          case 3:
-            if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
-              bitclock = 0.0;
-            else {
-              switch (e[0]) {
-              case 'M':
-              case 'm': /* no Millihertz here :) */
-                bitclock = 1.0 / bitclock;
-                break;
-
-              case 'k':
-                bitclock = 1E3 / bitclock;
-                break;
-
-              default:
-                bitclock = 0.0;
-                break;
-              }
-            }
-            break;
-
-          default:
-            bitclock = 0.0;
-            break;
-          }
-          if (bitclock == 0.0)
-            pmsg_error("invalid bit clock unit of measure '%s'\n", e);
+        if ((e == optarg) || bitclock <= 0.0) {
+          pmsg_error("invalid bit clock period %s\n", optarg);
+          exit(1);
         }
-        if ((e == optarg) || bitclock == 0.0) {
-          pmsg_error("invalid bit clock period specified '%s'\n", optarg);
+        while(*e && isascii(*e & 0xff) && isspace(*e & 0xff))
+          e++;
+        if(*e == 0 || str_caseeq(e, "us")) // us is optional and the default
+          ;
+        else if(str_caseeq(e, "m") || str_caseeq(e, "mhz"))
+          bitclock = 1 / bitclock;
+        else if(str_caseeq(e, "k") || str_caseeq(e, "khz"))
+          bitclock = 1e3 / bitclock;
+        else if(str_caseeq(e, "hz"))
+          bitclock = 1e6 / bitclock;
+        else {
+          pmsg_error("invalid bit clock unit %s\n", e);
           exit(1);
         }
         break;
@@ -1289,14 +1264,26 @@ int main(int argc, char * argv [])
     imsg_notice("Using programmer      : %s\n", pgmid);
   }
 
-  if (baudrate != 0) {
-    imsg_notice("Setting baud rate     : %d\n", baudrate);
+  if (baudrate && !pgm->baudrate && !default_baudrate) { // none set
+      imsg_notice("Setting baud rate     : %d\n", baudrate);
+      pgm->baudrate = baudrate;
+  }
+  else if (baudrate && ((pgm->baudrate && pgm->baudrate != baudrate)
+          || (!pgm->baudrate && default_baudrate != baudrate))) {
+    imsg_notice("Overriding baud rate  : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
+  else if (!pgm->baudrate && default_baudrate) {
+    imsg_notice("Default baud rate     : %d\n", default_baudrate);
+    pgm->baudrate = default_baudrate;
+  }
   else if (ser && ser->baudrate) {
-    imsg_notice("Default baud rate     : %d\n", ser->baudrate);
+    imsg_notice("Serial baud rate      : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
+  else if (pgm->baudrate != 0)
+    imsg_notice("Programmer baud rate  : %d\n", pgm->baudrate);
+
   if (bitclock != 0.0) {
     imsg_notice("Setting bit clk period: %.1f us\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;

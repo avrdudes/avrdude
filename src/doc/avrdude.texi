@@ -473,7 +473,10 @@ ATmega328P MCU properties; for more information run @code{avrdude -p x/h}.
 @item -b @var{baudrate}
 @cindex Option @code{-b} @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
-programmer's entry of the configuration file.
+programmer's @code{baudrate} entry of the configuration file
+or defined by the @code{default_baudrate} entry in your
+@code{~/.config/avrdude/avrdude.rc} or @code{~/.avrduderc} configuration
+file if no @code{baudrate} entry was provided for this programmer.
 
 @item -B @var{bitclock}
 @cindex Option @code{-B} @var{bitclock}
@@ -759,7 +762,9 @@ and Mac OS but not on Windows. For more information about AVR-Doper see
 For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.
-@xref{Troubleshooting} for examples.
+For USBasp, multiple devices can be distinguished by either USB connection
+or serial number.
+See the respective @ref{Troubleshooting} entry for examples.
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -3014,6 +3019,11 @@ using the @option{-P} option.
 Assign the default programmer id.  Can be overridden using the @option{-c}
 option.
 
+@item default_baudrate = "@var{default-baudrate}";
+Assign the default baudrate value that will be used if the programmer doesn't
+provide its specific @code{baudrate} entry. Can be overridden using the @option{-b}
+option.
+
 @item default_bitclock = "@var{default-bitclock}";
 @cindex @code{default_bitclock}
 Assign the default bitclock value.  Can be overridden using the @option{-B}
@@ -4320,6 +4330,14 @@ avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
 avrdude -c usbtiny -p atmega8 \
   -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
 @end example
+
+For USBasp, the same format for @var{-P usb} can be used to match usb bus/device. Alternatively,
+device serial number can be specified as follows (for serial number '1234').
+
+@example
+avrdude -c USBasp -p atmega8 -P usb:1234
+@end example
+
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWire mode.

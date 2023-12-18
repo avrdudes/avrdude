@@ -2402,6 +2402,49 @@ static int jtag3_set_sck_period(const PROGRAMMER *pgm, double v) {
 }
 
 
+static int jtag3_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char conn, arch;
+  unsigned char buf[2];
+  *v = 0;
+
+  if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CONNECTION, &conn, 1) < 0) {
+    pmsg_error("cannot obtain connection type\n");
+    return -1;
+  }
+  if (jtag3_getparm(pgm, SCOPE_AVR, 0, PARM3_ARCH, &arch, 1) < 0) {
+    pmsg_error("cannot obtain target architecture\n");
+    return -1;
+  }
+
+  if (conn == PARM3_CONN_JTAG) {
+    if (arch == PARM3_ARCH_XMEGA) {
+      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_JTAG, buf, 2) < 0) {
+        pmsg_error("cannot read Xmega JTAG clock speed\n");
+        return -1;
+      }
+    } else {
+      if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_MEGA_PROG, buf, 2) < 0) {
+        pmsg_error("cannot read JTAG clock speed\n");
+        return -1;
+      }
+    }
+  } else if (conn & (PARM3_CONN_PDI | PARM3_CONN_UPDI)) {
+    if (jtag3_getparm(pgm, SCOPE_AVR, 1, PARM3_CLK_XMEGA_PDI, buf, 2) < 0) {
+      pmsg_error("cannot read PDI/UPDI clock speed\n");
+      return -1;
+    }
+  }
+
+  if (b2_to_u16(buf) <= 0) {
+    pmsg_error("cannot calculate programmer clock speed\n");
+    return -1;
+  }
+  *v = 1.0/(1000*b2_to_u16(buf));
+
+  return 0;
+}
+
+
 /*
  * Read (an) emulator parameter(s).
  */
@@ -2499,7 +2542,7 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
     return status;
 
   memcpy(sib, resp+3, AVR_SIBLEN);
-  sib[AVR_SIBLEN] = 0; // Zero terminate string
+  sib[AVR_SIBLEN-1] = 0; // Zero terminate string
   pmsg_debug("jtag3_read_sib(): received SIB: %s\n", sib);
   free(resp);
   return 0;
@@ -2546,6 +2589,18 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
     return -1;
   }
 
+  return 0;
+}
+
+int jtag3_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned char buf[2];
+
+  if(jtag3_getparm(pgm, SCOPE_GENERAL, 1, PARM3_VTARGET, buf, 2) < 0) {
+    pmsg_error("cannot read target voltage\n");
+    return -1;
+  }
+
+  *v = b2_to_u16(buf)/1000.0;
   return 0;
 }
 
@@ -3212,6 +3267,7 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->get_sck_period = jtag3_get_sck_period;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
@@ -3222,6 +3278,8 @@ void jtag3_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3261,6 +3319,8 @@ void jtag3_dw_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3292,6 +3352,7 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->get_sck_period = jtag3_get_sck_period;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
@@ -3302,6 +3363,8 @@ void jtag3_pdi_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3333,6 +3396,7 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtag3_page_erase;
   pgm->print_parms    = jtag3_print_parms;
   pgm->set_sck_period = jtag3_set_sck_period;
+  pgm->get_sck_period = jtag3_get_sck_period;
   pgm->parseextparams = jtag3_parseextparms;
   pgm->setup          = jtag3_setup;
   pgm->teardown       = jtag3_teardown;
@@ -3345,6 +3409,8 @@ void jtag3_updi_initpgm(PROGRAMMER *pgm) {
   /*
    * hardware dependent functions
    */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
   if (pgm->extra_features & HAS_VTARG_ADJ)
     pgm->set_vtarget  = jtag3_set_vtarget;
 }
@@ -3380,4 +3446,10 @@ void jtag3_tpi_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = jtag3_teardown;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_TPI;
+
+  /*
+   * hardware dependent functions
+   */
+  if (pgm->extra_features & HAS_VTARG_READ)
+    pgm->get_vtarget  = jtag3_get_vtarget;
 }

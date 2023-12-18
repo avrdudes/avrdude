@@ -2424,6 +2424,24 @@ static int jtagmkII_set_sck_period(const PROGRAMMER *pgm, double v) {
   return jtagmkII_setparm(pgm, PAR_OCD_JTAG_CLK, &dur);
 }
 
+static int jtagmkII_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char buf[4];
+  double clk;
+  if (jtagmkII_getparm(pgm, PAR_OCD_JTAG_CLK, buf) < 0) {
+    pmsg_error("cannot read JTAG clock speed\n");
+    return -1;
+  }
+
+  if (buf[0] == 0)
+    clk = 6.4e6;
+  else if (buf[0] == 1)
+    clk = 2.8e6;
+  else
+    clk = 5.35e6 / buf[0];
+
+  *v = 1 / clk;
+  return 0;
+}
 
 /*
  * Read an emulator parameter.  As the maximal parameter length is 4
@@ -3614,6 +3632,7 @@ void jtagmkII_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtagmkII_page_erase;
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->set_sck_period = jtagmkII_set_sck_period;
+  pgm->get_sck_period = jtagmkII_get_sck_period;
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;
@@ -3747,6 +3766,7 @@ void jtagmkII_dragon_initpgm(PROGRAMMER *pgm) {
   pgm->page_erase     = jtagmkII_page_erase;
   pgm->print_parms    = jtagmkII_print_parms;
   pgm->set_sck_period = jtagmkII_set_sck_period;
+  pgm->get_sck_period = jtagmkII_get_sck_period;
   pgm->parseextparams = jtagmkII_parseextparms;
   pgm->setup          = jtagmkII_setup;
   pgm->teardown       = jtagmkII_teardown;

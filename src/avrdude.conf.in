@@ -442,6 +442,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
 default_spi        = "@DEFAULT_SPI_PORT@";
+# default_baudrate = 115200;
 # default_bitclock = 2.5;
 default_linuxgpio  = "@DEFAULT_LINUXGPIO_PORT@";
 allow_subshells    = no;

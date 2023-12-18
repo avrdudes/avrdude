@@ -186,6 +186,7 @@ buff             { yylval=NULL; ccap(); return K_BUFF; }
 chip_erase       { yylval=new_token(K_CHIP_ERASE); ccap(); return K_CHIP_ERASE; }
 connection_type  { yylval=NULL; ccap(); return K_CONNTYPE; }
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
+default_baudrate { yylval=NULL; return K_DEFAULT_BAUDRATE; }
 default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
