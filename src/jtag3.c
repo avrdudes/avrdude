@@ -1735,7 +1735,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
             serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
             imsg_error("please re-run Avrdude\n\n");
           } else
-            imsg_error("Use -xmode=avr to enter AVR mode\n\n");
+            imsg_error("use -xmode=avr to enter AVR mode\n\n");
           return -1;
         }
       } else if(str_starts(ldata(ln), "pickit4")) {
@@ -1757,7 +1757,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
             serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
             imsg_error("please re-run Avrdude\n\n");
           } else
-            imsg_error("Use -xmode=avr to enter AVR mode\n\n");
+            imsg_error("use -xmode=avr to enter AVR mode\n\n");
           return -1;
         }
       }
