@@ -44,6 +44,9 @@ Changes since version 7.2:
     - jtagmkI.c/jtagmkII.c rely on OCDEN being hfuse bit 7 #1537
     - Certain terminal commands may be confusing #1570
     - Upload port required for -cdryrun on MacOS #1578
+    - Make programmer -c name checking more forgiving #1591
+    - Query a programmer's current clock speed #1329
+    - Differentiate USB programmers with the same VID/PID #973
 
   * Pull requests:
 
@@ -98,6 +101,12 @@ Changes since version 7.2:
     - Provide terminal regfile command #1580
     - Ignore port settings when using -c dryrun #1581
     - Add more PL2303 compatible USB PIDs #1583
+    - Faster build.sh script with option -j #1586
+    - Terminal sck command improvements #1587
+    - Differentiate USB programmers with the same VID/PID #1588
+    - Provide configuration variable default_baudrate #1590
+    - Increase index entries in avrdude.texi #1592
+    - Suggest programmers using weighted Damerau-Levenshtein #1593
 
   * Internals:
 
