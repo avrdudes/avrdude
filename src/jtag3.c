@@ -1802,8 +1802,12 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 
   // Switch from AVR to PIC mode
   if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_PIC) {
+    imsg_error("switching to PIC mode\n");
     unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
-    jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode");
+    if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0)
+      imsg_error("entering PIC mode failed\n");
+    else
+      imsg_error("PIC mode switch successful\n");
     return -1;
   }
 
