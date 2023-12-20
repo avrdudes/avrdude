@@ -470,7 +470,7 @@ static int cmp_pgmid(const void *a, const void *b) {
 }
 
 static int suggest_programmers(const char *programmer, LISTID programmers) {
-  const int max_distance = 64;  // Don't show suggestions if they are way far out
+  const size_t max_distance = 64; // Don't show suggestions if they are way far out
 
   int nid = 0;                  // Number of possible programmer ids
   for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
