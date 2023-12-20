@@ -115,6 +115,7 @@
 #define CMD3_GET_ID                0x12
 #define CMD3_START_DW_DEBUG        0x13
 #define CMD3_MONCON_DISABLE        0x17
+#define CMD3_FW_UPGRADE            0x50
 
 /* AVR ISP scope: no commands of its own */
 

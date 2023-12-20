@@ -1781,7 +1781,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if (PDATA(pgm)->pk4_snap_mode)
+  if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR)
     pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
 
   if (pgm->fd.usb.eep == 0) {
@@ -1799,6 +1799,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
    * drain any extraneous input
    */
   jtag3_drain(pgm, 0);
+
+  // Switch from AVR to PIC mode
+  if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_PIC) {
+    unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
+    jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode");
+    return -1;
+  }
 
   return 0;
 }
