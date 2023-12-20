@@ -1713,7 +1713,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 #endif
   if (rv < 0) {
     // Check if SNAP or PICkit4 is in PIC mode
-    unsigned char enter_avr_mode[3] = {0xf0, 0x01};
+    unsigned char enter_avr_mode[] = {0xf0, 0x01};
     unsigned char pk4_snap_reset[] = {0xed};
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
       if (str_starts(ldata(ln), "snap")) {
