@@ -11632,6 +11632,7 @@ part parent "m64hve2" # m32hve2
         "ATmega32HVE2-PLPW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V, 3.6 V]",
         "ATmega32HVE2-PLQW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V, 3.6 V]";
     mcuid                  = 379;
+    boot_section_size      = 512;
     signature              = 0x1e 0x95 0x13;
 
     memory "flash"
@@ -14242,6 +14243,7 @@ part parent "t44" # t44a
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21;
+
 ;
 
 #------------------------------------------------------------
@@ -23884,6 +23886,133 @@ part parent ".avrdx" # avr64dd32
 ;
 
 #------------------------------------------------------------
+# AVR64DU28
+#------------------------------------------------------------
+
+part parent "avr64dd28" # avr64du28
+    desc                   = "AVR64DU28";
+    id                     = "avr64du28";
+    variants               =
+        "AVR64DU28-SSOP/SPDIP: DIP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR64DU28-VQFN:       QFP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 384;
+    n_interrupts           = 34;
+    signature              = 0x1e 0x96 0x22;
+
+    memory "fuse5"
+        bitmask            = 0xfb;
+    ;
+
+    memory "fuse6"
+        bitmask            = 0x0f;
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+
+    memory "prodsig"
+        offset             = 0x1080;
+    ;
+
+    memory "signature"
+        offset             = 0x1080;
+    ;
+
+    memory "tempsense"
+        offset             = 0x1084;
+    ;
+
+    memory "sernum"
+        offset             = 0x1090;
+    ;
+
+    memory "bootrow"
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 256;
+    ;
+
+    memory "userrow"
+        size               = 512;
+        page_size          = 512;
+        offset             = 0x1200;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DU32
+#------------------------------------------------------------
+
+part parent "avr64dd32" # avr64du32
+    desc                   = "AVR64DU32";
+    id                     = "avr64du32";
+    variants               =
+        "AVR64DU32-VQFN/TQFP: QFP32, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 385;
+    n_interrupts           = 34;
+    signature              = 0x1e 0x96 0x21;
+
+    memory "fuse5"
+        bitmask            = 0xfb;
+    ;
+
+    memory "fuse6"
+        bitmask            = 0x0f;
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+
+    memory "prodsig"
+        offset             = 0x1080;
+    ;
+
+    memory "signature"
+        offset             = 0x1080;
+    ;
+
+    memory "tempsense"
+        offset             = 0x1084;
+    ;
+
+    memory "sernum"
+        offset             = 0x1090;
+    ;
+
+    memory "bootrow"
+        size               = 64;
+        page_size          = 64;
+        offset             = 0x1100;
+        readsize           = 256;
+    ;
+
+    memory "userrow"
+        size               = 512;
+        page_size          = 512;
+        offset             = 0x1200;
+    ;
+;
+
+#------------------------------------------------------------
 # AVR-Ex family common values
 #------------------------------------------------------------
 
@@ -24036,6 +24165,7 @@ part parent ".avrex" # avr16ea28
     variants               =
         "AVR16EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 332;
+    n_interrupts           = 37;
     signature              = 0x1e 0x94 0x37;
 
     memory "eeprom"
@@ -24072,6 +24202,7 @@ part parent ".avrex" # avr16ea32
     variants               =
         "AVR16EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 334;
+    n_interrupts           = 37;
     signature              = 0x1e 0x94 0x36;
 
     memory "eeprom"
@@ -24108,6 +24239,7 @@ part parent ".avrex" # avr16ea48
     variants               =
         "AVR16EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 335;
+    n_interrupts           = 45;
     signature              = 0x1e 0x94 0x35;
 
     memory "eeprom"
@@ -24144,6 +24276,7 @@ part parent ".avrex" # avr32ea28
     variants               =
         "AVR32EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 341;
+    n_interrupts           = 37;
     signature              = 0x1e 0x95 0x3e;
 
     memory "eeprom"
@@ -24180,6 +24313,7 @@ part parent ".avrex" # avr32ea32
     variants               =
         "AVR32EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 345;
+    n_interrupts           = 37;
     signature              = 0x1e 0x95 0x3d;
 
     memory "eeprom"
@@ -24216,6 +24350,7 @@ part parent ".avrex" # avr32ea48
     variants               =
         "AVR32EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 348;
+    n_interrupts           = 45;
     signature              = 0x1e 0x95 0x3c;
 
     memory "eeprom"
@@ -24369,6 +24504,7 @@ part parent ".avrex" # avr16eb14
     variants               =
         "AVR16EB14-SOIC/TSSOP: SOIC14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 380;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x49;
 
     memory "eeprom"
