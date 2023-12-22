@@ -1721,8 +1721,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE;
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
         if(pic_mode < 0) {
-          // Retry with alternative USB PID
-          pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE_ALT;
+          // Retry with bootloader USB PID
+          pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE_BL;
           pic_mode = serial_open(port, pinfo, &pgm->fd);
         }
         if(pic_mode >= 0) {
@@ -1743,8 +1743,8 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE;
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
         if(pic_mode < 0) {
-          // Retry with alternative USB PID
-          pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE_ALT;
+          // Retry with bootloader USB PID
+          pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE_BL;
           pic_mode = serial_open(port, pinfo, &pgm->fd);
         }
         if(pic_mode >= 0) {
