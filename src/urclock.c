@@ -2185,7 +2185,11 @@ static int urclock_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused
 }
 
 
-static void urclock_enable(PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
+static void urclock_enable(PROGRAMMER *pgm, const AVRPART *p) {
+  AVRMEM *mem;
+  if((mem = avr_locate_eeprom(p)))
+    if(mem->page_size == 1)     // Change EEPROM page size from 1 to 16 to force paged r/w
+      mem->page_size = 16;
   return;
 }
 

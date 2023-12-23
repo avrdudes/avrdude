@@ -855,10 +855,9 @@ static void stk500_disable(const PROGRAMMER *pgm) {
 static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
   if(pgm->prog_modes & PM_SPM)  // For bootloaders (eg, arduino)
-    if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire))) // Classic parts, eg, optiboot with word addresses
-      if((mem = avr_locate_eeprom(p)))
-        if(mem->page_size == 1)   // Increase pagesize if it is 1
-          mem->page_size = 16;
+    if((mem = avr_locate_eeprom(p)))
+      if(mem->page_size == 1)   // Change EEPROM page size from 1 to 16 to force paged r/w
+        mem->page_size = 16;
   return;
 }
 
