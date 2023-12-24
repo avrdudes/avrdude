@@ -3601,6 +3601,37 @@ static int jtagmkII_flash_clear_pagebuffer32(const PROGRAMMER *pgm) {
     return -1;
 }
 
+/*** Periodic calls in terminal mode to keep `JTAGMKII_UPDI` enabled. ***/
+/*
+ * GET_SYNC is not guaranteed to be harmless to other program devices.
+ * (JTAG2UPDI and UPDI4AVR are definitely harmless)
+ * So this is probably only available in `jtagmkII_updi_initpgm`.
+ */
+static int jtagmkII_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unused) {
+  unsigned char buf[2], *resp, c = 0xff;
+  int status;
+
+  buf[0] = CMND_GET_SYNC;
+  jtagmkII_send(pgm, buf, 1);
+
+  status = jtagmkII_recv(pgm, &resp);
+  c = resp[0];
+  free(resp);
+
+  if (status <= 0) {
+    msg_notice2("\n");
+    pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
+    return -1;
+  }
+
+  if (c != RSP_OK) {
+    pmsg_error("bad response to `get_sync` command: %s\n", jtagmkII_get_rc(c));
+    return -1;
+  }
+
+  return 0;
+}
+
 #ifdef __OBJC__
 #pragma mark -
 #endif
@@ -3737,6 +3768,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
   pgm->read_chip_rev  = jtagmkII_read_chip_rev;
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
+  pgm->term_keep_alive= jtagmkII_term_keep_alive;
 }
 
 const char jtagmkII_dragon_desc[] = "Atmel AVR Dragon in JTAG mode";
