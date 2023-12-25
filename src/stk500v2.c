@@ -2068,6 +2068,27 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       }
     }
 
+    else if (str_starts(extended_param, "mode=") &&
+      (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+      char mode[3];
+      int sscanf_success = sscanf(extended_param, "mode=%3s", mode);
+      if (sscanf_success < 1 || (!str_caseeq(mode, "avr") && !str_caseeq(mode, "pic"))) {
+        pmsg_error("invalid mode setting '%s'\n", extended_param);
+        rv = -1;
+        break;
+      }
+      // Flag a switch to AVR mode
+      if (str_caseeq(mode, "avr")) {
+        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_AVR;
+        continue;
+      }
+      // Flag a switch to PIC mode
+      if (str_caseeq(mode, "pic")) {
+        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
+        continue;
+      }
+    }
+
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       if(str_starts(pgmid, "xplainedmini")) {
@@ -2080,6 +2101,8 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         msg_error("  -xvtarg               Read on-board target supply voltage\n");
         msg_error("  -xvtarg=<arg>         Set on-board target supply voltage\n");
       }
+      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+        msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode\n");
       msg_error  ("  -xhelp                Show this help menu and exit\n");
       exit(0);
     }
