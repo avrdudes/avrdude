@@ -1398,7 +1398,8 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
-    pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
+    if (rc != LIBAVRDUDE_SOFTFAIL)
+      pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
 skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
       list_available_serialports(programmers);

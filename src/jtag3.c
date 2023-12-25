@@ -1742,7 +1742,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
             imsg_error("please run Avrdude again to continue the session\n\n");
           } else
             imsg_error("use -xmode=avr to enter AVR mode\n\n");
-          return -1;
+          return LIBAVRDUDE_SOFTFAIL;
         }
       } else if(str_starts(ldata(ln), "pickit4")) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
@@ -1769,7 +1769,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
             imsg_error("please run Avrdude again to continue the session\n\n");
           } else
             imsg_error("use -xmode=avr to enter AVR mode\n\n");
-          return -1;
+          return LIBAVRDUDE_SOFTFAIL;
         }
       }
     }
@@ -1830,8 +1830,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
-    return -1;
+  int rc = jtag3_open_common(pgm, port);
+  if (rc < 0)
+    return rc;
 
   if (jtag3_getsync(pgm, PARM3_CONN_JTAG) < 0)
     return -1;
