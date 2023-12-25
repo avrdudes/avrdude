@@ -1713,58 +1713,35 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 #endif
   if (rv < 0) {
     // Check if SNAP or PICkit4 is in PIC mode
-    const unsigned char exit_bootloader[] = {0xe6};
-    const unsigned char enter_avr_mode[] = {0xf0, 0x01};
-    const unsigned char pk4_snap_reset[] = {0xed};
+    const unsigned char exit_bl_cmd[] = {0xe6};
+    const unsigned char enter_avr_mode_cmd[] = {0xf0, 0x01};
+    const unsigned char reset_cmd[] = {0xed};
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-      if (str_starts(ldata(ln), "snap")) {
+      if (str_starts(ldata(ln), "snap") || str_starts(ldata(ln), "pickit4")) {
+        bool is_snap_pgm = str_starts(ldata(ln), "snap");
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
-        pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE;
+        pinfo.usbinfo.pid = is_snap_pgm? USB_DEVICE_SNAP_PIC_MODE: USB_DEVICE_PICKIT4_PIC_MODE;
+        const int bl_pid = is_snap_pgm? USB_DEVICE_SNAP_PIC_MODE_BL: USB_DEVICE_PICKIT4_PIC_MODE_BL;
+        const char *pgmstr = is_snap_pgm? "MPLAB SNAP": "PICkit 4";
+
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
         if(pic_mode < 0) {
           // Retry with bootloader USB PID
-          pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE_BL;
+          pinfo.usbinfo.pid = bl_pid;
           pic_mode = serial_open(port, pinfo, &pgm->fd);
         }
         if(pic_mode >= 0) {
           msg_error("\n");
-          pmsg_error("MPLAB SNAP in %s mode detected\n",
-            pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE_BL? "bootloader": "PIC");
+          pmsg_error("%s in %s mode detected\n",
+            pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
           if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
             imsg_error("switching to AVR mode\n");
-            if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE_BL)
-              serial_send(&pgm->fd, exit_bootloader, sizeof(exit_bootloader));
+            if(pinfo.usbinfo.pid == bl_pid)
+              serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
             else {
-              serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
+              serial_send(&pgm->fd, enter_avr_mode_cmd, sizeof(enter_avr_mode_cmd));
               usleep(250*1000);
-              serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
-            }
-            imsg_error("please run Avrdude again to continue the session\n\n");
-          } else
-            imsg_error("use -xmode=avr to enter AVR mode\n\n");
-          return LIBAVRDUDE_SOFTFAIL;
-        }
-      } else if(str_starts(ldata(ln), "pickit4")) {
-        pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
-        pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE;
-        int pic_mode = serial_open(port, pinfo, &pgm->fd);
-        if(pic_mode < 0) {
-          // Retry with bootloader USB PID
-          pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE_BL;
-          pic_mode = serial_open(port, pinfo, &pgm->fd);
-        }
-        if(pic_mode >= 0) {
-          msg_error("\n");
-          pmsg_error("PICkit4 in %s mode detected\n",
-            pinfo.usbinfo.pid == USB_DEVICE_PICKIT4_PIC_MODE_BL? "bootloader": "PIC");
-          if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
-            imsg_error("switching to AVR mode\n");
-            if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE_BL)
-              serial_send(&pgm->fd, exit_bootloader, sizeof(exit_bootloader));
-            else {
-              serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
-              usleep(250*1000);
-              serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+              serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
             }
             imsg_error("please run Avrdude again to continue the session\n\n");
           } else
@@ -1815,11 +1792,12 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_PIC) {
     imsg_error("switching to PIC mode\n");
     unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
-    if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0)
+    if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0) {
       imsg_error("entering PIC mode failed\n");
-    else
-      imsg_error("PIC mode switch successful\n");
-    return -1;
+      return -1;
+    }
+    imsg_error("PIC mode switch successful\n");
+    return LIBAVRDUDE_SOFTFAIL;
   }
 
   return 0;
