@@ -1713,9 +1713,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 #endif
   if (rv < 0) {
     // Check if SNAP or PICkit4 is in PIC mode
-    unsigned char exit_bootloader[] = {0xe6};
-    unsigned char enter_avr_mode[] = {0xf0, 0x01};
-    unsigned char pk4_snap_reset[] = {0xed};
+    const unsigned char exit_bootloader[] = {0xe6};
+    const unsigned char enter_avr_mode[] = {0xf0, 0x01};
+    const unsigned char pk4_snap_reset[] = {0xed};
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
       if (str_starts(ldata(ln), "snap")) {
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
