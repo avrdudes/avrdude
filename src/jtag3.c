@@ -1739,7 +1739,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
               usleep(250*1000);
               serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
             }
-            imsg_error("please re-run Avrdude\n\n");
+            imsg_error("please run Avrdude again to continue the session\n\n");
           } else
             imsg_error("use -xmode=avr to enter AVR mode\n\n");
           return -1;
@@ -1766,7 +1766,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
               usleep(250*1000);
               serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
             }
-            imsg_error("please re-run Avrdude\n\n");
+            imsg_error("please run Avrdude again to continue the session\n\n");
           } else
             imsg_error("use -xmode=avr to enter AVR mode\n\n");
           return -1;
