@@ -1713,6 +1713,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 #endif
   if (rv < 0) {
     // Check if SNAP or PICkit4 is in PIC mode
+    unsigned char exit_bootloader[] = {0xe6};
     unsigned char enter_avr_mode[] = {0xf0, 0x01};
     unsigned char pk4_snap_reset[] = {0xed};
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
@@ -1727,12 +1728,17 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         }
         if(pic_mode >= 0) {
           msg_error("\n");
-          pmsg_error("MPLAB SNAP in PIC mode detected\n");
+          pmsg_error("MPLAB SNAP in %s mode detected\n",
+            pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE_BL? "bootloader": "PIC");
           if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
             imsg_error("switching to AVR mode\n");
-            serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
-            usleep(250*1000);
-            serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+            if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE_BL)
+              serial_send(&pgm->fd, exit_bootloader, sizeof(exit_bootloader));
+            else {
+              serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
+              usleep(250*1000);
+              serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+            }
             imsg_error("please re-run Avrdude\n\n");
           } else
             imsg_error("use -xmode=avr to enter AVR mode\n\n");
@@ -1749,12 +1755,17 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         }
         if(pic_mode >= 0) {
           msg_error("\n");
-          pmsg_error("PICkit4 in PIC mode detected.\n");
+          pmsg_error("PICkit4 in %s mode detected\n",
+            pinfo.usbinfo.pid == USB_DEVICE_PICKIT4_PIC_MODE_BL? "bootloader": "PIC");
           if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
             imsg_error("switching to AVR mode\n");
-            serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
-            usleep(250*1000);
-            serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+            if(pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE_BL)
+              serial_send(&pgm->fd, exit_bootloader, sizeof(exit_bootloader));
+            else {
+              serial_send(&pgm->fd, enter_avr_mode, sizeof(enter_avr_mode));
+              usleep(250*1000);
+              serial_send(&pgm->fd, pk4_snap_reset, sizeof(pk4_snap_reset));
+            }
             imsg_error("please re-run Avrdude\n\n");
           } else
             imsg_error("use -xmode=avr to enter AVR mode\n\n");
