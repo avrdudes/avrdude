@@ -1666,20 +1666,15 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if (pgm->usbvid)
-    pinfo.usbinfo.vid = pgm->usbvid;
-  else
-    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-
-  /* If the config entry did not specify a USB PID, insert the default one. */
+  // If the config entry did not specify a USB PID, insert the default one.
   if (lfirst(pgm->usbpid) == NULL)
     ladd(pgm->usbpid, (void *)USB_DEVICE_JTAGICE3);
 
+  pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_ATMEL;
+
 #if defined(HAVE_LIBHIDAPI)
-  /*
-   * Try HIDAPI first.  LibUSB is more generic, but might then cause
-   * troubles for HID-class devices in some OSes (like Windows).
-   */
+  // Try HIDAPI first. LibUSB is more generic, but might
+  // cause trouble for HID-class devices in some OSes
   serdev = &usbhid_serdev;
   for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
@@ -1712,10 +1707,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   }
 #endif
   if (rv < 0) {
-    // Check if SNAP or PICkit4 is in PIC mode
-    const unsigned char exit_bl_cmd[] = {0xe6};
-    const unsigned char enter_avr_mode_cmd[] = {0xf0, 0x01};
-    const unsigned char reset_cmd[] = {0xed};
+    // Check if SNAP or PICkit4 are in PIC mode
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
       if (str_starts(ldata(ln), "snap") || str_starts(ldata(ln), "pickit4")) {
         bool is_snap_pgm = str_starts(ldata(ln), "snap");
@@ -1723,6 +1715,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
         pinfo.usbinfo.pid = is_snap_pgm? USB_DEVICE_SNAP_PIC_MODE: USB_DEVICE_PICKIT4_PIC_MODE;
         const int bl_pid = is_snap_pgm? USB_DEVICE_SNAP_PIC_MODE_BL: USB_DEVICE_PICKIT4_PIC_MODE_BL;
         const char *pgmstr = is_snap_pgm? "MPLAB SNAP": "PICkit 4";
+        const unsigned char exit_bl_cmd[] = {0xe6};
+        const unsigned char enter_avr_mode_cmd[] = {0xf0, 0x01};
+        const unsigned char reset_cmd[] = {0xed};
 
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
         if(pic_mode < 0) {
@@ -1753,7 +1748,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     pmsg_error("no device found matching VID 0x%04x and PID list: ",
                (unsigned) pinfo.usbinfo.vid);
     int notfirst = 0;
-    for (usbpid = lfirst(pgm->usbpid); usbpid != NULL; usbpid = lnext(usbpid)) {
+    for (usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
       if (notfirst)
         msg_error(", ");
       msg_error("0x%04x", (unsigned int)(*(int *)(ldata(usbpid))));
@@ -1763,7 +1758,6 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     char *serno;
     if ((serno = strchr(port, ':')))
       msg_error(" with SN %s", ++serno);
-
     msg_error("\n");
 
     return -1;
@@ -1772,9 +1766,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR)
     pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
 
+  // The event EP has been deleted by usb_open(), so we are
+  // running on a CMSIS-DAP device, using EDBG protocol
   if (pgm->fd.usb.eep == 0) {
-    /* The event EP has been deleted by usb_open(), so we are
-       running on a CMSIS-DAP device, using EDBG protocol */
     pgm->flag |= PGM_FL_IS_EDBG;
     pmsg_notice2("found CMSIS-DAP compliant device, using EDBG protocol\n");
   }
@@ -1783,9 +1777,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   if (serdev && serdev->usbsn)
     pgm->usbsn = serdev->usbsn;
 
-  /*
-   * drain any extraneous input
-   */
+  // Drain any extraneous input
   jtag3_drain(pgm, 0);
 
   // Switch from AVR to PIC mode
