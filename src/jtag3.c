@@ -1651,7 +1651,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   return rv;
 }
 
-int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
+int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) {
   union pinfo pinfo;
   LNODEID usbpid;
   int rv = -1;
@@ -1729,7 +1729,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
           msg_error("\n");
           pmsg_error("%s in %s mode detected\n",
             pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
-          if(PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR) {
+          if(mode_switch == PK4_SNAP_MODE_AVR) {
             imsg_error("switching to AVR mode\n");
             if(pinfo.usbinfo.pid == bl_pid)
               serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
@@ -1763,7 +1763,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_AVR)
+  if (mode_switch == PK4_SNAP_MODE_AVR)
     pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
 
   // The event EP has been deleted by usb_open(), so we are
@@ -1781,7 +1781,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   jtag3_drain(pgm, 0);
 
   // Switch from AVR to PIC mode
-  if (PDATA(pgm)->pk4_snap_mode == PK4_SNAP_MODE_PIC) {
+  if (mode_switch == PK4_SNAP_MODE_PIC) {
     imsg_error("switching to PIC mode\n");
     unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
     if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0) {
@@ -1800,7 +1800,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open()\n");
 
-  int rc = jtag3_open_common(pgm, port);
+  int rc = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
   if (rc < 0)
     return rc;
 
@@ -1813,7 +1813,7 @@ static int jtag3_open(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_dw()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_DW) < 0)
@@ -1825,7 +1825,7 @@ static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open_pdi(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_pdi()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_PDI) < 0)
@@ -1843,7 +1843,7 @@ static int jtag3_open_updi(PROGRAMMER *pgm, const char *port) {
     msg_notice2(" %d", *(int *) ldata(ln));
   msg_notice2("\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_UPDI) < 0)
@@ -3146,7 +3146,7 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 static int jtag3_open_tpi(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_tpi()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
   return 0;
 }

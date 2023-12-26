@@ -4266,10 +4266,11 @@ static int stk500v2_jtag3_open(PROGRAMMER *pgm, const char *port) {
   void *mycookie;
   int rv;
 
-  pmsg_notice2("stk500v2_jtag3_open()\n");
+  pmsg_notice2("%s()\n", __func__);
 
-  if (jtag3_open_common(pgm, port) < 0)
-    return -1;
+  rv = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
+  if (rv < 0)
+    return rv;
 
   mycookie = pgm->cookie;
   pgm->cookie = PDATA(pgm)->chained_pdata;
