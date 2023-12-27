@@ -1739,9 +1739,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) 
             imsg_error("please run Avrdude again to continue the session\n\n");
           } else {
             imsg_error("to switch into AVR mode try\n");
-            imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n",pgmid, partdesc, port);
+            imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n", pgmid, partdesc, port);
           }
-          return -3;
+          exit(0);
         }
       }
     }
@@ -1789,7 +1789,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) 
       return -1;
     }
     imsg_error("PIC mode switch successful\n");
-    return LIBAVRDUDE_SOFTFAIL;
+    exit(0);
   }
 
   return 0;
