@@ -1737,9 +1737,11 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) 
               serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
             }
             imsg_error("please run Avrdude again to continue the session\n\n");
-          } else
-            imsg_error("use -xmode=avr to enter AVR mode\n\n");
-          return LIBAVRDUDE_SOFTFAIL;
+          } else {
+            imsg_error("to switch into AVR mode try\n");
+            imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n",pgmid, partdesc, port);
+          }
+          return -3;
         }
       }
     }
