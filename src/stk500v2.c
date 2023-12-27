@@ -2070,22 +2070,20 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
 
     else if (str_starts(extended_param, "mode=") &&
       (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
-      char mode[3];
-      int sscanf_success = sscanf(extended_param, "mode=%3s", mode);
-      if (sscanf_success < 1 || (!str_caseeq(mode, "avr") && !str_caseeq(mode, "pic"))) {
-        pmsg_error("invalid mode setting '%s'\n", extended_param);
-        rv = -1;
-        break;
-      }
       // Flag a switch to AVR mode
-      if (str_caseeq(mode, "avr")) {
+      if (str_caseeq(extended_param, "mode=avr")) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_AVR;
         continue;
       }
       // Flag a switch to PIC mode
-      if (str_caseeq(mode, "pic")) {
+      else if (str_caseeq(extended_param, "mode=pic")) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
+      }
+      else {
+        pmsg_error("invalid mode setting '%s'. Use -xmode=avr or -xmode=pic\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
