@@ -1741,6 +1741,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) 
             imsg_error("to switch into AVR mode try\n");
             imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n", pgmid, partdesc, port);
           }
+          serial_close(&pgm->fd);
           exit(0);
         }
       }
@@ -1789,6 +1790,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) 
       return -1;
     }
     imsg_error("PIC mode switch successful\n");
+    serial_close(&pgm->fd);
     exit(0);
   }
 
