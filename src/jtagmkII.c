@@ -3616,7 +3616,6 @@ static int jtagmkII_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unus
 
   status = jtagmkII_recv(pgm, &resp);
   c = resp[0];
-  free(resp);
 
   if (status <= 0) {
     msg_notice2("\n");
@@ -3624,6 +3623,7 @@ static int jtagmkII_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unus
     return -1;
   }
 
+  free(resp);
   if (c != RSP_OK) {
     pmsg_error("bad response to `get_sync` command: %s\n", jtagmkII_get_rc(c));
     return -1;
