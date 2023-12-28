@@ -1612,11 +1612,9 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      else {
-        pmsg_error("invalid mode setting '%s'. Use -xmode=avr or -xmode=pic\n", extended_param);
-        rv = -1;
-        break;
-      }
+      pmsg_error("invalid mode setting '%s'. Use -xmode=avr or -xmode=pic\n", extended_param);
+      rv = -1;
+      break;
     }
 
     else if (str_eq(extended_param, "help")) {
