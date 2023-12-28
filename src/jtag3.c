@@ -1608,7 +1608,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         continue;
       }
       // Flag a switch to PIC mode
-      else if (str_caseeq(extended_param, "mode=pic")) {
+      if (str_caseeq(extended_param, "mode=pic")) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
@@ -1634,7 +1634,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
       }
       if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
-        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode\n");
+        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
       }
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
       exit(0);
@@ -1647,7 +1647,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   return rv;
 }
 
-int jtag3_open_common(PROGRAMMER *pgm, const char *port, const int mode_switch) {
+int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   union pinfo pinfo;
   LNODEID usbpid;
   int rv = -1;

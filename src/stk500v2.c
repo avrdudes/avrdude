@@ -2076,7 +2076,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         continue;
       }
       // Flag a switch to PIC mode
-      else if (str_caseeq(extended_param, "mode=pic")) {
+      if (str_caseeq(extended_param, "mode=pic")) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
@@ -2098,7 +2098,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         msg_error("  -xvtarg=<arg>         Set on-board target supply voltage\n");
       }
       if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-        msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode\n");
+        msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
       msg_error  ("  -xhelp                Show this help menu and exit\n");
       exit(0);
     }
