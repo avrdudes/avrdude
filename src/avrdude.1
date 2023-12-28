@@ -1539,12 +1539,14 @@ Show help menu and exit.
 .It Ar MPLAB SNAP
 .Bl -tag -offset indent -width indent
 .It Ar mode=avr,pic
-The PICkit 4 and MPLAB SNAP programmer can only be utilized by Avrdude when in
-AVR mode. Use
+Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
+programmer can only be utilised by
+.Nm
+when in AVR mode. Use
 .Ar -xmode=avr
 for switching to AVR mode, or
 .Ar -xmode=pic
-for switching switch PIC mode.
+for switching to PIC mode.
 .It Ar help
 Show help menu and exit.
 .El

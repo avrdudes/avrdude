@@ -1154,9 +1154,10 @@ Show help menu and exit.
 The PICkit 4 and MPLAB SNAP programmers accept the following extended parameters:
 @table @code
 @item @samp{mode=avr,pic}
-The PICkit 4 and MPLAB SNAP programmer can only be utilized by Avrdude when in
-AVR mode. Use @samp{-xmode=avr} for switching to AVR mode, or @samp{-xmode=pic}
-for switching switch PIC mode.
+Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
+programmer can only be utilised by Avrdude when in AVR mode.
+Use @samp{-xmode=avr} for switching to AVR mode, or @samp{-xmode=pic}
+for switching to PIC mode.
 @item @samp{help}
 Show help menu and exit.
 @end table
