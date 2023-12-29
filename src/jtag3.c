@@ -1585,18 +1585,18 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+            pmsg_error("invalid vtarg value %s\n", extended_param);
             rv = -1;
             break;
           }
           PDATA(pgm)->vtarg_set = true;
-          continue;
         }
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg")) {
+        else if(str_eq(extended_param, "vtarg"))
           PDATA(pgm)->vtarg_get = true;
-          continue;
-        }
+        else
+          break;
+        continue;
       }
     }
 
