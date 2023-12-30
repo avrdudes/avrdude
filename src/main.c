@@ -1618,7 +1618,7 @@ skipopen:
 
       if (quell_progress < 2) {
         AVRPART * part;
-        if((part = locate_part_by_signature(part_list, sig->buf, sig->size)))
+        if((part = locate_part_by_signature(part_list, sig->buf, sig->size, pgm->prog_modes)))
           msg_info(" (probably %s)", signature_matches ? p->id : part->id);
       }
       if (ff || zz) {

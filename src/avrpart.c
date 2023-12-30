@@ -1031,18 +1031,28 @@ AVRPART *locate_part_by_avr910_devcode(const LISTID parts, int devcode) {
   return NULL;
 }
 
-AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
-  if(parts && sigsize == 3)
-    for(LNODEID ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
-      AVRPART *p = ldata(ln1);
-      int i;
-      for(i=0; i<3; i++)
+AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes) {
+  if(parts && sigsize == 3) {
+    // Try first with prog_modes matching
+    int i;
+    for(LNODEID ln=lfirst(parts); ln; ln=lnext(ln)) {
+      AVRPART *p = ldata(ln);
+      for(int i=0; i<3; i++)
+        if(p->signature[i] != sig[i])
+          break;
+      if(i == 3 && p->prog_modes & prog_modes)
+        return p;
+    }
+    // If no match, try without prog_modes matching
+    for(LNODEID ln=lfirst(parts); ln; ln=lnext(ln)) {
+      AVRPART *p = ldata(ln);
+      for(int i=0; i<3; i++)
         if(p->signature[i] != sig[i])
           break;
       if(i == 3)
         return p;
     }
-
+  }
   return NULL;
 }
 
