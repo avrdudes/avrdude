@@ -1617,10 +1617,9 @@ skipopen:
           sig->buf[2] == p->signature[2];
 
       if (quell_progress < 2) {
-        AVRPART *part = locate_part_by_signature(part_list, sig->buf, sig->size, pgm->prog_modes);
-        if (!part)
-          part = locate_part_by_signature(part_list, sig->buf, sig->size, PM_ALL);
-        if (part)
+        AVRPART *part;
+        if((part = locate_part_by_signature_pm(part_list, sig->buf, sig->size, pgm->prog_modes)) ||
+           (part = locate_part_by_signature(part_list, sig->buf, sig->size)))
           msg_info(" (probably %s)", signature_matches? p->id: part->id);
       }
       if (ff || zz) {
