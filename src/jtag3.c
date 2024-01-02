@@ -1530,7 +1530,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     // Type 2: 12V pulse on RESET pin
     if(str_starts(extended_param, "hvupdi")) {
       if(lsize(pgm->hvupdi_support) < 1) {
-        pmsg_error("programmer does not support high voltage UPDI programming\n", extended_param);
+        pmsg_error("programmer does not support high voltage UPDI programming\n");
         rv = -1;
         break;
       }
