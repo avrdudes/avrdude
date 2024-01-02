@@ -1503,15 +1503,15 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   const char *extended_param;
   int rv = 0;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
+    if(str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
-      if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-        pmsg_error("invalid JTAG chain '%s'\n", extended_param);
+      if(sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
+        pmsg_error("invalid JTAG chain %s\n", extended_param);
         rv = -1;
-        continue;
+        break;
       }
       pmsg_notice2("jtag3_parseextparms(): JTAG chain parsed as:\n");
       imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
@@ -1520,11 +1520,25 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       PDATA(pgm)->jtagchain[1] = ua;
       PDATA(pgm)->jtagchain[2] = bb;
       PDATA(pgm)->jtagchain[3] = ba;
-
       continue;
     }
 
-    else if ((str_eq(extended_param, "hvupdi")) && (lsize(pgm->hvupdi_support) > 1)) {
+    // HVUPDI
+    // All programmers that supports UPDI programming should have hvupdi_support=1 in avrdude.conf
+    // Type 0: 12V pulse on UPDI pin
+    // Type 1: No HV UPDI
+    // Type 2: 12V pulse on RESET pin
+    if(str_starts(extended_param, "hvupdi")) {
+      if(lsize(pgm->hvupdi_support) < 1) {
+        pmsg_error("programmer does not support high voltage UPDI programming\n", extended_param);
+        rv = -1;
+        break;
+      }
+      if(!str_eq(extended_param, "hvupdi")) {
+        pmsg_error("invalid -xhvupdi value %s. Use -xhvupdi\n", extended_param);
+        rv = -1;
+        break;
+      }
       PDATA(pgm)->use_hvupdi = true;
       continue;
     }
@@ -1535,12 +1549,12 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
     // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
     // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
-    else if (str_starts(extended_param, "suffer") ) {
+    if(str_starts(extended_param, "suffer")) {
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
-        if (str_starts(extended_param, "suffer=")) {
-          if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
+        if(str_starts(extended_param, "suffer=")) {
+          if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
+            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1550,97 +1564,111 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
               PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
+          continue;
         }
         // Get SUFFER value
-        else
+        if(str_eq(extended_param, "suffer")) {
           PDATA(pgm)->suffer_get = true;
-        continue;
+          continue;
+        }
+        pmsg_error("invalid suffer setting %s. Use -xsuffer or -xsuffer=<arg>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
-    else if (str_starts(extended_param, "vtarg_switch") ) {
+    if(str_starts(extended_param, "vtarg_switch")) {
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
-        if (str_starts(extended_param, "vtarg_switch=")) {
+        if(str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
-          if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
+          if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
+            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
             rv = -1;
             break;
           }
           PDATA(pgm)->vtarg_switch_set = true;
+          continue;
         }
         // Get Vtarget switch value
-        else
+        if(str_eq(extended_param, "vtarg_switch")) {
           PDATA(pgm)->vtarg_switch_get = true;
-        continue;
+          continue;
+        }
+        pmsg_error("invalid vtarg_switch setting %s. Use -xvtarg_switch or -xvtarg_switch=<0..1>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
-    else if (str_starts(extended_param, "vtarg")) {
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+    if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
-        if (str_starts(extended_param, "vtarg=") ) {
+        if(str_starts(extended_param, "vtarg=") ) {
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
-          if (sscanf_success < 1 || vtarg_set_val < 0) {
+          if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid vtarg value %s\n", extended_param);
             rv = -1;
             break;
           }
           PDATA(pgm)->vtarg_set = true;
+          continue;
         }
         // Get target voltage
-        else if(str_eq(extended_param, "vtarg"))
+        else if(str_eq(extended_param, "vtarg")) {
           PDATA(pgm)->vtarg_get = true;
-        else
-          break;
-        continue;
+          continue;
+        }
+        pmsg_error("invalid vtarg setting %s. Use -xvtarg or -xvtarg=<arg>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
-    else if (str_starts(extended_param, "mode=") &&
+    if(str_starts(extended_param, "mode") &&
       (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
       // Flag a switch to AVR mode
-      if (str_caseeq(extended_param, "mode=avr")) {
+      if(str_caseeq(extended_param, "mode=avr")) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_AVR;
         continue;
       }
       // Flag a switch to PIC mode
-      if (str_caseeq(extended_param, "mode=pic")) {
+      if(str_caseeq(extended_param, "mode=pic")) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      pmsg_error("invalid mode setting '%s'. Use -xmode=avr or -xmode=pic\n", extended_param);
+      pmsg_error("invalid mode setting %s. Use -xmode=avr or -xmode=pic\n", extended_param);
       rv = -1;
       break;
     }
 
-    else if (str_eq(extended_param, "help")) {
+    if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (str_eq(pgm->type, "JTAGICE3"))
+      if(str_eq(pgm->type, "JTAGICE3"))
         msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if (str_eq(pgmid, "powerdebugger_updi") || str_eq(pgmid, "pickit4_updi"))
+      if(lsize(pgm->hvupdi_support) > 1)
         msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if (str_starts(pgmid, "xplainedmini") && !str_eq(pgmid, "xplainedmini_tpi")) {
+      if(pgm->extra_features & HAS_SUFFER) {
         msg_error("  -xsuffer                Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
+      }
+      if(pgm->extra_features & HAS_VTARG_SWITCH) {
         msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
         msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
       }
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+      if(pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg                 Read on-board target supply voltage\n");
         msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
       }
-      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap")) {
+      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
         msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
-      }
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
       exit(0);
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter %s\n", extended_param);
     rv = -1;
   }
 
