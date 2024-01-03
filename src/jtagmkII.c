@@ -1929,7 +1929,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       free(cmd);
       return n_bytes;
     }
-    cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
+    cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (mem_is_userrow(m)) {
     cmd[1] = MTYPE_USERSIG;
