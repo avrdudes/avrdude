@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 27.11.2023
+ * 22.12.2023
  *
  */
 
@@ -2139,7 +2139,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB14",        380, F_AVR8X, {0x1E, 0x94, 0x49}, // ID
   /*AVR16EB14*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB14*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB14*/        390, rgftab_avr16eb14}, // Register file
+  /*AVR16EB14*/        391, rgftab_avr16eb14}, // Register file
 
   //AVR16DD20                                           atdf, avrdude // Sources
   {"AVR16DD20",        330, F_AVR8X, {0x1E, 0x94, 0x33}, // ID
@@ -2151,7 +2151,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB20",        381, F_AVR8X, {0x1E, 0x94, 0x40}, // ID
   /*AVR16EB20*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB20*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB20*/        391, rgftab_avr16eb20}, // Register file
+  /*AVR16EB20*/        392, rgftab_avr16eb20}, // Register file
 
   //AVR16DD28                                           atdf, avrdude // Sources
   {"AVR16DD28",        331, F_AVR8X, {0x1E, 0x94, 0x32}, // ID
@@ -2169,7 +2169,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB28",        382, F_AVR8X, {0x1E, 0x94, 0x3F}, // ID
   /*AVR16EB28*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB28*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB28*/        391, rgftab_avr16eb20}, // Register file
+  /*AVR16EB28*/        392, rgftab_avr16eb20}, // Register file
 
   //AVR16DD32                                           atdf, avrdude // Sources
   {"AVR16DD32",        333, F_AVR8X, {0x1E, 0x94, 0x31}, // ID
@@ -2187,7 +2187,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB32",        383, F_AVR8X, {0x1E, 0x94, 0x3E}, // ID
   /*AVR16EB32*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB32*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB32*/        391, rgftab_avr16eb20}, // Register file
+  /*AVR16EB32*/        392, rgftab_avr16eb20}, // Register file
 
   //AVR16EA48                                           atdf, avrdude // Sources
   {"AVR16EA48",        335, F_AVR8X, {0x1E, 0x94, 0x35}, // ID
@@ -2303,6 +2303,12 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   /*AVR64DD28*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14, // ISRs, Config
   /*AVR64DD28*/        401, rgftab_avr32dd14}, // Register file
 
+  //AVR64DU28                                                    atdf // Sources
+  {"AVR64DU28",        384, F_AVR8X, {0x1E, 0x96, 0x22}, // ID
+  /*AVR64DU28*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DU28*/         16,  4,  34, vtab_avr64du32,       20, cfgtab_avr64du28, // ISRs, Config
+  /*AVR64DU28*/        372, rgftab_avr64du28}, // Register file
+
   //AVR64EA28                                           atdf, avrdude // Sources
   {"AVR64EA28",        354, F_AVR8X, {0x1E, 0x96, 0x20}, // ID
   /*AVR64EA28*/          0, 0x10000, 0x080,  1,      0, 0x01400, 0x0200,  8, 0x6800, 0x1800, // Mem
@@ -2326,6 +2332,12 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   /*AVR64DD32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
   /*AVR64DD32*/         16,  4,  36, vtab_avr64dd32,       17, cfgtab_avr32dd14, // ISRs, Config
   /*AVR64DD32*/        401, rgftab_avr32dd14}, // Register file
+
+  //AVR64DU32                                                    atdf // Sources
+  {"AVR64DU32",        385, F_AVR8X, {0x1E, 0x96, 0x21}, // ID
+  /*AVR64DU32*/          0, 0x10000, 0x200,  1,      0, 0x01400, 0x0100,  1, 0x6000, 0x2000, // Mem
+  /*AVR64DU32*/         16,  4,  34, vtab_avr64du32,       20, cfgtab_avr64du28, // ISRs, Config
+  /*AVR64DU32*/        372, rgftab_avr64du28}, // Register file
 
   //AVR64EA32                                           atdf, avrdude // Sources
   {"AVR64EA32",        358, F_AVR8X, {0x1E, 0x96, 0x1F}, // ID
@@ -7124,7 +7136,7 @@ const char * const vtab_avr16eb32[vts_avr16eb32] = {
   "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
-  "WEX0_FAULT",                 //   7: Waveform Extension 0 Fault
+  "WEX0_FDFEVA/WEX0_FDFEVB/WEX0_FDFEVC", //   7: Waveform Extention 0 Fault Detection on Event Input A/B/C
   "TCE0_OVF",                   //   8: TC E0 Overflow
   "TCE0_CMP0",                  //   9: TC E0 Compare 0
   "TCE0_CMP1",                  //  10: TC E0 Compare 1
@@ -7191,6 +7203,44 @@ const char * const vtab_avr64dd32[vts_avr64dd32] = {
   "USART1_TXC",                 //  33: USART 1 Transmit Complete
   "PORTF_PORT",                 //  34: Interrupt PORT F
   "NVMCTRL_EE",                 //  35: NVM EEPROM
+};
+
+// AVR64DU32 AVR64DU28
+const char * const vtab_avr64du32[vts_avr64du32] = {
+  "RESET",                      //   0: Reset (various reasons)
+  "CRCSCAN_NMI",                //   1: CRCSCAN Non-maskable Interrupt
+  "BOD_VLM",                    //   2: Brown-out Detector Voltage Level Monitor
+  "CLKCTRL_CFD",                //   3: Clock Failure Detection
+  "RTC_CNT",                    //   4: RTC Counter Interrupt
+  "RTC_PIT",                    //   5: RTC Periodic Interrupt Timer
+  "CCL_CCL",                    //   6: Configurable Custom Logic
+  "USB0_BUSEVENT",              //   7: USB 0 Bus Event
+  "USB0_TRNCOMPL",              //   8: USB 0 Transaction Complete
+  "PORTA_PORT",                 //   9: Interrupt PORT A
+  "TCA0_LUNF/TCA0_OVF",         //  10: TC A0 Low Underflow/TC A0 Overflow
+  "TCA0_HUNF",                  //  11: TC A0 High Underflow
+  "TCA0_CMP0/TCA0_LCMP0",       //  12: TC A0 Compare 0/TC A0 Low Compare 0
+  "TCA0_CMP1/TCA0_LCMP1",       //  13: TC A0 Compare 1/TC A0 Low Compare 1
+  "TCA0_CMP2/TCA0_LCMP2",       //  14: TC A0 Compare 2/TC A0 Low Compare 2
+  "TCB0_INT",                   //  15: TC B0 Interrupt
+  "TWI0_TWIP",                  //  16: 2-Wire Interface 0 Peripheral
+  "TWI0_TWIM",                  //  17: 2-Wire Interface 0 Controller
+  "SPI0_INT",                   //  18: SPI 0 Interrupt
+  "USART0_RXC",                 //  19: USART 0 Receive Complete
+  "USART0_DRE",                 //  20: USART 0 Data Register Empty
+  "USART0_TXC",                 //  21: USART 0 Transmit Complete
+  "PORTD_PORT",                 //  22: Interrupt PORT D
+  "PORTC_PORT",                 //  23: Interrupt PORT C
+  "PORTF_PORT",                 //  24: Interrupt PORT F
+  "NVMCTRL_NVMREADY",           //  25: NVM Ready
+  "USART1_RXC",                 //  26: USART 1 Receive Complete
+  "USART1_DRE",                 //  27: USART 1 Data Register Empty
+  "USART1_TXC",                 //  28: USART 1 Transmit Complete
+  "TCB1_INT",                   //  29: TC B1 Interrupt
+  "AC0_AC",                     //  30: AC0 AC Interrupt
+  "ADC0_ERROR",                 //  31: ADC 0 Error
+  "ADC0_RESRDY",                //  32: ADC 0 Result Ready
+  "ADC0_SAMPRDY",               //  33: ADC 0 Sample Ready
 };
 
 // AVR64EA32 AVR64EA28 AVR32EA32 AVR32EA28 AVR16EA32 AVR16EA28
@@ -9145,9 +9195,9 @@ static const Valueitem_t _values_eesave_atmega328[2] = {
  * ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20
  * AVR16DD28 AVR16EA28 AVR16EB28 AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28
  * AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48
- * AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32
- * AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32
- * AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ * AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32
+ * AVR64DB32 AVR64DD32 AVR64DU32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_eesave_attiny204[2] = {
   {0, "eex_erased", "EEPROM content is erased during chip erase"},
@@ -9443,8 +9493,9 @@ static const Valueitem_t _values_bodlevel_attiny204[3] = {
 /*
  * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32DA48 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28
- * AVR64DD28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
- * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ * AVR64DD28 AVR64DU28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32 AVR64DA48 AVR64DB48 AVR64DA64
+ * AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64
+ * AVR128DB64
  */
 static const Valueitem_t _values_bodlevel_avr32dd14[4] = {
   {0, "bod_1v9", "brownout detection at 1.9 V"},
@@ -9722,9 +9773,9 @@ static const Valueitem_t _values_sut_atmega64hve[4] = {
  * ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20
  * AVR16DD28 AVR16EA28 AVR16EB28 AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28
  * AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48
- * AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32
- * AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32
- * AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ * AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32
+ * AVR64DB32 AVR64DD32 AVR64DU32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_sut_attiny204[8] = {
   {0, "sut_0ms", "startup time 0 ms"},
@@ -10437,9 +10488,9 @@ static const Valueitem_t _values_wdtperiod_attiny204[12] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_wdtperiod_avr32dd14[12] = {
   {0x00, "t_off", "watchdog timer off"},
@@ -10483,9 +10534,9 @@ static const Valueitem_t _values_wdtwindow_attiny204[12] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_wdtwindow_avr32dd14[12] = {
   {0x00, "t_off", "window mode off"},
@@ -10520,9 +10571,9 @@ static const Valueitem_t _values_bodsleep_attiny204[3] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_bodsleep_avr32dd14[3] = {
   {0, "bod_disabled", "brownout detection disabled"},
@@ -10549,9 +10600,9 @@ static const Valueitem_t _values_bodactive_attiny204[4] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_bodactive_avr32dd14[4] = {
   {0, "bod_disabled", "brownout detection disabled"},
@@ -10577,9 +10628,9 @@ static const Valueitem_t _values_bodsampfreq_attiny204[2] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_bodsampfreq_avr32dd14[2] = {
   {0, "bod_128hz", "128 Hz sampling frequency"},
@@ -10731,7 +10782,7 @@ static const Valueitem_t _values_rstpincfg_attiny1624[4] = {
 /*
  * AVR32DD14 ATmega808 ATmega809 ATmega1608 ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809
  * AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DD28 AVR32DD32 AVR64DD14 AVR64DD20
- * AVR64DD28 AVR64DD32
+ * AVR64DD28 AVR64DU28 AVR64DD32 AVR64DU32
  */
 static const Valueitem_t _values_rstpincfg_avr32dd14[2] = {
   {0, "gpio", "GPIO mode"},
@@ -10766,9 +10817,9 @@ static const Valueitem_t _values_rstpincfg_avr32da28[2] = {
  * ATmega1609 ATmega3208 ATmega3209 ATmega4808 ATmega4809 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20
  * AVR16DD28 AVR16EA28 AVR16EB28 AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28
  * AVR32DB28 AVR32DD28 AVR32EA28 AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48
- * AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32
- * AVR64DD32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32
- * AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ * AVR32EA48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32
+ * AVR64DB32 AVR64DD32 AVR64DU32 AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
+ * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_crcsrc_attiny204[4] = {
   {0, "flash", "CRC of entire flash (boot, application code and application data)"},
@@ -10789,8 +10840,9 @@ static const Valueitem_t _values_toutdis_attiny1624[2] = {
 /*
  * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32DA48 AVR32DB48 AVR64DD14 AVR64DD20 AVR64DA28 AVR64DB28
- * AVR64DD28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28
- * AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
+ * AVR64DD28 AVR64DU28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32 AVR64DA48 AVR64DB48 AVR64DA64
+ * AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48 AVR128DA64
+ * AVR128DB64
  */
 static const Valueitem_t _values_clksel_avr32dd14[2] = {
   {0, "oschf", "1-32 MHz internal oscillator"},
@@ -10799,7 +10851,7 @@ static const Valueitem_t _values_clksel_avr32dd14[2] = {
 
 /*
  * AVR32DD14 AVR16DD14 AVR16DD20 AVR16DD28 AVR16DD32 AVR32DD20 AVR32DD28 AVR32DD32 AVR64DD14
- * AVR64DD20 AVR64DD28 AVR64DD32
+ * AVR64DD20 AVR64DD28 AVR64DU28 AVR64DD32 AVR64DU32
  */
 static const Valueitem_t _values_updipincfg_avr32dd14[2] = {
   {0, "gpio", "GPIO mode"},
@@ -10819,9 +10871,9 @@ static const Valueitem_t _values_updipincfg_avr64ea48[2] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_crcsel_avr32dd14[2] = {
   {0, "crc16", "enable CRC16"},
@@ -10842,9 +10894,9 @@ static const Valueitem_t _values_mvsyscfg_avr32dd14[2] = {
  * AVR32DD14 AVR64EA48 AVR16DD14 AVR16EB14 AVR16DD20 AVR16EB20 AVR16DD28 AVR16EA28 AVR16EB28
  * AVR16DD32 AVR16EA32 AVR16EB32 AVR16EA48 AVR32DD20 AVR32DA28 AVR32DB28 AVR32DD28 AVR32EA28
  * AVR32DA32 AVR32DB32 AVR32DD32 AVR32EA32 AVR32DA48 AVR32DB48 AVR32EA48 AVR64DD14 AVR64DD20
- * AVR64DA28 AVR64DB28 AVR64DD28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64EA32 AVR64DA48
- * AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32 AVR128DA48 AVR128DB48
- * AVR128DA64 AVR128DB64
+ * AVR64DA28 AVR64DB28 AVR64DD28 AVR64DU28 AVR64EA28 AVR64DA32 AVR64DB32 AVR64DD32 AVR64DU32
+ * AVR64EA32 AVR64DA48 AVR64DB48 AVR64DA64 AVR64DB64 AVR128DA28 AVR128DB28 AVR128DA32 AVR128DB32
+ * AVR128DA48 AVR128DB48 AVR128DA64 AVR128DB64
  */
 static const Valueitem_t _values_key_avr32dd14[2] = {
   {0x5cc5c55c, "nolock", "no locks"},
@@ -10875,10 +10927,22 @@ static const Valueitem_t _values_nvmlevel_avr16eb14[2] = {
   {3, "basic", "UPDI and UPDI pins working normally"},
 };
 
-// AVR16EB14 AVR16EB20 AVR16EB28 AVR16EB32
+// AVR64DU28 AVR64DU32
+static const Valueitem_t _values_nvmlevel_avr64du28[2] = {
+  {1, "nvmaccdis", "NVM access through UPDI disabled"},
+  {3, "basic", "UPDI and UPDI pins working normally"},
+};
+
+// AVR16EB14 AVR16EB20 AVR16EB28 AVR16EB32 AVR64DU28 AVR64DU32
 static const Valueitem_t _values_nvmkey_avr16eb14[2] = {
   {0x00, "notact", "not active"},
   {0xb45, "nvmact", "NVM protection active"},
+};
+
+// AVR64DU28 AVR64DU32
+static const Valueitem_t _values_usbsink_avr64du28[2] = {
+  {0, "disable", "USB VREG can not sink current"},
+  {1, "enable", "USB VREG can sink current"},
 };
 
 
@@ -12895,6 +12959,30 @@ const Configitem_t cfgtab_avr32db28[16] = {
   {"mvsyscfg", 2, _values_mvsyscfg_avr32dd14, "syscfg1", 6, 0x18, 3, 1, "MVIO system configuration"},
   {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
   {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"key", 2, _values_key_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
+};
+
+// AVR64DU28 AVR64DU32
+const Configitem_t cfgtab_avr64du28[20] = {
+  {"wdtperiod", 12, _values_wdtperiod_avr32dd14, "wdtcfg", 0, 0x0f, 0, 0x00, "watchdog timeout period"},
+  {"wdtwindow", 12, _values_wdtwindow_avr32dd14, "wdtcfg", 0, 0xf0, 4, 0x00, "watchdog window timeout period"},
+  {"bodsleep", 3, _values_bodsleep_avr32dd14, "bodcfg", 1, 0x03, 0, 0, "brownout detection in sleep mode"},
+  {"bodactive", 4, _values_bodactive_avr32dd14, "bodcfg", 1, 0x0c, 2, 0, "brownout detection in active/idle mode"},
+  {"bodsampfreq", 2, _values_bodsampfreq_avr32dd14, "bodcfg", 1, 0x10, 4, 0, "brownout detection sampling frequency"},
+  {"bodlevel", 4, _values_bodlevel_avr32dd14, "bodcfg", 1, 0xe0, 5, 0, "brownout detection level"},
+  {"clksel", 2, _values_clksel_avr32dd14, "osccfg", 2, 0x07, 0, 0, "oscillator frequency"},
+  {"eesave", 2, _values_eesave_attiny204, "syscfg0", 5, 0x01, 0, 0, "EEPROM after chip erase"},
+  {"browsave", 0, NULL, "syscfg0", 5, 0x02, 1, 0, "Boot Row Save"},
+  {"rstpincfg", 2, _values_rstpincfg_avr32dd14, "syscfg0", 5, 0x08, 3, 0, "reset pin configuration"},
+  {"updipincfg", 2, _values_updipincfg_avr32dd14, "syscfg0", 5, 0x10, 4, 1, "UPDI pin configuration"},
+  {"crcsel", 2, _values_crcsel_avr32dd14, "syscfg0", 5, 0x20, 5, 0, "CRC select"},
+  {"crcsrc", 4, _values_crcsrc_attiny204, "syscfg0", 5, 0xc0, 6, 3, "CRC source"},
+  {"sut", 8, _values_sut_attiny204, "syscfg1", 6, 0x07, 0, 0, "startup time"},
+  {"usbsink", 2, _values_usbsink_avr64du28, "syscfg1", 6, 0x08, 3, 1, "USB Voltage Regulator Current Sink Enable"},
+  {"codesize", 0, NULL, "codesize", 7, 0xff, 0, 0x00, "code section size [# of pages]"},
+  {"bootsize", 0, NULL, "bootsize", 8, 0xff, 0, 0x00, "boot section size [# of pages]"},
+  {"nvmlevel", 2, _values_nvmlevel_avr64du28, "pdicfg", 10, 0x03, 0, 3, "NVM protection level"},
+  {"nvmkey", 2, _values_nvmkey_avr16eb14, "pdicfg", 10, 0xfff0, 4, 0x00, "NVM protection activation key"},
   {"key", 2, _values_key_avr32dd14, "lock", 0, 0xffffffff, 0, 0x5cc5c55c, "lock key"},
 };
 
@@ -43891,7 +43979,7 @@ const Register_file_t rgftab_atmega3209[432] = { // I/O memory [0, 4351]
 };
 
 // AVR16EB14
-const Register_file_t rgftab_avr16eb14[390] = { // I/O memory [0, 4159]
+const Register_file_t rgftab_avr16eb14[391] = { // I/O memory [0, 4159]
   {"vporta.dir",             0x0000,  1,     -1,   0x00, "data direction register"},
   {"vporta.out",             0x0001,  1,     -1,   0x00, "I/O port output register"},
   {"vporta.in",              0x0002,  1,     -1,   0x00, "I/O port input register"},
@@ -43913,6 +44001,7 @@ const Register_file_t rgftab_avr16eb14[390] = { // I/O memory [0, 4159]
   {"gpr.gpr2",               0x001e,  1,     -1,     -1, "general purpose register 2"},
   {"gpr.gpr3",               0x001f,  1,     -1,     -1, "general purpose register 3"},
   {"cpu.ccp",                0x0034,  1,     -1,   0x00, "configuration change protection register"},
+  {"cpu.rampz",              0x003b,  1,     -1,   0x00, "extended Z register"},
   {"cpu.sp",                 0x003d,  2,     -1, 0x7fff, "stack pointer (16 bits)"},
   {"cpu.sreg",               0x003f,  1,     -1,   0x00, "status register"},
   {"rstctrl.rstfr",          0x0040,  1,     -1,   0x00, "reset flags register"},
@@ -44285,7 +44374,7 @@ const Register_file_t rgftab_avr16eb14[390] = { // I/O memory [0, 4159]
 };
 
 // AVR16EB20 AVR16EB28 AVR16EB32
-const Register_file_t rgftab_avr16eb20[391] = { // I/O memory [0, 4159]
+const Register_file_t rgftab_avr16eb20[392] = { // I/O memory [0, 4159]
   {"vporta.dir",             0x0000,  1,     -1,   0x00, "data direction register"},
   {"vporta.out",             0x0001,  1,     -1,   0x00, "I/O port output register"},
   {"vporta.in",              0x0002,  1,     -1,   0x00, "I/O port input register"},
@@ -44307,6 +44396,7 @@ const Register_file_t rgftab_avr16eb20[391] = { // I/O memory [0, 4159]
   {"gpr.gpr2",               0x001e,  1,     -1,     -1, "general purpose register 2"},
   {"gpr.gpr3",               0x001f,  1,     -1,     -1, "general purpose register 3"},
   {"cpu.ccp",                0x0034,  1,     -1,   0x00, "configuration change protection register"},
+  {"cpu.rampz",              0x003b,  1,     -1,   0x00, "extended Z register"},
   {"cpu.sp",                 0x003d,  2,     -1, 0x7fff, "stack pointer (16 bits)"},
   {"cpu.sreg",               0x003f,  1,     -1,   0x00, "status register"},
   {"rstctrl.rstfr",          0x0040,  1,     -1,   0x00, "reset flags register"},
@@ -48605,6 +48695,382 @@ const Register_file_t rgftab_avr64da28[433] = { // I/O memory [0, 4159]
   {"nvmctrl.intflags",       0x1004,  1,     -1,   0x00, "interrupt flags register"},
   {"nvmctrl.data",           0x1006,  2,     -1,     -1, "data register (16 bits)"},
   {"nvmctrl.addr",           0x1008,  4,     -1,     -1, "address register (32 bits)"},
+};
+
+// AVR64DU28 AVR64DU32
+const Register_file_t rgftab_avr64du28[372] = { // I/O memory [0, 4159]
+  {"vporta.dir",             0x0000,  1,     -1,   0x00, "data direction register"},
+  {"vporta.out",             0x0001,  1,     -1,   0x00, "I/O port output register"},
+  {"vporta.in",              0x0002,  1,     -1,   0x00, "I/O port input register"},
+  {"vporta.intflags",        0x0003,  1,     -1,   0x00, "interrupt flags register"},
+  {"vportc.dir",             0x0008,  1,     -1,   0x00, "data direction register"},
+  {"vportc.out",             0x0009,  1,     -1,   0x00, "I/O port output register"},
+  {"vportc.in",              0x000a,  1,     -1,   0x00, "I/O port input register"},
+  {"vportc.intflags",        0x000b,  1,     -1,   0x00, "interrupt flags register"},
+  {"vportd.dir",             0x000c,  1,     -1,   0x00, "data direction register"},
+  {"vportd.out",             0x000d,  1,     -1,   0x00, "I/O port output register"},
+  {"vportd.in",              0x000e,  1,     -1,   0x00, "I/O port input register"},
+  {"vportd.intflags",        0x000f,  1,     -1,   0x00, "interrupt flags register"},
+  {"vportf.dir",             0x0014,  1,     -1,   0x00, "data direction register"},
+  {"vportf.out",             0x0015,  1,     -1,   0x00, "I/O port output register"},
+  {"vportf.in",              0x0016,  1,     -1,   0x00, "I/O port input register"},
+  {"vportf.intflags",        0x0017,  1,     -1,   0x00, "interrupt flags register"},
+  {"gpr.gpr0",               0x001c,  1,     -1,     -1, "general purpose register 0"},
+  {"gpr.gpr1",               0x001d,  1,     -1,     -1, "general purpose register 1"},
+  {"gpr.gpr2",               0x001e,  1,     -1,     -1, "general purpose register 2"},
+  {"gpr.gpr3",               0x001f,  1,     -1,     -1, "general purpose register 3"},
+  {"cpu.ccp",                0x0034,  1,     -1,   0x00, "configuration change protection register"},
+  {"cpu.rampz",              0x003b,  1,     -1,   0x00, "extended Z register"},
+  {"cpu.sp",                 0x003d,  2,     -1, 0x7fff, "stack pointer (16 bits)"},
+  {"cpu.sreg",               0x003f,  1,     -1,   0x00, "status register"},
+  {"rstctrl.rstfr",          0x0040,  1,     -1,   0x00, "reset flags register"},
+  {"rstctrl.swrr",           0x0041,  1,     -1,   0x00, "software reset register"},
+  {"slpctrl.ctrla",          0x0050,  1,     -1,   0x00, "control register A"},
+  {"slpctrl.vregctrl",       0x0051,  1,     -1,   0x00, "control B register"},
+  {"clkctrl.mclkctrla",      0x0060,  1,     -1,   0x00, "MCLK control A register"},
+  {"clkctrl.mclkctrlb",      0x0061,  1,     -1,   0x00, "MCLK control B register"},
+  {"clkctrl.mclkctrlc",      0x0062,  1,     -1,   0x00, "MCLK control C register"},
+  {"clkctrl.mclkintctrl",    0x0063,  1,     -1,   0x00, "MCLK interrupt control register"},
+  {"clkctrl.mclkintflags",   0x0064,  1,     -1,   0x00, "MCLK interrupt flags register"},
+  {"clkctrl.mclkstatus",     0x0065,  1,     -1,   0x00, "MCLK status register"},
+  {"clkctrl.mclktimebase",   0x0066,  1,     -1,   0x00, "MCLK timebase register"},
+  {"clkctrl.oschfctrla",     0x0068,  1,     -1,   0x0c, "OSCHF control A register"},
+  {"clkctrl.oschftune",      0x0069,  1,     -1,     -1, "OSCHF tune register"},
+  {"clkctrl.oschfstatus",    0x006a,  1,     -1,     -1, "OSCHF status register"},
+  {"clkctrl.osc32kctrla",    0x0078,  1,     -1,   0x00, "OSC32K control A register"},
+  {"clkctrl.xosc32kctrla",   0x007c,  1,     -1,   0x00, "XOSC32K control A register"},
+  {"clkctrl.xoschfctrla",    0x0080,  1,     -1,   0x00, "XOSC HF control A register"},
+  {"clkctrl.usbpllstatus",   0x0085,  1,     -1,   0x00, "PLL status register"},
+  {"bod.ctrla",              0x00a0,  1,     -1,   0x01, "control register A"},
+  {"bod.ctrlb",              0x00a1,  1,     -1,   0x00, "control register B"},
+  {"bod.vlmctrla",           0x00a8,  1,     -1,   0x00, "voltage level monitor control register"},
+  {"bod.intctrl",            0x00a9,  1,     -1,   0x00, "interrupt control register"},
+  {"bod.intflags",           0x00aa,  1,     -1,   0x00, "interrupt flags register"},
+  {"bod.status",             0x00ab,  1,     -1,   0x00, "status register"},
+  {"vref.acref",             0x00b0,  1,     -1,   0x00, "AC reference register"},
+  {"wdt.ctrla",              0x0100,  1,     -1,   0x00, "control register A"},
+  {"wdt.status",             0x0101,  1,     -1,   0x00, "status register"},
+  {"cpuint.ctrla",           0x0110,  1,     -1,   0x00, "control register A"},
+  {"cpuint.status",          0x0111,  1,     -1,   0x00, "status register"},
+  {"cpuint.lvl0pri",         0x0112,  1,     -1,   0x00, "interrupt level 0 priority register"},
+  {"cpuint.lvl1vec",         0x0113,  1,     -1,   0x00, "interrupt level 1 priority vector register"},
+  {"crcscan.ctrla",          0x0120,  1,     -1,   0x00, "control register A"},
+  {"crcscan.ctrlb",          0x0121,  1,     -1,   0x00, "control register B"},
+  {"crcscan.status",         0x0122,  1,     -1,   0x02, "status register"},
+  {"rtc.ctrla",              0x0140,  1,     -1,   0x00, "control register A"},
+  {"rtc.status",             0x0141,  1,     -1,   0x00, "status register"},
+  {"rtc.intctrl",            0x0142,  1,     -1,   0x00, "interrupt control register"},
+  {"rtc.intflags",           0x0143,  1,     -1,   0x00, "interrupt flags register"},
+  {"rtc.temp",               0x0144,  1,     -1,     -1, "temporary register"},
+  {"rtc.dbgctrl",            0x0145,  1,     -1,   0x00, "debug control register"},
+  {"rtc.calib",              0x0146,  1,     -1,   0x00, "calibration register"},
+  {"rtc.clksel",             0x0147,  1,     -1,   0x00, "clock select register"},
+  {"rtc.cnt",                0x0148,  2,     -1,     -1, "counter (16 bits)"},
+  {"rtc.per",                0x014a,  2,     -1, 0xffff, "period register (16 bits)"},
+  {"rtc.cmp",                0x014c,  2,     -1,     -1, "compare register (16 bits)"},
+  {"rtc.pitctrla",           0x0150,  1,     -1,   0x00, "PIT control A register"},
+  {"rtc.pitstatus",          0x0151,  1,     -1,   0x00, "PIT status register"},
+  {"rtc.pitintctrl",         0x0152,  1,     -1,   0x00, "PIT interrupt control register"},
+  {"rtc.pitintflags",        0x0153,  1,     -1,   0x00, "PIT interrupt flags register"},
+  {"rtc.pitdbgctrl",         0x0155,  1,     -1,   0x00, "PIT debug control register"},
+  {"rtc.pitevgenctrla",      0x0156,  1,     -1,   0x00, "PIT event generation control A register"},
+  {"ccl.ctrla",              0x01c0,  1,     -1,   0x00, "control register A"},
+  {"ccl.seqctrl0",           0x01c1,  1,     -1,   0x00, "sequential control register 0"},
+  {"ccl.seqctrl1",           0x01c2,  1,     -1,   0x00, "sequential control register 1"},
+  {"ccl.intctrl0",           0x01c5,  1,     -1,   0x00, "interrupt control register 0"},
+  {"ccl.intflags",           0x01c7,  1,     -1,   0x00, "interrupt flags register"},
+  {"ccl.lut0ctrla",          0x01c8,  1,     -1,   0x00, "LUT 0 control A register"},
+  {"ccl.lut0ctrlb",          0x01c9,  1,     -1,   0x00, "LUT 0 control B register"},
+  {"ccl.lut0ctrlc",          0x01ca,  1,     -1,   0x00, "LUT 0 control C register"},
+  {"ccl.truth0",             0x01cb,  1,     -1,   0x00, "truth register 0"},
+  {"ccl.lut1ctrla",          0x01cc,  1,     -1,   0x00, "LUT 1 control A register"},
+  {"ccl.lut1ctrlb",          0x01cd,  1,     -1,   0x00, "LUT 1 control B register"},
+  {"ccl.lut1ctrlc",          0x01ce,  1,     -1,   0x00, "LUT 1 control C register"},
+  {"ccl.truth1",             0x01cf,  1,     -1,   0x00, "truth register 1"},
+  {"ccl.lut2ctrla",          0x01d0,  1,     -1,   0x00, "LUT 2 control A register"},
+  {"ccl.lut2ctrlb",          0x01d1,  1,     -1,   0x00, "LUT 2 control B register"},
+  {"ccl.lut2ctrlc",          0x01d2,  1,     -1,   0x00, "LUT 2 control C register"},
+  {"ccl.truth2",             0x01d3,  1,     -1,   0x00, "truth register 2"},
+  {"ccl.lut3ctrla",          0x01d4,  1,     -1,   0x00, "LUT 3 control A register"},
+  {"ccl.lut3ctrlb",          0x01d5,  1,     -1,   0x00, "LUT 3 control B register"},
+  {"ccl.lut3ctrlc",          0x01d6,  1,     -1,   0x00, "LUT 3 control C register"},
+  {"ccl.truth3",             0x01d7,  1,     -1,   0x00, "truth register 3"},
+  {"evsys.sweventa",         0x0200,  1,     -1,   0x00, "software event A register"},
+  {"evsys.channel0",         0x0210,  1,     -1,   0x00, "multiplexer channel 0 register"},
+  {"evsys.channel1",         0x0211,  1,     -1,   0x00, "multiplexer channel 1 register"},
+  {"evsys.channel2",         0x0212,  1,     -1,   0x00, "multiplexer channel 2 register"},
+  {"evsys.channel3",         0x0213,  1,     -1,   0x00, "multiplexer channel 3 register"},
+  {"evsys.channel4",         0x0214,  1,     -1,   0x00, "multiplexer channel 4 register"},
+  {"evsys.channel5",         0x0215,  1,     -1,   0x00, "multiplexer channel 5 register"},
+  {"evsys.userccllut0a",     0x0220,  1,     -1,   0x00, "user CCL LUT 0 event A register"},
+  {"evsys.userccllut0b",     0x0221,  1,     -1,   0x00, "user CCL LUT 0 event B register"},
+  {"evsys.userccllut1a",     0x0222,  1,     -1,   0x00, "user CCL LUT 1 event A register"},
+  {"evsys.userccllut1b",     0x0223,  1,     -1,   0x00, "user CCL LUT 1 event B register"},
+  {"evsys.userccllut2a",     0x0224,  1,     -1,   0x00, "user CCL LUT 2 event A register"},
+  {"evsys.userccllut2b",     0x0225,  1,     -1,   0x00, "user CCL LUT 2 event B register"},
+  {"evsys.userccllut3a",     0x0226,  1,     -1,   0x00, "user CCL LUT 3 event A register"},
+  {"evsys.userccllut3b",     0x0227,  1,     -1,   0x00, "user CCL LUT 3 event B register"},
+  {"evsys.useradc0start",    0x0228,  1,     -1,   0x00, "user ADC 0 start register"},
+  {"evsys.userevsysevouta",  0x0229,  1,     -1,   0x00, "user EVOUT port A register"},
+  {"evsys.userevsysevoutd",  0x022a,  1,     -1,   0x00, "user EVOUT port D register"},
+  {"evsys.userevsysevoutf",  0x022b,  1,     -1,   0x00, "user EVOUT port F register"},
+  {"evsys.userusart0irda",   0x022c,  1,     -1,   0x00, "user USART 0 IrDA event register"},
+  {"evsys.userusart1irda",   0x022d,  1,     -1,   0x00, "user USART 1 IrDA event register"},
+  {"evsys.usertca0cnta",     0x022e,  1,     -1,   0x00, "user TCA 0 event A register"},
+  {"evsys.usertca0cntb",     0x022f,  1,     -1,   0x00, "user TCA 0 event B register"},
+  {"evsys.usertcb0capt",     0x0230,  1,     -1,   0x00, "user TCB 0 capture register"},
+  {"evsys.usertcb0count",    0x0231,  1,     -1,   0x00, "user TCB 0 event register"},
+  {"evsys.usertcb1capt",     0x0232,  1,     -1,   0x00, "user TCB 1 capture register"},
+  {"evsys.usertcb1count",    0x0233,  1,     -1,   0x00, "user TCB 1 event register"},
+  {"porta.dir",              0x0400,  1,     -1,   0x00, "data direction register"},
+  {"porta.dirset",           0x0401,  1,     -1,   0x00, "data direction set register"},
+  {"porta.dirclr",           0x0402,  1,     -1,   0x00, "data direction clear register"},
+  {"porta.dirtgl",           0x0403,  1,     -1,   0x00, "data direction toggle register"},
+  {"porta.out",              0x0404,  1,     -1,   0x00, "I/O port output register"},
+  {"porta.outset",           0x0405,  1,     -1,   0x00, "I/O port output set register"},
+  {"porta.outclr",           0x0406,  1,     -1,   0x00, "I/O port output clear register"},
+  {"porta.outtgl",           0x0407,  1,     -1,   0x00, "I/O port output toggle register"},
+  {"porta.in",               0x0408,  1,     -1,   0x00, "I/O port input register"},
+  {"porta.intflags",         0x0409,  1,     -1,   0x00, "interrupt flags register"},
+  {"porta.portctrl",         0x040a,  1,     -1,   0x00, "port control register"},
+  {"porta.pinconfig",        0x040b,  1,     -1,   0x00, "pin control config register"},
+  {"porta.pinctrlupd",       0x040c,  1,     -1,   0x00, "pin control update register"},
+  {"porta.pinctrlset",       0x040d,  1,     -1,   0x00, "pin control set register"},
+  {"porta.pinctrlclr",       0x040e,  1,     -1,   0x00, "pin control clear register"},
+  {"porta.pin0ctrl",         0x0410,  1,     -1,   0x00, "pin 0 control register"},
+  {"porta.pin1ctrl",         0x0411,  1,     -1,   0x00, "pin 1 control register"},
+  {"porta.pin2ctrl",         0x0412,  1,     -1,   0x00, "pin 2 control register"},
+  {"porta.pin3ctrl",         0x0413,  1,     -1,   0x00, "pin 3 control register"},
+  {"porta.pin4ctrl",         0x0414,  1,     -1,   0x00, "pin 4 control register"},
+  {"porta.pin5ctrl",         0x0415,  1,     -1,   0x00, "pin 5 control register"},
+  {"porta.pin6ctrl",         0x0416,  1,     -1,   0x00, "pin 6 control register"},
+  {"porta.pin7ctrl",         0x0417,  1,     -1,   0x00, "pin 7 control register"},
+  {"porta.evgenctrla",       0x0418,  1,     -1,   0x00, "event generation control A register"},
+  {"portc.dir",              0x0440,  1,     -1,   0x00, "data direction register"},
+  {"portc.dirset",           0x0441,  1,     -1,   0x00, "data direction set register"},
+  {"portc.dirclr",           0x0442,  1,     -1,   0x00, "data direction clear register"},
+  {"portc.dirtgl",           0x0443,  1,     -1,   0x00, "data direction toggle register"},
+  {"portc.out",              0x0444,  1,     -1,   0x00, "I/O port output register"},
+  {"portc.outset",           0x0445,  1,     -1,   0x00, "I/O port output set register"},
+  {"portc.outclr",           0x0446,  1,     -1,   0x00, "I/O port output clear register"},
+  {"portc.outtgl",           0x0447,  1,     -1,   0x00, "I/O port output toggle register"},
+  {"portc.in",               0x0448,  1,     -1,   0x00, "I/O port input register"},
+  {"portc.intflags",         0x0449,  1,     -1,   0x00, "interrupt flags register"},
+  {"portc.portctrl",         0x044a,  1,     -1,   0x00, "port control register"},
+  {"portc.pinconfig",        0x044b,  1,     -1,   0x00, "pin control config register"},
+  {"portc.pinctrlupd",       0x044c,  1,     -1,   0x00, "pin control update register"},
+  {"portc.pinctrlset",       0x044d,  1,     -1,   0x00, "pin control set register"},
+  {"portc.pinctrlclr",       0x044e,  1,     -1,   0x00, "pin control clear register"},
+  {"portc.pin0ctrl",         0x0450,  1,     -1,   0x00, "pin 0 control register"},
+  {"portc.pin1ctrl",         0x0451,  1,     -1,   0x00, "pin 1 control register"},
+  {"portc.pin2ctrl",         0x0452,  1,     -1,   0x00, "pin 2 control register"},
+  {"portc.pin3ctrl",         0x0453,  1,     -1,   0x00, "pin 3 control register"},
+  {"portc.pin4ctrl",         0x0454,  1,     -1,   0x00, "pin 4 control register"},
+  {"portc.pin5ctrl",         0x0455,  1,     -1,   0x00, "pin 5 control register"},
+  {"portc.pin6ctrl",         0x0456,  1,     -1,   0x00, "pin 6 control register"},
+  {"portc.pin7ctrl",         0x0457,  1,     -1,   0x00, "pin 7 control register"},
+  {"portc.evgenctrla",       0x0458,  1,     -1,   0x00, "event generation control A register"},
+  {"portd.dir",              0x0460,  1,     -1,   0x00, "data direction register"},
+  {"portd.dirset",           0x0461,  1,     -1,   0x00, "data direction set register"},
+  {"portd.dirclr",           0x0462,  1,     -1,   0x00, "data direction clear register"},
+  {"portd.dirtgl",           0x0463,  1,     -1,   0x00, "data direction toggle register"},
+  {"portd.out",              0x0464,  1,     -1,   0x00, "I/O port output register"},
+  {"portd.outset",           0x0465,  1,     -1,   0x00, "I/O port output set register"},
+  {"portd.outclr",           0x0466,  1,     -1,   0x00, "I/O port output clear register"},
+  {"portd.outtgl",           0x0467,  1,     -1,   0x00, "I/O port output toggle register"},
+  {"portd.in",               0x0468,  1,     -1,   0x00, "I/O port input register"},
+  {"portd.intflags",         0x0469,  1,     -1,   0x00, "interrupt flags register"},
+  {"portd.portctrl",         0x046a,  1,     -1,   0x00, "port control register"},
+  {"portd.pinconfig",        0x046b,  1,     -1,   0x00, "pin control config register"},
+  {"portd.pinctrlupd",       0x046c,  1,     -1,   0x00, "pin control update register"},
+  {"portd.pinctrlset",       0x046d,  1,     -1,   0x00, "pin control set register"},
+  {"portd.pinctrlclr",       0x046e,  1,     -1,   0x00, "pin control clear register"},
+  {"portd.pin0ctrl",         0x0470,  1,     -1,   0x00, "pin 0 control register"},
+  {"portd.pin1ctrl",         0x0471,  1,     -1,   0x00, "pin 1 control register"},
+  {"portd.pin2ctrl",         0x0472,  1,     -1,   0x00, "pin 2 control register"},
+  {"portd.pin3ctrl",         0x0473,  1,     -1,   0x00, "pin 3 control register"},
+  {"portd.pin4ctrl",         0x0474,  1,     -1,   0x00, "pin 4 control register"},
+  {"portd.pin5ctrl",         0x0475,  1,     -1,   0x00, "pin 5 control register"},
+  {"portd.pin6ctrl",         0x0476,  1,     -1,   0x00, "pin 6 control register"},
+  {"portd.pin7ctrl",         0x0477,  1,     -1,   0x00, "pin 7 control register"},
+  {"portd.evgenctrla",       0x0478,  1,     -1,   0x00, "event generation control A register"},
+  {"portf.dir",              0x04a0,  1,     -1,   0x00, "data direction register"},
+  {"portf.dirset",           0x04a1,  1,     -1,   0x00, "data direction set register"},
+  {"portf.dirclr",           0x04a2,  1,     -1,   0x00, "data direction clear register"},
+  {"portf.dirtgl",           0x04a3,  1,     -1,   0x00, "data direction toggle register"},
+  {"portf.out",              0x04a4,  1,     -1,   0x00, "I/O port output register"},
+  {"portf.outset",           0x04a5,  1,     -1,   0x00, "I/O port output set register"},
+  {"portf.outclr",           0x04a6,  1,     -1,   0x00, "I/O port output clear register"},
+  {"portf.outtgl",           0x04a7,  1,     -1,   0x00, "I/O port output toggle register"},
+  {"portf.in",               0x04a8,  1,     -1,   0x00, "I/O port input register"},
+  {"portf.intflags",         0x04a9,  1,     -1,   0x00, "interrupt flags register"},
+  {"portf.portctrl",         0x04aa,  1,     -1,   0x00, "port control register"},
+  {"portf.pinconfig",        0x04ab,  1,     -1,   0x00, "pin control config register"},
+  {"portf.pinctrlupd",       0x04ac,  1,     -1,   0x00, "pin control update register"},
+  {"portf.pinctrlset",       0x04ad,  1,     -1,   0x00, "pin control set register"},
+  {"portf.pinctrlclr",       0x04ae,  1,     -1,   0x00, "pin control clear register"},
+  {"portf.pin0ctrl",         0x04b0,  1,     -1,   0x00, "pin 0 control register"},
+  {"portf.pin1ctrl",         0x04b1,  1,     -1,   0x00, "pin 1 control register"},
+  {"portf.pin2ctrl",         0x04b2,  1,     -1,   0x00, "pin 2 control register"},
+  {"portf.pin3ctrl",         0x04b3,  1,     -1,   0x00, "pin 3 control register"},
+  {"portf.pin4ctrl",         0x04b4,  1,     -1,   0x00, "pin 4 control register"},
+  {"portf.pin5ctrl",         0x04b5,  1,     -1,   0x00, "pin 5 control register"},
+  {"portf.pin6ctrl",         0x04b6,  1,     -1,   0x00, "pin 6 control register"},
+  {"portf.pin7ctrl",         0x04b7,  1,     -1,   0x00, "pin 7 control register"},
+  {"portf.evgenctrla",       0x04b8,  1,     -1,   0x00, "event generation control A register"},
+  {"portmux.evsysroutea",    0x05e0,  1,     -1,   0x00, "port multiplexer EVSYS register"},
+  {"portmux.cclroutea",      0x05e1,  1,     -1,   0x00, "CCL route A register"},
+  {"portmux.usartroutea",    0x05e2,  1,     -1,   0x00, "USART route A register"},
+  {"portmux.spiroutea",      0x05e5,  1,     -1,   0x00, "SPI route A register"},
+  {"portmux.twiroutea",      0x05e6,  1,     -1,   0x00, "TWI route A register"},
+  {"portmux.tcaroutea",      0x05e7,  1,     -1,   0x00, "TCA route A register"},
+  {"portmux.tcbroutea",      0x05e8,  1,     -1,   0x00, "TCB route A register"},
+  {"adc0.ctrla",             0x0600,  1,     -1,   0x00, "control register A"},
+  {"adc0.ctrlb",             0x0601,  1,     -1,   0x00, "control register B"},
+  {"adc0.ctrlc",             0x0602,  1,     -1,   0x00, "control register C"},
+  {"adc0.ctrld",             0x0603,  1,     -1,   0x00, "control register D"},
+  {"adc0.ctrle",             0x0604,  1,     -1,   0x00, "control register E"},
+  {"adc0.ctrlf",             0x0605,  1,     -1,   0x00, "control register F"},
+  {"adc0.intctrl",           0x0606,  1,     -1,   0x00, "interrupt control register"},
+  {"adc0.intflags",          0x0607,  1,     -1,   0x00, "interrupt flags register"},
+  {"adc0.status",            0x0608,  1,     -1,   0x00, "status register"},
+  {"adc0.dbgctrl",           0x0609,  1,     -1,   0x00, "debug control register"},
+  {"adc0.command",           0x060a,  1,     -1,   0x00, "command register"},
+  {"adc0.muxpos",            0x060b,  1,     -1,   0x00, "positive mux input register"},
+  {"adc0.result",            0x060c,  2,     -1,     -1, "result register (32 bits)"},
+  {"adc0.sample",            0x060e,  2,     -1, 0x0000, "sample register (16 bits)"},
+  {"adc0.winlt",             0x0610,  2,     -1,     -1, "window comparator low threshold register (16 bits)"},
+  {"adc0.winht",             0x0612,  2,     -1,     -1, "window comparator high threshold register (16 bits)"},
+  {"adc0.temp",              0x0614,  1,     -1,   0x00, "temporary data register"},
+  {"ac0.ctrla",              0x0680,  1,     -1,   0x00, "control register A"},
+  {"ac0.muxctrl",            0x0682,  1,     -1,   0x00, "mux control A register"},
+  {"ac0.dacref",             0x0685,  1,     -1,   0xff, "DAC voltage reference register"},
+  {"ac0.intctrl",            0x0686,  1,     -1,   0x00, "interrupt control register"},
+  {"ac0.status",             0x0687,  1,     -1,   0x00, "status register"},
+  {"usart0.rxdatal",         0x0800,  1,     -1,   0x00, "receive data low byte"},
+  {"usart0.rxdatah",         0x0801,  1,     -1,   0x00, "receive data high byte"},
+  {"usart0.txdatal",         0x0802,  1,     -1,   0x00, "transmit data low byte"},
+  {"usart0.txdatah",         0x0803,  1,     -1,   0x00, "transmit data high byte"},
+  {"usart0.status",          0x0804,  1,     -1,   0x20, "status register"},
+  {"usart0.ctrla",           0x0805,  1,     -1,   0x00, "control register A"},
+  {"usart0.ctrlb",           0x0806,  1,     -1,   0x00, "control register B"},
+  {"usart0.ctrlc",           0x0807,  1,     -1,   0x03, "control register C"},
+  {"usart0.baud",            0x0808,  2,     -1, 0x0000, "baud rate register (16 bits)"},
+  {"usart0.ctrld",           0x080a,  1,     -1,   0x00, "control register D"},
+  {"usart0.dbgctrl",         0x080b,  1,     -1,   0x00, "debug control register"},
+  {"usart0.evctrl",          0x080c,  1,     -1,   0x00, "event control register"},
+  {"usart0.txplctrl",        0x080d,  1,     -1,   0x00, "IRCOM transmitter pulse length control register"},
+  {"usart0.rxplctrl",        0x080e,  1,     -1,   0x00, "IRCOM receiver pulse length control register"},
+  {"usart1.rxdatal",         0x0820,  1,     -1,   0x00, "receive data low byte"},
+  {"usart1.rxdatah",         0x0821,  1,     -1,   0x00, "receive data high byte"},
+  {"usart1.txdatal",         0x0822,  1,     -1,   0x00, "transmit data low byte"},
+  {"usart1.txdatah",         0x0823,  1,     -1,   0x00, "transmit data high byte"},
+  {"usart1.status",          0x0824,  1,     -1,   0x20, "status register"},
+  {"usart1.ctrla",           0x0825,  1,     -1,   0x00, "control register A"},
+  {"usart1.ctrlb",           0x0826,  1,     -1,   0x00, "control register B"},
+  {"usart1.ctrlc",           0x0827,  1,     -1,   0x03, "control register C"},
+  {"usart1.baud",            0x0828,  2,     -1, 0x0000, "baud rate register (16 bits)"},
+  {"usart1.ctrld",           0x082a,  1,     -1,   0x00, "control register D"},
+  {"usart1.dbgctrl",         0x082b,  1,     -1,   0x00, "debug control register"},
+  {"usart1.evctrl",          0x082c,  1,     -1,   0x00, "event control register"},
+  {"usart1.txplctrl",        0x082d,  1,     -1,   0x00, "IRCOM transmitter pulse length control register"},
+  {"usart1.rxplctrl",        0x082e,  1,     -1,   0x00, "IRCOM receiver pulse length control register"},
+  {"twi0.ctrla",             0x0900,  1,     -1,   0x00, "control register A"},
+  {"twi0.dbgctrl",           0x0902,  1,     -1,   0x00, "debug control register"},
+  {"twi0.mctrla",            0x0903,  1,     -1,   0x00, "host control A register"},
+  {"twi0.mctrlb",            0x0904,  1,     -1,   0x00, "host control B register"},
+  {"twi0.hstatus",           0x0905,  1,     -1,   0x00, "host status register"},
+  {"twi0.mbaud",             0x0906,  1,     -1,   0x00, "host baud rate register"},
+  {"twi0.haddr",             0x0907,  1,     -1,   0x00, "host address register"},
+  {"twi0.hdata",             0x0908,  1,     -1,   0x00, "host data register"},
+  {"twi0.sctrla",            0x0909,  1,     -1,   0x00, "client control A register"},
+  {"twi0.sctrlb",            0x090a,  1,     -1,   0x00, "client control B register"},
+  {"twi0.sstatus",           0x090b,  1,     -1,   0x00, "client status register"},
+  {"twi0.saddr",             0x090c,  1,     -1,   0x00, "client address register"},
+  {"twi0.sdata",             0x090d,  1,     -1,   0x00, "client data register"},
+  {"twi0.saddrmask",         0x090e,  1,     -1,   0x00, "client address mask register"},
+  {"spi0.ctrla",             0x0940,  1,     -1,   0x00, "control register A"},
+  {"spi0.ctrlb",             0x0941,  1,     -1,   0x00, "control register B"},
+  {"spi0.intctrl",           0x0942,  1,     -1,   0x00, "interrupt control register"},
+  {"spi0.intflags",          0x0943,  1,     -1,   0x00, "interrupt flags register"},
+  {"spi0.data",              0x0944,  1,     -1,     -1, "data register"},
+  {"tca0.ctrla",             0x0a00,  1,     -1,   0x00, "control register A"},
+  {"tca0.ctrlb",             0x0a01,  1,     -1,   0x00, "control register B"},
+  {"tca0.ctrlc",             0x0a02,  1,     -1,   0x00, "control register C"},
+  {"tca0.ctrld",             0x0a03,  1,     -1,   0x00, "control register D"},
+  {"tca0.ctrleclr",          0x0a04,  1,     -1,   0x00, "control register E clear"},
+  {"tca0.ctrleset",          0x0a05,  1,     -1,   0x00, "control register E set"},
+  {"tca0.ctrlfclr",          0x0a06,  1,     -1,   0x00, "control register F clear"},
+  {"tca0.ctrlfset",          0x0a07,  1,     -1,   0x00, "control register F set"},
+  {"tca0.evctrl",            0x0a09,  1,     -1,   0x00, "event control register"},
+  {"tca0.intctrl",           0x0a0a,  1,     -1,   0x00, "interrupt control register"},
+  {"tca0.intflags",          0x0a0b,  1,     -1,   0x00, "interrupt flags register"},
+  {"tca0.dbgctrl",           0x0a0e,  1,     -1,   0x00, "debug control register"},
+  {"tca0.temp",              0x0a0f,  1,     -1,     -1, "temporary register for 16-bit access"},
+  {"tca0.cnt",               0x0a20,  2,     -1,     -1, "counter (16 bits)"},
+  {"tca0.lcnt",              0x0a20,  1,     -1,     -1, "low byte counter"},
+  {"tca0.hcnt",              0x0a21,  1,     -1,     -1, "high byte counter"},
+  {"tca0.per",               0x0a26,  2,     -1,     -1, "period register (16 bits)"},
+  {"tca0.lper",              0x0a26,  1,     -1,     -1, "low byte period register"},
+  {"tca0.hper",              0x0a27,  1,     -1,     -1, "high byte period register"},
+  {"tca0.cmp0",              0x0a28,  2,     -1,     -1, "compare 0 register (16 bits)"},
+  {"tca0.lcmp0",             0x0a28,  1,     -1,     -1, "low byte compare register"},
+  {"tca0.hcmp0",             0x0a29,  1,     -1,     -1, "high byte compare register 0"},
+  {"tca0.cmp1",              0x0a2a,  2,     -1,     -1, "compare 1 register (16 bits)"},
+  {"tca0.lcmp1",             0x0a2a,  1,     -1,     -1, "low byte compare register"},
+  {"tca0.hcmp1",             0x0a2b,  1,     -1,     -1, "high byte compare register 1"},
+  {"tca0.cmp2",              0x0a2c,  2,     -1,     -1, "compare 2 register (16 bits)"},
+  {"tca0.lcmp2",             0x0a2c,  1,     -1,     -1, "low byte compare register"},
+  {"tca0.hcmp2",             0x0a2d,  1,     -1,     -1, "high byte compare register 2"},
+  {"tca0.perbuf",            0x0a36,  2,     -1,     -1, "period buffer register (16 bits)"},
+  {"tca0.cmp0buf",           0x0a38,  2,     -1,     -1, "compare 0 buffer register (16 bits)"},
+  {"tca0.cmp1buf",           0x0a3a,  2,     -1,     -1, "compare 1 buffer register (16 bits)"},
+  {"tca0.cmp2buf",           0x0a3c,  2,     -1,     -1, "compare 2 buffer register (16 bits)"},
+  {"tcb0.ctrla",             0x0b00,  1,     -1,   0x00, "control register A"},
+  {"tcb0.ctrlb",             0x0b01,  1,     -1,   0x00, "control register B"},
+  {"tcb0.evctrl",            0x0b04,  1,     -1,   0x00, "event control register"},
+  {"tcb0.intctrl",           0x0b05,  1,     -1,   0x00, "interrupt control register"},
+  {"tcb0.intflags",          0x0b06,  1,     -1,   0x00, "interrupt flags register"},
+  {"tcb0.status",            0x0b07,  1,     -1,   0x00, "status register"},
+  {"tcb0.dbgctrl",           0x0b08,  1,     -1,   0x00, "debug control register"},
+  {"tcb0.temp",              0x0b09,  1,     -1,     -1, "temporary register for 16-bit access"},
+  {"tcb0.cnt",               0x0b0a,  2,     -1, 0x0000, "counter (16 bits)"},
+  {"tcb0.ccmp",              0x0b0c,  2,     -1,     -1, "compare or capture register (16 bits)"},
+  {"tcb1.ctrla",             0x0b10,  1,     -1,   0x00, "control register A"},
+  {"tcb1.ctrlb",             0x0b11,  1,     -1,   0x00, "control register B"},
+  {"tcb1.evctrl",            0x0b14,  1,     -1,   0x00, "event control register"},
+  {"tcb1.intctrl",           0x0b15,  1,     -1,   0x00, "interrupt control register"},
+  {"tcb1.intflags",          0x0b16,  1,     -1,   0x00, "interrupt flags register"},
+  {"tcb1.status",            0x0b17,  1,     -1,   0x00, "status register"},
+  {"tcb1.dbgctrl",           0x0b18,  1,     -1,   0x00, "debug control register"},
+  {"tcb1.temp",              0x0b19,  1,     -1,     -1, "temporary register for 16-bit access"},
+  {"tcb1.cnt",               0x0b1a,  2,     -1, 0x0000, "counter (16 bits)"},
+  {"tcb1.ccmp",              0x0b1c,  2,     -1,     -1, "compare or capture register (16 bits)"},
+  {"usb0.ctrla",             0x0c00,  1,     -1,   0x00, "control register A"},
+  {"usb0.ctrlb",             0x0c01,  1,     -1,   0x00, "control register B"},
+  {"usb0.busstate",          0x0c02,  1,     -1,   0x00, "bus state register"},
+  {"usb0.addr",              0x0c03,  1,     -1,   0x00, "address register"},
+  {"usb0.fifowp",            0x0c04,  1,     -1,   0xff, "FIFO write pointer register"},
+  {"usb0.fiforp",            0x0c05,  1,     -1,   0xff, "FIFO read pointer register"},
+  {"usb0.epptr",             0x0c06,  2,     -1, 0x0000, "endpoint configuration table pointer register (16 bits)"},
+  {"usb0.intctrla",          0x0c08,  1,     -1,   0x00, "interrupt control register A"},
+  {"usb0.intctrlb",          0x0c09,  1,     -1,   0x00, "interrupt control register B"},
+  {"usb0.intflagsa",         0x0c0a,  1,     -1,   0x00, "interrupt flags A register"},
+  {"usb0.intflagsb",         0x0c0b,  1,     -1,   0x00, "interrupt flags B register"},
+  {"usb.status.outclr",      0x0c40,  1,     -1,   0x00, "endpoint n OUT status clear register"},
+  {"usb.status.outset",      0x0c41,  1,     -1,   0x00, "endpoint n OUT status set register"},
+  {"usb.status.inclr",       0x0c42,  1,     -1,   0x00, "endpoint n IN status clear register"},
+  {"usb.status.inset",       0x0c43,  1,     -1,   0x00, "endpoint n IN status set register"},
+  {"syscfg.revid",           0x0f01,  1,     -1,     -1, "revision ID register"},
+  {"syscfg.vusbctrl",        0x0f06,  1,     -1,   0x00, "USB voltage system control register"},
+  {"nvmctrl.ctrla",          0x1000,  1,     -1,   0x00, "control register A"},
+  {"nvmctrl.ctrlb",          0x1001,  1,     -1,   0x30, "control register B"},
+  {"nvmctrl.ctrlc",          0x1002,  1,     -1,   0x00, "control register C"},
+  {"nvmctrl.intctrl",        0x1004,  1,     -1,   0x00, "interrupt control register"},
+  {"nvmctrl.intflags",       0x1005,  1,     -1,   0x00, "interrupt flags register"},
+  {"nvmctrl.status",         0x1006,  1,     -1,   0x00, "status register"},
+  {"nvmctrl.data",           0x1008,  4,     -1, 0x00000000, "data register (32 bits)"},
+  {"nvmctrl.addr",           0x100c,  4,     -1,     -1, "address register (32 bits)"},
 };
 
 // AVR64DA32 AVR128DA32

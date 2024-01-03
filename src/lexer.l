@@ -280,7 +280,7 @@ c: { yyerror("possible old-style config file entry\n"
                "/avrdude.conf.sample for a sample)");
      return YYERRCODE; }
 
-. { return YYERRCODE; }
-
+. { yyerror("unknown token");
+     return YYERRCODE; }
 %%
 
