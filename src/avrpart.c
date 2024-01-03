@@ -1031,19 +1031,19 @@ AVRPART *locate_part_by_avr910_devcode(const LISTID parts, int devcode) {
   return NULL;
 }
 
-AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
-  if(parts && sigsize == 3)
-    for(LNODEID ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
-      AVRPART *p = ldata(ln1);
-      int i;
-      for(i=0; i<3; i++)
-        if(p->signature[i] != sig[i])
-          break;
-      if(i == 3)
+AVRPART *locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes) {
+  if(parts && sigsize == 3) {
+    for(LNODEID ln=lfirst(parts); ln; ln=lnext(ln)) {
+      AVRPART *p = ldata(ln);
+      if(memcmp(p->signature, sig, 3) == 0 && p->prog_modes & prog_modes)
         return p;
     }
-
+  }
   return NULL;
+}
+
+AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
+  return locate_part_by_signature_pm(parts, sig, sigsize, PM_ALL);
 }
 
 /*
