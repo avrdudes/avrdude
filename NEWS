@@ -47,6 +47,7 @@ Changes since version 7.2:
     - Make programmer -c name checking more forgiving #1591
     - Query a programmer's current clock speed #1329
     - Differentiate USB programmers with the same VID/PID #973
+    - Add AVR-DU series latest information #1595
 
   * Pull requests:
 
@@ -107,6 +108,12 @@ Changes since version 7.2:
     - Provide configuration variable default_baudrate #1590
     - Increase index entries in avrdude.texi #1592
     - Suggest programmers using weighted Damerau-Levenshtein #1593
+    - Switch PICkit4 and SNAP avr/pic modes using -xmode #1596
+    - Support AVR64DU28 and AVR64DU32 #1601
+    - Force STK500 EEPROM paged r/w for bootloaders #1602
+    - Provide terminal keep alive code for jtagmkII_updi #1603
+    - Fix Arduino Nano Every EEPROM writing for UPDI parts #1604
+    - Provide and use locate_part_by_signature_pm() #1605
 
   * Internals:
 
