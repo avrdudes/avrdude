@@ -1519,7 +1519,7 @@ bits after the target AVR, respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
 .It Ar hvupdi
-.Nm Power Debugger and Pickit 4 only
+.Nm Power Debugger and PICkit 4 only
 .sp 0.5
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use
@@ -1532,6 +1532,21 @@ The voltage generator can be enabled by setting a target voltage.
 The current set-voltage can be read by
 .Ar -xvtarg
 alone.
+.It Ar help
+Show help menu and exit.
+.El
+.It Ar PICkit 4
+.It Ar MPLAB SNAP
+.Bl -tag -offset indent -width indent
+.It Ar mode=avr,pic
+Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
+programmer can only be utilised by
+.Nm
+when in AVR mode. Use
+.Ar -xmode=avr
+for switching to AVR mode, or
+.Ar -xmode=pic
+for switching to PIC mode.
 .It Ar help
 Show help menu and exit.
 .El

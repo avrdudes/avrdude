@@ -89,6 +89,9 @@ struct pdata
   bool vtarg_set;
   double vtarg_data;
 
+  /* Flag for PICkit4/SNAP mode switching */
+  int pk4_snap_mode;
+
   /* SIB string cache */
   char sib_string[AVR_SIBLEN];
 
@@ -1500,15 +1503,15 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   const char *extended_param;
   int rv = 0;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if (str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
+    if(str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
-      if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-        pmsg_error("invalid JTAG chain '%s'\n", extended_param);
+      if(sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
+        pmsg_error("invalid JTAG chain %s\n", extended_param);
         rv = -1;
-        continue;
+        break;
       }
       pmsg_notice2("jtag3_parseextparms(): JTAG chain parsed as:\n");
       imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
@@ -1517,11 +1520,25 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       PDATA(pgm)->jtagchain[1] = ua;
       PDATA(pgm)->jtagchain[2] = bb;
       PDATA(pgm)->jtagchain[3] = ba;
-
       continue;
     }
 
-    else if ((str_eq(extended_param, "hvupdi")) && (lsize(pgm->hvupdi_support) > 1)) {
+    // HVUPDI
+    // All programmers that supports UPDI programming should have hvupdi_support=1 in avrdude.conf
+    // Type 0: 12V pulse on UPDI pin
+    // Type 1: No HV UPDI
+    // Type 2: 12V pulse on RESET pin
+    if(str_starts(extended_param, "hvupdi")) {
+      if(lsize(pgm->hvupdi_support) < 1) {
+        pmsg_error("programmer does not support high voltage UPDI programming\n");
+        rv = -1;
+        break;
+      }
+      if(!str_eq(extended_param, "hvupdi")) {
+        pmsg_error("invalid -xhvupdi value %s. Use -xhvupdi\n", extended_param);
+        rv = -1;
+        break;
+      }
       PDATA(pgm)->use_hvupdi = true;
       continue;
     }
@@ -1532,12 +1549,12 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     // Bit 2 EOF: Agressive power-down, sleep after 5 seconds if no USB enumeration when set to 0
     // Bit 1 LOWP: forces running at 1 MHz when bit set to 0
     // Bit 0 FUSE: Fuses are safe-masked when bit sent to 1 Fuses are unprotected when set to 0
-    else if (str_starts(extended_param, "suffer") ) {
+    if(str_starts(extended_param, "suffer")) {
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
-        if (str_starts(extended_param, "suffer=")) {
-          if (sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> '%s'\n", extended_param);
+        if(str_starts(extended_param, "suffer=")) {
+          if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
+            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1547,42 +1564,52 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
               PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
+          continue;
         }
         // Get SUFFER value
-        else
+        if(str_eq(extended_param, "suffer")) {
           PDATA(pgm)->suffer_get = true;
-        continue;
+          continue;
+        }
+        pmsg_error("invalid suffer setting %s. Use -xsuffer or -xsuffer=<arg>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
-    else if (str_starts(extended_param, "vtarg_switch") ) {
+    if(str_starts(extended_param, "vtarg_switch")) {
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
-        if (str_starts(extended_param, "vtarg_switch=")) {
+        if(str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
-          if (sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value '%s'\n", extended_param);
+          if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
+            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
             rv = -1;
             break;
           }
           PDATA(pgm)->vtarg_switch_set = true;
+          continue;
         }
         // Get Vtarget switch value
-        else
+        if(str_eq(extended_param, "vtarg_switch")) {
           PDATA(pgm)->vtarg_switch_get = true;
-        continue;
+          continue;
+        }
+        pmsg_error("invalid vtarg_switch setting %s. Use -xvtarg_switch or -xvtarg_switch=<0..1>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
-    else if (str_starts(extended_param, "vtarg")) {
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+    if(str_starts(extended_param, "vtarg")) {
+      if(pgm->extra_features & HAS_VTARG_ADJ) {
         // Set target voltage
-        if (str_starts(extended_param, "vtarg=") ) {
+        if(str_starts(extended_param, "vtarg=") ) {
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
-          if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value '%s'\n", extended_param);
+          if(sscanf_success < 1 || vtarg_set_val < 0) {
+            pmsg_error("invalid vtarg value %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1594,37 +1621,61 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->vtarg_get = true;
           continue;
         }
+        pmsg_error("invalid vtarg setting %s. Use -xvtarg or -xvtarg=<arg>\n", extended_param);
+        rv = -1;
+        break;
       }
     }
 
-    else if (str_eq(extended_param, "help")) {
+    if(str_starts(extended_param, "mode") &&
+      (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
+      // Flag a switch to AVR mode
+      if(str_caseeq(extended_param, "mode=avr")) {
+        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_AVR;
+        continue;
+      }
+      // Flag a switch to PIC mode
+      if(str_caseeq(extended_param, "mode=pic")) {
+        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
+        continue;
+      }
+      pmsg_error("invalid mode setting %s. Use -xmode=avr or -xmode=pic\n", extended_param);
+      rv = -1;
+      break;
+    }
+
+    if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (str_eq(pgm->type, "JTAGICE3"))
+      if(str_eq(pgm->type, "JTAGICE3"))
         msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if (str_eq(pgmid, "powerdebugger_updi") || str_eq(pgmid, "pickit4_updi"))
+      if(lsize(pgm->hvupdi_support) > 1)
         msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if (str_starts(pgmid, "xplainedmini") && !str_eq(pgmid, "xplainedmini_tpi")) {
+      if(pgm->extra_features & HAS_SUFFER) {
         msg_error("  -xsuffer                Read SUFFER register value\n");
         msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
+      }
+      if(pgm->extra_features & HAS_VTARG_SWITCH) {
         msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
         msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
       }
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
+      if(pgm->extra_features & HAS_VTARG_ADJ) {
         msg_error("  -xvtarg                 Read on-board target supply voltage\n");
         msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
       }
+      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
       exit(0);
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter %s\n", extended_param);
     rv = -1;
   }
 
   return rv;
 }
 
-int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
+int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   union pinfo pinfo;
   LNODEID usbpid;
   int rv = -1;
@@ -1639,20 +1690,15 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if (pgm->usbvid)
-    pinfo.usbinfo.vid = pgm->usbvid;
-  else
-    pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
-
-  /* If the config entry did not specify a USB PID, insert the default one. */
+  // If the config entry did not specify a USB PID, insert the default one.
   if (lfirst(pgm->usbpid) == NULL)
     ladd(pgm->usbpid, (void *)USB_DEVICE_JTAGICE3);
 
+  pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_ATMEL;
+
 #if defined(HAVE_LIBHIDAPI)
-  /*
-   * Try HIDAPI first.  LibUSB is more generic, but might then cause
-   * troubles for HID-class devices in some OSes (like Windows).
-   */
+  // Try HIDAPI first. LibUSB is more generic, but might
+  // cause trouble for HID-class devices in some OSes
   serdev = &usbhid_serdev;
   for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
@@ -1685,44 +1731,51 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   }
 #endif
   if (rv < 0) {
-    // Check if SNAP or PICkit4 is in PIC mode
+    // Check if SNAP or PICkit4 are in PIC mode
     for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln)) {
-      if (str_starts(ldata(ln), "snap")) {
+      if (str_starts(ldata(ln), "snap") || str_starts(ldata(ln), "pickit4")) {
+        bool is_snap_pgm = str_starts(ldata(ln), "snap");
         pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
-        pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE;
+        pinfo.usbinfo.pid = is_snap_pgm? USB_DEVICE_SNAP_PIC_MODE: USB_DEVICE_PICKIT4_PIC_MODE;
+        const int bl_pid = is_snap_pgm? USB_DEVICE_SNAP_PIC_MODE_BL: USB_DEVICE_PICKIT4_PIC_MODE_BL;
+        const char *pgmstr = is_snap_pgm? "MPLAB SNAP": "PICkit 4";
+        const unsigned char exit_bl_cmd[] = {0xe6};
+        const unsigned char enter_avr_mode_cmd[] = {0xf0, 0x01};
+        const unsigned char reset_cmd[] = {0xed};
+
         int pic_mode = serial_open(port, pinfo, &pgm->fd);
         if(pic_mode < 0) {
-          // Retry with alternative USB PID
-          pinfo.usbinfo.pid = USB_DEVICE_SNAP_PIC_MODE_ALT;
+          // Retry with bootloader USB PID
+          pinfo.usbinfo.pid = bl_pid;
           pic_mode = serial_open(port, pinfo, &pgm->fd);
         }
         if(pic_mode >= 0) {
           msg_error("\n");
-          pmsg_error("MPLAB SNAP in PIC mode detected!\n");
-          imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
-          return -1;
-        }
-      } else if(str_starts(ldata(ln), "pickit4")) {
-        pinfo.usbinfo.vid = USB_VENDOR_MICROCHIP;
-        pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE;
-        int pic_mode = serial_open(port, pinfo, &pgm->fd);
-        if(pic_mode < 0) {
-          // Retry with alternative USB PID
-          pinfo.usbinfo.pid = USB_DEVICE_PICKIT4_PIC_MODE_ALT;
-          pic_mode = serial_open(port, pinfo, &pgm->fd);
-        }
-        if(pic_mode >= 0) {
-          msg_error("\n");
-          pmsg_error("PICkit4 in PIC mode detected!\n");
-          imsg_error("Use MPLAB X or Microchip Studio to switch to AVR mode\n\n");
-          return -1;
+          pmsg_error("%s in %s mode detected\n",
+            pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
+          if(mode_switch == PK4_SNAP_MODE_AVR) {
+            imsg_error("switching to AVR mode\n");
+            if(pinfo.usbinfo.pid == bl_pid)
+              serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
+            else {
+              serial_send(&pgm->fd, enter_avr_mode_cmd, sizeof(enter_avr_mode_cmd));
+              usleep(250*1000);
+              serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
+            }
+            imsg_error("please run Avrdude again to continue the session\n\n");
+          } else {
+            imsg_error("to switch into AVR mode try\n");
+            imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n", pgmid, partdesc, port);
+          }
+          serial_close(&pgm->fd);
+          exit(0);
         }
       }
     }
     pmsg_error("no device found matching VID 0x%04x and PID list: ",
                (unsigned) pinfo.usbinfo.vid);
     int notfirst = 0;
-    for (usbpid = lfirst(pgm->usbpid); usbpid != NULL; usbpid = lnext(usbpid)) {
+    for (usbpid = lfirst(pgm->usbpid); usbpid; usbpid = lnext(usbpid)) {
       if (notfirst)
         msg_error(", ");
       msg_error("0x%04x", (unsigned int)(*(int *)(ldata(usbpid))));
@@ -1732,15 +1785,17 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
     char *serno;
     if ((serno = strchr(port, ':')))
       msg_error(" with SN %s", ++serno);
-
     msg_error("\n");
 
     return -1;
   }
 
+  if (mode_switch == PK4_SNAP_MODE_AVR)
+    pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
+
+  // The event EP has been deleted by usb_open(), so we are
+  // running on a CMSIS-DAP device, using EDBG protocol
   if (pgm->fd.usb.eep == 0) {
-    /* The event EP has been deleted by usb_open(), so we are
-       running on a CMSIS-DAP device, using EDBG protocol */
     pgm->flag |= PGM_FL_IS_EDBG;
     pmsg_notice2("found CMSIS-DAP compliant device, using EDBG protocol\n");
   }
@@ -1749,10 +1804,21 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
   if (serdev && serdev->usbsn)
     pgm->usbsn = serdev->usbsn;
 
-  /*
-   * drain any extraneous input
-   */
+  // Drain any extraneous input
   jtag3_drain(pgm, 0);
+
+  // Switch from AVR to PIC mode
+  if (mode_switch == PK4_SNAP_MODE_PIC) {
+    imsg_error("switching to PIC mode\n");
+    unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
+    if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0) {
+      imsg_error("entering PIC mode failed\n");
+      return -1;
+    }
+    imsg_error("PIC mode switch successful\n");
+    serial_close(&pgm->fd);
+    exit(0);
+  }
 
   return 0;
 }
@@ -1762,8 +1828,9 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
-    return -1;
+  int rc = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
+  if (rc < 0)
+    return rc;
 
   if (jtag3_getsync(pgm, PARM3_CONN_JTAG) < 0)
     return -1;
@@ -1774,7 +1841,7 @@ static int jtag3_open(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_dw()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_DW) < 0)
@@ -1786,7 +1853,7 @@ static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
 static int jtag3_open_pdi(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_pdi()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_PDI) < 0)
@@ -1804,7 +1871,7 @@ static int jtag3_open_updi(PROGRAMMER *pgm, const char *port) {
     msg_notice2(" %d", *(int *) ldata(ln));
   msg_notice2("\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
 
   if (jtag3_getsync(pgm, PARM3_CONN_UPDI) < 0)
@@ -3107,7 +3174,7 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 static int jtag3_open_tpi(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_tpi()\n");
 
-  if (jtag3_open_common(pgm, port) < 0)
+  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
     return -1;
   return 0;
 }

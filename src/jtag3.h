@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-int  jtag3_open_common(PROGRAMMER *pgm, const char *port);
+int  jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch);
 int  jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len);
 int  jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg);
 void jtag3_close(PROGRAMMER * pgm);

@@ -115,6 +115,7 @@
 #define CMD3_GET_ID                0x12
 #define CMD3_START_DW_DEBUG        0x13
 #define CMD3_MONCON_DISABLE        0x17
+#define CMD3_FW_UPGRADE            0x50
 
 /* AVR ISP scope: no commands of its own */
 
@@ -380,6 +381,11 @@
 #define TPI_NVMCSR_ADDRESS                  0x32
 
 #define DATA_OFFSET                    0x1000000
+
+// Constants for setting a PICkit4 or SNAP in AVR or PIC mode
+#define PK4_SNAP_MODE_DEFAULT 0 // Do not switch mode
+#define PK4_SNAP_MODE_AVR     1 // Switch to AVR mode
+#define PK4_SNAP_MODE_PIC     2 // Switch to PIC mode
 
 #if !defined(JTAG3_PRIVATE_EXPORTED)
 

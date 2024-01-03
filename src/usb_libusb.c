@@ -147,6 +147,16 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      pmsg_error("cannot read product name: %s\n", usb_strerror());
 		      strcpy(product, "[unnamed product]");
 		    }
+
+		  /* We need to write to endpoint 2 to switch the PICkit4 and SNAP
+		   * from PIC to AVR mode
+		   */
+		  if(str_casestarts(product, "MPLAB") && (str_caseends(product, "Snap ICD")
+		    || str_caseends(product, "PICkit 4")))
+		  {
+		    pinfo.usbinfo.flags = 0;
+		    fd->usb.wep = 2;
+		  }
 		  /*
 		   * The CMSIS-DAP specification mandates the string
 		   * "CMSIS-DAP" must be present somewhere in the

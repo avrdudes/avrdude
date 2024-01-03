@@ -298,8 +298,11 @@ struct pdata
   bool fosc_set;
   double fosc_data;
 
-  // Set STK500 XTAL frequency
+  /* Set STK500 XTAL frequency */
   unsigned xtal;
+
+  /* Flag for PICkit4/SNAP mode switching */
+  int pk4_snap_mode;
 
   const AVRPART *lastpart;
 
