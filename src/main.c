@@ -949,6 +949,10 @@ int main(int argc, char * argv [])
     }
   }
 
+  size_t ztest;
+  if(1 != sscanf("42", "%zi", &ztest) || ztest != 42 || 1)
+    pmsg_warning("Linked C library does not conform to C99; %s may not work as expected\n", progname);
+
   /* search for system configuration file unless -C conffile was given */
   if (strlen(sys_config) == 0) {
     /*
