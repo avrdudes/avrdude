@@ -1312,7 +1312,7 @@ FILE *fileio_fopenr(const char *fname) {
 
 static FILEFMT couldbe(int first, unsigned char *line) {
   int found;
-  size_t i, nxdigs, len;
+  unsigned long i, nxdigs, len;
 
   // Check for ELF file
   if(first && line[0] == 0177 && str_starts((char *) line+1, "ELF"))
@@ -1329,7 +1329,7 @@ static FILEFMT couldbe(int first, unsigned char *line) {
 
   // Check for lines that look like Intel HEX
   if(line[0] == ':' && len >= 11 && isxdigit(line[1]) && isxdigit(line[2])) {
-    nxdigs = sscanf((char *) line+1, "%2zx", &nxdigs) == 1? 2*nxdigs + 8: len;
+    nxdigs = sscanf((char *) line+1, "%2lx", &nxdigs) == 1? 2*nxdigs + 8: len;
     for(found = 3+nxdigs <= len, i=0; found && i<nxdigs; i++)
       if(!isxdigit(line[3+i]))
         found = 0;
@@ -1339,7 +1339,7 @@ static FILEFMT couldbe(int first, unsigned char *line) {
 
   // Check for lines that look like Motorola S-record
   if(line[0] == 'S' && len >= 10 && isdigit(line[1]) && isxdigit(line[2]) && isxdigit(line[3])) {
-    nxdigs = sscanf((char *) line+2, "%2zx", &nxdigs) == 1? 2*nxdigs: len;
+    nxdigs = sscanf((char *) line+2, "%2lx", &nxdigs) == 1? 2*nxdigs: len;
     for(found = 4+nxdigs <= len, i=0; found && i<nxdigs; i++)
       if(!isxdigit(line[4+i]))
         found = 0;

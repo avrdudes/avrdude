@@ -473,7 +473,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   // Allocate large enough data and allocation tags space
   size_t bufsz = mem->size + 8 + maxstrlen(argc-3, argv+3)+1;
   if(bufsz > INT_MAX) {
-    pmsg_error("(write) too large memory request (%zu)\n", bufsz);
+    pmsg_error("(write) too large memory request (%lu)\n", (unsigned long) bufsz);
     return -1;
   }
   unsigned char *buf = calloc(bufsz, 1), *tags = calloc(bufsz, 1);
