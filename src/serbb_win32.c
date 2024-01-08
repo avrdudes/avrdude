@@ -299,7 +299,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 		pmsg_error("cannot set com-state for %s\n", port);
                 return -1;
 	}
-        pmsg_debug("ser_open(): opened comm port %s, handle 0x%zx\n", port, (INT_PTR) hComPort);
+        pmsg_debug("ser_open(): opened comm port %s, handle 0x%lx\n", port, (long) (INT_PTR) hComPort);
 
         pgm->fd.pfd = (void *)hComPort;
 
@@ -315,7 +315,7 @@ static void serbb_close(PROGRAMMER *pgm) {
 		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
-        pmsg_debug("ser_close(): closed comm port handle 0x%zx\n", (INT_PTR) hComPort);
+        pmsg_debug("ser_close(): closed comm port handle 0x%lx\n", (long) (INT_PTR) hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;
 }
