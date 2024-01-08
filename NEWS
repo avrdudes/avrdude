@@ -114,6 +114,8 @@ Changes since version 7.2:
     - Provide terminal keep alive code for jtagmkII_updi #1603
     - Fix Arduino Nano Every EEPROM writing for UPDI parts #1604
     - Provide and use locate_part_by_signature_pm() #1605
+    - Harden AVRDUDE against pre-C99 libraries #1608
+    - Add MSYS2 ucrt64, clang32 and clang64 to build.yml #1612
 
   * Internals:
 
