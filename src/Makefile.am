@@ -192,6 +192,12 @@ libavrdude_a_SOURCES = \
 	updi_readwrite.h \
 	updi_nvm.c \
 	updi_nvm.h \
+	updi_nvm_v0.c \
+	updi_nvm_v0.h \
+	updi_nvm_v2.c \
+	updi_nvm_v2.h \
+	updi_nvm_v3.c \
+	updi_nvm_v3.h \
 	urclock.c \
 	urclock.h \
 	urclock_hash.h \
