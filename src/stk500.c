@@ -524,7 +524,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (n_extparms) {
-    if ((p->pagel == 0) || (p->bs2 == 0)) {
+    if (((p->pagel == 0) || (p->bs2 == 0)) && !(p->prog_modes & PM_UPDI)) {
       pmsg_notice2("PAGEL and BS2 signals not defined in the configuration "
         "file for part %s, using dummy values\n", p->desc);
       buf[2] = 0xD7;            /* they look somehow possible, */
@@ -1106,9 +1106,25 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   int tries;
   unsigned int n;
   int block_size;
+  unsigned int shift_addr = 0;
 
-  if(set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0)
-    return -2;
+  if (set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0) {
+    if ((p->prog_modes & (PM_SPM | PM_UPDI)) && (m->type & (MEM_USER_TYPE | MEM_READONLY))) {
+      // Allows the following memory reads similar to EEPROM only for PM_SPM + PM_UPDI parts.
+      // This trick works for all bootloaders that support READ memchr == 'E'.
+      //   -U : userrow usersig bootrow sigrow prodsig and signature
+      //   -T dump : userrow and bootrow
+      //      Others are prohibited by `avr_has_paged_access(pgm, mem)`
+      AVRMEM *e;
+      e = avr_locate_eeprom(p);
+      shift_addr = m->offset - e->offset; // This will show a 16-bit wide negative address!
+      memchr = 'E';
+      a_div = 1;
+    }
+    else {
+      return -2;
+    }
+  }
 
   n = addr + n_bytes;
   for (; addr < n; addr += block_size) {
@@ -1125,7 +1141,7 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     tries = 0;
   retry:
     tries++;
-    stk500_loadaddr(pgm, m, addr, a_div);
+    stk500_loadaddr(pgm, m, addr + shift_addr, a_div);
     buf[0] = Cmnd_STK_READ_PAGE;
     buf[1] = (block_size >> 8) & 0xff;
     buf[2] = block_size & 0xff;
