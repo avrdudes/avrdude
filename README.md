@@ -28,7 +28,7 @@ Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki)
 
 ## Getting AVRDUDE for Linux
 
-To install AVRDUDE for Linux, install the package `avrdude` by running the following commands:
+To install AVRDUDE for Linux, install the package `avrdude` using the software package manager. For example, under Debian/Ubuntu, you can use the following commands:
 
 ```console
 sudo apt-get install avrdude
