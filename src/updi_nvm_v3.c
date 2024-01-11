@@ -34,7 +34,6 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-#include "updi_nvm.h"
 #include "updi_nvm_v3.h"
 #include "updi_state.h"
 #include "updi_constants.h"
@@ -68,9 +67,10 @@
 #define UPDI_V3_NVMCTRL_CTRLA_EEPROM_ERASE             0x30
 
 // NVMCTRL STATUS
-#define UPDI_V3_NVM_STATUS_WRITE_ERROR 2
-#define UPDI_V3_NVM_STATUS_EEPROM_BUSY 1
-#define UPDI_V3_NVM_STATUS_FLASH_BUSY  0
+#define UPDI_V3_NVM_STATUS_WRITE_ERROR_MASK 0x70
+#define UPDI_V3_NVM_STATUS_WRITE_ERROR_BIT     2
+#define UPDI_V3_NVM_STATUS_EEPROM_BUSY_BIT     1
+#define UPDI_V3_NVM_STATUS_FLASH_BUSY_BIT      0
 
 #define USE_DEFAULT_COMMAND 0xFF
 
@@ -86,44 +86,43 @@ int updi_nvm_chip_erase_V3(const PROGRAMMER *pgm, const AVRPART *p) {
         """
         Does a chip erase using the NVM controller
 
-        Note that on locked devices this is not possible
-        and the ERASE KEY has to be used instead, see the unlock method
+        Note that on locked devices this is not possible and the ERASE KEY has to be used instead, see the unlock method
         """
-        self.logger.info("Chip erase using NVM CTRL")
+        self.logger.debug("Chip erase using NVM CTRL")
 
         # Wait until NVM CTRL is ready to erase
         if not self.wait_nvm_ready():
-            raise IOError("Timeout waiting for NVM controller to be ready before chip erase")
+            raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready before chip erase")
 
         # Erase
-        self.execute_nvm_command(constants.UPDI_V3_NVMCTRL_CTRLA_CHIP_ERASE)
+        self.execute_nvm_command(self.NVMCMD_CHIP_ERASE)
 
         # And wait for it
         status = self.wait_nvm_ready()
 
         # Remove command
-        self.execute_nvm_command(constants.UPDI_V3_NVMCTRL_CTRLA_NOCMD)
+        self.execute_nvm_command(self.NVMCMD_NOCMD)
 
         if not status:
-            raise IOError("Timeout waiting for NVM controller to be ready after chip erase")
-
-        return True
+            raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready after chip erase")
 */
+  int status;
   pmsg_debug("Chip erase using NVM CTRL\n");
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  if (updi_nvm_wait_ready_V3(pgm, p) < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
     pmsg_error("chip erase command failed\n");
     return -1;
   }
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  status = updi_nvm_wait_ready_V3(pgm, p);
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
+    pmsg_error("sending empty command failed\n");
     return -1;
   }
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
-    pmsg_error("sending empty command failed\n");
+  if (status < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
   return 0;
@@ -133,36 +132,37 @@ int updi_nvm_erase_flash_page_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32
 /*
     def erase_flash_page(self, address):
         """
-        Erasing single flash page using the NVM controller (v3)
+        Erasing single flash page using the NVM controller
 
         :param address: Start address of page to erase
         :type address: int
         """
-        self.logger.info("Erase flash page at address 0x%08X", address)
+        self.logger.debug("Erase flash page at address 0x%08X", address)
 
         # Wait until NVM CTRL is ready to erase
         if not self.wait_nvm_ready():
-            raise IOError("Timeout waiting for NVM controller to be ready before flash page erase")
+            raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready before flash page erase")
 
         # Dummy write
         self.readwrite.write_data(address, [0xFF])
 
         # Erase
-        self.execute_nvm_command(constants.UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_ERASE)
+        self.execute_nvm_command(self.NVMCMD_FLASH_PAGE_ERASE)
 
         # And wait for it
         status = self.wait_nvm_ready()
 
         # Remove command
-        self.execute_nvm_command(constants.UPDI_V3_NVMCTRL_CTRLA_NOCMD)
+        self.execute_nvm_command(self.NVMCMD_NOCMD)
 
         if not status:
-            raise IOError("Timeout waiting for NVM controller to be ready after flash page erase")
+            raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready after flash page erase")
 */  
+  int status;
   unsigned char data[1];
   pmsg_debug("erase flash page at address 0x%06X\n", address);
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  if (updi_nvm_wait_ready_V3(pgm, p) < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
   data[0] = 0xFF;
@@ -170,12 +170,17 @@ int updi_nvm_erase_flash_page_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32
     pmsg_error("dummy write operation failed\n");
     return -1;
   }
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_ERASE) < 0) {
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_ERASE) < 0) {
     pmsg_error("flash page erase command failed\n");
     return -1;
   }
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  status = updi_nvm_wait_ready_V3(pgm, p);
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
+    pmsg_error("sending empty command failed\n");
+    return -1;
+  }
+  if (status < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
   return 0;
@@ -205,21 +210,23 @@ int updi_nvm_erase_eeprom_V3(const PROGRAMMER *pgm, const AVRPART *p) {
         if not status:
             raise IOError("Timeout waiting for NVM controller to be ready after EEPROM erase")
 */
+  int status;
   pmsg_debug("erase EEPROM\n");
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  if (updi_nvm_wait_ready_V3(pgm, p) < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_EEPROM_ERASE) < 0) {
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_EEPROM_ERASE) < 0) {
     pmsg_error("EEPROM erase command failed\n");
     return -1;
   }
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  status = updi_nvm_wait_ready_V3(pgm, p);
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
+    pmsg_error("sending empty command failed\n");
     return -1;
   }
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
-    pmsg_error("sending empty command failed\n");
+  if (status < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
   return 0;
@@ -354,17 +361,17 @@ static int nvm_write_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
         # Remove command
         self.execute_nvm_command(constants.UPDI_V3_NVMCTRL_CTRLA_NOCMD)
 */
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  if (updi_nvm_wait_ready_V3(pgm, p) < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
   pmsg_debug("clear page buffer\n");
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_BUFFER_CLEAR) < 0) {
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_BUFFER_CLEAR) < 0) {
     pmsg_error("clear page operation failed\n");
     return -1;
   }
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  if (updi_nvm_wait_ready_V3(pgm, p) < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
   if (mode == USE_WORD_ACCESS) {
@@ -382,15 +389,15 @@ static int nvm_write_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
   if (nvm_command == USE_DEFAULT_COMMAND) {
     nvm_command = UPDI_V3_NVMCTRL_CTRLA_FLASH_PAGE_WRITE;
   }
-  if (updi_nvm_command(pgm, p, nvm_command) < 0) {
+  if (updi_nvm_command_V3(pgm, p, nvm_command) < 0) {
       pmsg_error("commit data command failed\n");
       return -1;
   }
-  if (updi_nvm_wait_ready(pgm, p) < 0) {
-    pmsg_error("updi_nvm_wait_ready() failed\n");
+  if (updi_nvm_wait_ready_V3(pgm, p) < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
-  if (updi_nvm_command(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
     pmsg_error("sending empty command failed\n");
     return -1;
   }
@@ -400,21 +407,26 @@ static int nvm_write_V3(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
 
 int updi_nvm_wait_ready_V3(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
-    def wait_nvm_ready(self):
+    def wait_nvm_ready(self, timeout_ms=100):
         """
         Waits for the NVM controller to be ready
+
+        :param timeout_ms: Timeout period in milliseconds
+        :type timeout_ms: int, defaults to 100
+        :returns: True if 'ready', False if timeout occurred before ready
+        :rtype: bool
+        :raises: PymcuprogSerialUpdiNvmError if an error condition is encountered
         """
-        timeout = Timeout(10000)  # 10 sec timeout, just to be sure
+        timeout = Timeout(timeout_ms)
 
         self.logger.debug("Wait NVM ready")
         while not timeout.expired():
-            status = self.readwrite.read_byte(self.device.nvmctrl_address + constants.UPDI_NVMCTRL_STATUS)
-            if status & (1 << constants.UPDI_V0_NVM_STATUS_WRITE_ERROR):
-                self.logger.error("NVM error")
-                return False
+            status = self.readwrite.read_byte(self.device.nvmctrl_address + self.NVMCTRL_STATUS)
+            if status & self.STATUS_WRITE_ERROR_bm:
+                self.logger.error("NVM error (%d)", status >> self.STATUS_WRITE_ERROR_bp)
+                raise PymcuprogSerialUpdiNvmError(msg="NVM error", code=(status >> self.STATUS_WRITE_ERROR_bp))
 
-            if not status & ((1 << constants.UPDI_NVM_STATUS_EEPROM_BUSY) |
-                             (1 << constants.UPDI_NVM_STATUS_FLASH_BUSY)):
+            if not status & ((1 << self.STATUS_EEPROM_BUSY_bp) | (1 << self.STATUS_FLASH_BUSY_bp)):
                 return True
 
         self.logger.error("Wait NVM ready timed out")
@@ -426,12 +438,12 @@ int updi_nvm_wait_ready_V3(const PROGRAMMER *pgm, const AVRPART *p) {
   start_time = avr_ustimestamp();
   do {
     if (updi_read_byte(pgm, p->nvm_base + UPDI_V3_NVMCTRL_STATUS, &status) >= 0) {
-      if (status & (1 << UPDI_V3_NVM_STATUS_WRITE_ERROR)) {
-        pmsg_error("unable to write NVM status\n");
+      if (status & UPDI_V3_NVM_STATUS_WRITE_ERROR_MASK) {
+        pmsg_error("unable to write NVM status, error code %d\n", status >> UPDI_V3_NVM_STATUS_WRITE_ERROR_BIT);
         return -1;
       }
-      if (!(status & ((1 << UPDI_V3_NVM_STATUS_EEPROM_BUSY) | 
-                      (1 << UPDI_V3_NVM_STATUS_FLASH_BUSY)))) {
+      if (!(status & ((1 << UPDI_V3_NVM_STATUS_EEPROM_BUSY_BIT) | 
+                      (1 << UPDI_V3_NVM_STATUS_FLASH_BUSY_BIT)))) {
         return 0;
       }
     }
