@@ -216,11 +216,19 @@ int ovsigck;                    // 1 = override sig check, 0 = don't
 const char *partdesc;           // Part -p string
 const char *pgmid;              // Programmer -c string
 
+static char usr_config[PATH_MAX]; // Per-user config file
+
 /*
  * usage message
  */
 static void usage(void)
 {
+  char *home = getenv("HOME");
+  size_t l = home? strlen(home): 0;
+  char *cfg = home && str_casestarts(usr_config, home)?
+     str_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
+     str_sprintf("%s", usr_config);
+
   msg_error(
     "Usage: %s [options]\n"
     "Options:\n"
@@ -230,6 +238,8 @@ static void usage(void)
     "  -b <baudrate>          Override RS-232 baud rate\n"
     "  -B <bitclock>          Specify bit clock period (us)\n"
     "  -C <config-file>       Specify location of configuration file\n"
+    "  -C +<config-file>      Specify additional config file, can be repeated\n"
+    "  -N                     Do not load %s%s\n"
     "  -c <programmer>        Specify programmer; -c ? and -c ?type list all\n"
     "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
     "                         e.g., -c 'ur*'/s for programmer info/definition\n"
@@ -244,7 +254,7 @@ static void usage(void)
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
     "  -t                     Run an interactive terminal when it is its turn\n"
     "  -T <terminal cmd line> Run terminal line when it is its turn\n"
-    "  -U <memtype>:r|w|v:<filename>[:format]\n"
+    "  -U <memstr>:r|w|v:<filename>[:format]\n"
     "                         Carry out memory operation when it is its turn\n"
     "                         Multiple -t, -T and -U options can be specified\n"
     "  -n                     Do not write to the device whilst processing -U\n"
@@ -256,7 +266,9 @@ static void usage(void)
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
     "  -?                     Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
-    progname, version);
+    progname, strlen(cfg) < 24? "config file ": "", cfg, version);
+
+  free(cfg);
 }
 
 
@@ -441,19 +453,125 @@ static int dev_opt(const char *str) {
     !!strchr(str, '/');
 }
 
+typedef struct {
+  size_t dist;
+  int common_modes;
+  const char *pgmid;
+  const char *desc;
+} pgm_distance;
 
-static void programmer_not_found(const char *programmer) {
-  msg_error("\n");
-  if(programmer && *programmer)
-    pmsg_error("cannot find programmer id %s\n", programmer);
-  else {
-    pmsg_error("no programmer has been specified on the command line or in the\n");
-    imsg_error("config file(s); specify one using the -c option and try again\n");
+static int cmp_pgmid(const void *a, const void *b) {
+   const pgm_distance *pa = a, *pb = b;
+
+   int ret = pa->dist - pb->dist;
+   if(ret)
+     return ret;
+   return strcmp(pa->pgmid, pb->pgmid);
+}
+
+static int suggest_programmers(const char *programmer, LISTID programmers) {
+  const size_t max_distance = 64; // Don't show suggestions if they are way far out
+
+  int nid = 0;                  // Number of possible programmer ids
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    PROGRAMMER *pgm = ldata(ln1);
+    if(is_programmer(pgm))
+      for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2))
+        nid++;
   }
 
-  msg_error("\nValid programmers are:\n");
-  list_programmers(stderr, "  ", programmers, ~0);
-  msg_error("\n");
+  pgm_distance *d = cfg_malloc(__func__, nid*sizeof*d);
+
+  // Fill d[] struct
+  int idx = 0;
+  AVRPART *p = locate_part(part_list, partdesc);
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+    PROGRAMMER *pgm = ldata(ln1);
+    if(!is_programmer(pgm))
+      continue;
+    for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
+      if(idx < nid) {
+        d[idx].pgmid = ldata(ln2);
+        d[idx].desc = pgm->desc;
+        d[idx].dist = str_weighted_damerau_levenshtein(d[idx].pgmid, programmer);
+        d[idx].common_modes = pgm->prog_modes & (p? p->prog_modes: ~0);
+        idx++;
+      }
+    }
+  }
+
+  int n = 0, pgmid_maxlen = 0, comp = 0, len;
+  if(nid) {                     // Sort list so programmers according to string distance
+    qsort(d, nid, sizeof(*d), cmp_pgmid);
+    size_t dst = d[nid > 2? 2: nid-1].dist;
+    if(dst > max_distance)
+      dst = max_distance;
+    for(; n < nid && d[n].dist <= dst; n++)
+      if(d[n].common_modes) {
+        if((len = strlen(d[n].pgmid)) > pgmid_maxlen)
+          pgmid_maxlen = len;
+        comp++;
+      }
+  }
+  if(comp) {
+    msg_info("similar programmer name%s:\n", str_plural(comp));
+    for(int i = 0; i < n; i++)
+      if(d[i].common_modes)
+        msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
+  }
+  free(d);
+  return n;
+}
+
+static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pmode) {
+  msg_error("\v");
+  if(!programmer || !*programmer) {
+    pmsg_error("no programmer has been specified on the command line or in the\n");
+    imsg_error("config file(s); specify one using the -c option and try again\n");
+    return;
+  }
+
+  if(str_eq(programmer, "?")) {
+    msg_error("Valid programmers are:\n");
+    list_programmers(stderr, "  ", programmers, ~0);
+    msg_error("\n");
+    return;
+  }
+
+  sort_programmers(programmers);
+
+  // If there were partial matches then they were not unique: count and list them
+  int pmatches = 0, maxlen = 0, len;
+  for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    PROGRAMMER *pg = ldata(ln1);
+    if(is_programmer(pg) && (pg->prog_modes & pmode))
+      for(LNODEID ln2=lfirst(pg->id); ln2; ln2=lnext(ln2)) {
+        const char *id = (const char *) ldata(ln2);
+        if(str_casestarts(id, programmer)) { // Partial initial match
+          pmatches++;
+          if((len = strlen(id)) > maxlen)
+            maxlen = len;
+        }
+      }
+  }
+  if(pmatches) {
+    msg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
+    for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+     PROGRAMMER *pg = ldata(ln1);
+      if(is_programmer(pg) && (pg->prog_modes & pmode))
+        for(LNODEID ln2=lfirst(pg->id); ln2; ln2=lnext(ln2)) {
+          const char *id = (const char *) ldata(ln2);
+          if(str_casestarts(id, programmer))
+            msg_error("  %-*s = %s\n", maxlen, id, pg->desc);
+      }
+    }
+  } else if(!pgm || !pgm->id || !lsize(pgm->id)) {
+    pmsg_error("cannot find programmer id %s\n", programmer);
+    suggest_programmers(programmer, programmers);
+    msg_info("use -c? to see all possible programmers\n");
+  } else
+    pmsg_error("programmer %s lacks %s setting\n", programmer,
+      !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
 }
 
 static void part_not_found(const char *partdesc) {
@@ -511,16 +629,15 @@ int main(int argc, char * argv [])
   UPDATE         * upd;
   LNODEID        * ln;
 
-
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
+  int     no_avrduderc; /* 1=don't load personal conf file */
   char  * port;        /* device port (/dev/xxx) */
   const char *exitspecs; /* exit specs string from command line */
   int     explicit_c;  /* 1=explicit -c on command line, 0=not specified there */
   int     explicit_e;  /* 1=explicit -e on command line, 0=not specified there */
   char    sys_config[PATH_MAX]; /* system wide config file */
-  char    usr_config[PATH_MAX]; /* per-user config file */
   char    executable_abspath[PATH_MAX]; /* absolute path to avrdude executable */
   char    executable_dirpath[PATH_MAX]; /* absolute path to folder with executable */
   bool    executable_abspath_found = false; /* absolute path to executable found */
@@ -571,10 +688,13 @@ int main(int argc, char * argv [])
     progname[strlen(progname)-4] = 0;
   }
 
+  avrdude_conf_version = "";
+
   default_programmer = "";
   default_parallel   = "";
   default_serial     = "";
   default_spi        = "";
+  default_baudrate   = 0;
   default_bitclock   = 0.0;
   default_linuxgpio  = "";
   allow_subshells    = 0;
@@ -605,6 +725,7 @@ int main(int argc, char * argv [])
   port          = NULL;
   erase         = 0;
   calibrate     = 0;
+  no_avrduderc  = 0;
   p             = NULL;
   ovsigck       = 0;
   quell_progress = 0;
@@ -635,11 +756,22 @@ int main(int argc, char * argv [])
     return 0;
   }
 
+   // Determine the location of personal configuration file
+#if defined(WIN32)
+  win_usr_config_set(usr_config);
+#else
+  usr_config[0] = 0;
+  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
+    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
+  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
+    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
+#endif
+
 
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:np:OP:qrstT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -650,50 +782,24 @@ int main(int argc, char * argv [])
         }
         break;
 
-      case 'B': /* specify JTAG ICE bit clock period */
+      case 'B': /* specify bit clock period */
         bitclock = strtod(optarg, &e);
-        if (*e != 0) {
-          /* trailing unit of measure present */
-          int suffixlen = strlen(e);
-          switch (suffixlen) {
-          case 2:
-            if ((e[0] != 'h' && e[0] != 'H') || e[1] != 'z')
-              bitclock = 0.0;
-            else
-              /* convert from Hz to microseconds */
-              bitclock = 1E6 / bitclock;
-            break;
-
-          case 3:
-            if ((e[1] != 'h' && e[1] != 'H') || e[2] != 'z')
-              bitclock = 0.0;
-            else {
-              switch (e[0]) {
-              case 'M':
-              case 'm': /* no Millihertz here :) */
-                bitclock = 1.0 / bitclock;
-                break;
-
-              case 'k':
-                bitclock = 1E3 / bitclock;
-                break;
-
-              default:
-                bitclock = 0.0;
-                break;
-              }
-            }
-            break;
-
-          default:
-            bitclock = 0.0;
-            break;
-          }
-          if (bitclock == 0.0)
-            pmsg_error("invalid bit clock unit of measure '%s'\n", e);
+        if ((e == optarg) || bitclock <= 0.0) {
+          pmsg_error("invalid bit clock period %s\n", optarg);
+          exit(1);
         }
-        if ((e == optarg) || bitclock == 0.0) {
-          pmsg_error("invalid bit clock period specified '%s'\n", optarg);
+        while(*e && isascii(*e & 0xff) && isspace(*e & 0xff))
+          e++;
+        if(*e == 0 || str_caseeq(e, "us")) // us is optional and the default
+          ;
+        else if(str_caseeq(e, "m") || str_caseeq(e, "mhz"))
+          bitclock = 1 / bitclock;
+        else if(str_caseeq(e, "k") || str_caseeq(e, "khz"))
+          bitclock = 1e3 / bitclock;
+        else if(str_caseeq(e, "hz"))
+          bitclock = 1e6 / bitclock;
+        else {
+          pmsg_error("invalid bit clock unit %s\n", e);
           exit(1);
         }
         break;
@@ -752,6 +858,10 @@ int main(int argc, char * argv [])
 
       case 'n':
         uflags |= UF_NOWRITE;
+        break;
+
+      case 'N':
+        no_avrduderc = 1;
         break;
 
       case 'O': /* perform RC oscillator calibration */
@@ -838,6 +948,10 @@ int main(int argc, char * argv [])
       return 1;
     }
   }
+
+  size_t ztest;
+  if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
+    pmsg_warning("Linked C library does not conform to C99; %s may not work as expected\n", progname);
 
   /* search for system configuration file unless -C conffile was given */
   if (strlen(sys_config) == 0) {
@@ -936,21 +1050,6 @@ int main(int argc, char * argv [])
   msg_trace2("sys_config_found = %s\n", sys_config_found ? "true" : "false");
   msg_trace2("\n");
 
-  /*
-   * USER CONFIG
-   * -----------
-   * Determine the location of '.avrduderc'.
-   */
-#if defined(WIN32)
-  win_usr_config_set(usr_config);
-#else
-  usr_config[0] = 0;
-  if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
-    concatpath(usr_config, getenv("HOME"), ".config/" XDG_USER_CONF_FILE, sizeof usr_config);
-  if(stat(usr_config, &sb) < 0 || (sb.st_mode & S_IFREG) == 0)
-    concatpath(usr_config, getenv("HOME"), USER_CONF_FILE, sizeof usr_config);
-#endif
-
   if (quell_progress == 0)
     terminal_setup_update_progress();
 
@@ -978,7 +1077,7 @@ int main(int argc, char * argv [])
     free(real_sys_config);
   }
 
-  if (usr_config[0] != 0) {
+  if (usr_config[0] != 0 && !no_avrduderc) {
     imsg_notice("User configuration file is %s\n", usr_config);
 
     rc = stat(usr_config, &sb);
@@ -991,6 +1090,11 @@ int main(int argc, char * argv [])
         exit(1);
       }
     }
+  }
+
+  if(!str_eq(avrdude_conf_version, version)) {
+    pmsg_warning("System wide configuration file version (%s)\n", avrdude_conf_version);
+    imsg_warning("does not match Avrdude build version (%s)\n", version);
   }
 
   if (lsize(additional_config_files) > 0) {
@@ -1009,6 +1113,11 @@ int main(int argc, char * argv [])
     }
   }
 
+  // Sort memories of all parts in canonical order
+  for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1))
+    if((p = ldata(ln1))->mem)
+      lsort(p->mem, avr_mem_cmp);
+
   // set bitclock from configuration files unless changed by command line
   if (default_bitclock > 0 && bitclock == 0.0) {
     bitclock = default_bitclock;
@@ -1026,6 +1135,7 @@ int main(int argc, char * argv [])
     exit(0);
   }
 
+  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
     AVRPART *p = ldata(ln1);
     for(LNODEID ln2 = lfirst(programmers); ln2; ln2 = lnext(ln2)) {
@@ -1034,7 +1144,7 @@ int main(int argc, char * argv [])
         continue;
       const char *pnam = pgm->id? ldata(lfirst(pgm->id)): "???";
       int pm = pgm->prog_modes & p->prog_modes;
-      if((pm & (pm-1)) && !str_eq(pnam, "dryrun"))
+      if((pm & (pm-1)) && !str_eq(pnam, "dryrun") && !(dry && pgm->initpgm == dry->initpgm))
         pmsg_warning("%s and %s share multiple modes (%s)\n", pnam, p->desc, avr_prog_modes(pm));
     }
   }
@@ -1053,9 +1163,9 @@ int main(int argc, char * argv [])
   if(partdesc) {
     if(str_eq(partdesc, "?")) {
       if(pgmid && *pgmid && explicit_c) {
-        PROGRAMMER *pgm = locate_programmer_set(programmers, pgmid, &pgmid);
+        PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
         if(!pgm || !is_programmer(pgm)) {
-          programmer_not_found(pgmid);
+          programmer_not_found(pgmid, pgm, ~0);
           exit(1);
         }
         msg_error("\nValid parts for programmer %s are:\n", pgmid);
@@ -1098,20 +1208,23 @@ int main(int argc, char * argv [])
   msg_notice("\n");
 
   if(!pgmid || !*pgmid) {
-    programmer_not_found(NULL);
+    programmer_not_found(NULL, NULL, ~0);
     exit(1);
   }
 
-  pgm = locate_programmer_set(programmers, pgmid, &pgmid);
+  p = partdesc  && *partdesc? locate_part(part_list, partdesc): NULL;
+  pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, p);
   if (pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid);
+    programmer_not_found(pgmid, pgm, p? p->prog_modes: ~0);
     exit(1);
   }
 
-  if(!ovsigck && partdesc && (p = locate_part(part_list, partdesc)) && !(p->prog_modes & pgm->prog_modes)) {
-    pmsg_error("programmer %s cannot program part %s as they\n", pgmid, p->desc);
-    imsg_error("lack a common programming mode; use -F to override this check\n");
-    exit(1);
+  if(p && !(p->prog_modes & pgm->prog_modes)) {
+    pmsg_error("-c %s cannot program %s for lack of a common programming mode\n", pgmid, p->desc);
+    if(!ovsigck) {
+      imsg_error("use -F to override this check\n");
+      exit(1);
+    }
   }
 
   if (pgm->initpgm) {
@@ -1183,7 +1296,8 @@ int main(int argc, char * argv [])
     }
   }
 
-  if(port[0] == 0 || str_eq(port, "unknown")) {
+  int is_dryrun = str_eq(pgmid, "dryrun") || (dry && pgm->initpgm == dry->initpgm);
+  if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
     pmsg_error("no port has been specified on the command line or in the config file\n");
     imsg_error("specify a port using the -P option and try again\n\n");
@@ -1251,25 +1365,38 @@ int main(int argc, char * argv [])
 
   // Open the programmer
   if (verbose > 0) {
-    imsg_notice("Using Port                    : %s\n", port);
-    imsg_notice("Using Programmer              : %s\n", pgmid);
+    if(!is_dryrun)
+      imsg_notice("Using port            : %s\n", port);
+    imsg_notice("Using programmer      : %s\n", pgmid);
   }
 
-  if (baudrate != 0) {
-    imsg_notice("Overriding Baud Rate          : %d\n", baudrate);
+  if (baudrate && !pgm->baudrate && !default_baudrate) { // none set
+      imsg_notice("Setting baud rate     : %d\n", baudrate);
+      pgm->baudrate = baudrate;
+  }
+  else if (baudrate && ((pgm->baudrate && pgm->baudrate != baudrate)
+          || (!pgm->baudrate && default_baudrate != baudrate))) {
+    imsg_notice("Overriding baud rate  : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
+  else if (!pgm->baudrate && default_baudrate) {
+    imsg_notice("Default baud rate     : %d\n", default_baudrate);
+    pgm->baudrate = default_baudrate;
+  }
   else if (ser && ser->baudrate) {
-    imsg_notice("Default Baud Rate             : %d\n", ser->baudrate);
+    imsg_notice("Serial baud rate      : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
+  else if (pgm->baudrate != 0)
+    imsg_notice("Programmer baud rate  : %d\n", pgm->baudrate);
+
   if (bitclock != 0.0) {
-    imsg_notice("Setting bit clk period        : %.1f\n", bitclock);
+    imsg_notice("Setting bit clk period: %.1f us\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
-    imsg_notice("Setting isp clock delay       : %3i\n", ispdelay);
+    imsg_notice("Setting ISP clk delay : %3i us\n", ispdelay);
     pgm->ispdelay = ispdelay;
   }
 
@@ -1340,12 +1467,12 @@ skipopen:
   int doexit = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     upd = ldata(ln);
-    if (upd->memtype == NULL && upd->cmdline == NULL) {
+    if (upd->memstr == NULL && upd->cmdline == NULL) {
       const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
-      pmsg_notice2("defaulting memtype in -U %c:%s option to \"%s\"\n",
+      pmsg_notice2("defaulting memstr in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
         upd->filename, mtype);
-      upd->memtype = cfg_strdup("main()", mtype);
+      upd->memstr = cfg_strdup("main()", mtype);
     }
     rc = update_dryrun(p, upd);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL)
@@ -1375,7 +1502,8 @@ skipopen:
 
   if (verbose > 0 && quell_progress < 2) {
     avr_display(stderr, p, progbuf, verbose);
-    msg_notice("\n");
+    if (verbose > 1)
+      msg_notice("\n");
     programmer_display(pgm, progbuf);
   }
 
@@ -1469,7 +1597,7 @@ skipopen:
       }
     }
 
-    sig = avr_locate_mem(p, "signature");
+    sig = avr_locate_signature(p);
     if (sig == NULL)
       pmsg_warning("signature memory not defined for device %s\n", p->desc);
 
@@ -1493,9 +1621,10 @@ skipopen:
           sig->buf[2] == p->signature[2];
 
       if (quell_progress < 2) {
-        AVRPART * part;
-        if((part = locate_part_by_signature(part_list, sig->buf, sig->size)))
-          msg_info(" (probably %s)", signature_matches ? p->id : part->id);
+        AVRPART *part;
+        if((part = locate_part_by_signature_pm(part_list, sig->buf, sig->size, pgm->prog_modes)) ||
+           (part = locate_part_by_signature(part_list, sig->buf, sig->size)))
+          msg_info(" (probably %s)", signature_matches? p->id: part->id);
       }
       if (ff || zz) {
         if (++attempt < 3) {
@@ -1544,9 +1673,9 @@ skipopen:
       uflags &= ~UF_AUTO_ERASE;
       for (ln=lfirst(updates); ln; ln=lnext(ln)) {
         upd = ldata(ln);
-        if(!upd->memtype)
+        if(!upd->memstr)
           continue;
-        m = avr_locate_mem(p, upd->memtype);
+        m = avr_locate_mem(p, upd->memstr);
         if (m == NULL)
           continue;
         if(str_eq(m->desc, memname) && upd->op == DEVICE_WRITE) {
@@ -1586,6 +1715,7 @@ skipopen:
 
   int wrmem = 0, terminal = 0;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+    const AVRMEM *m;
     upd = ldata(ln);
     if(upd->cmdline && wrmem) { // Invalidate cache if device was written to
       wrmem = 0;
@@ -1600,7 +1730,7 @@ skipopen:
     if (rc && rc != LIBAVRDUDE_SOFTFAIL) {
       exitrc = 1;
       break;
-    } else if(rc == 0 && upd->op == DEVICE_WRITE && avr_memtype_is_flash_type(upd->memtype))
+    } else if(rc == 0 && upd->op == DEVICE_WRITE && (m = avr_locate_mem(p, upd->memstr)) && mem_is_in_flash(m))
       ce_delayed = 0;           // Redeemed chip erase promise
   }
   pgm->flush_cache(pgm, p);

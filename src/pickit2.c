@@ -454,7 +454,7 @@ static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
     // only supporting flash & eeprom page reads
-    if ((!mem->paged || page_size <= 1) || (!str_eq(mem->desc, "flash") && !str_eq(mem->desc, "eeprom")))
+    if ((!mem->paged || page_size <= 1) || (!mem_is_flash(mem) && !mem_is_eeprom(mem)))
     {
         return -1;
     }
@@ -591,7 +591,7 @@ static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
                          unsigned int page_size, unsigned int addr, unsigned int n_bytes)
 {
     // only paged write for flash implemented
-    if (!str_eq(mem->desc, "flash") && !str_eq(mem->desc, "eeprom"))
+    if (!mem_is_flash(mem) && !mem_is_eeprom(mem))
     {
         pmsg_error("part does not support %d paged write of %s\n", page_size, mem->desc);
         return -1;

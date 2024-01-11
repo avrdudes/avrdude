@@ -425,7 +425,7 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     bitbang_tpi_tx(pgm, TPI_NVMCMD_CHIP_ERASE); /* CHIP_ERASE */
 
     /* Set Pointer Register */
-    mem = avr_locate_mem(p, "flash");
+    mem = avr_locate_flash(p);
     if (mem == NULL) {
       pmsg_error("no flash memory to erase for part %s\n", p->desc);
       return -1;

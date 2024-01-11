@@ -129,7 +129,7 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
             // To use this workaround, the -F option is required.
             pmsg_error("cannot detect board type (HID usage is 0)\n");
 
-            AVRMEM* mem = avr_locate_mem(p, "flash");
+            AVRMEM* mem = avr_locate_flash(p);
             if (mem == NULL)
             {
                 pmsg_error("no flash memory defined for part %s\n", p->desc);
@@ -463,17 +463,14 @@ static int teensy_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 {
     pmsg_debug("teensy_read_byte(desc=%s, addr=0x%04lX)\n", mem->desc, addr);
 
-    if (str_eq(mem->desc, "lfuse") ||
-        str_eq(mem->desc, "hfuse") ||
-        str_eq(mem->desc, "efuse") ||
-        str_eq(mem->desc, "lock"))
+    if (mem_is_a_fuse(mem) || mem_is_lock(mem))
     {
         *value = 0xFF;
         return 0;
     }
     else
     {
-        pmsg_error("unsupported memory type: %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
 }
@@ -499,7 +496,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 {
     pmsg_debug("teensy_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
 
-    if (str_eq(mem->desc, "flash"))
+    if (mem_is_flash(mem))
     {
         pdata_t* pdata = PDATA(pgm);
 
@@ -544,7 +541,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
     else
     {
-        pmsg_error("unsupported memory type: %s\n", mem->desc);
+        pmsg_error("unsupported memory %s\n", mem->desc);
         return -1;
     }
 }

@@ -181,10 +181,12 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 alias            { yylval=NULL; return K_ALIAS; }
 allow_subshells  { yylval=NULL; return K_ALLOW_SUBSHELLS; }
 allowfullpagebitstream { yylval=NULL; ccap(); return K_ALLOWFULLPAGEBITSTREAM; }
+avrdude_conf_version { yylval=NULL; return K_AVRDUDE_CONF_VERSION; }
 buff             { yylval=NULL; ccap(); return K_BUFF; }
 chip_erase       { yylval=new_token(K_CHIP_ERASE); ccap(); return K_CHIP_ERASE; }
 connection_type  { yylval=NULL; ccap(); return K_CONNTYPE; }
 dedicated        { yylval=new_token(K_DEDICATED); return K_DEDICATED; }
+default_baudrate { yylval=NULL; return K_DEFAULT_BAUDRATE; }
 default_bitclock { yylval=NULL; return K_DEFAULT_BITCLOCK; }
 default_parallel { yylval=NULL; return K_DEFAULT_PARALLEL; }
 default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
@@ -278,7 +280,7 @@ c: { yyerror("possible old-style config file entry\n"
                "/avrdude.conf.sample for a sample)");
      return YYERRCODE; }
 
-. { return YYERRCODE; }
-
+. { yyerror("unknown token");
+     return YYERRCODE; }
 %%
 

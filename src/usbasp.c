@@ -162,9 +162,9 @@ static int usbasp_transmit(const PROGRAMMER *pgm, unsigned char receive,
 			   unsigned char functionid, const unsigned char *send,
 			   unsigned char *buffer, int buffersize);
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName, int product, const char *productName);
+static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName, int product, const char *productName, const char *port);
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName, int product, const char *productName);
+static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName, int product, const char *productName, const char *port);
 #endif
 // interface - prog.
 static int usbasp_open(PROGRAMMER *pgm, const char *port);
@@ -254,6 +254,15 @@ static int usbasp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
 static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned long addr, unsigned char data) {
+
+  if(mem_is_readonly(m)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", m->desc, p->desc);
+    return -1;
+  }
 
   return PDATA(pgm)->use_tpi?
     usbasp_tpi_write_byte(pgm, p, m, addr, data):
@@ -390,6 +399,26 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
   return nbytes;
 }
 
+static int check_for_port_argument_match(const char *port, char *bus, char *device, char *serial_num) {
+
+  pmsg_notice("usbOpenDevice(): found USBasp, bus:device: %s:%s, serial_number: %s\n", bus, device, serial_num);
+  const size_t usb_len = strlen("usb");
+  if(str_starts(port, "usb") && ':' == port[usb_len]) {
+    port += usb_len + 1;
+    char *colon_pointer = strchr(port, ':');
+    if (colon_pointer) {
+      // Value contains ':' character. Compare with bus/device.
+      if (strncmp(port, bus, colon_pointer - port))
+        return 0;
+      port = colon_pointer + 1;
+      return str_eq(port, device);
+    }
+    // serial number case
+    return *port && str_ends(serial_num, port);
+  }
+  // Invalid -P option.
+  return 0; 
+}
 
 /*
  * Try to open USB device with given VID, PID, vendor and product name
@@ -398,8 +427,8 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
  * shared VID/PID
  */
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor,
-			 const char *vendorName, int product, const char *productName)
+static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName,
+                         int product, const char *productName, const char *port)
 {
     libusb_device_handle *handle = NULL;
     int                  errorCode = USB_ERROR_NOTFOUND;
@@ -454,6 +483,18 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
                 if((productName != NULL) && (productName[0] != 0) && !str_eq(string, productName))
                     errorCode = USB_ERROR_NOTFOUND;
             }
+            if (errorCode == 0) {
+              if(!str_eq(port, "usb")) {
+                // -P option given
+                libusb_get_string_descriptor_ascii(handle, descriptor.iSerialNumber, (unsigned char*)string, sizeof(string));
+                char bus_num[21];
+                sprintf(bus_num, "%d", libusb_get_bus_number(dev));
+                char dev_addr[21];
+                sprintf(dev_addr, "%d", libusb_get_device_address(dev));
+                if (!check_for_port_argument_match(port, bus_num, dev_addr, string))
+                    errorCode = USB_ERROR_NOTFOUND;
+              }                
+            }
             if (errorCode == 0)
                 break;
             libusb_close(handle);
@@ -468,8 +509,8 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor,
     return errorCode;
 }
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor,
-			 const char *vendorName, int product, const char *productName)
+static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName,
+                         int product, const char *productName, const char *port)
 {
 struct usb_bus       *bus;
 struct usb_device    *dev;
@@ -524,6 +565,15 @@ static int           didUsbInit = 0;
                     if((productName != NULL) && (productName[0] != 0) && !str_eq(string, productName))
                         errorCode = USB_ERROR_NOTFOUND;
                 }
+                if (errorCode == 0) {
+                  if(!str_eq(port, "usb")) {
+                    // -P option given
+                    usb_get_string_simple(handle, dev->descriptor.iSerialNumber,
+                                          string, sizeof(string));
+                    if (!check_for_port_argument_match(port, bus->dirname, dev->filename, string))
+                        errorCode = USB_ERROR_NOTFOUND;
+                  }
+                }
                 if (errorCode == 0)
                     break;
                 usb_close(handle);
@@ -557,14 +607,14 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     pid = USBASP_SHARED_PID;
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
-  if (usbOpenDevice(&PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct) != 0) {
+  if (usbOpenDevice(&PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
     /* try alternatives */
     if(str_eq(pgmid, "usbasp")) {
     /* for id usbasp autodetect some variants */
       if(str_caseeq(port, "nibobee")) {
         pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
         if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
-		        USBASP_NIBOBEE_PID, "NIBObee") != 0) {
+                          USBASP_NIBOBEE_PID, "NIBObee", port) != 0) {
           pmsg_error("cannot find USB device NIBObee with vid=0x%x pid=0x%x\n",
             USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
           return -1;
@@ -573,7 +623,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
       }
       /* check if device with old VID/PID is available */
       if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
-		             USBASP_OLD_PID, "USBasp") == 0) {
+                        USBASP_OLD_PID, "USBasp", port) == 0) {
         /* found USBasp with old IDs */
         pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
 	return 0;
@@ -771,9 +821,9 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   pmsg_debug("usbasp_program_paged_load(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBASP_FUNC_READFLASH;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     function = USBASP_FUNC_READEEPROM;
   } else {
     return -2;
@@ -836,9 +886,9 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
   pmsg_debug("usbasp_program_paged_write(\"%s\", 0x%x, %d)\n", m->desc, address, n_bytes);
 
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     function = USBASP_FUNC_WRITEFLASH;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     function = USBASP_FUNC_WRITEEEPROM;
   } else {
     return -2;
@@ -1171,8 +1221,8 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   pr = addr + m->offset;
   writed = 0;
 
-  /* must erase fuse first */
-  if(str_eq(m->desc, "fuse"))
+  /* must erase fuse first, TPI parts only have one fuse */
+  if(mem_is_a_fuse(m))
   {
     /* Set PR */
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));

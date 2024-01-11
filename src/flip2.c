@@ -401,7 +401,7 @@ int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (str_eq(mem->desc, "flash"))
+    if (mem_is_flash(mem))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -415,6 +415,15 @@ int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
 {
   enum flip2_mem_unit mem_unit;
 
+  if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, part, mem, addr, &is) >= 0 && is == value)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, part->desc);
+    return -1;
+  }
+
   if (FLIP2(pgm)->dfu == NULL)
     return -1;
 
@@ -422,7 +431,7 @@ int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (str_eq(mem->desc, "flash"))
+    if (mem_is_flash(mem))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -444,7 +453,7 @@ int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (str_eq(mem->desc, "flash"))
+    if (mem_is_flash(mem))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;
@@ -475,7 +484,7 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
 
   if (mem_unit == FLIP2_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP", mem->desc);
-    if (str_eq(mem->desc, "flash"))
+    if (mem_is_flash(mem))
       msg_error(" (did you mean \"application\"?)");
     msg_error("\n");
     return -1;

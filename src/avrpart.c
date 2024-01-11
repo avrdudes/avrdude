@@ -137,7 +137,7 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
   if(!(op = mem->op[opnum]))
     return -1;
 
-  isflash = avr_mem_is_flash_type(mem);
+  isflash = mem_is_in_flash(mem);
   memsize = mem->size >> isflash;        // word addresses for flash
   pagesize = mem->page_size >> isflash;
 
@@ -290,45 +290,12 @@ int avr_get_output_index(const OPCODE *op) {
 }
 
 
-static char * avr_op_str(int op)
-{
-  switch (op) {
-    case AVR_OP_READ        : return "READ"; break;
-    case AVR_OP_WRITE       : return "WRITE"; break;
-    case AVR_OP_READ_LO     : return "READ_LO"; break;
-    case AVR_OP_READ_HI     : return "READ_HI"; break;
-    case AVR_OP_WRITE_LO    : return "WRITE_LO"; break;
-    case AVR_OP_WRITE_HI    : return "WRITE_HI"; break;
-    case AVR_OP_LOADPAGE_LO : return "LOADPAGE_LO"; break;
-    case AVR_OP_LOADPAGE_HI : return "LOADPAGE_HI"; break;
-    case AVR_OP_LOAD_EXT_ADDR : return "LOAD_EXT_ADDR"; break;
-    case AVR_OP_WRITEPAGE   : return "WRITEPAGE"; break;
-    case AVR_OP_CHIP_ERASE  : return "CHIP_ERASE"; break;
-    case AVR_OP_PGM_ENABLE  : return "PGM_ENABLE"; break;
-    default : return "<unknown opcode>"; break;
-  }
-}
-
-
-static char * bittype(int type)
-{
-  switch (type) {
-    case AVR_CMDBIT_IGNORE  : return "IGNORE"; break;
-    case AVR_CMDBIT_VALUE   : return "VALUE"; break;
-    case AVR_CMDBIT_ADDRESS : return "ADDRESS"; break;
-    case AVR_CMDBIT_INPUT   : return "INPUT"; break;
-    case AVR_CMDBIT_OUTPUT  : return "OUTPUT"; break;
-    default : return "<unknown bit type>"; break;
-  }
-}
-
-
 /***
  *** Elementary functions dealing with AVRMEM structures
  ***/
 
-AVRMEM *avr_new_memtype(void) {
-  AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_memtype()", sizeof(*m));
+AVRMEM *avr_new_mem(void) {
+  AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_mem()", sizeof(*m));
   m->desc = cache_string("");
   m->page_size = 1;             // Ensure not 0
   m->initval = -1;              // Unknown value represented as -1
@@ -363,7 +330,7 @@ int avr_initmem(const AVRPART *p) {
 
 
 AVRMEM *avr_dup_mem(const AVRMEM *m) {
-  AVRMEM *n = avr_new_memtype();
+  AVRMEM *n = avr_new_mem();
 
   if(m) {
     *n = *m;
@@ -421,20 +388,20 @@ void avr_free_memalias(AVRMEM_ALIAS *m) {
 }
 
 AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
-  AVRMEM_ALIAS * m, * match;
+  AVRMEM_ALIAS *m, *match;
   LNODEID ln;
-  int matches;
+  int matches, d1;
   size_t l;
 
-  if(!p || !desc || !p->mem_alias)
+  if(!p || !desc || !(d1 = *desc) || !p->mem_alias)
     return NULL;
 
   l = strlen(desc);
   matches = 0;
   match = NULL;
-  for (ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
+  for(ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(l && str_starts(m->desc, desc)) { // Partial initial match
+    if(d1 == *m->desc && !strncmp(m->desc, desc, l)) { // Partial initial match
       match = m;
       matches++;
       if(m->desc[l] == 0)       // Exact match; return straight away
@@ -446,20 +413,20 @@ AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
 }
 
 AVRMEM *avr_locate_mem_noalias(const AVRPART *p, const char *desc) {
-  AVRMEM * m, * match;
+  AVRMEM *m, *match;
   LNODEID ln;
-  int matches;
+  int matches, d1;
   size_t l;
 
-  if(!p || !desc || !p->mem)
+  if(!p || !desc || !(d1 = *desc) || !p->mem)
     return NULL;
 
   l = strlen(desc);
   matches = 0;
   match = NULL;
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+  for(ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(l && str_starts(m->desc, desc)) { // Partial initial match
+    if(d1 == *m->desc && !strncmp(m->desc, desc, l)) { // Partial initial match
       match = m;
       matches++;
       if(m->desc[l] == 0)       // Exact match; return straight away
@@ -482,6 +449,39 @@ AVRMEM *avr_locate_mem(const AVRPART *p, const char *desc) {
   return a? a->aliased_mem: NULL;
 }
 
+// Return the first fuse which has off as offset or which has high byte and off-1 as offset
+AVRMEM *avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off) {
+  AVRMEM *m;
+
+  if(p && p->mem)
+    for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+      if(mem_is_a_fuse(m = ldata(ln)))
+        if(off == mem_fuse_offset(m) || (m->size == 2 && off-1 == mem_fuse_offset(m)))
+          return m;
+
+  return NULL;
+}
+
+// Return the first memory that shares the type incl any fuse identified by offset in fuses
+AVRMEM *avr_locate_mem_by_type(const AVRPART *p, memtype_t type) {
+  AVRMEM *m;
+  memtype_t off = type & MEM_FUSEOFF_MASK;
+  type &= ~(memtype_t) MEM_FUSEOFF_MASK;
+
+  if(p && p->mem)
+    for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+      if((m = ldata(ln))->type & type)
+        if(type != MEM_IS_A_FUSE || off == mem_fuse_offset(m))
+          return m;
+
+  return NULL;
+}
+
+// Return offset of memory data
+unsigned int avr_data_offset(const AVRPART *p) {
+  return p->prog_modes & (PM_PDI | PM_UPDI)? 0x1000000: 0;
+}
+
 AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   if(p && p->mem_alias && m_orig)
     for(LNODEID ln=lfirst(p->mem_alias); ln; ln=lnext(ln)) {
@@ -493,69 +493,426 @@ AVRMEM_ALIAS *avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig) {
   return NULL;
 }
 
+// Return index in uP_table for part or -1
+int avr_locate_upidx(const AVRPART *p) {
+  int idx = -1;
 
-void avr_mem_display(const char *prefix, FILE *f, const AVRMEM *m,
-                     const AVRPART *p, int verbose) {
-  static unsigned int prev_mem_offset;
-  static int prev_mem_size;
-  int i, j;
-  char * optr;
+  if(!p)
+    return -1;
+  if(p->mcuid >= 0)
+    idx = upidxmcuid(p->mcuid);
+  if(idx < 0 && p->desc && *p->desc)
+    idx = upidxname(p->desc);
 
-  if (m == NULL || verbose > 2) {
-      fprintf(f,
-              "%s                                Block Poll               Page                       Polled\n"
-              "%sMemory Type Alias    Mode Delay Size  Indx Paged  Size   Size #Pages MinW  MaxW   ReadBack\n"
-              "%s----------- -------- ---- ----- ----- ---- ------ ------ ---- ------ ----- ----- ---------\n",
-            prefix, prefix, prefix);
-  }
+  if(idx < 0)
+    pmsg_error("uP_table neither knows mcuid %d nor part %s\n",
+      p->mcuid, p->desc && *p->desc? p->desc: "???");
 
-  if (m != NULL) {
-    // Only print memory section if the previous section printed isn't identical
-    if(prev_mem_offset != m->offset || prev_mem_size != m->size || str_eq(p->family_id, "")) {
-      prev_mem_offset = m->offset;
-      prev_mem_size = m->size;
-      AVRMEM_ALIAS *ap = avr_find_memalias(p, m);
-      /* Show alias if the current and the next memory section has the same offset
-      and size, we're not out of band and a family_id is present */
-      const char *mem_desc_alias = ap? ap->desc: "";
-      fprintf(f,
-              "%s%-11s %-8s %4d %5d %5d %4d %-6s %6d %4d %6d %5d %5d 0x%02x 0x%02x\n",
-              prefix,
-              m->desc,
-              mem_desc_alias,
-              m->mode, m->delay, m->blocksize, m->pollindex,
-              m->paged ? "yes" : "no",
-              m->size,
-              m->page_size,
-              m->num_pages,
-              m->min_write_delay,
-              m->max_write_delay,
-              m->readback[0],
-              m->readback[1]);
-    }
-    if (verbose > 4) {
-      msg_trace2("%s  Memory Ops:\n"
-                      "%s    Operation    Inst Bit  Bit Type  Bitno  Value\n"
-                      "%s    -----------  --------  --------  -----  -----\n",
-                      prefix, prefix, prefix);
-      for (i=0; i<AVR_OP_MAX; i++) {
-        if (m->op[i]) {
-          for (j=31; j>=0; j--) {
-            if (j==31)
-              optr = avr_op_str(i);
-            else
-              optr = " ";
-          fprintf(f,
-                  "%s    %-11s  %8d  %8s  %5d  %5d\n",
-                  prefix, optr, j,
-                  bittype(m->op[i]->bit[j].type),
-                  m->op[i]->bit[j].bitno,
-                  m->op[i]->bit[j].value);
-          }
-        }
+  return idx;
+}
+
+// Return pointer to config table for the part and set number of config bitfields
+const Configitem_t *avr_locate_configitems(const AVRPART *p, int *ncp) {
+  int idx = avr_locate_upidx(p);
+  if(idx < 0)
+    return NULL;
+
+  *ncp = uP_table[idx].nconfigs;
+  return uP_table[idx].cfgtable;
+}
+
+// Return pointer to ISR table for the part and set number of interrupts
+const char * const *avr_locate_isrtable(const AVRPART *p, int *nip) {
+  int idx = avr_locate_upidx(p);
+  if(idx < 0)
+    return NULL;
+
+  *nip = uP_table[idx].ninterrupts;
+  return uP_table[idx].isrtable;
+}
+
+// Return pointer to register file for the part and set number of registers
+const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp) {
+  int idx = avr_locate_upidx(p);
+  if(idx < 0)
+    return NULL;
+
+  *nrp = uP_table[idx].nregisters;
+  return uP_table[idx].regf;
+}
+
+/*
+ * Return pointer to a register that uniquely matches the argument reg or
+ * NULL if no or more than one register matches the reg argument.
+ *
+ * Register names have the form module.name or module.instance.name. The
+ * caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If reg is a full, existing register name, eg,
+ * porta.out then a pointer to that register entry is returned irrespective
+ * of the matching function. avr_locate_register() also tries to match the
+ * last colon-separated segments (instance.name or name) using the provided
+ * matching function. If reg is the same as instance.name or name then the
+ * matching function switches to str_eq(). This allows the only ADC register
+ * adc.adc to be addressed by adc under a lax str_begins() matching even
+ * though there are other registers that start with adc, eg, adc.adcsra.
+ */
+
+const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, const char *reg,
+  int (*match)(const char *, const char*)) {
+
+  if(!rgf || nr < 1 || !reg || !match)
+    return NULL;
+
+  const Register_file_t *ret = NULL;
+  int nmatches = 0, eqmatch = match == str_eq;
+
+  for(int i = 0; i < nr; i++) {
+    int reg_matched = 0;
+    // Match against module.instance.name, instance.name or name
+    for(const char *p = rgf[i].reg; p; p = strchr(p, '.'), p = p? p+1: p)
+      if(match(p, reg)) {
+        if(p == rgf[i].reg && (eqmatch || str_eq(p, reg))) // Reg is full name: return straight away
+          return rgf+i;
+        if(!eqmatch && str_eq(p, reg)) // reg same as segment: switch to str_eq() matching
+          return avr_locate_register(rgf, nr, reg, str_eq);
+        if(!reg_matched++)      // Record a matching register only once
+          nmatches++, ret = rgf+i;
       }
+  }
+
+  return nmatches == 1? ret: NULL;
+}
+
+/*
+ * Return a NULL terminated malloc'd list of pointers to matching registers
+ *
+ * Register names have the form module.name or module.instance.name. The
+ * caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If reg is a full, existing register name, eg,
+ * porta.out then the returned list is confined to this specific entry
+ * irrespective of the matching function. avr_locate_registerlist() also
+ * tries to match the last colon-separated segments (instance.name or name)
+ * using the provided matching function. If the argument reg is the same as
+ * instance.name or name then the matching function switches to str_eq()
+ * reducing the returned list to those that match that full segment. This
+ * behaviour can be suppressed by specifying a pattern for reg, eg, adc*
+ * together with the matching function str_matched_by.
+ */
+const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
+  int (*match)(const char *, const char*)) {
+
+  const Register_file_t **ret = cfg_malloc(__func__, sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
+  int eqmatch = match == str_eq;
+
+  if(rgf && reg && match)
+    for(int i = 0; i < nr; i++) {
+      int reg_matched = 0;
+      // Match against module.instance.name, instance.name or name
+      for(const char *p = rgf[i].reg; p; p = strchr(p, '.'), p = p? p+1: p)
+        if(match(p, reg)) {
+          if(p == rgf[i].reg && (eqmatch || str_eq(p, reg))) { // Reg is full name: return only that
+            ret[0] = rgf+i;
+            ret[1] = NULL;
+            return ret;
+          }
+          if(!eqmatch && str_eq(p, reg)) { // reg same as segment: switch to str_eq() match
+            free(ret);
+            return avr_locate_registerlist(rgf, nr, reg, str_eq);
+          }
+          if(!reg_matched++)      // Record a matching register only once
+            *r++ = rgf+i;
+        }
+    }
+  *r = NULL;
+
+  return ret;
+}
+
+/*
+ * Return pointer to a configuration bitfield that uniquely matches the
+ * argument name. Return NULL if none matches or more than one do.
+ *
+ * The caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If name is the full name of a configuration bitfield
+ * then a pointer to that is returned irrespective of the matching function.
+ */
+const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
+  int (*match)(const char *, const char*)) {
+
+  if(!cfg || nc < 1 || !name || !match)
+    return NULL;
+
+  const Configitem_t *ret = NULL;
+  int nmatches = 0;
+
+  for(int i = 0; i < nc; i++) {
+    if(match(cfg[i].name, name)) {
+      if(match == str_eq || str_eq(cfg[i].name, name)) // Full name specified: return straight away
+        return cfg+i;
+      nmatches++, ret = cfg+i;
     }
   }
+
+  return nmatches == 1? ret: NULL;
+}
+
+/*
+ * Return a NULL terminated malloc'd list of pointers to config bitfields
+ *
+ * The caller provides a matching function which can be str_eq, str_starts,
+ * str_matched_by etc. If name is a full, existing config name then the
+ * returned list is confined to this specific entry irrespective of the
+ * matching function.
+ */
+const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
+  int (*match)(const char *, const char*)) {
+
+  const Configitem_t **ret = cfg_malloc(__func__, sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
+
+  if(cfg && name && match) {
+    for(int i = 0; i < nc; i++)
+      if(match(cfg[i].name, name)) {
+        if(match == str_eq || str_eq(cfg[i].name, name)) { // Full name specified: return straight away
+          ret[0] = cfg+i;
+          ret[1] = NULL;
+          return ret;
+        }
+        *r++ = cfg+i;
+      }
+  }
+  *r = NULL;
+
+  return ret;
+}
+
+// Return memory associated with config item and fill in pointer to Configitem_t record
+static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPART *p,
+  const char *cname, const Configitem_t **cp, int *valp) {
+
+  int nc = 0;
+  const Configitem_t *cfg = avr_locate_configitems(p, &nc);
+
+  if(!cfg || nc < 1) {
+    pmsg_error("avrintel.c does not hold configuration information for %s\n", p->desc);
+    return NULL;
+  }
+
+  const Configitem_t *c = avr_locate_config(cfg, nc, cname, str_contains);
+  if(!c) {
+    pmsg_error("%s does not have a unique config item matched by %s\n", p->desc, cname);
+    return NULL;
+  }
+
+  AVRMEM *mem = str_starts(c->memstr, "lock")? avr_locate_lock(p): avr_locate_fuse_by_offset(p, c->memoffset);
+  if(!mem)
+    mem = avr_locate_mem(p, c->memstr);
+  if(!mem) {
+    pmsg_error("%s does not have the memory %s needed for config item %s\n", p->desc, c->memstr, cname);
+    return NULL;
+  }
+
+  if(mem->size < 1 || mem->size > 4) {
+    pmsg_error("cannot handle size %d of %s's memory %s for config item %s\n", mem->size, p->desc, c->memstr, cname);
+    return NULL;
+  }
+
+  int fusel = 0;
+  for(int i = 0; i < mem->size; i++)
+    if(led_read_byte(pgm, p, mem, i, (unsigned char *) &fusel + i) < 0) {
+      pmsg_error("cannot read from  %s's %s memory\n", p->desc, mem->desc);
+      return NULL;
+    }
+
+  *cp = c;
+  *valp = fusel;
+  return mem;
+}
+
+// Initialise *valuep with configuration value of named configuration bitfield
+int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
+  const Configitem_t *c;
+  int fusel;
+
+  if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
+    return -1;
+
+  *valuep = (fusel & c->mask) >> c->lsh;
+  return 0;
+}
+
+// Set configuration value of named configuration bitfield to value
+int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value) {
+  AVRMEM *mem;
+  const Configitem_t *c;
+  int fusel;
+
+  if(!(mem=avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel)))
+    return -1;
+
+  if((value << c->lsh) & ~c->mask)
+    pmsg_warning("value 0x%02x has bits set outside bitfield mask 0x%02x\n", value, c->mask >> c->lsh);
+
+  int newval = (fusel & ~c->mask) | ((value << c->lsh) & c->mask);
+
+  if(newval != fusel) {
+    for(int i = 0; i < mem->size; i++)
+      if(led_write_byte(pgm, p, mem, i, ((unsigned char *) &newval)[i]) < 0) {
+        pmsg_error("cannot write to %s's %s memory\n", p->desc, mem->desc);
+        return -1;
+      }
+  }
+
+  return 0;
+}
+
+
+static char *print_num(const char *fmt, int n) {
+  return str_sprintf(n<10? "%d": fmt, n);
+}
+
+static int num_len(const char *fmt, int n) {
+  char *p = print_num(fmt, n);
+  int ret = strlen(p);
+  free(p);
+
+  return ret;
+}
+
+void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
+  const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
+  const char *table_padding = "-------------------------------";
+  const int memory_col = 0, offset_col = 3;
+  int m_char_max[4];
+
+  for(int i = 0; i < 4; i++)
+    m_char_max[i] = strlen(table_colum[i]);
+
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
+    int m_size[] = {0, m->size, m->page_size, m->offset};
+
+    // Mem desc/size/pgsize/offset string length
+    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    for(int i = 0; i < 4; i++) {
+      int len = i == memory_col?
+        (int) (strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: "")): // desc
+        num_len(i == offset_col? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
+      if(m_char_max[i] < len)
+        m_char_max[i] = len;
+    }
+  }
+
+  // Print memory table header
+  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+    fprintf(f,
+      "\n%s%-*s  %*s  %-*s  %*s\n"
+      "%s%.*s--%.*s--%.*s--%.*s\n",
+      prefix,
+      m_char_max[0], table_colum[0],
+      m_char_max[1], table_colum[1],
+      m_char_max[2], table_colum[2],
+      m_char_max[3], table_colum[3],
+      prefix,
+      m_char_max[0], table_padding,
+      m_char_max[1], table_padding,
+      m_char_max[2], table_padding,
+      m_char_max[3], table_padding);
+  } else {
+    fprintf(f,
+      "\n%s%-*s  %*s  %-*s\n"
+      "%s%.*s--%.*s--%.*s\n",
+      prefix,
+      m_char_max[0], table_colum[0],
+      m_char_max[1], table_colum[1],
+      m_char_max[2], table_colum[2],
+      prefix,
+      m_char_max[0], table_padding,
+      m_char_max[1], table_padding,
+      m_char_max[2], table_padding);
+  }
+
+  for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    AVRMEM *m = ldata(ln);
+
+    // Create mem desc string including alias if present
+    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    char *m_desc_str = str_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
+
+    // Print memory table content
+    if(p->prog_modes & (PM_PDI | PM_UPDI)) {
+      char *m_offset = print_num("0x%04x", m->offset);
+      fprintf(f, "%s%-*s  %*d  %*d  %*s \n",
+        prefix,
+        m_char_max[0], m_desc_str,
+        m_char_max[1], m->size,
+        m_char_max[2], m->page_size,
+        m_char_max[3], m_offset);
+      free(m_offset);
+    } else {
+      fprintf(f, "%s%-*s  %*d  %*d\n",
+        prefix,
+        m_char_max[0], m_desc_str,
+        m_char_max[1], m->size,
+        m_char_max[2], m->page_size);
+    }
+    free(m_desc_str);
+  }
+}
+
+int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
+  const char *table_padding = "-------------------------------";
+  const char *var_table_column[] = {"Variants", "Package", "F max", "T range", "V range"};
+  char var_tok[5][50];
+  int var_tok_len[5];
+
+  for(int i = 0; i < 5; i++)
+    var_tok_len[i] = strlen(var_table_column[i]);
+
+  if(lsize(p->variants)) {
+    // Split, eg, "ATtiny841-SSU:  SOIC14, Fmax=16 MHz, T=[-40 C, 85 C], Vcc=[1.7 V, 5.5 V]"
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=%48[^]]], Vcc=%48[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4]))
+        for(int i = 0; i < 5; i++)
+          if(var_tok_len[i] < (int) strlen(var_tok[i]))
+            var_tok_len[i] = strlen(var_tok[i]) + (i>2); // Add 1 for closing interval bracket
+
+    // Print variants table header
+    fprintf(f,
+      "\n%s%-*s  %-*s  %-*s  %-*s  %-*s\n"
+        "%s%.*s--%.*s--%.*s--%.*s--%.*s\n",
+      prefix,
+      var_tok_len[0], var_table_column[0],
+      var_tok_len[1], var_table_column[1],
+      var_tok_len[2], var_table_column[2],
+      var_tok_len[3], var_table_column[3],
+      var_tok_len[4], var_table_column[4],
+      prefix,
+      var_tok_len[0], table_padding,
+      var_tok_len[1], table_padding,
+      var_tok_len[2], table_padding,
+      var_tok_len[3], table_padding,
+      var_tok_len[4], table_padding);
+
+    // Print variants table content
+    for(LNODEID ln=lfirst(p->variants); ln; ln=lnext(ln))
+      if(5 == sscanf(ldata(ln), "%49[^:]: %49[^,], Fmax=%49[^,], T=%48[^]]], Vcc=%48[^]]]",
+        var_tok[0], var_tok[1], var_tok[2], var_tok[3], var_tok[4])) {
+        strcat(var_tok[3], "]");
+        strcat(var_tok[4], "]");
+        fprintf(f,
+          "%s%-*s  %-*s  %-*s  %-*s  %-*s\n",
+          prefix,
+          var_tok_len[0], var_tok[0],
+          var_tok_len[1], var_tok[1],
+          var_tok_len[2], var_tok[2],
+          var_tok_len[3], var_tok[3],
+          var_tok_len[4], var_tok[4]);
+      }
+
+    return 0;
+  }
+  return -1;
 }
 
 
@@ -674,19 +1031,19 @@ AVRPART *locate_part_by_avr910_devcode(const LISTID parts, int devcode) {
   return NULL;
 }
 
-AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
-  if(parts && sigsize == 3)
-    for(LNODEID ln1=lfirst(parts); ln1; ln1=lnext(ln1)) {
-      AVRPART *p = ldata(ln1);
-      int i;
-      for(i=0; i<3; i++)
-        if(p->signature[i] != sig[i])
-          break;
-      if(i == 3)
+AVRPART *locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes) {
+  if(parts && sigsize == 3) {
+    for(LNODEID ln=lfirst(parts); ln; ln=lnext(ln)) {
+      AVRPART *p = ldata(ln);
+      if(memcmp(p->signature, sig, 3) == 0 && p->prog_modes & prog_modes)
         return p;
     }
-
+  }
   return NULL;
+}
+
+AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
+  return locate_part_by_signature_pm(parts, sig, sigsize, PM_ALL);
 }
 
 /*
@@ -728,67 +1085,49 @@ void sort_avrparts(LISTID avrparts)
   lsort(avrparts,(int (*)(void*, void*)) sort_avrparts_compare);
 }
 
+const char *avr_prog_modes_str(int pm) {
+  static char type[1024];
 
-static char * reset_disp_str(int r)
-{
-  switch (r) {
-    case RESET_DEDICATED : return "dedicated";
-    case RESET_IO        : return "possible i/o";
-    default              : return "<invalid>";
-  }
+  strcpy(type, "0");
+  if(pm & PM_TPI)
+    strcat(type, ", TPI");
+  if(pm & PM_ISP)
+    strcat(type, ", ISP");
+  if(pm & PM_PDI)
+    strcat(type, ", PDI");
+  if(pm & PM_UPDI)
+    strcat(type, ", UPDI");
+  if(pm & PM_HVSP)
+    strcat(type, ", HVSP");
+  if(pm & PM_HVPP)
+    strcat(type, ", HVPP");
+  if(pm & PM_debugWIRE)
+    strcat(type, ", debugWIRE");
+  if(pm & PM_JTAG)
+    strcat(type, ", JTAG");
+  if(pm & PM_JTAGmkI)
+    strcat(type, ", JTAGmkI");
+  if(pm & PM_XMEGAJTAG)
+    strcat(type, ", XMEGAJTAG");
+  if(pm & PM_AVR32JTAG)
+    strcat(type, ", AVR32JTAG");
+  if(pm & PM_aWire)
+    strcat(type, ", aWire");
+  if(pm & PM_SPM)
+    strcat(type, ", SPM");
+
+  return type + (type[1] == 0? 0: 3);
 }
 
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
-  char * buf;
-  const char * px;
-  LNODEID ln;
-  AVRMEM * m;
+  fprintf(f, "%sAVR Part              : %s\n", prefix, p->desc);
+  fprintf(f, "%sProgramming modes     : %s\n", prefix, avr_prog_modes_str(p->prog_modes));
 
-  fprintf(  f, "%sAVR Part                      : %s\n", prefix, p->desc);
-  if (p->chip_erase_delay)
-    fprintf(f, "%sChip Erase delay              : %d us\n", prefix, p->chip_erase_delay);
-  if (p->pagel)
-    fprintf(f, "%sPAGEL                         : P%02X\n", prefix, p->pagel);
-  if (p->bs2)
-    fprintf(f, "%sBS2                           : P%02X\n", prefix, p->bs2);
-  fprintf(  f, "%sRESET disposition             : %s\n", prefix, reset_disp_str(p->reset_disposition));
-  fprintf(  f, "%sRETRY pulse                   : %s\n", prefix, avr_pin_name(p->retry_pulse));
-  fprintf(  f, "%sSerial program mode           : %s\n", prefix, (p->flags & AVRPART_SERIALOK) ? "yes" : "no");
-  fprintf(  f, "%sParallel program mode         : %s\n", prefix, (p->flags & AVRPART_PARALLELOK) ?
-         ((p->flags & AVRPART_PSEUDOPARALLEL) ? "pseudo" : "yes") : "no");
-  if(p->timeout)
-    fprintf(f, "%sTimeout                       : %d\n", prefix, p->timeout);
-  if(p->stabdelay)
-    fprintf(f, "%sStabDelay                     : %d\n", prefix, p->stabdelay);
-  if(p->cmdexedelay)
-    fprintf(f, "%sCmdexeDelay                   : %d\n", prefix, p->cmdexedelay);
-  if(p->synchloops)
-    fprintf(f, "%sSyncLoops                     : %d\n", prefix, p->synchloops);
-  if(p->bytedelay)
-    fprintf(f, "%sByteDelay                     : %d\n", prefix, p->bytedelay);
-  if(p->pollindex)
-    fprintf(f, "%sPollIndex                     : %d\n", prefix, p->pollindex);
-  if(p->pollvalue)
-    fprintf(f, "%sPollValue                     : 0x%02x\n", prefix, p->pollvalue);
-  fprintf(  f, "%sMemory Detail                 :\n\n", prefix);
-
-  px = prefix;
-  buf = (char *) cfg_malloc("avr_display()", strlen(prefix) + 5);
-  strcpy(buf, prefix);
-  strcat(buf, "  ");
-  px = buf;
-
-  if (verbose <= 2)
-    avr_mem_display(px, f, NULL, p, verbose);
-
-  for (ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    avr_mem_display(px, f, m, p, verbose);
+  if(verbose > 1) {
+    avr_mem_display(f, p, prefix);
+    avr_variants_display(f, p, prefix);
   }
-
-  if (buf)
-    free(buf);
 }
 
 

@@ -213,7 +213,7 @@ static int linuxgpio_sysfs_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
 
 
 static void linuxgpio_sysfs_display(const PROGRAMMER *pgm, const char *p) {
-    msg_info("%sPin assignment  : /sys/class/gpio/gpio{n}\n",p);
+    msg_info("%sPin assignment        : /sys/class/gpio/gpio{n}\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 
@@ -356,7 +356,7 @@ static int libgpiod_is_working(void) {
 
 
 static void linuxgpio_libgpiod_display(const PROGRAMMER *pgm, const char *p) {
-  msg_info("Pin assignment  : libgpiod\n");
+  msg_info("%sPin assignment        : libgpiod\n", %s);
   pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 

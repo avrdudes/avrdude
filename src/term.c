@@ -35,7 +35,6 @@
 #include <errno.h>
 
 #include "libavrdude.h"
-#include "avrintel.h"
 
 #if defined(HAVE_LIBREADLINE)
 #include <readline/readline.h>
@@ -73,6 +72,7 @@ static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
 static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
@@ -101,15 +101,16 @@ struct command cmd[] = {
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
   { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "config", cmd_config, _fo(open),            "change or show configuration properties of the part" },
+  { "regfile", cmd_regfile, _fo(open),          "I/O register addresses and contents" },
   { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
   { "part",  cmd_part,  _fo(open),              "display the current part information" },
   { "send",  cmd_send,  _fo(cmd),               "send a raw command to the programmer" },
   { "parms", cmd_parms, _fo(print_parms),       "display useful parameters" },
-  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set the target voltage" },
-  { "varef", cmd_varef, _fo(set_varef),         "set the analog reference voltage" },
-  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set the oscillator frequency" },
-  { "sck",   cmd_sck,   _fo(set_sck_period),    "set the SCK period" },
+  { "vtarg", cmd_vtarg, _fo(set_vtarget),       "set or get the target voltage" },
+  { "varef", cmd_varef, _fo(set_varef),         "set or get the analog reference voltage" },
+  { "fosc",  cmd_fosc,  _fo(set_fosc),          "set or get the oscillator frequency" },
+  { "sck",   cmd_sck,   _fo(set_sck_period),    "set or get the SCK period or frequency" },
   { "spi",   cmd_spi,   _fo(setpin),            "enter direct SPI mode" },
   { "pgm",   cmd_pgm,   _fo(setpin),            "return to programming mode" },
   { "verbose", cmd_verbose, _fo(open),          "display or set -v verbosity level" },
@@ -231,14 +232,14 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   }
 
   enum { read_size = 256 };
-  char *memtype;
+  char *memstr;
   if(argc > 1)
-    memtype = argv[1];
+    memstr = argv[1];
   else
-    memtype = (char*)read_mem[i].mem->desc;
-  const AVRMEM *mem = avr_locate_mem(p, memtype);
+    memstr = (char*)read_mem[i].mem->desc;
+  const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("(%s) %s memory type not defined for part %s\n", cmd, memtype, p->desc);
+    pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
     return -1;
   }
 
@@ -337,7 +338,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
       report_progress(1, -1, NULL);
       pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) read_mem[i].addr + j, p->desc);
       if (rc == -1)
-        imsg_error("%*sread operation not supported on memory type %s\n", 7, "", mem->desc);
+        imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       free(buf);
       return -1;
     }
@@ -425,10 +426,10 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   int write_mode;               // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
-  char *memtype = argv[1];      // Memory name string
-  const AVRMEM *mem = avr_locate_mem(p, memtype);
+  char *memstr = argv[1];       // Memory name string
+  const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
-    pmsg_error("(write) %s memory type not defined for part %s\n", memtype, p->desc);
+    pmsg_error("(write) memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
   int maxsize = mem->size;
@@ -472,7 +473,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   // Allocate large enough data and allocation tags space
   size_t bufsz = mem->size + 8 + maxstrlen(argc-3, argv+3)+1;
   if(bufsz > INT_MAX) {
-    pmsg_error("(write) too large memory request (%zu)\n", bufsz);
+    pmsg_error("(write) too large memory request (%lu)\n", (unsigned long) bufsz);
     return -1;
   }
   unsigned char *buf = calloc(bufsz, 1), *tags = calloc(bufsz, 1);
@@ -610,7 +611,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
     } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
       if (rc == -1)
-        imsg_error("%*swrite operation not supported on memory type %s\n", 8, "", mem->desc);
+        imsg_error("%*swrite operation not supported on memory %s\n", 8, "", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
       imsg_error("%*sreadback from %s failed\n", 8, "", mem->desc);
     } else {                    // Read back byte b is now set
@@ -641,7 +642,7 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 
   AVRMEM *mem, *omem;
   if(!(omem = avr_locate_mem(p, argv[1]))) {
-    pmsg_error("(save) %s memory type not defined for part %s\n", argv[1], p->desc);
+    pmsg_error("(save) memory %s not defined for part %s\n", argv[1], p->desc);
     return -1;
   }
 
@@ -831,13 +832,13 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   if (argc > 1) {
-    char *memtype = argv[1];
-    const AVRMEM *mem = avr_locate_mem(p, memtype);
+    char *memstr = argv[1];
+    const AVRMEM *mem = avr_locate_mem(p, memstr);
     if (mem == NULL) {
-      pmsg_error("(erase) %s memory type not defined for part %s\n", argv[1], p->desc);
+      pmsg_error("(erase) memory %s not defined for part %s\n", argv[1], p->desc);
       return -1;
     }
-    char *args[] = {"write", memtype, "", "", "0xff", "...", NULL};
+    char *args[] = {"write", memstr, "", "", "0xff", "...", NULL};
     // erase <mem>
     if (argc == 2) {
       args[2] = "0";
@@ -858,7 +859,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
   if(rc == LIBAVRDUDE_SOFTFAIL) {
     pmsg_info("(erase) emulating chip erase by writing 0xff to flash ");
-    const AVRMEM *flm = avr_locate_mem(p, "flash");
+    const AVRMEM *flm = avr_locate_flash(p);
     if(!flm) {
       msg_error("but flash not defined for part %s?\n", p->desc);
       return -1;
@@ -907,14 +908,14 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
 
-  char *memtype = argv[1];
-  const AVRMEM *mem = avr_locate_mem(p, memtype);
+  char *memstr = argv[1];
+  const AVRMEM *mem = avr_locate_mem(p, memstr);
   if(!mem) {
-    pmsg_error("(pgerase) %s memory type not defined for part %s\n", memtype, p->desc);
+    pmsg_error("(pgerase) memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
   if(!avr_has_paged_access(pgm, mem)) {
-    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memtype, pgmid);
+    pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memstr, pgmid);
     return -1;
   }
 
@@ -999,7 +1000,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
 
   const AVRMEM *mem = avr_locate_mem(p, cci->memstr);
   if(!mem) {
-    err = cache_string(tofree = str_sprintf("%s memory type not defined for part %s", cci->memstr, p->desc));
+    err = cache_string(tofree = str_sprintf("memory %s not defined for part %s", cci->memstr, p->desc));
     free(tofree);
     goto back;
   }
@@ -1251,6 +1252,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
     term_out("#\n");
 }
 
+// Show or change configuration properties of the part
 static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   Cfg_opts_t o = { 0 };
   int help = 0, invalid = 0, itemac=1;
@@ -1349,7 +1351,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
   nc = uP_table[idx].nconfigs;
   ct = uP_table[idx].cfgtable;
   if(nc <= 0 || !ct) {
-    pmsg_error("(config) part %s does not have a configuration table\n", p->desc);
+    pmsg_error("(config) no configutation table defined for %s\n", p->desc);
     return -1;
   }
 
@@ -1357,12 +1359,11 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
   cc = cfg_malloc(__func__, sizeof *cc*nc);
   fc = cfg_malloc(__func__, sizeof *fc*nc);
 
-  char *locktype = "lock";
-  if(!avr_locate_mem(p, "lock") && avr_locate_mem(p, "lockbits"))
-    locktype = "lockbits";
+  AVRMEM *m = avr_locate_lock(p);
+  const char *locktype = m? m->desc: "lock";
   for(int i=0; i<nc; i++) {
     cc[i].t = ct+i;
-    const char *mt = str_starts(ct[i].memtype, "lock")? locktype: ct[i].memtype;
+    const char *mt = str_starts(ct[i].memstr, "lock")? locktype: ct[i].memstr;
     cc[i].memstr = mt;
     const AVRMEM *mem = avr_locate_mem(p, mt);
     if(!mem) {
@@ -1528,7 +1529,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
   const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
-    pmsg_error("(config) %s memory type not defined for part %s\n", cc[ci].memstr, p->desc);
+    pmsg_error("(config) memory %s not defined for part %s\n", cc[ci].memstr, p->desc);
     ret = -1;
     goto finished;
   }
@@ -1559,18 +1560,234 @@ finished:
   return ret;
 }
 
+// Show or change I/O registers of the part (programmer permitting)
+static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+  int show_addr = 0, offset = 0, show_size = 0, show_mem = 0, verb = 0, help = 0, invalid = 0, itemac = 1;
+  AVRMEM *io = avr_locate_io(p);
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'm':
+          show_mem++;
+          offset = io? io->offset: 0; // Fall through
+        case 'a':
+          show_addr++;
+          break;
+        case 's':
+          show_size++;
+          break;
+        case 'v':
+          verb++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(regfile) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(argc > 2 || help || invalid) {
+    msg_error(
+      "Syntax: regfile [<opts>] [<reg>[=<value>]] [<opts>]\n"
+      "Function: Show or change I/O registers of the part (programmer permitting)\n"
+      "Options:\n"
+      "    -a show register I/O address\n"
+      "    -m show memory address (for lds/sts), not I/O address\n"
+      "    -s show register size\n"
+      "    -v show register explanation\n"
+      "    -h show this help message\n"
+      "\n"
+      "Regfile alone shows all register names and their contents if possible.\n"
+      "\n"
+      "avrdude> regfile <register>\n"
+      "\n"
+      "shows the contents of <register>. Wildcards or partial strings are permitted (but\n"
+      "not both), in which case all contents of matching registers are displayed.\n"
+      "\n"
+      "avrdude> regfile <register>=<value>\n"
+      "\n"
+      "modifies the corresponding register contents if the programmer can do that.\n"
+      "This is normally only possible with modern (UPDI) AVR parts.\n"
+    );
+    return !help || invalid? -1: 0;
+  }
+
+  if(!io)
+    pmsg_warning("(regfile) no IO memory defined for %s\n", p->desc);
+
+  int do_read = p->prog_modes & (PM_UPDI | PM_PDI);
+  int nr;
+  const Register_file_t *rf = avr_locate_register_file(p, &nr);
+
+  if(!rf || nr <= 0) {
+    pmsg_error("(regfile) .atdf file not published for %s: unknown register file\n", p->desc);
+    return -1;
+  }
+
+  char *reg = argc > 1? argv[1]: "", *rhs = strrchr(reg, '=');
+  if(rhs)                       // Right-hand side of assignment
+    *rhs++ = 0;                 // Terminate lhs
+
+  // Create malloc'd NULL-terminated list of register pointers
+  const Register_file_t *r, **rl, **rlist;
+  rlist = avr_locate_registerlist(rf, nr, reg, str_is_pattern(reg)? str_matched_by: str_contains);
+
+  if(rhs) {                     // Write to single register
+    if(!do_read || !io) {
+      pmsg_error("(regfile) cannot write to %s's registers\n", p->desc);
+      goto error;
+    }
+
+    if(!*rlist) {
+      pmsg_error("(regfile) register %s not found in register file\n", *reg? reg: "''");
+      imsg_error("type regfile for all possible values\n");
+      goto error;
+    }
+
+    if(rlist[1]) {
+      pmsg_error("(regfile) register %s not unique (", reg);
+      for(rl = rlist; *rl; rl++)
+         msg_error("%s%s", rl[0]->reg, rl[1]? ", ": ")\n");
+      goto error;
+    }
+
+    r = *rlist;
+    if(r->size > 4 || r->size < 1 || r->size == 3) {
+      pmsg_warning("(regfile) unexpected size %d of %s\n", r->size, r->reg);
+      goto error;
+    }
+
+    const char *errptr;
+    uint32_t toassign = str_int(rhs, STR_UINT32, &errptr);
+    if(errptr) {
+      pmsg_error("(regfile) cannot parse assignment %s: %s\n", rhs, errptr);
+      goto error;
+    }
+
+    for(int i = 0; i < r->size; i++)
+      if(led_write_byte(pgm, p, io, r->addr+i, ((unsigned char *) &toassign)[i]) < 0) {
+        pmsg_warning("(reg_file) cannot write to %s\n", r->reg);
+        goto error;
+      }
+
+    goto success;
+  }
+
+  // Read I/O registers
+
+  int maxsize = 0, maxlen = 0, addrlen = 2;
+  for(rl = rlist; (r = *rl); rl++) {
+    int len = strlen(r->reg);
+    if(len > maxlen)
+      maxlen = len;
+    if(r->size > maxsize)
+      maxsize = r->size;
+    if(rl[1] == NULL)
+      addrlen = (uint32_t) (r->addr+offset) > 0xfffu? 4: (uint32_t) (r->addr+offset) > 0xffu? 3: 2;
+  }
+
+  for(rl = rlist; (r = *rl); rl++) {
+    if(r->size > 4 || r->size < 1 || r->size == 3) {
+      pmsg_warning("(regfile) unexpected size %d of %s\n", r->size, r->reg);
+      continue;
+    }
+    if(show_addr)
+      term_out("%s 0x%0*x: ", show_mem? "mem": "I/O", addrlen, r->addr+offset);
+    if(show_size)
+      term_out("(%d) ", r->size);
+    if(do_read && io) {
+      uint32_t value = 0;
+      for(int i = 0; i < r->size; i++)
+        if(do_read && led_read_byte(pgm, p, io, r->addr+i, (unsigned char *) &value + i) < 0) {
+          do_read = 0;
+          pmsg_warning("(reg_file) cannot read %s\n", r->reg);
+        }
+      if(do_read) {
+        if(r->mask != -1)
+          value &= r->mask;
+        term_out("%*s0x%0*x ", 2*(maxsize-r->size), "", 2*r->size, value);
+      }
+    }
+    term_out("%s", r->reg);
+    int c = *r->caption;
+    if(verb)
+      term_out("%*s # %c%s", maxlen - (int) strlen(r->reg), "", c? toupper(c): ' ', c? r->caption+1: "");
+    term_out("\n");
+  }
+
+success:
+  free(rlist);
+  return 0;
+
+error:
+  free(rlist);
+  return -1;
+}
 
 static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
-  if(argc > 1) {
+  int help = 0, onlymem = 0, onlyvariants = 0, invalid = 0, itemac = 1;
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q=argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch(*q) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'v':
+          onlyvariants++;
+          break;
+        case 'm':
+          onlymem++;
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(part) invalid option %c, see usage:\n", *q);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(argc > 1 || help || invalid || (onlymem && onlyvariants)) {
+    if(onlymem && onlyvariants)
+      pmsg_error("(part) cannot mix -v and -m\n");
     msg_error(
       "Syntax: part\n"
-      "Function: display the current part information\n"
+      "Function: display the current part information including memory and variants\n"
+      "Options:\n"
+      "    -m only display memory information\n"
+      "    -v only display variants information\n"
     );
     return -1;
   }
 
-  term_out("\v");
-  avr_display(stdout, p, "", 0);
+  if(onlymem)
+    avr_mem_display(stdout, p, "");
+  else if(onlyvariants)
+    avr_variants_display(stdout, p, "");
+  else {
+    term_out("%s with programming modes %s\n", p->desc, avr_prog_modes_str(p->prog_modes));
+    avr_mem_display(stdout, p, "");
+    avr_variants_display(stdout, p, "");
+  }
   term_out("\v");
 
   return 0;
@@ -1591,17 +1808,15 @@ static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   }
 
   rc = avr_signature(pgm, p);
-  if (rc != 0) {
+  if(rc != 0)
     pmsg_error("(sig) error reading signature data, rc=%d\n", rc);
-  }
 
-  m = avr_locate_mem(p, "signature");
-  if (m == NULL) {
+  m = avr_locate_signature(p);
+  if(m == NULL) {
     pmsg_error("(sig) signature data not defined for device %s\n", p->desc);
-  }
-  else {
+  } else {
     term_out("Device signature = 0x");
-    for (i=0; i<m->size; i++)
+    for(i=0; i<m->size; i++)
       term_out("%02x", m->buf[i]);
     term_out("\n");
   }
@@ -1644,8 +1859,17 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
 static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int rc;
-  double v;
+  double v = 0;
   char *endp;
+
+  if (argc == 1 && pgm->get_vtarget){ // no parameter: query vtarg if fkt exists
+    if ((rc = pgm->get_vtarget(pgm, &v)) != 0) {
+      pmsg_error("(vtarg) unable to get V[target] (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("Vtarget = %.1f V\n", v);
+    return 0;
+  }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1669,8 +1893,24 @@ static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 
 static int cmd_fosc(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
   int rc;
-  double v;
+  double v = 0;
   char *endp;
+
+  if (argc == 1 && pgm->get_fosc) { // query fosc
+    if ((rc = pgm->get_fosc(pgm, &v)) != 0) {
+      pmsg_error("(fosc) unable to get oscillator frequency (rc = %d)\n", rc);
+      return -3;
+    }
+    if (v >= 1e6)
+      term_out("fosc = %.6f MHz\n", v / 1e6);
+    else if (v >= 1e3)
+      term_out("fosc = %.3f kHz\n", v / 1e3);
+    else if (v)
+      term_out("fosc = %.0f Hz\n", v);
+    else
+      term_out("fosc off\n");
+    return 0;
+  }
 
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1705,19 +1945,42 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   double v;
   char *endp;
 
+  if (argc == 1 && pgm->get_sck_period){
+    if ((rc = pgm->get_sck_period(pgm, &v)) != 0) {
+      pmsg_error("(fosc) unable to get SCK period (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("SCK period = %.1f us\n", v * 1e6);
+    term_out("SCK freq   = %d kHz\n", (int)(0.001/v));
+    return 0;
+  }
+
   if(argc != 2 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: sck <value>\n"
-      "Function: set the SCK period\n"
+      "Function: set the SCK period in us or frequency in [kM]Hz\n"
     );
     return -1;
   }
+
   v = strtod(argv[1], &endp);
-  if (endp == argv[1]) {
-    pmsg_error("(sck) cannot parse period %s\n", argv[1]);
+  if ((endp == argv[1]) || v <= 0.0) {
+    pmsg_error("(sck) invalid bit clock period %s\n", argv[1]);
     return -1;
   }
-  v *= 1e-6;                    // Convert from microseconds to seconds
+  if(*endp == 0 || str_caseeq(endp, "us")) // us is optional and the default
+    ;
+  else if(str_caseeq(endp, "m") || str_caseeq(endp, "mhz"))
+    v = 1 / v;
+  else if(str_caseeq(endp, "k") || str_caseeq(endp, "khz"))
+    v = 1e3 / v;
+  else if(str_caseeq(endp, "hz"))
+    v = 1e6 / v;
+  else {
+    pmsg_error("(sck) invalid bit clock unit %s\n", endp);
+    return -1;
+  }
+  v *= 1e-6; // us to s
   if ((rc = pgm->set_sck_period(pgm, v)) != 0) {
     pmsg_error("(sck) unable to set SCK period (rc = %d)\n", rc);
     return -3;
@@ -1731,6 +1994,15 @@ static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   unsigned int chan;
   double v;
   char *endp;
+
+  if (argc == 1 && pgm->get_varef) { // varef w/o parameter returns value of channel 0
+    if ((rc = pgm->get_varef(pgm, 0, &v)) != 0) {
+      pmsg_error("(varef) unable to get V[aref] (rc = %d)\n", rc);
+      return -3;
+    }
+    term_out("Varef = %.1f V\n", v);
+    return 0;
+  }
 
   if (argc < 2 || argc > 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -1793,7 +2065,7 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
     "Note that not all programmer derivatives support all commands. Flash and\n"
     "EEPROM type memories are normally read and written using a cache via paged\n"
     "read and write access; the cache is synchronised on quit or flush commands.\n"
-    "The part command displays valid memory types for use with dump and write.\n");
+    "The part command displays valid memories for use with dump and write.\n");
   return 0;
 }
 
@@ -1962,29 +2234,33 @@ static char *tokenize(char *s, int *argcp, char ***argvp) {
 
 
 static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
-  int i;
   int hold, matches;
   size_t len;
 
   len = strlen(argv[0]);
   matches = 0;
-  for (i=0; i<NCMDS; i++) {
-    if(!*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
-      continue;
-    if(len && strncasecmp(argv[0], cmd[i].name, len)==0) { // Partial initial match
-      hold = i;
-      matches++;
-      if(cmd[i].name[len] == 0) { // Exact match
-        matches = 1;
-        break;
+  for(int i = 0; i < NCMDS; i++)
+    if(*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+      if(len && strncasecmp(argv[0], cmd[i].name, len)==0) { // Partial initial match
+        hold = i;
+        matches++;
+        if(cmd[i].name[len] == 0) { // Exact match
+          matches = 1;
+          break;
+        }
       }
-    }
-  }
 
   if(matches == 1)
     return cmd[hold].func(pgm, p, argc, argv);
 
-  pmsg_error("(cmd) command %s is %s\n", argv[0], matches > 1? "ambiguous": "invalid");
+  pmsg_error("(cmd) command %s is %s", argv[0], matches > 1? "ambiguous": "invalid");
+  if(matches > 1)
+    for(int ch = ':', i = 0; i < NCMDS; i++)
+      if(*(void (**)(void)) ((char *) pgm + cmd[i].fnoff))
+        if(len && strncasecmp(argv[0], cmd[i].name, len)==0)
+          msg_error("%c %s", ch, cmd[i].name), ch = ',';
+  msg_error("\n");
+
   return -1;
 }
 

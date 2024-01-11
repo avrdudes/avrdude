@@ -92,7 +92,7 @@ struct flip1_cmd
 struct flip1_cmd_header         /* for memory read/write */
 {
   unsigned char cmd;
-  unsigned char memtype;
+  unsigned char memchr;
   unsigned char start_addr[2];
   unsigned char end_addr[2];
   unsigned char padding[26];
@@ -371,7 +371,7 @@ int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
   if (FLIP1(pgm)->dfu == NULL)
     return -1;
 
-  if (str_eq(mem->desc, "signature")) {
+  if (mem_is_signature(mem)) {
     if (flip1_read_sig_bytes(pgm, part, mem) < 0)
       return -1;
     if (addr >= (unsigned long) mem->size) {
@@ -400,6 +400,15 @@ int flip1_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
   unsigned long addr, unsigned char value)
 {
   enum flip1_mem_unit mem_unit;
+
+  if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, part, mem, addr, &is) >= 0 && is == value)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, part->desc);
+    return -1;
+  }
 
   if (FLIP1(pgm)->dfu == NULL)
     return -1;

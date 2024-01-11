@@ -354,10 +354,10 @@ static int ch341a_spi_chip_erase(const struct programmer_t *pgm, const AVRPART *
 static int ch341a_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-  int isflash = avr_mem_is_flash_type(m);
+  int isflash = mem_is_in_flash(m);
 
   if(n_bytes) {
-    if(!isflash && !avr_mem_is_eeprom_type(m))
+    if(!isflash && !mem_is_eeprom(m))
       return -2;
 
     // Always called with addr at page boundary and n_bytes == m->page_size
@@ -376,10 +376,10 @@ static int ch341a_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 static int ch341a_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-  int isflash = avr_mem_is_flash_type(m);
+  int isflash = mem_is_in_flash(m);
 
   if(n_bytes) {
-    if(!isflash && !avr_mem_is_eeprom_type(m))
+    if(!isflash && !mem_is_eeprom(m))
       return -2;
 
     // Always called with addr at page boundary and n_bytes == m->page_size

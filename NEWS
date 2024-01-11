@@ -31,6 +31,23 @@ Changes since version 7.2:
     - Read ATmega324PB and ATmega328PB serial number #1509
     - EEPROM file generates error with 7.2 #1508
     - PGM LED not activated for flash or eeprom write #1514
+    - Adding the Avrdude build version to avrdude.conf #1475
+    - Harmonise WIN32 and POSIX serial comms timeout #1249
+    - Old avrdude.conf can result in a segmentation fault #1544
+    - Support AVR EB series #1546
+    - Programmer in .avrduderc not recognised #1551
+    - JTAG signature write ineffective #1527
+    - Control forced loading of ~/.avrduderc #1548
+    - Warn if avrdude and avrdude.conf versions don't match #1562
+    - Terminal part command could need an update #1558
+    - Proposal: Add memory sram #1559
+    - jtagmkI.c/jtagmkII.c rely on OCDEN being hfuse bit 7 #1537
+    - Certain terminal commands may be confusing #1570
+    - Upload port required for -cdryrun on MacOS #1578
+    - Make programmer -c name checking more forgiving #1591
+    - Query a programmer's current clock speed #1329
+    - Differentiate USB programmers with the same VID/PID #973
+    - Add AVR-DU series latest information #1595
 
   * Pull requests:
 
@@ -62,9 +79,49 @@ Changes since version 7.2:
     - Review and update LED support #1528
     - Fix SerialUPDI with NVM v3 controller #1531
     - Add bootloader hashes from the Sanguino Arduino repo #1533
+    - Support MinGW cross compiler #1539
+    - Add avrdude_conf_version to grammar #1542 #1547
+    - Change execution order in silicon revision check #1543
+    - Add Arduino avrdude_packing github action for git man #1540
+    - Introduce memory types in lieu of memory name comparisons #1538
+    - Allow UPDI_SIB of AVR_EB in serialupdi #1549
+    - Harmonise WIN32 and POSIX serial comms timeout #1550
+    - Test programmers for prog_modes and type #1557
+    - Remove paged eeprom property from ATtiny43U #1556
+    - Review write_byte() functions #1554
+    - Provide option -N for do not load personal config file #1555
+    - Print warning when avrdude and avrdude.conf versions doesn't match #1564
+    - Always warn if part and programmer are incompatible #1563
+    - Provide -x xtal=... option for STK500 v1 and v2 #1566
+    - Update part cmd #1568
+    - Update src/CMakeLists.txt #1569
+    - Add memory sram and remove memory data #1571
+    - Add GNU readline to mingw github action #1576
+    - Provide libavrude functions to access part config values #1577
+    - Add get_vtarget/varef/fosc/sck_period for programmers #1574
+    - Provide terminal regfile command #1580
+    - Ignore port settings when using -c dryrun #1581
+    - Add more PL2303 compatible USB PIDs #1583
+    - Faster build.sh script with option -j #1586
+    - Terminal sck command improvements #1587
+    - Differentiate USB programmers with the same VID/PID #1588
+    - Provide configuration variable default_baudrate #1590
+    - Increase index entries in avrdude.texi #1592
+    - Suggest programmers using weighted Damerau-Levenshtein #1593
+    - Switch PICkit4 and SNAP avr/pic modes using -xmode #1596
+    - Support AVR64DU28 and AVR64DU32 #1601
+    - Force STK500 EEPROM paged r/w for bootloaders #1602
+    - Provide terminal keep alive code for jtagmkII_updi #1603
+    - Fix Arduino Nano Every EEPROM writing for UPDI parts #1604
+    - Provide and use locate_part_by_signature_pm() #1605
+    - Harden AVRDUDE against pre-C99 libraries #1608
+    - Add MSYS2 ucrt64, clang32 and clang64 to build.yml #1612
 
   * Internals:
 
+    - Introduce memory types in lieu of memory name comparisons #1538
+      This will enable to decouple memory names from function
+    - Added a knowledgebase on register files of parts
 
 Changes in version 7.2:
 

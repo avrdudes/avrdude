@@ -64,17 +64,6 @@ struct pdata
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 /*
- * The OCDEN fuse is bit 7 of the high fuse (hfuse).  In order to
- * perform memory operations on MTYPE_SPM and MTYPE_EEPROM, OCDEN
- * needs to be programmed.
- *
- * OCDEN should probably rather be defined via the configuration, but
- * if this ever changes to a different fuse byte for one MCU, quite
- * some code here needs to be generalized anyway.
- */
-#define OCDEN (1 << 7)
-
-/*
  * Table of baud rates supported by the mkI ICE, accompanied by their
  * internal parameter value.
  *
@@ -367,10 +356,10 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   sendbuf.dd.ucIDRAddress = p->idr;
   for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (str_eq(m->desc, "flash")) {
+    if (mem_is_flash(m)) {
       PDATA(pgm)->flash_pagesize = m->page_size;
       u16_to_b2(sendbuf.dd.uiFlashPageSize, PDATA(pgm)->flash_pagesize);
-    } else if (str_eq(m->desc, "eeprom")) {
+    } else if (mem_is_eeprom(m)) {
       sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
@@ -482,7 +471,6 @@ static unsigned char jtagmkI_get_baud(long baud)
  * initialize the AVR device and prepare it to accept commands
  */
 static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  AVRMEM hfuse;
   unsigned char cmd[1], resp[5];
   unsigned char b;
 
@@ -551,12 +539,9 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (jtagmkI_reset(pgm) < 0)
     return -1;
 
-  hfuse.desc = cache_string("hfuse");
-  if (jtagmkI_read_byte(pgm, p, &hfuse, 1, &b) < 0)
-    return -1;
-  if ((b & OCDEN) != 0)
-    pmsg_warning("OCDEN fuse not programmed, "
-      "single-byte EEPROM updates not possible\n");
+  int ocden = 0;
+  if(avr_get_config_value(pgm, p, "ocden", &ocden) == 0 && ocden) // ocden == 1 means disabled
+    pmsg_warning("OCDEN fuse not programmed, single-byte EEPROM updates not possible\n");
 
   return 0;
 }
@@ -678,12 +663,12 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   }
 
   cmd[0] = CMD_WRITE_MEM;
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->flash_pagesize;
     is_flash = 1;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
     page_size = PDATA(pgm)->eeprom_pagesize;
@@ -786,10 +771,10 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   page_size = m->readsize;
 
   cmd[0] = CMD_READ_MEM;
-  if (str_eq(m->desc, "flash")) {
+  if (mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
     is_flash = 1;
-  } else if (str_eq(m->desc, "eeprom")) {
+  } else if (mem_is_eeprom(m)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
   }
 
@@ -867,38 +852,34 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   cmd[0] = CMD_READ_MEM;
 
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
     cmd[1] = MTYPE_FLASH_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
     is_flash = 1;
-  } else if (str_eq(mem->desc, "eeprom")) {
+  } else if (mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
     cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "fuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
-  } else if (str_eq(mem->desc, "calibration")) {
+  } else if (mem_is_calibration(mem)) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
-  } else if (str_eq(mem->desc, "signature")) {
+  } else if (mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
-  } else if (str_eq(mem->desc, "prodsig")) {
+  } else if (mem_is_sigrow(mem)) {
     cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
     addr /= 2;
   } else {
-    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
   }
 
@@ -973,38 +954,36 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned char resp[1], writedata;
   int len, need_progmode = 1, need_dummy_read = 0;
 
-  pmsg_notice2("jtagmkI_write_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
+  pmsg_notice2("jtagmkI_write_byte(.., %s, 0x%lx, 0x%02x)\n", mem->desc, addr, data);
 
   writedata = data;
   cmd[0] = CMD_WRITE_MEM;
-  if (str_eq(mem->desc, "flash")) {
+  if (mem_is_flash(mem)) {
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
-  } else if (str_eq(mem->desc, "eeprom")) {
+  } else if (mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
     need_dummy_read = 1;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (str_contains(mem->desc, "fuse") && strlen(mem->desc) <= 5) {
+  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
-    if (str_eq(mem->desc, "lfuse") || str_eq(mem->desc, "lfuse"))
-      addr = 0;
-    else if (str_eq(mem->desc, "hfuse"))
-      addr = 1;
-    else if (str_eq(mem->desc, "efuse"))
-      addr = 2;
-  } else if (str_eq(mem->desc, "lock")) {
+    if(mem_is_a_fuse(mem))
+      addr = mem_fuse_offset(mem);
+  } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
     need_dummy_read = 1;
-  } else if (str_eq(mem->desc, "calibration")) {
-    cmd[1] = MTYPE_OSCCAL_BYTE;
-    need_dummy_read = 1;
-  } else if (str_eq(mem->desc, "signature")) {
-    cmd[1] = MTYPE_SIGN_JTAG;
+  } else if(mem_is_readonly(mem)) {
+    unsigned char is;
+    if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
+      return 0;
+
+    pmsg_error("cannot write to read-only memory %s of %s\n", mem->desc, p->desc);
+    return -1;
   } else {
-    pmsg_error("unknown memory %s in %s()\n", mem->desc, __func__);
+    pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
   }
 
@@ -1096,6 +1075,37 @@ static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v) {
 }
 
 
+static int jtagmkI_get_sck_period(const PROGRAMMER *pgm, double *v) {
+  unsigned char dur = 0;
+  if (jtagmkI_getparm(pgm, PARM_CLOCK, &dur) < 0)
+    return -1;
+  if (dur == JTAG_BITRATE_1_MHz)
+    *v = 1e6;
+  else if (dur == JTAG_BITRATE_500_kHz)
+    *v = 500e3;
+  else if (dur == JTAG_BITRATE_250_kHz)
+    *v = 250e3;
+  else if (dur == JTAG_BITRATE_125_kHz)
+    *v = 125e3;
+  else { // something went wrong
+    pmsg_error("wrong JTAG_BITRATE ID %02X\n", dur);
+    return -1;
+  }
+  return 0;
+}
+
+
+static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
+  unsigned char vtarget = 0;
+  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0) {
+    pmsg_error("jtagmkI_getparm PARM_OCD_VTARGET failed\n");
+    return -1;
+  }
+  *v = 6.25 * (unsigned)vtarget / 255.0;
+  return 0;
+}
+
+
 /*
  * Read an emulator parameter.  The result is exactly one byte,
  * multi-byte parameters get two different parameter names for
@@ -1169,9 +1179,8 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
   if (jtagmkI_getparm(pgm, PARM_HW_VERSION, &hw) < 0 ||
       jtagmkI_getparm(pgm, PARM_SW_VERSION, &fw) < 0)
     return;
-
-  msg_info("%sICE HW version: 0x%02x\n", p, hw);
-  msg_info("%sICE FW version: 0x%02x\n", p, fw);
+  msg_info("%sICE HW version        : 0x%02x\n", p, hw);
+  msg_info("%sICE FW version        : 0x%02x\n", p, fw);
 
   jtagmkI_print_parms1(pgm, p, stderr);
 
@@ -1180,7 +1189,8 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
 
 
 static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
-  unsigned char vtarget, jtag_clock;
+  unsigned char jtag_clock = 0;
+  double vtarget = 0;
   const char *clkstr;
   double clk;
 
@@ -1214,11 +1224,11 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
   }
 
   if (pgm->extra_features & HAS_VTARG_READ) {
-    if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0)
+    if (jtagmkI_get_vtarget(pgm, &vtarget) < 0)
       return;
-    fmsg_out(fp, "%sVtarget       : %.1f V\n", p, 6.25 * (unsigned)vtarget / 255.0);
+    fmsg_out(fp, "%sVtarget               : %.1f V\n", p, vtarget);
   }
-  fmsg_out(fp, "%sJTAG clock    : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
+  fmsg_out(fp, "%sJTAG clock            : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
 
   return;
 }
@@ -1254,7 +1264,11 @@ void jtagmkI_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load     = jtagmkI_paged_load;
   pgm->print_parms    = jtagmkI_print_parms;
   pgm->set_sck_period = jtagmkI_set_sck_period;
+  pgm->get_sck_period = jtagmkI_get_sck_period;
   pgm->setup          = jtagmkI_setup;
   pgm->teardown       = jtagmkI_teardown;
   pgm->page_size      = 256;
+  if (pgm->extra_features & HAS_VTARG_READ) {
+    pgm->get_vtarget  = jtagmkI_get_vtarget;
+  }
 }

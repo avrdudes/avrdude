@@ -25,7 +25,7 @@
 extern "C" {
 #endif
 
-int  jtag3_open_common(PROGRAMMER *pgm, const char *port);
+int  jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch);
 int  jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len);
 int  jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg);
 void jtag3_close(PROGRAMMER * pgm);
@@ -41,6 +41,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
 void jtag3_display(const PROGRAMMER *pgm, const char *p);
 void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 int jtag3_set_vtarget(const PROGRAMMER *pgm, double voltage);
+int jtag3_get_vtarget(const PROGRAMMER *pgm, double *voltage);
 extern const char jtag3_desc[];
 extern const char jtag3_dw_desc[];
 extern const char jtag3_pdi_desc[];

@@ -33,6 +33,7 @@
 .Op Fl B Ar bitclock
 .Op Fl c Ar programmer-id
 .Op Fl C Ar config-file
+.Op Fl N
 .Op Fl A
 .Op Fl D
 .Op Fl e
@@ -45,6 +46,7 @@
 .Op Fl n
 .Op Fl O
 .Op Fl P Ar port
+.Op Fl r
 .Op Fl q
 .Op Fl T Ar cmd
 .Op Fl t
@@ -365,7 +367,12 @@ avrdude -p m328p/S outputs AVRDUDE's understanding of ATmega328P MCU properties;
 for more information run avrdude -p x/h.
 .It Fl b Ar baudrate
 Override the RS-232 connection baud rate specified in the respective
-programmer's entry of the configuration file.
+programmer's entry of the configuration file or defined by the default_baudrate
+entry in your user configuration file
+.Pa ${HOME}/.config/avrdude/avrdude.rc
+or
+.Pa ${HOME}/.avrduderc
+if no baudrate was defined for this programmer.
 .It Fl r
 Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
 for each -r on the command line and then establishes communication with
@@ -444,6 +451,10 @@ files. This can be used to add entries to the configuration
 without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command
 line.
+.It Fl N
+Do not load the personal configuration file that is usually located at
+~/.config/avrdude/avrdude.rc, ~/.avrduderc or in the same directory as the
+avrdude executable
 .It Fl A
 Disable the automatic removal of trailing-0xFF sequences in file
 input that is to be programmed to flash and in AVR reads from
@@ -767,7 +778,7 @@ device-dependent, the actual configuration can be viewed with the
 .Cm part
 command in terminal mode.
 Typically, a device's memory configuration at least contains
-the memory types
+the memories
 .Ar flash ,
 .Ar eeprom ,
 .Ar signature
@@ -786,7 +797,7 @@ will also typically have fuse bytes, which are read/write memories for
 configuration of the device and calibration memories that typically
 contain read-only factory calibration values.
 .Pp
-Classic devices may have the following memory types in addition to eeprom, flash, signature and lock:
+Classic devices may have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "  calibration" -compact
 .It   calibration
 One or more bytes of RC oscillator calibration data
@@ -822,9 +833,11 @@ usersig:w:parameters.hex:i
 Volatile register memory; it cannot be accessed by external programming
 methods only by bootloaders, which has limited use unless the bootloader
 jumps to the application directly, i.e., without a WDT reset
+.It sram
+Volatile RAM memory; like io it cannot be accessed by external programming
 .El
 .Pp
-ATxmega devices have the following memory types in addition to eeprom, flash, signature and lock:
+ATxmega devices have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "calibration" -compact
 .It application
 Application flash area
@@ -857,9 +870,11 @@ memory is not erased during a chip erase
 Volatile register memory;
 .Nm
 can read this memory but not write to it using external programming
+.It sram
+Volatile RAM memory; cannot be usefully accessed by external programming
 .El
 .Pp
-Modern 8-bit AVR devices have the following memory types in addition to eeprom, flash, signature and lock:
+Modern 8-bit AVR devices have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "calibration" -compact
 .It fuse0
 A.k.a. wdtcfg: watchdog configuration
@@ -915,6 +930,8 @@ can program this memory but this is of limited utility because anything
 written to the io memory will be undefined or lost after reset; writing to
 individual registers in the terminal can still be used, e.g., to test I/O
 ports
+.It sram
+Volatile RAM memory; can be read and written but contents will be lost after reset
 .El
 .Pp
 The
@@ -1243,6 +1260,55 @@ can be uniquely resolved.
 It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
+.It Ar regfile {<opts>}
+regfile with no further argument displays the register file of a part,
+i.e., all register names and their contents in
+.Ar io
+memory, if possible: note that external programming cannot read the
+registers of classic parts (ISP or TPI interfaces).
+.Pp
+Option -a displays the register I/O addresses in addition; -m displays the
+register memory addresses used for lds/sts opcodes instead of the I/O
+addresses. Option -s also shows the size of the register in bytes whilst
+-v shows a slightly expanded register explanation alongside each register.
+.It Ar regfile {<opts>} <reg> {<opts>}
+regfile together with a register name
+.Em reg
+shows all those registers that are matched by
+.Em reg.
+Wildcards or partial strings are permitted but not both. Register names
+have the form
+.Em module.name
+or
+.Em module.instance.name.
+If the provided
+.Em reg
+is a full, existing register name, e.g.,
+.Ar porta.out
+then that is the only register that is displayed even though that might be
+a partial name of another register, eg,
+.Ar porta.outdir.
+If the provided
+.EM reg
+is the same as
+.Em instance.name
+or
+.Em name
+then partial matching is no longer utilised and all module registers with
+that exact
+.Em instance.name
+or
+.Em name
+are shown. Partial matching can be forced through use of wildcards, e.g.,
+porta.out*
+.It Ar regfile {<opts>} <reg>=<value> {<opts>}
+This sets a single register addressed by
+.Em reg
+to the given
+.Em value.
+Only external programming of modern parts (those with UPDI interface) can
+read from and write to register io memory, but as that memory is volatile,
+the contents will be lost after reset.
 .It Ar include [<opts>] <file>
 Include contents of the named file as if it was typed. This is useful for
 batch scripts, e.g., recurring initialisation code for fuses. The include
@@ -1251,9 +1317,12 @@ on a non-zero verbosity level the line numbers are printed, too.
 .It Ar sig
 Display the device signature bytes.
 .It Ar part
-Display the current part settings and parameters.  Includes chip
-specific information including all memory types supported by the
-device, read/write timing, etc.
+Display the current part information, including supported programming modes,
+memory and variants tables. Use
+.Ar -m
+to only print the memory table, and
+.Ar -v
+to only print the variants table.
 .It Ar verbose Op Ar level
 Change (when
 .Ar level
@@ -1450,7 +1519,7 @@ bits after the target AVR, respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
 .It Ar hvupdi
-.Nm Power Debugger and Pickit 4 only
+.Nm Power Debugger and PICkit 4 only
 .sp 0.5
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use
@@ -1463,6 +1532,21 @@ The voltage generator can be enabled by setting a target voltage.
 The current set-voltage can be read by
 .Ar -xvtarg
 alone.
+.It Ar help
+Show help menu and exit.
+.El
+.It Ar PICkit 4
+.It Ar MPLAB SNAP
+.Bl -tag -offset indent -width indent
+.It Ar mode=avr,pic
+Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
+programmer can only be utilised by
+.Nm
+when in AVR mode. Use
+.Ar -xmode=avr
+for switching to AVR mode, or
+.Ar -xmode=pic
+for switching to PIC mode.
 .It Ar help
 Show help menu and exit.
 .El
@@ -1516,7 +1600,7 @@ The generated on-board target voltage can be changed by specifying a new voltage
 The current set-voltage can be read by
 .Ar -xvtarg
 alone.
-.It Ar fosc=VALUE[MHz|M|kHz|k|Hz], fosc
+.It Ar fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc
 Set the programmable oscillator frequency. The current frequency can be read by
 .Ar -xfosc
 alone.
@@ -1540,6 +1624,9 @@ alone.
 .sp 0.5
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+.It Ar xtal=VALUE[MHz|M|kHz|k|Hz|H]
+Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
+original STK500. Used by avrdude for the correct calculation of fosc and sck.
 .It Ar help
 Show help menu and exit.
 .El

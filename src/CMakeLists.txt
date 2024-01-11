@@ -50,9 +50,14 @@ endif()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
-if(WIN32)
-    set(EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
-    set(EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
+set(EXTRA_WINDOWS_SOURCES)
+set(EXTRA_WINDOWS_INCLUDES)
+set(EXTRA_WINDOWS_RESOURCES)
+set(EXTRA_WINDOWS_LIBRARIES)
+
+if(WIN32 OR MINGW)
+    list(APPEND EXTRA_WINDOWS_RESOURCES "${PROJECT_BINARY_DIR}/src/windows.rc")
+    list(APPEND EXTRA_WINDOWS_LIBRARIES setupapi hid ws2_32)
 endif()
 
 if(MSVC)
@@ -66,15 +71,13 @@ if(MSVC)
     add_compile_options(/wd4244) # warning C4244: conversion from '...' to '...', possible loss of data
     add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
 
-    set(EXTRA_WINDOWS_SOURCES ${EXTRA_WINDOWS_SOURCES}
+    list(APPEND EXTRA_WINDOWS_SOURCES
         "msvc/getopt.c"
         "msvc/gettimeofday.c"
         "msvc/usleep.cpp"
         "msvc/readline.cpp"
         )
-    set(EXTRA_WINDOWS_INCLUDES ${EXTRA_WINDOWS_INCLUDES}
-        "msvc"
-        )
+    list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
 else()
     set(LIB_MATH m)
     add_compile_options(-Wall -Wextra -Wno-unused-parameter)
@@ -112,7 +115,7 @@ endif()
 
 configure_file(cmake_config.h.in ac_cfg.h)
 configure_file(avrdude.spec.in avrdude.spec)
-if(WIN32)
+if(WIN32 OR MINGW)
     configure_file(windows.rc.in windows.rc)
 endif()
 
@@ -120,6 +123,7 @@ add_custom_command(
     OUTPUT avrdude.conf
     COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
     COMMAND ${CMAKE_COMMAND}
+        -D "AVRDUDE_FULL_VERSION=${AVRDUDE_FULL_VERSION}"
         -D HAVE_PARPORT=$<BOOL:${HAVE_PARPORT}>
         -D HAVE_LINUXSPI=$<BOOL:${HAVE_LINUXSPI}>
         -D HAVE_LINUXGPIO=$<BOOL:${HAVE_LINUXGPIO}>
@@ -265,7 +269,7 @@ add_library(libavrdude
     xbee.c
     ${FLEX_Parser_OUTPUTS}
     ${BISON_Parser_OUTPUTS}
-    "${EXTRA_WINDOWS_SOURCES}"
+    ${EXTRA_WINDOWS_SOURCES}
     )
 
 set_target_properties(libavrdude PROPERTIES
@@ -279,8 +283,9 @@ target_include_directories(libavrdude
     PUBLIC
     "${PROJECT_SOURCE_DIR}"
     "${PROJECT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
     "${LIBUSB_COMPAT_DIR}"
-    "${EXTRA_WINDOWS_INCLUDES}"
+    ${EXTRA_WINDOWS_INCLUDES}
     )
 
 target_link_libraries(libavrdude
@@ -307,10 +312,14 @@ add_executable(avrdude
     developer_opts_private.h
     whereami.c
     whereami.h
-    "${EXTRA_WINDOWS_RESOURCES}"
+    ${EXTRA_WINDOWS_RESOURCES}
     )
 
 target_link_libraries(avrdude PUBLIC libavrdude)
+
+if(MINGW)
+    target_link_options(avrdude PRIVATE -static)
+endif()
 
 # =====================================
 # Install

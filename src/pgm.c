@@ -146,9 +146,13 @@ PROGRAMMER *pgm_new(void) {
   pgm->term_keep_alive= NULL;
   pgm->print_parms    = NULL;
   pgm->set_vtarget    = NULL;
+  pgm->get_vtarget    = NULL;
   pgm->set_varef      = NULL;
+  pgm->get_varef      = NULL;
   pgm->set_fosc       = NULL;
+  pgm->get_fosc       = NULL;
   pgm->set_sck_period = NULL;
+  pgm->get_sck_period = NULL;
   pgm->setpin         = NULL;
   pgm->getpin         = NULL;
   pgm->highpulsepin   = NULL;
@@ -266,8 +270,8 @@ static void pgm_default_6 (const PROGRAMMER *pgm, const char *p) {
 
 
 void programmer_display(PROGRAMMER *pgm, const char * p) {
-  msg_info("%sProgrammer Type : %s\n", p, pgm->type);
-  msg_info("%sDescription     : %s\n", p, pgm->desc);
+  msg_info("%sProgrammer Type       : %s\n", p, pgm->type);
+  msg_info("%sDescription           : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
 }
@@ -308,6 +312,48 @@ void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
   pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
+// Locate a real programmer entry by partial initial id and set the matching id
+PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *pgid, const char **setid, AVRPART *prt) {
+  PROGRAMMER *pgm, *matchp;
+  int matches, p1, pmode = prt? prt->prog_modes: -1;
+  const char *matchid;
+  size_t l;
+
+  if(!pgid || !(p1 = *pgid))
+    return NULL;
+
+  l = strlen(pgid);
+  matches = 0;
+  matchp = NULL;
+  for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+    pgm = ldata(ln1);
+    if(is_programmer(pgm) && (pgm->prog_modes & pmode))
+      for(LNODEID ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
+        const char *id = (const char *) ldata(ln2);
+        if(p1 == *id && !strncasecmp(id, pgid, l)) { // Partial initial match
+          matchp = pgm;
+          matchid = id;
+          matches++;
+          if(id[l] == 0) {      // Exact match; return straight away
+            matches = 1;
+            goto done;
+          }
+          break;
+        }
+      }
+    }
+
+done:
+  if(matches == 1) {
+    if(setid)
+      *setid = matchid;
+    return matchp;
+  }
+
+  return NULL;
+}
+
+// Locate a programmer (or serial adapter) by full name and set the matching id
 PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *configid, const char **setid) {
   for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
     PROGRAMMER *p = ldata(ln1);

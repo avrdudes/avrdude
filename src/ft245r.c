@@ -953,7 +953,7 @@ static void ft245r_close(PROGRAMMER * pgm) {
 }
 
 static void ft245r_display(const PROGRAMMER *pgm, const char *p) {
-    msg_info("%sPin assignment  : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n",p);
+    msg_info("%sPin assignment        : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n",p);
     pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
@@ -1098,10 +1098,10 @@ static int ft245r_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if(!n_bytes)
         return 0;
 
-    if(str_eq(m->desc, "flash"))
+    if(mem_is_flash(m))
         return ft245r_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
 
-    if(str_eq(m->desc, "eeprom"))
+    if(mem_is_eeprom(m))
         return ft245r_paged_write_gen(pgm, p, m, page_size, addr, n_bytes);
 
     return -2;
@@ -1196,10 +1196,10 @@ static int ft245r_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     if(!n_bytes)
         return 0;
 
-    if(str_eq(m->desc, "flash"))
+    if(mem_is_flash(m))
         return ft245r_paged_load_flash(pgm, p, m, page_size, addr, n_bytes);
 
-    if(str_eq(m->desc, "eeprom"))
+    if(mem_is_eeprom(m))
         return ft245r_paged_load_gen(pgm, p, m, page_size, addr, n_bytes);
 
    return -2;

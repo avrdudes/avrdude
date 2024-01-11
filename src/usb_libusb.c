@@ -147,6 +147,16 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      pmsg_error("cannot read product name: %s\n", usb_strerror());
 		      strcpy(product, "[unnamed product]");
 		    }
+
+		  /* We need to write to endpoint 2 to switch the PICkit4 and SNAP
+		   * from PIC to AVR mode
+		   */
+		  if(str_casestarts(product, "MPLAB") && (str_caseends(product, "Snap ICD")
+		    || str_caseends(product, "PICkit 4")))
+		  {
+		    pinfo.usbinfo.flags = 0;
+		    fd->usb.wep = 2;
+		  }
 		  /*
 		   * The CMSIS-DAP specification mandates the string
 		   * "CMSIS-DAP" must be present somewhere in the
@@ -170,7 +180,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      fd->usb.wep = 0x02;
 		  }
 
-                  pmsg_notice("usbdev_open(): found %s, serno: %s\n", product, string);
+                  pmsg_notice2("usbdev_open(): found %s, serno: %s\n", product, string);
 		  if (serno != NULL)
 		    {
 		      /*
@@ -349,25 +359,8 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
     mlen -= tx_size;
   } while (mlen > 0);
 
-  if (verbose > 3)
-  {
-      pmsg_trace("sent: ");
-
-      while (i) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace("%c ", c);
-        }
-        else {
-          msg_trace(". ");
-        }
-        msg_trace("[%02x] ", c);
-
-        p++;
-        i--;
-      }
-      msg_trace("\n");
-  }
+  if(verbose > 3)
+    trace_buffer(__func__, p, i);
   return 0;
 }
 
@@ -424,25 +417,8 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
       i += amnt;
     }
 
-  if (verbose > 4)
-  {
-      pmsg_trace2("recv: ");
-
-      while (i) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace2("%c ", c);
-        }
-        else {
-          msg_trace2(". ");
-        }
-        msg_trace2("[%02x] ", c);
-
-        p++;
-        i--;
-      }
-      msg_trace2("\n");
-  }
+  if(verbose > 4)
+    trace_buffer(__func__, p, i);
 
   return 0;
 }
@@ -460,8 +436,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv, n;
-  int i;
-  unsigned char * p = buf;
+  unsigned char *p = buf;
 
   if (udev == NULL)
     return -1;
@@ -532,26 +507,9 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 */
 
   printout:
-  if (verbose > 3)
-  {
-      i = n & USB_RECV_LENGTH_MASK;
-      pmsg_trace("recv: ");
+  if(verbose > 3)
+    trace_buffer(__func__, p, n & USB_RECV_LENGTH_MASK);
 
-      while (i) {
-        unsigned char c = *p;
-        if (isprint(c)) {
-          msg_trace("%c ", c);
-        }
-        else {
-          msg_trace(". ");
-        }
-        msg_trace("[%02x] ", c);
-
-        p++;
-        i--;
-      }
-      msg_trace("\n");
-  }
   return n;
 }
 

@@ -1,0 +1,92 @@
+name: avrdude_packing
+
+env:
+  # The name of the project
+  PROJECT_NAME: avrdude
+  DIST_DIR: dist
+  ARTIFACT_NAME: dist
+
+on:
+  label:
+    types:
+      - created
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: build (${{ matrix.config.os }}, ${{ matrix.config.arch }})
+    runs-on:
+      ubuntu-latest
+    strategy:
+      matrix:
+        config:
+          - os: Linux
+            arch: 64bit
+            cross_compile: x86_64-ubuntu16.04-linux-gnu
+          - os: Linux
+            arch: 32bit
+            cross_compile: i686-ubuntu16.04-linux-gnu
+          - os: Linux
+            arch: ARMv6
+            cross_compile: arm-linux-gnueabihf
+          - os: Linux
+            arch: ARM64
+            cross_compile: aarch64-linux-gnu
+          - os: macOS
+            arch: 64bit
+            cross_compile: x86_64-apple-darwin13
+            cross_compiler: o64-clang
+            ar: /opt/osxcross/target/bin/x86_64-apple-darwin13-ar # we have to manually specify the full path otherwise it's not found for some reason
+            ld: /opt/osxcross/target/bin/x86_64-apple-darwin13-ld
+          - os: Windows
+            arch: 32bit
+            cross_compile: i686-w64-mingw32
+            extension: .exe
+            
+    container:
+      image: ghcr.io/arduino/crossbuild:0.2.2
+    
+    steps:
+
+    - name: Checkout avrdude repository
+      uses: actions/checkout@v3
+      with:
+        repository: avrdudes/avrdude
+        path: ${{ env.PROJECT_NAME }}
+
+    - name: replace system ranlib with darwin one
+      # for some reason is not possible to override ranlib with env vars, so this is ugly but it's the only way I found
+      if: matrix.config.os == 'macOS'
+      run: |
+        mv /usr/bin/ranlib /usr/bin/ranlib.bk
+        ln -s /opt/osxcross/target/bin/${{ matrix.config.cross_compile }}-ranlib /usr/bin/ranlib
+
+    - name: Build Avrdude
+      working-directory: ${{ env.PROJECT_NAME }}
+      run: |
+        if [ "${{ matrix.config.os }}" = "macOS" ]; then
+          # For darwin we disable the static flags (not supported by clang) and we make some adjustments
+          cmake -DCMAKE_C_COMPILER=${{ matrix.config.cross_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cross_compiler }}++ -DCMAKE_AR=${{ matrix.config.ar }} -DCMAKE_LINKER=${{ matrix.config.ld}} -DCMAKE_EXE_LINKER_FLAGS="-L/opt/lib/${{ matrix.config.cross_compile }}/lib/" -DCMAKE_C_FLAGS="-I/opt/lib/${{ matrix.config.cross_compile }}/include -pthread -framework Foundation -framework IOKit -framework Cocoa -framework Security -DHAVE_USB_H" -DCMAKE_PREFIX_PATH=/opt/lib/${{ matrix.config.cross_compile }}/ -DHAVE_LIBFTDI="NO" -B build/
+        else
+          cmake -DCMAKE_C_COMPILER=${{ matrix.config.cross_compile }}-gcc -DCMAKE_CXX_COMPILER=${{ matrix.config.cross_compile }}-g++ -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" -DCMAKE_C_FLAGS="-I/opt/lib/${{ matrix.config.cross_compile }}/include/libusb-1.0/ -I/opt/lib/${{ matrix.config.cross_compile }}/include -pthread" -DCMAKE_PREFIX_PATH=/opt/lib/${{ matrix.config.cross_compile }}/ -DHAVE_LIBFTDI="NO" -B build/
+        fi
+        cmake --build build/ -v
+
+    - name: Package
+      working-directory: ${{ env.PROJECT_NAME }}
+      run: | # we need to create the subdir where to place binaries
+        mkdir -p ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/bin ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/etc
+        chmod +x build/src/${{ env.PROJECT_NAME }}${{ matrix.config.extension }}
+        mv -v build/src/${{ env.PROJECT_NAME }}${{ matrix.config.extension }} ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/bin
+        mv -v build/src/${{ env.PROJECT_NAME }}.conf ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/etc
+        mv -v COPYING ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/LICENSE.txt
+        tar -czv ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }} -f ${{ env.PROJECT_NAME }}_${GITHUB_REF##*/}_${{ matrix.config.os }}_${{ matrix.config.arch }}.tar.gz
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        if-no-files-found: error
+        name: ${{ env.ARTIFACT_NAME }}
+        path: ${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}_*

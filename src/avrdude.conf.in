@@ -2,13 +2,17 @@
 #
 # AVRDUDE Configuration File
 #
-# This file contains configuration data used by AVRDUDE which describes
-# the programming hardware pinouts and also provides part definitions.
+
+avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
+
+# This file contains AVRDUDE's default configuration data describing
+# programming hardware pinouts and part definitions. Normally, it
+# requires AVRDUDE be of the same or higher version than above string.
 # AVRDUDE's -C command line option specifies the location of the
-# configuration file.  The -c option names the programmer configuration
-# which must match one of the entry's id parameter.  The -p option
-# identifies which part AVRDUDE is going to be programming and must match
-# one of the parts' id parameters.
+# configuration file. The -c option names the programmer configuration
+# which must match one of the entry's id parameter. The -p option
+# identifies which part AVRDUDE is going to be programming and must
+# match one of the parts' id parameters.
 #
 # DO NOT MODIFY THIS FILE.  Modifications will be overwritten the next
 # time a "make install" is run.  For user-specific additions, use the
@@ -180,8 +184,8 @@
 #       # parameters for bootloaders
 #       autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 #
-#       memory <memtype>
-#           paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
+#       memory <memstr>
+#           paged           = <yes/no> ;          # yes/no (flash of classic parts only)
 #           offset          = <num> ;             # memory offset
 #           size            = <num> ;             # bytes
 #           page_size       = <num> ;             # bytes
@@ -240,13 +244,13 @@
 # NOTES:
 #   * 'devicecode' is the device code used by the STK500 (see codes
 #       listed below)
-#   * Not all memory types will implement all instructions
+#   * Not all memories will implement all instructions
 #   * AVR Fuse bits and Lock bits are implemented as a type of memory
-#   * Example memory types are:
+#   * Example memories are:
 #       "flash", "eeprom", "fuse", "lfuse" (low fuse), "hfuse" (high
 #       fuse), "signature", "calibration", "lock"
-#   * The memory type specified on the avrdude command line must match
-#     one of the memory types defined for the specified chip
+#   * The memory specified on the avrdude command line must match
+#     one of the memories defined for the specified chip
 #   * The pwroff_after_write flag causes avrdude to attempt to
 #     power the device off and back on after an unsuccessful write to
 #     the affected memory area if VCC programmer pins are defined. If
@@ -438,6 +442,7 @@
 default_parallel   = "@DEFAULT_PAR_PORT@";
 default_serial     = "@DEFAULT_SER_PORT@";
 default_spi        = "@DEFAULT_SPI_PORT@";
+# default_baudrate = 115200;
 # default_bitclock = 2.5;
 default_linuxgpio  = "@DEFAULT_LINUXGPIO_PORT@";
 allow_subshells    = no;
@@ -2697,7 +2702,7 @@ programmer # pickit4_tpi
 
 programmer # snap
     id                     = "snap", "snap_jtag";
-    desc                   = "MPLAB(R) Snap in JTAG mode";
+    desc                   = "MPLAB(R) SNAP in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
@@ -2795,7 +2800,7 @@ programmer # pavr
 
 programmer # pickit2
     id                     = "pickit2";
-    desc                   = "MicroChip's PICkit2 Programmer";
+    desc                   = "Microchip PICkit 2 programmer in ISP mode";
     type                   = "pickit2";
     prog_modes             = PM_ISP;
     connection_type        = usb;
@@ -3022,7 +3027,7 @@ serialadapter # pl2303
     id                     = "pl2303";
     desc                   = "Profilic PL2303 USB to serial adapter";
     usbvid                 = 0x067b;
-    usbpid                 = 0x2303;
+    usbpid                 = 0x2303, 0x2304, 0x23a3, 0x23b3, 0x23c3, 0x23d3, 0x23e3, 0x23f3;
 ;
 
 #
@@ -3112,6 +3117,11 @@ part # t11
 
     memory "io"
         size               = 64;
+    ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x60;
     ;
 ;
 
@@ -3224,6 +3234,11 @@ part # t12
 
     memory "io"
         size               = 64;
+    ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x60;
     ;
 ;
 
@@ -3378,6 +3393,11 @@ part # t13
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 64;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -3521,6 +3541,11 @@ part # t15
 
     memory "io"
         size               = 64;
+    ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x60;
     ;
 ;
 
@@ -3721,6 +3746,11 @@ part # 1200
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -3818,6 +3848,11 @@ part # 4414
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -3910,6 +3945,11 @@ part # 2313
     memory "signature"
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -4004,6 +4044,11 @@ part # 2333
     memory "signature"
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -4103,6 +4148,11 @@ part # 2343
     memory "signature"
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -4271,6 +4321,11 @@ part # 8515
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -4367,6 +4422,11 @@ part # 8535
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -4411,6 +4471,10 @@ part parent "8535" # 4434
 
     memory "lock"
         max_write_delay    = 20000;
+    ;
+
+    memory "sram"
+        size               = 256;
     ;
 ;
 
@@ -4511,6 +4575,11 @@ part # m103
     memory "signature"
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 4000;
+        offset             = 0x60;
     ;
 ;
 
@@ -4663,6 +4732,11 @@ part # m64
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -4834,6 +4908,11 @@ part # m128
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -4998,6 +5077,11 @@ part # c128
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5139,6 +5223,11 @@ part # c64
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -5282,6 +5371,11 @@ part # c32
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5423,6 +5517,11 @@ part # m16
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x60;
     ;
 ;
 
@@ -5598,6 +5697,11 @@ part # m324p
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -5640,6 +5744,10 @@ part parent "m324p" # m164p
     memory "flash"
         size               = 0x4000;
         num_pages          = 128;
+    ;
+
+    memory "sram"
+        size               = 1024;
     ;
 ;
 
@@ -5919,6 +6027,11 @@ part # m644
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -6144,6 +6257,11 @@ part # m1284
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -6334,6 +6452,11 @@ part # m162
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -6454,6 +6577,11 @@ part # m163
     memory "calibration"
         size               = 1;
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x60;
     ;
 ;
 
@@ -6602,6 +6730,11 @@ part # m169
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -6875,6 +7008,11 @@ part # m329
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -7152,6 +7290,11 @@ part # m649
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7373,6 +7516,11 @@ part # m32
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7478,6 +7626,11 @@ part # m161
     memory "signature"
         size               = 3;
         read               = "0011.0000--xxxx.xxxx--xxxx.xxaa--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x60;
     ;
 ;
 
@@ -7640,6 +7793,11 @@ part # m8
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7795,6 +7953,11 @@ part # m8515
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -7928,6 +8091,11 @@ part # m8535
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -8058,6 +8226,11 @@ part # t26
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -8205,6 +8378,11 @@ part # t261
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -8379,6 +8557,11 @@ part # t461
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -8548,6 +8731,11 @@ part # t861
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -8638,6 +8826,11 @@ part # t28
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x60;
     ;
 ;
 
@@ -8795,6 +8988,11 @@ part # m48
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -9044,6 +9242,11 @@ part # m88
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -9298,6 +9501,11 @@ part # m168
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9541,6 +9749,11 @@ part # t828
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9704,6 +9917,11 @@ part # t87
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -9857,6 +10075,11 @@ part # t167
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10007,6 +10230,11 @@ part # t48
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x100;
     ;
 ;
 
@@ -10159,6 +10387,11 @@ part # t88
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10308,6 +10541,11 @@ part # m328
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
     ;
 ;
 
@@ -10516,6 +10754,11 @@ part # m64m1
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10554,6 +10797,10 @@ part parent "m64m1" # m32m1
         loadpage_hi        = "0100.1000--0000.0000--00aa.aaaa--iiii.iiii";
         writepage          = "0100.1100--00aa.aaaa--aa00.0000--xxxx.xxxx";
     ;
+
+    memory "sram"
+        size               = 2048;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -10582,6 +10829,10 @@ part parent "m32m1" # m16m1
         read_lo            = "0010.0000--000a.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--000a.aaaa--aaaa.aaaa--oooo.oooo";
         writepage          = "0100.1100--000a.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "sram"
+        size               = 1024;
     ;
 ;
 
@@ -11002,6 +11253,11 @@ part # m16hva
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11159,6 +11415,11 @@ part # m16hvb
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11200,6 +11461,10 @@ part parent "m16hvb" # m32hvb
         read_lo            = "0010.0000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--00aa.aaaa--aaaa.aaaa--oooo.oooo";
         writepage          = "0100.1100--00aa.aaaa--aa00.0000--xxxx.xxxx";
+    ;
+
+    memory "sram"
+        size               = 2048;
     ;
 ;
 
@@ -11349,6 +11614,11 @@ part # m64hve2
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11362,6 +11632,7 @@ part parent "m64hve2" # m32hve2
         "ATmega32HVE2-PLPW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V, 3.6 V]",
         "ATmega32HVE2-PLQW: VFQFN48, Fmax=15 MHz, T=[-40 C, 125 C], Vcc=[3 V, 3.6 V]";
     mcuid                  = 379;
+    boot_section_size      = 512;
     signature              = 0x1e 0x95 0x13;
 
     memory "flash"
@@ -11527,6 +11798,11 @@ part # t2313
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
     ;
 ;
 
@@ -11704,6 +11980,11 @@ part # t4313
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11849,6 +12130,11 @@ part # pwm1
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11989,6 +12275,11 @@ part # pwm2
     memory "calibration"
         size               = 1;
         read               = "0011.1000--000x.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -12219,6 +12510,11 @@ part # pwm161
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12247,6 +12543,10 @@ part parent "pwm161" # pwm81
         loadpage_hi        = "0100.1000--0000.0000--000a.aaaa--iiii.iiii";
         writepage          = "0100.1100--0000.aaaa--aaa0.0000--xxxx.xxxx";
     ;
+
+    memory "sram"
+        size               = 256;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12274,6 +12574,10 @@ part parent "pwm3b" # pwm316
         loadpage_lo        = "0100.0000--00xx.xxxx--xxaa.aaaa--iiii.iiii";
         loadpage_hi        = "0100.1000--00xx.xxxx--xxaa.aaaa--iiii.iiii";
         writepage          = "0100.1100--00aa.aaaa--aaxx.xxxx--xxxx.xxxx";
+    ;
+
+    memory "sram"
+        size               = 1024;
     ;
 ;
 
@@ -12476,6 +12780,11 @@ part # t25
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12641,6 +12950,11 @@ part # t45
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12803,6 +13117,11 @@ part # t85
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -12950,6 +13269,11 @@ part # m640
         size               = 480;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x200;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13095,6 +13419,11 @@ part # m1280
     memory "io"
         size               = 480;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x200;
     ;
 ;
 
@@ -13266,6 +13595,11 @@ part # m2560
         size               = 480;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x200;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13351,6 +13685,10 @@ part parent "m2561" # m128rfa1
         min_write_delay    = 4500;
         max_write_delay    = 4500;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13409,6 +13747,10 @@ part parent "m128rfa1" # m256rfr2
         blocksize          = 256;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 0x8000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13435,6 +13777,10 @@ part parent "m256rfr2" # m128rfr2
         size               = 0x20000;
         num_pages          = 512;
         load_ext_addr      = NULL;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -13466,6 +13812,10 @@ part parent "m128rfr2" # m64rfr2
         read_lo            = "0010.0000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--0aaa.aaaa--aaaa.aaaa--oooo.oooo";
         writepage          = "0100.1100--0aaa.aaaa--axxx.xxxx--xxxx.xxxx";
+    ;
+
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -13671,6 +14021,11 @@ part # t24
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13856,6 +14211,11 @@ part # t44
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -13883,6 +14243,7 @@ part parent "t44" # t44a
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21;
+
 ;
 
 #------------------------------------------------------------
@@ -14040,6 +14401,11 @@ part # t84
         size               = 64;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x60;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14110,6 +14476,10 @@ part parent "t44" # t441
     memory "io"
         size               = 224;
     ;
+
+    memory "sram"
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14155,6 +14525,10 @@ part parent "t84" # t841
 
     memory "io"
         size               = 224;
+    ;
+
+    memory "sram"
+        offset             = 0x100;
     ;
 ;
 
@@ -14219,7 +14593,6 @@ part # t43u
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
     memory "eeprom"
-        paged              = yes;
         size               = 64;
         page_size          = 4;
         num_pages          = 16;
@@ -14304,6 +14677,11 @@ part # t43u
     memory "io"
         size               = 64;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x60;
     ;
 ;
 
@@ -14448,6 +14826,11 @@ part # m16u4
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1280;
+        offset             = 0x100;
     ;
 ;
 
@@ -14595,6 +14978,11 @@ part # m32u4
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 2560;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -14738,6 +15126,11 @@ part # usb646
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -14900,6 +15293,11 @@ part # usb1286
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x100;
     ;
 ;
 
@@ -15066,6 +15464,11 @@ part # usb162
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15211,6 +15614,11 @@ part # usb82
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -15359,6 +15767,11 @@ part # m32u2
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15506,6 +15919,11 @@ part # m16u2
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -15652,6 +16070,11 @@ part # m8u2
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x100;
     ;
 ;
 
@@ -15803,6 +16226,11 @@ part # m165p
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
     ;
 ;
 
@@ -16008,6 +16436,11 @@ part # m325
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16212,6 +16645,11 @@ part # m645
     memory "io"
         size               = 224;
         offset             = 0x20;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x100;
     ;
 ;
 
@@ -16427,14 +16865,13 @@ part # .xmega
         offset             = 0x1000090;
     ;
 
-    memory "data"
-        # SRAM, only used to supply the offset
-        offset             = 0x1000000;
-    ;
-
     memory "io"
         size               = 4096;
         readsize           = 1;
+    ;
+
+    memory "sram"
+        offset             = 0x2000;
     ;
 ;
 
@@ -16548,6 +16985,10 @@ part parent ".xmega-a" # x16a4u
         page_size          = 256;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 2048;
     ;
 ;
 
@@ -16710,6 +17151,10 @@ part parent ".xmega-a" # x32a4u
         offset             = 0x8e0400;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 4096;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -16871,6 +17316,10 @@ part parent ".xmega-a" # x64a4u
         page_size          = 256;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17283,6 +17732,10 @@ part parent ".xmega" # x128c3
         offset             = 0x8e0400;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 8192;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17545,6 +17998,10 @@ part parent ".xmega" # x128a4
         offset             = 0x8e0400;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 8192;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -17618,6 +18075,10 @@ part parent ".xmega-a" # x128a4u
         page_size          = 256;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -17696,6 +18157,10 @@ part parent ".xmega" # x128b1
         page_size          = 256;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -17784,6 +18249,10 @@ part parent ".xmega" # x192c3
         page_size          = 512;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -18016,6 +18485,10 @@ part parent ".xmega" # x256c3
         page_size          = 512;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -18360,6 +18833,10 @@ part parent ".xmega" # x384c3
         offset             = 0x8e0400;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 0x8000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18454,6 +18931,10 @@ part parent ".xmega-e" # x8e5
         offset             = 0x8e0400;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 1024;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18530,6 +19011,10 @@ part parent ".xmega-e" # x16e5
         offset             = 0x8e0400;
         readsize           = 256;
     ;
+
+    memory "sram"
+        size               = 2048;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18605,6 +19090,10 @@ part parent ".xmega-e" # x32e5
         page_size          = 128;
         offset             = 0x8e0400;
         readsize           = 256;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -18796,6 +19285,11 @@ part # t1634
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -18849,6 +19343,11 @@ part # .reduced_core_tiny
         size               = 1;
         page_size          = 16;
         offset             = 0x3f80;
+    ;
+
+    memory "sram"
+        size               = 32;
+        offset             = 0x40;
     ;
 ;
 
@@ -18975,6 +19474,10 @@ part parent ".reduced_core_tiny" # t20
     memory "io"
         size               = 64;
     ;
+
+    memory "sram"
+        size               = 128;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19010,6 +19513,10 @@ part parent ".reduced_core_tiny" # t40
 
     memory "io"
         size               = 64;
+    ;
+
+    memory "sram"
+        size               = 256;
     ;
 ;
 
@@ -19182,6 +19689,11 @@ part # m406
         size               = 224;
         offset             = 0x20;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x100;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19197,6 +19709,12 @@ part # .avr8x
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
+
+    memory "fuses"
+        size               = 10;
+        offset             = 0x1280;
+        readsize           = 1;
+    ;
 
     memory "fuse0"
         size               = 1;
@@ -19286,13 +19804,6 @@ part # .avr8x
         alias "fuse8";
     ;
 
-    memory "fuses"
-        size               = 10;
-        page_size          = 10;
-        offset             = 0x1280;
-        readsize           = 10;
-    ;
-
     memory "lock"
         size               = 1;
         offset             = 0x128a;
@@ -19350,11 +19861,6 @@ part # .avr8x
         size               = 2;
         offset             = 0x1124;
         readsize           = 1;
-    ;
-
-    memory "data"
-        # SRAM, only used to supply the offset
-        offset             = 0x1000000;
     ;
 
     memory "io"
@@ -19462,6 +19968,11 @@ part parent ".avr8x_tiny" # t202
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x3f80;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19507,6 +20018,11 @@ part parent ".avr8x_tiny" # t204
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x3f80;
     ;
 ;
 
@@ -19554,6 +20070,11 @@ part parent ".avr8x_tiny" # t402
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19599,6 +20120,11 @@ part parent ".avr8x_tiny" # t404
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
     ;
 ;
 
@@ -19648,6 +20174,11 @@ part parent ".avr8x_tiny" # t406
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19682,6 +20213,11 @@ part parent ".avr8x_tiny" # t804
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
     ;
 ;
 
@@ -19722,6 +20258,11 @@ part parent ".avr8x_tiny" # t806
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19758,6 +20299,11 @@ part parent ".avr8x_tiny" # t807
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19792,6 +20338,11 @@ part parent ".avr8x_tiny" # t1604
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
     ;
 ;
 
@@ -19832,6 +20383,11 @@ part parent ".avr8x_tiny" # t1606
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19867,6 +20423,11 @@ part parent ".avr8x_tiny" # t1607
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
     ;
 ;
 
@@ -19914,6 +20475,11 @@ part parent ".avr8x_tiny" # t212
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x3f80;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19959,6 +20525,11 @@ part parent ".avr8x_tiny" # t214
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 128;
+        offset             = 0x3f80;
     ;
 ;
 
@@ -20006,6 +20577,11 @@ part parent ".avr8x_tiny" # t412
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20051,6 +20627,11 @@ part parent ".avr8x_tiny" # t414
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
     ;
 ;
 
@@ -20099,6 +20680,11 @@ part parent ".avr8x_tiny" # t416
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
     ;
 ;
 
@@ -20164,6 +20750,11 @@ part parent ".avr8x_tiny" # t417
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 256;
+        offset             = 0x3f00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20210,6 +20801,11 @@ part parent ".avr8x_tiny" # t814
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
     ;
 ;
 
@@ -20262,6 +20858,11 @@ part parent ".avr8x_tiny" # t816
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20309,6 +20910,11 @@ part parent ".avr8x_tiny" # t817
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20354,6 +20960,11 @@ part parent ".avr8x_tiny" # t1614
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
     ;
 ;
 
@@ -20403,6 +21014,11 @@ part parent ".avr8x_tiny" # t1616
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20448,6 +21064,11 @@ part parent ".avr8x_tiny" # t1617
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
     ;
 ;
 
@@ -20499,6 +21120,11 @@ part parent ".avr8x_tiny" # t3216
     memory "userrow"
         size               = 64;
         page_size          = 64;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
     ;
 ;
 
@@ -20560,6 +21186,11 @@ part parent ".avr8x_tiny" # t424
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20608,6 +21239,11 @@ part parent ".avr8x_tiny" # t426
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20647,6 +21283,11 @@ part parent ".avr8x_tiny" # t427
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 512;
+        offset             = 0x3e00;
     ;
 ;
 
@@ -20691,6 +21332,11 @@ part parent ".avr8x_tiny" # t824
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
     ;
 ;
 
@@ -20740,6 +21386,11 @@ part parent ".avr8x_tiny" # t826
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20779,6 +21430,11 @@ part parent ".avr8x_tiny" # t827
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
     ;
 ;
 
@@ -20823,6 +21479,11 @@ part parent ".avr8x_tiny" # t1624
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
     ;
 ;
 
@@ -20872,6 +21533,11 @@ part parent ".avr8x_tiny" # t1626
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -20911,6 +21577,11 @@ part parent ".avr8x_tiny" # t1627
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
     ;
 ;
 
@@ -20955,6 +21626,11 @@ part parent ".avr8x_tiny" # t3224
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x3400;
     ;
 ;
 
@@ -21004,6 +21680,11 @@ part parent ".avr8x_tiny" # t3226
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x3400;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21043,6 +21724,11 @@ part parent ".avr8x_tiny" # t3227
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 3072;
+        offset             = 0x3400;
     ;
 ;
 
@@ -21091,6 +21777,11 @@ part parent ".avr8x_tiny" # m808
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21133,6 +21824,11 @@ part parent ".avr8x_tiny" # m809
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 1024;
+        offset             = 0x3c00;
     ;
 ;
 
@@ -21181,6 +21877,11 @@ part parent ".avr8x_tiny" # m1608
     memory "lock"
         initval            = 0xc5;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21223,6 +21924,11 @@ part parent ".avr8x_tiny" # m1609
 
     memory "lock"
         initval            = 0xc5;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x3800;
     ;
 ;
 
@@ -21273,6 +21979,11 @@ part parent ".avr8x_mega" # m3208
         page_size          = 128;
         readsize           = 128;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x3000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21317,6 +22028,11 @@ part parent ".avr8x_mega" # m3209
         size               = 128;
         page_size          = 128;
         readsize           = 128;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x3000;
     ;
 ;
 
@@ -21367,6 +22083,11 @@ part parent ".avr8x_mega" # m4808
         page_size          = 128;
         readsize           = 128;
     ;
+
+    memory "sram"
+        size               = 6144;
+        offset             = 0x2800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21413,6 +22134,11 @@ part parent ".avr8x_mega" # m4809
         page_size          = 128;
         readsize           = 128;
     ;
+
+    memory "sram"
+        size               = 6144;
+        offset             = 0x2800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21431,6 +22157,12 @@ part # .avrdx
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
+
+    memory "fuses"
+        size               = 16;
+        offset             = 0x1050;
+        readsize           = 1;
+    ;
 
     memory "fuse0"
         size               = 1;
@@ -21520,13 +22252,6 @@ part # .avrdx
         alias "fuse8";
     ;
 
-    memory "fuses"
-        size               = 16;
-        page_size          = 16;
-        offset             = 0x1050;
-        readsize           = 16;
-    ;
-
     memory "lock"
         size               = 4;
         offset             = 0x1040;
@@ -21571,11 +22296,6 @@ part # .avrdx
 
     memory "usersig"
         alias "userrow";
-    ;
-
-    memory "data"
-        # SRAM, only used to supply the offset
-        offset             = 0x1000000;
     ;
 
     memory "io"
@@ -21634,6 +22354,11 @@ part parent ".avrdx" # avr32da28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21679,6 +22404,11 @@ part parent ".avrdx" # avr32da32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21723,6 +22453,11 @@ part parent ".avrdx" # avr32da48
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
     ;
 ;
 
@@ -21771,6 +22506,11 @@ part parent ".avrdx" # avr64da28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21815,6 +22555,11 @@ part parent ".avrdx" # avr64da32
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
     ;
 ;
 
@@ -21861,6 +22606,11 @@ part parent ".avrdx" # avr64da48
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21905,6 +22655,11 @@ part parent ".avrdx" # avr64da64
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
     ;
 ;
 
@@ -21953,6 +22708,11 @@ part parent ".avrdx" # avr128da28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -21997,6 +22757,11 @@ part parent ".avrdx" # avr128da32
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
     ;
 ;
 
@@ -22043,6 +22808,11 @@ part parent ".avrdx" # avr128da48
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22088,6 +22858,11 @@ part parent ".avrdx" # avr128da64
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22129,6 +22904,11 @@ part parent ".avrdx" # avr32db28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22168,6 +22948,11 @@ part parent ".avrdx" # avr32db32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22206,6 +22991,11 @@ part parent ".avrdx" # avr32db48
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
     ;
 ;
 
@@ -22248,6 +23038,11 @@ part parent ".avrdx" # avr64db28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22286,6 +23081,11 @@ part parent ".avrdx" # avr64db32
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
     ;
 ;
 
@@ -22326,6 +23126,11 @@ part parent ".avrdx" # avr64db48
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22364,6 +23169,11 @@ part parent ".avrdx" # avr64db64
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
     ;
 ;
 
@@ -22406,6 +23216,11 @@ part parent ".avrdx" # avr128db28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22444,6 +23259,11 @@ part parent ".avrdx" # avr128db32
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
     ;
 ;
 
@@ -22484,6 +23304,11 @@ part parent ".avrdx" # avr128db48
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22523,6 +23348,11 @@ part parent ".avrdx" # avr128db64
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 0x4000;
+        offset             = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22560,6 +23390,11 @@ part parent ".avrdx" # avr16dd14
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
     ;
 ;
 
@@ -22599,6 +23434,11 @@ part parent ".avrdx" # avr16dd20
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
     ;
 ;
 
@@ -22641,6 +23481,11 @@ part parent ".avrdx" # avr16dd28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22680,6 +23525,11 @@ part parent ".avrdx" # avr16dd32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22717,6 +23567,11 @@ part parent ".avrdx" # avr32dd14
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
     ;
 ;
 
@@ -22756,6 +23611,11 @@ part parent ".avrdx" # avr32dd20
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
     ;
 ;
 
@@ -22798,6 +23658,11 @@ part parent ".avrdx" # avr32dd28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22837,6 +23702,11 @@ part parent ".avrdx" # avr32dd32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22875,6 +23745,11 @@ part parent ".avrdx" # avr64dd14
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22912,6 +23787,11 @@ part parent ".avrdx" # avr64dd20
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
     ;
 ;
 
@@ -22954,6 +23834,11 @@ part parent ".avrdx" # avr64dd28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -22993,6 +23878,88 @@ part parent ".avrdx" # avr64dd32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 8192;
+        offset             = 0x6000;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DU28
+#------------------------------------------------------------
+
+part parent "avr64dd28" # avr64du28
+    desc                   = "AVR64DU28";
+    id                     = "avr64du28";
+    variants               =
+        "AVR64DU28-SSOP/SPDIP: DIP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR64DU28-VQFN:       QFP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 384;
+    n_interrupts           = 34;
+    signature              = 0x1e 0x96 0x22;
+
+    memory "fuse5"
+        bitmask            = 0xfb;
+    ;
+
+    memory "fuse6"
+        bitmask            = 0x0f;
+    ;
+
+    memory "fusea"
+        size               = 2;
+        initval            = 0x03;
+        bitmask            = 0xfff3;
+        offset             = 0x105a;
+        readsize           = 1;
+    ;
+
+    memory "pdicfg"
+        alias "fusea";
+    ;
+
+    memory "prodsig"
+        offset             = 0x1080;
+    ;
+
+    memory "signature"
+        offset             = 0x1080;
+    ;
+
+    memory "tempsense"
+        offset             = 0x1084;
+    ;
+
+    memory "sernum"
+        offset             = 0x1090;
+    ;
+
+    memory "bootrow"
+        size               = 256;
+        page_size          = 256;
+        offset             = 0x1100;
+        readsize           = 256;
+    ;
+
+    memory "userrow"
+        size               = 512;
+        page_size          = 512;
+        offset             = 0x1200;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR64DU32
+#------------------------------------------------------------
+
+part parent "avr64du28" # avr64du32
+    desc                   = "AVR64DU32";
+    id                     = "avr64du32";
+    variants               =
+        "AVR64DU32-VQFN/TQFP: QFP32, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 385;
+    signature              = 0x1e 0x96 0x21;
 ;
 
 #------------------------------------------------------------
@@ -23148,6 +24115,7 @@ part parent ".avrex" # avr16ea28
     variants               =
         "AVR16EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 332;
+    n_interrupts           = 37;
     signature              = 0x1e 0x94 0x37;
 
     memory "eeprom"
@@ -23167,6 +24135,11 @@ part parent ".avrex" # avr16ea28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23179,6 +24152,7 @@ part parent ".avrex" # avr16ea32
     variants               =
         "AVR16EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 334;
+    n_interrupts           = 37;
     signature              = 0x1e 0x94 0x36;
 
     memory "eeprom"
@@ -23198,6 +24172,11 @@ part parent ".avrex" # avr16ea32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23210,6 +24189,7 @@ part parent ".avrex" # avr16ea48
     variants               =
         "AVR16EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 335;
+    n_interrupts           = 45;
     signature              = 0x1e 0x94 0x35;
 
     memory "eeprom"
@@ -23229,6 +24209,11 @@ part parent ".avrex" # avr16ea48
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23241,6 +24226,7 @@ part parent ".avrex" # avr32ea28
     variants               =
         "AVR32EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 341;
+    n_interrupts           = 37;
     signature              = 0x1e 0x95 0x3e;
 
     memory "eeprom"
@@ -23260,6 +24246,11 @@ part parent ".avrex" # avr32ea28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23272,6 +24263,7 @@ part parent ".avrex" # avr32ea32
     variants               =
         "AVR32EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 345;
+    n_interrupts           = 37;
     signature              = 0x1e 0x95 0x3d;
 
     memory "eeprom"
@@ -23291,6 +24283,11 @@ part parent ".avrex" # avr32ea32
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23303,6 +24300,7 @@ part parent ".avrex" # avr32ea48
     variants               =
         "AVR32EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 348;
+    n_interrupts           = 45;
     signature              = 0x1e 0x95 0x3c;
 
     memory "eeprom"
@@ -23321,6 +24319,11 @@ part parent ".avrex" # avr32ea48
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
     ;
 ;
 
@@ -23356,6 +24359,11 @@ part parent ".avrex" # avr64ea28
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 6144;
+        offset             = 0x6800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23389,6 +24397,11 @@ part parent ".avrex" # avr64ea32
 
     memory "lock"
         initval            = 0x5cc5c55c;
+    ;
+
+    memory "sram"
+        size               = 6144;
+        offset             = 0x6800;
     ;
 ;
 
@@ -23424,6 +24437,11 @@ part parent ".avrex" # avr64ea48
     memory "lock"
         initval            = 0x5cc5c55c;
     ;
+
+    memory "sram"
+        size               = 6144;
+        offset             = 0x6800;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -23436,6 +24454,7 @@ part parent ".avrex" # avr16eb14
     variants               =
         "AVR16EB14-SOIC/TSSOP: SOIC14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 380;
+    n_interrupts           = 31;
     signature              = 0x1e 0x94 0x49;
 
     memory "eeprom"
@@ -23493,6 +24512,11 @@ part parent ".avrex" # avr16eb14
 
     memory "userrow"
         offset             = 0x1200;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
     ;
 ;
 

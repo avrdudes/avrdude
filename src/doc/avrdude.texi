@@ -108,7 +108,7 @@ Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org
 * Introduction::                
 * Command Line Options::
 * Terminal Mode Operation::
-* Configuration File::          
+* Configuration Files::
 * Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
@@ -131,15 +131,15 @@ supplies a direct instruction mode allowing one to issue any programming
 instruction to the AVR chip regardless of whether AVRDUDE implements
 that specific feature of a particular chip.
 
-AVRDUDE can be used effectively via the command line to read or write
-all chip memory types (eeprom, flash, fuse bits, lock bits, signature
-bytes) or via an interactive (terminal) mode. Using AVRDUDE from the
-command line works well for programming the entire memory of the chip
-from the contents of a file, while interactive mode is useful for
-exploring memory contents, modifying individual bytes of eeprom,
-programming fuse/lock bits, etc.
+AVRDUDE can be used via the command line to read or write chip memories
+(eeprom, flash, fuses, lock bits) and read memories such as signature or
+calibration bytes; the same can be achieved via an interactive terminal
+mode. Using AVRDUDE from the command line works well for programming the
+entire memory of the chip from the contents of a file, while interactive mode
+is useful for exploring memory contents, modifying individual bytes of
+eeprom, programming fuse/lock bits, etc.
 
-@cindex Programmers supported
+@cindex Programmers Supported
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
@@ -334,7 +334,7 @@ utility, but it also contains some performance improvements included in
 Spence Konde's @emph{DxCore} Arduino core (@url{https://github.com/SpenceKonde/DxCore}).
 In a nutshell, this programmer consists of simple USB->UART adapter, diode 
 and couple of resistors. It uses serial connection to provide UPDI interface. 
-@xref{SerialUPDI programmer} for more details and known issues.
+@xref{SerialUPDI Programmer} for more details and known issues.
 
 The jtag2updi programmer is supported,
 and can program AVRs with a UPDI interface.
@@ -362,8 +362,8 @@ below for Teensy specific options.
 @c Node
 @c
 @node History,  , Introduction, Introduction
-@cindex History
 @section History and Credits
+@cindex History and Credits
 
 AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
 the FreeBSD Operating System.  Brian renamed the software to be called
@@ -394,19 +394,21 @@ Roth.
 @c
 @node Command Line Options, Terminal Mode Operation, Introduction, Top
 @chapter Command Line Options
+@cindex Command Line Options
 
 @menu
 * Option Descriptions::
-* Programmers accepting extended parameters::
+* Programmers Accepting Extended Parameters::
 * Example Command Line Invocations::
 @end menu
 
 @c
 @c Node
 @c
-@node Option Descriptions, Programmers accepting extended parameters, Command Line Options, Command Line Options
+@node Option Descriptions, Programmers Accepting Extended Parameters, Command Line Options, Command Line Options
 @cindex Options (command-line)
 @section Option Descriptions
+@cindex Option Descriptions
 
 @noindent
 AVRDUDE is a command line tool, used as follows:
@@ -421,6 +423,7 @@ following options are recognized:
 
 @table @code
 @item -p @var{partno}
+@cindex Option @code{-p} @var{partno}
 This option tells AVRDUDE what part (MCU) is connected to the programmer. The
 @var{partno} parameter is the part's id listed in the configuration file. To
 see a list of currently supported MCUs use ? as partno, which will print the
@@ -438,7 +441,7 @@ interface(s) that can be used in that combination. In reality there can be
 deviations from this list, particularly if programming is directly via a
 bootloader. Currently, the following MCU types are understood:
 
-@cindex Device support
+@cindex Device Support
 
 @multitable @columnfractions .15 .45
 @include parts.texi
@@ -461,25 +464,22 @@ device.  Known to work are all direct bitbang programmers, and all
 programmers talking the STK500v2 protocol.
 
 @item -p @var{wildcard/flags}
+@cindex Option @code{-p} @var{wildcard/flags}
 Run developer options for MCUs that are matched by @var{wildcard}. Whilst
 their main use is for developers some @var{flags} can be of utility for
 users, e.g.,  @code{avrdude -p m328p/S} outputs AVRDUDE's understanding of
 ATmega328P MCU properties; for more information run @code{avrdude -p x/h}.
 
 @item -b @var{baudrate}
+@cindex Option @code{-b} @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
-programmer's entry of the configuration file.
-
-@item -r
-Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
-for each @code{-r} on the command line and then establishes communication
-with the programmer. This is commonly known as a "1200bps touch", and is
-used to trigger programming mode for certain boards like Arduino Leonardo,
-Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
-therefore multiple @code{-r} options, are sometimes needed for slower, less
-powerful hosts.
+programmer's @code{baudrate} entry of the configuration file
+or defined by the @code{default_baudrate} entry in your
+@code{~/.config/avrdude/avrdude.rc} or @code{~/.avrduderc} configuration
+file if no @code{baudrate} entry was provided for this programmer.
 
 @item -B @var{bitclock}
+@cindex Option @code{-B} @var{bitclock}
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
 interface. The value is a floating-point number in microseconds.
 Alternatively, the value might be suffixed with "Hz", "kHz" or
@@ -504,6 +504,7 @@ programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
 until the programmer is disconnected from the computer.
 
 @item -c @var{programmer-id}
+@cindex Option @code{-c} @var{programmer-id}
 Specify the programmer to be used.  AVRDUDE knows about several common
 programmers.  Use this option to specify which one to use.  The
 @var{programmer-id} parameter is the programmer's id listed in the
@@ -520,7 +521,7 @@ combination. In reality there can be deviations from this list, particularly
 if programming is directly via a bootloader. Currently, the following
 programmer ids are understood and supported:
 
-@cindex Programmer support
+@cindex Programmer Support
 
 @multitable @columnfractions .3 .68
 @include programmers.texi
@@ -529,12 +530,14 @@ programmer ids are understood and supported:
 
 
 @item -c @var{wildcard/flags}
+@cindex Option @code{-c} @var{wildcard/flags}
 Run developer options for programmers that are matched by @var{wildcard}.
 Whilst their main use is for developers some @var{flags} can be of utility
 for users, e.g., @code{avrdude -c usbtiny/S} shows AVRDUDE's understanding of
 usbtiny's properties; for more information run @code{avrdude -c x/h}.
 
 @item -C @var{config-file}
+@cindex Option @code{-C} @var{config-file}
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
 If not specified, AVRDUDE looks for the configuration file in the following
@@ -561,7 +564,14 @@ without patching your system wide configuration file. It can be used
 several times, the files are read in same order as given on the command 
 line.
 
+@item -N
+@cindex Option @code{-N}
+Do not load the personal configuration file that is usually located at
+@code{~/.config/avrdude/avrdude.rc}, @code{~/.avrduderc} or in the same
+directory as the avrdude executable.
+
 @item -A
+@cindex Option @code{-A}
 Disable the automatic removal of trailing-0xFF sequences in file
 input that is to be programmed to flash and in AVR reads from
 flash memory. Normally, trailing 0xFFs can be discarded, as flash
@@ -573,6 +583,7 @@ Arduino bootloader exhibits this behaviour; for this reason -A is
 engaged by default when specifying -c arduino.
 
 @item -D
+@cindex Option @code{-D}
 Disable auto erase for flash.  When the -U option with flash memory is 
 specified, avrdude will perform a chip erase before starting any of the 
 programming operations, since it generally is a mistake to program the flash
@@ -585,6 +596,7 @@ will retain its previous contents.
 Setting -D implies -A.
 
 @item -e
+@cindex Option @code{-e}
 Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value `0xff', and clear all lock bits.
 Except for ATxmega devices which can use page erase,
@@ -598,6 +610,7 @@ programming the cell.
 
 
 @item -E @var{exitspec}[,@dots{}]
+@cindex Option @code{-E} @var{exitspec}[,@dots{}]
 By default, AVRDUDE leaves the parallel port in the same state at exit
 as it has been found at startup.  This option modifies the state of the
 `/RESET' and `Vcc' lines the parallel port is left at, according to
@@ -644,6 +657,7 @@ Multiple @var{exitspec} arguments can be separated with commas.
 
 
 @item -F
+@cindex Option @code{-F}
 Normally, AVRDUDE tries to verify that the device signature read from
 the part is reasonable before continuing.  Since it can happen from time
 to time that a device has a broken (erased or overwritten) device
@@ -657,6 +671,7 @@ Moreover, the option allows to continue despite failed initialization
 of connection between a programmer and a target.
 
 @item -i @var{delay}
+@cindex Option @code{-i} @var{delay}
 For bitbang-type programmers, delay for approximately
 @var{delay}
 microseconds between each bit state change.
@@ -674,15 +689,18 @@ microsecond is assumed that might be off a bit for very fast or very
 slow machines.
 
 @item -l @var{logfile}
+@cindex Option @code{-l} @var{logfile}
 Use @var{logfile} rather than @var{stderr} for diagnostics output.
 Note that initial diagnostic messages (during option parsing) are still
 written to @var{stderr} anyway.
 
 @item -n
+@cindex Option @code{-n}
 No-write: disables writing data to the MCU whilst processing -U (useful for
 debugging AVRDUDE). The terminal mode continues to write to the device.
 
 @item -O
+@cindex Option @code{-O}
 Perform a RC oscillator run-time calibration according to Atmel
 application note AVR053.
 This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
@@ -690,6 +708,7 @@ hardware.
 Note that the result will be stored in the EEPROM cell at address 0.
 
 @item -P @var{port}
+@cindex Option @code{-P} @var{port}
 
 Use @var{port} to identify the connection through which the programmer is
 attached. This can be a parallel, serial, spi or linuxgpio connection. The
@@ -743,8 +762,9 @@ and Mac OS but not on Windows. For more information about AVR-Doper see
 For the USBtinyISP, which is a simplistic device not implementing
 serial numbers, multiple devices can be distinguished by their
 location in the USB hierarchy.
-See the respective
-@xref{Troubleshooting} entry for examples.
+For USBasp, multiple devices can be distinguished by either USB connection
+or serial number.
+See the respective @ref{Troubleshooting} entry for examples.
 
 For the XBee programmer the target MCU is to be programmed wirelessly
 over a ZigBee mesh using the XBeeBoot bootloader.  The ZigBee 64-bit
@@ -779,15 +799,28 @@ for a STK500.
 Note: The ability to handle IPv6 hostnames and addresses is limited to
 Posix systems (by now).
 
+@item -r
+@cindex Option @code{-r}
+Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
+for each @code{-r} on the command line and then establishes communication
+with the programmer. This is commonly known as a "1200bps touch", and is
+used to trigger programming mode for certain boards like Arduino Leonardo,
+Arduino Micro/Pro Micro and the Arduino Nano Every. Longer waits, and
+therefore multiple @code{-r} options, are sometimes needed for slower, less
+powerful hosts.
+
 @item -q
+@cindex Option @code{-q}
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
 
 @item -s, -u
+@cindex Option @code{-s}, @code{-u}
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 
 @item -T @var{cmd}
+@cindex Option @code{-T} @var{cmd}
 Run terminal line @var{cmd} when it is its turn in relation to other
 @code{-t} interactive terminals, @code{-T} terminal commands and
 @code{-U} memory operations. Except for the simplest of terminal commands
@@ -796,17 +829,19 @@ OS shell manual for details. See below for a detailed description of all
 terminal commands.
 
 @item -t
+@cindex Option @code{-t}
 Tells AVRDUDE to run an interactive terminal when it is its turn in
 relation to other @code{-t} interactive terminals, @code{-T}
 terminal commands and @code{-U} memory operations.
 
 @item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
+@cindex Option @code{-U} @var{memory}:@var{op}:@var{filename}[:@var{format}]
 Perform a memory operation when it is its turn in relation to other
 @code{-t} interactive terminals, @code{-T} terminal commands and
 @code{-U} memory operations. The @var{memory} field specifies the memory
 type to operate on. Use the @option{-T part} option on the command line or
 the @code{part} command in the interactive terminal to display all the
-memory types supported by a particular device.
+memories supported by a particular device.
 
 Typically, a device's memory configuration at least contains the memory
 types @code{flash}, @code{eeprom}, @code{signature} and @code{lock}, which
@@ -818,7 +853,7 @@ parts of it, is allowed. Parts will also typically have fuse bytes, which
 are read/write memories for configuration of the device and calibration
 memories that typically contain read-only factory calibration values.
 
-Classic devices may have the following memory types in addition to
+Classic devices may have the following memories in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item calibration
@@ -852,9 +887,12 @@ usersig:w:parameters.hex:i}
 Volatile register memory; it cannot be accessed by external programming
 methods only by bootloaders, which has limited use unless the bootloader
 jumps to the application directly, i.e., without a WDT reset
+@item sram
+Volatile RAM memory; like @code{io} it cannot be accessed by external
+programming
 @end table
 
-ATxmega devices have the following memory types in addition to
+ATxmega devices have the following memories in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item application
@@ -885,9 +923,11 @@ memory is not erased during a chip erase
 @item io
 Volatile register memory; AVRDUDE can read this memory but not write to it
 using external programming
+@item sram
+Volatile RAM memory; cannot be usefully accessed by external programming
 @end table
 
-Modern 8-bit AVR devices have the following memory types in addition to
+Modern 8-bit AVR devices have the following memories in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
 @table @code
 @item fuse0
@@ -941,6 +981,8 @@ Volatile register memory; AVRDUDE can program this memory but this is of
 limited utility because anything written to the io memory will be undefined or
 lost after reset; writing to individual registers in the terminal can
 still be used, e.g., to test I/O ports
+@item sram
+Volatile RAM memory; can be read and written but contents will be lost after reset
 @end table
 
 The @var{op} field specifies what operation to perform:
@@ -1041,13 +1083,16 @@ that sandwich a single character as otherwise the first part might be
 interpreted as memory, and the single character as memory operation.
 
 @item -v
+@cindex Option @code{-v}
 Enable verbose output.
 More @code{-v} options increase verbosity level.
 
 @item -V
+@cindex Option @code{-V}
 Disable automatic verify check when uploading data with @code{-U}.
 
 @item -x @var{extended_param}
+@cindex Option @code{-x} @var{extended_param}
 Pass @var{extended_param} to the chosen programmer implementation as
 an extended parameter.  The interpretation of the extended parameter
 depends on the programmer itself.  See below for a list of programmers
@@ -1060,9 +1105,10 @@ see the extended options of the chosen programmer.
 @c
 @c Node
 @c
-@node Programmers accepting extended parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
-@section Programmers accepting extended parameters
-@cindex @code{-x} AVR Dragon
+@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
+@section Programmers Accepting Extended Parameters
+@cindex Programmers Accepting Extended Parameters
+@cindex Option @code{-x} AVR Dragon
 @table @code
 
 @item JTAG ICE mkII/3
@@ -1100,7 +1146,23 @@ The current set-voltage can be read by @samp{-xvtarg} alone.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Xplained Mini
+@cindex Option @code{-x} PICkit 4
+@cindex Option @code{-x} MPLAB SNAP
+@item PICkit 4
+@item MPLAB SNAP
+
+The PICkit 4 and MPLAB SNAP programmers accept the following extended parameters:
+@table @code
+@item @samp{mode=avr,pic}
+Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
+programmer can only be utilised by Avrdude when in AVR mode.
+Use @samp{-xmode=avr} for switching to AVR mode, or @samp{-xmode=pic}
+for switching to PIC mode.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex Option @code{-x} Xplained Mini
 @item Xplained Mini
 
 The Xplained Mini/Nano programmer (ISP or UPDI, not TPI) type accepts the
@@ -1135,7 +1197,7 @@ Also note that the smaller Xplained Nano boards does not have a target power swi
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Curiosity Nano
+@cindex Option @code{-x} Curiosity Nano
 @item Curiosity Nano
 
 The Curiosity Nano board accepts the following extended parameter:
@@ -1147,8 +1209,8 @@ The current set-voltage can be read by @samp{-xvtarg} alone.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} STK500
-@cindex @code{-x} STK600
+@cindex Option @code{-x} STK500
+@cindex Option @code{-x} STK600
 @item STK500
 @item STK600
 
@@ -1157,7 +1219,7 @@ The STK500 and STK600 boards accept the following extended parameters:
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by @samp{-xvtarg} alone.
-@item @samp{fosc=VALUE[MHz|M|kHz|k|Hz], fosc}
+@item @samp{fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc}
 Set the programmable oscillator frequency in MHz, kHz or Hz.
 The current frequency can be read by @samp{-xfosc} alone.
 @item @samp{varef=VALUE, varef}
@@ -1176,11 +1238,14 @@ The current reference voltage can be read by @samp{-xvaref0} or
 @*
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+@item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
+Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
+original STK500. Used by avrdude for the correct calculation of fosc and sck.
 @item @samp{help}
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} AVR910
+@cindex Option @code{-x} AVR910
 @item AVR910
 
 The AVR910 programmer type accepts the following extended parameter:
@@ -1203,7 +1268,7 @@ programmer creates errors during initial sequence.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Arduino
+@cindex Option @code{-x} Arduino
 @item Arduino
 
 The Arduino programmer type accepts the following extended parameter:
@@ -1214,7 +1279,7 @@ Overide the default number of connection retry attempt by using @var{VALUE}.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Urclock
+@cindex Option @code{-x} Urclock
 @item Urclock
 
 The urclock programmer type accepts the following extended parameters:
@@ -1339,7 +1404,7 @@ with this, and they need the @code{-xstrict} option.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Buspirate
+@cindex Option @code{-x} Buspirate
 @item BusPirate
 
 The BusPirate programmer type accepts the following extended parameters:
@@ -1432,7 +1497,7 @@ Show help menu and exit.
 
 @end table
 
-@cindex @code{-x} Micronucleus bootloader
+@cindex Option @code{-x} Micronucleus bootloader
 @item Micronucleus bootloader
 
 The Micronucleus programmer type accepts the following extended parameter:
@@ -1446,7 +1511,7 @@ device is plugged in.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Teensy bootloader
+@cindex Option @code{-x} Teensy bootloader
 @item Teensy bootloader
 
 The Teensy programmer type accepts the following extended parameter:
@@ -1460,7 +1525,7 @@ device is plugged in.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} Wiring
+@cindex Option @code{-x} Wiring
 @item Wiring
 
 The Wiring programmer type accepts the following extended parameters:
@@ -1478,7 +1543,7 @@ be shortened accordingly.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} PICkit2
+@cindex Option @code{-x} PICkit2
 @item PICkit2
 Connection to the PICkit2 programmer:
 @multitable @columnfractions .05 .3
@@ -1501,7 +1566,7 @@ Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} USBasp
+@cindex Option @code{-x} USBasp
 @item USBasp
 
 The USBasp programmer type accepts the following extended parameter:
@@ -1515,7 +1580,7 @@ Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} xbee
+@cindex Option @code{-x} xbee
 @item xbee
 
 The xbee programmer type accepts the following extended parameter:
@@ -1536,8 +1601,8 @@ the MCU's ‘TXD’ line.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} jtag2updi
-@cindex @code{-x} serialupdi
+@cindex Option @code{-x} jtag2updi
+@cindex Option @code{-x} serialupdi
 @item jtag2updi
 @item serialupdi
 
@@ -1555,7 +1620,7 @@ When not provided, driver/OS default value will be used.
 Show help menu and exit.
 @end table
 
-@cindex @code{-x} linuxspi
+@cindex Option @code{-x} linuxspi
 @item linuxspi
 
 The linuxspi programmer type accepts the following extended parameter:
@@ -1574,8 +1639,9 @@ Show help menu and exit.
 @c
 @c Node
 @c
-@node Example Command Line Invocations,  , Programmers accepting extended parameters, Command Line Options
+@node Example Command Line Invocations,  , Programmers Accepting Extended Parameters, Command Line Options
 @section Example Command Line Invocations
+@cindex Example Command Line Invocations
 
 AVRDUDE error messages, warnings and progress reports are generally
 written to stderr which can, in bash, be turned off by @code{2>/dev/null}
@@ -2061,8 +2127,9 @@ avrdude done.  Thank you.
 @c
 @c Node
 @c
-@node Terminal Mode Operation, Configuration File, Command Line Options, Top
+@node Terminal Mode Operation, Configuration Files, Command Line Options, Top
 @chapter Terminal Mode Operation
+@cindex Terminal Mode Operation
 
 AVRDUDE has an interactive mode called @var{terminal mode} that is
 enabled by the @option{-t} option.  This mode allows one to enter
@@ -2079,8 +2146,8 @@ commands can be recalled and edited.
 @end menu
 
 @node Terminal Mode Commands, Terminal Mode Examples, Terminal Mode Operation, Terminal Mode Operation
-@cindex Terminal Mode
 @section Terminal Mode Commands
+@cindex Terminal Mode Commands
 
 In this mode, AVRDUDE only initializes communication with the MCU, and then
 awaits user commands on standard input.  Commands and parameters may be
@@ -2396,6 +2463,38 @@ It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
+@item regfile [@var{opts}]
+@code{regfile} with no further argument displays the register file of a
+part, i.e., all register names and their contents in  @code{io} memory, if
+possible: note that external programming cannot read the registers of
+classic parts (ISP or TPI interfaces).
+
+Option @code{-a} displays the register I/O addresses in addition;
+@code{-m} displays the register memory addresses used for
+@code{lds}/@code{sts} opcodes instead of the I/O addresses. Option
+@code{-s} also shows the size of the register in bytes whilst @code{-v}
+shows a slightly expanded register explanation alongside each register.
+
+@item regfile [@var{opts}] @var{reg} [@var{opts}]
+
+@code{regfile} together with a register name @var{reg} shows all those
+registers that are matched by @var{reg}. Wildcards or partial strings are
+permitted but not both. Register names have the form @var{module.name} or
+@var{module.instance.name}. If the provided @var{reg} is a full, existing
+register name, e.g., @code{porta.out} then that is the only register that
+is displayed even though that might be a partial name of another register,
+eg, @code{porta.outdir}. If the provided @var{reg} is the same as
+@var{instance.name} or @var{name} then partial matching is no longer
+utilised and all module registers with that exact @var{instance.name} or
+@var{name} are shown. Partial matching can be forced through use of
+wildcards, e.g., using @code{porta.out*}
+
+@item regfile [@var{opts}] @var{reg}=@var{value} [@var{opts}]
+This sets a single register addressed by @var{reg} to the given
+@var{value}. Only external programming of modern parts (those with UPDI
+interface) can read from and write to register io memory, but as that
+memory is volatile, the contents will be lost after reset.
+
 @item include [@var{opts}] @var{file}
 Include contents of the named file @var{file} as if it was typed. This is
 useful for batch scripts, e.g., recurring initialisation code for fuses. The
@@ -2403,13 +2502,13 @@ include option @code{-e} prints the lines of the file as comments before
 processing them; on a non-zero verbosity level the line numbers are
 printed, too.
 
-@item sing
+@item signature
 Display the device signature bytes.
 
 @item part
-Display the current part settings and parameters.  Includes chip
-specific information including all memory types supported by the
-device, read/write timing, etc.
+Display the current part information, including supported programming modes,
+memory and variants tables. Use @var{-m} to only print the memory table,
+and @var{-v} to only print the variants table.
 
 @item verbose [@var{level}]
 Change (when @var{level} is provided), or display the verbosity
@@ -2505,8 +2604,8 @@ Display programmer specific parameters.
 @c Node
 @c
 @node Terminal Mode Examples,  , Terminal Mode Commands, Terminal Mode Operation
-@cindex Terminal Mode
 @section Terminal Mode Examples
+@cindex Terminal Mode Examples
 
 @noindent
 @strong{Enter terminal, display part parameters, modify EEPROM, perform a chip erase and quit:}
@@ -2681,6 +2780,73 @@ avrdude> quit
 @end smallexample
 
 @page
+@noindent
+@strong{Show and change registers}
+
+@smallexample
+@cartouche
+
+$ avrdude -c xplainedpro_updi -p ATtiny817 \
+  -T "reg ctrlc" -T "reg usart0.baud=0x1234" -T "reg -asv usart0"
+
+avrdude_pr1580: AVR device initialized and ready to accept instructions
+avrdude_pr1580: device signature = 0x1e9320 (probably t817)
+
+avrdude_pr1580: processing -T reg ctrlc
+0x00 portmux.ctrlc
+0x00 adc0.ctrlc
+0x03 usart0.ctrlc
+0x00 tca0.ctrlc
+0x00 tcd0.ctrlc
+
+avrdude_pr1580: processing -T reg usart0.baud=0x1234
+
+avrdude_pr1580: processing -T reg -asv usart0
+I/O 0x800: (1)   0x00 usart0.rxdatal  # Receive data low byte
+I/O 0x801: (1)   0x00 usart0.rxdatah  # Receive data high byte
+I/O 0x802: (1)   0x00 usart0.txdatal  # Transmit data low byte
+I/O 0x803: (1)   0x00 usart0.txdatah  # Transmit data high byte
+I/O 0x804: (1)   0x20 usart0.status   # Status register
+I/O 0x805: (1)   0x00 usart0.ctrla    # Control register A
+I/O 0x806: (1)   0x00 usart0.ctrlb    # Control register B
+I/O 0x807: (1)   0x03 usart0.ctrlc    # Control register C
+I/O 0x808: (2) 0x1234 usart0.baud     # Baud rate register (16 bits)
+I/O 0x80b: (1)   0x00 usart0.dbgctrl  # Debug control register
+I/O 0x80c: (1)   0x00 usart0.evctrl   # Event control register
+I/O 0x80d: (1)   0x00 usart0.txplctrl # IRCOM transmitter pulse length control register
+I/O 0x80e: (1)   0x00 usart0.rxplctrl # IRCOM receiver pulse length control register
+
+avrdude_pr1580 done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@strong{Show register file of a classic part}
+
+@smallexample
+@cartouche
+
+$ avrdude -qq -p ATtiny11 -c dryrun -T "regfile -av"
+
+I/O 0x08: ac.acsr     # Analog comparator control and status register
+I/O 0x16: portb.pinb  # Port B input register
+I/O 0x17: portb.ddrb  # Port B data direction register
+I/O 0x18: portb.portb # Port B data register
+I/O 0x21: wdt.wdtcr   # Watchdog timer control register
+I/O 0x32: tc0.tcnt0   # Timer/counter 0
+I/O 0x33: tc0.tccr0   # T/C 0 control register
+I/O 0x34: cpu.mcusr   # MCU status register
+I/O 0x35: cpu.mcucr   # MCU control register
+I/O 0x38: tc0.tifr    # T/C interrupt flag register
+I/O 0x39: tc0.timsk   # T/C interrupt mask register
+I/O 0x3a: exint.gifr  # General interrupt flag register
+I/O 0x3b: exint.gimsk # General interrupt mask register
+I/O 0x3f: cpu.sreg    # Status register
+
+@end cartouche
+@end smallexample
+
+@page
 
 @noindent
 The following example demonstrates @strong{negative address and length
@@ -2798,10 +2964,11 @@ avrdude done.  Thank you.
 @c
 @c Node
 @c
-@node Configuration File, Programmer Specific Information, Terminal Mode Operation, Top
-@cindex Configuration File
+@node Configuration Files, Programmer Specific Information, Terminal Mode Operation, Top
+@cindex Configuration Files
 @cindex @code{avrdude.conf}
-@chapter Configuration File
+@chapter Configuration Files
+
 
 @noindent
 AVRDUDE reads a configuration file upon startup which describes all of
@@ -2815,14 +2982,14 @@ programmer work.
 
 AVRDUDE first looks for a system wide configuration file in a platform
 dependent location.  On Unix, this is usually
-@code{/usr/local/etc/avrdude.conf}, whilst on Windows it is usually in the
+@code{/usr/local/etc/avrdude.conf}@xref{Unix}, whilst on Windows it is usually in the
 same location as the executable file.  The full name of this file can be
 specified using the @option{-C} command line option.  After parsing the system wide
 configuration file, AVRDUDE looks for a per-user configuration
 file to augment or override the system wide defaults.  On Unix, the
 per-user file is @code{$@{XDG_CONFIG_HOME@}/avrdude/avrdude.rc}, whereas
 if @code{$@{XDG_CONFIG_HOME@}} is either not set or empty,
-@code{$@{HOME@}/.config/} is used instead. If that does not exists
+@code{$@{HOME@}/.config/} is used instead. If that does not exist
 @code{.avrduderc} within the user's home directory is used. On Windows,
 this file is the @code{avrdude.rc} file located in the same directory as
 the executable.
@@ -2838,33 +3005,48 @@ the executable.
 @c
 @c Node
 @c
-@node AVRDUDE Defaults, Programmer Definitions, Configuration File, Configuration File
+@node AVRDUDE Defaults, Programmer Definitions, Configuration Files, Configuration Files
 @section AVRDUDE Defaults
+@cindex AVRDUDE Defaults
 
 @table @code
 
+@item avrdude_conf_version = "@var{build-time-version}";
+Automatically set during the build process.
+
 @item default_parallel = "@var{default-parallel-device}";
+@cindex @code{default_parallel}
 Assign the default parallel port device.  Can be overridden using the
 @option{-P} option.
 
 @item default_serial = "@var{default-serial-device}";
+@cindex @code{default_serial}
 Assign the default serial port device.  Can be overridden using the
 @option{-P} option.
 
 @item default_linuxgpio = "@var{default-linuxgpio-device}";
+@cindex @code{default_linuxgpio}
 Assign the default gpiochip for linuxgpio's libgpiod mode,
 e.g. "gpiochip0".  Ignored for linuxgpio's sysfs mode.  Can be overridden
 using the @option{-P} option.
 
 @item default_programmer = "@var{default-programmer-id}";
+@cindex @code{default_programmer}
 Assign the default programmer id.  Can be overridden using the @option{-c}
 option.
 
+@item default_baudrate = "@var{default-baudrate}";
+Assign the default baudrate value that will be used if the programmer doesn't
+provide its specific @code{baudrate} entry. Can be overridden using the @option{-b}
+option.
+
 @item default_bitclock = "@var{default-bitclock}";
+@cindex @code{default_bitclock}
 Assign the default bitclock value.  Can be overridden using the @option{-B}
 option.
 
 @item allow_subshells = @var{no};
+@cindex @code{allow_subshells}
 Whether or not AVRDUDE's interactive terminal is allowed to use subshell
 @code{!} commands. This defaults to no for security reasons, e.g., in the
 rare case @code{avrdude -t} is set up with attached hardware to provide a
@@ -2879,9 +3061,10 @@ configuration file with @var{yes}.
 @c
 @c Node
 @c
-@node Programmer Definitions, Serial Adapter Definitions, AVRDUDE Defaults, Configuration File
+@node Programmer Definitions, Serial Adapter Definitions, AVRDUDE Defaults, Configuration Files
 @cindex @code{programmer}
 @section Programmer Definitions
+@cindex Programmer Definitions
 
 @noindent
 The format of the programmer definition is as follows:
@@ -2934,34 +3117,53 @@ programmer. These values can be changed by new setting them for the new programm
 
 @itemize @bullet
 @item @code{PM_SPM}: Bootloaders, self-programming with SPM opcodes or NVM Controllers
+@cindex @code{PM_SPM}
 @item @code{PM_TPI}: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+@cindex @code{PM_TPI}
 @item @code{PM_ISP}: SPI programming for In-System Programming (almost all classic parts)
+@cindex @code{PM_ISP}
 @item @code{PM_PDI}: Program and Debug Interface (xmega parts)
+@cindex @code{PM_PDI}
 @item @code{PM_UPDI}: Unified Program and Debug Interface
+@cindex @code{PM_UPDI}
 @item @code{PM_HVSP}: High Voltage Serial Programming (some classic parts)
+@cindex @code{PM_HVSP}
 @item @code{PM_HVPP}: High Voltage Parallel Programming (most non-HVSP classic parts)
+@cindex @code{PM_HVPP}
 @item @code{PM_debugWIRE}: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+@cindex @code{PM_debugWIRE}
 @item @code{PM_JTAG}: Joint Test Action Group standard (some classic parts)
+@cindex @code{PM_JTAG}
 @item @code{PM_JTAGmkI}: Subset of @code{PM_JTAG}, older parts, Atmel ICE mkI
+@cindex @code{PM_JTAGmkI}
 @item @code{PM_XMEGAJTAG}: JTAG, some XMEGA parts
+@cindex @code{PM_XMEGAJTAG}
 @item @code{PM_AVR32JTAG}: JTAG for 32-bit AVRs
+@cindex @code{PM_AVR32JTAG}
 @item @code{PM_aWire}: AVR32 parts
+@cindex @code{PM_aWire}
 @end itemize
 
 @item The following extra programmer features are known
 
 @itemize @bullet
 @item @code{HAS_SUFFER}: Only present on Xplained Mini/Nano programmers;
+@cindex @code{HAS_SUFFER}
   the Super User Fantastic Feature Enable Register allows the user to modify
   the behavior of the mEDBG programmer/debugger chip, see the Xplained Mini/Nano
   documentation for more information
 @item @code{HAS_VTARG_SWITCH}: Programer has a programmable target power switch
+@cindex @code{HAS_VTARG_SWITCH}
 @item @code{HAS_VTARG_READ}: Programmer can read the target voltage
+@cindex @code{HAS_VTARG_READ}
 @item @code{HAS_VTARG_ADJ}: Programmer has an adjustable target power source that can
+@cindex @code{HAS_VTARG_ADJ}
   be controlled with Avrdude
 @item @code{HAS_FOSC_ADJ}: Programmer has a programable frequency generator that
+@cindex @code{HAS_FOSC_ADJ}
   can clock an AVR directly through its XTAL1 pin
 @item @code{HAS_VAREF_ADJ}: Programmer has an adjustable analog reference voltage that
+@cindex @code{HAS_VAREF_ADJ}
   can be controlled with Avrdude
 @end itemize
 
@@ -2982,9 +3184,10 @@ The following programmer types are currently implemented:
 @c
 @c Node
 @c
-@node Serial Adapter Definitions, Part Definitions, Programmer Definitions, Configuration File
+@node Serial Adapter Definitions, Part Definitions, Programmer Definitions, Configuration Files
 @cindex @code{serialadapter}
 @section Serial Adapter Definitions
+@cindex Serial Adapter Definitions
 
 @noindent
 The format of a serial adapter definition is as follows:
@@ -3027,9 +3230,10 @@ utilised as a serialadapter.
 @c
 @c Node
 @c
-@node Part Definitions, Other Notes, Serial Adapter Definitions, Configuration File
+@node Part Definitions, Other Notes, Serial Adapter Definitions, Configuration Files
 @cindex @code{part}
 @section Part Definitions
+@cindex Part Definitions
 
 @smallexample
 part
@@ -3116,8 +3320,8 @@ part
     # parameters for bootloaders
     autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
 
-    memory <memory>
-        paged           = <yes/no> ;          # yes/no (flash only, do not use for EEPROM)
+    memory <memstr>
+        paged           = <yes/no> ;          # yes/no (flash of classic parts only)
         offset          = <num> ;             # memory offset
         size            = <num> ;             # bytes
         page_size       = <num> ;             # bytes
@@ -3169,6 +3373,7 @@ arithemtic and bitwise operators.
 @c
 @node Parent Part, Instruction Format, Part Definitions, Part Definitions
 @subsection Parent Part
+@cindex Parent Part
 
 @noindent
 Parts can also inherit parameters from previously defined parts using
@@ -3200,6 +3405,7 @@ Example format for part inheritance:
 @c
 @node Instruction Format,  , Parent Part, Part Definitions
 @subsection Instruction Format
+@cindex Instruction Format
 
 @noindent
 Instruction formats are specified as a comma separated list of string
@@ -3274,8 +3480,9 @@ Examples:
 @c
 @c Node
 @c
-@node Other Notes,  , Part Definitions, Configuration File
+@node Other Notes,  , Part Definitions, Configuration Files
 @section Other Notes
+@cindex Other Notes
 
 
 @itemize @bullet
@@ -3286,19 +3493,19 @@ Atmel's AVR061 application note available from
 @url{http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf}.
 
 @item
-Not all memory types will implement all instructions.
+Not all memories will implement all instructions.
 
 @item
 AVR Fuse bits and Lock bits are implemented as a type of memory.
 
 @item
-Example memory types are: @code{flash}, @code{eeprom}, @code{fuse},
+Example memories are: @code{flash}, @code{eeprom}, @code{fuse},
 @code{lfuse} (low fuse), @code{hfuse} (high fuse), @code{efuse}
 (extended fuse), @code{signature}, @code{calibration}, @code{lock}.
 
 @item
-The memory type specified on the AVRDUDE command line must match one of
-the memory types defined for the specified chip.
+The memory specified on the AVRDUDE command line must match one of
+the memories defined for the specified chip.
 
 @item
 The @code{pwroff_after_write} flag causes AVRDUDE to attempt to power
@@ -3330,22 +3537,24 @@ Reading fuse and lock bits is fully supported.
 @c
 @c Node
 @c
-@node Programmer Specific Information, Platform Dependent Information, Configuration File, Top
+@node Programmer Specific Information, Platform Dependent Information, Configuration Files, Top
 @chapter Programmer Specific Information
+@cindex Programmer Specific Information
 
 @menu
 * Atmel STK600::
-* Atmel DFU bootloader using FLIP version 1::
-* SerialUPDI programmer::
-* Programmer LED management::
+* DFU Bootloader Using FLIP Version 1::
+* SerialUPDI Programmer::
+* Programmer LED Management::
 @end menu
 
 @c
 @c Node
 @c
-@node Atmel STK600, Atmel DFU bootloader using FLIP version 1, Programmer Specific Information, Programmer Specific Information
+@node Atmel STK600, DFU Bootloader Using FLIP Version 1, Programmer Specific Information, Programmer Specific Information
 @cindex STK600
 @section Atmel STK600
+@cindex Atmel STK600
 
 @c
 @c Update the table below by running the tools/get-stk600-devices.xsl
@@ -3440,9 +3649,9 @@ least 4.5 V in order to work.  This can be done using
 @c
 @c Node
 @c
-@node Atmel DFU bootloader using FLIP version 1, SerialUPDI programmer , Atmel STK600, Programmer Specific Information
-@cindex DFU bootloader
-@section Atmel DFU bootloader using FLIP version 1
+@node DFU Bootloader Using FLIP Version 1, SerialUPDI Programmer , Atmel STK600, Programmer Specific Information
+@section DFU Bootloader Using FLIP Version 1
+@cindex DFU Bootloader Using FLIP Version 1
 
 Bootloaders using the FLIP protocol version 1 experience some very
 specific behaviour.
@@ -3469,9 +3678,10 @@ versions of the bootloader.
 @c
 @c Node
 @c
-@node SerialUPDI programmer, Programmer LED management, Atmel DFU bootloader using FLIP version 1, Programmer Specific Information
+@node SerialUPDI Programmer, Programmer LED Management, DFU Bootloader Using FLIP Version 1, Programmer Specific Information
 @cindex SerialUPDI
-@section SerialUPDI programmer
+@section SerialUPDI Programmer
+@cindex SerialUPDI Programmer
 
 SerialUPDI programmer can be used for programming UPDI-only devices
 using very simple serial connection.
@@ -3566,9 +3776,9 @@ analysis of UPDI protocol quirks easier.
 @c
 @c Node
 @c
-@node Programmer LED management, , SerialUPDI programmer, Programmer Specific Information
-@cindex LED management
-@section Programmer LED management
+@node Programmer LED Management, , SerialUPDI Programmer, Programmer Specific Information
+@section Programmer LED Management
+@cindex Programmer LED Management
 
 Some hardware programmers have LEDs, and the firmware controls them fully
 without AVRDUDE having a way to influence their LED states. Other
@@ -3617,6 +3827,7 @@ Other combinations should not show after exit.
 @c
 @node Unix, Windows, Platform Dependent Information, Platform Dependent Information
 @section Unix
+@cindex Unix
 
 @menu
 * Unix Installation::           
@@ -3630,6 +3841,7 @@ Other combinations should not show after exit.
 @c
 @node Unix Installation, Unix Configuration Files, Unix, Unix
 @subsection Unix Installation
+@cindex Unix Installation
 
 @noindent
 To build and install from the source tarball on Unix like systems:
@@ -3667,6 +3879,7 @@ $ make install
 @c
 @node FreeBSD Installation, Linux Installation, Unix Installation, Unix Installation
 @subsubsection FreeBSD Installation
+@cindex FreeBSD Installation
 
 @noindent
 AVRDUDE is installed via the FreeBSD Ports Tree as follows:
@@ -3694,6 +3907,7 @@ obtained.
 @c
 @node Linux Installation,  , FreeBSD Installation, Unix Installation
 @subsubsection Linux Installation
+@cindex Linux Installation
 
 @noindent
 On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
@@ -3713,6 +3927,7 @@ to system. The above example is specific to RedHat.
 @c
 @node Unix Configuration Files, Unix Port Names, Unix Installation, Unix
 @subsection Unix Configuration Files
+@cindex Unix Configuration Files
 
 @noindent
 When AVRDUDE is build using the default @option{--prefix} configure
@@ -3732,6 +3947,7 @@ augment the system default configuration file.
 @c
 @node FreeBSD Configuration Files, Linux Configuration Files, Unix Configuration Files, Unix Configuration Files
 @subsubsection FreeBSD Configuration Files
+@cindex FreeBSD Configuration Files
 
 @noindent
 When AVRDUDE is installed using the FreeBSD ports system, the system
@@ -3742,6 +3958,7 @@ configuration file is always @code{/usr/local/etc/avrdude.conf}.
 @c
 @node Linux Configuration Files,  , FreeBSD Configuration Files, Unix Configuration Files
 @subsubsection Linux Configuration Files
+@cindex Linux Configuration Files
 
 @noindent
 When AVRDUDE is installed using from an rpm package, the system
@@ -3752,6 +3969,7 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 @c
 @node Unix Port Names, Unix Documentation, Unix Configuration Files, Unix
 @subsection Unix Port Names
+@cindex Unix Port Names
 
 @noindent
 The parallel and serial port device file names are system specific.
@@ -3791,6 +4009,7 @@ access.
 @c
 @node Unix Documentation,  , Unix Port Names, Unix
 @subsection Unix Documentation
+@cindex Unix Documentation
 
 @noindent
 AVRDUDE installs a manual page as well as info, HTML and PDF
@@ -3807,12 +4026,13 @@ such as @option{--prefix}.
 @c
 @node Windows,  , Unix, Platform Dependent Information
 @section Windows
+@cindex Windows
 
 @menu
 * Windows Installation::        
 * Windows Configuration Files::  
 * Windows Port Names::          
-* Documentation::               
+@c * Documentation::
 @end menu
 
 @c
@@ -3820,6 +4040,7 @@ such as @option{--prefix}.
 @c
 @node Windows Installation, Windows Configuration Files, Windows, Windows
 @subsection Installation
+@cindex Installation
 
 @noindent
 A Windows executable of avrdude is included in WinAVR which can be found at
@@ -3858,18 +4079,20 @@ compiler version that still supports MinGW builds, or use MinGW
 @c Node
 @c
 @node Windows Configuration Files, Windows Port Names, Windows Installation, Windows
-@subsection Configuration Files
+@subsection Windows Configuration Files
+@cindex Windows Configuration Files
 
 @menu
 * Configuration file names::    
-* How AVRDUDE finds the configuration files.::  
+* Windows Configuration File Location::
 @end menu
 
 @c
 @c Node
 @c
-@node Configuration file names, How AVRDUDE finds the configuration files., Windows Configuration Files, Windows Configuration Files
-@subsubsection Configuration file names
+@node Configuration file names, Windows Configuration File Location, Windows Configuration Files, Windows Configuration Files
+@subsubsection Windows Configuration File Names
+@cindex Windows Configuration File Names
 
 @noindent
 AVRDUDE on Windows looks for a system configuration file name of
@@ -3879,8 +4102,9 @@ AVRDUDE on Windows looks for a system configuration file name of
 @c
 @c Node
 @c
-@node How AVRDUDE finds the configuration files.,  , Configuration file names, Windows Configuration Files
-@subsubsection How AVRDUDE finds the configuration files.
+@node Windows Configuration File Location,  , Configuration file names, Windows Configuration Files
+@subsubsection Windows Configuration File Location
+@cindex Windows Configuration File Location
  
 @noindent
 AVRDUDE on Windows has a different way of searching for the system and
@@ -3920,7 +4144,8 @@ The directories that are listed in the PATH environment variable.
 @c Node
 @c
 @node Windows Port Names, Windows Configuration Files, Windows
-@subsection Port Names
+@subsection Windows Port Names
+@cindex Windows Port Names
 
 @menu
 * Serial Ports::                
@@ -3931,7 +4156,8 @@ The directories that are listed in the PATH environment variable.
 @c Node
 @c
 @node Serial Ports, Parallel Ports, Windows Port Names, Windows Port Names
-@subsubsection Serial Ports
+@subsubsection Windows Serial Ports
+@cindex Windows Serial Ports
  
 @noindent
 When you select a serial port (i.e. when using an STK500) use the
@@ -3941,7 +4167,8 @@ Windows serial port device names such as: com1, com2, etc.
 @c Node
 @c
 @node Parallel Ports,  , Serial Ports, Windows Port Names
-@subsubsection Parallel Ports
+@subsubsection Windows Parallel Ports
+@cindex Windows Parallel Ports
 
 @noindent
 AVRDUDE will accept 3 Windows parallel port names: lpt1, lpt2, or
@@ -3969,11 +4196,14 @@ If the parallel port can be accessed through a different
 address, this address can be specified directly, using the common C
 language notation (i. e., hexadecimal values are prefixed by @code{0x}).
 
+
+@ignore
 @c
 @c Node
 @c
 @node Documentation, Windows
 @subsection Documentation
+@cindex Documentation
 
 @noindent
 AVRDUDE installs a manual page as well as info, HTML and PDF
@@ -3984,6 +4214,7 @@ info manual is installed in @code{/usr/local/info/avrdude.info}.
 
 Note that these locations can be altered by various configure options
 such as @option{--prefix} and @option{--datadir}.
+@end ignore
 
 
 @c
@@ -4115,6 +4346,14 @@ avrdude -c usbtiny -p atmega8 -P usb:/dev/usb:/dev/ugen1.3 (FreeBSD 8+)
 avrdude -c usbtiny -p atmega8 \
   -P usb:bus-0:\\.\libusb0-0001--0x1781-0x0c9f (Windows)
 @end example
+
+For USBasp, the same format for @var{-P usb} can be used to match usb bus/device. Alternatively,
+device serial number can be specified as follows (for serial number '1234').
+
+@example
+avrdude -c USBasp -p atmega8 -P usb:1234
+@end example
+
 
 @item
 Problem: I cannot do @dots{} when the target is in debugWire mode.
