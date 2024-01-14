@@ -401,7 +401,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[32];
   AVRMEM * m;
   int tries;
-  unsigned maj = 0, min = 0;
+  unsigned maj = 0, min = 0, hwv = 0;
   int rc;
   int n_extparms;
 
@@ -409,6 +409,35 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      || (rc = stk500_getparm(pgm, Parm_STK_SW_MINOR, &min)) < 0 ) {
     pmsg_error("cannot obtain SW version\n");
     return rc;
+  }
+
+  if (PDATA(pgm)->using_enhanced_memory && (p->prog_modes & PM_UPDI)
+    && !((rc = stk500_getparm(pgm, Parm_STK_HW_VER, &hwv)) < 0)) {
+    // *** ENHANCED FEATURE : -c arduino -xem option ***
+    // Limited to UPDI equipped Microchip AVR only.
+    // If you get the HWV (HW version), it might be an enhanced bootloader.
+    if (('0' <= hwv) && (hwv <= '5')) {
+      // If get '0' to '5', it is considered the version of NVMCTRL.
+      PDATA(pgm)->boot_nvmctrl_version = hwv; // Save it as '0' or higher
+      pmsg_notice("detected enhanced bootloader: nvmctrl version %d\n",
+                  PDATA(pgm)->boot_nvmctrl_version & 0xF);
+    }
+    #if defined(DEBUG) && !defined(NDEBUG)
+    else if (hwv == 3) {
+      // optiboot variant normally returns HWV=0x03
+      pmsg_notice("detected optiboot variant\n");
+      // "optiboot_dx" custom feature is not reflected in HWV/MAJ/MIN
+      // So I don't know any more.
+    }
+    // else it is an unknown implementation
+    #endif
+    pmsg_notice("enable enhanced memory instructions\n");
+    return pgm->program_enable(pgm, p);
+    // Bootloader initialization complete
+  }
+  else if (PDATA(pgm)->using_enhanced_memory) {
+    pmsg_info("-xem option has no effect part of %s\n", p->desc);
+    PDATA(pgm)->using_enhanced_memory = false;
   }
 
   // MIB510 does not need extparams
@@ -524,7 +553,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (n_extparms) {
-    if (((p->pagel == 0) || (p->bs2 == 0)) && !(p->prog_modes & PM_UPDI)) {
+    if ((p->pagel == 0) || (p->bs2 == 0)) {
       pmsg_notice2("PAGEL and BS2 signals not defined in the configuration "
         "file for part %s, using dummy values\n", p->desc);
       buf[2] = 0xD7;            /* they look somehow possible, */
@@ -1025,9 +1054,36 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   int tries;
   unsigned int n;
   unsigned int i;
+  unsigned int shift_addr = 0;
 
-  if(set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0)
-    return -2;
+  if(set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0) {
+    if (!(PDATA(pgm)->using_enhanced_memory && (m->type & MEM_USER_TYPE))) return -2;
+    // *** ENHANCED FEATURE : -c arduino -xem option ***
+    // Limited to UPDI equipped Microchip AVR only.
+    // Some Arduino compatible bootloaders can:
+    if (mem_is_userrow(m) && (m->offset == PDATA(pgm)->boot_userrow_v0_offset)) {
+      // For tinyAVR-0/1/2 and megaAVR-0 series only. (NVMCTRL version 0)
+      shift_addr = m->offset - PDATA(pgm)->boot_eeprom_offset; // convert offset address.
+      memchr = 'E';
+      // [NOTE] Enhanced write memory type: userrow
+      // This memory a EEPROM write using the ST op-code is required.
+      // bootloaders support status:
+      // - "optiboot_x" and "boot_ax" support this feature.
+      // - "optiboot_dx" is supported in builds with "BIGBOOT and TRY_USING_EEPROM".
+    }
+    else if (PDATA(pgm)->boot_nvmctrl_version >= '2') {
+      // Other AVR-DA/DB/DD/DU/EA/EB series. (NVMCTRL version 2,3,4 and 5)
+      shift_addr = m->offset; // Correct offset address.
+      memchr = 'X';
+      // [NOTE] Enhanced write memory type: userrow (all) and bootrow (AVR-DU/EB only)
+      // This memory a FLASH write using the ST op-code is required.
+      // bootloaders support status:
+      // - "boot_dx" and "boot_ex" support this feature. (Allowed except for 'F' and 'E')
+      // - "optiboot_dx" cannot write to this memory. (only using SPM op-code)
+    }
+    else return -2;
+    a_div = 1;
+  }
 
   n = addr + n_bytes;
 #if 0
@@ -1052,7 +1108,7 @@ static int stk500_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     tries = 0;
   retry:
     tries++;
-    stk500_loadaddr(pgm, m, addr, a_div);
+    stk500_loadaddr(pgm, m, addr + shift_addr, a_div);
 
     /* build command block and avoid multiple send commands as it leads to a crash
         of the silabs usb serial driver on mac os x */
@@ -1109,19 +1165,20 @@ static int stk500_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   unsigned int shift_addr = 0;
 
   if (set_memchr_a_div(pgm, p, m, &memchr, &a_div) < 0) {
-    if ((p->prog_modes & (PM_SPM | PM_UPDI)) && (m->type & (MEM_USER_TYPE | MEM_READONLY))) {
-      // Allows the following memory reads similar to EEPROM only for PM_SPM + PM_UPDI parts.
-      // This trick works for all bootloaders that support READ memchr == 'E'.
-      //   -U : userrow usersig bootrow sigrow prodsig and signature
-      //   -T dump : userrow and bootrow
-      //      Others are prohibited by `avr_has_paged_access(pgm, mem)`
-      AVRMEM *e;
-      e = avr_locate_eeprom(p);
-      shift_addr = m->offset - e->offset; // This will show a 16-bit wide negative address!
+    if (PDATA(pgm)->using_enhanced_memory && (m->type & (MEM_USER_TYPE | MEM_READONLY))) {
+      // *** ENHANCED FEATURE : -c arduino -xem option ***
+      // Limited to UPDI equipped Microchip AVR only.
+      // Some Arduino compatible bootloaders can:
+      shift_addr = m->offset - PDATA(pgm)->boot_eeprom_offset;
       memchr = 'E';
+      // [NOTE] Enhanced read memory type: userrow, bootrow and prodsig (read-only)
+      // Bootloader support status:
+      // - "optiboot_x", "boot_ax", "boot_dx", "boot_ex" supports this feature.
+      // - "optiboot_dx" is supported in builds with "BIGBOOT and TRY_USING_EEPROM".
       a_div = 1;
     }
     else {
+      pmsg_notice("cannot read from this memory %s of %s\n", m->desc, p->desc);
       return -2;
     }
   }
@@ -1523,6 +1580,7 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
   if(!str_eq(pgm->type, "Arduino"))
     stk500_print_parms1(pgm, p, stderr);
 
+  msg_info("\n");
   return;
 }
 
