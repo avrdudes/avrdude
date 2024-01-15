@@ -62,6 +62,7 @@ struct pdata {
 
   // Arduino Bootloader enhancment : Limited to UPDI equipped Microchip AVR only.
   bool using_enhanced_memory;   // True when using "-c arduino -x em"
+  int rts_mode;                 // Serial RTS/DTR setting
   unsigned int boot_nvmctrl_version;
   unsigned int boot_eeprom_offset;
   unsigned int boot_userrow_v0_offset;

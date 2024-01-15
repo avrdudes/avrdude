@@ -116,7 +116,10 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   for (attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if (str_eq(pgm->type, "Arduino") && attempt > 0) {
+    if (str_eq(pgm->type, "Arduino")) {
+      // Set RTS/DTR high to discharge the series-capacitor, if present
+      serial_set_dtr_rts(&pgm->fd, 0);
+      usleep(250 * 1000);
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
@@ -124,7 +127,11 @@ int stk500_getsync(const PROGRAMMER *pgm) {
       usleep(100);
       // Set the RTS/DTR line back to high, so direct connection to reset works
       serial_set_dtr_rts(&pgm->fd, 0);
-      usleep(20*1000);
+      if (PDATA(pgm)->rts_mode == RTS_MODE_LOW) {
+        usleep(100);
+        serial_set_dtr_rts(&pgm->fd, 1);
+      }
+      usleep(100 * 1000);   // FUSE_SYSCFG1.SUT delay up to 64ms
       stk500_drain(pgm, 0);
     }
 
@@ -1655,6 +1662,10 @@ static void stk500_setup(PROGRAMMER * pgm)
     PDATA(pgm)->xtal = 16000000U;
   else
     PDATA(pgm)->xtal = STK500_XTAL;
+
+  // Disable unused extensions
+  PDATA(pgm)->using_enhanced_memory = false;
+  PDATA(pgm)->rts_mode = RTS_MODE_DEFAULT;
 }
 
 static void stk500_teardown(PROGRAMMER * pgm)

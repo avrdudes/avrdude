@@ -162,6 +162,7 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
+#if 0 /* Comment out the current stk500_getsync() because it does all of the following: */
   // This code assumes a negative-logic USB to TTL serial adapter
   // Set RTS/DTR high to discharge the series-capacitor, if present
   serial_set_dtr_rts(&pgm->fd, 0);
@@ -185,6 +186,12 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
    * drain any extraneous input
    */
   stk500_drain(pgm, 0);
+#endif
+
+  /* DTR/RTS logic can be fixed arbitrarily during programming */
+  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT)
+    pmsg_info("forcing serial DTR/RTS handshake lines %s\n",
+      PDATA(pgm)->rts_mode == RTS_MODE_LOW ? "LOW" : "HIGH");
 
   if (stk500_getsync(pgm) < 0)
     return -1;
@@ -193,6 +200,10 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
 }
 
 static void arduino_close(PROGRAMMER * pgm) {
+  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
+    pmsg_info("releasing DTR/RTS handshake lines\n");
+    serial_set_dtr_rts(&pgm->fd, 0);
+  }
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
@@ -212,6 +223,7 @@ static void arduino_setup(PROGRAMMER * pgm)
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
   PDATA(pgm)->retry_attempts          = 10;
+  PDATA(pgm)->rts_mode                = RTS_MODE_DEFAULT;
   PDATA(pgm)->using_enhanced_memory   = false;  // True when using "-c arduino -xem"
   PDATA(pgm)->boot_userrow_v0_offset  = USERROW_V0_ADDR;
   PDATA(pgm)->boot_nvmctrl_version    = 0;
@@ -227,6 +239,7 @@ static void arduino_teardown(PROGRAMMER * pgm) {
 static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
+  char rts_mode[5];
   int attempts;
   int rv = 0;
 
@@ -253,9 +266,23 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
+    /* DTR/RTS logic can be fixed arbitrarily during programming */
+    if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
+      if (str_caseeq(rts_mode, "low")) {
+        PDATA(pgm)->rts_mode = RTS_MODE_LOW;
+      } else if (str_caseeq(rts_mode, "high")) {
+        PDATA(pgm)->rts_mode = RTS_MODE_HIGH;
+      } else {
+        pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
+        return -1;
+      }
+      continue;
+    }
+
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
+      msg_error("  -xrtsdtr=low,high     Force RTS/DTR lines low or high state during programming\n");
       msg_error("  -xem                  Enables enhanced memory instructions (optiboot_x etc.)\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
       exit(0);

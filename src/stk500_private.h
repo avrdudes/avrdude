@@ -101,3 +101,10 @@
 
 
 // *****************************[ End Of COMMAND.H ]**************************
+
+/* Extension for bootloader */
+typedef enum {
+  RTS_MODE_DEFAULT,
+  RTS_MODE_LOW,
+  RTS_MODE_HIGH
+} stk500_rts_mode;
