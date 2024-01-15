@@ -116,7 +116,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   for (attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if (str_eq(pgm->type, "Arduino")) {
+    if (str_eq(pgm->type, "Arduino") && !PDATA(pgm)->boot_success_open) {
       // Set RTS/DTR high to discharge the series-capacitor, if present
       serial_set_dtr_rts(&pgm->fd, 0);
       usleep(250 * 1000);
@@ -1664,6 +1664,7 @@ static void stk500_setup(PROGRAMMER * pgm)
     PDATA(pgm)->xtal = STK500_XTAL;
 
   // Disable unused extensions
+  PDATA(pgm)->boot_success_open = false;
   PDATA(pgm)->using_enhanced_memory = false;
   PDATA(pgm)->rts_mode = RTS_MODE_DEFAULT;
 }

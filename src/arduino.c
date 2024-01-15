@@ -196,6 +196,7 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   if (stk500_getsync(pgm) < 0)
     return -1;
 
+  PDATA(pgm)->boot_success_open = true;
   return 0;
 }
 
@@ -222,6 +223,7 @@ static void arduino_setup(PROGRAMMER * pgm)
     return;
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
+  PDATA(pgm)->boot_success_open       = false;
   PDATA(pgm)->retry_attempts          = 10;
   PDATA(pgm)->rts_mode                = RTS_MODE_DEFAULT;
   PDATA(pgm)->using_enhanced_memory   = false;  // True when using "-c arduino -xem"
