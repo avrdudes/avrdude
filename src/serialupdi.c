@@ -359,6 +359,11 @@ def enter_progmode(self):
     return 0;
   }
 
+  if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
+    pmsg_error("apply reset operation failed\n");
+    return -1;
+  }
+
   memcpy(buffer, UPDI_KEY_NVM, sizeof(buffer));
   if (updi_write_key(pgm, buffer, UPDI_KEY_64, sizeof(buffer)) < 0) {
     pmsg_error("writing NVM KEY failed\n");
