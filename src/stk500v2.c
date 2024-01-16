@@ -3567,8 +3567,8 @@ static int stk500v2_jtag3_set_sck_period(const PROGRAMMER *pgm, double v) {
   unsigned char value[3];
   unsigned int sck;
 
-  if (v < 1E-6)
-    sck = 0x400;
+  if (v < 1 / (1000.0 * 0xffff))
+    sck = 0xffff;
   else if (v > 1E-3)
     sck = 1;
   else
