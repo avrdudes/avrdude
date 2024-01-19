@@ -279,6 +279,26 @@ static int serialupdi_wait_for_urow(const PROGRAMMER *pgm, unsigned int ms, urow
   return -1;
 }
 
+static int serialupdi_wait_for_nvmprog(const PROGRAMMER *pgm, unsigned int ms) {
+
+  unsigned long start_time;
+  unsigned long current_time;
+  uint8_t status;
+  start_time = avr_ustimestamp();
+  do {
+    if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &status) >= 0) {
+      if (status & (1 << UPDI_ASI_SYS_STATUS_NVMPROG)) {
+        return 0;
+      }
+    }
+    current_time = avr_ustimestamp();
+  } while ((current_time - start_time) < (ms * 1000));
+
+  pmsg_error("timeout waiting for device to enter NVMPROG mode\n");
+  return -1;
+}
+
+
 static int serialupdi_in_prog_mode(const PROGRAMMER *pgm, uint8_t *in_prog_mode) {
 /*
     def in_prog_mode(self):
@@ -377,8 +397,7 @@ def enter_progmode(self):
   pmsg_debug("key status: 0x%02X\n", key_status);
 
   if (!(key_status & (1 << UPDI_ASI_KEY_STATUS_NVMPROG))) {
-    pmsg_error("key was not accepted\n");
-    return -1;
+    pmsg_warning("key was not accepted\n");
   }
 
   if (serialupdi_reset(pgm, APPLY_RESET) < 0) {
@@ -396,12 +415,7 @@ def enter_progmode(self):
     return -1;
   }
 
-  if (serialupdi_in_prog_mode(pgm, &in_prog_mode) < 0) {
-    pmsg_error("checking UPDI NVM prog mode failed\n");
-    return -1;
-  }
-
-  if (!in_prog_mode) {
+  if (serialupdi_wait_for_nvmprog(pgm, 500) < 0) {
     pmsg_error("unable to enter NVM programming mode\n");
     return -1;
   }
