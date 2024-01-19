@@ -125,6 +125,19 @@ int updi_nvm_chip_erase_V3(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("updi_nvm_wait_ready_V3() failed\n");
     return -1;
   }
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_EEPROM_PAGE_BUFFER_CLEAR) < 0) {
+    pmsg_error("sending eeprom page buffer clear command failed\n");
+    return -1;
+  }
+  status = updi_nvm_wait_ready_V3(pgm, p);
+  if (updi_nvm_command_V3(pgm, p, UPDI_V3_NVMCTRL_CTRLA_NOCMD) < 0) {
+    pmsg_error("sending empty command failed\n");
+    return -1;
+  }
+  if (status < 0) {
+    pmsg_error("updi_nvm_wait_ready_V3() failed\n");
+    return -1;
+  }
   return 0;
 }
 
