@@ -38,6 +38,7 @@
 #include "updi_nvm_v0.h"
 #include "updi_nvm_v2.h"
 #include "updi_nvm_v3.h"
+#include "updi_nvm_v4.h"
 #include "updi_nvm_v5.h"
 #include "updi_state.h"
 
@@ -50,6 +51,8 @@ int updi_nvm_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
       return updi_nvm_chip_erase_V2(pgm, p);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_chip_erase_V3(pgm, p);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_chip_erase_V4(pgm, p);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_chip_erase_V5(pgm, p);
     default:
@@ -67,6 +70,8 @@ int updi_nvm_erase_flash_page(const PROGRAMMER *pgm, const AVRPART *p, uint32_t 
       return updi_nvm_erase_flash_page_V2(pgm, p, address);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_erase_flash_page_V3(pgm, p, address);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_erase_flash_page_V4(pgm, p, address);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_erase_flash_page_V5(pgm, p, address);
     default:
@@ -84,6 +89,8 @@ int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p) {
       return updi_nvm_erase_eeprom_V2(pgm, p);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_erase_eeprom_V3(pgm, p);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_erase_eeprom_V4(pgm, p);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_erase_eeprom_V5(pgm, p);
     default:
@@ -101,6 +108,8 @@ int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
       return updi_nvm_erase_user_row_V2(pgm, p, address, size);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_erase_user_row_V3(pgm, p, address, size);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_erase_user_row_V4(pgm, p, address, size);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_erase_user_row_V5(pgm, p, address, size);
     default:
@@ -118,6 +127,8 @@ int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addre
       return updi_nvm_write_flash_V2(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_write_flash_V3(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_write_flash_V4(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_write_flash_V5(pgm, p, address, buffer, size);
     default:
@@ -135,6 +146,8 @@ int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
       return updi_nvm_write_user_row_V2(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_write_user_row_V3(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_write_user_row_V4(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_write_user_row_V5(pgm, p, address, buffer, size);
     default:
@@ -152,6 +165,8 @@ int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addr
       return updi_nvm_write_eeprom_V2(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_write_eeprom_V3(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_write_eeprom_V4(pgm, p, address, buffer, size);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_write_eeprom_V5(pgm, p, address, buffer, size);
     default:
@@ -169,6 +184,8 @@ int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
       return updi_nvm_write_fuse_V2(pgm, p, address, value);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_write_fuse_V3(pgm, p, address, value);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_write_fuse_V4(pgm, p, address, value);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_write_fuse_V5(pgm, p, address, value);
     default:
@@ -186,6 +203,8 @@ int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
       return updi_nvm_wait_ready_V2(pgm, p);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_wait_ready_V3(pgm, p);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_wait_ready_V4(pgm, p);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_wait_ready_V5(pgm, p);
     default:
@@ -203,6 +222,8 @@ int updi_nvm_command(const PROGRAMMER *pgm, const AVRPART *p, uint8_t command) {
       return updi_nvm_command_V2(pgm, p, command);
     case UPDI_NVM_MODE_V3:
       return updi_nvm_command_V3(pgm, p, command);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_command_V4(pgm, p, command);
     case UPDI_NVM_MODE_V5:
       return updi_nvm_command_V5(pgm, p, command);
     default:

@@ -40,6 +40,7 @@ typedef enum
   UPDI_NVM_MODE_V0,
   UPDI_NVM_MODE_V2,
   UPDI_NVM_MODE_V3,
+  UPDI_NVM_MODE_V4,
   UPDI_NVM_MODE_V5
 } updi_nvm_mode;
 
