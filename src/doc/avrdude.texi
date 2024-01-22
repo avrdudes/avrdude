@@ -2616,33 +2616,37 @@ Display programmer specific parameters.
 $ avrdude -qq -c usbasp -p atmega328p -t
 
 avrdude> part
-AVR Part                      : ATmega328P
-Chip Erase delay              : 9000 us
-PAGEL                         : PD7
-BS2                           : PC2
-RESET disposition             : possible i/o
-RETRY pulse                   : SCK
-Serial program mode           : yes
-Parallel program mode         : yes
-Timeout                       : 200
-StabDelay                     : 100
-CmdexeDelay                   : 25
-SyncLoops                     : 32
-PollIndex                     : 3
-PollValue                     : 0x53
-Memory Detail                 :
+ATmega328P with programming modes ISP, HVPP, debugWIRE, SPM
 
-                                 Block               Page                       Polled
- Memory Type Alias    Mode Delay Size  Paged  Size   Size #Pages MinW  MaxW   ReadBack
- ----------- -------- ---- ----- ----- ------ ------ ---- ------ ----- ----- ---------
- eeprom                 65    20     4 no       1024    4      0  3600  3600 0x00 0x00
- flash                  65    10   128 yes     32768  128    256  4500  4500 0x00 0x00
- lfuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
- hfuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
- efuse                   0     0     0 no          1    1      0  4500  4500 0x00 0x00
- lock                    0     0     0 no          1    1      0  4500  4500 0x00 0x00
- signature               0     0     0 no          3    1      0     0     0 0x00 0x00
- calibration             0     0     0 no          1    1      0     0     0 0x00 0x00
+Memory        Size  Pg size
+---------------------------
+eeprom        1024        4
+flash        32768      128
+efuse            1        1
+hfuse            1        1
+lfuse            1        1
+lock             1        1
+signature        3        1
+calibration      1        1
+io             224        1
+sram          2048        1
+
+Variants         Package  F max   T range         V range
+----------------------------------------------------------------
+ATmega328P       N/A      20 MHz  [-40 C,   N/A]  [1.8 V, 5.5 V]
+ATmega328P-15MZ  MLF32    20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-AN    TQFP32   20 MHz  [-40 C, 105 C]  [1.8 V, 5.5 V]
+ATmega328P-ANR   TQFP32   20 MHz  [-40 C, 105 C]  [1.8 V, 5.5 V]
+ATmega328P-AU    TQFP32   20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-AUR   TQFP32   20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-MMH   MLF28    20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-MMHR  MLF28    20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-MN    QFN32    20 MHz  [-40 C, 105 C]  [1.8 V, 5.5 V]
+ATmega328P-MNR   MLF32    20 MHz  [-40 C, 105 C]  [1.8 V, 5.5 V]
+ATmega328P-MU    MLF32    20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-MUR   MLF32    20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
+ATmega328P-PN    PDIP28   20 MHz  [-40 C, 105 C]  [1.8 V, 5.5 V]
+ATmega328P-PU    PDIP28   20 MHz  [-40 C,  85 C]  [1.8 V, 5.5 V]
 
 avrdude> dump eeprom 0 16
 0000  ff ff ff ff ff ff ff ff  ff ff ff ff ff ff ff ff  |................|
