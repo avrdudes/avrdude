@@ -356,7 +356,7 @@ static int libgpiod_is_working(void) {
 
 
 static void linuxgpio_libgpiod_display(const PROGRAMMER *pgm, const char *p) {
-  msg_info("%sPin assignment        : libgpiod\n", %s);
+  msg_info("%sPin assignment        : libgpiod\n", p);
   pgm_display_generic_mask(pgm, p, SHOW_AVR_PINS);
 }
 
