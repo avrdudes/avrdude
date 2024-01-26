@@ -58,36 +58,36 @@
 
 struct command {
   char *name;
-  int (*func)(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+  int (*func)(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
   size_t fnoff;
   char *desc;
 };
 
 
-static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_help   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_quit   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_send   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_parms  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_vtarg  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_varef  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_fosc   (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_sck    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_spi    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_pgm    (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_verbose(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
-static int cmd_quell  (const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]);
+static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_part   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_help   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_quit   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_send   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_parms  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_vtarg  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_varef  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_fosc   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_sck    (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_spi    (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_pgm    (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_verbose(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_quell  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 
 #define _fo(x) offsetof(PROGRAMMER, x)
 
@@ -203,7 +203,7 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 }
 
 
-static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   static struct mem_addr_len {
     int addr;
     int len;
@@ -232,11 +232,11 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   }
 
   enum { read_size = 256 };
-  char *memstr;
+  const char *memstr;
   if(argc > 1)
     memstr = argv[1];
   else
-    memstr = (char*)read_mem[i].mem->desc;
+    memstr = read_mem[i].mem->desc;
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
     pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
@@ -357,7 +357,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 }
 
 
-static size_t maxstrlen(int argc, char **argv) {
+static size_t maxstrlen(int argc, const char **argv) {
   size_t max = 0;
 
   for(int i=0; i<argc; i++)
@@ -372,7 +372,7 @@ typedef enum {
   WRITE_MODE_FILL     = 1,
 } Write_mode_t;
 
-static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: write <mem> <addr> <data>[,] {<data>[,]}\n"
@@ -426,7 +426,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   int write_mode;               // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
-  char *memstr = argv[1];       // Memory name string
+  const char *memstr = argv[1]; // Memory name string
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
     pmsg_error("(write) memory %s not defined for part %s\n", memstr, p->desc);
@@ -631,7 +631,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   return 0;
 }
 
-static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: save <mem> {<addr> <len>} <file>[:<format>]\n"
@@ -653,7 +653,7 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 
   // Last char of filename is format if the penultimate char is a colon
   FILEFMT format = FMT_RBIN;
-  char *fn = argv[argc-1];
+  const char *fn = argv[argc-1];
   size_t len = strlen(fn);
   if(len > 2 && fn[len-2] == ':') { // Assume format specified
     format = fileio_format(fn[len-1]);
@@ -738,7 +738,7 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   return ret < 0? ret: 0;
 }
 
-static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: flush\n"
@@ -752,7 +752,7 @@ static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 }
 
 
-static int cmd_abort(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_abort(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: abort\n"
@@ -766,7 +766,7 @@ static int cmd_abort(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 }
 
 
-static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   unsigned char cmd[4], res[4];
   const char *errptr;
   int rc, len;
@@ -820,7 +820,7 @@ static int cmd_send(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 }
 
 
-static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if (argc > 4 || argc == 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: erase <mem> <addr> <len> # Fill section with 0xff values\n"
@@ -832,13 +832,13 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
   }
 
   if (argc > 1) {
-    char *memstr = argv[1];
+    const char *memstr = argv[1];
     const AVRMEM *mem = avr_locate_mem(p, memstr);
     if (mem == NULL) {
       pmsg_error("(erase) memory %s not defined for part %s\n", argv[1], p->desc);
       return -1;
     }
-    char *args[] = {"write", memstr, "", "", "0xff", "...", NULL};
+    const char *args[] = {"write", memstr, "", "", "0xff", "...", NULL};
     // erase <mem>
     if (argc == 2) {
       args[2] = "0";
@@ -899,7 +899,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 }
 
 
-static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: pgerase <mem> <addr>\n"
@@ -908,7 +908,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
 
-  char *memstr = argv[1];
+  const char *memstr = argv[1];
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if(!mem) {
     pmsg_error("(pgerase) memory %s not defined for part %s\n", memstr, p->desc);
@@ -1253,7 +1253,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
 }
 
 // Show or change configuration properties of the part
-static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   Cfg_opts_t o = { 0 };
   int help = 0, invalid = 0, itemac=1;
 
@@ -1551,7 +1551,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *a
 
   const char *av[] = { "confirm", cc[ci].t->name, NULL };
   if(o.verb > 0 && !str_eq(argv[0], "confirm"))
-    cmd_config(pgm, p, 2, (char **) av);
+    cmd_config(pgm, p, 2, av);
 
 finished:
   free(cc);
@@ -1561,7 +1561,7 @@ finished:
 }
 
 // Show or change I/O registers of the part (programmer permitting)
-static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int show_addr = 0, offset = 0, show_size = 0, show_mem = 0, verb = 0, help = 0, invalid = 0, itemac = 1;
   AVRMEM *io = avr_locate_io(p);
 
@@ -1636,7 +1636,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
     return -1;
   }
 
-  char *reg = argc > 1? argv[1]: "", *rhs = strrchr(reg, '=');
+  char *reg = cfg_strdup(__func__, argc > 1? argv[1]: ""), *rhs = strrchr(reg, '=');
   if(rhs)                       // Right-hand side of assignment
     *rhs++ = 0;                 // Terminate lhs
 
@@ -1728,15 +1728,17 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
   }
 
 success:
+  free(reg);
   free(rlist);
   return 0;
 
 error:
+  free(reg);
   free(rlist);
   return -1;
 }
 
-static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int help = 0, onlymem = 0, onlyvariants = 0, invalid = 0, itemac = 1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
@@ -1794,7 +1796,7 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 }
 
 
-static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int i;
   int rc;
   const AVRMEM *m;
@@ -1825,7 +1827,7 @@ static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
 }
 
 
-static int cmd_quit(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_quit(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: quit\n"
@@ -1842,7 +1844,7 @@ static int cmd_quit(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 }
 
 
-static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: parms\n"
@@ -1857,7 +1859,7 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 }
 
 
-static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int rc;
   double v = 0;
   char *endp;
@@ -1891,7 +1893,7 @@ static int cmd_vtarg(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 }
 
 
-static int cmd_fosc(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_fosc(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int rc;
   double v = 0;
   char *endp;
@@ -1940,7 +1942,7 @@ static int cmd_fosc(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
 }
 
 
-static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int rc;
   double v;
   char *endp;
@@ -1989,7 +1991,7 @@ static int cmd_sck(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
 }
 
 
-static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int rc;
   unsigned int chan;
   double v;
@@ -2040,7 +2042,7 @@ static int cmd_varef(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
 }
 
 
-static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: help\n"
@@ -2069,7 +2071,7 @@ static int cmd_help(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *arg
   return 0;
 }
 
-static int cmd_spi(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_spi(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: spi\n"
@@ -2083,7 +2085,7 @@ static int cmd_spi(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
   return 0;
 }
 
-static int cmd_pgm(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_pgm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
     msg_error(
       "Syntax: pgm\n"
@@ -2099,7 +2101,7 @@ static int cmd_pgm(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv
 }
 
 
-static int cmd_verbose(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_verbose(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int nverb;
   const char *errptr;
 
@@ -2131,7 +2133,7 @@ static int cmd_verbose(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *
 }
 
 
-static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int nquell;
   const char *errptr;
 
@@ -2182,10 +2184,11 @@ static int cmd_quell(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *ar
  * command line. On error NULL is returned.
  *
  */
-static char *tokenize(char *s, int *argcp, char ***argvp) {
+static char *tokenize(char *s, int *argcp, const char ***argvp) {
   size_t slen;
   int n, nargs;
-  char **argv, *buf, *q, *r;
+  const char **argv;
+  char *buf, *q, *r;
 
   // Upper estimate of the number of arguments
   for(nargs=0, q=s; *q; nargs++) {
@@ -2233,7 +2236,7 @@ static char *tokenize(char *s, int *argcp, char ***argvp) {
 }
 
 
-static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int do_cmd(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int hold, matches;
   size_t len;
 
@@ -2282,7 +2285,7 @@ char *terminal_get_input(const char *prompt) {
 
 static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
   int argc, rc = 0;
-  char **argv;
+  const char **argv;
 
   // Find the start of the command, skipping any white space
   while(*q && isspace((unsigned char) *q))
@@ -2304,6 +2307,7 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
 
     if(argc == 1 && **argv == '!') {
       if(allow_subshells) {
+        const char *q;
         for(q=argv[0]+1; *q && isspace((unsigned char) *q); q++)
           continue;
         errno = 0;
@@ -2495,7 +2499,7 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 
-static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, char *argv[]) {
+static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int help = 0, invalid = 0, echo = 0, itemac=1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
