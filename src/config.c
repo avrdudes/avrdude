@@ -136,6 +136,7 @@ Component_t avr_comp[] = {
   part_comp_desc(syscfg_base, COMP_INT),
   part_comp_desc(ocdrev, COMP_INT),
   part_comp_desc(autobaud_sync, COMP_CHAR),
+  part_comp_desc(factory_fcpu, COMP_INT),
 
   // AVRMEM
   mem_comp_desc(paged, COMP_BOOL),
