@@ -2990,6 +2990,8 @@ serialadapter # ch340
 # ch343
 #------------------------------------------------------------
 
+# CH343 doc https://www.wch-ic.com/downloads/CH343DS1_PDF.html
+
 serialadapter # ch343
     id                     = "ch343";
     desc                   = "WCH CH343 USB to serial adapter";
