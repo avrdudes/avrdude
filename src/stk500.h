@@ -60,10 +60,10 @@ struct pdata {
 
   unsigned xtal;                // Set STK500 XTAL frequency
 
-  // Arduino Bootloader enhancment : Limited to UPDI equipped Microchip AVR only.
-  bool using_enhanced_memory;   // True when using "-c arduino -x em"
+  // Arduino Enhanced Bootloader : Limited to UPDI equipped Microchip AVR only.
   int rts_mode;                 // Serial RTS/DTR setting
-  unsigned int boot_success_open;
+  bool using_boot_reopen;       // True when using "-c arduino -x reopen"
+  bool using_enhanced_memory;   // True when using "-c arduino -x em"
   unsigned int boot_nvmctrl_version;
   unsigned int boot_eeprom_offset;
   unsigned int boot_userrow_v0_offset;

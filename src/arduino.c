@@ -39,6 +39,7 @@
 #include "arduino.h"
 
 #define USERROW_V0_ADDR 0x1300  /* Magic number that characterizes NVMCTRL V0: USERROW=0x1300 */
+#define MAX_SYNC_ATTEMPTS 10
 
 /* Read single byte in interactive mode - arduino version */
 static int arduino_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
@@ -158,11 +159,80 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   strcpy(pgm->port, port);
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
+
+  /* DTR/RTS logic can be fixed arbitrarily during programming */
+  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT)
+    pmsg_notice("forcing serial DTR/RTS handshake lines %s\n",
+      PDATA(pgm)->rts_mode == RTS_MODE_LOW ? "LOW" : "HIGH");
+
+  // Reopen mode reopens the port on each retry.
+  if (PDATA(pgm)->using_boot_reopen) {
+    /* "-xrop" mode allows connecting the USB port after starting avrdue. */
+    /* If the port is not open, print a retry message once per second.       */
+
+    unsigned char buf[16], resp[16];
+    bool is_reopen;
+    int attempt;
+    int max_sync_attempts;
+    if(PDATA(pgm)->retry_attempts)
+      max_sync_attempts = PDATA(pgm)->retry_attempts;
+    else
+      max_sync_attempts = MAX_SYNC_ATTEMPTS;
+
+    for (attempt = 0; attempt < max_sync_attempts; attempt++) {
+      is_reopen = false;
+      if (serial_open(port, pinfo, &pgm->fd) != -1) {
+        // This code assumes a negative-logic USB to TTL serial adapter
+        // Pull the RTS/DTR line low to reset AVR
+        // For implementation reasons, RTS and DTR logic always match
+        serial_set_dtr_rts(&pgm->fd, 1);  // LOW
+        usleep(100);  // discharge the capacitor
+        serial_set_dtr_rts(&pgm->fd, 0);  // HIGH
+        if (PDATA(pgm)->rts_mode == RTS_MODE_LOW) {
+          usleep(100);
+          // Match the logic required by the switch circuit.
+          // In some circuits, LOW prefers the serial port and HIGH prefers the ASP.
+          serial_set_dtr_rts(&pgm->fd, 1);  // LOW
+        }
+        usleep(100 * 1000); // Delay waiting for bootloader to start
+        buf[0] = Cmnd_STK_GET_SYNC;
+        buf[1] = Sync_CRC_EOP;
+        // First send and drain a few times to get rid of line noise
+        serial_drain(&pgm->fd, 0);
+        serial_send(&pgm->fd, buf, 2);
+        serial_drain(&pgm->fd, 0);
+        serial_send(&pgm->fd, buf, 2);
+        serial_drain(&pgm->fd, 0);
+        serial_send(&pgm->fd, buf, 2);
+        resp[0] = 0;
+        if (serial_recv(&pgm->fd, resp, 1) >= 0 && resp[0] == Resp_STK_INSYNC) {
+          resp[0] = 0;
+          if (serial_recv(&pgm->fd, resp, 1) >= 0 && resp[0] == Resp_STK_OK) {
+            // Now that the bootloader has synced, it will complete normally
+            pmsg_notice("bootloader detected\n");
+            return 0;
+          }
+        }
+        // If synchronization is not possible, close the serial port
+        serial_set_dtr_rts(&pgm->fd, 0);  // HIGH
+        serial_close(&pgm->fd);
+        pgm->fd.ifd = -1;
+        is_reopen = true;
+      }
+      pmsg_warning("attempt %d of %d: not in sync: resp=0x%02x\n", attempt + 1, max_sync_attempts, resp[0]);
+      if (!is_reopen) usleep(1500 * 1000);
+    }
+    // Could not connect to bootloader
+    return -1;
+  } // End of reopen mode
+
+  // From here on, the traditional method...
+  // The serial port opens only once
+
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
 
-#if 0 /* Comment out the current stk500_getsync() because it does all of the following: */
   // This code assumes a negative-logic USB to TTL serial adapter
   // Set RTS/DTR high to discharge the series-capacitor, if present
   serial_set_dtr_rts(&pgm->fd, 0);
@@ -179,31 +249,27 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   usleep(100);
   // Set the RTS/DTR line back to high, so direct connection to reset works
   serial_set_dtr_rts(&pgm->fd, 0);
-
+  if (PDATA(pgm)->rts_mode == RTS_MODE_LOW) {
+    usleep(100);
+    serial_set_dtr_rts(&pgm->fd, 1);
+  }
   usleep(100 * 1000);
 
   /*
    * drain any extraneous input
    */
   stk500_drain(pgm, 0);
-#endif
-
-  /* DTR/RTS logic can be fixed arbitrarily during programming */
-  if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT)
-    pmsg_info("forcing serial DTR/RTS handshake lines %s\n",
-      PDATA(pgm)->rts_mode == RTS_MODE_LOW ? "LOW" : "HIGH");
 
   if (stk500_getsync(pgm) < 0)
     return -1;
 
-  PDATA(pgm)->boot_success_open = true;
   return 0;
 }
 
 static void arduino_close(PROGRAMMER * pgm) {
   if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-    pmsg_info("releasing DTR/RTS handshake lines\n");
-    serial_set_dtr_rts(&pgm->fd, 0);
+    pmsg_notice("releasing DTR/RTS handshake lines\n");
+    serial_set_dtr_rts(&pgm->fd, 0);  // HIGH
   }
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
@@ -223,9 +289,9 @@ static void arduino_setup(PROGRAMMER * pgm)
     return;
   }
   memset(pgm->cookie, 0, sizeof(struct pdata));
-  PDATA(pgm)->boot_success_open       = false;
-  PDATA(pgm)->retry_attempts          = 10;
+  PDATA(pgm)->retry_attempts          = 0;  // MAX_SYNC_ATTEMPTS
   PDATA(pgm)->rts_mode                = RTS_MODE_DEFAULT;
+  PDATA(pgm)->using_boot_reopen       = false;
   PDATA(pgm)->using_enhanced_memory   = false;  // True when using "-c arduino -xem"
   PDATA(pgm)->boot_userrow_v0_offset  = USERROW_V0_ADDR;
   PDATA(pgm)->boot_nvmctrl_version    = 0;
@@ -261,6 +327,13 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       }
     }
 
+    else if (str_eq(extended_param, "rop")) {
+      // *** ENHANCED FEATURE : -c arduino -xem option ***
+      PDATA(pgm)->using_boot_reopen = true;
+      // Check the validity of this feature with stk500_initialize()
+      continue;
+    }
+
     else if (str_eq(extended_param, "em")) {
       // *** ENHANCED FEATURE : -c arduino -xem option ***
       PDATA(pgm)->using_enhanced_memory = true;
@@ -284,8 +357,9 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
+      msg_error("  -xrop                 Reopen port on retry\n");
       msg_error("  -xrtsdtr=low,high     Force RTS/DTR lines low or high state during programming\n");
-      msg_error("  -xem                  Enables enhanced memory instructions (optiboot_x etc.)\n");
+      msg_error("  -xem                  Enable enhanced memory. (implementation dependent)\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
       exit(0);
     }
