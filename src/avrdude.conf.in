@@ -183,6 +183,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       chip_erase       = <instruction format> ;
 #       # parameters for bootloaders
 #       autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
+#       factory_fcpu     = <num> ;                # F_CPU in Hz on reset and factory-set fuses
 #
 #       memory <memstr>
 #           paged           = <yes/no> ;          # yes/no (flash of classic parts only)
