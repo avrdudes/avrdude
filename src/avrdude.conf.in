@@ -3080,6 +3080,7 @@ part # t11
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    factory_fcpu           = 1200000;
 
     memory "eeprom"
         size               = 64;
@@ -3172,6 +3173,7 @@ part # t12
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    factory_fcpu           = 1200000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -3314,6 +3316,7 @@ part # t13
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 0;
+    factory_fcpu           = 1200000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -3478,6 +3481,7 @@ part # t15
     programlockpolltimeout = 25;
     synchcycles            = 6;
     hvspcmdexedelay        = 5;
+    factory_fcpu           = 1600000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -3696,6 +3700,7 @@ part # 1200
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -3798,6 +3803,7 @@ part # 4414
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -3896,6 +3902,7 @@ part # 2313
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -3991,6 +3998,7 @@ part # 2333
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4094,6 +4102,7 @@ part # 2343
     programfusepolltimeout = 25;
     programlockpolltimeout = 25;
     synchcycles            = 6;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4271,6 +4280,7 @@ part # 8515
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4367,6 +4377,7 @@ part # 8535
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4517,6 +4528,7 @@ part # m103
     chiperasepulsewidth    = 15;
     programfusepulsewidth  = 2;
     programlockpolltimeout = 10;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4645,6 +4657,7 @@ part # m64
     spmcr                  = 0x68;
     eecr                   = 0x3c;
     ocdrev                 = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4820,6 +4833,7 @@ part # m128
     spmcr                  = 0x68;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -4989,6 +5003,7 @@ part # c128
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -5136,6 +5151,7 @@ part # c64
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -5283,6 +5299,7 @@ part # c32
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -5438,6 +5455,7 @@ part # m16
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -5609,6 +5627,7 @@ part # m324p
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -5939,6 +5958,7 @@ part # m644
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -6169,6 +6189,7 @@ part # m1284
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -6364,6 +6385,7 @@ part # m162
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -6504,6 +6526,7 @@ part # m163
     chiperasepolltimeout   = 30;
     programfusepolltimeout = 2;
     programlockpolltimeout = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -6646,6 +6669,7 @@ part # m169
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -6921,6 +6945,7 @@ part # m329
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7202,6 +7227,7 @@ part # m649
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7436,6 +7462,7 @@ part # m32
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7568,6 +7595,7 @@ part # m161
     chiperasepolltimeout   = 30;
     programfusepolltimeout = 2;
     programlockpolltimeout = 2;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7715,6 +7743,7 @@ part # m8
     chiperasepolltimeout   = 20;
     programfusepolltimeout = 10;
     programlockpolltimeout = 10;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -7876,6 +7905,7 @@ part # m8515
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8014,6 +8044,7 @@ part # m8535
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8149,6 +8180,7 @@ part # t26
     chiperasepolltimeout   = 20;
     programfusepolltimeout = 10;
     programlockpolltimeout = 10;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8290,6 +8322,7 @@ part # t261
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8468,6 +8501,7 @@ part # t461
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8642,6 +8676,7 @@ part # t861
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -8795,6 +8830,7 @@ part # t28
     chiperasepolltimeout   = 10;
     programfusepolltimeout = 5;
     programlockpolltimeout = 5;
+    factory_fcpu           = 1200000;
 
     memory "flash"
         size               = 2048;
@@ -8901,6 +8937,7 @@ part # m48
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -9155,6 +9192,7 @@ part # m88
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -9413,6 +9451,7 @@ part # m168
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -9660,6 +9699,7 @@ part # t828
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -9828,6 +9868,7 @@ part # t87
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -9987,6 +10028,7 @@ part # t167
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -10143,6 +10185,7 @@ part # t48
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -10299,6 +10342,7 @@ part # t88
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -10454,6 +10498,7 @@ part # m328
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -10666,6 +10711,7 @@ part # m64m1
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -11184,6 +11230,7 @@ part # m16hva
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -11336,6 +11383,7 @@ part # m16hvb
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -11535,6 +11583,7 @@ part # m64hve2
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -11704,6 +11753,7 @@ part # t2313
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 0;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -11891,6 +11941,7 @@ part # t4313
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 0;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -12042,6 +12093,7 @@ part # pwm1
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -12190,6 +12242,7 @@ part # pwm2
     programlockpolltimeout = 5;
     spmcr                  = 0x57;
     eecr                   = 0x3f;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -12423,6 +12476,7 @@ part # pwm161
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -12691,6 +12745,7 @@ part # t25
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -12861,6 +12916,7 @@ part # t45
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -13028,6 +13084,7 @@ part # t85
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -13181,6 +13238,7 @@ part # m640
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -13332,6 +13390,7 @@ part # m1280
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -13506,6 +13565,7 @@ part # m2560
     eecr                   = 0x3f;
     eind                   = 0x5c;
     ocdrev                 = 4;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -13932,6 +13992,7 @@ part # t24
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -14122,6 +14183,7 @@ part # t44
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -14312,6 +14374,7 @@ part # t84
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -14589,6 +14652,7 @@ part # t43u
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -14739,6 +14803,7 @@ part # m16u4
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -14890,6 +14955,7 @@ part # m32u4
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15039,6 +15105,7 @@ part # usb646
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15206,6 +15273,7 @@ part # usb1286
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15375,6 +15443,7 @@ part # usb162
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15526,6 +15595,7 @@ part # usb82
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15678,6 +15748,7 @@ part # m32u2
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15830,6 +15901,7 @@ part # m16u2
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -15982,6 +16054,7 @@ part # m8u2
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -16138,6 +16211,7 @@ part # m165p
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -16348,6 +16422,7 @@ part # m325
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--0000.0000--0000.0000";
     pgm_enable             = "1010.1100--0101.0011--0000.0000--0000.0000";
 
@@ -16558,6 +16633,7 @@ part # m645
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--1000.0000--0000.0000--0000.0000";
     pgm_enable             = "1010.1100--0101.0011--0000.0000--0000.0000";
 
@@ -16816,6 +16892,7 @@ part # .xmega
     mcu_base               = 0x0090;
     nvm_base               = 0x01c0;
     autobaud_sync          = 0x20;
+    factory_fcpu           = 2000000;
 
     memory "fuse1"
         size               = 1;
@@ -19196,6 +19273,7 @@ part # t1634
     spmcr                  = 0x57;
     eecr                   = 0x3c;
     ocdrev                 = 1;
+    factory_fcpu           = 1000000;
     chip_erase             = "1010.1100--100x.xxxx--xxxx.xxxx--xxxx.xxxx";
     pgm_enable             = "1010.1100--0101.0011--xxxx.xxxx--xxxx.xxxx";
 
@@ -19365,6 +19443,7 @@ part parent ".reduced_core_tiny" # t4
     mcuid                  = 0;
     n_interrupts           = 10;
     signature              = 0x1e 0x8f 0x0a;
+    factory_fcpu           = 1000000;
 
     memory "flash"
         size               = 512;
@@ -19408,6 +19487,7 @@ part parent ".reduced_core_tiny" # t9
     mcuid                  = 2;
     n_interrupts           = 10;
     signature              = 0x1e 0x90 0x08;
+    factory_fcpu           = 1000000;
 
     memory "flash"
         size               = 1024;
@@ -19457,6 +19537,7 @@ part parent ".reduced_core_tiny" # t20
     mcuid                  = 4;
     n_interrupts           = 17;
     signature              = 0x1e 0x91 0x0f;
+    factory_fcpu           = 1000000;
 
     memory "flash"
         size               = 2048;
@@ -19497,6 +19578,7 @@ part parent ".reduced_core_tiny" # t40
     mcuid                  = 5;
     n_interrupts           = 18;
     signature              = 0x1e 0x92 0x0e;
+    factory_fcpu           = 1000000;
 
     memory "flash"
         size               = 4096;
@@ -19539,6 +19621,7 @@ part parent ".reduced_core_tiny" # t102
     mcuid                  = 6;
     n_interrupts           = 16;
     signature              = 0x1e 0x90 0x0c;
+    factory_fcpu           = 1000000;
 
     memory "flash"
         size               = 1024;
@@ -19581,6 +19664,7 @@ part parent ".reduced_core_tiny" # t104
     mcuid                  = 7;
     n_interrupts           = 16;
     signature              = 0x1e 0x90 0x0b;
+    factory_fcpu           = 1000000;
 
     memory "flash"
         size               = 1024;
@@ -19646,6 +19730,7 @@ part # m406
     spmcr                  = 0x57;
     eecr                   = 0x3f;
     ocdrev                 = 3;
+    factory_fcpu           = 1000000;
 
     memory "eeprom"
         size               = 512;
@@ -19709,6 +19794,7 @@ part # .avr8x
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
+    factory_fcpu           = 20000000;
 
     memory "fuses"
         size               = 10;
@@ -20700,6 +20786,7 @@ part parent "t416" # t416auto
         "ATtiny416-MZT: VQFN20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[2.7 V, 5.5 V]";
     mcuid                  = 290;
     signature              = 0x1e 0x92 0x28;
+    factory_fcpu           = 16000000;
 
     memory "fuse2"
         initval            = 0x7d;
@@ -22157,6 +22244,7 @@ part # .avrdx
     nvm_base               = 0x1000;
     ocd_base               = 0x0f80;
     syscfg_base            = 0x0f00;
+    factory_fcpu           = 4000000;
 
     memory "fuses"
         size               = 16;
@@ -23971,6 +24059,7 @@ part parent ".avrdx" # .avrex
     id                     = ".avrex";
     # Shared UPDI pin, HV on _RESET
     hvupdi_variant         = 2;
+    factory_fcpu           = 20000000;
 
     memory "fuse2"
         bitmask            = 0x08;
