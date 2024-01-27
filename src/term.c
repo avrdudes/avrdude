@@ -1624,7 +1624,7 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
     for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
       m = ldata(ln);
-      if(!mem_is_in_fuses(m) && !mem_is_lock(m) && !mem_is_readonly(m) && !mem_is_in_flash(m)) {
+      if(mem_is_eeprom(m) || mem_is_user_type(m)) {
         args[1] = m->desc;
         if(cmd_erase(pgm, p, 2, args) < 0)
           ret = -1;
@@ -1651,7 +1651,7 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
   for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     m = ldata(ln);
-    if(!mem_is_in_fuses(m) && !mem_is_lock(m) && !mem_is_readonly(m)) {
+    if(mem_is_flash(m) || mem_is_eeprom(m) || mem_is_user_type(m)) {
       args[1] = m->desc;
       if(cmd_erase(pgm, p, 2, args) < 0)
         ret = -1;
