@@ -72,6 +72,7 @@ static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_config (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_sig    (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
@@ -101,6 +102,7 @@ struct command cmd[] = {
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
   { "pgerase", cmd_pgerase, _fo(page_erase),    "erase one page of flash or EEPROM memory" },
   { "config", cmd_config, _fo(open),            "change or show configuration properties of the part" },
+  { "factory", cmd_factory, _fo(open),          "reset part to factory state" },
   { "regfile", cmd_regfile, _fo(open),          "I/O register addresses and contents" },
   { "include", cmd_include, _fo(open),          "include contents of named file as if it was typed" },
   { "sig",   cmd_sig,   _fo(open),              "display device signature bytes" },
@@ -747,8 +749,7 @@ static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     return -1;
   }
 
-  pgm->flush_cache(pgm, p);
-  return 0;
+  return pgm->flush_cache(pgm, p) < 0? -1: 0;
 }
 
 
@@ -1556,6 +1557,119 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
 finished:
   free(cc);
   free(fc);
+
+  return ret;
+}
+
+
+// Update the value of a fuse or lock
+static int fusel_factory(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  unsigned char current[sizeof(int)], value[sizeof(int)];
+
+  if(mem->initval < 0) {
+    pmsg_warning("factory value of %s is not known\n", mem->desc);
+    return -1;
+  }
+
+  if(mem->size < 1 || mem->size > (int) sizeof(int)) {
+    pmsg_warning("cannot update %s owing to unusual memory size %d\n", mem->desc, mem->size);
+    return -1;
+  }
+
+  // Read in memory as little endian
+  for(int i=0; i<mem->size; i++) {
+    value[i] = mem->initval >> (8*i);
+    if(led_read_byte(pgm, p, mem, i, current+i) < 0)
+      current[i] = ~value[i];
+  }
+
+  // Update memory if needed
+  for(int i=0; i<mem->size; i++) {
+    if(current[i] != value[i]) {
+      if(led_write_byte(pgm, p, mem, i, value[i]) < 0) {
+        pmsg_warning("(factory) cannot write to %s memory\n", mem->desc);
+        return -1;
+      }
+    }
+    pmsg_notice("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
+      mem->desc, value[i]);
+  }
+
+  return 0;
+}
+
+
+// Reset part to factory state
+static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  const char *args[] = {"erase", NULL, NULL};
+  AVRMEM *m;
+  int ret = 0;
+
+  if(argc != 2 || !str_eq(argv[1], "reset")) {
+    msg_error(
+      "Syntax: factory reset\n"
+      "Function: reset part to factory state\n"
+    );
+    return -1;
+  }
+
+  if(pgm->prog_modes & PM_SPM) { // Bootloader
+    pmsg_warning("-c %s is for bootloaders, which cannot set fuses\n", pgmid);
+    imsg_warning("only erasing flash and other writable memories as far as possible\n");
+    if((m = avr_locate_flash(p))) { // First erase flash
+      args[1] = m->desc;
+      if(cmd_erase(pgm, p, 2, args) < 0)
+        ret = -1;
+    }
+
+    for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+      m = ldata(ln);
+      if(!mem_is_in_fuses(m) && !mem_is_lock(m) && !mem_is_readonly(m) && !mem_is_in_flash(m)) {
+        args[1] = m->desc;
+        if(cmd_erase(pgm, p, 2, args) < 0)
+          ret = -1;
+      }
+    }
+
+    if(pgm->flush_cache(pgm, p) < 0)
+      ret = -1;
+
+    return ret;
+  }
+
+  // Reset fuses to factory values
+  for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+    if(mem_is_a_fuse(m = ldata(ln)))
+      if(fusel_factory(pgm, p, m) < 0)
+        ret = -1;
+
+  int fuseok = ret == 0;
+
+  if(pgm->chip_erase_cached)    // For some parts necessary to reset lock bits
+    if(cmd_erase(pgm, p, 1, args) < 0)
+      ret = -1;
+
+  for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
+    m = ldata(ln);
+    if(!mem_is_in_fuses(m) && !mem_is_lock(m) && !mem_is_readonly(m)) {
+      args[1] = m->desc;
+      if(cmd_erase(pgm, p, 2, args) < 0)
+        ret = -1;
+    }
+  }
+
+  if(pgm->flush_cache(pgm, p) < 0)
+    ret = -1;
+
+  // Reset lock to factory value
+  for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
+    if(mem_is_lock(m = ldata(ln)))
+      if(fusel_factory(pgm, p, m) < 0)
+        ret = -1;
+
+  if(p->factory_fcpu)
+    term_out("after the next reset the part %s have F_CPU = %.3f MHz\n", fuseok? "will": "should",
+      p->factory_fcpu/1e6);
 
   return ret;
 }
