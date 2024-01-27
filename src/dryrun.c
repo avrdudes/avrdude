@@ -43,8 +43,15 @@
 #include "dryrun_private.h"
 
 // Context of the programmer
+typedef enum {
+  DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
+  DRY_TOP,                      // Bootloader and it sits at top of flash
+  DRY_BOTTOM,                   // Bootloader sits at bottom of flash (UPDI parts)
+} dry_prog_t;
+
 typedef struct {
   AVRPART *dp;
+  dry_prog_t bl;                // Bootloader and, if so, at top/bottom of flash?
 } dryrun_t;
 
 // Use private programmer data as if they were a global structure dry
@@ -52,6 +59,24 @@ typedef struct {
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
+// Emulate a 512-byte bootloader for dryboot
+static int _readonly(const PROGRAMMER *pgm, const AVRMEM *mem, int addr) {
+  if(mem_is_readonly(mem))
+    return 1;
+
+  if(!dry.bl)
+    return 0;
+
+  // Bootloader restictions
+  if(mem_is_boot(mem) || mem_is_flash(mem))
+    if(dry.bl == DRY_TOP? addr >= mem->size-512: addr < 512)
+      return 1;
+
+  if(mem_is_in_fuses(mem) || mem_is_lock(mem))
+    return 1;
+
+  return 0;
+}
 
 // Read expected signature bytes from part description
 static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *sigmem) {
@@ -113,6 +138,9 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
 static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
 
+  if(pgm->prog_modes & PM_SPM)
+    dry.bl = (p->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
+
   if(!dry.dp) {
     unsigned char inifuses[16]; // For fuses, which is made up from fuse0, fuse1, ...
     AVRMEM *fusesm = NULL, *prodsigm = NULL, *calm;
@@ -124,6 +152,10 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       AVRMEM *m = ldata(ln);
       if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
         memset(m->buf, 0xff, m->size);
+        // Overwrite ficticious bootloader section with 512-byte block of endless loops
+        if(dry.bl && (mem_is_boot(m) || mem_is_flash(m)))
+          for(int i = dry.bl == DRY_TOP? m->size-512: 0, end = i+512, n = 0; i+1 < end; i+=2, n++)
+            m->buf[i] = 255-n, m->buf[i+1] = 0xcf; // rjmp .-2, rjmp .-4, ...
       } else if(mem_is_fuses(m)) {
         fusesm = m;
       } else if(mem_is_a_fuse(m) || mem_is_lock(m)) {
@@ -291,7 +323,15 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     for(; addr < end; addr += chunk) {
       chunk = end-addr < page_size? end-addr: page_size;
-      (mchr == 'F'? memand: memcpy)(dmem->buf+addr, m->buf+addr, chunk);
+      // Return write error for protected bootloader region
+      if(dry.bl && (mem_is_boot(m) || mem_is_flash(m)))
+        if(_readonly(pgm, m, addr))
+          if(memcmp(dmem->buf+addr, m->buf+addr, chunk))
+            Return("Write error on protected bootloader region %s [0x%04x, 0x%04x]\n", m->desc,
+              dry.bl == DRY_TOP? m->size-512: 0, dry.bl == DRY_TOP? m->size-1: 511);
+
+      // Unless it is a bootloader flash looks like NOR-memory
+      (mchr == 'F' && !dry.bl? memand: memcpy)(dmem->buf+addr, m->buf+addr, chunk);
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F') {
@@ -372,7 +412,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(mem_is_readonly(dmem)) {
+  if(_readonly(pgm, dmem, addr)) {
     unsigned char is;
     if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
       return 0;
@@ -468,8 +508,16 @@ static int dryrun_vfy_led(const PROGRAMMER *pgm, int value) {
 
 
 static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
-  imsg_info("Dryrun programmer for %s\n", dry.dp? dry.dp->desc: partdesc? partdesc: "???");
+  imsg_info("%c%s programmer for %s\n", toupper(*pgmid), pgmid+1, dry.dp? dry.dp->desc: partdesc? partdesc: "???");
   return;
+}
+
+
+// Return whether an address is write protected
+static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p_unused,
+  const AVRMEM *mem, unsigned int addr) {
+
+  return _readonly(pgm, mem, addr);
 }
 
 
@@ -519,4 +567,5 @@ void dryrun_initpgm(PROGRAMMER *pgm) {
   pgm->setup = dryrun_setup;
   pgm->teardown = dryrun_teardown;
   pgm->term_keep_alive = dryrun_term_keep_alive;
+  pgm->readonly = dryrun_readonly;
 }
