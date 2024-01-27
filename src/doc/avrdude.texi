@@ -2463,6 +2463,17 @@ It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
+@item factory reset
+Resets the connected part to factory state as far as possible;
+bootloaders, for example, cannot write fuses and may not have a means to
+erase EEPROM. This may change the clock frequency of the part after the
+next reset when the new fuse values come into effect. As such this may
+require that avrdude is called with a different bit clock rate for the
+programmer next time. Note that the command @code{factory} can be
+abbreviated  but the required argument @code{reset} needs to be spelled
+out.
+
+
 @item regfile [@var{opts}]
 @code{regfile} with no further argument displays the register file of a
 part, i.e., all register names and their contents in  @code{io} memory, if
