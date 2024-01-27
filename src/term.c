@@ -1614,7 +1614,7 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
   }
 
   if(pgm->prog_modes & PM_SPM) { // Bootloader
-    pmsg_warning("-c %s is for bootloaders, which cannot set fuses\n", pgmid);
+    pmsg_warning("-c %s is for bootloaders, which cannot set fuses;\n", pgmid);
     imsg_warning("only erasing flash and other writable memories as far as possible\n");
     if((m = avr_locate_flash(p))) { // First erase flash
       args[1] = m->desc;
