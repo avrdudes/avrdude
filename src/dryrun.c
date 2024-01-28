@@ -59,24 +59,8 @@ typedef struct {
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
-// Emulate a 512-byte bootloader for dryboot
-static int _readonly(const PROGRAMMER *pgm, const AVRMEM *mem, int addr) {
-  if(mem_is_readonly(mem))
-    return 1;
-
-  if(!dry.bl)
-    return 0;
-
-  // Bootloader restictions
-  if(mem_is_boot(mem) || mem_is_flash(mem))
-    if(dry.bl == DRY_TOP? addr >= mem->size-512: addr < 512)
-      return 1;
-
-  if(mem_is_in_fuses(mem) || mem_is_lock(mem))
-    return 1;
-
-  return 0;
-}
+static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int addr);
 
 // Read expected signature bytes from part description
 static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *sigmem) {
@@ -97,7 +81,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
   pmsg_debug("%s()\n", __func__);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
   if(!(flm = avr_locate_flash(dry.dp)))
     Return("cannot locate %s flash memory for chip erase", dry.dp->desc);
   if(flm->size < 1)
@@ -296,7 +280,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   pmsg_debug("%s(%s, %u, 0x%04x, %u)\n", __func__, m->desc, page_size, addr, n_bytes);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
 
   if(n_bytes) {
     AVRMEM *dmem, *dm2;
@@ -305,7 +289,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     // Paged writes only valid for flash and eeprom
     mchr = mem_is_in_flash(m)? 'F': 'E';
-    if(mchr == 'E' && !mem_is_eeprom(m))
+    if(mchr == 'E' && !mem_is_eeprom(m) && !mem_is_user_type(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -325,7 +309,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       chunk = end-addr < page_size? end-addr: page_size;
       // Return write error for protected bootloader region
       if(dry.bl && (mem_is_boot(m) || mem_is_flash(m)))
-        if(_readonly(pgm, m, addr))
+        if(dryrun_readonly(pgm, p, m, addr))
           if(memcmp(dmem->buf+addr, m->buf+addr, chunk))
             Return("Write error on protected bootloader region %s [0x%04x, 0x%04x]\n", m->desc,
               dry.bl == DRY_TOP? m->size-512: 0, dry.bl == DRY_TOP? m->size-1: 511);
@@ -362,7 +346,7 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   pmsg_debug("%s(%s, %u, 0x%04x, %u)\n", __func__, m->desc, page_size, addr, n_bytes);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
 
   if(n_bytes) {
     AVRMEM *dmem;
@@ -371,7 +355,7 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
     // Paged load only valid for flash and eeprom
     mchr = mem_is_in_flash(m)? 'F': 'E';
-    if(mchr == 'E' && !mem_is_eeprom(m))
+    if(mchr == 'E' && !mem_is_eeprom(m) && !mem_is_user_type(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -404,7 +388,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   pmsg_debug("%s(%s, 0x%04lx, 0x%02x)\n", __func__, m->desc, addr, data);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
     Return("cannot locate %s %s memory for bytewise write", dry.dp->desc, m->desc);
   if(dmem->size < 1)
@@ -412,7 +396,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(_readonly(pgm, dmem, addr)) {
+  if(dryrun_readonly(pgm, p, dmem, addr)) {
     unsigned char is;
     if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
       return 0;
@@ -457,7 +441,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   pmsg_debug("%s(%s, 0x%04lx)", __func__, m->desc, addr);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
     Return("cannot locate %s %s memory for bytewise read", dry.dp->desc, m->desc);
   if(dmem->size < 1)
@@ -469,6 +453,9 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(addr >= (unsigned long) dmem->size)
     Return("cannot read byte %s %s as address 0x%04lx outside range [0, 0x%04x]",
       dry.dp->desc, dmem->desc, addr, dmem->size-1);
+
+  if(!dry.bl && (mem_is_io(dmem) || mem_is_sram(dmem)) && !(p->prog_modes & (PM_UPDI | PM_PDI)))
+    Return("classic part io/sram memories cannot be read externally");
 
   *value = dmem->buf[addr];
 
@@ -514,10 +501,27 @@ static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 
 // Return whether an address is write protected
-static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p_unused,
-  const AVRMEM *mem, unsigned int addr) {
+static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int addr) {
 
-  return _readonly(pgm, mem, addr);
+  if(mem_is_readonly(mem))
+    return 1;
+
+  if(!dry.bl) {                 // io and sram may not be accessible by external programming
+    if(mem_is_io(mem) || mem_is_sram(mem))
+      return !(p->prog_modes & PM_UPDI); // Can not even read these externally in classic parts
+    return 0;
+  }
+
+  // Bootloader restictions: emulate a 512-byte bootloader for dryboot
+  if(mem_is_boot(mem) || mem_is_flash(mem))
+    if(dry.bl == DRY_TOP? (int) addr >= mem->size-512: addr < 512U)
+      return 1;
+
+  if(mem_is_in_fuses(mem) || mem_is_lock(mem))
+    return 1;
+
+  return 0;
 }
 
 
