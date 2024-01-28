@@ -43,8 +43,16 @@
 #include "dryrun_private.h"
 
 // Context of the programmer
+typedef enum {
+  DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
+  DRY_TOP,                      // Bootloader and it sits at top of flash
+  DRY_BOTTOM,                   // Bootloader sits at bottom of flash (UPDI parts)
+} dry_prog_t;
+
 typedef struct {
   AVRPART *dp;
+  dry_prog_t bl;                // Bootloader and, if so, at top/bottom of flash?
+  int blsize;                   // Bootloader size min(flash size/4, 512)
 } dryrun_t;
 
 // Use private programmer data as if they were a global structure dry
@@ -52,6 +60,8 @@ typedef struct {
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
+static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int addr);
 
 // Read expected signature bytes from part description
 static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *sigmem) {
@@ -72,7 +82,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
   pmsg_debug("%s()\n", __func__);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
   if(!(flm = avr_locate_flash(dry.dp)))
     Return("cannot locate %s flash memory for chip erase", dry.dp->desc);
   if(flm->size < 1)
@@ -113,6 +123,15 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
 static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
 
+  AVRMEM *flm = avr_locate_flash(p);
+  if(flm && flm->size >= 1024) {
+    if(pgm->prog_modes & PM_SPM)
+      dry.bl = (p->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
+    dry.blsize = flm->size/4;
+    if(dry.blsize > 512)
+      dry.blsize = 512;
+  }
+
   if(!dry.dp) {
     unsigned char inifuses[16]; // For fuses, which is made up from fuse0, fuse1, ...
     AVRMEM *fusesm = NULL, *prodsigm = NULL, *calm;
@@ -124,6 +143,10 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       AVRMEM *m = ldata(ln);
       if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
         memset(m->buf, 0xff, m->size);
+        // Overwrite ficticious bootloader section with block of endless loops
+        if(dry.bl && (mem_is_boot(m) || mem_is_flash(m)))
+          for(int i = dry.bl == DRY_TOP? m->size-dry.blsize: 0, end = i+dry.blsize, n = 0; i+1 < end; i+=2, n++)
+            m->buf[i] = 255-n, m->buf[i+1] = 0xcf; // rjmp .-2, rjmp .-4, ...
       } else if(mem_is_fuses(m)) {
         fusesm = m;
       } else if(mem_is_a_fuse(m) || mem_is_lock(m)) {
@@ -264,7 +287,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   pmsg_debug("%s(%s, %u, 0x%04x, %u)\n", __func__, m->desc, page_size, addr, n_bytes);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
 
   if(n_bytes) {
     AVRMEM *dmem, *dm2;
@@ -273,7 +296,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     // Paged writes only valid for flash and eeprom
     mchr = mem_is_in_flash(m)? 'F': 'E';
-    if(mchr == 'E' && !mem_is_eeprom(m))
+    if(mchr == 'E' && !mem_is_eeprom(m) && !mem_is_user_type(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -291,7 +314,15 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     for(; addr < end; addr += chunk) {
       chunk = end-addr < page_size? end-addr: page_size;
-      (mchr == 'F'? memand: memcpy)(dmem->buf+addr, m->buf+addr, chunk);
+      // Return write error for protected bootloader region
+      if(dry.bl && (mem_is_boot(m) || mem_is_flash(m)))
+        if(dryrun_readonly(pgm, p, m, addr))
+          if(memcmp(dmem->buf+addr, m->buf+addr, chunk))
+            Return("Write error on protected bootloader region %s [0x%04x, 0x%04x]\n", m->desc,
+              dry.bl == DRY_TOP? m->size-dry.blsize: 0, dry.bl == DRY_TOP? m->size-1: dry.blsize-1);
+
+      // Unless it is a bootloader flash looks like NOR-memory
+      (mchr == 'F' && !dry.bl? memand: memcpy)(dmem->buf+addr, m->buf+addr, chunk);
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F') {
@@ -322,7 +353,7 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   pmsg_debug("%s(%s, %u, 0x%04x, %u)\n", __func__, m->desc, page_size, addr, n_bytes);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
 
   if(n_bytes) {
     AVRMEM *dmem;
@@ -331,7 +362,7 @@ static int dryrun_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
     // Paged load only valid for flash and eeprom
     mchr = mem_is_in_flash(m)? 'F': 'E';
-    if(mchr == 'E' && !mem_is_eeprom(m))
+    if(mchr == 'E' && !mem_is_eeprom(m) && !mem_is_user_type(m))
       return -2;
 
     if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
@@ -364,7 +395,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   pmsg_debug("%s(%s, 0x%04lx, 0x%02x)\n", __func__, m->desc, addr, data);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
     Return("cannot locate %s %s memory for bytewise write", dry.dp->desc, m->desc);
   if(dmem->size < 1)
@@ -372,7 +403,7 @@ int dryrun_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(dmem->size != m->size)
     Return("cannot write byte to %s %s as sizes differ: 0x%04x vs 0x%04x",
       dry.dp->desc, dmem->desc, dmem->size, m->size);
-  if(mem_is_readonly(dmem)) {
+  if(dryrun_readonly(pgm, p, dmem, addr)) {
     unsigned char is;
     if(pgm->read_byte(pgm, p, m, addr, &is) >= 0 && is == data)
       return 0;
@@ -417,7 +448,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   pmsg_debug("%s(%s, 0x%04lx)", __func__, m->desc, addr);
   if(!dry.dp)
-    Return("no dryrun device? Raise an issue at https://github.com/avrdudes/avrdude/issues");
+    Return("no dryrun device?");
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
     Return("cannot locate %s %s memory for bytewise read", dry.dp->desc, m->desc);
   if(dmem->size < 1)
@@ -429,6 +460,9 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   if(addr >= (unsigned long) dmem->size)
     Return("cannot read byte %s %s as address 0x%04lx outside range [0, 0x%04x]",
       dry.dp->desc, dmem->desc, addr, dmem->size-1);
+
+  if(!dry.bl && (mem_is_io(dmem) || mem_is_sram(dmem)) && !(p->prog_modes & (PM_UPDI | PM_PDI)))
+    Return("classic part io/sram memories cannot be read externally");
 
   *value = dmem->buf[addr];
 
@@ -468,8 +502,33 @@ static int dryrun_vfy_led(const PROGRAMMER *pgm, int value) {
 
 
 static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
-  imsg_info("Dryrun programmer for %s\n", dry.dp? dry.dp->desc: partdesc? partdesc: "???");
+  imsg_info("%c%s programmer for %s\n", toupper(*pgmid), pgmid+1, dry.dp? dry.dp->desc: partdesc? partdesc: "???");
   return;
+}
+
+
+// Return whether an address is write protected
+static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int addr) {
+
+  if(mem_is_readonly(mem))
+    return 1;
+
+  if(!dry.bl) {                 // io and sram may not be accessible by external programming
+    if(mem_is_io(mem) || mem_is_sram(mem))
+      return !(p->prog_modes & PM_UPDI); // Can not even read these externally in classic parts
+    return 0;
+  }
+
+  // Bootloader restictions: emulate a bootloader for dryboot
+  if(mem_is_boot(mem) || mem_is_flash(mem))
+    if(dry.bl == DRY_TOP? (int) addr >= mem->size-dry.blsize: (int) addr < dry.blsize)
+      return 1;
+
+  if(mem_is_in_fuses(mem) || mem_is_lock(mem))
+    return 1;
+
+  return 0;
 }
 
 
@@ -519,4 +578,5 @@ void dryrun_initpgm(PROGRAMMER *pgm) {
   pgm->setup = dryrun_setup;
   pgm->teardown = dryrun_teardown;
   pgm->term_keep_alive = dryrun_term_keep_alive;
+  pgm->readonly = dryrun_readonly;
 }

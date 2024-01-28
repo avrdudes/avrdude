@@ -852,6 +852,29 @@ programmer # dryrun
 ;
 
 #------------------------------------------------------------
+# dryboot
+#------------------------------------------------------------
+
+# Like -c dryrun the -c dryboot programmer only emulates programming,
+# albeit for communicating to bootloaders, ie, without a physical
+# programmer between the host and the target AVR part. AVRDUDE behaves
+# slightly different when talking to a bootloader: Whilst for most classic
+# parts the flash memory looks like NOR-memory, ie, cleared bits cannot be
+# set and therefore programming requires a chip erase first, bootloaders
+# do have the power of erasing a flash page (setting it to all 0xff)
+# before writing a page. This requires AVRDUDE to behave differently when
+# talking to a bootloader, which it recognises by the prog_modes = PM_SPM
+# setting below. -c dryboot allows exploring these differences at an
+# emulation level.
+
+programmer # dryboot
+    id                     = "dryboot";
+    desc                   = "Emulates bootloader programming without a programmer";
+    type                   = "dryrun";
+    prog_modes             = PM_SPM;
+;
+
+#------------------------------------------------------------
 # wiring
 #------------------------------------------------------------
 
