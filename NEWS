@@ -10,14 +10,19 @@ Changes since version 7.2:
   * Major changes compared to the previous version:
 
     - Connect target via -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
+    - New test-avrdude script in tools #1645
+    - Updates to SerialUPDI protocol #1627
+    - Introduced regfile #1580 and factory reset #1642 commands
 
   * New devices supported:
 
     - AVR16EB14, AVR16EB20, AVR16EB28, AVR16EB32
+    - AVR64DU28, AVR64DU32
 
   * New programmers supported:
 
     - ft2232h_jtag, ft232h_jtag
+    - dryboot
 
   * Issues fixed:
 
@@ -116,6 +121,12 @@ Changes since version 7.2:
     - Provide and use locate_part_by_signature_pm() #1605
     - Harden AVRDUDE against pre-C99 libraries #1608
     - Add MSYS2 ucrt64, clang32 and clang64 to build.yml #1612
+    - Updates to SerialUPDI protocol #1627
+    - Fix upload of one-byte files to flash #1634
+    - Add CH343 USB to serial adapter #1640
+    - Add dryboot programmer #1641
+    - Provide terminal command factory reset #1642
+    - Add tools/test-avrdude #1645
 
   * Internals:
 
