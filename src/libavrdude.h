@@ -315,6 +315,7 @@ typedef struct avrpart {
 
   /* Bootloader paramater */
   unsigned char autobaud_sync;  /* Sync byte for bootloader autobaud,  must be <= 0x30 */
+  int factory_fcpu;             /* Initial F_CPU after reset assuming factory settings */
 
   OPCODE      * op[AVR_OP_MAX]; /* opcodes */
 
