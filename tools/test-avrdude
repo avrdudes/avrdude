@@ -167,7 +167,7 @@ for (( p=0; p<$arraylength; p++ )); do
     EE_SIZE=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
 
     if [[ -z "$FLASH_SIZE" ]]; then
-      echo "No flash? Skipping ${pgm_and_target[$p]} test"
+      echo "Cannot detect flash; check that \"${pgm_and_target[$p]}\" are valid avrdude options; skipping this test"
       continue
     fi
 
