@@ -308,7 +308,7 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 
   /* return the highest non-0xff address regardless of how much
      memory was read */
-  for (i=mem->size-1; i>0; i--) {
+  for (i = mem->size-1; i >= 0; i--) {
     if (mem->buf[i] != 0xff) {
       n = i+1;
       if (n & 0x01)
