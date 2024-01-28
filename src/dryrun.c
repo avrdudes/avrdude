@@ -52,6 +52,7 @@ typedef enum {
 typedef struct {
   AVRPART *dp;
   dry_prog_t bl;                // Bootloader and, if so, at top/bottom of flash?
+  int blsize;                   // Bootloader size min(flash size/4, 512)
 } dryrun_t;
 
 // Use private programmer data as if they were a global structure dry
@@ -122,8 +123,14 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
 static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("%s()\n", __func__);
 
-  if(pgm->prog_modes & PM_SPM)
-    dry.bl = (p->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
+  AVRMEM *flm = avr_locate_flash(p);
+  if(flm && flm->size >= 1024) {
+    if(pgm->prog_modes & PM_SPM)
+      dry.bl = (p->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
+    dry.blsize = flm->size/4;
+    if(dry.blsize > 512)
+      dry.blsize = 512;
+  }
 
   if(!dry.dp) {
     unsigned char inifuses[16]; // For fuses, which is made up from fuse0, fuse1, ...
@@ -136,9 +143,9 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       AVRMEM *m = ldata(ln);
       if(mem_is_in_flash(m) || mem_is_eeprom(m)) {
         memset(m->buf, 0xff, m->size);
-        // Overwrite ficticious bootloader section with 512-byte block of endless loops
+        // Overwrite ficticious bootloader section with block of endless loops
         if(dry.bl && (mem_is_boot(m) || mem_is_flash(m)))
-          for(int i = dry.bl == DRY_TOP? m->size-512: 0, end = i+512, n = 0; i+1 < end; i+=2, n++)
+          for(int i = dry.bl == DRY_TOP? m->size-dry.blsize: 0, end = i+dry.blsize, n = 0; i+1 < end; i+=2, n++)
             m->buf[i] = 255-n, m->buf[i+1] = 0xcf; // rjmp .-2, rjmp .-4, ...
       } else if(mem_is_fuses(m)) {
         fusesm = m;
@@ -312,7 +319,7 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         if(dryrun_readonly(pgm, p, m, addr))
           if(memcmp(dmem->buf+addr, m->buf+addr, chunk))
             Return("Write error on protected bootloader region %s [0x%04x, 0x%04x]\n", m->desc,
-              dry.bl == DRY_TOP? m->size-512: 0, dry.bl == DRY_TOP? m->size-1: 511);
+              dry.bl == DRY_TOP? m->size-dry.blsize: 0, dry.bl == DRY_TOP? m->size-1: dry.blsize-1);
 
       // Unless it is a bootloader flash looks like NOR-memory
       (mchr == 'F' && !dry.bl? memand: memcpy)(dmem->buf+addr, m->buf+addr, chunk);
@@ -513,9 +520,9 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     return 0;
   }
 
-  // Bootloader restictions: emulate a 512-byte bootloader for dryboot
+  // Bootloader restictions: emulate a bootloader for dryboot
   if(mem_is_boot(mem) || mem_is_flash(mem))
-    if(dry.bl == DRY_TOP? (int) addr >= mem->size-512: addr < 512U)
+    if(dry.bl == DRY_TOP? (int) addr >= mem->size-dry.blsize: (int) addr < dry.blsize)
       return 1;
 
   if(mem_is_in_fuses(mem) || mem_is_lock(mem))
