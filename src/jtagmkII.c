@@ -1797,6 +1797,15 @@ void jtagmkII_close(PROGRAMMER * pgm)
 
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
+
+  /* The AVR Dragon and the Arduino Nano Every needs a delay
+   * after a programming session has ended before Avrdude can
+   * communicate with the programmer again.
+   */
+  if (str_casestarts(pgmid, "dragon"))
+    sleep(1.5);
+  else if (str_caseeq(pgmid, "nanoevery"))
+    sleep(0.5);
 }
 
 static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
