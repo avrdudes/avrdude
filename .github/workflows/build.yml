@@ -65,6 +65,10 @@ jobs:
           -B build
       - name: Build
         run: cmake --build build
+      - name: Install
+        run: sudo cmake --build build --target install
+      - name: Dryrun_test
+        run: echo -e \\n | ./tools/test-avrdude -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"        
       - name: Archive build artifacts
         if: always()
         uses: actions/upload-artifact@v3
