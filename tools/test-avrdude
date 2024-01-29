@@ -362,7 +362,7 @@ for (( p=0; p<$arraylength; p++ )); do
     command=(${avrdude[@]} -e -Uflash:v:$tfiles/holes_flash_0xff_${FLASH_SIZE}B.hex)
     execute "${command[@]}"
     result [ $? == 0 ]
-    if [[ $? == 0 && $check_eeprom -eq 1 ]]; then
+    if [[ $? == 0 && $check_eeprom -eq 1 && $is_bootloader -eq 0 ]]; then
       specify="spot check eeprom is erased, too"
       command=(${avrdude[@]} -Ueeprom:v:$tfiles/holes_eeprom_0xff_${EE_SIZE}B.hex)
       execute "${command[@]}"
