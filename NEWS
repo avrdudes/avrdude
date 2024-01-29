@@ -10,9 +10,12 @@ Changes since version 7.2:
   * Major changes compared to the previous version:
 
     - Connect target via -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
+    - Add io and sram memory info in lieu of incomplete data memory
     - New test-avrdude script in tools #1645
-    - Updates to SerialUPDI protocol #1627
-    - Introduced regfile #1580 and factory reset #1642 commands
+    - Update SerialUPDI protocol #1627
+    - Terminal
+        + Command regfile #1580
+        + Command factory reset #1642
 
   * New devices supported:
 
@@ -62,7 +65,7 @@ Changes since version 7.2:
     - Provide sib memory for AVR8X parts #1480
     - Read chip revision and add IO memory for PDI/UPDI parts #1474
     - Replace string comparison functions #1482
-    - Fix overapping XMEGA flash memories for dryrun #1486
+    - Fix overlapping XMEGA flash memories for dryrun #1486
     - Exit if part and programmer are incompatible #1487
     - Add io memory for classic parts #1488
     - Add AVR-EB parts #1491
