@@ -1803,9 +1803,9 @@ void jtagmkII_close(PROGRAMMER * pgm)
    * communicate with the programmer again.
    */
   if (str_casestarts(pgmid, "dragon"))
-    sleep(1.5);
+    usleep(1000*1000*1.5);
   else if (str_caseeq(pgmid, "nanoevery"))
-    sleep(0.5);
+    usleep(1000*1000*0.5);
 }
 
 static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
