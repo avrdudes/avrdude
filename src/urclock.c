@@ -809,7 +809,7 @@ nopatch_nometa:
           flm->tags[i] |= TAG_ALLOCATED;
         }
       }
-    } else {                    // Double-check reset vector jumps to bootloader
+    } else if(firstbeg < vecsz) { // Double-check reset vector jumps to bootloader
       int resetdest;
 
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
