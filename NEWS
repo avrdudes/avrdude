@@ -56,6 +56,14 @@ Changes since version 7.2:
     - Query a programmer's current clock speed #1329
     - Differentiate USB programmers with the same VID/PID #973
     - Add AVR-DU series latest information #1595
+    - Provide simple way to factory reset a chip #1619
+    - Incorrect SerialUPDI communication for NVM V3, V4 and V5 #1621
+    - SerialUPDI programmer can fail when erasing EEPROM #1622
+    - SerialUPDI - NVMProg key not being accepted immediately
+      after NVM V3+ chip completes boot #1623
+    - USE_STATIC_LIBS builds fail to detect libreadline.so #1624
+    - Writing one-byte files to flash fails #1633
+    - Integrate test-avrdude github action using dryrun #1643
 
   * Pull requests:
 
@@ -130,6 +138,7 @@ Changes since version 7.2:
     - Add dryboot programmer #1641
     - Provide terminal command factory reset #1642
     - Add tools/test-avrdude #1645
+    - Add test-avrdude using dryrun to github action #1646
 
   * Internals:
 
