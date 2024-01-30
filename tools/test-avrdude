@@ -269,15 +269,17 @@ for (( p=0; p<$arraylength; p++ )); do
       fi
       execute "${command[@]}" > $outfile
       fusebit=$(grep ^config $outfile | awk '{print $4}')
-      sed -i -e/^config/d -e/"> "/d $outfile
-      result [[ '"$fusebit"' == 1 '&&' ! -s $outfile  '&&' ! -s $logfile ]]
+      sed -e/^config/d -e/"> "/d $outfile > ${outfile}-2
+      result [[ '"$fusebit"' == 1 '&&' ! -s ${outfile}-2 '&&' ! -s $logfile ]]
+      rm ${outfile}-2
 
       if [ -n "$EE_SIZE" ]; then
         specify="fuse access: set eesave fusebit to delete EEPROM on chip erase"
         command=(${avrdude[@]} -T '"config eesave=ee*erased"')
         execute "${command[@]}" > $outfile
-        sed -i -e/^config/d -e/"> "/d $outfile
-        result [[ ! -s $outfile  '&&' ! -s $logfile ]]
+        sed -e/^config/d -e/"> "/d $outfile > ${outfile}-2
+        result [[ ! -s ${outfile}-2  '&&' ! -s $logfile ]]
+        rm ${outfile}-2
       fi
     fi
 
