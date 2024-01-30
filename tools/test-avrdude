@@ -94,7 +94,7 @@ echo -n "Testing $avrdude_bin"
 $avrdude_bin -v 2>&1 | grep Version | cut -f2- -d: | sed s/Version/version/
 
 tmp=/dev/shm                    # Temporary RAM directory
-[ ! -d $tmp ] && tmp=/tmp       # Fall back to /tmp if it does not exist
+[[ -d $tmp && -w $tmp ]] || tmp=/tmp # Fall back to /tmp if /dev/shm unusable
 status=$(mktemp "$tmp/$progname.status.XXXXXX")
 logfile=$(mktemp "$tmp/$progname.log.XXXXXX")
 outfile=$(mktemp "$tmp/$progname.out.XXXXXX")
