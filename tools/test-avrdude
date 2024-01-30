@@ -13,6 +13,7 @@ avrdude_bin=avrdude             # Executable
 list_only=0                     # Normal run
 declare -a pgm_and_target=()    # Array with test option strings, eg, "-c dryrun -p m328p"
 skip_eeprom=0                   # Do not skip EEPROM tests for bootloaders by default
+tmp=/dev/shm                    # Temporary RAM directory
 verbose=0                       # Do not show AVRDUDE errors and warnings by default
 
 Usage() {
@@ -26,6 +27,7 @@ Options:
     -l                          list test commands but do not execute them
     -p <programmer/part specs>  can be used multiple times, overrides default tests
     -s                          skip EEPROM tests for bootloaders
+    -t <dir>                    temporary directory
     -v                          verbose: show AVRDUDE error and warning messages
     -? or -h                    show this help text
 Example:
@@ -33,7 +35,7 @@ Example:
 END
 }
 
-while getopts ":\?hc:d:e:lp:sv" opt; do
+while getopts ":\?hc:d:e:lp:st:v" opt; do
   case ${opt} in
     c) avrdude_conf="$OPTARG"
         ;;
@@ -46,6 +48,8 @@ while getopts ":\?hc:d:e:lp:sv" opt; do
     p) pgm_and_target+=("$OPTARG")
         ;;
     s) skip_eeprom=1
+        ;;
+    t) tmp="$OPTARG"
         ;;
     v) verbose=1
         ;;
@@ -93,8 +97,7 @@ arraylength=${#pgm_and_target[@]}
 echo -n "Testing $avrdude_bin"
 $avrdude_bin -v 2>&1 | grep Version | cut -f2- -d: | sed s/Version/version/
 
-tmp=/dev/shm                    # Temporary RAM directory
-[[ -d $tmp && -w $tmp ]] || tmp=/tmp # Fall back to /tmp if /dev/shm unusable
+[[ -d $tmp && -w $tmp ]] || tmp=/tmp # Fall back to /tmp if tmp directory unusable
 status=$(mktemp "$tmp/$progname.status.XXXXXX")
 logfile=$(mktemp "$tmp/$progname.log.XXXXXX")
 outfile=$(mktemp "$tmp/$progname.out.XXXXXX")
