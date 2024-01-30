@@ -19,8 +19,6 @@
  */
 
 
-/* $Id$ */
-
 /* ft245r -- FT245R/FT232R Synchronous BitBangMode Programmer
   default pin assign
                FT232R / FT245R

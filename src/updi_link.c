@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id$ */
-
 /*
  * Based on pymcuprog
  * See https://github.com/microchip-pic-avr-tools/pymcuprog

@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /* These are the internal definitions needed for config parsing */
 
 #ifndef config_h

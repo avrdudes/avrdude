@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
