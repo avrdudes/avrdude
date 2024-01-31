@@ -8,7 +8,7 @@ tfiles=$(dirname "$0")/test_files
 tfiles=$(printf "%q" "$tfiles") # Quote directory string in case there are spaces etc
 
 avrdude_conf=''                 # Configuration for every run, eg, '-C path_to_avrdude_conf'
-delay=4                         # Some programmers need a delay between AVRDUDE calls
+delay=0.75                      # Some programmers need a delay between AVRDUDE calls
 avrdude_bin=avrdude             # Executable
 list_only=0                     # Normal run
 declare -a pgm_and_target=()    # Array with test option strings, eg, "-c dryrun -p m328p"
@@ -104,7 +104,7 @@ outfile=$(mktemp "$tmp/$progname.out.XXXXXX")
 trap "rm -f $status $logfile $outfile" EXIT
 
 TIMEFORMAT=%R                   # time built-in only returns elapsed wall-clock time
-elapsed=0                       # Global variable holding time of last execute command in seconds
+elapsed=-1                      # Global variable holding time of last execute command in seconds
 command=(sleep 0.1)             # Array with AVRDUDE command
 
 # Execute args as command, set $elapsed and return exit value of command; don't call in a subshell
@@ -113,7 +113,7 @@ execute () {
     echo "\$ ${command[@]}" | tr -s " "
     return 0;
   fi
-  sleep "$delay"
+  [[ $programmer != -cdry* && $elapsed -ne -1 ]] && sleep "$delay"
   # These shenanigans keep stdout, stderr and the exit code of the command
   { read elapsed < <({ time { eval "$@"; echo $? >"$status"; } 2>&4 4>&-; } 4>&2 2>&1 >&3 3>&-); } 3>&1
   return $(cat "$status")
@@ -131,7 +131,7 @@ result () {
       echo ❌ "$(printf '%7.3f s' $elapsed): $specify (failed command below)"
       echo "\$ ${command[@]}" | tr -s " "
       FAIL=true
-      sleep 4                   # Let the hw settle down before the next test
+      [[ $programmer != -cdry* ]] && sleep 4 # Let the hw settle down before next test
     fi
     [[ $verbose -eq 1 ]] && { touch $logfile $outfile; cat $logfile $outfile; }
   else
@@ -151,6 +151,10 @@ nofusetest=(-pattiny11/ -pt11/ -pattiny12/ -pt12/ -pattiny15/ -pt15/ -pat89s51/ 
   -plgt8f328p/ -plgt8f328p/)
 
 for (( p=0; p<$arraylength; p++ )); do
+  # Isolate programmer and part (assumes -c prog or -cprog but not sth more tricky such as -qc prog)
+  programmer=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-c | tr A-Z a-z)
+  part=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-p | tr A-Z a-z)
+
   if [[ $list_only -eq 1 ]]; then
     [[ p -ne 0 ]] && echo
     echo "# ${pgm_and_target[$p]}"
@@ -158,7 +162,7 @@ for (( p=0; p<$arraylength; p++ )); do
   else
     echo "Prepare \"${pgm_and_target[$p]}\" and press 'enter' or 'space' to continue. Press any other key to skip"
     read -n1 -s -r -p $'' key
-    sleep 0.25
+    [[ $programmer != -cdry* ]] && sleep 0.15 # Debounce key when not using dryrun/dryboot
   fi
 
   if [ "$key" == '' ]; then
@@ -179,19 +183,13 @@ for (( p=0; p<$arraylength; p++ )); do
 
     # Is the to be tested programmer for a bootloader?
     is_bootloader=0
-    # Isolate programmer (assumes either -c prog or -cprog but not sth more tricky such as -qc prog)
-    programmer=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-c)
     if [ -n "$programmer" ]; then
       ($avrdude_bin $avrdude_conf "$programmer"/At 2>/dev/null | grep -q prog_modes.PM_SPM) && is_bootloader=1
     fi
 
     # Should we test fuses?
     fusetest=1
-    # Isolate part (assumes either -p part or -ppart)
-    part=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-p | tr A-Z a-z)
-    if [ -n "$part" ]; then
-      [[ "${nofusetest[@]}" =~ "$part/" ]] && fusetest=0
-    fi
+    [[ -n "$part" && "${nofusetest[@]}" =~ "$part/" ]] && fusetest=0
 
     # Should EEPROM test be carried out?
     check_eeprom=1
