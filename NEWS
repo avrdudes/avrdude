@@ -64,6 +64,7 @@ Changes since version 7.2:
     - USE_STATIC_LIBS builds fail to detect libreadline.so #1624
     - Writing one-byte files to flash fails #1633
     - Integrate test-avrdude github action using dryrun #1643
+    - Test script issues #1649
 
   * Pull requests:
 
@@ -139,6 +140,8 @@ Changes since version 7.2:
     - Provide terminal command factory reset #1642
     - Add tools/test-avrdude #1645
     - Add test-avrdude using dryrun to github action #1646
+    - Add delay for AVR Dragon and Arduino Nano Every #1647
+    - Make test-avrdude script resilient to old bash #1650
 
   * Internals:
 
