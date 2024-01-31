@@ -2965,9 +2965,11 @@ programmer # c2n232i
 
 # JTAG2UPDI
 # https://github.com/ElTangas/jtag2updi
+# Arduino Nano Every (jtag2updi with 1200 baud touch, -r)
+# https://github.com/arduino/ArduinoCore-megaavr/tree/master/firmwares/MuxTO
 
 programmer # jtag2updi
-    id                     = "jtag2updi";
+    id                     = "jtag2updi", "nanoevery";
     desc                   = "JTAGv2 to UPDI bridge";
     type                   = "jtagmkii_updi";
     prog_modes             = PM_UPDI;
