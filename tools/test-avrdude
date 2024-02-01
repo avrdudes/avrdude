@@ -133,6 +133,7 @@ result () {
       echo ❌ "$(printf '%7.3f s' $elapsed): $specify (failed command below)"
       echo "\$ ${command[@]}" | tr -s " "
       FAIL=true
+      exitstate=1
       [[ $programmer != -cdry* ]] && sleep 4 # Let the hw settle down before next test
     fi
     [[ $verbose -eq 1 ]] && { cat $logfile $outfile; }
@@ -152,6 +153,7 @@ nofusetest=(-pattiny11/ -pt11/ -pattiny12/ -pt12/ -pattiny15/ -pt15/ -pat89s51/ 
   -pavr8ea28/ -pavr8ea32/ -pavr8ea32/ -plgt8f88p/ -plgt8f88p/ -plgt8f168p/ -plgt8f168p/
   -plgt8f328p/ -plgt8f328p/)
 
+exitstate=0
 for (( p=0; p<$arraylength; p++ )); do
   # Isolate programmer and part (assumes -c prog or -cprog but not sth more tricky such as -qc prog)
   programmer=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-c | tr A-Z a-z)
@@ -402,3 +404,5 @@ for (( p=0; p<$arraylength; p++ )); do
 
   fi #key
 done #for
+
+exit $exitstate
