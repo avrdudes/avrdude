@@ -14,6 +14,7 @@ list_only=0                     # Normal run
 declare -a pgm_and_target=()    # Array with test option strings, eg, "-c dryrun -p m328p"
 skip_eeprom=0                   # Do not skip EEPROM tests for bootloaders by default
 tmp=/dev/shm                    # Temporary RAM directory
+addtests=0                      # Add dryrun/dryboot test cases?
 verbose=0                       # Do not show AVRDUDE errors and warnings by default
 
 Usage() {
@@ -28,6 +29,7 @@ Options:
     -p <programmer/part specs>  can be used multiple times, overrides default tests
     -s                          skip EEPROM tests for bootloaders
     -t <dir>                    temporary directory
+    -T                          Add dryrun/dryboot test cases to test $progname
     -v                          verbose: show AVRDUDE error and warning messages
     -? or -h                    show this help text
 Example:
@@ -35,7 +37,7 @@ Example:
 END
 }
 
-while getopts ":\?hc:d:e:lp:st:v" opt; do
+while getopts ":\?hc:d:e:lp:st:Tv" opt; do
   case ${opt} in
     c) avrdude_conf="$OPTARG"
         ;;
@@ -50,6 +52,8 @@ while getopts ":\?hc:d:e:lp:st:v" opt; do
     s) skip_eeprom=1
         ;;
     t) tmp="$OPTARG"
+        ;;
+    T) addtests=1
         ;;
     v) verbose=1
         ;;
@@ -69,11 +73,55 @@ while getopts ":\?hc:d:e:lp:st:v" opt; do
 done
 shift $((OPTIND -1))
 
+if [[ $addtests -eq 1 ]]; then
+  pgm_and_target+=(
+    "-c dryrun  -p at89s51"       "-c dryrun  -p at89s52"       "-c dryboot -p at90can32"
+    "-c dryrun  -p at90can32"     "-c dryboot -p at90s1200"     "-c dryboot -p at90s2313"
+    "-c dryrun  -p at90s2313"     "-c dryboot -p at90s4414"     "-c dryrun  -p at90s4414"
+    "-c dryboot -p at90s8515"     "-c dryrun  -p at90s8515"     "-c dryboot -p atmega103"
+    "-c dryrun  -p atmega103"     "-c dryboot -p atmega128rfr2" "-c dryrun  -p atmega128rfr2"
+    "-c dryboot -p atmega163"     "-c dryrun  -p atmega163"     "-c dryboot -p atmega16"
+    "-c dryrun  -p atmega16"      "-c dryboot -p atmega16hva"   "-c dryrun  -p atmega16hva"
+    "-c dryboot -p atmega2560"    "-c dryrun  -p atmega2560"    "-c dryboot -p atmega256rfr2"
+    "-c dryrun  -p atmega256rfr2" "-c dryboot -p atmega406"     "-c dryrun  -p atmega406"
+    "-c dryboot -p atmega4808"    "-c dryrun  -p atmega4808"    "-c dryboot -p atmega640"
+    "-c dryrun  -p atmega640"     "-c dryboot -p atmega64"      "-c dryrun  -p atmega64"
+    "-c dryboot -p atmega64hve2"  "-c dryrun  -p atmega64hve2"  "-c dryboot -p atmega64rfr2"
+    "-c dryrun  -p atmega64rfr2"  "-c dryboot -p atmega808"     "-c dryrun  -p atmega808"
+    "-c dryboot -p atmega8"       "-c dryrun  -p atmega8"       "-c dryrun  -p attiny11"
+    "-c dryboot -p attiny13"      "-c dryrun  -p attiny13"      "-c dryboot -p attiny1604"
+    "-c dryrun  -p attiny1604"    "-c dryboot -p attiny202"     "-c dryrun  -p attiny202"
+    "-c dryrun  -p attiny20"      "-c dryboot -p attiny261"     "-c dryrun  -p attiny26"
+    "-c dryrun  -p attiny28"      "-c dryboot -p attiny3216"    "-c dryrun  -p attiny3216"
+    "-c dryboot -p attiny3224"    "-c dryrun  -p attiny3224"    "-c dryboot -p attiny402"
+    "-c dryrun  -p attiny402"     "-c dryrun  -p attiny40"      "-c dryboot -p attiny461"
+    "-c dryrun  -p attiny461"     "-c dryboot -p attiny48"      "-c dryrun  -p attiny48"
+    "-c dryrun  -p attiny4"       "-c dryboot -p attiny804"     "-c dryrun  -p attiny804"
+    "-c dryboot -p attiny828"     "-c dryrun  -p attiny828"     "-c dryboot -p attiny88"
+    "-c dryrun  -p attiny88"      "-c dryrun  -p attiny9"       "-c dryboot -p atxmega128a4"
+    "-c dryrun  -p atxmega128a4"  "-c dryboot -p atxmega128a4u" "-c dryrun  -p atxmega128a4u"
+    "-c dryboot -p atxmega128c3"  "-c dryrun  -p atxmega128c3"  "-c dryboot -p atxmega16a4u"
+    "-c dryrun  -p atxmega16a4u"  "-c dryboot -p atxmega16e5"   "-c dryrun  -p atxmega16e5"
+    "-c dryboot -p atxmega192a1"  "-c dryrun  -p atxmega192a1"  "-c dryboot -p atxmega192c3"
+    "-c dryrun  -p atxmega192c3"  "-c dryboot -p atxmega256a1"  "-c dryrun  -p atxmega256a1"
+    "-c dryboot -p atxmega256c3"  "-c dryrun  -p atxmega256c3"  "-c dryboot -p atxmega32a4u"
+    "-c dryrun  -p atxmega32a4u"  "-c dryboot -p atxmega32e5"   "-c dryrun  -p atxmega32e5"
+    "-c dryboot -p atxmega384c3"  "-c dryrun  -p atxmega384c3"  "-c dryboot -p atxmega64a4"
+    "-c dryrun  -p atxmega64a4"   "-c dryboot -p atxmega64a4u"  "-c dryrun  -p atxmega64a4u"
+    "-c dryboot -p atxmega8e5"    "-c dryrun  -p atxmega8e5"    "-c dryboot -p avr128da28"
+    "-c dryrun  -p avr128da28"    "-c dryboot -p avr16ea28"     "-c dryrun  -p avr16ea28"
+    "-c dryboot -p avr32da28"     "-c dryrun  -p avr32da28"     "-c dryboot -p avr32ea28"
+    "-c dryrun  -p avr32ea28"     "-c dryboot -p avr64da28"     "-c dryrun  -p avr64da28"
+    "-c dryboot -p avr64dd14"     "-c dryrun  -p avr64dd14"     "-c dryboot -p avr64du28"
+    "-c dryrun  -p avr64du28"     "-c dryboot -p avr64ea28"     "-c dryrun  -p avr64ea28"
+    "-c dryboot -p avr8ea28"      "-c dryrun  -p avr8ea28"      "-c dryboot -p lgt8f328p"
+    "-c dryrun  -p lgt8f328p"
+  )
+fi
+
 if [[ ${#pgm_and_target[@]} -eq 0 ]]; then
   # Default tests in absence of -p
   pgm_and_target+=(
-    "-cdryrun -pm2560"
-    "-cdryrun -px64a1"
     "-cpkobn_updi -B1 -patmega3208"
     "-cpkobn_updi -B1 -patmega3209"
     "-cpkobn_updi -B1 -patmega4808"
