@@ -28,12 +28,14 @@ Options:
     -l                          list test commands but do not execute them
     -p <programmer/part specs>  can be used multiple times, overrides default tests
     -s                          skip EEPROM tests for bootloaders
-    -t <dir>                    temporary directory
+    -t <dir>                    temporary directory (default $tmp)
     -T                          Add dryrun/dryboot test cases to test $progname
     -v                          verbose: show AVRDUDE error and warning messages
     -? or -h                    show this help text
-Example:
-    \$ $progname -d 0 -p "-c dryrun -p t13" -p "-c dryrun -p m4809"
+Note: some Windows environments require the option -t . or similar
+Examples:
+    \$ $progname -s -p "-c dryboot -p t13" -p "-c dryrun -p m4809"
+    \$ $progname -d 2 -p "-cjtag2updi -patmega4809 -Pusb:2341:0058 -r"
 END
 }
 
