@@ -142,6 +142,7 @@ Changes since version 7.2:
     - Add test-avrdude using dryrun to github action #1646
     - Add delay for AVR Dragon and Arduino Nano Every #1647
     - Make test-avrdude script resilient to old bash #1650
+    - Create test-avrdude temporary files in the script itself #1651
 
   * Internals:
 
