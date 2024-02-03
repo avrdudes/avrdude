@@ -542,9 +542,16 @@ static int serialupdi_write_userrow(const PROGRAMMER *pgm, const AVRPART *p, con
     return -1;
   }
 
-  if (updi_write_data(pgm, m->offset+addr, m->buf + addr, n_bytes) < 0) {
-    pmsg_error("writing USER ROW failed\n");
-    return -1;
+  if (n_bytes <= UPDI_MAX_REPEAT_SIZE) {
+    if (updi_write_data(pgm, m->offset+addr, m->buf + addr, n_bytes) < 0) {
+      pmsg_error("writing USER ROW failed\n");
+      return -1;
+    }
+  } else {
+    if (updi_write_data_words(pgm, m->offset+addr, m->buf + addr, n_bytes) < 0) {
+      pmsg_error("writing USER ROW failed\n");
+      return -1;
+    }
   }
 
   if (updi_write_cs(pgm, UPDI_ASI_SYS_CTRLA, (1 << UPDI_ASI_SYS_CTRLA_UROW_FINAL) |
