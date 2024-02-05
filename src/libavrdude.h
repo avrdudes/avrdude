@@ -993,6 +993,8 @@ typedef struct programmer_t {
   int  (*read_sib)       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
   int  (*read_chip_rev)  (const struct programmer_t *pgm, const AVRPART *p, unsigned char *chip_rev);
   int  (*term_keep_alive)(const struct programmer_t *pgm, const AVRPART *p);
+  int  (*end_programming)(const struct programmer_t *pgm, const AVRPART *p);
+
   void (*print_parms)    (const struct programmer_t *pgm, FILE *fp);
   int  (*set_vtarget)    (const struct programmer_t *pgm, double v);
   int  (*get_vtarget)    (const struct programmer_t *pgm, double *v);

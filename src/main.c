@@ -1735,6 +1735,10 @@ skipopen:
   }
   pgm->flush_cache(pgm, p);
 
+  if(pgm->end_programming)
+    if(pgm->end_programming(pgm, p) < 0)
+      pmsg_error("could not end programming, aborting\n");
+
 main_exit:
 
   // Program complete
