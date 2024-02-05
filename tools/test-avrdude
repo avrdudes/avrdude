@@ -183,7 +183,7 @@ result () {
       echo ✅ "$(printf '%7.3f s' $elapsed): $specify"
     else
       echo ❌ "$(printf '%7.3f s' $elapsed): $specify (failed command below)"
-      echo "\$ ${command[@]}" | tr -s " "
+      echo "\$ ${command[@]}" | sed "s/ -l [^ ]* / /" | tr -s " "
       FAIL=true
       exitstate=1
       [[ $emulated -eq 0 ]] && sleep 4 # Let the hw settle down before next test
