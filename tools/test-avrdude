@@ -158,6 +158,7 @@ trap "rm -f $status $logfile $outfile $tmpfile $resfile" EXIT
 TIMEFORMAT=%R                   # time built-in only returns elapsed wall-clock time
 elapsed=-1                      # Global variable holding time of last execute command in seconds
 command=(sleep 0.1)             # Array with AVRDUDE command
+emulated=0                      # Is programmer dryrun or dryboot, ie, programming is emulated?
 
 # Execute args as command, set $elapsed and return exit value of command; don't call in a subshell
 execute () {
@@ -165,7 +166,7 @@ execute () {
     echo "\$ ${command[@]}" | tr -s " "
     return 0;
   fi
-  [[ $programmer != -cdry* && $elapsed != -1 ]] && sleep "$delay"
+  [[ $emulated -eq 0 && $elapsed != -1 ]] && sleep "$delay"
   # These shenanigans keep stdout, stderr and the exit code of the command
   { read elapsed < <({ time { eval "$@"; echo $? >"$status"; } 2>&4 4>&-; } 4>&2 2>&1 >&3 3>&-); } 3>&1
   return $(cat "$status")
@@ -184,7 +185,7 @@ result () {
       echo "\$ ${command[@]}" | tr -s " "
       FAIL=true
       exitstate=1
-      [[ $programmer != -cdry* ]] && sleep 4 # Let the hw settle down before next test
+      [[ $emulated -eq 0 ]] && sleep 4 # Let the hw settle down before next test
     fi
     [[ $verbose -eq 1 ]] && { cat $logfile $outfile; }
   else
@@ -208,6 +209,8 @@ for (( p=0; p<$arraylength; p++ )); do
   # Isolate programmer and part (assumes -c prog or -cprog but not sth more tricky such as -qc prog)
   programmer=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-c | tr A-Z a-z)
   part=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-p | tr A-Z a-z)
+  emulated=0
+  [[ "$programmer" == -cdryrun || "$programmer" == -cdryboot ]] && emulated=1
 
   if [[ $list_only -eq 1 ]]; then
     [[ p -ne 0 ]] && echo
@@ -216,7 +219,7 @@ for (( p=0; p<$arraylength; p++ )); do
   else
     echo "Prepare \"${pgm_and_target[$p]}\" and press 'enter' or 'space' to continue. Press any other key to skip"
     read -n1 -s -r -p $'' key
-    [[ $programmer != -cdry* ]] && sleep 0.15 # Debounce key when not using dryrun/dryboot
+    [[ $emulated -eq 0 ]] && sleep 0.15 # Debounce key when not using dryrun/dryboot
   fi
 
   if [ "$key" == '' ]; then
