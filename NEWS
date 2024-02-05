@@ -65,6 +65,7 @@ Changes since version 7.2:
     - Writing one-byte files to flash fails #1633
     - Integrate test-avrdude github action using dryrun #1643
     - Test script issues #1649
+    - SerialUPDI unable to write USERROW memory on AVR64DU32 #1655
 
   * Pull requests:
 
@@ -143,6 +144,7 @@ Changes since version 7.2:
     - Add delay for AVR Dragon and Arduino Nano Every #1647
     - Make test-avrdude script resilient to old bash #1650
     - Create test-avrdude temporary files in the script itself #1651
+    - Enable writing of 512-byte page for USERROW #1659
 
   * Internals:
 
