@@ -165,7 +165,7 @@ execute () {
     echo "\$ ${command[@]}" | tr -s " "
     return 0;
   fi
-  [[ $programmer != -cdry* && $elapsed -ne -1 ]] && sleep "$delay"
+  [[ $programmer != -cdry* && $elapsed != -1 ]] && sleep "$delay"
   # These shenanigans keep stdout, stderr and the exit code of the command
   { read elapsed < <({ time { eval "$@"; echo $? >"$status"; } 2>&4 4>&-; } 4>&2 2>&1 >&3 3>&-); } 3>&1
   return $(cat "$status")
