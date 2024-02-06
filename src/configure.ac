@@ -25,7 +25,7 @@
 AC_PREREQ(2.60)
 AC_INIT([avrdude],
         [7.2-20230720],
-        [avrdude-dev@nongnu.org])
+        [https://github.com/avrdudes/avrdude/issues])
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
