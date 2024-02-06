@@ -3082,7 +3082,7 @@ programmer # pickit2
 # The Atmel "Flexible in-system programmer" (FLIP v1) is a
 # USB DFU bootloader designed for 8-bit AVRs with a native
 # USB interface.
-# See the Microchip doc7618 for more information.
+# See doc7618 for more information.
 
 programmer # flip1
     id                     = "flip1";
@@ -3097,8 +3097,8 @@ programmer # flip1
 #------------------------------------------------------------
 
 # The Atmel "Flexible in-system programmer" (FLIP v2) is a
-# USB DFU bootloader designed for AVR XMEGA and AVR32
-# See the Microchip AVR4023 for more information.
+# USB DFU bootloader designed for AVR XMEGA and AVR32.
+# See AVR4023 for more information.
 
 programmer # flip2
     id                     = "flip2";
