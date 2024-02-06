@@ -2107,8 +2107,10 @@ programmer # ch341a
 # butterfly
 #------------------------------------------------------------
 
-# Bootloader origininaly designed around the AVR Butterfly development board
-# See https://www.microchip.com/en-us/development-tool/atavrbfly for details.
+# Bootloader origininally designed around the AVR Butterfly
+# development board. See
+# https://www.microchip.com/en-us/development-tool/atavrbfly
+# for details.
 
 programmer # butterfly
     id                     = "butterfly";
@@ -2882,7 +2884,7 @@ programmer # pickit4_pdi
 # pickit4_isp
 #------------------------------------------------------------
 
-# Due to hardware limitations, the MPLAB SNAP can only
+# Due to hardware limitations, the PICkit 4 can only
 # reach an ISP clock speed of about 330 kHz
 
 programmer # pickit4_isp
