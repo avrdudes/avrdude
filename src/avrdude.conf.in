@@ -2124,7 +2124,7 @@ programmer # butterfly
 # See the AVR109 and AVR911 application notes for details.
 
 programmer # avr109
-    id                     = "avr109", "avr911;
+    id                     = "avr109", "avr911";
     desc                   = "Atmel for bootloader using AppNote AVR109/911";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
