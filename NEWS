@@ -66,6 +66,7 @@ Changes since version 7.2:
     - Integrate test-avrdude github action using dryrun #1643
     - Test script issues #1649
     - SerialUPDI unable to write USERROW memory on AVR64DU32 #1655
+    - The last write/erase can fail with -c jtag2updi #1661
 
   * Pull requests:
 
@@ -145,6 +146,7 @@ Changes since version 7.2:
     - Make test-avrdude script resilient to old bash #1650
     - Create test-avrdude temporary files in the script itself #1651
     - Enable writing of 512-byte page for USERROW #1659
+    - Read signature on -c jtag2updi exit if last op was write #1662
 
   * Internals:
 
