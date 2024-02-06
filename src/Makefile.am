@@ -40,6 +40,8 @@ CLEANFILES = \
 	config_gram.h \
 	lexer.c
 
+include build-helpers/package-version.mk
+
 BUILT_SOURCES = $(CLEANFILES)
 
 #SUBDIRS      = doc
