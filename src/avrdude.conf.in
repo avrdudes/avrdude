@@ -942,9 +942,11 @@ programmer # urclock
 # xbee
 #------------------------------------------------------------
 
-# The XBeeBoot bootloader provides XBee Series 2 Over-The-Air firmware update
-# capability as well as supporting direct firmware update via the stk500v1 protocol.
-# see https://github.com/davidsainty/xbeeboot for details
+# The XBeeBoot bootloader provides XBee Series 2 Over-The-Air
+# firmware update capability as well as supporting direct
+# firmware update via the stk500v1 protocol. See
+# https://github.com/davidsainty/xbeeboot
+# for details.
 
 programmer # xbee
     id                     = "xbee";
