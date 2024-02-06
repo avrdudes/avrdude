@@ -942,6 +942,10 @@ programmer # urclock
 # xbee
 #------------------------------------------------------------
 
+# The XBeeBoot bootloader provides XBee Series 2 Over-The-Air firmware update
+# capability as well as supporting direct firmware update via the stk500v1 protocol.
+# see https://github.com/davidsainty/xbeeboot for details
+
 programmer # xbee
     id                     = "xbee";
     desc                   = "XBee for Series 2 Over-The-Air (XBeeBoot) bootloader using STK500 v1 protocol";
@@ -1440,6 +1444,10 @@ programmer # avrispv2
 # avrispmkII
 #------------------------------------------------------------
 
+# Atmel AVR ISP mkII programmer. See
+# https://www.microchip.com/en-us/development-tool/atavrisp2
+# for details.
+
 programmer # avrispmkII
     id                     = "avrispmkII", "avrisp2";
     desc                   = "Atmel AVR ISP mkII";
@@ -1452,6 +1460,22 @@ programmer # avrispmkII
 #------------------------------------------------------------
 # buspirate
 #------------------------------------------------------------
+
+# Bus Pirate in AVR programming mode (hardware v3 and v4).
+# See http://dangerousprototypes.com/docs/Bus_Pirate
+# for details.
+#
+# PIN  ISP
+# > 1  GND
+#   2  (3.3V)
+#   3  (5.0V)
+#   4
+#   5
+#   6  (XTAL1)
+#   7  SCK
+#   8  SDO
+#   9  RST
+#  10  SDI
 
 programmer # buspirate
     id                     = "buspirate";
@@ -1502,6 +1526,10 @@ programmer # stk500
 # stk500v1
 #------------------------------------------------------------
 
+# The original STK500 protocol. Used by the Arduino as ISP
+# programmer and various bootloaders.
+# See AVR061 for details.
+
 programmer # stk500v1
     id                     = "stk500v1";
     desc                   = "Atmel STK500 version 1.x firmware";
@@ -1517,6 +1545,8 @@ programmer # stk500v1
 
 # Not to be confused with arduinoISP, this is the same as `-c stk500v1`
 # but treats EEPROM r/w correctly for arduino_as_isp programmers
+# See https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP/
+# for details.
 
 programmer # arduino_as_isp
     id                     = "arduino_as_isp";
@@ -1524,11 +1554,17 @@ programmer # arduino_as_isp
     type                   = "stk500";
     prog_modes             = PM_ISP;
     connection_type        = serial;
+    baudrate               = 19200;
 ;
 
 #------------------------------------------------------------
 # mib510
 #------------------------------------------------------------
+
+# The MIB510 is a serial gateway that can program AVRs over
+# ISP or TPI using the stk500v1 protocol. See
+# http://www.cmt-gmbh.de/Produkte/WirelessSensorNetworks/MIB510.html
+# for details.
 
 programmer # mib510
     id                     = "mib510";
@@ -1541,6 +1577,8 @@ programmer # mib510
 #------------------------------------------------------------
 # stk500v2
 #------------------------------------------------------------
+
+# Version 2 of the STK500 protocol. See AVR068 for details.
 
 programmer # stk500v2
     id                     = "stk500v2", "scratchmonkey";
@@ -1581,6 +1619,10 @@ programmer # stk500hvsp
 # stk600
 #------------------------------------------------------------
 
+# STK600 development board. See
+# https://www.microchip.com/en-us/development-tool/atstk600
+# and AVR079 for details.
+
 programmer # stk600
     id                     = "stk600";
     desc                   = "Atmel STK600";
@@ -1619,6 +1661,9 @@ programmer # stk600hvsp
 #------------------------------------------------------------
 # avr910
 #------------------------------------------------------------
+
+# The AVR910 is a programmer implementation based on the
+# AVR910 application note.
 
 programmer # avr910
     id                     = "avr910";
@@ -1713,6 +1758,9 @@ programmer # arduino-ft232r
 #------------------------------------------------------------
 # tc2030
 #------------------------------------------------------------
+
+# See https://www.tag-connect.com/product-category/products/cables/ftdi
+# for details.
 
 programmer # tc2030
     id                     = "tc2030";
@@ -1916,6 +1964,9 @@ programmer # adafruit_gemma
 # arduinoisp
 #------------------------------------------------------------
 
+# Arduino LLC branded USBtiny programmer
+# https://docs.arduino.cc/retired/boards/arduino-isp/
+
 programmer # arduinoisp
     id                     = "arduinoisp";
     desc                   = "Arduino ISP Programmer";
@@ -1929,6 +1980,9 @@ programmer # arduinoisp
 #------------------------------------------------------------
 # arduinoisporg
 #------------------------------------------------------------
+
+# Identical to the Arduino LLC branded USBtiny programmer,
+# but with a different USB VID.
 
 programmer # arduinoisporg
     id                     = "arduinoisporg";
@@ -1980,6 +2034,12 @@ programmer # iseavrprog
 # micronucleus
 #------------------------------------------------------------
 
+# Micronucleus is a bootloader designed for AVR ATtiny
+# microcontrollers with a minimal usb interface and a
+# strong emphasis on bootloader compactness. See
+# https://github.com/micronucleus/micronucleus
+# for details.
+
 programmer # micronucleus
     id                     = "micronucleus";
     desc                   = "Micronucleus for bootloader";
@@ -1993,6 +2053,10 @@ programmer # micronucleus
 #------------------------------------------------------------
 # teensy
 #------------------------------------------------------------
+
+# Proprietary bootloader used on the AVR based PJRC Teensy boards.
+# Can only write to memory, not read/verify.
+# See https://www.pjrc.com/teensy/ for details.
 
 programmer # teensy
     id                     = "teensy";
@@ -2041,6 +2105,9 @@ programmer # ch341a
 # butterfly
 #------------------------------------------------------------
 
+# Bootloader origininaly designed around the AVR Butterfly development board
+# See https://www.microchip.com/en-us/development-tool/atavrbfly for details.
+
 programmer # butterfly
     id                     = "butterfly";
     desc                   = "Atmel for bootloader (Butterfly Development Board)";
@@ -2053,21 +2120,12 @@ programmer # butterfly
 # avr109
 #------------------------------------------------------------
 
+# AVR109 "Butterfly" bootloader.
+# See the AVR109 and AVR911 application notes for details.
+
 programmer # avr109
-    id                     = "avr109";
-    desc                   = "Atmel for bootloader using AppNote AVR109";
-    type                   = "butterfly";
-    prog_modes             = PM_SPM;
-    connection_type        = serial;
-;
-
-#------------------------------------------------------------
-# avr911
-#------------------------------------------------------------
-
-programmer # avr911
-    id                     = "avr911";
-    desc                   = "Atmel for bootloader using AppNote AVR911 AVROSP";
+    id                     = "avr109", "avr911;
+    desc                   = "Atmel for bootloader using AppNote AVR109/911";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -2090,6 +2148,13 @@ programmer # butterfly_mk
 #------------------------------------------------------------
 # jtagmkI
 #------------------------------------------------------------
+
+# The original AVR JTAG ICE. It only support a handful of
+# chips (search for PM_JTAGmkI in this file), but can easily be
+# DIY'ed. See doc2475, AVR060, and the following URLs for details:
+# https://scienceprog.com/build-your-own-avr-jtagice-clone/
+# https://www.olimex.com/Products/AVR/Programmers/AVR-JTAG-USB-A/
+# https://www.electrodragon.com/product/avr-usb-jtag-ice-programmer/
 
 programmer # jtagmkI
     id                     = "jtagmkI", "jtag1";
@@ -2117,7 +2182,9 @@ programmer parent "jtag1" # jtag1slow
 # The JTAG ICE mkII has both, serial and USB connectivity.  As it is
 # mostly used through USB these days (AVR Studio 5 only supporting it
 # that way), we make connection_type = usb the default.  Users are
-# still free to use a serial port with the -P option.
+# still free to use a serial port with the -P option. See AVR067 or
+# https://www.microchip.com/en-us/development-tool/atjtagice2
+# for details.
 
 programmer # jtagmkII
     id                     = "jtagmkII";
@@ -2168,11 +2235,11 @@ programmer # jtag2isp
 # jtag2dw
 #------------------------------------------------------------
 
-# JTAG ICE mkII in debugWire mode
+# JTAG ICE mkII in debugWIRE mode
 
 programmer # jtag2dw
     id                     = "jtag2dw";
-    desc                   = "Atmel JTAG ICE mkII in debugWire mode";
+    desc                   = "Atmel JTAG ICE mkII in debugWIRE mode";
     type                   = "jtagmkii_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
@@ -2216,7 +2283,9 @@ programmer # jtag2pdi
 # dragon_jtag
 #------------------------------------------------------------
 
-# AVR Dragon in JTAG mode
+# AVR Dragon in JTAG mode. See
+# https://www.microchip.com/en-us/development-tool/atavrdragon
+# for details.
 
 programmer # dragon_jtag
     id                     = "dragon_jtag";
@@ -2280,11 +2349,11 @@ programmer # dragon_hvsp
 # dragon_dw
 #------------------------------------------------------------
 
-# AVR Dragon in debugWire mode
+# AVR Dragon in debugWIRE mode
 
 programmer # dragon_dw
     id                     = "dragon_dw";
-    desc                   = "Atmel AVR Dragon in debugWire mode";
+    desc                   = "Atmel AVR Dragon in debugWIRE mode";
     type                   = "dragon_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
@@ -2311,6 +2380,20 @@ programmer # dragon_pdi
 #------------------------------------------------------------
 # jtag3
 #------------------------------------------------------------
+
+# Atmel JTAGICE3 programmer. See
+# https://www.microchip.com/en-us/development-tool/atjtagice3
+# for details.
+#
+# The JTAGICE3 supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# JTAG         jtag3
+# PDI          jtag3pdi
+# UPDI         jtag3updi
+# debugWIRE    jtag3dw
+# ISP          jtag3isp
 
 programmer # jtag3
     id                     = "jtag3";
@@ -2380,11 +2463,22 @@ programmer # jtag3isp
 ;
 
 #------------------------------------------------------------
-# xplainedpro
+# xplainedpro / xplainedpro_jtag
 #------------------------------------------------------------
 
+# On-board EDBG based programmer found on various AVR based
+# Microchip Xplained Pro boards
+
+# Different Xplained Pro boards uses different programming
+# interfaces. These are the ones available:
+#
+# Interface:   Programmer name:
+# JTAG         xplainedpro, xplainedpro_jtag
+# PDI          xplainedpro_pdi
+# UPDI         xplainedpro_updi
+
 programmer # xplainedpro
-    id                     = "xplainedpro";
+    id                     = "xplainedpro", "xplainedpro_jtag";
     desc                   = "Atmel AVR XplainedPro in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
@@ -2427,6 +2521,23 @@ programmer # xplainedpro_updi
 # xplainedmini / xplainedmini_isp
 #------------------------------------------------------------
 
+# On-board mEDBG based programmer found on AVR based
+# Microchip Xplained Mini/Nano boards
+#
+# Different Xplained Mini/Nano boards uses different
+# programming interfaces. These are the ones available:
+#
+# Interface:   Programmer name:
+# ISP          xplainedmini, xplainedmini_isp
+# debugWIRE    xplainedmini_dw
+# UPDI         xplainedmini_updi
+# TPI          xplainedmini_tpi
+#
+# Some Xplained Mini boards has a programmable target voltage
+# switch that can be controlled using the -xvtarg_switch flag.
+# By modifying the SUFFER register using the -xsuffer flag,
+# certain programmer safety features can be enabled or disabled.
+
 programmer # xplainedmini
     id                     = "xplainedmini", "xplainedmini_isp";
     desc                   = "Atmel AVR XplainedMini in ISP mode";
@@ -2441,6 +2552,11 @@ programmer # xplainedmini
 # xplainedmini_dw
 #------------------------------------------------------------
 
+# The Xplained Mini debugWIRE interface may be finicky,
+# and usually require the mEDBG chip to drive the XTAL1
+# pin on the target to keep the debugWIRE interface
+# in sync
+
 programmer # xplainedmini_dw
     id                     = "xplainedmini_dw";
     desc                   = "Atmel AVR XplainedMini in debugWIRE mode";
@@ -2454,6 +2570,9 @@ programmer # xplainedmini_dw
 #------------------------------------------------------------
 # xplainedmini_updi
 #------------------------------------------------------------
+
+# Note that the on-board programmer only support the
+# megaAVR-0 and tinyAVR-0/1/2 chip families.
 
 programmer # xplainedmini_updi
     id                     = "xplainedmini_updi";
@@ -2482,6 +2601,20 @@ programmer # xplainedmini_tpi
 #------------------------------------------------------------
 # atmelice / atmelice_jtag
 #------------------------------------------------------------
+
+# Atmel-ICE programmer. See
+# https://www.microchip.com/en-us/development-tool/atatmel-ice
+# for details.
+#
+# The Atmel-ICE supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# JTAG         atmelice, atmelice_jtag
+# PDI          atmelice_pdi
+# UPDI         atmelice_updi
+# debugWIRE    atmelice_dw
+# ISP          atmelice_isp
 
 programmer # atmelice
     id                     = "atmelice", "atmelice_jtag";
@@ -2568,6 +2701,25 @@ programmer # atmelice_tpi
 # powerdebugger / powerdebugger_jtag
 #------------------------------------------------------------
 
+# Microchip Power Debugger. See
+# https://www.microchip.com/en-us/development-tool/atpowerdebugger
+# for details.
+#
+# The Power Debugger supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# JTAG         powerdebugger, powerdebugger_jtag
+# PDI          powerdebugger_pdi
+# UPDI         powerdebugger_updi
+# debugWIRE    powerdebugger_dw
+# ISP          powerdebugger_isp
+#
+# The Power Debugger has a programmable voltage source and
+# can read the target voltage of the connected device.
+# It also has two independent current measurement channels.
+# All this can be utilized using the Avrdude terminal mode.
+
 programmer # powerdebugger
     id                     = "powerdebugger", "powerdebugger_jtag";
     desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
@@ -2653,6 +2805,38 @@ programmer # powerdebugger_tpi
 # pickit4 / pickit4_jtag
 #------------------------------------------------------------
 
+# Microchip PICkit 4. See
+# https://www.microchip.com/en-us/development-tool/pg164140
+# for details.
+#
+# The PICkit 4 supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# JTAG         pickit4, pickit4_jtag
+# PDI          pickit4_pdi
+# UPDI         pickit4_updi
+# debugWIRE    pickit4_dw
+# ISP          pickit4_isp
+#
+# The pinout is identical to the MPLAB SNAP, but different
+# from other Microchip branded AVR programmers, and would
+# usually require an adapter or custom wiring if your target
+# board has a standard 6 or 10-pin programming connector.
+#
+# PIN  JTAG PDI   UPDI  DW   ISP  UART*
+# > 1
+#   2  VCC  VCC   VCC   VCC  VCC  VCC
+#   3  GND  GND   GND   GND  GND  GND
+#   4  TDO  DATA  UPDI       SDI
+#   5  TCK                   SCK
+#   6  RST  SCK         dW   RST
+#   7  TDI                   SDI  TX (target)
+#   8  TMS                        RX (target)
+#
+# * The PICkit4 can also be used as a USB to UART
+# interface for simple serial debugging.
+
 programmer # pickit4
     id                     = "pickit4", "pickit4_jtag";
     desc                   = "MPLAB(R) PICkit 4 in JTAG mode";
@@ -2696,6 +2880,9 @@ programmer # pickit4_pdi
 # pickit4_isp
 #------------------------------------------------------------
 
+# Due to hardware limitations, the MPLAB SNAP can only
+# reach an ISP clock speed of about 330 kHz
+
 programmer # pickit4_isp
     id                     = "pickit4_isp";
     desc                   = "MPLAB(R) PICkit 4 in ISP mode";
@@ -2724,6 +2911,38 @@ programmer # pickit4_tpi
 # snap /snap_jtag
 #------------------------------------------------------------
 
+# Microchip MPLAB SNAP. See
+# https://www.microchip.com/en-us/development-tool/pg164100
+# for details.
+#
+# The MPLAB SNAP supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# JTAG         snap, snap_jtag
+# PDI          snap_pdi
+# UPDI         snap_updi
+# debugWIRE    snap_dw
+# ISP          snap_isp
+#
+# The pinout is identical to the PICkit 4, but different
+# from other Microchip branded AVR programmers, and would
+# usually require an adapter or custom wiring if your target
+# board has a standard 6 or 10-pin programming connector.
+#
+#   PIN  JTAG PDI   UPDI  DW   ISP  UART*
+#   > 1
+#     2  VCC  VCC   VCC   VCC  VCC  VCC
+#     3  GND  GND   GND   GND  GND  GND
+#     4  TDO  DATA  UPDI       SDI
+#     5  TCK                   SCK
+#     6  RST  SCK         dW   RST
+#     7  TDI                   SDI  TX (target)
+#     8  TMS                        RX (target)
+#
+# * The MPLAB SNAP can also be used as a USB to UART
+#   interface for simple serial debugging.
+
 programmer # snap
     id                     = "snap", "snap_jtag";
     desc                   = "MPLAB(R) SNAP in JTAG mode";
@@ -2737,6 +2956,10 @@ programmer # snap
 #------------------------------------------------------------
 # snap_updi
 #------------------------------------------------------------
+
+# Note that certain MPLAB SNAP programmer needs a hardware
+# modification to be used as a UPDI programmer.
+# See the Microchip ETN #36 for details.
 
 programmer # snap_updi
     id                     = "snap_updi";
@@ -2767,6 +2990,9 @@ programmer # snap_pdi
 # snap_isp
 #------------------------------------------------------------
 
+# Due to hardware limitations, the MPLAB SNAP can only
+# reach an ISP clock speed of about 330 kHz
+
 programmer # snap_isp
     id                     = "snap_isp";
     desc                   = "MPLAB(R) SNAP in ISP mode";
@@ -2795,6 +3021,13 @@ programmer # snap_tpi
 # pkobn_updi
 #------------------------------------------------------------
 
+# Microchip PICkit On-Board Nano is the name of the nEDBG
+# based programmer/debugger that's found on AVR based
+# Curiosity Nano boards.
+#
+# These boards can read and adjust the target voltage supply
+# and can be done in the Avrdude terminal mode.
+
 programmer # pkobn_updi
     id                     = "pkobn_updi";
     desc                   = "Curiosity nano (nEDBG) in UPDI mode";
@@ -2822,6 +3055,18 @@ programmer # pavr
 # pickit2
 #------------------------------------------------------------
 
+# Microchip PICkit 2. See
+# https://www.microchip.com/en-us/development-tool/pg164120
+# for details.
+#
+#   PIN  ISP
+#   > 1  RST
+#     2  VCC
+#     3  GND
+#     4  SDI
+#     5  SCK
+#     6  SDO
+
 programmer # pickit2
     id                     = "pickit2";
     desc                   = "Microchip PICkit 2 programmer in ISP mode";
@@ -2834,6 +3079,11 @@ programmer # pickit2
 # flip1
 #------------------------------------------------------------
 
+# The Atmel "Flexible in-system programmer" (FLIP v1) is a
+# USB DFU bootloader designed for 8-bit AVRs with a native
+# USB interface.
+# See the Microchip doc7618 for more information.
+
 programmer # flip1
     id                     = "flip1";
     desc                   = "FLIP for bootloader using USB DFU protocol version 1 (doc7618)";
@@ -2845,6 +3095,10 @@ programmer # flip1
 #------------------------------------------------------------
 # flip2
 #------------------------------------------------------------
+
+# The Atmel "Flexible in-system programmer" (FLIP v2) is a
+# USB DFU bootloader designed for AVR XMEGA and AVR32
+# See the Microchip AVR4023 for more information.
 
 programmer # flip2
     id                     = "flip2";
@@ -2963,10 +3217,14 @@ programmer # c2n232i
 # jtag2updi
 #------------------------------------------------------------
 
-# JTAG2UPDI
 # https://github.com/ElTangas/jtag2updi
-# Arduino Nano Every (jtag2updi with 1200 baud touch, -r)
+# Original source for the jtag2updi project
+#
+# https://github.com/askn37/jtag2updi
+# Enhanced firmware with better device support
+#
 # https://github.com/arduino/ArduinoCore-megaavr/tree/master/firmwares/MuxTO
+# Arduino Nano Every (jtag2updi with 1200 baud touch, -r)
 
 programmer # jtag2updi
     id                     = "jtag2updi", "nanoevery";
