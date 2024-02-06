@@ -45,6 +45,7 @@ avrdude-html/avrdude.html: $(srcdir)/$(info_TEXINFOS) $(GENERATED_TEXINFOS)
 	 mkdir -p avrdude-html ; \
 	 mv -f *.html avrdude-html ; \
 	else \
+	 rm -rf avrdude-html; \
 	 mv -f avrdude avrdude-html; \
 	fi;
 
