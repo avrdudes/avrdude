@@ -87,6 +87,9 @@ struct pdata
   /* Major firmware version (needed for Xmega programming) */
   unsigned int fwver;
 
+  /* Most recent operation was a memory write or erase */
+  int recently_written;
+
 #define FLAGS32_INIT_SMC      1 // Part will undergo chip erase
 #define FLAGS32_WRITE         2 // At least one write operation specified
   // Couple of flag bits for AVR32 programming
@@ -850,6 +853,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if (!(p->prog_modes & (PM_PDI | PM_UPDI)))
       pgm->initialize(pgm, p);
 
+  PDATA(pgm)->recently_written = 1;
   return 0;
 }
 
@@ -1128,6 +1132,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
     return -1;
   }
 
+  PDATA(pgm)->recently_written  = 0;
   PDATA(pgm)->prog_enabled = 0;
   (void)jtagmkII_reset(pgm, 0x01);
 
@@ -2012,6 +2017,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   free(cmd);
   serial_recv_timeout = otimeout;
 
+  PDATA(pgm)->recently_written = 1;
   return n_bytes;
 }
 
@@ -2102,6 +2108,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   }
   serial_recv_timeout = otimeout;
 
+  PDATA(pgm)->recently_written = 0;
   return n_bytes;
 }
 
@@ -2290,6 +2297,7 @@ retry:
     *value = resp[1];
 
   free(resp);
+  PDATA(pgm)->recently_written = 0;
   return 0;
 
 fail:
@@ -2400,6 +2408,7 @@ retry:
   }
 
   free(resp);
+  PDATA(pgm)->recently_written = 1;
   return 0;
 
 fail:
@@ -3635,6 +3644,11 @@ static int jtagmkII_updi_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p
   return 0;
 }
 
+// Read the signature if most recent operation was an erase or a write to ensure it finished
+static int jtagmkII_updi_end_programming(const PROGRAMMER *pgm, const AVRPART *p) {
+  return PDATA(pgm)->recently_written? avr_read(pgm, p, "signature", NULL): 0;
+}
+
 #ifdef __OBJC__
 #pragma mark -
 #endif
@@ -3772,6 +3786,7 @@ void jtagmkII_updi_initpgm(PROGRAMMER *pgm) {
   pgm->page_size      = 256;
   pgm->flag           = PGM_FL_IS_PDI;
   pgm->term_keep_alive= jtagmkII_updi_term_keep_alive;
+  pgm->end_programming= jtagmkII_updi_end_programming;
 }
 
 const char jtagmkII_dragon_desc[] = "Atmel AVR Dragon in JTAG mode";
