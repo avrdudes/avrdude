@@ -40,6 +40,8 @@ ltmain.sh
 ylwrap
 tags
 cscope.out
+/src/avrdude-[1-9].*.tar.*
+/src/GNUmakefile
 
 *.o
 *.lo

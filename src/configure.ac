@@ -23,7 +23,9 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.60)
-AC_INIT(avrdude, 7.2-20230720, avrdude-dev@nongnu.org)
+AC_INIT([avrdude],
+        m4_esyscmd([./build-helpers/package-version . version-stamp]),
+        [https://github.com/avrdudes/avrdude/issues])
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
@@ -33,6 +35,21 @@ AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE([foreign])
 AC_CONFIG_HEADERS(ac_cfg.h)
 AC_CONFIG_MACRO_DIR([m4])
+
+# Check that the build-helpers/package-version script has worked properly.
+case "$PACKAGE_VERSION" in
+    devel|version_error_*)
+	AC_MSG_ERROR([
+Autogenerating the package version (${PACKAGE_VERSION}) has failed.
+
+Please file an issue at ${PACKAGE_BUGREPORT}
+
+You can write some version number to the file version-stamp as a
+workaround to allow building avrdude until the filed issue has been
+fixed.
+])
+	;;
+esac
 
 LT_INIT()
 
@@ -543,9 +560,23 @@ AC_CONFIG_FILES([
        Makefile
 ])
 
+AC_CONFIG_FILES([
+       GNUmakefile
+])
+dnl TODO: Add GIT_COMMIT_HASH to the AVRDUDE_FULL_VERSION like cmake build does
+dnl # Detect GIT
+dnl AC_ARG_VAR([GIT], [git revision control system])
+dnl AS_VAR_IF([GIT], [], [dnl
+dnl   AC_PATH_PROG([GIT], [git], [no])
+dnl ])
+dnl AM_CONDITIONAL([HAVE_GIT], [test "x$GIT" != xno])
+dnl AS_IF([test -d "../.git/info/exclude"], [dnl
+dnl   GIT_COMMIT_HASH="$(${GIT} --version)"
+dnl ])
+
 # Pass version number into avrdude.conf
-AVRDUDE_FULL_VERSION=$PACKAGE_VERSION
-AC_SUBST(AVRDUDE_FULL_VERSION, $AVRDUDE_FULL_VERSION)
+dnl AVRDUDE_FULL_VERSION="${PACKAGE_VERSION} (${GIT_COMMIT_HASH})"
+AC_SUBST([AVRDUDE_FULL_VERSION], ["$PACKAGE_VERSION"])
 
 # The procedure to create avrdude.conf involves two steps.  First,
 # normal autoconf substitution will be applied, resulting in
