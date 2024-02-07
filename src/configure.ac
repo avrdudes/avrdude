@@ -572,7 +572,7 @@ case $target in
 			can_link_static=yes
 			AC_MSG_RESULT([yes])
 		], [dnl
-			can_link_static_cygwin=no
+			can_link_static=no
 			AC_MSG_RESULT([no])
 		])
 		LDFLAGS="$safe_LDFLAGS"
