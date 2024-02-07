@@ -1,5 +1,6 @@
 #! /bin/sh
 
+: ${AUTORECONF="autoreconf${AC_VER}"}
 : ${AUTOHEADER="autoheader${AC_VER}"}
 : ${AUTOCONF="autoconf${AC_VER}"}
 : ${ACLOCAL="aclocal${AM_VER}"}
@@ -17,9 +18,6 @@ rm -rf autom4te.cache
 # probe for that
 LIBTOOLIZE=libtoolize
 glibtoolize --version > /dev/null 2>&1 && LIBTOOLIZE=glibtoolize
-${LIBTOOLIZE}
+export LIBTOOLIZE
 
-${ACLOCAL}
-${AUTOHEADER}
-${AUTOCONF}
-${AUTOMAKE} -a -c
+${AUTORECONF} -i

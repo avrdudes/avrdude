@@ -20,7 +20,7 @@
 # $Id$
 #
 
-# Process this file with autoconf to produce a configure script.
+# Process this file with autoreconf to produce a configure script.
 
 AC_PREREQ(2.60)
 AC_INIT([avrdude],
