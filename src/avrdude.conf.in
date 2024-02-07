@@ -2153,7 +2153,7 @@ programmer # butterfly_mk
 # jtagmkI
 #------------------------------------------------------------
 
-# The original AVR JTAG ICE. It only support a handful of
+# The original AVR JTAG ICE. It only supports a handful of
 # chips (search for PM_JTAGmkI in this file), but can easily be
 # DIY'ed. See doc2475, AVR060, and the following URLs for details:
 # https://scienceprog.com/build-your-own-avr-jtagice-clone/
