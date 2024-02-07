@@ -1,5 +1,7 @@
 #! /bin/sh
 
+cd "$(dirname "$0")"
+
 : ${AUTORECONF="autoreconf${AC_VER}"}
 : ${AUTOHEADER="autoheader${AC_VER}"}
 : ${AUTOCONF="autoconf${AC_VER}"}
