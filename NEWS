@@ -5,6 +5,21 @@ Approximate change log for AVRDUDE by version.
 (For detailed changes, see the version control system logs.)
 
 ----------------------------------------------------------------------
+Changes since version 7.3:
+
+  * Major changes compared to the previous version:
+
+  * New devices supported:
+
+  * New programmers supported:
+
+  * Issues fixed:
+
+  * Pull requests:
+
+  * Internals:
+
+
 Changes in version 7.3:
 
   * Major changes compared to the previous version:
@@ -157,6 +172,7 @@ Changes in version 7.3:
     - Introduce memory types in lieu of memory name comparisons #1538
       This will enable to decouple memory names from function
     - Added a knowledgebase on register files of parts
+
 
 Changes in version 7.2:
 
