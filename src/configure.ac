@@ -22,10 +22,8 @@
 
 # Process this file with autoreconf to produce a configure script.
 
-AC_PREREQ(2.60)
-AC_INIT([avrdude],
-        m4_esyscmd([./build-helpers/package-version . version-stamp]),
-        [https://github.com/avrdudes/avrdude/issues])
+AC_PREREQ([2.71])
+AC_INIT([avrdude],[m4_esyscmd(./build-helpers/package-version . version-stamp)],[https://github.com/avrdudes/avrdude/issues])
 
 AC_CONFIG_SRCDIR([main.c])
 AC_CONFIG_HEADERS([ac_cfg.h])
@@ -139,9 +137,7 @@ AC_SUBST(LIBUSB, $LIBUSB)
 
 AC_ARG_ENABLE(
 	[libusb_1_0],
-	AC_HELP_STRING(
-		[--disable-libusb_1_0],
-		[Allow to build with libusb instead of libusb_1_0 if both are present]),
+	AS_HELP_STRING([--disable-libusb_1_0],[Allow to build with libusb instead of libusb_1_0 if both are present]),
 	[case "${enableval}" in
 		yes) enabled_libusb_1_0=yes ;;
 		no)  enabled_libusb_1_0=no ;;
@@ -259,7 +255,20 @@ AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_HEADER_TIME
+m4_warn([obsolete],
+[Update your code to rely only on HAVE_SYS_TIME_H,
+then remove this warning and the obsolete code below it.
+All current systems provide time.h; it need not be checked for.
+Not all systems provide sys/time.h, but those that do, all allow
+you to include it and time.h simultaneously.])dnl
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+# Obsolete code to be removed.
+if test $ac_cv_header_sys_time_h = yes; then
+  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
+	     and <time.h>.  This macro is obsolete.])
+fi
+# End of obsolete code.
+
 
 AC_CHECK_HEADERS([netinet/in.h])
 
@@ -281,10 +290,9 @@ LIBS="${LIBS} ${LIBHID}"
 
 AH_TEMPLATE([HAVE_LIBHID],
             [Define if HID support is enabled via the Win32 DDK])
-AC_TRY_LINK([#include <windows.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <windows.h>
 #include <setupapi.h>
-$HIDINCLUDE],
-[int
+$HIDINCLUDE]], [[int
 main(void)
 {
     GUID hidGuid;
@@ -292,7 +300,7 @@ main(void)
 
     return 0;
 }
-], [have_libhid=yes], [have_libhid=no])
+]])],[have_libhid=yes],[have_libhid=no])
 AC_MSG_RESULT([$have_libhid])
 if test x$have_libhid = xyes; then
    AC_DEFINE([HAVE_LIBHID])
@@ -313,9 +321,7 @@ AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
 
 AC_ARG_ENABLE(
 	[versioned-doc],
-	AC_HELP_STRING(
-		[--enable-versioned-doc],
-		[install docs in directory with version name (default)]),
+	AS_HELP_STRING([--enable-versioned-doc],[install docs in directory with version name (default)]),
 	[case "${enableval}" in
 		yes) versioned_doc=yes ;;
 		no)  versioned_doc=no ;;
@@ -331,9 +337,7 @@ fi
 
 AC_ARG_ENABLE(
 	[doc],
-	AC_HELP_STRING(
-		[--enable-doc],
-		[Enable building documents]),
+	AS_HELP_STRING([--enable-doc],[Enable building documents]),
 	[case "${enableval}" in
 		yes) enabled_doc=yes ;;
 		no)  enabled_doc=no ;;
@@ -343,9 +347,7 @@ AC_ARG_ENABLE(
 
 AC_ARG_ENABLE(
 	[parport],
-	AC_HELP_STRING(
-		[--enable-parport],
-		[Enable accessing parallel ports(default)]),
+	AS_HELP_STRING([--enable-parport],[Enable accessing parallel ports(default)]),
 	[case "${enableval}" in
 		yes) enabled_parport=yes ;;
 		no)  enabled_parport=no ;;
@@ -355,9 +357,7 @@ AC_ARG_ENABLE(
 	
 AC_ARG_ENABLE(
 	[linuxgpio],
-	AC_HELP_STRING(
-		[--enable-linuxgpio],
-		[Enable the Linux sysfs GPIO interface programmer type]),
+	AS_HELP_STRING([--enable-linuxgpio],[Enable the Linux sysfs GPIO interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxgpio=yes ;;
 		no)  enabled_linuxgpio=no ;;
@@ -367,9 +367,7 @@ AC_ARG_ENABLE(
 
 AC_ARG_ENABLE(
 	[linuxspi],
-	AC_HELP_STRING(
-		[--enable-linuxspi],
-		[Enable the Linux SPIDEV interface programmer type]),
+	AS_HELP_STRING([--enable-linuxspi],[Enable the Linux SPIDEV interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxspi=yes ;;
 		no)  enabled_linuxspi=no ;;
@@ -490,10 +488,10 @@ if test "$GCC" = yes; then
 	safe_CFLAGS=$CFLAGS
 	CFLAGS="$ENABLE_WARNINGS -Wno-pointer-sign"
 
-	AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])],[
 		no_pointer_sign=yes
 		AC_MSG_RESULT([yes]) 
-		], [
+		],[
 		no_pointer_sign=no
 		AC_MSG_RESULT([no]) 
 		])
@@ -515,10 +513,10 @@ case $target in
 			safe_CFLAGS="$CFLAGS"
 			CFLAGS="$ENABLE_WARNINGS -mno-cygwin"
 
-			AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
+			AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])],[
 				no_cygwin=yes
 				AC_MSG_RESULT([yes])
-				], [
+				],[
 				no_cygwin=no
 				AC_MSG_RESULT([no])
 				])
@@ -539,10 +537,10 @@ case $target in
 
 		safe_LDFLAGS="$LDFLAGS"
 		LDFLAGS="${LDFLAGS} -static"
-		AC_TRY_LINK(, [ int main () { return 0 ; } ], [
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])],[
 			can_link_static=yes
 			AC_MSG_RESULT([yes])
-			], [
+			],[
 			can_link_static_cygwin=no
 			AC_MSG_RESULT([no])
 			])
