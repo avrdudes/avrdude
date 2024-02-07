@@ -493,6 +493,16 @@ programmer # bsd
 # stk200
 #------------------------------------------------------------
 
+# The Atmel STK200 is a starter kit designed for the 40-pin
+# AT89 and AT90 series microcontrollers. It was shipped with
+# a parallel port to ISP adapter. The original STK200 board
+# and programmer may be difficult to source due to being
+# end of life, but there exist third-party boards, and the
+# parallel port adapter can be DIY'ed. See
+# https://www.kanda.com/products/Kanda/STK200-X.html
+# https://ponty.github.io/MyElectronicProjects/projects/stk200/stk200.html
+# for details.
+
 programmer # stk200
     id                     = "stk200";
     desc                   = "STK200";
@@ -512,7 +522,10 @@ programmer # stk200
 # The programming dongle used by the popular Ponyprog
 # utility.  It is almost similar to the STK200 one,
 # except that there is a LED indicating that the
-# programming is currently in progress.
+# programming is currently in progress. See
+# https://www.lancos.com/prog.html
+# https://www.olimex.com/Products/AVR/Programmers/AVR-PG2B/
+# for details.
 
 programmer parent "stk200" # pony-stk200
     id                     = "pony-stk200";
@@ -523,6 +536,11 @@ programmer parent "stk200" # pony-stk200
 #------------------------------------------------------------
 # dt006
 #------------------------------------------------------------
+
+# Dontronics DT006 programmer. See
+# https://www.dontronics.com/dt006.html
+# https://www.dontronics.com/dt006_programming.html
+# for details.
 
 programmer # dt006
     id                     = "dt006";
@@ -538,6 +556,10 @@ programmer # dt006
 #------------------------------------------------------------
 # bascom
 #------------------------------------------------------------
+
+# Identical to the Dontronics DT006 wiring. See
+# https://avrhelp.mcselec.com/index.html?sample_electronics_cable_programmer.htm
+# for details.
 
 programmer parent "dt006" # bascom
     id                     = "bascom";
@@ -572,6 +594,10 @@ programmer # alf
 # sp12
 #------------------------------------------------------------
 
+# DIY parallel port programmer solution. See
+# https://web.archive.org/web/20210324041016/https://sbolt.home.xs4all.nl/e-spider_prog.html
+# for details.
+
 programmer # sp12
     id                     = "sp12";
     desc                   = "Steve Bolt's Programmer";
@@ -588,6 +614,12 @@ programmer # sp12
 # picoweb
 #------------------------------------------------------------
 
+# Programmer option for flashing the on-board AVR
+# microcontroller on the PicoWeb hardware. See
+# https://www.picoweb.net/downloads.html
+# https://www.lightner.net/picoweb/article/picoweb.htm
+# for details.
+
 programmer # picoweb
     id                     = "picoweb";
     desc                   = "Picoweb Programming Cable, http://www.picoweb.net/";
@@ -603,6 +635,11 @@ programmer # picoweb
 # abcmini
 #------------------------------------------------------------
 
+# Parallel port based ISP and TPI programmer. See
+# https://www.bipom.com/appnotes/bascomavr/an0108.php
+# https://web.archive.org/web/20050615231426/http://invtech.com.au/
+# for details.
+
 programmer # abcmini
     id                     = "abcmini";
     desc                   = "ABCmini Board, aka Dick Smith HOTCHIP";
@@ -617,6 +654,10 @@ programmer # abcmini
 #------------------------------------------------------------
 # futurlec
 #------------------------------------------------------------
+
+# Not able to find any information online. Do you own this
+# cable or have information about it? Please report it here:
+# https://github.com/avrdudes/avrdude/issues
 
 programmer # futurlec
     id                     = "futurlec";
@@ -658,6 +699,11 @@ programmer # xil
 # dapa
 #------------------------------------------------------------
 
+# DIY parallel port based ISP and TPI programmer solution. See
+# https://ponty.github.io/MyElectronicProjects/projects/dapa/dapa.html
+# https://importgeek.wordpress.com/2013/07/12/diy-avr-parallel-port-programmer/
+# for details.
+
 programmer # dapa
     id                     = "dapa";
     desc                   = "Direct AVR Parallel Access cable";
@@ -674,7 +720,10 @@ programmer # dapa
 # atisp
 #------------------------------------------------------------
 
-# https://micro-research.co.th
+# A programming cable from https://micro-research.co.th
+# Not able to find any information online. Do you own this
+# cable or have information about it? Please report it here:
+# https://github.com/avrdudes/avrdude/issues
 
 programmer # atisp
     id                     = "atisp";
@@ -707,6 +756,11 @@ programmer # ere-isp-avr
 #------------------------------------------------------------
 # blaster
 #------------------------------------------------------------
+
+# Altera parallel port based ISP/TPI programmer.
+# Compatible with ByteBlaster I and II. See
+# https://web.archive.org/web/20070906144849/http://www.ln.com.ua/~real/avreal/adapters_e.html#ABB
+# for details.
 
 programmer # blaster
     id                     = "blaster";
@@ -1409,6 +1463,13 @@ programmer # flyswatter2
 # serialupdi
 #------------------------------------------------------------
 
+# The SerialUPDI programmer implementation is based on the
+# Microchip pymcuprog utility. In a nutshell, this programmer
+# consists of simple USB->UART adapter, diode and couple of
+# resistors. It uses serial connection to provide UPDI interface.
+# See https://github.com/microchip-pic-avr-tools/pymcuprog
+# for details.
+
 programmer # serialupdi
     id                     = "serialupdi";
     desc                   = "SerialUPDI";
@@ -1421,6 +1482,8 @@ programmer # serialupdi
 #------------------------------------------------------------
 # avrisp
 #------------------------------------------------------------
+
+# The original RS232 based Atmel AVR ISP programmer
 
 programmer # avrisp
     id                     = "avrisp";
@@ -1490,6 +1553,8 @@ programmer # buspirate
 #------------------------------------------------------------
 # buspirate_bb
 #------------------------------------------------------------
+
+# Bus pirate in bit banging mode (hardware v3 and v4).
 
 programmer # buspirate_bb
     id                     = "buspirate_bb";
@@ -3046,6 +3111,10 @@ programmer # pkobn_updi
 #------------------------------------------------------------
 # pavr
 #------------------------------------------------------------
+
+# AVR910 based programmer. See
+# https://web.archive.org/web/20040803005703/http://avr1.org/pavr/pavr.html
+# for details.
 
 programmer # pavr
     id                     = "pavr";
