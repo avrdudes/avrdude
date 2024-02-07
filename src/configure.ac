@@ -119,7 +119,14 @@ AC_CHECK_LIB([ws2_32], [WSAStartup])
 
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
-AC_CHECK_LIB([readline], [readline])
+
+AC_CHECK_LIB([readline], [readline], [dnl
+	LIBS="-lreadline $LIBS"
+	AC_DEFINE([HAVE_LIBREADLINE], [1],
+	          [Whether we have libreadline with the readline function])
+	have_libreadline=yes
+])
+
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
 AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
@@ -667,7 +674,7 @@ else
    echo "DON'T HAVE libhidapi"
 fi
 
-if test "x$have_readline" = xyes; then
+if test "x$have_libreadline" = xyes; then
    echo "DO HAVE    libreadline"
 else
    echo "DON'T HAVE libreadline"
