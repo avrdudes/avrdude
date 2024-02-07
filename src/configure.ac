@@ -22,7 +22,20 @@
 
 # Process this file with autoreconf to produce a configure script.
 
-AC_PREREQ([2.71])
+dnl A few tool releases with release dates for orientation which tool
+dnl requirements can make sense:
+dnl
+dnl 2019-03-14 cmake    3.13
+dnl
+dnl 2006-10-23 autoconf 2.60    used to be avrdude's requirement
+dnl 2012-04-24 autoconf 2.69
+dnl 2021-01-28 autoconf 2.71
+dnl
+dnl 2013-06-20 automake 1.14
+dnl 2018-02-25 automake 1.16
+dnl 2018-03-11 automake 1.16.1  install-sh symlink fix
+
+AC_PREREQ([2.69])
 AC_INIT([avrdude],
         [m4_esyscmd(./build-helpers/package-version . version-stamp)],
         [https://github.com/avrdudes/avrdude/issues])
@@ -36,7 +49,10 @@ AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE([foreign])
+AM_INIT_AUTOMAKE([
+  1.14
+  foreign
+])
 
 # Check that the build-helpers/package-version script has worked properly.
 case "$PACKAGE_VERSION" in
