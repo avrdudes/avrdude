@@ -23,7 +23,9 @@
 # Process this file with autoreconf to produce a configure script.
 
 AC_PREREQ([2.71])
-AC_INIT([avrdude],[m4_esyscmd(./build-helpers/package-version . version-stamp)],[https://github.com/avrdudes/avrdude/issues])
+AC_INIT([avrdude],
+        [m4_esyscmd(./build-helpers/package-version . version-stamp)],
+        [https://github.com/avrdudes/avrdude/issues])
 
 AC_CONFIG_SRCDIR([main.c])
 AC_CONFIG_HEADERS([ac_cfg.h])
@@ -137,7 +139,8 @@ AC_SUBST(LIBUSB, $LIBUSB)
 
 AC_ARG_ENABLE(
 	[libusb_1_0],
-	AS_HELP_STRING([--disable-libusb_1_0],[Allow to build with libusb instead of libusb_1_0 if both are present]),
+	AS_HELP_STRING([--disable-libusb_1_0],
+	               [Allow to build with libusb instead of libusb_1_0 if both are present]),
 	[case "${enableval}" in
 		yes) enabled_libusb_1_0=yes ;;
 		no)  enabled_libusb_1_0=no ;;
@@ -300,7 +303,7 @@ main(void)
 
     return 0;
 }
-]])],[have_libhid=yes],[have_libhid=no])
+]])], [have_libhid=yes], [have_libhid=no])
 AC_MSG_RESULT([$have_libhid])
 if test x$have_libhid = xyes; then
    AC_DEFINE([HAVE_LIBHID])
@@ -321,7 +324,8 @@ AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
 
 AC_ARG_ENABLE(
 	[versioned-doc],
-	AS_HELP_STRING([--enable-versioned-doc],[install docs in directory with version name (default)]),
+	AS_HELP_STRING([--enable-versioned-doc],
+	               [install docs in directory with version name (default)]),
 	[case "${enableval}" in
 		yes) versioned_doc=yes ;;
 		no)  versioned_doc=no ;;
@@ -337,7 +341,8 @@ fi
 
 AC_ARG_ENABLE(
 	[doc],
-	AS_HELP_STRING([--enable-doc],[Enable building documents]),
+	AS_HELP_STRING([--enable-doc],
+	               [Enable building documents]),
 	[case "${enableval}" in
 		yes) enabled_doc=yes ;;
 		no)  enabled_doc=no ;;
@@ -347,7 +352,8 @@ AC_ARG_ENABLE(
 
 AC_ARG_ENABLE(
 	[parport],
-	AS_HELP_STRING([--enable-parport],[Enable accessing parallel ports(default)]),
+	AS_HELP_STRING([--enable-parport],
+	               [Enable accessing parallel ports(default)]),
 	[case "${enableval}" in
 		yes) enabled_parport=yes ;;
 		no)  enabled_parport=no ;;
@@ -357,7 +363,8 @@ AC_ARG_ENABLE(
 	
 AC_ARG_ENABLE(
 	[linuxgpio],
-	AS_HELP_STRING([--enable-linuxgpio],[Enable the Linux sysfs GPIO interface programmer type]),
+	AS_HELP_STRING([--enable-linuxgpio],
+	               [Enable the Linux sysfs GPIO interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxgpio=yes ;;
 		no)  enabled_linuxgpio=no ;;
@@ -367,7 +374,8 @@ AC_ARG_ENABLE(
 
 AC_ARG_ENABLE(
 	[linuxspi],
-	AS_HELP_STRING([--enable-linuxspi],[Enable the Linux SPIDEV interface programmer type]),
+	AS_HELP_STRING([--enable-linuxspi],
+	               [Enable the Linux SPIDEV interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxspi=yes ;;
 		no)  enabled_linuxspi=no ;;
@@ -488,13 +496,15 @@ if test "$GCC" = yes; then
 	safe_CFLAGS=$CFLAGS
 	CFLAGS="$ENABLE_WARNINGS -Wno-pointer-sign"
 
-	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])],[
+	AC_COMPILE_IFELSE([
+		AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])
+	], [dnl
 		no_pointer_sign=yes
-		AC_MSG_RESULT([yes]) 
-		],[
+		AC_MSG_RESULT([yes])
+	], [dnl
 		no_pointer_sign=no
-		AC_MSG_RESULT([no]) 
-		])
+		AC_MSG_RESULT([no])
+	])
 	CFLAGS=$safe_CFLAGS
 
 	if test x$no_pointer_sign = xyes; then
@@ -513,13 +523,15 @@ case $target in
 			safe_CFLAGS="$CFLAGS"
 			CFLAGS="$ENABLE_WARNINGS -mno-cygwin"
 
-			AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])],[
+			AC_COMPILE_IFELSE([
+				AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])
+			], [dnl
 				no_cygwin=yes
 				AC_MSG_RESULT([yes])
-				],[
+			], [dnl
 				no_cygwin=no
 				AC_MSG_RESULT([no])
-				])
+			])
 			CFLAGS="$safe_CFLAGS"
 
 			if test x$no_cygwin = xyes; then
@@ -537,13 +549,15 @@ case $target in
 
 		safe_LDFLAGS="$LDFLAGS"
 		LDFLAGS="${LDFLAGS} -static"
-		AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])],[
+		AC_LINK_IFELSE([
+			AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])
+		], [dnl
 			can_link_static=yes
 			AC_MSG_RESULT([yes])
-			],[
+		], [dnl
 			can_link_static_cygwin=no
 			AC_MSG_RESULT([no])
-			])
+		])
 		LDFLAGS="$safe_LDFLAGS"
 
 		if test x$can_link_static = xyes; then
