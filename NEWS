@@ -67,6 +67,7 @@ Changes since version 7.2:
     - Test script issues #1649
     - SerialUPDI unable to write USERROW memory on AVR64DU32 #1655
     - The last write/erase can fail with -c jtag2updi #1661
+    - Improve programmer documentation in avrdude.conf #1437
 
   * Pull requests:
 
@@ -147,6 +148,9 @@ Changes since version 7.2:
     - Create test-avrdude temporary files in the script itself #1651
     - Enable writing of 512-byte page for USERROW #1659
     - Read signature on -c jtag2updi exit if last op was write #1662
+    - Determine Autoconf package version from cmake's #1663
+    - Add more programmer descriptions #1667
+    - test(1) string comparison uses =, not == #1668
 
   * Internals:
 
