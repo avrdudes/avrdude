@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on February 8, 2024 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 4.2 Programmer Definitions</title>
+
+<meta name="description" content="AVRDUDE: 4.2 Programmer Definitions">
+<meta name="keywords" content="AVRDUDE: 4.2 Programmer Definitions">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Programmer-Definitions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_11.html#AVRDUDE-Defaults" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_13.html#Serial-Adapter-Definitions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_10.html#Configuration-Files" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_10.html#Configuration-Files" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_42.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="index-programmer"></a>
+<a name="Programmer-Definitions-1"></a>
+<h2 class="section">4.2 Programmer Definitions</h2>
+<a name="index-Programmer-Definitions"></a>
+
+<p>The format of the programmer definition is as follows:
+</p>
+<table><tr><td>&nbsp;</td><td><pre class="smallexample">programmer
+    parent &lt;id&gt;                               # optional parent
+    id       = &lt;id1&gt; [, &lt;id2&gt; ... ] ;         # &lt;idN&gt; are quoted strings
+    desc     = &lt;description&gt; ;                # quoted string
+    type     = &lt;type&gt;;                        # programmer type, quoted string
+                                              # list known types with -c ?type
+    prog_modes = PM_&lt;i/f&gt; {| PM_&lt;i/f&gt;}        # interfaces, e.g., PM_SPM|PM_PDI (1)
+    extra_features = HAS_&lt;fea&gt; {| HAS_&lt;fea&gt;}  # extra features, e.g., HAS_SUFFER (2)
+    connection_type = parallel | serial | usb | spi
+    baudrate = &lt;num&gt; ;                        # baudrate for avr910-programmer
+    vcc      = &lt;pin1&gt; [, &lt;pin2&gt; ... ] ;       # pin number(s) (3)
+    buff     = &lt;pin1&gt; [, &lt;pin2&gt; ... ] ;       # pin number(s)
+    reset    = &lt;pin&gt; ;                        # pin number
+    sck      = &lt;pin&gt; ;                        # pin number
+    sdo      = &lt;pin&gt; ;                        # pin number
+    sdi      = &lt;pin&gt; ;                        # pin number
+    tck      = &lt;pin&gt; ;                        # pin number
+    tdi      = &lt;pin&gt; ;                        # pin number
+    tdo      = &lt;pin&gt; ;                        # pin number
+    tms      = &lt;pin&gt; ;                        # pin number
+    errled   = &lt;pin&gt; ;                        # pin number
+    rdyled   = &lt;pin&gt; ;                        # pin number
+    pgmled   = &lt;pin&gt; ;                        # pin number
+    vfyled   = &lt;pin&gt; ;                        # pin number
+    usbvid   = &lt;hexnum&gt; ;                     # USB vendor ID
+    usbpid   = &lt;hexnum&gt; [, &lt;hexnum&gt; ...] ;    # USB product ID (4)
+    usbdev   = &lt;interface&gt; ;                  # USB interface or other device info
+    usbvendor = &lt;vendorname&gt; ;                # USB Vendor Name
+    usbproduct = &lt;productname&gt; ;              # USB Product Name
+    usbsn    = &lt;serialno&gt; ;                   # USB Serial Number
+    hvupdi_support = &lt;num&gt; [, &lt;num&gt;, ... ] ;  # UPDI HV Variants Support
+;
+</pre></td></tr></table>
+
+<p>If a parent is specified, all settings of it (except its ids) are used for the new 
+programmer. These values can be changed by new setting them for the new programmer.
+</p>
+<p><strong>Notes</strong>
+</p>
+<ol>
+<li> Known programming modes are
+
+<ul>
+<li> <code>PM_SPM</code>: Bootloaders, self-programming with SPM opcodes or NVM Controllers
+<a name="index-PM_005fSPM"></a>
+</li><li> <code>PM_TPI</code>: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+<a name="index-PM_005fTPI"></a>
+</li><li> <code>PM_ISP</code>: SPI programming for In-System Programming (almost all classic parts)
+<a name="index-PM_005fISP"></a>
+</li><li> <code>PM_PDI</code>: Program and Debug Interface (xmega parts)
+<a name="index-PM_005fPDI"></a>
+</li><li> <code>PM_UPDI</code>: Unified Program and Debug Interface
+<a name="index-PM_005fUPDI"></a>
+</li><li> <code>PM_HVSP</code>: High Voltage Serial Programming (some classic parts)
+<a name="index-PM_005fHVSP"></a>
+</li><li> <code>PM_HVPP</code>: High Voltage Parallel Programming (most non-HVSP classic parts)
+<a name="index-PM_005fHVPP"></a>
+</li><li> <code>PM_debugWIRE</code>: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+<a name="index-PM_005fdebugWIRE"></a>
+</li><li> <code>PM_JTAG</code>: Joint Test Action Group standard (some classic parts)
+<a name="index-PM_005fJTAG"></a>
+</li><li> <code>PM_JTAGmkI</code>: Subset of <code>PM_JTAG</code>, older parts, Atmel ICE mkI
+<a name="index-PM_005fJTAGmkI"></a>
+</li><li> <code>PM_XMEGAJTAG</code>: JTAG, some XMEGA parts
+<a name="index-PM_005fXMEGAJTAG"></a>
+</li><li> <code>PM_AVR32JTAG</code>: JTAG for 32-bit AVRs
+<a name="index-PM_005fAVR32JTAG"></a>
+</li><li> <code>PM_aWire</code>: AVR32 parts
+<a name="index-PM_005faWire"></a>
+</li></ul>
+
+</li><li> The following extra programmer features are known
+
+<ul>
+<li> <code>HAS_SUFFER</code>: Only present on Xplained Mini/Nano programmers;
+<a name="index-HAS_005fSUFFER"></a>
+  the Super User Fantastic Feature Enable Register allows the user to modify
+  the behavior of the mEDBG programmer/debugger chip, see the Xplained Mini/Nano
+  documentation for more information
+</li><li> <code>HAS_VTARG_SWITCH</code>: Programer has a programmable target power switch
+<a name="index-HAS_005fVTARG_005fSWITCH"></a>
+</li><li> <code>HAS_VTARG_READ</code>: Programmer can read the target voltage
+<a name="index-HAS_005fVTARG_005fREAD"></a>
+</li><li> <code>HAS_VTARG_ADJ</code>: Programmer has an adjustable target power source that can
+<a name="index-HAS_005fVTARG_005fADJ"></a>
+  be controlled with Avrdude
+</li><li> <code>HAS_FOSC_ADJ</code>: Programmer has a programable frequency generator that
+<a name="index-HAS_005fFOSC_005fADJ"></a>
+  can clock an AVR directly through its XTAL1 pin
+</li><li> <code>HAS_VAREF_ADJ</code>: Programmer has an adjustable analog reference voltage that
+<a name="index-HAS_005fVAREF_005fADJ"></a>
+  can be controlled with Avrdude
+</li></ul>
+
+</li><li> To invert the polarity of a pin, use a tilde <code>~&lt;num&gt;</code>; to invert
+the polarity of all pins in a list use <code>~(&lt;num1&gt; [, &lt;num2&gt; ... ])</code>
+
+</li><li> Not all programmer types can handle a list of USB PIDs
+
+</li></ol>
+
+<p>The following programmer types are currently implemented:
+</p>
+<table>
+<tr><td width="25%"><code>arduino</code></td><td width="60%">Arduino programmer</td></tr>
+<tr><td width="25%"><code>avr910</code></td><td width="60%">Serial programmers using protocol described in application note AVR910</td></tr>
+<tr><td width="25%"><code>avrftdi</code></td><td width="60%">Interface to the MPSSE Engine of FTDI Chips using libftdi.</td></tr>
+<tr><td width="25%"><code>avrftdi_jtag</code></td><td width="60%">libftdi JTAG interface</td></tr>
+<tr><td width="25%"><code>buspirate</code></td><td width="60%">Using the Bus Pirate&rsquo;s SPI interface for programming</td></tr>
+<tr><td width="25%"><code>buspirate_bb</code></td><td width="60%">Using the Bus Pirate&rsquo;s bitbang interface for programming</td></tr>
+<tr><td width="25%"><code>butterfly</code></td><td width="60%">Atmel Butterfly evaluation board; Atmel AppNotes AVR109, AVR911</td></tr>
+<tr><td width="25%"><code>butterfly_mk</code></td><td width="60%">Mikrokopter.de Butterfly</td></tr>
+<tr><td width="25%"><code>ch341a</code></td><td width="60%">Driver for &quot;ch341a&quot;-type programmers</td></tr>
+<tr><td width="25%"><code>dryrun</code></td><td width="60%">Dryrun programmer for testing avrdude</td></tr>
+<tr><td width="25%"><code>dragon_dw</code></td><td width="60%">Atmel AVR Dragon in debugWire mode</td></tr>
+<tr><td width="25%"><code>dragon_hvsp</code></td><td width="60%">Atmel AVR Dragon in HVSP mode</td></tr>
+<tr><td width="25%"><code>dragon_isp</code></td><td width="60%">Atmel AVR Dragon in ISP mode</td></tr>
+<tr><td width="25%"><code>dragon_jtag</code></td><td width="60%">Atmel AVR Dragon in JTAG mode</td></tr>
+<tr><td width="25%"><code>dragon_pdi</code></td><td width="60%">Atmel AVR Dragon in PDI mode</td></tr>
+<tr><td width="25%"><code>dragon_pp</code></td><td width="60%">Atmel AVR Dragon in PP mode</td></tr>
+<tr><td width="25%"><code>flip1</code></td><td width="60%">FLIP USB DFU protocol version 1 (doc7618)</td></tr>
+<tr><td width="25%"><code>flip2</code></td><td width="60%">FLIP USB DFU protocol version 2 (AVR4023)</td></tr>
+<tr><td width="25%"><code>ftdi_syncbb</code></td><td width="60%">FT245R/FT232R Synchronous BitBangMode Programmer</td></tr>
+<tr><td width="25%"><code>jtagmki</code></td><td width="60%">Atmel JTAG ICE mkI</td></tr>
+<tr><td width="25%"><code>jtagmkii</code></td><td width="60%">Atmel JTAG ICE mkII</td></tr>
+<tr><td width="25%"><code>jtagmkii_avr32</code></td><td width="60%">Atmel JTAG ICE mkII in AVR32 mode</td></tr>
+<tr><td width="25%"><code>jtagmkii_dw</code></td><td width="60%">Atmel JTAG ICE mkII in debugWire mode</td></tr>
+<tr><td width="25%"><code>jtagmkii_isp</code></td><td width="60%">Atmel JTAG ICE mkII in ISP mode</td></tr>
+<tr><td width="25%"><code>jtagmkii_pdi</code></td><td width="60%">Atmel JTAG ICE mkII in PDI mode</td></tr>
+<tr><td width="25%"><code>jtagmkii_updi</code></td><td width="60%">Atmel JTAG ICE mkII in UPDI mode</td></tr>
+<tr><td width="25%"><code>jtagice3</code></td><td width="60%">Atmel JTAGICE3</td></tr>
+<tr><td width="25%"><code>jtagice3_pdi</code></td><td width="60%">Atmel JTAGICE3 in PDI mode</td></tr>
+<tr><td width="25%"><code>jtagice3_updi</code></td><td width="60%">Atmel JTAGICE3 in UPDI mode</td></tr>
+<tr><td width="25%"><code>jtagice3_dw</code></td><td width="60%">Atmel JTAGICE3 in debugWire mode</td></tr>
+<tr><td width="25%"><code>jtagice3_isp</code></td><td width="60%">Atmel JTAGICE3 in ISP mode</td></tr>
+<tr><td width="25%"><code>jtagice3_tpi</code></td><td width="60%">Atmel JTAGICE3 in TPI mode</td></tr>
+<tr><td width="25%"><code>linuxgpio</code></td><td width="60%">GPIO bitbanging using the Linux libgpiod or sysfs interface (not available)</td></tr>
+<tr><td width="25%"><code>linuxspi</code></td><td width="60%">SPI using Linux spidev driver (not available)</td></tr>
+<tr><td width="25%"><code>micronucleus</code></td><td width="60%">Micronucleus Bootloader</td></tr>
+<tr><td width="25%"><code>par</code></td><td width="60%">Parallel port bitbanging</td></tr>
+<tr><td width="25%"><code>pickit2</code></td><td width="60%">Microchip&rsquo;s PICkit2 Programmer</td></tr>
+<tr><td width="25%"><code>serbb</code></td><td width="60%">Serial port bitbanging</td></tr>
+<tr><td width="25%"><code>serialupdi</code></td><td width="60%">Driver for SerialUPDI programmers</td></tr>
+<tr><td width="25%"><code>stk500</code></td><td width="60%">Atmel STK500 Version 1.x firmware</td></tr>
+<tr><td width="25%"><code>stk500generic</code></td><td width="60%">Atmel STK500, autodetect firmware version</td></tr>
+<tr><td width="25%"><code>stk500v2</code></td><td width="60%">Atmel STK500 Version 2.x firmware</td></tr>
+<tr><td width="25%"><code>stk500hvsp</code></td><td width="60%">Atmel STK500 V2 in high-voltage serial programming mode</td></tr>
+<tr><td width="25%"><code>stk500pp</code></td><td width="60%">Atmel STK500 V2 in parallel programming mode</td></tr>
+<tr><td width="25%"><code>stk600</code></td><td width="60%">Atmel STK600</td></tr>
+<tr><td width="25%"><code>stk600hvsp</code></td><td width="60%">Atmel STK600 in high-voltage serial programming mode</td></tr>
+<tr><td width="25%"><code>stk600pp</code></td><td width="60%">Atmel STK600 in parallel programming mode</td></tr>
+<tr><td width="25%"><code>teensy</code></td><td width="60%">Teensy Bootloader</td></tr>
+<tr><td width="25%"><code>urclock</code></td><td width="60%">Urclock programmer for urboot bootloaders (arduino compatible)</td></tr>
+<tr><td width="25%"><code>usbasp</code></td><td width="60%">USBasp programmer, see <a href="http://www.fischl.de/usbasp/">http://www.fischl.de/usbasp/</a></td></tr>
+<tr><td width="25%"><code>usbtiny</code></td><td width="60%">Driver for &quot;usbtiny&quot;-type programmers</td></tr>
+<tr><td width="25%"><code>wiring</code></td><td width="60%"><a href="http://wiring.org.co/">http://wiring.org.co/</a>, Basically STK500v2 protocol, with some glue to trigger the bootloader.</td></tr>
+<tr><td width="25%"><code>xbee</code></td><td width="60%">XBee Series 2 Over-The-Air (XBeeBoot)</td></tr>
+</table>
+
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_11.html#AVRDUDE-Defaults" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_13.html#Serial-Adapter-Definitions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_10.html#Configuration-Files" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_10.html#Configuration-Files" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_18.html#Programmer-Specific-Information" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_42.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated on <i>February 8, 2024</i> using <a href="http://www.nongnu.org/texi2html/"><i>texi2html 1.82</i></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
