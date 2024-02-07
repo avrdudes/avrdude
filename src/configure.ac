@@ -123,7 +123,7 @@ AC_CHECK_LIB([readline], [readline])
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
 AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
-if test x$have_libelf = xyes; then
+if test "x$have_libelf" = xyes; then
    case $target in
        *)
                LIBELF="-lelf"
@@ -139,7 +139,7 @@ AC_SEARCH_LIBS([setsockopt], [socket])
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
-if test x$have_libusb = xyes; then
+if test "x$have_libusb" = xyes; then
    case $target in
        *-*-darwin*)
                LIBUSB="-lusb -framework CoreFoundation -framework IOKit"
@@ -168,7 +168,7 @@ AC_ARG_ENABLE(
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via libusb 1.0])
 AC_CHECK_LIB([usb-1.0], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
+if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    case $target in
        *-*-darwin*)
                LIBUSB_1_0="-lusb-1.0 -framework CoreFoundation -framework IOKit"
@@ -184,7 +184,7 @@ fi
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via a libusb-1.0 compatible libusb])
 AC_CHECK_LIB([usb], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
+if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    case $target in
        *-*-freebsd*)
                # FreeBSD 8+ has a native libusb-1.0 API compatible
@@ -206,7 +206,7 @@ AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
 AH_TEMPLATE([HAVE_LIBHIDAPI],
             [Define if HID support is enabled via libhidapi])
 AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw], [have_libhidapi=yes])
-if test x$have_libhidapi = xyes; then
+if test "x$have_libhidapi" = xyes; then
    case $target in
        *-*-darwin*)
                LIBHIDAPI="-lhidapi -iframework CoreFoundation -framework IOKit"
@@ -223,7 +223,7 @@ AC_SUBST(LIBHIDAPI, $LIBHIDAPI)
 AH_TEMPLATE([HAVE_LIBSERIALPORT],
             [Define if libserialport is found])
 AC_CHECK_LIB([serialport], [sp_open], [have_libserialport=yes])
-if test x$have_libserialport = xyes; then
+if test "x$have_libserialport" = xyes; then
    case $target in
        *)
                LIBSERIALPORT="-lserialport"
@@ -242,19 +242,19 @@ AH_TEMPLATE([HAVE_LIBFTDI_TYPE_232H],
             [Define if libftdi supports FT232H, libftdi version >= 0.20])
 AC_CHECK_LIB([ftdi1], [ftdi_new], [have_libftdi1=yes], [], [$LIBUSB_1_0])
 AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
-if test x$have_libftdi1 = xyes; then
+if test "x$have_libftdi1" = xyes; then
    LIBFTDI1="-lftdi1"
    AC_DEFINE([HAVE_LIBFTDI1])
    AC_SUBST(LIBFTDI1, $LIBFTDI1)
    LIBS="${LIBS} ${LIBFTDI1}"
    AC_CHECK_FUNCS(ftdi_tcioflush)
 else
-   if test x$have_libftdi = xyes; then
+   if test "x$have_libftdi" = xyes; then
       LIBFTDI="-lftdi -lusb"
       AC_DEFINE([HAVE_LIBFTDI])
       AC_SUBST(LIBFTDI, $LIBFTDI)
       AC_CHECK_DECL(TYPE_232H,[have_libftdi_FT232H=yes], [], [[#include <ftdi.h>]])
-      if test x$have_libftdi_FT232H = xyes; then
+      if test "x$have_libftdi_FT232H" = xyes; then
          AC_DEFINE([HAVE_LIBFTDI_TYPE_232H])
       fi
    fi
@@ -262,7 +262,7 @@ fi
 AC_CHECK_HEADERS([pthread.h])
 # as there exits header file only pthread implementations for Windows, check if we have a library
 AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes])
-if test x$have_pthread = xyes; then
+if test "x$have_pthread" = xyes; then
    LIBPTHREAD="-lpthread"
 fi
 AC_SUBST(LIBPTHREAD, $LIBPTHREAD)
@@ -283,7 +283,7 @@ Not all systems provide sys/time.h, but those that do, all allow
 you to include it and time.h simultaneously.])dnl
 AC_CHECK_HEADERS_ONCE([sys/time.h])
 # Obsolete code to be removed.
-if test $ac_cv_header_sys_time_h = yes; then
+if test "x$ac_cv_header_sys_time_h" = xyes; then
   AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
 	     and <time.h>.  This macro is obsolete.])
 fi
@@ -322,7 +322,7 @@ main(void)
 }
 ]])], [have_libhid=yes], [have_libhid=no])
 AC_MSG_RESULT([$have_libhid])
-if test x$have_libhid = xyes; then
+if test "x$have_libhid" = xyes; then
    AC_DEFINE([HAVE_LIBHID])
 else
    LIBHID=""
@@ -350,7 +350,7 @@ AC_ARG_ENABLE(
 		esac],
 	[versioned_doc=yes])
 
-if test "$versioned_doc" = "yes"; then
+if test "x$versioned_doc" = "xyes"; then
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
 else
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
@@ -402,7 +402,7 @@ AC_ARG_ENABLE(
 
 DIST_SUBDIRS_AC='doc'
 
-if test "$enabled_doc" = "yes"; then
+if test "x$enabled_doc" = xyes; then
 	SUBDIRS_AC='doc'
 else
 	SUBDIRS_AC=''
@@ -453,9 +453,9 @@ case $target in
 		;;
 esac
 
-if test "$enabled_parport" = "yes"; then
+if test "x$enabled_parport" = xyes; then
 	AC_MSG_CHECKING([for parallel device])
-	if test "$DEFAULT_PAR_PORT" = "unknown"; then
+	if test "x$DEFAULT_PAR_PORT" = xunknown; then
 		AC_MSG_NOTICE([parallel port access disabled for this system])
 		enabled_parport=no
 	else
@@ -468,7 +468,7 @@ AC_MSG_CHECKING([for serial device])
 AC_MSG_RESULT([$DEFAULT_SER_PORT])
 AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
 
-if test "$enabled_parport" = "yes"; then
+if test "x$enabled_parport" = xyes; then
 	AC_DEFINE(HAVE_PARPORT, 1, [parallel port access enabled])
 	confsubst="-e /^@HAVE_PARPORT_/d"
 else
@@ -476,9 +476,9 @@ else
 fi
 
 
-if test "$enabled_linuxgpio" = "yes"; then
+if test "x$enabled_linuxgpio" = xyes; then
 	AC_MSG_CHECKING([for default linuxgpio port])
-	if test "$DEFAULT_LINUXGPIO_PORT" = "unknown"; then
+	if test "x$DEFAULT_LINUXGPIO_PORT" = xunknown; then
 		AC_MSG_NOTICE([linuxgpio port access disabled for this system])
 		enabled_linuxgpio=no
 	else
@@ -487,7 +487,7 @@ if test "$enabled_linuxgpio" = "yes"; then
 	AC_SUBST(DEFAULT_LINUXGPIO_PORT, $DEFAULT_LINUXGPIO_PORT)
 fi
 
-if test "$enabled_linuxgpio" = "yes"; then
+if test "x$enabled_linuxgpio" = xyes; then
 	AC_DEFINE(HAVE_LINUXGPIO, 1, [Linux sysfs GPIO support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_/d"
 else
@@ -495,7 +495,7 @@ else
 fi
 
 
-if test "$enabled_linuxspi" = "yes"; then
+if test "x$enabled_linuxspi" = xyes; then
 	AC_DEFINE(HAVE_LINUXSPI, 1, [Linux SPI support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_/d"
 else
@@ -504,8 +504,8 @@ fi
 
 
 # If we are compiling with gcc, enable all warnings and make warnings errors.
-if test "$GCC" = yes; then
-    ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
+if test "x$GCC" = xyes; then
+	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
 
 	# does this compiler support -Wno-pointer-sign ?
 	AC_MSG_CHECKING([if gcc accepts -Wno-pointer-sign ])
@@ -524,7 +524,7 @@ if test "$GCC" = yes; then
 	])
 	CFLAGS=$safe_CFLAGS
 
-	if test x$no_pointer_sign = xyes; then
+	if test "x$no_pointer_sign" = xyes; then
 		ENABLE_WARNINGS="$ENABLE_WARNINGS -Wno-pointer-sign"
 	fi
 fi
@@ -533,7 +533,7 @@ AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
 # See if we need to drop into the windows subdir.
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
-		if test "$GCC" = yes -a \( "$CC" = "cc" -o "$CC" = "gcc" \); then
+		if test "x$GCC" = xyes && test "x$CC" = xcc -o "x$CC" = xgcc; then
 			# does this compiler support -mno-cygwin?
 			AC_MSG_CHECKING([if $CC accepts -mno-cygwin])
 
@@ -551,7 +551,7 @@ case $target in
 			])
 			CFLAGS="$safe_CFLAGS"
 
-			if test x$no_cygwin = xyes; then
+			if test "x$no_cygwin" = xyes; then
 				CFLAGS="${CFLAGS} -mno-cygwin"
 			else
 				AC_MSG_NOTICE([Your compiler does not understand the -mno-cygwin option.])
@@ -577,7 +577,7 @@ case $target in
 		])
 		LDFLAGS="$safe_LDFLAGS"
 
-		if test x$can_link_static = xyes; then
+		if test "x$can_link_static" = xyes; then
 			LDFLAGS="${LDFLAGS} -static"
 		fi
 
@@ -617,20 +617,20 @@ echo ""
 echo "Configuration summary:"
 echo "----------------------"
 
-if test x$have_libelf = xyes; then
+if test "x$have_libelf" = xyes; then
    echo "DO HAVE    libelf"
 else
    echo "DON'T HAVE libelf"
 fi
 
-if test x$have_libusb = xyes; then
+if test "x$have_libusb" = xyes; then
    echo "DO HAVE    libusb"
 else
    echo "DON'T HAVE libusb"
 fi
 
-if test x$have_libusb_1_0 = xyes; then
-   if test x$enabled_libusb_1_0 = xyes; then
+if test "x$have_libusb_1_0" = xyes; then
+   if test "x$enabled_libusb_1_0" = xyes; then
        echo "DO HAVE    libusb_1_0"
    else
        echo "DISABLED   libusb_1_0"
@@ -639,13 +639,13 @@ else
    echo "DON'T HAVE libusb_1_0"
 fi
 
-if test x$have_libftdi1 = xyes; then
+if test "x$have_libftdi1" = xyes; then
    echo "DO HAVE    libftdi1"
 else
    echo "DON'T HAVE libftdi1"
 fi
 
-if test x$have_libftdi = xyes; then
+if test "x$have_libftdi" = xyes; then
    if test x$have_libftdi1 = xyes; then
        echo "DO HAVE    libftdi (but prefer to use libftdi1)"
    else
@@ -655,55 +655,55 @@ else
    echo "DON'T HAVE libftdi"
 fi
 
-if test x$have_libhid = xyes; then
+if test "x$have_libhid" = xyes; then
    echo "DO HAVE    libhid"
 else
    echo "DON'T HAVE libhid"
 fi
 
-if test x$have_libhidapi = xyes; then
+if test "x$have_libhidapi" = xyes; then
    echo "DO HAVE    libhidapi"
 else
    echo "DON'T HAVE libhidapi"
 fi
 
-if test x$have_readline = xyes; then
+if test "x$have_readline" = xyes; then
    echo "DO HAVE    libreadline"
 else
    echo "DON'T HAVE libreadline"
 fi
 
-if test x$have_libserialport = xyes; then
+if test "x$have_libserialport" = xyes; then
    echo "DO HAVE    libserialport"
 else
    echo "DON'T HAVE libserialport"
 fi
 
-if test x$have_pthread = xyes; then
+if test "x$have_pthread" = xyes; then
    echo "DO HAVE    pthread"
 else
    echo "DON'T HAVE pthread"
 fi
 
-if test x$enabled_doc = xyes; then
+if test "x$enabled_doc" = xyes; then
    echo "ENABLED    doc"
 else
    echo "DISABLED   doc"
 fi
 
-if test x$enabled_parport = xyes; then
+if test "x$enabled_parport" = xyes; then
    echo "ENABLED    parport"
 else
    echo "DISABLED   parport"
 fi
 
-if test x$enabled_linuxgpio = xyes; then
+if test "x$enabled_linuxgpio" = xyes; then
    echo "ENABLED    linuxgpio"
 else
    echo "DISABLED   linuxgpio"
 fi
 
-if test x$enabled_linuxspi = xyes; then
+if test "x$enabled_linuxspi" = xyes; then
    echo "ENABLED    linuxspi"
 else
    echo "DISABLED   linuxspi"
