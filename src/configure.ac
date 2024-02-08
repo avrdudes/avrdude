@@ -72,8 +72,6 @@ fixed.
 	;;
 esac
 
-LT_INIT()
-
 
 # Checks for programs.
 AC_PROG_CC
@@ -82,10 +80,9 @@ AC_PROG_AWK
 AC_PROG_SED
 AC_PROG_YACC
 AC_PROG_LEX([noyywrap])
-AN_MAKEVAR([AR], [AC_PROG_AR])
-AN_PROGRAM([ar], [AC_PROG_AR])
-AC_DEFUN([AC_PROG_AR], [AC_CHECK_TARGET_TOOL(AR, ar, :)])
-AC_PROG_AR
+AM_PROG_AR
+LT_INIT()
+
 AH_TEMPLATE([HAVE_YYLEX_DESTROY],
             [Define if lex/flex has yylex_destroy])
 # flex should have this
