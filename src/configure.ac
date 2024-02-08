@@ -563,16 +563,6 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([
        GNUmakefile
 ])
-dnl TODO: Add GIT_COMMIT_HASH to the AVRDUDE_FULL_VERSION like cmake build does
-dnl # Detect GIT
-dnl AC_ARG_VAR([GIT], [git revision control system])
-dnl AS_VAR_IF([GIT], [], [dnl
-dnl   AC_PATH_PROG([GIT], [git], [no])
-dnl ])
-dnl AM_CONDITIONAL([HAVE_GIT], [test "x$GIT" != xno])
-dnl AS_IF([test -d "../.git/info/exclude"], [dnl
-dnl   GIT_COMMIT_HASH="$(${GIT} --version)"
-dnl ])
 
 # Pass version number into avrdude.conf
 dnl AVRDUDE_FULL_VERSION="${PACKAGE_VERSION} (${GIT_COMMIT_HASH})"
