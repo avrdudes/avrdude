@@ -35,14 +35,24 @@ dnl 2013-06-20 automake 1.14
 dnl 2018-02-25 automake 1.16
 dnl 2018-03-11 automake 1.16.1  install-sh symlink fix
 
+
+dnl Change this definition if you want to change the dist tarball name
+dnl pattern from avrdude-7.3 for releases and avrdude-7.3-${COMMIT_DATE}
+dnl for snapshots.
+m4_define([versioninfo_AVRDUDE_PACKAGE_VERSION],
+          m4_case(m4_defn([versioninfo_GIT_COMMIT_HASH]),
+	          m4_defn([versioninfo_GIT_TAG_HASH]),
+	          m4_defn([versioninfo_CMAKE_PROJECT_VERSION]),
+		  m4_defn([versioninfo_CMAKE_PROJECT_VERSION])-m4_defn([versioninfo_GIT_COMMIT_DATE])))
+
 AC_PREREQ([2.69])
 AC_INIT([avrdude],
-        [m4_esyscmd(./build-helpers/package-version . version-stamp)],
+        m4_defn([versioninfo_AVRDUDE_PACKAGE_VERSION]),
         [https://github.com/avrdudes/avrdude/issues])
 
 AC_CONFIG_SRCDIR([main.c])
-AC_CONFIG_HEADERS([ac_cfg.h])
 AC_CONFIG_AUX_DIR([auto-aux])
+AC_CONFIG_HEADERS([ac_cfg.h])
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_BUILD
@@ -52,25 +62,31 @@ AC_CANONICAL_TARGET
 AM_INIT_AUTOMAKE([
   1.14
   foreign
+  subdir-objects
 ])
 
 AM_SILENT_RULES([yes])
 
 
-# Check that the build-helpers/package-version script has worked properly.
-case "$PACKAGE_VERSION" in
-    devel|version_error_*)
-	AC_MSG_ERROR([
-Autogenerating the package version (${PACKAGE_VERSION}) has failed.
+VERSIONINFO_SETUP()
 
-Please file an issue at ${PACKAGE_BUGREPORT}
+dnl Inform about the derived PACKAGE_VERSION
+AC_MSG_CHECKING([versioninfo derived PACKAGE_VERSION])
+AC_MSG_RESULT([$PACKAGE_VERSION])
 
-You can write some version number to the file version-stamp as a
-workaround to allow building avrdude until the filed issue has been
-fixed.
-])
-	;;
-esac
+dnl Compose the full version message mirroring the cmake one, inform
+dnl about it and pass it on to avrdude.conf and the "avrdude -?"
+dnl version message
+AC_MSG_CHECKING([versioninfo derived AVRDUDE_FULL_VERSION])
+if test "x$GIT_COMMIT_HASH" = "x$GIT_TAG_HASH"; then
+	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION"
+else
+	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION ($GIT_COMMIT_HASH)"
+fi
+AC_MSG_RESULT([$AVRDUDE_FULL_VERSION])
+AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
+                   [The full avrdude version as displayed in -? and avrdude.conf])
+AC_SUBST([AVRDUDE_FULL_VERSION])
 
 
 # Checks for programs.
@@ -607,12 +623,6 @@ AC_CONFIG_FILES([
        GNUmakefile
 ])
 
-# Pass version number into avrdude.conf
-dnl AVRDUDE_FULL_VERSION="${PACKAGE_VERSION} (${GIT_COMMIT_HASH})"
-AVRDUDE_FULL_VERSION="$PACKAGE_VERSION"
-AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
-                   [The full avrdude version as displayed in -? and avrdude.conf])
-AC_SUBST([AVRDUDE_FULL_VERSION])
 
 # The procedure to create avrdude.conf involves two steps.  First,
 # normal autoconf substitution will be applied, resulting in
