@@ -71,7 +71,7 @@ if test -d "$GIT_DIR"; then
         echo "version_error_71" | ${TR-tr} -d '\012'; \
         exit 2; \
     }
-    GIT_COMMIT_DATE="$(${GIT-git} log -1 --format=%ad --date=format:%Y%m%d)" || { \
+    GIT_COMMIT_DATE="$(${GIT-git} log -1 --format=%cd --date=format:%Y%m%d)" || { \
         echo "$prog: Error: Cannot run 'git log' for commit date" >&2; \
         echo "version_error_72" | ${TR-tr} -d '\012'; \
         exit 2; \
