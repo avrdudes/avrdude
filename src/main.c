@@ -52,7 +52,7 @@
 #include "developer_opts.h"
 
 /* Get VERSION from ac_cfg.h */
-char * version      = VERSION;
+char * version      = AVRDUDE_FULL_VERSION;
 
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same

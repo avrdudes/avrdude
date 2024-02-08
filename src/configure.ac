@@ -590,7 +590,10 @@ AC_CONFIG_FILES([
 
 # Pass version number into avrdude.conf
 dnl AVRDUDE_FULL_VERSION="${PACKAGE_VERSION} (${GIT_COMMIT_HASH})"
-AC_SUBST([AVRDUDE_FULL_VERSION], ["$PACKAGE_VERSION"])
+AVRDUDE_FULL_VERSION="$PACKAGE_VERSION"
+AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
+                   [The full avrdude version as displayed in -? and avrdude.conf])
+AC_SUBST([AVRDUDE_FULL_VERSION])
 
 # The procedure to create avrdude.conf involves two steps.  First,
 # normal autoconf substitution will be applied, resulting in
