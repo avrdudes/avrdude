@@ -282,19 +282,6 @@ AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-m4_warn([obsolete],
-[Update your code to rely only on HAVE_SYS_TIME_H,
-then remove this warning and the obsolete code below it.
-All current systems provide time.h; it need not be checked for.
-Not all systems provide sys/time.h, but those that do, all allow
-you to include it and time.h simultaneously.])dnl
-AC_CHECK_HEADERS_ONCE([sys/time.h])
-# Obsolete code to be removed.
-if test "x$ac_cv_header_sys_time_h" = xyes; then
-  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
-	     and <time.h>.  This macro is obsolete.])
-fi
-# End of obsolete code.
 
 
 AC_CHECK_HEADERS([netinet/in.h])
