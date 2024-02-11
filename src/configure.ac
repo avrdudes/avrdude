@@ -27,14 +27,16 @@ AC_INIT([avrdude],
         m4_esyscmd([./build-helpers/package-version . version-stamp]),
         [https://github.com/avrdudes/avrdude/issues])
 
+AC_CONFIG_SRCDIR([main.c])
+AC_CONFIG_HEADERS([ac_cfg.h])
+AC_CONFIG_AUX_DIR([auto-aux])
+AC_CONFIG_MACRO_DIR([m4])
+
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
-AC_CONFIG_SRCDIR([main.c])
 AM_INIT_AUTOMAKE([foreign])
-AC_CONFIG_HEADERS(ac_cfg.h)
-AC_CONFIG_MACRO_DIR([m4])
 
 # Check that the build-helpers/package-version script has worked properly.
 case "$PACKAGE_VERSION" in
