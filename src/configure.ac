@@ -129,6 +129,7 @@ AC_CHECK_LIB([readline], [readline], [dnl
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
 AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
+LIBELF=""
 if test "x$have_libelf" = xyes; then
    case $target in
        *)
@@ -138,13 +139,14 @@ if test "x$have_libelf" = xyes; then
    AC_DEFINE([HAVE_LIBELF])
    AC_CHECK_HEADERS([libelf.h libelf/libelf.h])
 fi
-AC_SUBST(LIBELF, $LIBELF)
+AC_SUBST([LIBELF])
 
 AC_SEARCH_LIBS([gethostent], [nsl])
 AC_SEARCH_LIBS([setsockopt], [socket])
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
+LIBUSB=""
 if test "x$have_libusb" = xyes; then
    case $target in
        *-*-darwin*)
@@ -158,7 +160,7 @@ if test "x$have_libusb" = xyes; then
    AC_CHECK_HEADERS([usb.h])
    AC_CHECK_HEADERS([lusb0_usb.h])
 fi
-AC_SUBST(LIBUSB, $LIBUSB)
+AC_SUBST([LIBUSB])
 
 AC_ARG_ENABLE(
 	[libusb_1_0],
@@ -167,13 +169,15 @@ AC_ARG_ENABLE(
 	[case "${enableval}" in
 		yes) enabled_libusb_1_0=yes ;;
 		no)  enabled_libusb_1_0=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-libusb_1_0 option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-libusb_1_0 option]) ;;
 		esac],
 	[enabled_libusb_1_0=yes])	
 
+have_libusb_1_0=no
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via libusb 1.0])
 AC_CHECK_LIB([usb-1.0], [libusb_init], [have_libusb_1_0=yes])
+LIBUSB_1_0=""
 if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    case $target in
        *-*-darwin*)
@@ -207,11 +211,13 @@ if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    AC_DEFINE([HAVE_LIBUSB_1_0])
    AC_CHECK_HEADERS([libusb.h])
 fi
-AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
+AC_SUBST([LIBUSB_1_0])
 
 AH_TEMPLATE([HAVE_LIBHIDAPI],
             [Define if HID support is enabled via libhidapi])
-AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw], [have_libhidapi=yes])
+AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw],
+               [have_libhidapi=yes], [have_libhidapi=no])
+LIBHIDAPI=""
 if test "x$have_libhidapi" = xyes; then
    case $target in
        *-*-darwin*)
@@ -224,11 +230,13 @@ if test "x$have_libhidapi" = xyes; then
    AC_DEFINE([HAVE_LIBHIDAPI])
    AC_CHECK_HEADERS([hidapi/hidapi.h])
 fi
-AC_SUBST(LIBHIDAPI, $LIBHIDAPI)
+AC_SUBST([LIBHIDAPI])
 
 AH_TEMPLATE([HAVE_LIBSERIALPORT],
             [Define if libserialport is found])
-AC_CHECK_LIB([serialport], [sp_open], [have_libserialport=yes])
+AC_CHECK_LIB([serialport], [sp_open],
+             [have_libserialport=yes], [have_libserialport=no])
+LIBSERIALPORT=""
 if test "x$have_libserialport" = xyes; then
    case $target in
        *)
@@ -238,7 +246,7 @@ if test "x$have_libserialport" = xyes; then
    AC_DEFINE([HAVE_LIBSERIALPORT])
    AC_CHECK_HEADERS([libserialport.h])
 fi
-AC_SUBST(LIBSERIALPORT, $LIBSERIALPORT)
+AC_SUBST([LIBSERIALPORT])
 
 AH_TEMPLATE([HAVE_LIBFTDI1],
             [Define if FTDI support is enabled via libftdi1])
@@ -246,32 +254,42 @@ AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
 AH_TEMPLATE([HAVE_LIBFTDI_TYPE_232H],
             [Define if libftdi supports FT232H, libftdi version >= 0.20])
-AC_CHECK_LIB([ftdi1], [ftdi_new], [have_libftdi1=yes], [], [$LIBUSB_1_0])
-AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
+AC_CHECK_LIB([ftdi1], [ftdi_new],
+             [have_libftdi1=yes], [have_libftdi1=no], [$LIBUSB_1_0])
+AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings],
+             [have_libftdi=yes], [have_libftdi=no], [-lusb])
+LIBFTDI=""
+LIBFTDI1=""
 if test "x$have_libftdi1" = xyes; then
    LIBFTDI1="-lftdi1"
    AC_DEFINE([HAVE_LIBFTDI1])
-   AC_SUBST(LIBFTDI1, $LIBFTDI1)
+   AC_SUBST([LIBFTDI1])
    LIBS="${LIBS} ${LIBFTDI1}"
-   AC_CHECK_FUNCS(ftdi_tcioflush)
+   AC_CHECK_FUNCS([ftdi_tcioflush])
 else
    if test "x$have_libftdi" = xyes; then
       LIBFTDI="-lftdi -lusb"
       AC_DEFINE([HAVE_LIBFTDI])
-      AC_SUBST(LIBFTDI, $LIBFTDI)
-      AC_CHECK_DECL(TYPE_232H,[have_libftdi_FT232H=yes], [], [[#include <ftdi.h>]])
+      AC_SUBST([LIBFTDI])
+      AC_CHECK_DECL([TYPE_232H],
+        [have_libftdi_FT232H=yes],
+        [have_libftdi_FT232H=no],
+        [[#include <ftdi.h>]])
       if test "x$have_libftdi_FT232H" = xyes; then
          AC_DEFINE([HAVE_LIBFTDI_TYPE_232H])
       fi
    fi
 fi
+
 AC_CHECK_HEADERS([pthread.h])
-# as there exits header file only pthread implementations for Windows, check if we have a library
-AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes])
+# as there exist header file only pthread implementations for Windows, check if we have a library
+AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes], [have_pthread=no])
+LIBPTHREAD=""
 if test "x$have_pthread" = xyes; then
    LIBPTHREAD="-lpthread"
 fi
-AC_SUBST(LIBPTHREAD, $LIBPTHREAD)
+AC_SUBST([LIBPTHREAD])
+
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
@@ -290,6 +308,8 @@ AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strt
 
 AC_MSG_CHECKING([for a Win32 HID library])
 SAVED_LIBS="${LIBS}"
+LIBHID=""
+HIDINCLUDE=""
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		LIBHID="-lhid -lsetupapi"
@@ -321,7 +341,7 @@ else
    LIBHID=""
 fi
 LIBS="${SAVED_LIBS}"
-AC_SUBST(LIBHID, $LIBHID)
+AC_SUBST([LIBHID])
 
 # Check for types
 
@@ -339,7 +359,7 @@ AC_ARG_ENABLE(
 	[case "${enableval}" in
 		yes) versioned_doc=yes ;;
 		no)  versioned_doc=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for versioned-doc option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for versioned-doc option]) ;;
 		esac],
 	[versioned_doc=yes])
 
@@ -348,6 +368,7 @@ if test "x$versioned_doc" = "xyes"; then
 else
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
 fi
+AC_SUBST([DOC_INST_DIR])
 
 AC_ARG_ENABLE(
 	[doc],
@@ -356,7 +377,7 @@ AC_ARG_ENABLE(
 	[case "${enableval}" in
 		yes) enabled_doc=yes ;;
 		no)  enabled_doc=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for disable-doc option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for disable-doc option]) ;;
 		esac],
 	[enabled_doc=no])
 
@@ -367,10 +388,10 @@ AC_ARG_ENABLE(
 	[case "${enableval}" in
 		yes) enabled_parport=yes ;;
 		no)  enabled_parport=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-parport option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-parport option]) ;;
 		esac],
 	[enabled_parport=no])
-	
+
 AC_ARG_ENABLE(
 	[linuxgpio],
 	AS_HELP_STRING([--enable-linuxgpio],
@@ -378,7 +399,7 @@ AC_ARG_ENABLE(
 	[case "${enableval}" in
 		yes) enabled_linuxgpio=yes ;;
 		no)  enabled_linuxgpio=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-linuxgpio option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-linuxgpio option]) ;;
 		esac],
 	[enabled_linuxgpio=no])	
 
@@ -389,21 +410,18 @@ AC_ARG_ENABLE(
 	[case "${enableval}" in
 		yes) enabled_linuxspi=yes ;;
 		no)  enabled_linuxspi=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-linuxspi option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-linuxspi option]) ;;
 		esac],
 	[enabled_linuxspi=no])
 
-DIST_SUBDIRS_AC='doc'
+AC_SUBST([DIST_SUBDIRS_AC], [doc])
 
 if test "x$enabled_doc" = xyes; then
 	SUBDIRS_AC='doc'
 else
 	SUBDIRS_AC=''
 fi
-
-AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
-AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)
-AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
+AC_SUBST([SUBDIRS_AC])
 
 
 # Find the parallel serial device files based on target system
@@ -454,15 +472,15 @@ if test "x$enabled_parport" = xyes; then
 	else
 		AC_MSG_RESULT([$DEFAULT_PAR_PORT])
 	fi
-	AC_SUBST(DEFAULT_PAR_PORT, $DEFAULT_PAR_PORT)
+	AC_SUBST([DEFAULT_PAR_PORT])
 fi
 
 AC_MSG_CHECKING([for serial device])
 AC_MSG_RESULT([$DEFAULT_SER_PORT])
-AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
+AC_SUBST([DEFAULT_SER_PORT])
 
 if test "x$enabled_parport" = xyes; then
-	AC_DEFINE(HAVE_PARPORT, 1, [parallel port access enabled])
+	AC_DEFINE([HAVE_PARPORT], [1], [parallel port access enabled])
 	confsubst="-e /^@HAVE_PARPORT_/d"
 else
 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
@@ -477,11 +495,11 @@ if test "x$enabled_linuxgpio" = xyes; then
 	else
 		AC_MSG_RESULT([$DEFAULT_LINUXGPIO_PORT])
 	fi
-	AC_SUBST(DEFAULT_LINUXGPIO_PORT, $DEFAULT_LINUXGPIO_PORT)
+	AC_SUBST([DEFAULT_LINUXGPIO_PORT])
 fi
 
 if test "x$enabled_linuxgpio" = xyes; then
-	AC_DEFINE(HAVE_LINUXGPIO, 1, [Linux sysfs GPIO support enabled])
+	AC_DEFINE([HAVE_LINUXGPIO], [1], [Linux sysfs GPIO support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_/d"
 else
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_BEGIN@/,/^@HAVE_LINUXGPIO_END@/d"
@@ -489,7 +507,7 @@ fi
 
 
 if test "x$enabled_linuxspi" = xyes; then
-	AC_DEFINE(HAVE_LINUXSPI, 1, [Linux SPI support enabled])
+	AC_DEFINE([HAVE_LINUXSPI], [1], [Linux SPI support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_/d"
 else
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_BEGIN@/,/^@HAVE_LINUXSPI_END@/d"
@@ -497,6 +515,7 @@ fi
 
 
 # If we are compiling with gcc, enable all warnings and make warnings errors.
+ENABLE_WARNINGS=""
 if test "x$GCC" = xyes; then
 	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
 
@@ -521,7 +540,7 @@ if test "x$GCC" = xyes; then
 		ENABLE_WARNINGS="$ENABLE_WARNINGS -Wno-pointer-sign"
 	fi
 fi
-AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
+AC_SUBST([ENABLE_WARNINGS])
 
 # See if we need to drop into the windows subdir.
 case $target in
