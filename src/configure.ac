@@ -54,6 +54,9 @@ AM_INIT_AUTOMAKE([
   foreign
 ])
 
+AM_SILENT_RULES([yes])
+
+
 # Check that the build-helpers/package-version script has worked properly.
 case "$PACKAGE_VERSION" in
     devel|version_error_*)
@@ -70,8 +73,6 @@ fixed.
 esac
 
 LT_INIT()
-
-AM_SILENT_RULES([yes])
 
 
 # Checks for programs.
