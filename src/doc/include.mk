@@ -17,7 +17,10 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-EXTRA_DIST           += %reldir%/CMakeLists.txt
+EXTRA_DIST          += %reldir%/CMakeLists.txt
+EXTRA_DIST          += %reldir%/parts.cmake
+EXTRA_DIST          += %reldir%/programmer_types.cmake
+EXTRA_DIST          += %reldir%/programmers.cmake
 
 EXTRA_DIST          += %reldir%/avrdude.texi
 info_TEXINFOS        = %reldir%/avrdude.texi

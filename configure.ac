@@ -627,6 +627,18 @@ case $target in
 		;;
 esac
 
+AC_ARG_VAR([GIT], [git the stupid content tracker command])
+AS_VAR_IF([GIT], [], [dnl
+  AC_PATH_PROG([GIT], [git], [no])
+])
+AM_CONDITIONAL([HAVE_GIT], [test "x$GIT" != xno])
+
+AC_ARG_VAR([DIFF], [diff the line by line file comparison command])
+AS_VAR_IF([DIFF], [], [dnl
+  AC_PATH_PROG([DIFF], [diff], [no])
+])
+AM_CONDITIONAL([HAVE_DIFF], [test "x$DIFF" != xno])
+
 AC_CONFIG_FILES([
        GNUmakefile
        Makefile
