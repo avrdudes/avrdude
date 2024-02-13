@@ -22,4 +22,4 @@ LIBTOOLIZE=libtoolize
 glibtoolize --version > /dev/null 2>&1 && LIBTOOLIZE=glibtoolize
 export LIBTOOLIZE
 
-${AUTORECONF} -i
+${AUTORECONF} -i "$@"
