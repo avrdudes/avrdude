@@ -1271,7 +1271,7 @@ avrftdi_setup(PROGRAMMER * pgm)
 	avrftdi_t* pdata;
 
 	
-	if(!(pgm->cookie = calloc(sizeof(avrftdi_t), 1))) {
+	if(!(pgm->cookie = calloc(1, sizeof(avrftdi_t)))) {
 		log_err("Error allocating memory.\n");
 		exit(1);
 	}
