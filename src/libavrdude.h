@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #ifdef LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
