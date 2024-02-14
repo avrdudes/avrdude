@@ -25,6 +25,11 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
+
+#ifdef LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
+#error LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS is defined. Do not do that.
+#endif
+
 #define LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
 #include "libavrdude-avrintel.h"
 #undef  LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
