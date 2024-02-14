@@ -1108,11 +1108,11 @@ int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
 
-unsigned long avr_ustimestamp();
+unsigned long avr_ustimestamp(void);
 
-unsigned long avr_mstimestamp();
+unsigned long avr_mstimestamp(void);
 
-double avr_timestamp();
+double avr_timestamp(void);
 
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
@@ -1481,7 +1481,7 @@ const char *str_plural(int x);
 const char *str_inname(const char *fn);
 const char *str_outname(const char *fn);
 const char *str_interval(int a, int b);
-bool is_bigendian();
+bool is_bigendian(void);
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
@@ -1511,7 +1511,7 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p);
 int terminal_mode_noninteractive(const PROGRAMMER *pgm, const AVRPART *p);
 int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line);
 char *terminal_get_input(const char *prompt);
-void terminal_setup_update_progress();
+void terminal_setup_update_progress(void);
 
 #ifdef __cplusplus
 }
