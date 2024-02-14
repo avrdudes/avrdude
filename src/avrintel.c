@@ -9,7 +9,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 22.12.2023
+ * 14.02.2024
  *
  */
 
@@ -24,7 +24,7 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include "avrintel.h"
+#include "libavrdude.h"
 
 // Given the MCU id return index in uP_table or -1 if not found
 int upidxmcuid(int mcuid) {
