@@ -220,7 +220,7 @@ libavrdude_la_SOURCES = \
 	wiring.c \
 	xbee.h \
 	xbee.c
-libavrdude_la_LDFLAGS = -version-info 2:0
+libavrdude_la_LDFLAGS = -version-info @LIBAVRDUDE_VERSION_INFO@
 
 include_HEADERS = libavrdude.h
 include_HEADERS += libavrdude-avrintel.h

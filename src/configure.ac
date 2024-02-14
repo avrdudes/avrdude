@@ -92,6 +92,33 @@ AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
 AC_SUBST([AVRDUDE_FULL_VERSION])
 
 
+# Define libavrdude libtool version from cmake libavrdude information
+dnl
+dnl This is a very simple consistency check. If this check ever fails,
+dnl the library versioning policy and its technical implementation
+dnl must be adapted.
+m4_case(m4_defn([versioninfo_CMAKE_LIBAVRDUDE_SOVERSION])[.0.0],
+        m4_defn([versioninfo_CMAKE_LIBAVRDUDE_VERSION]),
+	[],
+	[m4_fatal([
+The cmake libavrdude VERSION should be SOVERSION.0.0 ("]m4_defn([versioninfo_CMAKE_LIBAVRDUDE_SOVERSION])[.0.0"),
+but it is actually "]m4_defn([versioninfo_CMAKE_LIBAVRDUDE_VERSION])[".
+
+This is an internal error in the logic which transfers library version
+information from the cmake buildsystem to the automake buildsystem.
+
+Please file a GitHub issue for avrdude and mention @ndim.
+	])])dnl
+dnl
+AC_MSG_CHECKING([versioninfo derived libtool -version-info for libavrdude])
+libavrdude_lt_cur=$CMAKE_LIBAVRDUDE_SOVERSION
+libavrdude_lt_rev=0
+libavrdude_lt_age=0
+AC_SUBST([LIBAVRDUDE_VERSION_INFO],
+         [${libavrdude_lt_cur}:${libavrdude_lt_rev}:${libavrdude_lt_age}])
+AC_MSG_RESULT([$LIBAVRDUDE_VERSION_INFO])
+
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
