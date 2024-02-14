@@ -16,6 +16,7 @@ Changes since version 7.3:
   * Issues fixed:
 
   * Pull requests:
+     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
 
   * Internals:
 
