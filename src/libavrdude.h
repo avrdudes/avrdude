@@ -25,7 +25,9 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include "avrintel.h"
+#define LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
+#include "libavrdude-avrintel.h"
+#undef  LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
 
 typedef uint32_t pinmask_t;
 /*
