@@ -3722,15 +3722,11 @@ Tx---/\/\/\---Tx |----|<|---'          .--------| Gnd    470 ohm
 There are several limitations in current SerialUPDI/AVRDUDE integration,
 listed below.
 
-At the end of each run there are fuse values being presented to the user.
-For most of the UPDI-enabled devices these definitions (low fuse, high
-fuse, extended fuse) have no meaning whatsoever, as they have been 
-simply replaced by array of fuses: fuse0..9. Therefore you can simply
-ignore this particular line of AVRDUDE output.
-
-Currently available devices support only UPDI NVM programming model 0 
-and 2, but there is also experimental implementation of model 3 - not
-yet tested.
+Currently available devices support only UPDI NVM programming model 0, 2
+3 and 5, but there is also experimental implementation of model 4 - it 
+has been tested only on a single device, so issues with other devices are
+expected. Full NVM v4 mode support will be provided once the hardware is
+widely available.
 
 One of the core AVRDUDE features is verification of the connection by
 reading device signature prior to any operation, but this operation
