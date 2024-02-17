@@ -16,6 +16,9 @@ Changes since version 7.3:
   * Issues fixed:
 
   * Pull requests:
+     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
+     - Make avrintel.h an internal header file for libavrdude #1686
+     - Fix -Wcalloc-transposed-args warning #1680
 
   * Internals:
 

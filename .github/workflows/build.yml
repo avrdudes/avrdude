@@ -257,10 +257,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - { sys: mingw32, env: i686 }
           - { sys: mingw64, env: x86_64 }
           - { sys: ucrt64, env: ucrt-x86_64 }
-          - { sys: clang32, env: clang-i686 }
           - { sys: clang64, env: clang-x86_64 }
     steps:
       - uses: actions/checkout@v3

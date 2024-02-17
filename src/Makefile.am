@@ -103,7 +103,7 @@ libavrdude_a_SOURCES = \
 	avrftdi_tpi.c \
 	avrftdi_tpi.h \
 	avrintel.c \
-	avrintel.h \
+	libavrdude-avrintel.h \
 	avrpart.c \
 	bitbang.c \
 	bitbang.h \

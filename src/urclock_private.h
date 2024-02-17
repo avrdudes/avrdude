@@ -21,8 +21,6 @@
 #ifndef urclock_private_h__
 #define urclock_private_h__
 
-#include "avrintel.h"
-
 // EEPROM or flash cache for bytewise access
 typedef struct {
   int base, size;
