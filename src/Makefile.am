@@ -248,4 +248,4 @@ backup-avrdude-conf:
 			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
 	fi
 
-ACLOCAL_AMFLAGS = -I m4 -I build-helpers
+ACLOCAL_AMFLAGS = -I auto-m4 -I build-helpers
