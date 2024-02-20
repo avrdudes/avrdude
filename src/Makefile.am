@@ -34,8 +34,8 @@ lib_LTLIBRARIES =
 noinst_LIBRARIES =
 noinst_LTLIBRARIES =
 
-include include.mk
 include build-helpers/versioninfo.mk
+include include.mk
 
 # . lets build this directory before the following in SUBDIRS
 SUBDIRS = .
