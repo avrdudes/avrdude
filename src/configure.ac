@@ -63,6 +63,7 @@ AM_INIT_AUTOMAKE([
   1.14
   foreign
   subdir-objects
+  no-dist-built-sources
 ])
 
 AM_SILENT_RULES([yes])
