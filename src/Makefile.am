@@ -30,19 +30,30 @@
 # $Id$
 #
 
-EXTRA_DIST   = \
-	avrdude.1 \
-	avrdude.spec \
-	bootstrap
+BUILT_SOURCES =
+CLEANFILES =
+EXTRA_DIST =
+bin_PROGRAMS =
+lib_LIBRARIES =
+lib_LTLIBRARIES =
+noinst_LIBRARIES =
+noinst_LTLIBRARIES =
 
-CLEANFILES = \
-	config_gram.c \
-	config_gram.h \
-	lexer.c
+
+EXTRA_DIST += avrdude.spec
+EXTRA_DIST += bootstrap
+
 
 include build-helpers/versioninfo.mk
 
-BUILT_SOURCES = $(CLEANFILES)
+BUILT_SOURCES += config_gram.c
+CLEANFILES    += config_gram.c
+
+BUILT_SOURCES += config_gram.h
+CLEANFILES    += config_gram.h
+
+BUILT_SOURCES += lexer.c
+CLEANFILES    += lexer.c
 
 
 # . lets build this directory before the following in SUBDIRS
@@ -52,169 +63,181 @@ SUBDIRS += doc
 
 AM_YFLAGS    = -d
 
-avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
+bin_PROGRAMS     += avrdude
+noinst_LIBRARIES += libavrdude.a
+lib_LTLIBRARIES  += libavrdude.la
 
-libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
-libavrdude_la_CPPFLAGS = $(libavrdude_a_CPPFLAGS)
+common_cppflags        = '-DCONFIG_DIR="$(sysconfdir)"'
+avrdude_CPPFLAGS       = $(common_cppflags)
+libavrdude_a_CPPFLAGS  = $(common_cppflags)
+libavrdude_la_CPPFLAGS = $(common_cppflags)
 
-avrdude_CFLAGS   = @ENABLE_WARNINGS@
+common_cflags          = @ENABLE_WARNINGS@
+avrdude_CFLAGS         = $(common_cflags)
+libavrdude_a_CFLAGS    = $(common_cflags)
+libavrdude_la_CFLAGS   = $(common_cflags)
 
-libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
-libavrdude_la_CFLAGS  = $(libavrdude_a_CFLAGS)
+avrdude_LDADD  =
+avrdude_LDADD += $(top_builddir)/$(noinst_LIBRARIES)
+avrdude_LDADD += @LIBUSB_1_0@
+avrdude_LDADD += @LIBHIDAPI@
+avrdude_LDADD += @LIBUSB@
+avrdude_LDADD += @LIBFTDI1@
+avrdude_LDADD += @LIBFTDI@
+avrdude_LDADD += @LIBHID@
+avrdude_LDADD += @LIBELF@
+avrdude_LDADD += @LIBPTHREAD@
+avrdude_LDADD += @LIBSERIALPORT@
+avrdude_LDADD += -lm
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ -lm
+libavrdude_sources  =
+libavrdude_sources += arduino.c
+libavrdude_sources += arduino.h
+libavrdude_sources += avr.c
+libavrdude_sources += avr910.c
+libavrdude_sources += avr910.h
+libavrdude_sources += avrcache.c
+libavrdude_sources += avrdude.h
+libavrdude_sources += avrftdi.c
+libavrdude_sources += avrftdi.h
+libavrdude_sources += avrftdi_private.h
+libavrdude_sources += avrftdi_tpi.c
+libavrdude_sources += avrftdi_tpi.h
+libavrdude_sources += avrintel.c
+libavrdude_sources += avrpart.c
+libavrdude_sources += bitbang.c
+libavrdude_sources += bitbang.h
+libavrdude_sources += buspirate.c
+libavrdude_sources += buspirate.h
+libavrdude_sources += butterfly.c
+libavrdude_sources += butterfly.h
+libavrdude_sources += ch341a.c
+libavrdude_sources += ch341a.h
+libavrdude_sources += config.c
+libavrdude_sources += config.h
+libavrdude_sources += config_gram.y
+libavrdude_sources += confwin.c
+libavrdude_sources += crc16.c
+libavrdude_sources += crc16.h
+libavrdude_sources += dfu.c
+libavrdude_sources += dfu.h
+libavrdude_sources += dryrun.c
+libavrdude_sources += dryrun.h
+libavrdude_sources += dryrun_private.h
+libavrdude_sources += fileio.c
+libavrdude_sources += flip1.c
+libavrdude_sources += flip1.h
+libavrdude_sources += flip2.c
+libavrdude_sources += flip2.h
+libavrdude_sources += freebsd_ppi.h
+libavrdude_sources += ft245r.c
+libavrdude_sources += ft245r.h
+libavrdude_sources += jtag3.c
+libavrdude_sources += jtag3.h
+libavrdude_sources += jtag3_private.h
+libavrdude_sources += jtagmkI.c
+libavrdude_sources += jtagmkI.h
+libavrdude_sources += jtagmkII.c
+libavrdude_sources += jtagmkII.h
+libavrdude_sources += jtagmkII_private.h
+libavrdude_sources += jtagmkI_private.h
+libavrdude_sources += leds.c
+libavrdude_sources += lexer.l
+libavrdude_sources += libavrdude-avrintel.h
+libavrdude_sources += libavrdude.h
+libavrdude_sources += linux_ppdev.h
+libavrdude_sources += linuxgpio.c
+libavrdude_sources += linuxgpio.h
+libavrdude_sources += linuxspi.c
+libavrdude_sources += linuxspi.h
+libavrdude_sources += lists.c
+libavrdude_sources += micronucleus.c
+libavrdude_sources += micronucleus.h
+libavrdude_sources += par.c
+libavrdude_sources += par.h
+libavrdude_sources += pgm.c
+libavrdude_sources += pgm_type.c
+libavrdude_sources += pickit2.c
+libavrdude_sources += pickit2.h
+libavrdude_sources += pindefs.c
+libavrdude_sources += ppi.c
+libavrdude_sources += ppi.h
+libavrdude_sources += ppiwin.c
+libavrdude_sources += ser_avrdoper.c
+libavrdude_sources += ser_posix.c
+libavrdude_sources += ser_win32.c
+libavrdude_sources += serbb.h
+libavrdude_sources += serbb_posix.c
+libavrdude_sources += serbb_win32.c
+libavrdude_sources += serialadapter.c
+libavrdude_sources += serialupdi.c
+libavrdude_sources += serialupdi.h
+libavrdude_sources += solaris_ecpp.h
+libavrdude_sources += stk500.c
+libavrdude_sources += stk500.h
+libavrdude_sources += stk500_private.h
+libavrdude_sources += stk500generic.c
+libavrdude_sources += stk500generic.h
+libavrdude_sources += stk500v2.c
+libavrdude_sources += stk500v2.h
+libavrdude_sources += stk500v2_private.h
+libavrdude_sources += strutil.c
+libavrdude_sources += teensy.c
+libavrdude_sources += teensy.h
+libavrdude_sources += term.c
+libavrdude_sources += tpi.h
+libavrdude_sources += update.c
+libavrdude_sources += updi_constants.h
+libavrdude_sources += updi_link.c
+libavrdude_sources += updi_link.h
+libavrdude_sources += updi_nvm.c
+libavrdude_sources += updi_nvm.h
+libavrdude_sources += updi_nvm_v0.c
+libavrdude_sources += updi_nvm_v0.h
+libavrdude_sources += updi_nvm_v2.c
+libavrdude_sources += updi_nvm_v2.h
+libavrdude_sources += updi_nvm_v3.c
+libavrdude_sources += updi_nvm_v3.h
+libavrdude_sources += updi_nvm_v4.c
+libavrdude_sources += updi_nvm_v4.h
+libavrdude_sources += updi_nvm_v5.c
+libavrdude_sources += updi_nvm_v5.h
+libavrdude_sources += updi_readwrite.c
+libavrdude_sources += updi_readwrite.h
+libavrdude_sources += updi_state.c
+libavrdude_sources += updi_state.h
+libavrdude_sources += urclock.c
+libavrdude_sources += urclock.h
+libavrdude_sources += urclock_hash.h
+libavrdude_sources += urclock_private.h
+libavrdude_sources += usb_hidapi.c
+libavrdude_sources += usb_libusb.c
+libavrdude_sources += usbasp.c
+libavrdude_sources += usbasp.h
+libavrdude_sources += usbdevs.h
+libavrdude_sources += usbtiny.c
+libavrdude_sources += usbtiny.h
+libavrdude_sources += wiring.c
+libavrdude_sources += wiring.h
+libavrdude_sources += xbee.c
+libavrdude_sources += xbee.h
 
-bin_PROGRAMS = avrdude
-
-noinst_LIBRARIES = libavrdude.a
-lib_LTLIBRARIES = libavrdude.la
-
-libavrdude_a_SOURCES = \
-	config_gram.y \
-	lexer.l \
-	arduino.h \
-	arduino.c \
-	avr.c \
-	avr910.c \
-	avr910.h \
-	avrcache.c \
-	avrdude.h \
-	avrftdi.c \
-	avrftdi.h \
-	avrftdi_private.h \
-	avrftdi_tpi.c \
-	avrftdi_tpi.h \
-	avrintel.c \
-	libavrdude-avrintel.h \
-	avrpart.c \
-	bitbang.c \
-	bitbang.h \
-	buspirate.c \
-	buspirate.h \
-	butterfly.c \
-	butterfly.h \
-	ch341a.c \
-	ch341a.h \
-	config.c \
-	config.h \
-	confwin.c \
-	crc16.c \
-	crc16.h \
-	dfu.c \
-	dfu.h \
-	dryrun.c \
-	dryrun.h \
-	dryrun_private.h \
-	fileio.c \
-	flip1.c \
-	flip1.h \
-	flip2.c \
-	flip2.h \
-	freebsd_ppi.h \
-	ft245r.c \
-	ft245r.h \
-	jtagmkI.c \
-	jtagmkI.h \
-	jtagmkI_private.h \
-	jtagmkII.c \
-	jtagmkII.h \
-	jtagmkII_private.h \
-	jtag3.c \
-	jtag3.h \
-	jtag3_private.h \
-	leds.c \
-	libavrdude.h \
-	linuxgpio.c \
-	linuxgpio.h \
-	linuxspi.c \
-	linuxspi.h \
-	linux_ppdev.h \
-	lists.c \
-	micronucleus.c \
-	micronucleus.h \
-	par.c \
-	par.h \
-	pgm.c \
-	pgm_type.c \
-	pickit2.c \
-	pickit2.h \
-	pindefs.c \
-	ppi.c \
-	ppi.h \
-	ppiwin.c \
-	serbb.h \
-	serbb_posix.c \
-	serbb_win32.c \
-	ser_avrdoper.c \
-	ser_posix.c \
-	ser_win32.c \
-	serialadapter.c \
-	solaris_ecpp.h \
-	stk500.c \
-	stk500.h \
-	stk500_private.h \
-	stk500v2.c \
-	stk500v2.h \
-	stk500v2_private.h \
-	stk500generic.c \
-	stk500generic.h \
-	strutil.c \
-	teensy.c \
-	teensy.h \
-	term.c \
-	tpi.h \
-	usbasp.c \
-	usbasp.h \
-	serialupdi.c \
-	serialupdi.h \
-	updi_constants.h \
-	updi_link.c \
-	updi_link.h \
-	updi_state.c \
-	updi_state.h \
-	updi_readwrite.c \
-	updi_readwrite.h \
-	updi_nvm.c \
-	updi_nvm.h \
-	updi_nvm_v0.c \
-	updi_nvm_v0.h \
-	updi_nvm_v2.c \
-	updi_nvm_v2.h \
-	updi_nvm_v3.c \
-	updi_nvm_v3.h \
-	updi_nvm_v4.c \
-	updi_nvm_v4.h \
-	updi_nvm_v5.c \
-	updi_nvm_v5.h \
-	urclock.c \
-	urclock.h \
-	urclock_hash.h \
-	urclock_private.h \
-	usbdevs.h \
-	usb_hidapi.c \
-	usb_libusb.c \
-	usbtiny.h \
-	usbtiny.c \
-	update.c \
-	wiring.h \
-	wiring.c \
-	xbee.h \
-	xbee.c
-libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
+libavrdude_a_SOURCES  = $(libavrdude_sources)
+libavrdude_la_SOURCES = $(libavrdude_sources)
 libavrdude_la_LDFLAGS = -version-info 2:0
 
 include_HEADERS = libavrdude.h
 include_HEADERS += libavrdude-avrintel.h
 
-avrdude_SOURCES = \
-	main.c \
-	whereami.c \
-	whereami.h \
-	developer_opts.c \
-	developer_opts.h \
-	developer_opts_private.h
+avrdude_SOURCES  =
+avrdude_SOURCES += main.c
+avrdude_SOURCES += whereami.c
+avrdude_SOURCES += whereami.h
+avrdude_SOURCES += developer_opts.c
+avrdude_SOURCES += developer_opts.h
+avrdude_SOURCES += developer_opts_private.h
 
-man_MANS = avrdude.1
+dist_man_MANS = avrdude.1
 
 sysconf_DATA = avrdude.conf
 
