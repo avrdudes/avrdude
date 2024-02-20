@@ -27,10 +27,10 @@ info_TEXINFOS        = %reldir%/avrdude.texi
 CLEANFILES          += %reldir%/avrdude.info
 %C%_avrdude_TEXINFOS =
 
-AM_MAKEINFOFLAGS     += -I$(builddir)/%reldir%
-AM_MAKEINFOHTMLFLAGS += -I$(builddir)/%reldir%
-AM_MAKEINFOFLAGS     += -I$(srcdir)/%reldir%
-AM_MAKEINFOHTMLFLAGS += -I$(srcdir)/%reldir%
+# AM_MAKEINFOFLAGS     += -I$(builddir)/%reldir%
+# AM_MAKEINFOHTMLFLAGS += -I$(builddir)/%reldir%
+# AM_MAKEINFOFLAGS     += -I$(srcdir)/%reldir%
+# AM_MAKEINFOHTMLFLAGS += -I$(srcdir)/%reldir%
 
 AM_MAKEINFOHTMLFLAGS += --split=node
 
