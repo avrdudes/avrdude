@@ -1,4 +1,6 @@
 # -*- makefile-automake -*-
+#
+# FIXME: Move top-level include.mk into Makefile.am
 
 EXTRA_DIST += .editorconfig
 EXTRA_DIST += CMakeLists.txt
@@ -6,6 +8,12 @@ EXTRA_DIST += CMakeSettings.json
 EXTRA_DIST += bootstrap
 EXTRA_DIST += autotools-build.sh
 EXTRA_DIST += build.sh
+
+EXTRA_DIST += AUTHORS
+EXTRA_DIST += COPYING
+EXTRA_DIST += INSTALL
+EXTRA_DIST += NEWS
+EXTRA_DIST += README.md
 
 # Ship spec file to make "rpmbuild -ta avrdude-*.tar.*" command work
 EXTRA_DIST += avrdude.spec
