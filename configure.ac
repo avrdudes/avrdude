@@ -60,6 +60,8 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE([
+  -Wall
+  -Werror
   1.14
   dist-xz
   foreign
