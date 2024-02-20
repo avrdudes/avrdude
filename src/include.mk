@@ -18,10 +18,6 @@
 #
 
 
-EXTRA_DIST += %reldir%/avrdude.spec
-EXTRA_DIST += %reldir%/bootstrap
-
-
 BUILT_SOURCES += %reldir%/config_gram.c
 CLEANFILES    += %reldir%/config_gram.c
 
@@ -34,14 +30,15 @@ CLEANFILES    += %reldir%/lexer.c
 AM_YFLAGS    = -d
 
 avrdude_conf      = %reldir%/avrdude.conf
-# TODO: When moving configure.ac one level up, replace . by %reldir%
-avrdude_exe       = ./avrdude$(EXEEXT)
+avrdude_exe       = %reldir%/avrdude$(EXEEXT)
 
 bin_PROGRAMS     += %reldir%/avrdude
 noinst_LIBRARIES += %reldir%/libavrdude.a
 lib_LTLIBRARIES  += %reldir%/libavrdude.la
 
-common_cppflags            = '-DCONFIG_DIR="$(sysconfdir)"'
+common_cppflags            =
+common_cppflags           += -I$(srcdir)/%reldir%
+common_cppflags           += '-DCONFIG_DIR="$(sysconfdir)"'
 %C%_avrdude_CPPFLAGS       = $(common_cppflags)
 %C%_libavrdude_a_CPPFLAGS  = $(common_cppflags)
 %C%_libavrdude_la_CPPFLAGS = $(common_cppflags)
@@ -212,3 +209,33 @@ include_HEADERS += %reldir%/libavrdude-avrintel.h
 %C%_avrdude_SOURCES += %reldir%/developer_opts_private.h
 
 dist_man_MANS = %reldir%/avrdude.1
+
+EXTRA_DIST += %reldir%/CMakeLists.txt
+EXTRA_DIST += %reldir%/cmake_config.h.in
+EXTRA_DIST += %reldir%/configure.cmake
+EXTRA_DIST += %reldir%/windows.rc.in
+EXTRA_DIST += %reldir%/msvc/getopt.c
+EXTRA_DIST += %reldir%/msvc/getopt.h
+EXTRA_DIST += %reldir%/msvc/gettimeofday.c
+EXTRA_DIST += %reldir%/msvc/msvc_compat.h
+EXTRA_DIST += %reldir%/msvc/readline.cpp
+EXTRA_DIST += %reldir%/msvc/readline/history.h
+EXTRA_DIST += %reldir%/msvc/readline/readline.h
+EXTRA_DIST += %reldir%/msvc/sys/time.h
+EXTRA_DIST += %reldir%/msvc/unistd.h
+EXTRA_DIST += %reldir%/msvc/usleep.cpp
+
+sysconf_DATA = %reldir%/avrdude.conf
+
+install-exec-local: backup-avrdude-conf
+
+distclean-local:
+	rm -f %reldir%/avrdude.conf
+
+# This will get run before the config file is installed.
+backup-avrdude-conf:
+	@echo "Backing up avrdude.conf in ${DESTDIR}${sysconfdir}"
+	@if test -e ${DESTDIR}${sysconfdir}/avrdude.conf; then \
+		cp -pR ${DESTDIR}${sysconfdir}/avrdude.conf \
+			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
+	fi

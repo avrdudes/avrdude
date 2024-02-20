@@ -1,4 +1,3 @@
-#
 # avrdude - A Downloader/Uploader for AVR device programmers
 # Copyright (C) 2003, 2004  Theodore A. Roth  <troth@openavr.org>
 #
@@ -38,25 +37,12 @@ noinst_LTLIBRARIES =
 
 include build-helpers/versioninfo.mk
 include include.mk
-include doc/include.mk
+include src/include.mk
+include src/doc/include.mk
+include tools/include.mk
 
 all-local: html pdf ps
 
 install-data-local: install-html install-pdf install-ps
-
-sysconf_DATA = avrdude.conf
-
-install-exec-local: backup-avrdude-conf
-
-distclean-local:
-	rm -f avrdude.conf
-
-# This will get run before the config file is installed.
-backup-avrdude-conf:
-	@echo "Backing up avrdude.conf in ${DESTDIR}${sysconfdir}"
-	@if test -e ${DESTDIR}${sysconfdir}/avrdude.conf; then \
-		cp -pR ${DESTDIR}${sysconfdir}/avrdude.conf \
-			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
-	fi
 
 ACLOCAL_AMFLAGS = -I auto-m4 -I build-helpers

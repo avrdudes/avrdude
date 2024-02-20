@@ -50,9 +50,9 @@ AC_INIT([avrdude],
         m4_defn([versioninfo_AVRDUDE_PACKAGE_VERSION]),
         [https://github.com/avrdudes/avrdude/issues])
 
-AC_CONFIG_SRCDIR([main.c])
+AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_AUX_DIR([auto-aux])
-AC_CONFIG_HEADERS([ac_cfg.h])
+AC_CONFIG_HEADERS([src/ac_cfg.h])
 AC_CONFIG_MACRO_DIR([auto-m4])
 
 AC_CANONICAL_BUILD
@@ -61,11 +61,18 @@ AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE([
   1.14
+  dist-xz
   foreign
-  subdir-objects
-  no-dist-built-sources
   info-in-builddir
+  no-dist-built-sources
+  no-dist-gzip
+  subdir-objects
+  tar-ustar
 ])
+dnl filename-length-max=99
+dnl tar-v7      filename length 99 char limit
+dnl tar-ustar   old POSIX tar, allows filename lengths > 99 chars
+dnl tar-pax     new POSIX tar
 
 AM_SILENT_RULES([yes])
 
@@ -619,12 +626,9 @@ case $target in
 esac
 
 AC_CONFIG_FILES([
-       avrdude.spec
-       Makefile
-])
-
-AC_CONFIG_FILES([
        GNUmakefile
+       Makefile
+       avrdude.spec
 ])
 
 
@@ -635,8 +639,8 @@ AC_CONFIG_FILES([
 # based on previous configuration results, thereby producing the final
 # avrdude.conf file.
 
-AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
-		[sed $confsubst avrdude.conf.tmp > avrdude.conf],
+AC_CONFIG_FILES([src/avrdude.conf.tmp:src/avrdude.conf.in],
+		[sed $confsubst src/avrdude.conf.tmp > src/avrdude.conf],
 		[confsubst="$confsubst"])
 
 AC_OUTPUT

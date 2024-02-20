@@ -17,6 +17,8 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
+EXTRA_DIST           += %reldir%/CMakeLists.txt
+
 EXTRA_DIST          += %reldir%/avrdude.texi
 info_TEXINFOS        = %reldir%/avrdude.texi
 CLEANFILES          += %reldir%/avrdude.info

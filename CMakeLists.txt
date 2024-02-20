@@ -306,6 +306,8 @@ if(BUILD_DOC)
     add_subdirectory(src/doc)
 endif()
 
+configure_file(avrdude.spec.in avrdude.spec)
+
 # =====================================
 # Configuration
 # =====================================

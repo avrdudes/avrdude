@@ -74,12 +74,12 @@ fi
 
 
 # This must be part of a git checkout or an expanded github snapshot tarball.
-test -f "$top_srcdir/../CMakeLists.txt" || \
+test -f "$top_srcdir/CMakeLists.txt" || \
     ret_error "top-level avrdude CMakeLists.txt file not found"
 
 
 # Find and parse "project(...)" line in top-level CmakeLists.txt file
-if PROJECT_VERSION="$(${SED-sed} -n 's/project(avrdude[[:space:]]\{1,\}VERSION[[:space:]]\{1,\}\([0-9\.]\{1,\}\)[[:space:]]\{1,\}.*/\1/p' "$top_srcdir/../CMakeLists.txt")"; then
+if PROJECT_VERSION="$(${SED-sed} -n 's/project(avrdude[[:space:]]\{1,\}VERSION[[:space:]]\{1,\}\([0-9\.]\{1,\}\)[[:space:]]\{1,\}.*/\1/p' "$top_srcdir/CMakeLists.txt")"; then
     :
 else
     ret_error "Error parsing top-level avrdude 'CMakeLists.txt'."
@@ -98,7 +98,7 @@ BEGIN                                            { v=0; }
 (v == 1) && /^[[:space:]]+SOVERSION[[:space:]]+/ { soversion=$2; }
 END                                              { print version;
                                                    print soversion; }
-' < "$top_srcdir/CMakeLists.txt")"
+' < "$top_srcdir/src/CMakeLists.txt")"
 
 
 # Extract the libavrdude VERSION
@@ -119,9 +119,9 @@ test -n "$CMAKE_LIBAVRDUDE_SOVERSION" || \
     ret_error "Cannot find library SOVERSION in library 'CMakeLists.txt'"
 
 
-# If GIT_DIR is set, use it. If not, try "$top_srcdir/../.git".
+# If GIT_DIR is set, use it. If not, try "$top_srcdir/.git".
 test -n "$GIT_DIR" || { \
-    GIT_DIR="$top_srcdir/../.git"; \
+    GIT_DIR="$top_srcdir/.git"; \
     export GIT_DIR; \
 }
 
