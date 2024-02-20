@@ -65,6 +65,7 @@ if HAVE_DIFF
 	     rm -rf "$$i"; \
 	   done); \
 	  export LC_ALL=C; \
+	  echo "diff -u GIT-ARCHIVE DIST-ARCHIVE"; \
 	  diff -u <(cd git-archive/ && find $(distdir) | sort) <(cd dist-archive/ && find $(distdir) | sort); \
 	  diff -ruN git-archive/$(distdir)/ dist-archive/$(distdir)/; \
 	fi
