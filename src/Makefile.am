@@ -25,6 +25,8 @@
 #
 # make V=1
 
+AM_MAKEINFOFLAGS =
+AM_MAKEINFOHTMLFLAGS =
 BUILT_SOURCES =
 CLEANFILES =
 EXTRA_DIST =
@@ -36,11 +38,11 @@ noinst_LTLIBRARIES =
 
 include build-helpers/versioninfo.mk
 include include.mk
+include doc/include.mk
 
-# . lets build this directory before the following in SUBDIRS
-SUBDIRS = .
-# doc comes here, and we want to use the built avrdude to generate the parts list
-SUBDIRS += doc
+all-local: html pdf ps
+
+install-data-local: install-html install-pdf install-ps
 
 sysconf_DATA = avrdude.conf
 

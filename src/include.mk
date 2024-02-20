@@ -33,6 +33,10 @@ CLEANFILES    += %reldir%/lexer.c
 
 AM_YFLAGS    = -d
 
+avrdude_conf      = %reldir%/avrdude.conf
+# TODO: When moving configure.ac one level up, replace . by %reldir%
+avrdude_exe       = ./avrdude$(EXEEXT)
+
 bin_PROGRAMS     += %reldir%/avrdude
 noinst_LIBRARIES += %reldir%/libavrdude.a
 lib_LTLIBRARIES  += %reldir%/libavrdude.la

@@ -619,7 +619,6 @@ case $target in
 esac
 
 AC_CONFIG_FILES([
-       doc/Makefile
        avrdude.spec
        Makefile
 ])
