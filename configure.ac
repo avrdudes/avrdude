@@ -110,6 +110,10 @@ AC_PROG_LEX([noyywrap])
 AM_PROG_AR
 LT_INIT()
 
+
+AM_CONDITIONAL([CROSS_COMPILING], [test "x$cross_compiling" = xyes])
+
+
 AH_TEMPLATE([HAVE_YYLEX_DESTROY],
             [Define if lex/flex has yylex_destroy])
 # flex should have this
