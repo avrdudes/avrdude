@@ -64,6 +64,7 @@ AM_INIT_AUTOMAKE([
   foreign
   subdir-objects
   no-dist-built-sources
+  info-in-builddir
 ])
 
 AM_SILENT_RULES([yes])
@@ -369,23 +370,24 @@ AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
 
 # Checks for misc stuff.
 
-AC_ARG_ENABLE(
-	[versioned-doc],
-	AS_HELP_STRING([--enable-versioned-doc],
-	               [install docs in directory with version name (default)]),
-	[case "${enableval}" in
-		yes) versioned_doc=yes ;;
-		no)  versioned_doc=no ;;
-		*)   AC_MSG_ERROR([bad value ${enableval} for versioned-doc option]) ;;
-		esac],
-	[versioned_doc=yes])
+dnl FIXME: Reactive --enable-versioned-doc for compatibility, but use docdir.
+dnl AC_ARG_ENABLE(
+dnl 	[versioned-doc],
+dnl 	AS_HELP_STRING([--enable-versioned-doc],
+dnl 	               [install docs in directory with version name (default)]),
+dnl 	[case "${enableval}" in
+dnl 		yes) versioned_doc=yes ;;
+dnl 		no)  versioned_doc=no ;;
+dnl 		*)   AC_MSG_ERROR([bad value ${enableval} for versioned-doc option]) ;;
+dnl 		esac],
+dnl 	[versioned_doc=yes])
 
-if test "x$versioned_doc" = "xyes"; then
-    DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
-else
-    DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
-fi
-AC_SUBST([DOC_INST_DIR])
+dnl if test "x$versioned_doc" = "xyes"; then
+dnl     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
+dnl else
+dnl     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
+dnl fi
+dnl AC_SUBST([DOC_INST_DIR])
 
 AC_ARG_ENABLE(
 	[doc],
@@ -397,6 +399,17 @@ AC_ARG_ENABLE(
 		*)   AC_MSG_ERROR([bad value ${enableval} for disable-doc option]) ;;
 		esac],
 	[enabled_doc=no])
+
+dnl FIXME: Do we still need this?
+dnl AC_SUBST([DIST_SUBDIRS_AC], [doc])
+
+dnl if test "x$enabled_doc" = xyes; then
+dnl 	SUBDIRS_AC='doc'
+dnl else
+dnl 	SUBDIRS_AC=''
+dnl fi
+dnl AC_SUBST([SUBDIRS_AC])
+
 
 AC_ARG_ENABLE(
 	[parport],
@@ -430,15 +443,6 @@ AC_ARG_ENABLE(
 		*)   AC_MSG_ERROR([bad value ${enableval} for enable-linuxspi option]) ;;
 		esac],
 	[enabled_linuxspi=no])
-
-AC_SUBST([DIST_SUBDIRS_AC], [doc])
-
-if test "x$enabled_doc" = xyes; then
-	SUBDIRS_AC='doc'
-else
-	SUBDIRS_AC=''
-fi
-AC_SUBST([SUBDIRS_AC])
 
 
 # Find the parallel serial device files based on target system
