@@ -78,6 +78,7 @@ libavrdude_sources += %reldir%/avrintel.c
 libavrdude_sources += %reldir%/avrpart.c
 libavrdude_sources += %reldir%/bitbang.c
 libavrdude_sources += %reldir%/bitbang.h
+libavrdude_sources += %reldir%/buildinfo.c
 libavrdude_sources += %reldir%/buspirate.c
 libavrdude_sources += %reldir%/buspirate.h
 libavrdude_sources += %reldir%/butterfly.c
