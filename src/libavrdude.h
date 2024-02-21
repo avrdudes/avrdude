@@ -1540,8 +1540,8 @@ void terminal_setup_update_progress(void);
 extern "C" {
 #endif
 
-void win_sys_config_set(char sys_config[PATH_MAX]);
-void win_usr_config_set(char usr_config[PATH_MAX]);
+void win_sys_config_set(char *sys_config);
+void win_usr_config_set(char *usr_config);
 
 #ifdef __cplusplus
 }
