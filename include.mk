@@ -53,7 +53,7 @@ distcheck-hook:
 if HAVE_GIT
 if HAVE_DIFF
 	set -ex; if test -d "$(top_srcdir)/.git/refs/heads"; then \
-	  $(GIT) archive --prefix=$(distdir)/ -o $(distdir).tar.gz HEAD; \
+	  (cd "$(srcdir)" && $(GIT) archive --prefix=$(distdir)/ -o $(abs_builddir)/$(distdir).tar.gz HEAD; ); \
 	  rm -rf git-archive dist-archive; \
 	  mkdir -p git-archive dist-archive; \
 	  (cd git-archive && tar xf ../$(distdir).tar.gz); \
