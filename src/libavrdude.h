@@ -1184,6 +1184,8 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 
+const char *const *avr_get_buildinfo(void);
+
 #ifdef __cplusplus
 }
 #endif
