@@ -23,8 +23,9 @@ EXTRA_DIST          += %reldir%/programmer_types.cmake
 EXTRA_DIST          += %reldir%/programmers.cmake
 
 EXTRA_DIST          += %reldir%/avrdude.texi
-info_TEXINFOS        = %reldir%/avrdude.texi
 CLEANFILES          += %reldir%/avrdude.info
+# TODO: Make info, pdf, ps, html conditional on tool availability.
+info_TEXINFOS        = %reldir%/avrdude.texi
 %C%_avrdude_TEXINFOS =
 
 # AM_MAKEINFOFLAGS     += -I$(builddir)/%reldir%
