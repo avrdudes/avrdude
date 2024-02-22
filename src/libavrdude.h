@@ -866,7 +866,6 @@ typedef struct {                // Memory cache for a subset of cached pages
 #define OFF                  0 // Many contexts: reset, power, LEDs, ...
 #define ON                   1 // Many contexts
 
-#define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
 
 typedef enum {
@@ -945,7 +944,7 @@ typedef struct programmer_t {
   // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
   char type[PGM_TYPELEN];
-  char port[PGM_PORTLEN];
+  const char *port;
   unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
   exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
   exit_reset_t exit_reset;
