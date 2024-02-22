@@ -279,7 +279,7 @@ add_library(libavrdude
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h"
-    VERSION 1.0.0
+    VERSION 1.0.1
     SOVERSION 1
     )
 
