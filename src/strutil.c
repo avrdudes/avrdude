@@ -384,6 +384,9 @@ char *str_utoa(unsigned n, char *buf, int base) {
 char *str_endnumber(const char *str) {
   const char *ret = NULL;
 
+  if(!str)
+    return NULL;
+
   for(const char *end = str + strlen(str)-1; end >= str; end--)
     if(isdigit((unsigned char) *end))
       ret = end;
