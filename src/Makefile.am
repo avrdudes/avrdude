@@ -222,6 +222,7 @@ libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
 libavrdude_la_LDFLAGS = -version-info 1:0
 
 include_HEADERS = libavrdude.h
+include_HEADERS += libavrdude-avrintel.h
 
 avrdude_SOURCES = \
 	main.c \
