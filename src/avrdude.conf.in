@@ -22771,9 +22771,9 @@ part # .avrdx
 # AVR32DA28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32da28
+part parent ".avrdx" # 32da28
     desc                   = "AVR32DA28";
-    id                     = "avr32da28";
+    id                     = "32da28";
     variants               =
         "AVR32DA28:       SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DA28-E/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -22823,9 +22823,9 @@ part parent ".avrdx" # avr32da28
 # AVR32DA32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32da32
+part parent ".avrdx" # 32da32
     desc                   = "AVR32DA32";
-    id                     = "avr32da32";
+    id                     = "32da32";
     variants               =
         "AVR32DA32:        QFN32,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DA32-E/PT:   TQFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -22873,9 +22873,9 @@ part parent ".avrdx" # avr32da32
 # AVR32DA48
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32da48
+part parent ".avrdx" # 32da48
     desc                   = "AVR32DA48";
-    id                     = "avr32da48";
+    id                     = "32da48";
     variants               =
         "AVR32DA48:        QFN48,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DA48-E/6LX:  VQFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -22923,9 +22923,9 @@ part parent ".avrdx" # avr32da48
 # AVR64DA28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64da28
+part parent ".avrdx" # 64da28
     desc                   = "AVR64DA28";
-    id                     = "avr64da28";
+    id                     = "64da28";
     variants               =
         "AVR64DA28:       SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DA28-E/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -22975,9 +22975,9 @@ part parent ".avrdx" # avr64da28
 # AVR64DA32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64da32
+part parent ".avrdx" # 64da32
     desc                   = "AVR64DA32";
-    id                     = "avr64da32";
+    id                     = "64da32";
     variants               =
         "AVR64DA32:        QFN32,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DA32-E/PT:   TQFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23025,9 +23025,9 @@ part parent ".avrdx" # avr64da32
 # AVR64DA48
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64da48
+part parent ".avrdx" # 64da48
     desc                   = "AVR64DA48";
-    id                     = "avr64da48";
+    id                     = "64da48";
     variants               =
         "AVR64DA48:        QFN48,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DA48-E/6LX:  VQFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23075,9 +23075,9 @@ part parent ".avrdx" # avr64da48
 # AVR64DA64
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64da64
+part parent ".avrdx" # 64da64
     desc                   = "AVR64DA64";
-    id                     = "avr64da64";
+    id                     = "64da64";
     variants               =
         "AVR64DA64:       QFN64,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DA64-E/MR:  QFN64,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23125,9 +23125,9 @@ part parent ".avrdx" # avr64da64
 # AVR128DA28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128da28
+part parent ".avrdx" # 128da28
     desc                   = "AVR128DA28";
-    id                     = "avr128da28";
+    id                     = "128da28";
     variants               =
         "AVR128DA28:       SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DA28-E/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23177,9 +23177,9 @@ part parent ".avrdx" # avr128da28
 # AVR128DA32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128da32
+part parent ".avrdx" # 128da32
     desc                   = "AVR128DA32";
-    id                     = "avr128da32";
+    id                     = "128da32";
     variants               =
         "AVR128DA32:        QFN32,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DA32-E/PT:   TQFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23227,9 +23227,9 @@ part parent ".avrdx" # avr128da32
 # AVR128DA48
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128da48
+part parent ".avrdx" # 128da48
     desc                   = "AVR128DA48";
-    id                     = "avr128da48";
+    id                     = "128da48";
     variants               =
         "AVR128DA48:        QFN48,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DA48-E/6LX:  VQFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23277,9 +23277,9 @@ part parent ".avrdx" # avr128da48
 # AVR128DA64
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128da64
+part parent ".avrdx" # 128da64
     desc                   = "AVR128DA64";
-    id                     = "avr128da64";
+    id                     = "128da64";
     variants               =
         "AVR128DA64:       QFN64,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DA64-E/MR:  QFN64,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23327,9 +23327,9 @@ part parent ".avrdx" # avr128da64
 # AVR32DB28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32db28
+part parent ".avrdx" # 32db28
     desc                   = "AVR32DB28";
-    id                     = "avr32db28";
+    id                     = "32db28";
     variants               =
         "AVR32DB28:       SOIC28,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DB28-E/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23373,9 +23373,9 @@ part parent ".avrdx" # avr32db28
 # AVR32DB32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32db32
+part parent ".avrdx" # 32db32
     desc                   = "AVR32DB32";
-    id                     = "avr32db32";
+    id                     = "32db32";
     variants               =
         "AVR32DB32:        QFN32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DB32-E/PT:   TQFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23417,9 +23417,9 @@ part parent ".avrdx" # avr32db32
 # AVR32DB48
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32db48
+part parent ".avrdx" # 32db48
     desc                   = "AVR32DB48";
-    id                     = "avr32db48";
+    id                     = "32db48";
     variants               =
         "AVR32DB48:        QFN48,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DB48-E/6LX:  VQFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23461,9 +23461,9 @@ part parent ".avrdx" # avr32db48
 # AVR64DB28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64db28
+part parent ".avrdx" # 64db28
     desc                   = "AVR64DB28";
-    id                     = "avr64db28";
+    id                     = "64db28";
     variants               =
         "AVR64DB28:       SOIC28,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DB28-E/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23507,9 +23507,9 @@ part parent ".avrdx" # avr64db28
 # AVR64DB32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64db32
+part parent ".avrdx" # 64db32
     desc                   = "AVR64DB32";
-    id                     = "avr64db32";
+    id                     = "64db32";
     variants               =
         "AVR64DB32:        QFN32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DB32-E/PT:   TQFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23551,9 +23551,9 @@ part parent ".avrdx" # avr64db32
 # AVR64DB48
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64db48
+part parent ".avrdx" # 64db48
     desc                   = "AVR64DB48";
-    id                     = "avr64db48";
+    id                     = "64db48";
     variants               =
         "AVR64DB48:        QFN48,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DB48-E/6LX:  VQFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23595,9 +23595,9 @@ part parent ".avrdx" # avr64db48
 # AVR64DB64
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64db64
+part parent ".avrdx" # 64db64
     desc                   = "AVR64DB64";
-    id                     = "avr64db64";
+    id                     = "64db64";
     variants               =
         "AVR64DB64:       QFN64,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DB64-E/MR:  QFN64,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23639,9 +23639,9 @@ part parent ".avrdx" # avr64db64
 # AVR128DB28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128db28
+part parent ".avrdx" # 128db28
     desc                   = "AVR128DB28";
-    id                     = "avr128db28";
+    id                     = "128db28";
     variants               =
         "AVR128DB28:       SOIC28,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DB28-E/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23685,9 +23685,9 @@ part parent ".avrdx" # avr128db28
 # AVR128DB32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128db32
+part parent ".avrdx" # 128db32
     desc                   = "AVR128DB32";
-    id                     = "avr128db32";
+    id                     = "128db32";
     variants               =
         "AVR128DB32:        QFN32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DB32-E/PT:   TQFP32, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23729,9 +23729,9 @@ part parent ".avrdx" # avr128db32
 # AVR128DB48
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128db48
+part parent ".avrdx" # 128db48
     desc                   = "AVR128DB48";
-    id                     = "avr128db48";
+    id                     = "128db48";
     variants               =
         "AVR128DB48:        QFN48,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DB48-E/6LX:  VQFN48, Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23773,9 +23773,9 @@ part parent ".avrdx" # avr128db48
 # AVR128DB64
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr128db64
+part parent ".avrdx" # 128db64
     desc                   = "AVR128DB64";
-    id                     = "avr128db64";
+    id                     = "128db64";
     variants               =
         "AVR128DB64:       QFN64,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR128DB64-E/MR:  QFN64,  Fmax=24 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
@@ -23817,9 +23817,9 @@ part parent ".avrdx" # avr128db64
 # AVR16DD14
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr16dd14
+part parent ".avrdx" # 16dd14
     desc                   = "AVR16DD14";
-    id                     = "avr16dd14";
+    id                     = "16dd14";
     variants               =
         "AVR16DD14:      SOIC14, Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR16DD14-I/SL: SOIC14, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
@@ -23860,9 +23860,9 @@ part parent ".avrdx" # avr16dd14
 # AVR16DD20
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr16dd20
+part parent ".avrdx" # 16dd20
     desc                   = "AVR16DD20";
-    id                     = "avr16dd20";
+    id                     = "16dd20";
     variants               =
         "AVR16DD20:       QFN20,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR16DD20-I/REB: VQFN20, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -23904,9 +23904,9 @@ part parent ".avrdx" # avr16dd20
 # AVR16DD28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr16dd28
+part parent ".avrdx" # 16dd28
     desc                   = "AVR16DD28";
-    id                     = "avr16dd28";
+    id                     = "16dd28";
     variants               =
         "AVR16DD28:       SOIC28,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR16DD28-I/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -23950,9 +23950,9 @@ part parent ".avrdx" # avr16dd28
 # AVR16DD32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr16dd32
+part parent ".avrdx" # 16dd32
     desc                   = "AVR16DD32";
-    id                     = "avr16dd32";
+    id                     = "16dd32";
     variants               =
         "AVR16DD32:       QFN32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR16DD32-I/PT:  TQFP32, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -23994,9 +23994,9 @@ part parent ".avrdx" # avr16dd32
 # AVR32DD14
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32dd14
+part parent ".avrdx" # 32dd14
     desc                   = "AVR32DD14";
-    id                     = "avr32dd14";
+    id                     = "32dd14";
     variants               =
         "AVR32DD14:      SOIC14, Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DD14-I/SL: SOIC14, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
@@ -24037,9 +24037,9 @@ part parent ".avrdx" # avr32dd14
 # AVR32DD20
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32dd20
+part parent ".avrdx" # 32dd20
     desc                   = "AVR32DD20";
-    id                     = "avr32dd20";
+    id                     = "32dd20";
     variants               =
         "AVR32DD20:       QFN20,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DD20-I/REB: VQFN20, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24081,9 +24081,9 @@ part parent ".avrdx" # avr32dd20
 # AVR32DD28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32dd28
+part parent ".avrdx" # 32dd28
     desc                   = "AVR32DD28";
-    id                     = "avr32dd28";
+    id                     = "32dd28";
     variants               =
         "AVR32DD28:       SOIC28,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DD28-I/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24127,9 +24127,9 @@ part parent ".avrdx" # avr32dd28
 # AVR32DD32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr32dd32
+part parent ".avrdx" # 32dd32
     desc                   = "AVR32DD32";
-    id                     = "avr32dd32";
+    id                     = "32dd32";
     variants               =
         "AVR32DD32:       QFN32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR32DD32-I/PT:  TQFP32, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24171,9 +24171,9 @@ part parent ".avrdx" # avr32dd32
 # AVR64DD14
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64dd14
+part parent ".avrdx" # 64dd14
     desc                   = "AVR64DD14";
-    id                     = "avr64dd14";
+    id                     = "64dd14";
     variants               =
         "AVR64DD14:      SOIC14, Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DD14-I/SL: SOIC14, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
@@ -24214,9 +24214,9 @@ part parent ".avrdx" # avr64dd14
 # AVR64DD20
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64dd20
+part parent ".avrdx" # 64dd20
     desc                   = "AVR64DD20";
-    id                     = "avr64dd20";
+    id                     = "64dd20";
     variants               =
         "AVR64DD20:      QFN20,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DD20-I/SO: SOIC20, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
@@ -24257,9 +24257,9 @@ part parent ".avrdx" # avr64dd20
 # AVR64DD28
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64dd28
+part parent ".avrdx" # 64dd28
     desc                   = "AVR64DD28";
-    id                     = "avr64dd28";
+    id                     = "64dd28";
     variants               =
         "AVR64DD28:       SOIC28,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DD28-I/SO:  SOIC28,  Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24303,9 +24303,9 @@ part parent ".avrdx" # avr64dd28
 # AVR64DD32
 #------------------------------------------------------------
 
-part parent ".avrdx" # avr64dd32
+part parent ".avrdx" # 64dd32
     desc                   = "AVR64DD32";
-    id                     = "avr64dd32";
+    id                     = "64dd32";
     variants               =
         "AVR64DD32:       QFN32,  Fmax=32 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DD32-I/PT:  TQFP32, Fmax=24 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24347,9 +24347,9 @@ part parent ".avrdx" # avr64dd32
 # AVR64DU28
 #------------------------------------------------------------
 
-part parent "avr64dd28" # avr64du28
+part parent "64dd28" # 64du28
     desc                   = "AVR64DU28";
-    id                     = "avr64du28";
+    id                     = "64du28";
     variants               =
         "AVR64DU28-SSOP/SPDIP: DIP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64DU28-VQFN:       QFP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
@@ -24411,9 +24411,9 @@ part parent "avr64dd28" # avr64du28
 # AVR64DU32
 #------------------------------------------------------------
 
-part parent "avr64du28" # avr64du32
+part parent "64du28" # 64du32
     desc                   = "AVR64DU32";
-    id                     = "avr64du32";
+    id                     = "64du32";
     variants               =
         "AVR64DU32-VQFN/TQFP: QFP32, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 385;
@@ -24456,9 +24456,9 @@ part parent ".avrdx" # .avrex
 # AVR8EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # avr8ea28
+part parent ".avrex" # 8ea28
     desc                   = "AVR8EA28";
-    id                     = "avr8ea28";
+    id                     = "8ea28";
     mcuid                  = 327;
     signature              = 0x1e 0x93 0x2c;
 
@@ -24512,9 +24512,9 @@ part parent ".avrex" # avr8ea28
 # AVR8EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # avr8ea32
+part parent ".avrex" # 8ea32
     desc                   = "AVR8EA32";
-    id                     = "avr8ea32";
+    id                     = "8ea32";
     mcuid                  = 328;
     signature              = 0x1e 0x93 0x2b;
 
@@ -24568,9 +24568,9 @@ part parent ".avrex" # avr8ea32
 # AVR16EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # avr16ea28
+part parent ".avrex" # 16ea28
     desc                   = "AVR16EA28";
-    id                     = "avr16ea28";
+    id                     = "16ea28";
     variants               =
         "AVR16EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 332;
@@ -24605,9 +24605,9 @@ part parent ".avrex" # avr16ea28
 # AVR16EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # avr16ea32
+part parent ".avrex" # 16ea32
     desc                   = "AVR16EA32";
-    id                     = "avr16ea32";
+    id                     = "16ea32";
     variants               =
         "AVR16EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 334;
@@ -24642,9 +24642,9 @@ part parent ".avrex" # avr16ea32
 # AVR16EA48
 #------------------------------------------------------------
 
-part parent ".avrex" # avr16ea48
+part parent ".avrex" # 16ea48
     desc                   = "AVR16EA48";
-    id                     = "avr16ea48";
+    id                     = "16ea48";
     variants               =
         "AVR16EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 335;
@@ -24679,9 +24679,9 @@ part parent ".avrex" # avr16ea48
 # AVR32EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # avr32ea28
+part parent ".avrex" # 32ea28
     desc                   = "AVR32EA28";
-    id                     = "avr32ea28";
+    id                     = "32ea28";
     variants               =
         "AVR32EA28: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 341;
@@ -24716,9 +24716,9 @@ part parent ".avrex" # avr32ea28
 # AVR32EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # avr32ea32
+part parent ".avrex" # 32ea32
     desc                   = "AVR32EA32";
-    id                     = "avr32ea32";
+    id                     = "32ea32";
     variants               =
         "AVR32EA32: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 345;
@@ -24753,9 +24753,9 @@ part parent ".avrex" # avr32ea32
 # AVR32EA48
 #------------------------------------------------------------
 
-part parent ".avrex" # avr32ea48
+part parent ".avrex" # 32ea48
     desc                   = "AVR32EA48";
-    id                     = "avr32ea48";
+    id                     = "32ea48";
     variants               =
         "AVR32EA48: VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 348;
@@ -24790,9 +24790,9 @@ part parent ".avrex" # avr32ea48
 # AVR64EA28
 #------------------------------------------------------------
 
-part parent ".avrex" # avr64ea28
+part parent ".avrex" # 64ea28
     desc                   = "AVR64EA28";
-    id                     = "avr64ea28";
+    id                     = "64ea28";
     variants               =
         "AVR64EA28:      SOIC28,  Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA28-I/SP: SPDIP28, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24829,9 +24829,9 @@ part parent ".avrex" # avr64ea28
 # AVR64EA32
 #------------------------------------------------------------
 
-part parent ".avrex" # avr64ea32
+part parent ".avrex" # 64ea32
     desc                   = "AVR64EA32";
-    id                     = "avr64ea32";
+    id                     = "64ea32";
     variants               =
         "AVR64EA32:       VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA32-I/PT:  TQFP32, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24868,9 +24868,9 @@ part parent ".avrex" # avr64ea32
 # AVR64EA48
 #------------------------------------------------------------
 
-part parent ".avrex" # avr64ea48
+part parent ".avrex" # 64ea48
     desc                   = "AVR64EA48";
-    id                     = "avr64ea48";
+    id                     = "64ea48";
     variants               =
         "AVR64EA48:       VQFN48, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR64EA48-I/6LX: VQFN48, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
@@ -24907,9 +24907,9 @@ part parent ".avrex" # avr64ea48
 # AVR16EB14
 #------------------------------------------------------------
 
-part parent ".avrex" # avr16eb14
+part parent ".avrex" # 16eb14
     desc                   = "AVR16EB14";
-    id                     = "avr16eb14";
+    id                     = "16eb14";
     variants               =
         "AVR16EB14-SOIC/TSSOP: SOIC14, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 380;
@@ -24983,9 +24983,9 @@ part parent ".avrex" # avr16eb14
 # AVR16EB20
 #------------------------------------------------------------
 
-part parent "avr16eb14" # avr16eb20
+part parent "16eb14" # 16eb20
     desc                   = "AVR16EB20";
-    id                     = "avr16eb20";
+    id                     = "16eb20";
     variants               =
         "AVR16EB20-SSOP: SOIC20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR16EB20-VQFN: VQFN20, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
@@ -24997,9 +24997,9 @@ part parent "avr16eb14" # avr16eb20
 # AVR16EB28
 #------------------------------------------------------------
 
-part parent "avr16eb14" # avr16eb28
+part parent "16eb14" # 16eb28
     desc                   = "AVR16EB28";
-    id                     = "avr16eb28";
+    id                     = "16eb28";
     variants               =
         "AVR16EB28-SSOP/SPDIP: SOIC28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]",
         "AVR16EB28-VQFN:       VQFN28, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
@@ -25011,9 +25011,9 @@ part parent "avr16eb14" # avr16eb28
 # AVR16EB32
 #------------------------------------------------------------
 
-part parent "avr16eb14" # avr16eb32
+part parent "16eb14" # 16eb32
     desc                   = "AVR16EB32";
-    id                     = "avr16eb32";
+    id                     = "16eb32";
     variants               =
         "AVR16EB32-VQFN/TQFP: VQFN32, Fmax=20 MHz, T=[-40 C, 125 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = 383;
