@@ -69,14 +69,14 @@ if(Git_FOUND)
         )
 
     execute_process(
-        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%ad --date=format:%Y%m%d
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%cd --date=format:%Y%m%d
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
         OUTPUT_VARIABLE GIT_COMMIT_DATE
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE
         )
 
     execute_process(
-        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%ad --date=format:%Y
+        COMMAND "${GIT_EXECUTABLE}" log -1 --format=%cd --date=format:%Y
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
         OUTPUT_VARIABLE GIT_COMMIT_YEAR
         ERROR_QUIET OUTPUT_STRIP_TRAILING_WHITESPACE

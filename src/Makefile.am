@@ -40,7 +40,7 @@ CLEANFILES = \
 	config_gram.h \
 	lexer.c
 
-include build-helpers/package-version.mk
+include build-helpers/versioninfo.mk
 
 BUILT_SOURCES = $(CLEANFILES)
 
@@ -248,4 +248,4 @@ backup-avrdude-conf:
 			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
 	fi
 
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I auto-m4 -I build-helpers
