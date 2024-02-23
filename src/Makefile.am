@@ -219,7 +219,7 @@ libavrdude_a_SOURCES = \
 	xbee.h \
 	xbee.c
 libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
-libavrdude_la_LDFLAGS = -version-info 1:0
+libavrdude_la_LDFLAGS = -version-info 2:0
 
 include_HEADERS = libavrdude.h
 
