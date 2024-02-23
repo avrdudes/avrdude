@@ -40,7 +40,7 @@ CLEANFILES = \
 	config_gram.h \
 	lexer.c
 
-include build-helpers/package-version.mk
+include build-helpers/versioninfo.mk
 
 BUILT_SOURCES = $(CLEANFILES)
 
@@ -222,6 +222,7 @@ libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
 libavrdude_la_LDFLAGS = -version-info 2:0
 
 include_HEADERS = libavrdude.h
+include_HEADERS += libavrdude-avrintel.h
 
 avrdude_SOURCES = \
 	main.c \
@@ -248,4 +249,4 @@ backup-avrdude-conf:
 			${DESTDIR}${sysconfdir}/avrdude.conf.bak; \
 	fi
 
-ACLOCAL_AMFLAGS = -I m4
+ACLOCAL_AMFLAGS = -I auto-m4 -I build-helpers

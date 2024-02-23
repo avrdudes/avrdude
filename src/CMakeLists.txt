@@ -278,7 +278,7 @@ add_library(libavrdude
 
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
-    PUBLIC_HEADER "libavrdude.h"
+    PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
     VERSION 2.0.0
     SOVERSION 2
     )
