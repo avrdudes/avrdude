@@ -450,7 +450,7 @@ static int dev_opt(const char *str) {
   return
     !str? 0:
     str_eq(str, "*") || str_starts(str, "*/")? 2:
-    strchr(str, '/') && !locate_part(part_list, str): 0;
+    strchr(str, '/') && !locate_part(part_list, str);
 }
 
 typedef struct {
