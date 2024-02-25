@@ -55,6 +55,9 @@ cscope.out
 out/
 build/
 build_*/
+CMakeFiles/
+/CMakeCache.txt
+cmake_install.cmake
 
 # Visual Studio
 .vs/
