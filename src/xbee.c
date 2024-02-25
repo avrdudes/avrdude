@@ -1555,7 +1555,7 @@ static int xbee_getsync(const PROGRAMMER *pgm) {
 
 static int xbee_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
-  strcpy(pgm->port, port);
+  pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
 
