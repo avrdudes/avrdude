@@ -445,12 +445,12 @@ static void replace_backslashes(char *s)
   }
 }
 
-// Return 2 if string is * or starts with */, 1 if string contains /, 0 otherwise
+// Return 2 if str is * or starts with */, 1 if str contains / but is not a valid part, 0 otherwise
 static int dev_opt(const char *str) {
   return
     !str? 0:
     str_eq(str, "*") || str_starts(str, "*/")? 2:
-    !!strchr(str, '/');
+    strchr(str, '/') && !locate_part(part_list, str);
 }
 
 typedef struct {
