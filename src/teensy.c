@@ -34,7 +34,8 @@
 // Example:
 // avrdude -c teensy -p m32u4 -x wait -V -U flash:w:main.hex:i
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>

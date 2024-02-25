@@ -21,7 +21,7 @@
  * Native Win32 serial interface for avrdude.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #if defined(WIN32)
 

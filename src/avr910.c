@@ -25,7 +25,7 @@
  * protocol described in application note avr910.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>

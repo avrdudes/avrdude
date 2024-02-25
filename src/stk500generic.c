@@ -28,7 +28,7 @@
  * misses out on the extended -x options of the successful programmer.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <string.h>

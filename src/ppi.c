@@ -21,7 +21,7 @@
 
 #if !defined(WIN32)
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #if HAVE_PARPORT
 

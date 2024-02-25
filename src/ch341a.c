@@ -22,7 +22,7 @@
  * Interface to the CH341A programmer
  *
  */
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>

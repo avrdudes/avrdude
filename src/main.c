@@ -30,7 +30,7 @@
  */
 
 /* For AVRDUDE_FULL_VERSION and possibly others */
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>

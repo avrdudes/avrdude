@@ -35,7 +35,7 @@
  *
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <math.h>
 #include <stdio.h>

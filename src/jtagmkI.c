@@ -22,7 +22,7 @@
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
