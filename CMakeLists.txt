@@ -50,7 +50,7 @@ include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
 set(AVRDUDE_BUILDSYSTEM "cmake")
-set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
+set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}")
 
 # =====================================
 # Get Git commit info
