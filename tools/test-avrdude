@@ -160,6 +160,9 @@ tmpfile=$(mktemp "$tmp/$progname.tmp.XXXXXX")
 resfile=$(mktemp "$tmp/$progname.res.XXXXXX")
 trap "rm -f $status $logfile $outfile $tmpfile $resfile" EXIT
 
+devnull=/dev/null
+[[ ! -w /dev/null ]] && devnull=$tmpfile
+
 TIMEFORMAT=%R                   # time built-in only returns elapsed wall-clock time
 elapsed=-1                      # Global variable holding time of last execute command in seconds
 bench_t=-1                      # Copy of global variable holding time of last execute command
@@ -375,7 +378,7 @@ for (( p=0; p<$arraylength; p++ )); do
 
     if [[ $benchmark -eq 1 ]]; then
       specify="flash -U read all flash"
-      command=(${avrdude[@]} -Uflash:r:/dev/null)
+      command=(${avrdude[@]} -Uflash:r:$devnull)
       execute "${command[@]}"
       result [ $? == 0 ]
       bench_t_flrd=$bench_t
@@ -406,7 +409,7 @@ for (( p=0; p<$arraylength; p++ )); do
         bench_t_eewr=$bench_t
 
         specify="eeprom -U read all"
-        command=(${avrdude[@]} -Ueeprom:r:/dev/null)
+        command=(${avrdude[@]} -Ueeprom:r:$devnull)
         execute "${command[@]}"
         result [ $? == 0 ]
         bench_t_eerd=$bench_t
