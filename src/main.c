@@ -230,23 +230,23 @@ const char *const avrdude_buildinfo[] = {
 static void print_buildinfos(const char *const *buildinfo)
 {
   for (unsigned int i=1; buildinfo[i]; ++i) {
-    printf("%3u. %s\n", i, buildinfo[i]);
+    msg_info("%3u. %s\n", i, buildinfo[i]);
   }
 }
 
 
 static void print_version_message(void)
 {
-  printf("avrdude (...) %s\n", AVRDUDE_FULL_VERSION);
-  printf("Copyright (C) ...\n");
-  printf("License GPL...\n");
-  printf("This is free software...\n");
+  msg_info("avrdude (...) %s\n", AVRDUDE_FULL_VERSION);
+  msg_info("Copyright (C) ...2024...\n");
+  msg_info("License GPL...\n");
+  msg_info("This is free software...\n");
 
-  printf("avrdude %s\n", avrdude_buildinfo[0]);
+  msg_info("avrdude %s\n", avrdude_buildinfo[0]);
   print_buildinfos(avrdude_buildinfo);
 
   const char *const *libavrdude_buildinfo = avr_get_buildinfo();
-  printf("libavrdude %s\n", libavrdude_buildinfo[0]);
+  msg_info("libavrdude %s\n", libavrdude_buildinfo[0]);
   print_buildinfos(libavrdude_buildinfo);
 }
 
