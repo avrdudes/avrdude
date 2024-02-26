@@ -33,23 +33,20 @@ avrdude_conf      = %reldir%/avrdude.conf
 avrdude_exe       = %reldir%/avrdude$(EXEEXT)
 
 bin_PROGRAMS     += %reldir%/avrdude
-noinst_LIBRARIES += %reldir%/libavrdude.a
 lib_LTLIBRARIES  += %reldir%/libavrdude.la
 
 common_cppflags            =
 common_cppflags           += -I$(srcdir)/%reldir%
 common_cppflags           += '-DCONFIG_DIR="$(sysconfdir)"'
 %C%_avrdude_CPPFLAGS       = $(common_cppflags)
-%C%_libavrdude_a_CPPFLAGS  = $(common_cppflags)
 %C%_libavrdude_la_CPPFLAGS = $(common_cppflags)
 
 common_cflags              = @ENABLE_WARNINGS@
 %C%_avrdude_CFLAGS         = $(common_cflags)
-%C%_libavrdude_a_CFLAGS    = $(common_cflags)
 %C%_libavrdude_la_CFLAGS   = $(common_cflags)
 
 %C%_avrdude_LDADD  =
-%C%_avrdude_LDADD += $(top_builddir)/$(noinst_LIBRARIES)
+%C%_avrdude_LDADD += %reldir%/libavrdude.la
 %C%_avrdude_LDADD += @LIBUSB_1_0@
 %C%_avrdude_LDADD += @LIBHIDAPI@
 %C%_avrdude_LDADD += @LIBUSB@
@@ -194,7 +191,6 @@ libavrdude_sources += %reldir%/wiring.h
 libavrdude_sources += %reldir%/xbee.c
 libavrdude_sources += %reldir%/xbee.h
 
-%C%_libavrdude_a_SOURCES  = $(libavrdude_sources)
 %C%_libavrdude_la_SOURCES = $(libavrdude_sources)
 %C%_libavrdude_la_LDFLAGS = -version-info 2:0
 
