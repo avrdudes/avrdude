@@ -231,7 +231,7 @@ for (( p=0; p<$arraylength; p++ )); do
     read -n1 -s -r -p $'' key
     [[ $emulated -eq 0 ]] && sleep 0.15 # Debounce key when not using dryrun/dryboot
   fi
-  bench_char="✅"; bench_t_flwr=0; bench_t_flrd=0; bench_t_eewr=0; bench_t_eerd=0; bench_t_ce=0
+  bench_char="✅"; bench_t_flwr=0; bench_t_flrd=0; bench_t_eewr=0; bench_t_eerd=0
 
   if [ "$key" == '' ]; then
     fail=false
@@ -454,19 +454,20 @@ for (( p=0; p<$arraylength; p++ )); do
     ######
     # Chip erase and verify
     #
-    specify="chip erase and spot check flash is actually erased"
-    command=(${avrdude[@]} -e -A
-      -U $tfiles/flash_one_byte_0xff_${flash_size}B.hex
-      -U flash:v:$tfiles/holes_flash_0xff_${flash_size}B.hex)
-    execute "${command[@]}"
-    result [ $? == 0 ]
-    if [[ $? == 0 && $check_eeprom -eq 1 && $is_bootloader -eq 0 && $benchmark -eq 0 ]]; then
-      specify="spot check eeprom is erased, too"
-      command=(${avrdude[@]} -Ueeprom:v:$tfiles/holes_eeprom_0xff_${ee_size}B.hex)
+    if [[ $benchmark -eq 0 ]]; then
+      specify="chip erase and spot check flash is actually erased"
+      command=(${avrdude[@]} -e -A
+        -U $tfiles/flash_one_byte_0xff_${flash_size}B.hex
+        -U flash:v:$tfiles/holes_flash_0xff_${flash_size}B.hex)
       execute "${command[@]}"
       result [ $? == 0 ]
+      if [[ $? == 0 && $check_eeprom -eq 1 && $is_bootloader -eq 0 ]]; then
+        specify="spot check eeprom is erased, too"
+        command=(${avrdude[@]} -Ueeprom:v:$tfiles/holes_eeprom_0xff_${ee_size}B.hex)
+        execute "${command[@]}"
+        result [ $? == 0 ]
+      fi
     fi
-    bench_t_ce=$bench_t
 
     ######
     # Write and verify random data to usersig if present
@@ -487,7 +488,7 @@ for (( p=0; p<$arraylength; p++ )); do
     fi
 
     if [ $benchmark -eq 1 ]; then
-      bench_sum=$(echo "$bench_t_flwr $bench_t_flrd $bench_t_eewr $bench_t_eerd $bench_t_ce" | awk '{print $1+$2+$3+$4+$5}')
+      bench_sum=$(echo "$bench_t_flwr $bench_t_flrd $bench_t_eewr $bench_t_eerd" | awk '{print $1+$2+$3+$4}')
       [[ $check_eeprom -eq 0 ]] \
         && bench_norm=$(echo "$bench_t_flwr $bench_t_flrd $flash_size" | awk '{print 10705*(($1+$2)/$3)}') \
         || bench_norm=$(echo "$bench_t_flwr $bench_t_flrd $flash_size $bench_t_eewr $bench_t_eerd $ee_size" | \
