@@ -355,7 +355,8 @@ for (( p=0; p<$arraylength; p++ )); do
     #
     if [ $benchmark -eq 0 ]; then
       specify="chip erase"
-      command=(${avrdude[@]} -e)
+      # Emulated chip erase needs a tiny file be uploaded
+      command=(${avrdude[@]} -e -A -U $tfiles/flash_one_byte_0xff_${flash_size}B.hex)
       execute "${command[@]}"
       result [ $? == 0 ]
     fi
@@ -454,7 +455,9 @@ for (( p=0; p<$arraylength; p++ )); do
     # Chip erase and verify
     #
     specify="chip erase and spot check flash is actually erased"
-    command=(${avrdude[@]} -e -Uflash:v:$tfiles/holes_flash_0xff_${flash_size}B.hex)
+    command=(${avrdude[@]} -e -A
+      -U $tfiles/flash_one_byte_0xff_${flash_size}B.hex
+      -U flash:v:$tfiles/holes_flash_0xff_${flash_size}B.hex)
     execute "${command[@]}"
     result [ $? == 0 ]
     if [[ $? == 0 && $check_eeprom -eq 1 && $is_bootloader -eq 0 && $benchmark -eq 0 ]]; then

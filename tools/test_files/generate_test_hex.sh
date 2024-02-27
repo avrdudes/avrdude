@@ -39,6 +39,8 @@ for i in ${flashsizes[@]}; do
     -generate $((i-i/3)) $((i-i/4-2)) -repeat-data 0xff \
     -generate $((i-i/4-1)) $((i-i/4)) -repeat-data 0xff \
     -o holes_flash_0xff_${i}B.hex -Intel
+  # A file with a single 0xff byte
+  srec_cat -generate $((i/4)) $((i/4+1)) -repeat-data 0xff -o flash_one_byte_0xff_${i}B.hex -Intel
 done
 
 ###
@@ -50,5 +52,3 @@ for i in ${usersigsizes[@]}; do
   # Empty memory
   srec_cat -generate 0x00 $i -repeat-data 0xff -o 0xff_${i}B.hex -Intel
 done
-
-
