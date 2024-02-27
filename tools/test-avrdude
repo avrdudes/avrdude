@@ -486,7 +486,11 @@ for (( p=0; p<$arraylength; p++ )); do
 
     if [ $benchmark -eq 1 ]; then
       bench_sum=$(echo "$bench_t_flwr $bench_t_flrd $bench_t_eewr $bench_t_eerd $bench_t_ce" | awk '{print $1+$2+$3+$4+$5}')
-      echo $bench_char "$(printf '%7.3f s' $bench_sum): benchmark for ${pgm_and_target[$p]}"
+      [[ $check_eeprom -eq 0 ]] \
+        && bench_norm=$(echo "$bench_t_flwr $bench_t_flrd $flash_size" | awk '{print 10705*(($1+$2)/$3)}') \
+        || bench_norm=$(echo "$bench_t_flwr $bench_t_flrd $flash_size $bench_t_eewr $bench_t_eerd $ee_size" | \
+           awk '{print 6789*(($1+$2)/$3 + ($4+$5)/(32*$6))}')
+      echo "|$bench_char|$(printf '%6.3f s' $bench_sum)|$(printf '%7.3f s' $bench_norm)|${pgm_and_target[$p]}|"
     fi
 
     if [ $fail == true ]; then
