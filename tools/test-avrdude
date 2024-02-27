@@ -160,8 +160,7 @@ tmpfile=$(mktemp "$tmp/$progname.tmp.XXXXXX")
 resfile=$(mktemp "$tmp/$progname.res.XXXXXX")
 trap "rm -f $status $logfile $outfile $tmpfile $resfile" EXIT
 
-devnull=/dev/null
-[[ ! -w /dev/null ]] && devnull=$tmpfile
+devnull=$tmpfile                # Cannot use /dev/null as file in Windows avrdude
 
 TIMEFORMAT=%R                   # time built-in only returns elapsed wall-clock time
 elapsed=-1                      # Global variable holding time of last execute command in seconds
