@@ -233,7 +233,8 @@ exitstate=0
 for (( p=0; p<$arraylength; p++ )); do
   # Isolate programmer and part (assumes -c prog or -cprog but not sth more tricky such as -qc prog)
   programmer=$(echo ${pgm_and_target[$p]} | sed 's/.* *-c *\([^ ]*\) *.*/\1/g' | tr A-Z a-z)
-  part=$(echo ${pgm_and_target[$p]} | sed 's/.* *-p *\([^ ]*\) *.*/\1/g' | tr A-Z a-z)
+  part=$(echo ${pgm_and_target[$p]} | sed 's/.* *-p *\([^ ]*\) *.*/\1/g')
+  lpart=$(echo $part | tr A-Z a-z)
   rest=$(echo ${pgm_and_target[$p]} | sed -e's/ *-[cpP] *[^ ]* */ /g' -e's/  */ /g')
   emulated=0
   [[ "$programmer" == dryrun || "$programmer" == dryboot ]] && emulated=1
@@ -275,7 +276,7 @@ for (( p=0; p<$arraylength; p++ )); do
 
     # Should we test fuses?
     fusetest=1
-    [[ -n "$part" && "${nofusetest[@]}" =~ -p"$part/" ]] && fusetest=0
+    [[ -n "$lpart" && "${nofusetest[@]}" =~ -p"$lpart/" ]] && fusetest=0
 
     # Should EEPROM test be carried out?
     check_eeprom=1
