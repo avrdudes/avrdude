@@ -17,7 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

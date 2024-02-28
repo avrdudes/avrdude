@@ -13,7 +13,7 @@
  *
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <ctype.h>
 #include <string.h>

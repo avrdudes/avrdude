@@ -29,7 +29,8 @@
  *
  */
 
-#include "ac_cfg.h"
+/* For AVRDUDE_FULL_VERSION and possibly others */
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -50,9 +51,6 @@
 #include "libavrdude.h"
 #include "config.h"
 #include "developer_opts.h"
-
-/* Get VERSION from ac_cfg.h */
-char * version      = AVRDUDE_FULL_VERSION;
 
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
@@ -266,7 +264,7 @@ static void usage(void)
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
     "  -?                     Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
-    progname, strlen(cfg) < 24? "config file ": "", cfg, version);
+    progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
 
   free(cfg);
 }
@@ -1058,7 +1056,7 @@ int main(int argc, char * argv [])
    * they are running
    */
   msg_notice("\n");
-  pmsg_notice("Version %s\n", version);
+  pmsg_notice("Version %s\n", AVRDUDE_FULL_VERSION);
   imsg_notice("Copyright the AVRDUDE authors;\n");
   imsg_notice("see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
@@ -1092,9 +1090,9 @@ int main(int argc, char * argv [])
     }
   }
 
-  if(!str_eq(avrdude_conf_version, version)) {
+  if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION)) {
     pmsg_warning("System wide configuration file version (%s)\n", avrdude_conf_version);
-    imsg_warning("does not match Avrdude build version (%s)\n", version);
+    imsg_warning("does not match Avrdude build version (%s)\n", AVRDUDE_FULL_VERSION);
   }
 
   if (lsize(additional_config_files) > 0) {

@@ -21,7 +21,7 @@
 /*
  * Interface to the MPSSE Engine of FTDI Chips using libftdi.
  */
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>

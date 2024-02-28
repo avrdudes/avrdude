@@ -17,7 +17,8 @@
  */
 
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include "avrdude.h"
 #include "libavrdude.h"
 

@@ -23,7 +23,7 @@
  * avrdude interface for Atmel JTAGICE3 programmer
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <ctype.h>
 #include <limits.h>

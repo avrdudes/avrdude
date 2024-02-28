@@ -43,7 +43,7 @@
  * SDO  - AUX (6)
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
