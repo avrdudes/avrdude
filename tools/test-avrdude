@@ -188,11 +188,13 @@ result () {
   if [[ $list_only -eq 0 ]]; then
     if [[ $ret -eq 0 ]]; then
       echo ✅ "$(printf '%7.3f s' $elapsed): $specify"
+      bench_t=$(printf '%5.2f s' $elapsed)
     else
       echo ❌ "$(printf '%7.3f s' $elapsed): $specify (failed command below)"
       echo "\$ ${command[@]}" | sed "s/ -l [^ ]* / /" | tr -s " "
       fail=true
       bench_char="❌"
+      bench_t=error
       exitstate=1
       [[ $emulated -eq 0 ]] && sleep 4 # Let the hw settle down before next test
     fi
@@ -200,7 +202,6 @@ result () {
   else
     cat $outfile
   fi
-  bench_t=$elapsed
   cp /dev/null $outfile; cp /dev/null $logfile; elapsed=-999; specify="unknown"; command=(sleep 0.1)
   return $ret
 }
@@ -214,13 +215,28 @@ nofusetest=(-pattiny11/ -pt11/ -pattiny12/ -pt12/ -pattiny15/ -pt15/ -pat89s51/ 
   -pavr8ea28/ -pavr8ea32/ -pavr8ea32/ -plgt8f88p/ -plgt8f88p/ -plgt8f168p/ -plgt8f168p/
   -plgt8f328p/ -plgt8f328p/)
 
+if [[ $benchmark -eq 1 ]]; then
+  echo
+  echo The benchmark shows the wall clock time of avrdude carrying out the following tasks
+  echo "  -" Fl-ewv: erase flash, then write a sketch with three sections separated by holes, and verify
+  echo "  -" Fl-r: read the entire flash memory and write to file
+  echo "  -" EE-wv: write data to EEPROM with two data sections separated by a hole, and verify
+  echo "  -" EE-r: read the entire EEPROM memory and write to file
+  echo
+  echo The sketch and data payload is roughly one sixth of the respective memory size
+  echo
+  echo '| | `-c pgm` | `-p part` | Fl-ewv | Fl-r | EE-wv | EE-r | Comments |'
+  echo '|:-:|--:|--:|--:|--:|--:|--:|:--|'
+fi
+
 exitstate=0
 for (( p=0; p<$arraylength; p++ )); do
   # Isolate programmer and part (assumes -c prog or -cprog but not sth more tricky such as -qc prog)
-  programmer=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-c | tr A-Z a-z)
-  part=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-p | tr A-Z a-z)
+  programmer=$(echo ${pgm_and_target[$p]} | sed 's/.* *-c *\([^ ]*\) *.*/\1/g' | tr A-Z a-z)
+  part=$(echo ${pgm_and_target[$p]} | sed 's/.* *-p *\([^ ]*\) *.*/\1/g' | tr A-Z a-z)
+  rest=$(echo ${pgm_and_target[$p]} | sed -e's/ *-[cpP] *[^ ]* */ /g' -e's/  */ /g')
   emulated=0
-  [[ "$programmer" == -cdryrun || "$programmer" == -cdryboot ]] && emulated=1
+  [[ "$programmer" == dryrun || "$programmer" == dryboot ]] && emulated=1
 
   if [[ $list_only -eq 1 ]]; then
     [[ p -ne 0 ]] && echo
@@ -231,7 +247,7 @@ for (( p=0; p<$arraylength; p++ )); do
     read -n1 -s -r -p $'' key
     [[ $emulated -eq 0 ]] && sleep 0.15 # Debounce key when not using dryrun/dryboot
   fi
-  bench_char="✅"; bench_t_flwr=0; bench_t_flrd=0; bench_t_eewr=0; bench_t_eerd=0
+  bench_char="✅"; bench_t_flwr=--; bench_t_flrd=--; bench_t_eewr=--; bench_t_eerd=--
 
   if [ "$key" == '' ]; then
     fail=false
@@ -254,12 +270,12 @@ for (( p=0; p<$arraylength; p++ )); do
     # Is the to be tested programmer for a bootloader?
     is_bootloader=0
     if [ -n "$programmer" ]; then
-      ($avrdude_bin $avrdude_conf "$programmer"/At 2>/dev/null | grep -q prog_modes.PM_SPM) && is_bootloader=1
+      ($avrdude_bin $avrdude_conf -c"$programmer"/At 2>/dev/null | grep -q prog_modes.PM_SPM) && is_bootloader=1
     fi
 
     # Should we test fuses?
     fusetest=1
-    [[ -n "$part" && "${nofusetest[@]}" =~ "$part/" ]] && fusetest=0
+    [[ -n "$part" && "${nofusetest[@]}" =~ -p"$part/" ]] && fusetest=0
 
     # Should EEPROM test be carried out?
     check_eeprom=1
@@ -269,7 +285,7 @@ for (( p=0; p<$arraylength; p++ )); do
     #####
     # Dryrun tests for high-level progrmmer-independent tests (only for -m2560 or similar)
     #
-    if [[ "$programmer" == -cdryrun && $flash_size -eq 262144 && $benchmark -eq 0 ]]; then
+    if [[ "$programmer" == dryrun && $flash_size -eq 262144 && $benchmark -eq 0 ]]; then
       # Raw test
       specify="flash raw format -T/-U write/verify cola-vending-machine.raw"
       command=(${avrdude[@]}
@@ -488,12 +504,7 @@ for (( p=0; p<$arraylength; p++ )); do
     fi
 
     if [ $benchmark -eq 1 ]; then
-      bench_sum=$(echo "$bench_t_flwr $bench_t_flrd $bench_t_eewr $bench_t_eerd" | awk '{print $1+$2+$3+$4}')
-      [[ $check_eeprom -eq 0 ]] \
-        && bench_norm=$(echo "$bench_t_flwr $bench_t_flrd $flash_size" | awk '{print 10705*(($1+$2)/$3)}') \
-        || bench_norm=$(echo "$bench_t_flwr $bench_t_flrd $flash_size $bench_t_eewr $bench_t_eerd $ee_size" | \
-           awk '{print 6789*(($1+$2)/$3 + ($4+$5)/(32*$6))}')
-      echo "|$bench_char|$(printf '%6.3f s' $bench_sum)|avrbench $(printf '%6.3f s' $bench_norm)|${pgm_and_target[$p]}|"
+      echo "|$bench_char|$programmer|$part|$bench_t_flwr|$bench_t_flrd|$bench_t_eewr|$bench_t_eerd|$rest|"
     fi
 
     if [ $fail == true ]; then
