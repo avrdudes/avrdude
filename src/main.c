@@ -47,6 +47,8 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
+#include <getopt.h>
+
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
@@ -216,6 +218,39 @@ const char *pgmid;              // Programmer -c string
 
 static char usr_config[PATH_MAX]; // Per-user config file
 
+
+static
+const char *const avrdude_buildinfo[] = {
+  AVRDUDE_FULL_VERSION,
+  "buildsystem: " AVRDUDE_BUILDSYSTEM,
+  NULL
+};
+
+
+static void print_buildinfos(const char *const *buildinfo)
+{
+  for (unsigned int i=1; buildinfo[i]; ++i) {
+    msg_info("%3u. %s\n", i, buildinfo[i]);
+  }
+}
+
+
+static void print_version_message(void)
+{
+  msg_info("avrdude (...) %s\n", AVRDUDE_FULL_VERSION);
+  msg_info("Copyright (C) ...2024...\n");
+  msg_info("License GPL...\n");
+  msg_info("This is free software...\n");
+
+  msg_info("avrdude %s\n", avrdude_buildinfo[0]);
+  print_buildinfos(avrdude_buildinfo);
+
+  const char *const *libavrdude_buildinfo = avr_get_buildinfo();
+  msg_info("libavrdude %s\n", libavrdude_buildinfo[0]);
+  print_buildinfos(libavrdude_buildinfo);
+}
+
+
 /*
  * usage message
  */
@@ -262,6 +297,7 @@ static void usage(void)
     "  -v                     Verbose output; -v -v for more\n"
     "  -q                     Quell progress output; -q -q for less\n"
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
+    "  --version              Display build and version information\n"
     "  -?                     Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
     progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
@@ -769,7 +805,15 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY:")) != -1) {
+#define LONGOPT_VERSION 0x2342
+  struct option longopts[] = {
+    {"help",    no_argument, NULL, '?'},
+    {"version", no_argument, NULL, LONGOPT_VERSION},
+    {NULL, 0, NULL, 0}
+  };
+  while ((ch = getopt_long(argc, argv,
+			   "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVwx:yY:",
+			   longopts, NULL)) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -926,6 +970,11 @@ int main(int argc, char * argv [])
 
       case '?': /* help */
         usage();
+        exit(0);
+        break;
+
+      case LONGOPT_VERSION: /* version and build information */
+        print_version_message();
         exit(0);
         break;
 

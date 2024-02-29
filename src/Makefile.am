@@ -107,6 +107,7 @@ libavrdude_a_SOURCES = \
 	avrpart.c \
 	bitbang.c \
 	bitbang.h \
+	buildinfo.c \
 	buspirate.c \
 	buspirate.h \
 	butterfly.c \
