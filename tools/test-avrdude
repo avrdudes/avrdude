@@ -23,7 +23,7 @@ cat <<END
 Syntax: $progname {<opts>}
 Function: test AVRDUDE for certain programmer and part combinations
 Options:
-    -b                          benchmark only summarising overall and avrbench time
+    -b                          carry out four benchmark tests and summarise them
     -c <configuration spec>     additional configuration options used for all runs
     -d <sec>                    delay between test commands (default $delay seconds)
     -e <avrdude path>           set path of AVRDUDE executable (default $avrdude_bin)
