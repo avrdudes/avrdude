@@ -49,7 +49,8 @@ include(FindPackageMessage)
 include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
-set(AVRDUDE_FULL_VERSION ${CMAKE_PROJECT_VERSION})
+set(AVRDUDE_BUILDSYSTEM "cmake")
+set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}")
 
 # =====================================
 # Get Git commit info
@@ -222,7 +223,7 @@ endif()
 find_library(HAVE_LIBREADLINE NAMES ${PREFERRED_LIBREADLINE})
 if(HAVE_LIBREADLINE)
     set(LIB_LIBREADLINE ${HAVE_LIBREADLINE})
-    find_library(LIB_NCURSES NAMES ncurses)
+    find_library(LIB_NCURSES NAMES ncurses pdcurses)
 elseif(MSVC)
     set(HAVE_LIBREADLINE 1)
 endif()
@@ -305,6 +306,8 @@ add_subdirectory(src)
 if(BUILD_DOC)
     add_subdirectory(src/doc)
 endif()
+
+configure_file(avrdude.spec.in avrdude.spec)
 
 # =====================================
 # Configuration

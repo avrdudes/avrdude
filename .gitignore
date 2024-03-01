@@ -1,6 +1,7 @@
 .DS_Store
 .deps/
 .libs/
+.dirstamp
 m4/
 *.diff
 *.patch
@@ -40,11 +41,13 @@ ltmain.sh
 ylwrap
 tags
 cscope.out
-/src/avrdude-[1-9].[0-9].tar.*
-/src/avrdude-[1-9].[0-9]/
-/src/avrdude-[1-9].[0-9]-20[0-9][0-9][01][0-9][0-3][0-9].tar.*
-/src/avrdude-[1-9].[0-9]-20[0-9][0-9][01][0-9][0-3][0-9]/
-/src/GNUmakefile
+avrdude-[1-9].[0-9].tar.*
+avrdude-[1-9].[0-9]/
+avrdude-[1-9].[0-9]-20[0-9][0-9][01][0-9][0-3][0-9].tar.*
+avrdude-[1-9].[0-9]-20[0-9][0-9][01][0-9][0-3][0-9]/
+GNUmakefile
+/git-archive/
+/dist-archive/
 
 *.o
 *.lo
