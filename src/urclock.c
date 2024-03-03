@@ -203,7 +203,7 @@
  *
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -2228,7 +2228,7 @@ static void urclock_disable(const PROGRAMMER *pgm) {
 static int urclock_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if(serial_open(port, pinfo, &pgm->fd) == -1)

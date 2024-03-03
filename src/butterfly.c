@@ -35,7 +35,7 @@
  */
 
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -351,7 +351,7 @@ static void butterfly_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 static int butterfly_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
-  strcpy(pgm->port, port);
+  pgm->port = port;
   /*
    *  If baudrate was not specified use 19200 Baud
    */

@@ -24,7 +24,8 @@
  * See https://github.com/microchip-pic-avr-tools/pymcuprog
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

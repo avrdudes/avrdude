@@ -25,7 +25,7 @@
 
 #if !defined(WIN32)
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <ctype.h>
 #include <stdbool.h>

@@ -19,7 +19,7 @@
 
 /* $Id$ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <errno.h>
 #include <stdio.h>

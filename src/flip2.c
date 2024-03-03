@@ -18,7 +18,7 @@
 
 /* $Id$ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdint.h>
 #include <stdio.h>

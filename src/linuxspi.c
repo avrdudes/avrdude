@@ -24,7 +24,7 @@
  */
 
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -178,7 +178,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         }
     }
 
-    strcpy(pgm->port, port);
+    pgm->port = port;
     fd_spidev = open(pgm->port, O_RDWR);
     if (fd_spidev < 0) {
         pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->port, strerror(errno));

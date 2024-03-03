@@ -23,7 +23,7 @@
  * avrdude interface for Atmel JTAGICE3 programmer
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <ctype.h>
 #include <limits.h>
@@ -1708,7 +1708,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
     pgm->fd.usb.eep = 0;
 
-    strcpy(pgm->port, port);
+    pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
   }
   if (rv < 0) {
@@ -1723,7 +1723,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
       pgm->fd.usb.wep = USBDEV_BULK_EP_WRITE_3;
       pgm->fd.usb.eep = USBDEV_EVT_EP_READ_3;
 
-      strcpy(pgm->port, port);
+      pgm->port = port;
       rv = serial_open(port, pinfo, &pgm->fd);
     }
 #endif    /* HAVE_LIBUSB */

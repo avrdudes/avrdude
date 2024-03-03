@@ -35,7 +35,7 @@
 
 /* $Id$ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -426,7 +426,7 @@ static int buspirate_open(PROGRAMMER *pgm, const char *port) {
 
 	pinfo.serialinfo.baud = pgm->baudrate;
 	pinfo.serialinfo.cflags = SERIAL_8N1;
-	strcpy(pgm->port, port);
+	pgm->port = port;
 	if (serial_open(port, pinfo, &pgm->fd)==-1) {
 		return -1;
 	}

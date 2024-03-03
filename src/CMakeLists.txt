@@ -113,10 +113,19 @@ endif()
 # Configure files
 # =====================================
 
-configure_file(cmake_config.h.in ac_cfg.h)
-configure_file(avrdude.spec.in avrdude.spec)
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_config.h.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h"
+)
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.spec.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/avrdude.spec"
+)
 if(WIN32 OR MINGW)
-    configure_file(windows.rc.in windows.rc)
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/windows.rc.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/windows.rc"
+  )
 endif()
 
 add_custom_command(
@@ -142,7 +151,7 @@ add_custom_target(conf ALL DEPENDS avrdude.conf)
 # =====================================
 
 set(SOURCES
-    ac_cfg.h
+    ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
     arduino.h
     arduino.c
     avr.c
@@ -283,8 +292,8 @@ add_library(libavrdude
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
-    VERSION 1.0.0
-    SOVERSION 1
+    VERSION 2.0.0
+    SOVERSION 2
     )
 
 target_include_directories(libavrdude
@@ -320,6 +329,7 @@ add_executable(avrdude
     developer_opts_private.h
     whereami.c
     whereami.h
+    ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
     ${EXTRA_WINDOWS_RESOURCES}
     )
 

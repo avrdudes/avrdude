@@ -19,7 +19,7 @@
 
 /* $Id: pgm.c 976 2011-08-23 21:03:36Z joerg_wunsch $ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>

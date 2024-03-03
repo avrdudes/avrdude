@@ -7,6 +7,7 @@ progname=$(basename "$0")
 tfiles=$(dirname "$0")/test_files
 tfiles=$(printf "%q" "$tfiles") # Quote directory string in case there are spaces etc
 
+benchmark=0                     # If set to 1 does benchmark testing only
 avrdude_conf=''                 # Configuration for every run, eg, '-C path_to_avrdude_conf'
 delay=0.75                      # Some programmers need a delay between AVRDUDE calls
 avrdude_bin=avrdude             # Executable
@@ -22,6 +23,7 @@ cat <<END
 Syntax: $progname {<opts>}
 Function: test AVRDUDE for certain programmer and part combinations
 Options:
+    -b                          carry out four benchmark tests and summarise them
     -c <configuration spec>     additional configuration options used for all runs
     -d <sec>                    delay between test commands (default $delay seconds)
     -e <avrdude path>           set path of AVRDUDE executable (default $avrdude_bin)
@@ -39,8 +41,10 @@ Examples:
 END
 }
 
-while getopts ":\?hc:d:e:lp:st:Tv" opt; do
+while getopts ":\?hbc:d:e:lp:st:Tv" opt; do
   case ${opt} in
+    b) benchmark=1
+        ;;
     c) avrdude_conf="$OPTARG"
         ;;
     d) delay="$OPTARG"
@@ -156,8 +160,11 @@ tmpfile=$(mktemp "$tmp/$progname.tmp.XXXXXX")
 resfile=$(mktemp "$tmp/$progname.res.XXXXXX")
 trap "rm -f $status $logfile $outfile $tmpfile $resfile" EXIT
 
+devnull=$tmpfile                # Cannot use /dev/null as file in Windows avrdude
+
 TIMEFORMAT=%R                   # time built-in only returns elapsed wall-clock time
 elapsed=-1                      # Global variable holding time of last execute command in seconds
+bench_t=-1                      # Copy of global variable holding time of last execute command
 command=(sleep 0.1)             # Array with AVRDUDE command
 emulated=0                      # Is programmer dryrun or dryboot, ie, programming is emulated?
 
@@ -181,10 +188,13 @@ result () {
   if [[ $list_only -eq 0 ]]; then
     if [[ $ret -eq 0 ]]; then
       echo ✅ "$(printf '%7.3f s' $elapsed): $specify"
+      bench_t=$(printf '%5.2f s' $elapsed)
     else
       echo ❌ "$(printf '%7.3f s' $elapsed): $specify (failed command below)"
       echo "\$ ${command[@]}" | sed "s/ -l [^ ]* / /" | tr -s " "
-      FAIL=true
+      fail=true
+      bench_char="❌"
+      bench_t=error
       exitstate=1
       [[ $emulated -eq 0 ]] && sleep 4 # Let the hw settle down before next test
     fi
@@ -205,13 +215,29 @@ nofusetest=(-pattiny11/ -pt11/ -pattiny12/ -pt12/ -pattiny15/ -pt15/ -pat89s51/ 
   -pavr8ea28/ -pavr8ea32/ -pavr8ea32/ -plgt8f88p/ -plgt8f88p/ -plgt8f168p/ -plgt8f168p/
   -plgt8f328p/ -plgt8f328p/)
 
+if [[ $benchmark -eq 1 ]]; then
+  echo
+  echo The benchmark shows the wall clock time of avrdude carrying out the following tasks
+  echo "  -" Fl-ewv: erase flash, then write a sketch with three sections separated by holes, and verify
+  echo "  -" Fl-r: read the entire flash memory and write to file
+  echo "  -" EE-wv: write data to EEPROM with two data sections separated by a hole, and verify
+  echo "  -" EE-r: read the entire EEPROM memory and write to file
+  echo
+  echo The sketch and data payload is roughly one sixth of the respective memory size
+  echo
+  echo '| | `-c pgm` | `-p part` | Fl-ewv | Fl-r | EE-wv | EE-r | Comments |'
+  echo '|:-:|--:|--:|--:|--:|--:|--:|:--|'
+fi
+
 exitstate=0
 for (( p=0; p<$arraylength; p++ )); do
   # Isolate programmer and part (assumes -c prog or -cprog but not sth more tricky such as -qc prog)
-  programmer=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-c | tr A-Z a-z)
-  part=$(echo ${pgm_and_target[$p]} | sed 's/  *\([^-]\)/\1/g' | tr \  \\n | grep ^-p | tr A-Z a-z)
+  programmer=$(echo ${pgm_and_target[$p]} | sed 's/.* *-c *\([^ ]*\) *.*/\1/g' | tr A-Z a-z)
+  part=$(echo ${pgm_and_target[$p]} | sed 's/.* *-p *\([^ ]*\) *.*/\1/g')
+  lpart=$(echo $part | tr A-Z a-z)
+  rest=$(echo ${pgm_and_target[$p]} | sed -e's/ *-[cpP] *[^ ]* */ /g' -e's/  */ /g')
   emulated=0
-  [[ "$programmer" == -cdryrun || "$programmer" == -cdryboot ]] && emulated=1
+  [[ "$programmer" == dryrun || "$programmer" == dryboot ]] && emulated=1
 
   if [[ $list_only -eq 1 ]]; then
     [[ p -ne 0 ]] && echo
@@ -222,42 +248,45 @@ for (( p=0; p<$arraylength; p++ )); do
     read -n1 -s -r -p $'' key
     [[ $emulated -eq 0 ]] && sleep 0.15 # Debounce key when not using dryrun/dryboot
   fi
+  bench_char="✅"; bench_t_flwr=--; bench_t_flrd=--; bench_t_eewr=--; bench_t_eerd=--
 
   if [ "$key" == '' ]; then
-    FAIL=false
+    fail=false
     avrdude=($avrdude_bin -l $logfile $avrdude_conf -qq ${pgm_and_target[$p]})
 
     # Get flash and EEPROM size in bytes and make sure the numbers are in dec form
-    FLASH_SIZE=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep flash | awk '{print $2}')
-    EE_SIZE=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
+    flash_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep flash | awk '{print $2}')
+    bench_flwr_size=$((flash_size/6)) # Approximate(!) size of file holes_rjmp_loops_${flash_size}B.hex
+    ee_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
+    bench_eewr_size=$((ee_size/6)) # Approximate(!) size of file holes_pack_my_box_${ee_size}B.hex
 
-    if [[ -z "$FLASH_SIZE" ]]; then
+    if [[ -z "$flash_size" ]]; then
       echo "Cannot detect flash; check that \"${pgm_and_target[$p]}\" are valid avrdude options; skipping this test"
       continue
     fi
 
     # Memories that may or may not be present
-    USERSIG_SIZE=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep usersig | awk '{print $2}') # R/W
+    usersig_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep usersig | awk '{print $2}') # R/W
 
     # Is the to be tested programmer for a bootloader?
     is_bootloader=0
     if [ -n "$programmer" ]; then
-      ($avrdude_bin $avrdude_conf "$programmer"/At 2>/dev/null | grep -q prog_modes.PM_SPM) && is_bootloader=1
+      ($avrdude_bin $avrdude_conf -c"$programmer"/At 2>/dev/null | grep -q prog_modes.PM_SPM) && is_bootloader=1
     fi
 
     # Should we test fuses?
     fusetest=1
-    [[ -n "$part" && "${nofusetest[@]}" =~ "$part/" ]] && fusetest=0
+    [[ -n "$lpart" && "${nofusetest[@]}" =~ -p"$lpart/" ]] && fusetest=0
 
     # Should EEPROM test be carried out?
     check_eeprom=1
-    [[ -z "$EE_SIZE" ]] && check_eeprom=0
+    [[ -z "$ee_size" ]] && check_eeprom=0
     [[ $is_bootloader -eq 1 && $skip_eeprom -eq 1 ]] && check_eeprom=0
 
     #####
     # Dryrun tests for high-level progrmmer-independent tests (only for -m2560 or similar)
     #
-    if [[ "$programmer" == -cdryrun && $FLASH_SIZE -eq 262144 ]]; then
+    if [[ "$programmer" == dryrun && $flash_size -eq 262144 && $benchmark -eq 0 ]]; then
       # Raw test
       specify="flash raw format -T/-U write/verify cola-vending-machine.raw"
       command=(${avrdude[@]}
@@ -314,8 +343,8 @@ for (( p=0; p<$arraylength; p++ )); do
     #####
     # Fuse test (bootloaders usually cannot set fuses)
     #
-    if [[ $is_bootloader -ne 1 && $fusetest -eq 1 ]]; then
-      if [ -n "$EE_SIZE" ]; then
+    if [[ $is_bootloader -ne 1 && $fusetest -eq 1 && $benchmark -eq 0 ]]; then
+      if [ -n "$ee_size" ]; then
         specify="fuse access: clear, set and read eesave fuse bit"
         command=(${avrdude[@]} -T '"config eesave=0; config eesave=1; config eesave"')
       else
@@ -328,7 +357,7 @@ for (( p=0; p<$arraylength; p++ )); do
       mv ${outfile}-2 $outfile
       result [[ '"$fusebit"' == 1 '&&' ! -s $outfile '&&' ! -s $logfile ]]
 
-      if [ -n "$EE_SIZE" ]; then
+      if [ -n "$ee_size" ]; then
         specify="fuse access: set eesave fusebit to delete EEPROM on chip erase"
         command=(${avrdude[@]} -T '"config eesave=ee*erased"')
         execute "${command[@]}" > $outfile
@@ -341,109 +370,144 @@ for (( p=0; p<$arraylength; p++ )); do
     ######
     # Chip erase for defined initial state
     #
-    specify="chip erase"
-    command=(${avrdude[@]} -e)
-    execute "${command[@]}"
-    result [ $? == 0 ]
+    if [ $benchmark -eq 0 ]; then
+      specify="chip erase"
+      # Emulated chip erase needs a tiny file be uploaded
+      command=(${avrdude[@]} -e -FAU flash:w:0xff:m)
+      execute "${command[@]}"
+      result [ $? == 0 ]
+    fi
 
     #####
     # Flash test: a relatively difficult file with two code blocks and one data block with holes
     #
-    specify="flash -U write/verify holes_rjmp_loops_${FLASH_SIZE}B.hex"
-    command=(${avrdude[@]} -Uflash:w:$tfiles/holes_rjmp_loops_${FLASH_SIZE}B.hex)
+    specify="flash -U write/verify holes_rjmp_loops_${flash_size}B.hex"
+    command=(${avrdude[@]} -Uflash:w:$tfiles/holes_rjmp_loops_${flash_size}B.hex)
     execute "${command[@]}"
     result [ $? == 0 ]
-    if [ $? != 0 ]; then        # Not working? try a file without holes
-      specify="flash -U write/verify rjmp_loops_for_bootloaders_${FLASH_SIZE}B.hex"
-      command=(${avrdude[@]} -Uflash:w:$tfiles/rjmp_loops_for_bootloaders_${FLASH_SIZE}B.hex)
+    if [[ $? != 0 && $benchmark -eq 0 ]]; then # Not working? try a file without holes
+      specify="flash -U write/verify rjmp_loops_for_bootloaders_${flash_size}B.hex"
+      command=(${avrdude[@]} -Uflash:w:$tfiles/rjmp_loops_for_bootloaders_${flash_size}B.hex)
       execute "${command[@]}"
       result [ $? == 0 ]
     fi
+    bench_t_flwr=$bench_t
 
-    specify="flash -T write/verify holes_rjmp_loops_${FLASH_SIZE}B.hex"
-    command=(${avrdude[@]} -T '"write flash '$tfiles/holes_rjmp_loops_${FLASH_SIZE}B.hex:a'"')
-    execute "${command[@]}" > $outfile
-    result [[ ! -s $outfile '&&' ! -s $logfile ]]
-    if [ $? != 0 ]; then        # Not working? try a file without holes
-      specify="flash -T write/verify rjmp_loops_for_bootloaders_${FLASH_SIZE}B.hex"
-      command=(${avrdude[@]} -T '"write flash '$tfiles/rjmp_loops_for_bootloaders_${FLASH_SIZE}B.hex:a'"')
-      execute "${command[@]}" > $outfile
-      result [[ ! -s $outfile '&&' ! -s $logfile ]]
-    fi
-
-    ######
-    # EEPROM tests
-    #
-    if [ $check_eeprom -eq 1 ]; then
-      # -U cannot cope with EEPROMs that are unable to set cleared bits but
-      # the terminal can if the eesave fuse makes chip erase erase EEPROM
-      specify="eeprom check whether programmer can flip 0s to 1s"
-      command=(${avrdude[@]}  -Ueeprom:w:0x55:m -Ueeprom:w:0xaa:m)
+    if [[ $benchmark -eq 1 ]]; then
+      specify="flash -U read all flash"
+      command=(${avrdude[@]} -Uflash:r:$devnull)
       execute "${command[@]}"
       result [ $? == 0 ]
-      if [ $? == 0 ]; then      # OK, try a file with holes
-        specify="eeprom -U write/verify holes_pack_my_box_${EE_SIZE}B.hex"
-        command=(${avrdude[@]} -Ueeprom:w:$tfiles/holes_pack_my_box_${EE_SIZE}B.hex)
-        execute "${command[@]}"
-        result [ $? == 0 ]
-        if [ $? != 0 ]; then        # Not working? try a file without holes
-          specify="eeprom -U write/verify the_quick_brown_fox_${EE_SIZE}B.hex"
-          command=(${avrdude[@]} -Ueeprom:w:$tfiles/the_quick_brown_fox_${EE_SIZE}B.hex)
-          execute "${command[@]}"
-          result [ $? == 0 ]
-        fi
-      else
-        echo "# ... the next test may therefore take longer"
-      fi
+      bench_t_flrd=$bench_t
+    fi
 
-      specify="eeprom -T write/verify holes_{the_five_boxing_wizards,pack_my_box}_${EE_SIZE}B.hex"
-      command=(${avrdude[@]}
-        -T '"write eeprom '$tfiles/holes_the_five_boxing_wizards_${EE_SIZE}B.hex:a'"'
-        -T flush
-        -T '"write eeprom '$tfiles/holes_pack_my_box_${EE_SIZE}B.hex:a'"')
+    if [[ $benchmark -eq 0 ]]; then
+      specify="flash -T write/verify holes_rjmp_loops_${flash_size}B.hex"
+      command=(${avrdude[@]} -T '"write flash '$tfiles/holes_rjmp_loops_${flash_size}B.hex:a'"')
       execute "${command[@]}" > $outfile
       result [[ ! -s $outfile '&&' ! -s $logfile ]]
       if [ $? != 0 ]; then        # Not working? try a file without holes
-        specify="eeprom -T write/verify lorem_ipsum_${EE_SIZE}B.srec"
-        command=(${avrdude[@]} -T '"write eeprom '$tfiles/lorem_ipsum_${EE_SIZE}B.srec:a'"')
+        specify="flash -T write/verify rjmp_loops_for_bootloaders_${flash_size}B.hex"
+        command=(${avrdude[@]} -T '"write flash '$tfiles/rjmp_loops_for_bootloaders_${flash_size}B.hex:a'"')
         execute "${command[@]}" > $outfile
         result [[ ! -s $outfile '&&' ! -s $logfile ]]
       fi
     fi
 
     ######
+    # EEPROM tests
+    #
+    if [ $check_eeprom -eq 1 ]; then
+      if [ $benchmark -eq 1 ]; then
+        specify="eeprom -U write/verify holes_pack_my_box_${ee_size}B.hex"
+        command=(${avrdude[@]} -Ueeprom:w:$tfiles/holes_pack_my_box_${ee_size}B.hex)
+        execute "${command[@]}"
+        result [ $? == 0 ]
+        bench_t_eewr=$bench_t
+
+        specify="eeprom -U read all"
+        command=(${avrdude[@]} -Ueeprom:r:$devnull)
+        execute "${command[@]}"
+        result [ $? == 0 ]
+        bench_t_eerd=$bench_t
+      else
+        # -U cannot cope with EEPROMs that are unable to set cleared bits but
+        # the terminal can if the eesave fuse makes chip erase erase EEPROM
+        specify="eeprom check whether programmer can flip 0s to 1s"
+        command=(${avrdude[@]}  -Ueeprom:w:0x55:m -Ueeprom:w:0xaa:m)
+        execute "${command[@]}"
+        result [ $? == 0 ]
+        if [ $? == 0 ]; then      # OK, try a file with holes
+          specify="eeprom -U write/verify holes_pack_my_box_${ee_size}B.hex"
+          command=(${avrdude[@]} -Ueeprom:w:$tfiles/holes_pack_my_box_${ee_size}B.hex)
+          execute "${command[@]}"
+          result [ $? == 0 ]
+          if [ $? != 0 ]; then        # Not working? try a file without holes
+            specify="eeprom -U write/verify the_quick_brown_fox_${ee_size}B.hex"
+            command=(${avrdude[@]} -Ueeprom:w:$tfiles/the_quick_brown_fox_${ee_size}B.hex)
+            execute "${command[@]}"
+            result [ $? == 0 ]
+          fi
+        else
+          echo "# ... the next test may therefore take longer"
+        fi
+
+        specify="eeprom -T write/verify holes_{the_five_boxing_wizards,pack_my_box}_${ee_size}B.hex"
+        command=(${avrdude[@]}
+          -T '"write eeprom '$tfiles/holes_the_five_boxing_wizards_${ee_size}B.hex:a'"'
+          -T flush
+          -T '"write eeprom '$tfiles/holes_pack_my_box_${ee_size}B.hex:a'"')
+        execute "${command[@]}" > $outfile
+        result [[ ! -s $outfile '&&' ! -s $logfile ]]
+        if [ $? != 0 ]; then        # Not working? try a file without holes
+          specify="eeprom -T write/verify lorem_ipsum_${ee_size}B.srec"
+          command=(${avrdude[@]} -T '"write eeprom '$tfiles/lorem_ipsum_${ee_size}B.srec:a'"')
+          execute "${command[@]}" > $outfile
+          result [[ ! -s $outfile '&&' ! -s $logfile ]]
+        fi
+      fi
+    fi
+
+    ######
     # Chip erase and verify
     #
-    specify="chip erase and spot check flash is actually erased"
-    command=(${avrdude[@]} -e -Uflash:v:$tfiles/holes_flash_0xff_${FLASH_SIZE}B.hex)
-    execute "${command[@]}"
-    result [ $? == 0 ]
-    if [[ $? == 0 && $check_eeprom -eq 1 && $is_bootloader -eq 0 ]]; then
-      specify="spot check eeprom is erased, too"
-      command=(${avrdude[@]} -Ueeprom:v:$tfiles/holes_eeprom_0xff_${EE_SIZE}B.hex)
+    if [[ $benchmark -eq 0 ]]; then
+      specify="chip erase and spot check flash is actually erased"
+      command=(${avrdude[@]} -e -FAU flash:w:0xff:m
+        -U flash:v:$tfiles/holes_flash_0xff_${flash_size}B.hex)
       execute "${command[@]}"
       result [ $? == 0 ]
+      if [[ $? == 0 && $check_eeprom -eq 1 && $is_bootloader -eq 0 ]]; then
+        specify="spot check eeprom is erased, too"
+        command=(${avrdude[@]} -Ueeprom:v:$tfiles/holes_eeprom_0xff_${ee_size}B.hex)
+        execute "${command[@]}"
+        result [ $? == 0 ]
+      fi
     fi
 
     ######
     # Write and verify random data to usersig if present
     #
-    if [[ -n "$USERSIG_SIZE" && $is_bootloader -ne 1 ]]; then
-      specify="usersig -T/-U write/read random_data_${USERSIG_SIZE}B.bin"
+    if [[ -n "$usersig_size" && $is_bootloader -ne 1 && $benchmark -eq 0 ]]; then
+      specify="usersig -T/-U write/read random_data_${usersig_size}B.bin"
       command=(${avrdude[@]}
-        -T '"erase usersig; write usersig '$tfiles/random_data_${USERSIG_SIZE}B.bin'"'
+        -T '"erase usersig; write usersig '$tfiles/random_data_${usersig_size}B.bin'"'
         -T flush
         -U usersig:r:$tmpfile:r
         -U usersig:v:$tmpfile:r
         -T '"erase usersig"'
         -T flush
-        -U usersig:v:$tfiles/0xff_${USERSIG_SIZE}B.hex:i)
+        -U usersig:v:$tfiles/0xff_${usersig_size}B.hex:i)
       execute "${command[@]}" >$outfile
-      result [[ ! -s $outfile '&&' ! -s $logfile ]] '&&' cmp -s "$tfiles/random_data_${USERSIG_SIZE}B.bin" "$tmpfile"
+      result [[ ! -s $outfile '&&' ! -s $logfile ]] '&&' cmp -s "$tfiles/random_data_${usersig_size}B.bin" "$tmpfile"
       cp /dev/null $tmpfile
     fi
 
-    if [ $FAIL == true ]; then
+    if [ $benchmark -eq 1 ]; then
+      echo "|$bench_char|$programmer|$part|$bench_t_flwr|$bench_t_flrd|$bench_t_eewr|$bench_t_eerd|$rest|"
+    fi
+
+    if [ $fail == true ]; then
       echo ''
       read -rep "One or more AVRDUDE \"${pgm_and_target[$p]}\" tests failed. Do you want to retry this particular test? (y/n): " choice
       case "$choice" in

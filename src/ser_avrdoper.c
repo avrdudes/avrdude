@@ -24,7 +24,7 @@
  * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #if defined(HAVE_LIBHIDAPI)
 

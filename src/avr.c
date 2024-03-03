@@ -19,7 +19,7 @@
 
 /* $Id$ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -455,11 +455,11 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         if (rc < 0)
           /* paged load failed, fall back to byte-at-a-time read below */
           failure = 1;
+        nread++;
+        report_progress(nread, npages, NULL);
       } else {
         pmsg_debug("avr_read_mem(): skipping page %u: no interesting data\n", pageaddr / mem->page_size);
       }
-      nread++;
-      report_progress(nread, npages, NULL);
     }
     if (!failure) {
       led_clr(pgm, LED_PGM);
@@ -1150,11 +1150,11 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
         if (rc < 0)
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
+        nwritten++;
+        report_progress(nwritten, npages, NULL);
       } else {
         pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr / cm->page_size);
       }
-      nwritten++;
-      report_progress(nwritten, npages, NULL);
     }
 
     avr_free_mem(cm);
