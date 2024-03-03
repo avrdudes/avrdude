@@ -141,7 +141,7 @@ add_custom_target(conf ALL DEPENDS avrdude.conf)
 # Project
 # =====================================
 
-add_library(libavrdude
+set(SOURCES
     ac_cfg.h
     arduino.h
     arduino.c
@@ -276,6 +276,10 @@ add_library(libavrdude
     ${EXTRA_WINDOWS_SOURCES}
     )
 
+add_library(libavrdude
+    ${SOURCES}
+    )
+
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
@@ -323,6 +327,30 @@ target_link_libraries(avrdude PUBLIC libavrdude)
 
 if(MINGW)
     target_link_options(avrdude PRIVATE -static)
+endif()
+
+if(HAVE_SWIG)
+  include (UseSWIG)
+  INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
+  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/..)
+  swig_add_library(swig_avrdude LANGUAGE Python SOURCES libavrdude.i ${SOURCES})
+  target_link_libraries(swig_avrdude
+    PRIVATE
+    ${LIB_MATH}
+    ${LIB_LIBELF}
+    ${LIB_LIBUSB}
+    ${LIB_LIBUSB_1_0}
+    ${LIB_LIBHID}
+    ${LIB_LIBHIDAPI}
+    ${LIB_LIBFTDI}
+    ${LIB_LIBFTDI1}
+    ${LIB_LIBREADLINE}
+    ${LIB_LIBSERIALPORT}
+    ${LIB_NCURSES}
+    ${LIB_LIBGPIOD}
+    ${EXTRA_WINDOWS_LIBRARIES}
+    )
 endif()
 
 # =====================================
