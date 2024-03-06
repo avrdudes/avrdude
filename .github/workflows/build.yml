@@ -316,6 +316,8 @@ jobs:
             base-devel
             mingw-w64-${{matrix.env}}-gcc
             mingw-w64-${{matrix.env}}-cmake
+            mingw-w64-${{matrix.env}}-python            
+            mingw-w64-${{matrix.env}}-swig
             mingw-w64-${{matrix.env}}-libelf
             mingw-w64-${{matrix.env}}-libusb
             mingw-w64-${{matrix.env}}-libusb-compat-git
