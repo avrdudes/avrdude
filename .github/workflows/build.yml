@@ -214,6 +214,7 @@ jobs:
           libftdi
           readline
           libserialport
+          python
       - name: Configure
         run: >-
           cmake
