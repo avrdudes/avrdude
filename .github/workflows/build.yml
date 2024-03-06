@@ -214,13 +214,13 @@ jobs:
           libftdi
           readline
           libserialport
-          python
       - name: Configure
         run: >-
           cmake
           -D CMAKE_C_FLAGS=-I/usr/local/include
-          -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar
+          -D CMAKE_EXE_LINKER_FLAGS="-L/usr/local/Cellar /usr/local/Frameworks/Python.framework/Versions/3.12/lib/libpython3.12.dylib"
           -D DEBUG_CMAKE=1
+          -D CMAKE_VERBOSE_MAKEFILE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -B build
       - name: Build
