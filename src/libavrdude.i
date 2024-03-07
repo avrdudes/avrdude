@@ -68,29 +68,37 @@ typedef struct avrmem AVRMEM;
 // needed there.
 
 %typemap(out) AVRPART* {
-  PyObject* dict = PyDict_New();
-  PyDict_SetItem(dict, PyUnicode_FromString("desc"),
-                 PyUnicode_FromString($1->desc));
-  PyDict_SetItem(dict, PyUnicode_FromString("id"),
-                 PyUnicode_FromString($1->id));
-  PyDict_SetItem(dict, PyUnicode_FromString("signature"),
-                 PyBytes_FromStringAndSize((const char *)($1->signature), 3));
-  PyDict_SetItem(dict, PyUnicode_FromString("mem"),
-		 SWIG_NewPointerObj($1->mem, SWIGTYPE_p_avrmem, 0));
-  $result = dict;
+  if ($1 == NULL) {
+    $result = Py_None;
+  } else {
+    PyObject* dict = PyDict_New();
+    PyDict_SetItem(dict, PyUnicode_FromString("desc"),
+                   PyUnicode_FromString($1->desc));
+    PyDict_SetItem(dict, PyUnicode_FromString("id"),
+                   PyUnicode_FromString($1->id));
+    PyDict_SetItem(dict, PyUnicode_FromString("signature"),
+                   PyBytes_FromStringAndSize((const char *)($1->signature), 3));
+    PyDict_SetItem(dict, PyUnicode_FromString("mem"),
+                   SWIG_NewPointerObj($1->mem, SWIGTYPE_p_avrmem, 0));
+    $result = dict;
+  }
 }
 
 %typemap(out) AVRMEM* {
-  PyObject* dict = PyDict_New();
-  PyDict_SetItem(dict, PyUnicode_FromString("desc"),
-		 PyUnicode_FromString($1->desc));
-  PyDict_SetItem(dict, PyUnicode_FromString("paged"),
-		 PyBool_FromLong($1->paged));
-  PyDict_SetItem(dict, PyUnicode_FromString("size"),
-		 PyLong_FromLong($1->size));
-  PyDict_SetItem(dict, PyUnicode_FromString("page_size"),
-		 PyLong_FromLong($1->page_size));
-  $result = dict;
+  if ($1 == NULL) {
+    $result = Py_None;
+  } else {
+    PyObject* dict = PyDict_New();
+    PyDict_SetItem(dict, PyUnicode_FromString("desc"),
+                   PyUnicode_FromString($1->desc));
+    PyDict_SetItem(dict, PyUnicode_FromString("paged"),
+                   PyBool_FromLong($1->paged));
+    PyDict_SetItem(dict, PyUnicode_FromString("size"),
+                   PyLong_FromLong($1->size));
+    PyDict_SetItem(dict, PyUnicode_FromString("page_size"),
+                   PyLong_FromLong($1->page_size));
+    $result = dict;
+  }
 }
 
 // Config file handling
