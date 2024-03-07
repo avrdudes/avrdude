@@ -128,3 +128,33 @@ AVRPART *cast_avrpart(LNODEID);
 AVRMEM *cast_avrmem(LNODEID);
 
 const char *cast_string(LNODEID);
+
+// AVRMEM and AVRPART handling
+AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
+AVRPART * locate_part(const LISTID parts, const char *partdesc);
+
+enum prog_modes {
+  PM_SPM       =    1, // Bootloaders, self-programming with SPM opcodes or NVM Controllers
+  PM_TPI       =    2, // Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+  PM_ISP       =    4, // SPI programming for In-System Programming (almost all classic parts)
+  PM_PDI       =    8, // Program and Debug Interface (xmega parts)
+  PM_UPDI      =   16, // Unified Program and Debug Interface
+  PM_HVSP      =   32, // High Voltage Serial Programming (some classic parts)
+  PM_HVPP      =   64, // High Voltage Parallel Programming (most non-HVSP classic parts)
+  PM_debugWIRE =  128, // Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+  PM_JTAG      =  256, // Joint Test Action Group standard (some classic parts)
+  PM_JTAGmkI   =  512, // Subset of PM_JTAG, older parts, Atmel ICE mkI
+  PM_XMEGAJTAG = 1024, // JTAG, some XMEGA parts
+  PM_AVR32JTAG = 2048, // JTAG for 32-bit AVRs
+  PM_aWire     = 4096, // For 32-bit AVRs
+  PM_ALL      = 0x1fff // All programming interfaces
+};
+// map Python bytes() to sig+sigsize
+%typemap(in) (unsigned char *sig, int sigsize) {
+  Py_ssize_t len;
+  PyBytes_AsStringAndSize($input, (char **)&$1, &len);
+  $2 = (int)len;
+}
+AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
+AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes);
+const char *avr_prog_modes_str(int pm);
