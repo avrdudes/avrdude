@@ -78,6 +78,8 @@ typedef struct avrmem AVRMEM;
                    PyUnicode_FromString($1->id));
     PyDict_SetItem(dict, PyUnicode_FromString("signature"),
                    PyBytes_FromStringAndSize((const char *)($1->signature), 3));
+    PyDict_SetItem(dict, PyUnicode_FromString("prog_modes"),
+                   PyLong_FromLong($1->prog_modes));
     PyDict_SetItem(dict, PyUnicode_FromString("mem"),
                    SWIG_NewPointerObj($1->mem, SWIGTYPE_p_avrmem, 0));
     $result = dict;
