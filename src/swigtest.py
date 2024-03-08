@@ -14,10 +14,22 @@ import sys
 import os
 import pathlib
 
-sysname = os.uname()[0].lower()
-builddir = f'build_{sysname}/src'
+builddir = None
+if os.name == 'posix':
+    # Linux, *BSD, MacOS
+    sysname = os.uname()[0].lower()
+    builddir = f'build_{sysname}/src'
+elif os.name == 'nt':
+    # Windows
+    for candidate in ['build_msvc/src', 'build_msys64/src']:
+        if os.path.exists(candidate):
+            builddir = candidate
+            break
 
-sys.path.append(builddir)
+if builddir == None:
+    print("Cannot determine build directory, module loading might fail.", file=sys.stderr)
+else:
+    sys.path.append(builddir)
 
 import swig_avrdude as ad
 
