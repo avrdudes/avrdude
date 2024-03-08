@@ -218,7 +218,7 @@ jobs:
         run: >-
           cmake
           -D CMAKE_C_FLAGS=-I/usr/local/include
-          -D CMAKE_EXE_LINKER_FLAGS="-L/usr/local/Cellar"
+          -D CMAKE_EXE_LINKER_FLAGS=-L/usr/local/Cellar
           -D DEBUG_CMAKE=1
           -D CMAKE_VERBOSE_MAKEFILE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
@@ -264,6 +264,7 @@ jobs:
           cmake
           -A ${{matrix.platform}}
           -D DEBUG_CMAKE=1
+          -D CMAKE_VERBOSE_MAKEFILE=1
           -D CMAKE_SYSTEM_VERSION=11
           -D CMAKE_C_FLAGS_RELWITHDEBINFO="/MT /GL /Zi /O2 /Ob1 /DNDEBUG"
           -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="/MT /GL /Zi /O2 /Ob1 /DNDEBUG"
@@ -332,6 +333,7 @@ jobs:
           cmake
           -G"MSYS Makefiles"
           -D DEBUG_CMAKE=1
+          -D CMAKE_VERBOSE_MAKEFILE=1
           -D CMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           -B build
       - name: Build
