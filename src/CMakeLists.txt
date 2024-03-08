@@ -341,10 +341,16 @@ endif()
 
 if(HAVE_SWIG)
   include (UseSWIG)
-  INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}/..)
   swig_add_library(swig_avrdude LANGUAGE Python SOURCES libavrdude.i ${SOURCES})
+  target_include_directories(swig_avrdude
+    PUBLIC
+    "${PYTHON_INCLUDE_PATH}"
+    "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${LIBUSB_COMPAT_DIR}"
+    ${EXTRA_WINDOWS_INCLUDES}
+  )
   target_link_libraries(swig_avrdude
     PRIVATE
     ${LIB_MATH}
