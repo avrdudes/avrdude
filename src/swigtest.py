@@ -21,9 +21,10 @@ if os.name == 'posix':
     builddir = f'build_{sysname}/src'
 elif os.name == 'nt':
     # Windows
-    for candidate in ['build_msvc/src', 'build_msys64/src']:
+    for candidate in ['build_msvc/src', 'build_mingw64/src']:
         if os.path.exists(candidate):
             builddir = candidate
+            os.add_dll_directory(candidate)
             break
 
 if builddir == None:
