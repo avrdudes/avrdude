@@ -24,7 +24,7 @@ elif os.name == 'nt':
     for candidate in ['build_msvc/src', 'build_mingw64/src']:
         if os.path.exists(candidate):
             builddir = candidate
-            os.add_dll_directory(candidate)
+            os.add_dll_directory(os.path.realpath(candidate))
             break
 
 if builddir == None:
