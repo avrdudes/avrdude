@@ -6,9 +6,7 @@
 # then run the interactive interpreter.
 
 # Example:
-# a=search_avrpart('m328')
-# print(a)
-# show_avrmem(a['mem'])
+# getavr("m128")
 
 import sys
 import os
@@ -49,26 +47,61 @@ if not found:
     print("Sorry, no avrdude.conf could be found.")
     sys.exit(1)
 
-def search_avrpart(name):
-    '''Search list of AVR parts from config for matching "desc" or "id"'''
+def avrpart_to_dict(avrpart):
 
-    partlist = ad.cvar.part_list
+    if str(type(avrpart)).find('AVRPART') < 0:
+        raise Exception(f"wrong argument: {type(avrpart)}, expecting swig_avrdude.AVRPART")
 
-    part = ad.lfirst(partlist)
-    while part:
-        d = ad.ldata(part)
-        avrpart = ad.cast_avrpart(d)
-        if avrpart['desc'] == name or avrpart['id'] == name:
-            return avrpart
-        part = ad.lnext(part)
+    d = {}
+    d['desc'] = avrpart.desc
+    d['id'] = avrpart.id
+    d['family_id'] = avrpart.family_id
+    d['config_file'] = avrpart.config_file
+    d['lineno'] = avrpart.lineno
+    d['mem'] = avrpart.mem
 
-    return None
+    return d
 
-def show_avrmem(mem):
-    '''List all memories defined at avrpart["mem"]'''
+def avrmem_to_dict(mem):
 
-    m = ad.lfirst(mem)
+    if str(type(mem)).find('AVRMEM') < 0:
+        raise Exception(f"wrong argument: {type(mem)}, expecting swig_avrdude.AVRMEM")
+
+    d = {}
+    d['desc'] = mem.desc
+    d['size'] = mem.size
+    d['paged'] = mem.paged
+    d['page_size'] = mem.page_size
+    d['num_pages'] = mem.num_pages
+
+    return d
+
+def avrpart_to_mem(avrpart):
+
+    if str(type(avrpart)).find('AVRPART') < 0:
+        raise Exception(f"wrong argument: {type(avrpart)}, expecting swig_avrdude.AVRPART")
+
+    res = []
+    m = ad.lfirst(avrpart.mem)
     while m:
-        d = ad.ldata(m)
-        print(ad.cast_avrmem(d))
+        mm = ad.cast_avrmem(ad.ldata(m))
+        res.append(avrmem_to_dict(mm))
         m = ad.lnext(m)
+
+    return res
+
+def getavr(name: str):
+
+    p = ad.locate_part(ad.cvar.part_list, name)
+    if not p:
+        print(f"No part named {name} found")
+        return
+    pp = avrpart_to_dict(p)
+    mm = avrpart_to_mem(p)
+    print(f"AVR part {name} found as {pp['desc']}, or {pp['id']}")
+    print(f"Definition in {pp['config_file']}, line {pp['lineno']}")
+    print("Memory overview:")
+    print( "Name        size   paged   page_size num_pages")
+    for m in mm:
+        print(f"{m['desc']:11s} {m['size']:6d}  {str(m['paged']):5s}   {m['page_size']:4d}      {m['num_pages']:3d}")
+    print("")

@@ -167,41 +167,33 @@ typedef struct avrmem AVRMEM;
 // libavrdude itself, so only map things to the Python level that are
 // needed there.
 
-%typemap(out) AVRPART* {
-  if ($1 == NULL) {
-    $result = Py_None;
-  } else {
-    PyObject* dict = PyDict_New();
-    PyDict_SetItem(dict, PyUnicode_FromString("desc"),
-                   PyUnicode_FromString($1->desc));
-    PyDict_SetItem(dict, PyUnicode_FromString("id"),
-                   PyUnicode_FromString($1->id));
-    PyDict_SetItem(dict, PyUnicode_FromString("signature"),
-                   PyBytes_FromStringAndSize((const char *)($1->signature), 3));
-    PyDict_SetItem(dict, PyUnicode_FromString("prog_modes"),
-                   PyLong_FromLong($1->prog_modes));
-    PyDict_SetItem(dict, PyUnicode_FromString("mem"),
-                   SWIG_NewPointerObj($1->mem, SWIGTYPE_p_avrmem, 0));
-    $result = dict;
-  }
-}
+typedef struct avrpart {
+  const char  * desc;               /* long part name */
+  const char  * id;                 /* short part name */
+  LISTID        variants;           /* String with variant name and chip properties */
+  const char  * parent_id;          /* Used by developer options */
+  const char  * family_id;          /* family id in the SIB (avr8x) */
+  int           prog_modes;         /* Programming interfaces, see #define PM_... */
+  unsigned char signature[3];       /* expected value of signature bytes */
+  unsigned short usbpid;            /* USB DFU product ID (0 = none) */
+  LISTID        mem;            /* avr memory definitions */
+  LISTID        mem_alias;      /* memory alias definitions */
+  const char  * config_file;    /* config file where defined */
+  int           lineno;         /* config file line number */
+} AVRPART;
 
-%typemap(out) AVRMEM* {
-  if ($1 == NULL) {
-    $result = Py_None;
-  } else {
-    PyObject* dict = PyDict_New();
-    PyDict_SetItem(dict, PyUnicode_FromString("desc"),
-                   PyUnicode_FromString($1->desc));
-    PyDict_SetItem(dict, PyUnicode_FromString("paged"),
-                   PyBool_FromLong($1->paged));
-    PyDict_SetItem(dict, PyUnicode_FromString("size"),
-                   PyLong_FromLong($1->size));
-    PyDict_SetItem(dict, PyUnicode_FromString("page_size"),
-                   PyLong_FromLong($1->page_size));
-    $result = dict;
-  }
-}
+typedef unsigned int memtype_t;
+typedef struct avrmem {
+  const char *desc;           /* memory description ("flash", "eeprom", etc) */
+  memtype_t type;             /* internally used type, cannot be set in conf files */
+  bool paged;                  /* 16-bit page addressed, e.g., ATmega flash but not EEPROM */
+  int size;                   /* total memory size in bytes */
+  int page_size;              /* size of memory page (if page addressed) */
+  int num_pages;              /* number of pages (if page addressed) */
+  int initval;                /* factory setting of fuses and lock bits */
+  int bitmask;                /* bits used in fuses and lock bits */
+  unsigned char * buf;        /* pointer to memory buffer */
+} AVRMEM;
 
 // Config file handling
 int init_config(void);
