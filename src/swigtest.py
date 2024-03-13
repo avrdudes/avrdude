@@ -84,7 +84,7 @@ def avrpart_to_mem(avrpart):
     res = []
     m = ad.lfirst(avrpart.mem)
     while m:
-        mm = ad.cast_avrmem(ad.ldata(m))
+        mm = ad.ldata_avrmem((m))
         res.append(avrmem_to_dict(mm))
         m = ad.lnext(m)
 

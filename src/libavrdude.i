@@ -1,4 +1,5 @@
-%module swig_avrdude
+%module (docstring="SWIG wrapper and helper around libavrdude") swig_avrdude
+%feature("autodoc", "1");
 %{
 #include "ac_cfg.h"
 #include "libavrdude.h"
@@ -130,20 +131,20 @@ int avrdude_message2(FILE *fp, int lno, const char *file,
     return rc;
 }
 
-PROGRAMMER *cast_programmer(LNODEID p) {
-  return (PROGRAMMER *)p;
+PROGRAMMER *ldata_programmer(LNODEID p) {
+  return (PROGRAMMER *)ldata(p);
 }
 
-AVRPART *cast_avrpart(LNODEID p) {
-  return (AVRPART *)p;
+AVRPART *ldata_avrpart(LNODEID p) {
+  return (AVRPART *)ldata(p);
 }
 
-AVRMEM *cast_avrmem(LNODEID p) {
-  return (AVRMEM *)p;
+AVRMEM *ldata_avrmem(LNODEID p) {
+  return (AVRMEM *)ldata(p);
 }
 
-const char *cast_string(LNODEID p) {
-  return (const char *)p;
+const char *ldata_string(LNODEID p) {
+  return (const char *)ldata(p);
 }
 
 %}
@@ -215,13 +216,17 @@ void     * ldata  ( LNODEID ); /* data at the current position */
 int        lsize  ( LISTID  ); /* number of elements in the list */
 
 // Typecast helpers to interpret LNODEID
-PROGRAMMER *cast_programmer(LNODEID);
+%feature("autodoc", "LNODEID -> PROGRAMMER*") ldata_programmer;
+PROGRAMMER *ldata_programmer(LNODEID);
 
-AVRPART *cast_avrpart(LNODEID);
+%feature("autodoc", "LNODEID -> AVRPART*") ldata_avrpart;
+AVRPART *ldata_avrpart(LNODEID);
 
-AVRMEM *cast_avrmem(LNODEID);
+%feature("autodoc", "LNODEID -> AVRMEM*") ldata_avrmem;
+AVRMEM *ldata_avrmem(LNODEID);
 
-const char *cast_string(LNODEID);
+%feature("autodoc", "LNODEID -> str") ldata_string;
+const char *ldata_string(LNODEID);
 
 // AVRMEM and AVRPART handling
 AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
