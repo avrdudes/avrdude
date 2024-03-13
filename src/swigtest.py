@@ -58,6 +58,7 @@ def avrpart_to_dict(avrpart):
     d['family_id'] = avrpart.family_id
     d['config_file'] = avrpart.config_file
     d['lineno'] = avrpart.lineno
+    d['variants'] = avrpart.variants
     d['mem'] = avrpart.mem
 
     return d
@@ -100,8 +101,18 @@ def getavr(name: str):
     mm = avrpart_to_mem(p)
     print(f"AVR part {name} found as {pp['desc']}, or {pp['id']}")
     print(f"Definition in {pp['config_file']}, line {pp['lineno']}")
+
+    print("")
     print("Memory overview:")
     print( "Name        size   paged   page_size num_pages")
     for m in mm:
         print(f"{m['desc']:11s} {m['size']:6d}  {str(m['paged']):5s}   {m['page_size']:4d}      {m['num_pages']:3d}")
+
+    print("")
+    print("Device variants:")
+    v = ad.lfirst(p.variants)
+    while v:
+        vv = ad.ldata_string(v)
+        print(vv)
+        v = ad.lnext(v)
     print("")
