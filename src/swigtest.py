@@ -5,8 +5,18 @@
 # Best call this as "python -i src/swigtest.py",
 # then run the interactive interpreter.
 
-# Example:
+# Examples:
+
 # getavr("m128")
+
+# p = ad.locate_part(ad.cvar.part_list, 'm168pb')
+# ad.avr_initmem(p)
+# pgm = start_programmer('xplainedmini', 'usb', p)
+# m = ad.avr_locate_mem(p, 'signature')
+# ad.avr_read_mem(pgm, p, m)
+# m.get(3)
+# m.get(3) == p.signature
+# stop_programmer(pgm)
 
 import sys
 import os
@@ -116,3 +126,18 @@ def getavr(name: str):
         print(vv)
         v = ad.lnext(v)
     print("")
+
+def start_programmer(programmer: str, port: str, avrpart):
+    g = ad.locate_programmer(ad.cvar.programmers, programmer)
+    g.initpgm()
+    g.setup()
+    g.open(port)
+    g.enable(p)
+    g.initialize(p)
+
+    return g
+
+def stop_programmer(g):
+    g.disable()
+    g.close()
+    g.teardown()
