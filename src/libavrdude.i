@@ -162,6 +162,8 @@ const char *pgmid;
 typedef void * LNODEID;
 typedef void * LISTID;
 typedef struct avrmem AVRMEM;
+typedef struct programmer_t PROGRAMMER;
+typedef void pgm_initpgm(PROGRAMMER*);
 
 // These things are read from config file(s), and must be considered
 // read-only by any program. Most internals are only relevant for
@@ -231,6 +233,49 @@ int avr_initmem(const AVRPART *p);
   }
 }
 
+typedef enum {
+  CONNTYPE_PARALLEL,
+  CONNTYPE_SERIAL,
+  CONNTYPE_USB,
+  CONNTYPE_SPI,
+  CONNTYPE_LINUXGPIO
+} conntype_t;
+
+// https://stackoverflow.com/questions/11023940/how-do-i-get-swig-to-automatically-wrap-an-emulated-this-pointer-to-a-c-struct/11029809#11029809
+// Make sure the wrapped function doesn't expect an input for this:
+%typemap(in, numinputs=0) struct programmer_t *pgm "$1=NULL;"
+// Slightly abuse check typemap, but it needs to happen after the rest of the arguments have been set:
+%typemap(check) struct programmer_t *pgm {
+  $1 = arg1;
+}
+typedef struct programmer_t {
+  LISTID id;
+  const char *desc;
+  int prog_modes;               // Programming interfaces, see #define PM_...
+  conntype_t conntype;
+  int baudrate;
+  int usbvid;
+  LISTID usbpid;
+  int ispdelay;                 // ISP clock delay
+  double bitclock;              // JTAG ICE clock period in microseconds
+  char type[PGM_TYPELEN];
+
+  // methods; they must *not* be declares as pointers
+  void initpgm        (struct programmer_t *pgm); // Sets up the AVRDUDE programmer
+  int  initialize     (const struct programmer_t *pgm, const AVRPART *p); // Sets up the physical programmer
+  void setup          (struct programmer_t *pgm);
+  void teardown       (struct programmer_t *pgm);
+  int  parseextparams (const struct programmer_t *pgm, const LISTID xparams);
+  int  parseexitspecs (struct programmer_t *pgm, const char *s);
+  int  open           (struct programmer_t *pgm, const char *port);
+  void close          (struct programmer_t *pgm);
+  void enable         (struct programmer_t *pgm, const AVRPART *p);
+  void disable        (const struct programmer_t *pgm);
+  int  read_sib       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
+
+} PROGRAMMER;
+%clear struct programmer_t *pgm;
+
 // Config file handling
 int init_config(void);
 
@@ -292,3 +337,18 @@ enum prog_modes {
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes);
 const char *avr_prog_modes_str(int pm);
+
+PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, const char **setid);
+PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *id, const char **setid, AVRPART *prt);
+PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
+
+
+int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v = NULL);
+
+int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const AVRPART *v = NULL);
+
+int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+                   unsigned long addr);
+
+int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+                   unsigned long addr, unsigned char data);
