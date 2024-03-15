@@ -1,13 +1,33 @@
-%module (docstring="SWIG wrapper and helper around libavrdude") swig_avrdude
+%define DOCSTRING
+"SWIG wrapper and helper around libavrdude
+
+The module defines all things necessary to perform the
+same operations as the CLI AVRDUDE program, and exports
+it to Python.
+
+Invoke like
+
+import swig_avrdude as ad
+
+The following global variables are available in `ad.cvar`:
+
+`ad.cvar.version`  - str, read-only
+`ad.cvar.progname` - str, for messages
+`ad.cvar.progbuf`  - str, spaces same length as `progname`
+`ad.cvar.verbose`  - int, message verbosity (0 ... 5)
+`ad.cvar.quell_progress` - int, message supression (0 ... 2)
+`ad.cvar.ovsigck`  - int, override signature and some other checks (0 ... 1)"
+%enddef
+%module (docstring=DOCSTRING) swig_avrdude
 %feature("autodoc", "1");
 %{
 #include "ac_cfg.h"
 #include "libavrdude.h"
 
 // global variables referenced by library
-char * version      = AVRDUDE_FULL_VERSION;
+char * version  = AVRDUDE_FULL_VERSION;
 char * progname = "avrdude";
-char   progbuf[] = "       ";
+char * progbuf = "       ";
 int verbose;
 int quell_progress;
 int ovsigck;
@@ -150,14 +170,18 @@ const char *ldata_string(LNODEID p) {
 %}
 
 // globals from above are mapped to Python
+%immutable;
 char * version;
+%mutable;
 char * progname;
-char   progbuf[];
+char * progbuf;
 int verbose;
 int quell_progress;
 int ovsigck;
+%immutable;
 const char *partdesc;
 const char *pgmid;
+%mutable;
 
 typedef void * LNODEID;
 typedef void * LISTID;
@@ -171,9 +195,10 @@ typedef void pgm_initpgm(PROGRAMMER*);
 // needed there.
 
 %typemap(out) unsigned char signature[3] {
-  $result = PyBytes_FromStringAndSize($1, 3);
+  $result = PyBytes_FromStringAndSize((const char *)$1, 3);
  }
 
+%immutable;
 typedef struct avrpart {
   const char  * desc;               /* long part name */
   const char  * id;                 /* short part name */
@@ -188,9 +213,11 @@ typedef struct avrpart {
   const char  * config_file;    /* config file where defined */
   int           lineno;         /* config file line number */
 } AVRPART;
+%mutable;
 
 typedef unsigned int memtype_t;
 typedef struct avrmem {
+  %immutable;
   const char *desc;           /* memory description ("flash", "eeprom", etc) */
   memtype_t type;             /* internally used type, cannot be set in conf files */
   bool paged;                  /* 16-bit page addressed, e.g., ATmega flash but not EEPROM */
@@ -199,6 +226,7 @@ typedef struct avrmem {
   int num_pages;              /* number of pages (if page addressed) */
   int initval;                /* factory setting of fuses and lock bits */
   int bitmask;                /* bits used in fuses and lock bits */
+  %mutable;
   unsigned char * buf;        /* pointer to memory buffer */
 } AVRMEM;
 
@@ -248,6 +276,8 @@ typedef enum {
 %typemap(check) struct programmer_t *pgm {
   $1 = arg1;
 }
+
+%immutable;
 typedef struct programmer_t {
   LISTID id;
   const char *desc;
@@ -274,6 +304,7 @@ typedef struct programmer_t {
   int  read_sib       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
 
 } PROGRAMMER;
+%mutable;
 %clear struct programmer_t *pgm;
 
 // Config file handling
@@ -342,13 +373,13 @@ PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, cons
 PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *id, const char **setid, AVRPART *prt);
 PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
-
+%feature("autodoc", "avr_read_mem(PROGRAMMER pgm, AVRPART p, AVRMEM mem, AVRPART v=None -> int; v: verify against") avr_read_mem;
 int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v = NULL);
 
-int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const AVRPART *v = NULL);
+%feature("autodoc", "avr_write_mem(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int size, int auto_erase) -> int; write entire memory region from `mem` buffer") avr_write_mem;
+int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+                  int size, int auto_erase);
 
-int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-                   unsigned long addr);
-
+%feature("autodoc", "avr_write_byte(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int addr, byte data) -> int") avr_write_byte;
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
