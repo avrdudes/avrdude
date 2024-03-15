@@ -168,6 +168,10 @@ typedef struct avrmem AVRMEM;
 // libavrdude itself, so only map things to the Python level that are
 // needed there.
 
+%typemap(out) unsigned char signature[3] {
+  $result = PyBytes_FromStringAndSize($1, 3);
+ }
+
 typedef struct avrpart {
   const char  * desc;               /* long part name */
   const char  * id;                 /* short part name */
