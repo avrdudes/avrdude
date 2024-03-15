@@ -196,6 +196,37 @@ typedef struct avrmem {
   unsigned char * buf;        /* pointer to memory buffer */
 } AVRMEM;
 
+%extend avrmem {
+  PyObject *get(unsigned int len, unsigned int offset = 0) {
+    if (offset > (unsigned)$self->size)
+      return Py_None;
+    if (offset + len > (unsigned)$self->size)
+      len = $self->size - offset;
+    return PyBytes_FromStringAndSize((char *)($self->buf + offset), len);
+  }
+}
+
+int avr_initmem(const AVRPART *p);
+
+%extend avrmem {
+  %typemap(in) (unsigned char *in, unsigned int len) {
+    Py_ssize_t len;
+    PyBytes_AsStringAndSize($input, (char **)&$1, &len);
+    $2 = len;
+  }
+  int put(unsigned char *in, unsigned int len, unsigned int offset = 0) {
+    if ($self->buf == NULL)
+      // missing avr_initmem()?
+      return 0;
+    if (offset > (unsigned)$self->size)
+      return 0;
+    if (offset + len > (unsigned)$self->size)
+      len = $self->size - offset;
+    memcpy($self->buf + offset, in, len);
+    return len;
+  }
+}
+
 // Config file handling
 int init_config(void);
 
