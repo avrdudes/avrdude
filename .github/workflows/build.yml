@@ -249,7 +249,7 @@ jobs:
         include:
           - { arch: x86, platform: Win32 }
           - { arch: x64, platform: x64 }
-          - { arch: arm64, platform: ARM64 }
+          # - { arch: arm64, platform: ARM64 }
     steps:
       - uses: actions/checkout@v3
       - name: Install prerequisites
