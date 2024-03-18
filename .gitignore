@@ -1,5 +1,6 @@
 release-build
 .idea
+src/CMakeFiles
 .DS_Store
 .deps/
 .libs/
