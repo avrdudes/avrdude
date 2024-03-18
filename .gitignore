@@ -1,3 +1,5 @@
+release-build
+.idea
 .DS_Store
 .deps/
 .libs/
@@ -6,8 +8,8 @@ m4/
 *.patch
 y.output
 y.tab.h
-lexer.c
-config_gram.c
+lexer.cpp
+config_gram.cpp
 config_gram.h
 .depend
 INSTALL

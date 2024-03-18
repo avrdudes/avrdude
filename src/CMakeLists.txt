@@ -23,6 +23,8 @@
 FLEX_TARGET(Parser "lexer.l" "${PROJECT_BINARY_DIR}/lexer.c")
 
 if (FLEX_VERSION VERSION_GREATER_EQUAL 2.5.9)
+    # print the version of flex
+    message(STATUS "Flex version: ${FLEX_VERSION}")
     set(HAVE_YYLEX_DESTROY 1)
 endif()
 
@@ -31,15 +33,15 @@ endif()
 # =====================================
 
 if(BISON_FOUND)
-    BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.c" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
+    BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.cpp" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
 else()
     set(YACC_TARGET_outputs "${PROJECT_BINARY_DIR}/config_gram.c")
     add_custom_command(OUTPUT ${YACC_TARGET_outputs}
-        COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_TARGET_outputs} config_gram.y
-        VERBATIM
-        COMMENT "[YACC][Parser] Building parser with yacc"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        )
+            COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_TARGET_outputs} config_gram.y
+            VERBATIM
+            COMMENT "[YACC][Parser] Building parser with yacc"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
     set(BISON_Parser_OUTPUTS ${YACC_TARGET_outputs})
 endif()
 
@@ -50,7 +52,6 @@ endif()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
-set(EXTRA_WINDOWS_SOURCES)
 set(EXTRA_WINDOWS_INCLUDES)
 set(EXTRA_WINDOWS_RESOURCES)
 set(EXTRA_WINDOWS_LIBRARIES)
@@ -72,11 +73,11 @@ if(MSVC)
     add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
 
     list(APPEND EXTRA_WINDOWS_SOURCES
-        "msvc/getopt.c"
-        "msvc/gettimeofday.c"
-        "msvc/usleep.cpp"
-        "msvc/readline.cpp"
-        )
+            "msvc/getopt.c"
+            "msvc/gettimeofday.c"
+            "msvc/usleep.cpp"
+            "msvc/readline.cpp"
+    )
     list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
 else()
     set(LIB_MATH m)
@@ -120,9 +121,9 @@ if(WIN32 OR MINGW)
 endif()
 
 add_custom_command(
-    OUTPUT avrdude.conf
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
-    COMMAND ${CMAKE_COMMAND}
+        OUTPUT avrdude.conf
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
+        COMMAND ${CMAKE_COMMAND}
         -D "AVRDUDE_FULL_VERSION=${AVRDUDE_FULL_VERSION}"
         -D HAVE_PARPORT=$<BOOL:${HAVE_PARPORT}>
         -D HAVE_LINUXSPI=$<BOOL:${HAVE_LINUXSPI}>
@@ -131,211 +132,199 @@ add_custom_command(
         -D DEFAULT_SER_PORT=${DEFAULT_SER_PORT}
         -D DEFAULT_LINUXGPIO_PORT=${DEFAULT_LINUXGPIO_PORT}
         -P "${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake"
-    DEPENDS avrdude.conf.in
-    VERBATIM
-    )
+        DEPENDS avrdude.conf.in
+        VERBATIM
+)
 
 add_custom_target(conf ALL DEPENDS avrdude.conf)
 
 # =====================================
 # Project
 # =====================================
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC --bind -fpermissive")
 
+
+message("FLEX_Parser_OUTPUTS: ${FLEX_Parser_OUTPUTS}")
 add_library(libavrdude
-    ac_cfg.h
-    arduino.h
-    arduino.c
-    avr.c
-    avr910.c
-    avr910.h
-    avrcache.c
-    avrdude.h
-    avrftdi.c
-    avrftdi.h
-    avrftdi_private.h
-    avrftdi_tpi.c
-    avrftdi_tpi.h
-    avrintel.c
-    libavrdude-avrintel.h
-    avrpart.c
-    bitbang.c
-    bitbang.h
-    buspirate.c
-    buspirate.h
-    butterfly.c
-    butterfly.h
-    ch341a.c
-    ch341a.h
-    config.c
-    config.h
-    confwin.c
-    crc16.c
-    crc16.h
-    dfu.c
-    dfu.h
-    dryrun.c
-    dryrun.h
-    dryrun_private.h
-    fileio.c
-    flip1.c
-    flip1.h
-    flip2.c
-    flip2.h
-    freebsd_ppi.h
-    ft245r.c
-    ft245r.h
-    jtagmkI.c
-    jtagmkI.h
-    jtagmkI_private.h
-    jtagmkII.c
-    jtagmkII.h
-    jtagmkII_private.h
-    jtag3.c
-    jtag3.h
-    jtag3_private.h
-    leds.c
-    libavrdude.h
-    linuxgpio.c
-    linuxgpio.h
-    linuxspi.c
-    linuxspi.h
-    linux_ppdev.h
-    lists.c
-    micronucleus.c
-    micronucleus.h
-    par.c
-    par.h
-    pgm.c
-    pgm_type.c
-    pickit2.c
-    pickit2.h
-    pindefs.c
-    ppi.c
-    ppi.h
-    ppiwin.c
-    serbb.h
-    serbb_posix.c
-    serbb_win32.c
-    ser_avrdoper.c
-    ser_posix.c
-    ser_win32.c
-    serialadapter.c
-    serialupdi.c
-    serialupdi.h
-    solaris_ecpp.h
-    stk500.c
-    stk500.h
-    stk500_private.h
-    stk500v2.c
-    stk500v2.h
-    stk500v2_private.h
-    stk500generic.c
-    stk500generic.h
-    strutil.c
-    teensy.c
-    teensy.h
-    term.c
-    tpi.h
-    updi_constants.h
-    updi_link.c
-    updi_link.h
-    updi_nvm.c
-    updi_nvm.h
-    updi_nvm_v0.c
-    updi_nvm_v0.h
-    updi_nvm_v2.c
-    updi_nvm_v2.h
-    updi_nvm_v3.c
-    updi_nvm_v3.h
-    updi_nvm_v4.c
-    updi_nvm_v4.h
-    updi_nvm_v5.c
-    updi_nvm_v5.h
-    updi_readwrite.c
-    updi_readwrite.h
-    updi_state.c
-    updi_state.h
-    urclock.c
-    urclock.h
-    urclock_hash.h
-    urclock_private.h
-    usbasp.c
-    usbasp.h
-    usbdevs.h
-    usb_hidapi.c
-    usb_libusb.c
-    usbtiny.h
-    usbtiny.c
-    update.c
-    wiring.h
-    wiring.c
-    xbee.h
-    xbee.c
-    ${FLEX_Parser_OUTPUTS}
-    ${BISON_Parser_OUTPUTS}
-    ${EXTRA_WINDOWS_SOURCES}
-    )
+        ac_cfg.h
+        arduino.h
+        arduino.cpp
+        avr.cpp
+        avr910.cpp
+        avr910.h
+        avrcache.cpp
+        avrdude.h
+        avrftdi.cpp
+        avrftdi.h
+        avrftdi_private.h
+        avrftdi_tpi.c
+        avrftdi_tpi.h
+        avrintel.cpp
+        libavrdude-avrintel.h
+        avrpart.cpp
+        bitbang.cpp
+        bitbang.h
+        buspirate.cpp
+        buspirate.h
+        butterfly.cpp
+        butterfly.h
+        ch341a.cpp
+        ch341a.h
+        config.cpp
+        config.h
+        confwin.c
+        crc16.c
+        crc16.h
+        dfu.c
+        dfu.h
+        dryrun.cpp
+        dryrun.h
+        dryrun_private.h
+        fileio.cpp
+        flip1.cpp
+        flip1.h
+        flip2.cpp
+        flip2.h
+        freebsd_ppi.h
+        ft245r.cpp
+        ft245r.h
+        jtagmkI.cpp
+        jtagmkI.h
+        jtagmkI_private.h
+        jtagmkII.cpp
+        jtagmkII.h
+        jtagmkII_private.h
+        jtag3.cpp
+        jtag3.h
+        jtag3_private.h
+        leds.cpp
+        libavrdude.h
+        linuxgpio.cpp
+        linuxgpio.h
+        linuxspi.cpp
+        linuxspi.h
+        linux_ppdev.h
+        lists.cpp
+        micronucleus.cpp
+        micronucleus.h
+        par.cpp
+        par.h
+        pgm.cpp
+        pgm_type.cpp
+        pickit2.cpp
+        pickit2.h
+        pindefs.cpp
+        ppi.cpp
+        ppi.h
+        ppiwin.c
+        serbb.h
+        serbb_posix.cpp
+        ser_avrdoper.cpp
+        ser_posix.cpp
+        serialadapter.cpp
+        serialupdi.cpp
+        serialupdi.h
+        solaris_ecpp.h
+        stk500.cpp
+        stk500.h
+        stk500_private.h
+        stk500v2.cpp
+        stk500v2.h
+        stk500v2_private.h
+        stk500generic.cpp
+        stk500generic.h
+        strutil.cpp
+        teensy.cpp
+        teensy.h
+        term.cpp
+        tpi.h
+        updi_constants.h
+        updi_link.cpp
+        updi_link.h
+        updi_nvm.cpp
+        updi_nvm.h
+        updi_nvm_v0.cpp
+        updi_nvm_v0.h
+        updi_nvm_v2.cpp
+        updi_nvm_v2.h
+        updi_nvm_v3.cpp
+        updi_nvm_v3.h
+        updi_nvm_v4.cpp
+        updi_nvm_v4.h
+        updi_nvm_v5.cpp
+        updi_nvm_v5.h
+        updi_readwrite.cpp
+        updi_readwrite.h
+        updi_state.c
+        updi_state.h
+        urclock.cpp
+        urclock.h
+        urclock_hash.h
+        urclock_private.h
+        usbasp.cpp
+        usbasp.h
+        usbdevs.h
+        usb_hidapi.c
+        usb_libusb.c
+        usbtiny.h
+        usbtiny.cpp
+        update.cpp
+        wiring.h
+        wiring.cpp
+        xbee.h
+        xbee.cpp
+        lexer.cpp
+        ${BISON_Parser_OUTPUTS}
+        ${EXTRA_WINDOWS_SOURCES}
+)
+
+# require the Parser target to be built before libavrdude
+
+target_link_options(libavrdude
+        PUBLIC
+        --bind
+        -fPIC
+)
+
+target_compile_options(libavrdude
+        PUBLIC
+        -fPIC
+        --bind
+)
 
 set_target_properties(libavrdude PROPERTIES
-    PREFIX ""
-    PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
-    VERSION 2.0.0
-    SOVERSION 2
-    )
+        PREFIX ""
+        PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
+        VERSION 2.0.0
+        SOVERSION 2
+)
 
 target_include_directories(libavrdude
-    PUBLIC
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_BINARY_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${LIBUSB_COMPAT_DIR}"
-    ${EXTRA_WINDOWS_INCLUDES}
-    )
+        PUBLIC
+        "${PROJECT_SOURCE_DIR}"
+        "${PROJECT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${LIBUSB_COMPAT_DIR}"
+        ${EXTRA_WINDOWS_INCLUDES}
+        ../libserial
+)
 
 target_link_libraries(libavrdude
-    PUBLIC
-    ${LIB_MATH}
-    ${LIB_LIBELF}
-    ${LIB_LIBUSB}
-    ${LIB_LIBUSB_1_0}
-    ${LIB_LIBHID}
-    ${LIB_LIBHIDAPI}
-    ${LIB_LIBFTDI}
-    ${LIB_LIBFTDI1}
-    ${LIB_LIBREADLINE}
-    ${LIB_LIBSERIALPORT}
-    ${LIB_NCURSES}
-    ${LIB_LIBGPIOD}
-    ${EXTRA_WINDOWS_LIBRARIES}
-    )
+        PUBLIC
+        ${LIB_MATH}
+        ${LIB_LIBELF}
+        ${LIB_LIBUSB}
+        ${LIB_LIBUSB_1_0}
+        ${LIB_LIBHID}
+        ${LIB_LIBHIDAPI}
+        ${LIB_LIBFTDI}
+        ${LIB_LIBFTDI1}
+        ${LIB_LIBREADLINE}
+        #${LIB_LIBSERIALPORT}
+        ${LIB_NCURSES}
+        ${LIB_LIBGPIOD}
+        ${EXTRA_WINDOWS_LIBRARIES}
+)
 
-add_executable(avrdude
-    main.c
-    developer_opts.c
-    developer_opts.h
-    developer_opts_private.h
-    whereami.c
-    whereami.h
-    ${EXTRA_WINDOWS_RESOURCES}
-    )
 
-target_link_libraries(avrdude PUBLIC libavrdude)
 
-if(MINGW)
-    target_link_options(avrdude PRIVATE -static)
-endif()
-
-# =====================================
-# Install
-# =====================================
-
-install(TARGETS avrdude DESTINATION bin)
-install(TARGETS libavrdude
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include COMPONENT dev
-    )
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
-install(FILES "avrdude.1"
-	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
-	)

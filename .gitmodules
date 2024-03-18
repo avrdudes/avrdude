@@ -1,0 +1,3 @@
+[submodule "libs/serial"]
+	path = libs/serial
+	url = git@github.com:leaphy-robotics/libserialport-webassembly.git

@@ -20,11 +20,15 @@
 #     cmake -B build
 #     cmake --build build
 
-cmake_minimum_required(VERSION 3.14)
-project(avrdude VERSION 7.3 LANGUAGES C)
+cmake_minimum_required(VERSION 3.5)
+project(avrdude VERSION 7.3 LANGUAGES C CXX)
 
-set(CMAKE_C_STANDARD 11)
+
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED True)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 option(BUILD_DOC "Enable building documents" OFF)
 option(HAVE_LINUXGPIO "Enable Linux sysfs and libgpiod GPIO support" OFF)
@@ -227,14 +231,7 @@ elseif(MSVC)
     set(HAVE_LIBREADLINE 1)
 endif()
 
-#-------------------------------------
-# Find libserialport
-
-find_library(HAVE_LIBSERIALPORT NAMES ${PREFERRED_LIBSERIALPORT})
-if(HAVE_LIBSERIALPORT)
-    set(LIB_LIBSERIALPORT ${HAVE_LIBSERIALPORT})
-    set(HAVE_LIBSERIALPORT 1)
-endif()
+add_subdirectory(libserial)
 
 # -------------------------------------
 # Find libgpiod, if needed
@@ -425,3 +422,5 @@ else()
 endif()
 
 message(STATUS "----------------------")
+
+add_subdirectory(test)
