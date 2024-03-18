@@ -121,7 +121,7 @@ if(WIN32 OR MINGW)
 endif()
 
 add_custom_command(
-        OUTPUT avrdude.conf
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
         COMMAND ${CMAKE_COMMAND}
         -D "AVRDUDE_FULL_VERSION=${AVRDUDE_FULL_VERSION}"
@@ -136,7 +136,7 @@ add_custom_command(
         VERBATIM
 )
 
-add_custom_target(conf ALL DEPENDS avrdude.conf)
+add_custom_target(conf ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf)
 
 # =====================================
 # Project
@@ -326,5 +326,5 @@ target_link_libraries(libavrdude
         ${EXTRA_WINDOWS_LIBRARIES}
 )
 
-
+add_dependencies(libavrdude conf)
 

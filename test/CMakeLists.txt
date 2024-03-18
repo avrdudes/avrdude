@@ -15,5 +15,5 @@ target_include_directories(avrdude PRIVATE ${CMAKE_BINARY_DIR}/src ${CMAKE_SOURC
 add_custom_command(TARGET avrdude POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/index.html ${CMAKE_BINARY_DIR}/test
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/program.hex ${CMAKE_BINARY_DIR}/test
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/src/avrdude.conf ${CMAKE_BINARY_DIR}/test
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/src/avrdude.conf ${CMAKE_BINARY_DIR}/test
 )
