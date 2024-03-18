@@ -24,6 +24,12 @@ jobs:
 
       - name: Build avrdude
         run: cmake --build build --target avrdude
+      
+      - name: Configure Git user identity
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+
 
       - name: Create orphan branch and push artifacts
         run: |
