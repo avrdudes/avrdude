@@ -35,12 +35,35 @@ const char *partdesc = "";
 const char *pgmid = "";
 
 static PyObject *msg_cb = NULL;
+static PyObject *progress_cb = NULL;
+static void swig_progress(int percent, double etime, const char *hdr, int finish);
 
 void set_msg_callback(PyObject *PyFunc) {
-  if (PyFunc == Py_None)
+  if (PyFunc == Py_None) {
+    if (msg_cb)
+      Py_XDECREF(msg_cb);      // Remove reference to previous callback
     msg_cb = NULL;
-  else
+  } else {
+    if (msg_cb)
+      Py_XDECREF(msg_cb);      // Remove reference to previous callback
+    Py_XINCREF(PyFunc);         // Add reference to new callback
     msg_cb = PyFunc;
+  }
+}
+
+void set_progress_callback(PyObject *PyFunc) {
+  if (PyFunc == Py_None) {
+    if (progress_cb)
+      Py_XDECREF(progress_cb);  // Remove reference to previous callback
+    update_progress = NULL;
+    progress_cb = NULL;
+  } else {
+    if (progress_cb)
+      Py_XDECREF(progress_cb);  // Remove reference to previous callback
+    progress_cb = PyFunc;
+    Py_XINCREF(PyFunc);         // Add reference to new callback
+    update_progress = swig_progress;
+  }
 }
 
 // We cannot pass va_args to Python, so pre-process the message here
@@ -92,13 +115,20 @@ int avrdude_message2(FILE *fp, int lno, const char *file,
         PyObject *result =
           PyObject_CallFunction(msg_cb, "(sissiis)", target, lno, file, func, msgmode, msglvl, p);
         Py_XDECREF(result);
-      } else {
-        fprintf(stderr, "Would call msg callback here\n");
       }
       free(p);
     }
 
     return rc;
+}
+
+static void swig_progress(int percent, double etime, const char *hdr, int finish)
+{
+  if (progress_cb) {
+    PyObject *result =
+      PyObject_CallFunction(progress_cb, "(idsi)", percent, etime, hdr, finish);
+    Py_XDECREF(result);
+  }
 }
 
 PROGRAMMER *ldata_programmer(LNODEID p) {
@@ -161,7 +191,7 @@ enum msgmode {
   MSG2_FLUSH = 64,      // Flush before and after printing
 };
 
-// Function to record a callback
+// Functions to record a callback
 %typemap(in) PyObject *PyFunc {
   // calling with None removes previous callback
   if ($input != Py_None && !PyCallable_Check($input)) {
@@ -171,6 +201,7 @@ enum msgmode {
   $1 = $input;
 }
 void set_msg_callback(PyObject *PyFunc);
+void set_progress_callback(PyObject *PyFunc);
 
 // These things are read from config file(s), and must be considered
 // read-only by any program. Most internals are only relevant for

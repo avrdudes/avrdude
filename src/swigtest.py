@@ -10,6 +10,7 @@
 # getavr("m128")
 
 # ad.set_msg_callback(msg_callback)
+# ad.set_progress_callback(progress_callback)
 # ad.cvar.verbose=2
 # p = ad.locate_part(ad.cvar.part_list, 'm168pb')
 # ad.avr_initmem(p)
@@ -178,3 +179,12 @@ def msg_callback(target: str, lno: int, fname: str, func: str,
         s += msg
         print(s, end='')
 
+# very simplified progress callback
+global prog_hdr
+def progress_callback(percent: int, etime: float, hdr: str, finish: int):
+    if hdr:
+        global prog_hdr
+        prog_hdr = hdr
+    print(f"{prog_hdr} {percent:3d} %", end='\r', file=sys.stderr, flush=True)
+    if (percent == 100):
+        print("", file=sys.stderr)
