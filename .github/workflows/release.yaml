@@ -15,8 +15,9 @@ jobs:
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
 
-      run: |
-        cmake -B build -S . \
+      - name: Configure CMake
+        run: |
+          cmake -B build -S . \
           -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake 
 
       - name: Build avrdude
