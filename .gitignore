@@ -9,7 +9,6 @@ m4/
 *.patch
 y.output
 y.tab.h
-lexer.cpp
 config_gram.cpp
 config_gram.h
 .depend
