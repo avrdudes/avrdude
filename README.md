@@ -1,64 +1,21 @@
 # AVRDUDE
 
-[![Build Status](https://github.com/avrdudes/avrdude/actions/workflows/build.yml/badge.svg)](https://github.com/avrdudes/avrdude/actions/workflows/build.yml)
-
-AVRDUDE - AVR Downloader Uploader - is a program for downloading and uploading
-the on-chip memories of Microchip’s [AVR microcontrollers](https://en.wikipedia.org/wiki/AVR_microcontrollers).
-It can program the Flash and EEPROM, and where supported by the programming
-protocol, it can program fuse and lock bits.
-AVRDUDE also supplies a direct instruction mode allowing one to issue any
-programming instruction to the AVR chip regardless of whether AVRDUDE
-implements that specific feature of a particular chip.
-
-AVRDUDE was originally written in 2003 by Brian S. Dean. Since 2006, AVRDUDE has been maintained by Jörg Wunsch,
-with the help of [various contributors](./AUTHORS).
-
-The latest version of AVRDUDE is always available here:\
-<https://github.com/avrdudes/avrdude>
-
 ## Documentation
 
 Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/).
 
-## Getting AVRDUDE for Windows
-
-To get AVRDUDE for Windows, install the latest version from the [Releases](https://github.com/avrdudes/avrdude/releases) page.
-
-Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
-
-## Getting AVRDUDE for Linux
-
-To install AVRDUDE for Linux, install the package `avrdude` using the software package manager. For example, under Debian/Ubuntu, you can use the following commands:
-
-```console
-sudo apt-get install avrdude
-```
-
-Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
-
-## Getting AVRDUDE for macOS
-
-On macOS, AVRDUDE can be installed through MacPorts or Homebrew.
-
-Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
-
 ## Using AVRDUDE
 
-AVRDUDE is a command-line application. Run the command `avrdude` without any arguments for a list of options.
+You can look at test/index.html for an exmample to embed avrdude in your webpage!
 
-A typical command to program your HEX file into your AVR microcontroller looks like this:
+## Building
 
-```console
-avrdude -c <programmer> -p <part> -U flash:w:<file>:i
-```
+Install emsdk using this [guide](https://emscripten.org/docs/getting_started/downloads.html)
 
-For instance, to program an **Arduino Uno** connected to the serial port **COM1** with a HEX file called `blink.hex`,
-you would run the following command:
+Then you can run `cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake`
+to configure your CMake project.
 
-```console
-avrdude -c arduino -P COM1 -b 115200 -p atmega328p -D -U flash:w:objs/blink.hex:i
-```
-
-There are many different programmers and options that may be required for the programming to succeed.
-
-For more information, refer to the [AVRDUDE documentation](https://avrdudes.github.io/avrdude/).
+To build everything use:
+`cmake --build build --target avrdude`
+Congrats! You've build your own version, in your build dir under test you can run vite and open that link.
+You should be able to upload an example blink program at PWM pin 3.
