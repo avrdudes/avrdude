@@ -34,21 +34,17 @@ int ovsigck;
 const char *partdesc = "";
 const char *pgmid = "";
 
-int avrdude_message(int msglvl, const char *format, ...)
-{
-    int rc = 0;
-    va_list ap;
-    if (verbose >= msglvl) {
-        va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
-        va_end(ap);
-    }
-    return rc;
+static PyObject *msg_cb = NULL;
+
+void set_msg_callback(PyObject *PyFunc) {
+  if (PyFunc == Py_None)
+    msg_cb = NULL;
+  else
+    msg_cb = PyFunc;
 }
 
-
-// This is the version from main.c
-// Should be handled by something overridable from Python
+// We cannot pass va_args to Python, so pre-process the message here
+// in C code.
 int avrdude_message2(FILE *fp, int lno, const char *file,
                      const char *func, int msgmode, int msglvl,
                      const char *format, ...)
@@ -56,97 +52,51 @@ int avrdude_message2(FILE *fp, int lno, const char *file,
     int rc = 0;
     va_list ap;
 
-    static struct {             // Memorise whether last print ended at beginning of line
-      FILE *fp;
-      int bol;                  // Are we at the beginning of a line for this fp stream?
-    } bols[5+1];                // Cater for up to 5 different FILE pointers plus one catch-all
+    const char *target = fp == stderr? "stderr": "stdout";
 
-    size_t bi = 0;              // bi is index to bols[] array
-    for(bi=0; bi < sizeof bols/sizeof*bols -1; bi++) { // Note the -1, so bi is valid after loop
-      if(!bols[bi].fp) {        // First free space
-        bols[bi].fp = fp;       // Insert fp in first free space
-        bols[bi].bol = 1;       // Assume beginning of line on first use
-      }
-      if(bols[bi].fp == fp)
-        break;
-    }
-
-    if(msglvl <= MSG_ERROR)     // Serious error? Free progress bars (if any)
+    if (msglvl <= MSG_ERROR)     // Serious error? Free progress bars (if any)
       report_progress(1, -1, NULL);
 
-    if(msgmode & MSG2_FLUSH) {
-        fflush(stdout);
-        fflush(stderr);
+    if (msgmode & MSG2_FLUSH) {
+      // ignored
     }
 
     // Reduce effective verbosity level by number of -q above one when printing to stderr
-    if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
-        if(msgmode & MSG2_PROGNAME) {
-          if(!bols[bi].bol)
-            fprintf(fp, "\n");
-          fprintf(fp, "%s", progname);
-          if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
-            fprintf(fp, " %s()", func);
-          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
-            const char *pr = strrchr(file, '/'); // Only print basename
-#if defined (WIN32)
-            if(!pr)
-              pr =  strrchr(file, '\\');
-#endif
-            pr = pr? pr+1: file;
-            fprintf(fp, " [%s:%d]", pr, lno);
-          }
-          if(msgmode & MSG2_TYPE)
-            fprintf(fp, " level %d", msglvl);
-          fprintf(fp, ": ");
-          bols[bi].bol = 0;
-        } else if(msgmode & MSG2_INDENT1) {
-          fprintf(fp, "%*s", (int) strlen(progname)+1, "");
-          bols[bi].bol = 0;
-        } else if(msgmode & MSG2_INDENT2) {
-          fprintf(fp, "%*s", (int) strlen(progname)+2, "");
-          bols[bi].bol = 0;
-        }
 
-        // Vertical tab at start of format string is a conditional new line
-        if(*format == '\v') {
-          format++;
-          if(!bols[bi].bol) {
-            fprintf(fp, "\n");
-            bols[bi].bol = 1;
-          }
-        }
+    // Vertical tab at start of format string is a conditional new line
+    // This feature is ignored here by now, but skip '\v'
+    if (*format == '\v')
+      format++;
 
-        // Figure out whether this print will leave us at beginning of line
+    // Determine required size first
+    va_start(ap, format);
+    rc = vsnprintf(NULL, 0, format, ap);
+    va_end(ap);
 
-        // Determine required size first
-        va_start(ap, format);
-        rc = vsnprintf(NULL, 0, format, ap);
-        va_end(ap);
+    if (rc < 0)              // Some errror?
+      return 0;
 
-        if(rc < 0)              // Some errror?
-          return 0;
+    rc++;                   // Accommodate terminating nul
+    char *p = cfg_malloc(__func__, rc);
+    va_start(ap, format);
+    rc = vsnprintf(p, rc, format, ap);
+    va_end(ap);
 
-        rc++;                   // Accommodate terminating nul
-        char *p = cfg_malloc(__func__, rc);
-        va_start(ap, format);
-        rc = vsnprintf(p, rc, format, ap);
-        va_end(ap);
-
-        if(rc < 0) {
-          free(p);
-          return 0;
-        }
-
-        if(*p) {
-          fprintf(fp, "%s", p); // Finally: print!
-          bols[bi].bol = p[strlen(p)-1] == '\n';
-        }
-        free(p);
+    if (rc < 0) {
+      free(p);
+      return 0;
     }
 
-    if(msgmode & MSG2_FLUSH)
-        fflush(fp);
+    if (*p) {
+      if (msg_cb) {
+        PyObject *result =
+          PyObject_CallFunction(msg_cb, "(sissiis)", target, lno, file, func, msgmode, msglvl, p);
+        Py_XDECREF(result);
+      } else {
+        fprintf(stderr, "Would call msg callback here\n");
+      }
+      free(p);
+    }
 
     return rc;
 }
@@ -188,6 +138,39 @@ typedef void * LISTID;
 typedef struct avrmem AVRMEM;
 typedef struct programmer_t PROGRAMMER;
 typedef void pgm_initpgm(PROGRAMMER*);
+
+enum msglvl {
+  MSG_EXT_ERROR = (-3), // OS-type error, no -v option, can be suppressed with -qqqqq
+  MSG_ERROR = (-2),     // Avrdude error, no -v option, can be suppressed with -qqqq
+  MSG_WARNING = (-1),   // Warning, no -v option, can be suppressed with -qqq
+  MSG_INFO = 0,         // Commentary, no -v option, can be suppressed with -qq
+  MSG_NOTICE = 1,       // Displayed with -v
+  MSG_NOTICE2 = 2,      // Displayed with -vv
+  MSG_DEBUG = 3,        // Displayed with -vvv
+  MSG_TRACE = 4,        // Displayed with -vvvv, show trace communication
+  MSG_TRACE2 = 5,       // Displayed with -vvvvv
+};
+
+enum msgmode {
+  MSG2_PROGNAME = 1,    // Start by printing progname
+  MSG2_FUNCTION = 2,    // Print calling function (1st arg) after progname if >= notice
+  MSG2_FILELINE = 4,    // Print source file and line number after function if >= debug
+  MSG2_TYPE = 8,        // Print message type after function or progname
+  MSG2_INDENT1 = 16,    // Start by printing indentation of progname+1 blanks
+  MSG2_INDENT2 = 32,    // Start by printing indentation of progname+2 blanks
+  MSG2_FLUSH = 64,      // Flush before and after printing
+};
+
+// Function to record a callback
+%typemap(in) PyObject *PyFunc {
+  // calling with None removes previous callback
+  if ($input != Py_None && !PyCallable_Check($input)) {
+      PyErr_SetString(PyExc_TypeError, "Need a callable object!");
+      return NULL;
+  }
+  $1 = $input;
+}
+void set_msg_callback(PyObject *PyFunc);
 
 // These things are read from config file(s), and must be considered
 // read-only by any program. Most internals are only relevant for

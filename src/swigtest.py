@@ -9,6 +9,8 @@
 
 # getavr("m128")
 
+# ad.set_msg_callback(msg_callback)
+# ad.cvar.verbose=2
 # p = ad.locate_part(ad.cvar.part_list, 'm168pb')
 # ad.avr_initmem(p)
 # pgm = start_programmer('xplainedmini', 'usb', p)
@@ -141,3 +143,38 @@ def stop_programmer(g):
     g.disable()
     g.close()
     g.teardown()
+
+def message_type(msglvl: int):
+    tnames = ('OS error', 'error', 'warning', 'info', 'notice',
+              'notice2', 'debug', 'trace', 'trace2')
+    msglvl -= ad.MSG_EXT_ERROR # rebase to 0
+    if msglvl > len(tnames):
+        return 'unknown msglvl'
+    else:
+        return tnames(msglvl)
+
+# rough equivalent of avrdude_message2()
+# first argument is either "stdout" or "stderr"
+#
+# install callback with ad.set_msg_callback(msg_callback)
+def msg_callback(target: str, lno: int, fname: str, func: str,
+                 msgmode: int, msglvl: int, msg: str):
+    if ad.cvar.verbose >= msglvl:
+        s = ""
+        if msgmode & ad.MSG2_PROGNAME:
+            s += ad.cvar.progname
+            if ad.cvar.verbose >= ad.MSG_NOTICE and (msgmode & ad.MSG2_FUNCTION) != 0:
+                s += " " + func + "()"
+            if ad.cvar.verbose >= ad.MSG_DEBUG and (msgmode & ad.MSG2_FILELINE) != 0:
+                n = os.path.basename(fname)
+                s += f" [{n}:{lno}]"
+            if (msgmode & ad.MSG2_TYPE) != 0:
+                s += " " + message_type(msglvl)
+            s += ": "
+        elif (msgmode & ad.MSG2_INDENT1) != 0:
+            s = (len(ad.cvar.progname) + 1) * ' '
+        elif (msgmode & ad.MSG2_INDENT2) != 0:
+            s = (len(ad.cvar.progname) + 2) * ' '
+        s += msg
+        print(s, end='')
+
