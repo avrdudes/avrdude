@@ -33,10 +33,11 @@ jobs:
 
       - name: Create orphan branch and push artifacts
         run: |
-          git checkout --orphan build
+          git checkout --orphan artifacts
           git reset --hard
-          mkdir -p artifects
-          cp artifects/avrdude.wasm build/test/avrdude.js artifects/avrdude.conf .
+          mkdir -p build/test
+          cp build/test/avrdude.wasm build/test/avrdude.js build/test/avrdude.conf .
+          rm -rf build
           git add .
           git commit -m "Add avrdude artifacts"
-          git push origin build
+          git push origin artifacts
