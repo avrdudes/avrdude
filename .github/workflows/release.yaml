@@ -16,9 +16,11 @@ jobs:
         uses: mymindstorm/setup-emsdk@v14
 
       - name: Configure CMake
+        env:
+          EMSDK: ${{ env.EMSDK }}
         run: |
           cmake -B build -S . \
-          -DCMAKE_TOOLCHAIN_FILE=$EMSCRIPTEN/cmake/Modules/Platform/Emscripten.cmake 
+            -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
       - name: Build avrdude
         run: cmake --build build --target avrdude
