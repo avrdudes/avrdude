@@ -1,0 +1,22 @@
+name: Build avrdude with Emscripten
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Emscripten
+        uses: mymindstorm/setup-emsdk@v14
+
+      - name: Configure CMake
+        run: cmake -B build -S . -DAVRDUDE_EMSCRIPTEN=ON
+
+      - name: Build avrdude
+        run: cmake --build build --target avrdude
