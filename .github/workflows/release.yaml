@@ -24,3 +24,13 @@ jobs:
 
       - name: Build avrdude
         run: cmake --build build --target avrdude
+
+      - name: Create orphan branch and push artifacts
+        run: |
+          git checkout --orphan new-branch
+          git reset --hard
+          mkdir -p build/test
+          cp build/test/avrdude.wasm build/test/avrdude.js build/test/avrdude.conf .
+          git add .
+          git commit -m "Add avrdude artifacts"
+          git push origin new-branch
