@@ -24,3 +24,21 @@ jobs:
 
       - name: Build avrdude
         run: cmake --build build --target avrdude
+      
+      - name: Create artifacts directory
+        run: mkdir -p build/test
+
+      - name: Copy artifacts
+        run: cp build/test/avrdude.wasm build/test/avrdude.js build/test/avrdude.conf build
+
+      - name: Zip artifacts
+        run: zip -r avrdude-artifacts.zip build
+
+      - name: Upload release artifact
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./avrdude-artifacts.zip
+          asset_name: avrdude-artifacts.zip
+          asset_content_type: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
