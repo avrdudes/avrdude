@@ -291,6 +291,18 @@ typedef enum {
   $1 = arg1;
 }
 
+%typemap(in, numinputs=0) char *sib (char temp[AVR_SIBLEN + 1]) {
+  $1 = temp;
+ }
+%typemap(argout) char *sib {
+  if ($result == NULL)
+    $result = Py_None;
+  else if (PyLong_Check($result) && PyLong_AsLong($result) != 0)
+    $result = Py_None;
+  else
+    $result = PyBytes_FromStringAndSize((const char *)$1, AVR_SIBLEN);
+ }
+
 %immutable;
 typedef struct programmer_t {
   LISTID id;
