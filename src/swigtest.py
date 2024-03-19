@@ -188,3 +188,8 @@ def progress_callback(percent: int, etime: float, hdr: str, finish: int):
     print(f"{prog_hdr} {percent:3d} %", end='\r', file=sys.stderr, flush=True)
     if (percent == 100):
         print("", file=sys.stderr)
+
+ad.set_msg_callback(msg_callback)
+ad.set_progress_callback(progress_callback)
+ad.cvar.verbose=2
+
