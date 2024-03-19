@@ -152,7 +152,7 @@ def message_type(msglvl: int):
     if msglvl > len(tnames):
         return 'unknown msglvl'
     else:
-        return tnames(msglvl)
+        return tnames[msglvl]
 
 # rough equivalent of avrdude_message2()
 # first argument is either "stdout" or "stderr"
