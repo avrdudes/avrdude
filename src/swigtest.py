@@ -177,10 +177,14 @@ def msg_callback(target: str, lno: int, fname: str, func: str,
         elif (msgmode & ad.MSG2_INDENT2) != 0:
             s = (len(ad.cvar.progname) + 2) * ' '
         s += msg
-        print(s, end='')
+        try:
+            print(s, end='')
+        except UnicodeDecodeError:
+            print("message contained invalid characters")
 
 # very simplified progress callback
 global prog_hdr
+prog_hdr = ""
 def progress_callback(percent: int, etime: float, hdr: str, finish: int):
     if hdr:
         global prog_hdr
