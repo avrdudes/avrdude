@@ -25,19 +25,20 @@ jobs:
       - name: Build avrdude
         run: cmake --build build --target avrdude
       
-      - name: Configure Git user identity
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
+      - name: Create artifacts directory
+        run: mkdir -p build/test
 
+      - name: Copy artifacts
+        run: cp build/test/avrdude.wasm build/test/avrdude.js build/test/avrdude.conf build
 
-      - name: Create orphan branch and push artifacts
-        run: |
-          git checkout --orphan artifacts
-          git reset --hard
-          mkdir -p build/test
-          cp build/test/avrdude.wasm build/test/avrdude.js build/test/avrdude.conf .
-          rm -rf build
-          git add .
-          git commit -m "Add avrdude artifacts"
-          git push origin artifacts
+      - name: Zip artifacts
+        run: zip -r avrdude-artifacts.zip build
+
+      - name: Upload release artifact
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: ./avrdude-artifacts.zip
+          asset_name: avrdude-artifacts.zip
+          asset_content_type: application/zip
+          token: ${{ secrets.GITHUB_TOKEN }}
