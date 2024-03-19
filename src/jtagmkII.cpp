@@ -634,6 +634,7 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
 
 
 int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
+
     int tries;
 #define MAXTRIES 10
     unsigned char buf[3], *resp, c = 0xff;

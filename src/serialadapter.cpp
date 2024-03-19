@@ -385,72 +385,68 @@ int list_available_serialports(LISTID programmers) {
 #else
 
 int setport_from_serialadapter(char **portp, const SERIALADAPTER *ser, const char *sernum) {
-  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
-  return -1;
+    return -1;
 }
 
 int setport_from_vid_pid(char **portp, int vid, int pid, const char *sernum) {
-  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
-  return -1;
+    return -1;
 }
 
 int list_available_serialports(LISTID programmers) {
-  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
-  return -1;
+    return -1;
 }
 
 int touch_serialport(char **portp, int baudrate, int nwaits) {
-  pmsg_error("avrdude built without libserialport support; please compile again with libserialport installed\n");
-  return -1;
+    return -1;
 }
 
 #endif
 
 void list_serialadapters(FILE *fp, const char *prefix, LISTID programmers) {
-  LNODEID ln1, ln2, ln3;
-  SERIALADAPTER *sea;
-  int maxlen=0, len;
+    LNODEID ln1, ln2, ln3;
+    SERIALADAPTER *sea;
+    int maxlen=0, len;
 
-  sort_programmers(programmers);
+    sort_programmers(programmers);
 
-  // Compute max length of serial adapter names
-  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-    sea = static_cast<SERIALADAPTER *>(ldata(ln1));
-    if(!is_serialadapter(sea))
-      continue;
-    for(ln2=lfirst(sea->id); ln2; ln2=lnext(ln2)) {
-      const char *id = static_cast<const char *>(ldata(ln2));
-      if(*id == 0 || *id == '.')
-        continue;
-      if((len = strlen(id)) > maxlen)
-        maxlen = len;
+    // Compute max length of serial adapter names
+    for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+        sea = static_cast<SERIALADAPTER *>(ldata(ln1));
+        if(!is_serialadapter(sea))
+            continue;
+        for(ln2=lfirst(sea->id); ln2; ln2=lnext(ln2)) {
+            const char *id = static_cast<const char *>(ldata(ln2));
+            if(*id == 0 || *id == '.')
+                continue;
+            if((len = strlen(id)) > maxlen)
+                maxlen = len;
+        }
     }
-  }
 
-  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
-    sea = static_cast<SERIALADAPTER *>(ldata(ln1));
-    if(!is_serialadapter(sea))
-      continue;
-    for(ln2=lfirst(sea->id); ln2; ln2=lnext(ln2)) {
-      const char *id = static_cast<const char *>(ldata(ln2));
-      if(*id == 0 || *id == '.')
-        continue;
-      fprintf(fp, "%s%-*s = [usbvid 0x%04x, usbpid", prefix, maxlen, id, sea->usbvid);
-      for(ln3=lfirst(sea->usbpid); ln3; ln3=lnext(ln3))
-        fprintf(fp, " 0x%04x", *(int *) ldata(ln3));
-      if(sea->usbsn && *sea->usbsn)
-        fprintf(fp, ", usbsn %s", sea->usbsn);
-      fprintf(fp, "]\n");
+    for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+        sea = static_cast<SERIALADAPTER *>(ldata(ln1));
+        if(!is_serialadapter(sea))
+            continue;
+        for(ln2=lfirst(sea->id); ln2; ln2=lnext(ln2)) {
+            const char *id = static_cast<const char *>(ldata(ln2));
+            if(*id == 0 || *id == '.')
+                continue;
+            fprintf(fp, "%s%-*s = [usbvid 0x%04x, usbpid", prefix, maxlen, id, sea->usbvid);
+            for(ln3=lfirst(sea->usbpid); ln3; ln3=lnext(ln3))
+                fprintf(fp, " 0x%04x", *(int *) ldata(ln3));
+            if(sea->usbsn && *sea->usbsn)
+                fprintf(fp, ", usbsn %s", sea->usbsn);
+            fprintf(fp, "]\n");
+        }
     }
-  }
 }
 
 void serialadapter_not_found(const char *sea_id) {
-  msg_error("\v");
-  if(sea_id && *sea_id)
-    pmsg_error("cannot find serial adapter id %s\n", sea_id);
+    msg_error("\v");
+    if(sea_id && *sea_id)
+        pmsg_error("cannot find serial adapter id %s\n", sea_id);
 
-  msg_error("\nValid serial adapters are:\n");
-  list_serialadapters(stderr, "  ", programmers);
-  msg_error("\n");
+    msg_error("\nValid serial adapters are:\n");
+    list_serialadapters(stderr, "  ", programmers);
+    msg_error("\n");
 }

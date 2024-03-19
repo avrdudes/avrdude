@@ -423,4 +423,5 @@ endif()
 
 message(STATUS "----------------------")
 
+add_subdirectory(interface)
 add_subdirectory(test)

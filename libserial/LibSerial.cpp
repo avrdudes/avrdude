@@ -194,7 +194,7 @@ void serialPortWrite(const unsigned char *buf, size_t len) {
     emscripten_sleep(1000);
 }
 
-void serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
+int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
     std::vector<unsigned char> data = {};
     data.reserve(len);
     // check if there is leftover data from previous reads
@@ -203,7 +203,7 @@ void serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
             data = std::vector<unsigned char>(readBuffer.begin(), readBuffer.begin() + len);
             readBuffer.erase(readBuffer.begin(), readBuffer.begin() + len);
             std::copy(data.begin(), data.end(), buf);
-            return;
+            return 0;
         } else {
             data = std::vector<unsigned char>(readBuffer.begin(), readBuffer.end());
             readBuffer.clear();
@@ -222,13 +222,10 @@ void serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
     }
     if (data.empty()) {
         // fill data buf with 1s if no data was received
-        std::fill(buf, buf + len, 1);
         printf("No data received\n");
-    } else if (data.size() < len) {
-        data.resize(len, 1);
-        std::copy(data.begin(), data.end(), buf);
+        return -1;
     } else {
         std::copy(data.begin(), data.end(), buf);
     }
-
+    return 0;
 }

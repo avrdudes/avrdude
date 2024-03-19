@@ -402,8 +402,8 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 
 
 static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
-    serialPortRecv(buf, buflen, serial_recv_timeout);
-    if (buf[0] == 1) { // buf[0] == 1 means no data was received
+    int re = serialPortRecv(buf, buflen, serial_recv_timeout);
+    if (re == -1) { // buf[0] == 1 means no data was received
         printf("Nothing received\n");
         std::fill(buf, buf + buflen, 0);
         return -1;

@@ -28,17 +28,12 @@
 
     document.getElementById('run').addEventListener('click', async () => {
         const funcs = window.funcs;
-
         funcs.FS.writeFile('/tmp/avrdude.conf', content);
-        funcs.FS.writeFile('/tmp/program.hex', hex);
-
-        const argsString = "avrdude -P /dev/null -V -v -p atmega328p -c stk500v1 -C /tmp/avrdude.conf -b 115200 -D -U flash:w:/tmp/program.hex:i";
-
+        window.funcs.FS.writeFile('/tmp/program.hex', hex);
+        const argsString = "avrdude -P /dev/null -V -v -p atmega4809 -c nanoevery -C /tmp/avrdude.conf -b 115200 -e -D -U flash:w:/tmp/program.hex:i \"-Ufuse2:w:0x01:m\" \"-Ufuse5:w:0xC9:m\" \"-Ufuse8:w:0x00:m\"";
         const avr = funcs.cwrap("startAvrdude", "number", ["string"])
         avr(argsString);
-
         console.log('done');
-
     });
 </script>
 

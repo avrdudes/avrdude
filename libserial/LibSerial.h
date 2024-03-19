@@ -9,6 +9,6 @@ int serialPortOpen(int baudRate);
 void setDtrRts(bool is_on);
 void serialPortDrain(int timeout);
 void serialPortWrite(const unsigned char *buf, size_t len);
-void serialPortRecv(unsigned char *buf, size_t len, int timeoutMs);
+int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs);
 
 #endif // AVRDUDE_LIBSERIAL_H

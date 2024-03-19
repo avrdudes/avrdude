@@ -30,7 +30,7 @@
  */
 
 /* For AVRDUDE_FULL_VERSION and possibly others */
-#include <ac_cfg.h>
+#include "ac_cfg.h"
 
 #include <cstdlib>
 #include <cstdarg>
@@ -1695,6 +1695,9 @@ int startAvrdude(char *args) {
     char *argv[100]; // assuming a maximum of 100 arguments
     int argc = 0;
 
+    // print args
+    printf("args: %s\n", args);
+
     // extract args from string
     char *token = strtok(args, " ");
     while (token != NULL) {
@@ -1704,6 +1707,12 @@ int startAvrdude(char *args) {
 
         argc++;
         token = strtok(NULL, " ");
+    }
+
+    // print argc and argv
+    printf("argc: %d\n", argc);
+    for (int i = 0; i < argc; i++) {
+        printf("argv[%d]: %s\n", i, argv[i]);
     }
 
     // call main function
