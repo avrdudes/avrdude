@@ -81,4 +81,4 @@ jobs:
       with:
         if-no-files-found: error
         name: ${{ env.ARTIFACT_NAME }}
-        path: ${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}_*
+        path: avrdude_*
