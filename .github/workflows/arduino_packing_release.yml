@@ -59,7 +59,6 @@ jobs:
         ln -s /opt/osxcross/target/bin/${{ matrix.config.cross_compile }}-ranlib /usr/bin/ranlib
 
     - name: Build Avrdude
-      working-directory: ${{ env.PROJECT_NAME }}
       run: |
         if [ "${{ matrix.config.os }}" = "macOS" ]; then
           # For darwin we disable the static flags (not supported by clang) and we make some adjustments
