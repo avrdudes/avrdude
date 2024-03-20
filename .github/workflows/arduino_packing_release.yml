@@ -50,8 +50,6 @@ jobs:
     - name: Checkout avrdude repository
       uses: actions/checkout@v3
       with:
-        repository: avrdudes/avrdude
-        path: ${{ env.PROJECT_NAME }}
 
     - name: replace system ranlib with darwin one
       # for some reason is not possible to override ranlib with env vars, so this is ugly but it's the only way I found
