@@ -367,7 +367,6 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
    * start with all 0xff
    */
   memset(mem->buf, 0xff, mem->size);
-  report_progress(0, 1, "Reading");
 
   /* supports "paged load" thru post-increment */
   if ((p->prog_modes & PM_TPI) && mem->page_size > 1 &&
@@ -969,7 +968,6 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     return wsize;
   }
 
-  report_progress(0, 1, "Writing");
   if ((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
     unsigned int    chunk; /* number of words for each write command */
     unsigned int    j, writeable_chunk;
