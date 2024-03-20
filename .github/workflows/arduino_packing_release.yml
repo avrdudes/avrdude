@@ -69,7 +69,6 @@ jobs:
         cmake --build build/ -v
 
     - name: Package
-      working-directory: ${{ env.PROJECT_NAME }}
       run: | # we need to create the subdir where to place binaries
         mkdir -p ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/bin ${{ env.PROJECT_NAME }}_${{ matrix.config.os }}_${{ matrix.config.arch }}/etc
         chmod +x build/src/${{ env.PROJECT_NAME }}${{ matrix.config.extension }}
