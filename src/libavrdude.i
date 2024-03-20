@@ -302,6 +302,112 @@ typedef enum {
   else
     $result = PyBytes_FromStringAndSize((const char *)$1, AVR_SIBLEN);
  }
+%typemap(in, numinputs=0) (double *vtarg_out) (double temp) {
+  $1 = &temp;
+ }
+%typemap(argout) (double *vtarg_out) {
+  if ($result == NULL)
+    $result = Py_None;
+  else if (PyLong_Check($result) && PyLong_AsLong($result) != 0)
+    $result = Py_None;
+  else
+    $result = PyFloat_FromDouble(*$1);
+ }
+%typemap(in, numinputs=0) (double *varef_out) (double temp) {
+  $1 = &temp;
+ }
+%typemap(argout) (double *varef_out) {
+  if ($result == NULL)
+    $result = Py_None;
+  else if (PyLong_Check($result) && PyLong_AsLong($result) != 0)
+    $result = Py_None;
+  else
+    $result = PyFloat_FromDouble(*$1);
+ }
+%typemap(in, numinputs=0) (double *fosc_out) (double temp) {
+  $1 = &temp;
+ }
+%typemap(argout) (double *fosc_out) {
+  if ($result == NULL)
+    $result = Py_None;
+  else if (PyLong_Check($result) && PyLong_AsLong($result) != 0)
+    $result = Py_None;
+  else
+    $result = PyFloat_FromDouble(*$1);
+ }
+%typemap(in, numinputs=0) (double *sck_out) (double temp) {
+  $1 = &temp;
+ }
+%typemap(argout) (double *sck_out) {
+  if ($result == NULL)
+    $result = Py_None;
+  else if (PyLong_Check($result) && PyLong_AsLong($result) != 0)
+    $result = Py_None;
+  else
+    $result = PyFloat_FromDouble(*$1);
+ }
+// abuse check typemap to check for methods not being NULL
+// it must be ensured that each argument type/name applies to just one method
+%typemap(check) (char *sib) {
+  if ((arg1)->read_sib == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->read_sib is NULL");
+  }
+}
+%typemap(check) (FILE *f_parms) {
+  if ((arg1)->print_parms == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->print_parms is NULL");
+  }
+}
+%typemap(check) (double vtarg_in) {
+  if ((arg1)->set_vtarget == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->set_vtarget is NULL");
+  }
+}
+%typemap(check) (double *vtarg_out) {
+  if ((arg1)->get_vtarget == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->get_vtarget is NULL");
+  }
+}
+%typemap(check) (double varef_in) {
+  if ((arg1)->set_varef == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->set_varef is NULL");
+  }
+}
+%typemap(check) (double *varef_out) {
+  if ((arg1)->get_varef == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->get_varef is NULL");
+  }
+}
+%typemap(check) (double fosc_in) {
+  if ((arg1)->set_fosc == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->set_fosc is NULL");
+  }
+}
+%typemap(check) (double *fosc_out) {
+  if ((arg1)->get_fosc == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->get_fosc is NULL");
+  }
+}
+%typemap(check) (double sck_in) {
+  if ((arg1)->set_sck_period == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->set_sck_period is NULL");
+  }
+}
+%typemap(check) (double *sck_out) {
+  if ((arg1)->get_sck_period == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->get_sck_period is NULL");
+  }
+}
+%typemap(check) (struct programmer_t *pgm_setup) {
+  if ((arg1)->setup == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->setup is NULL");
+  }
+}
+%typemap(check) (struct programmer_t *pgm_teardown) {
+  if ((arg1)->teardown == NULL) {
+    SWIG_exception_fail(SWIG_RuntimeError, "pgm->teardown is NULL");
+  }
+}
 
 %immutable;
 typedef struct programmer_t {
@@ -328,6 +434,34 @@ typedef struct programmer_t {
   void enable         (struct programmer_t *pgm, const AVRPART *p);
   void disable        (const struct programmer_t *pgm);
   int  read_sib       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
+  void powerup        (const struct programmer_t *pgm);
+  void powerdown      (const struct programmer_t *pgm);
+
+  int  chip_erase     (const struct programmer_t *pgm, const AVRPART *p);
+  int  term_keep_alive(const struct programmer_t *pgm, const AVRPART *p);
+  int  end_programming(const struct programmer_t *pgm, const AVRPART *p);
+
+  void print_parms    (const struct programmer_t *pgm, FILE *f_parms);
+  int  set_vtarget    (const struct programmer_t *pgm, double vtarg_in);
+  int  get_vtarget    (const struct programmer_t *pgm, double *vtarg_out);
+  int  set_varef      (const struct programmer_t *pgm, unsigned int chan, double varef_in);
+  int  get_varef      (const struct programmer_t *pgm, unsigned int chan, double *varef_out);
+  int  set_fosc       (const struct programmer_t *pgm, double fosc_in);
+  int  get_fosc       (const struct programmer_t *pgm, double *fosc_out);
+  int  set_sck_period (const struct programmer_t *pgm, double sck_in);
+  int  get_sck_period (const struct programmer_t *pgm, double *sck_out);
+  // Cached r/w API for terminal reads/writes
+  int write_byte_cached(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                        unsigned long addr, unsigned char value);
+  int read_byte_cached(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                        unsigned long addr, unsigned char *value);
+  int chip_erase_cached(const struct programmer_t *pgm, const AVRPART *p);
+  int page_erase_cached(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                        unsigned int baseaddr);
+  int readonly        (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+                        unsigned int addr);
+  int flush_cache     (const struct programmer_t *pgm, const AVRPART *p);
+  int reset_cache     (const struct programmer_t *pgm, const AVRPART *p);
 
 } PROGRAMMER;
 %mutable;
