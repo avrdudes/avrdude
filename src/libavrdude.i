@@ -404,7 +404,7 @@ int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, co
 
 %feature("autodoc", "avr_write_mem(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int size, int auto_erase) -> int; write entire memory region from `mem` buffer") avr_write_mem;
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-                  int size, int auto_erase);
+                  int size, int auto_erase = false);
 
 %feature("autodoc", "avr_write_byte(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int addr, byte data) -> int") avr_write_byte;
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
