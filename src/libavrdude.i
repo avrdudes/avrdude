@@ -533,12 +533,27 @@ PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, cons
 PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *id, const char **setid, AVRPART *prt);
 PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid);
 
+// Abuse the check typemaps to inject some code into the wrapper
+
+// avr_read_mem() and avr_write_mem() do not initialize progress
+// reporting, since this is left to the caller. The idea is that in
+// some situations (e.g. signature readout), no progress reporting is
+// desired. Thus, we inject the respective progress reporting
+// initialization here into the wrapper functions.
+%typemap(check) AVRMEM *mem {
+  report_progress(0, 1, "Reading");
+}
 %feature("autodoc", "avr_read_mem(PROGRAMMER pgm, AVRPART p, AVRMEM mem, AVRPART v=None -> int; v: verify against") avr_read_mem;
 int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v = NULL);
+%clear AVRMEM *mem;
 
+%typemap(check) AVRMEM *mem {
+  report_progress(0, 1, "Writing");
+}
 %feature("autodoc", "avr_write_mem(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int size, int auto_erase) -> int; write entire memory region from `mem` buffer") avr_write_mem;
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                   int size, int auto_erase = false);
+%clear AVRMEM *mem;
 
 %feature("autodoc", "avr_write_byte(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int addr, byte data) -> int") avr_write_byte;
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
