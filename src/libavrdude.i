@@ -271,6 +271,7 @@ int avr_initmem(const AVRPART *p);
     if (offset + len > (unsigned)$self->size)
       len = $self->size - offset;
     memcpy($self->buf + offset, in, len);
+    memset($self->tags + offset, TAG_ALLOCATED, len);
     return len;
   }
 }
