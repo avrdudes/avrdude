@@ -246,7 +246,7 @@ typedef struct avrmem {
 
 %extend avrmem {
   PyObject *get(unsigned int len, unsigned int offset = 0) {
-    if (offset > (unsigned)$self->size)
+    if (offset >= (unsigned)$self->size)
       return Py_None;
     if (offset + len > (unsigned)$self->size)
       len = $self->size - offset;
@@ -266,7 +266,7 @@ int avr_initmem(const AVRPART *p);
     if ($self->buf == NULL)
       // missing avr_initmem()?
       return 0;
-    if (offset > (unsigned)$self->size)
+    if (offset >= (unsigned)$self->size)
       return 0;
     if (offset + len > (unsigned)$self->size)
       len = $self->size - offset;
