@@ -245,7 +245,11 @@ typedef struct avrmem {
 } AVRMEM;
 
 %extend avrmem {
+%feature("autodoc", "m.get(len: int, offset: int = 0) => return bytes; Read from memory buffer") get;
   PyObject *get(unsigned int len, unsigned int offset = 0) {
+    if ($self->buf == NULL)
+      // missing avr_initmem()?
+      return Py_None;
     if (offset >= (unsigned)$self->size)
       return Py_None;
     if (offset + len > (unsigned)$self->size)
@@ -262,6 +266,7 @@ int avr_initmem(const AVRPART *p);
     PyBytes_AsStringAndSize($input, (char **)&$1, &len);
     $2 = len;
   }
+%feature("autodoc", "m.put(in: bytes, len: int, offset: int = 0) => return len; Copy to memory buffer, set ALLOCATED tag") put;
   int put(unsigned char *in, unsigned int len, unsigned int offset = 0) {
     if ($self->buf == NULL)
       // missing avr_initmem()?
@@ -275,6 +280,24 @@ int avr_initmem(const AVRPART *p);
     return len;
   }
 }
+
+%extend avrmem {
+%feature("autodoc", "m.clear(len, offset, value=0xFF) => return len; Clear memory buffer range, and ALLOCATED tag") clear;
+  int clear(unsigned int len, unsigned int offset = 0, unsigned char value = 0xFF) {
+    if ($self->buf == NULL)
+      // missing avr_initmem()?
+      return 0;
+    if (offset >= (unsigned)$self->size)
+      return 0;
+    if (offset + len > (unsigned)$self->size)
+      len = $self->size - offset;
+    memset($self->buf + offset, value, len);
+    memset($self->tags + offset, 0, len);
+    return len;
+  }
+}
+
+%feature("autodoc", "1");
 
 typedef enum {
   CONNTYPE_PARALLEL,
