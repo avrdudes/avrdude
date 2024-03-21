@@ -21,6 +21,8 @@
 # m.get(3) == p.signature
 # stop_programmer(pgm)
 
+# ad.fileio(ad.FIO_WRITE, "test.hex", ad.fileio_format("i"), p, "flash", -1)
+
 import sys
 import os
 import pathlib
