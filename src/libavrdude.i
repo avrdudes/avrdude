@@ -582,3 +582,43 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 %feature("autodoc", "avr_write_byte(PROGRAMMER pgm, AVRPART p, AVRMEM mem, int addr, byte data) -> int") avr_write_byte;
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
+typedef enum {
+  FMT_ERROR = -1,
+  FMT_AUTO,
+  FMT_SREC,
+  FMT_IHEX,
+  FMT_RBIN,
+  FMT_IMM,
+  FMT_EEGG,
+  FMT_HEX,
+  FMT_DEC,
+  FMT_OCT,
+  FMT_BIN,
+  FMT_ELF,
+  FMT_IHXC,
+} FILEFMT;
+
+typedef enum {
+  FIO_READ,
+  FIO_WRITE,
+  FIO_READ_FOR_VERIFY,
+} FIO_OP;
+
+
+%feature("autodoc", "fileio_format(c: char) -> FILEFMT") fileio_format;
+FILEFMT fileio_format(char c);
+
+%feature("autodoc", "fileio_fmtstr(f: FILEFMT) -> str") fileio_fmtstr;
+char *fileio_fmtstr(FILEFMT format);
+
+%feature("autodoc", "fileio_fmtchr(f: FILEFMT) -> char") fileio_fmtchr;
+int fileio_fmtchr(FILEFMT format);
+
+%feature("autodoc", "fileio_fmt_autodetect(fname: str) -> FILEFMT") fileio_fmt_autodetect;
+int fileio_fmt_autodetect(const char *fname);
+
+%feature("autodoc", "fileio(oprwv: FIO_OP, filename: str, format: FILEFMT, p: AVRPART, memstr: str, size: int) -> int [size, or -1 on error]") fileio;
+int fileio(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const char *memstr, int size);
+
+%feature("autodoc", "1");
