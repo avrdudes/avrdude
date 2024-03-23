@@ -14,15 +14,6 @@ jobs:
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
-      
-      - name: Create artifacts directory
-        run: mkdir -p dist
-
-      - name: Copy artifacts
-        run: cp build/interface/avrdude.wasm build/test/avrdude.js build/interface/avrdude.conf dist
-
-      - name: Zip artifacts
-        run: zip -r avrdude-artifacts.zip build
 
       - uses: actions/setup-node@v3
         with:
