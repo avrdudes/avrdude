@@ -110,8 +110,7 @@ class adgui():
 
         (success, message) = avrdude_init()
         self.initialized = success
-        self.logstring += message
-        self.window.ui.loggingArea.setPlainText(self.logstring)
+        self.log(message)
         if not success:
             self.window.ui.actionDevice.setEnabled(False)
             self.window.ui.actionProgrammer.setEnabled(False)
@@ -125,6 +124,11 @@ class adgui():
             self.device.ui.atxmega.stateChanged.connect(self.update_device_cb)
             self.device.ui.avr_de.stateChanged.connect(self.update_device_cb)
             self.device.ui.other.stateChanged.connect(self.update_device_cb)
+            self.device.ui.buttonBox.accepted.connect(self.device_selected)
+
+    def log(self, s: str):
+        self.logstring += s
+        self.window.ui.loggingArea.setPlainText(self.logstring)
 
     # rough equivalent of avrdude_message2()
     # first argument is either "stdout" or "stderr"
@@ -149,11 +153,7 @@ class adgui():
             elif (msgmode & ad.MSG2_INDENT2) != 0:
                 s = (len(ad.cvar.progname) + 2) * ' '
                 s += msg
-            try:
-                self.logstring += s
-            except UnicodeDecodeError:
-                self.logstring += "message contained invalid characters\n"
-            self.window.ui.loggingArea.setPlainText(self.logstring)
+            self.log(s)
 
     def update_device_cb(self):
         fams = list(self.devices.keys())
@@ -164,6 +164,11 @@ class adgui():
             if obj:
                 for d in self.devices[f]:
                     self.device.ui.devices.addItem(d)
+
+    def device_selected(self):
+        self.dev_selected = self.device.ui.devices.currentText()
+        self.log(f"Selected device: {self.dev_selected}")
+        self.window.ui.actionDevice_Memories.setEnabled(True)
 
 
 def main():
