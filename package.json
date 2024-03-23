@@ -6,6 +6,10 @@
     "prepublish": "npm run build",
     "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude"
   },
+  "files": [
+    "dist/avrdude.js",
+    "dist/avrdude.wasm"
+  ],
   "license": "GPLv3",
   "repository": {
     "type": "git",
