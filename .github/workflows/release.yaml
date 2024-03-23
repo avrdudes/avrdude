@@ -10,35 +10,18 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Setup Emscripten
         uses: mymindstorm/setup-emsdk@v14
 
-      - name: Configure CMake
-        env:
-          EMSDK: ${{ env.EMSDK }}
-        run: |
-          cmake -B build -S . \
-            -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
-
-      - name: Build avrdude
-        run: cmake --build build --target avrdude
-      
-      - name: Create artifacts directory
-        run: mkdir -p build/test
-
-      - name: Copy artifacts
-        run: cp build/test/avrdude.wasm build/test/avrdude.js build/test/avrdude.conf build
-
-      - name: Zip artifacts
-        run: zip -r avrdude-artifacts.zip build
-
-      - name: Upload release artifact
-        uses: actions/upload-release-asset@v1
+      - uses: actions/setup-node@v3
         with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./avrdude-artifacts.zip
-          asset_name: avrdude-artifacts.zip
-          asset_content_type: application/zip
-          token: ${{ secrets.GITHUB_TOKEN }}
+          node-version: '18.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        run: |
+          npm publish --access public
