@@ -1,0 +1,14 @@
+{
+  "name": "@leaphy-robotics/avrdude-webassembly",
+  "version": "1.0.0",
+  "description": "An port of avrdude to the browser using WebAssembly",
+  "scripts": {
+    "prepublish": "npm run build",
+    "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude"
+  },
+  "license": "GPLv3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leaphy-robotics/avrdude-webassembly.git"
+  }
+}
