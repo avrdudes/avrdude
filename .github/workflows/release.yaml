@@ -16,7 +16,7 @@ jobs:
         uses: mymindstorm/setup-emsdk@v14
       
       - name: Create artifacts directory
-        run: mkdir -p build/interface
+        run: mkdir -p dist
 
       - name: Copy artifacts
         run: cp build/interface/avrdude.wasm build/test/avrdude.js build/interface/avrdude.conf dist
