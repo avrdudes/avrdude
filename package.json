@@ -1,10 +1,10 @@
 {
   "name": "@leaphy-robotics/avrdude-webassembly",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "An port of avrdude to the browser using WebAssembly",
   "scripts": {
     "prepublish": "npm run build",
-    "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude && mkdir -p dist && cp build/interface/avrdude.js build/interface/avrdude.wasm build/src/avrdude.conf ."
+    "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude && cp build/interface/avrdude.js build/interface/avrdude.wasm build/src/avrdude.conf ."
   },
   "files": [
     "avrdude.js",
