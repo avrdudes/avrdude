@@ -66,6 +66,12 @@ static const char *avrdude_message_type(int msglvl) {
     }
 }
 
+EM_JS(void, avrdude_log, (const char *msg), {
+    if (!window["avrdudeLog"]) {
+        window["avrdudeLog"] = [];
+    }
+    window["avrdudeLog"] = [...window["avrdudeLog"], UTF8ToString(msg)];
+});
 
 /*
  * Core msg_xyz() routine
@@ -103,10 +109,10 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
     if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
         if(msgmode & MSG2_PROGNAME) {
             if(!bols[bi].bol)
-                fprintf(fp, "\n");
-            fprintf(fp, "%s", progname);
+                avrdude_log("\n");
+            avrdude_log(progname);
             if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
-                fprintf(fp, " %s()", func);
+                avrdude_log(func);
             if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
                 const char *pr = strrchr(file, '/'); // Only print basename
 #if defined (WIN32)
@@ -114,17 +120,22 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
               pr =  strrchr(file, '\\');
 #endif
                 pr = pr? pr+1: file;
-                fprintf(fp, " [%s:%d]", pr, lno);
+                avrdude_log(pr);
+                avrdude_log(":");
+                avrdude_log(reinterpret_cast<const char *>(lno));
             }
-            if(msgmode & MSG2_TYPE)
-                fprintf(fp, " %s", avrdude_message_type(msglvl));
-            fprintf(fp, ": ");
+            if(msgmode & MSG2_TYPE) {
+                avrdude_log(avrdude_message_type(msglvl));
+            }
+            avrdude_log(": ");
             bols[bi].bol = 0;
         } else if(msgmode & MSG2_INDENT1) {
-            fprintf(fp, "%*s", (int) strlen(progname)+1, "");
+            avrdude_log(" ");
+            avrdude_log(progname);
             bols[bi].bol = 0;
         } else if(msgmode & MSG2_INDENT2) {
-            fprintf(fp, "%*s", (int) strlen(progname)+2, "");
+            avrdude_log("  ");
+            avrdude_log(progname);
             bols[bi].bol = 0;
         }
 
@@ -132,7 +143,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         if(*format == '\v') {
             format++;
             if(!bols[bi].bol) {
-                fprintf(fp, "\n");
+                avrdude_log("\n");
                 bols[bi].bol = 1;
             }
         }
@@ -144,7 +155,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         rc = vsnprintf(NULL, 0, format, ap);
         va_end(ap);
 
-        if(rc < 0)              // Some errror?
+        if(rc < 0)              // Some error?
             return 0;
 
         rc++;                   // Accommodate terminating nul
@@ -159,7 +170,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         }
 
         if(*p) {
-            fprintf(fp, "%s", p); // Finally: print!
+            avrdude_log(p);
             bols[bi].bol = p[strlen(p)-1] == '\n';
         }
         free(p);
@@ -1697,7 +1708,8 @@ int startAvrdude(char *args) {
     int argc = 0;
 
     // print args
-    printf("args: %s\n", args);
+    //printf("args: %s\n", args);
+    avrdude_log(("args: %s\n", args));
 
     // extract args from string
     char *token = strtok(args, " ");
@@ -1708,12 +1720,6 @@ int startAvrdude(char *args) {
 
         argc++;
         token = strtok(NULL, " ");
-    }
-
-    // print argc and argv
-    printf("argc: %d\n", argc);
-    for (int i = 0; i < argc; i++) {
-        printf("argv[%d]: %s\n", i, argv[i]);
     }
 
     // call main function

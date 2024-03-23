@@ -48,7 +48,6 @@ namespace {
 
     EM_ASYNC_JS(void, read_data, (int timeoutMs), {
         const reader = window.activePort.readable.getReader();
-        console.log("Reading data");
         async function receive() {
             const { value } = await reader.read();
             return value;
@@ -71,7 +70,10 @@ namespace {
                     result = firstHalf;
                 }
 
-                console.log("Received: ", result);
+                //console.log("Received: ", result);
+                // convert data into an readable string formated like this 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+                const printResult = Array.from(result).join(",");
+                window["avrdudeLog"] = [...window["avrdudeLog"], "Received: " + printResult];
                 const ptr = window.funcs._malloc(result.length * Uint8Array.BYTES_PER_ELEMENT);
                 window.funcs.HEAPU8.set(result, ptr);
 
@@ -79,7 +81,7 @@ namespace {
                 window.funcs._dataCallback(ptr, result.length);
                 break;
             } else {
-                console.log("Timeout", result);
+                window["avrdudeLog"] = [...window["avrdudeLog"], "Timeout"];
                 break;
             }
         }
@@ -115,6 +117,7 @@ namespace {
         // set up an activePort variable on the window, so it can be accessed from everywhere
         window.activePort = port;
         window.writeStream = port.writable.getWriter();
+        window["avrdudeLog"] = [];
         return port;
     });
 
@@ -140,12 +143,14 @@ namespace {
 
     EM_ASYNC_JS(void, write_data, (EM_VAL data), {
         data = new Uint8Array(Emval.toValue(data));
-        console.log("Sending: ", data);
+        //console.log("Sending: ", data);
+        // convert data into an readable string formated like this 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+        const printData = Array.from(data).join(",");
+        window["avrdudeLog"] = [...window["avrdudeLog"], "Sending: " + printData];
         const port = window.activePort;
         await window.writeStream.ready;
         await window.writeStream.write(data);
         await window.writeStream.ready;
-        console.log("Data sent");
     });
 
     val generateSerialOptions(const std::map<std::string, int>& serialOptions) {
@@ -190,7 +195,6 @@ void serialPortDrain(int timeout) {
 void serialPortWrite(const unsigned char *buf, size_t len) {
     std::vector<unsigned char> data(buf, buf + len);
     write_data(val(typed_memory_view(data.size(), data.data())).as_handle());
-    printf("Data sent from C\n");
     emscripten_sleep(300);
 }
 
@@ -221,8 +225,6 @@ int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
         }
     }
     if (data.empty()) {
-        // fill data buf with 1s if no data was received
-        printf("No data received\n");
         return -1;
     } else {
         std::copy(data.begin(), data.end(), buf);

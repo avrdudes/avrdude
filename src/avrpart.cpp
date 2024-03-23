@@ -1123,8 +1123,9 @@ const char *avr_prog_modes_str(int pm) {
 
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
-    fprintf(f, "%sAVR Part              : %s\n", prefix, p->desc);
-    fprintf(f, "%sProgramming modes     : %s\n", prefix, avr_prog_modes_str(p->prog_modes));
+//    fprintf(f, "%sAVR Part              : %s\n", prefix, p->desc);
+//    fprintf(f, "%sProgramming modes     : %s\n", prefix, avr_prog_modes_str(p->prog_modes));
+//    fprintf(f, "%sSignature             : %02X %02X %02X\n", prefix, p->signature[0], p->signature[1], p->signature[2]);
 
     if(verbose > 1) {
         avr_mem_display(f, p, prefix);
