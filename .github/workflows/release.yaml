@@ -19,7 +19,11 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
-
+          
+      - name: Build package
+        run: |
+          npm run build
+          
       - name: Publish to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
