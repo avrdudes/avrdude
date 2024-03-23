@@ -24,7 +24,7 @@ to configure your CMake project.
 
 To build everything use:
 
-`cmake --build build --target avrdude`
+`cmake --build build --target test`
 
 ### Testing
 
