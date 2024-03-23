@@ -129,6 +129,7 @@ namespace {
     });
 
     EM_ASYNC_JS(void, close_serial_port, (EM_VAL port), {
+        window.writeStream.releaseLock();
         await port.close();
     });
 
