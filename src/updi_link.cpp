@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -142,7 +143,7 @@ static int updi_physical_send_double_break(const PROGRAMMER *pgm) {
   serial_send(&pgm->fd, buffer, 1);
   serial_recv(&pgm->fd, buffer, 1);
 
-  usleep(100*1000);
+  emscripten_sleep(100*1000/1000); // replace usleep with emscripten_slee
 
   buffer[0] = UPDI_BREAK;
 

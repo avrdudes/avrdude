@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -95,21 +96,19 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
      *
      * avrdude -c arduino -qqp m328p -U x.hex; avrdude -c arduino -qqp m328p -U x.hex
      */
-    usleep(250 * 1000);
+    emscripten_sleep(250 * 1000/1000); // replace usleep with emscripten_slee
     // Pull the RTS/DTR line low to reset AVR
     serial_set_dtr_rts(&pgm->fd, 1);
     // Max 100 us: charging a cap longer creates a high reset spike above Vcc
-    usleep(100);
+    emscripten_sleep(100/1000); // replace usleep with emscripten_slee
     // Set the RTS/DTR line back to high, so direct connection to reset works
     serial_set_dtr_rts(&pgm->fd, 0);
 
-    usleep(100 * 1000);
-    printf("marker\n");
+    emscripten_sleep(100 * 1000/1000); // replace usleep with emscripten_slee
     /*
      * drain any extraneous input
      */
     stk500_drain(pgm, 0);
-    printf("marker\n");
 
     if (stk500_getsync(pgm) < 0)
         return -1;

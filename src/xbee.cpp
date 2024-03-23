@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1572,11 +1573,11 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
 
   /* Clear DTR and RTS */
   serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(250*1000);
+  emscripten_sleep(250*1000/1000); // replace usleep with emscripten_slee
 
   /* Set DTR and RTS back to high */
   serial_set_dtr_rts(&pgm->fd, 1);
-  usleep(50*1000);
+  emscripten_sleep(50*1000/1000); // replace usleep with emscripten_slee
 
   /*
    * At this point stk500_drain() and stk500_getsync() calls would

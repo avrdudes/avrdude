@@ -34,6 +34,7 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -512,7 +513,7 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
       avr910_vfy_cmd_sent(pgm, "flush page");
 
       page_wr_cmd_pending = 0;
-      usleep(m->max_write_delay);
+      emscripten_sleep(m->max_write_delay/1000); // replace usleep with emscripten_slee
       avr910_set_addr(pgm, addr>>1);
 
       /* Set page address for next page. */
@@ -532,7 +533,7 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
     avr910_set_addr(pgm, page_addr>>1);
     avr910_send(pgm, "m", 1);
     avr910_vfy_cmd_sent(pgm, "flush final page");
-    usleep(m->max_write_delay);
+    emscripten_sleep(m->max_write_delay/1000); // replace usleep with emscripten_slee
   }
 
   return addr;
@@ -555,7 +556,7 @@ static int avr910_paged_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p,
     cmd[1] = m->buf[addr];
     avr910_send(pgm, cmd, sizeof(cmd));
     avr910_vfy_cmd_sent(pgm, "write byte");
-    usleep(m->max_write_delay);
+    emscripten_sleep(m->max_write_delay/1000); // replace usleep with emscripten_slee
 
     addr++;
 

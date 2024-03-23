@@ -41,6 +41,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1016,6 +1017,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
  * Reset the target.
  */
 static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
+    return 0; // not necessary
     int status;
     unsigned char buf[2], *resp, c;
 
@@ -1031,8 +1033,8 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
 
     buf[0] = (pgm->flag & PGM_FL_IS_DW)? CMND_FORCED_STOP: CMND_RESET;
     buf[1] = (pgm->flag & PGM_FL_IS_DW)? 1: flags;
-    pmsg_notice2("jtagmkII_reset(): sending %s command: ",
-                 (pgm->flag & PGM_FL_IS_DW)? "stop": "reset");
+    printf("jtagmkII_reset(): sending %s command: ",
+                 (pgm->flag & PGM_FL_IS_DW)? "stop": "reset", "\n");
     jtagmkII_send(pgm, buf, 2);
 
     status = jtagmkII_recv(pgm, &resp);
@@ -1751,72 +1753,7 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
 
 void jtagmkII_close(PROGRAMMER * pgm)
 {
-    int status;
-    unsigned char buf[1], *resp, c;
-
-    pmsg_notice2("jtagmkII_close()\n");
-
-    if (pgm->flag & (PGM_FL_IS_PDI | PGM_FL_IS_JTAG)) {
-        /* When in PDI or JTAG mode, restart target. */
-        buf[0] = CMND_GO;
-        pmsg_notice2("jtagmkII_close(): sending GO command: ");
-        jtagmkII_send(pgm, buf, 1);
-
-        status = jtagmkII_recv(pgm, &resp);
-        if (status <= 0) {
-            msg_notice2("\n");
-            pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
-        } else {
-            if (verbose >= 3) {
-                msg_debug("\n");
-                jtagmkII_prmsg(pgm, resp, status);
-            } else
-                msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
-            c = resp[0];
-            free(resp);
-            if (c != RSP_OK) {
-                pmsg_error("bad response to GO command: %s\n", jtagmkII_get_rc(c));
-            }
-        }
-    }
-
-    buf[0] = CMND_SIGN_OFF;
-    pmsg_notice2("jtagmkII_close(): sending sign-off command: ");
-    jtagmkII_send(pgm, buf, 1);
-
-    status = jtagmkII_recv(pgm, &resp);
-    if (status <= 0) {
-        msg_notice2("\n");
-        pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
-        return;
-    }
-    if (verbose >= 3) {
-        msg_debug("\n");
-        jtagmkII_prmsg(pgm, resp, status);
-    } else
-        msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
-    c = resp[0];
-    free(resp);
-    if (c != RSP_OK) {
-        pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(c));
-    }
-
-    if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-        pmsg_info("releasing DTR/RTS handshake lines\n");
-        serial_set_dtr_rts(&pgm->fd, 0);
-    }
-
     serial_close(&pgm->fd);
-    pgm->fd.ifd = -1;
-
-    /* The AVR Dragon and the Arduino Nano Every needs a delay
-     * after a programming session has ended before Avrdude can
-     * communicate with the programmer again.
-     */
-    if (str_casestarts(pgmid, "dragon"))
-        usleep(1000*1000*1.5);
-    else if (str_caseeq(pgmid, "nanoevery"))
-        usleep(1000*1000*0.5);
 }
 
 static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
@@ -2976,13 +2913,13 @@ static int jtagmkII_smc_init32(const PROGRAMMER *pgm) {
     status = jtagmkII_write_SABaddr(pgm, 0xffff0c00, 0x05, 0x0000005);
     if (status < 0) {lineno = __LINE__; goto eRR;}
 
-    usleep(1000000);
+    emscripten_sleep(1000000/1000); // replace usleep with emscripten_slee
 
     val = jtagmkII_read_SABaddr(pgm, 0xfffe1408, 0x05);
     if (val != 0x0000a001) {lineno = __LINE__; goto eRR;} // PLL 0
 
     // need a small delay to let clock stabliize
-    usleep(50*1000);
+    emscripten_sleep(50*1000/1000); // replace usleep with emscripten_slee
 
     return 0;
 

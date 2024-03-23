@@ -2604,7 +2604,7 @@ static int terminal_mode_interactive(const PROGRAMMER *pgm, const AVRPART *p) {
         pgm->term_keep_alive(pgm, NULL);
       led_set(pgm, LED_NOP);
     }
-    usleep(6250);
+    emscripten_sleep(6250/1000); // replace usleep with emscripten_slee
     if(readytoread() > 0 && term_running)
       rl_callback_read_char();
   }

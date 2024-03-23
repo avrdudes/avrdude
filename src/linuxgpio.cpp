@@ -266,13 +266,13 @@ static int linuxgpio_sysfs_open(PROGRAMMER *pgm, const char *port) {
                 return ret;
             }
 
-            usleep(GPIO_SYSFS_OPEN_DELAY);
+            emscripten_sleep(GPIO_SYSFS_OPEN_DELAY/1000); // replace usleep with emscripten_slee
         }
 
         /* Write direction, looping in case of EACCES errors due to delayed
          * udev permission rule application after export */
         for (retry_count = 0; retry_count < GPIO_SYSFS_OPEN_RETRIES; retry_count++) {
-            usleep(GPIO_SYSFS_OPEN_DELAY);
+            emscripten_sleep(GPIO_SYSFS_OPEN_DELAY/1000); // replace usleep with emscripten_slee
             if (i == PIN_AVR_SDI)
                 r=linuxgpio_sysfs_dir_in(pin);
             else

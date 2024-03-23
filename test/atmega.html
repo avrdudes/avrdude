@@ -20,7 +20,7 @@
             content = data;
         });
     let hex = '';
-    fetch('/every.hex')
+    fetch('/atmega.hex')
         .then(response => response.text())
         .then(data => {
             hex = data;
@@ -28,12 +28,22 @@
 
     document.getElementById('run').addEventListener('click', async () => {
         const funcs = window.funcs;
+
         funcs.FS.writeFile('/tmp/avrdude.conf', content);
-        window.funcs.FS.writeFile('/tmp/program.hex', hex);
-        const argsString = "avrdude -P /dev/null -V -v -p atmega4809 -c jtag2updi -C /tmp/avrdude.conf -b 115200 -e -D -U flash:w:/tmp/program.hex:i \"-Ufuse2:w:0x01:m\" \"-Ufuse5:w:0xC9:m\" \"-Ufuse8:w:0x00:m\"";
-        const avr = funcs.cwrap("startAvrdude", "number", ["string"])
-        avr(argsString);
+        funcs.FS.writeFile('/tmp/program.hex', hex);
+
+        const argsString = "avrdude -P /dev/null -V -v -p atmega2560 -c stk500v2 -C /tmp/avrdude.conf -b 115200 -D -U flash:w:/tmp/program.hex:i";
+
+
+        try {
+            const avr = funcs.cwrap("startAvrdude", "number", ["string"])
+            avr(argsString);
+        } catch (e) {
+
+        }
+
         console.log('done');
+
     });
 </script>
 

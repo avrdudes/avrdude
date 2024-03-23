@@ -83,7 +83,7 @@ typedef struct pdata
 
 static void delay_ms(uint32_t duration)
 {
-    usleep(duration * 1000);
+    emscripten_sleep(duration * 1000/1000); // replace usleep with emscripten_slee
 }
 
 static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {

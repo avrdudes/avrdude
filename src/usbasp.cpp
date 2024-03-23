@@ -739,7 +739,7 @@ static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   /* wait, so device is ready to receive commands */
-  usleep(100000);
+  emscripten_sleep(100000/1000); // replace usleep with emscripten_slee
 
   return pgm->program_enable(pgm, p);
 }
@@ -803,7 +803,7 @@ static int usbasp_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
-  usleep(p->chip_erase_delay);
+  emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
   pgm->initialize(pgm, p);
 
   return 0;
@@ -1159,7 +1159,7 @@ static int usbasp_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   usbasp_tpi_send_byte(pgm, 0x00);
   usbasp_tpi_nvm_waitbusy(pgm);
 
-  usleep(p->chip_erase_delay);
+  emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
   pgm->initialize(pgm, p);
 
   return 0;

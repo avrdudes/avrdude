@@ -214,6 +214,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1990,7 +1991,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
         } else {                    // Board not yet out of reset or bootloader twiddles lights
             int slp = 32<<(attempt<3? attempt: 3);
             pmsg_debug("%4ld ms: sleeping for %d ms\n", avr_mstimestamp(), slp);
-            usleep(slp*1000);
+            emscripten_sleep(slp*1000/1000); // replace usleep with emscripten_slee
         }
         if(attempt > 5) {           // Don't report first six attempts
             if(attempt == MAX_SYNC_ATTEMPTS-1)
@@ -2242,16 +2243,16 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
     serial_set_dtr_rts(&pgm->fd, 0);
-    usleep(20*1000);
+    emscripten_sleep(20*1000/1000); // replace usleep with emscripten_slee
     // Pull the RTS/DTR line low to reset AVR
     serial_set_dtr_rts(&pgm->fd, 1);
     // Max 100 us: charging a cap longer creates a high reset spike above Vcc
-    usleep(100);
+    emscripten_sleep(100/1000); // replace usleep with emscripten_slee
     // Set the RTS/DTR line back to high, so direct connection to reset works
     serial_set_dtr_rts(&pgm->fd, 0);
 
     if((120+ur.delay) > 0)
-        usleep((120+ur.delay)*1000); // Wait until board comes out of reset
+        emscripten_sleep((120+ur.delay)*1000/1000); // Wait until board comes out of reset // replace usleep with emscripten_slee
 
     pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
     if(urclock_getsync(pgm) < 0)
@@ -2266,7 +2267,7 @@ static void urclock_close(PROGRAMMER *pgm) {
     serial_close(&pgm->fd);
     pgm->fd.ifd = -1;
     if(ur.bloptiversion)          // Optiboot needs a pause between two successive avrdude calls
-        usleep(200*1000);
+        emscripten_sleep(200*1000/1000); // replace usleep with emscripten_slee
 }
 
 

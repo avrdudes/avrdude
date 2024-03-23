@@ -898,17 +898,17 @@ static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 		set_pin(pgm, PIN_AVR_RESET, OFF);
 		set_pin(pgm, PIN_AVR_SCK, OFF);
 		/*use speed optimization with CAUTION*/
-		usleep(20 * 1000);
+		emscripten_sleep(20 * 1000/1000); // replace usleep with emscripten_slee
 
 		/* giving rst-pulse of at least 2 avr-clock-cycles, for
 		 * security (2us @ 1MHz) */
 		set_pin(pgm, PIN_AVR_RESET, ON);
-		usleep(20 * 1000);
+		emscripten_sleep(20 * 1000/1000); // replace usleep with emscripten_slee
 
 		/*setting rst back to 0 */
 		set_pin(pgm, PIN_AVR_RESET, OFF);
 		/*wait at least 20ms before issuing spi commands to avr */
-		usleep(20 * 1000);
+		emscripten_sleep(20 * 1000/1000); // replace usleep with emscripten_slee
 	}
 
 	return pgm->program_enable(pgm, p);
@@ -948,7 +948,7 @@ static int avrftdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 		if (buf[p->pollindex-1] != p->pollvalue) {
 			log_warn("Program enable command not successful. Retrying.\n");
 			set_pin(pgm, PIN_AVR_RESET, ON);
-			usleep(20);
+			emscripten_sleep(20/1000); // replace usleep with emscripten_slee
 			set_pin(pgm, PIN_AVR_RESET, OFF);
 			avr_set_bits(p->op[AVR_OP_PGM_ENABLE], buf);
 		} else
@@ -974,7 +974,7 @@ static int avrftdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 	avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
 	pgm->cmd(pgm, cmd, res);
-	usleep(p->chip_erase_delay);
+	emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
 	pgm->initialize(pgm, p);
 
 	return 0;
@@ -1026,7 +1026,7 @@ static int avrftdi_eeprom_write(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 		if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, cmd, cmd, 4))
 		    return -1;
-		usleep((m->max_write_delay));
+		emscripten_sleep((m->max_write_delay)/1000); // replace usleep with emscripten_slee
 
 	}
 	return len;
@@ -1158,7 +1158,7 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 		log_warn("Skipping empty page (containing only 0xff bytes)\n");
 		/* TODO sync write */
 		/* sleep */
-		usleep((m->max_write_delay));
+		emscripten_sleep((m->max_write_delay)/1000); // replace usleep with emscripten_slee
 	}
 
 	return len;
@@ -1473,10 +1473,10 @@ static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
 
 	set_pin(pgm, PIN_AVR_RESET, OFF);
 	set_pin(pgm, PIN_JTAG_TCK, OFF);
-	usleep(20 * 1000);
+	emscripten_sleep(20 * 1000/1000); // replace usleep with emscripten_slee
 
 	set_pin(pgm, PIN_AVR_RESET, ON);
-	usleep(20 * 1000);
+	emscripten_sleep(20 * 1000);
 }
 
 static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)

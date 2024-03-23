@@ -442,7 +442,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
   }
 
   // Let the device wake up.
-  usleep(50000);
+  emscripten_sleep(50000/1000); // replace usleep with emscripten_slee
 
   if (p->prog_modes & PM_TPI) {
     /* Since there is a single TPIDATA line, SDO and SDI must be
@@ -482,7 +482,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
 	usb_control(pgm, USBTINY_POWERUP,
 		    PDATA(pgm)->sck_period, RESET_LOW) < 0)
       return -1;
-    usleep(50000);
+    emscripten_sleep(50000/1000); // replace usleep with emscripten_slee
   }
   if (tries >= 4)
     return -1;
@@ -496,7 +496,7 @@ static int usbtiny_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
                     PDATA(pgm)->sck_period, value ? RESET_HIGH : RESET_LOW) < 0) {
       return -1;
     }
-    usleep(50000);
+    emscripten_sleep(50000/1000); // replace usleep with emscripten_slee
     return 0;
   }
   return -1;
@@ -606,9 +606,9 @@ static int usbtiny_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if(pgm->prog_modes & PM_SPM) { // Talking to bootloader directly
     AVRMEM *fl = avr_locate_flash(p);
     // Estimated time it takes to erase all pages in bootloader
-    usleep(p->chip_erase_delay * (fl? fl->num_pages: 999));
+    emscripten_sleep(p->chip_erase_delay * (fl? fl->num_pages: 999)/1000); // replace usleep with emscripten_slee
   } else
-    usleep(p->chip_erase_delay);
+    emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
 
   // prepare for further instruction
   pgm->initialize(pgm, p);

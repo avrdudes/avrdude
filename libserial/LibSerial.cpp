@@ -50,26 +50,18 @@ namespace {
         const reader = window.activePort.readable.getReader();
         console.log("Reading data");
         async function receive() {
-            return new Promise(async (resolve, reject) => {
-                    try {
-                        const { value } = await reader.read();
-                        resolve(value);
-                    } catch (error) {
-                        reject(error);
-                    }
-            });
+            const { value } = await reader.read();
+            return value;
         }
 
-        const timeoutPromise = new Promise((resolve, _) => {
-                setTimeout(() => {
-                        resolve("Timeout");
-                }, timeoutMs);
-        });
+        async function timeout(timeoutMs) {
+            await new Promise(resolve => setTimeout(resolve, timeoutMs));
+            return "timeout";
+        }
 
-        var returnBuffer = new Uint8Array(0);
+        var returnBuffer = new Uint8Array();
         while (true) {
-            const promise = receive();
-            let result = await Promise.race([promise, timeoutPromise]);
+            let result = await Promise.race([receive(), timeout(timeoutMs)]);
 
             if (result instanceof Uint8Array) {
                 // check if it is twice the same data so check if the first half is the same as the second half if so remove the second half
@@ -85,20 +77,21 @@ namespace {
 
                 // Call the C++ function with the pointer and the length of the array
                 window.funcs._dataCallback(ptr, result.length);
-                reader.releaseLock();
-                return;
-            } else if (result === "Timeout") {
-                reader.cancel();
-                reader.releaseLock();
-                return;
+                break;
+            } else {
+                console.log("Timeout", result);
+                break;
             }
         }
+        reader.releaseLock();
+        return;
     });
 
     // clang-format off
     // get serial options as an EM_VAL
     EM_ASYNC_JS(EM_VAL, open_serial_port, (EM_VAL cppSerialOpts), {
         let serialOpts = Emval.toValue(cppSerialOpts);
+        serialOpts.bufferSize = 1024*2;
         let port;
         if (!window.activePort) {
             port = await navigator.serial.requestPort();
@@ -110,6 +103,15 @@ namespace {
                 await port.open(serialOpts);
             }
         }
+        // reset the arduino by setting the DTR signal at baud rate 1200
+        await port.close();
+        await port.open({baudRate: 1200});
+        await port.setSignals({dataTerminalReady: true, requestToSend: true});
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await port.setSignals({dataTerminalReady: false, requestToSend: false});
+        await port.close();
+        // open the port with the correct baud rate
+        await port.open(serialOpts);
         // set up an activePort variable on the window, so it can be accessed from everywhere
         window.activePort = port;
         window.writeStream = port.writable.getWriter();
@@ -137,11 +139,13 @@ namespace {
 
 
     EM_ASYNC_JS(void, write_data, (EM_VAL data), {
-        // print type of data
         data = new Uint8Array(Emval.toValue(data));
         console.log("Sending: ", data);
         const port = window.activePort;
+        await window.writeStream.ready;
         await window.writeStream.write(data);
+        await window.writeStream.ready;
+        console.log("Data sent");
     });
 
     val generateSerialOptions(const std::map<std::string, int>& serialOptions) {
@@ -165,11 +169,6 @@ namespace {
 
 }
 
-EMSCRIPTEN_BINDINGS(module)
-{
-    //
-}
-
 int serialPortOpen(int baudRate) {
     val opts = generateSerialOptions({{"baudRate", baudRate}});
     if (opts.isUndefined() || opts.isNull()) {
@@ -191,7 +190,8 @@ void serialPortDrain(int timeout) {
 void serialPortWrite(const unsigned char *buf, size_t len) {
     std::vector<unsigned char> data(buf, buf + len);
     write_data(val(typed_memory_view(data.size(), data.data())).as_handle());
-    emscripten_sleep(1000);
+    printf("Data sent from C\n");
+    emscripten_sleep(300);
 }
 
 int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {

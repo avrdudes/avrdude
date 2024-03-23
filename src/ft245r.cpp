@@ -324,7 +324,7 @@ static int ft245r_drain(const PROGRAMMER *pgm, int display) {
 /* Ensure any pending writes are sent to the FTDI chip before sleeping.  */
 static void ft245r_usleep(const PROGRAMMER *pgm, useconds_t usec) {
     ft245r_flush(pgm);
-    usleep(usec);
+    emscripten_sleep(usec/1000); // replace usleep with emscripten_slee
 }
 
 

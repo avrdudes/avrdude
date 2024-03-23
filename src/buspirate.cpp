@@ -41,6 +41,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -602,7 +603,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	PDATA(pgm)->current_peripherals_config  = 0x48 | PDATA(pgm)->reset;
 	if (buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01) < 0)
 		return -1;
-	usleep(50000); // sleep for 50ms after power up
+	emscripten_sleep(50000/1000); // sleep for 50ms after power up // replace usleep with emscripten_slee
 
 	/* 01100xxx -  Set speed */
 	if (buspirate_expect_bin_byte(pgm, 0x60 | PDATA(pgm)->spifreq, 0x01) < 0)
@@ -1081,7 +1082,7 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 	avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
 	pgm->cmd(pgm, cmd, res);
-	usleep(p->chip_erase_delay);
+	emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
 	pgm->initialize(pgm, p);
 
 	return 0;

@@ -351,10 +351,10 @@ static int linuxspi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
          */
         if (linuxspi_reset_mcu(pgm, false))
             return -1;
-        usleep(5);
+        emscripten_sleep(5/1000); // replace usleep with emscripten_slee
         if (linuxspi_reset_mcu(pgm, true))
             return -1;
-        usleep(20000);
+        emscripten_sleep(20000/1000); // replace usleep with emscripten_slee
 
         return -2;
     }
@@ -373,7 +373,7 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     memset(cmd, 0, sizeof(cmd));
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
     pgm->cmd(pgm, cmd, res);
-    usleep(p->chip_erase_delay);
+    emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
     pgm->initialize(pgm, p);
 
     return 0;

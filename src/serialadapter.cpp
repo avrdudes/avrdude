@@ -325,7 +325,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
     return -1;
   }
   serial_set_dtr_rts(&fd, 1);
-  usleep(100);
+  emscripten_sleep(100/1000); // replace usleep with emscripten_slee
   serial_set_dtr_rts(&fd, 0);
   serial_rawclose(&fd);
 
@@ -334,9 +334,9 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
   nwaits += 2;
 #endif
   pmsg_info("waiting for new port...");
-  usleep(400*1000*nwaits);
+  emscripten_sleep(400*1000*nwaits/1000); // replace usleep with emscripten_slee
   for(i = nloops; i > 0; i--) {
-    usleep(nap*1000);
+    emscripten_sleep(nap*1000/1000); // replace usleep with emscripten_slee
     if((sp2 = get_libserialport_data(&n2))) {
       diff = sa_spa_not_spb(sp2, n2, sp1, n1);
       if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up

@@ -444,7 +444,7 @@ static int  pickit2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
     pgm->cmd(pgm, cmd, res);
-    usleep(p->chip_erase_delay);
+    emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
     pgm->initialize(pgm, p);
 
     return 0;
@@ -581,7 +581,7 @@ static int pickit2_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 
     // just delay the max (we could do the delay in the PICkit2 if we wanted)
-    usleep(mem->max_write_delay);
+    emscripten_sleep(mem->max_write_delay/1000); // replace usleep with emscripten_slee
 
     return 0;
 }
@@ -686,7 +686,7 @@ static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
         }
         else if (!mem->paged)
         {
-            usleep(mem->max_write_delay);
+            emscripten_sleep(mem->max_write_delay/1000); // replace usleep with emscripten_slee
         }
     }
 

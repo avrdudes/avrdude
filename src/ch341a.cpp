@@ -288,7 +288,7 @@ static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("CH341ChipSelect(..., false) failed\n");
     return -1;
   }
-  usleep(20 * 1000);
+  emscripten_sleep(20 * 1000);
   if(!CH341ChipSelect(pgm, cs, true)) {
     pmsg_error("CH341ChipSelect(..., true) failed\n");
     return -1;
@@ -344,7 +344,7 @@ static int ch341a_spi_chip_erase(const struct programmer_t *pgm, const AVRPART *
   memset(cmd, 0, sizeof(cmd));
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
   pgm->cmd(pgm, cmd, res);
-  usleep(p->chip_erase_delay);
+  emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
   pgm->initialize(pgm, p);
   return 0;
 }

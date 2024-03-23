@@ -201,7 +201,7 @@ static int par_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
  */
 static void par_powerup(const PROGRAMMER *pgm) {
   par_setmany(pgm, PPI_AVR_VCC, 1);	/* power up */
-  usleep(100000);
+  emscripten_sleep(100000/1000); // replace usleep with emscripten_slee
 }
 
 
@@ -229,7 +229,7 @@ static void par_enable(PROGRAMMER *pgm, const AVRPART *p) {
    */
 
   par_setpin(pgm, PIN_AVR_RESET, 0);
-  usleep(1);
+  emscripten_sleep(1/1000); // replace usleep with emscripten_slee
 
   /*
    * enable the 74367 buffer, if connected; this signal is active low

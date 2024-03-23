@@ -46,6 +46,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <time.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1000,7 +1001,7 @@ static int stk500v2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     memset(buf+3, 0, 4);
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], buf+3);
     result = stk500v2_command(pgm, buf, 7, sizeof(buf));
-    usleep(p->chip_erase_delay); // should not be needed
+    emscripten_sleep(p->chip_erase_delay/1000); // should not be needed // replace usleep with emscripten_slee
     if (PDATA(pgm)->pgmtype != pdata::PGMTYPE_JTAGICE_MKII) { // skip for JTAGICE mkII (FW v7.39)
         pgm->initialize(pgm, p); // should not be needed
     }
@@ -1025,7 +1026,7 @@ static int stk500hv_chip_erase(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
         buf[2] = p->chiperasetime;
     }
     result = stk500v2_command(pgm, buf, 3, sizeof(buf));
-    usleep(p->chip_erase_delay);
+    emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
     pgm->initialize(pgm, p);
 
     return result >= 0? 0: -1;
@@ -1371,7 +1372,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
      * AT90S1200 needs a positive reset pulse after a chip erase.
      */
         pgm->disable(pgm);
-        usleep(10000);
+        emscripten_sleep(10000/1000); // replace usleep with emscripten_slee
     }
 
     return pgm->program_enable(pgm, p);
@@ -2784,7 +2785,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
    * old JTAGICEmkII isn't affected).  Let's hope 10 ms of additional
    * delay are good enough for everyone.
    */
-    usleep(10000);
+    emscripten_sleep(10000/1000); // replace usleep with emscripten_slee
 
     return 0;
 }

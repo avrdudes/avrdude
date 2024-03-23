@@ -40,6 +40,7 @@
 #include <unistd.h>
 #include <cctype>
 #include <sys/stat.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1489,7 +1490,7 @@ int main(int argc, char * argv [])
         int waittime = 10000;       /* 10 ms */
 
         sig_again:
-        usleep(waittime);
+        emscripten_sleep(waittime/1000); // replace usleep with emscripten_slee
         if (init_ok) {
             rc = avr_signature(pgm, p);
             if (rc != LIBAVRDUDE_SUCCESS) {

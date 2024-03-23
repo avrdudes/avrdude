@@ -28,6 +28,7 @@
 #include <ctype.h>
 #include <sys/time.h>
 #include <time.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -560,7 +561,7 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
      * since we don't know what voltage the target AVR is powered by, be
      * conservative and delay the max amount the spec says to wait
      */
-    usleep(mem->max_write_delay);
+    emscripten_sleep(mem->max_write_delay/1000); // replace usleep with emscripten_slee
 
     led_clr(pgm, LED_PGM);
     return 0;
@@ -795,7 +796,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
          * read operation not supported for this memory, just wait
          * the max programming time and then return
          */
-        usleep(mem->max_write_delay); /* maximum write delay */
+        emscripten_sleep(mem->max_write_delay/1000); /* maximum write delay */ // replace usleep with emscripten_slee
         goto success;
     }
 
@@ -811,7 +812,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
              * doesn't work, and we need to delay the worst case write time
              * specified for the chip.
              */
-            usleep(mem->max_write_delay);
+            emscripten_sleep(mem->max_write_delay/1000); // replace usleep with emscripten_slee
             rc = pgm->read_byte(pgm, p, mem, addr, &r);
             if (rc != 0) {
                 rc = -5;
@@ -853,7 +854,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
             if ((pgm->pinno[PPI_AVR_VCC] & PIN_MASK) <= PIN_MAX) {
                 pmsg_info("attempting to do this now ...\n");
                 pgm->powerdown(pgm);
-                usleep(250000);
+                emscripten_sleep(250000/1000); // replace usleep with emscripten_slee
                 rc = pgm->initialize(pgm, p);
                 if (rc < 0) {
                     pmsg_error("initialization failed, rc=%d\n", rc);

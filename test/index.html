@@ -20,7 +20,7 @@
             content = data;
         });
     let hex = '';
-    fetch('/program.hex')
+    fetch('/uno.hex')
         .then(response => response.text())
         .then(data => {
             hex = data;
@@ -34,8 +34,13 @@
 
         const argsString = "avrdude -P /dev/null -V -v -p atmega328p -c stk500v1 -C /tmp/avrdude.conf -b 115200 -D -U flash:w:/tmp/program.hex:i";
 
-        const avr = funcs.cwrap("startAvrdude", "number", ["string"])
-        avr(argsString);
+
+        try {
+            const avr = funcs.cwrap("startAvrdude", "number", ["string"])
+            avr(argsString);
+        } catch (e) {
+
+        }
 
         console.log('done');
 

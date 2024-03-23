@@ -35,6 +35,7 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
+#include <emscripten/emscripten.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -121,10 +122,10 @@ int stk500_getsync(const PROGRAMMER *pgm) {
             // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
             serial_set_dtr_rts(&pgm->fd, 1);
             // Max 100 us: charging a cap longer creates a high reset spike above Vcc
-            usleep(100);
+            usleep(100); // replace usleep with emscripten_slee
             // Set the RTS/DTR line back to high, so direct connection to reset works
             serial_set_dtr_rts(&pgm->fd, 0);
-            usleep(20*1000);
+            emscripten_sleep(20); // replace usleep with emscripten_slee
             stk500_drain(pgm, 0);
         }
 
@@ -215,7 +216,7 @@ static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     memset(cmd, 0, sizeof(cmd));
     avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
     pgm->cmd(pgm, cmd, res);
-    usleep(p->chip_erase_delay);
+    emscripten_sleep(p->chip_erase_delay/1000); // replace usleep with emscripten_slee
     pgm->initialize(pgm, p);
 
     return 0;
