@@ -8,7 +8,8 @@
   },
   "files": [
     "dist/avrdude.js",
-    "dist/avrdude.wasm"
+    "dist/avrdude.wasm",
+    "dist/avrdude.conf"
   ],
   "license": "GPLv3",
   "repository": {
