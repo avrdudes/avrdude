@@ -69,12 +69,37 @@ def classify_devices():
                 result['other'].append(p.desc)
     return result
 
+def size_to_str(size: int):
+    if size >= 1024:
+        return f"{size // 1024} KiB"
+    return f"{size} B"
+
+def yesno(val: bool):
+    if val:
+        return "Y"
+    return "N"
+
+def avrpart_to_mem(avrpart):
+
+    if str(type(avrpart)).find('AVRPART') < 0:
+        raise Exception(f"wrong argument: {type(avrpart)}, expecting swig_avrdude.AVRPART")
+
+    res = []
+    m = ad.lfirst(avrpart.mem)
+    while m:
+        mm = ad.ldata_avrmem((m))
+        res.append(mm)
+        m = ad.lnext(m)
+    return res
+
 from PySide2.QtWidgets import *
-from PySide2.QtCore import QFile, QIODevice
+from PySide2.QtGui import *
+from PySide2.QtCore import *
 
 from ui_adgui import Ui_MainWindow
 from ui_about import Ui_About
 from ui_device import Ui_Device
+from ui_devinfo import Ui_DevInfo
 
 class About(QDialog):
     def __init__(self):
@@ -86,6 +111,12 @@ class Device(QDialog):
     def __init__(self):
         super().__init__()
         self.ui = Ui_Device()
+        self.ui.setupUi(self)
+
+class DevInfo(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_DevInfo()
         self.ui.setupUi(self)
 
 class MainWindow(QMainWindow):
@@ -103,6 +134,7 @@ class adgui():
         self.window.show()
         self.about = About()
         self.device = Device()
+        self.devinfo = DevInfo()
 
         self.window.ui.actionAbout.triggered.connect(self.about.show)
         self.window.ui.actionDevice.triggered.connect(self.device.show)
@@ -125,6 +157,7 @@ class adgui():
             self.device.ui.avr_de.stateChanged.connect(self.update_device_cb)
             self.device.ui.other.stateChanged.connect(self.update_device_cb)
             self.device.ui.buttonBox.accepted.connect(self.device_selected)
+            self.window.ui.actionDevice_Info.triggered.connect(self.devinfo.show)
 
     def log(self, s: str):
         self.logstring += s
@@ -165,9 +198,47 @@ class adgui():
                 for d in self.devices[f]:
                     self.device.ui.devices.addItem(d)
 
+    def update_device_info(self):
+        p = ad.locate_part(ad.cvar.part_list, self.dev_selected)
+        if not p:
+            log(f"Could not find {self.dev_selected} again, confused\n")
+            return
+        self.devinfo.ui.label_2.setText(p.desc)
+        self.devinfo.ui.label_4.setText(p.id)
+        self.devinfo.ui.label_6.setText(p.config_file)
+        self.devinfo.ui.label_8.setText(str(p.lineno))
+        model = QStandardItemModel()
+        model.setHorizontalHeaderLabels(['Name', 'Size', 'Paged', 'Page Size', '# Pages'])
+        mm = avrpart_to_mem(p)
+        row = 0
+        for m in mm:
+            model.setItem(row, 0, QStandardItem(m.desc))
+            sz = QStandardItem(size_to_str(m.size))
+            sz.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            model.setItem(row, 1, sz)
+            pg = QStandardItem(yesno(m.paged))
+            pg.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            model.setItem(row, 2, pg)
+            if m.paged:
+                sz = QStandardItem(size_to_str(m.page_size))
+                sz.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                model.setItem(row, 3, sz)
+                pg = QStandardItem(str(m.num_pages))
+                pg.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                model.setItem(row, 4, pg)
+            row += 1
+        self.devinfo.ui.tableMemories.setModel(model)
+        self.devinfo.ui.listVariants.clear()
+        v = ad.lfirst(p.variants)
+        while v:
+            vv = ad.ldata_string(v)
+            self.devinfo.ui.listVariants.addItem(vv)
+            v = ad.lnext(v)
+
     def device_selected(self):
         self.dev_selected = self.device.ui.devices.currentText()
         self.log(f"Selected device: {self.dev_selected}")
+        self.update_device_info()
         self.window.ui.actionDevice_Info.setEnabled(True)
 
 
