@@ -228,6 +228,8 @@ class adgui():
                 model.setItem(row, 4, pg)
             row += 1
         self.devinfo.ui.tableMemories.setModel(model)
+        self.devinfo.ui.tableMemories.resizeColumnsToContents()
+        self.devinfo.ui.tableMemories.resizeRowsToContents()
         self.devinfo.ui.listVariants.clear()
         v = ad.lfirst(p.variants)
         while v:
