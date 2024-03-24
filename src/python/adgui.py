@@ -168,7 +168,7 @@ class adgui():
     def device_selected(self):
         self.dev_selected = self.device.ui.devices.currentText()
         self.log(f"Selected device: {self.dev_selected}")
-        self.window.ui.actionDevice_Memories.setEnabled(True)
+        self.window.ui.actionDevice_Info.setEnabled(True)
 
 
 def main():
