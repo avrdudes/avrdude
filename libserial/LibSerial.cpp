@@ -22,29 +22,42 @@ void dataCallback(int8_t *array, int length) {
 namespace {
 
 
-//    EM_JS(EM_VAL, start_callback, (), {
-//        const port = window.activePort;
-//        const abortController = new AbortController();
-//
-//        const outputStream = new WritableStream({
-//                write: async (chunk) => {
-//                    // Chunk is a Uint8Array
-//                    console.log(chunk);
-//                    // Allocate memory and copy the Uint8Array to the Emscripten heap
-//                    const ptr = window.funcs._malloc(chunk.length * Uint8Array.BYTES_PER_ELEMENT);
-//                    window.funcs.HEAPU8.set(chunk, ptr);
-//
-//                    // Call the C++ function with the pointer and the length of the array
-//                    window.funcs._dataCallback(ptr, chunk.length);
-//                },
-//        });
-//
-//        const pipePromise = port.readable.pipeTo(outputStream, { signal: abortController.signal });
-//
-//
-//
-//        return abortController;
-//    });
+    EM_ASYNC_JS(void, clear_read_buffer, (), {
+        window.avrdudeLog = [...window.avrdudeLog, "Clearing read buffer"];
+        const timeoutPromise = new Promise((resolve, _) => {
+                setTimeout(() => {
+                        resolve("Timeout");
+                }, 100);
+        });
+        const timeoutPromiseRead = new Promise((resolve, _) => {
+                setTimeout(() => {
+                        resolve("Timeout");
+                }, 1500);
+        });
+
+        let i = 1;
+        const readStream = window.activePort.readable.getReader();
+        while (true) {
+            window.avrdudeLog = [...window.avrdudeLog, "Attempt #" + i];
+            const promise = new Promise(async (resolve, _) => {
+                    while (true) {
+                        const result = await Promise.race([readStream.read(), timeoutPromise]);
+                        if (result === "Timeout")
+                            break;
+                    }
+                    resolve("K");
+            });
+            const result = await Promise.race([promise, timeoutPromiseRead]);
+
+            if (result !== "Timeout")
+                break;
+            if (i > 10)
+                throw new Error('Timeout');
+            i++;
+        }
+        readStream.releaseLock();
+        window.avrdudeLog = [...window.avrdudeLog, "Read buffer cleared"];
+    });
 
     EM_ASYNC_JS(void, read_data, (int timeoutMs), {
         const reader = window.activePort.readable.getReader();
@@ -191,6 +204,7 @@ void setDtrRts(bool is_on) {
 
 void serialPortDrain(int timeout) {
     readBuffer.clear();
+    clear_read_buffer();
 }
 
 void serialPortWrite(const unsigned char *buf, size_t len) {
