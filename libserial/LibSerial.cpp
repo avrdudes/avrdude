@@ -22,7 +22,7 @@ void dataCallback(int8_t *array, int length) {
 namespace {
 
 
-    EM_ASYNC_JS(void, clear_read_buffer, (), {
+    EM_ASYNC_JS(void, clear_read_buffer, (int timeoutMs), {
         window.avrdudeLog = [...window.avrdudeLog, "Clearing read buffer"];
         const timeoutPromise = new Promise((resolve, _) => {
                 setTimeout(() => {
@@ -32,7 +32,7 @@ namespace {
         const timeoutPromiseRead = new Promise((resolve, _) => {
                 setTimeout(() => {
                         resolve("Timeout");
-                }, 1500);
+                }, timeoutMs);
         });
 
         let i = 1;
@@ -203,8 +203,10 @@ void setDtrRts(bool is_on) {
 }
 
 void serialPortDrain(int timeout) {
+    // print the length of the timeout
+
     readBuffer.clear();
-    clear_read_buffer();
+    clear_read_buffer(timeout);
 }
 
 void serialPortWrite(const unsigned char *buf, size_t len) {
