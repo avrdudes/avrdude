@@ -90,13 +90,6 @@ namespace {
             let result = await Promise.race([receive(), timeout(timeoutMs)]);
 
             if (result instanceof Uint8Array && result.length > 0) {
-                // check if it is twice the same data so check if the first half is the same as the second half if so remove the second half
-                let firstHalf = result.slice(0, result.length / 2);
-                let secondHalf = result.slice(result.length / 2, result.length);
-                if (firstHalf.every((value, index) => value === secondHalf[index])) {
-                    result = firstHalf;
-                }
-
                 //console.log("Received: ", result);
                 // convert data into an readable string formated like this 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
                 const printResult = Array.from(result).join(",");
@@ -180,13 +173,15 @@ namespace {
         await window.writeStream.write(data);
         await window.writeStream.ready;
         // delay for 100ms to make sure the data is sent
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 250));
     });
 
     val generateSerialOptions(const std::map<std::string, int>& serialOptions) {
         val&& serialOpts = val::object();
         for (auto& [key, value] : serialOptions) {
             if (key == "flowControl" || key == "parity" || key == "stopBits") {
+                printf("Not implemented yet\n");
+                printf("Key: %s, Value: %d\n", key.c_str(), value);
                 // Handle specific cases for flowControl, parity, and stopBits if needed
                 // ...
             } else {

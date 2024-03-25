@@ -1482,6 +1482,7 @@ static int stk500_setparm(const PROGRAMMER *pgm, unsigned parm, unsigned value) 
 
 
 static void stk500_display(const PROGRAMMER *pgm, const char *p) {
+    return; // No need to print these parameters
     unsigned maj = 0, min = 0, hdw = 0, topcard = 0;
 
     stk500_getparm(pgm, Parm_STK_HW_VER, &hdw);
@@ -1512,6 +1513,7 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
 
 
 static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
+    return; // No need to print parameters
     unsigned vtarget = 0, vadjust = 0;
     unsigned osc_pscale = 0, osc_cmatch = 0, sck_duration = 0;
     const char *unit;
