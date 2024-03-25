@@ -162,7 +162,8 @@ class adgui(QObject):
         p = pathlib.Path(argv[0])
         srcdir = str(p.parent)
         for f in [ "adgui.ui", "about.ui", "device.ui",
-                   "devinfo.ui", "loglevel.ui", "programmer.ui" ]:
+                   "devinfo.ui", "loglevel.ui", "programmer.ui",
+                   "memories.ui" ]:
             ui = QFile(srcdir + '/' + f)
             if not ui.open(QFile.ReadOnly):
                 print(f"Cannot open {f}: {ui.errorString()}", file = sys.stderr)
@@ -220,6 +221,8 @@ class adgui(QObject):
             self.programmer.buttonBox.accepted.connect(self.programmer_selected)
             self.programmer.programmers.currentTextChanged.connect(self.programmer_update_port)
             self.adgui.actionDevice_Info.triggered.connect(self.devinfo.show)
+            self.adgui.actionProgramming.triggered.connect(self.memories.show)
+            self.memories.readSig.pressed.connect(self.read_signature)
 
     def log(self, s: str, level: int = ad.MSG_INFO):
         # level to color mapping
@@ -305,6 +308,7 @@ class adgui(QObject):
         if not p:
             log(f"Could not find {self.dev_selected} again, confused\n")
             return
+        ad.avr_initmem(p)
         self.devinfo.label_2.setText(p.desc)
         self.devinfo.label_4.setText(p.id)
         self.devinfo.label_6.setText(p.config_file)
@@ -338,6 +342,10 @@ class adgui(QObject):
             vv = ad.ldata_string(v)
             self.devinfo.listVariants.addItem(vv)
             v = ad.lnext(v)
+        # update signature TAB in memories popup
+        sig = p.signature
+        sigstr = sig.hex(' ').upper()
+        self.memories.configSig.setText(sigstr)
 
     def device_selected(self):
         self.dev_selected = self.device.devices.currentText()
@@ -386,6 +394,7 @@ class adgui(QObject):
             self.pgm.enable(self.dev)
             self.pgm.initialize(self.dev)
             self.log('Programmer successfully started')
+            self.adgui.actionProgramming.setEnabled(True)
             self.connected = True
 
     def stop_programmer(self):
@@ -394,6 +403,16 @@ class adgui(QObject):
             self.pgm.close()
             self.pgm.teardown()
 
+    def read_signature(self):
+        if self.connected:
+            m = ad.avr_locate_mem(self.dev, 'signature')
+            if m:
+                ad.avr_read_mem(self.pgm, self.dev, m)
+                read_sig = m.get(3)
+                sigstr = read_sig.hex(' ').upper()
+                self.memories.deviceSig.setText(sigstr)
+            else:
+                print("Could not find signature memory", file = sys.stderr)
 
 def main():
     gui = adgui(sys.argv)

@@ -111,6 +111,7 @@
      <string>Device</string>
     </property>
     <addaction name="actionDevice_Info"/>
+    <addaction name="actionProgramming"/>
    </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
@@ -211,6 +212,14 @@
   <action name="actionLog_level">
    <property name="text">
     <string>Log level …</string>
+   </property>
+  </action>
+  <action name="actionProgramming">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Programming …</string>
    </property>
   </action>
  </widget>
