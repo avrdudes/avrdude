@@ -62,8 +62,23 @@ namespace {
     EM_ASYNC_JS(void, read_data, (int timeoutMs), {
         const reader = window.activePort.readable.getReader();
         async function receive() {
-            const { value } = await reader.read();
-            return value;
+            // try to read data with the timeoutMs / 10 as the timeout
+            const smallerTimeout = new Promise((resolve, _) => {
+                setTimeout(() => {
+                    resolve("Timeout");
+                }, timeoutMs / 10);
+            });
+
+            for (let i = 0; i < 5; i++) {
+                const { value, done } = await Promise.race([reader.read(), smallerTimeout]);
+                if (done) {
+                    await new Promise(resolve => setTimeout(resolve, timeoutMs / 10));
+                }
+                if (value) {
+                    return value;
+                }
+            }
+            return new Uint8Array();
         }
 
         async function timeout(timeoutMs) {
@@ -71,11 +86,10 @@ namespace {
             return "timeout";
         }
 
-        var returnBuffer = new Uint8Array();
         while (true) {
             let result = await Promise.race([receive(), timeout(timeoutMs)]);
 
-            if (result instanceof Uint8Array) {
+            if (result instanceof Uint8Array && result.length > 0) {
                 // check if it is twice the same data so check if the first half is the same as the second half if so remove the second half
                 let firstHalf = result.slice(0, result.length / 2);
                 let secondHalf = result.slice(result.length / 2, result.length);
@@ -121,9 +135,9 @@ namespace {
         // reset the arduino by setting the DTR signal at baud rate 1200
         await port.close();
         await port.open({baudRate: 1200});
-        await port.setSignals({dataTerminalReady: true, requestToSend: true});
+        await port.setSignals({dataTerminalReady: false});
         await new Promise(resolve => setTimeout(resolve, 100));
-        await port.setSignals({dataTerminalReady: false, requestToSend: false});
+        await port.setSignals({dataTerminalReady: true});
         await port.close();
         // open the port with the correct baud rate
         await port.open(serialOpts);
@@ -165,6 +179,8 @@ namespace {
         await window.writeStream.ready;
         await window.writeStream.write(data);
         await window.writeStream.ready;
+        // delay for 100ms to make sure the data is sent
+        await new Promise(resolve => setTimeout(resolve, 300));
     });
 
     val generateSerialOptions(const std::map<std::string, int>& serialOptions) {
@@ -212,7 +228,6 @@ void serialPortDrain(int timeout) {
 void serialPortWrite(const unsigned char *buf, size_t len) {
     std::vector<unsigned char> data(buf, buf + len);
     write_data(val(typed_memory_view(data.size(), data.data())).as_handle());
-    emscripten_sleep(300);
 }
 
 int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {

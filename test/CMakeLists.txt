@@ -7,7 +7,6 @@
 add_custom_target(test
         # Build files
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/interface/avrdude.js ${CMAKE_BINARY_DIR}/test
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/interface/avrdude.worker.js ${CMAKE_BINARY_DIR}/test
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/interface/avrdude.wasm ${CMAKE_BINARY_DIR}/test
         # HTML files
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/index.html ${CMAKE_BINARY_DIR}/test
