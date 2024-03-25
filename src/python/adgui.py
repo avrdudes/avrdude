@@ -157,6 +157,7 @@ class adgui(QObject):
         self.port = None
         self.dev_selected = None
         self.prog_selected = None
+        self.connected = False
 
         p = pathlib.Path(argv[0])
         srcdir = str(p.parent)
@@ -177,6 +178,7 @@ class adgui(QObject):
 
         self.adgui.actionAbout.triggered.connect(self.about.show)
         self.adgui.actionDevice.triggered.connect(self.device.show)
+        self.app.lastWindowClosed.connect(self.stop_programmer)
         self.adgui.actionProgrammer.triggered.connect(self.programmer.show)
         self.adgui.loggingArea.setHtml(self.logstring)
 
@@ -384,6 +386,13 @@ class adgui(QObject):
             self.pgm.enable(self.dev)
             self.pgm.initialize(self.dev)
             self.log('Programmer successfully started')
+            self.connected = True
+
+    def stop_programmer(self):
+        if self.connected:
+            self.pgm.disable()
+            self.pgm.close()
+            self.pgm.teardown()
 
 
 def main():
