@@ -153,6 +153,11 @@ class adgui(QObject):
         self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
         self.app = QApplication(sys.argv)
 
+        ad.set_msg_callback(self.msg_callback)
+        self.port = None
+        self.dev_selected = None
+        self.prog_selected = None
+
         p = pathlib.Path(argv[0])
         srcdir = str(p.parent)
         for f in [ "adgui.ui", "about.ui", "device.ui",
@@ -201,6 +206,7 @@ class adgui(QObject):
             self.device.atxmega.stateChanged.connect(self.update_device_cb)
             self.device.avr_de.stateChanged.connect(self.update_device_cb)
             self.device.other.stateChanged.connect(self.update_device_cb)
+            self.device.buttonBox.accepted.connect(self.device_selected)
             self.programmers = classify_programmers()
             self.update_programmer_cb()
             self.programmer.isp.stateChanged.connect(self.update_programmer_cb)
@@ -209,7 +215,8 @@ class adgui(QObject):
             self.programmer.updi.stateChanged.connect(self.update_programmer_cb)
             self.programmer.hv.stateChanged.connect(self.update_programmer_cb)
             self.programmer.other.stateChanged.connect(self.update_programmer_cb)
-            self.device.buttonBox.accepted.connect(self.device_selected)
+            self.programmer.buttonBox.accepted.connect(self.programmer_selected)
+            self.programmer.programmers.currentTextChanged.connect(self.programmer_update_port)
             self.adgui.actionDevice_Info.triggered.connect(self.devinfo.show)
 
     def log(self, s: str, level: int = ad.MSG_INFO):
@@ -233,6 +240,15 @@ class adgui(QObject):
         self.logstring += html
         self.adgui.loggingArea.setHtml(self.logstring)
 
+    def message_type(self, msglvl: int):
+        tnames = ('OS error', 'error', 'warning', 'info', 'notice',
+                  'notice2', 'debug', 'trace', 'trace2')
+        msglvl -= ad.MSG_EXT_ERROR # rebase to 0
+        if msglvl > len(tnames):
+            return 'unknown msglvl'
+        else:
+            return tnames[msglvl]
+
     # rough equivalent of avrdude_message2()
     # first argument is either "stdout" or "stderr"
     #
@@ -242,20 +258,20 @@ class adgui(QObject):
         if ad.cvar.verbose >= msglvl:
             s = ""
             if msgmode & ad.MSG2_PROGNAME:
-                s += ad.cvar.progname
+                s += ad.cvar.progname + ": "
                 if ad.cvar.verbose >= ad.MSG_NOTICE and (msgmode & ad.MSG2_FUNCTION) != 0:
                     s += " " + func + "()"
                 if ad.cvar.verbose >= ad.MSG_DEBUG and (msgmode & ad.MSG2_FILELINE) != 0:
                     n = os.path.basename(fname)
                     s += f" [{n}:{lno}]"
                 if (msgmode & ad.MSG2_TYPE) != 0:
-                    s += " " + message_type(msglvl)
+                    s += " " + self.message_type(msglvl)
                     s += ": "
             elif (msgmode & ad.MSG2_INDENT1) != 0:
                 s = (len(ad.cvar.progname) + 1) * ' '
             elif (msgmode & ad.MSG2_INDENT2) != 0:
                 s = (len(ad.cvar.progname) + 2) * ' '
-                s += msg
+            s += msg
             self.log(s, msglvl)
 
     def update_device_cb(self):
@@ -323,9 +339,33 @@ class adgui(QObject):
 
     def device_selected(self):
         self.dev_selected = self.device.devices.currentText()
+        self.dev = ad.locate_part(ad.cvar.part_list, self.dev_selected)
         self.log(f"Selected device: {self.dev_selected}")
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
+        if self.port != "set_this" and self.prog_selected and self.dev_selected:
+            self.start_programmer()
+
+    def programmer_selected(self):
+        self.prog_selected = self.programmer.programmers.currentText()
+        self.pgm = ad.locate_programmer(ad.cvar.programmers, self.prog_selected)
+        self.port = self.programmer.port.text()
+        self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})")
+        self.log(f"Selected port: {self.port}")
+        if self.port != "set_this" and self.prog_selected and self.dev_selected:
+            self.start_programmer()
+
+    def programmer_update_port(self):
+        selected = self.programmer.programmers.currentText()
+        pgm = ad.locate_programmer(ad.cvar.programmers, selected)
+        if not pgm:
+            return
+        if pgm.conntype == ad.CONNTYPE_USB:
+            self.programmer.port.clear()
+            self.programmer.port.insert("usb")
+        elif pgm.conntype == ad.CONNTYPE_LINUXGPIO:
+            self.programmer.port.clear()
+            self.programmer.port.insert("dummy")
 
     def loglevel_changed(self, checked: bool):
         btn = self.sender()
@@ -333,6 +373,17 @@ class adgui(QObject):
             # we abuse the tooltip for the verbosity value
             val = int(btn.toolTip())
             ad.cvar.verbose = val
+
+    def start_programmer(self):
+        self.pgm.initpgm()
+        self.pgm.setup()
+        rv = self.pgm.open(self.port)
+        if rv == -1:
+            self.log('Could not open programmer', ad.MSG_ERROR)
+        else:
+            self.pgm.enable(self.dev)
+            self.pgm.initialize(self.dev)
+            self.log('Programmer successfully started')
 
 
 def main():
