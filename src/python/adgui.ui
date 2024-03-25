@@ -108,7 +108,7 @@
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>Device</string>
     </property>
     <addaction name="actionDevice_Info"/>
    </widget>
@@ -150,7 +150,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Device Info</string>
+    <string>Info …</string>
    </property>
   </action>
   <action name="actionAbout">
