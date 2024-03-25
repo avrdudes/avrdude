@@ -69,6 +69,56 @@ def classify_devices():
                 result['other'].append(p.desc)
     return result
 
+def classify_programmers():
+    result = {
+        'isp': [],
+        'tpi': [],
+        'pdi': [],
+        'updi': [],
+        'jtag': [],
+        'hv': [],
+        'other': []
+    }
+    pgm = ad.lfirst(ad.cvar.programmers)
+    while pgm:
+        p = ad.ldata_programmer(pgm)
+        pgm = ad.lnext(pgm)
+        names = []
+        l = ad.lfirst(p.id)
+        while l:
+            names.append(ad.ldata_string(l))
+            l = ad.lnext(l)
+        pm = p.prog_modes
+        matched = False
+        if (pm & ad.PM_ISP) != 0:
+            for name in names:
+                result['isp'].append(name)
+            matched = True
+        if (pm & ad.PM_TPI) != 0:
+            for name in names:
+                result['tpi'].append(name)
+            matched = True
+        if (pm & ad.PM_PDI) != 0:
+            for name in names:
+                result['pdi'].append(name)
+            matched = True
+        if (pm & ad.PM_UPDI) != 0:
+            for name in names:
+                result['updi'].append(name)
+            matched = True
+        if (pm & (ad.PM_JTAG | ad.PM_JTAGmkI | ad.PM_XMEGAJTAG)) != 0:
+            for name in names:
+                result['jtag'].append(name)
+            matched = True
+        if (pm & (ad.PM_HVSP | ad.PM_HVPP)) != 0:
+            for name in names:
+                result['hv'].append(name)
+            matched = True
+        if not matched:
+            for name in names:
+                result['other'].append(name)
+    return result
+
 def size_to_str(size: int):
     if size >= 1024:
         return f"{size // 1024} KiB"
@@ -106,7 +156,7 @@ class adgui(QObject):
         p = pathlib.Path(argv[0])
         srcdir = str(p.parent)
         for f in [ "adgui.ui", "about.ui", "device.ui",
-                   "devinfo.ui", "loglevel.ui" ]:
+                   "devinfo.ui", "loglevel.ui", "programmer.ui" ]:
             ui = QFile(srcdir + '/' + f)
             if not ui.open(QFile.ReadOnly):
                 print(f"Cannot open {f}: {ui.errorString()}", file = sys.stderr)
@@ -122,6 +172,7 @@ class adgui(QObject):
 
         self.adgui.actionAbout.triggered.connect(self.about.show)
         self.adgui.actionDevice.triggered.connect(self.device.show)
+        self.adgui.actionProgrammer.triggered.connect(self.programmer.show)
         self.adgui.loggingArea.setHtml(self.logstring)
 
         (success, message) = avrdude_init()
@@ -150,6 +201,14 @@ class adgui(QObject):
             self.device.atxmega.stateChanged.connect(self.update_device_cb)
             self.device.avr_de.stateChanged.connect(self.update_device_cb)
             self.device.other.stateChanged.connect(self.update_device_cb)
+            self.programmers = classify_programmers()
+            self.update_programmer_cb()
+            self.programmer.isp.stateChanged.connect(self.update_programmer_cb)
+            self.programmer.tpi.stateChanged.connect(self.update_programmer_cb)
+            self.programmer.pdi.stateChanged.connect(self.update_programmer_cb)
+            self.programmer.updi.stateChanged.connect(self.update_programmer_cb)
+            self.programmer.hv.stateChanged.connect(self.update_programmer_cb)
+            self.programmer.other.stateChanged.connect(self.update_programmer_cb)
             self.device.buttonBox.accepted.connect(self.device_selected)
             self.adgui.actionDevice_Info.triggered.connect(self.devinfo.show)
 
@@ -208,6 +267,20 @@ class adgui(QObject):
             if obj:
                 for d in self.devices[f]:
                     self.device.devices.addItem(d)
+
+    def update_programmer_cb(self):
+        fams = list(self.programmers.keys())
+        self.programmer.programmers.clear()
+        l = {}
+        for f in fams:
+            obj = eval('self.programmer.' + f + '.isChecked()')
+            if obj:
+                for d in self.programmers[f]:
+                    l[d] = True
+        l = list(l.keys())
+        l.sort()
+        for k in l:
+            self.programmer.programmers.addItem(k)
 
     def update_device_info(self):
         p = ad.locate_part(ad.cvar.part_list, self.dev_selected)
