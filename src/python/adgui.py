@@ -95,42 +95,7 @@ def avrpart_to_mem(avrpart):
 from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtCore import *
-
-from ui_adgui import Ui_MainWindow
-from ui_about import Ui_About
-from ui_device import Ui_Device
-from ui_devinfo import Ui_DevInfo
-from ui_loglevel import Ui_LogLevel
-
-class About(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_About()
-        self.ui.setupUi(self)
-
-class Device(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_Device()
-        self.ui.setupUi(self)
-
-class DevInfo(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_DevInfo()
-        self.ui.setupUi(self)
-
-class LogLevel(QDialog):
-    def __init__(self):
-        super().__init__()
-        self.ui = Ui_LogLevel()
-        self.ui.setupUi(self)
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super(MainWindow, self).__init__()
-        self.ui = Ui_MainWindow()
-        self.ui.setupUi(self)
+from PySide2.QtUiTools import QUiLoader
 
 class adgui(QObject):
     def __init__(self, argv):
@@ -138,49 +103,59 @@ class adgui(QObject):
         self.logstring = "Welcome to AVRDUDE!\n"
         self.app = QApplication(sys.argv)
 
-        self.window = MainWindow()
-        self.window.show()
-        self.about = About()
-        self.device = Device()
-        self.devinfo = DevInfo()
-        self.loglevel = LogLevel()
+        p = pathlib.Path(argv[0])
+        srcdir = str(p.parent)
+        for f in [ "adgui.ui", "about.ui", "device.ui",
+                   "devinfo.ui", "loglevel.ui" ]:
+            ui = QFile(srcdir + '/' + f)
+            if not ui.open(QFile.ReadOnly):
+                print(f"Cannot open {f}: {ui.errorString()}", file = sys.stderr)
+                sys.exit(1)
+            loader = QUiLoader()
+            widgetname = f[:-3] # strip .ui suffix
+            self.__dict__[widgetname] = loader.load(ui)
+            ui.close()
+            if not self.__dict__[widgetname]:
+                print(loader.errorString(), file = sys.stderr)
 
-        self.window.ui.actionAbout.triggered.connect(self.about.show)
-        self.window.ui.actionDevice.triggered.connect(self.device.show)
-        self.window.ui.loggingArea.setPlainText(self.logstring)
+        self.adgui.show()
+
+        self.adgui.actionAbout.triggered.connect(self.about.show)
+        self.adgui.actionDevice.triggered.connect(self.device.show)
+        self.adgui.loggingArea.setPlainText(self.logstring)
 
         (success, message) = avrdude_init()
         self.initialized = success
         self.log(message)
-        self.loglevel.ui.radioButton.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_2.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_3.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_4.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_5.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_6.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_7.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_8.toggled.connect(self.loglevel_changed)
-        self.loglevel.ui.radioButton_9.toggled.connect(self.loglevel_changed)
-        self.window.ui.actionLog_level.triggered.connect(self.loglevel.show)
+        self.loglevel.radioButton.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_2.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_3.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_4.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_5.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_6.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_7.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_8.toggled.connect(self.loglevel_changed)
+        self.loglevel.radioButton_9.toggled.connect(self.loglevel_changed)
+        self.adgui.actionLog_level.triggered.connect(self.loglevel.show)
         if not success:
-            self.window.ui.actionDevice.setEnabled(False)
-            self.window.ui.actionProgrammer.setEnabled(False)
+            self.adgui.actionDevice.setEnabled(False)
+            self.adgui.actionProgrammer.setEnabled(False)
             # essentially, only Exit and Help work anymore
         else:
             self.devices = classify_devices()
             self.update_device_cb()
-            self.device.ui.at90.stateChanged.connect(self.update_device_cb)
-            self.device.ui.attiny.stateChanged.connect(self.update_device_cb)
-            self.device.ui.atmega.stateChanged.connect(self.update_device_cb)
-            self.device.ui.atxmega.stateChanged.connect(self.update_device_cb)
-            self.device.ui.avr_de.stateChanged.connect(self.update_device_cb)
-            self.device.ui.other.stateChanged.connect(self.update_device_cb)
-            self.device.ui.buttonBox.accepted.connect(self.device_selected)
-            self.window.ui.actionDevice_Info.triggered.connect(self.devinfo.show)
+            self.device.at90.stateChanged.connect(self.update_device_cb)
+            self.device.attiny.stateChanged.connect(self.update_device_cb)
+            self.device.atmega.stateChanged.connect(self.update_device_cb)
+            self.device.atxmega.stateChanged.connect(self.update_device_cb)
+            self.device.avr_de.stateChanged.connect(self.update_device_cb)
+            self.device.other.stateChanged.connect(self.update_device_cb)
+            self.device.buttonBox.accepted.connect(self.device_selected)
+            self.adgui.actionDevice_Info.triggered.connect(self.devinfo.show)
 
     def log(self, s: str):
         self.logstring += s
-        self.window.ui.loggingArea.setPlainText(self.logstring)
+        self.adgui.loggingArea.setPlainText(self.logstring)
 
     # rough equivalent of avrdude_message2()
     # first argument is either "stdout" or "stderr"
@@ -210,22 +185,22 @@ class adgui(QObject):
     def update_device_cb(self):
         fams = list(self.devices.keys())
         #fams.sort()
-        self.device.ui.devices.clear()
+        self.device.devices.clear()
         for f in fams:
-            obj = eval('self.device.ui.' + f + '.isChecked()')
+            obj = eval('self.device.' + f + '.isChecked()')
             if obj:
                 for d in self.devices[f]:
-                    self.device.ui.devices.addItem(d)
+                    self.device.devices.addItem(d)
 
     def update_device_info(self):
         p = ad.locate_part(ad.cvar.part_list, self.dev_selected)
         if not p:
             log(f"Could not find {self.dev_selected} again, confused\n")
             return
-        self.devinfo.ui.label_2.setText(p.desc)
-        self.devinfo.ui.label_4.setText(p.id)
-        self.devinfo.ui.label_6.setText(p.config_file)
-        self.devinfo.ui.label_8.setText(str(p.lineno))
+        self.devinfo.label_2.setText(p.desc)
+        self.devinfo.label_4.setText(p.id)
+        self.devinfo.label_6.setText(p.config_file)
+        self.devinfo.label_8.setText(str(p.lineno))
         model = QStandardItemModel()
         model.setHorizontalHeaderLabels(['Name', 'Size', 'Paged', 'Page Size', '# Pages'])
         mm = avrpart_to_mem(p)
@@ -233,34 +208,34 @@ class adgui(QObject):
         for m in mm:
             model.setItem(row, 0, QStandardItem(m.desc))
             sz = QStandardItem(size_to_str(m.size))
-            sz.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            sz.setTextAlignment(Qt.Alignment(int(Qt.AlignRight) | int(Qt.AlignVCenter)))
             model.setItem(row, 1, sz)
             pg = QStandardItem(yesno(m.paged))
-            pg.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            pg.setTextAlignment(Qt.Alignment(int(Qt.AlignHCenter) | int(Qt.AlignVCenter)))
             model.setItem(row, 2, pg)
             if m.paged:
                 sz = QStandardItem(size_to_str(m.page_size))
-                sz.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                sz.setTextAlignment(Qt.Alignment(int(Qt.AlignRight) | int(Qt.AlignVCenter)))
                 model.setItem(row, 3, sz)
                 pg = QStandardItem(str(m.num_pages))
-                pg.setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                pg.setTextAlignment(Qt.Alignment(int(Qt.AlignRight) | int(Qt.AlignVCenter)))
                 model.setItem(row, 4, pg)
             row += 1
-        self.devinfo.ui.tableMemories.setModel(model)
-        self.devinfo.ui.tableMemories.resizeColumnsToContents()
-        self.devinfo.ui.tableMemories.resizeRowsToContents()
-        self.devinfo.ui.listVariants.clear()
+        self.devinfo.tableMemories.setModel(model)
+        self.devinfo.tableMemories.resizeColumnsToContents()
+        self.devinfo.tableMemories.resizeRowsToContents()
+        self.devinfo.listVariants.clear()
         v = ad.lfirst(p.variants)
         while v:
             vv = ad.ldata_string(v)
-            self.devinfo.ui.listVariants.addItem(vv)
+            self.devinfo.listVariants.addItem(vv)
             v = ad.lnext(v)
 
     def device_selected(self):
-        self.dev_selected = self.device.ui.devices.currentText()
+        self.dev_selected = self.device.devices.currentText()
         self.log(f"Selected device: {self.dev_selected}")
         self.update_device_info()
-        self.window.ui.actionDevice_Info.setEnabled(True)
+        self.adgui.actionDevice_Info.setEnabled(True)
 
     def loglevel_changed(self, checked: bool):
         btn = self.sender()
