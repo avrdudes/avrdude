@@ -39,23 +39,19 @@
     </rect>
    </property>
   </widget>
-  <widget class="QWidget" name="verticalLayoutWidget">
+  <widget class="QGroupBox" name="verticalGroupBox">
    <property name="geometry">
     <rect>
      <x>20</x>
      <y>10</y>
      <width>131</width>
-     <height>191</height>
+     <height>193</height>
     </rect>
    </property>
+   <property name="title">
+    <string>Families enabled:</string>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QLabel" name="heading">
-      <property name="text">
-       <string>Families enabled:</string>
-      </property>
-     </widget>
-    </item>
     <item>
      <widget class="QCheckBox" name="at90">
       <property name="text">
