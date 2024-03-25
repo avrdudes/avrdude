@@ -116,6 +116,7 @@
     <property name="title">
      <string>Settings</string>
     </property>
+    <addaction name="actionLog_level"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -155,6 +156,61 @@
   <action name="actionAbout">
    <property name="text">
     <string>About ...</string>
+   </property>
+  </action>
+  <action name="actionError">
+   <property name="text">
+    <string>OS Error</string>
+   </property>
+  </action>
+  <action name="actionWarning">
+   <property name="text">
+    <string>Warning</string>
+   </property>
+  </action>
+  <action name="actionError_2">
+   <property name="text">
+    <string>Error</string>
+   </property>
+  </action>
+  <action name="actionWarning_2">
+   <property name="text">
+    <string>Warning</string>
+   </property>
+  </action>
+  <action name="actionInfo">
+   <property name="text">
+    <string>Info</string>
+   </property>
+  </action>
+  <action name="actionNotice">
+   <property name="text">
+    <string>Notice</string>
+   </property>
+  </action>
+  <action name="actionNotice_2">
+   <property name="text">
+    <string>Notice 2</string>
+   </property>
+  </action>
+  <action name="actionDebug">
+   <property name="text">
+    <string>Debug</string>
+   </property>
+  </action>
+  <action name="actionTrace">
+   <property name="text">
+    <string>Trace</string>
+   </property>
+  </action>
+  <action name="actionTrace_2">
+   <property name="text">
+    <string>Trace 2</string>
+   </property>
+  </action>
+  <action name="actionLog_level">
+   <property name="text">
+    <string>Log level …</string>
    </property>
   </action>
  </widget>

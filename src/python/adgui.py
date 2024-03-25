@@ -100,6 +100,7 @@ from ui_adgui import Ui_MainWindow
 from ui_about import Ui_About
 from ui_device import Ui_Device
 from ui_devinfo import Ui_DevInfo
+from ui_loglevel import Ui_LogLevel
 
 class About(QDialog):
     def __init__(self):
@@ -119,14 +120,21 @@ class DevInfo(QDialog):
         self.ui = Ui_DevInfo()
         self.ui.setupUi(self)
 
+class LogLevel(QDialog):
+    def __init__(self):
+        super().__init__()
+        self.ui = Ui_LogLevel()
+        self.ui.setupUi(self)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
-class adgui():
+class adgui(QObject):
     def __init__(self, argv):
+        super().__init__()
         self.logstring = "Welcome to AVRDUDE!\n"
         self.app = QApplication(sys.argv)
 
@@ -135,6 +143,7 @@ class adgui():
         self.about = About()
         self.device = Device()
         self.devinfo = DevInfo()
+        self.loglevel = LogLevel()
 
         self.window.ui.actionAbout.triggered.connect(self.about.show)
         self.window.ui.actionDevice.triggered.connect(self.device.show)
@@ -143,6 +152,16 @@ class adgui():
         (success, message) = avrdude_init()
         self.initialized = success
         self.log(message)
+        self.loglevel.ui.radioButton.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_2.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_3.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_4.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_5.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_6.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_7.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_8.toggled.connect(self.loglevel_changed)
+        self.loglevel.ui.radioButton_9.toggled.connect(self.loglevel_changed)
+        self.window.ui.actionLog_level.triggered.connect(self.loglevel.show)
         if not success:
             self.window.ui.actionDevice.setEnabled(False)
             self.window.ui.actionProgrammer.setEnabled(False)
@@ -242,6 +261,13 @@ class adgui():
         self.log(f"Selected device: {self.dev_selected}")
         self.update_device_info()
         self.window.ui.actionDevice_Info.setEnabled(True)
+
+    def loglevel_changed(self, checked: bool):
+        btn = self.sender()
+        if checked:
+            # we abuse the tooltip for the verbosity value
+            val = int(btn.toolTip())
+            ad.cvar.verbose = val
 
 
 def main():
