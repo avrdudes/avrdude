@@ -100,7 +100,7 @@ from PySide2.QtUiTools import QUiLoader
 class adgui(QObject):
     def __init__(self, argv):
         super().__init__()
-        self.logstring = "Welcome to AVRDUDE!\n"
+        self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
         self.app = QApplication(sys.argv)
 
         p = pathlib.Path(argv[0])
@@ -122,7 +122,7 @@ class adgui(QObject):
 
         self.adgui.actionAbout.triggered.connect(self.about.show)
         self.adgui.actionDevice.triggered.connect(self.device.show)
-        self.adgui.loggingArea.setPlainText(self.logstring)
+        self.adgui.loggingArea.setHtml(self.logstring)
 
         (success, message) = avrdude_init()
         self.initialized = success
@@ -153,9 +153,26 @@ class adgui(QObject):
             self.device.buttonBox.accepted.connect(self.device_selected)
             self.adgui.actionDevice_Info.triggered.connect(self.devinfo.show)
 
-    def log(self, s: str):
-        self.logstring += s
-        self.adgui.loggingArea.setPlainText(self.logstring)
+    def log(self, s: str, level: int = ad.MSG_INFO):
+        # level to color mapping
+        colors = [
+            '#804040', # MSG_EXT_ERROR
+            '#603030', # MSG_ERROR
+            '#605000', # MSG_WARNING
+            '#000000', # MSG_INFO
+            '#006000', # MSG_NOTICE
+            '#005030', # MSG_NOTICE2
+            '#808080', # MSG_DEBUG
+            '#60A060', # MSG_TRACE
+            '#6060A0', # MSG_TRACE2
+        ]
+        color = colors[level - ad.MSG_EXT_ERROR]
+        if level <= ad.MSG_WARNING:
+            html = f"<font color={color}><strong>{s}</strong></font><br>\n"
+        else:
+            html = f"<font color={color}>{s}</font><br>\n"
+        self.logstring += html
+        self.adgui.loggingArea.setHtml(self.logstring)
 
     # rough equivalent of avrdude_message2()
     # first argument is either "stdout" or "stderr"
@@ -180,7 +197,7 @@ class adgui(QObject):
             elif (msgmode & ad.MSG2_INDENT2) != 0:
                 s = (len(ad.cvar.progname) + 2) * ' '
                 s += msg
-            self.log(s)
+            self.log(s, msglvl)
 
     def update_device_cb(self):
         fams = list(self.devices.keys())

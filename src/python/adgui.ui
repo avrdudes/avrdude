@@ -68,7 +68,7 @@
      </item>
     </layout>
    </widget>
-   <widget class="QPlainTextEdit" name="loggingArea">
+   <widget class="QTextEdit" name="loggingArea">
     <property name="geometry">
      <rect>
       <x>0</x>
