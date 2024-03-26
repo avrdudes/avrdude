@@ -154,6 +154,7 @@ class adgui(QObject):
         self.app = QApplication(sys.argv)
 
         ad.set_msg_callback(self.msg_callback)
+        ad.set_progress_callback(self.progress_callback)
         self.port = None
         self.dev_selected = None
         self.prog_selected = None
@@ -278,6 +279,21 @@ class adgui(QObject):
                 s = (len(ad.cvar.progname) + 2) * ' '
             s += msg
             self.log(s, msglvl)
+
+    def progress_callback(self, percent: int, etime: float, hdr: str, finish: int):
+        if hdr:
+            self.adgui.operation.setText(hdr)
+            self.adgui.progressBar.setEnabled(True)
+        if finish != 0:
+            self.adgui.progressBar.setValue(0)
+            self.adgui.progressBar.setEnabled(False)
+            self.adgui.time.setText("-:--")
+            self.adgui.operation.setText("")
+        else:
+            self.adgui.progressBar.setValue(percent)
+            secs = etime % 60
+            mins = etime // 60
+            self.adgui.time.setText(f"{mins}:{secs:02d}")
 
     def update_device_cb(self):
         fams = list(self.devices.keys())
