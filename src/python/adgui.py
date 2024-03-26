@@ -411,8 +411,13 @@ class adgui(QObject):
                 read_sig = m.get(3)
                 sigstr = read_sig.hex(' ').upper()
                 self.memories.deviceSig.setText(sigstr)
+                p = ad.locate_part_by_signature(ad.cvar.part_list, read_sig)
+                if p:
+                    self.memories.candidate.setText(p.desc)
+                else:
+                    self.memories.candidate.setText("???")
             else:
-                print("Could not find signature memory", file = sys.stderr)
+                ad.log("Could not find signature memory", ad.MSG_ERROR)
 
 def main():
     gui = adgui(sys.argv)
