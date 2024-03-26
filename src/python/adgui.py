@@ -385,6 +385,8 @@ class adgui(QObject):
             ad.cvar.verbose = val
 
     def start_programmer(self):
+        if self.connected:
+            return
         self.pgm.initpgm()
         self.pgm.setup()
         rv = self.pgm.open(self.port)
