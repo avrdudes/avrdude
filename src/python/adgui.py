@@ -224,6 +224,8 @@ class adgui(QObject):
             self.adgui.actionDevice_Info.triggered.connect(self.devinfo.show)
             self.adgui.actionProgramming.triggered.connect(self.memories.show)
             self.memories.readSig.pressed.connect(self.read_signature)
+            self.memories.choose.pressed.connect(self.ask_flash_file)
+            self.memories.read.pressed.connect(self.flash_read)
 
     def log(self, s: str, level: int = ad.MSG_INFO):
         # level to color mapping
@@ -438,6 +440,29 @@ class adgui(QObject):
                     self.memories.candidate.setText("???")
             else:
                 ad.log("Could not find signature memory", ad.MSG_ERROR)
+
+    def ask_flash_file(self):
+        dlg = QFileDialog(caption = "Select file",
+                          filter = "Load files (*.elf *.hex *.eep *.srec *.bin);; All Files (*)")
+        if dlg.exec():
+            self.flashname = dlg.selectedFiles()[0]
+            self.memories.filename.setText(self.flashname)
+            self.memories.load.setEnabled(True)
+            self.memories.save.setEnabled(True)
+        else:
+            self.flashname = None
+            self.memories.filename.setText("")
+            self.memories.load.setEnabled(False)
+            self.memories.save.setEnabled(False)
+
+    def flash_read(self):
+        self.adgui.progressBar.setEnabled(True)
+        m = ad.avr_locate_mem(self.dev, 'flash')
+        if not m:
+            self.log("Could not find 'flash' memory", ad.MSG_ERROR)
+            return
+        amnt = ad.avr_read_mem(self.pgm, self.dev, m)
+        self.log(f"Read {amnt}  bytes")
 
 def main():
     gui = adgui(sys.argv)
