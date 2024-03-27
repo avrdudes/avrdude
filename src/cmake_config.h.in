@@ -30,6 +30,9 @@
 /* Let linuxgpio know if libgpiod is available. */
 #cmakedefine HAVE_LIBGPIOD
 
+/* Let linuxgpio know whether v2 of libgpiod is available. */
+#cmakedefine HAVE_LIBGPIOD_V2
+
 /* Linux SPI support enabled */
 #cmakedefine HAVE_LINUXSPI 1
 
