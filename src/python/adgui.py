@@ -287,10 +287,14 @@ class adgui(QObject):
             self.adgui.operation.setText(hdr)
             self.adgui.progressBar.setEnabled(True)
         if percent == 100:
-            self.adgui.progressBar.setValue(0)
+            if finish != -1:
+                # "normal" end: reset and turn off progress bar
+                self.adgui.progressBar.setValue(0)
+                self.adgui.time.setText("-:--")
+                self.adgui.operation.setText("")
+            #else: freeze progress bar at previous value
+            # but disable it anyway
             self.adgui.progressBar.setEnabled(False)
-            self.adgui.time.setText("-:--")
-            self.adgui.operation.setText("")
         else:
             self.adgui.progressBar.setValue(percent)
             secs = int(etime % 60)
