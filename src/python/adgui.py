@@ -4,6 +4,7 @@ import sys
 import os
 import pathlib
 import re
+import time
 
 builddir = None
 if os.name == 'posix':
@@ -36,9 +37,9 @@ def avrdude_init():
         p = pathlib.Path(d + "/avrdude.conf")
         if p.is_file():
             ad.read_config(d + "/avrdude.conf")
-            return (True, f"Found avrdude.conf in {d}\n")
+            return (True, f"Found avrdude.conf in {d}")
 
-    return (False, "Sorry, no avrdude.conf could be found.\n")
+    return (False, "Sorry, no avrdude.conf could be found.")
 
 def classify_devices():
     result = {
@@ -151,6 +152,7 @@ class adgui(QObject):
     def __init__(self, argv):
         super().__init__()
         self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
+        self.debuglog = ""
         self.app = QApplication(sys.argv)
 
         ad.set_msg_callback(self.msg_callback)
@@ -183,10 +185,11 @@ class adgui(QObject):
         self.app.lastWindowClosed.connect(self.stop_programmer)
         self.adgui.actionProgrammer.triggered.connect(self.programmer.show)
         self.adgui.loggingArea.setHtml(self.logstring)
+        self.adgui.actionSave_log.triggered.connect(self.save_logfile)
 
         (success, message) = avrdude_init()
         self.initialized = success
-        self.log(message)
+        self.log(message + "\n")
         self.loglevel.radioButton.toggled.connect(self.loglevel_changed)
         self.loglevel.radioButton_2.toggled.connect(self.loglevel_changed)
         self.loglevel.radioButton_3.toggled.connect(self.loglevel_changed)
@@ -237,16 +240,23 @@ class adgui(QObject):
             '#006000', # MSG_NOTICE
             '#005030', # MSG_NOTICE2
             '#808080', # MSG_DEBUG
-            '#60A060', # MSG_TRACE
-            '#6060A0', # MSG_TRACE2
+            '#60A060', # MSG_TRACE - not used
+            '#6060A0', # MSG_TRACE2 - not used
         ]
         color = colors[level - ad.MSG_EXT_ERROR]
+        html = None
         if level <= ad.MSG_WARNING:
             html = f"<font color={color}><strong>{s}</strong></font><br>\n"
-        else:
+        elif level < ad.MSG_TRACE:
             html = f"<font color={color}>{s}</font><br>\n"
-        self.logstring += html
-        self.adgui.loggingArea.setHtml(self.logstring)
+        if s != "" and s != "\n":
+            # always save non-empty messages to debug log
+            tstamp = time.strftime('%Y-%m-%dT%H:%M:%S')
+            self.debuglog += f"{tstamp} {s}"
+        if html:
+            # only update loggingArea if not trace message
+            self.logstring += html
+            self.adgui.loggingArea.setHtml(self.logstring)
 
     def message_type(self, msglvl: int):
         tnames = ('OS error', 'error', 'warning', 'info', 'notice',
@@ -373,7 +383,7 @@ class adgui(QObject):
     def device_selected(self):
         self.dev_selected = self.device.devices.currentText()
         self.dev = ad.locate_part(ad.cvar.part_list, self.dev_selected)
-        self.log(f"Selected device: {self.dev_selected}")
+        self.log(f"Selected device: {self.dev_selected}\n")
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
@@ -383,8 +393,8 @@ class adgui(QObject):
         self.prog_selected = self.programmer.programmers.currentText()
         self.pgm = ad.locate_programmer(ad.cvar.programmers, self.prog_selected)
         self.port = self.programmer.port.text()
-        self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})")
-        self.log(f"Selected port: {self.port}")
+        self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})\n")
+        self.log(f"Selected port: {self.port}\n")
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
             self.start_programmer()
 
@@ -414,11 +424,11 @@ class adgui(QObject):
         self.pgm.setup()
         rv = self.pgm.open(self.port)
         if rv == -1:
-            self.log('Could not open programmer', ad.MSG_ERROR)
+            self.log('Could not open programmer\n', ad.MSG_ERROR)
         else:
             self.pgm.enable(self.dev)
             self.pgm.initialize(self.dev)
-            self.log('Programmer successfully started')
+            self.log('Programmer successfully started\n')
             self.adgui.actionProgramming.setEnabled(True)
             self.connected = True
 
@@ -463,10 +473,29 @@ class adgui(QObject):
         self.adgui.progressBar.setEnabled(True)
         m = ad.avr_locate_mem(self.dev, 'flash')
         if not m:
-            self.log("Could not find 'flash' memory", ad.MSG_ERROR)
+            self.log("Could not find 'flash' memory\n", ad.MSG_ERROR)
             return
         amnt = ad.avr_read_mem(self.pgm, self.dev, m)
-        self.log(f"Read {amnt}  bytes")
+        self.log(f"Read {amnt}  bytes\n")
+
+    def save_logfile(self):
+        fname = QFileDialog.getSaveFileName(caption = "Save logfile to",
+                                            filter = "Text files (*.txt *.log);; All Files (*)")
+        if fname:
+            fname = fname[0]  # [1] is filter used
+            if fname.rfind(".") == -1:
+                # no suffix given
+                fname += ".log"
+            try:
+                f = open(fname, "w")
+            except Exception as e:
+                self.log(f"Cannot create log file: {str(e)}\n", ad.LOG_EXT_ERROR)
+                return
+            try:
+                f.write(self.debuglog)
+                self.debuglog = ""
+            except Exception as e:
+                self.log(f"Cannot write log file: {str(e)}\n", ad.LOG_WXT_ERROR)
 
 def main():
     gui = adgui(sys.argv)

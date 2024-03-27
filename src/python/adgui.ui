@@ -116,6 +116,8 @@
     <addaction name="actionDevice"/>
     <addaction name="actionProgrammer"/>
     <addaction name="separator"/>
+    <addaction name="actionSave_log"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuView">
@@ -232,6 +234,11 @@
    </property>
    <property name="text">
     <string>Programming …</string>
+   </property>
+  </action>
+  <action name="actionSave_log">
+   <property name="text">
+    <string>Save log ...</string>
    </property>
   </action>
  </widget>
