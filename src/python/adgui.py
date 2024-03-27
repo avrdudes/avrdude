@@ -284,16 +284,17 @@ class adgui(QObject):
         if hdr:
             self.adgui.operation.setText(hdr)
             self.adgui.progressBar.setEnabled(True)
-        if finish != 0:
+        if percent == 100:
             self.adgui.progressBar.setValue(0)
             self.adgui.progressBar.setEnabled(False)
             self.adgui.time.setText("-:--")
             self.adgui.operation.setText("")
         else:
             self.adgui.progressBar.setValue(percent)
-            secs = etime % 60
-            mins = etime // 60
+            secs = int(etime % 60)
+            mins = int(etime / 60)
             self.adgui.time.setText(f"{mins}:{secs:02d}")
+        self.app.processEvents()
 
     def update_device_cb(self):
         fams = list(self.devices.keys())
@@ -426,6 +427,7 @@ class adgui(QObject):
             m = ad.avr_locate_mem(self.dev, 'signature')
             if m:
                 ad.avr_read_mem(self.pgm, self.dev, m)
+                self.progress_callback(100, 0, "", 0) # clear progress bar
                 read_sig = m.get(3)
                 sigstr = read_sig.hex(' ').upper()
                 self.memories.deviceSig.setText(sigstr)
