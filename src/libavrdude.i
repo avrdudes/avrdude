@@ -74,6 +74,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file,
 {
     int rc = 0;
     va_list ap;
+    PyObject *backslash_v = Py_False;
 
     const char *target = fp == stderr? "stderr": "stdout";
 
@@ -84,12 +85,12 @@ int avrdude_message2(FILE *fp, int lno, const char *file,
       // ignored
     }
 
-    // Reduce effective verbosity level by number of -q above one when printing to stderr
-
-    // Vertical tab at start of format string is a conditional new line
-    // This feature is ignored here by now, but skip '\v'
-    if (*format == '\v')
+    // Vertical tab at start of format string is a conditional new line.
+    // We pass this information down to the callee.
+    if (*format == '\v') {
+      backslash_v = Py_True;
       format++;
+    }
 
     // Determine required size first
     va_start(ap, format);
@@ -113,7 +114,8 @@ int avrdude_message2(FILE *fp, int lno, const char *file,
     if (*p) {
       if (msg_cb) {
         PyObject *result =
-          PyObject_CallFunction(msg_cb, "(sissiis)", target, lno, file, func, msgmode, msglvl, p);
+          PyObject_CallFunction(msg_cb, "(sissiisO)",
+                                target, lno, file, func, msgmode, msglvl, p, backslash_v);
         Py_XDECREF(result);
       }
       free(p);

@@ -161,7 +161,7 @@ def message_type(msglvl: int):
 #
 # install callback with ad.set_msg_callback(msg_callback)
 def msg_callback(target: str, lno: int, fname: str, func: str,
-                 msgmode: int, msglvl: int, msg: str):
+                 msgmode: int, msglvl: int, msg: str, backslash_v: bool):
     if ad.cvar.verbose >= msglvl:
         s = ""
         if msgmode & ad.MSG2_PROGNAME:

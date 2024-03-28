@@ -151,16 +151,23 @@ from PySide2.QtUiTools import QUiLoader
 class adgui(QObject):
     def __init__(self, argv):
         super().__init__()
+
+        # members for logging
         self.logstring = "<font color='#000060'><strong>Welcome to AVRDUDE!</strong></font><br>\n"
+        self.at_bol = { 'stdout': True, 'stderr': True }
         self.debuglog = ""
+        self.debug_bol = True
+
+        # the main Qt app
         self.app = QApplication(sys.argv)
 
-        ad.set_msg_callback(self.msg_callback)
-        ad.set_progress_callback(self.progress_callback)
         self.port = None
         self.dev_selected = None
         self.prog_selected = None
         self.connected = False
+
+        ad.set_msg_callback(self.msg_callback)
+        ad.set_progress_callback(self.progress_callback)
 
         p = pathlib.Path(argv[0])
         srcdir = str(p.parent)
@@ -189,7 +196,7 @@ class adgui(QObject):
 
         (success, message) = avrdude_init()
         self.initialized = success
-        self.log(message + "\n")
+        self.log(message)
         self.loglevel.radioButton.toggled.connect(self.loglevel_changed)
         self.loglevel.radioButton_2.toggled.connect(self.loglevel_changed)
         self.loglevel.radioButton_3.toggled.connect(self.loglevel_changed)
@@ -230,7 +237,7 @@ class adgui(QObject):
             self.memories.choose.pressed.connect(self.ask_flash_file)
             self.memories.read.pressed.connect(self.flash_read)
 
-    def log(self, s: str, level: int = ad.MSG_INFO):
+    def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
         colors = [
             '#804040', # MSG_EXT_ERROR
@@ -250,9 +257,17 @@ class adgui(QObject):
         elif level < ad.MSG_TRACE:
             html = f"<font color={color}>{s}</font><br>\n"
         if s != "" and s != "\n":
+            new_bol = s[-1] == '\n'
+            if not no_nl:
+                s += '\n'
             # always save non-empty messages to debug log
-            tstamp = time.strftime('%Y-%m-%dT%H:%M:%S')
-            self.debuglog += f"{tstamp} {s}"
+            # prepend timestamp when at beginning of line
+            if self.debug_bol:
+                tstamp = time.strftime('%Y-%m-%dT%H:%M:%S')
+                self.debuglog += f"{tstamp} {s}"
+            else:
+                self.debuglog += s
+            self.debug_bol = new_bol
         if html:
             # only update loggingArea if not trace message
             self.logstring += html
@@ -272,10 +287,13 @@ class adgui(QObject):
     #
     # install callback with ad.set_msg_callback(msg_callback)
     def msg_callback(self, target: str, lno: int, fname: str, func: str,
-                     msgmode: int, msglvl: int, msg: str):
+                     msgmode: int, msglvl: int, msg: str, backslash_v: bool):
         if ad.cvar.verbose >= msglvl:
             s = ""
             if msgmode & ad.MSG2_PROGNAME:
+                if not self.at_bol[target]:
+                    s += "\n"
+                    self.at_bol[target] = True
                 s += ad.cvar.progname + ": "
                 if ad.cvar.verbose >= ad.MSG_NOTICE and (msgmode & ad.MSG2_FUNCTION) != 0:
                     s += " " + func + "()"
@@ -289,8 +307,11 @@ class adgui(QObject):
                 s = (len(ad.cvar.progname) + 1) * ' '
             elif (msgmode & ad.MSG2_INDENT2) != 0:
                 s = (len(ad.cvar.progname) + 2) * ' '
+            if backslash_v and not self.at_bol[target]:
+                s += "\n"
             s += msg
-            self.log(s, msglvl)
+            self.at_bol[target] = s[-1] == '\n'
+            self.log(s, msglvl, no_nl = True)
 
     def progress_callback(self, percent: int, etime: float, hdr: str, finish: int):
         if hdr:
@@ -383,7 +404,7 @@ class adgui(QObject):
     def device_selected(self):
         self.dev_selected = self.device.devices.currentText()
         self.dev = ad.locate_part(ad.cvar.part_list, self.dev_selected)
-        self.log(f"Selected device: {self.dev_selected}\n")
+        self.log(f"Selected device: {self.dev_selected}")
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
@@ -393,8 +414,8 @@ class adgui(QObject):
         self.prog_selected = self.programmer.programmers.currentText()
         self.pgm = ad.locate_programmer(ad.cvar.programmers, self.prog_selected)
         self.port = self.programmer.port.text()
-        self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})\n")
-        self.log(f"Selected port: {self.port}\n")
+        self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})")
+        self.log(f"Selected port: {self.port}")
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
             self.start_programmer()
 
@@ -424,11 +445,11 @@ class adgui(QObject):
         self.pgm.setup()
         rv = self.pgm.open(self.port)
         if rv == -1:
-            self.log('Could not open programmer\n', ad.MSG_ERROR)
+            self.log('Could not open programmer', ad.MSG_ERROR)
         else:
             self.pgm.enable(self.dev)
             self.pgm.initialize(self.dev)
-            self.log('Programmer successfully started\n')
+            self.log('Programmer successfully started')
             self.adgui.actionProgramming.setEnabled(True)
             self.connected = True
 
@@ -473,10 +494,10 @@ class adgui(QObject):
         self.adgui.progressBar.setEnabled(True)
         m = ad.avr_locate_mem(self.dev, 'flash')
         if not m:
-            self.log("Could not find 'flash' memory\n", ad.MSG_ERROR)
+            self.log("Could not find 'flash' memory", ad.MSG_ERROR)
             return
         amnt = ad.avr_read_mem(self.pgm, self.dev, m)
-        self.log(f"Read {amnt}  bytes\n")
+        self.log(f"Read {amnt}  bytes")
 
     def save_logfile(self):
         fname = QFileDialog.getSaveFileName(caption = "Save logfile to",
@@ -489,13 +510,13 @@ class adgui(QObject):
             try:
                 f = open(fname, "w")
             except Exception as e:
-                self.log(f"Cannot create log file: {str(e)}\n", ad.LOG_EXT_ERROR)
+                self.log(f"Cannot create log file: {str(e)}", ad.LOG_EXT_ERROR)
                 return
             try:
                 f.write(self.debuglog)
                 self.debuglog = ""
             except Exception as e:
-                self.log(f"Cannot write log file: {str(e)}\n", ad.LOG_WXT_ERROR)
+                self.log(f"Cannot write log file: {str(e)}", ad.LOG_WXT_ERROR)
 
 def main():
     gui = adgui(sys.argv)
