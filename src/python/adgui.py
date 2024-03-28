@@ -256,7 +256,7 @@ class adgui(QObject):
             html = f"<font color={color}><strong>{s}</strong></font>"
         elif level < ad.MSG_TRACE:
             html = f"<font color={color}>{s}</font>"
-        if not no_nl or s[-1] == '\n':
+        if html and (not no_nl or s[-1] == '\n'):
             html += "<br>\n"
         if s != "" and s != "\n":
             new_bol = not no_nl or (s[-1] == '\n')
