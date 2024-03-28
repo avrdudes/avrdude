@@ -189,7 +189,7 @@ class adgui(QObject):
 
         self.adgui.actionAbout.triggered.connect(self.about.show)
         self.adgui.actionDevice.triggered.connect(self.device.show)
-        self.app.lastWindowClosed.connect(self.stop_programmer)
+        self.app.lastWindowClosed.connect(self.cleanup)
         self.adgui.actionProgrammer.triggered.connect(self.programmer.show)
         self.adgui.loggingArea.setHtml(self.logstring)
         self.adgui.actionSave_log.triggered.connect(self.save_logfile)
@@ -236,6 +236,7 @@ class adgui(QObject):
             self.memories.readSig.pressed.connect(self.read_signature)
             self.memories.choose.pressed.connect(self.ask_flash_file)
             self.memories.read.pressed.connect(self.flash_read)
+            self.load_settings()
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
@@ -336,6 +337,50 @@ class adgui(QObject):
             self.adgui.time.setText(f"{mins}:{secs:02d}")
         self.app.processEvents()
 
+    def load_settings(self):
+        self.settings = QSettings(QSettings.NativeFormat, QSettings.UserScope, 'avrdude', 'adgui')
+        s = self.settings
+        name = s.fileName()
+        k = s.allKeys()
+        if (amnt := len(k)) == 0:
+            # new file
+            self.log(f"Settings file: {name}", ad.MSG_NOTICE)
+        else:
+            # we loaded something
+            self.log(f"Loaded {amnt} settings from {name}", ad.MSG_INFO)
+            if 'settings/log_level' in k:
+                ll = int(s.value('settings/log_level'))
+                ad.cvar.verbose = ll
+                found = False
+                for obj in self.loglevel.groupBox.children():
+                    tt = obj.toolTip()
+                    if tt and (int(tt) == ll):
+                        obj.setChecked(True)
+                        found = True
+                        break
+                if not found:
+                    # appropriate level not found, default to INFO
+                    self.loglevel.radioButton_4.setChecked(True)
+                    self.cvar.verbose = 0
+                    ll = 0
+                self.log(f"Log level set to {ll}", ad.MSG_INFO)
+            if 'file/device' in k:
+                n = s.value('file/device')
+                idx = self.device.devices.findText(n)
+                if idx != -1:
+                    self.device.devices.setCurrentIndex(idx)
+                    self.log(f"Device set to {n}", ad.MSG_INFO)
+            if 'file/programmer' in k:
+                n = s.value('file/programmer')
+                idx = self.programmer.programmers.findText(n)
+                if idx != -1:
+                    self.programmer.programmers.setCurrentIndex(idx)
+                    self.log(f"Programmer set to {n}", ad.MSG_INFO)
+            if 'file/port' in k:
+                n = s.value('file/port')
+                self.programmer.port.setText(n)
+                self.log(f"Port set to {n}")
+
     def update_device_cb(self):
         fams = list(self.devices.keys())
         #fams.sort()
@@ -408,6 +453,7 @@ class adgui(QObject):
         self.dev_selected = self.device.devices.currentText()
         self.dev = ad.locate_part(ad.cvar.part_list, self.dev_selected)
         self.log(f"Selected device: {self.dev_selected}")
+        self.settings.setValue('file/device', self.dev_selected)
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
@@ -418,7 +464,9 @@ class adgui(QObject):
         self.pgm = ad.locate_programmer(ad.cvar.programmers, self.prog_selected)
         self.port = self.programmer.port.text()
         self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})")
+        self.settings.setValue('file/programmer', self.prog_selected)
         self.log(f"Selected port: {self.port}")
+        self.settings.setValue('file/port', self.port)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
             self.start_programmer()
 
@@ -440,6 +488,7 @@ class adgui(QObject):
             # we abuse the tooltip for the verbosity value
             val = int(btn.toolTip())
             ad.cvar.verbose = val
+            self.settings.setValue('settings/log_level', val)
 
     def start_programmer(self):
         if self.connected:
@@ -461,6 +510,10 @@ class adgui(QObject):
             self.pgm.disable()
             self.pgm.close()
             self.pgm.teardown()
+
+    def cleanup(self):
+        self.settings.sync()
+        self.stop_programmer()
 
     def read_signature(self):
         sig_ok = "background-color: rgb(255, 255, 255);\ncolor: rgb(0, 100, 0);"
