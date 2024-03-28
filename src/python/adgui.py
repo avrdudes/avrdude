@@ -241,8 +241,8 @@ class adgui(QObject):
         # level to color mapping
         colors = [
             '#804040', # MSG_EXT_ERROR
-            '#603030', # MSG_ERROR
-            '#605000', # MSG_WARNING
+            '#A03030', # MSG_ERROR
+            '#A08000', # MSG_WARNING
             '#000000', # MSG_INFO
             '#006000', # MSG_NOTICE
             '#005030', # MSG_NOTICE2
@@ -463,12 +463,22 @@ class adgui(QObject):
             self.pgm.teardown()
 
     def read_signature(self):
+        sig_ok = "background-color: rgb(255, 255, 255);\ncolor: rgb(0, 100, 0);"
+        sig_bad = "background-color: rgb(255, 255, 255);\ncolor: rgb(150, 0, 0);"
         if self.connected:
             m = ad.avr_locate_mem(self.dev, 'signature')
             if m:
                 ad.avr_read_mem(self.pgm, self.dev, m)
                 self.progress_callback(100, 0, "", 0) # clear progress bar
                 read_sig = m.get(3)
+                if read_sig == self.dev.signature:
+                    self.memories.deviceSig.setStyleSheet(sig_ok)
+                else:
+                    self.memories.deviceSig.setStyleSheet(sig_bad)
+                    self.log("Signature read from device does not match config file",
+                             ad.MSG_WARNING)
+                self.memories.flash.setEnabled(True)
+                self.memories.eeprom.setEnabled(True)
                 sigstr = read_sig.hex(' ').upper()
                 self.memories.deviceSig.setText(sigstr)
                 p = ad.locate_part_by_signature(ad.cvar.part_list, read_sig)

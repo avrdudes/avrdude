@@ -33,6 +33,9 @@
    </property>
   </widget>
   <widget class="QTabWidget" name="tabWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="geometry">
     <rect>
      <x>30</x>
@@ -182,7 +185,7 @@
    </widget>
    <widget class="QWidget" name="flash">
     <property name="enabled">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
     <attribute name="title">
      <string>Flash</string>
@@ -434,6 +437,9 @@
     </widget>
    </widget>
    <widget class="QWidget" name="eeprom">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <attribute name="title">
      <string>EEPROM</string>
     </attribute>
