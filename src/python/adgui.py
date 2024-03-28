@@ -274,6 +274,7 @@ class adgui(QObject):
             # only update loggingArea if not trace message
             self.logstring += html
             self.adgui.loggingArea.setHtml(self.logstring)
+            self.adgui.loggingArea.moveCursor(QTextCursor.End)
 
     def message_type(self, msglvl: int):
         tnames = ('OS error', 'error', 'warning', 'info', 'notice',
