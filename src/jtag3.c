@@ -240,34 +240,34 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
 
   switch (data[0]) {
     case SCOPE_INFO:
-      msg_info("[info] ");
+      msg_debug("[info] ");
       break;
 
     case SCOPE_GENERAL:
-      msg_info("[general] ");
+      msg_debug("[general] ");
       break;
 
     case SCOPE_AVR_ISP:
-      msg_info("[AVRISP] ");
+      msg_debug("[AVRISP] ");
       jtag3_print_data(data + 1, len - 1);
       return;
 
     case SCOPE_AVR:
-      msg_info("[AVR] ");
+      msg_debug("[AVR] ");
       break;
 
     default:
-      msg_info("[scope 0x%02x] ", data[0]);
+      msg_debug("[scope 0x%02x] ", data[0]);
       break;
   }
 
   switch (data[1]) {
     case RSP3_OK:
-      msg_info("OK\n");
+      msg_debug("OK\n");
       break;
 
     case RSP3_FAILED:
-      msg_info("FAILED");
+      msg_debug("FAILED");
       if (len > 3)
       {
         char reason[50];
@@ -305,42 +305,42 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
             strcpy(reason, "debugWIRE communication failed");
             break;
         }
-        msg_info(", reason: %s\n", reason);
+        msg_debug(", reason: %s\n", reason);
       }
       else {
-        msg_info(", unspecified reason\n");
+        msg_debug(", unspecified reason\n");
       }
       break;
 
     case RSP3_DATA:
-      msg_info("Data returned:\n");
+      msg_debug("Data returned:\n");
       jtag3_print_data(data + 2, len - 2);
       break;
 
     case RSP3_INFO:
-      msg_info("Info returned:\n");
+      msg_debug("Info returned:\n");
       for (size_t i = 2; i < len; i++) {
         if (isprint(data[i]))
-          msg_info("%c", data[i]);
+          msg_debug("%c", data[i]);
         else
-          msg_info("\\%03o", data[i]);
+          msg_debug("\\%03o", data[i]);
       }
-      msg_info("\n");
+      msg_debug("\n");
       break;
 
     case RSP3_PC:
       if (len < 7) {
-        msg_info("PC reply too short\n");
+        msg_debug("PC reply too short\n");
       }
       else {
         unsigned long pc = (data[6] << 24) | (data[5] << 16)
           | (data[4] << 8) | data[3];
-        msg_info("PC 0x%0lx\n", pc);
+        msg_debug("PC 0x%0lx\n", pc);
       }
       break;
 
     default:
-      msg_info("unknown message 0x%02x\n", data[1]);
+      msg_debug("unknown message 0x%02x\n", data[1]);
   }
 }
 
@@ -369,46 +369,46 @@ static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len
       msg_trace("\n");
   }
 
-  msg_info("Event serial 0x%04x, ", (data[3] << 8) | data[2]);
+  msg_debug("Event serial 0x%04x, ", (data[3] << 8) | data[2]);
 
   switch (data[4]) {
     case SCOPE_INFO:
-      msg_info("[info] ");
+      msg_debug("[info] ");
       break;
 
     case SCOPE_GENERAL:
-      msg_info("[general] ");
+      msg_debug("[general] ");
       break;
 
     case SCOPE_AVR:
-      msg_info("[AVR] ");
+      msg_debug("[AVR] ");
       break;
 
     default:
-      msg_info("[scope 0x%02x] ", data[0]);
+      msg_debug("[scope 0x%02x] ", data[0]);
       break;
   }
 
   switch (data[5]) {
     case EVT3_BREAK:
-      msg_info("BREAK");
+      msg_debug("BREAK");
       if (len >= 11) {
-        msg_info(", PC = 0x%lx, reason ", b4_to_u32(data + 6));
+        msg_debug(", PC = 0x%lx, reason ", b4_to_u32(data + 6));
         switch (data[10]) {
           case 0x00:
-            msg_info("unspecified");
+            msg_debug("unspecified");
             break;
           case 0x01:
-            msg_info("program break");
+            msg_debug("program break");
             break;
           case 0x02:
-            msg_info("data break PDSB");
+            msg_debug("data break PDSB");
             break;
           case 0x03:
-            msg_info("data break PDMSB");
+            msg_debug("data break PDMSB");
             break;
           default:
-          msg_info("unknown: 0x%02x", data[10]);
+          msg_debug("unknown: 0x%02x", data[10]);
         }
         /* There are two more bytes of data which always appear to be
         * 0x01, 0x00.  Purpose unknown. */
@@ -417,27 +417,27 @@ static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len
 
     case EVT3_SLEEP:
       if (len >= 8 && data[7] == 0)
-        msg_info("sleeping");
+        msg_debug("sleeping");
       else if (len >= 8 && data[7] == 1)
-        msg_info("wakeup");
+        msg_debug("wakeup");
       else
-        msg_info("unknown SLEEP event");
+        msg_debug("unknown SLEEP event");
       break;
 
     case EVT3_POWER:
       if (len >= 8 && data[7] == 0)
-        msg_info("power-down");
+        msg_debug("power-down");
       else if (len >= 8 && data[7] == 1)
-        msg_info("power-up");
+        msg_debug("power-up");
       else
-        msg_info("unknown POWER event");
+        msg_debug("unknown POWER event");
       break;
 
     default:
-      msg_info("UNKNOWN 0x%02x", data[5]);
+      msg_debug("UNKNOWN 0x%02x", data[5]);
       break;
   }
-  msg_info("\n");
+  msg_debug("\n");
 }
 
 int jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
@@ -852,7 +852,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
       free(*resp);
     return LIBAVRDUDE_GENERAL_FAILURE;
   } else if (verbose >= 3) {
-    msg_info("\n");
+    msg_debug("\n");
     jtag3_prmsg(pgm, *resp, status);
   } else {
     msg_notice2("0x%02x (%d bytes msg)\n", (*resp)[1], status);
