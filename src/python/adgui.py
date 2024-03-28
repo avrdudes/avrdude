@@ -257,7 +257,7 @@ class adgui(QObject):
         elif level < ad.MSG_TRACE:
             html = f"<font color={color}>{s}</font><br>\n"
         if s != "" and s != "\n":
-            new_bol = s[-1] == '\n'
+            new_bol = not no_nl or (s[-1] == '\n')
             if not no_nl:
                 s += '\n'
             # always save non-empty messages to debug log
