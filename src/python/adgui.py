@@ -253,9 +253,11 @@ class adgui(QObject):
         color = colors[level - ad.MSG_EXT_ERROR]
         html = None
         if level <= ad.MSG_WARNING:
-            html = f"<font color={color}><strong>{s}</strong></font><br>\n"
+            html = f"<font color={color}><strong>{s}</strong></font>"
         elif level < ad.MSG_TRACE:
-            html = f"<font color={color}>{s}</font><br>\n"
+            html = f"<font color={color}>{s}</font>"
+        if not no_nl or s[-1] == '\n':
+            html += "<br>\n"
         if s != "" and s != "\n":
             new_bol = not no_nl or (s[-1] == '\n')
             if not no_nl:
