@@ -40,7 +40,6 @@ extern int quell_progress;   // Quell progress report -q, reduce effective verbo
 extern const char *partdesc; // Part -p string
 extern const char *pgmid;    // Programmer -c string
 
-int avrdude_message(int msglvl, const char *format, ...);
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
 
 #define MSG_EXT_ERROR   (-3) // OS-type error, no -v option, can be suppressed with -qqqqq

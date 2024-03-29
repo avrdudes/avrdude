@@ -57,19 +57,6 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-// Old (deprecated) message routine
-int avrdude_message(int msglvl, const char *format, ...)
-{
-    int rc = 0;
-    va_list ap;
-    if (verbose >= msglvl) {
-        va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
-        va_end(ap);
-    }
-    return rc;
-}
-
 static const char *avrdude_message_type(int msglvl) {
   switch(msglvl) {
   case MSG_EXT_ERROR: return "OS error";
@@ -89,6 +76,8 @@ static const char *avrdude_message_type(int msglvl) {
 /*
  * Core messaging routine for msg_xyz(), [pli]msg_xyz() and term_out()
  * See #define lines in avrdude.h of how it is normally called
+ *
+ * Named that way as there used to be a now gone different avrdude_message()
  */
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
