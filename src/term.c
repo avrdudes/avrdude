@@ -349,7 +349,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   report_progress(1, 1, NULL);
 
   hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
-  term_out("\v");
+  lterm_out("");
 
   free(buf);
 
@@ -598,7 +598,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     len + bytes_grown, str_plural(len + bytes_grown), addr);
   if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
-  msg_notice2("\v");
+  msg_notice2("\n");
 
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
   for (i = 0; i < len + bytes_grown; i++) {
@@ -1904,7 +1904,7 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     avr_mem_display(stdout, p, "");
     avr_variants_display(stdout, p, "");
   }
-  term_out("\v");
+  lterm_out("");
 
   return 0;
 }
@@ -1968,7 +1968,7 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   pgm->print_parms(pgm, stdout);
-  term_out("\v");
+  lterm_out("");
   return 0;
 }
 
@@ -2549,7 +2549,7 @@ static void term_gotline(char *cmdstr) {
     }
   } else {
     // End of file or terminal ^D
-    term_out("\v");
+    lterm_out("");
     cmd_quit(term_pgm, term_p, 0, NULL);
     term_running = 0;
   }
@@ -2665,11 +2665,11 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       if(verbose > 0)
        term_out("%d: ", lineno);
       term_out("%s", buffer);
-      term_out("\v");
+      lterm_out("");
     }
     if(process_line(buffer, pgm, p) < 0)
       rc = -1;
-    term_out("\v");
+    lterm_out("");
   }
   if(errstr) {
     pmsg_error("(include) read error in file %s: %s\n", argv[1], errstr);
@@ -2689,7 +2689,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
   if(hdr) {
-    msg_info("\v");
+    lmsg_info("");
     last = done = 0;
     if(header)
       free(header);
@@ -2713,7 +2713,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
-        msg_info("\v");
+        lmsg_info("");
       done = 1;
     }
   }
@@ -2730,7 +2730,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
-    msg_info("\v%s | ", hdr);
+    lmsg_info("%s | ", hdr);
     last = done = 0;
   }
 
@@ -2741,7 +2741,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
     if(percent == 100) {
       msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
       if(finish)
-        msg_info("\v");
+        lmsg_info("");
       done = 1;
     }
   }

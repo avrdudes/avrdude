@@ -447,11 +447,10 @@ void list_serialadapters(FILE *fp, const char *prefix, LISTID programmers) {
 }
 
 void serialadapter_not_found(const char *sea_id) {
-  msg_error("\v");
   if(sea_id && *sea_id)
     pmsg_error("cannot find serial adapter id %s\n", sea_id);
 
-  msg_error("\nValid serial adapters are:\n");
+  lmsg_error("\nValid serial adapters are:\n");
   list_serialadapters(stderr, "  ", programmers);
   msg_error("\n");
 }
