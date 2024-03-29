@@ -259,6 +259,7 @@ class adgui(QObject):
             self.memories.choose.pressed.connect(self.ask_flash_file)
             self.memories.read.pressed.connect(self.flash_read)
             self.load_settings()
+            self.memories.filename.editingFinished.connect(self.detect_flash_file)
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
@@ -568,15 +569,41 @@ class adgui(QObject):
         dlg = QFileDialog(caption = "Select file",
                           filter = "Load files (*.elf *.hex *.eep *.srec *.bin);; All Files (*)")
         if dlg.exec():
-            self.flashname = dlg.selectedFiles()[0]
-            self.memories.filename.setText(self.flashname)
+            self.memories.filename.setText(dlg.selectedFiles()[0])
+            self.detect_flash_file()
+
+    def detect_flash_file(self):
+        # If file exists, try finding out real format. If file doesn't
+        # exist, try guessing the intended file format based on the
+        # suffix.
+        fname = self.memories.filename.text()
+        if len(fname) > 0:
+            self.flashname = fname
             self.memories.load.setEnabled(True)
             self.memories.save.setEnabled(True)
         else:
+            # no filename, disable load/save buttons
             self.flashname = None
-            self.memories.filename.setText("")
             self.memories.load.setEnabled(False)
             self.memories.save.setEnabled(False)
+            return
+        p = pathlib.Path(fname)
+        if p.is_file():
+            fmt = ad.fileio_fmt_autodetect(fname)
+            if fmt == ad.FMT_ELF:
+                self.memories.ffELF.setChecked(True)
+            elif fmt == ad.FMT_IHEX:
+                self.memories.ffIhex.setChecked(True)
+            elif fmt == ad.FMT_SREC:
+                self.memories.ffSrec.setChecked(True)
+        else:
+            if fname.endswith('.hex') or fname.endswith('.ihex') \
+               or fname.endswith('.eep'): # common name for EEPROM Intel hex files
+                self.memories.ffIhex.setChecked(True)
+            elif fname.endswith('.srec'):
+                self.memories.ffSrec.setChecked(True)
+            elif fname.endswith('.bin'):
+                self.memories.ffRbin.setChecked(True)
 
     def flash_read(self):
         self.adgui.progressBar.setEnabled(True)
