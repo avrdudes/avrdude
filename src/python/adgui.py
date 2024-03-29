@@ -344,6 +344,7 @@ class adgui(QObject):
             self.memories.read.pressed.connect(self.flash_read)
             self.load_settings()
             self.memories.filename.editingFinished.connect(self.detect_flash_file)
+            self.memories.save.pressed.connect(self.flash_save)
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
@@ -697,6 +698,23 @@ class adgui(QObject):
             return
         amnt = ad.avr_read_mem(self.pgm, self.dev, m)
         self.log(f"Read {amnt}  bytes")
+
+    def flash_save(self):
+        if self.memories.ffAuto.isChecked() or \
+           self.memories.ffELF.isChecked():
+            self.log("Auto or ELF are not valid for saving files", ad.MSG_ERROR)
+            return
+        if self.memories.ffIhex.isChecked():
+            fmt = ad.FMT_IHEX
+        elif self.memories.ffSrec.isChecked():
+            fmt = ad.FMT_SREC
+        elif self.memories.ffRbin.isChecked():
+            fmt = ad.FMT_RBIN
+        else:
+            self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
+            return
+        amnt = ad.fileio(ad.FIO_WRITE, self.flashname, fmt, self.dev, "flash", -1)
+        self.log(f"Wrote {amnt} bytes to {self.flashname}")
 
     def save_logfile(self):
         fname = QFileDialog.getSaveFileName(caption = "Save logfile to",
