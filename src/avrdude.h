@@ -40,6 +40,25 @@ extern int quell_progress;   // Quell progress report -q, reduce effective verbo
 extern const char *partdesc; // Part -p string
 extern const char *pgmid;    // Programmer -c string
 
+int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
+
+#define MSG_EXT_ERROR   (-3) // OS-type error, no -v option, can be suppressed with -qqqqq
+#define MSG_ERROR       (-2) // Avrdude error, no -v option, can be suppressed with -qqqq
+#define MSG_WARNING     (-1) // Warning, no -v option, can be suppressed with -qqq
+#define MSG_INFO           0 // Commentary, no -v option, can be suppressed with -qq
+#define MSG_NOTICE         1 // Displayed with -v
+#define MSG_NOTICE2        2 // Displayed with -vv
+#define MSG_DEBUG          3 // Displayed with -vvv
+#define MSG_TRACE          4 // Displayed with -vvvv, show trace communication
+#define MSG_TRACE2         5 // Displayed with -vvvvv
+
+#define MSG2_PROGNAME      1 // Start by printing progname
+#define MSG2_FUNCTION      2 // Print calling function (1st arg) after progname if >= notice
+#define MSG2_FILELINE      4 // Print source file and line number after function if >= debug
+#define MSG2_TYPE          8 // Print message type after function or progname
+#define MSG2_INDENT1      16 // Start by printing indentation of progname+1 blanks
+#define MSG2_INDENT2      32 // Start by printing indentation of progname+2 blanks
+#define MSG2_FLUSH        64 // Flush before and after printing
 
 // Shortcuts
 #define msg_ext_error(...)  avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_EXT_ERROR, __VA_ARGS__)
