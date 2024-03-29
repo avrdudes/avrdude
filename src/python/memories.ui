@@ -127,7 +127,8 @@
             </font>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(255, 255, 255);</string>
+            <string notr="true">background-color: rgb(255, 255, 255);
+color: rgb(180, 180, 180);</string>
            </property>
            <property name="frameShape">
             <enum>QFrame::Box</enum>
@@ -386,7 +387,7 @@
        <x>40</x>
        <y>230</y>
        <width>481</width>
-       <height>121</height>
+       <height>141</height>
       </rect>
      </property>
      <property name="title">
@@ -396,7 +397,7 @@
       <property name="geometry">
        <rect>
         <x>370</x>
-        <y>40</y>
+        <y>50</y>
         <width>83</width>
         <height>25</height>
        </rect>
@@ -409,7 +410,7 @@
       <property name="geometry">
        <rect>
         <x>370</x>
-        <y>80</y>
+        <y>90</y>
         <width>83</width>
         <height>25</height>
        </rect>
@@ -421,7 +422,7 @@
      <widget class="QPushButton" name="erase">
       <property name="geometry">
        <rect>
-        <x>90</x>
+        <x>20</x>
         <y>60</y>
         <width>83</width>
         <height>25</height>
@@ -432,6 +433,19 @@
       </property>
       <property name="text">
        <string>Erase</string>
+      </property>
+     </widget>
+     <widget class="QGraphicsView" name="avr">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>30</y>
+        <width>171</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="interactive">
+       <bool>false</bool>
       </property>
      </widget>
     </widget>
