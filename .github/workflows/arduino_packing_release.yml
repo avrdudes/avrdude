@@ -61,7 +61,7 @@ jobs:
       run: |
         if [ "${{ matrix.config.os }}" = "macOS" ]; then
           # For darwin we disable the static flags (not supported by clang) and we make some adjustments
-          cmake -DCMAKE_C_COMPILER=${{ matrix.config.cross_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cross_compiler }}++ -DCMAKE_AR=${{ matrix.config.ar }} -DCMAKE_LINKER=${{ matrix.config.ld}} -DCMAKE_EXE_LINKER_FLAGS="-L/opt/lib/${{ matrix.config.cross_compile }}/lib/" -DCMAKE_C_FLAGS="-I/opt/lib/${{ matrix.config.cross_compile }}/include -pthread -framework Foundation -framework IOKit -framework Cocoa -framework Security -DHAVE_USB_H" -DCMAKE_PREFIX_PATH=/opt/lib/${{ matrix.config.cross_compile }}/ -DHAVE_LIBFTDI="NO" -B build/
+          cmake -DCMAKE_C_COMPILER=${{ matrix.config.cross_compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cross_compiler }}++ -DCMAKE_AR=${{ matrix.config.ar }} -DCMAKE_LINKER=${{ matrix.config.ld}} -DCMAKE_EXE_LINKER_FLAGS="-L/opt/lib/${{ matrix.config.cross_compile }}/lib/" -DCMAKE_C_FLAGS="-I/opt/lib/${{ matrix.config.cross_compile }}/include -pthread -framework Foundation -framework IOKit -framework Cocoa -framework Security -DHAVE_USB_H" -DCMAKE_PREFIX_PATH=/opt/lib/${{ matrix.config.cross_compile }}/ -DHAVE_LIBFTDI="NO" -DUSE_STATIC_LIBS="ON" -B build/
         else
           cmake -DCMAKE_C_COMPILER=${{ matrix.config.cross_compile }}-gcc -DCMAKE_CXX_COMPILER=${{ matrix.config.cross_compile }}-g++ -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++" -DCMAKE_C_FLAGS="-I/opt/lib/${{ matrix.config.cross_compile }}/include/libusb-1.0/ -I/opt/lib/${{ matrix.config.cross_compile }}/include -pthread" -DCMAKE_PREFIX_PATH=/opt/lib/${{ matrix.config.cross_compile }}/ -DHAVE_LIBFTDI="NO" -B build/
         fi
