@@ -124,6 +124,15 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           bols[bi].bol = 1;
         }
 
+        // Keep vertical tab at start of format string as conditional new line
+        if(*format == '\v') {
+          format++;
+          if(!bols[bi].bol) {
+            fprintf(fp, "\n");
+            bols[bi].bol = 1;
+          }
+        }
+
         if(msgmode & MSG2_PROGNAME) {
           fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
