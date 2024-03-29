@@ -16,6 +16,8 @@ Changes since version 7.3:
   * Issues fixed:
      - Avrintel.h missing from installation #1683
      - Use of undeclared identifier 'AVRDUDE_FULL_VERSION' #1706
+     - Wrong message level in jtag3_prmsg() #1726
+     - Old avrdude_message() can go away #1719
 
   * Pull requests:
     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
@@ -30,6 +32,10 @@ Changes since version 7.3:
     - Change port array in PROGRAMMER to be const char * #1699
     - Fix cmake build errors related to ac_cfg.h #1707
     - Add benchmark option -b for test-avrdude #1709
+    - Replace msg_info() by msg_debug() in jtag3_prmsg()
+      and jtag3_prevent() #1727
+    - Remove unused avrdude_message() #1730
+    - Add lmsg_xyz() functions to start message at left margin #1728
 
   * Internals:
 

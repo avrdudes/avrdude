@@ -57,19 +57,6 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
-// Old (deprecated) message routine
-int avrdude_message(int msglvl, const char *format, ...)
-{
-    int rc = 0;
-    va_list ap;
-    if (verbose >= msglvl) {
-        va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
-        va_end(ap);
-    }
-    return rc;
-}
-
 static const char *avrdude_message_type(int msglvl) {
   switch(msglvl) {
   case MSG_EXT_ERROR: return "OS error";
@@ -87,9 +74,10 @@ static const char *avrdude_message_type(int msglvl) {
 
 
 /*
- * Core msg_xyz() routine
+ * Core messaging routine for msg_xyz(), [pli]msg_xyz() and term_out()
  * See #define lines in avrdude.h of how it is normally called
- * Side note: if format starts with \v print \n but only if *not* at beginning of line
+ *
+ * Named that way as there used to be a now gone different avrdude_message()
  */
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
@@ -120,9 +108,21 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 
     // Reduce effective verbosity level by number of -q above one when printing to stderr
     if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
-        if(msgmode & MSG2_PROGNAME) {
-          if(!bols[bi].bol)
+        if(msgmode & MSG2_LEFT_MARGIN && !bols[bi].bol) {
+          fprintf(fp, "\n");
+          bols[bi].bol = 1;
+        }
+
+        // Keep vertical tab at start of format string as conditional new line
+        if(*format == '\v') {
+          format++;
+          if(!bols[bi].bol) {
             fprintf(fp, "\n");
+            bols[bi].bol = 1;
+          }
+        }
+
+        if(msgmode & MSG2_PROGNAME) {
           fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
             fprintf(fp, " %s()", func);
@@ -145,15 +145,6 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         } else if(msgmode & MSG2_INDENT2) {
           fprintf(fp, "%*s", (int) strlen(progname)+2, "");
           bols[bi].bol = 0;
-        }
-
-        // Vertical tab at start of format string is a conditional new line
-        if(*format == '\v') {
-          format++;
-          if(!bols[bi].bol) {
-            fprintf(fp, "\n");
-            bols[bi].bol = 1;
-          }
         }
 
         // Figure out whether this print will leave us at beginning of line
@@ -522,7 +513,6 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 }
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pmode) {
-  msg_error("\v");
   if(!programmer || !*programmer) {
     pmsg_error("no programmer has been specified on the command line or in the\n");
     imsg_error("config file(s); specify one using the -c option and try again\n");
@@ -530,7 +520,7 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pm
   }
 
   if(str_eq(programmer, "?")) {
-    msg_error("Valid programmers are:\n");
+    lmsg_error("Valid programmers are:\n");
     list_programmers(stderr, "  ", programmers, ~0);
     msg_error("\n");
     return;
@@ -553,7 +543,7 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pm
       }
   }
   if(pmatches) {
-    msg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
+    pmsg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
     for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
      PROGRAMMER *pg = ldata(ln1);
       if(is_programmer(pg) && (pg->prog_modes & pmode))
@@ -1152,7 +1142,7 @@ int main(int argc, char * argv [])
       list_available_serialports(programmers);
       exit(0);
     } else if(str_eq(port, "?sa")) {
-      msg_error("\vValid serial adapters are:\n");
+      lmsg_error("Valid serial adapters are:\n");
       list_serialadapters(stderr, "  ", programmers);
       exit(0);
     }
@@ -1505,7 +1495,7 @@ skipopen:
     programmer_display(pgm, progbuf);
   }
 
-  msg_info("\v");
+  lmsg_info("");
 
   exitrc = 0;
 
