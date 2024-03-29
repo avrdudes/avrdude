@@ -77,6 +77,9 @@ static const char *avrdude_message_type(int msglvl) {
  * Core msg_xyz() routine
  * See #define lines in avrdude.h of how it is normally called
  * Side note: if format starts with \v print \n but only if *not* at beginning of line
+ *
+ * Function is named that way since there used to be a different avrdude_message()
+ * before which is gone now.
  */
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
