@@ -347,6 +347,7 @@ class adgui(QObject):
             self.load_settings()
             self.memories.filename.editingFinished.connect(self.detect_flash_file)
             self.memories.save.pressed.connect(self.flash_save)
+            self.memories.erase.pressed.connect(self.chip_erase)
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
@@ -730,6 +731,18 @@ class adgui(QObject):
             amnt = -1
         amnt = ad.fileio(ad.FIO_WRITE, self.flashname, fmt, self.dev, "flash", amnt)
         self.log(f"Wrote {amnt} bytes to {self.flashname}")
+
+    def chip_erase(self):
+        result = QMessageBox.question(self.memories,
+                                      f"Erase {self.dev.desc}?",
+                                      f"Do you want to erase the entire device?")
+        if result != QMessageBox.StandardButton.Yes:
+            return
+        result = self.pgm.chip_erase(self.dev)
+        if result == 0:
+            self.log("Device erased")
+        else:
+            self.log("Failed to erase device", ad.MSG_WARNING)
 
     def save_logfile(self):
         fname = QFileDialog.getSaveFileName(caption = "Save logfile to",
