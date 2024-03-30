@@ -352,6 +352,9 @@ class adgui(QObject):
             self.memories.filename.editingFinished.connect(self.detect_flash_file)
             self.load_settings()
 
+        self.buffer_empty = 'background-color: rgb(255,240,240);'
+        self.buffer_full = 'background-color: rgb(240,255,240);'
+
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
         colors = [
@@ -704,7 +707,9 @@ class adgui(QObject):
             return
         amnt = ad.avr_read_mem(self.pgm, self.dev, m)
         self.flash_size = amnt
-        self.log(f"Read {amnt}  bytes")
+        self.log(f"Read {amnt} bytes")
+        if amnt > 0:
+            self.memories.buffer.setStyleSheet(self.buffer_full)
 
     def flash_write(self):
         self.adgui.progressBar.setEnabled(True)
@@ -726,6 +731,7 @@ class adgui(QObject):
         m.clear(m.size)
         self.log(f"Cleared {m.size} bytes of buffer, and allocation flags")
         self.flash_size = 0
+        self.memories.buffer.setStyleSheet(self.buffer_empty)
 
     def flash_save(self):
         if self.memories.ffAuto.isChecked() or \
@@ -773,6 +779,8 @@ class adgui(QObject):
         amnt = ad.fileio(ad.FIO_READ, self.flashname, fmt, self.dev, "flash", -1)
         self.log(f"Read {amnt} bytes from {self.flashname}")
         self.flash_size = amnt
+        if amnt > 0:
+            self.memories.buffer.setStyleSheet(self.buffer_full)
 
     def chip_erase(self):
         result = QMessageBox.question(self.memories,
@@ -783,6 +791,8 @@ class adgui(QObject):
         result = self.pgm.chip_erase(self.dev)
         if result == 0:
             self.log("Device erased")
+            self.flash_size = 0
+            self.memories.buffer.setStyleSheet(self.buffer_empty)
         else:
             self.log("Failed to erase device", ad.MSG_WARNING)
 

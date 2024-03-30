@@ -204,7 +204,7 @@ color: rgb(180, 180, 180);</string>
       </rect>
      </property>
      <property name="styleSheet">
-      <string notr="true">background-color: rgb(255, 255, 255);</string>
+      <string notr="true">background-color: rgb(255,240,240);</string>
      </property>
      <property name="frameShape">
       <enum>QFrame::Box</enum>
