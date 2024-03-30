@@ -35,6 +35,7 @@ Changes since version 7.3:
     - Replace msg_info() by msg_debug() in jtag3_prmsg()
       and jtag3_prevent() #1727
     - Remove unused avrdude_message() #1730
+    - Add lmsg_xyz() functions to start message at left margin #1728
 
   * Internals:
 
