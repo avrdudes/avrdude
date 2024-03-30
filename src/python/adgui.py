@@ -344,10 +344,13 @@ class adgui(QObject):
             self.memories.readSig.pressed.connect(self.read_signature)
             self.memories.choose.pressed.connect(self.ask_flash_file)
             self.memories.read.pressed.connect(self.flash_read)
-            self.load_settings()
-            self.memories.filename.editingFinished.connect(self.detect_flash_file)
+            self.memories.program.pressed.connect(self.flash_write)
             self.memories.save.pressed.connect(self.flash_save)
+            self.memories.load.pressed.connect(self.flash_load)
             self.memories.erase.pressed.connect(self.chip_erase)
+            self.memories.clear.pressed.connect(self.clear_buffer)
+            self.memories.filename.editingFinished.connect(self.detect_flash_file)
+            self.load_settings()
 
     def log(self, s: str, level: int = ad.MSG_INFO, no_nl: bool = False):
         # level to color mapping
@@ -703,6 +706,27 @@ class adgui(QObject):
         self.flash_size = amnt
         self.log(f"Read {amnt}  bytes")
 
+    def flash_write(self):
+        self.adgui.progressBar.setEnabled(True)
+        m = ad.avr_locate_mem(self.dev, 'flash')
+        if not m:
+            self.log("Could not find 'flash' memory", ad.MSG_ERROR)
+            return
+        if self.flash_size == 0:
+            self.log("No data to write into 'flash' memory", ad.MSG_WARNING)
+            return
+        amnt = ad.avr_write_mem(self.pgm, self.dev, m, self.flash_size)
+        self.log(f"Programmed {amnt}  bytes")
+
+    def clear_buffer(self):
+        m = ad.avr_locate_mem(self.dev, 'flash')
+        if not m:
+            self.log("Could not find 'flash' memory", ad.MSG_ERROR)
+            return
+        m.clear(m.size)
+        self.log(f"Cleared {m.size} bytes of buffer, and allocation flags")
+        self.flash_size = 0
+
     def flash_save(self):
         if self.memories.ffAuto.isChecked() or \
            self.memories.ffELF.isChecked():
@@ -731,6 +755,24 @@ class adgui(QObject):
             amnt = -1
         amnt = ad.fileio(ad.FIO_WRITE, self.flashname, fmt, self.dev, "flash", amnt)
         self.log(f"Wrote {amnt} bytes to {self.flashname}")
+
+    def flash_load(self):
+        if self.memories.ffAuto.isChecked():
+            fmt = ad.FMT_AUTO
+        elif self.memories.ffELF.isChecked():
+            fmt = ad.FMT_ELF
+        if self.memories.ffIhex.isChecked():
+            fmt = ad.FMT_IHEX
+        elif self.memories.ffSrec.isChecked():
+            fmt = ad.FMT_SREC
+        elif self.memories.ffRbin.isChecked():
+            fmt = ad.FMT_RBIN
+        else:
+            self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
+            return
+        amnt = ad.fileio(ad.FIO_READ, self.flashname, fmt, self.dev, "flash", -1)
+        self.log(f"Read {amnt} bytes from {self.flashname}")
+        self.flash_size = amnt
 
     def chip_erase(self):
         result = QMessageBox.question(self.memories,
