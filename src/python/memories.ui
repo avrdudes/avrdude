@@ -108,6 +108,9 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="toolTip">
+         <string>Read signature from device</string>
+        </property>
         <property name="text">
          <string>Read →</string>
         </property>
@@ -243,6 +246,9 @@ color: rgb(180, 180, 180);</string>
         <height>25</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Load section from file into buffer</string>
+      </property>
       <property name="text">
        <string>Load →</string>
       </property>
@@ -258,6 +264,9 @@ color: rgb(180, 180, 180);</string>
         <width>83</width>
         <height>25</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Save memory buffer to file</string>
       </property>
       <property name="text">
        <string>← Save</string>
@@ -363,6 +372,9 @@ color: rgb(180, 180, 180);</string>
         <height>25</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Choose filename for load or save</string>
+      </property>
       <property name="text">
        <string>…</string>
       </property>
@@ -376,6 +388,9 @@ color: rgb(180, 180, 180);</string>
        <width>83</width>
        <height>25</height>
       </rect>
+     </property>
+     <property name="toolTip">
+      <string>Clear buffer and &quot;allocated&quot; flags</string>
      </property>
      <property name="text">
       <string>Clear</string>
@@ -402,6 +417,9 @@ color: rgb(180, 180, 180);</string>
         <height>25</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Read devuce into buffer</string>
+      </property>
       <property name="text">
        <string>Read →</string>
       </property>
@@ -415,6 +433,9 @@ color: rgb(180, 180, 180);</string>
         <height>25</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>Programm buffer into device</string>
+      </property>
       <property name="text">
        <string>← Program</string>
       </property>
@@ -427,6 +448,9 @@ color: rgb(180, 180, 180);</string>
         <width>83</width>
         <height>25</height>
        </rect>
+      </property>
+      <property name="toolTip">
+       <string>Chip erase - erase all memories</string>
       </property>
       <property name="styleSheet">
        <string notr="true">color: rgb(255, 39, 39);</string>
