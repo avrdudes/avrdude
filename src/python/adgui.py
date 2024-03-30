@@ -263,6 +263,8 @@ class adgui(QObject):
         self.prog_selected = None
         self.connected = False
 
+        self.flash_size = 0
+
         ad.set_msg_callback(self.msg_callback)
         ad.set_progress_callback(self.progress_callback)
 
@@ -697,6 +699,7 @@ class adgui(QObject):
             self.log("Could not find 'flash' memory", ad.MSG_ERROR)
             return
         amnt = ad.avr_read_mem(self.pgm, self.dev, m)
+        self.flash_size = amnt
         self.log(f"Read {amnt}  bytes")
 
     def flash_save(self):
@@ -721,7 +724,11 @@ class adgui(QObject):
                                           f"Do you want to overwrite {fname}?")
             if result != QMessageBox.StandardButton.Yes:
                 return
-        amnt = ad.fileio(ad.FIO_WRITE, self.flashname, fmt, self.dev, "flash", -1)
+        if self.flash_size != 0:
+            amnt = self.flash_size
+        else:
+            amnt = -1
+        amnt = ad.fileio(ad.FIO_WRITE, self.flashname, fmt, self.dev, "flash", amnt)
         self.log(f"Wrote {amnt} bytes to {self.flashname}")
 
     def save_logfile(self):
