@@ -418,7 +418,7 @@ color: rgb(180, 180, 180);</string>
        </rect>
       </property>
       <property name="toolTip">
-       <string>Read devuce into buffer</string>
+       <string>Read device into buffer</string>
       </property>
       <property name="text">
        <string>Read →</string>
@@ -481,6 +481,266 @@ color: rgb(180, 180, 180);</string>
     <attribute name="title">
      <string>EEPROM</string>
     </attribute>
+    <widget class="QLabel" name="ee_buffer">
+     <property name="geometry">
+      <rect>
+       <x>560</x>
+       <y>50</y>
+       <width>101</width>
+       <height>251</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(255,240,240);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Box</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
+     </property>
+     <property name="text">
+      <string>Buffer</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_7">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>30</y>
+       <width>481</width>
+       <height>191</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>File:</string>
+     </property>
+     <widget class="QPushButton" name="ee_load">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>60</y>
+        <width>83</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Load section from file into buffer</string>
+      </property>
+      <property name="text">
+       <string>Load →</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="ee_save">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>120</y>
+        <width>83</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Save memory buffer to file</string>
+      </property>
+      <property name="text">
+       <string>← Save</string>
+      </property>
+     </widget>
+     <widget class="QGroupBox" name="groupBox_8">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>321</width>
+        <height>91</height>
+       </rect>
+      </property>
+      <property name="title">
+       <string>Format:</string>
+      </property>
+      <widget class="QRadioButton" name="ee_ffAuto">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>30</y>
+         <width>141</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Auto (load only)</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="ee_ffELF">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>141</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>ELF (load only)</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="ee_ffIhex">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>20</y>
+         <width>107</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Intel Hex</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="ee_ffSrec">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>40</y>
+         <width>141</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Motorola S-Record</string>
+       </property>
+      </widget>
+      <widget class="QRadioButton" name="ee_ffRbin">
+       <property name="geometry">
+        <rect>
+         <x>170</x>
+         <y>60</y>
+         <width>107</width>
+         <height>23</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Raw Binary</string>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLineEdit" name="ee_filename">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>271</width>
+        <height>25</height>
+       </rect>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="ee_choose">
+      <property name="geometry">
+       <rect>
+        <x>290</x>
+        <y>40</y>
+        <width>41</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Choose filename for load or save</string>
+      </property>
+      <property name="text">
+       <string>…</string>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QPushButton" name="ee_clear">
+     <property name="geometry">
+      <rect>
+       <x>570</x>
+       <y>330</y>
+       <width>83</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <property name="toolTip">
+      <string>Clear buffer and &quot;allocated&quot; flags</string>
+     </property>
+     <property name="text">
+      <string>Clear</string>
+     </property>
+    </widget>
+    <widget class="QGroupBox" name="groupBox_9">
+     <property name="geometry">
+      <rect>
+       <x>40</x>
+       <y>230</y>
+       <width>481</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>Device:</string>
+     </property>
+     <widget class="QPushButton" name="ee_read">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>50</y>
+        <width>83</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Read device into buffer</string>
+      </property>
+      <property name="text">
+       <string>Read →</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="ee_program">
+      <property name="geometry">
+       <rect>
+        <x>370</x>
+        <y>90</y>
+        <width>83</width>
+        <height>25</height>
+       </rect>
+      </property>
+      <property name="toolTip">
+       <string>Programm buffer into device</string>
+      </property>
+      <property name="text">
+       <string>← Program</string>
+      </property>
+     </widget>
+     <widget class="QGraphicsView" name="ee_avr">
+      <property name="geometry">
+       <rect>
+        <x>150</x>
+        <y>30</y>
+        <width>171</width>
+        <height>101</height>
+       </rect>
+      </property>
+      <property name="interactive">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </widget>
    </widget>
   </widget>
  </widget>

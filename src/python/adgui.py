@@ -292,6 +292,7 @@ class adgui(QObject):
         gsc = QGraphicsScene()
         gsc.addPixmap(logo)
         self.memories.avr.setScene(gsc)
+        self.memories.ee_avr.setScene(gsc)
 
         self.adgui.show()
 
@@ -350,6 +351,12 @@ class adgui(QObject):
             self.memories.erase.pressed.connect(self.chip_erase)
             self.memories.clear.pressed.connect(self.clear_buffer)
             self.memories.filename.editingFinished.connect(self.detect_flash_file)
+            self.memories.ee_choose.pressed.connect(self.ask_eeprom_file)
+            self.memories.ee_read.pressed.connect(self.eeprom_read)
+            self.memories.ee_program.pressed.connect(self.eeprom_write)
+            self.memories.ee_save.pressed.connect(self.eeprom_save)
+            self.memories.ee_load.pressed.connect(self.eeprom_load)
+            self.memories.ee_filename.editingFinished.connect(self.detect_eeprom_file)
             self.load_settings()
 
         self.buffer_empty = 'background-color: rgb(255,240,240);'
@@ -721,7 +728,7 @@ class adgui(QObject):
             self.log("No data to write into 'flash' memory", ad.MSG_WARNING)
             return
         amnt = ad.avr_write_mem(self.pgm, self.dev, m, self.flash_size)
-        self.log(f"Programmed {amnt}  bytes")
+        self.log(f"Programmed {amnt} bytes")
 
     def clear_buffer(self):
         m = ad.avr_locate_mem(self.dev, 'flash')
@@ -767,7 +774,7 @@ class adgui(QObject):
             fmt = ad.FMT_AUTO
         elif self.memories.ffELF.isChecked():
             fmt = ad.FMT_ELF
-        if self.memories.ffIhex.isChecked():
+        elif self.memories.ffIhex.isChecked():
             fmt = ad.FMT_IHEX
         elif self.memories.ffSrec.isChecked():
             fmt = ad.FMT_SREC
@@ -814,6 +821,129 @@ class adgui(QObject):
                 self.debuglog = ""
             except Exception as e:
                 self.log(f"Cannot write log file: {str(e)}", ad.LOG_WXT_ERROR)
+
+    def ask_eeprom_file(self):
+        dlg = QFileDialog(caption = "Select file",
+                          filter = "Load files (*.elf *.hex *.eep *.srec *.bin);; All Files (*)")
+        if dlg.exec():
+            self.memories.ee_filename.setText(dlg.selectedFiles()[0])
+            self.detect_eeprom_file()
+
+    def detect_eeprom_file(self):
+        # If file exists, try finding out real format. If file doesn't
+        # exist, try guessing the intended file format based on the
+        # suffix.
+        fname = self.memories.ee_filename.text()
+        if len(fname) > 0:
+            self.eepromname = fname
+            self.memories.ee_load.setEnabled(True)
+            self.memories.ee_save.setEnabled(True)
+        else:
+            # no filename, disable load/save buttons
+            self.eepromname = None
+            self.memories.ee_load.setEnabled(False)
+            self.memories.ee_save.setEnabled(False)
+            return
+        p = pathlib.Path(fname)
+        if p.is_file():
+            fmt = ad.fileio_fmt_autodetect(fname)
+            if fmt == ad.FMT_ELF:
+                self.memories.ee_ffELF.setChecked(True)
+            elif fmt == ad.FMT_IHEX:
+                self.memories.ee_ffIhex.setChecked(True)
+            elif fmt == ad.FMT_SREC:
+                self.memories.ee_ffSrec.setChecked(True)
+        else:
+            if fname.endswith('.hex') or fname.endswith('.ihex') \
+               or fname.endswith('.eep'): # common name for EEPROM Intel hex files
+                self.memories.ee_ffIhex.setChecked(True)
+            elif fname.endswith('.srec'):
+                self.memories.ee_ffSrec.setChecked(True)
+            elif fname.endswith('.bin'):
+                self.memories.ee_ffRbin.setChecked(True)
+
+    def eeprom_read(self):
+        self.adgui.progressBar.setEnabled(True)
+        m = ad.avr_locate_mem(self.dev, 'eeprom')
+        if not m:
+            self.log("Could not find 'eeprom' memory", ad.MSG_ERROR)
+            return
+        amnt = ad.avr_read_mem(self.pgm, self.dev, m)
+        self.eeprom_size = amnt
+        self.log(f"Read {amnt} bytes")
+        if amnt > 0:
+            self.memories.ee_buffer.setStyleSheet(self.buffer_full)
+
+    def eeprom_write(self):
+        self.adgui.progressBar.setEnabled(True)
+        m = ad.avr_locate_mem(self.dev, 'eeprom')
+        if not m:
+            self.log("Could not find 'eeprom' memory", ad.MSG_ERROR)
+            return
+        if self.eeprom_size == 0:
+            self.log("No data to write into 'eeprom' memory", ad.MSG_WARNING)
+            return
+        amnt = ad.avr_write_mem(self.pgm, self.dev, m, self.eeprom_size)
+        self.log(f"Programmed {amnt} bytes")
+
+    def clear_buffer(self):
+        m = ad.avr_locate_mem(self.dev, 'eeprom')
+        if not m:
+            self.log("Could not find 'eeprom' memory", ad.MSG_ERROR)
+            return
+        m.clear(m.size)
+        self.log(f"Cleared {m.size} bytes of buffer, and allocation flags")
+        self.eeprom_size = 0
+        self.memories.ee_buffer.setStyleSheet(self.buffer_empty)
+
+    def eeprom_save(self):
+        if self.memories.ee_ffAuto.isChecked() or \
+           self.memories.ee_ffELF.isChecked():
+            self.log("Auto or ELF are not valid for saving files", ad.MSG_ERROR)
+            return
+        if self.memories.ee_ffIhex.isChecked():
+            fmt = ad.FMT_IHEX
+        elif self.memories.ee_ffSrec.isChecked():
+            fmt = ad.FMT_SREC
+        elif self.memories.ee_ffRbin.isChecked():
+            fmt = ad.FMT_RBIN
+        else:
+            self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
+            return
+        fname = self.eepromname
+        p = pathlib.Path(fname)
+        if p.is_file():
+            result = QMessageBox.question(self.memories,
+                                          f"Overwrite {fname}?",
+                                          f"Do you want to overwrite {fname}?")
+            if result != QMessageBox.StandardButton.Yes:
+                return
+        if self.eeprom_size != 0:
+            amnt = self.eeprom_size
+        else:
+            amnt = -1
+        amnt = ad.fileio(ad.FIO_WRITE, self.eepromname, fmt, self.dev, "eeprom", amnt)
+        self.log(f"Wrote {amnt} bytes to {self.eepromname}")
+
+    def eeprom_load(self):
+        if self.memories.ee_ffAuto.isChecked():
+            fmt = ad.FMT_AUTO
+        elif self.memories.ee_ffELF.isChecked():
+            fmt = ad.FMT_ELF
+        elif self.memories.ee_ffIhex.isChecked():
+            fmt = ad.FMT_IHEX
+        elif self.memories.ee_ffSrec.isChecked():
+            fmt = ad.FMT_SREC
+        elif self.memories.ee_ffRbin.isChecked():
+            fmt = ad.FMT_RBIN
+        else:
+            self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
+            return
+        amnt = ad.fileio(ad.FIO_READ, self.eepromname, fmt, self.dev, "eeprom", -1)
+        self.log(f"Read {amnt} bytes from {self.eepromname}")
+        self.eeprom_size = amnt
+        if amnt > 0:
+            self.memories.ee_buffer.setStyleSheet(self.buffer_full)
 
 def main():
     gui = adgui(sys.argv)
