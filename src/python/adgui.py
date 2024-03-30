@@ -713,6 +713,14 @@ class adgui(QObject):
         else:
             self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
             return
+        fname = self.flashname
+        p = pathlib.Path(fname)
+        if p.is_file():
+            result = QMessageBox.question(self.memories,
+                                          f"Overwrite {fname}?",
+                                          f"Do you want to overwrite {fname}?")
+            if result != QMessageBox.StandardButton.Yes:
+                return
         amnt = ad.fileio(ad.FIO_WRITE, self.flashname, fmt, self.dev, "flash", -1)
         self.log(f"Wrote {amnt} bytes to {self.flashname}")
 
