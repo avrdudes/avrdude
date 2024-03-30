@@ -86,6 +86,7 @@ enum msgmode {
   MSG2_INDENT1 = 16,    // Start by printing indentation of progname+1 blanks
   MSG2_INDENT2 = 32,    // Start by printing indentation of progname+2 blanks
   MSG2_FLUSH = 64,      // Flush before and after printing
+  MSG2_LEFT_MARGIN = 128, // Print \n unless last character printed was \n
 };
 
 /* formerly lists.h */
