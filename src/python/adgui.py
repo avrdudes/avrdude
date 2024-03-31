@@ -293,6 +293,9 @@ class adgui(QObject):
         gsc.addPixmap(logo)
         self.memories.avr.setScene(gsc)
         self.memories.ee_avr.setScene(gsc)
+        self.memories.fuse_avr.setScene(gsc)
+
+        self.disable_fuses()
 
         self.adgui.show()
 
@@ -656,6 +659,7 @@ class adgui(QObject):
                              ad.MSG_WARNING)
                 self.memories.flash.setEnabled(True)
                 self.memories.eeprom.setEnabled(True)
+                self.memories.fuses.setEnabled(True)
                 sigstr = read_sig.hex(' ').upper()
                 self.memories.deviceSig.setText(sigstr)
                 p = ad.locate_part_by_signature(ad.cvar.part_list, read_sig)
@@ -944,6 +948,11 @@ class adgui(QObject):
         self.eeprom_size = amnt
         if amnt > 0:
             self.memories.ee_buffer.setStyleSheet(self.buffer_full)
+
+    def disable_fuses(self):
+        # make all fuse labels and entries invisible
+        for w in self.memories.groupBox_13.children():
+            w.setVisible(False)
 
 def main():
     gui = adgui(sys.argv)
