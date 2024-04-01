@@ -115,6 +115,8 @@
     </property>
     <addaction name="actionDevice"/>
     <addaction name="actionProgrammer"/>
+    <addaction name="actionAttach"/>
+    <addaction name="actionDetach"/>
     <addaction name="separator"/>
     <addaction name="actionSave_log"/>
     <addaction name="separator"/>
@@ -239,6 +241,22 @@
   <action name="actionSave_log">
    <property name="text">
     <string>Save log ...</string>
+   </property>
+  </action>
+  <action name="actionAttach">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Attach programmer</string>
+   </property>
+  </action>
+  <action name="actionDetach">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Detach programmer</string>
    </property>
   </action>
  </widget>

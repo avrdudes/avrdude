@@ -324,6 +324,8 @@ class adgui(QObject):
             self.adgui.actionProgrammer.setEnabled(False)
             # essentially, only Exit and Help work anymore
         else:
+            self.adgui.actionAttach.triggered.connect(self.start_programmer)
+            self.adgui.actionDetach.triggered.connect(self.stop_programmer)
             self.devices = classify_devices()
             self.update_device_cb()
             self.device.at90.stateChanged.connect(self.update_device_cb)
@@ -496,17 +498,26 @@ class adgui(QObject):
                 idx = self.device.devices.findText(n)
                 if idx != -1:
                     self.device.devices.setCurrentIndex(idx)
+                    self.dev = ad.locate_part(ad.cvar.part_list, n)
+                    self.dev_selected = n
+                    self.update_device_info()
+                    self.adgui.actionDevice_Info.setEnabled(True)
                     self.log(f"Device set to {n}", ad.MSG_INFO)
             if 'file/programmer' in k:
                 n = s.value('file/programmer')
                 idx = self.programmer.programmers.findText(n)
                 if idx != -1:
                     self.programmer.programmers.setCurrentIndex(idx)
+                    self.pgm = ad.locate_programmer(ad.cvar.programmers, n)
+                    self.prog_selected = n
                     self.log(f"Programmer set to {n}", ad.MSG_INFO)
             if 'file/port' in k:
                 n = s.value('file/port')
+                self.port = n
                 self.programmer.port.setText(n)
                 self.log(f"Port set to {n}")
+            if self.port != "set_this" and self.pgm and self.dev:
+                self.adgui.actionAttach.setEnabled(True)
 
     def update_device_cb(self):
         fams = list(self.devices.keys())
@@ -584,7 +595,7 @@ class adgui(QObject):
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
-            self.start_programmer()
+            self.adgui.actionAttach.setEnabled(True)
 
     def programmer_selected(self):
         self.prog_selected = self.programmer.programmers.currentText()
@@ -595,7 +606,7 @@ class adgui(QObject):
         self.log(f"Selected port: {self.port}")
         self.settings.setValue('file/port', self.port)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
-            self.start_programmer()
+            self.adgui.actionAttach.setEnabled(True)
 
     def programmer_update_port(self):
         selected = self.programmer.programmers.currentText()
@@ -630,6 +641,8 @@ class adgui(QObject):
             self.pgm.initialize(self.dev)
             self.log('Programmer successfully started')
             self.adgui.actionProgramming.setEnabled(True)
+            self.adgui.actionAttach.setEnabled(False)
+            self.adgui.actionDetach.setEnabled(True)
             self.connected = True
 
     def stop_programmer(self):
@@ -637,6 +650,11 @@ class adgui(QObject):
             self.pgm.disable()
             self.pgm.close()
             self.pgm.teardown()
+            self.log('Programmer stopped')
+            self.adgui.actionAttach.setEnabled(True)
+            self.adgui.actionDetach.setEnabled(False)
+            self.adgui.actionProgramming.setEnabled(False)
+            self.connected = False
 
     def cleanup(self):
         self.settings.sync()
