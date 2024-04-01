@@ -377,6 +377,7 @@ class adgui(QObject):
             self.memories.ee_load.pressed.connect(self.eeprom_load)
             self.memories.ee_filename.editingFinished.connect(self.detect_eeprom_file)
             self.memories.fuse_read.pressed.connect(self.read_fuses)
+            self.memories.fuse_program.pressed.connect(self.program_fuses)
             for w in self.memories.groupBox_13.children():
                 if w.objectName().startswith('fval'):
                     # functools.partial() is black magic, it allows to
@@ -1022,7 +1023,7 @@ class adgui(QObject):
         idx = 0
         self.fuselabels = {}
         for name in fuses:
-            self.fuselabels[name] = idx
+            self.fuselabels[name] = [idx, False]
             eval(f"self.memories.fuse{idx}.setText({'name'})")
             eval(f"self.memories.fuse{idx}.setVisible(True)")
             eval(f"self.memories.fval{idx}.setVisible(True)")
@@ -1040,7 +1041,7 @@ class adgui(QObject):
                 self.log(f"Read only {amnt} out of {m.size} bytes", ad.MSG_WARNING)
             val = int(m.get(1)[0])
             s = f"{val:02X}"
-            idx = self.fuselabels[fuse]
+            (idx, allocated) = self.fuselabels[fuse]
             eval(f"self.memories.fval{idx}.clear()")
             eval(f"self.memories.fval{idx}.insert('{s}')")
 
@@ -1048,7 +1049,7 @@ class adgui(QObject):
     def fuseval_changed(self, le):
         slotnumber = int(le.objectName()[-1])
         for fuse in self.fuselabels.keys():
-            if self.fuselabels[fuse] == slotnumber:
+            if self.fuselabels[fuse][0] == slotnumber:
                 m = ad.avr_locate_mem(self.dev, fuse)
                 if not m:
                     self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
@@ -1060,10 +1061,26 @@ class adgui(QObject):
                     self.log(str(e), ad.MSG_WARNING)
                     return
                 m.put(val.to_bytes(1, 'little'))
+                self.fuselabels[fuse][1] = True
                 self.log(f"Updated {fuse} memory")
                 return
         self.log(f"Could not find a fuse for slot {slotnmber}", ad.MSG_ERROR)
 
+    def program_fuses(self):
+        for fuse in self.fuselabels.keys():
+            m = ad.avr_locate_mem(self.dev, fuse)
+            if not m:
+                self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                continue
+            if not self.fuselabels[fuse][1]:
+                self.log(f"Not programming {fuse} memory: not changed", ad.MSG_NOTICE)
+                continue
+            amnt = ad.avr_write_mem(self.pgm, self.dev, m, 1)
+            if amnt > 0:
+                self.log(f"Wrote {amnt} bytes of {fuse}")
+            else:
+                self.log(f"Failed to write {fuse}", ad.MSG_WARNING)
+            self.fuselabels[fuse][1] = False
 
 def main():
     gui = adgui(sys.argv)
