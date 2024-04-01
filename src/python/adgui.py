@@ -502,6 +502,7 @@ class adgui(QObject):
                     self.dev_selected = n
                     self.update_device_info()
                     self.adgui.actionDevice_Info.setEnabled(True)
+                    self.enable_fuses()
                     self.log(f"Device set to {n}", ad.MSG_INFO)
             if 'file/programmer' in k:
                 n = s.value('file/programmer')
@@ -594,6 +595,7 @@ class adgui(QObject):
         self.settings.setValue('file/device', self.dev_selected)
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
+        self.enable_fuses()
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
             self.adgui.actionAttach.setEnabled(True)
 
@@ -971,6 +973,34 @@ class adgui(QObject):
         # make all fuse labels and entries invisible
         for w in self.memories.groupBox_13.children():
             w.setVisible(False)
+
+    def fuse_names(self):
+        # return name of fuse memories for self.dev
+        res = []
+        m = ad.lfirst(self.dev.mem)
+        while m:
+            mm = ad.ldata_avrmem((m))
+            name = mm.desc
+            if name != 'fuses' and name.find('fuse') != -1:
+                res.append(name)
+            m = ad.lnext(m)
+        return res
+
+    def enable_fuses(self):
+        # update fuse labels, and make them visible
+        if 'fuselabels' in self.__dict__.keys():
+            self.disable_fuses()
+        fuses = self.fuse_names()
+        if len(fuses) == 0:
+            return
+        idx = 0
+        self.fuselabels = {}
+        for name in fuses:
+            self.fuselabels[name] = idx
+            eval(f"self.memories.fuse{idx}.setText({'name'})")
+            eval(f"self.memories.fuse{idx}.setVisible(True)")
+            eval(f"self.memories.fval{idx}.setVisible(True)")
+            idx += 1
 
 def main():
     gui = adgui(sys.argv)
