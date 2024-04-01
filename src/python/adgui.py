@@ -244,6 +244,20 @@ from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtCore import *
 from PySide2.QtUiTools import QUiLoader
+from functools import partial
+
+class EnterFilter(QObject):
+    '''Filters <Key_Enter> and <Key_Return> events'''
+    def __init__(self):
+        super().__init__()
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.KeyPress and \
+           (event.key() == Qt.Key_Return or
+            event.key() == Qt.Key_Enter):
+            source.editingFinished.emit()
+            return True # but not any further
+        return False
 
 class adgui(QObject):
     def __init__(self, argv):
@@ -362,7 +376,19 @@ class adgui(QObject):
             self.memories.ee_save.pressed.connect(self.eeprom_save)
             self.memories.ee_load.pressed.connect(self.eeprom_load)
             self.memories.ee_filename.editingFinished.connect(self.detect_eeprom_file)
+            self.memories.fuse_read.pressed.connect(self.read_fuses)
+            for w in self.memories.groupBox_13.children():
+                if w.objectName().startswith('fval'):
+                    # functools.partial() is black magic, it allows to
+                    # pass an argument to the called slot
+                    w.editingFinished.connect(partial(self.fuseval_changed, w))
             self.load_settings()
+            self.enter_filter = EnterFilter()
+            self.memories.filename.installEventFilter(self.enter_filter)
+            self.memories.ee_filename.installEventFilter(self.enter_filter)
+            self.memories.fuse_filename.installEventFilter(self.enter_filter)
+            for obj in self.memories.groupBox_13.children():
+                obj.installEventFilter(self.enter_filter)
 
         self.buffer_empty = 'background-color: rgb(255,240,240);'
         self.buffer_full = 'background-color: rgb(240,255,240);'
@@ -1001,6 +1027,43 @@ class adgui(QObject):
             eval(f"self.memories.fuse{idx}.setVisible(True)")
             eval(f"self.memories.fval{idx}.setVisible(True)")
             idx += 1
+
+    def read_fuses(self):
+        for fuse in self.fuselabels.keys():
+            m = ad.avr_locate_mem(self.dev, fuse)
+            if not m:
+                self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                continue
+            amnt = ad.avr_read_mem(self.pgm, self.dev, m)
+            self.log(f"Read {amnt} bytes of {fuse}")
+            if amnt != m.size:
+                self.log(f"Read only {amnt} out of {m.size} bytes", ad.MSG_WARNING)
+            val = int(m.get(1)[0])
+            s = f"{val:02X}"
+            idx = self.fuselabels[fuse]
+            eval(f"self.memories.fval{idx}.clear()")
+            eval(f"self.memories.fval{idx}.insert('{s}')")
+
+    @Slot(QLineEdit)
+    def fuseval_changed(self, le):
+        slotnumber = int(le.objectName()[-1])
+        for fuse in self.fuselabels.keys():
+            if self.fuselabels[fuse] == slotnumber:
+                m = ad.avr_locate_mem(self.dev, fuse)
+                if not m:
+                    self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                    return
+                t = le.text()
+                try:
+                    val = int(t, 16)
+                except ValueError as e:
+                    self.log(str(e), ad.MSG_WARNING)
+                    return
+                m.put(val.to_bytes(1, 'little'))
+                self.log(f"Updated {fuse} memory")
+                return
+        self.log(f"Could not find a fuse for slot {slotnmber}", ad.MSG_ERROR)
+
 
 def main():
     gui = adgui(sys.argv)
