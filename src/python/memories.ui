@@ -743,12 +743,12 @@ color: rgb(180, 180, 180);</string>
     </widget>
    </widget>
    <widget class="QWidget" name="fuses">
-    <attribute name="title">
-     <string>Fuses</string>
-    </attribute>
     <property name="enabled">
      <bool>false</bool>
     </property>
+    <attribute name="title">
+     <string>Fuses</string>
+    </attribute>
     <widget class="QGroupBox" name="groupBox_10">
      <property name="geometry">
       <rect>
@@ -947,6 +947,9 @@ color: rgb(180, 180, 180);</string>
         <height>25</height>
        </rect>
       </property>
+      <property name="toolTip">
+       <string>'%' in filename will be replaced by fuse name.</string>
+      </property>
      </widget>
      <widget class="QPushButton" name="fuse_choose">
       <property name="geometry">
@@ -979,7 +982,7 @@ color: rgb(180, 180, 180);</string>
      </property>
      <widget class="QLabel" name="fuse0">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1005,7 +1008,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse1">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1031,7 +1034,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse2">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1057,7 +1060,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse3">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1083,7 +1086,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse4">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1109,7 +1112,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse5">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1135,7 +1138,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse6">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1161,7 +1164,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse7">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1187,7 +1190,7 @@ color: rgb(180, 180, 180);</string>
      </widget>
      <widget class="QLabel" name="fuse8">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>

@@ -376,8 +376,12 @@ class adgui(QObject):
             self.memories.ee_save.pressed.connect(self.eeprom_save)
             self.memories.ee_load.pressed.connect(self.eeprom_load)
             self.memories.ee_filename.editingFinished.connect(self.detect_eeprom_file)
+            self.memories.fuse_choose.pressed.connect(self.ask_fuses_file)
             self.memories.fuse_read.pressed.connect(self.read_fuses)
             self.memories.fuse_program.pressed.connect(self.program_fuses)
+            self.memories.fuse_save.pressed.connect(self.fuses_save)
+            self.memories.fuse_load.pressed.connect(self.fuses_load)
+            self.memories.fuse_filename.editingFinished.connect(self.detect_fuses_file)
             for w in self.memories.groupBox_13.children():
                 if w.objectName().startswith('fval'):
                     # functools.partial() is black magic, it allows to
@@ -1029,6 +1033,52 @@ class adgui(QObject):
             eval(f"self.memories.fval{idx}.setVisible(True)")
             idx += 1
 
+    def ask_fuses_file(self):
+        dlg = QFileDialog(caption = "Select file",
+                          filter = "Load files (*.elf *.hex *.eep *.srec *.bin);; All Files (*)")
+        if dlg.exec():
+            self.memories.fuse_filename.setText(dlg.selectedFiles()[0])
+            self.detect_fuses_file()
+
+    def detect_fuses_file(self):
+        # If file exists, try finding out real format. If file doesn't
+        # exist, try guessing the intended file format based on the
+        # suffix.
+        fname = self.memories.fuse_filename.text()
+        if len(fname) > 0:
+            self.fusename = fname
+            self.memories.fuse_load.setEnabled(True)
+            self.memories.fuse_save.setEnabled(True)
+        else:
+            # no filename, disable load/save buttons
+            self.fusename = None
+            self.memories.fuse_load.setEnabled(False)
+            self.memories.fuse_save.setEnabled(False)
+            return
+        for fuse in self.fuselabels.keys():
+            m = ad.avr_locate_mem(self.dev, fuse)
+            if not m:
+                self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                continue
+            fname = self.fuse_filename(fuse)
+            p = pathlib.Path(fname)
+            if p.is_file():
+                fmt = ad.fileio_fmt_autodetect(fname)
+                if fmt == ad.FMT_ELF:
+                    self.memories.fuse_ffELF.setChecked(True)
+                elif fmt == ad.FMT_IHEX:
+                    self.memories.fuse_ffIhex.setChecked(True)
+                elif fmt == ad.FMT_SREC:
+                    self.memories.fuse_ffSrec.setChecked(True)
+            else:
+                if fname.endswith('.hex') or fname.endswith('.ihex') \
+                   or fname.endswith('.eep'): # common name for EEPROM Intel hex files
+                    self.memories.fuse_ffIhex.setChecked(True)
+                elif fname.endswith('.srec'):
+                    self.memories.fuse_ffSrec.setChecked(True)
+                elif fname.endswith('.bin'):
+                    self.memories.fuse_ffRbin.setChecked(True)
+
     def read_fuses(self):
         for fuse in self.fuselabels.keys():
             m = ad.avr_locate_mem(self.dev, fuse)
@@ -1086,6 +1136,74 @@ class adgui(QObject):
             else:
                 self.log(f"Failed to write {fuse}", ad.MSG_WARNING)
             self.fuselabels[fuse][1] = False
+
+    def fuse_filename(self, fuse):
+        fname = self.fusename
+        if not fname:
+            return ''
+        if (percentpos := fname.find('%')) != -1:
+            fname = fname[:percentpos] + fuse + fname[(percentpos + 1):]
+        return fname
+
+    def fuses_save(self):
+        if self.memories.fuse_ffAuto.isChecked() or \
+           self.memories.fuse_ffELF.isChecked():
+            self.log("Auto or ELF are not valid for saving files", ad.MSG_ERROR)
+            return
+        if self.memories.fuse_ffIhex.isChecked():
+            fmt = ad.FMT_IHEX
+        elif self.memories.fuse_ffSrec.isChecked():
+            fmt = ad.FMT_SREC
+        elif self.memories.fuse_ffRbin.isChecked():
+            fmt = ad.FMT_RBIN
+        else:
+            self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
+            return
+        for fuse in self.fuselabels.keys():
+            m = ad.avr_locate_mem(self.dev, fuse)
+            if not m:
+                self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                continue
+            fname = self.fuse_filename(fuse)
+            p = pathlib.Path(fname)
+            if p.is_file():
+                result = QMessageBox.question(self.memories,
+                                              f"Overwrite {fname}?",
+                                              f"Do you want to overwrite {fname}?")
+                if result != QMessageBox.StandardButton.Yes:
+                    continue
+            amnt = ad.fileio(ad.FIO_WRITE, fname, fmt, self.dev, fuse, m.size)
+            self.log(f"Wrote {amnt} bytes of {fuse} to {fname}")
+
+    def fuses_load(self):
+        if self.memories.fuse_ffAuto.isChecked():
+            fmt = ad.FMT_AUTO
+        elif self.memories.fuse_ffELF.isChecked():
+            fmt = ad.FMT_ELF
+        elif self.memories.fuse_ffIhex.isChecked():
+            fmt = ad.FMT_IHEX
+        elif self.memories.fuse_ffSrec.isChecked():
+            fmt = ad.FMT_SREC
+        elif self.memories.fuse_ffRbin.isChecked():
+            fmt = ad.FMT_RBIN
+        else:
+            self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
+            return
+        for fuse in self.fuselabels.keys():
+            m = ad.avr_locate_mem(self.dev, fuse)
+            if not m:
+                self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                continue
+            fname = self.fuse_filename(fuse)
+            amnt = ad.fileio(ad.FIO_READ, fname, fmt, self.dev, fuse, -1)
+            self.log(f"Read {amnt} bytes of {fuse} from {fname}")
+            if amnt > 0:
+                val = int(m.get(1)[0])
+                s = f"{val:02X}"
+                (idx, allocated) = self.fuselabels[fuse]
+                eval(f"self.memories.fval{idx}.clear()")
+                eval(f"self.memories.fval{idx}.insert('{s}')")
+                self.fuselabels[fuse][1] = True
 
 def main():
     gui = adgui(sys.argv)
