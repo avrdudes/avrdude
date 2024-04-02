@@ -1072,8 +1072,13 @@ class adgui(QObject):
             if not m:
                 self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
                 continue
+            slotnumber = self.fuselabels[fuse][0]
+            val = eval(f"self.memories.fval{slotnumber}.text()")
+            if val == '':
+                self.log(f"Not programming {fuse} memory: no value", ad.MSG_DEBUG)
+                continue
             if not self.fuselabels[fuse][1]:
-                self.log(f"Not programming {fuse} memory: not changed", ad.MSG_NOTICE)
+                self.log(f"Not programming {fuse} memory: not changed", ad.MSG_DEBUG)
                 continue
             amnt = ad.avr_write_mem(self.pgm, self.dev, m, 1)
             if amnt > 0:
