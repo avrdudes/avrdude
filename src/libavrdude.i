@@ -163,6 +163,73 @@ const char *ldata_string(LNODEID p) {
   return (const char *)ldata(p);
 }
 
+PyObject *get_config_table(const char *name) {
+  int idx = upidxname(name);
+  if (idx == -1)
+    return Py_None;
+
+  const uPcore_t *up = uP_table + idx;
+  int nitems = up->nconfigs;
+
+  // found: construct a list object
+  PyObject *list = PyList_New(nitems);
+
+  if (list == NULL) {
+    return NULL;
+  }
+
+  // now, add list elements
+  const Configitem_t *cfg = up->cfgtable;
+
+  for (int i = 0; i < nitems; i++) {
+    PyObject* dict = PyDict_New();
+    if (dict == NULL) {
+      return NULL;
+    }
+    PyDict_SetItem(dict, PyUnicode_FromString("name"),
+                   PyUnicode_FromString(cfg->name));
+    int nvalues = cfg->nvalues;
+    PyObject *vlist = PyList_New(nvalues);
+    if (vlist == NULL) {
+      return NULL;
+    }
+    for (int j = 0; j < nvalues; j++) {
+      PyObject* vdict = PyDict_New();
+      if (vdict == NULL) {
+        return NULL;
+      }
+      PyDict_SetItem(vdict, PyUnicode_FromString("value"),
+                     PyLong_FromLong(cfg->vlist[j].value));
+      PyDict_SetItem(vdict, PyUnicode_FromString("label"),
+                     PyUnicode_FromString(cfg->vlist[j].label));
+      PyDict_SetItem(vdict, PyUnicode_FromString("vcomment"),
+                     PyUnicode_FromString(cfg->vlist[j].vcomment));
+
+      PyList_SetItem(vlist, j, vdict);
+    }
+    PyDict_SetItem(dict, PyUnicode_FromString("vlist"),
+                   vlist);
+    PyDict_SetItem(dict, PyUnicode_FromString("memstr"),
+                   PyUnicode_FromString(cfg->memstr));
+    PyDict_SetItem(dict, PyUnicode_FromString("memoffset"),
+                   PyLong_FromLong(cfg->memoffset));
+    PyDict_SetItem(dict, PyUnicode_FromString("mask"),
+                   PyLong_FromLong(cfg->mask));
+    PyDict_SetItem(dict, PyUnicode_FromString("lsh"),
+                   PyLong_FromLong(cfg->lsh));
+    PyDict_SetItem(dict, PyUnicode_FromString("initval"),
+                   PyLong_FromLong(cfg->initval));
+    PyDict_SetItem(dict, PyUnicode_FromString("ccomment"),
+                   PyUnicode_FromString(cfg->ccomment));
+
+    PyList_SetItem(list, i, dict);
+
+    cfg++;
+  }
+
+  return list;
+}
+
 %}
 
 // globals from above are mapped to Python
@@ -637,5 +704,10 @@ int fileio_fmt_autodetect(const char *fname);
 %feature("autodoc", "fileio(oprwv: FIO_OP, filename: str, format: FILEFMT, p: AVRPART, memstr: str, size: int) -> int [size, or -1 on error]") fileio;
 int fileio(int oprwv, const char *filename, FILEFMT format,
   const AVRPART *p, const char *memstr, int size);
+
+// avrintel stuff - configuration values for various AVRs
+
+%feature("autodoc", "get_config_table(name: str) -> list") get_config_table;
+PyObject *get_config_table(const char *name);
 
 %feature("autodoc", "1");
