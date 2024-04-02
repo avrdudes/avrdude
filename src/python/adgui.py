@@ -286,7 +286,7 @@ class adgui(QObject):
         srcdir = str(p.parent)
         for f in [ "adgui.ui", "about.ui", "device.ui",
                    "devinfo.ui", "loglevel.ui", "programmer.ui",
-                   "memories.ui" ]:
+                   "memories.ui", "askfuse.ui" ]:
             ui = QFile(srcdir + '/' + f)
             if not ui.open(QFile.ReadOnly):
                 print(f"Cannot open {f}: {ui.errorString()}", file = sys.stderr)
@@ -1004,6 +1004,7 @@ class adgui(QObject):
         # make all fuse labels and entries invisible
         for w in self.memories.groupBox_13.children():
             w.setVisible(False)
+            w.clear()
 
     def fuse_names(self):
         # return name of fuse memories for self.dev
@@ -1027,6 +1028,11 @@ class adgui(QObject):
         idx = 0
         self.fuselabels = {}
         for name in fuses:
+            # self.fuselabels has the fuse name as key, and a list of
+            # [idx, allocated] as data. 'idx' is the GUI index for the
+            # fuseN and fvalN label and lineedit, respectively.
+            # 'allocated' is a flag indicating that there is
+            # "interesting" data in the lineedit entry.
             self.fuselabels[name] = [idx, False]
             eval(f"self.memories.fuse{idx}.setText({'name'})")
             eval(f"self.memories.fuse{idx}.setVisible(True)")
@@ -1105,6 +1111,11 @@ class adgui(QObject):
                     self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
                     return
                 t = le.text()
+                if t.isspace():
+                    m.clear(m.size)
+                    self.fuselabels[fuse][1] = False
+                    self.log(f"Cleared {fuse} field", ad.MSG_DEBUG)
+                    return
                 try:
                     val = int(t, 16)
                 except ValueError as e:
@@ -1124,7 +1135,7 @@ class adgui(QObject):
                 continue
             slotnumber = self.fuselabels[fuse][0]
             val = eval(f"self.memories.fval{slotnumber}.text()")
-            if val == '':
+            if val.isspace():
                 self.log(f"Not programming {fuse} memory: no value", ad.MSG_DEBUG)
                 continue
             if not self.fuselabels[fuse][1]:
@@ -1160,6 +1171,9 @@ class adgui(QObject):
             self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
             return
         for fuse in self.fuselabels.keys():
+            if not self.fuselabels[fuse][1]:
+                # empty field, skip
+                continue
             m = ad.avr_locate_mem(self.dev, fuse)
             if not m:
                 self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
@@ -1175,6 +1189,15 @@ class adgui(QObject):
             amnt = ad.fileio(ad.FIO_WRITE, fname, fmt, self.dev, fuse, m.size)
             self.log(f"Wrote {amnt} bytes of {fuse} to {fname}")
 
+    def fuse_ask(self):
+        self.askfuse.fuse_selection.clear()
+        for fuse in self.fuselabels.keys():
+            self.askfuse.fuse_selection.addItem(fuse)
+        result = self.askfuse.exec()
+        if result == QDialog.Accepted:
+            return self.askfuse.fuse_selection.currentText()
+        return None
+
     def fuses_load(self):
         if self.memories.fuse_ffAuto.isChecked():
             fmt = ad.FMT_AUTO
@@ -1189,6 +1212,38 @@ class adgui(QObject):
         else:
             self.log("Internal error: cannot determine file format", ad.MSG_ERROR)
             return
+        if self.fusename.find('%') == -1:
+            # If absolute name, see whether it is ELF or something
+            # else.  ELF can contain data for all fuses, all other
+            # file formats only contain data for a single fuse, so we
+            # must ask for which one it is intended.
+            p = pathlib.Path(self.fusename)
+            if p.is_file():
+                if fmt == ad.FMT_AUTO:
+                    fmt = ad.fileio_fmt_autodetect(fname)
+                if fmt == ad.FMT_ELF:
+                    # OK, assume multi-fuse
+                    pass
+                else:
+                    # Ask
+                    fname = self.fusename
+                    fuse = self.fuse_ask()
+                    if fuse:
+                        m = ad.avr_locate_mem(self.dev, fuse)
+                        if not m:
+                            self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
+                            return
+                        amnt = ad.fileio(ad.FIO_READ, fname, fmt, self.dev, fuse, -1)
+                        self.log(f"Read {amnt} bytes of {fuse} from {fname}")
+                        if amnt > 0:
+                            val = int(m.get(1)[0])
+                            s = f"{val:02X}"
+                            (idx, allocated) = self.fuselabels[fuse]
+                            eval(f"self.memories.fval{idx}.clear()")
+                            eval(f"self.memories.fval{idx}.insert('{s}')")
+                            self.fuselabels[fuse][1] = True
+                    return
+        # proceed with attempting to load all fuses here
         for fuse in self.fuselabels.keys():
             m = ad.avr_locate_mem(self.dev, fuse)
             if not m:
