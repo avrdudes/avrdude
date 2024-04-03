@@ -13,6 +13,9 @@
   <property name="windowTitle">
    <string>Log Level</string>
   </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
