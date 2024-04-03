@@ -1005,6 +1005,8 @@ class adgui(QObject):
     def disable_fuses(self):
         # make all fuse labels and entries invisible
         for w in self.memories.groupBox_13.children():
+            if w.objectName().find('Layout') != -1:
+                continue
             w.setVisible(False)
             w.clear()
 
