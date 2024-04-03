@@ -24,6 +24,8 @@
 # ad.fileio(ad.FIO_WRITE, "test.hex", ad.fileio_format("i"), p, "flash", -1)
 
 # cfg=ad.get_config_table('atmega128')
+# l=dissect_fuse(cfg, 'lfuse', 0xe0)
+# hex(synthesize_fuse(cfg, 'lfuse', l))
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -214,3 +216,57 @@ ad.set_msg_callback(msg_callback)
 ad.set_progress_callback(progress_callback)
 ad.cvar.verbose=2
 
+def dissect_fuse(config: list, fuse: str, val: int):
+    '''
+    Analyze the value of a particular fuse
+
+    config: configuration list from ad.get_config_table()
+    fuse: string of fuse to handle
+    val: integer value of the fuse
+
+    Prints fuse information, and returns a list of items, useful
+    for synthesize_fuse()
+    '''
+    result = []
+    for i in config:
+        # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+        if i['memstr'] != fuse:
+            continue
+        name = i['name']
+        vlist = i['vlist']
+        thisval = val & i['mask']
+        thisval = thisval >> i['lsh']
+        ccmt = i['ccomment']
+        print(f"bitfield {name}, value {thisval}, {ccmt}")
+        for j in vlist:
+            # 'value', 'label', 'vcomment'
+            if j['value'] == thisval:
+                lbl = j['label']
+                vcmt = j['vcomment']
+                print(f"    {lbl}, {vcmt}")
+                result.append(lbl)
+    return result
+
+def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
+    '''
+    Synthesize the value of a particular fuse
+
+    config: configuration list from ad.get_config_table()
+    fuse: string of fuse to handle
+    vallist: list of items to set (from dissect_fuse())
+
+    Returns synthesized fuse value.
+    '''
+    resval = 0
+    for i in config:
+        # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+        if i['memstr'] != fuse:
+            continue
+        vlist = i['vlist']
+        shift = i['lsh']
+        for j in vlist:
+            # 'value', 'label', 'vcomment'
+            if j['label'] in vallist:
+                thisval = j['value'] << shift
+                resval |= thisval
+    return resval
