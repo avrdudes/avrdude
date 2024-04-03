@@ -513,6 +513,8 @@ class adgui(QObject):
                 ad.cvar.verbose = ll
                 found = False
                 for obj in self.loglevel.groupBox.children():
+                    if not obj.objectName().startswith('radioButton'):
+                        continue
                     tt = obj.toolTip()
                     if tt and (int(tt) == ll):
                         obj.setChecked(True)

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>277</width>
-    <height>317</height>
+    <width>254</width>
+    <height>368</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,182 +16,152 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>180</x>
-     <y>280</y>
-     <width>81</width>
-     <height>31</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Vertical</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel</set>
-   </property>
-  </widget>
-  <widget class="QGroupBox" name="groupBox">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>10</y>
-     <width>141</width>
-     <height>301</height>
-    </rect>
-   </property>
-   <property name="title">
-    <string>Log Level</string>
-   </property>
-   <widget class="QRadioButton" name="radioButton">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>30</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">-3</string>
-    </property>
-    <property name="text">
-     <string>OS Error</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_2">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>60</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">-2</string>
-    </property>
-    <property name="text">
-     <string>Error</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_3">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>90</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">-1</string>
-    </property>
-    <property name="text">
-     <string>Warning</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_4">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>120</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">0</string>
-    </property>
-    <property name="text">
-     <string>Info</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_5">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>150</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">1</string>
-    </property>
-    <property name="text">
-     <string>Notice</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_6">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>180</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">2</string>
-    </property>
-    <property name="text">
-     <string>Notice 2</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_7">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>210</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">3</string>
-    </property>
-    <property name="text">
-     <string>Debug</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_8">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>240</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">4</string>
-    </property>
-    <property name="text">
-     <string>Trace</string>
-    </property>
-   </widget>
-   <widget class="QRadioButton" name="radioButton_9">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>270</y>
-      <width>107</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="toolTip">
-     <string notr="true">5</string>
-    </property>
-    <property name="text">
-     <string>Trace 2</string>
-    </property>
-   </widget>
-  </widget>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+     <widget class="QWidget" name="scrollAreaWidgetContents">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>232</width>
+        <height>346</height>
+       </rect>
+      </property>
+      <layout class="QGridLayout" name="gridLayout_2">
+       <item row="0" column="0" rowspan="2">
+        <widget class="QGroupBox" name="groupBox">
+         <property name="title">
+          <string>Log Level</string>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout">
+          <item>
+           <widget class="QRadioButton" name="radioButton">
+            <property name="toolTip">
+             <string notr="true">-3</string>
+            </property>
+            <property name="text">
+             <string>OS Error</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_2">
+            <property name="toolTip">
+             <string notr="true">-2</string>
+            </property>
+            <property name="text">
+             <string>Error</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_3">
+            <property name="toolTip">
+             <string notr="true">-1</string>
+            </property>
+            <property name="text">
+             <string>Warning</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_4">
+            <property name="toolTip">
+             <string notr="true">0</string>
+            </property>
+            <property name="text">
+             <string>Info</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_5">
+            <property name="toolTip">
+             <string notr="true">1</string>
+            </property>
+            <property name="text">
+             <string>Notice</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_6">
+            <property name="toolTip">
+             <string notr="true">2</string>
+            </property>
+            <property name="text">
+             <string>Notice 2</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_7">
+            <property name="toolTip">
+             <string notr="true">3</string>
+            </property>
+            <property name="text">
+             <string>Debug</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_8">
+            <property name="toolTip">
+             <string notr="true">4</string>
+            </property>
+            <property name="text">
+             <string>Trace</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_9">
+            <property name="toolTip">
+             <string notr="true">5</string>
+            </property>
+            <property name="text">
+             <string>Trace 2</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>238</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QDialogButtonBox" name="buttonBox">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="standardButtons">
+          <set>QDialogButtonBox::Cancel</set>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections>
