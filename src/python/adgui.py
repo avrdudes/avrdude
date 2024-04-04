@@ -240,6 +240,80 @@ def avrpart_to_mem(avrpart):
         m = ad.lnext(m)
     return res
 
+def dissect_fuse(config: list, fuse: str, val: int):
+    '''
+    Analyze the value of a particular fuse
+
+    config: configuration list from ad.get_config_table()
+    fuse: string of fuse to handle
+    val: integer value of the fuse
+    '''
+    result = []
+    for i in config:
+        # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+        if i['memstr'] != fuse:
+            continue
+        name = i['name']
+        vlist = i['vlist']
+        thisval = val & i['mask']
+        thisval = thisval >> i['lsh']
+        ccmt = i['ccomment']
+        for j in vlist:
+            # 'value', 'label', 'vcomment'
+            if j['value'] == thisval:
+                lbl = j['label']
+                vcmt = j['vcomment']
+                result.append((name, lbl))
+    return result
+
+def default_fuse(config: list, fuse: str):
+    '''
+    Synthesize the default value for a fuse
+
+    config: configuration list from ad.get_config_table()
+    fuse: string of fuse to handle
+    '''
+    resval = 0xff
+    for i in config:
+        # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+        if i['memstr'] != fuse:
+            continue
+        shift = i['lsh']
+        initval = i['initval']
+        mask = i['mask']
+        resval &= ~mask
+        value = initval << shift
+        resval |= value
+
+    return resval
+
+def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
+    '''
+    Synthesize the value of a particular fuse
+
+    config: configuration list from ad.get_config_table()
+    fuse: string of fuse to handle
+    vallist: list of items to set (from dissect_fuse())
+
+    Returns synthesized fuse value.
+    '''
+    itemlist = []
+    for ele in vallist:
+        itemlist.append(ele[1])
+    resval = 0
+    for i in config:
+        # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+        if i['memstr'] != fuse:
+            continue
+        vlist = i['vlist']
+        shift = i['lsh']
+        for j in vlist:
+            # 'value', 'label', 'vcomment'
+            if j['label'] in itemlist:
+                thisval = j['value'] << shift
+                resval |= thisval
+    return resval
+
 from PySide2.QtWidgets import *
 from PySide2.QtGui import *
 from PySide2.QtCore import *
@@ -248,16 +322,141 @@ from functools import partial
 
 class EnterFilter(QObject):
     '''Filters <Key_Enter> and <Key_Return> events'''
-    def __init__(self):
+    def __init__(self, callback = None):
         super().__init__()
+        self.callback = callback
 
     def eventFilter(self, source, event):
+        # catch <Enter> or <Return> keys, finish QLineEdit editing,
+        # but prevent propagating the event to avoid "accept"ing the
+        # entire dialog
         if event.type() == QEvent.KeyPress and \
            (event.key() == Qt.Key_Return or
             event.key() == Qt.Key_Enter):
             source.editingFinished.emit()
-            return True # but not any further
+            return True
+        # catch context menu action on fuse edits: used to pop up a
+        # dialog with fuse details rather than the standard context
+        # menu (select/copy/paste)
+        if event.type() == QEvent.ContextMenu:
+            if source.isVisible():
+                if self.callback:
+                    self.callback(source)
+                    return True
         return False
+
+class FusePopup():
+    def __init__(self, lineedit, config, fusename):
+        self.lineedit = lineedit
+        self.config = config
+        self.fusename = fusename
+
+        Dialog = QDialog()
+        self.dialog = Dialog
+        if not Dialog.objectName():
+            Dialog.setObjectName(u"Dialog")
+        Dialog.setWindowModality(Qt.ApplicationModal)
+        Dialog.setWindowTitle(f"Fuse value selection for {fusename}")
+        Dialog.resize(400, 300)
+        self.verticalLayout = QVBoxLayout(Dialog)
+        self.verticalLayout.setObjectName(u"verticalLayout")
+        self.scrollArea = QScrollArea(Dialog)
+        self.scrollArea.setObjectName(u"scrollArea")
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollAreaWidgetContents = QWidget()
+        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
+        self.scrollAreaWidgetContents.setGeometry(QRect(0, 0, 378, 248))
+        self.gridLayout = QGridLayout(self.scrollAreaWidgetContents)
+        self.gridLayout.setObjectName(u"gridLayout")
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.verticalLayout.addWidget(self.scrollArea)
+        self.buttonBox = QDialogButtonBox(Dialog)
+        self.buttonBox.setObjectName(u"buttonBox")
+        self.buttonBox.setOrientation(Qt.Horizontal)
+        self.buttonBox.setStandardButtons(QDialogButtonBox.Cancel|QDialogButtonBox.Ok)
+        self.verticalLayout.addWidget(self.buttonBox)
+        self.buttonBox.accepted.connect(Dialog.accept)
+        self.buttonBox.accepted.connect(self.get_entries)
+        self.buttonBox.rejected.connect(Dialog.reject)
+        QMetaObject.connectSlotsByName(Dialog)
+        self.construct_gui()
+        self.update_entries()
+        self.dialog.show()
+
+    def construct_gui(self):
+        rownumber = 0 # row in grid layout
+        self.widgets = []
+        for i in self.config:
+            # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+            if i['memstr'] != self.fusename:
+                continue
+            # add one row to grid layout, label with name, combobox with values
+            name = i['name']
+            vlist = i['vlist']
+            ccmt = i['ccomment']
+            l = QLabel(self.scrollAreaWidgetContents)
+            l.setObjectName(f"Label{rownumber}")
+            l.setText(ccmt)
+            l.setToolTip(name)
+            self.widgets.append(l)
+            c = QComboBox(self.scrollAreaWidgetContents)
+            c.setObjectName(f"combobox_{rownumber}")
+            self.widgets.append(c)
+            self.gridLayout.addWidget(l, rownumber, 0, 1, 1)
+            self.gridLayout.addWidget(c, rownumber, 1, 1, 1)
+            for j in vlist:
+                # 'value', 'label', 'vcomment'
+                lbl = j['label']
+                vcmt = j['vcomment']
+                c.addItem(vcmt, lbl)
+            rownumber += 1
+
+    def update_entries(self):
+        entry = self.lineedit.text()
+        default = default_fuse(self.config, self.fusename)
+        if entry == "":
+            value = default
+        elif entry.isspace():
+            value = default
+        else:
+            try:
+                value = int(entry, 16)
+            except ValueError:
+                self.log(f"Invalid entry '{entry}' for {self.fusename}, reverting to default",
+                         ad.MSG_WARNING)
+                value = default
+        vallist = dissect_fuse(self.config, self.fusename, value)
+        for ele in vallist:
+            name = ele[0]
+            val = ele[1]
+            widgets = self.widgets
+            while w := widgets[:2]:
+                label = w[0]
+                combo = w[1]
+                if label.toolTip() == name:
+                    idx = combo.findData(val)
+                    if idx == -1:
+                        self.log(f"Could not find combobox data for {val} in {name}",
+                                 ad.MSG_WARNING)
+                    else:
+                        combo.setCurrentIndex(idx)
+                    break
+                widgets = widgets[2:]
+
+    def get_entries(self):
+        result = []
+        widgets = self.widgets
+        while w := widgets[:2]:
+            label = w[0]
+            combo = w[1]
+            name = label.toolTip()
+            value = combo.currentData()
+            result.append((name, value))
+            widgets = widgets[2:]
+        fuseval = synthesize_fuse(self.config, self.fusename, result)
+        self.lineedit.clear()
+        self.lineedit.setText(f"{fuseval:02X}")
+
 
 class adgui(QObject):
     def __init__(self, argv):
@@ -392,8 +591,9 @@ class adgui(QObject):
             self.memories.filename.installEventFilter(self.enter_filter)
             self.memories.ee_filename.installEventFilter(self.enter_filter)
             self.memories.fuse_filename.installEventFilter(self.enter_filter)
+            self.fuse_enter_filter = EnterFilter(self.fuse_popup)
             for obj in self.memories.groupBox_13.children():
-                obj.installEventFilter(self.enter_filter)
+                obj.installEventFilter(self.fuse_enter_filter)
 
         self.buffer_empty = 'background-color: rgb(255,240,240);'
         self.buffer_full = 'background-color: rgb(240,255,240);'
@@ -537,6 +737,9 @@ class adgui(QObject):
                     self.adgui.actionDevice_Info.setEnabled(True)
                     self.enable_fuses()
                     self.log(f"Device set to {n}", ad.MSG_INFO)
+                    self.devcfg = ad.get_config_table(self.dev.desc)
+                    if not self.devcfg:
+                        self.log("No configuration table found", ad.MSG_WARNING)
             if 'file/programmer' in k:
                 n = s.value('file/programmer')
                 idx = self.programmer.programmers.findText(n)
@@ -629,6 +832,9 @@ class adgui(QObject):
         self.update_device_info()
         self.adgui.actionDevice_Info.setEnabled(True)
         self.enable_fuses()
+        self.devcfg = ad.get_config_table(self.dev.desc)
+        if not self.devcfg:
+            self.log("No configuration table found", ad.MSG_WARNING)
         if self.port != "set_this" and self.prog_selected and self.dev_selected:
             self.adgui.actionAttach.setEnabled(True)
 
@@ -1115,7 +1321,7 @@ class adgui(QObject):
                     self.log(f"Could not find {fuse} memory", ad.MSG_ERROR)
                     return
                 t = le.text()
-                if t.isspace():
+                if t == "" or t.isspace():
                     m.clear(m.size)
                     self.fuselabels[fuse][1] = False
                     self.log(f"Cleared {fuse} field", ad.MSG_DEBUG)
@@ -1263,6 +1469,25 @@ class adgui(QObject):
                 eval(f"self.memories.fval{idx}.clear()")
                 eval(f"self.memories.fval{idx}.insert('{s}')")
                 self.fuselabels[fuse][1] = True
+
+    def fuse_popup(self, widget):
+        # if there is no config table, stop here
+        if not self.devcfg:
+            return
+        # widget is supposed to be "fval<N>"
+        fuse_id = int(widget.objectName()[-1])
+        found = False
+        # find out which fuse we are talking about
+        for fuse in self.fuselabels.keys():
+            idx = self.fuselabels[fuse][0]
+            if idx == fuse_id:
+                found = True
+                break
+        if not found:
+            self.log(f"Internal error: cannot find fuse for {widget.objectName()}",
+                     ad.MSG_ERROR)
+            return
+        self.fpop = FusePopup(widget, self.devcfg, fuse)
 
 def main():
     gui = adgui(sys.argv)
