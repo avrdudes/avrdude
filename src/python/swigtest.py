@@ -244,7 +244,7 @@ def dissect_fuse(config: list, fuse: str, val: int):
                 lbl = j['label']
                 vcmt = j['vcomment']
                 print(f"    {lbl}, {vcmt}")
-                result.append(lbl)
+                result.append((name, lbl))
     return result
 
 def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
@@ -257,6 +257,9 @@ def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
 
     Returns synthesized fuse value.
     '''
+    itemlist = []
+    for ele in vallist:
+        itemlist.append(ele[1])
     resval = 0
     for i in config:
         # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
@@ -266,7 +269,28 @@ def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
         shift = i['lsh']
         for j in vlist:
             # 'value', 'label', 'vcomment'
-            if j['label'] in vallist:
+            if j['label'] in itemlist:
                 thisval = j['value'] << shift
                 resval |= thisval
+    return resval
+
+def default_fuse(config: list, fuse: str):
+    '''
+    Synthesize the default value for a fuse
+
+    config: configuration list from ad.get_config_table()
+    fuse: string of fuse to handle
+    '''
+    resval = 0xff
+    for i in config:
+        # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
+        if i['memstr'] != fuse:
+            continue
+        shift = i['lsh']
+        initval = i['initval']
+        mask = i['mask']
+        resval &= ~mask
+        value = initval << shift
+        resval |= value
+
     return resval
