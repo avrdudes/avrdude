@@ -159,6 +159,10 @@ AVRMEM *ldata_avrmem(LNODEID p) {
   return (AVRMEM *)ldata(p);
 }
 
+AVRMEM_ALIAS *ldata_avrmem_alias(LNODEID p) {
+  return (AVRMEM_ALIAS *)ldata(p);
+}
+
 const char *ldata_string(LNODEID p) {
   return (const char *)ldata(p);
 }
@@ -249,6 +253,7 @@ const char *pgmid;
 typedef void * LNODEID;
 typedef void * LISTID;
 typedef struct avrmem AVRMEM;
+typedef struct avrmem_alias AVRMEM_ALIAS;
 typedef struct programmer_t PROGRAMMER;
 typedef void pgm_initpgm(PROGRAMMER*);
 
@@ -327,6 +332,13 @@ typedef struct avrmem {
   %mutable;
   unsigned char * buf;        /* pointer to memory buffer */
 } AVRMEM;
+
+%immutable;
+typedef struct avrmem_alias {
+  const char *desc;           /* alias name ("syscfg0" etc.) */
+  AVRMEM *aliased_mem;
+} AVRMEM_ALIAS;
+%mutable;
 
 %extend avrmem {
 %feature("autodoc", "m.get(len: int, offset: int = 0) => return bytes; Read from memory buffer") get;
@@ -604,12 +616,17 @@ AVRPART *ldata_avrpart(LNODEID);
 %feature("autodoc", "LNODEID -> AVRMEM*") ldata_avrmem;
 AVRMEM *ldata_avrmem(LNODEID);
 
+%feature("autodoc", "LNODEID -> AVRMEM_ALIAS*") ldata_avrmem_alias;
+AVRMEM_ALIAS *ldata_avrmem_alias(LNODEID);
+
 %feature("autodoc", "LNODEID -> str") ldata_string;
 const char *ldata_string(LNODEID);
 
 // AVRMEM and AVRPART handling
 AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
 AVRPART * locate_part(const LISTID parts, const char *partdesc);
+AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
+AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 
 // Programming modes for parts and programmers: reflect changes in lexer.l, developer_opts.c and config.c
 #define PM_SPM                1 // Bootloaders, self-programming with SPM opcodes or NVM Controllers

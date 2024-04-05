@@ -27,6 +27,13 @@
 # l=dissect_fuse(cfg, 'lfuse', 0xe0)
 # hex(synthesize_fuse(cfg, 'lfuse', l))
 
+# for AVR parts with aliased mem (avrX):
+# ad.avr_locate_memalias(p, 'wdtcfg').aliased_mem.desc
+# alist = ad.lfirst(p.mem_alias)
+# ad.ldata_avrmem_alias(alist).desc
+# ad.ldata_avrmem_alias(alist).aliased_mem.desc
+# alist = ad.lnext(alist) # ...
+
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
