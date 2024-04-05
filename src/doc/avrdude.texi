@@ -1454,6 +1454,14 @@ of the default binary SPI mode:
 The only advantage of the ``raw-wire'' mode is that different SPI frequencies
 are available. Paged writing is not implemented in this mode.
 
+@item @samp{pullups}
+Enable the Bus Pirate's built-in pull-up resistors. These resistors are 
+useful when working with different voltage levels. 
+
+@item @samp{hiz}
+Enable the Bus Pirate's HiZ mode on SPI, allowing it to work as an 
+open-collector and interface with external pull-up circuits. 
+
 @item @samp{ascii}
 Attempt to use ASCII mode even when the firmware supports BinMode (binary
 mode).
