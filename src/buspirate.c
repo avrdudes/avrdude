@@ -63,7 +63,7 @@
 #define BP_FLAG_XPARM_CPUFREQ       (1<<5)
 #define BP_FLAG_XPARM_RAWFREQ       (1<<6)
 #define BP_FLAG_NOPAGEDREAD         (1<<7)
-#define BP_FLAG_PUPS                (1<<8)
+#define BP_FLAG_PULLUPS             (1<<8)
 #define BP_FLAG_HIZ                 (1<<9)
 
 struct pdata
@@ -89,8 +89,8 @@ buspirate_uses_ascii(const PROGRAMMER *pgm) {
 }
 
 static inline int
-buspirate_uses_pups(const PROGRAMMER *pgm) {
-	return (PDATA(pgm)->flag & BP_FLAG_PUPS);
+buspirate_uses_pullups(const PROGRAMMER *pgm) {
+	return (PDATA(pgm)->flag & BP_FLAG_PULLUPS);
 }
 
 static inline int
@@ -310,7 +310,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 		}
 
 		if (str_eq(extended_param, "pullups")) {
-			PDATA(pgm)->flag |= BP_FLAG_PUPS;
+			PDATA(pgm)->flag |= BP_FLAG_PULLUPS;
 			continue;
 		}
 
@@ -627,7 +627,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
 	 * we want power (0x48) and all reset pins high. */
 	PDATA(pgm)->current_peripherals_config  = 0x48 | PDATA(pgm)->reset;
-	if (buspirate_uses_pups(pgm)) {
+	if (buspirate_uses_pullups(pgm)) {
 		PDATA(pgm)->current_peripherals_config |= 1<<2;
         submode.config &= ~(1<<3);
         pmsg_info("enabling pull-ups (open-collector)\n");
