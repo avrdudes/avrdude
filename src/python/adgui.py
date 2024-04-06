@@ -251,7 +251,13 @@ def dissect_fuse(config: list, fuse: str, val: int):
     result = []
     for i in config:
         # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
-        if i['memstr'] != fuse:
+        s = i['memstr']
+        if s == 'lock':
+            continue
+        if s.find('fuse') == -1:
+            # avrX where fuseN is an alias only
+            s = 'fuse' + str(i['memoffset']) # make it fuseN
+        if s != fuse:
             continue
         name = i['name']
         vlist = i['vlist']
@@ -276,7 +282,13 @@ def default_fuse(config: list, fuse: str):
     resval = 0xff
     for i in config:
         # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
-        if i['memstr'] != fuse:
+        s = i['memstr']
+        if s == 'lock':
+            continue
+        if s.find('fuse') == -1:
+            # avrX where fuseN is an alias only
+            s = 'fuse' + str(i['memoffset']) # make it fuseN
+        if s != fuse:
             continue
         shift = i['lsh']
         initval = i['initval']
@@ -300,11 +312,18 @@ def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
     itemlist = []
     for ele in vallist:
         itemlist.append(ele[1])
-    resval = 0
+    resval = 0xff
     for i in config:
         # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
-        if i['memstr'] != fuse:
+        s = i['memstr']
+        if s == 'lock':
             continue
+        if s.find('fuse') == -1:
+            # avrX where fuseN is an alias only
+            s = 'fuse' + str(i['memoffset']) # make it fuseN
+        if s != fuse:
+            continue
+        resval &= ~i['mask']
         vlist = i['vlist']
         shift = i['lsh']
         for j in vlist:
@@ -388,7 +407,13 @@ class FusePopup():
         self.widgets = []
         for i in self.config:
             # 'name', 'vlist', 'memstr', 'memoffset', 'mask', 'lsh', 'initval', 'ccomment'
-            if i['memstr'] != self.fusename:
+            s = i['memstr']
+            if s == 'lock':
+                continue
+            if s.find('fuse') == -1:
+                # avrX where fuseN is an alias only
+                s = 'fuse' + str(i['memoffset']) # make it fuseN
+            if s != self.fusename:
                 continue
             # add one row to grid layout, label with name, combobox with values
             name = i['name']
