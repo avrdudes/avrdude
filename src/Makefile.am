@@ -185,6 +185,8 @@ libavrdude_a_SOURCES = \
 	usbasp.h \
 	serialupdi.c \
 	serialupdi.h \
+	serprog.c \
+	serprog.h \
 	updi_constants.h \
 	updi_link.c \
 	updi_link.h \
