@@ -147,6 +147,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionAbout"/>
+    <addaction name="actionUsage"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -263,6 +264,11 @@
    </property>
    <property name="text">
     <string>Detach programmer</string>
+   </property>
+  </action>
+  <action name="actionUsage">
+   <property name="text">
+    <string>Usage …</string>
    </property>
   </action>
  </widget>

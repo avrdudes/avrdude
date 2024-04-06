@@ -512,7 +512,7 @@ class adgui(QObject):
         srcdir = str(p.parent)
         for f in [ "adgui.ui", "about.ui", "device.ui",
                    "devinfo.ui", "loglevel.ui", "programmer.ui",
-                   "memories.ui", "askfuse.ui" ]:
+                   "memories.ui", "askfuse.ui", "help.ui" ]:
             ui = QFile(srcdir + '/' + f)
             if not ui.open(QFile.ReadOnly):
                 print(f"Cannot open {f}: {ui.errorString()}", file = sys.stderr)
@@ -537,9 +537,13 @@ class adgui(QObject):
 
         self.disable_fuses()
 
+        self.helptext()
+        self.help.textBrowser.setMarkdown(self.helptext)
+
         self.adgui.show()
 
         self.adgui.actionAbout.triggered.connect(self.about.show)
+        self.adgui.actionUsage.triggered.connect(self.help.show)
         self.adgui.actionDevice.triggered.connect(self.device.show)
         self.app.lastWindowClosed.connect(self.cleanup)
         self.adgui.actionProgrammer.triggered.connect(self.programmer.show)
@@ -1516,6 +1520,116 @@ class adgui(QObject):
             return
         self.fpop = FusePopup(widget, self.devcfg, fuse)
 
+    def helptext(self):
+        self.helptext='''
+# Usage instructions
+
+## Preface
+
+Keep in mind that this is a GUI demonstrator only. It is not meant to
+be a full-featured replacement for the `AVRDUDE` CLI program. Its main
+purpose is to demonstrate that the SWIG Python wrapper around
+`libavrdude` is basically able to offer all the features needed for a
+GUI programming tool.
+
+## GUI layout
+
+The GUI consists of three major parts: a menu bar to select the
+various actions. The location of the menu bar depends on the system
+platform used, either on top of the application window, or on top of
+the screen.
+
+The center area is reserved for logging all information that used to
+be shown in the terminal in the CLI version. Different log levels are
+marked in different colors to allow for an easy optical
+differentiation.
+
+The log level shown (the equivalent of the CLI `-v` options) can be
+selected using Settings → Log level …  Note that log entries above
+"Debug" are not displayed in the log window but only stored
+internally.
+
+The internal log data can be written into a file using File → Save
+log …
+
+The selected log level is remembered in the configuration data
+mentioned below.
+
+## Operating instructions
+
+When starting the GUI, use the File → Device dialog to pick the AVR
+device to work with. The check boxes on the left-hand side allow to
+reduce the number of devices displayed in the combobox to the right,
+to ease finding the desired AVR device. This is the equivalent of
+the `-p` CLI option.
+
+Once the device has been selected, Device → Info … can be used to show
+a window presenting the main features of the selected device, as well
+as the location in the configuration file.
+
+Then, use File → Programmer to select the programming hardware. Again,
+checkboxes allow to reduce the displayed programmer types, this time
+based on desired programming features. This corresponds to the CLI
+`-c` option.  Fill in the appropriate value into the "Port" entry,
+this is the equivalent of the CLI `-P` option. For programmers that
+only make sense on a particular port (e.g. "usb"), an attempt is made
+to pre-fill that value.
+
+All these values are saved in a platform-dependent configuration
+database, and loaded from that place at next start. Thus, if operating
+again on the same platform next time, they are already pre-selected.
+
+If all these values are filled in, use File → Attach Programmer to
+start talking to the device. If the programmer could be started
+successfully, the Device → Programming … menu is enabled which pops
+up a window to handle the various persistent device memories (flash,
+EEPROM, fuses).
+
+### Signature
+
+Before anything else can proceed, the signature must be read from the
+device on the "Signature" tab. The read signature is then compared to
+the expected signature from the config file. If both match, the entry
+is marked green, otherwise red. Finally, a candidate device is
+suggested from the database that matches the read signature.
+
+### Flash, EEPROM
+
+Flash and EEPROM tabs are laid out similarly.
+
+Internally, all data are stored in a buffer for the correspondig
+memory area. The buffer can be filled either by reading it from the
+device, or by loading it from a file. For file operations, the desired
+file format can be selected using radion button entries. For reading
+files, it is possible to use ELF files (that could contain information
+for more than one memory area), as well as use an autodection logic.
+For writing files, the file format must be selected explicitly, to
+either "Intel Hex", "Motorola S-Record", or "Raw binary".
+
+The buffer can be saved to a file, or programmed into the device.
+
+The "Clear" button clears all internally remembered contents of the
+buffer, as well as the "cell has been loaded" flags.
+
+On the "Flash" memory tab, the "Erase" button (marked red) can be used
+to perform a chip erase. Depending on the fuse selections for the
+device, this might also erase the EEPROM memory area.
+
+### Fuses
+
+The memory tab for fuse memories is laid out similar to the other
+tabs, yet on the right-hand side, it contains entry fields for the
+individual fuse values. The entries are displayed in hexadecimal
+notation. Provided the internal `libavrdude` database contains
+configuration information for the selected device, right-clicking on
+each entry pops up menues that allow selecting the individual fuse
+bitfields based on their purpose. If the respective entry field
+already contains a value (either, from reading the device, or loaded
+from a file), that value is used to pre-select the respective entries
+of the comboboxes. If there was no value present, the default value
+(according to the datasheet) is used as a starting point.
+'''
+
 def main():
     gui = adgui(sys.argv)
 
@@ -1523,3 +1637,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
