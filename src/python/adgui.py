@@ -472,6 +472,8 @@ class adgui(QObject):
         self.app = QApplication(sys.argv)
 
         self.port = None
+        self.pgm = None
+        self.dev = None
         self.dev_selected = None
         self.prog_selected = None
         self.connected = False
