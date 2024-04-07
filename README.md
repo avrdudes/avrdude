@@ -6,7 +6,7 @@ Documentation for current and previous releases is [on Github Pages](https://avr
 
 ## Using AVRDUDE
 
-You can look at test/index.html for an exmample to embed avrdude in your webpage!
+You can look at test/index.html for an example to embed avrdude in your webpage!
 
 ## Building
 
