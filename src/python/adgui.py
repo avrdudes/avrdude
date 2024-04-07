@@ -163,6 +163,14 @@ def avrpart_to_mem(avrpart):
         m = ad.lnext(m)
     return res
 
+def find_mem_alias(p, name):
+    '''Find aliased memory name if any. Return original name otherwise.'''
+    m = ad.avr_locate_mem(p, name)
+    a = ad.avr_find_memalias(p, m)
+    if not a:
+        return name
+    return a.desc
+
 def dissect_fuse(config: list, fuse: str, val: int):
     '''
     Analyze the value of a particular fuse
@@ -1216,7 +1224,9 @@ class adgui(QObject):
             # 'allocated' is a flag indicating that there is
             # "interesting" data in the lineedit entry.
             self.fuselabels[name] = [idx, False]
+            name = find_mem_alias(self.dev, name)
             eval(f"self.memories.fuse{idx}.setText({'name'})")
+            eval(f"self.memories.fuse{idx}.setEnabled(True)")
             eval(f"self.memories.fuse{idx}.setVisible(True)")
             eval(f"self.memories.fval{idx}.setVisible(True)")
             idx += 1
