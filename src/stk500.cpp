@@ -148,6 +148,8 @@ int stk500_getsync(const PROGRAMMER *pgm) {
         return -1;
     }
 
+    serial_drain(&pgm->fd, 0);
+
     return 0;
 }
 

@@ -41,6 +41,7 @@
 #include <cctype>
 #include <sys/stat.h>
 #include <emscripten/emscripten.h>
+#include <csignal>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1585,8 +1586,10 @@ int main(int argc, char * argv [])
     return ce_delayed? 1: exitrc;
 }
 
-extern "C" {
+
 // test export wrapper for main
+extern "C" {
+EMSCRIPTEN_KEEPALIVE
 int startAvrdude(char *args) {
     // allocate memory for argv
     char *argv[100]; // assuming a maximum of 100 arguments
@@ -1608,6 +1611,7 @@ int startAvrdude(char *args) {
     }
 
     // call main function
+
     int result = main(argc, argv);
 
     // free allocated memory
@@ -1617,4 +1621,3 @@ int startAvrdude(char *args) {
     return result;
 }
 }
-

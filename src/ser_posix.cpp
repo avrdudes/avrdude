@@ -375,18 +375,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 }
 
 static void ser_close(union filedescriptor *fd) {
-    /*
-     * restore original termios settings from ser_open
-     */
-    if (saved_original_termios) {
-        int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &original_termios);
-        if (rc) {
-            pmsg_ext_error("cannot reset attributes for device: %s\n", strerror(errno));
-        }
-        saved_original_termios = 0;
-    }
-
-    close(fd->ifd);
+    //serialPortClose();
 }
 
 // Close but don't restore attributes
