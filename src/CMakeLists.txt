@@ -395,7 +395,7 @@ install(FILES "avrdude.1"
 	)
 
 if(HAVE_SWIG)
-    execute_process(COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+    execute_process(COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])"
                     OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
     install(TARGETS swig_avrdude DESTINATION ${PYTHON_SITE_PACKAGES})
     install(FILES ${CMAKE_BINARY_DIR}/src/swig_avrdude.py DESTINATION ${PYTHON_SITE_PACKAGES})
