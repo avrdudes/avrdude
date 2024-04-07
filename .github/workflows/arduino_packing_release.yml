@@ -1,4 +1,4 @@
-name: avrdude_packing
+name: avrdude_packing_release
 
 env:
   # The name of the project
