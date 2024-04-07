@@ -326,7 +326,7 @@ class FusePopup():
             Dialog.setObjectName(u"Dialog")
         Dialog.setWindowModality(Qt.ApplicationModal)
         Dialog.setWindowTitle(f"Fuse value selection for {fusename}")
-        Dialog.resize(400, 300)
+        Dialog.resize(800, 600)
         self.verticalLayout = QVBoxLayout(Dialog)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.scrollArea = QScrollArea(Dialog)
