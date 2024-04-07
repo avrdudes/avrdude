@@ -8,6 +8,7 @@
   },
   "files": [
     "avrdude.js",
+    "avrdude-worker.js",
     "avrdude.wasm",
     "avrdude.conf"
   ],
