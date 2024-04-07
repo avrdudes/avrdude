@@ -7,6 +7,11 @@
 <button id="run">Run</button>
 <script src="avrdude.js"></script>
 <script type="module">
+
+    window.read = async function (timeoutMs) {
+
+    }
+
     async function load() {
         window.funcs = await Module();
     }
