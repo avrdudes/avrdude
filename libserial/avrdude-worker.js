@@ -22,23 +22,19 @@ const readPromise = (customReader) => new Promise(async () => {
 
 addEventListener('message', async msg => {
     const data = msg.data
-    console.log(data)
 
     switch (data.type) {
         case 'write': {
-            console.log('Write: ', data)
             await writer.write(data.data)
             break
         }
         case 'read': {
             const neededBytes = data.requiredBytes
-            console.log('Read timeout: ', data.timeout)
             // await available
             // available = new Promise(resolve => onData = resolve)
             let dataBuffer = new Uint8Array([])
 
             while (dataBuffer.length < neededBytes) {
-                console.log('Buffer: ', dataBuffer.length, 'Needed: ', neededBytes, "Buffer: ", buffer.length)
                 if (buffer.length > 0) {
                     // only take the needed bytes
                     const bytesToTake = Math.min(neededBytes - dataBuffer.length, buffer.length)
@@ -65,7 +61,6 @@ addEventListener('message', async msg => {
             break
         }
         case 'init': {
-            console.log('Init: ', data)
             port = (await navigator.serial.getPorts())[data.port]
             await port.open(data.options)
             opts = data.options
@@ -75,7 +70,12 @@ addEventListener('message', async msg => {
             postMessage({ type: 'ready' })
             break
         } case 'close': {
+            console.log('Closing port')
+            writer.releaseLock()
+            reader.cancel()
+            reader.releaseLock()
             await port.close()
+            postMessage({ type: 'closed' })
             break
         }
         default: {

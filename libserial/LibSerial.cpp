@@ -4,8 +4,6 @@
 #include <emscripten/val.h>
 #include <map>
 #include <iostream>
-#include <emscripten/bind.h>
-#include <iomanip>
 
 using namespace emscripten;
 
@@ -42,7 +40,6 @@ namespace {
         window.avrDudeWorker.postMessage({ type: 'read', timeout: timeoutMs, requiredBytes: length });
         const data = await new Promise((resolve, _) => {
             window.avrDudeWorker.onmessage = (event) => {
-                console.log("Received: ", event.data);
                 if (event.data.type == "read") {
                     resolve(event.data);
                 }
@@ -115,8 +112,14 @@ namespace {
     });
 
     EM_ASYNC_JS(void, close_serial_port, (), {
-        console.log("Closing port");
-        await window.activePort.close();
+        window.avrDudeWorker.postMessage({ type: 'close' });
+        await new Promise(resolve => {
+            window.avrDudeWorker.onmessage = (event) => {
+                resolve();
+            };
+        });
+        window.activePort = null;
+        window.avrDudeWorker.terminate();
     });
 
     EM_ASYNC_JS(bool, is_serial_port_open, (EM_VAL port), {
@@ -161,7 +164,6 @@ int serialPortOpen(int baudRate) {
 
 void serialPortClose() {
     close_serial_port();
-    emscripten_destroy_worker(worker);
 }
 
 void setDtrRts(bool is_on) {

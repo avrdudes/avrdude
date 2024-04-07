@@ -375,7 +375,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 }
 
 static void ser_close(union filedescriptor *fd) {
-    //serialPortClose();
+    serialPortClose();
 }
 
 // Close but don't restore attributes
