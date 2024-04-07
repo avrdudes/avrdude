@@ -1628,6 +1628,11 @@ already contains a value (either, from reading the device, or loaded
 from a file), that value is used to pre-select the respective entries
 of the comboboxes. If there was no value present, the default value
 (according to the datasheet) is used as a starting point.
+
+Only ELF files can contain values for multiple fuses. All other file
+formats can only contain a single fuse value. To allow loading or
+saving multiple fuses, a percent sign (`%`) in the file name entry is
+considered a pattern that will be replaced by the `fuse`*N* name.
 '''
 
 def main():
