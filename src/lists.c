@@ -35,7 +35,7 @@
   Date   : 10 January, 1990
   ------------------------------------------------------------------------*/
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>

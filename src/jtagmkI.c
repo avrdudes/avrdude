@@ -22,7 +22,7 @@
  * avrdude interface for Atmel JTAG ICE (mkI) programmer
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -568,7 +568,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
 
   pmsg_notice2("jtagmkI_open()\n");
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   PDATA(pgm)->initial_baudrate = -1L;
 
   for (i = 0; i < sizeof(baudtab) / sizeof(baudtab[0]); i++) {

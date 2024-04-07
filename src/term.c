@@ -20,7 +20,7 @@
 
 /* $Id$ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <ctype.h>
 #include <string.h>
@@ -349,7 +349,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   report_progress(1, 1, NULL);
 
   hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
-  term_out("\v");
+  lterm_out("");
 
   free(buf);
 
@@ -598,7 +598,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     len + bytes_grown, str_plural(len + bytes_grown), addr);
   if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
-  msg_notice2("\v");
+  msg_notice2("\n");
 
   report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
   for (i = 0; i < len + bytes_grown; i++) {
@@ -1904,7 +1904,7 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     avr_mem_display(stdout, p, "");
     avr_variants_display(stdout, p, "");
   }
-  term_out("\v");
+  lterm_out("");
 
   return 0;
 }
@@ -1968,7 +1968,7 @@ static int cmd_parms(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   pgm->print_parms(pgm, stdout);
-  term_out("\v");
+  lterm_out("");
   return 0;
 }
 
@@ -2549,7 +2549,7 @@ static void term_gotline(char *cmdstr) {
     }
   } else {
     // End of file or terminal ^D
-    term_out("\v");
+    lterm_out("");
     cmd_quit(term_pgm, term_p, 0, NULL);
     term_running = 0;
   }
@@ -2665,11 +2665,11 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       if(verbose > 0)
        term_out("%d: ", lineno);
       term_out("%s", buffer);
-      term_out("\v");
+      lterm_out("");
     }
     if(process_line(buffer, pgm, p) < 0)
       rc = -1;
-    term_out("\v");
+    lterm_out("");
   }
   if(errstr) {
     pmsg_error("(include) read error in file %s: %s\n", argv[1], errstr);
@@ -2681,26 +2681,44 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 }
 
 
+/*
+ * ASCII progress bar
+ *
+ * A 50 character bar is gradually filled with hash marks (#) to indicate
+ * progress, and completed with hyphen (-) once an error occurred:
+ *
+ * Reading | ##############################                     | 59% 0.41 s
+ *
+ * Reading | ###############################------------------- | 61% 0.42 s
+ *
+ * First non-NULL heading hdr starts reporting, percent=100 stops reporting;
+ * etime is the wall-clock time in seconds that the task has taken so for;
+ * finish can take on three values:
+ *   -1 task ended in error, show the last valid percentage and fill
+ *      progress bar with hyphens instead of hashes
+ *    0 do not terminate progress bar with \n when finishing at 100 percent
+ *    1 terminate progress bar with \n when finishing at 100 percent
+ */
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
   static int last, done = 1;
   int i;
 
-  setvbuf(stderr, (char *) NULL, _IONBF, 0);
+  setvbuf(stderr, (char *) NULL, _IONBF, 0);  // Set stderr to be ubuffered
 
   if(hdr) {
-    msg_info("\v");
-    last = done = 0;
+    lmsg_info("");              // Print new line unless already done before
+    last = done = 0;            // OK, we have a header, start reporting
     if(header)
       free(header);
-    header = cfg_strdup("update_progress_tty()",  hdr);
+    header = cfg_strdup(__func__, hdr);
   }
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(!done) {
     if(!header)
-      header = cfg_strdup("update_progress_tty()", "report");
+      header = cfg_strdup(__func__, "report");
 
     int showperc = finish >= 0? percent: last;
 
@@ -2710,16 +2728,17 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
       hashes[i/2] = '#';
     hashes[50] = 0;
 
+    // Overwrite line using \r
     msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
-        msg_info("\v");
-      done = 1;
+        lmsg_info("");
+      done = 1;                 // Stop future reporting
     }
   }
   last = percent;
 
-  setvbuf(stderr, (char *) NULL, _IOLBF, 0);
+  setvbuf(stderr, (char *) NULL, _IOLBF, 0); // Set stderr to be line buffered
 }
 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
@@ -2730,7 +2749,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
-    msg_info("\v%s | ", hdr);
+    lmsg_info("%s | ", hdr);
     last = done = 0;
   }
 
@@ -2741,7 +2760,7 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
     if(percent == 100) {
       msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
       if(finish)
-        msg_info("\v");
+        lmsg_info("");
       done = 1;
     }
   }

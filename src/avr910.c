@@ -25,7 +25,7 @@
  * protocol described in application note avr910.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -357,7 +357,7 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
     pgm->baudrate = 19200;
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {

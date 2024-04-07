@@ -23,7 +23,7 @@
  * USB interface via libusb for avrdude.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 #if defined(HAVE_LIBUSB)
 
 

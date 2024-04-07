@@ -203,7 +203,7 @@
  *
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1984,7 +1984,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
         break;
     } else {                    // Board not yet out of reset or bootloader twiddles lights
       int slp = 32<<(attempt<3? attempt: 3);
-      pmsg_debug("%4ld ms: sleeping for %d ms\n", avr_mstimestamp(), slp);
+      pmsg_debug("%4lld ms: sleeping for %d ms\n", (long long) avr_mstimestamp(), slp);
       usleep(slp*1000);
     }
     if(attempt > 5) {           // Don't report first six attempts
@@ -2228,7 +2228,7 @@ static void urclock_disable(const PROGRAMMER *pgm) {
 static int urclock_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if(serial_open(port, pinfo, &pgm->fd) == -1)
@@ -2248,10 +2248,10 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   if((120+ur.delay) > 0)
     usleep((120+ur.delay)*1000); // Wait until board comes out of reset
 
-  pmsg_debug("%4ld ms: enter urclock_getsync()\n", avr_mstimestamp());
+  pmsg_debug("%4lld ms: enter urclock_getsync()\n", (long long) avr_mstimestamp());
   if(urclock_getsync(pgm) < 0)
     return -1;
-  pmsg_debug("%4ld ms: all good, ready to rock\n", avr_mstimestamp());
+  pmsg_debug("%4lld ms: all good, ready to rock\n", (long long) avr_mstimestamp());
 
   return 0;
 }

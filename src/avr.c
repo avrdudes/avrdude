@@ -19,7 +19,7 @@
 
 /* $Id$ */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -455,11 +455,11 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         if (rc < 0)
           /* paged load failed, fall back to byte-at-a-time read below */
           failure = 1;
+        nread++;
+        report_progress(nread, npages, NULL);
       } else {
         pmsg_debug("avr_read_mem(): skipping page %u: no interesting data\n", pageaddr / mem->page_size);
       }
-      nread++;
-      report_progress(nread, npages, NULL);
     }
     if (!failure) {
       led_clr(pgm, LED_PGM);
@@ -572,15 +572,15 @@ error:
 }
 
 
-// Return us since program start, rolls over after ca 1h 12min
-unsigned long avr_ustimestamp() {
+// Return us since first call
+uint64_t avr_ustimestamp() {
   struct timeval tv;
 
   memset(&tv, 0, sizeof tv);
   if(gettimeofday(&tv, NULL) == 0) {
-    static unsigned long long epoch;
+    static uint64_t epoch;
     static int init;
-    unsigned long long now;
+    uint64_t now;
 
     now = tv.tv_sec*1000000ULL + tv.tv_usec;
     if(!init) {
@@ -593,8 +593,8 @@ unsigned long avr_ustimestamp() {
   return 0;
 }
 
-// Return ms since program start, rolls over after ca 49d 17h
-unsigned long avr_mstimestamp() {
+// Return ms since first call to avr_ustimestamp() above
+uint64_t avr_mstimestamp() {
   return avr_ustimestamp()/1000;
 }
 
@@ -1150,11 +1150,11 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
         if (rc < 0)
           /* paged write failed, fall back to byte-at-a-time write below */
           failure = 1;
+        nwritten++;
+        report_progress(nwritten, npages, NULL);
       } else {
         pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr / cm->page_size);
       }
-      nwritten++;
-      report_progress(nwritten, npages, NULL);
     }
 
     avr_free_mem(cm);
@@ -1625,24 +1625,88 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
  * Report the progress of a read or write operation from/to the device
  *
- * The first call of report_progress() should look like this (for a write):
+ * Potentially time-consuming libavrdude functions such as avr_read() and
+ * avr_write() use this interface to inform the user of their progress.
  *
- * report_progress(0, 1, "Writing");
+ * The first call of report_progress() normally looks like this, eg, for a
+ * write-to-device operation:
  *
- * Then hdr should be passed NULL on subsequent calls *
- * report_progress(k, n, NULL); // k/n signifies proportion of work done
+ *   report_progress(0, 1, "Writing");
  *
- * with 0 <= k < n, while the operation is progressing. Once the operation is
- * complete, a final call should be made as such to ensure proper termination
- * of the progress report; choose one of the following three forms:
+ * Then hdr should be passed NULL on subsequent calls
  *
- * report_progress(n, n, NULL); // finished OK, terminate with double \n
- * report_progress(1, 0, NULL); // finished OK, do not print terminating \n
- * report_progress(1, -1, NULL); // finished not OK, print double \n
+ *   report_progress(k, n, NULL);  // k/n signifies proportion of work done
+ *
+ * with 0 <= k < n, while the operation is progressing. Once the operation
+ * is complete, a final call must be made to ensure proper termination of
+ * the progress report; choose one of the following three forms:
+ *
+ *   report_progress(n, n, NULL);  // Finished OK: terminate display
+ *   report_progress(1, 0, NULL);  // Finished OK: do not terminate display
+ *   report_progress(1, -1, NULL); // Finished on error: task not completed
  *
  * It is OK to call report_progress(1, -1, NULL) in a subroutine when
- * encountering a fatal error to terminate the reporting here and there even
- * though no report may have been started.
+ * encountering a fatal error to terminate the reporting here and there
+ * even though no report may have been started. It is also OK to skip the
+ * first call report_progress(0, 1, "<title>") in which case the following
+ * report_progress() calls should not generate any report.
+ *
+ * In fact, avr_read() and avr_write(), or their core parts avr_read_mem()
+ * and avr_write_mem() for that matter, internally only issue ongoing
+ *
+ *   report_progress(k, n, NULL);
+ *
+ * reporting and leave it to the caller whether or not reports should be
+ * generated at all: the caller's responsibility is to initiate the
+ * reporting or not by calling report_progress(0, 1, "Reading/Writing") or
+ * not. An example of good practice is the following sequence:
+ *
+ *   if(mem->size > 32 || verbose > 1)       // Reporting required?
+ *     report_progress(0, 1, "Reading");
+ *   rc = avr_read(pgm, part, mem->desc, 0); // Errors terminate reporting
+ *   report_progress(1, 1, NULL);            // Ensure reporting finishes
+ *
+ *
+ * report_progress() relies on an application specific function
+ *
+ *   void app_updprg(int percent, double etime, const char *hdr, int finish);
+ *
+ * being pointed at by the global function pointer update_progress. This
+ * function controls how the application informs the user how much
+ * progress the particular operation has made. This could be, eg, showing
+ * a video of an increasing number of dancing hamsters, playing the audio
+ * of a drum roll, showing a countdown clock or a progress bar. It is the
+ * application's responsibility to provide that function and to assign it
+ *
+ *   update_progress = app_updprg;           // Install progress updating
+ *
+ * before the application's first call of progress_report(). The update
+ * function has to keep track whether reporting was initiated or has been
+ * prematurely cut short, eg, by an error. It received an int percentage
+ * in [0, 100] of how much progress has been made, a double etime of how
+ * much time in seconds has passed since the activity started, a string
+ * hdr that describes the activity, eg, "Reading" (device memory) and an
+ * integer finish that tells the routine how the task has finished.
+ *
+ * Reporting should only start upon the first non-NULL hdr string was
+ * passed. Reporting should end immediately after percent reaches 100.
+ * Calls to update_progress() once reporting has ended should not show
+ * progress until the next time a non-NULL hdr was passed. The last
+ * argument finish can have three values:
+ *   -1  A severe error occurred and reporting ends; as the current
+ *       percent value will be 100 the most recently passed percent of a
+ *       previous call, if any, indicates how far the task has come before
+ *       the error occurred.
+ *    0  If percent is 100 reporting ends and the caller does not wish the
+ *       display to be terminated; for an ASCII progress bar this means
+ *       that no terminating \n is printed
+ *    1  If percent is 100 reporting ends and the caller wishes the
+ *       display to be terminated; for an ASCII progress bar this means
+ *       that two terminating \n are printed
+ *
+ * As an example see how term.c's void update_progress_tty() function
+ * shows an ASCII progress bar.
+ *
  */
 
 void report_progress(int completed, int total, const char *hdr) {

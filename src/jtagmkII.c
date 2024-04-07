@@ -30,7 +30,7 @@
  * as well.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <ctype.h>
 #include <limits.h>
@@ -1457,7 +1457,7 @@ static int jtagmkII_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
@@ -1509,7 +1509,7 @@ static int jtagmkII_open_dw(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
@@ -1561,7 +1561,7 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
@@ -1620,7 +1620,7 @@ static int jtagmkII_dragon_open(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
@@ -1673,7 +1673,7 @@ static int jtagmkII_dragon_open_dw(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
@@ -1726,7 +1726,7 @@ static int jtagmkII_dragon_open_pdi(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }
@@ -3231,7 +3231,7 @@ static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
 #endif
   }
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {
     return -1;
   }

@@ -29,7 +29,8 @@
  *
  */
 
-#include "ac_cfg.h"
+/* For AVRDUDE_FULL_VERSION and possibly others */
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -51,26 +52,10 @@
 #include "config.h"
 #include "developer_opts.h"
 
-/* Get VERSION from ac_cfg.h */
-char * version      = VERSION;
-
 char * progname;
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
-
-// Old (deprecated) message routine
-int avrdude_message(int msglvl, const char *format, ...)
-{
-    int rc = 0;
-    va_list ap;
-    if (verbose >= msglvl) {
-        va_start(ap, format);
-        rc = vfprintf(stderr, format, ap);
-        va_end(ap);
-    }
-    return rc;
-}
 
 static const char *avrdude_message_type(int msglvl) {
   switch(msglvl) {
@@ -89,9 +74,10 @@ static const char *avrdude_message_type(int msglvl) {
 
 
 /*
- * Core msg_xyz() routine
+ * Core messaging routine for msg_xyz(), [pli]msg_xyz() and term_out()
  * See #define lines in avrdude.h of how it is normally called
- * Side note: if format starts with \v print \n but only if *not* at beginning of line
+ *
+ * Named that way as there used to be a now gone different avrdude_message()
  */
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
     int rc = 0;
@@ -122,9 +108,21 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 
     // Reduce effective verbosity level by number of -q above one when printing to stderr
     if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
-        if(msgmode & MSG2_PROGNAME) {
-          if(!bols[bi].bol)
+        if(msgmode & MSG2_LEFT_MARGIN && !bols[bi].bol) {
+          fprintf(fp, "\n");
+          bols[bi].bol = 1;
+        }
+
+        // Keep vertical tab at start of format string as conditional new line
+        if(*format == '\v') {
+          format++;
+          if(!bols[bi].bol) {
             fprintf(fp, "\n");
+            bols[bi].bol = 1;
+          }
+        }
+
+        if(msgmode & MSG2_PROGNAME) {
           fprintf(fp, "%s", progname);
           if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
             fprintf(fp, " %s()", func);
@@ -147,15 +145,6 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         } else if(msgmode & MSG2_INDENT2) {
           fprintf(fp, "%*s", (int) strlen(progname)+2, "");
           bols[bi].bol = 0;
-        }
-
-        // Vertical tab at start of format string is a conditional new line
-        if(*format == '\v') {
-          format++;
-          if(!bols[bi].bol) {
-            fprintf(fp, "\n");
-            bols[bi].bol = 1;
-          }
         }
 
         // Figure out whether this print will leave us at beginning of line
@@ -266,7 +255,7 @@ static void usage(void)
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
     "  -?                     Display this usage\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
-    progname, strlen(cfg) < 24? "config file ": "", cfg, version);
+    progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
 
   free(cfg);
 }
@@ -445,12 +434,12 @@ static void replace_backslashes(char *s)
   }
 }
 
-// Return 2 if string is * or starts with */, 1 if string contains /, 0 otherwise
+// Return 2 if str is * or starts with */, 1 if str contains / but is not a valid part, 0 otherwise
 static int dev_opt(const char *str) {
   return
     !str? 0:
     str_eq(str, "*") || str_starts(str, "*/")? 2:
-    !!strchr(str, '/');
+    strchr(str, '/') && !locate_part(part_list, str);
 }
 
 typedef struct {
@@ -524,7 +513,6 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
 }
 
 static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pmode) {
-  msg_error("\v");
   if(!programmer || !*programmer) {
     pmsg_error("no programmer has been specified on the command line or in the\n");
     imsg_error("config file(s); specify one using the -c option and try again\n");
@@ -532,7 +520,7 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pm
   }
 
   if(str_eq(programmer, "?")) {
-    msg_error("Valid programmers are:\n");
+    lmsg_error("Valid programmers are:\n");
     list_programmers(stderr, "  ", programmers, ~0);
     msg_error("\n");
     return;
@@ -555,7 +543,7 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pm
       }
   }
   if(pmatches) {
-    msg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
+    pmsg_error("%s is not a unique start of a programmer name; consider:\n", programmer);
     for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
      PROGRAMMER *pg = ldata(ln1);
       if(is_programmer(pg) && (pg->prog_modes & pmode))
@@ -654,7 +642,7 @@ int main(int argc, char * argv [])
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
-  (void) avr_ustimestamp();
+  (void) avr_ustimestamp();     // Base timestamps from program start
 
 #ifdef _MSC_VER
   _set_printf_count_output(1);
@@ -1058,7 +1046,7 @@ int main(int argc, char * argv [])
    * they are running
    */
   msg_notice("\n");
-  pmsg_notice("Version %s\n", version);
+  pmsg_notice("Version %s\n", AVRDUDE_FULL_VERSION);
   imsg_notice("Copyright the AVRDUDE authors;\n");
   imsg_notice("see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
@@ -1092,9 +1080,9 @@ int main(int argc, char * argv [])
     }
   }
 
-  if(!str_eq(avrdude_conf_version, version)) {
+  if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION)) {
     pmsg_warning("System wide configuration file version (%s)\n", avrdude_conf_version);
-    imsg_warning("does not match Avrdude build version (%s)\n", version);
+    imsg_warning("does not match Avrdude build version (%s)\n", AVRDUDE_FULL_VERSION);
   }
 
   if (lsize(additional_config_files) > 0) {
@@ -1154,7 +1142,7 @@ int main(int argc, char * argv [])
       list_available_serialports(programmers);
       exit(0);
     } else if(str_eq(port, "?sa")) {
-      msg_error("\vValid serial adapters are:\n");
+      lmsg_error("Valid serial adapters are:\n");
       list_serialadapters(stderr, "  ", programmers);
       exit(0);
     }
@@ -1507,7 +1495,7 @@ skipopen:
     programmer_display(pgm, progbuf);
   }
 
-  msg_info("\v");
+  lmsg_info("");
 
   exitrc = 0;
 

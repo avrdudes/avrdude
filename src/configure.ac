@@ -20,51 +20,85 @@
 # $Id$
 #
 
-# Process this file with autoconf to produce a configure script.
+# Process this file with autoreconf to produce a configure script.
 
-AC_PREREQ(2.60)
+dnl A few tool releases with release dates for orientation which tool
+dnl requirements can make sense:
+dnl
+dnl 2019-03-14 cmake    3.13
+dnl
+dnl 2006-10-23 autoconf 2.60    used to be avrdude's requirement
+dnl 2012-04-24 autoconf 2.69
+dnl 2021-01-28 autoconf 2.71
+dnl
+dnl 2013-06-20 automake 1.14
+dnl 2018-02-25 automake 1.16
+dnl 2018-03-11 automake 1.16.1  install-sh symlink fix
+
+
+dnl Change this definition if you want to change the dist tarball name
+dnl pattern from avrdude-7.3 for releases and avrdude-7.3-${COMMIT_DATE}
+dnl for snapshots.
+m4_define([versioninfo_AVRDUDE_PACKAGE_VERSION],
+          m4_case(m4_defn([versioninfo_GIT_COMMIT_HASH]),
+	          m4_defn([versioninfo_GIT_TAG_HASH]),
+	          m4_defn([versioninfo_CMAKE_PROJECT_VERSION]),
+		  m4_defn([versioninfo_CMAKE_PROJECT_VERSION])-m4_defn([versioninfo_GIT_COMMIT_DATE])))
+
+AC_PREREQ([2.69])
 AC_INIT([avrdude],
-        m4_esyscmd([./build-helpers/package-version . version-stamp]),
+        m4_defn([versioninfo_AVRDUDE_PACKAGE_VERSION]),
         [https://github.com/avrdudes/avrdude/issues])
+
+AC_CONFIG_SRCDIR([main.c])
+AC_CONFIG_AUX_DIR([auto-aux])
+AC_CONFIG_HEADERS([ac_cfg.h])
+AC_CONFIG_MACRO_DIR([auto-m4])
 
 AC_CANONICAL_BUILD
 AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
-AC_CONFIG_SRCDIR([main.c])
-AM_INIT_AUTOMAKE([foreign])
-AC_CONFIG_HEADERS(ac_cfg.h)
-AC_CONFIG_MACRO_DIR([m4])
-
-# Check that the build-helpers/package-version script has worked properly.
-case "$PACKAGE_VERSION" in
-    devel|version_error_*)
-	AC_MSG_ERROR([
-Autogenerating the package version (${PACKAGE_VERSION}) has failed.
-
-Please file an issue at ${PACKAGE_BUGREPORT}
-
-You can write some version number to the file version-stamp as a
-workaround to allow building avrdude until the filed issue has been
-fixed.
+AM_INIT_AUTOMAKE([
+  1.14
+  foreign
+  subdir-objects
 ])
-	;;
-esac
 
-LT_INIT()
+AM_SILENT_RULES([yes])
 
-m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+
+VERSIONINFO_SETUP()
+
+dnl Inform about the derived PACKAGE_VERSION
+AC_MSG_CHECKING([versioninfo derived PACKAGE_VERSION])
+AC_MSG_RESULT([$PACKAGE_VERSION])
+
+dnl Compose the full version message mirroring the cmake one, inform
+dnl about it and pass it on to avrdude.conf and the "avrdude -?"
+dnl version message
+AC_MSG_CHECKING([versioninfo derived AVRDUDE_FULL_VERSION])
+if test "x$GIT_COMMIT_HASH" = "x$GIT_TAG_HASH"; then
+	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION"
+else
+	AVRDUDE_FULL_VERSION="$PACKAGE_VERSION ($GIT_COMMIT_HASH)"
+fi
+AC_MSG_RESULT([$AVRDUDE_FULL_VERSION])
+AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
+                   [The full avrdude version as displayed in -? and avrdude.conf])
+AC_SUBST([AVRDUDE_FULL_VERSION])
+
 
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL
+AC_PROG_AWK
 AC_PROG_SED
 AC_PROG_YACC
-AC_PROG_LEX
-AN_MAKEVAR([AR], [AC_PROG_AR])
-AN_PROGRAM([ar], [AC_PROG_AR])
-AC_DEFUN([AC_PROG_AR], [AC_CHECK_TARGET_TOOL(AR, ar, :)])
-AC_PROG_AR
+AC_PROG_LEX([noyywrap])
+AM_PROG_AR
+LT_INIT()
+
 AH_TEMPLATE([HAVE_YYLEX_DESTROY],
             [Define if lex/flex has yylex_destroy])
 # flex should have this
@@ -100,11 +134,19 @@ AC_CHECK_LIB([ws2_32], [WSAStartup])
 
 AC_CHECK_LIB([termcap], [tputs])
 AC_CHECK_LIB([ncurses], [tputs])
-AC_CHECK_LIB([readline], [readline])
+
+AC_CHECK_LIB([readline], [readline], [dnl
+	LIBS="-lreadline $LIBS"
+	AC_DEFINE([HAVE_LIBREADLINE], [1],
+	          [Whether we have libreadline with the readline function])
+	have_libreadline=yes
+])
+
 AH_TEMPLATE([HAVE_LIBELF],
             [Define if ELF support is enabled via libelf])
 AC_CHECK_LIB([elf], [elf_getshdrstrndx], [have_libelf=yes])
-if test x$have_libelf = xyes; then
+LIBELF=""
+if test "x$have_libelf" = xyes; then
    case $target in
        *)
                LIBELF="-lelf"
@@ -113,14 +155,15 @@ if test x$have_libelf = xyes; then
    AC_DEFINE([HAVE_LIBELF])
    AC_CHECK_HEADERS([libelf.h libelf/libelf.h])
 fi
-AC_SUBST(LIBELF, $LIBELF)
+AC_SUBST([LIBELF])
 
 AC_SEARCH_LIBS([gethostent], [nsl])
 AC_SEARCH_LIBS([setsockopt], [socket])
 AH_TEMPLATE([HAVE_LIBUSB],
             [Define if USB support is enabled via libusb])
 AC_CHECK_LIB([usb], [usb_get_string_simple], [have_libusb=yes])
-if test x$have_libusb = xyes; then
+LIBUSB=""
+if test "x$have_libusb" = xyes; then
    case $target in
        *-*-darwin*)
                LIBUSB="-lusb -framework CoreFoundation -framework IOKit"
@@ -133,24 +176,25 @@ if test x$have_libusb = xyes; then
    AC_CHECK_HEADERS([usb.h])
    AC_CHECK_HEADERS([lusb0_usb.h])
 fi
-AC_SUBST(LIBUSB, $LIBUSB)
+AC_SUBST([LIBUSB])
 
 AC_ARG_ENABLE(
 	[libusb_1_0],
-	AC_HELP_STRING(
-		[--disable-libusb_1_0],
-		[Allow to build with libusb instead of libusb_1_0 if both are present]),
+	AS_HELP_STRING([--disable-libusb_1_0],
+	               [Allow to build with libusb instead of libusb_1_0 if both are present]),
 	[case "${enableval}" in
 		yes) enabled_libusb_1_0=yes ;;
 		no)  enabled_libusb_1_0=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-libusb_1_0 option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-libusb_1_0 option]) ;;
 		esac],
 	[enabled_libusb_1_0=yes])	
 
+have_libusb_1_0=no
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via libusb 1.0])
 AC_CHECK_LIB([usb-1.0], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
+LIBUSB_1_0=""
+if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    case $target in
        *-*-darwin*)
                LIBUSB_1_0="-lusb-1.0 -framework CoreFoundation -framework IOKit"
@@ -166,7 +210,7 @@ fi
 AH_TEMPLATE([HAVE_LIBUSB_1_0],
             [Define if USB support is enabled via a libusb-1.0 compatible libusb])
 AC_CHECK_LIB([usb], [libusb_init], [have_libusb_1_0=yes])
-if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
+if test "x$have_libusb_1_0" = xyes && test "x$enabled_libusb_1_0" = xyes; then
    case $target in
        *-*-freebsd*)
                # FreeBSD 8+ has a native libusb-1.0 API compatible
@@ -183,12 +227,14 @@ if test x$have_libusb_1_0 = xyes && test x$enabled_libusb_1_0 = xyes; then
    AC_DEFINE([HAVE_LIBUSB_1_0])
    AC_CHECK_HEADERS([libusb.h])
 fi
-AC_SUBST(LIBUSB_1_0, $LIBUSB_1_0)
+AC_SUBST([LIBUSB_1_0])
 
 AH_TEMPLATE([HAVE_LIBHIDAPI],
             [Define if HID support is enabled via libhidapi])
-AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw], [have_libhidapi=yes])
-if test x$have_libhidapi = xyes; then
+AC_SEARCH_LIBS([hid_init], [hidapi hidapi-libusb hidapi-hidraw],
+               [have_libhidapi=yes], [have_libhidapi=no])
+LIBHIDAPI=""
+if test "x$have_libhidapi" = xyes; then
    case $target in
        *-*-darwin*)
                LIBHIDAPI="-lhidapi -iframework CoreFoundation -framework IOKit"
@@ -200,12 +246,14 @@ if test x$have_libhidapi = xyes; then
    AC_DEFINE([HAVE_LIBHIDAPI])
    AC_CHECK_HEADERS([hidapi/hidapi.h])
 fi
-AC_SUBST(LIBHIDAPI, $LIBHIDAPI)
+AC_SUBST([LIBHIDAPI])
 
 AH_TEMPLATE([HAVE_LIBSERIALPORT],
             [Define if libserialport is found])
-AC_CHECK_LIB([serialport], [sp_open], [have_libserialport=yes])
-if test x$have_libserialport = xyes; then
+AC_CHECK_LIB([serialport], [sp_open],
+             [have_libserialport=yes], [have_libserialport=no])
+LIBSERIALPORT=""
+if test "x$have_libserialport" = xyes; then
    case $target in
        *)
                LIBSERIALPORT="-lserialport"
@@ -214,7 +262,7 @@ if test x$have_libserialport = xyes; then
    AC_DEFINE([HAVE_LIBSERIALPORT])
    AC_CHECK_HEADERS([libserialport.h])
 fi
-AC_SUBST(LIBSERIALPORT, $LIBSERIALPORT)
+AC_SUBST([LIBSERIALPORT])
 
 AH_TEMPLATE([HAVE_LIBFTDI1],
             [Define if FTDI support is enabled via libftdi1])
@@ -222,32 +270,42 @@ AH_TEMPLATE([HAVE_LIBFTDI],
             [Define if FTDI support is enabled via libftdi])
 AH_TEMPLATE([HAVE_LIBFTDI_TYPE_232H],
             [Define if libftdi supports FT232H, libftdi version >= 0.20])
-AC_CHECK_LIB([ftdi1], [ftdi_new], [have_libftdi1=yes], [], [$LIBUSB_1_0])
-AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings], [have_libftdi=yes], [], [-lusb])
-if test x$have_libftdi1 = xyes; then
+AC_CHECK_LIB([ftdi1], [ftdi_new],
+             [have_libftdi1=yes], [have_libftdi1=no], [$LIBUSB_1_0])
+AC_CHECK_LIB([ftdi], [ftdi_usb_get_strings],
+             [have_libftdi=yes], [have_libftdi=no], [-lusb])
+LIBFTDI=""
+LIBFTDI1=""
+if test "x$have_libftdi1" = xyes; then
    LIBFTDI1="-lftdi1"
    AC_DEFINE([HAVE_LIBFTDI1])
-   AC_SUBST(LIBFTDI1, $LIBFTDI1)
+   AC_SUBST([LIBFTDI1])
    LIBS="${LIBS} ${LIBFTDI1}"
-   AC_CHECK_FUNCS(ftdi_tcioflush)
+   AC_CHECK_FUNCS([ftdi_tcioflush])
 else
-   if test x$have_libftdi = xyes; then
+   if test "x$have_libftdi" = xyes; then
       LIBFTDI="-lftdi -lusb"
       AC_DEFINE([HAVE_LIBFTDI])
-      AC_SUBST(LIBFTDI, $LIBFTDI)
-      AC_CHECK_DECL(TYPE_232H,[have_libftdi_FT232H=yes], [], [[#include <ftdi.h>]])
-      if test x$have_libftdi_FT232H = xyes; then
+      AC_SUBST([LIBFTDI])
+      AC_CHECK_DECL([TYPE_232H],
+        [have_libftdi_FT232H=yes],
+        [have_libftdi_FT232H=no],
+        [[#include <ftdi.h>]])
+      if test "x$have_libftdi_FT232H" = xyes; then
          AC_DEFINE([HAVE_LIBFTDI_TYPE_232H])
       fi
    fi
 fi
+
 AC_CHECK_HEADERS([pthread.h])
-# as there exits header file only pthread implementations for Windows, check if we have a library
-AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes])
-if test x$have_pthread = xyes; then
+# as there exist header file only pthread implementations for Windows, check if we have a library
+AC_CHECK_LIB([pthread], [pthread_create], [have_pthread=yes], [have_pthread=no])
+LIBPTHREAD=""
+if test "x$have_pthread" = xyes; then
    LIBPTHREAD="-lpthread"
 fi
-AC_SUBST(LIBPTHREAD, $LIBPTHREAD)
+AC_SUBST([LIBPTHREAD])
+
 # Checks for header files.
 AC_CHECK_HEADERS([limits.h stdlib.h string.h])
 AC_CHECK_HEADERS([fcntl.h sys/ioctl.h sys/time.h termios.h unistd.h])
@@ -257,7 +315,7 @@ AC_CHECK_HEADERS([ddk/hidsdi.h],,,[#include <windows.h>
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
-AC_HEADER_TIME
+
 
 AC_CHECK_HEADERS([netinet/in.h])
 
@@ -266,6 +324,8 @@ AC_CHECK_FUNCS([memset select strcasecmp strdup strerror strncasecmp strtol strt
 
 AC_MSG_CHECKING([for a Win32 HID library])
 SAVED_LIBS="${LIBS}"
+LIBHID=""
+HIDINCLUDE=""
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
 		LIBHID="-lhid -lsetupapi"
@@ -279,10 +339,9 @@ LIBS="${LIBS} ${LIBHID}"
 
 AH_TEMPLATE([HAVE_LIBHID],
             [Define if HID support is enabled via the Win32 DDK])
-AC_TRY_LINK([#include <windows.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <windows.h>
 #include <setupapi.h>
-$HIDINCLUDE],
-[int
+$HIDINCLUDE]], [[int
 main(void)
 {
     GUID hidGuid;
@@ -290,15 +349,15 @@ main(void)
 
     return 0;
 }
-], [have_libhid=yes], [have_libhid=no])
+]])], [have_libhid=yes], [have_libhid=no])
 AC_MSG_RESULT([$have_libhid])
-if test x$have_libhid = xyes; then
+if test "x$have_libhid" = xyes; then
    AC_DEFINE([HAVE_LIBHID])
 else
    LIBHID=""
 fi
 LIBS="${SAVED_LIBS}"
-AC_SUBST(LIBHID, $LIBHID)
+AC_SUBST([LIBHID])
 
 # Check for types
 
@@ -311,81 +370,74 @@ AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
 
 AC_ARG_ENABLE(
 	[versioned-doc],
-	AC_HELP_STRING(
-		[--enable-versioned-doc],
-		[install docs in directory with version name (default)]),
+	AS_HELP_STRING([--enable-versioned-doc],
+	               [install docs in directory with version name (default)]),
 	[case "${enableval}" in
 		yes) versioned_doc=yes ;;
 		no)  versioned_doc=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for versioned-doc option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for versioned-doc option]) ;;
 		esac],
 	[versioned_doc=yes])
 
-if test "$versioned_doc" = "yes"; then
+if test "x$versioned_doc" = "xyes"; then
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
 else
     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
 fi
+AC_SUBST([DOC_INST_DIR])
 
 AC_ARG_ENABLE(
 	[doc],
-	AC_HELP_STRING(
-		[--enable-doc],
-		[Enable building documents]),
+	AS_HELP_STRING([--enable-doc],
+	               [Enable building documents]),
 	[case "${enableval}" in
 		yes) enabled_doc=yes ;;
 		no)  enabled_doc=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for disable-doc option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for disable-doc option]) ;;
 		esac],
 	[enabled_doc=no])
 
 AC_ARG_ENABLE(
 	[parport],
-	AC_HELP_STRING(
-		[--enable-parport],
-		[Enable accessing parallel ports(default)]),
+	AS_HELP_STRING([--enable-parport],
+	               [Enable accessing parallel ports(default)]),
 	[case "${enableval}" in
 		yes) enabled_parport=yes ;;
 		no)  enabled_parport=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-parport option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-parport option]) ;;
 		esac],
 	[enabled_parport=no])
-	
+
 AC_ARG_ENABLE(
 	[linuxgpio],
-	AC_HELP_STRING(
-		[--enable-linuxgpio],
-		[Enable the Linux sysfs GPIO interface programmer type]),
+	AS_HELP_STRING([--enable-linuxgpio],
+	               [Enable the Linux sysfs GPIO interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxgpio=yes ;;
 		no)  enabled_linuxgpio=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-linuxgpio option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-linuxgpio option]) ;;
 		esac],
 	[enabled_linuxgpio=no])	
 
 AC_ARG_ENABLE(
 	[linuxspi],
-	AC_HELP_STRING(
-		[--enable-linuxspi],
-		[Enable the Linux SPIDEV interface programmer type]),
+	AS_HELP_STRING([--enable-linuxspi],
+	               [Enable the Linux SPIDEV interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxspi=yes ;;
 		no)  enabled_linuxspi=no ;;
-		*)   AC_MSG_ERROR(bad value ${enableval} for enable-linuxspi option) ;;
+		*)   AC_MSG_ERROR([bad value ${enableval} for enable-linuxspi option]) ;;
 		esac],
 	[enabled_linuxspi=no])
 
-DIST_SUBDIRS_AC='doc'
+AC_SUBST([DIST_SUBDIRS_AC], [doc])
 
-if test "$enabled_doc" = "yes"; then
+if test "x$enabled_doc" = xyes; then
 	SUBDIRS_AC='doc'
 else
 	SUBDIRS_AC=''
 fi
-
-AC_SUBST(DOC_INST_DIR, $DOC_INST_DIR)
-AC_SUBST(SUBDIRS_AC, $SUBDIRS_AC)
-AC_SUBST(DIST_SUBDIRS_AC, $DIST_SUBDIRS_AC)
+AC_SUBST([SUBDIRS_AC])
 
 
 # Find the parallel serial device files based on target system
@@ -428,50 +480,50 @@ case $target in
 		;;
 esac
 
-if test "$enabled_parport" = "yes"; then
+if test "x$enabled_parport" = xyes; then
 	AC_MSG_CHECKING([for parallel device])
-	if test "$DEFAULT_PAR_PORT" = "unknown"; then
+	if test "x$DEFAULT_PAR_PORT" = xunknown; then
 		AC_MSG_NOTICE([parallel port access disabled for this system])
 		enabled_parport=no
 	else
 		AC_MSG_RESULT([$DEFAULT_PAR_PORT])
 	fi
-	AC_SUBST(DEFAULT_PAR_PORT, $DEFAULT_PAR_PORT)
+	AC_SUBST([DEFAULT_PAR_PORT])
 fi
 
 AC_MSG_CHECKING([for serial device])
 AC_MSG_RESULT([$DEFAULT_SER_PORT])
-AC_SUBST(DEFAULT_SER_PORT, $DEFAULT_SER_PORT)
+AC_SUBST([DEFAULT_SER_PORT])
 
-if test "$enabled_parport" = "yes"; then
-	AC_DEFINE(HAVE_PARPORT, 1, [parallel port access enabled])
+if test "x$enabled_parport" = xyes; then
+	AC_DEFINE([HAVE_PARPORT], [1], [parallel port access enabled])
 	confsubst="-e /^@HAVE_PARPORT_/d"
 else
 	confsubst="-e /^@HAVE_PARPORT_BEGIN@/,/^@HAVE_PARPORT_END@/d"
 fi
 
 
-if test "$enabled_linuxgpio" = "yes"; then
+if test "x$enabled_linuxgpio" = xyes; then
 	AC_MSG_CHECKING([for default linuxgpio port])
-	if test "$DEFAULT_LINUXGPIO_PORT" = "unknown"; then
+	if test "x$DEFAULT_LINUXGPIO_PORT" = xunknown; then
 		AC_MSG_NOTICE([linuxgpio port access disabled for this system])
 		enabled_linuxgpio=no
 	else
 		AC_MSG_RESULT([$DEFAULT_LINUXGPIO_PORT])
 	fi
-	AC_SUBST(DEFAULT_LINUXGPIO_PORT, $DEFAULT_LINUXGPIO_PORT)
+	AC_SUBST([DEFAULT_LINUXGPIO_PORT])
 fi
 
-if test "$enabled_linuxgpio" = "yes"; then
-	AC_DEFINE(HAVE_LINUXGPIO, 1, [Linux sysfs GPIO support enabled])
+if test "x$enabled_linuxgpio" = xyes; then
+	AC_DEFINE([HAVE_LINUXGPIO], [1], [Linux sysfs GPIO support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_/d"
 else
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_BEGIN@/,/^@HAVE_LINUXGPIO_END@/d"
 fi
 
 
-if test "$enabled_linuxspi" = "yes"; then
-	AC_DEFINE(HAVE_LINUXSPI, 1, [Linux SPI support enabled])
+if test "x$enabled_linuxspi" = xyes; then
+	AC_DEFINE([HAVE_LINUXSPI], [1], [Linux SPI support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_/d"
 else
 	confsubst="$confsubst -e /^@HAVE_LINUXSPI_BEGIN@/,/^@HAVE_LINUXSPI_END@/d"
@@ -479,8 +531,9 @@ fi
 
 
 # If we are compiling with gcc, enable all warnings and make warnings errors.
-if test "$GCC" = yes; then
-    ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
+ENABLE_WARNINGS=""
+if test "x$GCC" = xyes; then
+	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
 
 	# does this compiler support -Wno-pointer-sign ?
 	AC_MSG_CHECKING([if gcc accepts -Wno-pointer-sign ])
@@ -488,41 +541,45 @@ if test "$GCC" = yes; then
 	safe_CFLAGS=$CFLAGS
 	CFLAGS="$ENABLE_WARNINGS -Wno-pointer-sign"
 
-	AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
+	AC_COMPILE_IFELSE([
+		AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])
+	], [dnl
 		no_pointer_sign=yes
-		AC_MSG_RESULT([yes]) 
-		], [
+		AC_MSG_RESULT([yes])
+	], [dnl
 		no_pointer_sign=no
-		AC_MSG_RESULT([no]) 
-		])
+		AC_MSG_RESULT([no])
+	])
 	CFLAGS=$safe_CFLAGS
 
-	if test x$no_pointer_sign = xyes; then
+	if test "x$no_pointer_sign" = xyes; then
 		ENABLE_WARNINGS="$ENABLE_WARNINGS -Wno-pointer-sign"
 	fi
 fi
-AC_SUBST(ENABLE_WARNINGS,$ENABLE_WARNINGS)
+AC_SUBST([ENABLE_WARNINGS])
 
 # See if we need to drop into the windows subdir.
 case $target in
         *-*-mingw32* | *-*-cygwin* | *-*-windows*)
-		if test "$GCC" = yes -a \( "$CC" = "cc" -o "$CC" = "gcc" \); then
+		if test "x$GCC" = xyes && test "x$CC" = xcc -o "x$CC" = xgcc; then
 			# does this compiler support -mno-cygwin?
 			AC_MSG_CHECKING([if $CC accepts -mno-cygwin])
 
 			safe_CFLAGS="$CFLAGS"
 			CFLAGS="$ENABLE_WARNINGS -mno-cygwin"
 
-			AC_TRY_COMPILE(, [ int main () { return 0 ; } ], [
+			AC_COMPILE_IFELSE([
+				AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])
+			], [dnl
 				no_cygwin=yes
 				AC_MSG_RESULT([yes])
-				], [
+			], [dnl
 				no_cygwin=no
 				AC_MSG_RESULT([no])
-				])
+			])
 			CFLAGS="$safe_CFLAGS"
 
-			if test x$no_cygwin = xyes; then
+			if test "x$no_cygwin" = xyes; then
 				CFLAGS="${CFLAGS} -mno-cygwin"
 			else
 				AC_MSG_NOTICE([Your compiler does not understand the -mno-cygwin option.])
@@ -537,16 +594,18 @@ case $target in
 
 		safe_LDFLAGS="$LDFLAGS"
 		LDFLAGS="${LDFLAGS} -static"
-		AC_TRY_LINK(, [ int main () { return 0 ; } ], [
+		AC_LINK_IFELSE([
+			AC_LANG_PROGRAM([[]], [[ int main () { return 0 ; } ]])
+		], [dnl
 			can_link_static=yes
 			AC_MSG_RESULT([yes])
-			], [
-			can_link_static_cygwin=no
+		], [dnl
+			can_link_static=no
 			AC_MSG_RESULT([no])
-			])
+		])
 		LDFLAGS="$safe_LDFLAGS"
 
-		if test x$can_link_static = xyes; then
+		if test "x$can_link_static" = xyes; then
 			LDFLAGS="${LDFLAGS} -static"
 		fi
 
@@ -563,20 +622,7 @@ AC_CONFIG_FILES([
 AC_CONFIG_FILES([
        GNUmakefile
 ])
-dnl TODO: Add GIT_COMMIT_HASH to the AVRDUDE_FULL_VERSION like cmake build does
-dnl # Detect GIT
-dnl AC_ARG_VAR([GIT], [git revision control system])
-dnl AS_VAR_IF([GIT], [], [dnl
-dnl   AC_PATH_PROG([GIT], [git], [no])
-dnl ])
-dnl AM_CONDITIONAL([HAVE_GIT], [test "x$GIT" != xno])
-dnl AS_IF([test -d "../.git/info/exclude"], [dnl
-dnl   GIT_COMMIT_HASH="$(${GIT} --version)"
-dnl ])
 
-# Pass version number into avrdude.conf
-dnl AVRDUDE_FULL_VERSION="${PACKAGE_VERSION} (${GIT_COMMIT_HASH})"
-AC_SUBST([AVRDUDE_FULL_VERSION], ["$PACKAGE_VERSION"])
 
 # The procedure to create avrdude.conf involves two steps.  First,
 # normal autoconf substitution will be applied, resulting in
@@ -596,20 +642,20 @@ echo ""
 echo "Configuration summary:"
 echo "----------------------"
 
-if test x$have_libelf = xyes; then
+if test "x$have_libelf" = xyes; then
    echo "DO HAVE    libelf"
 else
    echo "DON'T HAVE libelf"
 fi
 
-if test x$have_libusb = xyes; then
+if test "x$have_libusb" = xyes; then
    echo "DO HAVE    libusb"
 else
    echo "DON'T HAVE libusb"
 fi
 
-if test x$have_libusb_1_0 = xyes; then
-   if test x$enabled_libusb_1_0 = xyes; then
+if test "x$have_libusb_1_0" = xyes; then
+   if test "x$enabled_libusb_1_0" = xyes; then
        echo "DO HAVE    libusb_1_0"
    else
        echo "DISABLED   libusb_1_0"
@@ -618,13 +664,13 @@ else
    echo "DON'T HAVE libusb_1_0"
 fi
 
-if test x$have_libftdi1 = xyes; then
+if test "x$have_libftdi1" = xyes; then
    echo "DO HAVE    libftdi1"
 else
    echo "DON'T HAVE libftdi1"
 fi
 
-if test x$have_libftdi = xyes; then
+if test "x$have_libftdi" = xyes; then
    if test x$have_libftdi1 = xyes; then
        echo "DO HAVE    libftdi (but prefer to use libftdi1)"
    else
@@ -634,55 +680,55 @@ else
    echo "DON'T HAVE libftdi"
 fi
 
-if test x$have_libhid = xyes; then
+if test "x$have_libhid" = xyes; then
    echo "DO HAVE    libhid"
 else
    echo "DON'T HAVE libhid"
 fi
 
-if test x$have_libhidapi = xyes; then
+if test "x$have_libhidapi" = xyes; then
    echo "DO HAVE    libhidapi"
 else
    echo "DON'T HAVE libhidapi"
 fi
 
-if test x$have_readline = xyes; then
+if test "x$have_libreadline" = xyes; then
    echo "DO HAVE    libreadline"
 else
    echo "DON'T HAVE libreadline"
 fi
 
-if test x$have_libserialport = xyes; then
+if test "x$have_libserialport" = xyes; then
    echo "DO HAVE    libserialport"
 else
    echo "DON'T HAVE libserialport"
 fi
 
-if test x$have_pthread = xyes; then
+if test "x$have_pthread" = xyes; then
    echo "DO HAVE    pthread"
 else
    echo "DON'T HAVE pthread"
 fi
 
-if test x$enabled_doc = xyes; then
+if test "x$enabled_doc" = xyes; then
    echo "ENABLED    doc"
 else
    echo "DISABLED   doc"
 fi
 
-if test x$enabled_parport = xyes; then
+if test "x$enabled_parport" = xyes; then
    echo "ENABLED    parport"
 else
    echo "DISABLED   parport"
 fi
 
-if test x$enabled_linuxgpio = xyes; then
+if test "x$enabled_linuxgpio" = xyes; then
    echo "ENABLED    linuxgpio"
 else
    echo "DISABLED   linuxgpio"
 fi
 
-if test x$enabled_linuxspi = xyes; then
+if test "x$enabled_linuxspi" = xyes; then
    echo "ENABLED    linuxspi"
 else
    echo "DISABLED   linuxspi"

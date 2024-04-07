@@ -28,7 +28,7 @@
  *
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1201,11 +1201,9 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
   if(dp.usbproduct && *dp.usbproduct)
     dev_raw_dump(dp.usbproduct, strlen(dp.usbproduct)+1, id, "usbprod", 0);
 
-  // Zap all bytes beyond terminating nul of desc, type and port array
+  // Zap all bytes beyond terminating nul of type array
   if((len = (int) strlen(dp.type)+1) < (int) sizeof dp.type)
     memset(dp.type + len, 0, sizeof dp.type - len);
-  if((len = (int) strlen(dp.port)+1) < (int) sizeof dp.port)
-    memset(dp.port + len, 0, sizeof dp.port - len);
 
   // Zap address values
   dp.desc = NULL;
@@ -1219,6 +1217,7 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
   dp.usbvendor = NULL;
   dp.usbproduct = NULL;
   dp.hvupdi_support = NULL;
+  dp.port = NULL;
 
   // Only dump contents of PROGRAMMER struct up to and excluding the fd component
   dev_raw_dump((char *) &dp, offsetof(PROGRAMMER, fd), id, "pgm", 0);

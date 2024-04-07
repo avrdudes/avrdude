@@ -1,15 +1,15 @@
-# Helps update the version number automatically if using GNU make.
+# @configure_input@
+
 include Makefile
 
-AUTORECONF ?= autoreconf
-AUTORECONF_OPTS ?= -vis
-
-script_version := $(shell $(top_srcdir)/build-helpers/package-version $(top_srcdir) version-stamp)
-ifneq ($(PACKAGE_VERSION),$(script_version))
-$(info autoconf and script versions do not match: $(PACKAGE_VERSION) vs $(script_version))
-$(info Removing autom4te.cache and related files and re-running autoreconf)
-dummy1 := $(shell rm -rf $(top_srcdir)/autom4te.cache)
-dummy2 := $(shell $(AUTORECONF) $(AUTORECONF_OPTS) $(top_srcdir))
+need_to_rerun := $(shell $(top_srcdir)/build-helpers/versioninfo.sh "$(top_srcdir)" "@VERSIONINFO_STAMPFILE@" | { @VERSIONINFO_READ@; \
+         if @VERSIONINFO_IS_UNCHANGED@ \
+           echo "no"; \
+         fi; } )
+ifneq (no,$(need_to_rerun))
+$(info Recorded and current version information do not match.)
+$(info Re-running autoreconf via bootstrap.)
+dummy1 := $(shell $(top_srcdir)/bootstrap)
 endif
 
 # vim: syntax=make

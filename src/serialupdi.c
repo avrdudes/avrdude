@@ -25,7 +25,8 @@
  * Based on pymcuprog
  * See https://github.com/microchip-pic-avr-tools/pymcuprog
  */
-#include "ac_cfg.h"
+
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -64,7 +65,7 @@ static void serialupdi_teardown(PROGRAMMER * pgm)
 }
 
 static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
-  strcpy(pgm->port, port);
+  pgm->port = port;
   return updi_link_open(pgm);
 }
 

@@ -17,7 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include <string.h>
 #include <errno.h>
 #include <stdio.h>
@@ -383,6 +384,9 @@ char *str_utoa(unsigned n, char *buf, int base) {
 // Returns a pointer to the start of a trailing number in the string or NULL if not there
 char *str_endnumber(const char *str) {
   const char *ret = NULL;
+
+  if(!str)
+    return NULL;
 
   for(const char *end = str + strlen(str)-1; end >= str; end--)
     if(isdigit((unsigned char) *end))

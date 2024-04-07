@@ -17,7 +17,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,12 +58,14 @@ static int sa_snmatch(const char *sn, const char *q) {
   return sn && (str_starts(sn, q) || (str_starts(q , "...") && str_ends(sn, q+3)));
 }
 
+#define null_len(s) ((s)? strlen(s): 0)
+
 // Order two SERPORTs port strings: base first then trailing numbers, if any
 static int sa_portcmp(const void *p, const void *q) {
   int ret;
   const char *a = ((SERPORT *) p)->port, *b = ((SERPORT *) q)->port;
   const char *na = str_endnumber(a), *nb = str_endnumber(b);
-  size_t la = strlen(a) - (na? strlen(na): 0), lb = strlen(b) - (nb? strlen(nb): 0);
+  size_t la = null_len(a) - null_len(na), lb = null_len(b) - null_len(nb);
 
   // Compare string bases first
   if(la && lb && (ret = strncasecmp(a, b, la < lb? la: lb)))
@@ -444,11 +447,10 @@ void list_serialadapters(FILE *fp, const char *prefix, LISTID programmers) {
 }
 
 void serialadapter_not_found(const char *sea_id) {
-  msg_error("\v");
   if(sea_id && *sea_id)
     pmsg_error("cannot find serial adapter id %s\n", sea_id);
 
-  msg_error("\nValid serial adapters are:\n");
+  lmsg_error("\nValid serial adapters are:\n");
   list_serialadapters(stderr, "  ", programmers);
   msg_error("\n");
 }

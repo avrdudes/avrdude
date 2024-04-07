@@ -24,10 +24,29 @@
 #include <stdio.h>
 #include <limits.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
+
+#ifdef LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
+#error LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS is defined. Do not do that.
+#endif
+
 #define LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
 #include "libavrdude-avrintel.h"
 #undef  LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
+
+/*
+ * The libavrdude library contains useful functions for programming
+ * Microchip's 8-bit AVR microprocessors. The command line program avrdude
+ * was written using this library; its source code is a good example of how
+ * to use the library. Out of necessity libavrdude routinely changes
+ * PROGRAMMER, AVRPART and other structures to keep up with new programmers
+ * and with new parts and programming interfaces from Microchip. Any
+ * application that uses this library should ensure that it links to a
+ * libavrdude binary that is compatible with this header file, ideally the
+ * version that was shipped together with this header file or one that was
+ * compiled from source together with the application.
+ */
 
 typedef uint32_t pinmask_t;
 /*
@@ -866,7 +885,6 @@ typedef struct {                // Memory cache for a subset of cached pages
 #define OFF                  0 // Many contexts: reset, power, LEDs, ...
 #define ON                   1 // Many contexts
 
-#define PGM_PORTLEN PATH_MAX
 #define PGM_TYPELEN 32
 
 typedef enum {
@@ -945,7 +963,7 @@ typedef struct programmer_t {
   // Values below are not set by config_gram.y; ensure fd is first for dev_pgm_raw()
   union filedescriptor fd;
   char type[PGM_TYPELEN];
-  char port[PGM_PORTLEN];
+  const char *port;
   unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
   exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
   exit_reset_t exit_reset;
@@ -1103,11 +1121,11 @@ int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
 
-unsigned long avr_ustimestamp();
+uint64_t avr_ustimestamp(void);
 
-unsigned long avr_mstimestamp();
+uint64_t avr_mstimestamp(void);
 
-double avr_timestamp();
+double avr_timestamp(void);
 
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
@@ -1476,7 +1494,7 @@ const char *str_plural(int x);
 const char *str_inname(const char *fn);
 const char *str_outname(const char *fn);
 const char *str_interval(int a, int b);
-bool is_bigendian();
+bool is_bigendian(void);
 void change_endian(void *p, int size);
 int memall(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
@@ -1506,7 +1524,7 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p);
 int terminal_mode_noninteractive(const PROGRAMMER *pgm, const AVRPART *p);
 int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line);
 char *terminal_get_input(const char *prompt);
-void terminal_setup_update_progress();
+void terminal_setup_update_progress(void);
 
 #ifdef __cplusplus
 }

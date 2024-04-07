@@ -50,7 +50,7 @@
 */
 
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -826,7 +826,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
         return rv;
     }
 
-    strcpy(pgm->port, port);
+    pgm->port = port;
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {

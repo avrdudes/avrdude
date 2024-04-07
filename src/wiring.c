@@ -37,7 +37,7 @@
  *
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -123,7 +123,7 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
   int timetosnooze;
   union pinfo pinfo;
 
-  strcpy(pgm->port, port);
+  pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate ? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   serial_open(port, pinfo, &pgm->fd);

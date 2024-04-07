@@ -36,7 +36,7 @@
 // Example:
 // avrdude -c micronucleus -p t85 -x wait -V -U flash:w:main.hex
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>

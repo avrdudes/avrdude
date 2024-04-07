@@ -31,6 +31,51 @@ env:
   BUILD_TYPE: RelWithDebInfo
 
 jobs:
+  linux-x86_64-autotools:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install prerequisites
+        run: >-
+          sudo apt-get update
+
+          sudo apt-get install -y
+          build-essential
+          automake
+          libtool
+          gettext
+          flex
+          bison
+          libelf-dev
+          libusb-dev
+          libusb-1.0-0-dev
+          libhidapi-dev
+          libftdi1-dev
+          libreadline-dev
+          libserialport-dev
+          texinfo
+          texlive
+          texi2html
+      - name: Configure
+        run: >-
+          autoreconf -vis src
+
+          mkdir _ambuild && cd _ambuild
+
+          ../src/configure
+          --enable-doc
+          --enable-parport
+          --enable-linuxgpio
+          --enable-linuxspi
+      - name: Build
+        run: make -C _ambuild -j$(nproc)
+      - name: Install
+        run: sudo make -C _ambuild install
+      - name: Dryrun_test
+        run: printf "\n\n" | ./tools/test-avrdude -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
+      - name: distcheck
+        run: make -C _ambuild -j$(nproc) distcheck
+
   linux-x86_64:
     runs-on: ubuntu-latest
     steps:

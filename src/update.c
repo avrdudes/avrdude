@@ -28,7 +28,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
+
 #include "avrdude.h"
 #include "libavrdude.h"
 
@@ -368,7 +369,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   Filestats fs, fs_patched;
   char *tofree;
 
-  msg_info("\v\n");
+  lmsg_info("\n");              // Ensure an empty line for visual separation of operations
   pmsg_info("processing %s\n", tofree = update_str(upd));
   free(tofree);
 

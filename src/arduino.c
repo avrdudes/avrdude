@@ -25,7 +25,7 @@
  * are read differently.
  */
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -78,7 +78,7 @@ static int arduino_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const
 
 static int arduino_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
-  strcpy(pgm->port, port);
+  pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
   pinfo.serialinfo.cflags = SERIAL_8N1;
   if (serial_open(port, pinfo, &pgm->fd)==-1) {

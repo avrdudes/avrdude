@@ -50,5 +50,3 @@ for i in ${usersigsizes[@]}; do
   # Empty memory
   srec_cat -generate 0x00 $i -repeat-data 0xff -o 0xff_${i}B.hex -Intel
 done
-
-
