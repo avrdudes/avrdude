@@ -437,9 +437,9 @@ else()
 endif()
 
 if(HAVE_SWIG)
-    message(STATUS "DO HAVE    swig")
+    message(STATUS "DO HAVE    swig+Python3")
 else()
-    message(STATUS "DON'T HAVE swig")
+    message(STATUS "DON'T HAVE swig+Python3")
 endif()
 
 message(STATUS "----------------------")
