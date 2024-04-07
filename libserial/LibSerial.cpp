@@ -147,8 +147,6 @@ namespace {
 
 }
 
-worker_handle worker;
-
 int serialPortOpen(int baudRate) {
     val opts = generateSerialOptions({{"baudRate", baudRate}});
     if (opts.isUndefined() || opts.isNull()) {
@@ -157,7 +155,6 @@ int serialPortOpen(int baudRate) {
     }
     open_serial_port(opts.as_handle());
 
-    worker = emscripten_create_worker("avrdude-worker.js");
 
     return 0;
 }
