@@ -126,6 +126,15 @@ if(WIN32 OR MINGW)
     "${CMAKE_CURRENT_SOURCE_DIR}/windows.rc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/windows.rc"
   )
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.bat.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui.bat"
+  )
+else()
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.sh.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui"
+  )
 endif()
 
 add_custom_command(
@@ -384,3 +393,17 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES "avrdude.1"
 	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
 	)
+
+if(HAVE_SWIG)
+    execute_process(COMMAND ${Python3_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
+                    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+    install(TARGETS swig_avrdude DESTINATION ${PYTHON_SITE_PACKAGES})
+    install(FILES ${CMAKE_BINARY_DIR}/src/swig_avrdude.py DESTINATION ${PYTHON_SITE_PACKAGES})
+    install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.ui")
+    install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.py")
+  if(WIN32 OR MINGW)
+    install(PROGRAMS ${CMAKE_BINARY_DIR}/src/avrdude-gui.bat TYPE BIN)
+  else()
+    install(PROGRAMS ${CMAKE_BINARY_DIR}/src/avrdude-gui TYPE BIN)
+  endif()
+endif()

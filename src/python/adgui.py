@@ -42,7 +42,8 @@ elif os.name == 'nt':
             break
 
 if builddir == None:
-    print("Cannot determine build directory, module loading might fail.", file=sys.stderr)
+    #print("Cannot determine build directory, module loading might fail.", file=sys.stderr)
+    pass
 else:
     sys.path.append(builddir)
     sys.path.append(builddir + '/python')
