@@ -2,6 +2,7 @@ name: avrdude_packing_release
 
 env:
   # The name of the project
+  PROJECT_NAME: avrdude
   DIST_DIR: dist
   ARTIFACT_NAME: dist
 
