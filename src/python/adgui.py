@@ -256,11 +256,29 @@ def synthesize_fuse(config: list, fuse: str, vallist: list) -> int:
                 resval |= thisval
     return resval
 
-from PySide2.QtWidgets import *
-from PySide2.QtGui import *
-from PySide2.QtCore import *
-from PySide2.QtUiTools import QUiLoader
-from functools import partial
+# actual GUI part starts here
+
+global pyside
+try:
+    from PySide6.QtWidgets import *
+    from PySide6.QtGui import *
+    from PySide6.QtCore import *
+    from PySide6.QtUiTools import QUiLoader
+    from functools import partial
+    pyside = 6
+except ModuleNotFoundError:
+    try:
+        from PySide2.QtWidgets import *
+        from PySide2.QtGui import *
+        from PySide2.QtCore import *
+        from PySide2.QtUiTools import QUiLoader
+        from functools import partial
+        pyside = 2
+    except ModuleNotFoundError:
+        print("Neither PySide6 (Qt6) nor PySide2 (Qt5) found, cannot create a GUI.",
+              file = sys.stderr)
+        sys.exit(1)
+
 
 class EnterFilter(QObject):
     '''Filters <Key_Enter> and <Key_Return> events'''
@@ -1638,7 +1656,12 @@ considered a pattern that will be replaced by the `fuse`*N* name.
 def main():
     gui = adgui(sys.argv)
 
-    sys.exit(gui.app.exec_())
+    global pyside
+    if pyside == 6:
+        # PySide6 deprecated the exec_ method
+        sys.exit(gui.app.exec())
+    else:
+        sys.exit(gui.app.exec_())
 
 if __name__ == "__main__":
     main()
