@@ -211,14 +211,14 @@ static void jtag3_print_data(unsigned char *b, size_t s)
     return;
 
   for (i = 0; i < s; i++) {
-    msg_info("0x%02x", b[i]);
+    msg_debug("0x%02x", b[i]);
     if (i % 16 == 15)
-      msg_info("\n");
+      msg_debug("\n");
     else
-      msg_info(" ");
+      msg_debug(" ");
   }
   if (i % 16 != 0)
-    msg_info("\n");
+    msg_debug("\n");
 }
 
 static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
