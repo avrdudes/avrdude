@@ -655,7 +655,11 @@ class adgui(QObject):
             if backslash_v and not self.at_bol[target]:
                 s += "\n"
             s += msg
-            self.at_bol[target] = s[-1] == '\n'
+            try:
+                self.at_bol[target] = s[-1] == '\n'
+            except UnicodeDecodeError:
+                s = str(s)
+                self.at_bol[target] = s[-1] == '\n'
             self.log(s, msglvl, no_nl = True)
 
     def progress_callback(self, percent: int, etime: float, hdr: str, finish: int):
