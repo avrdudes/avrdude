@@ -1,5 +1,5 @@
 #
-# programmers.cmake - create parts.texi from parts.txt
+# parts.cmake - create parts.texi from parts.txt
 # Copyright (C) 2022 Marius Greuel
 #
 # This program is free software; you can redistribute it and/or modify

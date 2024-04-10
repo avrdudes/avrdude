@@ -50,9 +50,9 @@ AC_INIT([avrdude],
         m4_defn([versioninfo_AVRDUDE_PACKAGE_VERSION]),
         [https://github.com/avrdudes/avrdude/issues])
 
-AC_CONFIG_SRCDIR([main.c])
+AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_AUX_DIR([auto-aux])
-AC_CONFIG_HEADERS([ac_cfg.h])
+AC_CONFIG_HEADERS([src/ac_cfg.h])
 AC_CONFIG_MACRO_DIR([auto-m4])
 
 AC_CANONICAL_BUILD
@@ -60,10 +60,21 @@ AC_CANONICAL_HOST
 AC_CANONICAL_TARGET
 
 AM_INIT_AUTOMAKE([
+  -Wall
+  -Werror
   1.14
+  dist-xz
   foreign
+  info-in-builddir
+  no-dist-built-sources
+  no-dist-gzip
   subdir-objects
+  tar-ustar
 ])
+dnl filename-length-max=99
+dnl tar-v7      filename length 99 char limit
+dnl tar-ustar   old POSIX tar, allows filename lengths > 99 chars
+dnl tar-pax     new POSIX tar
 
 AM_SILENT_RULES([yes])
 
@@ -88,6 +99,9 @@ AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
                    [The full avrdude version as displayed in -? and avrdude.conf])
 AC_SUBST([AVRDUDE_FULL_VERSION])
 
+AC_DEFINE_UNQUOTED([AVRDUDE_BUILDSYSTEM], ["autotools"],
+                   [The buildsystem used to build avrdude])
+
 
 # Checks for programs.
 AC_PROG_CC
@@ -98,6 +112,10 @@ AC_PROG_YACC
 AC_PROG_LEX([noyywrap])
 AM_PROG_AR
 LT_INIT()
+
+
+AM_CONDITIONAL([CROSS_COMPILING], [test "x$cross_compiling" = xyes])
+
 
 AH_TEMPLATE([HAVE_YYLEX_DESTROY],
             [Define if lex/flex has yylex_destroy])
@@ -368,23 +386,24 @@ AC_CHECK_TYPES([ulong_t], [], [], [#include <sys/types.h>])
 
 # Checks for misc stuff.
 
-AC_ARG_ENABLE(
-	[versioned-doc],
-	AS_HELP_STRING([--enable-versioned-doc],
-	               [install docs in directory with version name (default)]),
-	[case "${enableval}" in
-		yes) versioned_doc=yes ;;
-		no)  versioned_doc=no ;;
-		*)   AC_MSG_ERROR([bad value ${enableval} for versioned-doc option]) ;;
-		esac],
-	[versioned_doc=yes])
+dnl FIXME: Reactive --enable-versioned-doc for compatibility, but use docdir.
+dnl AC_ARG_ENABLE(
+dnl 	[versioned-doc],
+dnl 	AS_HELP_STRING([--enable-versioned-doc],
+dnl 	               [install docs in directory with version name (default)]),
+dnl 	[case "${enableval}" in
+dnl 		yes) versioned_doc=yes ;;
+dnl 		no)  versioned_doc=no ;;
+dnl 		*)   AC_MSG_ERROR([bad value ${enableval} for versioned-doc option]) ;;
+dnl 		esac],
+dnl 	[versioned_doc=yes])
 
-if test "x$versioned_doc" = "xyes"; then
-    DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
-else
-    DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
-fi
-AC_SUBST([DOC_INST_DIR])
+dnl if test "x$versioned_doc" = "xyes"; then
+dnl     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude-$(VERSION)'
+dnl else
+dnl     DOC_INST_DIR='$(DESTDIR)$(datadir)/doc/avrdude'
+dnl fi
+dnl AC_SUBST([DOC_INST_DIR])
 
 AC_ARG_ENABLE(
 	[doc],
@@ -396,6 +415,17 @@ AC_ARG_ENABLE(
 		*)   AC_MSG_ERROR([bad value ${enableval} for disable-doc option]) ;;
 		esac],
 	[enabled_doc=no])
+
+dnl FIXME: Do we still need this?
+dnl AC_SUBST([DIST_SUBDIRS_AC], [doc])
+
+dnl if test "x$enabled_doc" = xyes; then
+dnl 	SUBDIRS_AC='doc'
+dnl else
+dnl 	SUBDIRS_AC=''
+dnl fi
+dnl AC_SUBST([SUBDIRS_AC])
+
 
 AC_ARG_ENABLE(
 	[parport],
@@ -429,15 +459,6 @@ AC_ARG_ENABLE(
 		*)   AC_MSG_ERROR([bad value ${enableval} for enable-linuxspi option]) ;;
 		esac],
 	[enabled_linuxspi=no])
-
-AC_SUBST([DIST_SUBDIRS_AC], [doc])
-
-if test "x$enabled_doc" = xyes; then
-	SUBDIRS_AC='doc'
-else
-	SUBDIRS_AC=''
-fi
-AC_SUBST([SUBDIRS_AC])
 
 
 # Find the parallel serial device files based on target system
@@ -613,14 +634,22 @@ case $target in
 		;;
 esac
 
-AC_CONFIG_FILES([
-       doc/Makefile
-       avrdude.spec
-       Makefile
+AC_ARG_VAR([GIT], [git the stupid content tracker command])
+AS_VAR_IF([GIT], [], [dnl
+  AC_PATH_PROG([GIT], [git], [no])
 ])
+AM_CONDITIONAL([HAVE_GIT], [test "x$GIT" != xno])
+
+AC_ARG_VAR([DIFF], [diff the line by line file comparison command])
+AS_VAR_IF([DIFF], [], [dnl
+  AC_PATH_PROG([DIFF], [diff], [no])
+])
+AM_CONDITIONAL([HAVE_DIFF], [test "x$DIFF" != xno])
 
 AC_CONFIG_FILES([
        GNUmakefile
+       Makefile
+       avrdude.spec
 ])
 
 
@@ -631,8 +660,8 @@ AC_CONFIG_FILES([
 # based on previous configuration results, thereby producing the final
 # avrdude.conf file.
 
-AC_CONFIG_FILES([avrdude.conf.tmp:avrdude.conf.in],
-		[sed $confsubst avrdude.conf.tmp > avrdude.conf],
+AC_CONFIG_FILES([src/avrdude.conf.tmp:src/avrdude.conf.in],
+		[sed $confsubst src/avrdude.conf.tmp > src/avrdude.conf],
 		[confsubst="$confsubst"])
 
 AC_OUTPUT
