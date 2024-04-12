@@ -9,11 +9,11 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 14.02.2024
+ * 12.04.2024
  *
  */
 
-#include <ac_cfg.h>
+#include "ac_cfg.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -2151,7 +2151,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB20",        381, F_AVR8X, {0x1E, 0x94, 0x40}, // ID
   /*AVR16EB20*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB20*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB20*/        392, rgftab_avr16eb20}, // Register file
+  /*AVR16EB20*/        393, rgftab_avr16eb20}, // Register file
 
   //AVR16DD28                                           atdf, avrdude // Sources
   {"AVR16DD28",        331, F_AVR8X, {0x1E, 0x94, 0x32}, // ID
@@ -2169,7 +2169,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB28",        382, F_AVR8X, {0x1E, 0x94, 0x3F}, // ID
   /*AVR16EB28*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB28*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB28*/        392, rgftab_avr16eb20}, // Register file
+  /*AVR16EB28*/        393, rgftab_avr16eb20}, // Register file
 
   //AVR16DD32                                           atdf, avrdude // Sources
   {"AVR16DD32",        333, F_AVR8X, {0x1E, 0x94, 0x31}, // ID
@@ -2187,7 +2187,7 @@ const uPcore_t uP_table[] = {   // Value of -1 typically means unknown
   {"AVR16EB32",        383, F_AVR8X, {0x1E, 0x94, 0x3E}, // ID
   /*AVR16EB32*/          0, 0x04000, 0x040,  1,      0, 0x01400, 0x0200,  8, 0x7800, 0x0800, // Mem
   /*AVR16EB32*/         16,  4,  31, vtab_avr16eb32,       18, cfgtab_avr16eb14, // ISRs, Config
-  /*AVR16EB32*/        392, rgftab_avr16eb20}, // Register file
+  /*AVR16EB32*/        393, rgftab_avr16eb20}, // Register file
 
   //AVR16EA48                                           atdf, avrdude // Sources
   {"AVR16EA48",        335, F_AVR8X, {0x1E, 0x94, 0x35}, // ID
@@ -7136,7 +7136,7 @@ const char * const vtab_avr16eb32[vts_avr16eb32] = {
   "RTC_PIT",                    //   4: RTC Periodic Interrupt Timer
   "CCL_CCL",                    //   5: Configurable Custom Logic
   "PORTA_PORT",                 //   6: Interrupt PORT A
-  "WEX0_FDFEVA/WEX0_FDFEVB/WEX0_FDFEVC", //   7: Waveform Extention 0 Fault Detection on Event Input A/B/C
+  "WEX0_FAULTDET/WEX0_FDFEVA/WEX0_FDFEVB/WEX0_FDFEVC", //   7: Waveform Extention 0 Fault Detection/... on Event Input A/B/C
   "TCE0_OVF",                   //   8: TC E0 Overflow
   "TCE0_CMP0",                  //   9: TC E0 Compare 0
   "TCE0_CMP1",                  //  10: TC E0 Compare 1
@@ -44374,7 +44374,7 @@ const Register_file_t rgftab_avr16eb14[391] = { // I/O memory [0, 4159]
 };
 
 // AVR16EB20 AVR16EB28 AVR16EB32
-const Register_file_t rgftab_avr16eb20[392] = { // I/O memory [0, 4159]
+const Register_file_t rgftab_avr16eb20[393] = { // I/O memory [0, 4159]
   {"vporta.dir",             0x0000,  1,     -1,   0x00, "data direction register"},
   {"vporta.out",             0x0001,  1,     -1,   0x00, "I/O port output register"},
   {"vporta.in",              0x0002,  1,     -1,   0x00, "I/O port input register"},
@@ -44602,6 +44602,7 @@ const Register_file_t rgftab_avr16eb20[392] = { // I/O memory [0, 4159]
   {"portmux.twiroutea",      0x05e6,  1,     -1,   0x00, "TWI route A register"},
   {"portmux.tceroutea",      0x05e7,  1,     -1,   0x00, "TCE route A register"},
   {"portmux.tcbroutea",      0x05e8,  1,     -1,   0x00, "TCB route A register"},
+  {"portmux.acroutea",       0x05ea,  1,     -1,   0x00, "AC route A register"},
   {"portmux.tcfroutea",      0x05ec,  1,     -1,   0x00, "TCF route A register"},
   {"adc0.ctrla",             0x0600,  1,     -1,   0x00, "control register A"},
   {"adc0.ctrlb",             0x0601,  1,     -1,   0x00, "control register B"},
