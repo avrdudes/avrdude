@@ -338,7 +338,6 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
             matches = 1;
             goto done;
           }
-          break;
         }
       }
     }
