@@ -319,7 +319,7 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
   const char *matchid;
   size_t l;
 
-  if(!pgid || !(p1 = *pgid))
+  if(!pgid || !(p1 = tolower((unsigned char) *pgid)))
     return NULL;
 
   l = strlen(pgid);
@@ -330,7 +330,7 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
     if(is_programmer(pgm) && (pgm->prog_modes & pmode))
       for(LNODEID ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
         const char *id = (const char *) ldata(ln2);
-        if(p1 == *id && !strncasecmp(id, pgid, l)) { // Partial initial match
+        if(p1 == tolower((unsigned char) *id) && !strncasecmp(id, pgid, l)) { // Partial initial match
           matchp = pgm;
           matchid = id;
           matches++;
