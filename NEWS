@@ -14,10 +14,12 @@ Changes since version 7.3:
   * New programmers supported:
 
   * Issues fixed:
-     - Avrintel.h missing from installation #1683
-     - Use of undeclared identifier 'AVRDUDE_FULL_VERSION' #1706
-     - Wrong message level in jtag3_prmsg() #1726
-     - Old avrdude_message() can go away #1719
+    - Avrintel.h missing from installation #1683
+    - Use of undeclared identifier 'AVRDUDE_FULL_VERSION' #1706
+    - Wrong message level in jtag3_prmsg() #1726
+    - Old avrdude_message() can go away #1719
+    - avr_{read,write}_mem fail to initialize progress reporting #1718
+    - avr*timestamp() oddities #1722
 
   * Pull requests:
     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
@@ -35,6 +37,10 @@ Changes since version 7.3:
     - Replace msg_info() by msg_debug() in jtag3_prmsg()
       and jtag3_prevent() #1727
     - Remove unused avrdude_message() #1730
+    - Add lmsg_xyz() functions to start message at left margin #1728
+    - Document progress reporting in source code #1724
+    - Change type for avr_(ms|us)timestamp() to uint64_t #1729
+    - Use Static Libs for macOS arduino_packing build #1731
 
   * Internals:
 
