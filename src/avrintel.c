@@ -9265,7 +9265,7 @@ static const Valueitem_t _values_wdton_atmega328[2] = {
  */
 static const Valueitem_t _values_spien_atmega328[2] = {
   {0, "isp_enabled", "serial programming enabled"},
-  {1, "isp_disabled_warning_might_brick_the_board", "serial programming disabled (warning: might brick the board)"},
+  {1, "isp_disabled", "serial programming disabled"},
 };
 
 /*
