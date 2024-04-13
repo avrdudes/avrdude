@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -324,7 +325,7 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
   const char *matchid;
   size_t l;
 
-  if(!pgid || !(p1 = *pgid))
+  if(!pgid || !(p1 = tolower((unsigned char) *pgid)))
     return NULL;
 
   l = strlen(pgid);
@@ -332,21 +333,25 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
   matchp = NULL;
   for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
     pgm = ldata(ln1);
-    if(is_programmer(pgm) && (pgm->prog_modes & pmode))
+    if(is_programmer(pgm) && (pgm->prog_modes & pmode)) {
+      int thispgmmatch = 0;
       for(LNODEID ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
         const char *id = (const char *) ldata(ln2);
-        if(p1 == *id && !strncasecmp(id, pgid, l)) { // Partial initial match
-          matchp = pgm;
-          matchid = id;
-          matches++;
+        if(p1 == tolower((unsigned char) *id) && !strncasecmp(id, pgid, l)) { // Partial initial match
+          if(!thispgmmatch) {   // Only count match once for a programmer
+            thispgmmatch++;
+            matchp = pgm;
+            matchid = id;
+            matches++;
+          }
           if(id[l] == 0) {      // Exact match; return straight away
             matches = 1;
             goto done;
           }
-          break;
         }
       }
     }
+  }
 
 done:
   if(matches == 1) {

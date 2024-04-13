@@ -572,15 +572,15 @@ error:
 }
 
 
-// Return us since program start, rolls over after ca 1h 12min
-unsigned long avr_ustimestamp() {
+// Return us since first call
+uint64_t avr_ustimestamp() {
   struct timeval tv;
 
   memset(&tv, 0, sizeof tv);
   if(gettimeofday(&tv, NULL) == 0) {
-    static unsigned long long epoch;
+    static uint64_t epoch;
     static int init;
-    unsigned long long now;
+    uint64_t now;
 
     now = tv.tv_sec*1000000ULL + tv.tv_usec;
     if(!init) {
@@ -593,8 +593,8 @@ unsigned long avr_ustimestamp() {
   return 0;
 }
 
-// Return ms since program start, rolls over after ca 49d 17h
-unsigned long avr_mstimestamp() {
+// Return ms since first call to avr_ustimestamp() above
+uint64_t avr_mstimestamp() {
   return avr_ustimestamp()/1000;
 }
 
