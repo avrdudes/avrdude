@@ -1580,8 +1580,11 @@ skipopen:
           }
         }
         pmsg_error("unable to read signature data, rc=%d\n", rc);
-        exitrc = 1;
-        goto main_exit;
+        if(!ovsigck) {
+          imsg_error("use -F to override this check\n");
+          exitrc = 1;
+          goto main_exit;
+        }
       }
     }
 
