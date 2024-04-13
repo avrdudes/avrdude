@@ -20,6 +20,8 @@ Changes since version 7.3:
     - Old avrdude_message() can go away #1719
     - avr_{read,write}_mem fail to initialize progress reporting #1718
     - avr*timestamp() oddities #1722
+    - -F option not honored bug #1740 
+    - "jtag2 is not a unique start of a programmer name" #1739
 
   * Pull requests:
     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
@@ -41,6 +43,11 @@ Changes since version 7.3:
     - Document progress reporting in source code #1724
     - Change type for avr_(ms|us)timestamp() to uint64_t #1729
     - Use Static Libs for macOS arduino_packing build #1731
+    - Add arduino_packing_release github action #1690
+    - Fix message levels in jtag3_print_data() #1741
+    - Consult -F option when signature cannot be read #1745
+    - Check all programmer ids for exact match #1746
+    - Update avrintel files #1747
 
   * Internals:
 
