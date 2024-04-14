@@ -77,6 +77,7 @@ struct pdata
 	unsigned char pin_val;		/* Last written pin values for bitbang mode */
 	int     unread_bytes;		/* How many bytes we expected, but ignored */
 	int     flag;
+	char buf_local[100];            /* Local buffer for buspirate_readline_noexit() */
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
@@ -174,12 +175,9 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
 	int c;
 	long orig_serial_recv_timeout = serial_recv_timeout;
 
-	/* Static local buffer - this may come handy at times */
-	static char buf_local[100];
-
 	if (buf == NULL) {
-		buf = buf_local;
-		len = sizeof(buf_local);
+		buf = PDATA(pgm)->buf_local;
+		len = sizeof(PDATA(pgm)->buf_local);
 	}
 	buf_p = buf;
 	memset(buf, 0, len);
