@@ -768,7 +768,7 @@ class adgui(QObject):
     def update_device_info(self):
         p = ad.locate_part(ad.cvar.part_list, self.dev_selected)
         if not p:
-            log(f"Could not find {self.dev_selected} again, confused\n")
+            self.log(f"Could not find {self.dev_selected} again, confused\n")
             return
         ad.avr_initmem(p)
         self.devinfo.label_2.setText(p.desc)
