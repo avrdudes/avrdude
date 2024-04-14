@@ -870,6 +870,7 @@ class adgui(QObject):
             self.adgui.actionAttach.setEnabled(False)
             self.adgui.actionDetach.setEnabled(True)
             self.connected = True
+            self.fuses_warned = {}
 
     def stop_programmer(self):
         if self.connected:
@@ -1318,6 +1319,7 @@ class adgui(QObject):
                 except ValueError as e:
                     self.log(str(e), ad.MSG_WARNING)
                     return
+                self.check_fuse(fuse, val)
                 m.put(val.to_bytes(1, 'little'))
                 self.fuselabels[fuse][1] = True
                 self.log(f"Updated {fuse} memory")
@@ -1475,6 +1477,38 @@ class adgui(QObject):
                      ad.MSG_ERROR)
             return
         self.fpop = FusePopup(widget, self.devcfg, fuse)
+        self.fpop.dialog.accepted.connect(widget.editingFinished)
+
+    def check_fuse(self, fuse, val):
+        '''Check fuse for certain "dangerous" values'''
+        dangerous = {
+            'rstdisbl': ('.*gpio.*', 'Configuring /RESET as GPIO can be dangerous to recover'),
+            'spien': ('isp_disabled', 'Disabling ISP programming can be dangerous to recover'),
+            'dwen': ('dw_enabled', 'Enabling debugWIRE requires a debugWIRE-capable programmer and circuitry on /RESET pin'),
+        }
+        remarks = ''
+        vallist = dissect_fuse(self.devcfg, fuse, val)
+        count = 0
+        for ele in vallist:
+            name = ele[0]
+            value = ele[1]
+            for (tag, content) in dangerous.items():
+                if name != tag:
+                    continue
+                if re.match(content[0], value):
+                    if not value in self.fuses_warned:
+                        remarks += content[1] + '\n'
+                        self.fuses_warned[value] = True
+                        count += 1
+        if count > 0:
+            if count == 1:
+                remarks += '\n(This warning will not be displayed again.)'
+            else:
+                remarks += '\n(These warnings will not be displayed again.)'
+            QMessageBox.warning(self.memories,
+                                f"Some fuse values might be dangerous",
+                                remarks)
+
 
     def helptext(self):
         self.helptext='''
