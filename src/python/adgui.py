@@ -1516,28 +1516,22 @@ class adgui(QObject):
 
 ## Preface
 
-Keep in mind that this is a GUI demonstrator only. It is not meant to
-be a full-featured replacement for the `AVRDUDE` CLI program. Its main
-purpose is to demonstrate that the SWIG Python wrapper around
-`libavrdude` is basically able to offer all the features needed for a
-GUI programming tool.
+Keep in mind that this is a GUI demonstrator only.
 
 ## GUI layout
 
 The GUI consists of three major parts: a menu bar to select the
-various actions. The location of the menu bar depends on the system
-platform used, either on top of the application window, or on top of
-the screen.
+various actions; a central part for operating messages, warnings and
+errors; and interactive windows for individual tasks like programming
+an AVR.
 
-The center area is reserved for logging all information that used to
-be shown in the terminal in the CLI version. Different log levels are
+The center area is reserved for logging. Different log levels are
 marked in different colors to allow for an easy optical
 differentiation.
 
-The log level shown (the equivalent of the CLI `-v` options) can be
-selected using Settings → Log level …  Note that log entries above
-"Debug" are not displayed in the log window but only stored
-internally.
+The log level shown can be selected using Settings → Log level …  Note
+that log entries above "Debug" are not displayed in the log window but
+only stored internally.
 
 The internal log data can be written into a file using File → Save
 log …
@@ -1547,41 +1541,29 @@ mentioned below.
 
 ## Operating instructions
 
-When starting the GUI, use the File → Device dialog to pick the AVR
-device to work with. The check boxes on the left-hand side allow to
-reduce the number of devices displayed in the combobox to the right,
-to ease finding the desired AVR device. This is the equivalent of
-the `-p` CLI option.
+First pick the AVR using the File → Device dialog. Once selected,
+Device → Info … shows more information about the part.
 
-Once the device has been selected, Device → Info … can be used to show
-a window presenting the main features of the selected device, as well
-as the location in the configuration file.
-
-Then, use File → Programmer to select the programming hardware. Again,
-checkboxes allow to reduce the displayed programmer types, this time
-based on desired programming features. This corresponds to the CLI
-`-c` option.  Fill in the appropriate value into the "Port" entry,
-this is the equivalent of the CLI `-P` option. For programmers that
-only make sense on a particular port (e.g. "usb"), an attempt is made
-to pre-fill that value.
+Then, use File → Programmer to select the programming hardware or
+bootloader. Be sure to set the Port entry. For programmers that only
+make sense on a particular port (e.g. "usb"), an attempt is made to
+pre-fill the port.
 
 All these values are saved in a platform-dependent configuration
 database, and loaded from that place at next start. Thus, if operating
 again on the same platform next time, they are already pre-selected.
 
-If all these values are filled in, use File → Attach Programmer to
-start talking to the device. If the programmer could be started
-successfully, the Device → Programming … menu is enabled which pops
-up a window to handle the various persistent device memories (flash,
-EEPROM, fuses).
+In the next step select File → Attach Programmer to start talking to
+the device. Once the programmer has started up successfully, the
+Device → Programming … menu is enabled which pops up a window to
+handle the various persistent device memories (flash, EEPROM,
+fuses).
 
-### Signature
-
-Before anything else can proceed, the signature must be read from the
-device on the "Signature" tab. The read signature is then compared to
-the expected signature from the config file. If both match, the entry
-is marked green, otherwise red. Finally, a candidate device is
-suggested from the database that matches the read signature.
+Before anything else can proceed, the signature must be read from
+the device on the Signature tab. If the read signature does not
+match that of the selected device the entry is marked red and a
+candidate device is suggested from the database that matches the
+signature.
 
 ### Flash, EEPROM
 
