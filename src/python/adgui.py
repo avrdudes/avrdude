@@ -432,6 +432,47 @@ class FusePopup():
         self.lineedit.clear()
         self.lineedit.setText(f"{fuseval:02X}")
 
+class listValidator(QValidator):
+
+    def __init__(self, liste):
+        super().__init__()
+        self.list = liste
+
+    def validate(self, string, position):
+        if string == "":
+            # empty string could always become a real match
+            return QValidator.Intermediate, string, position
+
+        s = string.lower()
+
+        for i in self.list:
+            i = i.lower()
+
+            if i == s:
+                # exact match
+                return QValidator.Acceptable, string, position
+
+            if i.find(s) != -1:
+                # could become a real match some day
+                return QValidator.Intermediate, string, position
+
+        # no match at all, invalid input
+        return QValidator.Invalid, string, position
+
+    def fixup(self, string):
+        # possibly change case of string for an exact match
+        s = string.lower()
+
+        for i in self.list:
+            if s == i.lower():
+                return i
+        # hmm, not found - use the first partial match
+        for i in self.list:
+            if i.lower().find(s) != -1:
+                return i
+
+        # nothing at all
+        return string
 
 class adgui(QObject):
     def __init__(self, argv):
@@ -745,11 +786,15 @@ class adgui(QObject):
         fams = list(self.devices.keys())
         #fams.sort()
         self.device.devices.clear()
+        l = []
         for f in fams:
             obj = eval('self.device.' + f + '.isChecked()')
             if obj:
                 for d in self.devices[f]:
                     self.device.devices.addItem(d)
+                    l.append(d)
+        self.dev_validator = listValidator(l)
+        self.device.devices.setValidator(self.dev_validator)
 
     def update_programmer_cb(self):
         fams = list(self.programmers.keys())
@@ -812,6 +857,9 @@ class adgui(QObject):
     def device_selected(self):
         self.dev_selected = self.device.devices.currentText()
         self.dev = ad.locate_part(ad.cvar.part_list, self.dev_selected)
+        if not self.dev:
+            self.log(f"Invalid device selection: {self.dev_selected}")
+            return
         self.log(f"Selected device: {self.dev_selected}")
         self.settings.setValue('file/device', self.dev_selected)
         self.update_device_info()
