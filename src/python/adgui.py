@@ -434,13 +434,15 @@ class FusePopup():
 
 class listValidator(QValidator):
 
-    def __init__(self, liste):
+    def __init__(self, liste, buttonbox):
         super().__init__()
         self.list = liste
+        self.buttonbox = buttonbox
 
     def validate(self, string, position):
         if string == "":
             # empty string could always become a real match
+            self.buttonbox.button(QDialogButtonBox.Ok).setEnabled(False)
             return QValidator.Intermediate, string, position
 
         s = string.lower()
@@ -450,13 +452,16 @@ class listValidator(QValidator):
 
             if i == s:
                 # exact match
+                self.buttonbox.button(QDialogButtonBox.Ok).setEnabled(True)
                 return QValidator.Acceptable, string, position
 
             if i.find(s) != -1:
                 # could become a real match some day
+                self.buttonbox.button(QDialogButtonBox.Ok).setEnabled(False)
                 return QValidator.Intermediate, string, position
 
         # no match at all, invalid input
+        self.buttonbox.button(QDialogButtonBox.Ok).setEnabled(False)
         return QValidator.Invalid, string, position
 
     def fixup(self, string):
@@ -793,7 +798,7 @@ class adgui(QObject):
                 for d in self.devices[f]:
                     self.device.devices.addItem(d)
                     l.append(d)
-        self.dev_validator = listValidator(l)
+        self.dev_validator = listValidator(l, self.device.buttonBox)
         self.device.devices.setValidator(self.dev_validator)
 
     def update_programmer_cb(self):
