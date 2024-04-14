@@ -1482,8 +1482,8 @@ class adgui(QObject):
     def check_fuse(self, fuse, val):
         '''Check fuse for certain "dangerous" values'''
         dangerous = {
-            'rstdisbl': ('.*gpio.*', 'Configuring /RESET as GPIO can be dangerous to recover'),
-            'spien': ('isp_disabled', 'Disabling ISP programming can be dangerous to recover'),
+            'rstdisbl': ('.*gpio.*', 'Configuring /RESET as GPIO can be difficult to recover'),
+            'spien': ('isp_disabled', 'Disabling ISP programming can be difficult to recover'),
             'dwen': ('dw_enabled', 'Enabling debugWIRE requires a debugWIRE-capable programmer and circuitry on /RESET pin'),
         }
         remarks = ''
