@@ -1085,10 +1085,7 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static void buspirate_setup(PROGRAMMER *pgm)
 {
 	/* Allocate private data */
-	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		pmsg_error("out of memory allocating private data\n");
-		exit(1);
-	}
+	pgm->cookie = cfg_malloc(__func__, sizeof(struct pdata));
 	PDATA(pgm)->serial_recv_timeout = 100;
 }
 
