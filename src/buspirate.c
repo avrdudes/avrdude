@@ -82,8 +82,7 @@ struct pdata
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 /* ====== Feature checks ====== */
-static inline int
-buspirate_uses_ascii(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_ascii(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
 }
 
@@ -277,8 +276,7 @@ static void buspirate_dummy_6(const PROGRAMMER *pgm, const char *p) {
 }
 
 /* ====== Config / parameters handling functions ====== */
-static int
-buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 	LNODEID ln;
 	const char *extended_param;
 	char reset[10];
@@ -395,8 +393,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 	return 0;
 }
 
-static int
-buspirate_verifyconfig(const PROGRAMMER *pgm) {
+static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 	/* Default reset pin is CS */
 	if (PDATA(pgm)->reset == 0x00)
 		PDATA(pgm)->reset |= BP_RESET_CS;
