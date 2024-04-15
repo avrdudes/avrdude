@@ -691,8 +691,8 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 }
 
 static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
-	static const char *reset_str = "#\n";
-	static const char *accept_str = "y\n";
+	const char * const reset_str = "#\n";
+	const char * const accept_str = "y\n";
 	char *rcvd;
 	int rc, print_banner = 0;
 
