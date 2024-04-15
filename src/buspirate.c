@@ -570,7 +570,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		pgm->paged_write = NULL;
 	} else {
 		/* Check for write-then-read without !CS/CS and disable paged_write if absent: */
-		static const unsigned char buf2[] = {5,0,0,0,0};
+		const unsigned char buf2[] = {5, 0, 0, 0, 0};
 		buspirate_send_bin(pgm, buf2, sizeof(buf2));
 		buspirate_recv_bin(pgm, buf, 1);
 		if (buf[0] != 0x01) {
@@ -616,7 +616,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			return -1;
 		if (rv) {
 			unsigned int ver = 0;
-			static const unsigned char buf2[] = {1};
+			const unsigned char buf2[] = {1};
 			buspirate_send_bin(pgm, buf2, sizeof(buf2));
 			buspirate_recv_bin(pgm, buf, 3);
 			ver = buf[1] << 8 | buf[2];
