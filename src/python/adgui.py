@@ -534,7 +534,7 @@ class adgui(QObject):
         self.disable_fuses()
 
         self.helptext()
-        self.help.textBrowser.setMarkdown(self.helptext)
+        self.help.textBrowser.setHtml(self.helptext)
 
         self.adgui.show()
 
@@ -1565,99 +1565,105 @@ class adgui(QObject):
 
     def helptext(self):
         self.helptext='''
-# Usage instructions
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN" "http://www.w3.org/TR/REC-html40/strict.dtd">
+<html>
+<head><title>Usage instructions</title></head>
+<body>
+<h1>Usage instructions</h1>
 
-## Preface
+<h2>Preface</h2>
 
-Keep in mind that this is a GUI demonstrator only.
+<p>Keep in mind that this is a GUI demonstrator only.</p>
 
-## GUI layout
+<h2>GUI layout</h2>
 
-The GUI consists of three major parts: a menu bar to select the
+<p>The GUI consists of three major parts: a menu bar to select the
 various actions; a central part for operating messages, warnings and
 errors; and interactive windows for individual tasks like programming
-an AVR.
+an AVR.</p>
 
-The center area is reserved for logging. Different log levels are
+<p>The center area is reserved for logging. Different log levels are
 marked in different colors to allow for an easy optical
-differentiation.
+differentiation.</p>
 
-The log level shown can be selected using Settings → Log level …  Note
+<p>The log level shown can be selected using Settings → Log level …  Note
 that log entries above "Debug" are not displayed in the log window but
-only stored internally.
+only stored internally.</p>
 
-The internal log data can be written into a file using File → Save
-log …
+<p>The internal log data can be written into a file using File → Save
+log …</p>
 
-The selected log level is remembered in the configuration data
-mentioned below.
+<p>The selected log level is remembered in the configuration data
+mentioned below.</p>
 
-## Operating instructions
+<h2>Operating instructions</h2>
 
-First pick the AVR using the File → Device dialog. Once selected,
-Device → Info … shows more information about the part.
+<p>First pick the AVR using the File → Device dialog. Once selected,
+Device → Info … shows more information about the part.</p>
 
-Then, use File → Programmer to select the programming hardware or
+<p>Then, use File → Programmer to select the programming hardware or
 bootloader. Be sure to set the Port entry. For programmers that only
 make sense on a particular port (e.g. "usb"), an attempt is made to
-pre-fill the port.
+pre-fill the port.</p>
 
-All these values are saved in a platform-dependent configuration
+<p>All these values are saved in a platform-dependent configuration
 database, and loaded from that place at next start. Thus, if operating
-again on the same platform next time, they are already pre-selected.
+again on the same platform next time, they are already pre-selected.</p>
 
-In the next step select File → Attach Programmer to start talking to
+<p>In the next step select File → Attach Programmer to start talking to
 the device. Once the programmer has started up successfully, the
 Device → Programming … menu is enabled which pops up a window to
 handle the various persistent device memories (flash, EEPROM,
-fuses).
+fuses).</p>
 
-Before anything else can proceed, the signature must be read from
+<p>Before anything else can proceed, the signature must be read from
 the device on the Signature tab. If the read signature does not
 match that of the selected device the entry is marked red and a
 candidate device is suggested from the database that matches the
-signature.
+signature.</p>
 
-### Flash, EEPROM
+<h3>Flash, EEPROM</h3>
 
-Flash and EEPROM tabs are laid out similarly.
+<p>Flash and EEPROM tabs are laid out similarly.</p>
 
-Internally, all data are stored in a buffer for the correspondig
+<p>Internally, all data are stored in a buffer for the correspondig
 memory area. The buffer can be filled either by reading it from the
 device, or by loading it from a file. For file operations, the desired
 file format can be selected using radion button entries. For reading
 files, it is possible to use ELF files (that could contain information
 for more than one memory area), as well as use an autodection logic.
 For writing files, the file format must be selected explicitly, to
-either "Intel Hex", "Motorola S-Record", or "Raw binary".
+either "Intel Hex", "Motorola S-Record", or "Raw binary".</p>
 
-The buffer can be saved to a file, or programmed into the device.
+<p>The buffer can be saved to a file, or programmed into the device.</p>
 
-The "Clear" button clears all internally remembered contents of the
-buffer, as well as the "cell has been loaded" flags.
+<p>The "Clear" button clears all internally remembered contents of the
+buffer, as well as the "cell has been loaded" flags.</p>
 
-On the "Flash" memory tab, the "Erase" button (marked red) can be used
+<p>On the "Flash" memory tab, the "Erase" button (marked red) can be used
 to perform a chip erase. Depending on the fuse selections for the
-device, this might also erase the EEPROM memory area.
+device, this might also erase the EEPROM memory area.</p>
 
-### Fuses
+<h3>Fuses</h3>
 
-The memory tab for fuse memories is laid out similar to the other
+<p>The memory tab for fuse memories is laid out similar to the other
 tabs, yet on the right-hand side, it contains entry fields for the
 individual fuse values. The entries are displayed in hexadecimal
-notation. Provided the internal `libavrdude` database contains
+notation. Provided the internal <tt>libavrdude</tt> database contains
 configuration information for the selected device, right-clicking on
 each entry pops up menues that allow selecting the individual fuse
 bitfields based on their purpose. If the respective entry field
 already contains a value (either, from reading the device, or loaded
 from a file), that value is used to pre-select the respective entries
 of the comboboxes. If there was no value present, the default value
-(according to the datasheet) is used as a starting point.
+(according to the datasheet) is used as a starting point.</p>
 
-Only ELF files can contain values for multiple fuses. All other file
+<p>Only ELF files can contain values for multiple fuses. All other file
 formats can only contain a single fuse value. To allow loading or
-saving multiple fuses, a percent sign (`%`) in the file name entry is
-considered a pattern that will be replaced by the `fuse`*N* name.
+saving multiple fuses, a percent sign (<tt>%</tt>) in the file name entry is
+considered a pattern that will be replaced by the <tt>fuse</tt><strong>N</strong> name.</p>
+</body>
+</html>
 '''
 
     def avrlogo(self):
