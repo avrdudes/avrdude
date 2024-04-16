@@ -337,6 +337,162 @@ static void linuxgpio_sysfs_close(PROGRAMMER *pgm)
 
 #ifdef HAVE_LIBGPIOD
 
+#ifdef HAVE_LIBGPIOD_V2
+
+struct gpiod_line {
+  struct gpiod_chip *chip;
+  struct gpiod_line_request *line_request;
+  unsigned int gpio_num;
+};
+
+struct gpiod_line *gpiod_line_get(const char *port, int gpio_num) {
+  struct gpiod_line *rv;
+  char abs_port[32];
+
+  if (snprintf(abs_port, sizeof(abs_port), "/dev/%s", port) >= (int)sizeof(abs_port))
+    return NULL;
+
+  rv = calloc(sizeof(struct gpiod_line), 1);
+  if (!rv)
+    return NULL;
+
+  rv->gpio_num = gpio_num;
+
+  rv->chip = gpiod_chip_open(abs_port);
+  if (!rv->chip) {
+    free(rv);
+    return NULL;
+  }
+
+  return rv;
+}
+
+int gpiod_line_request_input(struct gpiod_line *gpio_line, const char *consumer) {
+  struct gpiod_line_settings *line_settings = NULL;
+  struct gpiod_line_config *line_config = NULL;
+  struct gpiod_request_config *req_cfg = NULL;
+  int retval = -1;
+
+  line_settings = gpiod_line_settings_new();
+  line_config = gpiod_line_config_new();
+  req_cfg = gpiod_request_config_new();
+
+  if (!line_settings || !line_config || !req_cfg)
+    goto err_out;
+
+  retval = gpiod_line_settings_set_direction(line_settings, GPIOD_LINE_DIRECTION_INPUT);
+  if (retval != 0)
+    goto err_out;
+
+  retval = gpiod_line_config_add_line_settings(line_config, &gpio_line->gpio_num, 1, line_settings);
+  if (retval != 0)
+    goto err_out;
+
+  gpiod_request_config_set_consumer(req_cfg, consumer);
+
+  gpio_line->line_request = gpiod_chip_request_lines(gpio_line->chip, req_cfg, line_config);
+  if (!gpio_line->line_request)
+    goto err_out;
+
+  retval = 0;
+
+err_out:
+  gpiod_line_settings_free(line_settings);
+  gpiod_line_config_free(line_config);
+  gpiod_request_config_free(req_cfg);
+  return retval;
+}
+
+int gpiod_line_request_output(struct gpiod_line *gpio_line, const char *consumer, int value) {
+  struct gpiod_line_settings *line_settings = NULL;
+  struct gpiod_line_config *line_config = NULL;
+  struct gpiod_request_config *req_cfg = NULL;
+  int retval = -1;
+
+  line_settings = gpiod_line_settings_new();
+  line_config = gpiod_line_config_new();
+  req_cfg = gpiod_request_config_new();
+
+  if (!line_settings || !line_config || !req_cfg)
+    goto err_out;
+
+  retval = gpiod_line_settings_set_direction(line_settings, GPIOD_LINE_DIRECTION_OUTPUT);
+  if (retval != 0)
+    goto err_out;
+
+  retval = gpiod_line_settings_set_output_value(line_settings, value ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE);
+  if (retval != 0)
+    goto err_out;
+
+  retval = gpiod_line_config_add_line_settings(line_config, &gpio_line->gpio_num, 1, line_settings);
+  if (retval != 0)
+    goto err_out;
+
+  gpiod_request_config_set_consumer(req_cfg, consumer);
+
+  gpio_line->line_request = gpiod_chip_request_lines(gpio_line->chip, req_cfg, line_config);
+  if (!gpio_line->line_request)
+    goto err_out;
+
+  retval = 0;
+
+err_out:
+  gpiod_line_settings_free(line_settings);
+  gpiod_line_config_free(line_config);
+  gpiod_request_config_free(req_cfg);
+  return retval;
+}
+
+int gpiod_line_set_direction_input(struct gpiod_line *gpio_line) {
+  struct gpiod_line_settings *line_settings = NULL;
+  struct gpiod_line_config *line_config = NULL;
+  int retval = -1;
+
+  line_settings = gpiod_line_settings_new();
+  line_config = gpiod_line_config_new();
+
+  if (!line_settings || !line_config)
+    goto err_out;
+
+  retval = gpiod_line_settings_set_direction(line_settings, GPIOD_LINE_DIRECTION_INPUT);
+  if (retval != 0)
+    goto err_out;
+
+  retval = gpiod_line_config_add_line_settings(line_config, &gpio_line->gpio_num, 1, line_settings);
+  if (retval != 0)
+    goto err_out;
+
+  retval = gpiod_line_request_reconfigure_lines(gpio_line->line_request, line_config);
+
+err_out:
+  gpiod_line_settings_free(line_settings);
+  gpiod_line_config_free(line_config);
+  return retval;
+}
+
+/* this helper is not thread safe, but we are not using threads... */
+char *gpiod_line_name(struct gpiod_line *gpio_line) {
+  static char buffer[16];
+  snprintf(buffer, sizeof(buffer), "%u", gpio_line->gpio_num);
+  return buffer;
+}
+
+void gpiod_line_release(struct gpiod_line *gpio_line) {
+  gpiod_line_request_release(gpio_line->line_request);
+  gpiod_chip_close(gpio_line->chip);
+  free(gpio_line);
+}
+
+static inline int gpiod_line_set_value(struct gpiod_line *gpio_line, int value) {
+  return gpiod_line_request_set_value(gpio_line->line_request, gpio_line->gpio_num, value);
+}
+
+static inline int gpiod_line_get_value(struct gpiod_line *gpio_line) {
+  return gpiod_line_request_get_value(gpio_line->line_request, gpio_line->gpio_num);
+}
+
+#endif
+
 struct gpiod_line * linuxgpio_libgpiod_lines[N_PINS];
 
 // Try to tell if libgpiod is going to work.
