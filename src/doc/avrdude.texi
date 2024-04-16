@@ -1458,7 +1458,7 @@ are available. Paged writing is not implemented in this mode.
 Enable the Bus Pirate's built-in pull-up resistors. These resistors are 
 useful when working with different voltage levels. VPU pin of the Bus Pirate 
 must be connected to an external voltage. 
-For example: connect VPU pun to the +5V pin or an external power supply. 
+For example: connect VPU pin to the +5V pin or an external power supply. 
 
 @item @samp{hiz}
 Enable the Bus Pirate's HiZ mode on SPI, allowing it to work as an 
