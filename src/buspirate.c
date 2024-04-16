@@ -63,6 +63,8 @@
 #define BP_FLAG_XPARM_CPUFREQ       (1<<5)
 #define BP_FLAG_XPARM_RAWFREQ       (1<<6)
 #define BP_FLAG_NOPAGEDREAD         (1<<7)
+#define BP_FLAG_PULLUPS             (1<<8)
+#define BP_FLAG_HIZ                 (1<<9)
 
 struct pdata
 {
@@ -84,6 +86,16 @@ struct pdata
 static inline int
 buspirate_uses_ascii(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
+}
+
+static inline int
+buspirate_uses_pullups(const PROGRAMMER *pgm) {
+	return (PDATA(pgm)->flag & BP_FLAG_PULLUPS);
+}
+
+static inline int
+buspirate_uses_hiz(const PROGRAMMER *pgm) {
+	return (PDATA(pgm)->flag & BP_FLAG_HIZ);
 }
 
 /* ====== Serial talker functions - binmode ====== */
@@ -297,6 +309,16 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			continue;
 		}
 
+		if (str_eq(extended_param, "pullups")) {
+			PDATA(pgm)->flag |= BP_FLAG_PULLUPS;
+			continue;
+		}
+
+		if (str_eq(extended_param, "hiz")) {
+			PDATA(pgm)->flag |= BP_FLAG_HIZ;
+			continue;
+		}
+
 		if (sscanf(extended_param, "spifreq=%u", &spifreq) == 1) {
 			if (spifreq & (~0x07)) {
 				pmsg_error("spifreq must be between 0 and 7\n");
@@ -386,6 +408,8 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			msg_error("  -xnopagedread               Disable page read functionality\n");
 			msg_error("  -xcpufreq=<125..4000>       Set the AUX pin to output a frequency to n [kHz]\n");
 			msg_error("  -xserial_recv_timeout=<arg> Set serial receive timeout to <arg> [ms]\n");
+			msg_error("  -xpullups                   Enable internal pull-ups\n");
+			msg_error("  -xhiz                       SPI HiZ mode (open collector)\n");
 			msg_error("  -xhelp                      Show this help menu and exit\n");
 			exit(0);
 		}
@@ -515,6 +539,10 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		 *          of the pulse (0)
 		 *       => 0b10001010 = 0x8a */
 		submode.config = 0x8A;
+		if (buspirate_uses_hiz(pgm)) {
+			submode.config &= ~(1<<3);
+            pmsg_info("spi hi-z mode (open-collector)\n");
+        }
 	}
 
 	unsigned char buf[20] = { '\0' };
@@ -599,6 +627,11 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
 	 * we want power (0x48) and all reset pins high. */
 	PDATA(pgm)->current_peripherals_config  = 0x48 | PDATA(pgm)->reset;
+	if (buspirate_uses_pullups(pgm)) {
+		PDATA(pgm)->current_peripherals_config |= 1<<2;
+        submode.config &= ~(1<<3);
+        pmsg_info("enabling pull-ups (open-collector)\n");
+    }
 	if (buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01) < 0)
 		return -1;
 	usleep(50000); // sleep for 50ms after power up
@@ -721,7 +754,7 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 	msg_info("attempting to initiate BusPirate ASCII mode ...\n");
 
-	/* Call buspirate_send_bin() instead of buspirate_send() 
+	/* Call buspirate_send_bin() instead of buspirate_send()
 	 * because we don't know if BP is in text or bin mode */
 	rc = buspirate_send_bin(pgm, (const unsigned char*)reset_str, strlen(reset_str));
 	if (rc) {
@@ -1180,7 +1213,7 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	return;
 }
 
-/* 
+/*
    Direction:
    010xxxxx
    Input (1) or output (0):
@@ -1248,7 +1281,7 @@ static int buspirate_bb_setpin_internal(const PROGRAMMER *pgm, int pin, int valu
 
 	if (value)
 		PDATA(pgm)->pin_val |= (1 << (pin - 1));
-	else 
+	else
 		PDATA(pgm)->pin_val &= ~(1 << (pin - 1));
 
 	buf[0] = PDATA(pgm)->pin_val | 0x80;
