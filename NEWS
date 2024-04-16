@@ -48,6 +48,12 @@ Changes since version 7.3:
     - Consult -F option when signature cannot be read #1745
     - Check all programmer ids for exact match #1746
     - Update avrintel files #1747
+    - Add buspirate hiz and pullups feature #1733
+    - Add support for libgpiod v2+ API #1725
+    - Remove deprecated ucr2 part #1749
+    - Move static variables to PDATA region in programmer code
+      #1750
+
 
   * Internals:
 
