@@ -188,7 +188,8 @@ int init_config(void)
 void *cfg_malloc(const char *funcname, size_t n) {
   void *ret = malloc(n);
   if(!ret) {
-    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s() for malloc(); needed %lu bytes\n",
+      funcname, (unsigned long) n);
     exit(1);
   }
   memset(ret, 0, n);
@@ -197,12 +198,11 @@ void *cfg_malloc(const char *funcname, size_t n) {
 
 void *cfg_realloc(const char *funcname, void *p, size_t n) {
   void *ret;
-
   if(!(ret = p? realloc(p, n): calloc(1, n))) {
-    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s() for %salloc(); needed %lu bytes\n",
+      funcname, p? "re": "c", (unsigned long) n);
     exit(1);
   }
-
   return ret;
 }
 
@@ -210,7 +210,7 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
 char *cfg_strdup(const char *funcname, const char *s) {
   char *ret = strdup(s);
   if(!ret) {
-    pmsg_error("out of memory in %s\n", funcname);
+    pmsg_error("out of memory in %s() for strdup()\n", funcname);
     exit(1);
   }
   return ret;

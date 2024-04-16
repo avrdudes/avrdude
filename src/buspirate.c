@@ -79,12 +79,12 @@ struct pdata
 	unsigned char pin_val;		/* Last written pin values for bitbang mode */
 	int     unread_bytes;		/* How many bytes we expected, but ignored */
 	int     flag;
+	char buf_local[100];            /* Local buffer for buspirate_readline_noexit() */
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 /* ====== Feature checks ====== */
-static inline int
-buspirate_uses_ascii(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_ascii(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
 }
 
@@ -186,12 +186,9 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
 	int c;
 	long orig_serial_recv_timeout = serial_recv_timeout;
 
-	/* Static local buffer - this may come handy at times */
-	static char buf_local[100];
-
 	if (buf == NULL) {
-		buf = buf_local;
-		len = sizeof(buf_local);
+		buf = PDATA(pgm)->buf_local;
+		len = sizeof(PDATA(pgm)->buf_local);
 	}
 	buf_p = buf;
 	memset(buf, 0, len);
@@ -291,8 +288,7 @@ static void buspirate_dummy_6(const PROGRAMMER *pgm, const char *p) {
 }
 
 /* ====== Config / parameters handling functions ====== */
-static int
-buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 	LNODEID ln;
 	const char *extended_param;
 	char reset[10];
@@ -421,8 +417,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 	return 0;
 }
 
-static int
-buspirate_verifyconfig(const PROGRAMMER *pgm) {
+static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 	/* Default reset pin is CS */
 	if (PDATA(pgm)->reset == 0x00)
 		PDATA(pgm)->reset |= BP_RESET_CS;
@@ -603,7 +598,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		pgm->paged_write = NULL;
 	} else {
 		/* Check for write-then-read without !CS/CS and disable paged_write if absent: */
-		static const unsigned char buf2[] = {5,0,0,0,0};
+		const unsigned char buf2[] = {5, 0, 0, 0, 0};
 		buspirate_send_bin(pgm, buf2, sizeof(buf2));
 		buspirate_recv_bin(pgm, buf, 1);
 		if (buf[0] != 0x01) {
@@ -654,7 +649,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			return -1;
 		if (rv) {
 			unsigned int ver = 0;
-			static const unsigned char buf2[] = {1};
+			const unsigned char buf2[] = {1};
 			buspirate_send_bin(pgm, buf2, sizeof(buf2));
 			buspirate_recv_bin(pgm, buf, 3);
 			ver = buf[1] << 8 | buf[2];
@@ -726,8 +721,8 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 }
 
 static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
-	static const char *reset_str = "#\n";
-	static const char *accept_str = "y\n";
+	const char * const reset_str = "#\n";
+	const char * const accept_str = "y\n";
 	char *rcvd;
 	int rc, print_banner = 0;
 
@@ -1123,10 +1118,7 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static void buspirate_setup(PROGRAMMER *pgm)
 {
 	/* Allocate private data */
-	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		pmsg_error("out of memory allocating private data\n");
-		exit(1);
-	}
+	pgm->cookie = mmt_malloc(sizeof(struct pdata));
 	PDATA(pgm)->serial_recv_timeout = 100;
 }
 

@@ -40,6 +40,11 @@ extern int quell_progress;   // Quell progress report -q, reduce effective verbo
 extern const char *partdesc; // Part -p string
 extern const char *pgmid;    // Programmer -c string
 
+// Magic memory tree: these functions succeed or exit()
+#define mmt_strdup(s) cfg_strdup(__func__, s)
+#define mmt_malloc(n) cfg_malloc(__func__, n)
+#define mmt_realloc(p, n) cfg_realloc(__func__, p, n)
+
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
 
 #define MSG_EXT_ERROR   (-3) // OS-type error, no -v option, can be suppressed with -qqqqq
