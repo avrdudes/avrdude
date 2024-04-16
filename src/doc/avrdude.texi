@@ -1456,11 +1456,15 @@ are available. Paged writing is not implemented in this mode.
 
 @item @samp{pullups}
 Enable the Bus Pirate's built-in pull-up resistors. These resistors are 
-useful when working with different voltage levels. 
+useful when working with different voltage levels. VPU pin of the Bus Pirate 
+must be connected to an external voltage. 
+For example: connect VPU pun to the +5V pin or an external power supply. 
 
 @item @samp{hiz}
 Enable the Bus Pirate's HiZ mode on SPI, allowing it to work as an 
 open-collector and interface with external pull-up circuits. 
+If the external target circuit does not have pull-ups, the Bus Pirate 
+will not be able to send data. 
 
 @item @samp{ascii}
 Attempt to use ASCII mode even when the firmware supports BinMode (binary
