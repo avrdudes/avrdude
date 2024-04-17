@@ -529,15 +529,15 @@ static int avrftdi_check_pins_bb(const PROGRAMMER *pgm, bool output) {
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
 
 	pmsg_debug("using valid mask bitbanging: 0x%08x\n", valid_mask);
-	static struct pindef_t valid_pins;
-	valid_pins.mask[0] = valid_mask;
-	valid_pins.inverse[0] = valid_mask ;
+	struct pindef_t *valid_pins_p = &pdata->valid_pins;
+	valid_pins_p->mask[0] = valid_mask;
+	valid_pins_p->inverse[0] = valid_mask ;
 
 	/* build pin checklist */
 	for(pin = 0; pin < N_PINS; ++pin) {
 		pin_checklist[pin].pinname = pin;
 		pin_checklist[pin].mandatory = 0;
-		pin_checklist[pin].valid_pins = &valid_pins;
+		pin_checklist[pin].valid_pins = valid_pins_p;
 	}
 
 	/* assumes all checklists above have same number of entries */
