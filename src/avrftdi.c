@@ -1240,7 +1240,7 @@ static void avrftdi_setup(PROGRAMMER * pgm) {
 	pdata->ftdic = ftdi_new();
 	if(!pdata->ftdic)
 	{
-		pmsg_error("Error allocating memory.\n");
+		pmsg_error("failed to allocate memory in ftdi_new()\n");
 		exit(1);
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
