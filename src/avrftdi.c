@@ -1257,7 +1257,7 @@ static void avrftdi_teardown(PROGRAMMER * pgm) {
 	if(pdata) {
 		ftdi_deinit(pdata->ftdic);
 		ftdi_free(pdata->ftdic);
-		free(pdata);
+		mmt_free(pdata);
 	}
 }
 
