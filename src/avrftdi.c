@@ -105,8 +105,6 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 	size_t n = 0;
 	int mask = pin.mask[0];
 
-	const char * fmt;
-
 	str[0] = 0;
 
 	for(int pinno = 0; mask && n < strsiz-1; mask >>= 1, pinno++) {
@@ -124,12 +122,8 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 		else
 			port = 'C';
 
-		if(n == 0)
-			fmt = "%c%cBUS%d%n";
-		else
-			fmt = ", %c%cBUS%d%n";
-
-		snprintf(&str[n], strsiz - n, fmt, interface, port, pinno, &chars);
+		snprintf(&str[n], strsiz - n, "%s%c%cBUS%d%n", n? ", ": "",
+		  interface, port, pinno, &chars);
 		n += chars;
 	}
 
