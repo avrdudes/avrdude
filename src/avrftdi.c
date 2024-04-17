@@ -564,15 +564,15 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 	}
 
 	pmsg_debug("using valid mask mpsse: 0x%08x\n", valid_mask);
-	static struct pindef_t valid_pins_others;
-	valid_pins_others.mask[0] = valid_mask;
-	valid_pins_others.inverse[0] = valid_mask ;
+	struct pindef_t *valid_pins_others_p = &pdata->other_pins;
+	valid_pins_others_p->mask[0] = valid_mask;
+	valid_pins_others_p->inverse[0] = valid_mask ;
 
 	/* build pin checklist */
 	for(pin = 0; pin < N_PINS; ++pin) {
 		pin_checklist[pin].pinname = pin;
 		pin_checklist[pin].mandatory = 0;
-		pin_checklist[pin].valid_pins = &valid_pins_others;
+		pin_checklist[pin].valid_pins = valid_pins_others_p;
 	}
 
 	/* now set mpsse specific pins */
