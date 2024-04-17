@@ -102,7 +102,6 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 	 */
 	char interface = '@' + pdata->ftdic->index;
 
-	int pinno;
 	size_t n = 0;
 	int mask = pin.mask[0];
 
@@ -110,7 +109,7 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 
 	str[0] = 0;
 
-	for(pinno = 0; mask && n < strsiz-1; mask >>= 1, pinno++) {
+	for(int pinno = 0; mask && n < strsiz-1; mask >>= 1, pinno++) {
 		if(!(mask & 1))
 			continue;
 
