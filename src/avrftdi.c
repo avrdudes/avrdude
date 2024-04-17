@@ -111,8 +111,6 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 		if(!(mask & 1))
 			continue;
 
-		int chars = 0;
-
 		char port;
 		/* This is FTDI's naming scheme.
 		 * probably 'D' is for data and 'C' for control
@@ -122,9 +120,8 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 		else
 			port = 'C';
 
-		snprintf(&str[n], strsiz - n, "%s%c%cBUS%d%n", n? ", ": "",
-		  interface, port, pinno, &chars);
-		n += chars;
+		n += snprintf(&str[n], strsiz - n, "%s%c%cBUS%d", n? ", ": "",
+		  interface, port, pinno);
 	}
 
 	return str;
