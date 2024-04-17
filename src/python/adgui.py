@@ -98,6 +98,7 @@ def classify_programmers():
         'pdi': [],
         'updi': [],
         'jtag': [],
+        'spm': [],
         'hv': [],
         'other': []
     }
@@ -131,6 +132,10 @@ def classify_programmers():
         if (pm & (ad.PM_JTAG | ad.PM_JTAGmkI | ad.PM_XMEGAJTAG)) != 0:
             for name in names:
                 result['jtag'].append(name)
+            matched = True
+        if (pm & ad.PM_SPM) != 0:
+            for name in names:
+                result['spm'].append(name)
             matched = True
         if (pm & (ad.PM_HVSP | ad.PM_HVPP)) != 0:
             for name in names:

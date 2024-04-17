@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
-    <height>265</height>
+    <width>416</width>
+    <height>281</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -64,16 +64,6 @@
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
-       <widget class="QCheckBox" name="pdi">
-        <property name="text">
-         <string>PDI</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="0">
        <widget class="QCheckBox" name="updi">
         <property name="text">
@@ -105,6 +95,16 @@
        </widget>
       </item>
       <item row="6" column="0">
+       <widget class="QCheckBox" name="hv">
+        <property name="text">
+         <string>HVSP/HVPP</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="7" column="0">
        <widget class="QCheckBox" name="other">
         <property name="text">
          <string>Other</string>
@@ -114,10 +114,20 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
-       <widget class="QCheckBox" name="hv">
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="pdi">
         <property name="text">
-         <string>HVSP/HVPP</string>
+         <string>PDI</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="5" column="0">
+       <widget class="QCheckBox" name="spm">
+        <property name="text">
+         <string>Bootloaders</string>
         </property>
         <property name="checked">
          <bool>true</bool>
