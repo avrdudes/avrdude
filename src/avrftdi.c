@@ -894,6 +894,7 @@ static int avrftdi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 static int avrftdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 	int i;
 	unsigned char buf[4];
+	int polli = p->pollindex - 1, pollok = polli >= 0 && polli < (int) sizeof buf;
 
 	memset(buf, 0, sizeof(buf));
 
@@ -906,7 +907,7 @@ static int avrftdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
 	for(i = 0; i < 4; i++) {
 		pgm->cmd(pgm, buf, buf);
-		if (buf[p->pollindex-1] != p->pollvalue) {
+		if (pollok && buf[polli] != p->pollvalue) {
 			pmsg_warning("program enable command not successful%s\n", i < 3? "; retrying": "");
 			set_pin(pgm, PIN_AVR_RESET, ON);
 			usleep(20);
