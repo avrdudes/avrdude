@@ -26,39 +26,21 @@
 
 #ifndef DO_NOT_BUILD_AVRFTDI
 
-enum { ERR, WARN, INFO, DEBUG, TRACE };
-
-#define __log(lvl, fmt, ...)                                  \
-  do {                                                        \
-    avrftdi_log(lvl, __func__, __LINE__, fmt, ##__VA_ARGS__); \
+#define E(x, ftdi)                                             \
+  do {                                                         \
+    if((x)) {                                                  \
+      pmsg_error("%s: %s (%d)\n", #x, strerror(errno), errno); \
+      imsg_error("%s\n", ftdi_get_error_string(ftdi));         \
+      return -1;                                               \
+    }                                                          \
   } while(0)
 
-
-#define log_err(fmt, ...)   __log(ERR, fmt, ##__VA_ARGS__)
-#define log_warn(fmt, ...)  __log(WARN,  fmt, ##__VA_ARGS__)
-#define log_info(fmt, ...)  __log(INFO,  fmt, ##__VA_ARGS__)
-#define log_debug(fmt, ...) __log(DEBUG, fmt, ##__VA_ARGS__)
-#define log_trace(fmt, ...) __log(TRACE, fmt, ##__VA_ARGS__)
-
-#define E(x, ftdi)                                                  \
-  do {                                                              \
-    if ((x))                                                        \
-    {                                                               \
-      msg_error("%s:%d %s() %s: %s (%d)\n\t%s\n",                   \
-          __FILE__, __LINE__, __FUNCTION__,                         \
-          #x, strerror(errno), errno, ftdi_get_error_string(ftdi)); \
-      return -1;                                                    \
-    }                                                               \
-  } while(0)
-
-#define E_VOID(x, ftdi)                                             \
-  do {                                                              \
-    if ((x))                                                        \
-    {                                                               \
-      msg_error("%s:%d %s() %s: %s (%d)\n\t%s\n",                   \
-          __FILE__, __LINE__, __FUNCTION__,                         \
-          #x, strerror(errno), errno, ftdi_get_error_string(ftdi)); \
-    }                                                               \
+#define E_VOID(x, ftdi)                                        \
+  do {                                                         \
+    if((x)) {                                                  \
+      pmsg_error("%s: %s (%d)\n", #x, strerror(errno), errno); \
+      imsg_error("%s\n", ftdi_get_error_string(ftdi));         \
+    }                                                          \
   } while(0)
 
 enum {
@@ -114,8 +96,6 @@ typedef struct avrftdi_s {
 
   char name_str[128];           // Used in ftdi_pin_name()
 } avrftdi_t;
-
-void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);
 
 #endif /* DO_NOT_BUILD_AVRFDTI */
 
