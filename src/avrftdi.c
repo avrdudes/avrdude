@@ -94,15 +94,13 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 	char *str = pdata->name_str;
 	size_t strsiz = sizeof pdata->name_str;
 
-	char interface = '@';
-
-	/* INTERFACE_ANY is zero, so @ is used
-	 * INTERFACE_A is one, so '@' + 1 = 'A'
-	 * and so forth ...
-	 * be aware, there is an 'interface' member in ftdi_context,
-	 * however, we really want the 'index' member here.
+	/*
+	 * INTERFACE_ANY is zero: print @
+	 * INTERFACE_A is one, use '@' + 1 = 'A' and so forth ...
+	 * Be aware, there is an interface member in ftdi_context,
+	 * however, we really want the index member here.
 	 */
-	interface += pdata->ftdic->index;
+	char interface = '@' + pdata->ftdic->index;
 
 	int pinno;
 	size_t n = 0;
