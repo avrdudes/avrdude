@@ -832,6 +832,9 @@ class adgui(QObject):
         l.sort()
         for k in l:
             self.programmer.programmers.addItem(k)
+        self.pgm_validator = listValidator(l, self.programmer.buttonBox,
+                                           self.programmer.programmers)
+        self.programmer.programmers.setValidator(self.pgm_validator)
 
     def update_device_info(self):
         p = ad.locate_part(ad.cvar.part_list, self.dev_selected)
@@ -897,6 +900,9 @@ class adgui(QObject):
     def programmer_selected(self):
         self.prog_selected = self.programmer.programmers.currentText()
         self.pgm = ad.locate_programmer(ad.cvar.programmers, self.prog_selected)
+        if not self.pgm:
+            self.log(f"Invalid programmer selection: {self.prog_selected}")
+            return
         self.port = self.programmer.port.text()
         self.log(f"Selected programmer: {self.pgm.desc} ({self.prog_selected})")
         self.settings.setValue('file/programmer', self.prog_selected)
