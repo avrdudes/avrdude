@@ -1768,6 +1768,7 @@ considered a pattern that will be replaced by the <tt>fuse</tt><strong>N</strong
             b'B`\x82'
 
 def main():
+    QCoreApplication.setAttribute(Qt.AA_ShareOpenGLContexts)
     gui = adgui(sys.argv)
 
     global pyside
