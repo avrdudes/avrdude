@@ -1223,11 +1223,7 @@ static int avrftdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 static void avrftdi_setup(PROGRAMMER * pgm) {
 	avrftdi_t* pdata;
 
-	
-	if(!(pgm->cookie = calloc(1, sizeof(avrftdi_t)))) {
-		pmsg_error("Error allocating memory.\n");
-		exit(1);
-	}
+	pgm->cookie = mmt_malloc(sizeof(avrftdi_t));
 	pdata = to_pdata(pgm);
 
 	/* SCK/SDO/SDI are fixed and not invertible? */
