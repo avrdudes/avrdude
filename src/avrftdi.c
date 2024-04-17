@@ -552,14 +552,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 
 	avrftdi_t* pdata = to_pdata(pgm);
 
-	/* SCK/SDO/SDI are fixed and not invertible? */
-	/* TODO: inverted SCK/SDI/SDO */
-	static const struct pindef_t valid_pins[4] = {
-		{{0x01}, {0x00}},
-		{{0x02}, {0x00}},
-		{{0x04}, {0x00}},
-		{{0x08}, {0x00}},
-	};
+	struct pindef_t *valid_pins = pdata->mpsse_pins;
 
 	/* value for 8/12/16 bit wide interface for other pins */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
@@ -593,7 +586,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 		pin_checklist[PIN_JTAG_TMS].mandatory = 1;
 		pin_checklist[PIN_JTAG_TMS].valid_pins = &valid_pins[FTDI_TMS_CS];
 	} else {
-	pin_checklist[PIN_AVR_SCK].mandatory = 1;
+		pin_checklist[PIN_AVR_SCK].mandatory = 1;
 		pin_checklist[PIN_AVR_SCK].valid_pins = &valid_pins[FTDI_TCK_SCK];
 		pin_checklist[PIN_AVR_SDO].mandatory = 1;
 		pin_checklist[PIN_AVR_SDO].valid_pins = &valid_pins[FTDI_TDI_SDO];
@@ -614,6 +607,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	 *************/
 
 	avrftdi_t* pdata = to_pdata(pgm);
+
 
 	bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verbose>3));
 
@@ -1235,6 +1229,17 @@ static void avrftdi_setup(PROGRAMMER * pgm) {
 		exit(1);
 	}
 	pdata = to_pdata(pgm);
+
+	/* SCK/SDO/SDI are fixed and not invertible? */
+	/* TODO: inverted SCK/SDI/SDO */
+	const struct pindef_t valid_mpsse_pins[4] = {
+		{{0x01}, {0x00}},
+		{{0x02}, {0x00}},
+		{{0x04}, {0x00}},
+		{{0x08}, {0x00}},
+	};
+	for(int i=0; i<4; i++)
+		pdata->mpsse_pins[i] = valid_mpsse_pins[i];
 
 	pdata->ftdic = ftdi_new();
 	if(!pdata->ftdic)

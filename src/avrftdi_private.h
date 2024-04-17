@@ -96,6 +96,7 @@ typedef struct avrftdi_s {
 
   char name_str[128];           // Used in ftdi_pin_name()
   struct pindef_t valid_pins;   // Used in avrftdi_check_pins_bb()
+  struct pindef_t mpsse_pins[4]; // Used in avrftdi_check_pins_mpsse()
 } avrftdi_t;
 
 #endif /* DO_NOT_BUILD_AVRFDTI */
