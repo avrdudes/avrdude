@@ -111,7 +111,7 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 
 	str[0] = 0;
 
-	for(pinno = 0; mask; mask >>= 1, pinno++) {
+	for(pinno = 0; mask && n < strsiz-1; mask >>= 1, pinno++) {
 		if(!(mask & 1))
 			continue;
 
