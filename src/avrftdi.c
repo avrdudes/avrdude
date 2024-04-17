@@ -53,7 +53,7 @@
 
 static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
 	pmsg_error("no libftdi or libusb support\n");
-        imsg_error("install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
+	imsg_error("install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
 	return -1;
 }
 
