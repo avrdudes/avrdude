@@ -111,6 +111,8 @@ typedef struct avrftdi_s {
   bool use_bitbanging;
   /* bits 16-23 of extended 24-bit word flash address for parts with flash > 128k */
   uint8_t lext_byte;
+
+  char name_str[128];           // Used in ftdi_pin_name()
 } avrftdi_t;
 
 void avrftdi_log(int level, const char * func, int line, const char * fmt, ...);

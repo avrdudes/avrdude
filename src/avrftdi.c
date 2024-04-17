@@ -90,7 +90,8 @@ static int write_flush(avrftdi_t *);
  * the pin names used in FTDI datasheets.
  */
 static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
-	static char str[128];
+	char *str = pdata->name_str;
+	size_t strsiz = sizeof pdata->name_str;
 
 	char interface = '@';
 
@@ -103,7 +104,7 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 	interface += pdata->ftdic->index;
 
 	int pinno;
-	int n = 0;
+	size_t n = 0;
 	int mask = pin.mask[0];
 
 	const char * fmt;
@@ -130,7 +131,7 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 		else
 			fmt = ", %c%cBUS%d%n";
 
-		snprintf(&str[n], sizeof(str) - n, fmt, interface, port, pinno, &chars);
+		snprintf(&str[n], strsiz - n, fmt, interface, port, pinno, &chars);
 		n += chars;
 	}
 
