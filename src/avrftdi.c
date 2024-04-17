@@ -89,9 +89,7 @@ static int write_flush(avrftdi_t *);
  * returns a human-readable name for a pin number. The name should match with
  * the pin names used in FTDI datasheets.
  */
-static char*
-ftdi_pin_name(avrftdi_t* pdata, struct pindef_t pin)
-{
+static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 	static char str[128];
 
 	char interface = '@';
@@ -982,8 +980,7 @@ static int avrftdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 /* Load extended address byte command */
-static int
-avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int address) {
+static int avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int address) {
 	/* nothing to do if load extended address command unavailable */
 	if(m->op[AVR_OP_LOAD_EXT_ADDR] == NULL)
 		return 0;
@@ -1265,9 +1262,7 @@ static int avrftdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 		return -2;
 }
 
-static void
-avrftdi_setup(PROGRAMMER * pgm)
-{
+static void avrftdi_setup(PROGRAMMER * pgm) {
 	avrftdi_t* pdata;
 
 	
@@ -1291,9 +1286,7 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pdata->lext_byte = 0xff;
 }
 
-static void
-avrftdi_teardown(PROGRAMMER * pgm)
-{
+static void avrftdi_teardown(PROGRAMMER * pgm) {
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	if(pdata) {
