@@ -126,7 +126,7 @@ static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
 		else
 			port = 'C';
 
-		if(str[0] == 0)
+		if(n == 0)
 			fmt = "%c%cBUS%d%n";
 		else
 			fmt = ", %c%cBUS%d%n";
