@@ -145,11 +145,8 @@ static int avr910_leave_prog_mode(const PROGRAMMER *pgm) {
 }
 
 
-/*
- * issue the 'program enable' command to the AVR device
- */
 static int avr910_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  return -1;
+  return avr910_enter_prog_mode(pgm);
 }
 
 
@@ -268,9 +265,7 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   pmsg_notice("avr910_devcode selected: 0x%02x\n", (unsigned) buf[1]);
 
-  avr910_enter_prog_mode(pgm);
-
-  return 0;
+  return pgm->program_enable(pgm, p);
 }
 
 
