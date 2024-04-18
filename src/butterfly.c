@@ -119,9 +119,10 @@ static int butterfly_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
 
   EI(butterfly_recv(pgm, &c, 1));
   if (c != '\r') {
-    pmsg_error("programmer did not respond to command: %s\n", errmsg);
+    pmsg_error("protocol error for command: %s\n", errmsg);
     return -1;
   }
+
   return 0;
 }
 
