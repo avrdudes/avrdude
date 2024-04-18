@@ -56,6 +56,10 @@ struct pdata
 {
   char has_auto_incr_addr;
   unsigned int buffersize;
+
+  int ctype;                    // Cache one byte for flash
+  unsigned char cvalue;
+  unsigned long caddr;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -498,43 +502,30 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
 static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                   unsigned long addr, unsigned char * value)
 {
-  static int cached = 0;
-  static unsigned char cvalue;
-  static unsigned long caddr;
-  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+  int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+  char mtype = mem_is_flash(m)? 'F': mem_is_sigrow(m)? 'P': mem_is_userrow(m)? 'U': '?';
 
-  if (cached && ((caddr + 1) == addr)) {
-    *value = cvalue;
-    cached = 0;
+  if(mtype == '?') {
+    pmsg_error("cannot read memory %s\n", m->desc);
+    return -1;
   }
-  else {
-    char buf[2];
 
-    if (use_ext_addr) {
-      butterfly_set_extaddr(pgm, addr >> 1);
-    } else {
-      butterfly_set_addr(pgm, addr >> 1);
-    }
-    // Defaults to flash read ('F')
-    char msg[4] = {'g', 0x00, 0x02, 'F'};
-    if (mem_is_sigrow(m))
-      msg[3] = 'P';
-    else if (mem_is_userrow(m))
-      msg[3] = 'U';
-    EI(butterfly_send(pgm, msg, 4));
-    /* Read back the program mem word (MSB first) */
-    EI(butterfly_recv(pgm, buf, sizeof(buf)));
-
-    if ((addr & 0x01) == 0) {
-      *value = buf[0];
-      cached = 1;
-      cvalue = buf[1];
-      caddr = addr;
-    }
-    else {
-      *value = buf[1];
-    }
+  if(PDATA(pgm)->ctype == mtype && PDATA(pgm)->caddr == addr) {
+    *value = PDATA(pgm)->cvalue;
+    return 0;
   }
+
+  char buf[2];                // Read word and cache the other byte
+  char msg[4] = {'g', 0x00, 0x02, mtype};
+
+  (ext_addr? butterfly_set_extaddr: butterfly_set_addr)(pgm, addr >> 1);
+  EI(butterfly_send(pgm, msg, 4));
+  EI(butterfly_recv(pgm, buf, sizeof(buf)));
+
+  PDATA(pgm)->ctype = mtype;
+  *value = buf[addr & 1];
+  PDATA(pgm)->cvalue = buf[1 - (addr & 1)];
+  PDATA(pgm)->caddr = addr ^ 1;
 
   return 0;
 }
