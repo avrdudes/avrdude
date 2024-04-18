@@ -249,7 +249,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       do {
 	msg_notice(".");
 	EI(butterfly_send(pgm, "\033", 1));
-	butterfly_drain(pgm, 0);
+	(void) butterfly_drain(pgm, 0);
 	EI(butterfly_send(pgm, "S", 1));
 	EI(butterfly_recv(pgm, &c, 1));
 	if (c != '?') {
@@ -267,7 +267,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
   /* Get the HW and SW versions to see if the programmer is present. */
-  butterfly_drain(pgm, 0);
+  (void) butterfly_drain(pgm, 0);
 
   EI(butterfly_send(pgm, "V", 1));
   EI(butterfly_recv(pgm, sw, sizeof(sw)));
@@ -348,7 +348,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_notice("devcode selected: 0x%02x\n", (unsigned) buf[1]);
 
   butterfly_enter_prog_mode(pgm);
-  butterfly_drain(pgm, 0);
+  (void) butterfly_drain(pgm, 0);
 
   return 0;
 }
@@ -385,7 +385,7 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
   /*
    * drain any extraneous input
    */
-  butterfly_drain (pgm, 0);
+  (void) butterfly_drain(pgm, 0);
 
   return 0;
 }
