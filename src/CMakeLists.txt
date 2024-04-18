@@ -141,7 +141,7 @@ add_custom_target(conf ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf)
 # =====================================
 # Project
 # =====================================
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC --bind -fpermissive")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC --bind")
 
 
 message("FLEX_Parser_OUTPUTS: ${FLEX_Parser_OUTPUTS}")
