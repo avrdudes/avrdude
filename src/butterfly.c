@@ -155,9 +155,9 @@ static int butterfly_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 
-static void butterfly_enter_prog_mode(const PROGRAMMER *pgm) {
-  EV(butterfly_send(pgm, "P", 1));
-  butterfly_vfy_cmd_sent(pgm, "enter prog mode");
+static int butterfly_enter_prog_mode(const PROGRAMMER *pgm) {
+  EI(butterfly_send(pgm, "P", 1));
+  return butterfly_vfy_cmd_sent(pgm, "enter prog mode");
 }
 
 
@@ -167,11 +167,8 @@ static void butterfly_leave_prog_mode(const PROGRAMMER *pgm) {
 }
 
 
-/*
- * issue the 'program enable' command to the AVR device
- */
 static int butterfly_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  return -1;
+  return butterfly_enter_prog_mode(pgm);
 }
 
 
@@ -348,7 +345,8 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   pmsg_notice("devcode selected: 0x%02x\n", (unsigned) buf[1]);
 
-  butterfly_enter_prog_mode(pgm);
+  if(pgm->program_enable(pgm, p) < 0)
+    return -1;
   (void) butterfly_drain(pgm, 0);
 
   return 0;
