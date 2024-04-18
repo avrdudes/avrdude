@@ -600,7 +600,7 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if (!cmd) return -1;
      
     cmd[0] = 'B';
-    cmd[3] = toupper((int)(m->desc[0]));
+    cmd[3] = isee? 'E': 'F';
 
     while (addr < max_addr) {
       if ((max_addr - addr) < blocksize) {
@@ -648,7 +648,7 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     int blocksize = PDATA(pgm)->buffersize;
 
     cmd[0] = 'g';
-    cmd[3] = toupper((int)(m->desc[0]));
+    cmd[3] = isee? 'E': 'F';
 
     while (addr < max_addr) {
       if (max_addr - addr < (unsigned int) blocksize)
