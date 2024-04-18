@@ -583,20 +583,18 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   unsigned int max_addr = addr + n_bytes;
   char *cmd;
   unsigned int blocksize = PDATA(pgm)->buffersize;
-  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
-  unsigned int wr_size = 2;
+  int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+  int isee = mem_is_eeprom(m);
 
-  if (!mem_is_flash(m) && !mem_is_eeprom(m) && !mem_is_userrow(m))
+  if (!mem_is_flash(m) && !isee && !mem_is_userrow(m))
     return -2;
 
-  if (m->desc[0] == 'e')
-    wr_size = blocksize = 1;		/* Write to eeprom single bytes only */
+  if(isee)                      // Write single bytes to EEPROM
+    blocksize = 1;
+  else
+    PDATA(pgm)->ctype = 0;      // Invalidate flash byte read cache
 
-  if (use_ext_addr) {
-    butterfly_set_extaddr(pgm, addr / wr_size);
-  } else {
-    butterfly_set_addr(pgm, addr / wr_size);
-  }
+  (ext_addr? butterfly_set_extaddr: butterfly_set_addr)(pgm, isee? addr: addr>>1);
 
 #if 0
   usleep(1000000);
@@ -608,12 +606,12 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   cmd = malloc(4+blocksize);
   if (!cmd) return -1;
   cmd[0] = 'B';
-  cmd[3] = toupper((int)(m->desc[0]));
+  cmd[3] = isee? 'E': mem_is_flash(m)? 'F': 'U';
 
   while (addr < max_addr) {
-    if ((max_addr - addr) < blocksize) {
+    if ((max_addr - addr) < blocksize)
       blocksize = max_addr - addr;
-    };
+
     memcpy(&cmd[4], &m->buf[addr], blocksize);
     cmd[1] = (blocksize >> 8) & 0xff;
     cmd[2] = blocksize & 0xff;
@@ -623,10 +621,10 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
       return -1;
 
     addr += blocksize;
-  } /* while */
+  }
   free(cmd);
 
-  return addr;
+  return n_bytes;
 }
 
 
