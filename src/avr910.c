@@ -265,7 +265,8 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   /* buf[1] has been set up above */
 
   EI(avr910_send(pgm, buf, 2));
-  avr910_vfy_cmd_sent(pgm, "select device");
+  if(avr910_vfy_cmd_sent(pgm, "select device") < 0)
+    return -1;
 
   pmsg_notice("avr910_devcode selected: 0x%02x\n", (unsigned) buf[1]);
 
@@ -423,9 +424,7 @@ static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   avr910_set_addr(pgm, addr);
 
   EI(avr910_send(pgm, cmd, sizeof(cmd)));
-  avr910_vfy_cmd_sent(pgm, "write byte");
-
-  return 0;
+  return avr910_vfy_cmd_sent(pgm, "write byte");
 }
 
 
@@ -500,7 +499,8 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
     buf[0] = cmd[addr & 0x01];
     buf[1] = m->buf[addr];
     EI(avr910_send(pgm, buf, sizeof(buf)));
-    avr910_vfy_cmd_sent(pgm, "write byte");
+    if(avr910_vfy_cmd_sent(pgm, "write byte") < 0)
+      return -1;
 
     addr++;
     page_bytes--;
@@ -510,7 +510,8 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
 
       avr910_set_addr(pgm, page_addr>>1);
       EI(avr910_send(pgm, "m", 1));
-      avr910_vfy_cmd_sent(pgm, "flush page");
+      if(avr910_vfy_cmd_sent(pgm, "flush page") < 0)
+        return -1;
 
       page_wr_cmd_pending = 0;
       usleep(m->max_write_delay);
@@ -532,11 +533,12 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
   if (page_wr_cmd_pending) {
     avr910_set_addr(pgm, page_addr>>1);
     EI(avr910_send(pgm, "m", 1));
-    avr910_vfy_cmd_sent(pgm, "flush final page");
+    if(avr910_vfy_cmd_sent(pgm, "flush final page") < 0)
+      return -1;
     usleep(m->max_write_delay);
   }
 
-  return addr;
+  return n_bytes;
 }
 
 
@@ -555,17 +557,17 @@ static int avr910_paged_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p,
   while (addr < max_addr) {
     cmd[1] = m->buf[addr];
     EI(avr910_send(pgm, cmd, sizeof(cmd)));
-    avr910_vfy_cmd_sent(pgm, "write byte");
+    if(avr910_vfy_cmd_sent(pgm, "write byte") < 0)
+      return -1;
     usleep(m->max_write_delay);
 
     addr++;
 
-    if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
+    if (PDATA(pgm)->has_auto_incr_addr != 'Y')
       avr910_set_addr(pgm, addr);
-    }
   }
 
-  return addr;
+  return n_bytes;
 }
 
 
@@ -573,34 +575,30 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
                               unsigned int page_size,
                               unsigned int addr, unsigned int n_bytes)
 {
-  int rval = 0;
+  int isee = mem_is_eeprom(m);
+
   if (PDATA(pgm)->use_blockmode == 0) {
-    if (mem_is_flash(m)) {
-      rval = avr910_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
-    } else if (mem_is_eeprom(m)) {
-      rval = avr910_paged_write_eeprom(pgm, p, m, page_size, addr, n_bytes);
-    } else {
-      rval = -2;
-    }
+    if(mem_is_flash(m))
+      return avr910_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
+    if(isee)
+      return avr910_paged_write_eeprom(pgm, p, m, page_size, addr, n_bytes);
+    return -2;
   }
 
   if (PDATA(pgm)->use_blockmode == 1) {
     unsigned int max_addr = addr + n_bytes;
     char *cmd;
     unsigned int blocksize = PDATA(pgm)->buffersize;
-    int wr_size;
 
-    if (!mem_is_flash(m) && !mem_is_eeprom(m))
+    if(!mem_is_flash(m) && !isee)
       return -2;
 
-    if (m->desc[0] == 'e') {
-      blocksize = 1;		/* Write to eeprom single bytes only */
-      wr_size = 1;
-    } else {
-      wr_size = 2;
-    }
+    if(isee)
+      blocksize = 1;            // Write single bytes only to EEPROM
+    else
+      PDATA(pgm)->ctype = 0;    // Invalidate read cache
 
-    avr910_set_addr(pgm, addr / wr_size);
+    avr910_set_addr(pgm, isee? addr: addr>>1);
 
     cmd = malloc(4 + blocksize);
     if (!cmd) return -1;
@@ -617,15 +615,15 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       cmd[2] = blocksize & 0xff;
 
       EI(avr910_send(pgm, cmd, 4 + blocksize));
-      avr910_vfy_cmd_sent(pgm, "write block");
+      if(avr910_vfy_cmd_sent(pgm, "write block") < 0)
+        return -1;
 
       addr += blocksize;
-    } /* while */
+    }
     free(cmd);
-
-    rval = addr;
   }
-  return rval;
+
+  return n_bytes;
 }
 
 
