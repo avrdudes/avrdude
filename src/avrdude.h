@@ -45,7 +45,11 @@ extern const char *pgmid;    // Programmer -c string
 #define mmt_malloc(n) cfg_malloc(__func__, n)
 #define mmt_realloc(p, n) cfg_realloc(__func__, p, n)
 
-int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
+int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...)
+#if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
+   __attribute__ ((format (printf, 7, 8)))
+#endif
+;
 
 #define MSG_EXT_ERROR   (-3) // OS-type error, no -v option, can be suppressed with -qqqqq
 #define MSG_ERROR       (-2) // Avrdude error, no -v option, can be suppressed with -qqqq
