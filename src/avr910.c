@@ -362,12 +362,9 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
 static int avr910_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
-  /*
-   *  If baudrate was not specified use 19.200 Baud
-   */
-  if(pgm->baudrate == 0) {
+
+  if(pgm->baudrate == 0)
     pgm->baudrate = 19200;
-  }
 
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate;
@@ -376,10 +373,7 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  /*
-   * drain any extraneous input
-   */
-  avr910_drain (pgm, 0);
+  (void) avr910_drain (pgm, 0);
 	
   return 0;
 }
