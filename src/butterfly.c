@@ -60,6 +60,24 @@ struct pdata
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
+// Print error and return when command failed
+#define EI(x) do {                 \
+  int Eret = (x);                  \
+  if(Eret < 0) {                   \
+    pmsg_error("%s failed\n", #x); \
+    return -1;                     \
+  }                                \
+} while(0)
+
+#define EV(x) do {                 \
+  int Eret = (x);                  \
+  if(Eret < 0) {                   \
+    pmsg_error("%s failed\n", #x); \
+    return;                        \
+  }                                \
+} while(0)
+
+
 static void butterfly_setup(PROGRAMMER * pgm)
 {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
@@ -127,7 +145,7 @@ static int butterfly_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if(serial_recv_timeout < new_timeout)
     serial_recv_timeout = new_timeout;
 
-  butterfly_send(pgm, "e", 1);
+  EI(butterfly_send(pgm, "e", 1));
   if(butterfly_vfy_cmd_sent(pgm, "chip erase") < 0)
     ret = -1;
 
@@ -137,13 +155,13 @@ static int butterfly_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static void butterfly_enter_prog_mode(const PROGRAMMER *pgm) {
-  butterfly_send(pgm, "P", 1);
+  EV(butterfly_send(pgm, "P", 1));
   butterfly_vfy_cmd_sent(pgm, "enter prog mode");
 }
 
 
 static void butterfly_leave_prog_mode(const PROGRAMMER *pgm) {
-  butterfly_send(pgm, "L", 1);
+  EV(butterfly_send(pgm, "L", 1));
   butterfly_vfy_cmd_sent(pgm, "leave prog mode");
 }
 
@@ -199,17 +217,17 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       unsigned char mk_timeout = 0;
 
       msg_notice(".");
-      butterfly_send(pgm, mk_reset_cmd, sizeof(mk_reset_cmd));
+      EI(butterfly_send(pgm, mk_reset_cmd, sizeof(mk_reset_cmd)));
       usleep(20000); 
 
       do
 	{
 	  c = 27; 
-	  butterfly_send(pgm, &c, 1);
+	  EI(butterfly_send(pgm, &c, 1));
 	  usleep(20000);
 	  c = 0xaa;
 	  usleep(80000);
-	  butterfly_send(pgm, &c, 1);
+	  EI(butterfly_send(pgm, &c, 1));
 	  if (mk_timeout % 10 == 0)
             msg_notice(".");
 	} while (mk_timeout++ < 10);
@@ -230,9 +248,9 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     {
       do {
 	msg_notice(".");
-	butterfly_send(pgm, "\033", 1);
+	EI(butterfly_send(pgm, "\033", 1));
 	butterfly_drain(pgm, 0);
-	butterfly_send(pgm, "S", 1);
+	EI(butterfly_send(pgm, "S", 1));
 	butterfly_recv(pgm, &c, 1);
 	if (c != '?') {
 	    msg_notice("\n");
@@ -251,10 +269,10 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   /* Get the HW and SW versions to see if the programmer is present. */
   butterfly_drain(pgm, 0);
 
-  butterfly_send(pgm, "V", 1);
+  EI(butterfly_send(pgm, "V", 1));
   butterfly_recv(pgm, sw, sizeof(sw));
 
-  butterfly_send(pgm, "v", 1);
+  EI(butterfly_send(pgm, "v", 1));
   butterfly_recv(pgm, hw, 1);	/* first, read only _one_ byte */
   if (hw[0]!='?') {
     butterfly_recv(pgm, &hw[1], 1);/* now, read second byte */
@@ -262,7 +280,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   /* Get the programmer type (serial or parallel). Expect serial. */
 
-  butterfly_send(pgm, "p", 1);
+  EI(butterfly_send(pgm, "p", 1));
   butterfly_recv(pgm, &type, 1);
 
   msg_notice("Programmer id    = %s; type = %c\n", id, type);
@@ -275,14 +293,14 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   /* See if programmer supports autoincrement of address. */
 
-  butterfly_send(pgm, "a", 1);
+  EI(butterfly_send(pgm, "a", 1));
   butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       msg_notice("programmer supports auto addr increment\n");
 
   /* Check support for buffered memory access, abort if not available */
 
-  butterfly_send(pgm, "b", 1);
+  EI(butterfly_send(pgm, "b", 1));
   butterfly_recv(pgm, &c, 1);
   if (c != 'Y') {
     pmsg_notice("buffered memory access not supported; maybe it isn't\n"\
@@ -298,7 +316,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   /* Get list of devices that the programmer supports. */
 
-  butterfly_send(pgm, "t", 1);
+  EI(butterfly_send(pgm, "t", 1));
   msg_notice2("\nProgrammer supports the following devices:\n");
   devtype_1st = 0;
   while (1) {
@@ -323,7 +341,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   buf[0] = 'T';
   buf[1] = devtype_1st;
 
-  butterfly_send(pgm, buf, 2);
+  EI(butterfly_send(pgm, buf, 2));
   if (butterfly_vfy_cmd_sent(pgm, "select device") < 0)
       return -1;
 
@@ -376,7 +394,7 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
 static void butterfly_close(PROGRAMMER * pgm)
 {
   /* "exit programmer" */
-  butterfly_send(pgm, "E", 1);
+  EV(butterfly_send(pgm, "E", 1));
   butterfly_vfy_cmd_sent(pgm, "exit bootloader");
 
   serial_close(&pgm->fd);
@@ -397,7 +415,7 @@ static void butterfly_set_addr(const PROGRAMMER *pgm, unsigned long addr) {
     cmd[1] = (addr >> 8) & 0xff;
     cmd[2] = addr & 0xff;
   
-    butterfly_send(pgm, cmd, sizeof(cmd));
+    EV(butterfly_send(pgm, cmd, sizeof(cmd)));
     butterfly_vfy_cmd_sent(pgm, "set addr");
   } else {
     char cmd[4];
@@ -407,7 +425,7 @@ static void butterfly_set_addr(const PROGRAMMER *pgm, unsigned long addr) {
     cmd[2] = (addr >> 8) & 0xff;
     cmd[3] = addr & 0xff;
 
-    butterfly_send(pgm, cmd, sizeof(cmd));
+    EV(butterfly_send(pgm, cmd, sizeof(cmd)));
     butterfly_vfy_cmd_sent(pgm, "set extaddr");
   }
 }
@@ -421,7 +439,7 @@ static void butterfly_set_extaddr(const PROGRAMMER *pgm, unsigned long addr) {
   cmd[2] = (addr >> 8) & 0xff;
   cmd[3] = addr & 0xff;
 
-  butterfly_send(pgm, cmd, sizeof(cmd));
+  EV(butterfly_send(pgm, cmd, sizeof(cmd)));
   butterfly_vfy_cmd_sent(pgm, "set extaddr");
 }
 
@@ -470,7 +488,7 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   else
     return -1;
 
-  butterfly_send(pgm, cmd, size);
+  EI(butterfly_send(pgm, cmd, size));
   if (butterfly_vfy_cmd_sent(pgm, "write byte") < 0)
       return -1;
 
@@ -504,7 +522,7 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
       msg[3] = 'P';
     else if (mem_is_userrow(m))
       msg[3] = 'U';
-    butterfly_send(pgm, msg, 4);
+    EI(butterfly_send(pgm, msg, 4));
     /* Read back the program mem word (MSB first) */
     butterfly_recv(pgm, buf, sizeof(buf));
 
@@ -527,7 +545,7 @@ static int butterfly_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, c
                                    unsigned long addr, unsigned char * value)
 {
   butterfly_set_addr(pgm, addr);
-  butterfly_send(pgm, "g\000\001E", 4);
+  EI(butterfly_send(pgm, "g\000\001E", 4));
   butterfly_recv(pgm, (char *)value, 1);
   return 0;
 }
@@ -560,7 +578,7 @@ static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   else
     return -1;
 
-  butterfly_send(pgm, &cmd, 1);
+  EI(butterfly_send(pgm, &cmd, 1));
   butterfly_recv(pgm, (char *)value, 1);
 
   return *value == '?'? -1: 0;
@@ -592,7 +610,7 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 
 #if 0
   usleep(1000000);
-  butterfly_send(pgm, "y", 1);
+  EI(butterfly_send(pgm, "y", 1));
   if (butterfly_vfy_cmd_sent(pgm, "clear LED") < 0)
     return -1;
 #endif
@@ -610,7 +628,7 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
     cmd[1] = (blocksize >> 8) & 0xff;
     cmd[2] = blocksize & 0xff;
 
-    butterfly_send(pgm, cmd, 4+blocksize);
+    EI(butterfly_send(pgm, cmd, 4+blocksize));
     if (butterfly_vfy_cmd_sent(pgm, "write block") < 0)
       return -1;
 
@@ -657,7 +675,7 @@ static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
       cmd[1] = (blocksize >> 8) & 0xff;
       cmd[2] = blocksize & 0xff;
 
-      butterfly_send(pgm, cmd, 4);
+      EI(butterfly_send(pgm, cmd, 4));
       butterfly_recv(pgm, (char *)&m->buf[addr], blocksize);
 
       addr += blocksize;
@@ -677,7 +695,7 @@ static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, con
     return -1;
   }
 
-  butterfly_send(pgm, "s", 1);
+  EI(butterfly_send(pgm, "s", 1));
   butterfly_recv(pgm, (char *)m->buf, 3);
   /* Returned signature has wrong order. */
   tmp = m->buf[2];
