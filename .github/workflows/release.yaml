@@ -1,5 +1,9 @@
 name: Build avrdude with Emscripten
 
+env:
+  EM_VERSION: 3.1.56
+  EM_CACHE_FOLDER: 'emsdk-cache'
+
 on:
   release:
     types: [created]
@@ -12,8 +16,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Emscripten
-        uses: mymindstorm/setup-emsdk@v14
+      - name: Setup cache
+        id: cache-system-libraries
+        uses: actions/cache@v2
+        with:
+          path: ${{env.EM_CACHE_FOLDER}}
+          key: ${{env.EM_VERSION}}-${{ runner.os }}
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{env.EM_VERSION}}
+          actions-cache-folder: ${{env.EM_CACHE_FOLDER}}
 
       - uses: actions/setup-node@v3
         with:
