@@ -76,19 +76,13 @@ struct pdata
 } while(0)
 
 
-static void avr910_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void avr910_setup(PROGRAMMER * pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->test_blockmode = 1;
 }
 
-static void avr910_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void avr910_teardown(PROGRAMMER * pgm) {
+  mmt_free(pgm->cookie);
 }
 
 
@@ -596,9 +590,8 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     avr910_set_addr(pgm, isee? addr: addr>>1);
 
-    cmd = malloc(4 + blocksize);
-    if (!cmd) return -1;
-     
+    cmd = mmt_malloc(4 + blocksize);
+
     cmd[0] = 'B';
     cmd[3] = isee? 'E': 'F';
 
@@ -610,13 +603,15 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       cmd[1] = (blocksize >> 8) & 0xff;
       cmd[2] = blocksize & 0xff;
 
-      EI(avr910_send(pgm, cmd, 4 + blocksize));
-      if(avr910_vfy_cmd_sent(pgm, "write block") < 0)
+      if(avr910_send(pgm, cmd, 4 + blocksize) < 0 ||
+         avr910_vfy_cmd_sent(pgm, "write block") < 0) {
+        mmt_free(cmd);
         return -1;
+      }
 
       addr += blocksize;
     }
-    free(cmd);
+    mmt_free(cmd);
   }
 
   return n_bytes;
