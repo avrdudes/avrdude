@@ -50,6 +50,10 @@ struct pdata
   unsigned int buffersize;
   unsigned char test_blockmode;
   unsigned char use_blockmode;
+
+  int ctype;                    // Cache one byte for flash
+  unsigned char cvalue;
+  unsigned long caddr;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -275,9 +279,6 @@ static void avr910_disable(const PROGRAMMER *pgm) {
 
 
 static void avr910_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  /* Do nothing. */
-
-  return;
 }
 
 
@@ -408,6 +409,7 @@ static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     }
 
     addr >>= 1;
+    PDATA(pgm)->ctype = 0;    // Invalidate read cache
   }
   else if (mem_is_eeprom(m)) {
     cmd[0] = 'D';
@@ -432,11 +434,20 @@ static int avr910_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const
 {
   char buf[2];
 
+  if(PDATA(pgm)->ctype == 'F' && PDATA(pgm)->caddr == addr) {
+    *value = PDATA(pgm)->cvalue;
+    return 0;
+  }
+
   avr910_set_addr(pgm, addr >> 1);
 
   EI(avr910_send(pgm, "R", 1));
   EI(avr910_recv(pgm, buf, sizeof(buf)));
+
   *value = buf[(addr & 1) ^ 1]; // MSB in buffer first
+  PDATA(pgm)->ctype = 'F';
+  PDATA(pgm)->cvalue = buf[addr & 1];
+  PDATA(pgm)->caddr = addr ^ 1;
 
   return 0;
 }
@@ -478,6 +489,8 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
   unsigned int page_addr;
   int page_bytes = page_size;
   int page_wr_cmd_pending = 0;
+
+  PDATA(pgm)->ctype = 0;    // Invalidate read cache
 
   page_addr = addr;
   avr910_set_addr(pgm, addr>>1);
