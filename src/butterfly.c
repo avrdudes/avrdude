@@ -117,7 +117,7 @@ static int butterfly_drain(const PROGRAMMER *pgm, int display) {
 static int butterfly_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
   char c;
 
-  butterfly_recv(pgm, &c, 1);
+  EI(butterfly_recv(pgm, &c, 1));
   if (c != '\r') {
     pmsg_error("programmer did not respond to command: %s\n", errmsg);
     return -1;
@@ -232,7 +232,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
             msg_notice(".");
 	} while (mk_timeout++ < 10);
 
-      butterfly_recv(pgm, &c, 1);
+      EI(butterfly_recv(pgm, &c, 1));
       if ( c != 'M' && c != '?')
         {
           msg_error("\n");
@@ -251,7 +251,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	EI(butterfly_send(pgm, "\033", 1));
 	butterfly_drain(pgm, 0);
 	EI(butterfly_send(pgm, "S", 1));
-	butterfly_recv(pgm, &c, 1);
+	EI(butterfly_recv(pgm, &c, 1));
 	if (c != '?') {
 	    msg_notice("\n");
 	    /*
@@ -260,7 +260,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	     * the null.
 	     */
 	  id[0] = c;
-	  butterfly_recv(pgm, &id[1], sizeof(id)-2);
+	  EI(butterfly_recv(pgm, &id[1], sizeof(id)-2));
 	  id[sizeof(id)-1] = '\0';
 	}
       } while (c == '?');
@@ -270,18 +270,18 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   butterfly_drain(pgm, 0);
 
   EI(butterfly_send(pgm, "V", 1));
-  butterfly_recv(pgm, sw, sizeof(sw));
+  EI(butterfly_recv(pgm, sw, sizeof(sw)));
 
   EI(butterfly_send(pgm, "v", 1));
-  butterfly_recv(pgm, hw, 1);	/* first, read only _one_ byte */
+  EI(butterfly_recv(pgm, hw, 1)); // First, read only _one_ byte
   if (hw[0]!='?') {
-    butterfly_recv(pgm, &hw[1], 1);/* now, read second byte */
+    EI(butterfly_recv(pgm, &hw[1], 1)); // Now, read second byte
   };
 
   /* Get the programmer type (serial or parallel). Expect serial. */
 
   EI(butterfly_send(pgm, "p", 1));
-  butterfly_recv(pgm, &type, 1);
+  EI(butterfly_recv(pgm, &type, 1));
 
   msg_notice("Programmer id    = %s; type = %c\n", id, type);
   msg_notice("Software version = %c.%c; ", sw[0], sw[1]);
@@ -294,22 +294,22 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   /* See if programmer supports autoincrement of address. */
 
   EI(butterfly_send(pgm, "a", 1));
-  butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
+  EI(butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1));
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       msg_notice("programmer supports auto addr increment\n");
 
   /* Check support for buffered memory access, abort if not available */
 
   EI(butterfly_send(pgm, "b", 1));
-  butterfly_recv(pgm, &c, 1);
+  EI(butterfly_recv(pgm, &c, 1));
   if (c != 'Y') {
     pmsg_notice("buffered memory access not supported; maybe it isn't\n"\
       "a butterfly/AVR109 but a AVR910 device?\n");
     return -1;
   };
-  butterfly_recv(pgm, &c, 1);
+  EI(butterfly_recv(pgm, &c, 1));
   PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
-  butterfly_recv(pgm, &c, 1);
+  EI(butterfly_recv(pgm, &c, 1));
   PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
   msg_notice("programmer supports buffered memory access with buffersize=%i bytes\n",
                   PDATA(pgm)->buffersize);
@@ -320,7 +320,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   msg_notice2("\nProgrammer supports the following devices:\n");
   devtype_1st = 0;
   while (1) {
-    butterfly_recv(pgm, &c, 1);
+    EI(butterfly_recv(pgm, &c, 1));
     if (devtype_1st == 0)
       devtype_1st = c;
 
@@ -524,7 +524,7 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
       msg[3] = 'U';
     EI(butterfly_send(pgm, msg, 4));
     /* Read back the program mem word (MSB first) */
-    butterfly_recv(pgm, buf, sizeof(buf));
+    EI(butterfly_recv(pgm, buf, sizeof(buf)));
 
     if ((addr & 0x01) == 0) {
       *value = buf[0];
@@ -546,7 +546,7 @@ static int butterfly_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, c
 {
   butterfly_set_addr(pgm, addr);
   EI(butterfly_send(pgm, "g\000\001E", 4));
-  butterfly_recv(pgm, (char *)value, 1);
+  EI(butterfly_recv(pgm, (char *) value, 1));
   return 0;
 }
 
@@ -579,7 +579,7 @@ static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return -1;
 
   EI(butterfly_send(pgm, &cmd, 1));
-  butterfly_recv(pgm, (char *)value, 1);
+  EI(butterfly_recv(pgm, (char *) value, 1));
 
   return *value == '?'? -1: 0;
 }
@@ -676,7 +676,7 @@ static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
       cmd[2] = blocksize & 0xff;
 
       EI(butterfly_send(pgm, cmd, 4));
-      butterfly_recv(pgm, (char *)&m->buf[addr], blocksize);
+      EI(butterfly_recv(pgm, (char *) &m->buf[addr], blocksize));
 
       addr += blocksize;
     } /* while */
@@ -696,7 +696,7 @@ static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, con
   }
 
   EI(butterfly_send(pgm, "s", 1));
-  butterfly_recv(pgm, (char *)m->buf, 3);
+  EI(butterfly_recv(pgm, (char *) m->buf, 3));
   /* Returned signature has wrong order. */
   tmp = m->buf[2];
   m->buf[2] = m->buf[0];
