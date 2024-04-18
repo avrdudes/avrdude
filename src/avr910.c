@@ -270,9 +270,7 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static void avr910_disable(const PROGRAMMER *pgm) {
-  /* Do nothing. */
-
-  return;
+  avr910_leave_prog_mode(pgm);
 }
 
 
@@ -373,10 +371,7 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
   return 0;
 }
 
-static void avr910_close(PROGRAMMER * pgm)
-{
-  avr910_leave_prog_mode(pgm);
-
+static void avr910_close(PROGRAMMER *pgm) {
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
