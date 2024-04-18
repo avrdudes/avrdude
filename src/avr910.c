@@ -94,14 +94,7 @@ static int avr910_send(const PROGRAMMER *pgm, char *buf, size_t len) {
 
 
 static int avr910_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
-  int rv;
-
-  rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
-  if (rv < 0) {
-    pmsg_error("programmer is not responding\n");
-    return 1;
-  }
-  return 0;
+  return serial_recv(&pgm->fd, (unsigned char *) buf, len);
 }
 
 
@@ -113,11 +106,12 @@ static int avr910_drain(const PROGRAMMER *pgm, int display) {
 static int avr910_vfy_cmd_sent(const PROGRAMMER *pgm, char *errmsg) {
   char c;
 
-  avr910_recv(pgm, &c, 1);
+  EI(avr910_recv(pgm, &c, 1));
   if (c != '\r') {
     pmsg_error("programmer did not respond to command: %s\n", errmsg);
     return 1;
   }
+
   return 0;
 }
 
@@ -176,20 +170,20 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   EI(avr910_send(pgm, "S", 1));
   memset (id, 0, sizeof(id));
-  avr910_recv(pgm, id, sizeof(id)-1);
+  EI(avr910_recv(pgm, id, sizeof(id)-1));
 
   /* Get the HW and SW versions to see if the programmer is present. */
 
   EI(avr910_send(pgm, "V", 1));
-  avr910_recv(pgm, sw, sizeof(sw));
+  EI(avr910_recv(pgm, sw, sizeof(sw)));
 
   EI(avr910_send(pgm, "v", 1));
-  avr910_recv(pgm, hw, sizeof(hw));
+  EI(avr910_recv(pgm, hw, sizeof(hw)));
 
   /* Get the programmer type (serial or parallel). Expect serial. */
 
   EI(avr910_send(pgm, "p", 1));
-  avr910_recv(pgm, &type, 1);
+  EI(avr910_recv(pgm, &type, 1));
 
   msg_notice("Programmer id    = %s; type = %c\n", id, type);
   msg_notice("Software version = %c.%c; ", sw[0], sw[1]);
@@ -198,7 +192,7 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   /* See if programmer supports autoincrement of address. */
 
   EI(avr910_send(pgm, "a", 1));
-  avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1);
+  EI(avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1));
   if (PDATA(pgm)->has_auto_incr_addr == 'Y')
       msg_notice("programmer supports auto addr increment\n");
 
@@ -206,11 +200,11 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if (PDATA(pgm)->test_blockmode == 1) {
     EI(avr910_send(pgm, "b", 1));
-    avr910_recv(pgm, &c, 1);
+    EI(avr910_recv(pgm, &c, 1));
     if (c == 'Y') {
-      avr910_recv(pgm, &c, 1);
+      EI(avr910_recv(pgm, &c, 1));
       PDATA(pgm)->buffersize = (unsigned int)(unsigned char)c<<8;
-      avr910_recv(pgm, &c, 1);
+      EI(avr910_recv(pgm, &c, 1));
       PDATA(pgm)->buffersize += (unsigned int)(unsigned char)c;
       msg_notice("programmer supports buffered memory access with "
                       "buffersize = %u bytes\n",
@@ -232,8 +226,8 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     EI(avr910_send(pgm, "t", 1));
     msg_notice2("\nProgrammer supports the following devices:\n");
     devtype_1st = 0;
-    while (1) {
-      avr910_recv(pgm, &c, 1);
+    while(1) {
+      EI(avr910_recv(pgm, &c, 1));
       if (devtype_1st == 0)
 	devtype_1st = c;
       if (c == 0)
@@ -312,7 +306,7 @@ static int avr910_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
   buf[4] = cmd[3];
 
   EI(avr910_send(pgm, buf, 5));
-  avr910_recv (pgm, buf, 2);
+  EI(avr910_recv(pgm, buf, 2));
 
   res[0] = 0x00;                /* Dummy value */
   res[1] = cmd[0];
@@ -457,16 +451,8 @@ static int avr910_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const
   avr910_set_addr(pgm, addr >> 1);
 
   EI(avr910_send(pgm, "R", 1));
-
-  /* Read back the program mem word (MSB first) */
-  avr910_recv(pgm, buf, sizeof(buf));
-
-  if ((addr & 0x01) == 0) {
-    *value = buf[1];
-  }
-  else {
-    *value = buf[0];
-  }
+  EI(avr910_recv(pgm, buf, sizeof(buf)));
+  *value = buf[(addr & 1) ^ 1]; // MSB in buffer first
 
   return 0;
 }
@@ -477,7 +463,7 @@ static int avr910_read_byte_eeprom(const PROGRAMMER *pgm, const AVRPART *p, cons
 {
   avr910_set_addr(pgm, addr);
   EI(avr910_send(pgm, "d", 1));
-  avr910_recv(pgm, (char *)value, 1);
+  EI(avr910_recv(pgm, (char *) value, 1));
 
   return 0;
 }
@@ -685,7 +671,7 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
       cmd[2] = blocksize & 0xff;
 
       EI(avr910_send(pgm, cmd, 4));
-      avr910_recv(pgm, (char *)&m->buf[addr], blocksize);
+      EI(avr910_recv(pgm, (char *) &m->buf[addr], blocksize));
 
       addr += blocksize;
     }
@@ -700,12 +686,12 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
       if (rd_size == 2) {
         /* The 'R' command returns two bytes, MSB first, we need to put the data
            into the memory buffer LSB first. */
-        avr910_recv(pgm, buf, 2);
+        EI(avr910_recv(pgm, buf, 2));
         m->buf[addr]   = buf[1];  /* LSB */
         m->buf[addr + 1] = buf[0];  /* MSB */
       }
       else {
-        avr910_recv(pgm, (char *)&m->buf[addr], 1);
+        EI(avr910_recv(pgm, (char *) &m->buf[addr], 1));
       }
 
       addr += rd_size;
@@ -732,7 +718,7 @@ static int avr910_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
   }
 
   EI(avr910_send(pgm, "s", 1));
-  avr910_recv(pgm, (char *)m->buf, 3);
+  EI(avr910_recv(pgm, (char *) m->buf, 3));
   /* Returned signature has wrong order. */
   tmp = m->buf[2];
   m->buf[2] = m->buf[0];
