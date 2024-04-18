@@ -453,30 +453,30 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
 {
   char cmd[6];
   int size;
-  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
-  if (mem_is_flash(m) || mem_is_eeprom(m))
-  {
+  if(mem_is_flash(m)) {
+    int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+
+    PDATA(pgm)->ctype = 0;    // Invalidate read cache
     cmd[0] = 'B';
     cmd[1] = 0;
-    if ((cmd[3] = toupper((int)(m->desc[0]))) == 'E') {	/* write to eeprom */
-      cmd[2] = 1;
-      cmd[4] = value;
-      size = 5;
-    } else {						/* write to flash */
-      /* @@@ not yet implemented */
-      cmd[2] = 2;
-      size = 6;
-      return -1;
-    }
-    if (use_ext_addr) {
-      butterfly_set_extaddr(pgm, addr);
-    } else {
-      butterfly_set_addr(pgm, addr);
-    }
+    cmd[2] = 2;
+    cmd[3] = 'F';
+    size = 6;
+    (ext_addr? butterfly_set_extaddr: butterfly_set_addr)(pgm, addr >> 1);
+
+    return -1;                  // @@@ not yet implemented (and what about usersig?)
   }
-  else if (mem_is_lock(m))
-  {
+
+  if(mem_is_eeprom(m)) {
+    cmd[0] = 'B';
+    cmd[1] = 0;
+    cmd[2] = 1;
+    cmd[3] = 'E';
+    cmd[4] = value;
+    size = 5;
+    butterfly_set_addr(pgm, addr);
+  } else if(mem_is_lock(m)) {
     cmd[0] = 'l';
     cmd[1] = value;
     size = 2;
