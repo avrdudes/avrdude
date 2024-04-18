@@ -636,43 +636,38 @@ static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
                                 unsigned int addr, unsigned int n_bytes)
 {
   unsigned int max_addr = addr + n_bytes;
-  int rd_size = 2;
   int blocksize = PDATA(pgm)->buffersize;
-  int use_ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+  int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
+  int isee = mem_is_eeprom(m);
 
-  /* check parameter syntax: only "flash", "eeprom" or "usersig"/"userrow" is allowed */
-  if (!mem_is_flash(m) && !mem_is_eeprom(m) && !mem_is_userrow(m))
+  // Only flash, EEPROM or usersig/userrow is allowed
+  if (!mem_is_flash(m) && !isee && !mem_is_userrow(m))
     return -2;
 
-  if (m->desc[0] == 'e')
-    rd_size = blocksize = 1;		/* Read from eeprom single bytes only */
+  if(isee)                      // Read single bytes from EEPROM
+    blocksize = 1;
 
-  {		/* use buffered mode */
-    char cmd[4];
+  char cmd[4];
 
-    cmd[0] = 'g';
-    cmd[3] = toupper((int)(m->desc[0]));
+  cmd[0] = 'g';
+  cmd[3] = isee? 'E': mem_is_flash(m)? 'F': 'U';
 
-    if (use_ext_addr) {
-      butterfly_set_extaddr(pgm, addr / rd_size);
-    } else {
-      butterfly_set_addr(pgm, addr / rd_size);
-    }
-    while (addr < max_addr) {
-      if ((max_addr - addr) < (unsigned int) blocksize) {
-        blocksize = max_addr - addr;
-      };
-      cmd[1] = (blocksize >> 8) & 0xff;
-      cmd[2] = blocksize & 0xff;
+  (ext_addr? butterfly_set_extaddr: butterfly_set_addr)(pgm, isee? addr: addr>>1);
 
-      EI(butterfly_send(pgm, cmd, 4));
-      EI(butterfly_recv(pgm, (char *) &m->buf[addr], blocksize));
+  while (addr < max_addr) {
+    if ((max_addr - addr) < (unsigned int) blocksize)
+      blocksize = max_addr - addr;
 
-      addr += blocksize;
-    } /* while */
+    cmd[1] = (blocksize >> 8) & 0xff;
+    cmd[2] = blocksize & 0xff;
+
+    EI(butterfly_send(pgm, cmd, 4));
+    EI(butterfly_recv(pgm, (char *) &m->buf[addr], blocksize));
+
+    addr += blocksize;
   }
 
-  return addr * rd_size;
+  return n_bytes;
 }
 
 
