@@ -364,9 +364,8 @@ static int avr910_open(PROGRAMMER *pgm, const char *port) {
   pgm->port = port;
   pinfo.serialinfo.baud = pgm->baudrate;
   pinfo.serialinfo.cflags = SERIAL_8N1;
-  if (serial_open(port, pinfo, &pgm->fd)==-1) {
+  if(serial_open(port, pinfo, &pgm->fd) < 0)
     return -1;
-  }
 
   (void) avr910_drain (pgm, 0);
 	
@@ -403,19 +402,16 @@ static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   if (mem_is_flash(m)) {
     if (addr & 0x01) {
-      cmd[0] = 'C';             /* Write Program Mem high byte */
-    }
-    else {
+      cmd[0] = 'C';           // Write program mem high byte
+    } else {
       cmd[0] = 'c';
     }
 
     addr >>= 1;
     PDATA(pgm)->ctype = 0;    // Invalidate read cache
-  }
-  else if (mem_is_eeprom(m)) {
+  } else if (mem_is_eeprom(m)) {
     cmd[0] = 'D';
-  }
-  else {
+  } else {
     return avr_write_byte_default(pgm, p, m, addr, value);
   }
 
@@ -632,22 +628,20 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
                              unsigned int addr, unsigned int n_bytes)
 {
   char cmd[4];
-  int rd_size;
   unsigned int max_addr;
   char buf[2];
-  int rval=0;
+  int isee = mem_is_eeprom(m);
 
   max_addr = addr + n_bytes;
 
-  if (mem_is_flash(m)) {
+  if(mem_is_flash(m))
     cmd[0] = 'R';
-    rd_size = 2;                /* read two bytes per addr */
-  } else if (mem_is_eeprom(m)) {
+  else if(isee)
     cmd[0] = 'd';
-    rd_size = 1;
-  } else {
+  else
     return -2;
-  }
+
+  avr910_set_addr(pgm, isee? addr: addr>>1);
 
   if (PDATA(pgm)->use_blockmode) {
     /* use buffered mode */
@@ -655,8 +649,6 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
     cmd[0] = 'g';
     cmd[3] = toupper((int)(m->desc[0]));
-
-    avr910_set_addr(pgm, addr / rd_size);
 
     while (addr < max_addr) {
       if (max_addr - addr < (unsigned int) blocksize)
@@ -670,36 +662,25 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
       addr += blocksize;
     }
-
-    rval = addr;
   } else {
-
-    avr910_set_addr(pgm, addr / rd_size);
-
     while (addr < max_addr) {
       EI(avr910_send(pgm, cmd, 1));
-      if (rd_size == 2) {
-        /* The 'R' command returns two bytes, MSB first, we need to put the data
-           into the memory buffer LSB first. */
+      if(!isee) {
+        // The 'R' command returns two bytes, MSB first, ie, reverse data
         EI(avr910_recv(pgm, buf, 2));
-        m->buf[addr]   = buf[1];  /* LSB */
-        m->buf[addr + 1] = buf[0];  /* MSB */
-      }
-      else {
+        m->buf[addr]   = buf[1];  // LSB
+        m->buf[addr+1] = buf[0];  // MSB
+      } else
         EI(avr910_recv(pgm, (char *) &m->buf[addr], 1));
-      }
 
-      addr += rd_size;
+      addr += isee? 1: 2;
 
-      if (PDATA(pgm)->has_auto_incr_addr != 'Y') {
-        avr910_set_addr(pgm, addr / rd_size);
-      }
+      if (PDATA(pgm)->has_auto_incr_addr != 'Y')
+        avr910_set_addr(pgm, isee? addr: addr>>1);
     }
-
-    rval = addr;
   }
 
-  return rval;
+  return n_bytes;
 }
 
 /* Signature byte reads are always 3 bytes. */
