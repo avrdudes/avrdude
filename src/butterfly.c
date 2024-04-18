@@ -82,11 +82,11 @@ struct pdata
 } while(0)
 
 
-static void butterfly_setup(PROGRAMMER * pgm) {
+static void butterfly_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void butterfly_teardown(PROGRAMMER * pgm) {
+static void butterfly_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
 }
 
@@ -96,14 +96,7 @@ static int butterfly_send(const PROGRAMMER *pgm, char *buf, size_t len) {
 
 
 static int butterfly_recv(const PROGRAMMER *pgm, char *buf, size_t len) {
-  int rv;
-
-  rv = serial_recv(&pgm->fd, (unsigned char *)buf, len);
-  if (rv < 0) {
-    pmsg_error("programmer is not responding\n");
-    return -1;
-  }
-  return 0;
+  return serial_recv(&pgm->fd, (unsigned char *) buf, len);
 }
 
 
