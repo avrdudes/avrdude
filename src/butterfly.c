@@ -82,18 +82,12 @@ struct pdata
 } while(0)
 
 
-static void butterfly_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void butterfly_setup(PROGRAMMER * pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void butterfly_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void butterfly_teardown(PROGRAMMER * pgm) {
+  mmt_free(pgm->cookie);
 }
 
 static int butterfly_send(const PROGRAMMER *pgm, char *buf, size_t len) {
@@ -603,8 +597,8 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
     return -1;
 #endif
 
-  cmd = malloc(4+blocksize);
-  if (!cmd) return -1;
+  cmd = mmt_malloc(4+blocksize);
+
   cmd[0] = 'B';
   cmd[3] = isee? 'E': mem_is_flash(m)? 'F': 'U';
 
@@ -616,13 +610,16 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
     cmd[1] = (blocksize >> 8) & 0xff;
     cmd[2] = blocksize & 0xff;
 
-    EI(butterfly_send(pgm, cmd, 4+blocksize));
-    if (butterfly_vfy_cmd_sent(pgm, "write block") < 0)
+    if(butterfly_send(pgm, cmd, 4+blocksize) < 0 ||
+       butterfly_vfy_cmd_sent(pgm, "write block") < 0) {
+
+      mmt_free(cmd);
       return -1;
+    }
 
     addr += blocksize;
   }
-  free(cmd);
+  mmt_free(cmd);
 
   return n_bytes;
 }
