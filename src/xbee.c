@@ -160,7 +160,7 @@ struct XBeeStaticticsSummary {
 #define XBEE_STATS_TRANSMIT 2
 #define XBEE_STATS_RECEIVE 3
 
-static const char* groupNames[] =
+static const char * const groupNames[] =
   {
    "FRAME_LOCAL",
    "FRAME_REMOTE",
