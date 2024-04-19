@@ -1567,13 +1567,8 @@ static void stk500_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   stk500_print_parms1(pgm, "", fp);
 }
 
-static void stk500_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    return;
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void stk500_setup(PROGRAMMER * pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff;
   PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
   // nanoSTK (Arduino Nano HW) uses 16 MHz
@@ -1583,9 +1578,8 @@ static void stk500_setup(PROGRAMMER * pgm)
     PDATA(pgm)->xtal = STK500_XTAL;
 }
 
-static void stk500_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void stk500_teardown(PROGRAMMER * pgm) {
+  mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 
