@@ -65,13 +65,33 @@
 
 #include <sys/time.h>
 
+// Private data for this programmer
+struct pdata {
+#ifdef USE_LIBUSB_1_0
+  libusb_device_handle *usbhandle;
+#else
+  usb_dev_handle *usbhandle;
+#endif
+  int sckfreq_hz;
+  unsigned int capabilities;
+  int use_tpi;
+  int section_e;
+  int sck_3mhz;
+
+#ifdef USE_LIBUSB_1_0
+  libusb_context *ctx;
+  char msg[30];                 // Used in errstr()
+#endif
+  int USB_init;                 // Used in both usbOpenDevice() variants
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 #ifdef USE_LIBUSB_1_0
 
-static libusb_context *ctx = NULL;
-
-static const char *errstr(int result)
-{
-	static char msg[30];
+static const char *errstr(const PROGRAMMER *pgm, int result) {
+	char *msg = PDATA(pgm)->msg;
+	size_t msgsiz = sizeof(PDATA(pgm)->msg);
 	int n = 0;
 
 	switch (result) {
@@ -122,35 +142,13 @@ static const char *errstr(int result)
 		n = ENOSYS;
 		break;
 	default:
-		snprintf(msg, sizeof msg, "Unknown libusb error code %d", result);
+		snprintf(msg, msgsiz, "Unknown libusb error code %d", result);
 		return msg;
 	}
 	return strerror(n);
 }
 
 #endif
-
-
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
-#ifdef USE_LIBUSB_1_0
-  libusb_device_handle *usbhandle;
-#else
-  usb_dev_handle *usbhandle;
-#endif
-  int sckfreq_hz;
-  unsigned int capabilities;
-  int use_tpi;
-  int section_e;
-  int sck_3mhz;
-};
-
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
-#define IMPORT_PDATA(pgm) struct pdata *pdata = PDATA(pgm)
-
 
 
 /* Prototypes */
@@ -163,9 +161,11 @@ static int usbasp_transmit(const PROGRAMMER *pgm, unsigned char receive,
 			   unsigned char functionid, const unsigned char *send,
 			   unsigned char *buffer, int buffersize);
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName, int product, const char *productName, const char *port);
+static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port);
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName, int product, const char *productName, const char *port);
+static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port);
 #endif
 // interface - prog.
 static int usbasp_open(PROGRAMMER *pgm, const char *port);
@@ -372,7 +372,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
-    pmsg_ext_error("%s\n", errstr(nbytes));
+    pmsg_ext_error("%s\n", errstr(pgm, nbytes));
     return -1;
   }
 #else
@@ -428,22 +428,21 @@ static int check_for_port_argument_match(const char *port, char *bus, char *devi
  * shared VID/PID
  */
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName,
-                         int product, const char *productName, const char *port)
-{
+static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port) {
+
     libusb_device_handle *handle = NULL;
     int                  errorCode = USB_ERROR_NOTFOUND;
-    static int           didUsbInit = 0;
     int j;
     int r;
 
-    if(!didUsbInit){
-        didUsbInit = 1;
-        libusb_init(&ctx);
+    if(!PDATA(pgm)->USB_init){
+        PDATA(pgm)->USB_init = 1;
+        libusb_init(&PDATA(pgm)->ctx);
     }
     
     libusb_device **dev_list;
-    int dev_list_len = libusb_get_device_list(ctx, &dev_list);
+    int dev_list_len = libusb_get_device_list(PDATA(pgm)->ctx, &dev_list);
 
     for (j=0; j<dev_list_len; ++j) {
         libusb_device *dev = dev_list[j];
@@ -455,7 +454,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
             r = libusb_open(dev, &handle);
             if (!handle) {
                  errorCode = USB_ERROR_ACCESS;
-                 pmsg_warning("cannot open USB device: %s\n", errstr(r));
+                 pmsg_warning("cannot open USB device: %s\n", errstr(pgm, r));
                  continue;
             }
             errorCode = 0;
@@ -465,7 +464,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
             if (r < 0) {
                 if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_warning("cannot query manufacturer for device: %s\n", errstr(r));
+                    pmsg_warning("cannot query manufacturer for device: %s\n", errstr(pgm, r));
 		}
             } else {
                 pmsg_notice2("seen device from vendor >%s<\n", string);
@@ -477,7 +476,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
             if (r < 0) {
                 if ((productName != NULL) && (productName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_warning("cannot query product for device: %s\n", errstr(r));
+                    pmsg_warning("cannot query product for device: %s\n", errstr(pgm, r));
 		}
             } else {
                 pmsg_notice2("seen product >%s<\n", string);
@@ -510,17 +509,16 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
     return errorCode;
 }
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName,
-                         int product, const char *productName, const char *port)
-{
-struct usb_bus       *bus;
-struct usb_device    *dev;
-usb_dev_handle       *handle = NULL;
-int                  errorCode = USB_ERROR_NOTFOUND;
-static int           didUsbInit = 0;
+static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port) {
 
-    if(!didUsbInit){
-        didUsbInit = 1;
+    struct usb_bus * bus;
+    struct usb_device * dev;
+    usb_dev_handle * handle = NULL;
+    int errorCode = USB_ERROR_NOTFOUND;
+
+    if(!PDATA(pgm)->USB_init) {
+        PDATA(pgm)->USB_init = 1;
         usb_init();
     }
     usb_find_busses();
@@ -608,13 +606,13 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     pid = USBASP_SHARED_PID;
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
-  if (usbOpenDevice(&PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
+  if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
     /* try alternatives */
     if(str_eq(pgmid, "usbasp")) {
     /* for id usbasp autodetect some variants */
       if(str_caseeq(port, "nibobee")) {
         pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
-        if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
+        if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
                           USBASP_NIBOBEE_PID, "NIBObee", port) != 0) {
           pmsg_error("cannot find USB device NIBObee with vid=0x%x pid=0x%x\n",
             USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
@@ -623,7 +621,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
         return 0;
       }
       /* check if device with old VID/PID is available */
-      if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
+      if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
                         USBASP_OLD_PID, "USBasp", port) == 0) {
         /* found USBasp with old IDs */
         pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
@@ -668,7 +666,7 @@ static void usbasp_close(PROGRAMMER * pgm)
 #endif
   }
 #ifdef USE_LIBUSB_1_0
-  libusb_exit(ctx);
+  libusb_exit(PDATA(pgm)->ctx);
 #else
   /* nothing for usb 0.1 ? */
 #endif
@@ -677,14 +675,10 @@ static void usbasp_close(PROGRAMMER * pgm)
 
 /* Dummy functions */
 static void usbasp_disable(const PROGRAMMER *pgm) {
-  /* Do nothing. */
-
   return;
 }
 
 static void usbasp_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  /* Do nothing. */
-
   return;
 }
 
@@ -700,7 +694,7 @@ static void usbasp_display(const PROGRAMMER *pgm, const char *p) {
 static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char temp[4];
   unsigned char res[4];
-  IMPORT_PDATA(pgm);
+  struct pdata *pdata = PDATA(pgm);
 
   pmsg_debug("usbasp_initialize()\n");
 
@@ -960,6 +954,8 @@ static struct sckoptions_t usbaspSCKoptions[] = {
   { USBASP_ISP_SCK_1, 1000 },
   { USBASP_ISP_SCK_0_5, 500 }
 };
+
+
 
 /*
  * Set sck period (in seconds)
