@@ -1292,9 +1292,9 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
   cmd[2] = 0;
   cmd[3] = 0;
   n = usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_READBLOCK, cmd, value, 1);
-  if(n != 1)
-  {
-    pmsg_error("wrong reading bytes %x\n", n);
+  if(n != 1) {
+    if(n >= 0)
+      pmsg_error("wrong number %d of bytes read (expected 1)\n", n);
     return -3;
   }
   return 0;
