@@ -49,8 +49,6 @@
 #include <sys/time.h>
 
 #ifdef USE_LIBUSB_1_0
-static libusb_context *ctx = NULL;
-
 static int libusb_to_errno(int result) {
   switch (result) {
   case LIBUSB_SUCCESS:
@@ -96,6 +94,9 @@ static int libusb_to_errno(int result) {
 struct pdata {
   libusb_device_handle *usbhandle;
   int sckfreq_hz;
+
+  libusb_context *ctx;
+  int USB_init;                 // Used in ch341a_open()
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -204,13 +205,12 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   int pid, vid, j, r;
   int errorCode = USB_ERROR_NOTFOUND;
   libusb_device_handle *handle = NULL;
-  static int didUsbInit = 0;
 
   pmsg_trace("ch341a_open(\"%s\")\n", port);
 
-  if(!didUsbInit) {
-    didUsbInit = 1;
-    libusb_init(&ctx);
+  if(!PDATA(pgm)->USB_init) {
+    PDATA(pgm)->USB_init = 1;
+    libusb_init(&PDATA(pgm)->ctx);
   }
 
   if(usbpid) {
@@ -223,7 +223,7 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   vid = pgm->usbvid? pgm->usbvid: CH341A_VID;
 
   libusb_device **dev_list;
-  int dev_list_len = libusb_get_device_list(ctx, &dev_list);
+  int dev_list_len = libusb_get_device_list(PDATA(pgm)->ctx, &dev_list);
 
   for(j = 0; j < dev_list_len; ++j) {
     libusb_device *dev = dev_list[j];
@@ -252,7 +252,7 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   if((r = libusb_claim_interface(PDATA(pgm)->usbhandle, 0))) {
     pmsg_error("libusb_claim_interface failed, return value %d (%s)\n", r, libusb_error_name(r));
     libusb_close(PDATA(pgm)->usbhandle);
-    libusb_exit(ctx);
+    libusb_exit(PDATA(pgm)->ctx);
     return -1;
   }
   return 0;
@@ -272,7 +272,7 @@ static void ch341a_close(PROGRAMMER *pgm) {
     libusb_release_interface(PDATA(pgm)->usbhandle, 0);
     libusb_close(PDATA(pgm)->usbhandle);
   }
-  libusb_exit(ctx);
+  libusb_exit(PDATA(pgm)->ctx);
 }
 
 
