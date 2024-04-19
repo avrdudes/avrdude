@@ -69,11 +69,11 @@ static void wiring_setup(PROGRAMMER *pgm) {
   stk500v2_setup(pgm);
 
   // Then prepare our data and store in a safe place for the time being
-  ((struct pdata *)(pgm->cookie))->chained_pdata = cfg_malloc(__func__, sizeof(struct wiringpdata));
+  ((struct pdata *)(pgm->cookie))->chained_pdata = mmt_malloc(sizeof(struct wiringpdata));
 }
 
 static void wiring_teardown(PROGRAMMER *pgm) {
-  free(((struct pdata *)(pgm->cookie))->chained_pdata);
+  mmt_free(((struct pdata *)(pgm->cookie))->chained_pdata);
   stk500v2_teardown(pgm);
 }
 
