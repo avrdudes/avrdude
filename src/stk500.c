@@ -1253,7 +1253,7 @@ static int stk500_get_varef(const PROGRAMMER *pgm, unsigned int chan /* unused *
 
 static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
   unsigned prescale, cmatch, fosc;
-  static unsigned ps[] = {
+  static const unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
   size_t idx;
@@ -1307,7 +1307,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
 
 static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
   unsigned prescale=0, cmatch=0;
-  static unsigned ps[] = {
+  static const unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
   int rc;
