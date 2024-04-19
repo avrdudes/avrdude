@@ -429,11 +429,11 @@ static int ch341a_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
 // Interface management
 static void ch341a_setup(PROGRAMMER *pgm) {
-  pgm->cookie = cfg_malloc(__func__, sizeof(struct pdata));
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void ch341a_teardown(PROGRAMMER *pgm) {
-  free(pgm->cookie);
+  mmt_free(pgm->cookie);
 }
 
 // Dummy functions
