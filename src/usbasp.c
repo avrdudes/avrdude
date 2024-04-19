@@ -272,18 +272,12 @@ static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
 
 /* Interface - management */
-static void usbasp_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error(" out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void usbasp_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void usbasp_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void usbasp_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
 }
 
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
