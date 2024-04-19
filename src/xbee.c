@@ -1036,7 +1036,7 @@ static int xbeeATError(int rc) {
 static void xbeedev_free(struct XBeeBootSession *xbs)
 {
   xbs->serialDevice->close(&xbs->serialDescriptor);
-  free(xbs);
+  mmt_free(xbs);
 }
 
 static void xbeedev_close(union filedescriptor *fdp)
@@ -1065,12 +1065,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     return -1;
   }
 
-  struct XBeeBootSession *xbs = malloc(sizeof(struct XBeeBootSession));
-  if (xbs == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-
+  struct XBeeBootSession *xbs = mmt_malloc(sizeof(struct XBeeBootSession));
   XBeeBootSessionInit(xbs);
 
   char *tty = &ttySeparator[1];
@@ -1107,7 +1102,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
 
     if (addrIndex != 8 || address != ttySeparator || nybble != -1) {
       pmsg_error("XBee: bad XBee address, require 16-character hexadecimal address\n");
-      free(xbs);
+      mmt_free(xbs);
       return -1;
     }
 
@@ -1174,7 +1169,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     const int rc = xbs->serialDevice->open(tty, pinfo,
                                            &xbs->serialDescriptor);
     if (rc < 0) {
-      free(xbs);
+      mmt_free(xbs);
       return rc;
     }
   }
