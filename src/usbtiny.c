@@ -818,5 +818,4 @@ void usbtiny_initpgm(PROGRAMMER *pgm) {
 
 #endif /* HAVE_LIBUSB */
 
-const char usbtiny_desc[] = "Driver for \"usbtiny\"-type programmers";
-
+const char usbtiny_desc[] = "Usbtiny-type programmers incl arduinoisp, arduino_gemma and adafruit_gemma";
