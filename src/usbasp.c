@@ -1195,7 +1195,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
   return n_bytes;
 }
 
-static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
   unsigned char cmd[4];
@@ -1269,7 +1269,6 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
   int n;
   uint16_t pr;
 
-
   pmsg_debug("usbasp_tpi_read_byte(\"%s\", 0x%0lx)\n", m->desc, addr);
 
   pr = m->offset + addr;
@@ -1289,10 +1288,79 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
 }
 
 static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-  unsigned long addr, unsigned char data) { // FIXME: use avr_write_byte_cache() when implemented
+  unsigned long addr, unsigned char data) {
+  pmsg_debug("%s(\"%s\", 0x%0lx, 0x%02x)\n", __func__, m->desc, addr, data);
 
-  pmsg_error("usbasp_write_byte in TPI mode; all writes have to be done at page level\n");
-  return -1;
+  if(mem_is_flash(m)) {
+    pmsg_error("cannot write_byte() to %s; use paged_write()\n", m->desc);
+    return -1;
+  }
+
+  // Memories left: fuse and lockbits
+
+  unsigned char cmd[4], sbuf[32] = {0}, *sptr = sbuf;
+  int written, clen, n, n_bytes = m->page_size;
+  uint16_t pr;
+
+  if(addr != 0) {
+    pmsg_error("unexpected address 0x%04lx of %s memory\n", addr, m->desc);
+    return -1;
+  }  
+
+  if(n_bytes > (int) sizeof sbuf) {
+    pmsg_error("unexpected page size %d of %s memory\n", n_bytes, m->desc);
+    return -1;
+  }  
+
+  *sbuf = *m->buf;
+  pr = addr + m->offset;
+  written = 0;
+
+  // Must erase fuse first, TPI parts only have one fuse
+  if(mem_is_a_fuse(m)) { // What about lockbits? Should this if be removed?
+    // Set PR
+    usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
+    usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
+    usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
+    usbasp_tpi_send_byte(pgm, (pr >> 8) );
+    // Select SECTION_ERASE
+    usbasp_tpi_send_byte(pgm, TPI_OP_SOUT(NVMCMD));
+    usbasp_tpi_send_byte(pgm, NVMCMD_SECTION_ERASE);
+    // Dummy write
+    usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+    usbasp_tpi_send_byte(pgm, 0x00);
+
+    usbasp_tpi_nvm_waitbusy(pgm);
+  }
+
+  // Set PR
+  usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
+  usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
+  usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
+  usbasp_tpi_send_byte(pgm, (pr >> 8) );
+
+  while(written < n_bytes) {
+    clen = n_bytes - written;
+    if(clen > 32)
+      clen = 32;
+
+    cmd[0] = pr & 0xFF;
+    cmd[1] = pr >> 8;
+    cmd[2] = 0;
+    cmd[3] = 0;
+    n = usbasp_transmit(pgm, 0, USBASP_FUNC_TPI_WRITEBLOCK, cmd, sptr, clen);
+    if(n != clen) {
+      if(n >= 0)
+        pmsg_error("wrong count at writing %x\n", n);
+      return -3;
+    }
+
+    written += clen;
+    pr += clen;
+    sptr += clen;
+  }
+
+  return 0;
 }
 
 
@@ -1346,4 +1414,3 @@ void usbasp_initpgm(PROGRAMMER *pgm) {
 #endif  /* HAVE_LIBUSB */
 
 const char usbasp_desc[] = "USBasp programmer, see http://www.fischl.de/usbasp/";
-
