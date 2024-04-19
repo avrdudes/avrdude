@@ -1499,20 +1499,6 @@ static int xbeedev_set_dtr_rts(const union filedescriptor *fdp, int is_on)
   return 0;
 }
 
-/*
- * Device descriptor for XBee framing.
- */
-static struct serial_device xbee_serdev_frame = {
-  .open = xbeedev_open,
-  .close = xbeedev_close,
-  .rawclose = xbeedev_close,
-  .send = xbeedev_send,
-  .recv = xbeedev_recv,
-  .drain = xbeedev_drain,
-  .set_dtr_rts = xbeedev_set_dtr_rts,
-  .flags = SERDEV_FL_NONE,
-};
-
 static int xbee_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[2], resp[2];
 
@@ -1562,7 +1548,15 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
   /* Wireless is lossier than normal serial */
   serial_recv_timeout = 1000;
 
-  serdev = &xbee_serdev_frame;
+  serdev = &PDATA(pgm)->xbee_serdev;
+  serdev->open = xbeedev_open;
+  serdev->close = xbeedev_close;
+  serdev->rawclose = xbeedev_close;
+  serdev->send = xbeedev_send;
+  serdev->recv = xbeedev_recv;
+  serdev->drain = xbeedev_drain;
+  serdev->set_dtr_rts = xbeedev_set_dtr_rts;
+  serdev->flags = SERDEV_FL_NONE;
 
   if (serial_open(port, pinfo, &pgm->fd) == -1) {
     return -1;
