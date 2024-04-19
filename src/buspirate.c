@@ -88,13 +88,11 @@ static inline int buspirate_uses_ascii(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
 }
 
-static inline int
-buspirate_uses_pullups(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_pullups(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_PULLUPS);
 }
 
-static inline int
-buspirate_uses_hiz(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_hiz(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_HIZ);
 }
 
@@ -223,6 +221,7 @@ static char *buspirate_readline(const PROGRAMMER *pgm, char *buf, size_t len) {
 	}
 	return ret;
 }
+
 static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	int rc;
 	const char * readline;
@@ -965,6 +964,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 	return n_bytes;
 }
+
 /* Paged write function which utilizes the Bus Pirate's "Write then Read" binary SPI instruction */
 static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int base_addr, unsigned int n_data_bytes) {
@@ -1126,6 +1126,7 @@ static void buspirate_teardown(PROGRAMMER *pgm)
 {
 	free(pgm->cookie);
 }
+
 const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
 
 void buspirate_initpgm(PROGRAMMER *pgm) {
