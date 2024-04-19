@@ -76,18 +76,12 @@ struct pdata
 
 // ----------------------------------------------------------------------
 
-static void usbtiny_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void usbtiny_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void usbtiny_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void usbtiny_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
 }
 
 // Wrapper for simple usb_control_msg messages
