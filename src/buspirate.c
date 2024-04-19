@@ -1115,16 +1115,13 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 /* Interface - management */
-static void buspirate_setup(PROGRAMMER *pgm)
-{
-	/* Allocate private data */
+static void buspirate_setup(PROGRAMMER *pgm) {
 	pgm->cookie = mmt_malloc(sizeof(struct pdata));
 	PDATA(pgm)->serial_recv_timeout = 100;
 }
 
-static void buspirate_teardown(PROGRAMMER *pgm)
-{
-	free(pgm->cookie);
+static void buspirate_teardown(PROGRAMMER *pgm) {
+	mmt_free(pgm->cookie);
 }
 
 const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
