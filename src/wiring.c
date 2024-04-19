@@ -174,7 +174,7 @@ static void wiring_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-const char wiring_desc[] = "http://wiring.org.co/, Basically STK500v2 protocol, with some glue to trigger the bootloader.";
+const char wiring_desc[] = "Bootloader using STK500v2 protocol, see http://wiring.org.co";
 
 void wiring_initpgm(PROGRAMMER *pgm) {
   /* The Wiring bootloader uses a near-complete STK500v2 protocol. */
