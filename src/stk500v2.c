@@ -3302,21 +3302,21 @@ static const double avrispmkIIfreqs[] = {
 	65.0, 61.9, 59.0, 56.3, 53.6, 51.1
 };
 
+#define NavrispmkIIfreqs (sizeof avrispmkIIfreqs / sizeof *avrispmkIIfreqs)
+
 static int stk500v2_set_sck_period_mk2(const PROGRAMMER *pgm, double v) {
   size_t i;
 
-  for (i = 0; i < sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0]); i++) {
-    if (1 / avrispmkIIfreqs[i] >= v)
+  for(i = 0; i < NavrispmkIIfreqs; i++)
+    if(1 / avrispmkIIfreqs[i] >= v)
       break;
-  }
 
-  if (i >= sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0])) {
+  if(i >= NavrispmkIIfreqs) {
     pmsg_error("invalid SCK period: %g\n", v);
     return -1;
   }
 
-  msg_notice2("Using p = %.2f us for SCK (param = %d)\n",
-	    1000000 / avrispmkIIfreqs[i], (int) i);
+  msg_notice2("Using p = %.2f us for SCK (i = %d)\n", 1e6 / avrispmkIIfreqs[i], (int) i);
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
 }
@@ -3399,7 +3399,7 @@ static double stk500v2_sck_to_us(const PROGRAMMER *pgm, unsigned char dur) {
   x = 1.0 / x;
   x /= 24.0;
   x *= (double)PDATA(pgm)->xtal;
-  return 1E6 / x;
+  return 1e6 / x;
 }
 
 
@@ -3730,13 +3730,13 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
 
   switch (PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
-    stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    return stk500v2_sck_to_us(pgm, sck_duration);
+    return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0? 0:
+      stk500v2_sck_to_us(pgm, sck_duration);
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
-    stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    return 1.0e6 / avrispmkIIfreqs[sck_duration];
+    return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0 ||
+      sck_duration >= NavrispmkIIfreqs? 0: 1e6 / avrispmkIIfreqs[sck_duration];
 
   case PGMTYPE_JTAGICE3:
     {
@@ -3744,14 +3744,13 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
       cmd[0] = CMD_GET_SCK;
       if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 && stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
         unsigned int sck = cmd[1] | (cmd[2] << 8);
-        return (1E6 / (1000.0 * sck));
+        return sck? 1E6 / (1000.0 * sck): 0;
       }
       return 0;
     }
 
   case PGMTYPE_STK600:
-    stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
-    return (sck_stk600 + 1) / 8.0;
+    return stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600) < 0? 0: (sck_stk600 + 1) / 8.0;
 
   default:
     return sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.05;
@@ -3816,9 +3815,8 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
-    if (stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0)
-      return 0.0;
-    return 1e6 / avrispmkIIfreqs[sck_duration];
+    return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0 ||
+      sck_duration >= NavrispmkIIfreqs? 0: 1e6 / avrispmkIIfreqs[sck_duration];
 
   case PGMTYPE_STK600:
     if (stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf) < 0)
