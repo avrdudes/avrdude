@@ -361,9 +361,7 @@ static void stk500v2_jtag3_teardown(PROGRAMMER *pgm) {
 }
 
 
-static unsigned short
-b2_to_u16(unsigned char *b)
-{
+static unsigned short b2_to_u16(unsigned char *b) {
   unsigned short l;
   l = b[0];
   l += (unsigned)b[1] << 8;
@@ -371,16 +369,12 @@ b2_to_u16(unsigned char *b)
   return l;
 }
 
-static void
-u16_to_b2(unsigned char *b, unsigned short l)
-{
+static void u16_to_b2(unsigned char *b, unsigned short l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
 
-static double
-f_to_kHz_MHz(double f, const char **unit)
-{
+static double f_to_kHz_MHz(double f, const char **unit) {
   if (f >= 1e6) {
     f /= 1e6;
     *unit = "MHz";
@@ -1019,12 +1013,10 @@ static int stk500hvsp_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   return stk500hv_chip_erase(pgm, p, HVSPMODE);
 }
 
-static struct
-{
+static struct {
   unsigned int state;
   const char *description;
-} connection_status[] =
-{
+} connection_status[] = {
   { STATUS_CONN_FAIL_SDO, "SDO fail" },
   { STATUS_CONN_FAIL_RST, "RST fail" },
   { STATUS_CONN_FAIL_SCK, "SCK fail" },
@@ -1037,9 +1029,7 @@ static struct
  * strings in the table above, plus 2 characters for separation.
  * Currently, this is 76 chars.
  */
-static void
-stk500v2_translate_conn_status(unsigned char status, char *msg)
-{
+static void stk500v2_translate_conn_status(unsigned char status, char *msg) {
     size_t i;
     int need_comma;
 
