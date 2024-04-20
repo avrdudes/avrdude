@@ -539,7 +539,7 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg,
               msglen, MAX_MESSAGE);
 	    state = sSTART;
 	    headeridx = 0;
-	  } else if ((buf = malloc(msglen + 10)) == NULL) {
+	  } else if ((buf = malloc(msglen + 10)) == NULL) { // Sic! malloc is OK here
 	    pmsg_error("out of memory\n");
 	    ignorpkt++;
 	  } else {
