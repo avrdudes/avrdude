@@ -1013,43 +1013,33 @@ static int stk500hvsp_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   return stk500hv_chip_erase(pgm, p, HVSPMODE);
 }
 
-static struct {
-  unsigned int state;
-  const char *description;
-} connection_status[] = {
-  { STATUS_CONN_FAIL_SDO, "SDO fail" },
-  { STATUS_CONN_FAIL_RST, "RST fail" },
-  { STATUS_CONN_FAIL_SCK, "SCK fail" },
-  { STATUS_TGT_NOT_DETECTED, "Target not detected" },
-  { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
-};
-
 /*
  * Max length of returned message is the sum of all the description
- * strings in the table above, plus 2 characters for separation.
- * Currently, this is 76 chars.
+ * strings in the table below, plus 2 characters for separation each.
+ * Currently, this is 74 chars plus the terminating nul.
  */
 static void stk500v2_translate_conn_status(unsigned char status, char *msg) {
-    size_t i;
-    int need_comma;
+  struct {
+    unsigned int state;
+    const char *description;
+  } const conn_status[] = {
+    { STATUS_CONN_FAIL_SDO, "SDO fail" },
+    { STATUS_CONN_FAIL_RST, "RST fail" },
+    { STATUS_CONN_FAIL_SCK, "SCK fail" },
+    { STATUS_TGT_NOT_DETECTED, "Target not detected" },
+    { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
+  };
 
-    *msg = 0;
-    need_comma = 0;
-
-    for (i = 0;
-         i < sizeof connection_status / sizeof connection_status[0];
-         i++)
-    {
-        if ((status & connection_status[i].state) != 0)
-        {
-            if (need_comma)
-                strcat(msg, ", ");
-            strcat(msg, connection_status[i].description);
-            need_comma = 1;
-        }
+  *msg = 0;
+  for(size_t i = 0; i < sizeof conn_status / sizeof *conn_status; i++) {
+    if(status & conn_status[i].state) {
+      if(*msg)
+        strcat(msg, ", ");
+      strcat(msg, conn_status[i].description);
     }
-    if (*msg == 0)
-        sprintf(msg, "Unknown status 0x%02x", status);
+  }
+  if(*msg == 0)
+    sprintf(msg, "Unknown status 0x%02x", status);
 }
 
 
