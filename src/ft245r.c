@@ -858,7 +858,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
       return -1;
     }
 
-    my.handle = malloc (sizeof (struct ftdi_context));
+    my.handle = mmt_malloc(sizeof (struct ftdi_context));
     ftdi_init(my.handle);
     LNODEID usbpid = lfirst(pgm->usbpid);
     int pid;
@@ -934,7 +934,7 @@ cleanup:
     ftdi_usb_close(my.handle);
 cleanup_no_usb:
     ftdi_deinit (my.handle);
-    free(my.handle);
+    mmt_free(my.handle);
     my.handle = NULL;
     return -1;
 }
@@ -947,7 +947,7 @@ static void ft245r_close(PROGRAMMER * pgm) {
         ftdi_set_bitmode(my.handle, 0, BITMODE_RESET); // disable Synchronous BitBang
         ftdi_usb_close(my.handle);
         ftdi_deinit (my.handle);
-        free(my.handle);
+        mmt_free(my.handle);
         my.handle = NULL;
     }
 }
@@ -970,15 +970,11 @@ static int ft245r_paged_write_gen(const PROGRAMMER *pgm, const AVRPART *p, const
 
 static void put_request(const PROGRAMMER *pgm, int addr, int bytes, int n) {
     struct ft245r_request *p;
-    if (my.req_pool) {
+    if (my.req_pool) {          // Allocate struct ft245r_request from pool
         p = my.req_pool;
         my.req_pool = p->next;
-    } else {
-        p = malloc(sizeof(struct ft245r_request));
-        if (!p) {
-            msg_error("cannot alloc memory\n");
-            exit(1);
-        }
+    } else {                    // ... or from memory
+        p = mmt_malloc(sizeof(struct ft245r_request));
     }
     memset(p, 0, sizeof(struct ft245r_request));
     p->addr = addr;
@@ -997,14 +993,17 @@ static int do_request(const PROGRAMMER *pgm, const AVRMEM *m) {
     int addr, bytes, j, n;
     unsigned char buf[FT245R_FRAGMENT_SIZE+1+128];
 
-    if (!my.req_head) return 0;
+    if (!my.req_head)
+        return 0;
     p = my.req_head;
     my.req_head = p->next;
-    if (!my.req_head) my.req_tail = my.req_head;
+    if (!my.req_head)
+        my.req_tail = my.req_head;
 
     addr = p->addr;
     bytes = p->bytes;
     n = p->n;
+    // Insert p into request pool
     memset(p, 0, sizeof(struct ft245r_request));
     p->next = my.req_pool;
     my.req_pool = p;
@@ -1202,6 +1201,16 @@ void ft245r_setup(PROGRAMMER *pgm) {
 }
 
 void ft245r_teardown(PROGRAMMER *pgm) {
+  while(my.req_pool) {          // Free request pool
+    struct ft245r_request *p = my.req_pool;
+    my.req_pool = p->next;
+    mmt_free(p);
+  }
+  while(my.req_head) {          // Free pending queue
+    struct ft245r_request *p = my.req_head;
+    my.req_head = p->next;
+    mmt_free(p);
+  }
   mmt_free(pgm->cookie);
 }
 
