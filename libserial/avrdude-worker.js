@@ -1,3 +1,5 @@
+import WebUSBSerial from '@leaphy-robotics/webusb-ftdi';
+
 let port;
 let opts;
 let writer;
@@ -61,7 +63,13 @@ addEventListener('message', async msg => {
             break
         }
         case 'init': {
-            port = (await navigator.serial.getPorts())[data.port]
+            if (navigator.serial) {
+                port = (await navigator.serial.getPorts())[data.port]
+            } else {
+                const device = (await navigator.usb.getDevices())[data.port]
+                port = new WebUSBSerial(device)
+            }
+
             await port.open(data.options)
             opts = data.options
             writer = port.writable.getWriter()

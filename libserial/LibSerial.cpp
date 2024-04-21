@@ -89,13 +89,15 @@ namespace {
 
         // check which port in navigator.serial.getPorts matches the activePort
         let portNumber = 0;
-        const ports = await navigator.serial.getPorts();
-        for (let i = 0; i < ports.length; i++) {
-            const port = ports[i];
-            if (port === window.activePort) {
-                portNumber = i;
-                break;
-            }
+        if (navigator.serial) {
+           const ports = await navigator.serial.getPorts();
+           for (let i = 0; i < ports.length; i++) {
+              const port = ports[i];
+              if (port === window.activePort) {
+                 portNumber = i;
+                 break;
+              }
+           }
         }
 
         worker.postMessage({ type: 'init', options: serialOpts, port: portNumber });

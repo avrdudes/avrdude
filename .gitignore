@@ -72,3 +72,10 @@ x86/
 
 # Visual Studio code
 .vscode/
+
+# Build artifacts
+avrdude-worker.js
+avrdude.js
+avrdude.wasm
+node_modules
+package-lock.json
