@@ -97,8 +97,7 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
 
 static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon);
 
-static void jtagmkI_setup(PROGRAMMER * pgm)
-{
+static void jtagmkI_setup(PROGRAMMER *pgm) {
   if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
     pmsg_error("out of memory allocating private data\n");
     exit(1);
@@ -106,23 +105,18 @@ static void jtagmkI_setup(PROGRAMMER * pgm)
   memset(pgm->cookie, 0, sizeof(struct pdata));
 }
 
-static void jtagmkI_teardown(PROGRAMMER * pgm)
-{
+static void jtagmkI_teardown(PROGRAMMER *pgm) {
   free(pgm->cookie);
 }
 
 
-static void
-u32_to_b3(unsigned char *b, unsigned long l)
-{
+static void u32_to_b3(unsigned char *b, unsigned long l) {
   b[2] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
   b[0] = (l >> 16) & 0xff;
 }
 
-static void
-u16_to_b2(unsigned char *b, unsigned short l)
-{
+static void u16_to_b2(unsigned char *b, unsigned short l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
@@ -402,7 +396,6 @@ static int jtagmkI_reset(const PROGRAMMER *pgm) {
 }
 
 static int jtagmkI_program_enable_dummy(const PROGRAMMER *pgm, const AVRPART *p) {
-
   return 0;
 }
 
@@ -458,8 +451,7 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
   return 0;
 }
 
-static unsigned char jtagmkI_get_baud(long baud)
-{
+static unsigned char jtagmkI_get_baud(long baud) {
   for (size_t i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
     if (baud == baudtab[i].baud)
       return baudtab[i].val;
@@ -548,7 +540,6 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static void jtagmkI_disable(const PROGRAMMER *pgm) {
-
   free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
   free(PDATA(pgm)->eeprom_pagecache);
@@ -562,8 +553,7 @@ static void jtagmkI_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 
-static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
-{
+static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
   size_t i;
 
   pmsg_notice2("jtagmkI_open()\n");
@@ -601,8 +591,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port)
 }
 
 
-static void jtagmkI_close(PROGRAMMER * pgm)
-{
+static void jtagmkI_close(PROGRAMMER *pgm) {
   unsigned char b;
 
   pmsg_notice2("jtagmkI_close()\n");
