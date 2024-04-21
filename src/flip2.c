@@ -192,12 +192,12 @@ void flip2_initpgm(PROGRAMMER *pgm) {
 
 /* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
-int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
+static int flip2_open(PROGRAMMER *pgm, const char *port_spec) {
   FLIP2(pgm)->dfu = dfu_open(port_spec);
   return (FLIP2(pgm)->dfu != NULL) ? 0 : -1;
 }
 
-int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
+static int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   unsigned short vid, pid;
   int result;
   struct dfu_dev *dfu = FLIP2(pgm)->dfu;
@@ -308,8 +308,7 @@ flip2_initialize_fail:
   return 0;
 }
 
-void flip2_close(PROGRAMMER* pgm)
-{
+static void flip2_close(PROGRAMMER *pgm) {
   if (FLIP2(pgm)->dfu != NULL) {
     if (pgm->exit_reset == EXIT_RESET_ENABLED)
       flip2_start_app(pgm);
@@ -319,28 +318,20 @@ void flip2_close(PROGRAMMER* pgm)
   }
 }
 
-void flip2_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  /* Nothing to do. */
+static void flip2_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
-void flip2_disable(const PROGRAMMER *pgm) {
-  /* Nothing to do. */
+static void flip2_disable(const PROGRAMMER *pgm) {
 }
 
-void flip2_display(const PROGRAMMER *pgm, const char *prefix) {
-  /* Nothing to do. */
+static void flip2_display(const PROGRAMMER *pgm, const char *prefix) {
 }
 
-int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
-  /* I couldn't find anything that uses this function, although it is marked
-   * as "mandatory" in pgm.c. In case anyone does use it, we'll report an
-   * error if we failed to initialize.
-   */
-
-  return (FLIP2(pgm)->dfu != NULL) ? 0 : -1;
+static int flip2_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
+  return 0;
 }
 
-int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
+static int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
@@ -373,7 +364,7 @@ int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   return cmd_result;
 }
 
-int flip2_start_app(const PROGRAMMER *pgm) {
+static int flip2_start_app(const PROGRAMMER *pgm) {
   pmsg_info("starting application\n");
 
   struct flip2_cmd cmd = {
@@ -389,9 +380,8 @@ int flip2_start_app(const PROGRAMMER *pgm) {
   return cmd_result;
 }
 
-int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char *value)
-{
+static int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
+  unsigned long addr, unsigned char *value) {
   enum flip2_mem_unit mem_unit;
 
   if (FLIP2(pgm)->dfu == NULL)
@@ -410,9 +400,8 @@ int flip2_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *me
   return flip2_read_memory(FLIP2(pgm)->dfu, mem_unit, addr, value, 1);
 }
 
-int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char value)
-{
+static int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
+  unsigned long addr, unsigned char value) {
   enum flip2_mem_unit mem_unit;
 
   if(mem_is_readonly(mem)) {
@@ -440,9 +429,9 @@ int flip2_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
   return flip2_write_memory(FLIP2(pgm)->dfu, mem_unit, addr, &value, 1);
 }
 
-int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
+static int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
   enum flip2_mem_unit mem_unit;
   int result;
 
@@ -471,9 +460,9 @@ int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *m
   return result == 0? (int) n_bytes: -1;
 }
 
-int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
+static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+
   enum flip2_mem_unit mem_unit;
   int result;
 
@@ -503,7 +492,7 @@ int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *
 }
 
 // Parse the -E option flag
-int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
+static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   char *cp, *s, *str = cfg_strdup("flip2_parseextitspecs()", sp);
 
   s = str;
@@ -525,7 +514,7 @@ int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   return 0;
 }
 
-int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
+static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
   if (FLIP2(pgm)->dfu == NULL)
     return -1;
 
@@ -538,8 +527,7 @@ int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRME
   return 0;
 }
 
-void flip2_setup(PROGRAMMER * pgm)
-{
+static void flip2_setup(PROGRAMMER *pgm) {
   pgm->cookie = calloc(1, sizeof(struct flip2));
 
   if (pgm->cookie == NULL) {
@@ -548,8 +536,7 @@ void flip2_setup(PROGRAMMER * pgm)
   }
 }
 
-void flip2_teardown(PROGRAMMER * pgm)
-{
+static void flip2_teardown(PROGRAMMER *pgm) {
   free(pgm->cookie);
   pgm->cookie = NULL;
 }
@@ -557,8 +544,7 @@ void flip2_teardown(PROGRAMMER * pgm)
 /* INTERNAL FUNCTION DEFINITIONS
  */
 
-void flip2_show_info(struct flip2 *flip2)
-{
+static void flip2_show_info(struct flip2 *flip2) {
   dfu_show_info(flip2->dfu);
 
   msg_info("    Part signature      : 0x%02X%02X%02X\n",
@@ -582,9 +568,9 @@ void flip2_show_info(struct flip2 *flip2)
     (unsigned short) flip2->dfu->dev_desc.bMaxPacketSize0);
 }
 
-int flip2_read_memory(struct dfu_dev *dfu,
-  enum flip2_mem_unit mem_unit, uint32_t addr, void *ptr, int size)
-{
+static int flip2_read_memory(struct dfu_dev *dfu,
+  enum flip2_mem_unit mem_unit, uint32_t addr, void *ptr, int size) {
+
   unsigned short prev_page_addr;
   unsigned short page_addr;
   const char * mem_name;
@@ -639,9 +625,9 @@ int flip2_read_memory(struct dfu_dev *dfu,
   return 0;
 }
 
-int flip2_write_memory(struct dfu_dev *dfu,
-  enum flip2_mem_unit mem_unit, uint32_t addr, const void *ptr, int size)
-{
+static int flip2_write_memory(struct dfu_dev *dfu,
+  enum flip2_mem_unit mem_unit, uint32_t addr, const void *ptr, int size) {
+
   unsigned short prev_page_addr;
   unsigned short page_addr;
   const char * mem_name;
@@ -696,8 +682,7 @@ int flip2_write_memory(struct dfu_dev *dfu,
   return 0;
 }
 
-int flip2_set_mem_unit(struct dfu_dev *dfu, enum flip2_mem_unit mem_unit)
-{
+static int flip2_set_mem_unit(struct dfu_dev *dfu, enum flip2_mem_unit mem_unit) {
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
@@ -729,9 +714,9 @@ int flip2_set_mem_unit(struct dfu_dev *dfu, enum flip2_mem_unit mem_unit)
   return cmd_result;
 }
 
-int flip2_set_mem_page(struct dfu_dev *dfu,
-  unsigned short page_addr)
-{
+static int flip2_set_mem_page(struct dfu_dev *dfu,
+  unsigned short page_addr) {
+
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
@@ -764,9 +749,9 @@ int flip2_set_mem_page(struct dfu_dev *dfu,
   return cmd_result;
 }
 
-int flip2_read_max1k(struct dfu_dev *dfu,
-  unsigned short offset, void *ptr, unsigned short size)
-{
+static int flip2_read_max1k(struct dfu_dev *dfu,
+  unsigned short offset, void *ptr, unsigned short size) {
+
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
@@ -807,9 +792,9 @@ flip2_read_max1k_status:
   return cmd_result;
 }
 
-int flip2_write_max1k(struct dfu_dev *dfu,
-  unsigned short offset, const void *ptr, unsigned short size)
-{
+static int flip2_write_max1k(struct dfu_dev *dfu,
+  unsigned short offset, const void *ptr, unsigned short size) {
+
   char buffer[64+64+0x400];
   unsigned short data_offset;
   struct dfu_status status;
@@ -865,8 +850,7 @@ int flip2_write_max1k(struct dfu_dev *dfu,
   return cmd_result;
 }
 
-const char * flip2_status_str(const struct dfu_status *status)
-{
+static const char *flip2_status_str(const struct dfu_status *status) {
   unsigned short selector;
 
   selector = (unsigned short) status->bStatus << 8;
@@ -884,8 +868,7 @@ const char * flip2_status_str(const struct dfu_status *status)
   }
 }
 
-const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit)
-{
+static const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit) {
   switch (mem_unit) {
   case FLIP2_MEM_UNIT_FLASH: return "Flash";
   case FLIP2_MEM_UNIT_EEPROM: return "EEPROM";
@@ -908,7 +891,7 @@ const char * flip2_mem_unit_str(enum flip2_mem_unit mem_unit)
   }
 }
 
-enum flip2_mem_unit flip2_mem_unit(const char *name) {
+static enum flip2_mem_unit flip2_mem_unit(const char *name) {
   if (str_eq(name, "application"))
     return FLIP2_MEM_UNIT_FLASH;
   if (str_eq(name, "eeprom"))
