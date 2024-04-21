@@ -149,9 +149,7 @@ void jtag3_teardown(PROGRAMMER * pgm)
 }
 
 
-static unsigned long
-b4_to_u32(unsigned char *b)
-{
+static unsigned long b4_to_u32(unsigned char *b) {
   unsigned long l;
   l = b[0];
   l += (unsigned)b[1] << 8;
@@ -161,18 +159,14 @@ b4_to_u32(unsigned char *b)
   return l;
 }
 
-static void
-u32_to_b4(unsigned char *b, unsigned long l)
-{
+static void u32_to_b4(unsigned char *b, unsigned long l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
   b[2] = (l >> 16) & 0xff;
   b[3] = (l >> 24) & 0xff;
 }
 
-static unsigned short
-b2_to_u16(unsigned char *b)
-{
+static unsigned short b2_to_u16(unsigned char *b) {
   unsigned short l;
   l = b[0];
   l += (unsigned)b[1] << 8;
@@ -180,31 +174,24 @@ b2_to_u16(unsigned char *b)
   return l;
 }
 
-static void
-u16_to_b2(unsigned char *b, unsigned short l)
-{
+static void u16_to_b2(unsigned char *b, unsigned short l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
 
-static void
-u32_to_b4_big_endian(unsigned char *b, unsigned long l)
-{
+static void u32_to_b4_big_endian(unsigned char *b, unsigned long l) {
   b[0] = (l >> 24) & 0xff;
   b[1] = (l >> 16) & 0xff;
   b[2] = (l >> 8) & 0xff;
   b[3] = l & 0xff;
 }
 
-static void
-u16_to_b2_big_endian(unsigned char *b, unsigned short l)
-{
+static void u16_to_b2_big_endian(unsigned char *b, unsigned short l) {
   b[0] = (l >> 8) & 0xff;
   b[1] = l & 0xff;
 }
 
-static void jtag3_print_data(unsigned char *b, size_t s)
-{
+static void jtag3_print_data(unsigned char *b, size_t s) {
   size_t i;
 
   if (s < 2)
@@ -344,8 +331,7 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
   }
 }
 
-static int jtag3_errcode(int reason)
-{
+static int jtag3_errcode(int reason) {
   if (reason == RSP3_FAIL_OCD_LOCKED ||
       reason == RSP3_FAIL_CRC_FAILURE)
     return LIBAVRDUDE_SOFTFAIL;
@@ -1477,7 +1463,6 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtag3_disable(const PROGRAMMER *pgm) {
-
   free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
   free(PDATA(pgm)->eeprom_pagecache);
