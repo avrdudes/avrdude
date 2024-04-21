@@ -161,22 +161,14 @@ struct pdata
 #define SCR_SPI             0xC3
 #define SCR_SPI_LIT_2(v)    0xC7,(v)
 
-static void pickit2_setup(PROGRAMMER * pgm)
-{
-    if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0)
-    {
-        pmsg_error("out of memory allocating private data\n");
-        exit(1);
-    }
-    memset(pgm->cookie, 0, sizeof(struct pdata));
-
-    PDATA(pgm)->transaction_timeout = 1500;    // default value, may be overridden with -x timeout=ms
-    PDATA(pgm)->clock_period = 10;    // default value, may be overridden with -x clockrate=us or -B or -i
+static void pickit2_setup(PROGRAMMER *pgm) {
+    pgm->cookie = mmt_malloc(sizeof(struct pdata));
+    PDATA(pgm)->transaction_timeout = 1500; // Can be changed with -x timeout=ms
+    PDATA(pgm)->clock_period = 10;          // Can be changed with -x clockrate=us or -B or -i
 }
 
-static void pickit2_teardown(PROGRAMMER * pgm)
-{
-    free(pgm->cookie);
+static void pickit2_teardown(PROGRAMMER *pgm) {
+    mmt_free(pgm->cookie);
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
@@ -193,7 +185,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     {
         // Get the device description while we're at it and overlay it on pgm->desc
         short wbuf[80-1];
-        char *cbuf = cfg_malloc("pickit2_open()", sizeof wbuf/sizeof*wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
+        char *cbuf = mmt_malloc(sizeof wbuf/sizeof*wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
         HidD_GetProductString(PDATA(pgm)->usb_handle, wbuf, sizeof wbuf/sizeof*wbuf);
 
         if(pgm->desc && *pgm->desc)
@@ -203,6 +195,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
         for(size_t i = 0; i < sizeof wbuf/sizeof*wbuf && wbuf[i]; i++)
           cbuf[i] = (char) wbuf[i]; // TODO what about little/big endian???
         pgm->desc = cache_string(cbuf);
+        mmt_free(cbuf);
     }
 #else
     if(usb_open_device(pgm, &(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
@@ -893,7 +886,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid)
 
             //Allocate memory for the hDevInfo structure, using the returned Length.
 
-            detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(Length);
+            detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA) mmt_malloc(Length);
 
             //Set cbSize in the detailData structure.
 
@@ -989,7 +982,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid)
 
             //Free the memory used by the detailData structure (no longer needed).
 
-            free(detailData);
+            mmt_free(detailData);
 
         }  //if (Result != 0)
 
@@ -1289,4 +1282,3 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
 #endif /* defined(HAVE_LIBUSB) || defined(WIN32) */
 
 const char pickit2_desc[] = "Microchip's PICkit2 Programmer";
-
