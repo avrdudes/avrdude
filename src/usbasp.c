@@ -1200,7 +1200,7 @@ int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   unsigned char cmd[4];
   unsigned char* sptr;
-  int writed, clen, n;
+  int written, clen, n;
   uint16_t pr;
 
 
@@ -1208,11 +1208,10 @@ int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   sptr = addr + m->buf;
   pr = addr + m->offset;
-  writed = 0;
+  written = 0;
 
   /* must erase fuse first, TPI parts only have one fuse */
-  if(mem_is_a_fuse(m))
-  {
+  if(mem_is_a_fuse(m)) {        // Keep fuse writing ability for backward compatibility
     /* Set PR */
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
     usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
@@ -1234,9 +1233,9 @@ int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
   usbasp_tpi_send_byte(pgm, (pr >> 8) );
 
-  while(writed < (int) n_bytes)
+  while(written < (int) n_bytes)
   {
-    clen = n_bytes - writed;
+    clen = n_bytes - written;
     if(clen > 32)
       clen = 32;
 
@@ -1252,7 +1251,7 @@ int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return -3;
     }
     
-    writed += clen;
+    written += clen;
     pr += clen;
     sptr += clen;
   }
