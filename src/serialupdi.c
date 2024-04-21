@@ -48,20 +48,14 @@
 static int serialupdi_enter_progmode(const PROGRAMMER *pgm);
 static int serialupdi_leave_progmode(const PROGRAMMER *pgm);
 
-static void serialupdi_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(updi_state))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(updi_state));
+static void serialupdi_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(updi_state));
   updi_set_rts_mode(pgm, RTS_MODE_DEFAULT);
   updi_set_datalink_mode(pgm, UPDI_LINK_MODE_16BIT);
 }
 
-static void serialupdi_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void serialupdi_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
 }
 
 static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
