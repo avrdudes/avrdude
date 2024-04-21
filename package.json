@@ -4,7 +4,7 @@
   "description": "An port of avrdude to the browser using WebAssembly",
   "type": "module",
   "scripts": {
-    "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude && cp build/src/avrdude.js build/src/avrdude.wasm build/src/avrdude.conf ."
+    "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude && cp build/libserial/avrdude-worker.js build/src/avrdude.js build/src/avrdude.wasm build/src/avrdude.conf ."
   },
   "files": [
     "avrdude.js",
