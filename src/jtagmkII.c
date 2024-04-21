@@ -99,7 +99,7 @@ struct pdata
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 #define RC(x) { x, #x },
-static struct {
+static const struct {
   unsigned int code;
   const char *descr;
 } jtagresults[] = {
@@ -1124,43 +1124,44 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
   return 0;
 }
 
+#define BR(x) { x ## L, PAR_BAUD_ ## x }
 static unsigned char jtagmkII_get_baud(long baud) {
-  static struct {
+  struct {
     long baud;
     unsigned char val;
-  } baudtab[] = {
-  { 2400L, PAR_BAUD_2400 },
-  { 4800L, PAR_BAUD_4800 },
-  { 9600L, PAR_BAUD_9600 },
-  { 19200L, PAR_BAUD_19200 },
-  { 38400L, PAR_BAUD_38400 },
-  { 57600L, PAR_BAUD_57600 },
-  { 115200L, PAR_BAUD_115200 },
-  { 14400L, PAR_BAUD_14400 },
-  /* Extension to jtagmkII protocol: extra baud rates, standard series. */
-  { 153600L, PAR_BAUD_153600 },
-  { 230400L, PAR_BAUD_230400 },
-  { 460800L, PAR_BAUD_460800 },
-  { 921600L, PAR_BAUD_921600 },
-  /* Extension to jtagmkII protocol: extra baud rates, binary series. */
-  { 128000L, PAR_BAUD_128000 },
-  { 256000L, PAR_BAUD_256000 },
-  { 512000L, PAR_BAUD_512000 },
-  { 1024000L, PAR_BAUD_1024000 },
-  /* Extension to jtagmkII protocol: extra baud rates, decimal series. */
-  { 150000L, PAR_BAUD_150000 },
-  { 200000L, PAR_BAUD_200000 },
-  { 250000L, PAR_BAUD_250000 },
-  { 300000L, PAR_BAUD_300000 },
-  { 400000L, PAR_BAUD_400000 },
-  { 500000L, PAR_BAUD_500000 },
-  { 600000L, PAR_BAUD_600000 },
-  { 666666L, PAR_BAUD_666666 },
-  { 1000000L, PAR_BAUD_1000000 },
-  { 1500000L, PAR_BAUD_1500000 },
-  { 2000000L, PAR_BAUD_2000000 },
-  { 3000000L, PAR_BAUD_3000000 },
-};
+  } const baudtab[] = {
+    BR(2400),
+    BR(4800),
+    BR(9600),
+    BR(19200),
+    BR(38400),
+    BR(57600),
+    BR(115200),
+    BR(14400),
+    // Extension to jtagmkII protocol: extra baud rates, standard series
+    BR(153600),
+    BR(230400),
+    BR(460800),
+    BR(921600),
+    // Extension to jtagmkII protocol: extra baud rates, binary series
+    BR(128000),
+    BR(256000),
+    BR(512000),
+    BR(1024000),
+    // Extension to jtagmkII protocol: extra baud rates, decimal series
+    BR(150000),
+    BR(200000),
+    BR(250000),
+    BR(300000),
+    BR(400000),
+    BR(500000),
+    BR(600000),
+    BR(666666),
+    BR(1000000),
+    BR(1500000),
+    BR(2000000),
+    BR(3000000),
+  };
 
   for (size_t i = 0; i < sizeof baudtab/sizeof*baudtab; i++)
     if (baud == baudtab[i].baud)
