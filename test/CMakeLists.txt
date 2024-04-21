@@ -22,9 +22,5 @@ add_custom_target(test
         DEPENDS avrdude
 
         # Worker
-<<<<<<< HEAD
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/libserial/avrdude-worker.js ${CMAKE_BINARY_DIR}/test
-=======
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libserial/avrdude-worker.js ${CMAKE_BINARY_DIR}/test
->>>>>>> main
 )

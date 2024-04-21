@@ -236,8 +236,6 @@ elseif(MSVC)
     set(HAVE_LIBREADLINE 1)
 endif()
 
-add_subdirectory(libserial)
-
 # -------------------------------------
 # Find libgpiod using pkg-config, if needed
 if(HAVE_LINUXGPIO)
@@ -451,9 +449,4 @@ endif()
 
 message(STATUS "----------------------")
 
-<<<<<<< HEAD
 add_subdirectory(test)
-=======
-add_subdirectory(interface)
-add_subdirectory(test)
->>>>>>> main

@@ -23,8 +23,6 @@
 FLEX_TARGET(Parser "lexer.l" "${PROJECT_BINARY_DIR}/lexer.c")
 
 if (FLEX_VERSION VERSION_GREATER_EQUAL 2.5.9)
-    # print the version of flex
-    message(STATUS "Flex version: ${FLEX_VERSION}")
     set(HAVE_YYLEX_DESTROY 1)
 endif()
 
@@ -33,7 +31,7 @@ endif()
 # =====================================
 
 if(BISON_FOUND)
-    BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.cpp" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
+    BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.c" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
 else()
     set(YACC_TARGET_outputs "${PROJECT_BINARY_DIR}/config_gram.c")
     add_custom_command(OUTPUT ${YACC_TARGET_outputs}
@@ -52,6 +50,7 @@ endif()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
+set(EXTRA_WINDOWS_SOURCES)
 set(EXTRA_WINDOWS_INCLUDES)
 set(EXTRA_WINDOWS_RESOURCES)
 set(EXTRA_WINDOWS_LIBRARIES)
@@ -115,22 +114,22 @@ endif()
 # =====================================
 
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/cmake_config.h.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake_config.h.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h"
 )
 configure_file(
-  "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.spec.in"
-  "${CMAKE_CURRENT_BINARY_DIR}/avrdude.spec"
+        "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.spec.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/avrdude.spec"
 )
 if(WIN32 OR MINGW)
-  configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/windows.rc.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/windows.rc"
-  )
+    configure_file(
+            "${CMAKE_CURRENT_SOURCE_DIR}/windows.rc.in"
+            "${CMAKE_CURRENT_BINARY_DIR}/windows.rc"
+    )
 endif()
 
 add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf
+        OUTPUT avrdude.conf
         COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
         COMMAND ${CMAKE_COMMAND}
         -D "AVRDUDE_FULL_VERSION=${AVRDUDE_FULL_VERSION}"
@@ -145,297 +144,146 @@ add_custom_command(
         VERBATIM
 )
 
-add_custom_target(conf ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf)
+add_custom_target(conf ALL DEPENDS avrdude.conf)
 
 # =====================================
 # Project
 # =====================================
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC --bind")
 
-
-message("FLEX_Parser_OUTPUTS: ${FLEX_Parser_OUTPUTS}")
 add_library(libavrdude
-<<<<<<< HEAD
-    ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
-    arduino.h
-    arduino.c
-    avr.c
-    avr910.c
-    avr910.h
-    avrcache.c
-    avrdude.h
-    avrftdi.c
-    avrftdi.h
-    avrftdi_private.h
-    avrftdi_tpi.c
-    avrftdi_tpi.h
-    avrintel.c
-    libavrdude-avrintel.h
-    avrpart.c
-    bitbang.c
-    bitbang.h
-    buspirate.c
-    buspirate.h
-    butterfly.c
-    butterfly.h
-    ch341a.c
-    ch341a.h
-    config.c
-    config.h
-    confwin.c
-    crc16.c
-    crc16.h
-    dfu.c
-    dfu.h
-    dryrun.c
-    dryrun.h
-    dryrun_private.h
-    fileio.c
-    flip1.c
-    flip1.h
-    flip2.c
-    flip2.h
-    freebsd_ppi.h
-    ft245r.c
-    ft245r.h
-    jtagmkI.c
-    jtagmkI.h
-    jtagmkI_private.h
-    jtagmkII.c
-    jtagmkII.h
-    jtagmkII_private.h
-    jtag3.c
-    jtag3.h
-    jtag3_private.h
-    leds.c
-    libavrdude.h
-    linuxgpio.c
-    linuxgpio.h
-    linuxspi.c
-    linuxspi.h
-    linux_ppdev.h
-    lists.c
-    micronucleus.c
-    micronucleus.h
-    par.c
-    par.h
-    pgm.c
-    pgm_type.c
-    pickit2.c
-    pickit2.h
-    pindefs.c
-    ppi.c
-    ppi.h
-    ppiwin.c
-    serbb.h
-    serbb_posix.c
-    serbb_win32.c
-    ser_avrdoper.c
-    ser_posix.c
-    ser_win32.c
-    serialadapter.c
-    serialupdi.c
-    serialupdi.h
-    solaris_ecpp.h
-    stk500.c
-    stk500.h
-    stk500_private.h
-    stk500v2.c
-    stk500v2.h
-    stk500v2_private.h
-    stk500generic.c
-    stk500generic.h
-    strutil.c
-    teensy.c
-    teensy.h
-    term.c
-    tpi.h
-    updi_constants.h
-    updi_link.c
-    updi_link.h
-    updi_nvm.c
-    updi_nvm.h
-    updi_nvm_v0.c
-    updi_nvm_v0.h
-    updi_nvm_v2.c
-    updi_nvm_v2.h
-    updi_nvm_v3.c
-    updi_nvm_v3.h
-    updi_nvm_v4.c
-    updi_nvm_v4.h
-    updi_nvm_v5.c
-    updi_nvm_v5.h
-    updi_readwrite.c
-    updi_readwrite.h
-    updi_state.c
-    updi_state.h
-    urclock.c
-    urclock.h
-    urclock_hash.h
-    urclock_private.h
-    usbasp.c
-    usbasp.h
-    usbdevs.h
-    usb_hidapi.c
-    usb_libusb.c
-    usbtiny.h
-    usbtiny.c
-    update.c
-    wiring.h
-    wiring.c
-    xbee.h
-    xbee.c
-    ${FLEX_Parser_OUTPUTS}
-    ${BISON_Parser_OUTPUTS}
-    ${EXTRA_WINDOWS_SOURCES}
-    )
-=======
-        ac_cfg.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
         arduino.h
-        arduino.cpp
-        avr.cpp
-        avr910.cpp
+        arduino.c
+        avr.c
+        avr910.c
         avr910.h
-        avrcache.cpp
+        avrcache.c
         avrdude.h
-        avrftdi.cpp
+        avrftdi.c
         avrftdi.h
         avrftdi_private.h
         avrftdi_tpi.c
         avrftdi_tpi.h
-        avrintel.cpp
+        avrintel.c
         libavrdude-avrintel.h
-        avrpart.cpp
-        bitbang.cpp
+        avrpart.c
+        bitbang.c
         bitbang.h
-        buspirate.cpp
+        buspirate.c
         buspirate.h
-        butterfly.cpp
+        butterfly.c
         butterfly.h
-        ch341a.cpp
+        ch341a.c
         ch341a.h
-        config.cpp
+        config.c
         config.h
         confwin.c
         crc16.c
         crc16.h
         dfu.c
         dfu.h
-        dryrun.cpp
+        dryrun.c
         dryrun.h
         dryrun_private.h
-        fileio.cpp
-        flip1.cpp
+        fileio.c
+        flip1.c
         flip1.h
-        flip2.cpp
+        flip2.c
         flip2.h
         freebsd_ppi.h
-        ft245r.cpp
+        ft245r.c
         ft245r.h
-        jtagmkI.cpp
+        jtagmkI.c
         jtagmkI.h
         jtagmkI_private.h
-        jtagmkII.cpp
+        jtagmkII.c
         jtagmkII.h
         jtagmkII_private.h
-        jtag3.cpp
+        jtag3.c
         jtag3.h
         jtag3_private.h
-        leds.cpp
+        leds.c
         libavrdude.h
-        linuxgpio.cpp
+        linuxgpio.c
         linuxgpio.h
-        linuxspi.cpp
+        linuxspi.c
         linuxspi.h
         linux_ppdev.h
-        lists.cpp
-        micronucleus.cpp
+        lists.c
+        micronucleus.c
         micronucleus.h
-        par.cpp
+        par.c
         par.h
-        pgm.cpp
-        pgm_type.cpp
-        pickit2.cpp
+        pgm.c
+        pgm_type.c
+        pickit2.c
         pickit2.h
-        pindefs.cpp
-        ppi.cpp
+        pindefs.c
+        ppi.c
         ppi.h
         ppiwin.c
         serbb.h
-        serbb_posix.cpp
-        ser_avrdoper.cpp
-        ser_posix.cpp
-        serialadapter.cpp
-        serialupdi.cpp
+        serbb_posix.c
+        serbb_win32.c
+        ser_avrdoper.c
+        ser_posix.c
+        ser_win32.c
+        serialadapter.c
+        serialupdi.c
         serialupdi.h
         solaris_ecpp.h
-        stk500.cpp
+        stk500.c
         stk500.h
         stk500_private.h
-        stk500v2.cpp
+        stk500v2.c
         stk500v2.h
         stk500v2_private.h
-        stk500generic.cpp
+        stk500generic.c
         stk500generic.h
-        strutil.cpp
-        teensy.cpp
+        strutil.c
+        teensy.c
         teensy.h
-        term.cpp
+        term.c
         tpi.h
         updi_constants.h
-        updi_link.cpp
+        updi_link.c
         updi_link.h
-        updi_nvm.cpp
+        updi_nvm.c
         updi_nvm.h
-        updi_nvm_v0.cpp
+        updi_nvm_v0.c
         updi_nvm_v0.h
-        updi_nvm_v2.cpp
+        updi_nvm_v2.c
         updi_nvm_v2.h
-        updi_nvm_v3.cpp
+        updi_nvm_v3.c
         updi_nvm_v3.h
-        updi_nvm_v4.cpp
+        updi_nvm_v4.c
         updi_nvm_v4.h
-        updi_nvm_v5.cpp
+        updi_nvm_v5.c
         updi_nvm_v5.h
-        updi_readwrite.cpp
+        updi_readwrite.c
         updi_readwrite.h
         updi_state.c
         updi_state.h
-        urclock.cpp
+        urclock.c
         urclock.h
         urclock_hash.h
         urclock_private.h
-        usbasp.cpp
+        usbasp.c
         usbasp.h
         usbdevs.h
         usb_hidapi.c
         usb_libusb.c
         usbtiny.h
-        usbtiny.cpp
-        update.cpp
+        usbtiny.c
+        update.c
         wiring.h
-        wiring.cpp
+        wiring.c
         xbee.h
-        xbee.cpp
-        lexer.cpp
+        xbee.c
+        ${FLEX_Parser_OUTPUTS}
         ${BISON_Parser_OUTPUTS}
         ${EXTRA_WINDOWS_SOURCES}
 )
-
-# require the Parser target to be built before libavrdude
-
-target_link_options(libavrdude
-        PUBLIC
-        --bind
-        -fPIC
-)
-
-target_compile_options(libavrdude
-        PUBLIC
-        -fPIC
-        --bind
-)
->>>>>>> main
 
 set_target_properties(libavrdude PROPERTIES
         PREFIX ""
@@ -451,7 +299,6 @@ target_include_directories(libavrdude
         "${CMAKE_CURRENT_SOURCE_DIR}"
         "${LIBUSB_COMPAT_DIR}"
         ${EXTRA_WINDOWS_INCLUDES}
-        ../libserial
 )
 
 target_link_libraries(libavrdude
@@ -465,28 +312,27 @@ target_link_libraries(libavrdude
         ${LIB_LIBFTDI}
         ${LIB_LIBFTDI1}
         ${LIB_LIBREADLINE}
-        #${LIB_LIBSERIALPORT}
+        ${LIB_LIBSERIALPORT}
         ${LIB_NCURSES}
         ${LIB_LIBGPIOD}
         ${EXTRA_WINDOWS_LIBRARIES}
 )
 
-<<<<<<< HEAD
 # check if we are using emscripten
 if(EMSCRIPTEN)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC -O3 -s ENVIRONMENT=web -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s WASM=1 -s FORCE_FILESYSTEM -s ASYNCIFY=1 -s INVOKE_RUN=0 -s WASM_BIGINT=1 -s MODULARIZE=1 -s \"EXPORTED_FUNCTIONS=['_startAvrdude','_malloc','_dataCallback']\" --bind -s EXPORTED_RUNTIME_METHODS='[\"cwrap\", \"writeStringToMemory\", \"FS\", \"allocate\"]'")
 endif ()
 
 add_executable(avrdude
-    main.c
-    developer_opts.c
-    developer_opts.h
-    developer_opts_private.h
-    whereami.c
-    whereami.h
-    ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
-    ${EXTRA_WINDOWS_RESOURCES}
-    )
+        main.c
+        developer_opts.c
+        developer_opts.h
+        developer_opts_private.h
+        whereami.c
+        whereami.h
+        ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
+        ${EXTRA_WINDOWS_RESOURCES}
+)
 
 target_link_libraries(avrdude PUBLIC libavrdude)
 
@@ -508,15 +354,11 @@ endif()
 
 install(TARGETS avrdude DESTINATION bin)
 install(TARGETS libavrdude
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    PUBLIC_HEADER DESTINATION include COMPONENT dev
-    )
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PUBLIC_HEADER DESTINATION include COMPONENT dev
+)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES "avrdude.1"
-	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
-	)
-=======
-add_dependencies(libavrdude conf)
-
->>>>>>> main
+        DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
+)
