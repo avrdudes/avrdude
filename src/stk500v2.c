@@ -564,7 +564,7 @@ static int stk500v2_jtagmkII_recv(const PROGRAMMER *pgm, unsigned char *msg,
     return -1;
   }
   memcpy(msg, jtagmsg + 1, rv - 1);
-  free(jtagmsg);                // Sic! jtagmsg was malloc'd
+  mmt_free(jtagmsg);
   return rv;
 }
 
