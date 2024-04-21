@@ -31,62 +31,62 @@
 
 
 typedef struct {
-  char *kw;                     // Keyword near the comments
-  LISTID comms;                 // Chained list of comments
-  int rhs;                      // Comments to print rhs of keyword line
+    char *kw;                     // Keyword near the comments
+    LISTID comms;                 // Chained list of comments
+    int rhs;                      // Comments to print rhs of keyword line
 } COMMENT;
 
 
 enum {                          // Which structures a component can occur in
-  COMP_CONFIG_MAIN,
-  COMP_PROGRAMMER,
-  COMP_AVRPART,
-  COMP_AVRMEM,
+    COMP_CONFIG_MAIN,
+    COMP_PROGRAMMER,
+    COMP_AVRPART,
+    COMP_AVRMEM,
 };
 
 enum {                          // Component types in structure
-  COMP_INT,
-  COMP_SHORT,
-  COMP_CHAR,
-  COMP_BOOL,
-  COMP_STRING,
-  COMP_CHAR_ARRAY,              // This and below are not yet implemented
-  COMP_INT_LISTID,
-  COMP_STRING_LISTID,
-  COMP_OPCODE,
-  COMP_PIN,                     // Pins may never be implemented
-  COMP_PIN_LIST
+    COMP_INT,
+    COMP_SHORT,
+    COMP_CHAR,
+    COMP_BOOL,
+    COMP_STRING,
+    COMP_CHAR_ARRAY,              // This and below are not yet implemented
+    COMP_INT_LISTID,
+    COMP_STRING_LISTID,
+    COMP_OPCODE,
+    COMP_PIN,                     // Pins may never be implemented
+    COMP_PIN_LIST
 };
 
 typedef struct {                // Description of a component in a structure
-  const char *name;             // Component name
-  int strct;                    // Structure, eg, COMP_AVRPART
-  int offset, size, type;       // Location, size and type within structure
+    const char *name;             // Component name
+    int strct;                    // Structure, eg, COMP_AVRPART
+    int offset, size, type;       // Location, size and type within structure
 } Component_t;
 
 
 enum {                          // Value types for VALUE struct
-  V_NONE,
-  V_NUM,
-  V_NUM_REAL,
-  V_STR,
-  V_COMPONENT,
+    V_NONE,
+    V_NUM,
+    V_NUM_REAL,
+    V_STR,
+    V_COMPONENT,
 };
 
 typedef struct value_t {
-  int      type;
-  union {
-    int      number;
-    double   number_real;
-    char   * string;
-    Component_t *comp;
-  };
+    int      type;
+    union {
+        int      number;
+        double   number_real;
+        char   * string;
+        Component_t *comp;
+    };
 } VALUE;
 
 
 typedef struct token_t {
-  int primary;
-  VALUE value;
+    int primary;
+    VALUE value;
 } TOKEN;
 typedef struct token_t *token_p;
 

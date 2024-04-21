@@ -1,7 +1,5 @@
 import WebUSBSerial from '@leaphy-robotics/webusb-ftdi';
 
-console.log('Loading avrdude worker')
-
 let port;
 let opts;
 let writer;
@@ -65,25 +63,19 @@ addEventListener('message', async msg => {
             break
         }
         case 'init': {
-            console.log('Initializing port')
-            try {
-                if (navigator.serial) {
-                    port = (await navigator.serial.getPorts())[data.port]
-                } else {
-                    const device = (await navigator.usb.getDevices())[data.port]
-                    port = new WebUSBSerial(device)
-                }
-
-                await port.open(data.options)
-                opts = data.options
-                writer = port.writable.getWriter()
-                reader = port.readable.getReader()
-                continuousRead = readPromise(reader)
-                postMessage({type: 'ready'})
-            } catch (e) {
-                console.error(e)
-                postMessage({type: 'error', error: e})
+            if (navigator.serial) {
+                port = (await navigator.serial.getPorts())[data.port]
+            } else {
+                const device = (await navigator.usb.getDevices())[data.port]
+                port = new WebUSBSerial(device)
             }
+
+            await port.open(data.options)
+            opts = data.options
+            writer = port.writable.getWriter()
+            reader = port.readable.getReader()
+            continuousRead = readPromise(reader)
+            postMessage({ type: 'ready' })
             break
         } case 'close': {
             console.log('Closing port')

@@ -73,16 +73,16 @@ avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
 	pgm->setpin(pgm, PIN_AVR_SCK, OFF);
 	pgm->setpin(pgm, PIN_AVR_SDO, ON);
-	usleep(20 * 1000);
+	emscripten_sleep(20 * 1000/1000); // replace usleep with emscripten_slee
 
 	pgm->setpin(pgm, PIN_AVR_RESET, ON);
 	/* worst case 128ms */
-	usleep(2 * 128 * 1000);
+	emscripten_sleep(2 * 128 * 1000/1000); // replace usleep with emscripten_slee
 
 	/*setting rst back to 0 */
 	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
 	/*wait at least 20ms bevor issuing spi commands to avr */
-	usleep(20 * 1000);
+	emscripten_sleep(20 * 1000/1000); // replace usleep with emscripten_slee
 	
 	log_info("Sending 16 init clock cycles ...\n");
 	ret = ftdi_write_data(pdata->ftdic, buf, sizeof(buf));

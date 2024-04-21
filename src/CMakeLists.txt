@@ -23,6 +23,8 @@
 FLEX_TARGET(Parser "lexer.l" "${PROJECT_BINARY_DIR}/lexer.c")
 
 if (FLEX_VERSION VERSION_GREATER_EQUAL 2.5.9)
+    # print the version of flex
+    message(STATUS "Flex version: ${FLEX_VERSION}")
     set(HAVE_YYLEX_DESTROY 1)
 endif()
 
@@ -31,15 +33,15 @@ endif()
 # =====================================
 
 if(BISON_FOUND)
-    BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.c" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
+    BISON_TARGET(Parser config_gram.y "${PROJECT_BINARY_DIR}/config_gram.cpp" DEFINES_FILE "${PROJECT_BINARY_DIR}/config_gram.h")
 else()
     set(YACC_TARGET_outputs "${PROJECT_BINARY_DIR}/config_gram.c")
     add_custom_command(OUTPUT ${YACC_TARGET_outputs}
-        COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_TARGET_outputs} config_gram.y
-        VERBATIM
-        COMMENT "[YACC][Parser] Building parser with yacc"
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        )
+            COMMAND ${YACC_EXECUTABLE} -d -o ${YACC_TARGET_outputs} config_gram.y
+            VERBATIM
+            COMMENT "[YACC][Parser] Building parser with yacc"
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
     set(BISON_Parser_OUTPUTS ${YACC_TARGET_outputs})
 endif()
 
@@ -50,7 +52,6 @@ endif()
 include_directories(BEFORE ${CMAKE_CURRENT_BINARY_DIR})
 add_compile_definitions(CONFIG_DIR=\"${CONFIG_DIR}\")
 
-set(EXTRA_WINDOWS_SOURCES)
 set(EXTRA_WINDOWS_INCLUDES)
 set(EXTRA_WINDOWS_RESOURCES)
 set(EXTRA_WINDOWS_LIBRARIES)
@@ -72,11 +73,11 @@ if(MSVC)
     add_compile_options(/wd4267) # warning C4267: conversion from '...' to '...', possible loss of data
 
     list(APPEND EXTRA_WINDOWS_SOURCES
-        "msvc/getopt.c"
-        "msvc/gettimeofday.c"
-        "msvc/usleep.cpp"
-        "msvc/readline.cpp"
-        )
+            "msvc/getopt.c"
+            "msvc/gettimeofday.c"
+            "msvc/usleep.cpp"
+            "msvc/readline.cpp"
+    )
     list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
 else()
     set(LIB_MATH m)
@@ -129,9 +130,9 @@ if(WIN32 OR MINGW)
 endif()
 
 add_custom_command(
-    OUTPUT avrdude.conf
-    COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
-    COMMAND ${CMAKE_COMMAND}
+        OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf
+        COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf.in" avrdude.conf.in
+        COMMAND ${CMAKE_COMMAND}
         -D "AVRDUDE_FULL_VERSION=${AVRDUDE_FULL_VERSION}"
         -D HAVE_PARPORT=$<BOOL:${HAVE_PARPORT}>
         -D HAVE_LINUXSPI=$<BOOL:${HAVE_LINUXSPI}>
@@ -140,17 +141,21 @@ add_custom_command(
         -D DEFAULT_SER_PORT=${DEFAULT_SER_PORT}
         -D DEFAULT_LINUXGPIO_PORT=${DEFAULT_LINUXGPIO_PORT}
         -P "${CMAKE_CURRENT_SOURCE_DIR}/configure.cmake"
-    DEPENDS avrdude.conf.in
-    VERBATIM
-    )
+        DEPENDS avrdude.conf.in
+        VERBATIM
+)
 
-add_custom_target(conf ALL DEPENDS avrdude.conf)
+add_custom_target(conf ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/avrdude.conf)
 
 # =====================================
 # Project
 # =====================================
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC --bind")
 
+
+message("FLEX_Parser_OUTPUTS: ${FLEX_Parser_OUTPUTS}")
 add_library(libavrdude
+<<<<<<< HEAD
     ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
     arduino.h
     arduino.c
@@ -284,40 +289,189 @@ add_library(libavrdude
     ${BISON_Parser_OUTPUTS}
     ${EXTRA_WINDOWS_SOURCES}
     )
+=======
+        ac_cfg.h
+        arduino.h
+        arduino.cpp
+        avr.cpp
+        avr910.cpp
+        avr910.h
+        avrcache.cpp
+        avrdude.h
+        avrftdi.cpp
+        avrftdi.h
+        avrftdi_private.h
+        avrftdi_tpi.c
+        avrftdi_tpi.h
+        avrintel.cpp
+        libavrdude-avrintel.h
+        avrpart.cpp
+        bitbang.cpp
+        bitbang.h
+        buspirate.cpp
+        buspirate.h
+        butterfly.cpp
+        butterfly.h
+        ch341a.cpp
+        ch341a.h
+        config.cpp
+        config.h
+        confwin.c
+        crc16.c
+        crc16.h
+        dfu.c
+        dfu.h
+        dryrun.cpp
+        dryrun.h
+        dryrun_private.h
+        fileio.cpp
+        flip1.cpp
+        flip1.h
+        flip2.cpp
+        flip2.h
+        freebsd_ppi.h
+        ft245r.cpp
+        ft245r.h
+        jtagmkI.cpp
+        jtagmkI.h
+        jtagmkI_private.h
+        jtagmkII.cpp
+        jtagmkII.h
+        jtagmkII_private.h
+        jtag3.cpp
+        jtag3.h
+        jtag3_private.h
+        leds.cpp
+        libavrdude.h
+        linuxgpio.cpp
+        linuxgpio.h
+        linuxspi.cpp
+        linuxspi.h
+        linux_ppdev.h
+        lists.cpp
+        micronucleus.cpp
+        micronucleus.h
+        par.cpp
+        par.h
+        pgm.cpp
+        pgm_type.cpp
+        pickit2.cpp
+        pickit2.h
+        pindefs.cpp
+        ppi.cpp
+        ppi.h
+        ppiwin.c
+        serbb.h
+        serbb_posix.cpp
+        ser_avrdoper.cpp
+        ser_posix.cpp
+        serialadapter.cpp
+        serialupdi.cpp
+        serialupdi.h
+        solaris_ecpp.h
+        stk500.cpp
+        stk500.h
+        stk500_private.h
+        stk500v2.cpp
+        stk500v2.h
+        stk500v2_private.h
+        stk500generic.cpp
+        stk500generic.h
+        strutil.cpp
+        teensy.cpp
+        teensy.h
+        term.cpp
+        tpi.h
+        updi_constants.h
+        updi_link.cpp
+        updi_link.h
+        updi_nvm.cpp
+        updi_nvm.h
+        updi_nvm_v0.cpp
+        updi_nvm_v0.h
+        updi_nvm_v2.cpp
+        updi_nvm_v2.h
+        updi_nvm_v3.cpp
+        updi_nvm_v3.h
+        updi_nvm_v4.cpp
+        updi_nvm_v4.h
+        updi_nvm_v5.cpp
+        updi_nvm_v5.h
+        updi_readwrite.cpp
+        updi_readwrite.h
+        updi_state.c
+        updi_state.h
+        urclock.cpp
+        urclock.h
+        urclock_hash.h
+        urclock_private.h
+        usbasp.cpp
+        usbasp.h
+        usbdevs.h
+        usb_hidapi.c
+        usb_libusb.c
+        usbtiny.h
+        usbtiny.cpp
+        update.cpp
+        wiring.h
+        wiring.cpp
+        xbee.h
+        xbee.cpp
+        lexer.cpp
+        ${BISON_Parser_OUTPUTS}
+        ${EXTRA_WINDOWS_SOURCES}
+)
+
+# require the Parser target to be built before libavrdude
+
+target_link_options(libavrdude
+        PUBLIC
+        --bind
+        -fPIC
+)
+
+target_compile_options(libavrdude
+        PUBLIC
+        -fPIC
+        --bind
+)
+>>>>>>> main
 
 set_target_properties(libavrdude PROPERTIES
-    PREFIX ""
-    PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
-    VERSION 2.0.0
-    SOVERSION 2
-    )
+        PREFIX ""
+        PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
+        VERSION 2.0.0
+        SOVERSION 2
+)
 
 target_include_directories(libavrdude
-    PUBLIC
-    "${PROJECT_SOURCE_DIR}"
-    "${PROJECT_BINARY_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${LIBUSB_COMPAT_DIR}"
-    ${EXTRA_WINDOWS_INCLUDES}
-    )
+        PUBLIC
+        "${PROJECT_SOURCE_DIR}"
+        "${PROJECT_BINARY_DIR}"
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${LIBUSB_COMPAT_DIR}"
+        ${EXTRA_WINDOWS_INCLUDES}
+        ../libserial
+)
 
 target_link_libraries(libavrdude
-    PUBLIC
-    ${LIB_MATH}
-    ${LIB_LIBELF}
-    ${LIB_LIBUSB}
-    ${LIB_LIBUSB_1_0}
-    ${LIB_LIBHID}
-    ${LIB_LIBHIDAPI}
-    ${LIB_LIBFTDI}
-    ${LIB_LIBFTDI1}
-    ${LIB_LIBREADLINE}
-    ${LIB_LIBSERIALPORT}
-    ${LIB_NCURSES}
-    ${LIB_LIBGPIOD}
-    ${EXTRA_WINDOWS_LIBRARIES}
-    )
+        PUBLIC
+        ${LIB_MATH}
+        ${LIB_LIBELF}
+        ${LIB_LIBUSB}
+        ${LIB_LIBUSB_1_0}
+        ${LIB_LIBHID}
+        ${LIB_LIBHIDAPI}
+        ${LIB_LIBFTDI}
+        ${LIB_LIBFTDI1}
+        ${LIB_LIBREADLINE}
+        #${LIB_LIBSERIALPORT}
+        ${LIB_NCURSES}
+        ${LIB_LIBGPIOD}
+        ${EXTRA_WINDOWS_LIBRARIES}
+)
 
+<<<<<<< HEAD
 # check if we are using emscripten
 if(EMSCRIPTEN)
     set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC -O3 -s ENVIRONMENT=web -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s WASM=1 -s FORCE_FILESYSTEM -s ASYNCIFY=1 -s INVOKE_RUN=0 -s WASM_BIGINT=1 -s MODULARIZE=1 -s \"EXPORTED_FUNCTIONS=['_startAvrdude','_malloc','_dataCallback']\" --bind -s EXPORTED_RUNTIME_METHODS='[\"cwrap\", \"writeStringToMemory\", \"FS\", \"allocate\"]'")
@@ -362,3 +516,7 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES "avrdude.1"
 	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
 	)
+=======
+add_dependencies(libavrdude conf)
+
+>>>>>>> main

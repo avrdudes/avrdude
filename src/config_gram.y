@@ -168,7 +168,7 @@ static int pin_name;
 
 %%
 
-number_real : 
+number_real :
  numexpr {
     $$ = $1;
     /* convert value to real */
@@ -275,7 +275,7 @@ prog_def :
         YYABORT;
       }
       for(LNODEID ln = lfirst(current_prog->id); ln; ln = lnext(ln)) {
-        char *id = ldata(ln);
+        char *id = (char *)ldata(ln);
         if((existing_prog = locate_programmer(programmers, id))) {
           // Temporarily set lineno to lineno of programmer start
           int temp = cfg_lineno; cfg_lineno = current_prog->lineno;
@@ -322,8 +322,8 @@ prog_decl :
 
 
 part_def :
-  part_decl part_parms 
-    { 
+  part_decl part_parms
+    {
       LNODEID ln;
       AVRMEM * m;
       AVRPART * existing_part;
@@ -337,7 +337,7 @@ part_def :
 
       // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
-        m = ldata(ln);
+        m = (AVRMEM *)ldata(ln);
         if (m->paged) {
           if (m->size <= 0) {
             yyerror("must specify a positive size for paged memory %s", m->desc);
@@ -379,8 +379,8 @@ part_def :
       }
 
       current_part->comments = cfg_move_comments();
-      LISTADD(part_list, current_part); 
-      current_part = NULL; 
+      LISTADD(part_list, current_part);
+      current_part = NULL;
       current_strct = COMP_CONFIG_MAIN;
     }
 ;
@@ -392,7 +392,7 @@ part_decl :
       current_part->config_file = cache_string(cfg_infile);
       current_part->lineno = cfg_lineno;
     } |
-  K_PART K_PARENT TKN_STRING 
+  K_PART K_PARENT TKN_STRING
     {
       AVRPART * parent_part = locate_part(part_list, $3->value.string);
       if (parent_part == NULL) {
@@ -435,7 +435,7 @@ prog_parm :
   K_ID TKN_EQUAL string_list {
     {
       while (lsize(string_list)) {
-        TOKEN *t = lrmv_n(string_list, 1);
+        TOKEN *t = (TOKEN *)lrmv_n(string_list, 1);
         ladd(current_prog->id, cfg_strdup("config_gram.y", t->value.string));
         free_token(t);
       }
@@ -461,11 +461,11 @@ prog_parm_type_id:
   const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
     if (pgm_type == NULL) {
         yyerror("programmer type %s not found", $1->value.string);
-        free_token($1); 
+        free_token($1);
         YYABORT;
     }
     current_prog->initpgm = pgm_type->initpgm;
-    free_token($1); 
+    free_token($1);
 }
   | error
 {
@@ -495,7 +495,7 @@ usb_pid_list:
       current_prog->usbpid = lcreat(NULL, 0);
     }
     {
-      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      int *ip = (int *)cfg_malloc("usb_pid_list", sizeof(int));
       *ip = $1->value.number;
       ladd(current_prog->usbpid, ip);
       free_token($1);
@@ -503,7 +503,7 @@ usb_pid_list:
   } |
   usb_pid_list TKN_COMMA numexpr {
     {
-      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      int *ip = (int *)cfg_malloc("usb_pid_list", sizeof(int));
       *ip = $3->value.number;
       ladd(current_prog->usbpid, ip);
       free_token($3);
@@ -524,7 +524,7 @@ hvupdi_support_list:
       current_prog->hvupdi_support = lcreat(NULL, 0);
     }
     {
-      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      int *ip = (int *)cfg_malloc("hvupdi_support_list", sizeof(int));
       *ip = $1->value.number;
       ladd(current_prog->hvupdi_support, ip);
       free_token($1);
@@ -532,7 +532,7 @@ hvupdi_support_list:
   } |
   hvupdi_support_list TKN_COMMA numexpr {
     {
-      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      int *ip = (int *)cfg_malloc("hvupdi_support_list", sizeof(int));
       *ip = $3->value.number;
       ladd(current_prog->hvupdi_support, ip);
       free_token($3);
@@ -623,7 +623,7 @@ part_parm :
     cfg_assign((char *) current_part, COMP_AVRPART, $1->value.comp, &$3->value);
     free_token($1);
   } |
-  K_ID TKN_EQUAL TKN_STRING 
+  K_ID TKN_EQUAL TKN_STRING
     {
       current_part->id = cache_string($3->value.string);
       free_token($3);
@@ -639,7 +639,7 @@ part_parm :
   K_VARIANTS TKN_EQUAL string_list {
     {
       while (lsize(string_list)) {
-        TOKEN *t = lrmv_n(string_list, 1);
+        TOKEN *t = (TOKEN *)lrmv_n(string_list, 1);
         int found = 0;
         for(LNODEID ln = lfirst(current_part->variants); ln; ln = lnext(ln)) {
           if(str_eq((char *) ldata(ln), t->value.string)) {
@@ -691,7 +691,7 @@ part_parm :
 
       memset(current_part->controlstack, 0, CTL_STACK_SIZE);
       while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
+        t = (TOKEN *)lrmv_n(number_list, 1);
 	if (nbytes < CTL_STACK_SIZE)
 	  {
 	    current_part->controlstack[nbytes] = t->value.number;
@@ -729,7 +729,7 @@ part_parm :
 
       memset(current_part->controlstack, 0, CTL_STACK_SIZE);
       while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
+        t = (TOKEN *)lrmv_n(number_list, 1);
 	if (nbytes < CTL_STACK_SIZE)
 	  {
 	    current_part->controlstack[nbytes] = t->value.number;
@@ -766,7 +766,7 @@ part_parm :
 
       memset(current_part->flash_instr, 0, FLASH_INSTR_SIZE);
       while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
+        t = (TOKEN *)lrmv_n(number_list, 1);
 	if (nbytes < FLASH_INSTR_SIZE)
 	  {
 	    current_part->flash_instr[nbytes] = t->value.number;
@@ -802,7 +802,7 @@ part_parm :
 
       memset(current_part->eeprom_instr, 0, EEPROM_INSTR_SIZE);
       while (lsize(number_list)) {
-        t = lrmv_n(number_list, 1);
+        t = (TOKEN *)lrmv_n(number_list, 1);
 	if (nbytes < EEPROM_INSTR_SIZE)
 	  {
 	    current_part->eeprom_instr[nbytes] = t->value.number;
@@ -996,7 +996,7 @@ part_parm :
     } |
 
 
-  K_MEMORY TKN_STRING 
+  K_MEMORY TKN_STRING
     { /* select memory for extension or create if not there */
       AVRMEM *mem = avr_locate_mem_noalias(current_part, $2->value.string);
       if(!mem) {
@@ -1008,7 +1008,7 @@ part_parm :
       current_mem = mem;
       free_token($2);
     }
-    mem_specs 
+    mem_specs
     {
       if (is_alias) {           // alias mem has been already entered
         lrmv_d(current_part->mem, current_mem);
@@ -1027,7 +1027,7 @@ part_parm :
         current_mem->comments = cfg_move_comments();
       }
       cfg_pop_comms();
-      current_mem = NULL; 
+      current_mem = NULL;
       current_strct = COMP_AVRPART;
     } |
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
@@ -1043,7 +1043,7 @@ part_parm :
       current_strct = COMP_AVRPART;
     } |
   opcode TKN_EQUAL string_list {
-    { 
+    {
       int opnum;
       OPCODE * op;
 
@@ -1109,7 +1109,7 @@ mem_spec :
     } |
 
   opcode TKN_EQUAL string_list {
-    { 
+    {
       int opnum;
       OPCODE * op;
 
@@ -1231,7 +1231,7 @@ static int assign_pin_list(int invert)
 
   current_prog->pinno[pin_name] = NO_PIN;
   while (lsize(number_list)) {
-    t = lrmv_n(number_list, 1);
+    t = (TOKEN *)lrmv_n(number_list, 1);
     if (rv == 0) {
       pin = t->value.number;
       if ((pin < PIN_MIN) || (pin > PIN_MAX)) {
@@ -1280,7 +1280,7 @@ static int parse_cmdbits(OPCODE * op, int opnum)
   bitno = 32;
   while (lsize(string_list)) {
 
-    t = lrmv_n(string_list, 1);
+    t = (TOKEN *)lrmv_n(string_list, 1);
 
     char *str = t->value.string;
     // Compact alternative specification? (eg, "0100.0000--000x.xxxx--xxaa.aaaa--iiii.iiii")

@@ -1,6 +1,8 @@
 node_modules/
 cmake-build-release-emscripten/
 .idea/
+release-build
+src/CMakeFiles
 .DS_Store
 .deps/
 .libs/
@@ -9,8 +11,7 @@ m4/
 *.patch
 y.output
 y.tab.h
-lexer.c
-config_gram.c
+config_gram.cpp
 config_gram.h
 .depend
 INSTALL
@@ -76,3 +77,10 @@ x86/
 
 # Visual Studio code
 .vscode/
+
+# Build artifacts
+avrdude-worker.js
+avrdude.js
+avrdude.wasm
+node_modules
+package-lock.json
