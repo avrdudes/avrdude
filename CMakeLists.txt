@@ -23,6 +23,14 @@
 cmake_minimum_required(VERSION 3.14)
 project(avrdude VERSION 7.3 LANGUAGES C)
 
+# check if we are doing emscripten
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # print a message
+    message(STATUS "Building for Emscripten")
+    set(EMSCRIPTEN 1)
+    add_subdirectory(libserial)
+endif ()
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED True)
 
@@ -446,3 +454,5 @@ else()
 endif()
 
 message(STATUS "----------------------")
+
+add_subdirectory(test)

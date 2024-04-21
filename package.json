@@ -1,0 +1,27 @@
+{
+  "name": "@leaphy-robotics/avrdude-webassembly",
+  "version": "1.5.0",
+  "description": "An port of avrdude to the browser using WebAssembly",
+  "type": "module",
+  "scripts": {
+    "build": "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build --target avrdude && cp build/src/avrdude.js build/src/avrdude.wasm build/src/avrdude.conf ."
+  },
+  "files": [
+    "avrdude.js",
+    "avrdude-worker.js",
+    "avrdude.wasm",
+    "avrdude.conf"
+  ],
+  "license": "GPLv3",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leaphy-robotics/avrdude-webassembly.git"
+  },
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "rollup": "^4.14.3"
+  },
+  "dependencies": {
+    "@leaphy-robotics/webusb-ftdi": "^1.0.0"
+  }
+}

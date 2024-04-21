@@ -1,3 +1,4 @@
+#ifndef __EMSCRIPTEN__
 // (‑●‑●)> dual licensed under the WTFPL v2 and MIT licenses
 //   without any warranty.
 //   by Gregory Pakosz (@gpakosz)
@@ -65,3 +66,4 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length);
 #endif
 
 #endif // #ifndef WHEREAMI_H
+#endif // #ifndef __EMSCRIPTEN__

@@ -50,6 +50,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
+#include "libserial/LibSerial.h"
 
 long serial_recv_timeout = 5000; /* ms */
 long serial_drain_timeout = 250; /* ms */
@@ -395,6 +396,10 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
   /*
    * open the serial port
    */
+#ifdef __EMSCRIPTEN__
+    serialPortOpen(pinfo.serialinfo.baud);
+    return 0;
+#endif
   fd = open(port, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd < 0) {
     pmsg_ext_error("cannot open port %s: %s\n", port, strerror(errno));
@@ -416,6 +421,11 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 }
 
 static void ser_close(union filedescriptor *fd) {
+#ifdef __EMSCRIPTEN__
+    serialPortClose();
+    return;
+#endif
+
   /*
    * restore original termios settings from ser_open
    */
@@ -437,6 +447,10 @@ static void ser_rawclose(union filedescriptor *fd) {
 }
 
 static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
+#ifdef __EMSCRIPTEN__
+    serialPortWrite(buf, len);
+    return 0;
+#endif
   int rc;
 
   if(verbose > 3)
@@ -457,6 +471,14 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 
 
 static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
+#ifdef __EMSCRIPTEN__
+    int re = serialPortRecv(buf, buflen, serial_recv_timeout);
+    if (re == -1) { // buf[0] == 1 means no data was received
+        printf("Nothing received\n");
+        return -1;
+    }
+    return 0;
+#endif
   struct timeval timeout, to2;
   fd_set rfds;
   int nfds;
@@ -506,6 +528,10 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 
 
 static int ser_drain(const union filedescriptor *fd, int display) {
+#ifdef __EMSCRIPTEN__
+    serialPortDrain(serial_drain_timeout);
+    return 0;
+#endif
   struct timeval timeout;
   fd_set rfds;
   int nfds;

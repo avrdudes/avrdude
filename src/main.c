@@ -34,7 +34,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#ifndef __EMSCRIPTEN__
 #include <whereami.h>
+#endif
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -942,6 +944,7 @@ int main(int argc, char * argv [])
     pmsg_warning("Linked C library does not conform to C99; %s may not work as expected\n", progname);
 
   /* search for system configuration file unless -C conffile was given */
+#ifndef __EMSCRIPTEN__
   if (strlen(sys_config) == 0) {
     /*
      * EXECUTABLE ABSPATH
@@ -1033,6 +1036,7 @@ int main(int argc, char * argv [])
       }
     }
   }
+#endif
   // Debug output
   msg_trace2("sys_config = %s\n", sys_config);
   msg_trace2("sys_config_found = %s\n", sys_config_found ? "true" : "false");
@@ -1591,7 +1595,9 @@ skipopen:
     sig = avr_locate_signature(p);
     if (sig == NULL)
       pmsg_warning("signature memory not defined for device %s\n", p->desc);
-
+#ifdef __EMSCRIPTEN__
+    sig = NULL;
+#endif
     if (sig != NULL) {
       int ff, zz;
 
@@ -1744,4 +1750,35 @@ main_exit:
   msg_info("\n%s done.  Thank you.\n\n", progname);
 
   return ce_delayed? 1: exitrc;
+}
+
+int startAvrdude(char *args) {
+    // allocate memory for argv
+    char *argv[100]; // assuming a maximum of 100 arguments
+    int argc = 0;
+
+    // print args
+    //printf("args: %s\n", args);
+    //avrdude_log(("args: %s\n", args));
+
+    // extract args from string
+    char *token = strtok(args, " ");
+    while (token != NULL) {
+        // allocate memory for the token
+        argv[argc] = (char *) malloc(strlen(token) + 1);
+        strcpy(argv[argc], token);
+
+        argc++;
+        token = strtok(NULL, " ");
+    }
+
+    // call main function
+
+    int result = main(argc, argv);
+
+    // free allocated memory
+    for (int i = 0; i < argc; i++) {
+        free(argv[i]);
+    }
+    return result;
 }

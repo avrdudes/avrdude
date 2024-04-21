@@ -318,6 +318,11 @@ target_link_libraries(libavrdude
     ${EXTRA_WINDOWS_LIBRARIES}
     )
 
+# check if we are using emscripten
+if(EMSCRIPTEN)
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC -O3 -s ENVIRONMENT=web -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s WASM=1 -s FORCE_FILESYSTEM -s ASYNCIFY=1 -s INVOKE_RUN=0 -s WASM_BIGINT=1 -s MODULARIZE=1 -s \"EXPORTED_FUNCTIONS=['_startAvrdude','_malloc','_dataCallback']\" --bind -s EXPORTED_RUNTIME_METHODS='[\"cwrap\", \"writeStringToMemory\", \"FS\", \"allocate\"]'")
+endif ()
+
 add_executable(avrdude
     main.c
     developer_opts.c
@@ -330,6 +335,14 @@ add_executable(avrdude
     )
 
 target_link_libraries(avrdude PUBLIC libavrdude)
+
+# check if we are using emscripten
+if(EMSCRIPTEN)
+    message(STATUS "Building for WebAssembly")
+    target_link_libraries(avrdude PUBLIC serial)
+endif ()
+
+add_dependencies(avrdude conf)
 
 if(MINGW)
     target_link_options(avrdude PRIVATE -static)

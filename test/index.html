@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+</head>
+<body>
+<button id="run">Run</button>
+<script src="avrdude.js"></script>
+<script type="module">
+
+    window.read = async function (timeoutMs) {
+
+    }
+
+    async function load() {
+        window.funcs = await Module();
+    }
+    load();
+
+    // read the avrdude.conf file
+    let content = '';
+    fetch('/avrdude.conf')
+        .then(response => response.text())
+        .then(data => {
+            content = data;
+        });
+    let hex = '';
+    fetch('/uno.hex')
+        .then(response => response.text())
+        .then(data => {
+            hex = data;
+        });
+
+    document.getElementById('run').addEventListener('click', async () => {
+        const funcs = window.funcs;
+
+        funcs.FS.writeFile('/tmp/avrdude.conf', content);
+        funcs.FS.writeFile('/tmp/program.hex', hex);
+
+        const argsString = "avrdude -P /dev/null -V -v -p atmega328p -c stk500v1 -C /tmp/avrdude.conf -b 115200 -D -U flash:w:/tmp/program.hex:i";
+
+
+        try {
+            const avr = funcs.cwrap("startAvrdude", "number", ["string"])
+            avr(argsString);
+        } catch (e) {
+
+        }
+
+        console.log('done');
+
+    });
+</script>
+
+</body>
+</html>
