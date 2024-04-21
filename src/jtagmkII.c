@@ -182,10 +182,7 @@ void jtagmkII_teardown(PROGRAMMER *pgm) {
   free(pgm->cookie);
 }
 
-
-static unsigned long
-b4_to_u32(unsigned char *b)
-{
+static unsigned long b4_to_u32(unsigned char *b) {
   unsigned long l;
   l = b[0];
   l += (unsigned)b[1] << 8;
@@ -194,9 +191,8 @@ b4_to_u32(unsigned char *b)
 
   return l;
 }
-static unsigned long
-b4_to_u32r(unsigned char *b)
-{
+
+static unsigned long b4_to_u32r(unsigned char *b) {
   unsigned long l;
   l = b[3];
   l += (unsigned)b[2] << 8;
@@ -206,26 +202,21 @@ b4_to_u32r(unsigned char *b)
   return l;
 }
 
-static void
-u32_to_b4(unsigned char *b, unsigned long l)
-{
+static void u32_to_b4(unsigned char *b, unsigned long l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
   b[2] = (l >> 16) & 0xff;
   b[3] = (l >> 24) & 0xff;
 }
-static void
-u32_to_b4r(unsigned char *b, unsigned long l)
-{
+
+static void u32_to_b4r(unsigned char *b, unsigned long l) {
   b[3] = l & 0xff;
   b[2] = (l >> 8) & 0xff;
   b[1] = (l >> 16) & 0xff;
   b[0] = (l >> 24) & 0xff;
 }
 
-static unsigned short
-b2_to_u16(unsigned char *b)
-{
+static unsigned short b2_to_u16(unsigned char *b) {
   unsigned short l;
   l = b[0];
   l += (unsigned)b[1] << 8;
@@ -233,16 +224,12 @@ b2_to_u16(unsigned char *b)
   return l;
 }
 
-static void
-u16_to_b2(unsigned char *b, unsigned short l)
-{
+static void u16_to_b2(unsigned char *b, unsigned short l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
 
-static const char *
-jtagmkII_get_rc(unsigned int rc)
-{
+static const char *jtagmkII_get_rc(unsigned int rc) {
   static char msg[64];
 
   for (size_t i = 0; i < sizeof jtagresults/sizeof*jtagresults; i++)
@@ -254,8 +241,7 @@ jtagmkII_get_rc(unsigned int rc)
 }
 
 
-static void jtagmkII_print_memory(unsigned char *b, size_t s)
-{
+static void jtagmkII_print_memory(unsigned char *b, size_t s) {
   size_t i;
 
   if (s < 2)
@@ -861,7 +847,6 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
  * There is no chip erase functionality in debugWire mode.
  */
 static int jtagmkII_chip_erase_dw(const PROGRAMMER *pgm_unused, const AVRPART *p_unused) {
-
   pmsg_info("chip erase not supported in debugWire mode\n");
 
   return 0;
@@ -1139,8 +1124,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
   return 0;
 }
 
-static unsigned char jtagmkII_get_baud(long baud)
-{
+static unsigned char jtagmkII_get_baud(long baud) {
   static struct {
     long baud;
     unsigned char val;
@@ -1334,7 +1318,6 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtagmkII_disable(const PROGRAMMER *pgm) {
-
   free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
   free(PDATA(pgm)->eeprom_pagecache);
@@ -3273,8 +3256,7 @@ static int jtagmkII_open32(PROGRAMMER *pgm, const char *port) {
   return 0;
 }
 
-static void jtagmkII_close32(PROGRAMMER * pgm)
-{
+static void jtagmkII_close32(PROGRAMMER * pgm) {
   int status, lineno;
   unsigned char *resp, buf[3], c;
   unsigned long val=0;
