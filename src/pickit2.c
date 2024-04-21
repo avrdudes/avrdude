@@ -95,7 +95,7 @@ static const char *usb_strerror()
     return "";
 }
 #else
-static int usb_open_device(struct usb_dev_handle **dev, int vid, int pid);
+static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **dev, int vid, int pid);
 //#define INVALID_HANDLE_VALUE NULL
 #define USB_ERROR_NONE      0
 #define USB_ERROR_ACCESS    1
@@ -119,7 +119,8 @@ struct pdata
 #ifdef WIN32
     HANDLE usb_handle, write_event, read_event;
 #else
-    struct usb_dev_handle *usb_handle;     // LIBUSB STUFF
+    struct usb_dev_handle *usb_handle; // LIBUSB STUFF
+    int USB_init;                      // Used in usb_open_device()
 #endif
     uint8_t clock_period;  // SPI clock period in us
     int transaction_timeout;    // usb trans timeout in ms
@@ -204,8 +205,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
         pgm->desc = cache_string(cbuf);
     }
 #else
-    if (usb_open_device(&(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0)
-    {
+    if(usb_open_device(pgm, &(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
         /* no PICkit2 found */
         pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
         return -1;
@@ -1080,17 +1080,14 @@ static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) 
 
 #else   // WIN32
 /* taken (modified) from avrdude usbasp.c */
-static int usb_open_device(struct usb_dev_handle **device, int vendor, int product)
-{
+static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int vendor, int product) {
     struct usb_bus      *bus;
     struct usb_device   *dev;
     usb_dev_handle      *handle = NULL;
     int                 errorCode = USB_ERROR_NOTFOUND;
-    static int          didUsbInit = 0;
 
-    if (!didUsbInit)
-    {
-        didUsbInit = 1;
+    if(!PDATA(pgm)->USB_init) {
+        PDATA(pgm)->USB_init = 1;
         usb_init();
     }
     usb_find_busses();
