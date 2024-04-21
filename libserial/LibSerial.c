@@ -103,19 +103,16 @@ EM_ASYNC_JS(void, open_serial_port, (int baudRateInt), {
     }
 
     worker.postMessage({ type: 'init', options: serialOpts, port: portNumber });
-console.log("Port opened");
     await new Promise(resolve => {
         worker.onmessage = (event) => {
             resolve();
         };
     });
-    console.log("Port opened");
 
     // open the port with the correct baud rate
     window.avrDudeWorker = worker;
     window.activePort = port;
     window["avrdudeLog"] = [];
-    console.log("Port opened");
 });
 
 EM_ASYNC_JS(void, close_serial_port, (), {
@@ -141,9 +138,7 @@ EM_ASYNC_JS(void, set_dts_rts, (bool is_on), {
 #include <stdio.h>
 
 int serialPortOpen(int baudRate) {
-    printf("Opening serial port with baud rate: %d\n", baudRate);
     open_serial_port(baudRate);
-    printf("Serial port opened\n");
     return 0;
 }
 

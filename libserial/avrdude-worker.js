@@ -78,7 +78,6 @@ addEventListener('message', async msg => {
             postMessage({ type: 'ready' })
             break
         } case 'close': {
-            console.log('Closing port')
             writer.releaseLock()
             reader.cancel()
             reader.releaseLock()

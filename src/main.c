@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #ifndef __EMSCRIPTEN__
 #include <whereami.h>
 #endif
@@ -59,6 +60,18 @@ char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+
+EM_JS(void, avrdude_log, (const char *msg), {
+    if (!window["avrdudeLog"]) {
+        window["avrdudeLog"] = [];
+    }
+    window["avrdudeLog"] = [...window["avrdudeLog"], UTF8ToString(msg)];
+});
+
+#endif
+
 static const char *avrdude_message_type(int msglvl) {
   switch(msglvl) {
   case MSG_EXT_ERROR: return "OS error";
@@ -82,6 +95,107 @@ static const char *avrdude_message_type(int msglvl) {
  * Named that way as there used to be a now gone different avrdude_message()
  */
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...) {
+#ifdef __EMSCRIPTEN__
+    // just override the normal print function with ours
+    int rc = 0;
+    va_list ap;
+
+    static struct {             // Memorise whether last print ended at beginning of line
+        FILE *fp;
+        int bol;                  // Are we at the beginning of a line for this fp stream?
+    } bols[5+1];                // Cater for up to 5 different FILE pointers plus one catch-all
+
+    size_t bi = 0;              // bi is index to bols[] array
+    for(bi=0; bi < sizeof bols/sizeof*bols -1; bi++) { // Note the -1, so bi is valid after loop
+        if(!bols[bi].fp) {        // First free space
+            bols[bi].fp = fp;       // Insert fp in first free space
+            bols[bi].bol = 1;       // Assume beginning of line on first use
+        }
+        if(bols[bi].fp == fp)
+            break;
+    }
+
+    if(msglvl <= MSG_ERROR)     // Serious error? Free progress bars (if any)
+        report_progress(1, -1, NULL);
+
+    if(msgmode & MSG2_FLUSH) {
+        fflush(stdout);
+        fflush(stderr);
+    }
+
+    // Reduce effective verbosity level by number of -q above one when printing to stderr
+    if ((quell_progress < 2 || fp != stderr? verbose: verbose+1-quell_progress) >= msglvl) {
+        if(msgmode & MSG2_LEFT_MARGIN && !bols[bi].bol) {
+            avrdude_log("\n");
+            bols[bi].bol = 1;
+        }
+
+        // Keep vertical tab at start of format string as conditional new line
+        if(*format == '\v') {
+            format++;
+            if(!bols[bi].bol) {
+                avrdude_log("\n");
+                bols[bi].bol = 1;
+            }
+        }
+
+        if(msgmode & MSG2_PROGNAME) {
+            avrdude_log(("%s", progname));
+            if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
+                avrdude_log(func);
+            if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
+                const char *pr = strrchr(file, '/'); // Only print basename
+#if defined (WIN32)
+                if(!pr)
+              pr =  strrchr(file, '\\');
+#endif
+                pr = pr? pr+1: file;
+                avrdude_log((const char *) (" [%s:%d]", pr, lno));
+            }
+            if(msgmode & MSG2_TYPE)
+                avrdude_log(avrdude_message_type(msglvl));
+            avrdude_log(": ");
+            bols[bi].bol = 0;
+        } else if(msgmode & MSG2_INDENT1) {
+            avrdude_log(("%*s", (int) strlen(progname)+1, ""));
+            bols[bi].bol = 0;
+        } else if(msgmode & MSG2_INDENT2) {
+            avrdude_log(("%*s", (int) strlen(progname)+2, ""));
+            bols[bi].bol = 0;
+        }
+        // Figure out whether this print will leave us at beginning of line
+
+        // Determine required size first
+        va_start(ap, format);
+        rc = vsnprintf(NULL, 0, format, ap);
+        va_end(ap);
+        if(rc < 0)              // Some errror?
+            return 0;
+
+        rc++;                   // Accommodate terminating nul
+        char *p = cfg_malloc(__func__, rc);
+        va_start(ap, format);
+        rc = vsnprintf(p, rc, format, ap);
+        va_end(ap);
+
+        if(rc < 0) {
+            free(p);
+            return 0;
+        }
+
+        if(*p) {
+            avrdude_log(p); // Finally: print!
+            bols[bi].bol = p[strlen(p)-1] == '\n';
+        }
+        free(p);
+    }
+
+    if(msgmode & MSG2_FLUSH)
+        fflush(fp);
+
+    return rc;
+#else
+
     int rc = 0;
     va_list ap;
 
@@ -181,6 +295,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         fflush(fp);
 
     return rc;
+#endif
 }
 
 
