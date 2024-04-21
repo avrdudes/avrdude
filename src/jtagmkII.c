@@ -94,6 +94,8 @@ struct pdata
 #define FLAGS32_WRITE         2 // At least one write operation specified
   // Couple of flag bits for AVR32 programming
   int flags32;
+
+  char msg[64];                 // Used in jtagmkII_get_rc()
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -229,15 +231,13 @@ static void u16_to_b2(unsigned char *b, unsigned short l) {
   b[1] = (l >> 8) & 0xff;
 }
 
-static const char *jtagmkII_get_rc(unsigned int rc) {
-  static char msg[64];
-
+static const char *jtagmkII_get_rc(const PROGRAMMER *pgm, unsigned int rc) {
   for (size_t i = 0; i < sizeof jtagresults/sizeof*jtagresults; i++)
     if (jtagresults[i].code == rc)
       return jtagresults[i].descr;
 
-  sprintf(msg, "Unknown JTAG ICE mkII result code 0x%02x", rc);
-  return msg;
+  sprintf(PDATA(pgm)->msg, "Unknown JTAG ICE mkII result code 0x%02x", rc);
+  return PDATA(pgm)->msg;
 }
 
 
@@ -691,7 +691,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
     if (status <= 0)
       pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     else
-      pmsg_error("bad response to sign-on command: %s\n", jtagmkII_get_rc(c));
+      pmsg_error("bad response to sign-on command: %s\n", jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
@@ -791,7 +791,7 @@ retry:
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to set parameter command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to set parameter command: %s\n", jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
@@ -832,7 +832,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to chip erase command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to chip erase command: %s\n", jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
@@ -917,7 +917,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to set device descriptor command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to set device descriptor command: %s\n", jtagmkII_get_rc(pgm, c));
   }
 }
 
@@ -987,7 +987,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to set device descriptor command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to set device descriptor command: %s\n", jtagmkII_get_rc(pgm, c));
   }
 }
 
@@ -1028,7 +1028,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to reset command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to reset command: %s\n", jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
@@ -1067,7 +1067,7 @@ static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
     c = resp[0];
     free(resp);
     if (c != RSP_OK) {
-      pmsg_warning("bad response to enter progmode command: %s\n", jtagmkII_get_rc(c));
+      pmsg_warning("bad response to enter progmode command: %s\n", jtagmkII_get_rc(pgm, c));
       if (c == RSP_ILLEGAL_JTAG_ID) {
 	if (use_ext_reset == 0) {
 	  unsigned char parm[] = { 1};
@@ -1113,7 +1113,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to leave progmode command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to leave progmode command: %s\n", jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
@@ -1753,7 +1753,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
       c = resp[0];
       free(resp);
       if (c != RSP_OK) {
-	pmsg_error("bad response to GO command: %s\n", jtagmkII_get_rc(c));
+	pmsg_error("bad response to GO command: %s\n", jtagmkII_get_rc(pgm, c));
       }
     }
   }
@@ -1776,7 +1776,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(pgm, c));
   }
 
   if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
@@ -1869,7 +1869,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
   } else
     msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
   if (resp[0] != RSP_OK) {
-    pmsg_error("bad response to xmega erase command: %s\n", jtagmkII_get_rc(resp[0]));
+    pmsg_error("bad response to xmega erase command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
     free(resp);
     serial_recv_timeout = otimeout;
     return -1;
@@ -1989,7 +1989,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     } else
       msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
     if (resp[0] != RSP_OK) {
-      pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(resp[0]));
+      pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
       free(resp);
       free(cmd);
       serial_recv_timeout = otimeout;
@@ -2082,7 +2082,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     } else
       msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
     if (resp[0] != RSP_MEMORY) {
-      pmsg_error("bad response to read memory command: %s\n", jtagmkII_get_rc(resp[0]));
+      pmsg_error("bad response to read memory command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
       free(resp);
       serial_recv_timeout = otimeout;
       return -1;
@@ -2269,7 +2269,7 @@ retry:
   } else
     msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
   if (resp[0] != RSP_MEMORY) {
-    pmsg_error("bad response to read memory command: %s\n", jtagmkII_get_rc(resp[0]));
+    pmsg_error("bad response to read memory command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
     goto fail;
   }
 
@@ -2387,7 +2387,7 @@ retry:
   } else
     msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
   if (resp[0] != RSP_OK) {
-    pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(resp[0]));
+    pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
     goto fail;
   }
 
@@ -2477,7 +2477,7 @@ int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm,
     msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
   c = resp[0];
   if (c != RSP_PARAMETER) {
-    pmsg_error("bad response to get parameter command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to get parameter command: %s\n", jtagmkII_get_rc(pgm, c));
     free(resp);
     return -1;
   }
@@ -2543,7 +2543,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to set parameter %s: %s\n", parstr, jtagmkII_get_rc(c));
+    pmsg_error("bad response to set parameter %s: %s\n", parstr, jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
@@ -3291,7 +3291,7 @@ static void jtagmkII_close32(PROGRAMMER * pgm) {
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(pgm, c));
   }
 
   ret:
@@ -3357,7 +3357,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
     } else
       msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
     if (resp[0] != 0x87) {
-      pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(resp[0]));
+      pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
       free(resp);
       return -1;
     }
@@ -3458,7 +3458,7 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
       } else
         msg_notice2("0x%02x (%d bytes msg)\n", resp[0], status);
       if (resp[0] != RSP_OK) {
-        pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(resp[0]));
+        pmsg_error("bad response to write memory command: %s\n", jtagmkII_get_rc(pgm, resp[0]));
         free(resp);
         free(cmd);
         return -1;
@@ -3620,7 +3620,7 @@ static int jtagmkII_updi_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p
   c = resp[0];
   free(resp);
   if (c != RSP_OK) {
-    pmsg_error("bad response to `get_sync` command: %s\n", jtagmkII_get_rc(c));
+    pmsg_error("bad response to get_sync command: %s\n", jtagmkII_get_rc(pgm, c));
     return -1;
   }
 
