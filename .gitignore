@@ -1,3 +1,6 @@
+node_modules/
+cmake-build-release-emscripten/
+.idea/
 .DS_Store
 .deps/
 .libs/
