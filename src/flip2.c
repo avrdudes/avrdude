@@ -493,7 +493,7 @@ static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 
 // Parse the -E option flag
 static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
-  char *cp, *s, *str = cfg_strdup("flip2_parseextitspecs()", sp);
+  char *cp, *s, *str = mmt_strdup(sp);
 
   s = str;
   while ((cp = strtok(s, ","))) {
@@ -506,11 +506,11 @@ static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
       pgm->exit_reset = EXIT_RESET_DISABLED;
       continue;
     }
-    free(str);
+    mmt_free(str);
     return -1;
   }
 
-  free(str);
+  mmt_free(str);
   return 0;
 }
 
@@ -528,17 +528,11 @@ static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
 }
 
 static void flip2_setup(PROGRAMMER *pgm) {
-  pgm->cookie = calloc(1, sizeof(struct flip2));
-
-  if (pgm->cookie == NULL) {
-    pmsg_error("out of memory allocating private data structure\n");
-    exit(1);
-  }
+  pgm->cookie = mmt_malloc(sizeof(struct flip2));
 }
 
 static void flip2_teardown(PROGRAMMER *pgm) {
-  free(pgm->cookie);
-  pgm->cookie = NULL;
+  mmt_free(pgm->cookie);
 }
 
 /* INTERNAL FUNCTION DEFINITIONS
