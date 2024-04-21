@@ -1296,28 +1296,16 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
   }
 
   // Memories left: fuse and lockbits
-
-  unsigned char cmd[4], sbuf[32] = {0}, *sptr = sbuf;
-  int written, clen, n, n_bytes = m->page_size;
-  uint16_t pr;
-
   if(addr != 0) {
     pmsg_error("unexpected address 0x%04lx of %s memory\n", addr, m->desc);
     return -1;
   }  
 
-  if(n_bytes > (int) sizeof sbuf) {
-    pmsg_error("unexpected page size %d of %s memory\n", n_bytes, m->desc);
-    return -1;
-  }  
-
-  *sbuf = *m->buf;
-  pr = addr + m->offset;
-  written = 0;
+  uint16_t pr = addr + m->offset;
 
   // Must erase fuse first, TPI parts only have one fuse
-  if(mem_is_a_fuse(m)) { // What about lockbits? Should this if be removed?
-    // Set PR
+  if(mem_is_a_fuse(m)) { // Lockbits are reset during chip erase
+    // Set pointer register
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
     usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
@@ -1332,32 +1320,22 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     usbasp_tpi_nvm_waitbusy(pgm);
   }
 
-  // Set PR
+  // Set pointer register
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
   usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
   usbasp_tpi_send_byte(pgm, (pr >> 8) );
+  // Select word write
+  usbasp_tpi_send_byte(pgm, TPI_OP_SOUT(NVMCMD));
+  usbasp_tpi_send_byte(pgm, NVMCMD_WORD_WRITE);
+  // Write low byte
+  usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+  usbasp_tpi_send_byte(pgm, data);
+  // Write high byte to start word write
+  usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+  usbasp_tpi_send_byte(pgm, 0xff);
 
-  while(written < n_bytes) {
-    clen = n_bytes - written;
-    if(clen > 32)
-      clen = 32;
-
-    cmd[0] = pr & 0xFF;
-    cmd[1] = pr >> 8;
-    cmd[2] = 0;
-    cmd[3] = 0;
-    n = usbasp_transmit(pgm, 0, USBASP_FUNC_TPI_WRITEBLOCK, cmd, sptr, clen);
-    if(n != clen) {
-      if(n >= 0)
-        pmsg_error("wrong count at writing %x\n", n);
-      return -3;
-    }
-
-    written += clen;
-    pr += clen;
-    sptr += clen;
-  }
+  usbasp_tpi_nvm_waitbusy(pgm);
 
   return 0;
 }
