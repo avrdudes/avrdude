@@ -545,20 +545,12 @@ int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRME
   return 0;
 }
 
-void flip1_setup(PROGRAMMER * pgm)
-{
-  pgm->cookie = calloc(1, sizeof(struct flip1));
-
-  if (pgm->cookie == NULL) {
-    pmsg_error("out of memory allocating private data structure\n");
-    exit(1);
-  }
+void flip1_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct flip1));
 }
 
-void flip1_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
-  pgm->cookie = NULL;
+void flip1_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
 }
 
 /* INTERNAL FUNCTION DEFINITIONS
@@ -690,12 +682,7 @@ int flip1_write_memory(struct dfu_dev *dfu,
     write_size = size;
   }
 
-  if ((buf = malloc(sizeof(struct flip1_cmd_header) +
-                    write_size +
-                    sizeof(struct flip1_prog_footer))) == 0) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
+  buf = mmt_malloc(sizeof(struct flip1_cmd_header) + write_size + sizeof(struct flip1_prog_footer));
 
   /*
    * As this function is called once per page, no need to handle 64
@@ -707,7 +694,7 @@ int flip1_write_memory(struct dfu_dev *dfu,
   if (mem_unit == FLIP1_MEM_UNIT_FLASH) {
     page_addr = addr >> 16;
     if (flip1_set_mem_page(dfu, page_addr) < 0) {
-      free(buf);
+      mmt_free(buf);
       return -1;
     }
   }
@@ -735,7 +722,7 @@ int flip1_write_memory(struct dfu_dev *dfu,
   aux_result = dfu_getstatus(dfu, &status);
   dfu->timeout = default_timeout;
 
-  free(buf);
+  mmt_free(buf);
 
   if (aux_result < 0 || cmd_result < 0)
     return -1;
