@@ -97,6 +97,8 @@ struct pdata
 
   /* Function to set the appropriate clock parameter */
   int (*set_sck)(const PROGRAMMER *, unsigned char *);
+
+  unsigned char signature_cache[2]; // Used in jtag3_read_byte()
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -2235,8 +2237,6 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     *value = PDATA(pgm)->sib_string[addr];
     return 0;
   } else if (mem_is_signature(mem)) {
-    static unsigned char signature_cache[2];
-
     cmd[3] = MTYPE_SIGN_JTAG;
 
     /*
@@ -2252,13 +2252,13 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if ((status = jtag3_command(pgm, cmd, 12, &resp, "read memory")) < 0)
         return status;
 
-      signature_cache[0] = resp[4];
-      signature_cache[1] = resp[5];
+      PDATA(pgm)->signature_cache[0] = resp[4];
+      PDATA(pgm)->signature_cache[1] = resp[5];
       *value = resp[3];
       free(resp);
       return 0;
     } else if (addr <= 2) {
-      *value = signature_cache[addr - 1];
+      *value = PDATA(pgm)->signature_cache[addr - 1];
       return 0;
     } else {
       /* should not happen */
