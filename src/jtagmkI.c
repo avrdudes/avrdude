@@ -98,15 +98,11 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
 static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon);
 
 static void jtagmkI_setup(PROGRAMMER *pgm) {
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void jtagmkI_teardown(PROGRAMMER *pgm) {
-  free(pgm->cookie);
+  mmt_free(pgm->cookie);
 }
 
 
@@ -180,23 +176,18 @@ static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
   msg_debug("\n");
   pmsg_debug("jtagmkI_send(): sending %u bytes\n", (unsigned int) len);
 
-  if ((buf = malloc(len + 2)) == NULL)
-    {
-      pmsg_error("out of memory");
-      exit(1);
-    }
-
+  buf = mmt_malloc(len + 2);
   memcpy(buf, data, len);
   buf[len] = ' ';		/* "CRC" */
   buf[len + 1] = ' ';		/* EOP */
 
   if (serial_send(&pgm->fd, buf, len + 2) != 0) {
     pmsg_error("unable to send command to serial port\n");
-    free(buf);
+    mmt_free(buf);
     return -1;
   }
 
-  free(buf);
+  mmt_free(buf);
 
   return 0;
 }
@@ -515,18 +506,11 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, PDATA(pgm)->flash_pagesize >> 8);
   jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, PDATA(pgm)->eeprom_pagesize & 0xff);
 
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
-  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    free(PDATA(pgm)->flash_pagecache);
-    return -1;
-  }
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+  mmt_free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
+  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
+  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
 
   if (jtagmkI_reset(pgm) < 0)
     return -1;
@@ -540,9 +524,9 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static void jtagmkI_disable(const PROGRAMMER *pgm) {
-  free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
-  free(PDATA(pgm)->eeprom_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->eeprom_pagecache = NULL;
 
   (void)jtagmkI_program_disable(pgm);
@@ -627,7 +611,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 {
   int block_size, send_size, tries;
   unsigned int maxaddr = addr + n_bytes;
-  unsigned char cmd[6], *datacmd;
+  unsigned char cmd[6], *datacmd = NULL;
   unsigned char resp[2];
   int is_flash = 0;
   long otimeout = serial_recv_timeout;
@@ -646,11 +630,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return -1;
   }
 
-  if ((datacmd = malloc(page_size + 1)) == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-
+  datacmd = mmt_malloc(page_size + 1);
   cmd[0] = CMD_WRITE_MEM;
   if (mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
@@ -671,6 +651,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
       pmsg_error("sync loss, retries exhausted\n");
+      mmt_free(datacmd);
       return -1;
     }
 
@@ -696,14 +677,17 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     /* First part, send the write command. */
     jtagmkI_send(pgm, cmd, 6);
-    if (jtagmkI_recv(pgm, resp, 1) < 0)
+    if (jtagmkI_recv(pgm, resp, 1) < 0) {
+      mmt_free(datacmd);
       return -1;
+    }
     if (resp[0] != RESP_OK) {
       msg_notice2("\n");
       pmsg_warning("timeout/error communicating with programmer (resp %c)\n", resp[0]);
       if (tries++ < MAXTRIES)
 	goto again;
       serial_recv_timeout = otimeout;
+      mmt_free(datacmd);
       return -1;
     } else {
       msg_notice2("OK\n");
@@ -721,21 +705,24 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     /* Second, send the data command. */
     jtagmkI_send(pgm, datacmd, send_size + 1);
-    if (jtagmkI_recv(pgm, resp, 2) < 0)
+    if (jtagmkI_recv(pgm, resp, 2) < 0) {
+      mmt_free(datacmd);
       return -1;
+    }
     if (resp[1] != RESP_OK) {
       msg_notice2("\n");
       pmsg_warning("timeout/error communicating with programmer (resp %c)\n", resp[0]);
       if (tries++ < MAXTRIES)
 	goto again;
       serial_recv_timeout = otimeout;
+      mmt_free(datacmd);
       return -1;
     } else {
       msg_notice2("OK\n");
     }
   }
 
-  free(datacmd);
+  mmt_free(datacmd);
   serial_recv_timeout = otimeout;
 
 #undef MAXTRIES
