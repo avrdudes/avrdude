@@ -88,6 +88,7 @@ static void butterfly_setup(PROGRAMMER *pgm) {
 
 static void butterfly_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int butterfly_send(const PROGRAMMER *pgm, char *buf, size_t len) {
