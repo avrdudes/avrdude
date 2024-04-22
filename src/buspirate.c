@@ -406,7 +406,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 			msg_error("  -xpullups                   Enable internal pull-ups\n");
 			msg_error("  -xhiz                       SPI HiZ mode (open collector)\n");
 			msg_error("  -xhelp                      Show this help menu and exit\n");
-			exit(0);
+			return LIBAVRDUDE_EXIT;;
 		}
 
 		pmsg_error("do not understand extended param '%s'\n", extended_param);
