@@ -153,8 +153,8 @@ static const char *errstr(const PROGRAMMER *pgm, int result) {
 
 /* Prototypes */
 // interface - management
-static void usbasp_setup(PROGRAMMER * pgm);
-static void usbasp_teardown(PROGRAMMER * pgm);
+static void usbasp_setup(PROGRAMMER *pgm);
+static void usbasp_teardown(PROGRAMMER *pgm);
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms);
 // internal functions
 static int usbasp_transmit(const PROGRAMMER *pgm, unsigned char receive,
@@ -278,6 +278,7 @@ static void usbasp_setup(PROGRAMMER *pgm) {
 
 static void usbasp_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
