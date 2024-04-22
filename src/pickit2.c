@@ -169,6 +169,7 @@ static void pickit2_setup(PROGRAMMER *pgm) {
 
 static void pickit2_teardown(PROGRAMMER *pgm) {
     mmt_free(pgm->cookie);
+    pgm->cookie = NULL;
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
