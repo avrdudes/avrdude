@@ -799,7 +799,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       }
       msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
      pmsg_error("invalid extended parameter %s\n", extended_param);
