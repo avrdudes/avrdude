@@ -144,8 +144,8 @@ static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
 static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem);
 static int flip2_parseexitspecs(PROGRAMMER* pgm, const char *s);
-static void flip2_setup(PROGRAMMER * pgm);
-static void flip2_teardown(PROGRAMMER * pgm);
+static void flip2_setup(PROGRAMMER *pgm);
+static void flip2_teardown(PROGRAMMER *pgm);
 
 /* INTERNAL PROGRAMMER FUNCTION PROTOTYPES */
 
@@ -533,6 +533,7 @@ static void flip2_setup(PROGRAMMER *pgm) {
 
 static void flip2_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 /* INTERNAL FUNCTION DEFINITIONS
