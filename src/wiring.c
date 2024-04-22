@@ -73,8 +73,10 @@ static void wiring_setup(PROGRAMMER *pgm) {
 }
 
 static void wiring_teardown(PROGRAMMER *pgm) {
-  mmt_free(((struct pdata *)(pgm->cookie))->chained_pdata);
+  if(pgm->cookie)
+    mmt_free(((struct pdata *)(pgm->cookie))->chained_pdata);
   stk500v2_teardown(pgm);
+  pgm->cookie = NULL;
 }
 
 static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
