@@ -83,6 +83,7 @@ static void avr910_setup(PROGRAMMER * pgm) {
 
 static void avr910_teardown(PROGRAMMER * pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 
