@@ -142,6 +142,7 @@ void jtag3_setup(PROGRAMMER *pgm) {
 
 void jtag3_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 
