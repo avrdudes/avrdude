@@ -51,7 +51,7 @@ struct ppipins_t {
   int inverted;
 };
 
-static struct ppipins_t ppipins[] = {
+static const struct ppipins_t ppipins[] = {
   {  1, PPICTRL,   0x01, 1 },
   {  2, PPIDATA,   0x01, 0 },
   {  3, PPIDATA,   0x02, 0 },
