@@ -339,25 +339,30 @@ void stk500v2_teardown(PROGRAMMER *pgm) {
 }
 
 static void stk500v2_jtagmkII_teardown(PROGRAMMER *pgm) {
-  void *mycookie;
+  if(pgm->cookie) {
+    mmt_free(PDATA(pgm)->flash_pagecache);
+    mmt_free(PDATA(pgm)->eeprom_pagecache);
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
+    void *mycookie = pgm->cookie;
+    pgm->cookie = PDATA(pgm)->chained_pdata;
+    jtagmkII_teardown(pgm);
+    pgm->cookie = mycookie;
+  }
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtagmkII_teardown(pgm);
-
-  mmt_free(mycookie);
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static void stk500v2_jtag3_teardown(PROGRAMMER *pgm) {
-  void *mycookie = pgm->cookie;
+  if(pgm->cookie) {
+    void *mycookie = pgm->cookie;
+    pgm->cookie = PDATA(pgm)->chained_pdata;
+    jtag3_teardown(pgm);
+    pgm->cookie = mycookie;
+  }
 
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtag3_teardown(pgm);
-
-  mmt_free(mycookie);
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 
