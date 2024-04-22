@@ -548,6 +548,7 @@ static void flip1_setup(PROGRAMMER *pgm) {
 
 static void flip1_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 /* INTERNAL FUNCTION DEFINITIONS
