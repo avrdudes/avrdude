@@ -1190,7 +1190,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
             msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
             msg_error("  -xhelp            Show this help menu and exit\n");
-            exit(0);
+            return LIBAVRDUDE_EXIT;;
         }
 
         pmsg_error("invalid extended parameter '%s'\n", extended_param);

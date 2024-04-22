@@ -59,6 +59,7 @@ typedef uint32_t pinmask_t;
 #define LIBAVRDUDE_NOTSUPPORTED (-2) // operation not supported
 #define LIBAVRDUDE_SOFTFAIL (-3) // returned, eg, by avr_signature() if caller
                                  // might proceed with chip erase
+#define LIBAVRDUDE_EXIT (-4)     // End all operations in this session
 
 /* formerly lists.h */
 
