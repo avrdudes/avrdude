@@ -1645,7 +1645,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xxbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
