@@ -237,6 +237,7 @@ static void teensy_setup(PROGRAMMER *pgm) {
 static void teensy_teardown(PROGRAMMER *pgm) {
     pmsg_debug("teensy_teardown()\n");
     mmt_free(pgm->cookie);
+    pgm->cookie = NULL;
 }
 
 static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
