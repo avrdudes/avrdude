@@ -1382,7 +1382,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       if (pgm->flag & PGM_FL_IS_PDI)
         msg_error("  -xrtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
       msg_error(  "  -xhelp                  Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
