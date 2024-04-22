@@ -320,7 +320,7 @@ target_link_libraries(libavrdude
 
 # check if we are using emscripten
 if(EMSCRIPTEN)
-    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC -O3 -s ENVIRONMENT=web -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s WASM=1 -s FORCE_FILESYSTEM -s ASYNCIFY=1 -s INVOKE_RUN=0 -s WASM_BIGINT=1 -s MODULARIZE=1 -s \"EXPORTED_FUNCTIONS=['_startAvrdude','_malloc','_dataCallback']\" --bind -s EXPORTED_RUNTIME_METHODS='[\"cwrap\", \"writeStringToMemory\", \"FS\", \"allocate\"]' -s EXPORT_ES6=1")
+    set(CMAKE_C_FLAGS ${CMAKE_C_FLAGS} "-fPIC -s EXIT_RUNTIME -O3 -s ENVIRONMENT=web -s ERROR_ON_UNDEFINED_SYMBOLS=1 -s WASM=1 -s FORCE_FILESYSTEM -s ASYNCIFY=1 -s INVOKE_RUN=0 -s WASM_BIGINT=1 -s MODULARIZE=1 -s \"EXPORTED_FUNCTIONS=['_startAvrdude','_malloc','_dataCallback','_errorCallback']\" --bind -s EXPORTED_RUNTIME_METHODS='[\"cwrap\", \"writeStringToMemory\", \"FS\", \"allocate\"]' -s EXPORT_ES6=1")
 endif ()
 
 add_executable(avrdude
