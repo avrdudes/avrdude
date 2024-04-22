@@ -1232,12 +1232,12 @@ static void avrftdi_setup(PROGRAMMER * pgm) {
 }
 
 static void avrftdi_teardown(PROGRAMMER * pgm) {
-	avrftdi_t* pdata = to_pdata(pgm);
-
-	if(pdata) {
+	if(pgm->cookie) {
+		avrftdi_t *pdata = to_pdata(pgm);
 		ftdi_deinit(pdata->ftdic);
 		ftdi_free(pdata->ftdic);
 		mmt_free(pdata);
+		pgm->cookie = NULL;
 	}
 }
 
