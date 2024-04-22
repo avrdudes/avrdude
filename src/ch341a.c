@@ -434,6 +434,7 @@ static void ch341a_setup(PROGRAMMER *pgm) {
 
 static void ch341a_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 // Dummy functions
