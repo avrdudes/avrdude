@@ -297,7 +297,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
       msg_error("  -xhelp           Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
