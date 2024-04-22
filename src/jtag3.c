@@ -1622,7 +1622,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
         msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
       msg_error  ("  -xhelp                  Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter %s\n", extended_param);
@@ -1725,7 +1725,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n", pgmid, partdesc, port);
           }
           serial_close(&pgm->fd);
-          exit(0);
+          return LIBAVRDUDE_EXIT;;
         }
       }
     }
@@ -1774,7 +1774,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     }
     imsg_error("PIC mode switch successful\n");
     serial_close(&pgm->fd);
-    exit(0);
+    return LIBAVRDUDE_EXIT;;
   }
 
   return 0;
