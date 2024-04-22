@@ -56,6 +56,7 @@ static void serialupdi_setup(PROGRAMMER *pgm) {
 
 static void serialupdi_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
