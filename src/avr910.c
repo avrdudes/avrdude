@@ -338,7 +338,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -xdevcode=<arg> Override device code\n");
       msg_error("  -xno_blockmode  Disable default checking for block transfer capability\n");
       msg_error("  -xhelp          Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
@@ -596,9 +596,9 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cmd[3] = isee? 'E': 'F';
 
     while (addr < max_addr) {
-      if ((max_addr - addr) < blocksize) {
+      if ((max_addr - addr) < blocksize)
         blocksize = max_addr - addr;
-      };
+
       memcpy(&cmd[4], &m->buf[addr], blocksize);
       cmd[1] = (blocksize >> 8) & 0xff;
       cmd[2] = blocksize & 0xff;
