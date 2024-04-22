@@ -6,14 +6,14 @@ size_t readBufferLen;
 
 
 void dataCallback(const unsigned char* array, int length) {
-//    std::vector<int8_t> data(array, array + length);
-//    readBuffer.insert(readBuffer.end(), data.begin(), data.end());
-    // add the data to the readBuffer
     for (size_t i = 0; i < length; ++i) {
         readBuffer[readBufferLen++] = array[i];
     }
 }
 
+void errorCallback() {
+    exit(1);
+}
 
 
 
@@ -29,6 +29,10 @@ EM_ASYNC_JS(void, clear_read_buffer, (int timeoutMs), {
     window.avrDudeWorker.postMessage({ type: 'clear-read-buffer', timeout: timeoutMs });
     await new Promise(resolve => {
         window.avrDudeWorker.onmessage = (event) => {
+            // check if the response type is an error
+            if (event.data.type === "error") {
+                window.funcs._errorCallback();
+            }
             resolve();
         };
     });
@@ -39,7 +43,10 @@ EM_ASYNC_JS(void, read_data, (int timeoutMs, int length), {
     window.avrDudeWorker.postMessage({ type: 'read', timeout: timeoutMs, requiredBytes: length });
     const data = await new Promise((resolve, _) => {
         window.avrDudeWorker.onmessage = (event) => {
-            if (event.data.type == "read") {
+            // check if the response type is an error
+            if (event.data.type === "error") {
+                window.funcs._errorCallback();
+            } else if (event.data.type == "read") {
                 resolve(event.data);
             }
         };
@@ -105,6 +112,9 @@ EM_ASYNC_JS(void, open_serial_port, (int baudRateInt), {
     worker.postMessage({ type: 'init', options: serialOpts, port: portNumber });
     await new Promise(resolve => {
         worker.onmessage = (event) => {
+            if (event.data.type === "error") {
+                window.funcs._errorCallback();
+            }
             resolve();
         };
     });
@@ -119,6 +129,10 @@ EM_ASYNC_JS(void, close_serial_port, (), {
     window.avrDudeWorker.postMessage({ type: 'close' });
     await new Promise(resolve => {
         window.avrDudeWorker.onmessage = (event) => {
+            // check if the response type is an error
+            if (event.data.type === "error") {
+                window.funcs._errorCallback();
+            }
             resolve();
         };
     });
