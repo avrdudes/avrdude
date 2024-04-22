@@ -109,7 +109,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -xsnooze=<arg> Wait snooze [ms] before protocol sync after port open\n");
       msg_error("  -xdelay=<arg>  Add delay [ms] after reset, can be negative\n");
       msg_error("  -xhelp         Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
