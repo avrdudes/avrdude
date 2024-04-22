@@ -1201,6 +1201,9 @@ void ft245r_setup(PROGRAMMER *pgm) {
 }
 
 void ft245r_teardown(PROGRAMMER *pgm) {
+  if(!pgm->cookie)
+    return;
+
   while(my.req_pool) {          // Free request pool
     struct ft245r_request *p = my.req_pool;
     my.req_pool = p->next;
@@ -1212,6 +1215,7 @@ void ft245r_teardown(PROGRAMMER *pgm) {
     mmt_free(p);
   }
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 void ft245r_initpgm(PROGRAMMER *pgm) {
