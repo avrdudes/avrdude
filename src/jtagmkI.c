@@ -103,6 +103,7 @@ static void jtagmkI_setup(PROGRAMMER *pgm) {
 
 static void jtagmkI_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 
