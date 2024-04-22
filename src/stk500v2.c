@@ -1913,7 +1913,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
       msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter %s\n", extended_param);
@@ -2048,7 +2048,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
         msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
       msg_error  ("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter %s\n", extended_param);
