@@ -82,6 +82,7 @@ static void usbtiny_setup(PROGRAMMER *pgm) {
 
 static void usbtiny_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 // Wrapper for simple usb_control_msg messages
