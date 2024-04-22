@@ -1,0 +1,1923 @@
+$Id$
+
+Approximate change log for AVRDUDE by version.
+
+(For detailed changes, see the version control system logs.)
+
+----------------------------------------------------------------------
+Changes since version 7.3:
+
+  * Major changes compared to the previous version:
+
+  * New devices supported:
+
+  * New programmers supported:
+
+  * Issues fixed:
+    - Avrintel.h missing from installation #1683
+    - Use of undeclared identifier 'AVRDUDE_FULL_VERSION' #1706
+    - Wrong message level in jtag3_prmsg() #1726
+    - Old avrdude_message() can go away #1719
+    - avr_{read,write}_mem fail to initialize progress reporting #1718
+    - avr*timestamp() oddities #1722
+    - -F option not honored bug #1740
+    - "jtag2 is not a unique start of a programmer name" #1739
+
+  * Pull requests:
+    - Remove 32bit MSYS2 mingw32 and clang32 build #1687
+    - Make avrintel.h an internal header file for libavrdude #1686
+    - Fix -Wcalloc-transposed-args warning #1680
+    - Improve autotool build #1681
+    - Installation of libavrdude-avrintel.h #1688
+    - Updated documentation about NVM models support #1689
+    - Abbreviate ids of modern AVR parts #1703
+    - Allow slash in part variant name for -p #1702
+    - Fix reporting of read/write times for files with holes #1700
+    - Change port array in PROGRAMMER to be const char * #1699
+    - Fix cmake build errors related to ac_cfg.h #1707
+    - Add benchmark option -b for test-avrdude #1709
+    - Replace msg_info() by msg_debug() in jtag3_prmsg()
+      and jtag3_prevent() #1727
+    - Remove unused avrdude_message() #1730
+    - Add lmsg_xyz() functions to start message at left margin #1728
+    - Document progress reporting in source code #1724
+    - Change type for avr_(ms|us)timestamp() to uint64_t #1729
+    - Use Static Libs for macOS arduino_packing build #1731
+    - Add arduino_packing_release github action #1690
+    - Fix message levels in jtag3_print_data() #1741
+    - Consult -F option when signature cannot be read #1745
+    - Check all programmer ids for exact match #1746
+    - Update avrintel files #1747
+    - Add buspirate hiz and pullups feature #1733
+    - Add support for libgpiod v2+ API #1725
+    - Remove deprecated ucr2 part #1749
+    - Move static variables to PDATA region in programmer code
+      #1750
+
+
+  * Internals:
+
+
+Changes in version 7.3:
+
+  * Major changes compared to the previous version:
+
+    - Connect target via -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
+    - Add io and sram memory info in lieu of incomplete data memory
+    - New test-avrdude script in tools #1645
+    - Update SerialUPDI protocol #1627
+    - Terminal
+        + Command regfile #1580
+        + Command factory reset #1642
+
+  * New devices supported:
+
+    - AVR16EB14, AVR16EB20, AVR16EB28, AVR16EB32
+    - AVR64DU28, AVR64DU32
+
+  * New programmers supported:
+
+    - ft2232h_jtag, ft232h_jtag
+    - dryboot
+
+  * Issues fixed:
+
+    - Provide sib memory for AVR8X parts #1479
+    - HAS_VTARG_READ not utilized in source code #1469
+    - -c stk500 only works with stk500v2 firmware #1467
+    - Read silicon revision from modern AVRs #1472
+    - Dryrun doesn't overlap XMEGA flash memories #1485
+    - 7e94ed4442b breaks flashing GT2560 boards #1503
+    - Cross-platform support for 1200bps touch #1500
+    - Read ATmega324PB and ATmega328PB serial number #1509
+    - EEPROM file generates error with 7.2 #1508
+    - PGM LED not activated for flash or eeprom write #1514
+    - Adding the Avrdude build version to avrdude.conf #1475
+    - Harmonise WIN32 and POSIX serial comms timeout #1249
+    - Old avrdude.conf can result in a segmentation fault #1544
+    - Support AVR EB series #1546
+    - Programmer in .avrduderc not recognised #1551
+    - JTAG signature write ineffective #1527
+    - Control forced loading of ~/.avrduderc #1548
+    - Warn if avrdude and avrdude.conf versions don't match #1562
+    - Terminal part command could need an update #1558
+    - Proposal: Add memory sram #1559
+    - jtagmkI.c/jtagmkII.c rely on OCDEN being hfuse bit 7 #1537
+    - Certain terminal commands may be confusing #1570
+    - Upload port required for -cdryrun on MacOS #1578
+    - Make programmer -c name checking more forgiving #1591
+    - Query a programmer's current clock speed #1329
+    - Differentiate USB programmers with the same VID/PID #973
+    - Add AVR-DU series latest information #1595
+    - Provide simple way to factory reset a chip #1619
+    - Incorrect SerialUPDI communication for NVM V3, V4 and V5 #1621
+    - SerialUPDI programmer can fail when erasing EEPROM #1622
+    - SerialUPDI - NVMProg key not being accepted immediately
+      after NVM V3+ chip completes boot #1623
+    - USE_STATIC_LIBS builds fail to detect libreadline.so #1624
+    - Writing one-byte files to flash fails #1633
+    - Integrate test-avrdude github action using dryrun #1643
+    - Test script issues #1649
+    - SerialUPDI unable to write USERROW memory on AVR64DU32 #1655
+    - The last write/erase can fail with -c jtag2updi #1661
+    - Improve programmer documentation in avrdude.conf #1437
+
+  * Pull requests:
+
+    - Add JTAG support to avrftdi #1324
+    - Fix probing of the generic -c stk500 programmer #1468
+    - Utilize HAS_VTARG_READ defined in avrdude.conf #1470
+    - Provide sib memory for AVR8X parts #1480
+    - Read chip revision and add IO memory for PDI/UPDI parts #1474
+    - Replace string comparison functions #1482
+    - Fix overlapping XMEGA flash memories for dryrun #1486
+    - Exit if part and programmer are incompatible #1487
+    - Add io memory for classic parts #1488
+    - Add AVR-EB parts #1491
+    - Review calibration read command in avrdude.conf #1495
+    - Provide serialadapter entity in avrdude.conf #1497
+    - Add -P serialadapter[:sn] and -P usb:vid:pid[:sn] #1498
+    - Add -xdelay=n to wiring and improve reset timing #1505
+    - Reduce stk500v2_getsync() timeout #1506
+    - libserialport github action #1512
+    - Support serial port "touch" using libserialport #1507
+    - Read prodsig of classic parts #1510 #1520-21 #1524-26
+    - Adapt stk500 readback values for usbtiny.c #1511
+    - Add LED support for ScratchMonkey programmer #1517
+    - Review and update prodsig memories for U/PDI parts #1518
+    - Add id as comment to avrdude.conf definitions #1519
+    - Model prodsig for -c dryrun #1522
+    - Fix tempsense size, AVR-EB memory offsets and avrdude.conf
+      memory order #1523
+    - Review and update LED support #1528
+    - Fix SerialUPDI with NVM v3 controller #1531
+    - Add bootloader hashes from the Sanguino Arduino repo #1533
+    - Support MinGW cross compiler #1539
+    - Add avrdude_conf_version to grammar #1542 #1547
+    - Change execution order in silicon revision check #1543
+    - Add Arduino avrdude_packing github action for git man #1540
+    - Introduce memory types in lieu of memory name comparisons #1538
+    - Allow UPDI_SIB of AVR_EB in serialupdi #1549
+    - Harmonise WIN32 and POSIX serial comms timeout #1550
+    - Test programmers for prog_modes and type #1557
+    - Remove paged eeprom property from ATtiny43U #1556
+    - Review write_byte() functions #1554
+    - Provide option -N for do not load personal config file #1555
+    - Print warning when avrdude and avrdude.conf versions doesn't match #1564
+    - Always warn if part and programmer are incompatible #1563
+    - Provide -x xtal=... option for STK500 v1 and v2 #1566
+    - Update part cmd #1568
+    - Update src/CMakeLists.txt #1569
+    - Add memory sram and remove memory data #1571
+    - Add GNU readline to mingw github action #1576
+    - Provide libavrude functions to access part config values #1577
+    - Add get_vtarget/varef/fosc/sck_period for programmers #1574
+    - Provide terminal regfile command #1580
+    - Ignore port settings when using -c dryrun #1581
+    - Add more PL2303 compatible USB PIDs #1583
+    - Faster build.sh script with option -j #1586
+    - Terminal sck command improvements #1587
+    - Differentiate USB programmers with the same VID/PID #1588
+    - Provide configuration variable default_baudrate #1590
+    - Increase index entries in avrdude.texi #1592
+    - Suggest programmers using weighted Damerau-Levenshtein #1593
+    - Switch PICkit4 and SNAP avr/pic modes using -xmode #1596
+    - Support AVR64DU28 and AVR64DU32 #1601
+    - Force STK500 EEPROM paged r/w for bootloaders #1602
+    - Provide terminal keep alive code for jtagmkII_updi #1603
+    - Fix Arduino Nano Every EEPROM writing for UPDI parts #1604
+    - Provide and use locate_part_by_signature_pm() #1605
+    - Harden AVRDUDE against pre-C99 libraries #1608
+    - Add MSYS2 ucrt64, clang32 and clang64 to build.yml #1612
+    - Updates to SerialUPDI protocol #1627
+    - Fix upload of one-byte files to flash #1634
+    - Add CH343 USB to serial adapter #1640
+    - Add dryboot programmer #1641
+    - Provide terminal command factory reset #1642
+    - Add tools/test-avrdude #1645
+    - Add test-avrdude using dryrun to github action #1646
+    - Add delay for AVR Dragon and Arduino Nano Every #1647
+    - Make test-avrdude script resilient to old bash #1650
+    - Create test-avrdude temporary files in the script itself #1651
+    - Enable writing of 512-byte page for USERROW #1659
+    - Read signature on -c jtag2updi exit if last op was write #1662
+    - Determine Autoconf package version from cmake's #1663
+    - Add more programmer descriptions #1667
+    - test(1) string comparison uses =, not == #1668
+
+  * Internals:
+
+    - Introduce memory types in lieu of memory name comparisons #1538
+      This will enable to decouple memory names from function
+    - Added a knowledgebase on register files of parts
+
+
+Changes in version 7.2:
+
+  * Major changes compared to the previous version:
+
+    - libgpiod support for linuxgpio #1299
+    - Support jtag2updi -U UPDI EEPROM write #1318
+    - avrdude.conf reconciled with ATDFs #1343
+    - avrdude -p part/s now also shows part variants #1343
+    - New programmer dryrun for testing #1347
+    - New -T cmd to mix terminal with -U commands #1373
+    - Run -t interactive terminals in CLI option order #1402
+    - Terminal
+        + Command config (mnemonic fuse setting) #1365
+        + Write to memory from files #1358
+        + Command save memory to file #1396
+        + Subshell command ! #1397
+        + Command include file #1429
+
+  * New devices supported:
+
+    - AT89S51, AT89S52
+    - AT90S2323, ATtiny22
+    - ATmega16M1, ATmega32C1, ATmega64C1
+    - ATA5505
+    - ATA6612C, ATA6613C
+    - ATA6614Q
+    - ATA6616C, ATA6617C
+    - ATA664251
+    - ATmega16HVA, ATmega8HVA
+    - ATmega16HVB, ATmega16HVBrevB, ATmega32HVB, ATmega32HVBrevB
+    - ATmega64HVE2, ATmega32HVE2
+    - AT90PWM1
+    - AT90PWM161, AT90PWM81
+    - ATxmega32C3
+    - ATxmega32D3
+    - ATtiny416auto
+
+    - Variants of known devices now accepted:
+      AT32UC3A0512AU AT90PWM81EP    AT90S1200A     ATmega103L
+      ATmega1280V    ATmega1281V    ATmega128L     ATmega161L
+      ATmega162L     ATmega162V     ATmega163L     ATmega164PV
+      ATmega165PV    ATmega165V     ATmega168PV    ATmega168V
+      ATmega169L     ATmega169PV    ATmega169V     ATmega16L
+      ATmega16U4RC   ATmega2560V    ATmega2561V    ATmega324PV
+      ATmega3250PV   ATmega3250V    ATmega325PV    ATmega325V
+      ATmega3290PV   ATmega3290V    ATmega329PV    ATmega329V
+      ATmega32L      ATmega32U4RC   ATmega48PV     ATmega48V
+      ATmega640V     ATmega644PV    ATmega644V     ATmega6450V
+      ATmega645V     ATmega6490V    ATmega649V     ATmega64L
+      ATmega8515L    ATmega8535L    ATmega88PV     ATmega88V
+      ATmega8L       ATtiny102F     ATtiny104F     ATtiny11L
+      ATtiny12L      ATtiny12V      ATtiny13V      ATtiny15L
+      ATtiny22L      ATtiny2313V    ATtiny24V      ATtiny25V
+      ATtiny261V     ATtiny26L      ATtiny28L      ATtiny28V
+      ATtiny44V      ATtiny45V      ATtiny461V     ATtiny84V
+      ATtiny85V      ATtiny861V     AVR128DA28T    AVR128DA32T
+      AVR128DA48T    AVR128DA64T    AVR128DB28T    AVR128DB32T
+      AVR128DB48T    AVR128DB64T    AVR32DA28T     AVR32DA32T
+      AVR32DA48T     AVR32DB28T     AVR32DB32T     AVR32DB48T
+      AVR64DA28T     AVR64DA32T     AVR64DA48T     AVR64DA64T
+      AVR64DB28T     AVR64DB32T     AVR64DB48T     AVR64DB64T
+
+
+  * New programmers supported:
+
+    - dryrun
+    - raspberry_pi_gpio
+    - Flyswatter2
+    - CH341A
+    - Kanda AVRISP-U
+    - arduino_as_isp
+    - scratchmonkey, scratchmonkey_pp, scratchmonkey_hvsp
+
+  * Issues fixed:
+
+    - STK500V2 ISP problem with ATmega8/8515/8535, ATmega16 and
+      ATmega32 #425
+    - CMAKE issue: parport, linuxspi and linuxgpio not available
+      when compiled #1107
+    - MSYS2: Linker error when readline is present. #1293
+    - CMake Warning for MSVC build about CMAKE_BUILD_TYPE #1290
+    - PICKit 2: MSVC build of avrdude Windows binary does not work
+      #1006
+    - CMake version not checked properly in Ubuntu 18.04 #1300
+    - Pin limit too low for LePotato RPi clone #1307
+    - Port Linux sysfs GPIO feature to libgpiod #831
+    - Allow direct reset connection #1262
+    - AT89S51 and AT89S52 support for avrdude #1304
+    - Using serialupdi gives mismached help message #1311
+    - jtag2updi -U EEPROM write fails for AVR Dx parts #1128
+    - Usbtiny initialization never resets the part #1321
+    - Parts with *L, *PV and *V suffixes + others are missing in
+      avrdude.conf #1092
+    - -c urclock should progressively shrink metadata #1352
+    - Write errors in fuses/lock bits with unused bits #1371
+    - Some SPI read/write commands incompatible with .ATDF #1370
+    - Avrdude can segfault writing ihex or srec files #1390
+    - Avrdude srec format too lax when writing #1391
+    - Avrdude fails with AT90S8515 #433
+    - AT90S8515 STK500v2: only odd bytes are programmed #500
+    - STK500v2 ATtiny15 problem #509
+    - Downgrade missing USB device warning #1398
+    - Avrdude can not write usersig in terminal mode #1361
+    - avr109 atmega2564rfr2 erase timeout too short #336
+    - Add ScratchMonkey #989
+    - Warnings for MSVC build #1452, #1460
+    - [Regression] -F flag not correctly honored #1462
+    - Missing access to user signature rows in ATmega256RFR2 et al. #379
+
+  * Pull requests:
+
+    - Correct memory mode, delay and readback (classic parts) #1272
+    - Only send write flash cmd to STK500v2 ISP programmers if page
+      is not empty #1273
+    - Fix docu that avrftdi bit numbers start with 0 #1276
+    - Silence gcc compiler warnings #1277
+    - Reduce complexity of grammar #1282
+    - CMake: Convert verbal switches into boolean expressions #1285
+    - Add extra_features to identify a programmer's abilities #1286
+    - CMake: Remove LIB_LIBHID from configuration in favour of
+      hard-coding #1294
+    - build.sh: For compatibility with old CMake versions, use old
+      syntax to generate build system #1301
+    - Extend max pin number to 1000 #1308
+    - Add optional libgpiod support to linuxgpio #1299
+    - Auto-reset via RTS for direct RTS-reset connection #1309
+    - Support AT89S51, AT89S52, AT90S2323 and ATtiny22 #1310
+    - Remove PM_PDI flag for avrispv2 programmer #1314
+    - Make terminal write address optional for 1-byte memories #1315
+    - Print meaningful error message when using the serialupdi and
+      bitbanged UART ISP programmers #1317
+    - Support jtag2updi -U EEPROM write #1318
+    - Fix return value in usbtiny_cmd() and wrong error msg #1323
+    - Add CH341A programmer #1215
+    - Terminal read, write and erase with address intervals #1320
+    - Add Flyswatter2 programmer #1332
+    - Update avrintel.[ch] #1333
+    - Improve bitclock, sck and terminal documentation #1331
+    - Add -xhelp to programmers #1338
+    - Move avrintel[.ch] into libavrdude #1341
+    - Review avrdude.conf, add variants, reconcile with ATDFs #1343
+    - Add -xvtarg, -xvaref and -xfosc extended parameters #1345
+    - Add case-agnostic string comparisons to strutil.c #1346
+    - Provide a programmer dryrun that emulates programming #1347
+    - Add variants of obsolete parts to avrdude.conf #1348
+    - Add option -f to build.sh #1342
+    - Document -n behaviour wrt -U and terminal #1351
+    - Progressively shrink metadata for -c urclock #1357
+    - Extend <data> notion to files in terminal write #1358
+    - Add fuse0 to ATxmega128A4U/64A4U/32A4U/16A4U #1360
+    - Add configuration for Kanda's AVRISP-U programmer #1363
+    - Add more Avrdude CLI usage examples #1364
+    - Provide terminal config command for fuses and lock bits #1365
+    - Initialise unused bits of classic/XMEGA- part fuses/lock bits
+      with factory defaults #1372
+    - Implement -T cmd to mix terminal with -U commands #1373
+    - Prevent terminal write error for unchanged r/o region #1375
+    - Remove pgm->page_erase() function when unable to do so #1376
+    - Write fuse/lock only when terminal config changes them #1378
+    - Provide programmer arduino_as_isp #1383
+    - Provide debug messages for the dryrun programmer #1385
+    - Rewrite fileio functions to cater for memory segments #1392
+    - Add more documentation for programmers #1393, #1394, #1395
+    - Provide terminal save command #1396
+    - Provide terminal subshell command ! #1397
+    - Fix stk500v2.c's write_byte() for old parts #1386
+    - Document terminal comments #1399
+    - Expand authorship of documentation #1400
+    - Fix memory leak in avrcache.c #1401
+    - Run -t interactive terminals when it is their turn with
+      respect to -t/-T/-U command line option order #1402
+    - Mute missing USB device warning for lower verbosity #1403
+    - Implement bytewise cache for usersig #1404
+    - Relax checks before executing the -T/-U operations #1405
+    - Define usersig memory for ATmega*RF[AR]* parts #1406
+    - Increase timeout for emulated butterfly chip erase #1411
+    - Update reference to AT90S4433 datasheet #1415
+    - Update alf programmer info and URL #1416
+    - Update URLs for 89isp programmer #1417
+    - Update ft2232h programmer info and URLs #1418
+    - Update butterfly_mk info #1419
+    - Remove outdated web URLs for O-Link #1420
+    - Update URLs for the ttl232r programmer #1421
+    - Update usbasp programmer info #1422
+    - Remove comment and URL for arduino-ft232r programmer #1423
+    - Enable -c programmers to access -c string #1424
+    - Add scratchmonkey programmers #1429
+    - Use pgm->id list for alias names of a programmer #1430
+    - Fix writing of empty flash memory #1438
+    - Provide terminal include command #1439
+    - Add jtag2updi -xrtsdtr extended parameter #1425
+    - Update info on bsd programmer #1450
+    - Suppress overzealous compiler warnings #1454, #1461
+    - Bail out on failed initialisation unless -F was given #1463
+    - Fix -n warning for first interactive terminal #1465
+    - Fix classic-part usersig memory for jtag #1466
+
+  * Internals:
+
+
+Changes in version 7.1:
+
+  * Major changes compared to the previous version:
+
+    - Provide a new programmer -c urclock for bootloader urprotocol
+      + Urclock fully supports vector bootloaders at no extra code size
+      + Uprotocol
+        https://github.com/stefanrueger/urboot/blob/main/urprotocol.md
+        allows programming much shorter bootloaders with more features:
+         * Exports a pgm_write_page(sram, progmem) function that the
+           application can call at FLASHEND-4+1 to use flash as storage
+         * Supports EEPROM reads/writes
+         * Protects itself from overwriting
+         * Vector bootloaders: can protect the reset vector
+         * Offers Chip Erase function (quicker than uploading 0xff's)
+      + Urclock when compiled with libreadline supports bootloaders in
+        terminal mode (preventing them from WDT timeout)
+      + The -c urclock programmer provides a metadata interface that
+        allows unused flash to be used as storage
+      + avrdude -c urclock is backward compatible with avrdude -c arduino
+
+    - Add TPI support for Microchip tools #1205
+
+    - Add C-strings, C characters and double to terminal write
+
+    - Provide write flash in the terminal (using a cache)
+
+    - Provide page erase in the terminal as pgerase
+
+    - Add support for NetBSD and OpenBSD to build.sh
+
+  * New devices supported: none
+
+  * New programmers supported:
+
+    - urclock           = Urclock programmer for bootloaders using urprotocol
+    - xplainedmini_tpi  = Atmel AVR XplainedMini in TPI mode
+    - xplainedpro_pdi   = Atmel AVR XplainedPro in PDI mode
+    - atmelice_tpi      = Atmel-ICE (ARM/AVR) in TPI mode
+    - powerdebugger_tpi = Atmel PowerDebugger (ARM/AVR) in TPI mode
+    - pickit4           = MPLAB(R) PICkit 4 in JTAG mode
+    - pickit4_tpi       = MPLAB(R) PICkit 4 in TPI mode
+    - snap              = MPLAB(R) SNAP in JTAG mode
+    - snap_tpi          = MPLAB(R) SNAP in TPI mode
+    - arduino_gemma     = Arduino Gemma bootloader disguised as USBtiny
+    - adafruit_gemma    = Adafruit Trinket Gemma bootloader disguised as USBtiny
+    - digilent-hs2      = Digilient JTAG HS2 (MPSSE)
+    - tigard            = Tigard interface board
+
+  * Issues fixed:
+
+    - Fix micronucleus bootloader to check for unresponsive USB
+      devices #945
+    - Fix src/CMakeLists.txt to honor CMAKE_INSTALL_LIBDIR #972
+    - [bug #43898] atmega644p remains stopped after JTAG
+      transaction #366
+    - Wrong timings for ATmega328PB and other parts in avrdude.conf
+      #976
+    - FT232R based programmer ATmega2560 Flash Reading Problem #995
+      also #474
+    - Enable avrdude to send full input file incl trailing 0xff
+      #936
+    - Portname default for linuxspi programmer not recognized #926
+    - JTAG1 unable to write fuse and lock bits #443
+    - Unknown option '-s' on command line (legacy) #1032
+    - STK500/arduino/xbee programmers fail EEPROM r/w for some
+      parts #967 also #421
+    - Design issue: jtag2updi is hardcoded to fail for parts with
+      has_pdi = yes #1037
+    - Option parse error: after -U flash:w:program_to_upload.hex,
+      subsequent -V ignored #441
+    - Automatic verification is designed to fail for stdin #1044
+    - Display correct number of bytes when input file has holes
+      #1005
+    - Cmake installs avrdude.1 in the wrong place on Linux #1064
+    - avr910 -qq prompt too verbose #1081
+    - avrftdi.c: paged write can fail at addr 0 #1073
+    - Permission denied accessing /sys/class/gpio/gpioX/direction
+      would leave pin exported #472 also #372
+    - Raspberry Pi sysfs bug workaround for linuxgpio driver #386
+    - Fix CMake avrdude.conf dependency to avrdude.conf.in #1035
+    - CMake infrastructure does not handle documentation #947
+    - New feature: ability to reset FLIPv2 targets #733
+    - Fix Extended address not sent with avr109/butterfly #360
+      and #454
+    - Enable AVR JTAG ICE mkI program EEPROM in terminal mode
+      #1054
+    - Make flash writes work in terminal mode #1020
+    - Add support for XMEGA specific AVR109 protocol extensions
+      used by XBoot #200
+    - jtag2updi can not write EEPROM in terminal mode #1116
+    - Make UPDI programmers less verbose during initialization
+      #1084
+    - Quell mode isn't handled systematically #1114
+    - Mixing the progress bar with warning messages #1136
+    - Inconsistent terminal output re stdout and stderr #1130
+    - Supress the warning for Microchip SNAP #1135
+    - ATtiny85 communication problem with default bitclock #1133
+    - [Regression] Optiboot for "modern AVRs" no longer works #1120
+    - Cannot access EEPROM on some bootloader/part combos #970
+    - -U writes sometimes more bytes to flash/memory than input
+      file has #1050
+    - debugWire using dragon_dw and jtag2dw not working #1168
+    - && echo OK does not work after -c urclock #1192
+    - Serial drain timeout needs calibrating for -c urclock #1193
+    - avrdude -U file.elf misses second and following suitable
+      sections in elf segements #1204
+    - Avrdude on macOS has problems with libedit #1173
+    - urclock support for optiboot_x and optiboot_dx #1200
+    - Terminal does not continue read/dump correctly #1201
+    - JTAG3 programmer info not available in ISP mode #1212
+    - Extra avrdude> prompt with -qqt in terminal mode #1214
+    - PICkit4 and SNAP serial numbers not read by Avrdude #1038
+    - Optiboot EEPROM support cannot be detected by avrdude #1224
+    - megaAVR JTAG programming doesn't work for SNAP and PICkit4
+      #1052
+    - urclock/FTDI communication issues #1245
+    - stk500v2.c dumps core on open #1254
+    - linuxgpio cannot use pin 0 #1228
+    - Remove non-working butterfly page erase function
+    - linuxgpio and linuxspi: input files with unset bytes don't program
+      correctly #1263 #455
+
+  * Pull requests:
+
+    - Fix .Dd macro in manpage #949
+    - fix M1 homebrew path #950
+    - CMake Enhancements #962
+    - Reduce programmer desc string length in avrdude.conf
+      to < 80 characters #1000
+    - Dragon JTAG fix #979
+    - adding support for all Linux baud rates v.2 #993
+    - Replace internal knowledge in jtag3.c by a public API #996
+    - JTAG3 UPDI EEPROM fix #1013
+    - Treat x bits in .conf SPI commands as 0 #943
+    - Fix avrftdi support for ATmega2560 et al #998
+    - Fix avrdude.conf timings for ATmega328PB and other parts #1001
+    - Fix PICKit2 ATmega2560 flash paged flash read #1023
+    - Fix ft245r paged read for ATmega2560 et al #1018
+    - Add option -A that supresses trailing 0xff optimisation
+      and automatically do so for -c arduino #936
+    - Fix linuxspi default port #933
+    - Add support for high-voltage UPDI im jtag3.c #1015
+    - Fix terminal write edge cases; add one read mode; add quell
+      command #1025
+    - Fix usbtiny read for parts with more than 64 kB flash #1029
+    - CMakeLists.txt: fix build without C++ #1016
+    - Provide file format I: Intel HEX with comments that ignores
+      checksum errors #1030
+    - Enable writing fuse and lock bits for AVR-JTAGICE #1031
+    - Ignore -s flag as safemode is no longer supported #1033
+    - Developer options to describe parts and
+      extend avrdude.conf syntax #1040
+    - Deprecate original STK500 v1 protocol in favour of optiboot
+      and Arduino as ISP #1046
+    - Add jtagmkii_updi programmer option #1048
+    - Enable stdin verification, display correct number of bytes
+      written/verified, check -U memory names against spelling
+      errors and exit but skip -U memory updates with known
+      memories that the part lacks #1053
+    - Handle invalid -U file format specifiers for input #1042
+    - Implement a dry run for -U updates before opening the
+      programmer #1056
+    - Implement -c <wildcard>/dev_options for printing avrdude.conf
+      show comments with -p*/s or -c*/s; Reduce -p */r raw output;
+      specifying the full memory name now always works; stop
+      listing programmers where id starts with dot  #1059
+    - Fix logfile short option in man-page; fix install dir for man
+      page #1063
+    - Use const for programmer functions where useful; add second
+      argument for programmer enable interface function
+      void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
+    - Make avr910 programmer initialize() less verbose #1083
+    - Fix flash paged write for avrftdi.c #1074
+    - Fix 4 parts wrt to their interfaces in avrdude.conf; rewrite
+      avrdude.conf.in file from avrdude -c* -p* output; reformat
+      conditional programmers in avrdude.conf.in using -c*; fix
+      reset=dedicated|io; entries #1086
+    - Add prog_modes, a bitwise or of prgramming modes, to part and
+      programmer definitions; add to part definition
+       + mcuid, a unique id in 0..2039 for 8-bit AVR
+       + n_interrupts, the number of interrupts
+       + n_page_erase, if set, the # of pages erased for NVM erase
+      implement a simple calculator in config_gram.y for numeric
+      values; set part prog_modes, mcuid, n_interrupts and
+      n_page_erase in avrdude.conf.in; add external intelligence
+      about AVRs avrintel.[ch] to the project and warn during
+      parsing if mcuid is incompatible with it #1091
+    - Fix permission denied error in linuxgpio programmer #917
+    - Add a programmer arduino_gemma for the Arduino Gemma
+      bootloader and another one, adafruit_gemma, for the Adafruit
+      Trinket Gemma bootloader in avrdude.conf; #1093
+    - Add digilent-hs2 programmer in avrdude.conf #1094
+    - Fix dependency chain between avrdude.conf.in and
+      avrdude.conf #1095
+    - Build docs with CMake #1096
+    - New feature so user can print all compatible parts for a
+      programmer using -p\? -c programmer and vice versa #1099
+    - Add extended parameter disable_no_cs for linuxspi programmer
+      #1100
+    - Fix avr109 extended address #1101
+    - Add support for Flip 2 reset on exit #1102
+    - Support for Power Debugger analog readings in terminal mode
+      #1105
+    - Provide cached byte-wise read/write API #1106
+    - AVR109: support for prodsig read and usersig read/write #1108
+    - Add missing AVR variants the original JTAG ICE supports #1109
+    - Improve help message in terminal and provide new command
+      pgerase #1113
+    - Fix pointer truncation for Windows x64 #1119
+    - Fix jtag3_page_erase for targets with UPDI #1112
+    - Fix writing of last word on DWORD TPI parts #1115
+    - Use byte-wise read/write when page size is 1 in terminal
+      cache #1121
+    - Suppress Teensy USB communication error message on reboot #1122
+    - Fix UPDI erase when target is locked #1125
+    - Review and overhaul AVRDUDE's messaging system #1126
+    - Look for ~/.config/avrdude/avrdude.rc then ~/.avrduderc #1131
+    - Revamp terminal output (progress bar, callback and
+      stdout/stderr) #1132
+    - Detect PICkit4 and SNAP in PIC mode #1138
+    - Mention -B in the error message #1139
+    - Support optiboot, optiboot_dx and optiboot_x bootloaders for
+      -c arduino #1140
+    - Always use paged access for programmers that serve
+      bootloaders #1141
+    - Add libreadline-dev for Linux github action build #1146
+    - Implementation of SerialUPDI page erase operation #1151
+    - Fix Type 2 HV UPDI #1164
+    - Rewrite authors/copyrights #1182
+    - Add fallback for EM_AVR #1181
+    - Add a workaround for issue 1173 #1185
+    - Add xplainedpro_pdi programmer #1147
+    - Provide Urclock programmer #1171
+    - Fix JTAGICE mkII (not initializing after chip erase) #1172
+    - Ensure default_programmer from config files is used #1174
+    - Make terminal write's automatic number width less surprising
+      #1175
+    - Print HAVE_LIBREADLINE status when making the project #1184
+    - Pad pages with input file contents before avr_write() #1188
+    - Deprecate mosi/miso in favour of sdo/sdi #1189
+    - Provide bootloader-hash tool #1190
+    - Fix JTAGICE mkII parameters for parts with bootloaders #1191
+    - Fix shell exit value when chip erase is delayed #1194
+    - Support autobaud for urclock programmer #1198
+    - Fix userrow size and page_size for ATtiny3216/7 #1199
+    - Added TPI support for Microchip tools #1205
+    - Fix reading of .elf files #1206
+    - Use libedit only in interactive mode #1207
+    - Add urclock support for bootloaders in low flash #1208
+    - Terminal read improvements #1209
+    - Print meaningful error when a too slow ISP clock is detected #1216
+    - Check alternative USB PID for PICkit4/SNAP in PIC mode #1219
+    - Remove extraneous avrdude> prompt at end of terminal session #1220
+    - Read programmer serial number from libusb or hidusb #1223
+    - Hint at -xeepromrw option in EEPROM error messages #1226
+    - Add JTAG support for PICkit4 and Snap. #1233
+    - Mention developer options in documentation and Usage() #1234
+    - Print expected signature on signature mismatch #1237
+    - To work around Issue #1107 #1240
+    - Update build.sh for NetBSD #1241
+    - Add FT2232H support for Windows, Tigard programmer #1242
+    - Modify recv timeouts to accommodate urclock sync with ftdi
+      #1246
+    - CMake updates #1243
+    - Silence conf path detection debug output #1247
+    - Make WIN32 ser_recv() fail on time-out #1248
+    - Guard urclock_getsync() against initial spurious input #1251
+    - Change definition of NO_PIN to 1+PIN_MAX #1231
+    - Fix partial matches for locate_mem() and do_cmd() #1256
+    - Add abbreviated q command in terminal
+    - Move static usbsn into serdev struct and remove serno #1258
+    - Clean up avrdude.conf.in fixing a couple of bugs #1260
+    - Add readline library replacement for MSVC #1264
+    - Ensure full words are loaded for ISP programming #1265
+    - Silence page erase in cache code #1266
+    - Update to latest MSVC fork of hidapi to include bug fixes
+      #1269
+
+  * Internals:
+
+    - Implement -c <wildcard>/dev_opts and -p <wildcard>/dev_opts
+      for printing avrdude.conf programmer and part entries
+
+    - Added shorter alternative ISP commands for avrdude.conf
+
+    - Reformatted avrdude.conf to canonical form
+
+    - Reviewed API for prgrammer functions: use const for
+      programmer functions where useful; add second argument for
+      void (*enable)(PROGRAMMER *pgm, const AVRPART *p) #1078
+
+    - Reviewed messaging system making warnings and errors explicit
+      and treat them systematically
+
+
+Changes in version 7.0:
+
+  * Major changes compared to the previous version:
+
+    - Completely revamped Windows support, including MSVC
+    - Started to add CMake (by now, parallel with autoconf/automake)
+    - New-architecture devices (AVR8X mega and tiny) can access all
+      fuses, and memory display shows meaningful alias names
+    - The "safemode" feature has been removed. The major class of
+      programmers it has been designed for (lowlevel bitbang
+      programmers on parallel or serial ports) virtually doesn't exist
+      anymore, and the fuse combination that was covered by it do not
+      match the fuses of modern AVR devices anyway.
+    - avrdude.conf is now being looked up in the location of the
+      executable file first, before considering the configured default
+      location; this eases a "portable use" where the entire suite is
+      not installed into its configured default location. (Basically
+      only relevant for unixoid systems; on Windows, this search order
+      has been used for many years already.)
+
+  * New devices supported:
+
+    - ATtiny828, ATtiny87, ATtiny167, ATtiny48, ATtiny102, ATtiny104
+    - LGT8F88P, LGT8F168P, LGT8F328P (fixed names of these parts)
+    - ATmeg164A, ATmega169A, ATmega169P, ATmega169PA, ATmega329A,
+      ATmega329PA, ATmega3290, ATmega3290A, ATmega3290PA, ATmega649A,
+      ATmega649P, ATmega6490A, ATmega6490P, ATmega165, ATmega165A,
+      ATmega165P, ATmega165PA, ATmega325A, ATmega325P, ATmega325PA,
+      ATmega645A, ATmega645P, ATmega3250A, ATmega3250P, ATmega3250PA,
+      ATmega6450A, ATmega6450P
+    - ATmega48A/48PA/88A/88PA/168A/168PA, ATmega164A/644A/644PA,
+      ATmega16A/32A/64A/128A, ATtiny13A, ATtiny24A/44A/84A,
+      ATtiny261A/461A/861A, ATtiny828R, ATtiny2313A, ATtiny1634R
+    - ATtiny3224, ATtiny3226 and ATtiny3227
+    - AVR16DD14/20/28/32, AVR32DD14/20/28/32 and AVR64DD14/20/28/32
+    - AVR8EA28/32, AVR16EA28/32/48, AVR32EA28/32/48 and AVR64EA28/32/64
+    - ATmega16U4
+
+
+  * New programmers supported:
+
+    - SerialUPDI (UPDI devices connected to serial port with few
+      passive parts)
+    - PicKit4 / SNAP (now also in ISP and PDI mode)
+    - Teensy bootloader (PR #802)
+    - Micronucleus bootloader (PR #786)
+    - ft232h (generic variant, PR #842)
+    - Kristech KT-LINK FT2232H interface with IO switching and voltage
+      buffers (PR #930)
+
+  * Issues fixed:
+
+    - Curiosity Nano and terminal mode #790 (only the actual bugs
+      reported)
+    - CMake doesn't correctly handle conditionals in avrdude.conf.in
+      #776
+    - CMake doesn't detect FreeBSD's libusb-1.0 (compatibility) #775
+    - CMake doesn't correctly handle conditionals in avrdude.conf.in
+      #776
+    - CMake: Recognize more than just bison #785
+    - [bug #26007] ATTiny167 not supported #150
+    - [bug #47375] ATtiny102/104 descriptions missing in configuration
+      file #409
+    - No error message when connecting to a not-connected AVRISP mkII
+      programmer #813
+    - [bug #53180] missing programmer or bad -P option argument
+      doesn't result in error message #471
+    - ATmega328P reported as lgt8fx328p #812
+    - [bug #48004] Dead link for linuxgpio in avrdude description #419
+    - Segmentation fault when writing ATtiny104 fuse #823
+    - USBasp returns ERANGE for unknown error #848
+    - Compiler warnings #856
+    - Can't get serialupdi to work #874
+    - Rework HID support for Windows #881
+    - List of signing keys? #884
+    - Pickit4 UPDI is writing at offset 0x4000 into flash instead of 0x0000. #892
+    - SerialUPDI programmer can't write to usersig/userrow in terminal mode #889
+    - Signature read command for ATmega165* was wrong (no-id)
+    - Cannot use non-standard baud rates for uploading on MacOS #771
+    - Wrong values in avrdude.conf #897
+    - AVR-Eclipse plugin broken by missing -u commandline option #890
+    - Timeout passed to hid_read_timeout() is too short for instances
+      where the EDBG AVRISP 'Enter Programming Mode' command fails #900
+    - Terminal write mode doesn't support string input (yet) #913
+    - Terminal mode: memory fill with strings may cause Avrdude to crash. #922
+    - Some parts have wrong or missing ISP commands #915
+    - Incorrect -b conversion for linuxspi programmer #927
+    - ATtiny43U calibration memory size #921
+
+  * Pull requests:
+
+    - GitHub Migration #765
+    - Update toplevel files. #767
+    - GitHub Migration part 2 #768
+    - Remove 'windows' folder with giveio.sys driver #769
+    - SerialUPDI implementation - release candidate 1 #772
+    - Fix typos #777
+    - Fix memory leaks #779
+    - As promised, documentation for SerialUPDI programmer #782
+    - Improve CMake project #783
+    - Fix avr_read() for page reads #784
+    - Serialupdi manpage #787
+    - Add PicKit4 and SNAP programmers #791
+    - Use yacc/byacc as an alternative to bison, closes #785 #793
+    - Derive program version string from last commit #794
+    - Find 'avrdude.conf' based on absolute path to executable #780
+    - buspirate: fix -Wtautological-constant-out-of-range-compare #796
+    - avrftdi: don't use the deprecated ftdi_usb_purge_buffers routine #792
+    - Ignore ctags index file #804
+    - term: fix memleakOnRealloc #806
+    - Add missing ATtiny targets to avrdude.conf #803
+    - Add support for Teensy bootloader #802
+    - Conffile clean up #801
+    - Fix typos all over the code #807
+    - Add MSVC builds and better WinUSB/FTDI support #798
+    - buspirate: fix invalidScanfArgType_int warning #808
+    - Ignore ac_cfg.h.in~ #810
+    - Notify open failure #814
+    - Print expected part #817
+    - pindefs: conform to the function declaration #818
+    - Add support for Micronucleus bootloader #786
+    - Remove ac_cfg.h from libavrdude.h #820
+    - CMake: enable dynamic-link library for libavrdude #826
+    - Fix for TPI fuse write (issue #823) #828
+    - Add missing ATmega__5 and ATmega__9 targets to avrdude.conf #809
+    - Add missing ATmega and ATtiny targets #832
+    - Added missing RTS/DTR management feature to serialupdi
+      programmer #811
+    - Add missing tinyAVR-2, AVR DD and AVR EA targets #836
+    - Add a new programmer ft232h #842
+    - Reduce verbosity when setting fuses and uploading programs #845
+    - jtagmkii: Reduce the number of sync attempts to 10 + print
+      number of attempts #844
+    - CMake: add initial support for installing lib and include files #829
+    - Add SPI support to USBtiny #816
+    - Add more memory sections to read from #815
+    - Add a build script for Unix-like systems #849
+    - Fix receive buffer implementation in ftdi_syncbb programmer #843
+    - CMake: split configuration in two files #852
+    - Set number of connection retry attempts for Arduino/STK500
+      programmer #854
+    - Fix libusb-1.0 error strings #850
+    - Assign proper type to msg[] in errstr() #857
+    - Fix Arduino retry attempts #855
+    - CMake: use CMAKE_CURRENT_BINARY_DIR to locate avrdude.conf #858
+    - Remove the "safemode" feature. #859
+    - Add support for reading from more memory sections #863
+    - Alias keyword #868
+    - Add fuse name aliases to avrdude.conf + tweak update.c #869
+    - Print JTAG3 clocks after configuration + string formatting #853
+    - Tweak programmer info formatting strings #872
+    - Remove libhid support in ser_avrdoper.c in favor of libhidapi #882
+    - Reduce jtag3 output verbosity #877
+    - Fix Curiosity Nano target voltage #878
+    - Smallest possible fix for PL2303HX #885
+    - Add missing USBtiny derived programmers #873
+    - Cleanup of POSIX serial init code #886
+    - Avrdude terminal write improvements #880
+    - Add userrow and usersig aliases #888
+    - For UPDI devices do not add offset when accessing flash. #895
+    - Support both userrow and usersig names #893
+    - Fix ugly terminal write bug #896
+    - Improve terminal read functionality #894
+    - Macos nonstandard baudrates #898
+    - Fix errors in Avrdude.conf #899
+    - Minor terminal write improvements #902
+    - Term docs #903
+    - Add progressbar for read and write command #912
+    - Add MacOS serial/parallel port note #908
+    - Add ATmega16U4 to avrdude.conf #910
+    - Mask out unused ATmega32U4 efuse bits #909
+    - Increased timeout passed to hid_read_timeout() #901
+    - Add terminal write string functionality #914
+    - Update documentation link to new URL #929
+    - Fix terminal write buffer overflow issue #924
+    - Fix linuxspi baud to clock period calculation #931
+    - Added KT-LINK FT2232H interface with IO switching and voltage buffers. #930
+
+  * Internals:
+
+    - Development moved to Github
+    - Addition of "alias" keyword to avrdude.conf.in syntax; used
+      for fuse name aliases right now
+
+
+Version 6.4:
+
+  * Major changes compared to the previous version:
+
+    - libhidapi support (part of patch #8717)
+    - use libhidapi as (optional) transport for CMSIS-DAP compliant
+      debuggers (JTAGICE3 with firmware 3+, AtmelICE, EDBG, mEDBG)
+    - UPDI support added (AVR8X family)
+    - TPI support for USBtinyISP
+    - TPI support for ft245r
+    - TPI support for linuxgpio
+    - AVR Doper uses libhidapi rather than raw libusb (patch #9033)
+    - -P net:host:port can use IPv6 now (Posix systems only)
+    - New configure option: -disable-libusb_1_0
+    - extended UPDI device context (> 64 Ki flash)
+    - major overhaul of ft245r driver (patch #9327/#9328)
+    - some improvements in linuxspi driver
+    - Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
+    - unused lock byte bits are not masked on read anymore
+    - parport support disabled by default; configure with
+      --enable-parport to explicitly enable it
+
+  * New devices supported:
+
+    - ATmega328PB
+    - AVR8X family, ATtiny1617, ATtiny817, ATtiny202, ATtiny204,
+      ATtiny402, ATtiny404, ATtiny406, ATtiny804, ATtiny806,
+      ATtiny807, ATtiny1604, ATtiny1606, ATtiny1607, ATtiny212,
+      ATtiny214, ATtiny412, ATTiny414, ATtiny416, ATtiny417,
+      ATtiny814, ATtiny816, ATtiny1614, ATtiny1616, ATtiny3214,
+      ATtiny3216, ATtiny3217, ATmega3208, ATmega3209, ATmega4808,
+      ATmega4809
+    - ATtiny841, ATtiny441
+    - ATmega64M1
+    - ATmega324A
+    - ATmega808, ATmega809, ATmega1608, ATmega1609, AVR DA, AVR DB
+    - LGT8FX88P, LGT8FX168P, LGT8FX328P
+    - ATmega324PB
+    - ATmega8A
+
+  * New programmers supported:
+
+    - ehajo-isp (commercial version of USBtiny)
+    - XplainedPro in UPDI mode
+    - XplainedMini in UPDI mode
+    - JTAGICE3 in UPDI mode
+    - Atmel Powerdebugger in all modes (JTAG, PDI, UPDI, debugWIRE, ISP)
+    - linuxspi (direct SPI bus e.g. on Raspberry Pi devices)
+    - PICkit4, Snap, PKoB
+    - iseavrprog
+    - XBeeBoot
+
+  * Bugfixes:
+    bug #47550: Linux GPIO broken
+    bug #47718: "lfuse reads as" not displayed in verbose mode - SOLUTION
+    bug #48084: Avoid compiled-in timestamp for reproducible release builds
+    bug #47376: ATtiny841 description missing in configuration file
+    bug #49455: support for tiny441
+    bug #57428: document when 'arduino' or 'wiring' should be used, and -D requirement of latter
+    bug #58095: error setting efuse on atmega328pb variant
+    bug #51409: Can't program EFUSE on ATmega32M1
+    bug #60753: Patch #1436 breaks multiple programmer/device combinations on MacOS BigSur
+    bug #59525: Bogus error message because Copy/Paste typo in stk500.c
+    bug #58078: [PATCH] buspirate: remove compound literals (fixes GCC>=9)
+    bug #57453: [PATCH] fix reference to nonexistant -m option by changing to -U
+    bug #59227: Add new part. How does one get a part added to the CONF file?
+    bug #55009: no efuses for m164a/pa
+    bug #55734: USBtiny programming of ATmega328p broken by Patch #9278
+    bug #58495: Add atmega324pb support to avrdude.conf.in
+    bug #60863: avrftdi programming error probably caused by multiple, consecutive empty pages
+    bug #50517: Reading fails if "immediate mode" for output file format is selected - fileio: invalid operation=1
+    bug #50630: Erase Cycle Counter options ( -y -Y n ) should be removed from usage Message
+    bug #48767: ser_drain() for TCP on Windows doesn't work
+    bug #46759: avrdude 6.1 -> 6.2 regression: lock byte verification error
+    bug #58440: linuxgpio PIN limit too low
+    bug #55462: wrong programmer id check in jtag3_getsync() and jtag3_close()
+    bug #58994: VPP PWM still enabled at the end of programming process
+    bug #57338: if safemode has to change fuses avrdude should exit with non-zero exit code
+    bug #60575: Permission denied on macOS Big Sur
+
+  * Patches:
+    patch #9482: Add support for UPDI and AVR8X
+    patch #9508: Add PowerDebugger and XPlained Mini in UPDI mode
+    patch #9507: Fix UPDI chip erase
+    patch #9506: Script to create device configuration stub from Atmel
+                 ATDF files
+    patch #9423: Support ATtiny841 and ATtiny441
+    patch #9530: Update URL to Ladyada's USBtinyISP page.
+    patch #9317: Support atmega64m1 as part
+    patch #9222: Enable silent build
+    patch #8924: Enable TPI for usbtiny
+    patch #9033: avrdoper backend uses libhidapi instead of libusb
+    patch #8580: FT245r support to select device by serial number
+    patch #8910: ATxmega32c4 and ATxmega16c4 have wrong signatures
+    patch #8219: Fix boot_start for xmega devices on jtagmkII
+    patch #9185: Add extended_param to usbasp.c - erasing
+    patch #8311: Add IPv6 support to the -Pnet:host:port option
+    patch #9542: Correct "usersig" on avr8x devices
+    patch #8128: Added new option to configure.ac script
+    patch #8444: Proposal for modifications in -B and -U command options managment (partially)
+    patch #9735: spelling error fix: psuedo -> pseudo
+    patch #9893: [PATCH] Reader reads ftdi handle after main thread close it
+    patch #9819: Address several leaks in SVN rev 1429
+    patch #9820: Fix some out-of-bounds/uninitialized issues
+    patch #9818: correct typos in SVN rev 1429
+    patch #9732: usbtiny_paged_load overflows buffer e.g. when reading EEPROM
+    patch #9966: Add JTAGICE3 in UPDI mode
+    patch #9963: UsbAsp 3 MHz patch for UsbAsp-flash firmware
+    patch #9816: Implement new programmer type: linuxspi
+    patch #9811: ATmega328pb has efuse bit 3
+    patch #9744: Patch for ATMega324A support
+    patch #10000: Add support for extended UPDI device context
+    patch #9697: Add iseavrprog support
+    patch #10017: uspasp / tpi: Automatically clear configuration byte (fuse) before writing it
+    patch #8957: Allow reading prodsig memory from stk500v2 on xmega devices
+    patch #9110: Let reserved fuse bits to be read as *don't care*
+    patch #9253: Fix for giving terminal_mode commands more than 20 arguments
+    patch #9320: fix TPI RESET in bitbang.c
+    patch #9079: Fix ftdi_syncbb teardown (supersedes #9893, superseded by #9328)
+    patch #9122: Fixed MISO sampling in ftdi_syncbb
+    patch #9123: ftdi_syncbb: use FT245R_CYCLES in ft245r_set_bitclock()
+    patch #8719: Support Over-the-Air bootloading with XBeeBoot
+    patch #9757: Fix ATtiny817 Xplained Mini programmer
+    patch #9327: ft245r.c: add TPI support (patches 1-4)
+    patch #9328: ft245r.c: add TPI support (patches 5-7)
+    patch #10027: linuxspi: Add reset pulse, according to AVR programming algorithm
+    patch #10028: linuxspi: close() only when necessary
+    patch #10029: linuxspi: Report GPIO_GET_LINEHANDLE_IOCTL errors
+    patch #10030: linuxspi: Support inverted GPIO pin
+    patch #10031: linuxspi: Support GPIO uAPI v2
+    (no-id): Improve documentation of linuxspi driver, provide portname default
+    (no-id): Use -B <bitclock> rather than -b <baudrate> for linuxspi driver
+    patch #9304: [Bug #48767] Implemented WinSock variation of "ser_drain(...)" functionality
+    patch #8996: Remove lock byte read mask (bug#21954, bug#46759)
+    patch #8923: Enable TPI for linuxgpio
+    patch #10153: linuxspi: Support "-E reset" and "-E noreset"
+
+  * Internals:
+    - New avrdude.conf keyword "family_id", used to verify SIB attributes
+      on AVR8X architecture if device is locked.
+
+
+Version 6.3:
+
+  * Major changes compared to the previous version:
+
+    - Backout of
+      patch #8380: adds 500k 1M 2M baud to ser_posix.c
+      It broke the functionality in too many situations
+      (bug #46610/46483)
+
+  * New devices supported:
+
+    - ATmega48PB, ATmega88PB, ATmega168PB
+    - ATtiny28 (HVPP-only device)
+
+  * New programmers supported:
+
+    - Atmel mEDBG: xplainedmini, xplainedmini_dw
+
+  * Bugfixes
+
+    - bug #46610: Floating point exception (core dumped) arch linux rpi2
+    - bug #46483: version 6.2. ser_open(): can't set attributes for device
+    - patch #8435: Implementing mEDBG CMSIS-DAP protocol
+    - patch #8735: ATtiny28 support in avrdude.conf
+    - patch #8896: Silence cppcheck warnings in 6.2 code
+    - patch #8895: Spelling in 6.2 code
+
+
+Version 6.2:
+
+  * Major changes compared to the previous version:
+
+    - The stk500v2 implementation now uses its own higher-level
+      command implementation for byte-wide access, rather than the
+      historic SPI_MULTI command where all the low-level ISP
+      implementation had to be assembled manually inside AVRDUDE.  In
+      addition to the traditional STK500, this implementation is also
+      used by all the more modern Atmel tools (AVRISPmkII, JTAGICEmkII
+      in ISP mode, STK600 in ISP mode).
+
+    - The -B option can be suffixed with "Hz", "kHz", or "MHz", in
+      order to specify a bitclock frequency rather than period.
+
+    - Print part id after signature (patch #8440 )
+
+    - buspirate: Also support "cpufreq" extended parameter
+      in binary mode (patch #8504 )
+
+    - The "-P net:" syntax (forwarding of serial data over TCP) is now
+      also implemented for Win32 systems.
+
+    - Allow for arbitrary serial baudrates under Linux (OSX and *BSD
+      could already handle it).
+
+
+  * New devices supported:
+    - AT90PWM216 (bug #42310: New part description for AT90PWM216)
+    - ATmega32M1 (patch #7694 Add support for the atmega32m1)
+
+  * New programmers supported:
+    - ftdi_syncbb
+      + uncompatino, ttl232r (FTDI TTL232R-5V with ICSP adapter)
+        (patch #8529 2 more ftdi_syncbb devices)
+
+  * Bugfixes
+    - bug #45727: Wrong atmega8u2 flash parameters
+    - bug #46020: Add TIAO TUMPA to the conf file.
+    - bug #46021: Please add read in the memory lock section of ATtiny85
+    - bug #42337 avrdude.conf updates for UM232H/CM232H
+    - bug #42056: double free or corruption triggered at exit
+    - bug #42158: Linux GPIO - Source Typo
+    - bug #42516 spelling-error-in-binary
+    - patch #8419 fix ftdi_syncbb hang with libftdi 1
+    - bug #43002 usbasp debug output typo
+    - patch #8511 Fix reset on FT245R
+    - bug #40142 Floating point exception on Ubuntu 10.04
+    - bug #22248: Read efuse error (partial fix)
+    - bug #42267: jtag3isp fails to read lock and fuse bytes directly
+                  after changing lock byte
+    - bug #41561: AVRDUDE 6.0.1/USBasp doesn't write first bytes of
+                  flash page
+    - bug #43078: AVRDUDE crashes after sucessfully reading/writing eeprom
+    - bug #43137: Writing and reading incorrect pages when using jtagicemkI
+    - bug #40870: config nitpick: ATtiny25/45/85 have 1 calibration byte not 2
+    - bug #42908: no external reset at JTAGICE3
+    - patch #8437: [PATCH] Serial-over-ethernet for Win32
+    - bug #44717: avrdude creates empty flash dump
+
+  * Internals:
+    - Removing exit calls from config parser
+    - bug #42662 clang warnings under FreeBSD 10.x
+
+Version 6.1:
+
+  * Major changes compared to the previous version:
+    - Atmel EDBG protocol support added (JTAGICE3, XplainedPro, Atmel-ICE)
+
+  * New programmers supported:
+    - Atmel DFU, using FLIP protocol version 1 (AT90USB and ATmega*U* devices),
+      or version 2 (Xmega devices)
+    - Atmel-ICE (ARM/AVR), JTAG, PDI, debugWIRE, ISP modi
+
+  * Bugfixes
+    - bug #40055: AVRDUDE segfaults when writing eeprom
+    - bug #40085: Typo fix in fuses report (for 6.1-svn-20130917)
+    - bug #40782: Verify errors for object size > 16 k on x32e5 due
+      to typo in avrdude.conf
+    - bug #40817: Elf file support (possibly) not working on 6.0.1 windows build
+    - bug #40897: AT Mega2560 not correctly programmed with stk500(v1)
+      ISP (solution patch)
+    - bug #41357: OS X: Avrdude messes with the usb stack?
+    - bug #41402: dfu.c missing include <stdint.h>
+    - patch #7896: DFU FLIPv2 programming support
+    - patch #XXXX: xxx
+
+  * Internals:
+    - (Some) programmers can take a list of USB PIDs now.
+
+
+Version 6.0:
+
+  * Major changes compared to the previous version:
+
+    - Programmer types in configuration file are no longer keywords but
+      specified as string.
+
+      So you need to change 'type = XYZ;' to 'type = "XYZ";' in own
+      config files.  (internal: The parser does not need to know all
+      programmer types now, new programmers will update only the table
+      in pgm_type.c.)
+
+    - The erase cycle counter (formerly options -y / -Y) has been
+      removed.
+
+    - Specifying a -U option without a memory type (short form of
+      option argument list) now defaults to "application" memory for
+      Xmega devices, and "flash" for everything else.  This ensures
+      the Xmega bootloader is not accidentally touched.
+
+    - For programmers that support it, the default erase method is a
+      page erase now, rather than a chip erase (Xmega only).
+
+    - Keep track of input file contents
+
+      Memory segments are being tracked to remember whether they've
+      been actually read from a file.  Only segments that came from a
+      file are being programmed into the device, or considered for
+      verification.  This drastically improves handling speed for
+      sparse files (e.g. files that have a second bootloader segment),
+      and it ensures the device contents is actually compared for
+      everything mentioned in the file (even in case the file has
+      large 0xFF blocks).
+
+    - The -U option now accepts ELF files as input files, and extracts
+      the appropriate section contents that matches the requested memory
+      region.  To enable this feature, the host system used for the
+      compilation must have a libelf around, including the respective
+      header files (i.e., package "libelf-devel" on many Linux systems).
+
+    - Programmers and parts lists
+
+      They are now sorted at output with '-c ?'/'-p ?'. (patch #7671:
+      Sorting programmers and parts lists for console output)
+
+      Programmers and parts lists in documentation generated from lists
+      mentioned above. (patch #7687: Autogenerating programmers and
+      parts lists for docs)
+
+      Output list of programmer types with '-c ?type', add list to
+      documentation
+
+    - Configuration files now accepts parent parts/programmers, parts
+      starting with '.' (eg. .xmega) are not included in output parts
+      list and can be used as abstract parents
+
+      (bug #34302: Feature request : device configuration with parent classes)
+      (patch #7688: Implement parent programmers feature)
+
+    - Additional config files which are read after default can be
+      specified on command line using '-C +filename'
+
+      (patch #7699 Read additional config files)
+
+    - "Safemode" can now be turned off by default from within a
+      configuration file (like ~/.avrduderc).
+
+    - The new option -l logfile allows to redirect diagnostic messages
+      to a logfile rather than stderr.  Useful to record debugging
+      traces, in particular in environments which do not offer
+      shell-style redirection functionality for standard streams.
+
+    - When leaving debugWIRE mode, immediately retry with ISP rather
+      than bailing out completely.
+
+    - The USBasp programmer implementation now supports detailed traces
+      with -vvv, and device communication traces with -vvvv.
+
+    - The "verbose" terminal mode command allows to query or modify the
+      verbosity level.
+
+  * New devices supported:
+    - ATmega48P (patch #7629 add support for atmega48p)
+    - AT90PWM316 (bug #21797: AT90PWM316: New part description)
+    - ATxmega16D4, ATxmega32D4, ATxmega64D4, ATxmega128D4
+    - ATmega256RFR2, ATmega128RFR2, ATmega64RFR2, ATmega2564RFR2,
+      ATmega1284RFR2, ATmega644RFR2
+    - ATtiny1634
+    - ATxmega128A1U, ATxmega128A3U, ATxmega128A4U, ATxmega128B1,
+      ATxmega128B3, ATxmega128C3, ATxmega128D3, ATxmega16A4U,
+      ATxmega16C4, ATxmega192A3U, ATxmega192C3, ATxmega192D3,
+      ATxmega256A3BU, ATxmega256A3U, ATxmega256C3, ATxmega256D3,
+      ATxmega32A4U, ATxmega32C4, ATxmega384C3, ATxmega384D3,
+      ATxmega64A1U, ATxmega64A3U, ATxmega64A4U, ATxmega64B1,
+      ATxmega64B3, ATxmega64C3, ATxmega64D3
+    - ATtiny43U
+    - ATmega406
+    - ATxmega8E5, ATxmega16E5, ATxmega32E5
+    - ATtiny20, ATtiny40
+
+
+  * New programmers supported:
+    - linuxgpio
+      + any (embedded) Linux system with 4 GPIOs available can be used
+        as a programmer with little or no additional hardware.
+
+    - avrftdi
+      + o-link (patch #7672 adding support for O-Link (FTDI based
+        JTAG) as programmer)
+      + 4232h (patch #7715 FT4232H support)
+    - TPI support
+      + openmoko (bug #37977 Support for Openmoko Debug Board)
+
+    - usbasp
+      + nibobee (previously specified as '-c usbasp -P nibobee)
+      + usbasp-clone (same as usbasp but ignores vendor and product
+        string, checks only vid/pid)
+
+    - ftdi_syncbb (new type for synchronous bitbanging with ft232r/ft245r)
+      + ft245r (FT245R Synchronous BitBang, miso = D1, sck = D0, mosi
+        = D2, reset = D4)
+      + ft232r (FT232R Synchronous BitBang, miso = RxD, sck = RTS,
+        mosi = TxD, reset = DTR)
+      + bwmega (BitWizard ftdi_atmega builtin programmer, miso = DSR,
+        sck = DCD, mosi = CTS, reset = RI)
+      + arduino-ft232r (Arduino: FT232R connected to ISP, miso = CTS
+        X3(1), sck = DSR X3(2), mosi = DCD X3(3), reset = RI X3(4))
+      + diecimila (alias for arduino-ft232r)
+
+    - pickit2
+
+    - Atmel JTAGICE3
+
+    - buspirate_bb (TPI programming using the BusPirate in bitbang mode)
+
+  * Bugfixes
+      - bug #34027: avrdude AT90S1200 Problem
+      - bug #34518: loading intel hex files > 64k using record-type 4
+      - patch #7667: Minor memory handling fixes
+      - patch #7680: Fixing timeout problem in ser_recv in ser_win32.c
+      - patch #7693: Fix config file atmel URLs (+ URLs in
+        avrdude.texi and avrpart.h)
+      - bug #21663: AT90PWM efuse incorrect, bug #30438: efuse bits
+        written as 0 on at90pwmxx parts
+      - bug #35261: avrftdi uses wrong interface in avrftdi_paged_(write|load)
+      - patch #7437 modifications to Bus Pirate module
+      - patch #7686 Updating buspirate ascii mode to current firmware,
+        use AUX as clock generator, and setting of serial receive
+        timeout
+      - bug #34768 Proposition: Change the name of the AVR32 devices
+      - patch #7718: Merge global data of avrftdi in a private data
+        structure
+      - bug #35208: avrdude 5.11 on freebsd 8.2-STABLE does not reset
+        Arduino Uno properly
+      - bug #34518: loading intel hex files > 64k using record-type 4
+        (Extended Linear Address Record)
+      - bug #34027: avrdude AT90S1200 Problem
+      - bug #30451: Accessing some Xmega memory sections gives not
+        supported error
+      - bug #28744: Can't load bootloader to xmega128a1
+      - bug #29019: pagel/bs2 warning when uploading using stk500 to xmega
+      - bug #30756: When setting SUT to 64ms on XMEGA, avrdude doesn't
+        read device signature
+      - bug #37265: wrong page sizes for XMega64xx in avrdude.conf
+      - bug #37942: Latest SVN can't program in dragon_jtag mode
+      - patch #7876 JTAGICE mkII fails to connect to attiny if debugwire
+        is enabled AND target has a very slow clock
+      - bug #39893: Verification failure with AVRISPmkII and Xmega
+      - bug #38713: Compilation of the documentation breaks with texinfo-5
+      - bug #38023: avrdude doesn't return an error code when attempting
+        to upload an invalid Intel HEX file
+      - bug #39794: warnings when building avrdude 6.0rc1 under CentOS 6.4
+      - bug #35800: Compilation error on certain systems if parport is disabled
+      - bug #38307: Can't write usersig of an xmega256a3
+      - bug #38580: Current svn head, xmega and fuses, all fuses tied to fuse0
+      - bug #39691: Buffer overrun when reading EEPROM byte with JTAGICE3
+      - bug #38951: AVR109 use byte offset instead of word offset
+      - patch #7769: Write flash fails for AVR910 programmers
+      - bug #38732: Support for ATtiny1634
+      - bug #36901: flashing Atmega32U4 EEPROM produces garbage on chip
+      - bug #28344: chip_erase_delay too short for ATmega324P, 644, 644P, and 1284P
+      - bug #34277: avrdude reads wrong byte order if using avr911 (aka butterfly)
+      - bug #35456: The progress bar for STK500V2 programmer is "wrong".
+      - patch #5708: avrdude should make 10 synchronization attempts instead of just one
+      - patch #7606: ATtiny43u support
+      - patch #7657: Add ATmega406 support for avrdude using DRAGON + JTAG
+      - bug #35474: Feature request: print fuse values in safemode output.
+      - patch #7710: usb_libusb: Check VID/PID before opening device
+      - [no-id]: Fix SCK period adjustment for STK500v2
+      - bug #40040: Support for ATtiny20 and ATtiny40
+
+  * Internals:
+
+    - Restructuring and compacting programmer definition part of
+      grammar for config file.
+    - Cleanup of parser code, removing unused definitions/
+      functions. Using yylex_destroy if available.
+    - Fixed some more memory leaks, added cleanup code at program exit
+      (to minimize the number of non-freed memory blocks reported by
+      valgrind)
+    - Fixed some findings reported by cppcheck.
+
+Version 5.11:
+
+  * New devices supported:
+      - ATmega88P/168P
+      - ATmega8U2/16U2/32U2
+      - ATtiny4313
+
+  * New programmers supported:
+      - TPI programming through bitbang programmers (both, serial
+        and parallel ones)
+      - FT2232 (and relatives) based programmers (MPSSE bitbang mode)
+      - Wiring environment (http://wiring.org.co/)
+      - butterfly-style bootloader of the Mikrokopter.de device
+
+  * Bugfixes
+
+
+Version 5.10:
+
+  * Bugfixes
+      - bug #28660: Problem with loading intel hex rom files that exceed
+        0x10000 bytes
+      - see ChangeLog for further details
+
+  * New Features
+      - (JTAG ICE / AVR Dragon) apply external reset if JTAG ID could
+        not be read
+
+Version 5.9:
+
+  * New devices supported:
+
+      - AVR32A0512 (JTAGMKII only)
+      - ATmega32U4
+      - ATtiny4
+      - ATtiny5
+      - ATtiny9
+      - ATtiny10
+
+  * New programmers supported:
+
+      - BusPirate
+      - Arduino
+      - JTAGICEmkII and AVR Dragon in PDI mode (ATxmega devices)
+      - STK600 and AVRISP mkII in TPI mode (ATtiny4/5/9/10)
+
+  * Bugfixes
+
+      - see ChangeLog and ChangeLog-2009 for details
+
+Version 5.8:
+
+  * Bugfixes; most importantly, fix a serious memory corruption for
+    that JTAG ICE mkII and AVR Dragon in ISP/HVSP/PP mode.
+
+Version 5.7:
+
+  * New devices supported:
+
+      - ATXMEGA64A1
+      - ATXMEGA192A1
+      -	ATXMEGA256A1
+      - ATXMEGA64A3
+      - ATXMEGA128A3
+      - ATXMEGA192A3
+      -	ATXMEGA256A3
+      - ATXMEGA256A3B
+      - ATXMEGA16A4
+      - ATXMEGA32A4
+      - ATXMEGA64A4
+      - ATXMEGA128A4
+
+  * Major Xmega fixes for the JTAG ICE mkII (patch #6825)
+
+  * Bugfixes.
+
+Version 5.6:
+
+  * New devices supported:
+
+      - AT90USB82
+      - AT90USB162
+      - ATtiny88
+      - ATmega328P
+      - ATmega1284P
+      - ATmega128RFA1
+      - ATxmega128A1 rev D
+      - ATxmega128A1
+      - ATxmega256A3
+
+  * New programmers supported:
+
+      - AT89ISP cable (patch #6069)
+      - Arduino
+
+  * Add support for the -x option to pass extended parameters to the
+    programmer backend.
+
+  * Add support for JTAG daisy-chains, using the -x daisychain=
+    option.
+
+  * Add support for the Atmel STK600 for "classic" AVRs (AT90, ATtiny,
+    ATmega), using either ISP or high-voltage programming modes.
+
+  * Add support for the -x devcode extended parameter to the avr910
+    programmer, to allow overriding the device code sent to the
+    programmer.
+
+  * Add support for the Crossbow MIB510 programmer (patch #6074, #6542).
+
+  * Add support to bootstrap with GNU autoconf 2.61, and automake 1.10,
+    respectively.
+
+  * Add support for ATxmega128A1 (including the revision D engineering
+    samples) for STK600 and AVRISPmkII tools using PDI
+
+  * The option combination -tF now enters terminal mode even if the
+    device initialization failed, so the user can modify programmer
+    parameters (like Vtarget).
+
+  * Add preliminary support for ATxmega128A1 for the JTAG ICE mkII using
+    JTAG.
+
+  * Add support for direct SPI transfers (bug #25156).
+
+  * Bugfixes.
+
+Version 5.5:
+
+  * Add support for the USBtinyISP programmer (patch #6233)
+
+  * Add support for the C2N232I serial bitbang programmer (patch #6121)
+
+  * Bugfixes.
+
+Version 5.4:
+
+  * New devices supported:
+
+      - AT90PWM2B/AT90PWM3B
+
+  * Bugfixes.
+
+  * Source code rearranged so that the functionality is now built
+    into a libavrdude.a library where main.c is currently the only
+    existing frontend.
+
+  * Implement ATmega256x support for butterfly/avr109.
+
+Version 5.3.1:
+
+  * Add support for the AVR Dragon (all modes: ISP, JTAG, HVSP, PP,
+    debugWire).
+
+  * Add support for debugWire (both, JTAG ICE mkII, and AVR Dragon).
+
+  * Add support for the AVR Doper USB HID-class programmer.
+
+  * Bugfixes.
+
+Version 5.2:
+
+  * New devices supported:
+
+      - AT90USB646/647/1286/1287
+      - ATmega2560/2561
+      - ATmega325/3250/645/6450
+      - ATtiny11 (HVSP only device)
+      - ATtiny261/461/861
+
+  * Fixed paged flash write operations for AT90PWMx devices
+    (error in datasheet).
+
+  * Add signature verification.
+
+  * Add high-voltage mode programming for the STK500 (both,
+    parallel, and high-voltage serial programming).
+
+  * Add support for using the JTAG ICE mkII as a generic ISP
+    programmer.
+
+  * Allow for specifying the ISP clock delay as an option for
+    bit-bang programming adapters.
+
+  * Add support for Thomas Fischl's USBasp low-cost USB-attached
+    programmer.
+
+  * The "stk500" programmer type is now implemented as a stub
+    that tries to probe for either "stk500v1" or "stk500v2".
+
+  * Many bugfixes.
+
+Version 5.1:
+
+  * New devices supported:
+
+      - ATmega640/1280/1281
+      - ATtiny24/44/84
+
+  * JTAG mkII support now works with libusb-win32, too
+
+  * JTAG ICE mkI support has been added
+
+  * Solaris support has been added (including ecpp(7D) parallel-port
+    bit-bang mode)
+
+
+Version 5.0:
+
+  * Support for JTAGICE MkII device
+
+  * Support for STK500 Version 2 Protocol
+
+  * New devices supported:
+
+      - AT90CAN128
+      - ATmega329x/649x
+      - ATmega164/324/644
+      - AT90PWM2/3,
+      - ATmega164/324/644
+      - ATmega329x/649x
+      - ATtiny25/45/85
+
+  * Support for serial bit-bang adapters: Ponyprog serial, UISP DASA,
+    UISP DASA3.
+
+  * DAPA programmer pinout supported
+
+  * New "safemode" feature where fuse bits are verified before exit
+    and if possible recovered if they have changed.  This is intended
+    to protect against changed fuses which were not requested which is
+    reported to sometimes happen due to improper power supply or other
+    reasons.
+
+  * Various fixes for avr910 and butterfly programmers
+
+  * Full support for AVR109 boot loaders (butterfly)
+
+  * Adding -q -q suppresses most terminal output
+
+
+Version 4.4.0:
+
+  * Native Win32 support: The windows build doesn't need Cygwin
+    anymore. Additionally, the delay timing on windows should be
+    more accurate now.
+    Contributed by Martin Thomas
+
+  * Add support for
+    - ATmega48, ATmega88 (contributed by Galen Seitz)
+    - ATtiny2313 (contributed by Bob Paddock)
+    - ATtiny13 (contributed by Pawel Moll)
+
+  * Added command to change the SCK of STK500-programmers. Now it
+    is possible to program uC with slow oscillator.
+    Contributed by Galen Seitz
+
+  * Baudrate for serial programmers (STK500 and AVR910) is
+    configurable in the config or at the command-line.
+    This way some more tweaked bootloaders and programmers can be used.
+
+  * Deprecated options have been removed.
+    Now the "-U" option must be used.
+
+  * MacOS X now supported by default.
+
+Version 4.3.0:
+
+  * Added support for "Butterfly" evaluation board.
+
+  * Make cycle-count work with AVR910-programmers.
+
+  * Added "Troubleshooting"-Appendix to the manual.
+
+  * Add ATmega8515 support.
+    Contributed by: Matthias Weißer <matthias@matwei.de>
+
+  * Add ATmega64 support.
+    Contributed by: Erik Christiansen <erik@dd.nec.com.au>
+
+  * Improved polling algorithm to speed up
+    programming of byte oriented parallel programmers.
+    Contributed by: Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>
+
+  * Add "fuse" and "lock" definitions for the AT90S8535.
+
+  * STK500 skips empty pages in paged write resulting in faster downloads
+    when there are empty blocks in between code (such as files that contain
+    application code and bootloader code).
+
+Version 4.2.0:
+
+  * Add basic support for reading and writing fuses via SPI with avr910
+    programmers. Submitted by
+    Jan-Hinnerk Reichert <jan-hinnerk_reichert@hamburg.de>.
+
+  * Perform an auto erase before programming if the flash memory is
+    anywhere specified to be written by any of the -U requests.  Old
+    style memory specification options (-f, -i, -I, -m, and -o) are
+    deprecated in favor of the new -U options.  Auto erase is disabled
+    if any of the old-style options (specifically -i and -o) are
+    specified.
+
+  * Add new -U option for specifying programming operations - allows
+    multiple memory operations on a single command line.
+
+  * New progress reporting, looks nicer and is nicer to wrapper
+    environments such as emacs.
+
+  * Fix long-standing timing (verify) problems on Windows platform.
+    Submitted by Alex Shepherd <ashepherd@wave.co.nz>.
+
+  * Add new file format option - 'm' for "immediate mode."  In this
+    case, the filename argument of the -o, -i, or -U options is
+    treated as the data for uploading - useful for specifying fuse
+    bits without having to create a single-byte file for uploading.
+
+  * Add support for displaying and setting the various STK500 operational
+    parameters (Vtarget, Varef, Master clock).
+
+  * Add 'picoweb' programming cable programmer.
+    Contributed by Rune Christensen <rune.christensen@adslhome.dk>.
+
+  * Add support for the sp12 programmer.  Submitted by
+    Larry Barello <larryba@barrello.net>.
+
+
+Version 4.1.0
+
+  * Add support for the Bascom SAMPLE programmer. Submitted by
+    Larry Barello <larryba@barrello.net>.
+
+  * Add support for avr910 type programmers (mcu00100, pavr avr910, etc).
+
+  * Support new devices: ATmega8535, ATtiny26
+
+
+Version 4.0.0
+
+  * Now support Linux - added by "Theodore A. Roth" <troth@openavr.org>.
+
+  * Now support Windows - added by "Eric B. Weddington" <eric@ecentral.com>.
+
+  * Use 'configure' scripts to tailor the code to the system avrdude
+    is getting ready to be compiled on - added by "Theodore A. Roth"
+    <troth@openavr.org>.
+
+  * Motorola S-Record support - submitted by "Alexey V.Levdikov "
+    <tsar@kemford.com>.
+
+  * Support parallel programming on the STK500.  Introduce 'pagel' and
+    'bs2' keywords to the config file for this purpose.
+
+  * Add support for the AT90S2343
+
+  * Add support for the ATmega169
+
+  * Add ability to specify system defaults within the config file
+    (default parallel port, default serial port).
+
+  * Specify the default programmer seperately from the programmer
+    definition.  This is now done in the config file using the
+    'default_programmer' keyword.
+
+  * Support a per-user config file (~/.avrduderc) so that one can
+    override system wide defaults if desired.
+
+  * Follow the datasheet more closely for several parts in the "retry"
+    code when entering programming mode fails initially.  Introduce
+    'retry_pulse' to the config file for this purpose.
+
+
+
+Version 3.1.0
+
+  * This change represents a name change only.  There is currently an
+    effort to port AVRPROG to other platforms including Linux and
+    Windows.  Since Atmel's programmer binary that's included within
+    their AVR Studio software is named AVRPROG.EXE on the Windows OS,
+    there is the chance for confusion if we keep calling this program
+    AVRPROG as well.  Up until now the name hasn't really been a
+    problem since there was no chance to confuse 'avrprog' on Unix
+    with Atmel's AVRPROG because Atmel's tools only run on Windows.
+    But with the Unix 'avrprog' possibly being ported to Windows, I
+    felt a name change was the best way to avoid problems.
+
+    So - from this point forward, my FreeBSD Unix program formerly
+    known as AVRPROG will subsequently be known as AVRDUDE (AVR
+    Downloader/UploaDEr).
+
+    This change also represents a time when the AVRDUDE sources move
+    from my own private repository to a public repository.  This will
+    give other developers a chance to port AVRDUDE to other platforms
+    and extend its functionality to support additional programming
+    hardware, etc.
+
+    So goodbye AVRPROG, welcome AVRDUDE!
+
+Version 3.0.0
+
+  * Rewrite parts of the code to make it easy to support other types
+    of programmers besides the directly connected parallel port
+    programmer (PPI).
+
+  * Add support for Atmel's STK500 programmer/development board.  The
+    STK500's "paged mode" read/write is supported which makes this
+    programmer very fast.  This is sorely needed on parts with large
+    memories such as the ATmega128.  My 12K test program burns in
+    about 5 seconds, add another 5 to read it back out for
+    verification.
+
+
+Version 2.1.5:
+
+  * When getting ready to initiate communications with the AVR device,
+    first pull /RESET low for a short period of time before enabling
+    the buffer chip.  This sequence allows the AVR to be reset before
+    the buffer is enabled to avoid a short period of time where the
+    AVR may be driving the programming lines at the same time the
+    programmer tries to.  Of course, if a buffer is being used, then
+    the /RESET line from the programmer needs to be directly connected
+    to the AVR /RESET line and not via the buffer chip.
+
+    Feature contributed by Rick C. Petty <rick@KIWI-Computer.com>.
+
+  * When in interactive terminal mode and dumping memory using the
+    'dump <memtype>' command without any address information, and the
+    end of memory is reached, wrap back around to zero on the next
+    invocation.
+
+
+Version 2.1.4:
+
+  * Fix -Y option.
+
+
+Version 2.1.3:
+
+  * Be backward compatible when reading 2-byte rewrite cycle counters
+    as written by avrprog version 2.1.0.  Version 2.1.1 changed over
+    to a 4-byte counter, which caused avrprog versions 2.1.1 and 2.1.2
+    to report a negative count for parts that were initialized using
+    version 2.1.0.  Thanks to Joerg Wunsch for noticing this.
+
+
+Version 2.1.2:
+
+  * Add '-V' option to disable automatic verify check with uploading
+    data.
+
+
+Version 2.1.1:
+
+  * Fix ATmega128 instruction sequences for reading fuse bits -
+    contributed by Joerg Wunsch.
+
+  * Modify erase-rewrite cycle counter code to use a 4 byte counter
+    instead of a two byte counter.
+
+
+Version 2.1.0:
+
+  * Implement a per-part erase-rewrite cycle counter; requires the use
+    of two bytes of EEPROM memory.
+
+
+Version 2.0.5:
+
+  * Support for ATtiny15 - contributed by Asher Hoskins
+
+
+Version 2.0.4:
+
+  * Config file fixes for various parts.
+
+
+Version 2.0.3:
+
+  * Work around problem programming fuse bits on parts like the
+    at90s4433 as described in the following errata:
+
+      http://www.atmel.com/atmel/acrobat/doc1280.pdf
+
+  * Add part definition for at90s4414, at90s4433.
+
+  * Add fuse/lock bit memory instructions for the at90s1200,
+    at90s2333, at90s4433 and at90s8515.
+
+  * Fix setting of programmer status LEDs under certain write-fail
+    conditions.
+
+
+Version 2.0.2 :
+
+  * Fix writing to read-only memories such as the lock bits of the
+    AT90S2313.
+
+  * Copyright updates.
+
+
+Version 2.0.1 :
+
+  * Use correct parallel port pins for VCC.
+
+  * Add programmer definition for Atmel's STK200.
+
+  * Add programmer definition for the AVR3 board.
+
+  * Fix address bit encoding for many parts.
+
+  * Allow the ``BUFF'' signal to be asserted by multiple pins of the
+    parallel port (like VCC) instead of just one.  The STK200 appears
+    to need this feature.
+
+
+Version 2.0.0 :
+
+  * Add support for programming fuse and lock bits if supported by the
+    part.
+
+  * Move instruction encoding into the config file.  Now any part can
+    be supported as long as it uses the same basic serial programming
+    instruction format.
+
+  * Add part definitions for the ATMega163 and ATMega8 devices.
+
+
+Version 1.4.3 :
+
+  * Mostly internal code cleanup.
+
+
+Version 1.4.2 :
+
+  * Fixes for ATMega paged memory support.
+
+  * Support for ATMega16 device.
+
+
+Version 1.4.1 :
+
+  * No functional changes, update to Copyrights only.
+
+
+Version 1.4.0 :
+
+  * Add part definitions to the config file.
+
+  * Add initial support for Atmel's ATMega paged memory parts.
+
+  * Config file documentation added.
+
+  * Add a definition for the Dontronics DT006 programmer.
+
+  * Fix Intel Hex support for addresses larger than 64k.
+
+
+Version 1.3.0 :
+
+  * Make programmer pin assignments configurable.
+
+
+Version 1.2.2 :
+
+  * Initial public release.

@@ -135,8 +135,6 @@ EM_ASYNC_JS(void, set_dts_rts, (bool is_on), {
     await window.activePort.setSignals({dataTerminalReady: is_on, requestToSend: is_on});
 });
 
-#include <stdio.h>
-
 int serialPortOpen(int baudRate) {
     open_serial_port(baudRate);
     return 0;
@@ -156,21 +154,6 @@ void serialPortDrain(int timeout) {
 }
 
 void serialPortWrite(const unsigned char *buf, size_t len) {
-//    std::vector<unsigned char> data(buf, buf + len);
-//    emscripten::val js_data = emscripten::val(emscripten::typed_memory_view(data.size(), data.data()));
-//    js_data = emscripten::val::global("Uint8Array").new_(js_data);
-//
-//    std::string printData;
-//    for (size_t i = 0; i < data.size(); ++i) {
-//        if (i > 0)
-//            printData += ",";
-//        printData += std::to_string(data[i]);
-//    }
-//
-//    emscripten::val avrdudeLog = emscripten::val::global("window")["avrdudeLog"];
-//    avrdudeLog.call<void>("push", "Sending: " + printData);
-//
-//    write_data(js_data.as_handle());
     write_data((unsigned char*)buf, (int)len);
 }
 
@@ -178,10 +161,7 @@ int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
     read_data(timeoutMs, len);
     size_t processed = 0;
     if (readBufferLen != 0) {
-        // check how much data is needed and add that much to the buffer
         if (readBufferLen >= len) {
-//            data = std::vector<unsigned char>(readBuffer.begin(), readBuffer.begin() + len);
-//            readBuffer.erase(readBuffer.begin(), readBuffer.begin() + len);
             for (size_t i = 0; i < len; ++i) {
                 buf[i] = readBuffer[i];
                 processed++;
@@ -189,8 +169,6 @@ int serialPortRecv(unsigned char *buf, size_t len, int timeoutMs) {
             readBufferLen -= len;
 
         } else {
-//            data = std::vector<unsigned char>(readBuffer.begin(), readBuffer.end());
-//            readBuffer.clear();
             for (size_t i = 0; i < readBufferLen; ++i) {
                 buf[i] = readBuffer[i];
                 processed++;
