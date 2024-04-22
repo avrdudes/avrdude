@@ -451,7 +451,7 @@ static int flip2_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AV
   if (n_bytes > INT_MAX) {
     /* This should never happen, unless the int type is only 16 bits. */
     pmsg_error("attempting to read more than %d bytes\n", INT_MAX);
-    exit(1);
+    return -1;
   }
 
   result = flip2_read_memory(FLIP2(pgm)->dfu, mem_unit, addr,
@@ -482,7 +482,7 @@ static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
   if (n_bytes > INT_MAX) {
     /* This should never happen, unless the int type is only 16 bits. */
     pmsg_error("attempting to read more than %d bytes\n", INT_MAX);
-    exit(1);
+    return -1;
   }
 
   result = flip2_write_memory(FLIP2(pgm)->dfu, mem_unit, addr,
