@@ -182,6 +182,7 @@ void jtagmkII_setup(PROGRAMMER *pgm) {
 
 void jtagmkII_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static unsigned long b4_to_u32(unsigned char *b) {
