@@ -359,15 +359,12 @@ struct gpiod_line *gpiod_line_get(const char *port, int gpio_num) {
   if (snprintf(abs_port, sizeof(abs_port), "/dev/%s", port) >= (int)sizeof(abs_port))
     return NULL;
 
-  rv = calloc(sizeof(struct gpiod_line), 1);
-  if (!rv)
-    return NULL;
-
+  rv = mmt_malloc(sizeof(struct gpiod_line));
   rv->gpio_num = gpio_num;
 
   rv->chip = gpiod_chip_open(abs_port);
   if (!rv->chip) {
-    free(rv);
+    mmt_free(rv);
     return NULL;
   }
 
@@ -480,7 +477,7 @@ err_out:
 void gpiod_line_release(struct gpiod_line *gpio_line) {
   gpiod_line_request_release(gpio_line->line_request);
   gpiod_chip_close(gpio_line->chip);
-  free(gpio_line);
+  mmt_free(gpio_line);
 }
 
 static inline int gpiod_line_set_value(struct gpiod_line *gpio_line, int value) {
