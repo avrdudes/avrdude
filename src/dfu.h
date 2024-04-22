@@ -21,7 +21,7 @@
 #ifndef dfu_h
 #define dfu_h
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #ifdef HAVE_LIBUSB
 #if defined(HAVE_USB_H)

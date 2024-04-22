@@ -1,8 +1,9 @@
 #ifndef AVRDUDE_LIBSERIAL_H
 #define AVRDUDE_LIBSERIAL_H
 
-#include <cstddef>
-#include <emscripten/val.h>
+
+#include <stdbool.h>
+#include <stddef.h>
 
 int serialPortOpen(int baudRate);
 void setDtrRts(bool is_on);

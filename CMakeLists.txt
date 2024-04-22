@@ -23,6 +23,13 @@
 cmake_minimum_required(VERSION 3.5)
 project(avrdude VERSION 7.3 LANGUAGES C CXX)
 
+# check if we are doing emscripten
+if (CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    # print a message
+    message(STATUS "Building for Emscripten")
+    set(EMSCRIPTEN 1)
+    add_subdirectory(libserial)
+endif ()
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED True)
@@ -130,7 +137,6 @@ if(USE_STATIC_LIBS)
     set(PREFERRED_LIBFTDI1 libftdi1.a ftdi1)
     set(PREFERRED_LIBREADLINE libreadline.a readline)
     set(PREFERRED_LIBSERIALPORT libserialport.a serialport)
-    set(PREFERRED_LIBGPIOD libgpiod.a gpiod)
 else()
     set(PREFERRED_LIBELF elf)
     set(PREFERRED_LIBUSB usb)
@@ -140,7 +146,6 @@ else()
     set(PREFERRED_LIBFTDI1 ftdi1)
     set(PREFERRED_LIBREADLINE readline)
     set(PREFERRED_LIBSERIALPORT serialport)
-    set(PREFERRED_LIBGPIOD gpiod)
 endif()
 
 # -------------------------------------
@@ -231,15 +236,33 @@ elseif(MSVC)
     set(HAVE_LIBREADLINE 1)
 endif()
 
-add_subdirectory(libserial)
-
 # -------------------------------------
-# Find libgpiod, if needed
+# Find libgpiod using pkg-config, if needed
 if(HAVE_LINUXGPIO)
-    find_library(HAVE_LIBGPIOD NAMES ${PREFERRED_LIBGPIOD})
-    if(HAVE_LIBGPIOD)
-        set(LIB_LIBGPIOD ${HAVE_LIBGPIOD})
-        set(CMAKE_REQUIRED_LIBRARIES ${LIB_LIBGPIOD})
+    # defaults/fallbacks
+    set(HAVE_LIBGPIOD 0)
+    set(HAVE_LIBGPIOD_V2 0)
+
+    find_package(PkgConfig)
+    if(PKG_CONFIG_FOUND)
+        # check whether we have version >= 2.0
+        pkg_check_modules(LIBGPIODV2 libgpiod>=2.0)
+        if(LIBGPIODV2_FOUND)
+            set(HAVE_LIBGPIOD 1)
+            set(HAVE_LIBGPIOD_V2 1)
+            set(CMAKE_REQUIRED_LIBRARIES ${LIBGPIODV2_LIBRARIES})
+            set(LIB_LIBGPIOD ${LIBGPIODV2_LINK_LIBRARIES})
+        else()
+            # check whether we have at least an older version
+            pkg_check_modules(LIBGPIOD libgpiod)
+            if(LIBGPIOD_FOUND)
+                set(HAVE_LIBGPIOD 1)
+                set(CMAKE_REQUIRED_LIBRARIES ${LIBGPIOD_LIBRARIES})
+                set(LIB_LIBGPIOD ${LIBGPIOD_LINK_LIBRARIES})
+            endif()
+        endif()
+    else()
+        message(WARNING "For using libgpiod, pkg-config would be required which is not available.")
     endif()
 endif()
 
@@ -336,7 +359,8 @@ if (DEBUG_CMAKE)
     message(STATUS "HAVE_LIBUSB_1_0_LIBUSB_H: ${HAVE_LIBUSB_1_0_LIBUSB_H}")
     message(STATUS "HAVE_HIDAPI_HIDAPI_H: ${HAVE_HIDAPI_HIDAPI_H}")
     message(STATUS "LIBUSB_COMPAT_DIR: ${LIBUSB_COMPAT_DIR}")
-    message(STATUS "HAVE_LIBGPIOD: ${HAVE_LIBGPIOD}")
+    message(STATUS "LIBGPIODV2_FOUND: ${LIBGPIODV2_FOUND}")
+    message(STATUS "LIBGPIOD_FOUND: ${LIBGPIOD_FOUND}")
     message(STATUS "----------------------")
 endif()
 
@@ -406,7 +430,9 @@ endif()
 
 if(HAVE_LINUXGPIO)
     message(STATUS "ENABLED    linuxgpio")
-    if (HAVE_LIBGPIOD)
+    if (LIBGPIODV2_FOUND)
+        message(STATUS "DO HAVE    libgpiod (v2.x)")
+    elseif(LIBGPIOD_FOUND)
         message(STATUS "DO HAVE    libgpiod")
     else()
         message(STATUS "DON'T HAVE libgpiod")
@@ -423,5 +449,4 @@ endif()
 
 message(STATUS "----------------------")
 
-add_subdirectory(interface)
 add_subdirectory(test)

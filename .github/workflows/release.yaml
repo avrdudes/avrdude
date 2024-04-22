@@ -1,7 +1,7 @@
 name: Build avrdude with Emscripten
 
 env:
-  EM_VERSION: 3.1.56
+  EM_VERSION: 3.1.57
   EM_CACHE_FOLDER: 'emsdk-cache'
 
 on:

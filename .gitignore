@@ -1,5 +1,7 @@
+node_modules/
+cmake-build-release-emscripten/
+.idea/
 release-build
-.idea
 src/CMakeFiles
 .DS_Store
 .deps/
@@ -57,6 +59,9 @@ cscope.out
 out/
 build/
 build_*/
+CMakeFiles/
+/CMakeCache.txt
+cmake_install.cmake
 
 # Visual Studio
 .vs/

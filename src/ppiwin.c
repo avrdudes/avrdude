@@ -30,7 +30,7 @@ reg = register as defined in an enum in ppi.h. This must be converted
 */
 
 
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 
 #if defined(HAVE_PARPORT) && defined(WIN32)
 

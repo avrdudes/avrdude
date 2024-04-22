@@ -6,8 +6,8 @@
 
 add_custom_target(test
         # Build files
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/interface/avrdude.js ${CMAKE_BINARY_DIR}/test
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/interface/avrdude.wasm ${CMAKE_BINARY_DIR}/test
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/src/avrdude.js ${CMAKE_BINARY_DIR}/test
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/src/avrdude.wasm ${CMAKE_BINARY_DIR}/test
         # HTML files
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/index.html ${CMAKE_BINARY_DIR}/test
         COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/test/nanoevery.html ${CMAKE_BINARY_DIR}/test
@@ -22,5 +22,5 @@ add_custom_target(test
         DEPENDS avrdude
 
         # Worker
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/libserial/avrdude-worker.js ${CMAKE_BINARY_DIR}/test
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_BINARY_DIR}/libserial/avrdude-worker.js ${CMAKE_BINARY_DIR}/test
 )
