@@ -104,11 +104,12 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
 }
 
 static void linuxspi_setup(PROGRAMMER *pgm) {
-  pgm->cookie = cfg_malloc("linuxspi_setup()", sizeof(struct pdata));
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void linuxspi_teardown(PROGRAMMER* pgm) {
-  free(pgm->cookie);
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
@@ -379,7 +380,7 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
-    char *cp, *s, *str = cfg_strdup("linuxspi_parseextitspecs()", sp);
+    char *cp, *s, *str = mmt_strdup(sp);
 
     s = str;
     while ((cp = strtok(s, ","))) {
@@ -392,11 +393,11 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
             pgm->exit_reset = EXIT_RESET_DISABLED;
             continue;
         }
-        free(str);
+        mmt_free(str);
         return -1;
     }
 
-    free(str);
+    mmt_free(str);
     return 0;
 }
 
