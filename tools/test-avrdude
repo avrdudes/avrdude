@@ -348,8 +348,8 @@ for (( p=0; p<$arraylength; p++ )); do
         specify="fuse access: clear, set and read eesave fuse bit"
         command=(${avrdude[@]} -T '"config eesave=0; config eesave=1; config eesave"')
       else
-        specify="fuse access: clear, set and read wdton fuse bit"
-        command=(${avrdude[@]} -T '"config wdton=0; config wdton=1; config wdton"')
+        specify="fuse access: clear, set and read ckout fuse bit"
+        command=(${avrdude[@]} -T '"config ckout=0; config ckout=1; config ckout"')
       fi
       execute "${command[@]}" > $outfile
       fusebit=$(grep ^config $outfile | awk '{print $4}')
