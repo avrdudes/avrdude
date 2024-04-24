@@ -1304,9 +1304,11 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   uint16_t pr = addr + m->offset;
 
+  usbasp_tpi_nvm_waitbusy(pgm);
+
   // Must erase fuse first, TPI parts only have one fuse
   if(mem_is_a_fuse(m)) { // Lockbits are reset during chip erase
-    // Set pointer register
+    // Set pointer register to pr + 1
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
     usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
@@ -1321,9 +1323,9 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     usbasp_tpi_nvm_waitbusy(pgm);
   }
 
-  // Set pointer register
+  // Reset pointer register to pr
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
-  usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
+  usbasp_tpi_send_byte(pgm, pr & 0xFF);
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
   usbasp_tpi_send_byte(pgm, (pr >> 8) );
   // Select word write
