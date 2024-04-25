@@ -1379,10 +1379,9 @@ extern "C" {
 #endif
 
 void *cfg_malloc(const char *funcname, size_t n);
-
 void *cfg_realloc(const char *funcname, void *p, size_t n);
-
 char *cfg_strdup(const char *funcname, const char *s);
+void cfg_free(void *ptr);
 
 int init_config(void);
 
