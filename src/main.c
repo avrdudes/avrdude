@@ -1554,6 +1554,10 @@ skipopen:
     usleep(waittime);
     if (init_ok) {
       rc = avr_signature(pgm, p);
+      if (rc == LIBAVRDUDE_EXIT) {
+        exitrc = 0;
+        goto main_exit;
+      }
       if (rc != LIBAVRDUDE_SUCCESS) {
         if (rc == LIBAVRDUDE_SOFTFAIL && (p->prog_modes & PM_UPDI) && attempt < 1) {
           attempt++;
