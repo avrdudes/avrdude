@@ -1124,7 +1124,7 @@ static void buspirate_setup(PROGRAMMER *pgm)
 
 static void buspirate_teardown(PROGRAMMER *pgm)
 {
-	free(pgm->cookie);
+	mmt_free(pgm->cookie);
 }
 const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
 
