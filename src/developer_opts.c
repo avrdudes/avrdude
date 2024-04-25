@@ -107,8 +107,8 @@ static int opcodecmp(const OPCODE *op1, const OPCODE *op2, int opnum) {
       *p = '0';
 
   cmp = strcmp(opstr1, opstr2);
-  free(opstr1);
-  free(opstr2);
+  mmt_free(opstr1);
+  mmt_free(opstr2);
 
   return cmp;
 }
@@ -210,7 +210,7 @@ static void checkaddr(int memsize, int pagesize, int opnum, const OPCODE *op, co
         dev_info(".cmderr\t%s\t%s-%s\tbit %d outside addressable space should be x or 0 but is %s\n",
           p->desc, m->desc, opstr, i+8, cbs? cbs: "NULL");
         if(cbs)
-          free(cbs);
+          mmt_free(cbs);
       }
     } else {
       if(op->bit[i+8].type != AVR_CMDBIT_ADDRESS)
@@ -237,10 +237,10 @@ static char *dev_sprintf(const char *fmt, ...) {
   va_end(ap);
 
   if(size < 0)
-    return cfg_strdup("dev_sprintf()", "");
+    return mmt_strdup("");
 
   size++;                       // For terminating '\0'
-  p = cfg_malloc("dev_sprintf()", size);
+  p = mmt_malloc(size);
 
   va_start(ap, fmt);
   size = vsnprintf(p, size, fmt, ap);
@@ -337,8 +337,7 @@ static int dev_part_strct_entry(bool tsv,               // Print as spreadsheet?
     dev_cout(comms, n, 1, 1);   // Print comments on rhs
   }
 
-  if(cont)
-    free(cont);
+  mmt_free(cont);
 
   return 1;
 }
@@ -606,7 +605,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       firstid = 0;
       char *str = cfg_escape(ldata(ln));
       dev_info("%*s%s", tsv? 0: 8, "", str);
-      free(str);
+      mmt_free(str);
     }
     if(tsv)
       dev_info("\n");
@@ -625,9 +624,9 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   }
 
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
-  _if_partout_str(intcmp, cfg_strdup("dev_part_strct()", prog_modes_str(p->prog_modes)), prog_modes);
+  _if_partout_str(intcmp, mmt_strdup(prog_modes_str(p->prog_modes)), prog_modes);
   if(p->mcuid == 21) {
-    _if_partout_str(intcmp, cfg_strdup(__func__, "XVII + IV"), mcuid);
+    _if_partout_str(intcmp, mmt_strdup("XVII + IV"), mcuid);
   } else {
     _if_partout(intcmp, "%d", mcuid);
   }
@@ -645,13 +644,12 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   _if_partout(intcmp, "0x%04x", usbpid);
 
   if(!base || base->reset_disposition != p->reset_disposition)
-    _partout_str(cfg_strdup("dev_part_strct()",
-       p->reset_disposition == RESET_DEDICATED? "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"),
+    _partout_str(mmt_strdup(p->reset_disposition == RESET_DEDICATED?
+      "dedicated": p->reset_disposition == RESET_IO? "io": "unknown"),
        reset);
 
-  _if_partout_str(intcmp, cfg_strdup("dev_part_strct()",
-     p->retry_pulse == PIN_AVR_RESET? "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"),
-     retry_pulse);
+  _if_partout_str(intcmp, mmt_strdup(p->retry_pulse == PIN_AVR_RESET?
+     "reset": p->retry_pulse == PIN_AVR_SCK? "sck": "unknown"), retry_pulse);
 
   if(!base || base->flags != p->flags) {
     if(tsv) {
@@ -664,9 +662,8 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
       if(!base || (base->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL)) != (p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL))) {
         int par = p->flags & (AVRPART_PARALLELOK | AVRPART_PSEUDOPARALLEL);
-        _partout_str(cfg_strdup("dev_part_strct()",
-          par == 0? "no": par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"),
-          parallel);
+        _partout_str(mmt_strdup(par == 0? "no":
+          par == AVRPART_PSEUDOPARALLEL? "unknown": AVRPART_PARALLELOK? "yes": "pseudo"), parallel);
       }
     }
   }
@@ -788,7 +785,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
         if(meminj[i].mcu && str_casematch(meminj[i].mcu, p->desc))
           if(str_match(meminj[i].mem, m->desc)) {
             dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc,
-              meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
+              meminj[i].var, mmt_strdup(meminj[i].value), NULL);
             meminj[i].mcu = NULL;
           }
 
@@ -824,14 +821,14 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
       if(ptinj[i].mcu)
         if(str_casematch(ptinj[i].mcu, p->desc))
           dev_part_strct_entry(tsv, ".pt", p->desc, NULL,
-            ptinj[i].var, cfg_strdup("ptinj", ptinj[i].value), NULL);
+            ptinj[i].var, mmt_strdup(ptinj[i].value), NULL);
 
     for(size_t i=0; i<sizeof meminj/sizeof*meminj; i++)
       if(meminj[i].mcu && str_casematch(meminj[i].mcu, p->desc)) {
         if(!tsv)
           dev_info("    memory \"%s\"\n", meminj[i].mem);
         dev_part_strct_entry(tsv, ".ptmm", p->desc, meminj[i].mem,
-          meminj[i].var, cfg_strdup("meminj", meminj[i].value), NULL);
+          meminj[i].var, mmt_strdup(meminj[i].value), NULL);
         meminj[i].mcu = NULL;
         if(!tsv)
           dev_info("    ;\n");
@@ -850,21 +847,21 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
     char *p;
 
     dev_print_comment(cfg_get_prologue());
-    dev_info("avrdude_conf_version = %s;\n\n", p = cfg_escape(avrdude_conf_version)); free(p);
-    dev_info("default_programmer = %s;\n", p = cfg_escape(default_programmer)); free(p);
-    dev_info("default_parallel   = %s;\n", p = cfg_escape(default_parallel)); free(p);
-    dev_info("default_serial     = %s;\n", p = cfg_escape(default_serial)); free(p);
-    dev_info("default_spi        = %s;\n", p = cfg_escape(default_spi)); free(p);
+    dev_info("avrdude_conf_version = %s;\n\n", p = cfg_escape(avrdude_conf_version)); mmt_free(p);
+    dev_info("default_programmer = %s;\n", p = cfg_escape(default_programmer)); mmt_free(p);
+    dev_info("default_parallel   = %s;\n", p = cfg_escape(default_parallel)); mmt_free(p);
+    dev_info("default_serial     = %s;\n", p = cfg_escape(default_serial)); mmt_free(p);
+    dev_info("default_spi        = %s;\n", p = cfg_escape(default_spi)); mmt_free(p);
     dev_info("default_baudrate   = %d;\n", default_baudrate);
     dev_info("default_bitclock   = %7.5f;\n", default_bitclock);
-    dev_info("default_linuxgpio  = %s;\n", p = cfg_escape(default_linuxgpio)); free(p);
+    dev_info("default_linuxgpio  = %s;\n", p = cfg_escape(default_linuxgpio)); mmt_free(p);
     dev_info("allow_subshells    = %s;\n", allow_subshells? "yes": "no");
 
     dev_info("\n#\n# PROGRAMMER DEFINITIONS\n#\n\n");
   }
 
   if(dev_opt_c)
-    dev_output_pgm_defs(cfg_strdup("main()", programmer));
+    dev_output_pgm_defs(mmt_strdup(programmer));
 
   if(dev_opt_p == 2 && dev_opt_c)
     dev_info("\n");
@@ -872,7 +869,7 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
     dev_info("#\n# PART DEFINITIONS\n#\n");
 
   if(dev_opt_p)
-    dev_output_part_defs(cfg_strdup("main()", partdesc));
+    dev_output_part_defs(mmt_strdup(partdesc));
 }
 
 
@@ -1250,7 +1247,7 @@ static char *dev_usbpid_liststr(const PROGRAMMER *pgm) {
       sprintf(spc + strlen(spc), "0x%04x", *(unsigned int *) ldata(ln));
     }
 
-  return cfg_strdup(__func__, *spc? spc: "NULL");
+  return mmt_strdup(*spc? spc: "NULL");
 }
 
 static char *dev_hvupdi_support_liststr(const PROGRAMMER *pgm) {
@@ -1267,7 +1264,7 @@ static char *dev_hvupdi_support_liststr(const PROGRAMMER *pgm) {
       sprintf(spc + strlen(spc), "%d", *(unsigned int *) ldata(ln));
     }
 
-  return cfg_strdup(__func__, *spc? spc: "NULL");
+  return mmt_strdup(*spc? spc: "NULL");
 }
 
 
@@ -1313,7 +1310,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     firstid = 0;
     char *str = cfg_escape(ldata(ln));
     dev_info("%s", str);
-    free(str);
+    mmt_free(str);
   }
   if(tsv)
     dev_info("\n");
@@ -1325,9 +1322,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
-  _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", prog_modes_str(pgm->prog_modes)), prog_modes);
-  _if_pgmout_str(boolcmp, cfg_strdup("dev_pgm_strct()", pgm->is_serialadapter? "yes": "no"), is_serialadapter);
-  _if_pgmout_str(intcmp, cfg_strdup("dev_pgm_strct()", extra_features_str(pgm->extra_features)), extra_features);
+  _if_pgmout_str(intcmp, mmt_strdup(prog_modes_str(pgm->prog_modes)), prog_modes);
+  _if_pgmout_str(boolcmp, mmt_strdup(pgm->is_serialadapter? "yes": "no"), is_serialadapter);
+  _if_pgmout_str(intcmp, mmt_strdup(extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
     _pgmout_fmt("connection_type", "%s", connstr(pgm->conntype));
   _if_pgmout(intcmp, "%d", baudrate);
@@ -1340,12 +1337,12 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   if(base) {
     char *basestr = dev_usbpid_liststr(base);
     show = !str_eq(basestr, pgmstr);
-    free(basestr);
+    mmt_free(basestr);
   }
   if(show)
     dev_part_strct_entry(tsv, ".prog", id, NULL, "usbpid", pgmstr, pgm->comments);
   else                          // dev_part_strct_entry() frees pgmstr
-    free(pgmstr);
+    mmt_free(pgmstr);
 
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbdev), usbdev);
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbsn), usbsn);
@@ -1358,9 +1355,8 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
     if(!base || !str_eq(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
 
-    free(str);
-    if(bstr)
-      free(bstr);
+    mmt_free(str);
+    mmt_free(bstr);
   }
 
   pgmstr = dev_hvupdi_support_liststr(pgm);
@@ -1369,12 +1365,12 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   if(base) {
     char *basestr = dev_hvupdi_support_liststr(base);
     show = !str_eq(basestr, pgmstr);
-    free(basestr);
+    mmt_free(basestr);
   }
   if(show)
     dev_part_strct_entry(tsv, ".prog", id, NULL, "hvupdi_support", pgmstr, pgm->comments);
   else                          // dev_part_strct_entry() frees pgmstr
-    free(pgmstr);
+    mmt_free(pgmstr);
 
   if(injct)
     for(size_t i=0; i<sizeof pgminj/sizeof*pgminj; i++)
@@ -1382,7 +1378,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
         for(LNODEID *ln=lfirst(pgm->id); ln; ln=lnext(ln))
           if(str_casematch(pgminj[i].pgmid, ldata(ln)))
             dev_part_strct_entry(tsv, ".prog", ldata(ln), NULL,
-              pgminj[i].var, cfg_strdup("pgminj", pgminj[i].value), NULL);
+              pgminj[i].var, strdup(pgminj[i].value), NULL);
 
   if(!tsv) {
     dev_cout(pgm->comments, ";", 0, 0);
