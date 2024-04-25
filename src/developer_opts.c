@@ -93,10 +93,6 @@ static int opcodecmp(const OPCODE *op1, const OPCODE *op2, int opnum) {
 
   opstr1 = opcode2str(op1, opnum, 1);
   opstr2 = opcode2str(op2, opnum, 1);
-  if(!opstr1 || !opstr2) {
-    dev_info("%s: out of memory\n", progname);
-    exit(1);
-  }
 
   // Don't care x and 0 are functionally equivalent
   for(p=opstr1; *p; p++)
