@@ -27,6 +27,7 @@
 #include <ctype.h>
 #include <math.h>
 
+#include "avrdude.h"
 #include "libavrdude.h"
 
 // Return 1 if str starts with starts, 0 otherwise
@@ -228,7 +229,7 @@ int str_is_pattern(const char *str) {
     }
 }
 
-// Return a malloc'd string with the sprintf() result
+// Return a mmt_malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {
   int size = 0;
   va_list ap;
@@ -239,10 +240,10 @@ char *str_sprintf(const char *fmt, ...) {
   va_end(ap);
 
   if(size < 0)
-    return cfg_strdup(__func__, "");
+    return mmt_strdup("");
 
   size++;                       // For terminating '\0'
-  char *p = cfg_malloc(__func__, size);
+  char *p = mmt_malloc(size);
 
   va_start(ap, fmt);
   size = vsnprintf(p, size, fmt, ap);
@@ -255,14 +256,14 @@ char *str_sprintf(const char *fmt, ...) {
 }
 
 
-// Reads a potentially long line and returns it in a malloc'd buffer
+// Reads a potentially long line and returns it in a mmt_malloc'd buffer
 char *str_fgets(FILE *fp, const char **errpp) {
   int bs = 1023;                // Must be 2^n - 1
-  char *ret = (char *) cfg_malloc(__func__, bs);
+  char *ret = (char *) mmt_malloc(bs);
 
   ret[bs-2] = 0;
   if(!fgets(ret, bs, fp)) {
-    free(ret);
+    mmt_free(ret);
     if(errpp)
       *errpp = ferror(fp) && !feof(fp)? "I/O error": NULL;
     return NULL;
@@ -270,18 +271,18 @@ char *str_fgets(FILE *fp, const char **errpp) {
 
   while(ret[bs-2] != 0 && ret[bs-2] != '\n' && ret[bs-2] != '\r') {
     if(bs >= INT_MAX/2) {
-      free(ret);
+      mmt_free(ret);
       if(errpp)
         *errpp = "cannot cope with lines longer than INT_MAX/2 bytes";
       return NULL;
     }
     int was = bs;
     bs = 2*bs+1;
-    ret = cfg_realloc(__func__, ret, bs);
+    ret = mmt_realloc(ret, bs);
     ret[was-1] = ret[bs-2] = 0;
     if(!fgets(ret+was-1, bs-(was-1), fp)) { // EOF? Error?
       if(ferror(fp)) {
-        free(ret);
+        mmt_free(ret);
         if(errpp)
           *errpp = "I/O error";
         return NULL;
@@ -580,13 +581,13 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
 #define Return(...) do { \
   sd->errstr = str_sprintf(__VA_ARGS__); \
   sd->type = 0; \
-  free(str); \
+  mmt_free(str); \
   return sd; \
 } while (0)
 
 #define Warning(...) do { \
   if(sd->warnstr) \
-    free(sd->warnstr); \
+    mmt_free(sd->warnstr); \
    sd->warnstr = str_sprintf(__VA_ARGS__); \
 } while (0)
 
@@ -597,8 +598,8 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
 
 Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *memstr) {
   char *end_ptr;
-  Str2data *sd = cfg_malloc(__func__, sizeof *sd);
-  char *str = cfg_strdup(__func__, s);
+  Str2data *sd = mmt_malloc(sizeof *sd);
+  char *str = mmt_strdup(s);
 
   size_t arglen = strlen(str);
   // Remove trailing comma to allow cut and paste of lists
@@ -731,7 +732,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
         Warning("%s out of int64 range (consider U suffix)", stri);
 
       sd->type = STR_INTEGER;
-      free(str);
+      mmt_free(str);
       return sd;
     }
   }
@@ -741,7 +742,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     if (end_ptr != str && toupper(*end_ptr) == 'D' && end_ptr[1] == 0) {
       sd->size = 8;
       sd->type = STR_DOUBLE;
-      free(str);
+      mmt_free(str);
       return sd;
     }
   }
@@ -756,16 +757,14 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
       sd->size = 4;
     if(sd->size) {
       sd->type = STR_FLOAT;
-      free(str);
+      mmt_free(str);
       return sd;
     }
   }
 
   if(type & STR_STRING && arglen > 1) { // Try C-style string or single character
     if((*str == '\'' && str[arglen-1] == '\'') || (*str == '\"' && str[arglen-1] == '\"')) {
-      char *s = calloc(arglen-1, 1);
-      if (s == NULL)
-        Return("out of memory");
+      char *s = mmt_malloc(arglen-1);
 
       // Strip start and end quotes, and unescape C string
       strncpy(s, str+1, arglen-2);
@@ -777,12 +776,12 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
         memset(sd->a+1, 0, 7);
         sd->sigsz = sd->size = 1;
         sd->type = STR_INTEGER;
-        free(s);
+        mmt_free(s);
       } else {                    // C-style string
         sd->str_ptr = s;
         sd->type = STR_STRING;
       }
-      free(str);
+      mmt_free(str);
       return sd;
     }
   }
@@ -825,7 +824,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
     sd->size = rc;
     avr_free_part(dp);
     sd->type = STR_FILE;
-    free(str);
+    mmt_free(str);
     return sd;
   }
 
@@ -836,12 +835,12 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 void str_freedata(Str2data *sd) {
   if(sd) {
     if(sd->warnstr)
-      free(sd->warnstr);
+      mmt_free(sd->warnstr);
     if(sd->errstr)
-      free(sd->errstr);
+      mmt_free(sd->errstr);
     if(sd->mem)
       avr_free_mem(sd->mem);
-    free(sd);
+    mmt_free(sd);
   }
 }
 
@@ -909,11 +908,11 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
   if(sd->warnstr && strstr(sd->warnstr, " out of ")) { // Convert out of range warning into error
     char *p = strstr(sd->warnstr, "out of ");
     if(p) {
-      p = cfg_strdup(__func__, p);
+      p = mmt_strdup(p);
       if(strchr(p, ','))
        *strchr(p, ',') = 0;
       err = cache_string(p);
-      free(p);
+      mmt_free(p);
     } else {
       err = "out of range";
     }
@@ -929,19 +928,19 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
     if(signd == STR_SIGNED) {   // Strictly signed
       if(sd->ll < smin[lds] || sd->ll > smax[lds]) {
         err = cache_string(tofree=str_sprintf("out of int%d range", 1<<(3+lds)));
-        free(tofree);
+        mmt_free(tofree);
         goto finished;
       }
     } else if(signd == STR_UNSIGNED) { // Strictly unsigned are out of range if u and -u are
       if(sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
         err = cache_string(tofree=str_sprintf("out of uint%d range", 1<<(3+lds)));
-        free(tofree);
+        mmt_free(tofree);
         goto finished;
       }
     } else {                    // Neither strictly signed or unsigned
       if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
         err = cache_string(tofree=str_sprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
-        free(tofree);
+        mmt_free(tofree);
         goto finished;
       }
     }
@@ -1037,13 +1036,13 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
   return (char *) q;
 }
 
-// Return allocated string for frequency with n significant digits and xHz unit
+// Return mmt_malloc'd string for frequency with n significant digits and xHz unit
 char *str_frq(double f, int n) {
   struct { double fq; const char *pre; } prefix[] = {{1e9, "G"},  {1e6, "M"},  {1e3, "k"},};
 
   for(size_t i = 0; i < sizeof prefix/sizeof*prefix; i++)
-     if(f >= prefix[i].fq)
-        return str_sprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
+    if(f >= prefix[i].fq)
+      return str_sprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
   return str_sprintf("%.*g Hz", n, f);
 }
 
@@ -1091,9 +1090,9 @@ int str_levenshtein(const char *str1, const char *str2,
   int swap, int subst, int add, int del) {
 
   int i, j, len1 = strlen(str1), len2 = strlen(str2);
-  int *row0 = cfg_malloc(__func__, (len2+1)*sizeof*row0);
-  int *row1 = cfg_malloc(__func__, (len2+1)*sizeof*row1);
-  int *row2 = cfg_malloc(__func__, (len2+1)*sizeof*row2);
+  int *row0 = mmt_malloc((len2+1)*sizeof*row0);
+  int *row1 = mmt_malloc((len2+1)*sizeof*row1);
+  int *row2 = mmt_malloc((len2+1)*sizeof*row2);
 
   for (j = 0; j <= len2; j++)
     row1[j] = j * add;
@@ -1119,9 +1118,9 @@ int str_levenshtein(const char *str1, const char *str2,
     row2 = temp;
   }
   i = row1[len2];
-  free(row0);
-  free(row1);
-  free(row2);
+  mmt_free(row0);
+  mmt_free(row1);
+  mmt_free(row2);
   return i;
 }
 
@@ -1195,9 +1194,9 @@ size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
   const size_t swap = 3;        // Transposing neighbouring letters is an easy mistake to make
   const size_t subst = 32, add = 32, del = 32; // Must be multiples of 8
   size_t i, j, len1 = strlen(s1), len2 = strlen(s2);
-  size_t *row0 = cfg_malloc(__func__, (len2+1)*sizeof*row0);
-  size_t *row1 = cfg_malloc(__func__, (len2+1)*sizeof*row1);
-  size_t *row2 = cfg_malloc(__func__, (len2+1)*sizeof*row2);
+  size_t *row0 = mmt_malloc((len2+1)*sizeof*row0);
+  size_t *row1 = mmt_malloc((len2+1)*sizeof*row1);
+  size_t *row2 = mmt_malloc((len2+1)*sizeof*row2);
   unsigned char *str1 = (unsigned char *) s1, *str2 = (unsigned char *) s2;
 
   for(j = 0; j < len2; j++)
@@ -1228,8 +1227,8 @@ size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
     row2 = temp;
   }
   i = row1[len2];               // Last row2[len2]
-  free(row0);
-  free(row1);
-  free(row2);
+  mmt_free(row0);
+  mmt_free(row1);
+  mmt_free(row2);
   return i;
 }
