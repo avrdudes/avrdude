@@ -1390,6 +1390,11 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
+    if(rc == LIBAVRDUDE_EXIT) {
+      exitrc = 0;
+      goto main_exit;
+    }
+
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
 skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
