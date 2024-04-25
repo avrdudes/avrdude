@@ -177,12 +177,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     }
 
     size_t report_size = 1 + 2 + (size_t)pdata->page_size;
-    uint8_t* report = (uint8_t*)malloc(report_size);
-    if (report == NULL)
-    {
-        pmsg_error("unable to allocate memory\n");
-        return -1;
-    }
+    uint8_t *report = (uint8_t *) mmt_malloc(report_size);
 
     report[0] = 0; // report number
     if (pdata->page_size <= 256 && pdata->flash_size < 0x10000)
@@ -204,7 +199,7 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     memset(report + 1 + 2 + size, 0xFF, report_size - (1 + 2 + size));
 
     int result = hid_write(pdata->hid_handle, report, report_size);
-    free(report);
+    mmt_free(report);
     if (result < 0)
     {
         if (!suppress_warning)
@@ -234,23 +229,15 @@ static int teensy_reboot(pdata_t* pdata)
 
 //-----------------------------------------------------------------------------
 
-static void teensy_setup(PROGRAMMER* pgm)
-{
+static void teensy_setup(PROGRAMMER *pgm) {
     pmsg_debug("teensy_setup()\n");
-
-    if ((pgm->cookie = malloc(sizeof(pdata_t))) == NULL)
-    {
-        pmsg_error("unable to allocate memory\n");
-        exit(1);
-    }
-
-    memset(pgm->cookie, 0, sizeof(pdata_t));
+    pgm->cookie = mmt_malloc(sizeof(pdata_t));
 }
 
-static void teensy_teardown(PROGRAMMER* pgm)
-{
+static void teensy_teardown(PROGRAMMER *pgm) {
     pmsg_debug("teensy_teardown()\n");
-    free(pgm->cookie);
+    mmt_free(pgm->cookie);
+    pgm->cookie = NULL;
 }
 
 static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
@@ -571,7 +558,7 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
             msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
             msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
             msg_error("  -xhelp       Show this help menu and exit\n");
-            exit(0);
+            return LIBAVRDUDE_EXIT;;
         }
         else
         {
