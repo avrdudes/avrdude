@@ -38,7 +38,7 @@ FP_UpdateProgress update_progress;
 
 #define DEBUG 0
 
-/* TPI: returns 1 if NVM controller busy, 0 if free */
+/* TPI: returns nonzero if NVM controller busy, 0 if free */
 int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm) {
   unsigned char cmd;
   unsigned char res;
