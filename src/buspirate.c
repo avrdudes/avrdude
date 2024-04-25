@@ -88,13 +88,11 @@ static inline int buspirate_uses_ascii(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
 }
 
-static inline int
-buspirate_uses_pullups(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_pullups(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_PULLUPS);
 }
 
-static inline int
-buspirate_uses_hiz(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_hiz(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_HIZ);
 }
 
@@ -223,6 +221,7 @@ static char *buspirate_readline(const PROGRAMMER *pgm, char *buf, size_t len) {
 	}
 	return ret;
 }
+
 static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	int rc;
 	const char * readline;
@@ -407,7 +406,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 			msg_error("  -xpullups                   Enable internal pull-ups\n");
 			msg_error("  -xhiz                       SPI HiZ mode (open collector)\n");
 			msg_error("  -xhelp                      Show this help menu and exit\n");
-			exit(0);
+			return LIBAVRDUDE_EXIT;;
 		}
 
 		pmsg_error("do not understand extended param '%s'\n", extended_param);
@@ -965,6 +964,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 	return n_bytes;
 }
+
 /* Paged write function which utilizes the Bus Pirate's "Write then Read" binary SPI instruction */
 static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int base_addr, unsigned int n_data_bytes) {
@@ -1115,17 +1115,16 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 /* Interface - management */
-static void buspirate_setup(PROGRAMMER *pgm)
-{
-	/* Allocate private data */
+static void buspirate_setup(PROGRAMMER *pgm) {
 	pgm->cookie = mmt_malloc(sizeof(struct pdata));
 	PDATA(pgm)->serial_recv_timeout = 100;
 }
 
-static void buspirate_teardown(PROGRAMMER *pgm)
-{
+static void buspirate_teardown(PROGRAMMER *pgm) {
 	mmt_free(pgm->cookie);
+	pgm->cookie = NULL;
 }
+
 const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
 
 void buspirate_initpgm(PROGRAMMER *pgm) {
