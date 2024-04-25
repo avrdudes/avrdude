@@ -1066,6 +1066,7 @@ void serialadapter_not_found(const char *sea_id);
 extern "C" {
 #endif
 
+void         pgm_init_functions(PROGRAMMER *pgm);
 PROGRAMMER * pgm_new(void);
 PROGRAMMER * pgm_dup(const PROGRAMMER *src);
 void         pgm_free(PROGRAMMER *p);
