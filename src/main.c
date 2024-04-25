@@ -1517,6 +1517,10 @@ skipopen:
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
+    if(rc == LIBAVRDUDE_EXIT) {
+      exitrc = 0;
+      goto main_exit;
+    }
     pmsg_error("initialization failed, rc=%d\n", rc);
     if (rc == -2)
       imsg_error("the programmer ISP clock is too fast for the target\n");
