@@ -256,7 +256,7 @@ static void avrftdi_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 	// Switch to TPI initialisation in avrftdi_tpi.c
 	if(p->prog_modes & PM_TPI)
-          avrftdi_tpi_initpgm(pgm);
+		avrftdi_tpi_initpgm(pgm);
 }
 
 static void avrftdi_disable(const PROGRAMMER *pgm) {
@@ -705,7 +705,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	E(ftdi_set_interface(pdata->ftdic, interface) < 0, pdata->ftdic);
 	
 	const char *serial = *pgm->usbsn? pgm->usbsn: NULL; // no SN means use first available
-        // Todo: use desc and index argument, currently set to NULL and 0
+	// Todo: use desc and index argument, currently set to NULL and 0
 	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, NULL, serial, 0);
 	if(err) {
 		pmsg_error("error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
@@ -1691,9 +1691,9 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
 	unsigned int maxaddr = addr + n_bytes;
 	unsigned char *buf, *ptr;
 	unsigned int bytes;
-   
-    buf = alloca(n_bytes * 8 + 1);
-    ptr = buf;
+
+	buf = alloca(n_bytes * 8 + 1);
+	ptr = buf;
 
 	if (mem_is_flash(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
