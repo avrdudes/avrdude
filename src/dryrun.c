@@ -535,13 +535,13 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static void dryrun_setup(PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
   // Allocate dry
-  pgm->cookie = cfg_malloc(__func__, sizeof(dryrun_t));
+  pgm->cookie = mmt_malloc(sizeof(dryrun_t));
 }
 
 
 static void dryrun_teardown(PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
-  free(pgm->cookie);
+  mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 

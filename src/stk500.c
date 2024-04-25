@@ -489,6 +489,8 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if ((m = avr_locate_eeprom(p))) {
     buf[11] = m->readback[0];
     buf[12] = m->readback[1];
+    if(!buf[11] && !buf[12])    // Make default readback values 0xff for eeproms
+      buf[11] = buf[12] = 0xff;
     buf[15] = (m->size >> 8) & 0x00ff;
     buf[16] = m->size & 0x00ff;
   } else {
