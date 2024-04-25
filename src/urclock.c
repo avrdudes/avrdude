@@ -1608,7 +1608,7 @@ vblvecfound:
     term_out(&" %s"[first], ur.uP.name);
   if(!first) {
     term_out("\n");
-    exit(0);
+    return LIBAVRDUDE_EXIT;;
   }
 
 alldone:
@@ -1803,38 +1803,38 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
 
 static int parseUrclockID(const PROGRAMMER *pgm) {
   if(*ur.iddesc) {              // User override of ID, eg, -xid=F.-4.2 for penultimate flash word
-    char *idstr = cfg_strdup(__func__, ur.iddesc), *idlenp;
+    char *idstr = mmt_strdup(ur.iddesc), *idlenp;
     const char *errstr;
     int ad, lg;
 
     if(!(strchr("EF", *idstr) && idstr[1] == '.')) {
       pmsg_warning("-xid=%s string must start with E. or F.\n", ur.iddesc);
-      free(idstr);
+      mmt_free(idstr);
       return -1;
     }
 
     if(!(idlenp = strchr(idstr+2, '.'))) {
       pmsg_warning("-xid=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
-      free(idstr);
+      mmt_free(idstr);
       return -1;
     }
     *idlenp++ = 0;
     ad = str_int(idstr+2, STR_INT32, &errstr);
     if(errstr) {
       pmsg_warning("address %s of -xid=%s: %s\n", idstr+2, ur.iddesc, errstr);
-      free(idstr);
+      mmt_free(idstr);
       return -1;
     }
 
     lg = str_int(idlenp, STR_INT32, &errstr);
     if(errstr) {
       pmsg_warning("length %s of -xid=%s string: %s\n", idlenp, ur.iddesc, errstr);
-      free(idstr);
+      mmt_free(idstr);
       return -1;
     }
     if(!lg || lg > 8) {
       pmsg_warning("length %s of -xid=%s string must be between 1 and 8\n", idlenp, ur.iddesc);
-      free(idstr);
+      mmt_free(idstr);
       return -1;
     }
 
@@ -1842,7 +1842,7 @@ static int parseUrclockID(const PROGRAMMER *pgm) {
     ur.idaddr = ad;
     ur.idlen = lg;
 
-    free(idstr);
+    mmt_free(idstr);
   }
 
   return 0;
@@ -2155,14 +2155,14 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
       AVRMEM *flm = avr_locate_flash(p);
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
-        unsigned char *page = cfg_malloc(__func__, flm->page_size);
+        unsigned char *page = mmt_malloc(flm->page_size);
         memset(page, 0xff, flm->page_size);
         set_reset(pgm, page, vecsz);
         if(avr_write_page_default(pgm, p, flm, 0, page) < 0) {
-          free(page);
+          mmt_free(page);
           return -1;
         }
-        free(page);
+        mmt_free(page);
       }
     }
   }
@@ -2527,7 +2527,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
         urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
   }
 
   if(parseUrclockID(pgm) < 0)
@@ -2539,7 +2539,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
 
 static void urclock_setup(PROGRAMMER *pgm) {
   // Allocate ur
-  pgm->cookie = cfg_malloc(__func__, sizeof(Urclock_t));
+  pgm->cookie = mmt_malloc(sizeof(Urclock_t));
 
   ur.xvectornum    = -1;        // Initialise, to ascertain whether user had set to 0
   ur.ext_addr_byte = 0xff;      // So first memory address will load extended address
@@ -2549,7 +2549,7 @@ static void urclock_setup(PROGRAMMER *pgm) {
 
 
 static void urclock_teardown(PROGRAMMER *pgm) {
-  free(pgm->cookie);
+  mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 
