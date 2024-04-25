@@ -1037,6 +1037,16 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
   return (char *) q;
 }
 
+// Return allocated string for frequency with n significant digits and xHz unit
+char *str_frq(double f, int n) {
+  struct { double fq; const char *pre; } prefix[] = {{1e9, "G"},  {1e6, "M"},  {1e3, "k"},};
+
+  for(size_t i = 0; i < sizeof prefix/sizeof*prefix; i++)
+     if(f >= prefix[i].fq)
+        return str_sprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
+  return str_sprintf("%.*g Hz", n, f);
+}
+
 /*
  * From https://github.com/git/git/blob/master/levenshtein.c
  *
