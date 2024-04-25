@@ -1243,7 +1243,10 @@ int main(int argc, char * argv [])
           pmsg_error("programmer does not support extended parameter -x %s, option ignored\n", extended_param);
       }
     } else {
-      if (pgm->parseextparams(pgm, extended_params) < 0) {
+      int rc = pgm->parseextparams(pgm, extended_params);
+      if(rc == LIBAVRDUDE_EXIT)
+        exit(0);
+      if(rc < 0) {
         pmsg_error("unable to parse extended parameter list\n");
         exit(1);
       }
