@@ -665,8 +665,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 }
 
 static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
-	int vid, pid, interface, index, err;
-	const char *serial, *desc;
+	int vid, pid, interface, err;
 	
 	avrftdi_t* pdata = to_pdata(pgm);
 
@@ -690,17 +689,6 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	} else
 		pid = USB_DEVICE_FT2232;
 
-	if (0 == pgm->usbsn[0]) /* we don't care about SN. Use first avail. */
-		serial = NULL;
-	else
-		serial = pgm->usbsn;
-
-	/* not used yet, but i put them here, just in case someone does needs or
-	 * wants to implement this.
-	 */
-	desc = NULL;
-	index = 0;
-
 	if (pgm->usbdev[0] == 'a' || pgm->usbdev[0] == 'A')
 		interface = INTERFACE_A;
 	else if (pgm->usbdev[0] == 'b' || pgm->usbdev[0] == 'B')
@@ -716,15 +704,17 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 
 	E(ftdi_set_interface(pdata->ftdic, interface) < 0, pdata->ftdic);
 	
-	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, desc, serial, index);
+	const char *serial = *pgm->usbsn? pgm->usbsn: NULL; // no SN means use first available
+        // Todo: use desc and index argument, currently set to NULL and 0
+	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, NULL, serial, 0);
 	if(err) {
 		pmsg_error("error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
 		// usb_dev is initialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;
 		return err;
 	} else {
-		pmsg_info("using device VID:PID %04x:%04x and SN '%s' on interface %c.\n",
-		         vid, pid, serial, INTERFACE_A == interface? 'A': 'B');
+		pmsg_info("using device VID:PID %04x:%04x and SN %s on interface %c\n",
+		         vid, pid, serial? serial: "(none)", INTERFACE_A == interface? 'A': 'B');
 	}
 	
 	ftdi_set_latency_timer(pdata->ftdic, 1);
