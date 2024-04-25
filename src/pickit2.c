@@ -95,7 +95,7 @@ static const char *usb_strerror()
     return "";
 }
 #else
-static int usb_open_device(struct usb_dev_handle **dev, int vid, int pid);
+static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **dev, int vid, int pid);
 //#define INVALID_HANDLE_VALUE NULL
 #define USB_ERROR_NONE      0
 #define USB_ERROR_ACCESS    1
@@ -119,7 +119,8 @@ struct pdata
 #ifdef WIN32
     HANDLE usb_handle, write_event, read_event;
 #else
-    struct usb_dev_handle *usb_handle;     // LIBUSB STUFF
+    struct usb_dev_handle *usb_handle; // LIBUSB STUFF
+    int USB_init;                      // Used in usb_open_device()
 #endif
     uint8_t clock_period;  // SPI clock period in us
     int transaction_timeout;    // usb trans timeout in ms
@@ -160,22 +161,15 @@ struct pdata
 #define SCR_SPI             0xC3
 #define SCR_SPI_LIT_2(v)    0xC7,(v)
 
-static void pickit2_setup(PROGRAMMER * pgm)
-{
-    if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0)
-    {
-        pmsg_error("out of memory allocating private data\n");
-        exit(1);
-    }
-    memset(pgm->cookie, 0, sizeof(struct pdata));
-
-    PDATA(pgm)->transaction_timeout = 1500;    // default value, may be overridden with -x timeout=ms
-    PDATA(pgm)->clock_period = 10;    // default value, may be overridden with -x clockrate=us or -B or -i
+static void pickit2_setup(PROGRAMMER *pgm) {
+    pgm->cookie = mmt_malloc(sizeof(struct pdata));
+    PDATA(pgm)->transaction_timeout = 1500; // Can be changed with -x timeout=ms
+    PDATA(pgm)->clock_period = 10;          // Can be changed with -x clockrate=us or -B or -i
 }
 
-static void pickit2_teardown(PROGRAMMER * pgm)
-{
-    free(pgm->cookie);
+static void pickit2_teardown(PROGRAMMER *pgm) {
+    mmt_free(pgm->cookie);
+    pgm->cookie = NULL;
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
@@ -192,7 +186,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     {
         // Get the device description while we're at it and overlay it on pgm->desc
         short wbuf[80-1];
-        char *cbuf = cfg_malloc("pickit2_open()", sizeof wbuf/sizeof*wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
+        char *cbuf = mmt_malloc(sizeof wbuf/sizeof*wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
         HidD_GetProductString(PDATA(pgm)->usb_handle, wbuf, sizeof wbuf/sizeof*wbuf);
 
         if(pgm->desc && *pgm->desc)
@@ -202,10 +196,10 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
         for(size_t i = 0; i < sizeof wbuf/sizeof*wbuf && wbuf[i]; i++)
           cbuf[i] = (char) wbuf[i]; // TODO what about little/big endian???
         pgm->desc = cache_string(cbuf);
+        mmt_free(cbuf);
     }
 #else
-    if (usb_open_device(&(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0)
-    {
+    if(usb_open_device(pgm, &(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
         /* no PICkit2 found */
         pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
         return -1;
@@ -893,7 +887,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid)
 
             //Allocate memory for the hDevInfo structure, using the returned Length.
 
-            detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA)malloc(Length);
+            detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA) mmt_malloc(Length);
 
             //Set cbSize in the detailData structure.
 
@@ -989,7 +983,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid)
 
             //Free the memory used by the detailData structure (no longer needed).
 
-            free(detailData);
+            mmt_free(detailData);
 
         }  //if (Result != 0)
 
@@ -1080,17 +1074,14 @@ static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) 
 
 #else   // WIN32
 /* taken (modified) from avrdude usbasp.c */
-static int usb_open_device(struct usb_dev_handle **device, int vendor, int product)
-{
+static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int vendor, int product) {
     struct usb_bus      *bus;
     struct usb_device   *dev;
     usb_dev_handle      *handle = NULL;
     int                 errorCode = USB_ERROR_NOTFOUND;
-    static int          didUsbInit = 0;
 
-    if (!didUsbInit)
-    {
-        didUsbInit = 1;
+    if(!PDATA(pgm)->USB_init) {
+        PDATA(pgm)->USB_init = 1;
         usb_init();
     }
     usb_find_busses();
@@ -1200,7 +1191,7 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
             msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
             msg_error("  -xhelp            Show this help menu and exit\n");
-            exit(0);
+            return LIBAVRDUDE_EXIT;;
         }
 
         pmsg_error("invalid extended parameter '%s'\n", extended_param);
@@ -1292,4 +1283,3 @@ void pickit2_initpgm(PROGRAMMER *pgm) {
 #endif /* defined(HAVE_LIBUSB) || defined(WIN32) */
 
 const char pickit2_desc[] = "Microchip's PICkit2 Programmer";
-
