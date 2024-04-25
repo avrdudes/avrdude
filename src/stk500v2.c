@@ -292,27 +292,17 @@ static void stk600_setup_xprog(PROGRAMMER *pgm);
 static void stk600_setup_isp(PROGRAMMER *pgm);
 static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
 
-void stk500v2_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+void stk500v2_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;
   PDATA(pgm)->boot_start = ULONG_MAX;
   PDATA(pgm)->xtal = str_starts(pgmid, "scratchmonkey") ? SCRATCHMONKEY_XTAL : STK500V2_XTAL;
 }
 
-static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
-{
+static void stk500v2_jtagmkII_setup(PROGRAMMER *pgm) {
   void *mycookie, *theircookie;
 
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;
 
   /*
@@ -326,15 +316,10 @@ static void stk500v2_jtagmkII_setup(PROGRAMMER * pgm)
   PDATA(pgm)->chained_pdata = theircookie;
 }
 
-static void stk500v2_jtag3_setup(PROGRAMMER * pgm)
-{
+static void stk500v2_jtag3_setup(PROGRAMMER *pgm) {
   void *mycookie, *theircookie;
 
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->command_sequence = 1;
 
   /*
@@ -348,41 +333,40 @@ static void stk500v2_jtag3_setup(PROGRAMMER * pgm)
   PDATA(pgm)->chained_pdata = theircookie;
 }
 
-void stk500v2_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+void stk500v2_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 
-static void stk500v2_jtagmkII_teardown(PROGRAMMER * pgm)
-{
-  void *mycookie;
+static void stk500v2_jtagmkII_teardown(PROGRAMMER *pgm) {
+  if(pgm->cookie) {
+    mmt_free(PDATA(pgm)->flash_pagecache);
+    mmt_free(PDATA(pgm)->eeprom_pagecache);
 
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
+    void *mycookie = pgm->cookie;
+    pgm->cookie = PDATA(pgm)->chained_pdata;
+    jtagmkII_teardown(pgm);
+    pgm->cookie = mycookie;
+  }
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtagmkII_teardown(pgm);
-
-  free(mycookie);
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
-static void stk500v2_jtag3_teardown(PROGRAMMER * pgm)
-{
-  void *mycookie;
+static void stk500v2_jtag3_teardown(PROGRAMMER *pgm) {
+  if(pgm->cookie) {
+    void *mycookie = pgm->cookie;
+    pgm->cookie = PDATA(pgm)->chained_pdata;
+    jtag3_teardown(pgm);
+    pgm->cookie = mycookie;
+  }
 
-  mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
-  jtag3_teardown(pgm);
-
-  free(mycookie);
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 
-static unsigned short
-b2_to_u16(unsigned char *b)
-{
+static unsigned short b2_to_u16(unsigned char *b) {
   unsigned short l;
   l = b[0];
   l += (unsigned)b[1] << 8;
@@ -390,16 +374,12 @@ b2_to_u16(unsigned char *b)
   return l;
 }
 
-static void
-u16_to_b2(unsigned char *b, unsigned short l)
-{
+static void u16_to_b2(unsigned char *b, unsigned short l) {
   b[0] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
 }
 
-static double
-f_to_kHz_MHz(double f, const char **unit)
-{
+static double f_to_kHz_MHz(double f, const char **unit) {
   if (f >= 1e6) {
     f /= 1e6;
     *unit = "MHz";
@@ -469,10 +449,7 @@ static int stk500v2_jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, si
     sz = 3 + data[2];
   }
 
-  if ((cmdbuf = malloc(len + 3)) == NULL) {
-    pmsg_error("out of memory for command packet\n");
-    exit(1);
-  }
+  cmdbuf = mmt_malloc(len + 3);
   PROGRAMMER *pgmcp = pgm_dup(pgm);
   pgmcp->cookie = PDATA(pgm)->chained_pdata;
   cmdbuf[0] = CMND_ISP_PACKET;
@@ -480,7 +457,7 @@ static int stk500v2_jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, si
   cmdbuf[2] = (sz >> 8) & 0xff;
   memcpy(cmdbuf + 3, data, len);
   rv = jtagmkII_send(pgmcp, cmdbuf, len + 3);
-  free(cmdbuf);
+  mmt_free(cmdbuf);
   pgm_free(pgmcp);
 
   return rv;
@@ -493,17 +470,13 @@ static int stk500v2_jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_
   unsigned char *cmdbuf;
   int rv;
 
-  if ((cmdbuf = malloc(len + 1)) == NULL) {
-    pmsg_error("out of memory for command packet\n");
-    exit(1);
-  }
-
+  cmdbuf = mmt_malloc(len + 1);
   PROGRAMMER *pgmcp = pgm_dup(pgm);
   pgmcp->cookie = PDATA(pgm)->chained_pdata;
   cmdbuf[0] = SCOPE_AVR_ISP;
   memcpy(cmdbuf + 1, data, len);
   rv = jtag3_send(pgmcp, cmdbuf, len + 1);
-  free(cmdbuf);
+  mmt_free(cmdbuf);
   pgm_free(pgmcp);
 
   return rv;
@@ -596,7 +569,7 @@ static int stk500v2_jtagmkII_recv(const PROGRAMMER *pgm, unsigned char *msg,
     return -1;
   }
   memcpy(msg, jtagmsg + 1, rv - 1);
-  free(jtagmsg);
+  mmt_free(jtagmsg);
   return rv;
 }
 
@@ -625,11 +598,11 @@ static int stk500v2_jtag3_recv(const PROGRAMMER *pgm, unsigned char *msg,
   }
   if (jtagmsg[0] != SCOPE_AVR_ISP) {
     pmsg_error("message is not AVR ISP: 0x%02x\n", jtagmsg[0]);
-    free(jtagmsg);
+    mmt_free(jtagmsg);
     return -1;
   }
   memcpy(msg, jtagmsg + 1, rv - 1);
-  free(jtagmsg);
+  mmt_free(jtagmsg);
   return rv;
 }
 
@@ -1045,47 +1018,33 @@ static int stk500hvsp_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   return stk500hv_chip_erase(pgm, p, HVSPMODE);
 }
 
-static struct
-{
-  unsigned int state;
-  const char *description;
-} connection_status[] =
-{
-  { STATUS_CONN_FAIL_SDO, "SDO fail" },
-  { STATUS_CONN_FAIL_RST, "RST fail" },
-  { STATUS_CONN_FAIL_SCK, "SCK fail" },
-  { STATUS_TGT_NOT_DETECTED, "Target not detected" },
-  { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
-};
-
 /*
  * Max length of returned message is the sum of all the description
- * strings in the table above, plus 2 characters for separation.
- * Currently, this is 76 chars.
+ * strings in the table below, plus 2 characters for separation each.
+ * Currently, this is 74 chars plus the terminating nul.
  */
-static void
-stk500v2_translate_conn_status(unsigned char status, char *msg)
-{
-    size_t i;
-    int need_comma;
+static void stk500v2_translate_conn_status(unsigned char status, char *msg) {
+  struct {
+    unsigned int state;
+    const char *description;
+  } const conn_status[] = {
+    { STATUS_CONN_FAIL_SDO, "SDO fail" },
+    { STATUS_CONN_FAIL_RST, "RST fail" },
+    { STATUS_CONN_FAIL_SCK, "SCK fail" },
+    { STATUS_TGT_NOT_DETECTED, "Target not detected" },
+    { STATUS_TGT_REVERSE_INSERTED, "Target reverse inserted" },
+  };
 
-    *msg = 0;
-    need_comma = 0;
-
-    for (i = 0;
-         i < sizeof connection_status / sizeof connection_status[0];
-         i++)
-    {
-        if ((status & connection_status[i].state) != 0)
-        {
-            if (need_comma)
-                strcat(msg, ", ");
-            strcat(msg, connection_status[i].description);
-            need_comma = 1;
-        }
+  *msg = 0;
+  for(size_t i = 0; i < sizeof conn_status / sizeof *conn_status; i++) {
+    if(status & conn_status[i].state) {
+      if(*msg)
+        strcat(msg, ", ");
+      strcat(msg, conn_status[i].description);
     }
-    if (*msg == 0)
-        sprintf(msg, "Unknown status 0x%02x", status);
+  }
+  if(*msg == 0)
+    sprintf(msg, "Unknown status 0x%02x", status);
 }
 
 
@@ -1158,15 +1117,15 @@ retry:
             cmd[1] = CMD3_SIGN_ON;
             cmd[2] = cmd[3] = 0;
             if (jtag3_command(pgmcp, cmd, 4, &resp, "AVR sign-on") >= 0) {
-                free(resp);
+                mmt_free(resp);
 
                 cmd[1] = CMD3_START_DW_DEBUG;
                 if (jtag3_command(pgmcp, cmd, 4, &resp, "start DW debug") >= 0) {
-                    free(resp);
+                    mmt_free(resp);
 
                     cmd[1] = CMD3_MONCON_DISABLE;
                     if (jtag3_command(pgmcp, cmd, 3, &resp, "MonCon disable") >= 0)
-                        free(resp);
+                        mmt_free(resp);
                 }
             }
             pgm_free(pgmcp);
@@ -1353,17 +1312,10 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
-  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    free(PDATA(pgm)->flash_pagecache);
-    return -1;
-  }
+  mmt_free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
+  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
+  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
   PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
 
   if (p->flags & AVRPART_IS_AT90S1200) {
@@ -1421,7 +1373,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   jtag3_send(pgmcp, parm, 2);
 
   if (jtag3_recv(pgmcp, &resp) > 0)
-    free(resp);
+    mmt_free(resp);
 
   // Read or write SUFFER register
   if (PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
@@ -1478,7 +1430,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  free(pgmcp);
+  mmt_free(pgmcp);
 
   /*
    * Examine the avrpart's memory definitions, and initialize the page
@@ -1501,18 +1453,11 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
-  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    free(PDATA(pgm)->flash_pagecache);
-    return -1;
-  }
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+  mmt_free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
+  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
+  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
 
   return pgm->program_enable(pgm, p);
 }
@@ -1672,18 +1617,11 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
 	PDATA(pgm)->eeprom_pagesize = m->page_size;
     }
   }
-  free(PDATA(pgm)->flash_pagecache);
-  free(PDATA(pgm)->eeprom_pagecache);
-  if ((PDATA(pgm)->flash_pagecache = malloc(PDATA(pgm)->flash_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-  if ((PDATA(pgm)->eeprom_pagecache = malloc(PDATA(pgm)->eeprom_pagesize)) == NULL) {
-    pmsg_error("out of memory\n");
-    free(PDATA(pgm)->flash_pagecache);
-    return -1;
-  }
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+  mmt_free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
+  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
+  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
 
   return pgm->program_enable(pgm, p);
 }
@@ -1706,9 +1644,9 @@ static void stk500v2_jtag3_disable(const PROGRAMMER *pgm) {
   unsigned char buf[16];
   int result;
 
-  free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
-  free(PDATA(pgm)->eeprom_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->eeprom_pagecache = NULL;
 
   buf[0] = CMD_LEAVE_PROGMODE_ISP;
@@ -1748,9 +1686,9 @@ static void stk500hv_disable(const PROGRAMMER *pgm, enum hvmode mode) {
   unsigned char buf[16];
   int result;
 
-  free(PDATA(pgm)->flash_pagecache);
+  mmt_free(PDATA(pgm)->flash_pagecache);
   PDATA(pgm)->flash_pagecache = NULL;
-  free(PDATA(pgm)->eeprom_pagecache);
+  mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->eeprom_pagecache = NULL;
 
   buf[0] = mode == PPMODE? CMD_LEAVE_PROGMODE_PP:
@@ -1980,7 +1918,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
       msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter %s\n", extended_param);
@@ -2115,7 +2053,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
         msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
       msg_error  ("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter %s\n", extended_param);
@@ -3292,7 +3230,7 @@ static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan, double *
 static int stk500v2_set_fosc(const PROGRAMMER *pgm, double v) {
   int fosc;
   unsigned char prescale, cmatch;
-  static unsigned ps[] = {
+  const unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
   size_t idx;
@@ -3347,7 +3285,7 @@ static int stk500v2_get_fosc(const PROGRAMMER *pgm, double *v) {
 
 /* The list of SCK frequencies supported by the AVRISP mkII, as listed
  * in AVR069 */
-static double avrispmkIIfreqs[] = {
+static const double avrispmkIIfreqs[] = {
 	8000000, 4000000, 2000000, 1000000, 500000, 250000, 125000,
 	96386, 89888, 84211, 79208, 74767, 70797, 67227, 64000,
 	61069, 58395, 55945, 51613, 49690, 47905, 46243, 43244,
@@ -3369,21 +3307,21 @@ static double avrispmkIIfreqs[] = {
 	65.0, 61.9, 59.0, 56.3, 53.6, 51.1
 };
 
+#define NavrispmkIIfreqs (sizeof avrispmkIIfreqs / sizeof *avrispmkIIfreqs)
+
 static int stk500v2_set_sck_period_mk2(const PROGRAMMER *pgm, double v) {
   size_t i;
 
-  for (i = 0; i < sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0]); i++) {
-    if (1 / avrispmkIIfreqs[i] >= v)
+  for(i = 0; i < NavrispmkIIfreqs; i++)
+    if(1 / avrispmkIIfreqs[i] >= v)
       break;
-  }
 
-  if (i >= sizeof(avrispmkIIfreqs) / sizeof(avrispmkIIfreqs[0])) {
+  if(i >= NavrispmkIIfreqs) {
     pmsg_error("invalid SCK period: %g\n", v);
     return -1;
   }
 
-  msg_notice2("Using p = %.2f us for SCK (param = %d)\n",
-	    1000000 / avrispmkIIfreqs[i], (int) i);
+  msg_notice2("Using p = %.2f us for SCK (i = %d)\n", 1e6 / avrispmkIIfreqs[i], (int) i);
 
   return stk500v2_setparm(pgm, PARAM_SCK_DURATION, i);
 }
@@ -3466,7 +3404,7 @@ static double stk500v2_sck_to_us(const PROGRAMMER *pgm, unsigned char dur) {
   x = 1.0 / x;
   x /= 24.0;
   x *= (double)PDATA(pgm)->xtal;
-  return 1E6 / x;
+  return 1e6 / x;
 }
 
 
@@ -3797,13 +3735,13 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
 
   switch (PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
-    stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    return stk500v2_sck_to_us(pgm, sck_duration);
+    return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0? 0:
+      stk500v2_sck_to_us(pgm, sck_duration);
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
-    stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration);
-    return 1.0e6 / avrispmkIIfreqs[sck_duration];
+    return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0 ||
+      sck_duration >= NavrispmkIIfreqs? 0: 1e6 / avrispmkIIfreqs[sck_duration];
 
   case PGMTYPE_JTAGICE3:
     {
@@ -3811,14 +3749,13 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
       cmd[0] = CMD_GET_SCK;
       if (stk500v2_jtag3_send(pgm, cmd, 1) >= 0 && stk500v2_jtag3_recv(pgm, cmd, 4) >= 2) {
         unsigned int sck = cmd[1] | (cmd[2] << 8);
-        return (1E6 / (1000.0 * sck));
+        return sck? 1E6 / (1000.0 * sck): 0;
       }
       return 0;
     }
 
   case PGMTYPE_STK600:
-    stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600);
-    return (sck_stk600 + 1) / 8.0;
+    return stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600) < 0? 0: (sck_stk600 + 1) / 8.0;
 
   default:
     return sck_duration * 8.0e6 / PDATA(pgm)->xtal + 0.05;
@@ -3883,9 +3820,8 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
 
   case PGMTYPE_AVRISP_MKII:
   case PGMTYPE_JTAGICE_MKII:
-    if (stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0)
-      return 0.0;
-    return 1e6 / avrispmkIIfreqs[sck_duration];
+    return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0 ||
+      sck_duration >= NavrispmkIIfreqs? 0: 1e6 / avrispmkIIfreqs[sck_duration];
 
   case PGMTYPE_STK600:
     if (stk500v2_getparm2(pgm, PARAM2_CLOCK_CONF, &clock_conf) < 0)
@@ -4319,19 +4255,14 @@ static int stk600_xprog_command(const PROGRAMMER *pgm, unsigned char *b,
     else
         s = cmdsize;
 
-    if ((newb = malloc(s + 1)) == 0) {
-        pmsg_error("out of memory\n");
-        return -1;
-    }
-
+    newb = mmt_malloc(s + 1);
     newb[0] = CMD_XPROG;
     memcpy(newb + 1, b, cmdsize);
     rv = stk500v2_command(pgm, newb, cmdsize + 1, responsesize + 1);
-    if (rv == 0) {
+    if (rv == 0)
         memcpy(b, newb + 1, responsesize);
-    }
 
-    free(newb);
+    mmt_free(newb);
 
     return rv;
 }
@@ -4650,13 +4581,9 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
     offset = addr;
     addr += mem->offset;
 
-    if ((b = malloc(page_size + 2)) == NULL) {
-	pmsg_error("out of memory\n");
-        return -1;
-    }
-
+    b = mmt_malloc(page_size + 2);
     if (stk500v2_loadaddr(pgm, use_ext_addr) < 0) {
-        free(b);
+        mmt_free(b);
         return -1;
     }
 
@@ -4674,7 +4601,7 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
 	b[7] = page_size;
 	if (stk600_xprog_command(pgm, b, 8, page_size + 2) < 0) {
 	    pmsg_error("XPRG_CMD_READ_MEM failed\n");
-	    free(b);
+	    mmt_free(b);
 	    return -1;
 	}
 	memcpy(mem->buf + offset, b + 2, page_size);
@@ -4685,7 +4612,7 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
 	addr += page_size;
 	n_bytes -= page_size;
     }
-    free(b);
+    mmt_free(b);
 
     return n_bytes_orig;
 }
@@ -4759,13 +4686,9 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
     offset = addr;
     addr += mem->offset;
 
-    if ((b = malloc(page_size + 9)) == NULL) {
-	pmsg_error("out of memory\n");
-        return -1;
-    }
-
+    b = mmt_malloc(page_size + 9);
     if (stk500v2_loadaddr(pgm, use_ext_addr) < 0) {
-        free(b);
+        mmt_free(b);
         return -1;
     }
 
@@ -4786,7 +4709,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 	     */
 	    if (page_size % 256 != 0) {
 		pmsg_error("page size not multiple of 256\n");
-		free(b);
+		mmt_free(b);
 		return -1;
 	    }
 	    unsigned int chunk;
@@ -4809,7 +4732,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 		memcpy(b + 9, mem->buf + offset, writesize);
 		if (stk600_xprog_command(pgm, b, 256 + 9, 2) < 0) {
 		    pmsg_error("XPRG_CMD_WRITE_MEM failed\n");
-		    free(b);
+		    mmt_free(b);
 		    return -1;
 		}
 		if (n_bytes < 256)
@@ -4842,7 +4765,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 	    memcpy(b + 9, mem->buf + offset, writesize);
 	    if (stk600_xprog_command(pgm, b, page_size + 9, 2) < 0) {
 		pmsg_error("XPRG_CMD_WRITE_MEM failed\n");
-		free(b);
+		mmt_free(b);
 		return -1;
 	    }
 	    if (n_bytes < page_size)
@@ -4853,7 +4776,7 @@ static int stk600_xprog_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 	    n_bytes -= page_size;
 	}
     }
-    free(b);
+    mmt_free(b);
 
     return n_bytes_orig;
 }
