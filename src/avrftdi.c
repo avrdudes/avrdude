@@ -176,19 +176,22 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	}
 
 	if (divisor < 0) {
-		pmsg_warning("frequency too high (%u > %u MHz)\n", freq, clock/2/1000000);
-		imsg_warning("resetting frequency to %u MHz\n", clock/2/1000000);
+		char *f = str_frq(freq, 6), *h = str_frq(clock/2.0, 6);
+		pmsg_warning("frequency %s too high, resetting to %s\n", f, h);
+		mmt_free(f); mmt_free(h);
 		divisor = 0;
 	}
 
 	if (divisor > 65535) {
-		pmsg_warning("frequency too low (%u < %.3f Hz)\n", freq, (double) clock / 2 / 65536);
-		imsg_warning("resetting frequency to %.3f Hz\n", (double) clock / 2 / 65536);
+		char *f = str_frq(freq, 6), *l = str_frq(clock/2.0 / 65536, 6);
+		pmsg_warning("frequency %s too low, resetting to %s\n", f, l);
+		mmt_free(f); mmt_free(l);
 		divisor = 65535;
 	}
 
-	pmsg_info("using frequency: %.3f\n", (double) clock / 2 / (divisor + 1));
-	imsg_info("clock divisor: %d, 0x%04x\n", divisor, divisor);
+	char *f = str_frq(clock/2.0 / (divisor + 1), 6);
+	pmsg_info("using frequency: %s (clock divisor %d = 0x%04x)\n", f, divisor, divisor);
+	mmt_free(f);
 
 	*ptr++ = TCK_DIVISOR;
 	*ptr++ = (uint8_t)(divisor & 0xff);
