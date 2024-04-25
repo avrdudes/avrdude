@@ -1,6 +1,5 @@
-
 /*
- * avrdude - A Downloader/Uploader for AVR device programmers
+ * AVRDUDE - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
  * some code:
  * Copyright (C) 2011-2012 Roger E. Wolff <R.E.Wolff@BitWizard.nl>
@@ -125,56 +124,67 @@ void ft245r_initpgm(PROGRAMMER *pgm) {
 */
 #define FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND 0
 
-static struct ftdi_context *handle;
 
-#if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
-static unsigned int baud_multiplier;
-#else
-# define baud_multiplier 1		// this let's C compiler optimize
-#endif
-static unsigned char ft245r_ddr;
-static unsigned char ft245r_out;
+// Private data for this programmer
 
 #define FT245R_BUFSIZE		0x2000	// receive buffer size
 #define FT245R_MIN_FIFO_SIZE	128	// min of FTDI RX/TX FIFO size
 
-static struct {
+struct pdata {
+  struct ftdi_context *handle;
+#if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
+  int baud_mult;
+# define baud_multiplier my.baud_mult
+#else
+# define baud_multiplier 1      // Optimised by C compiler
+#endif
+  unsigned char ft245r_ddr;
+  unsigned char ft245r_out;
+  struct {
     int len;				// # of bytes in transmit buffer
-    uint8_t buf[FT245R_MIN_FIFO_SIZE];	// transmit buffer
-} tx;
-
-static struct {
+    uint8_t buf[FT245R_MIN_FIFO_SIZE];	// Transmit buffer
+  } tx;
+  struct {
     int discard;	// # of bytes to discard during read
     int pending;	// # of bytes that have been written since last read
     int len;	// # of bytes in receive buffer
-    int wr;		// write pointer
-    int rd;		// read pointer
-    uint8_t buf[FT245R_BUFSIZE];	// receive ring buffer
-} rx;
+    int wr;		// Write pointer
+    int rd;		// Read pointer
+    uint8_t buf[FT245R_BUFSIZE];	// Receive ring buffer
+  } rx;
+  struct ft245r_request {
+    int addr;
+    int bytes;
+    int n;
+    struct ft245r_request *next;
+  } *req_head, *req_tail, *req_pool;
+};
 
-static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
-                      unsigned char *res);
+// Use private programmer data as if they were a global structure my
+#define my (*(struct pdata *)(pgm->cookie))
+
+static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res);
 static int ft245r_tpi_tx(const PROGRAMMER *pgm, uint8_t byte);
 static int ft245r_tpi_rx(const PROGRAMMER *pgm, uint8_t *bytep);
 
 // Discard all data from the receive buffer.
 static void ft245r_rx_buf_purge(const PROGRAMMER *pgm) {
-    rx.len = 0;
-    rx.rd = rx.wr = 0;
+    my.rx.len = 0;
+    my.rx.rd = my.rx.wr = 0;
 }
 
 static void ft245r_rx_buf_put(const PROGRAMMER *pgm, uint8_t byte) {
-    rx.len++;
-    rx.buf[rx.wr++] = byte;
-    if (rx.wr >= (int) sizeof(rx.buf))
-	rx.wr = 0;
+    my.rx.len++;
+    my.rx.buf[my.rx.wr++] = byte;
+    if (my.rx.wr >= (int) sizeof(my.rx.buf))
+	my.rx.wr = 0;
 }
 
 static uint8_t ft245r_rx_buf_get(const PROGRAMMER *pgm) {
-    rx.len--;
-    uint8_t byte = rx.buf[rx.rd++];
-    if (rx.rd >= (int) sizeof(rx.buf))
-	rx.rd = 0;
+    my.rx.len--;
+    uint8_t byte = my.rx.buf[my.rx.rd++];
+    if (my.rx.rd >= (int) sizeof(my.rx.buf))
+	my.rx.rd = 0;
     return byte;
 }
 
@@ -183,12 +193,12 @@ static int ft245r_fill(const PROGRAMMER *pgm) {
     uint8_t raw[FT245R_MIN_FIFO_SIZE];
     int i, nread;
 
-    nread = ftdi_read_data(handle, raw, rx.pending);
+    nread = ftdi_read_data(my.handle, raw, my.rx.pending);
     if (nread < 0)
 	return -1;
-    rx.pending -= nread;
+    my.rx.pending -= nread;
 #if FT245R_DEBUG
-    msg_info("%s: read %d bytes (pending=%d)\n",  __func__, nread, rx.pending);
+    msg_info("%s: read %d bytes (pending=%d)\n",  __func__, nread, my.rx.pending);
 #endif
     for (i = 0; i < nread; ++i)
 	ft245r_rx_buf_put(pgm, raw[i]);
@@ -196,13 +206,10 @@ static int ft245r_fill(const PROGRAMMER *pgm) {
 }
 
 static int ft245r_rx_buf_fill_and_get(const PROGRAMMER *pgm) {
-    while (rx.len == 0)
-    {
+    while(my.rx.len == 0) {
         int result = ft245r_fill(pgm);
-        if (result < 0)
-        {
+        if(result < 0)
             return result;
-        }
     }
 
     return ft245r_rx_buf_get(pgm);
@@ -210,18 +217,18 @@ static int ft245r_rx_buf_fill_and_get(const PROGRAMMER *pgm) {
 
 /* Flush pending TX data to the FTDI send FIFO.  */
 static int ft245r_flush(const PROGRAMMER *pgm) {
-    int rv, len = tx.len, avail;
-    uint8_t *src = tx.buf;
+    int rv, len = my.tx.len, avail;
+    uint8_t *src = my.tx.buf;
 
     if (!len)
 	return 0;
 
     while (len > 0) {
-	avail = FT245R_MIN_FIFO_SIZE - rx.pending;
+	avail = FT245R_MIN_FIFO_SIZE - my.rx.pending;
 	if (avail <= 0) {
 	    avail = ft245r_fill(pgm);
 	    if (avail < 0) {
-		pmsg_error("fill returned %d: %s\n", avail, ftdi_get_error_string(handle));
+		pmsg_error("fill returned %d: %s\n", avail, ftdi_get_error_string(my.handle));
 		return -1;
 	    }
 	}
@@ -231,16 +238,16 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 #if FT245R_DEBUG
 	msg_info("%s: writing %d bytes\n", __func__, avail);
 #endif
-	rv = ftdi_write_data(handle, src, avail);
+	rv = ftdi_write_data(my.handle, src, avail);
 	if (rv != avail) {
-	    msg_error("write returned %d (expected %d): %s\n", rv, avail, ftdi_get_error_string(handle));
+	    msg_error("write returned %d (expected %d): %s\n", rv, avail, ftdi_get_error_string(my.handle));
 	    return -1;
 	}
 	src += avail;
 	len -= avail;
-	rx.pending += avail;
+	my.rx.pending += avail;
     }
-    tx.len = 0;
+    my.tx.len = 0;
     return 0;
 }
 
@@ -249,9 +256,9 @@ static int ft245r_send2(const PROGRAMMER *pgm, unsigned char *buf, size_t len,
     for (size_t i = 0; i < len; ++i) {
 	for (int j = 0; j < baud_multiplier; ++j) {
 	    if (discard_rx_data)
-		++rx.discard;
-	    tx.buf[tx.len++] = buf[i];
-	    if (tx.len >= FT245R_MIN_FIFO_SIZE)
+		++my.rx.discard;
+	    my.tx.buf[my.tx.len++] = buf[i];
+	    if (my.tx.len >= FT245R_MIN_FIFO_SIZE)
 		ft245r_flush(pgm);
 	}
     }
@@ -272,16 +279,16 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    msg_info("%s: discarding %d, consuming %lu bytes\n", __func__, rx.discard, (unsigned long) len);
+    msg_info("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
 #endif
-    while (rx.discard > 0) {
+    while (my.rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
         if (result < 0)
         {
             return result;
         }
 
-        --rx.discard;
+        --my.rx.discard;
     }
 
     for (size_t i = 0; i < len; ++i)
@@ -310,9 +317,9 @@ static int ft245r_drain(const PROGRAMMER *pgm, int display) {
     int r;
 
     // flush the buffer in the chip by changing the mode ...
-    r = ftdi_set_bitmode(handle, 0, BITMODE_RESET); 	// reset
+    r = ftdi_set_bitmode(my.handle, 0, BITMODE_RESET); 	// reset
     if (r) return -1;
-    r = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronuse BitBang
+    r = ftdi_set_bitmode(my.handle, my.ft245r_ddr, BITMODE_SYNCBB); // set Synchronuse BitBang
     if (r) return -1;
 
     // drain our buffer.
@@ -329,7 +336,7 @@ static void ft245r_usleep(const PROGRAMMER *pgm, useconds_t usec) {
 
 
 static int ft245r_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-    unsigned char cmd[4] = {0,0,0,0};
+    unsigned char cmd[4] = {0, 0, 0, 0};
     unsigned char res[4];
 
     if (p->prog_modes & PM_TPI)
@@ -361,10 +368,7 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
     }
 
 #if FT245R_BITBANG_VARIABLE_PULSE_WIDTH_WORKAROUND
-    if (rate > 0 && rate < ftdi_rate)
-	baud_multiplier = round((ftdi_rate + rate - 1) / rate);
-    else
-	baud_multiplier = 1;
+    my.baud_mult = rate > 0 && rate < ftdi_rate? round((ftdi_rate + rate - 1) / rate): 1;
 #else
     ftdi_rate = rate;
 #endif
@@ -372,9 +376,9 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
     msg_notice2("%s: bitclk %d -> FTDI rate %d, baud multiplier %d\n",
       __func__, rate, ftdi_rate, baud_multiplier);
 
-    r = ftdi_set_baudrate(handle, ftdi_rate);
+    r = ftdi_set_baudrate(my.handle, ftdi_rate);
     if (r) {
-        msg_error("set baudrate %d failed with error '%s'\n", rate, ftdi_get_error_string (handle));
+        msg_error("set baudrate %d failed with error '%s'\n", rate, ftdi_get_error_string (my.handle));
         return -1;
     }
     return 0;
@@ -385,7 +389,7 @@ static int get_pin(const PROGRAMMER *pgm, int pinname) {
 
   ft245r_flush(pgm);
 
-  if (ftdi_read_pins(handle, &byte) != 0)
+  if (ftdi_read_pins(my.handle, &byte) != 0)
     return -1;
   if (FT245R_DEBUG)
     msg_info("%s: in 0x%02x\n", __func__, byte);
@@ -400,8 +404,8 @@ static int set_pin(const PROGRAMMER *pgm, int pinname, int val) {
         return 0;
     }
 
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,pinname,val);
-    buf[0] = ft245r_out;
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, pinname, val);
+    buf[0] = my.ft245r_out;
 
     ft245r_send_and_discard(pgm, buf, 1);
     return 0;
@@ -484,7 +488,7 @@ static void ft245r_enable(PROGRAMMER *pgm, const AVRPART *p) {
  * issue the 'program enable' command to the AVR device
  */
 static int ft245r_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-    unsigned char cmd[4] = {0,0,0,0};
+    unsigned char cmd[4] = {0, 0, 0, 0};
     unsigned char res[4];
     int i;
 
@@ -602,15 +606,14 @@ static int ft245r_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return ft245r_program_enable(pgm, p);
 }
 
-static inline void add_bit(const PROGRAMMER *pgm, unsigned char *buf, int *buf_pos,
-			   uint8_t bit) {
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SDO, bit);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
-    buf[*buf_pos] = ft245r_out;
+static inline void add_bit(const PROGRAMMER *pgm, unsigned char *buf, int *buf_pos, uint8_t bit) {
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SDO, bit);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SCK, 0);
+    buf[*buf_pos] = my.ft245r_out;
     (*buf_pos)++;
 
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,1);
-    buf[*buf_pos] = ft245r_out;
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SCK, 1);
+    buf[*buf_pos] = my.ft245r_out;
     (*buf_pos)++;
 }
 
@@ -635,7 +638,7 @@ static inline unsigned char extract_data(const PROGRAMMER *pgm, unsigned char *b
 
     buf += offset * (8 * FT245R_CYCLES);
     for (j=0; j<8; j++) {
-        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_SDI)) {
+        if (GET_BITS_0(buf[buf_pos], pgm, PIN_AVR_SDI)) {
             r |= bit;
         }
         buf_pos += FT245R_CYCLES;
@@ -654,7 +657,7 @@ static inline unsigned char extract_data_out(const PROGRAMMER *pgm, unsigned cha
 
     buf += offset * (8 * FT245R_CYCLES);
     for (j=0; j<8; j++) {
-        if (GET_BITS_0(buf[buf_pos],pgm,PIN_AVR_SDO)) {
+        if (GET_BITS_0(buf[buf_pos], pgm, PIN_AVR_SDO)) {
             r |= bit;
         }
         buf_pos += FT245R_CYCLES;
@@ -669,9 +672,8 @@ static inline unsigned char extract_data_out(const PROGRAMMER *pgm, unsigned cha
  * transmit an AVR device command and return the results; 'cmd' and
  * 'res' must point to at least a 4 byte data buffer
  */
-static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
-                      unsigned char *res) {
-    int i,buf_pos;
+static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
+    int i, buf_pos;
     unsigned char buf[128];
 
     buf_pos = 0;
@@ -691,8 +693,7 @@ static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
     return 0;
 }
 
-static inline uint8_t extract_tpi_data(const PROGRAMMER *pgm, unsigned char *buf,
-				       int *buf_pos) {
+static inline uint8_t extract_tpi_data(const PROGRAMMER *pgm, unsigned char *buf, int *buf_pos) {
     uint8_t bit = 0x1, byte = 0;
     int j;
 
@@ -705,8 +706,7 @@ static inline uint8_t extract_tpi_data(const PROGRAMMER *pgm, unsigned char *buf
     return byte;
 }
 
-static inline int set_tpi_data(const PROGRAMMER *pgm, unsigned char *buf,
-			       uint8_t byte) {
+static inline int set_tpi_data(const PROGRAMMER *pgm, unsigned char *buf, uint8_t byte) {
     uint8_t bit = 0x1, parity = 0;
     int j, buf_pos = 0;
 
@@ -804,13 +804,13 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 }
 
 /* lower 8 pins are accepted, they might be also inverted */
-static const struct pindef_t valid_pins = {{0xff},{0xff}} ;
+static const struct pindef_t valid_pins = {{0xff}, {0xff}} ;
 
 static const struct pin_checklist_t pin_checklist[] = {
-    { PIN_AVR_SCK,  1, &valid_pins},
+    { PIN_AVR_SCK, 1, &valid_pins},
     { PIN_AVR_SDO, 1, &valid_pins},
     { PIN_AVR_SDI, 1, &valid_pins},
-    { PIN_AVR_RESET,1, &valid_pins},
+    { PIN_AVR_RESET, 1, &valid_pins},
     { PPI_AVR_BUFF, 0, &valid_pins},
 };
 
@@ -819,7 +819,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     int devnum = -1;
     char device[9] = "";
 
-    rv = pins_check(pgm,pin_checklist,sizeof(pin_checklist)/sizeof(pin_checklist[0]), true);
+    rv = pins_check(pgm, pin_checklist, sizeof(pin_checklist)/sizeof(pin_checklist[0]), true);
 
     if(rv) {
         pgm->display(pgm, progbuf);
@@ -844,7 +844,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
       else if (strncmp("ft", device, 2) || strlen(device) <= 8)  { // classic device number
         char *startptr = device + 2;
         char *endptr = NULL;
-        devnum = strtol(startptr,&endptr,10);
+        devnum = strtol(startptr, &endptr, 10);
         if ((startptr==endptr) || (*endptr != '\0')) {
           devnum = -1;
         }
@@ -858,8 +858,8 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
       return -1;
     }
 
-    handle = malloc (sizeof (struct ftdi_context));
-    ftdi_init(handle);
+    my.handle = mmt_malloc(sizeof (struct ftdi_context));
+    ftdi_init(my.handle);
     LNODEID usbpid = lfirst(pgm->usbpid);
     int pid;
     if (usbpid) {
@@ -869,18 +869,18 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
     } else {
       pid = USB_DEVICE_FT245;
     }
-    rv = ftdi_usb_open_desc_index(handle,
+    rv = ftdi_usb_open_desc_index(my.handle,
                                   pgm->usbvid?pgm->usbvid:USB_VENDOR_FTDI,
                                   pid,
                                   pgm->usbproduct[0]?pgm->usbproduct:NULL,
                                   pgm->usbsn[0]?pgm->usbsn:NULL,
                                   devnum);
     if (rv) {
-        pmsg_error("cannot open ftdi device: %s\n", ftdi_get_error_string(handle));
+        pmsg_error("cannot open ftdi device: %s\n", ftdi_get_error_string(my.handle));
         goto cleanup_no_usb;
     }
 
-    ft245r_ddr = 
+    my.ft245r_ddr =
          pgm->pin[PIN_AVR_SCK].mask[0]
        | pgm->pin[PIN_AVR_SDO].mask[0]
        | pgm->pin[PIN_AVR_RESET].mask[0]
@@ -892,27 +892,27 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
        | pgm->pin[PIN_LED_VFY].mask[0];
 
     /* set initial values for outputs, no reset everything else is off */
-    ft245r_out = 0;
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_RESET,1);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SCK,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_AVR_SDO,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_BUFF,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PPI_AVR_VCC,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_ERR,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_RDY,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_PGM,0);
-    ft245r_out = SET_BITS_0(ft245r_out,pgm,PIN_LED_VFY,0);
+    my.ft245r_out = 0;
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_RESET, 1);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SCK, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SDO, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PPI_AVR_BUFF, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PPI_AVR_VCC, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_LED_ERR, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_LED_RDY, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_LED_PGM, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_LED_VFY, 0);
 
 
-    rv = ftdi_set_latency_timer(handle, 1);
+    rv = ftdi_set_latency_timer(my.handle, 1);
     if (rv) {
-        pmsg_error("unable to set latency timer to 1 (%s)\n", ftdi_get_error_string(handle));
+        pmsg_error("unable to set latency timer to 1 (%s)\n", ftdi_get_error_string(my.handle));
         goto cleanup;
     }
 
-    rv = ftdi_set_bitmode(handle, ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
+    rv = ftdi_set_bitmode(my.handle, my.ft245r_ddr, BITMODE_SYNCBB); // set Synchronous BitBang
     if (rv) {
-        pmsg_error("synchronous BitBangMode is not supported (%s)\n", ftdi_get_error_string(handle));
+        pmsg_error("synchronous BitBangMode is not supported (%s)\n", ftdi_get_error_string(my.handle));
         goto cleanup;
     }
 
@@ -926,34 +926,34 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
      */
     ft245r_drain (pgm, 0);
 
-    ft245r_send_and_discard(pgm, &ft245r_out, 1);
+    ft245r_send_and_discard(pgm, &my.ft245r_out, 1);
 
     return 0;
 
 cleanup:
-    ftdi_usb_close(handle);
+    ftdi_usb_close(my.handle);
 cleanup_no_usb:
-    ftdi_deinit (handle);
-    free(handle);
-    handle = NULL;
+    ftdi_deinit (my.handle);
+    mmt_free(my.handle);
+    my.handle = NULL;
     return -1;
 }
 
 
 static void ft245r_close(PROGRAMMER * pgm) {
-    if (handle) {
+    if (my.handle) {
         // I think the switch to BB mode and back flushes the buffer.
-        ftdi_set_bitmode(handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
-        ftdi_set_bitmode(handle, 0, BITMODE_RESET); // disable Synchronous BitBang
-        ftdi_usb_close(handle);
-        ftdi_deinit (handle);
-        free(handle);
-        handle = NULL;
+        ftdi_set_bitmode(my.handle, 0, BITMODE_SYNCBB); // set Synchronous BitBang, all in puts
+        ftdi_set_bitmode(my.handle, 0, BITMODE_RESET); // disable Synchronous BitBang
+        ftdi_usb_close(my.handle);
+        ftdi_deinit (my.handle);
+        mmt_free(my.handle);
+        my.handle = NULL;
     }
 }
 
 static void ft245r_display(const PROGRAMMER *pgm, const char *p) {
-    msg_info("%sPin assignment        : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n",p);
+    msg_info("%sPin assignment        : 0..7 = DBUS0..7\n", p); // , 8..11 = GPIO0..3\n", p);
     pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS);
 }
 
@@ -968,35 +968,23 @@ static int ft245r_paged_write_gen(const PROGRAMMER *pgm, const AVRPART *p, const
     return n_bytes;
 }
 
-
-static struct ft245r_request {
-    int addr;
-    int bytes;
-    int n;
-    struct ft245r_request *next;
-} *req_head,*req_tail,*req_pool;
-
-static void put_request(int addr, int bytes, int n) {
+static void put_request(const PROGRAMMER *pgm, int addr, int bytes, int n) {
     struct ft245r_request *p;
-    if (req_pool) {
-        p = req_pool;
-        req_pool = p->next;
-    } else {
-        p = malloc(sizeof(struct ft245r_request));
-        if (!p) {
-            msg_error("cannot alloc memory\n");
-            exit(1);
-        }
+    if (my.req_pool) {          // Allocate struct ft245r_request from pool
+        p = my.req_pool;
+        my.req_pool = p->next;
+    } else {                    // ... or from memory
+        p = mmt_malloc(sizeof(struct ft245r_request));
     }
     memset(p, 0, sizeof(struct ft245r_request));
     p->addr = addr;
     p->bytes = bytes;
     p->n = n;
-    if (req_tail) {
-        req_tail->next = p;
-        req_tail = p;
+    if (my.req_tail) {
+        my.req_tail->next = p;
+        my.req_tail = p;
     } else {
-        req_head = req_tail = p;
+        my.req_head = my.req_tail = p;
     }
 }
 
@@ -1005,17 +993,20 @@ static int do_request(const PROGRAMMER *pgm, const AVRMEM *m) {
     int addr, bytes, j, n;
     unsigned char buf[FT245R_FRAGMENT_SIZE+1+128];
 
-    if (!req_head) return 0;
-    p = req_head;
-    req_head = p->next;
-    if (!req_head) req_tail = req_head;
+    if (!my.req_head)
+        return 0;
+    p = my.req_head;
+    my.req_head = p->next;
+    if (!my.req_head)
+        my.req_tail = my.req_head;
 
     addr = p->addr;
     bytes = p->bytes;
     n = p->n;
+    // Insert p into request pool
     memset(p, 0, sizeof(struct ft245r_request));
-    p->next = req_pool;
-    req_pool = p;
+    p->next = my.req_pool;
+    my.req_pool = p;
 
     ft245r_recv(pgm, buf, bytes);
     for (j=0; j<n; j++) {
@@ -1058,15 +1049,15 @@ static int ft245r_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
         // page boundary, finished or buffer exhausted? queue up requests
         if(do_page_write || i >= (int) n_bytes || j >= FT245R_FRAGMENT_SIZE/FT245R_CMD_SIZE) {
             if(i >= (int) n_bytes) {
-                ft245r_out = SET_BITS_0(ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
-                buf[buf_pos++] = ft245r_out;
+                my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
+                buf[buf_pos++] = my.ft245r_out;
             } else {
                 // stretch sequence to allow correct readout, see extract_data()
                 buf[buf_pos] = buf[buf_pos - 1];
                 buf_pos++;
             }
             ft245r_send(pgm, buf, buf_pos);
-            put_request(addr_save, buf_pos, 0);
+            put_request(pgm, addr_save, buf_pos, 0);
 
             if(++req_count > REQ_OUTSTANDINGS)
                 do_request(pgm, m);
@@ -1165,15 +1156,15 @@ static int ft245r_paged_load_flash(const PROGRAMMER *pgm, const AVRPART *p, cons
         // finished or buffer exhausted? queue up requests
         if(i >= (int) n_bytes || j >= FT245R_FRAGMENT_SIZE/FT245R_CMD_SIZE) {
             if(i >= (int) n_bytes) {
-                ft245r_out = SET_BITS_0(ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
-                buf[buf_pos++] = ft245r_out;
+                my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SCK, 0); // SCK down
+                buf[buf_pos++] = my.ft245r_out;
             } else {
                 // stretch sequence to allow correct readout, see extract_data()
                 buf[buf_pos] = buf[buf_pos - 1];
                 buf_pos++;
             }
             ft245r_send(pgm, buf, buf_pos);
-            put_request(addr_save, buf_pos, j);
+            put_request(pgm, addr_save, buf_pos, j);
 
             if(++req_count > REQ_OUTSTANDINGS)
                 do_request(pgm, m);
@@ -1203,6 +1194,28 @@ static int ft245r_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
         return ft245r_paged_load_gen(pgm, p, m, page_size, addr, n_bytes);
 
    return -2;
+}
+
+void ft245r_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
+}
+
+void ft245r_teardown(PROGRAMMER *pgm) {
+  if(!pgm->cookie)
+    return;
+
+  while(my.req_pool) {          // Free request pool
+    struct ft245r_request *p = my.req_pool;
+    my.req_pool = p->next;
+    mmt_free(p);
+  }
+  while(my.req_head) {          // Free pending queue
+    struct ft245r_request *p = my.req_head;
+    my.req_head = p->next;
+    mmt_free(p);
+  }
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 void ft245r_initpgm(PROGRAMMER *pgm) {
@@ -1236,10 +1249,10 @@ void ft245r_initpgm(PROGRAMMER *pgm) {
     pgm->vfy_led        = ft245_vfy_led;
     pgm->powerup        = ft245r_powerup;
     pgm->powerdown      = ft245r_powerdown;
-
-    handle = NULL;
+    pgm->setup          = ft245r_setup;
+    pgm->teardown       = ft245r_teardown;
 }
 
 #endif
 
-const char ft245r_desc[] = "FT245R/FT232R Synchronous BitBangMode Programmer";
+const char ft245r_desc[] = "FT245R/FT232R synchronous bit-bang programmer of type ftdi_syncbb";
