@@ -190,7 +190,7 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	}
 
 	char *f = str_frq(clock/2.0 / (divisor + 1), 6);
-	pmsg_info("using frequency: %s (clock divisor %d = 0x%04x)\n", f, divisor, divisor);
+	imsg_notice(" - frequency %s (clock divisor %d = 0x%04x)\n", f, divisor, divisor);
 	mmt_free(f);
 
 	*ptr++ = TCK_DIVISOR;
@@ -658,8 +658,8 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	}
 
 
-	pmsg_info("pin direction mask: %04x\n", pdata->pin_direction);
-	pmsg_info("pin value mask: %04x\n", pdata->pin_value);
+	imsg_notice(" - pin direction mask %04x\n", pdata->pin_direction);
+	imsg_notice(" - pin value mask %04x\n", pdata->pin_value);
 
 	return 0;
 }
@@ -785,10 +785,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 			break;
 	}
 
-	if(avrftdi_pin_setup(pgm))
-		return -1;
-
-	return 0;
+	return avrftdi_pin_setup(pgm)? -1: 0;
 }
 
 static void avrftdi_close(PROGRAMMER * pgm)
@@ -799,7 +796,7 @@ static void avrftdi_close(PROGRAMMER * pgm)
 		set_pin(pgm, PIN_AVR_RESET, ON);
 
 		/* Stop driving the pins - except for the LEDs */
-		pmsg_info("LED Mask=0x%04x value =0x%04x &=0x%04x\n",
+		pmsg_debug("LED Mask 0x%04x, pin value 0x%04x,  anded 0x%04x\n",
 		  pdata->led_mask, pdata->pin_value, pdata->led_mask & pdata->pin_value);
 
 		pdata->pin_direction = pdata->led_mask;
