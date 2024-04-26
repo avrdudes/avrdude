@@ -97,13 +97,13 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 }
 
 ["]([^"\\\n]|\\.|\\\n)*["] {
-  char *str= cfg_strdup("lexer.l", yytext);
+  char *str= mmt_strdup(yytext);
   cfg_unescape(str, str+1);
   size_t len = strlen(str);
   if(len)
     str[len-1] = 0;
   yylval = new_string(str);
-  free(str);
+  mmt_free(str);
   return TKN_STRING;
 }
 
