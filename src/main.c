@@ -158,13 +158,13 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           return 0;
 
         rc++;                   // Accommodate terminating nul
-        char *p = cfg_malloc(__func__, rc);
+        char *p = mmt_malloc(rc);
         va_start(ap, format);
         rc = vsnprintf(p, rc, format, ap);
         va_end(ap);
 
         if(rc < 0) {
-          free(p);
+          mmt_free(p);
           return 0;
         }
 
@@ -172,7 +172,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           fprintf(fp, "%s", p); // Finally: print!
           bols[bi].bol = p[strlen(p)-1] == '\n';
         }
-        free(p);
+        mmt_free(p);
     }
 
     if(msgmode & MSG2_FLUSH)
@@ -257,7 +257,7 @@ static void usage(void)
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
     progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
 
-  free(cfg);
+  mmt_free(cfg);
 }
 
 
@@ -321,7 +321,7 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
       // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
-        char *desc = cfg_strdup("list_programmers()", pgm->desc);
+        char *desc = mmt_strdup(pgm->desc);
         const char *modes = avr_prog_modes(pm & pgm->prog_modes);
 
         if(pm != ~0)
@@ -337,7 +337,7 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
           fprintf(f, " via %s",  modes);
         fprintf(f, "\n");
 
-        free(desc);
+        mmt_free(desc);
       }
     }
   }
@@ -469,7 +469,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
         nid++;
   }
 
-  pgm_distance *d = cfg_malloc(__func__, nid*sizeof*d);
+  pgm_distance *d = mmt_malloc(nid*sizeof*d);
 
   // Fill d[] struct
   int idx = 0;
@@ -508,7 +508,7 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
       if(d[i].common_modes)
         msg_info("  %-*s = %s\n", pgmid_maxlen, d[i].pgmid, d[i].desc);
   }
-  free(d);
+  mmt_free(d);
   return n;
 }
 
@@ -672,7 +672,7 @@ int main(int argc, char * argv [])
 
   // Remove trailing .exe
   if(str_ends(progname, ".exe")) {
-    progname = cfg_strdup("main()", progname); // Don't write to argv[0]
+    progname = mmt_strdup(progname); // Don't write to argv[0]
     progname[strlen(progname)-4] = 0;
   }
 
@@ -861,7 +861,7 @@ int main(int argc, char * argv [])
         break;
 
       case 'P':
-        port = cfg_strdup(__func__, optarg);
+        port = mmt_strdup(optarg);
         break;
 
       case 'q' : /* Quell progress output */
@@ -1062,7 +1062,7 @@ int main(int argc, char * argv [])
       pmsg_error("unable to process system wide configuration file %s\n", real_sys_config);
       exit(1);
     }
-    free(real_sys_config);
+    mmt_free(real_sys_config);
   }
 
   if (usr_config[0] != 0 && !no_avrduderc) {
@@ -1257,19 +1257,19 @@ int main(int argc, char * argv [])
     switch (pgm->conntype)
     {
       case CONNTYPE_PARALLEL:
-        port = cfg_strdup(__func__, default_parallel);
+        port = mmt_strdup(default_parallel);
         break;
 
       case CONNTYPE_SERIAL:
-        port = cfg_strdup(__func__, default_serial);
+        port = mmt_strdup(default_serial);
         break;
 
       case CONNTYPE_USB:
-        port = cfg_strdup(__func__, DEFAULT_USB);
+        port = mmt_strdup(DEFAULT_USB);
         break;
 
       case CONNTYPE_SPI:
-        port = cfg_strdup(__func__,
+        port = mmt_strdup(
 #ifdef HAVE_LINUXSPI
          *default_spi? default_spi:
 #endif
@@ -1277,11 +1277,11 @@ int main(int argc, char * argv [])
         break;
 
       case CONNTYPE_LINUXGPIO:
-        port = cfg_strdup(__func__, default_linuxgpio);
+        port = mmt_strdup(default_linuxgpio);
         break;
 
       default:
-        port = cfg_strdup(__func__, "unknown");
+        port = mmt_strdup("unknown");
         break;
 
     }
@@ -1306,15 +1306,15 @@ int main(int argc, char * argv [])
   bool print_ports = true;
   SERIALADAPTER *ser = NULL;
   if (pgm->conntype == CONNTYPE_SERIAL) {
-    char *portdup = cfg_strdup(__func__, port);
+    char *portdup = mmt_strdup(port);
     char *port_tok[4], *tok = portdup;
     for(int t = 0, maxt = str_starts(portdup, DEFAULT_USB ":")? 4: 2; t < 4; t++) {
       char *save = tok && t < maxt? tok: "";
       if(t < maxt-1 && tok && (tok = strchr(tok, ':')))
         *tok++ = 0;
-      port_tok[t] = cfg_strdup(__func__, save);
+      port_tok[t] = mmt_strdup(save);
     }
-    free(portdup);
+    mmt_free(portdup);
 
     // Use libserialport to find the actual serial port
     ser = locate_programmer(programmers, port_tok[0]);
@@ -1348,7 +1348,7 @@ int main(int argc, char * argv [])
       }
     }
     for (int i = 0; i < 4; i++)
-      free(port_tok[i]);
+      mmt_free(port_tok[i]);
     if(touch_1200bps && touch_serialport(&port, 1200, touch_1200bps) < 0)
       goto skipopen;
   }
@@ -1468,7 +1468,7 @@ skipopen:
       pmsg_notice2("defaulting memstr in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v',
         upd->filename, mtype);
-      upd->memstr = cfg_strdup("main()", mtype);
+      upd->memstr = mmt_strdup(mtype);
     }
     rc = update_dryrun(p, upd);
     if (rc && rc != LIBAVRDUDE_SOFTFAIL)
