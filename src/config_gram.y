@@ -436,7 +436,7 @@ prog_parm :
     {
       while (lsize(string_list)) {
         TOKEN *t = lrmv_n(string_list, 1);
-        ladd(current_prog->id, cfg_strdup("config_gram.y", t->value.string));
+        ladd(current_prog->id, mmt_strdup(t->value.string));
         free_token(t);
       }
     }
@@ -495,7 +495,7 @@ usb_pid_list:
       current_prog->usbpid = lcreat(NULL, 0);
     }
     {
-      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      int *ip = mmt_malloc(sizeof(int));
       *ip = $1->value.number;
       ladd(current_prog->usbpid, ip);
       free_token($1);
@@ -503,7 +503,7 @@ usb_pid_list:
   } |
   usb_pid_list TKN_COMMA numexpr {
     {
-      int *ip = cfg_malloc("usb_pid_list", sizeof(int));
+      int *ip = mmt_malloc(sizeof(int));
       *ip = $3->value.number;
       ladd(current_prog->usbpid, ip);
       free_token($3);
@@ -524,7 +524,7 @@ hvupdi_support_list:
       current_prog->hvupdi_support = lcreat(NULL, 0);
     }
     {
-      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      int *ip = mmt_malloc(sizeof(int));
       *ip = $1->value.number;
       ladd(current_prog->hvupdi_support, ip);
       free_token($1);
@@ -532,7 +532,7 @@ hvupdi_support_list:
   } |
   hvupdi_support_list TKN_COMMA numexpr {
     {
-      int *ip = cfg_malloc("hvupdi_support_list", sizeof(int));
+      int *ip = mmt_malloc(sizeof(int));
       *ip = $3->value.number;
       ladd(current_prog->hvupdi_support, ip);
       free_token($3);
@@ -648,7 +648,7 @@ part_parm :
           }
         }
         if(!found)
-          ladd(current_part->variants, cfg_strdup("config_gram.y", t->value.string));
+          ladd(current_part->variants, mmt_strdup(t->value.string));
         free_token(t);
       }
     }
