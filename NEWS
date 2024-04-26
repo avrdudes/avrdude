@@ -20,10 +20,11 @@ Changes since version 7.3:
     - Old avrdude_message() can go away #1719
     - avr_{read,write}_mem fail to initialize progress reporting #1718
     - avr*timestamp() oddities #1722
-    - -F option not honored bug #1740 
+    - -F option not honored bug #1740
     - "jtag2 is not a unique start of a programmer name" #1739
     - Regression: EEPROM issue with official STK500 V1 FW #1713
     - usbasp_write_byte in TPI mode not implemented #1755
+    - Remove calls to exit() from libavrdude library #774
 
   * Pull requests:
     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
@@ -56,6 +57,8 @@ Changes since version 7.3:
     - Make programmers libavrdude ready #1750, 1752, 1756 ... 1786
     - Make default EEPROM readback 0xff for STK500 v1 #1753
     - Silence gcc warning when printf format is "" #1754
+    - Remove calls to exit() from libavrdude library #1790
+    - Include libgpiod-dev in build.yml for Linux builds #1788
 
   * Internals:
 
