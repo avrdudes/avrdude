@@ -115,11 +115,7 @@ struct dfu_dev *dfu_open(const char *port_spec) {
   }
 
   if(':' == port_spec[3]) {
-      bus_name = strdup(port_spec + 3 + 1);
-      if (bus_name == NULL) {
-        pmsg_error("out of memory in strdup\n");
-        return NULL;
-      }
+      bus_name = mmt_strdup(port_spec + 3 + 1);
 
       dev_name = strchr(bus_name, ':');
       if(NULL != dev_name)
@@ -130,14 +126,7 @@ struct dfu_dev *dfu_open(const char *port_spec) {
    * strings for use in dfu_initialize().
    */
 
-  dfu = calloc(1, sizeof(struct dfu_dev));
-
-  if (dfu == NULL)
-  {
-    pmsg_error("out of memory\n");
-    free(bus_name);
-    return NULL;
-  }
+  dfu = mmt_malloc(sizeof(struct dfu_dev));
 
   dfu->bus_name = bus_name;
   dfu->dev_name = dev_name;
@@ -251,13 +240,13 @@ void dfu_close(struct dfu_dev *dfu)
   if (dfu->dev_handle != NULL)
     usb_close(dfu->dev_handle);
   if (dfu->bus_name != NULL)
-    free(dfu->bus_name);
+    mmt_free(dfu->bus_name);
   if (dfu->manf_str != NULL)
-    free(dfu->manf_str);
+    mmt_free(dfu->manf_str);
   if (dfu->prod_str != NULL)
-    free(dfu->prod_str);
+    mmt_free(dfu->prod_str);
   if (dfu->serno_str != NULL)
-    free(dfu->serno_str);
+    mmt_free(dfu->serno_str);
 }
 
 int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
@@ -432,15 +421,10 @@ char * get_usb_string(usb_dev_handle * dev_handle, int index) {
     return NULL;
   }
 
-  str = malloc(result+1);
-
-  if (str == NULL) {
-    pmsg_error("out of memory allocating a string\n");
-    return 0;
-  }
-
+  str = mmt_malloc(result+1);
   memcpy(str, buffer, result);
   str[result] = '\0';
+
   return str;
 }
 
