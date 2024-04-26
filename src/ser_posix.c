@@ -288,10 +288,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
   struct addrinfo hints;
   struct addrinfo *result, *rp;
 
-  if ((hstr = hp = strdup(port)) == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
+  hstr = hp = mmt_strdup(port);
 
   /*
    * As numeric IPv6 addresses use colons as separators, we need to
@@ -348,7 +345,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
   freeaddrinfo(result);
 
 error:
-  free(hp);
+  mmt_free(hp);
   return ret;
 }
 
