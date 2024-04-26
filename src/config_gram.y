@@ -491,7 +491,7 @@ usb_pid_list:
     {
       /* overwrite pids, so clear the existing entries */
       if(current_prog->usbpid)
-        ldestroy_cb(current_prog->usbpid, free);
+        ldestroy_cb(current_prog->usbpid, mmt_f_free);
       current_prog->usbpid = lcreat(NULL, 0);
     }
     {
@@ -520,7 +520,7 @@ hvupdi_support_list:
     {
       /* overwrite list entries, so clear the existing entries */
       if(current_prog->hvupdi_support)
-        ldestroy_cb(current_prog->hvupdi_support, free);
+        ldestroy_cb(current_prog->hvupdi_support, mmt_f_free);
       current_prog->hvupdi_support = lcreat(NULL, 0);
     }
     {
@@ -631,7 +631,7 @@ part_parm :
 
   K_VARIANTS TKN_EQUAL K_NULL {
     {
-      ldestroy_cb(current_part->variants, free);
+      ldestroy_cb(current_part->variants, mmt_f_free);
       current_part->variants = lcreat(NULL, 0);
     }
   } |

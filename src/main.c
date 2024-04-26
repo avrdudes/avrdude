@@ -409,7 +409,7 @@ static void exithook(void)
 static void cleanup_main(void)
 {
     if (updates) {
-        ldestroy_cb(updates, (void(*)(void*))free_update);
+        ldestroy_cb(updates, (void(*)(void*)) free_update);
         updates = NULL;
     }
     if (extended_params) {

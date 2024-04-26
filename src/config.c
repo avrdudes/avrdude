@@ -217,7 +217,7 @@ char *cfg_strdup(const char *funcname, const char *s) {
 }
 
 
-void cfg_free(void *ptr) {
+void mmt_f_free(void *ptr) {
   mmt_free(ptr);
 }
 

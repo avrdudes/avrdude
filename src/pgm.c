@@ -182,15 +182,15 @@ PROGRAMMER *pgm_new(void) {
 void pgm_free(PROGRAMMER *p) {
   if(p) {
     if(p->id) {
-      ldestroy_cb(p->id, free);
+      ldestroy_cb(p->id, mmt_f_free);
       p->id = NULL;
     }
     if(p->usbpid) {
-      ldestroy_cb(p->usbpid, free);
+      ldestroy_cb(p->usbpid, mmt_f_free);
       p->usbpid = NULL;
     }
     if(p->hvupdi_support) {
-      ldestroy_cb(p->hvupdi_support, free);
+      ldestroy_cb(p->hvupdi_support, mmt_f_free);
       p->hvupdi_support = NULL;
     }
     mmt_free(p->leds); p->leds = NULL;
@@ -205,9 +205,9 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
   PROGRAMMER *pgm = pgm_new();
 
   if(src) {
-    ldestroy_cb(pgm->id, free);
-    ldestroy_cb(pgm->usbpid, free);
-    ldestroy_cb(pgm->hvupdi_support, free);
+    ldestroy_cb(pgm->id, mmt_f_free);
+    ldestroy_cb(pgm->usbpid, mmt_f_free);
+    ldestroy_cb(pgm->hvupdi_support, mmt_f_free);
     // There must be only one cache, even though the part is duplicated
     if(pgm->cp_flash)
       mmt_free(pgm->cp_flash);
