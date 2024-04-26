@@ -52,8 +52,9 @@
 #ifdef DO_NOT_BUILD_AVRFTDI
 
 static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
-    pmsg_error("no libftdi or libusb support; install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
-    return -1;
+	pmsg_error("no libftdi or libusb support\n");
+	imsg_error("install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
+	return -1;
 }
 
 void avrftdi_initpgm(PROGRAMMER *pgm) {
@@ -89,92 +90,33 @@ static int write_flush(avrftdi_t *);
  * returns a human-readable name for a pin number. The name should match with
  * the pin names used in FTDI datasheets.
  */
-static char*
-ftdi_pin_name(avrftdi_t* pdata, struct pindef_t pin)
-{
-	static char str[128];
+static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
+	char *str = pdata->name_str;
+	size_t strsiz = sizeof pdata->name_str;
 
-	char interface = '@';
-
-	/* INTERFACE_ANY is zero, so @ is used
-	 * INTERFACE_A is one, so '@' + 1 = 'A'
-	 * and so forth ...
-	 * be aware, there is an 'interface' member in ftdi_context,
-	 * however, we really want the 'index' member here.
+	/*
+	 * INTERFACE_ANY is zero: print @
+	 * INTERFACE_A is one, use '@' + 1 = 'A' and so forth ...
+	 * Be aware, there is an interface member in ftdi_context,
+	 * however, we really want the index member here.
 	 */
-	interface += pdata->ftdic->index;
+	char interface = '@' + pdata->ftdic->index;
 
-	int pinno;
-	int n = 0;
+	size_t n = 0;
 	int mask = pin.mask[0];
-
-	const char * fmt;
 
 	str[0] = 0;
 
-	for(pinno = 0; mask; mask >>= 1, pinno++) {
+	for(int pinno = 0; mask && n < strsiz-1; mask >>= 1, pinno++) {
 		if(!(mask & 1))
 			continue;
 
-		int chars = 0;
-
-		char port;
-		/* This is FTDI's naming scheme.
-		 * probably 'D' is for data and 'C' for control
-		 */
-		if(pinno < 8)
-			port = 'D';
-		else
-			port = 'C';
-
-		if(str[0] == 0)
-			fmt = "%c%cBUS%d%n";
-		else
-			fmt = ", %c%cBUS%d%n";
-
-		snprintf(&str[n], sizeof(str) - n, fmt, interface, port, pinno, &chars);
-		n += chars;
+		// FTDI port: probably 'D' for data and 'C' for control
+		n += snprintf(&str[n], strsiz - n, "%s%c%cBUS%d", n? ", ": "",
+		  interface, pinno < 8? 'D': 'C', pinno);
 	}
 
 	return str;
-}
-
-/*
- * output function, to save if(vebose>level)-constructs. Also prefixes output
- * with "avrftdi function-name(line-number):" to identify were messages came
- * from.
- * This function is the backend of the log_*-macros, but it can be used
- * directly.
- */
-void avrftdi_log(int level, const char * func, int line,
-		const char * fmt, ...) {
-	static int skip_prefix = 0;
-	const char *p = fmt;
-	va_list ap;
-
-	if(verbose >= level)
-	{
-		if(!skip_prefix)
-		{
-			switch(level) {
-				case ERR:   msg_error("E "); break;
-				case WARN:  msg_error("W "); break;
-				case INFO:  msg_error("I "); break;
-				case DEBUG: msg_error("D "); break;
-				case TRACE: msg_error("T "); break;
-				default:    msg_error("  "); break;
-			}
-			msg_error("%s(%d): ", func, line);
-		}
-		va_start(ap, fmt);
-		vfprintf(stderr, fmt, ap);
-		va_end(ap);
-	}
-
-	skip_prefix = 1;
-	while(*p++)
-		if(*p == '\n' && !(*(p+1)))
-			skip_prefix = 0;
 }
 
 /*
@@ -187,16 +129,16 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
 		     int offset, int width)
 {
 	int i;
-	msg_info("%s begin:\n", desc);
+	msg_trace2("%s begin:\n", desc);
 	for (i = 0; i < offset; i++)
-		msg_info("%02x ", buf[i]);
-	msg_info("\n");
+		msg_trace2("%02x ", buf[i]);
+	msg_trace2("\n");
 	for (i++; i <= len; i++) {
-		msg_info("%02x ", buf[i-1]);
+		msg_trace2("%02x ", buf[i-1]);
 		if((i-offset) != 0 && (i-offset)%width == 0)
-		    msg_info("\n");
+		    msg_trace2("\n");
 	}
-	msg_info("%s end\n", desc);
+	msg_trace2("%s end\n", desc);
 }
 
 /*
@@ -234,19 +176,22 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	}
 
 	if (divisor < 0) {
-		log_warn("Frequency too high (%u > %u MHz)\n", freq, clock / 2000000);
-		log_warn("Resetting Frequency to %uMHz\n", clock / 2000000);
+		char *f = str_frq(freq, 6), *h = str_frq(clock/2.0, 6);
+		pmsg_warning("frequency %s too high, resetting to %s\n", f, h);
+		mmt_free(f); mmt_free(h);
 		divisor = 0;
 	}
 
 	if (divisor > 65535) {
-		log_warn("Frequency too low (%u < %.3f Hz)\n", freq, (float) clock / 2 / 65535);
-		log_warn("Resetting Frequency to %.3fHz\n", (float) clock / 2 / 65535);
+		char *f = str_frq(freq, 6), *l = str_frq(clock/2.0 / 65536, 6);
+		pmsg_warning("frequency %s too low, resetting to %s\n", f, l);
+		mmt_free(f); mmt_free(l);
 		divisor = 65535;
 	}
 
-	log_info("Using frequency: %d\n", clock / 2 / (divisor + 1));
-	log_info("Clock divisor: 0x%04x\n", divisor);
+	char *f = str_frq(clock/2.0 / (divisor + 1), 6);
+	imsg_notice(" - frequency %s (clock divisor %d = 0x%04x)\n", f, divisor, divisor);
+	mmt_free(f);
 
 	*ptr++ = TCK_DIVISOR;
 	*ptr++ = (uint8_t)(divisor & 0xff);
@@ -277,7 +222,7 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 		return 0;
 	}
 
-	log_debug("Setting pin %s (%s) as %s: %s (%s active)\n",
+	pmsg_debug("setting pin %s (%s) as %s: %s (%s active)\n",
 	          pinmask_to_str(pin.mask), ftdi_pin_name(pdata, pin),
 						avr_pin_name(pinfunc),
 	          (value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
@@ -311,7 +256,7 @@ static void avrftdi_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 	// Switch to TPI initialisation in avrftdi_tpi.c
 	if(p->prog_modes & PM_TPI)
-          avrftdi_tpi_initpgm(pgm);
+		avrftdi_tpi_initpgm(pgm);
 }
 
 static void avrftdi_disable(const PROGRAMMER *pgm) {
@@ -510,7 +455,7 @@ static int write_flush(avrftdi_t* pdata)
 {
 	unsigned char buf[6];
 
-	log_debug("Setting pin direction (0x%04x) and value (0x%04x)\n",
+	pmsg_debug("setting pin direction (0x%04x) and value (0x%04x)\n",
 	          pdata->pin_direction, pdata->pin_value);
 
 	buf[0] = SET_BITS_LOW;
@@ -522,7 +467,7 @@ static int write_flush(avrftdi_t* pdata)
 
 	E(ftdi_write_data(pdata->ftdic, buf, 6) != 6, pdata->ftdic);
 
-	log_trace("Set pins command: %02x %02x %02x %02x %02x %02x\n",
+	msg_trace("set pins command: %02x %02x %02x %02x %02x %02x\n",
 	          buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
 
 	/* we need to flush here, because set_pin is used as reset.
@@ -549,7 +494,7 @@ static int write_flush(avrftdi_t* pdata)
 	} while(num < 1);
 
 	if(num > 1)
-		log_warn("Read %d extra bytes\n", num-1);
+		pmsg_warning("read %d extra bytes\n", num-1);
 
 	return 0;
 
@@ -566,16 +511,16 @@ static int avrftdi_check_pins_bb(const PROGRAMMER *pgm, bool output) {
 	/* value for 8/12/16 bit wide interface */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
 
-	log_debug("Using valid mask bitbanging: 0x%08x\n", valid_mask);
-	static struct pindef_t valid_pins;
-	valid_pins.mask[0] = valid_mask;
-	valid_pins.inverse[0] = valid_mask ;
+	pmsg_debug("using valid mask bitbanging: 0x%08x\n", valid_mask);
+	struct pindef_t *valid_pins_p = &pdata->valid_pins;
+	valid_pins_p->mask[0] = valid_mask;
+	valid_pins_p->inverse[0] = valid_mask ;
 
 	/* build pin checklist */
 	for(pin = 0; pin < N_PINS; ++pin) {
 		pin_checklist[pin].pinname = pin;
 		pin_checklist[pin].mandatory = 0;
-		pin_checklist[pin].valid_pins = &valid_pins;
+		pin_checklist[pin].valid_pins = valid_pins_p;
 	}
 
 	/* assumes all checklists above have same number of entries */
@@ -590,14 +535,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 
 	avrftdi_t* pdata = to_pdata(pgm);
 
-	/* SCK/SDO/SDI are fixed and not invertible? */
-	/* TODO: inverted SCK/SDI/SDO */
-	static const struct pindef_t valid_pins[4] = {
-		{{0x01}, {0x00}},
-		{{0x02}, {0x00}},
-		{{0x04}, {0x00}},
-		{{0x08}, {0x00}},
-	};
+	struct pindef_t *valid_pins = pdata->mpsse_pins;
 
 	/* value for 8/12/16 bit wide interface for other pins */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
@@ -608,16 +546,16 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 		valid_mask &= ~(1 << FTDI_TMS_CS);
 	}
 
-	log_debug("Using valid mask mpsse: 0x%08x\n", valid_mask);
-	static struct pindef_t valid_pins_others;
-	valid_pins_others.mask[0] = valid_mask;
-	valid_pins_others.inverse[0] = valid_mask ;
+	pmsg_debug("using valid mask mpsse: 0x%08x\n", valid_mask);
+	struct pindef_t *valid_pins_others_p = &pdata->other_pins;
+	valid_pins_others_p->mask[0] = valid_mask;
+	valid_pins_others_p->inverse[0] = valid_mask ;
 
 	/* build pin checklist */
 	for(pin = 0; pin < N_PINS; ++pin) {
 		pin_checklist[pin].pinname = pin;
 		pin_checklist[pin].mandatory = 0;
-		pin_checklist[pin].valid_pins = &valid_pins_others;
+		pin_checklist[pin].valid_pins = valid_pins_others_p;
 	}
 
 	/* now set mpsse specific pins */
@@ -631,7 +569,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 		pin_checklist[PIN_JTAG_TMS].mandatory = 1;
 		pin_checklist[PIN_JTAG_TMS].valid_pins = &valid_pins[FTDI_TMS_CS];
 	} else {
-	pin_checklist[PIN_AVR_SCK].mandatory = 1;
+		pin_checklist[PIN_AVR_SCK].mandatory = 1;
 		pin_checklist[PIN_AVR_SCK].valid_pins = &valid_pins[FTDI_TCK_SCK];
 		pin_checklist[PIN_AVR_SDO].mandatory = 1;
 		pin_checklist[PIN_AVR_SDO].valid_pins = &valid_pins[FTDI_TDI_SDO];
@@ -653,16 +591,17 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 
 	avrftdi_t* pdata = to_pdata(pgm);
 
+
 	bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verbose>3));
 
 	bool pin_check_bitbanging = (0 == avrftdi_check_pins_bb(pgm, verbose>3));
 
 	if (!pin_check_mpsse && !pin_check_bitbanging) {
-		log_err("No valid pin configuration found.\n");
+		pmsg_error("no valid pin configuration found\n");
 		avrftdi_check_pins_bb(pgm, true);
-		log_err("Pin configuration for FTDI MPSSE must be:\n");
+		imsg_error("pin configuration for FTDI MPSSE must be:\n");
 		if (pgm->flag == PGM_FL_IS_JTAG) {
-			log_err("%s: 0, %s: 1, %s: 2, %s :3 (is: %s, %s, %s, %s)\n",
+			imsg_error("%s: 0, %s: 1, %s: 2, %s :3 (is: %s, %s, %s, %s)\n",
 				avr_pin_name(PIN_JTAG_TCK), avr_pin_name(PIN_JTAG_TDI),
 				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
 				pins_to_str(&pgm->pin[PIN_JTAG_TCK]),
@@ -670,7 +609,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				pins_to_str(&pgm->pin[PIN_JTAG_TDO]),
 				pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
 		} else {
-			log_err("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n",
+			imsg_error("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n",
 				avr_pin_name(PIN_AVR_SCK),
 				avr_pin_name(PIN_AVR_SDO),
 				avr_pin_name(PIN_AVR_SDI),
@@ -678,14 +617,14 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				pins_to_str(&pgm->pin[PIN_AVR_SDO]),
 				pins_to_str(&pgm->pin[PIN_AVR_SDI]));
 		}
-		log_err("If other pin configuration is used, fallback to slower bitbanging mode is used.\n");
+		imsg_error("if other pin configuration is used, fallback to slower bitbanging mode is used\n");
 
 		return -1;
 	}
 
 	pdata->use_bitbanging = !pin_check_mpsse;
 	if (pdata->use_bitbanging)
-		log_info("Because of pin configuration fallback to bitbanging mode.\n");
+		imsg_info("because of pin configuration fallback to bitbanging mode\n");
 
 	/*
 	 * TODO: No need to fail for a wrongly configured led or something.
@@ -719,16 +658,15 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	}
 
 
-	log_info("Pin direction mask: %04x\n", pdata->pin_direction);
-	log_info("Pin value mask: %04x\n", pdata->pin_value);
+	imsg_notice(" - pin direction mask %04x\n", pdata->pin_direction);
+	imsg_notice(" - pin value mask %04x\n", pdata->pin_value);
 
 	return 0;
 }
 
 static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
-	int vid, pid, interface, index, err;
-	const char *serial, *desc;
-
+	int vid, pid, interface, err;
+	
 	avrftdi_t* pdata = to_pdata(pgm);
 
 	/************************
@@ -751,23 +689,12 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	} else
 		pid = USB_DEVICE_FT2232;
 
-	if (0 == pgm->usbsn[0]) /* we don't care about SN. Use first avail. */
-		serial = NULL;
-	else
-		serial = pgm->usbsn;
-
-	/* not used yet, but i put them here, just in case someone does needs or
-	 * wants to implement this.
-	 */
-	desc = NULL;
-	index = 0;
-
 	if (pgm->usbdev[0] == 'a' || pgm->usbdev[0] == 'A')
 		interface = INTERFACE_A;
 	else if (pgm->usbdev[0] == 'b' || pgm->usbdev[0] == 'B')
 		interface = INTERFACE_B;
 	else {
-		log_warn("Invalid interface '%s'. Setting to Interface A\n", pgm->usbdev);
+		pmsg_warning("invalid interface '%s'. Setting to Interface A\n", pgm->usbdev);
 		interface = INTERFACE_A;
 	}
 
@@ -776,17 +703,18 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	 ****************/
 
 	E(ftdi_set_interface(pdata->ftdic, interface) < 0, pdata->ftdic);
-
-	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, desc, serial, index);
+	
+	const char *serial = *pgm->usbsn? pgm->usbsn: NULL; // no SN means use first available
+	// Todo: use desc and index argument, currently set to NULL and 0
+	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, NULL, serial, 0);
 	if(err) {
-		log_err("Error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
-		//stupid hack, because avrdude calls pgm->close() even when pgm->open() fails
-		//and usb_dev is initialized to the last usb device from probing
+		pmsg_error("error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
+		// usb_dev is initialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;
 		return err;
 	} else {
-		log_info("Using device VID:PID %04x:%04x and SN '%s' on interface %c.\n",
-		         vid, pid, serial, INTERFACE_A == interface? 'A': 'B');
+		pmsg_info("using device VID:PID %04x:%04x and SN %s on interface %c\n",
+		         vid, pid, serial? serial: "(none)", INTERFACE_A == interface? 'A': 'B');
 	}
 
 	ftdi_set_latency_timer(pdata->ftdic, 1);
@@ -817,8 +745,8 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 		case TYPE_AM:
 		case TYPE_BM:
 		case TYPE_R:
-			log_err("Found unsupported device type AM, BM or R. avrftdi ");
-			log_err("cannot work with your chip. Try the 'synbb' programmer.\n");
+			pmsg_error("found unsupported device type AM, BM or R\n");
+			imsg_error("avrftdi cannot work with your chip; try the 'synbb' programmer type\n");
 			return -1;
 		case TYPE_2232C:
 			pdata->pin_limit = 12;
@@ -849,18 +777,15 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 			pdata->tx_buffer_size = 2048;
 			break;
 		default:
-			log_warn("Found unknown device %x. I will do my ", pdata->ftdic->type);
-			log_warn("best to work with it, but no guarantees ...\n");
+			pmsg_warning("unknown device type 0x%02x\n", pdata->ftdic->type);
+			imsg_warning("continuing but no guarantees...\n");
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
 			pdata->tx_buffer_size = pdata->ftdic->max_packet_size;
 			break;
 	}
 
-	if(avrftdi_pin_setup(pgm))
-		return -1;
-
-	return 0;
+	return avrftdi_pin_setup(pgm)? -1: 0;
 }
 
 static void avrftdi_close(PROGRAMMER * pgm)
@@ -871,8 +796,8 @@ static void avrftdi_close(PROGRAMMER * pgm)
 		set_pin(pgm, PIN_AVR_RESET, ON);
 
 		/* Stop driving the pins - except for the LEDs */
-		log_info("LED Mask=0x%04x value =0x%04x &=0x%04x\n",
-				pdata->led_mask, pdata->pin_value, pdata->led_mask & pdata->pin_value);
+		pmsg_debug("LED Mask 0x%04x, pin value 0x%04x,  anded 0x%04x\n",
+		  pdata->led_mask, pdata->pin_value, pdata->led_mask & pdata->pin_value);
 
 		pdata->pin_direction = pdata->led_mask;
 		pdata->pin_value &= pdata->led_mask;
@@ -916,7 +841,7 @@ static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static void avrftdi_display(const PROGRAMMER *pgm, const char *p)
 {
-	msg_info("%sPin assignment        : 0..7 = DBUS0..7, 8..15 = CBUS0..7\n", p);
+	msg_info("%spin assignment        : 0..7 = DBUS0..7, 8..15 = CBUS0..7\n", p);
 	if (pgm->flag & PGM_FL_IS_JTAG) {
 		pgm_display_generic_mask(pgm, p, SHOW_ALL_PINS & ~SHOW_AVR_PINS);
 	} else {
@@ -933,11 +858,12 @@ static int avrftdi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 static int avrftdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 	int i;
 	unsigned char buf[4];
+	int polli = p->pollindex - 1, pollok = polli >= 0 && polli < (int) sizeof buf;
 
 	memset(buf, 0, sizeof(buf));
 
 	if (p->op[AVR_OP_PGM_ENABLE] == NULL) {
-		log_err("AVR_OP_PGM_ENABLE command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_PGM_ENABLE command not defined for %s\n", p->desc);
 		return -1;
 	}
 
@@ -945,8 +871,8 @@ static int avrftdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
 	for(i = 0; i < 4; i++) {
 		pgm->cmd(pgm, buf, buf);
-		if (buf[p->pollindex-1] != p->pollvalue) {
-			log_warn("Program enable command not successful. Retrying.\n");
+		if (pollok && buf[polli] != p->pollvalue) {
+			pmsg_warning("program enable command not successful%s\n", i < 3? "; retrying": "");
 			set_pin(pgm, PIN_AVR_RESET, ON);
 			usleep(20);
 			set_pin(pgm, PIN_AVR_RESET, OFF);
@@ -955,7 +881,7 @@ static int avrftdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 			return 0;
 	}
 
-	log_err("Device is not responding to program enable. Check connection.\n");
+	pmsg_error("device is not responding to program enable. Check connection.\n");
 
 	return -1;
 }
@@ -966,7 +892,7 @@ static int avrftdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 	unsigned char res[4];
 
 	if (p->op[AVR_OP_CHIP_ERASE] == NULL) {
-		log_err("AVR_OP_CHIP_ERASE command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_CHIP_ERASE command not defined for %s\n", p->desc);
 		return -1;
 	}
 
@@ -982,8 +908,7 @@ static int avrftdi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 /* Load extended address byte command */
-static int
-avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int address) {
+static int avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int address) {
 	/* nothing to do if load extended address command unavailable */
 	if(m->op[AVR_OP_LOAD_EXT_ADDR] == NULL)
 		return 0;
@@ -1000,7 +925,7 @@ avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned 
 	avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], buf);
 	avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], buf, address);
 
-	if(verbose > TRACE)
+	if(verbose >= MSG_TRACE2)
 		buf_dump(buf, sizeof(buf),
 			 "load extended address command", 0, 16 * 3);
 
@@ -1074,17 +999,17 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_LOADPAGE_LO] == NULL) {
-		log_err("AVR_OP_LOADPAGE_LO command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_LOADPAGE_LO command not defined for %s\n", p->desc);
 		return -1;
 	}
 	if (m->op[AVR_OP_LOADPAGE_HI] == NULL) {
-		log_err("AVR_OP_LOADPAGE_HI command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_LOADPAGE_HI command not defined for %s\n", p->desc);
 		return -1;
 	}
 
 	if(page_size != (unsigned int) m->page_size) {
-		log_warn("Parameter page_size is %d, ", page_size);
-		log_warn("but m->page_size is %d. Using the latter.\n", m->page_size);
+		pmsg_warning("parameter page_size is %d ", page_size);
+		msg_warning("but m->page_size is %d; using the latter\n", m->page_size);
 	}
 
 	page_size = m->page_size;
@@ -1097,7 +1022,7 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 	/* addr is in bytes, but we program in words. */
 	for(word = addr/2; word < (len + addr)/2; word++)
 	{
-		log_debug("-< bytes = %d of %d\n", word * 2, len + addr);
+		pmsg_debug("-< bytes = %d of %d\n", word * 2, len + addr);
 
 		/*setting word*/
 		avr_set_bits(m->op[AVR_OP_LOADPAGE_LO], bufptr);
@@ -1113,7 +1038,7 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
 	/* issue write page command, if available */
 	if (m->op[AVR_OP_WRITEPAGE] == NULL) {
-		log_err("AVR_OP_WRITEPAGE command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_WRITEPAGE command not defined for %s\n", p->desc);
 		return -1;
 	} else {
 		avr_set_bits(m->op[AVR_OP_WRITEPAGE], bufptr);
@@ -1133,29 +1058,29 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 	if(poll_index+1 > addr) {
 		buf_size = bufptr - buf;
 
-		if(verbose > TRACE)
+		if(verbose >= MSG_TRACE2)
 			buf_dump(buf, buf_size, "command buffer", 0, 16*2);
 
-		log_info("Transmitting buffer of size: %d\n", buf_size);
+		pmsg_info("transmitting buffer of size: %d\n", buf_size);
 		if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, buf_size))
 			return -1;
 
 		bufptr = buf;
 
-		log_info("Using m->buf[%d] = 0x%02x as polling value ", poll_index,
+		pmsg_info("using m->buf[%d] = 0x%02x as polling value ", poll_index,
 		         m->buf[poll_index]);
 		/* poll page write ready */
 		do {
-			log_info(".");
+			msg_info(".");
 
 			pgm->read_byte(pgm, p, m, poll_index, &poll_byte);
 		} while (m->buf[poll_index] != poll_byte);
 
-		log_info("\n");
+		msg_info("\n");
 	}
 	else
 	{
-		log_warn("Skipping empty page (containing only 0xff bytes)\n");
+		pmsg_warning("skipping empty page (containing only 0xff bytes)\n");
 		/* TODO sync write */
 		/* sleep */
 		usleep((m->max_write_delay));
@@ -1182,11 +1107,11 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
 	/* pre-check opcodes */
 	if (m->op[AVR_OP_READ_LO] == NULL) {
-		log_err("AVR_OP_READ_LO command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_READ_LO command not defined for %s\n", p->desc);
 		return -1;
 	}
 	if (m->op[AVR_OP_READ_HI] == NULL) {
-		log_err("AVR_OP_READ_HI command not defined for %s\n", p->desc);
+		pmsg_error("AVR_OP_READ_HI command not defined for %s\n", p->desc);
 		return -1;
 	}
 
@@ -1211,14 +1136,14 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 	 * if there was an error, we did not see, memory validation will
 	 * subsequently fail.
 	 */
-	if(verbose > TRACE) {
+	if(verbose >= MSG_TRACE2) {
 		buf_dump(o_buf, sizeof(o_buf), "o_buf", 0, 32);
 	}
 
 	if (0 > avrftdi_transmit(pgm, MPSSE_DO_READ | MPSSE_DO_WRITE, o_buf, i_buf, len * 4))
 		return -1;
 
-	if(verbose > TRACE) {
+	if(verbose >= MSG_TRACE2) {
 		buf_dump(i_buf, sizeof(i_buf), "i_buf", 0, 32);
 	}
 
@@ -1237,7 +1162,7 @@ static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 		avr_get_output(readop, &i_buf[byte*4], &m->buf[addr+byte]);
 	}
 
-	if(verbose > TRACE)
+	if(verbose >= MSG_TRACE2)
 		buf_dump(&m->buf[addr], page_size, "page:", 0, 32);
 
 	return len;
@@ -1265,23 +1190,27 @@ static int avrftdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 		return -2;
 }
 
-static void
-avrftdi_setup(PROGRAMMER * pgm)
-{
+static void avrftdi_setup(PROGRAMMER * pgm) {
 	avrftdi_t* pdata;
 
-
-	if(!(pgm->cookie = calloc(1, sizeof(avrftdi_t)))) {
-		log_err("Error allocating memory.\n");
-		exit(1);
-	}
+	pgm->cookie = mmt_malloc(sizeof(avrftdi_t));
 	pdata = to_pdata(pgm);
 
+	/* SCK/SDO/SDI are fixed and not invertible? */
+	/* TODO: inverted SCK/SDI/SDO */
+	const struct pindef_t valid_mpsse_pins[4] = {
+		{{0x01}, {0x00}},
+		{{0x02}, {0x00}},
+		{{0x04}, {0x00}},
+		{{0x08}, {0x00}},
+	};
+	for(int i=0; i<4; i++)
+		pdata->mpsse_pins[i] = valid_mpsse_pins[i];
+
 	pdata->ftdic = ftdi_new();
-	if(!pdata->ftdic)
-	{
-		log_err("Error allocating memory.\n");
-		exit(1);
+	if(!pdata->ftdic) {
+		pmsg_ext_error("ftdi_new() failed to allocate memory\n");
+		exit(1);        // pgm->setup() should return an int, but it doesn't
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
 
@@ -1291,15 +1220,13 @@ avrftdi_setup(PROGRAMMER * pgm)
 	pdata->lext_byte = 0xff;
 }
 
-static void
-avrftdi_teardown(PROGRAMMER * pgm)
-{
-	avrftdi_t* pdata = to_pdata(pgm);
-
-	if(pdata) {
+static void avrftdi_teardown(PROGRAMMER * pgm) {
+	if(pgm->cookie) {
+		avrftdi_t *pdata = to_pdata(pgm);
 		ftdi_deinit(pdata->ftdic);
 		ftdi_free(pdata->ftdic);
-		free(pdata);
+		mmt_free(pdata);
+		pgm->cookie = NULL;
 	}
 }
 
@@ -1457,18 +1384,6 @@ static int avrftdi_jtag_dr_inout(const PROGRAMMER *pgm, unsigned int dr,
 
 static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
 {
-	if(!ovsigck) {
-		if(str_eq(p->id, "m128a") || str_eq(p->id, "m128") ||
-		   str_eq(p->id, "m64a") || str_eq(p->id, "m64") ||
-		   str_eq(p->id, "m32a") || str_eq(p->id, "m32") ||
-		   str_eq(p->id, "m16a") || str_eq(p->id, "m16") ||
-		   str_eq(p->id, "m162")) {
-			pmsg_error("programmer type %s is known not to work for %s\n", pgm->type, p->desc);
-			imsg_error("exiting; use -F to carry on regardless\n");
-			exit(1);
-		}
-	}
-
 	pgm->powerup(pgm);
 
 	set_pin(pgm, PIN_AVR_RESET, OFF);
@@ -1481,6 +1396,18 @@ static void avrftdi_jtag_enable(PROGRAMMER *pgm, const AVRPART *p)
 
 static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
 {
+	if(!ovsigck) {
+		if(str_eq(p->id, "m128a") || str_eq(p->id, "m128") ||
+		   str_eq(p->id, "m64a") || str_eq(p->id, "m64") ||
+		   str_eq(p->id, "m32a") || str_eq(p->id, "m32") ||
+		   str_eq(p->id, "m16a") || str_eq(p->id, "m16") ||
+		   str_eq(p->id, "m162")) {
+			pmsg_error("programmer type %s is known not to work for %s\n", pgm->type, p->desc);
+			imsg_error("exiting; use -F to carry on regardless\n");
+			return LIBAVRDUDE_EXIT;
+		}
+	}
+
 	set_pin(pgm, PPI_AVR_BUFF, ON);
 
 	avrftdi_jtag_reset(pgm);
@@ -1764,8 +1691,8 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
 	unsigned char *buf, *ptr;
 	unsigned int bytes;
 
-    buf = alloca(n_bytes * 8 + 1);
-    ptr = buf;
+	buf = alloca(n_bytes * 8 + 1);
+	ptr = buf;
 
 	if (mem_is_flash(m)) {
 		avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);

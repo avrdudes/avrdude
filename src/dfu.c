@@ -281,8 +281,8 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
   }
 
   if (result > (int) sizeof(struct dfu_status)) {
-    pmsg_error("oversize read (should not happen); exiting\n");
-    exit(1);
+    pmsg_error("oversize read (should not happen)\n");
+    return -1;
   }
 
   pmsg_trace("dfu_getstatus(): bStatus 0x%02x, bwPollTimeout %d, bState 0x%02x, iString %d\n",
@@ -382,8 +382,8 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
   }
 
   if (result > size) {
-    pmsg_error("oversize read (should not happen); exiting\n");
-    exit(1);
+    pmsg_error("oversize read (should not happen)\n");
+    return -1;
   }
 
   return 0;

@@ -544,23 +544,15 @@ static int micronucleus_start(pdata_t* pdata)
 
 //-----------------------------------------------------------------------------
 
-static void micronucleus_setup(PROGRAMMER* pgm)
-{
+static void micronucleus_setup(PROGRAMMER *pgm) {
     pmsg_debug("micronucleus_setup()\n");
-
-    if ((pgm->cookie = malloc(sizeof(pdata_t))) == 0)
-    {
-        pmsg_error("out of memory allocating private data\n");
-        exit(1);
-    }
-
-    memset(pgm->cookie, 0, sizeof(pdata_t));
+    pgm->cookie = mmt_malloc(sizeof(pdata_t));
 }
 
-static void micronucleus_teardown(PROGRAMMER* pgm)
-{
+static void micronucleus_teardown(PROGRAMMER* pgm) {
     pmsg_debug("micronucleus_teardown()\n");
-    free(pgm->cookie);
+    mmt_free(pgm->cookie);
+    pgm->cookie = NULL;
 }
 
 static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
@@ -593,13 +585,10 @@ static void micronucleus_powerdown(const PROGRAMMER *pgm) {
     {
         pdata->write_last_page = false;
 
-        uint8_t* buffer = (unsigned char*)malloc(pdata->page_size);
-        if (buffer != NULL)
-        {
-            memset(buffer, 0xFF, pdata->page_size);
-            micronucleus_write_page(pdata, pdata->bootloader_start - pdata->page_size, buffer, pdata->page_size);
-            free(buffer);
-        }
+        uint8_t *buffer = (unsigned char *) mmt_malloc(pdata->page_size);
+        memset(buffer, 0xFF, pdata->page_size);
+        micronucleus_write_page(pdata, pdata->bootloader_start - pdata->page_size, buffer, pdata->page_size);
+        mmt_free(buffer);
     }
 
     if (pdata->start_program)
@@ -863,12 +852,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
             return -1;
         }
 
-        uint8_t* page_buffer = (uint8_t*)malloc(pdata->page_size);
-        if (page_buffer == NULL)
-        {
-            pmsg_error("unable to allocate memory\n");
-            return -1;
-        }
+        uint8_t *page_buffer = (uint8_t *) mmt_malloc(pdata->page_size);
 
         // Note: Page size reported by the bootloader may be smaller than device page size as configured in avrdude.conf.
         int result = 0;
@@ -889,7 +873,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
             n_bytes -= chunk_size;
         }
 
-        free(page_buffer);
+        mmt_free(page_buffer);
         return result;
     }
     else
@@ -923,7 +907,7 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
             msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
             msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
             msg_error("  -xhelp       Show this help menu and exit\n");
-            exit(0);
+            return LIBAVRDUDE_EXIT;
         }
         else
         {

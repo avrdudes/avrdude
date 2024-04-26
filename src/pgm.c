@@ -63,40 +63,7 @@ static void pgm_default_powerup_powerdown(const PROGRAMMER *pgm) {
 }
 
 
-PROGRAMMER *pgm_new(void) {
-  PROGRAMMER *pgm = (PROGRAMMER *) cfg_malloc("pgm_new()", sizeof(*pgm));
-  const char *nulp = cache_string("");
-
-  // Initialise const char * and LISTID entities
-  pgm->id = lcreat(NULL, 0);
-  pgm->usbpid = lcreat(NULL, 0);
-  pgm->hvupdi_support = lcreat(NULL, 0);
-  pgm->desc = nulp;
-  pgm->parent_id = nulp;
-  pgm->usbdev = nulp;
-  pgm->usbsn = nulp;
-  pgm->usbvendor = nulp;
-  pgm->usbproduct = nulp;
-  pgm->config_file = nulp;
-
-  // Allocate cache structures for flash and EEPROM, *do not* free in pgm_free()
-  pgm->cp_flash = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-  pgm->cp_eeprom = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-  pgm->cp_bootrow = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-  pgm->cp_usersig = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-
-  // Default values
-  pgm->initpgm = NULL;
-  pgm->lineno = 0;
-  pgm->baudrate = 0;
-
-  // Clear pin array
-  for(int i=0; i<N_PINS; i++) {
-    pgm->pinno[i] = NO_PIN;
-    pin_clear_all(&(pgm->pin[i]));
-  }
-
-  pgm->leds = cfg_malloc(__func__, sizeof(leds_t));
+void pgm_init_functions(PROGRAMMER *pgm) {
   /*
    * mandatory functions - these are called without checking to see
    * whether they are assigned or not
@@ -144,7 +111,9 @@ PROGRAMMER *pgm_new(void) {
   pgm->write_setup    = NULL;
   pgm->read_sig_bytes = NULL;
   pgm->read_sib       = NULL;
+  pgm->read_chip_rev  = NULL;
   pgm->term_keep_alive= NULL;
+  pgm->end_programming= NULL;
   pgm->print_parms    = NULL;
   pgm->set_vtarget    = NULL;
   pgm->get_vtarget    = NULL;
@@ -164,6 +133,45 @@ PROGRAMMER *pgm_new(void) {
   pgm->teardown       = NULL;
   pgm->readonly       = NULL;
   pgm->flash_readhook = NULL;
+}
+
+
+PROGRAMMER *pgm_new(void) {
+  PROGRAMMER *pgm = (PROGRAMMER *) cfg_malloc("pgm_new()", sizeof(*pgm));
+  const char *nulp = cache_string("");
+
+  // Initialise const char * and LISTID entities
+  pgm->id = lcreat(NULL, 0);
+  pgm->usbpid = lcreat(NULL, 0);
+  pgm->hvupdi_support = lcreat(NULL, 0);
+  pgm->desc = nulp;
+  pgm->parent_id = nulp;
+  pgm->usbdev = nulp;
+  pgm->usbsn = nulp;
+  pgm->usbvendor = nulp;
+  pgm->usbproduct = nulp;
+  pgm->config_file = nulp;
+
+  // Allocate cache structures for flash and EEPROM, *do not* free in pgm_free()
+  pgm->cp_flash = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_eeprom = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_bootrow = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_usersig = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+
+  // Default values
+  pgm->initpgm = NULL;
+  pgm->lineno = 0;
+  pgm->baudrate = 0;
+
+  // Clear pin array
+  for(int i=0; i<N_PINS; i++) {
+    pgm->pinno[i] = NO_PIN;
+    pin_clear_all(&(pgm->pin[i]));
+  }
+
+  pgm->leds = cfg_malloc(__func__, sizeof(leds_t));
+
+  pgm_init_functions(pgm);
 
   // For allocating "global" memory by the programmer
   pgm->cookie          = NULL;

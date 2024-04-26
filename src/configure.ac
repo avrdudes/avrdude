@@ -556,7 +556,7 @@ fi
 # If we are compiling with gcc, enable all warnings and make warnings errors.
 ENABLE_WARNINGS=""
 if test "x$GCC" = xyes; then
-	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
+	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter -Wno-format-zero-length"
 
 	# does this compiler support -Wno-pointer-sign ?
 	AC_MSG_CHECKING([if gcc accepts -Wno-pointer-sign ])

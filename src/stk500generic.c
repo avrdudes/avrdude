@@ -41,36 +41,28 @@
 #include "stk500.h"
 #include "stk500v2.h"
 
-static PROGRAMMER *stk500vn;
-static void stk500vn_exithook(void) {
-  if(stk500vn && stk500vn->teardown)
-    stk500vn->teardown(stk500vn);
-}
-
 static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
+  // First try stk500 v2 programmer
   stk500v2_initpgm(pgm);
   if(pgm->setup)
     pgm->setup(pgm);
   if(pgm->open(pgm, port) >= 0) {
-    stk500vn = pgm;
-    atexit(stk500vn_exithook);
-    pmsg_info("successfully opened stk500v2 device; please use -c stk500v2\n");
+    pmsg_info("successfully opened stk500v2 device\n");
+    imsg_info("in future, please use -c stk500v2, so -x parameters are available\n");
     return 0;
   }
   if(pgm->teardown)
     pgm->teardown(pgm);
 
-  stk500_initpgm(pgm);
+  pgm_init_functions(pgm);      // Overwrite stk500v2_initpgm(pgm) setup
+  stk500_initpgm(pgm);          // Now try engaging the v1 programmer
   if(pgm->setup)
     pgm->setup(pgm);
   if(pgm->open(pgm, port) >= 0) {
-    stk500vn = pgm;
-    atexit(stk500vn_exithook);
-    pmsg_info("successfully opened stk500v1 device; please use -c stk500v1\n");
+    pmsg_info("successfully opened stk500v1 device\n");
+    imsg_info("in future, please use -c stk500v1, so -x parameters are available\n");
     return 0;
   }
-  if(pgm->teardown)
-    pgm->teardown(pgm);
 
   pmsg_error("probing stk500v2 failed, as did stk500v1; perhaps try -c stk500v1\n");
   return -1;

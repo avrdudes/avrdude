@@ -217,6 +217,11 @@ char *cfg_strdup(const char *funcname, const char *s) {
 }
 
 
+void cfg_free(void *ptr) {
+  mmt_free(ptr);
+}
+
+
 int yywrap()
 {
   return 1;

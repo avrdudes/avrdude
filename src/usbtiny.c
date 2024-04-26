@@ -76,18 +76,13 @@ struct pdata
 
 // ----------------------------------------------------------------------
 
-static void usbtiny_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void usbtiny_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void usbtiny_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void usbtiny_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 // Wrapper for simple usb_control_msg messages
@@ -818,5 +813,4 @@ void usbtiny_initpgm(PROGRAMMER *pgm) {
 
 #endif /* HAVE_LIBUSB */
 
-const char usbtiny_desc[] = "Driver for \"usbtiny\"-type programmers";
-
+const char usbtiny_desc[] = "Usbtiny-type programmers incl arduinoisp, arduino_gemma and adafruit_gemma";
