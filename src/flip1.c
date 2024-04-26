@@ -461,7 +461,7 @@ static int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
   if (n_bytes > INT_MAX) {
     /* This should never happen, unless the int type is only 16 bits. */
     pmsg_error("attempting to read more than %d bytes\n", INT_MAX);
-    return -1;
+    exit(1);
   }
 
   result = flip1_write_memory(FLIP1(pgm)->dfu, mem_unit, addr,
