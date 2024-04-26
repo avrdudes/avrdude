@@ -1790,17 +1790,15 @@ static int jtag3_open(PROGRAMMER *pgm, const char *port) {
   if (rc < 0)
     return rc;
 
-  if (jtag3_getsync(pgm, PARM3_CONN_JTAG) < 0)
-    return -1;
-
-  return 0;
+  return jtag3_getsync(pgm, PARM3_CONN_JTAG) < 0? -1: 0;
 }
 
 static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_dw()\n");
 
-  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
-    return -1;
+  int rc = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
+  if (rc < 0)
+    return rc;
 
   if (jtag3_getsync(pgm, PARM3_CONN_DW) < 0)
     return -1;
@@ -1810,14 +1808,11 @@ static int jtag3_open_dw(PROGRAMMER *pgm, const char *port) {
 
 static int jtag3_open_pdi(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_pdi()\n");
+  int rc = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
+  if (rc < 0)
+    return rc;
 
-  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
-    return -1;
-
-  if (jtag3_getsync(pgm, PARM3_CONN_PDI) < 0)
-    return -1;
-
-  return 0;
+  return jtag3_getsync(pgm, PARM3_CONN_PDI) < 0? -1: 0;
 }
 
 static int jtag3_open_updi(PROGRAMMER *pgm, const char *port) {
@@ -1829,13 +1824,11 @@ static int jtag3_open_updi(PROGRAMMER *pgm, const char *port) {
     msg_notice2(" %d", *(int *) ldata(ln));
   msg_notice2("\n");
 
-  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
-    return -1;
+  int rc = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
+  if (rc < 0)
+    return rc;
 
-  if (jtag3_getsync(pgm, PARM3_CONN_UPDI) < 0)
-    return -1;
-
-  return 0;
+  return jtag3_getsync(pgm, PARM3_CONN_UPDI) < 0? -1: 0;
 }
 
 void jtag3_close(PROGRAMMER * pgm) {
@@ -3118,9 +3111,7 @@ static int jtag3_chip_erase_tpi(const PROGRAMMER *pgm, const AVRPART *p) {
 static int jtag3_open_tpi(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtag3_open_tpi()\n");
 
-  if (jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode) < 0)
-    return -1;
-  return 0;
+  return jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
 }
 
 void jtag3_close_tpi(PROGRAMMER *pgm) {

@@ -1243,7 +1243,10 @@ int main(int argc, char * argv [])
           pmsg_error("programmer does not support extended parameter -x %s, option ignored\n", extended_param);
       }
     } else {
-      if (pgm->parseextparams(pgm, extended_params) < 0) {
+      int rc = pgm->parseextparams(pgm, extended_params);
+      if(rc == LIBAVRDUDE_EXIT)
+        exit(0);
+      if(rc < 0) {
         pmsg_error("unable to parse extended parameter list\n");
         exit(1);
       }
@@ -1390,6 +1393,11 @@ int main(int argc, char * argv [])
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
+    if(rc == LIBAVRDUDE_EXIT) {
+      exitrc = 0;
+      goto main_exit;
+    }
+
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
 skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
@@ -1512,6 +1520,10 @@ skipopen:
    */
   init_ok = (rc = pgm->initialize(pgm, p)) >= 0;
   if (!init_ok) {
+    if(rc == LIBAVRDUDE_EXIT) {
+      exitrc = 0;
+      goto main_exit;
+    }
     pmsg_error("initialization failed, rc=%d\n", rc);
     if (rc == -2)
       imsg_error("the programmer ISP clock is too fast for the target\n");
@@ -1549,6 +1561,10 @@ skipopen:
     usleep(waittime);
     if (init_ok) {
       rc = avr_signature(pgm, p);
+      if (rc == LIBAVRDUDE_EXIT) {
+        exitrc = 0;
+        goto main_exit;
+      }
       if (rc != LIBAVRDUDE_SUCCESS) {
         if (rc == LIBAVRDUDE_SOFTFAIL && (p->prog_modes & PM_UPDI) && attempt < 1) {
           attempt++;

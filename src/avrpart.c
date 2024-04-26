@@ -33,22 +33,21 @@
  ***/
 
 OPCODE *avr_new_opcode(void) {
-  return (OPCODE *) cfg_malloc("avr_new_opcode()", sizeof(OPCODE));
+  return (OPCODE *) mmt_malloc(sizeof(OPCODE));
 }
 
 static OPCODE *avr_dup_opcode(const OPCODE *op) {
   if(op == NULL)                // Caller wants NULL if op == NULL
     return NULL;
 
-  OPCODE *m = (OPCODE *) cfg_malloc("avr_dup_opcode()", sizeof(*m));
+  OPCODE *m = (OPCODE *) mmt_malloc(sizeof(*m));
   memcpy(m, op, sizeof(*m));
 
   return m;
 }
 
 void avr_free_opcode(OPCODE *op) {
-  if(op)
-    free(op);
+  mmt_free(op);
 }
 
 
@@ -296,7 +295,7 @@ int avr_get_output_index(const OPCODE *op) {
  ***/
 
 AVRMEM *avr_new_mem(void) {
-  AVRMEM *m = (AVRMEM *) cfg_malloc("avr_new_mem()", sizeof(*m));
+  AVRMEM *m = (AVRMEM *) mmt_malloc(sizeof(*m));
   m->desc = cache_string("");
   m->page_size = 1;             // Ensure not 0
   m->initval = -1;              // Unknown value represented as -1
@@ -306,7 +305,7 @@ AVRMEM *avr_new_mem(void) {
 }
 
 AVRMEM_ALIAS *avr_new_memalias(void) {
-  AVRMEM_ALIAS *m = (AVRMEM_ALIAS *) cfg_malloc("avr_new_memalias()", sizeof*m);
+  AVRMEM_ALIAS *m = (AVRMEM_ALIAS *) mmt_malloc(sizeof *m);
   m->desc = cache_string("");
   return m;
 }
@@ -322,8 +321,8 @@ int avr_initmem(const AVRPART *p) {
 
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
     AVRMEM *m = ldata(ln);
-    m->buf  = (unsigned char *) cfg_malloc("avr_initmem()", m->size);
-    m->tags = (unsigned char *) cfg_malloc("avr_initmem()", m->size);
+    m->buf  = mmt_malloc(m->size);
+    m->tags = mmt_malloc(m->size);
   }
 
   return 0;
@@ -337,12 +336,12 @@ AVRMEM *avr_dup_mem(const AVRMEM *m) {
     *n = *m;
 
     if(m->buf) {
-      n->buf = (unsigned char *) cfg_malloc("avr_dup_mem()", n->size);
+      n->buf = mmt_malloc(n->size);
       memcpy(n->buf, m->buf, n->size);
     }
 
     if(m->tags) {
-      n->tags = (unsigned char *) cfg_malloc("avr_dup_mem()", n->size);
+      n->tags = (unsigned char *) mmt_malloc(n->size);
       memcpy(n->tags, m->tags, n->size);
     }
 
@@ -367,11 +366,11 @@ void avr_free_mem(AVRMEM * m) {
     return;
 
   if(m->buf) {
-    free(m->buf);
+    mmt_free(m->buf);
     m->buf = NULL;
   }
   if(m->tags) {
-    free(m->tags);
+    mmt_free(m->tags);
     m->tags = NULL;
   }
   for(size_t i=0; i<sizeof(m->op)/sizeof(m->op[0]); i++) {
@@ -380,12 +379,11 @@ void avr_free_mem(AVRMEM * m) {
       m->op[i] = NULL;
     }
   }
-  free(m);
+  mmt_free(m);
 }
 
 void avr_free_memalias(AVRMEM_ALIAS *m) {
-  if(m)
-    free(m);
+  mmt_free(m);
 }
 
 AVRMEM_ALIAS *avr_locate_memalias(const AVRPART *p, const char *desc) {
@@ -602,7 +600,7 @@ const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, c
 const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
   int (*match)(const char *, const char*)) {
 
-  const Register_file_t **ret = cfg_malloc(__func__, sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
+  const Register_file_t **ret = mmt_malloc(sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
   int eqmatch = match == str_eq;
 
   if(rgf && reg && match)
@@ -617,7 +615,7 @@ const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int 
             return ret;
           }
           if(!eqmatch && str_eq(p, reg)) { // reg same as segment: switch to str_eq() match
-            free(ret);
+            mmt_free(ret);
             return avr_locate_registerlist(rgf, nr, reg, str_eq);
           }
           if(!reg_matched++)      // Record a matching register only once
@@ -668,7 +666,7 @@ const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const cha
 const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
   int (*match)(const char *, const char*)) {
 
-  const Configitem_t **ret = cfg_malloc(__func__, sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
+  const Configitem_t **ret = mmt_malloc(sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
 
   if(cfg && name && match) {
     for(int i = 0; i < nc; i++)
@@ -774,7 +772,7 @@ static char *print_num(const char *fmt, int n) {
 static int num_len(const char *fmt, int n) {
   char *p = print_num(fmt, n);
   int ret = strlen(p);
-  free(p);
+  mmt_free(p);
 
   return ret;
 }
@@ -848,7 +846,7 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
         m_char_max[1], m->size,
         m_char_max[2], m->page_size,
         m_char_max[3], m_offset);
-      free(m_offset);
+      mmt_free(m_offset);
     } else {
       fprintf(f, "%s%-*s  %*d  %*d\n",
         prefix,
@@ -856,7 +854,7 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
         m_char_max[1], m->size,
         m_char_max[2], m->page_size);
     }
-    free(m_desc_str);
+    mmt_free(m_desc_str);
   }
 }
 
@@ -922,7 +920,7 @@ int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix) {
  */
 
 AVRPART *avr_new_part(void) {
-  AVRPART *p = (AVRPART *) cfg_malloc("avr_new_part()", sizeof(AVRPART));
+  AVRPART *p = (AVRPART *) mmt_malloc(sizeof(AVRPART));
   const char *nulp = cache_string("");
 
   memset(p, 0, sizeof(*p));
@@ -986,13 +984,12 @@ AVRPART *avr_dup_part(const AVRPART *d) {
   return p;
 }
 
-void avr_free_part(AVRPART * d)
-{
-  ldestroy_cb(d->mem, (void(*)(void *))avr_free_mem);
+void avr_free_part(AVRPART * d) {
+  ldestroy_cb(d->mem, (void(*)(void *)) avr_free_mem);
   d->mem = NULL;
-  ldestroy_cb(d->mem_alias, (void(*)(void *))avr_free_memalias);
+  ldestroy_cb(d->mem_alias, (void(*)(void *)) avr_free_memalias);
   d->mem_alias = NULL;
-  ldestroy_cb(d->variants, free);
+  ldestroy_cb(d->variants, cfg_free);
   d->variants = NULL;
 
   /* do not free d->parent_id and d->config_file */
@@ -1002,7 +999,7 @@ void avr_free_part(AVRPART * d)
       d->op[i] = NULL;
     }
   }
-  free(d);
+  mmt_free(d);
 }
 
 AVRPART *locate_part(const LISTID parts, const char *partdesc) {
@@ -1159,7 +1156,7 @@ char *cmdbitstr(CMDBIT cb) {
   else
     space[1] = 0;
 
-  return cfg_strdup("cmdbitstr()", space);
+  return mmt_strdup(space);
 }
 
 
@@ -1201,7 +1198,7 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed) {
   int compact = 1, printbit;
 
   if(!op)
-    return cfg_strdup("opcode2str()", "NULL");
+    return mmt_strdup("NULL");
 
   // Can the opcode be printed in a compact way? Only if i, o and a bits are systematic.
   for(int i=31; i >= 0; i--)
@@ -1245,7 +1242,7 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed) {
     *sp++ = '"';
   *sp = 0;
 
-  return cfg_strdup("opcode2str()", space);
+  return mmt_strdup(space);
 }
 
 

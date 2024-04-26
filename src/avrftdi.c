@@ -1208,10 +1208,9 @@ static void avrftdi_setup(PROGRAMMER * pgm) {
 		pdata->mpsse_pins[i] = valid_mpsse_pins[i];
 
 	pdata->ftdic = ftdi_new();
-	if(!pdata->ftdic)
-	{
-		pmsg_error("failed to allocate memory in ftdi_new()\n");
-		exit(1);
+	if(!pdata->ftdic) {
+		pmsg_ext_error("ftdi_new() failed to allocate memory\n");
+		exit(1);        // pgm->setup() should return an int, but it doesn't
 	}
 	E_VOID(ftdi_init(pdata->ftdic), pdata->ftdic);
 
