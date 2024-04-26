@@ -40,19 +40,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "avrdude.h"
 #include "libavrdude.h"
 
 #define MAGIC 0xb05b05b0
 
 #define CHECK_MAGIC 0 /* set to 1 to enable memory overwrite detection */
 
-#ifdef BOS
-#define MALLOC(size,x) kmalloc(size,x)
-#define FREE           kfree
-#else
-#define MALLOC(size,x) malloc(size)
-#define FREE           free
-#endif
+#define MALLOC(size,x) mmt_malloc(size)
+#define FREE           mmt_free
 
 
 /*------------------------------------------------------------
@@ -397,13 +393,13 @@ free_listnode ( LIST * l, LISTNODE * ln )
   
   If liststruct is not NULL, it is used to provide the memory space
   for the list structure instance, otherwise, the necessary memory is
-  malloc'd.
+  mmt_malloc'd.
 
   If elements is zero, the default poolsize is used, otherwise,
-  poolsizes of 'elements' elements are malloc'd to obtain the memory
+  poolsizes of 'elements' elements are mmt_malloc'd to obtain the memory
   for list nodes.  Minimum element count is 5.
 
-  The first node pool is not preallocated; instead it is malloc'd at
+  The first node pool is not preallocated; instead it is mmt_malloc'd at
   the time of the first use.
   ----------------------------------------------------------------------*/
 LISTID
