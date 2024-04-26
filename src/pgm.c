@@ -137,7 +137,7 @@ void pgm_init_functions(PROGRAMMER *pgm) {
 
 
 PROGRAMMER *pgm_new(void) {
-  PROGRAMMER *pgm = (PROGRAMMER *) cfg_malloc("pgm_new()", sizeof(*pgm));
+  PROGRAMMER *pgm = (PROGRAMMER *) mmt_malloc(sizeof(*pgm));
   const char *nulp = cache_string("");
 
   // Initialise const char * and LISTID entities
@@ -153,10 +153,10 @@ PROGRAMMER *pgm_new(void) {
   pgm->config_file = nulp;
 
   // Allocate cache structures for flash and EEPROM, *do not* free in pgm_free()
-  pgm->cp_flash = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-  pgm->cp_eeprom = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-  pgm->cp_bootrow = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
-  pgm->cp_usersig = cfg_malloc("pgm_new()", sizeof(AVR_Cache));
+  pgm->cp_flash = mmt_malloc(sizeof(AVR_Cache));
+  pgm->cp_eeprom = mmt_malloc(sizeof(AVR_Cache));
+  pgm->cp_bootrow = mmt_malloc(sizeof(AVR_Cache));
+  pgm->cp_usersig = mmt_malloc(sizeof(AVR_Cache));
 
   // Default values
   pgm->initpgm = NULL;
@@ -169,11 +169,11 @@ PROGRAMMER *pgm_new(void) {
     pin_clear_all(&(pgm->pin[i]));
   }
 
-  pgm->leds = cfg_malloc(__func__, sizeof(leds_t));
+  pgm->leds = mmt_malloc(sizeof(leds_t));
 
   pgm_init_functions(pgm);
 
-  // For allocating "global" memory by the programmer
+  // For allocating static programmer memory
   pgm->cookie          = NULL;
 
   return pgm;
@@ -193,11 +193,11 @@ void pgm_free(PROGRAMMER *p) {
       ldestroy_cb(p->hvupdi_support, free);
       p->hvupdi_support = NULL;
     }
-    free(p->leds); p->leds = NULL;
+    mmt_free(p->leds); p->leds = NULL;
     // Never free const char *, eg, p->desc, which are set by cache_string()
     // p->cookie was freed by pgm_teardown
     // Never free cp_flash, cp_eeprom, cp_bootrow or cp_usersig cache structures
-    free(p);
+    mmt_free(p);
   }
 }
 
@@ -210,13 +210,13 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     ldestroy_cb(pgm->hvupdi_support, free);
     // There must be only one cache, even though the part is duplicated
     if(pgm->cp_flash)
-      free(pgm->cp_flash);
+      mmt_free(pgm->cp_flash);
     if(pgm->cp_eeprom)
-      free(pgm->cp_eeprom);
+      mmt_free(pgm->cp_eeprom);
     if(pgm->cp_bootrow)
-      free(pgm->cp_bootrow);
+      mmt_free(pgm->cp_bootrow);
     if(pgm->cp_usersig)
-      free(pgm->cp_usersig);
+      mmt_free(pgm->cp_usersig);
 
     leds_t *ls = pgm->leds;
     memcpy(pgm, src, sizeof(*pgm));
@@ -231,13 +231,13 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     // Leave id list empty but copy usbpid and hvupdi_support over
     if(src->hvupdi_support)
       for(LNODEID ln = lfirst(src->hvupdi_support); ln; ln = lnext(ln)) {
-        int *ip = cfg_malloc("pgm_dup()", sizeof(int));
+        int *ip = mmt_malloc(sizeof(int));
         *ip = *(int *) ldata(ln);
         ladd(pgm->hvupdi_support, ip);
       }
     if(src->usbpid)
       for(LNODEID ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
-        int *ip = cfg_malloc("pgm_dup()", sizeof(int));
+        int *ip = mmt_malloc(sizeof(int));
         *ip = *(int *) ldata(ln);
         ladd(pgm->usbpid, ip);
       }
