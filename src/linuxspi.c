@@ -147,7 +147,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
       "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
-    char *port = cfg_strdup("linuxspi_open()", pt);
+    char *port = mmt_strdup(pt);
     struct gpiohandle_request req;
     int ret;
 
