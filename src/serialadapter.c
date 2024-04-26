@@ -46,8 +46,8 @@ static int sa_setport(char **portp, const char *sp_port) {
 
   if(portp) {
     if(*portp)
-      free(*portp);
-    *portp = cfg_strdup(__func__, sp_port);
+      mmt_free(*portp);
+    *portp = mmt_strdup(sp_port);
   }
 
   return 0;
@@ -104,20 +104,20 @@ static SERPORT *get_libserialport_data(int *np) {
   }
 
   int i, j, n;
-  // Count the number of available ports and allocate space according to the needed size
+  // Count the number of available ports and allocate space accordingly
   for(n = 0; port_list[n]; n++)
     continue;
-  SERPORT *sp = cfg_malloc(__func__, n*sizeof*sp);
+  SERPORT *sp = mmt_malloc(n*sizeof*sp);
 
   for(j = 0, i = 0; i < n; i++) { // j counts the number of valid ports
     struct sp_port *p = port_list[i];
     char *q;
     // Fill sp struct with port information
     if((q = sp_get_port_name(p))) {
-      sp[j].port = cfg_strdup(__func__, q);
+      sp[j].port = mmt_strdup(q);
       if(sp_get_port_usb_vid_pid(p, &sp[j].vid, &sp[j].pid) != SP_OK)
         sp[j].vid = sp[j].pid = 0;
-      sp[j].sernum = cfg_strdup(__func__, (q = sp_get_port_usb_serial(p))? q: "");
+      sp[j].sernum = mmt_strdup((q = sp_get_port_usb_serial(p))? q: "");
       j++;
     }
   }
@@ -125,7 +125,7 @@ static SERPORT *get_libserialport_data(int *np) {
   if(j > 0)
     qsort(sp, j, sizeof*sp, sa_portcmp);
   else
-    free(sp), sp = NULL;
+    mmt_free(sp), sp = NULL;
 
   sp_free_port_list(port_list);
 
@@ -137,13 +137,13 @@ static SERPORT *get_libserialport_data(int *np) {
 // Free memory allocated from get_libserialport_data()
 static void free_libserialport_data(SERPORT *sp, int n) {
   for(int k = 0; sp && k < n; k++)
-    free(sp[k].sernum), free(sp[k].port);
-  free(sp);
+    mmt_free(sp[k].sernum), mmt_free(sp[k].port);
+  mmt_free(sp);
 }
 
-// Returns a NULL-terminated malloc'd list of items in SERPORT list spa that are not in spb
+// Returns a NULL-terminated mmt_malloc'd list of items in SERPORT list spa that are not in spb
 SERPORT **sa_spa_not_spb(SERPORT *spa, int na, SERPORT *spb, int nb) {
-  SERPORT **ret = cfg_malloc(__func__, (na+1)*sizeof*ret);
+  SERPORT **ret = mmt_malloc((na+1)*sizeof*ret);
   int ia = 0, ib = 0, ir = 0;
 
   // Use the comm algorithm on two sorted SERPORT lists
@@ -200,10 +200,10 @@ static int sa_unique_by_ids(int vid, int pid, const char *sn, const SERPORT *sp,
   return sa_num_matches_by_ids(vid, pid, sn, sp, n) == 1 && sa_num_matches_by_ids(vid, pid, sn, sp+i, 1);
 }
 
-// Return a malloc'd list of -P specifications that uniquely address sp[i]
+// Return an mmt_malloc'd list of -P specifications that uniquely address sp[i]
 static char **sa_list_specs(const SERPORT *sp, int n, int i) {
   int Pn = 4, Pi = 0;
-  char **Plist = cfg_malloc(__func__, Pn*sizeof*Plist);
+  char **Plist = mmt_malloc(Pn*sizeof*Plist);
   const char *sn = sp[i].sernum, *via = NULL;
 
   // Loop though all serial adapters in avrdude.conf
@@ -215,7 +215,7 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
       char *id = ldata(sid);
       // Put id or id:sn into list if it uniquely matches sp[i]
       if(sa_unique_by_sea(sea, "", sp, n, i))
-        Plist[Pi++] = cfg_strdup(__func__, id);
+        Plist[Pi++] = mmt_strdup(id);
       else if(*sn && sa_unique_by_sea(sea, sn, sp, n, i))
         Plist[Pi++] = str_sprintf("%s:%s", id, sn);
       else if(!via && sa_num_matches_by_sea(sea, "", sp+i, 1))
@@ -225,7 +225,7 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
         if(Pn >= INT_MAX/2)
           break;
         Pn *= 2;
-        Plist = cfg_realloc(__func__, Plist, Pn*sizeof*Plist);
+        Plist = mmt_realloc(Plist, Pn*sizeof*Plist);
       }
     }
   }
@@ -250,11 +250,11 @@ static void sa_print_specs(const SERPORT *sp, int n, int i) {
   msg_warning("  -P %s", sp[i].port);
   for(char **Ps = Pspecs; *Ps; Ps++) {
     msg_warning("%s %s", str_starts(*Ps, "(via ")? "": Ps[1]? ", -P": " or -P", *Ps);
-    free(*Ps);
+    mmt_free(*Ps);
   }
   msg_warning("\n");
 
-  free(Pspecs);
+  mmt_free(Pspecs);
 }
 
 // Set the port specs to the port iff sea matches one and only one of the connected SERPORTs
@@ -343,12 +343,12 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
       if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
         pmsg_notice("new port %s discovered\n", (*diff)->port);
         if(*portp)
-          free(*portp);
-        *portp = cfg_strdup(__func__, (*diff)->port);
+          mmt_free(*portp);
+        *portp = mmt_strdup((*diff)->port);
         msg_info(" %d ms:", (nloops-i+1)*nap + nwaits*400);
         i = -1;                 // Leave loop
       }
-      free(diff); 
+      mmt_free(diff); 
       free_libserialport_data(sp2, n2);
     }
   }
@@ -377,8 +377,8 @@ int list_available_serialports(LISTID programmers) {
   msg_warning("Also note there may be other direct serial ports not listed above.\n");
 
   for(int k = 0; k < n; k++)
-    free(sp[k].sernum), free(sp[k].port);
-  free(sp);
+    mmt_free(sp[k].sernum), mmt_free(sp[k].port);
+  mmt_free(sp);
 
   return 0;
 }
