@@ -126,8 +126,7 @@ static int insert_ln ( LIST * l, LISTNODE * ln, void * data_ptr );
 
 
 #if CHECK_MAGIC
-static int cknpmagic ( LIST * l )
-{
+static int cknpmagic ( LIST * l ) {
   NODEPOOL * np;
   int i;
 
@@ -152,8 +151,7 @@ static int cknpmagic ( LIST * l )
 
 
 
-static int cklnmagic ( LIST * l )
-{
+static int cklnmagic ( LIST * l ) {
   LISTNODE * ln;
   int i;
 
@@ -177,8 +175,7 @@ static int cklnmagic ( LIST * l )
 }
 
 
-static int cklmagic ( LIST * l )
-{
+static int cklmagic ( LIST * l ) {
   CKMAGIC(l);
   CKNPMAGIC(l);
   CKLNMAGIC(l);
@@ -196,10 +193,7 @@ static int cklmagic ( LIST * l )
 |  bytes reserved.  The first available list node resides at
 |  offset sizeof(NODEPOOL).
  ------------------------------------------------------------*/
-static
-NODEPOOL * 
-new_nodepool ( LIST * l )
-{
+static NODEPOOL *new_nodepool ( LIST * l ) {
   NODEPOOL * np;
   LISTNODE * ln;
   int i;
@@ -282,10 +276,7 @@ new_nodepool ( LIST * l )
 |  list nodes, another pool of list nodes is allocated.  If
 |  that fails, NULL is returned.
  ------------------------------------------------------------*/
-static
-LISTNODE * 
-get_listnode ( LIST * l )
-{
+static LISTNODE * get_listnode ( LIST * l ) {
   LISTNODE * ln;
   NODEPOOL * np;
 
@@ -364,10 +355,7 @@ get_listnode ( LIST * l )
 |  call to 'get_listnode', with return the most recently
 |  freed one.
  ------------------------------------------------------------*/
-static
-int 
-free_listnode ( LIST * l, LISTNODE * ln )
-{
+static int  free_listnode ( LIST * l, LISTNODE * ln ) {
   CKLMAGIC(l);
 
   /*--------------------------------------------------
@@ -869,10 +857,7 @@ lget_ln ( LISTID lid, unsigned int n )
 |  by list manipulation routines within this module, in which ln is
 |  known to point to a valid list node.
  ----------------------------------------------------------------------*/
-static 
-int 
-insert_ln ( LIST * l, LISTNODE * ln, void * data_ptr )
-{
+static int insert_ln ( LIST * l, LISTNODE * ln, void * data_ptr ) {
   LISTNODE * lnptr;
 
   CKLMAGIC(l);
@@ -1033,10 +1018,7 @@ lins_ln ( LISTID lid, LNODEID lnid, void * data_ptr )
 |  routines within this module, in which ln is known to point to a
 |  valid list node.
  ----------------------------------------------------------------------*/
-static
-void * 
-remove_ln ( LIST * l, LISTNODE * ln )
-{
+static void * remove_ln ( LIST * l, LISTNODE * ln ) {
   void * r;
 
   CKLMAGIC(l);
