@@ -1374,7 +1374,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
         for(LNODEID *ln=lfirst(pgm->id); ln; ln=lnext(ln))
           if(str_casematch(pgminj[i].pgmid, ldata(ln)))
             dev_part_strct_entry(tsv, ".prog", ldata(ln), NULL,
-              pgminj[i].var, strdup(pgminj[i].value), NULL);
+              pgminj[i].var, mmt_strdup(pgminj[i].value), NULL);
 
   if(!tsv) {
     dev_cout(pgm->comments, ";", 0, 0);
