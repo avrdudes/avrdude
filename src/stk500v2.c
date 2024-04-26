@@ -3890,7 +3890,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       pgmcp->id = lcreat(NULL, 0);
       // Copy pgm->id contents over to pgmcp->id
       for(LNODEID ln=lfirst(pgm->id); ln; ln=lnext(ln))
-        ladd(pgmcp->id, cfg_strdup("stk500v2_display()", ldata(ln)));
+        ladd(pgmcp->id, mmt_strdup(ldata(ln)));
       jtag3_print_parms1(pgmcp, p, fp);
       pgm_free(pgmcp);
     }
