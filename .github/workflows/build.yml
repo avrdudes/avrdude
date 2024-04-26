@@ -53,6 +53,7 @@ jobs:
           libftdi1-dev
           libreadline-dev
           libserialport-dev
+          libgpiod-dev
           texinfo
           texlive
           texi2html
@@ -96,6 +97,7 @@ jobs:
           libftdi1-dev
           libreadline-dev
           libserialport-dev
+          libgpiod-dev
           texinfo
           texlive
           texi2html
@@ -163,6 +165,7 @@ jobs:
           libftdi1-dev:${{matrix.arch}}
           libreadline-dev:${{matrix.arch}}
           libserialport-dev:${{matrix.arch}}
+          libgpiod-dev:${{matrix.arch}}
       - name: Configure
         run: >-
           cmake
