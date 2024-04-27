@@ -758,11 +758,11 @@ fi
 if test "x$enabled_linuxgpio" = xyes; then
    echo "ENABLED    linuxgpio"
    if test "x$have_libgpiodv2" = xyes; then
-       echo "DO HAVE    libgpiod (>=2.0)"
+       echo "DO HAVE    libgpiod (>= 2.0)"
    elif test "x$have_libgpiodv1_6" = xyes; then
-       echo "DO HAVE    libgpiod (>=1.6)"
+       echo "DO HAVE    libgpiod (>= 1.6 < 2.0)"
    elif test "x$have_libgpiod" = xyes; then
-       echo "DO HAVE    libgpiod"
+       echo "DO HAVE    libgpiod (< 1.6)"
    else
        echo "DON'T HAVE libgpiod"
    fi
