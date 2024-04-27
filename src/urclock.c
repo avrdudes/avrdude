@@ -1566,7 +1566,7 @@ vblvecfound:
     uint64_t urclockID;
     if((rc = readUrclockID(pgm, p, &urclockID)) == -1)
       return rc;
-    term_out("%0*lx", 2*ur.idlen, urclockID), first=0;
+    term_out("%0*llx", 2*ur.idlen, (unsigned long long) urclockID), first=0;
   }
   if(havemetadata) {
     if(ur.showdate || ur.showall) {
