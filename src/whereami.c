@@ -14,6 +14,8 @@ extern "C" {
 
 #if !defined(WAI_MALLOC) || !defined(WAI_FREE) || !defined(WAI_REALLOC)
 #include <stdlib.h>
+#include "avrdude.h"
+#include "libavrdude.h"
 #endif
 
 #if !defined(WAI_MALLOC)
