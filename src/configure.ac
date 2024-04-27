@@ -541,6 +541,7 @@ if test "x$enabled_linuxgpio" = xyes; then
 		], [
 			PKG_CHECK_MODULES([LIBGPIOD], [libgpiod], [
 				have_libgpiod=yes
+				AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
 				AC_DEFINE([HAVE_LIBGPIOD_V1_6], [0], [Linux libgpiod >= v1.6 but < 2.0 available])
 				AC_DEFINE([HAVE_LIBGPIOD_V2], [0], [Linux libgpiod >= 2.0 available])
 			], [
