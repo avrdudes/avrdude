@@ -217,6 +217,7 @@ jobs:
           libftdi
           readline
           libserialport
+          pkg-config
       - name: Configure
         run: >-
           cmake
