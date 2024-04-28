@@ -164,14 +164,10 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 		return -1;
 	}
 
-	if ((hstr = strdup(port)) == NULL) {
-		pmsg_error("out of memory\n");
-		return -1;
-	}
-
+	hstr = mmt_strdup(port);
 	if (((pstr = strchr(hstr, ':')) == NULL) || (pstr == hstr)) {
 		pmsg_error("mangled host:port string %s\n", hstr);
-		free(hstr);
+		mmt_free(hstr);
 		return -1;
 	}
 
@@ -184,17 +180,17 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 
 	if ((*pstr == '\0') || (*end != '\0') || (pnum == 0) || (pnum > 65535)) {
 		pmsg_error("bad port number %s\n", pstr);
-		free(hstr);
+		mmt_free(hstr);
 		return -1;
 	}
 
 	if ((hp = gethostbyname(hstr)) == NULL) {
 		pmsg_error("unknown host %s\n", hstr);
-		free(hstr);
+		mmt_free(hstr);
 		return -1;
 	}
 
-	free(hstr);
+	mmt_free(hstr);
 
 	if ((fd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
 		FormatMessage(
@@ -256,7 +252,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 	if (str_casestarts(port, "com")) {
 
 	    // prepend "\\\\.\\" to name, required for port # >= 10
-	    newname = cfg_malloc(__func__, strlen("\\\\.\\") + strlen(port) + 1);
+	    newname = mmt_malloc(strlen("\\\\.\\") + strlen(port) + 1);
 	    strcpy(newname, "\\\\.\\");
 	    strcat(newname, port);
 
@@ -305,7 +301,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 	}
 
 	if (newname != 0) {
-	    free(newname);
+	    mmt_free(newname);
 	}
 	return 0;
 }

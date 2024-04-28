@@ -1083,7 +1083,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
-    uint8_t *spc = cfg_malloc(__func__, cm->page_size);
+    uint8_t *spc = mmt_malloc(cm->page_size);
 
     // Set cwsize as rounded-up wsize
     int cwsize = (wsize + pgsize-1)/pgsize*pgsize;
@@ -1158,7 +1158,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     }
 
     avr_free_mem(cm);
-    free(spc);
+    mmt_free(spc);
 
     if (!failure) {
       led_clr(pgm, LED_PGM);
@@ -1539,7 +1539,7 @@ int avr_get_mem_type(const char *str) {
       return avr_mem_order[i].type;
     if(!avr_mem_order[i].str) {
       pmsg_warning("avr_mem_order[] does not know %s; add to array and recompile\n", str);
-      avr_mem_order[i].str = cfg_strdup(__func__, str);
+      avr_mem_order[i].str = mmt_strdup(str);
       return avr_mem_order[i].type;
     }
   }

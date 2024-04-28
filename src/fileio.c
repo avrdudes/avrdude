@@ -352,7 +352,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
   nextaddr = 0;
   digits = mem->size > 0x10000? 5: 4;
 
-  for(char *buffer; (buffer = str_fgets(inf, &errstr)); free(buffer)) {
+  for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
     int len = strlen(buffer);
     if(len > 0 && buffer[len-1] == '\n')
@@ -362,14 +362,14 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
     rc = ihex_readrec(&ihex, buffer);
     if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
-      free(buffer);
+      mmt_free(buffer);
       return -1;
     }
     if(rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
         pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
         imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
-        free(buffer);
+        mmt_free(buffer);
         return -1;
       }
       // Just warn with more permissive format FMT_IHXC
@@ -382,7 +382,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
         if (fileoffset != 0 && ihex.loadofs + baseaddr < fileoffset) {
           pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
             ihex.loadofs + baseaddr, fileoffset, lineno, infile);
-          free(buffer);
+          mmt_free(buffer);
           return -1;
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
@@ -391,7 +391,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
           pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
             digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
           imsg_error("at line %d of %s\n", lineno, infile);
-          free(buffer);
+          mmt_free(buffer);
           return -1;
         }
         for(int i=0; i<ihex.reclen; i++) {
@@ -403,7 +403,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
         break;
 
       case 1: /* end of file record */
-        free(buffer);
+        mmt_free(buffer);
         return maxaddr;
 
       case 2: /* extended segment address record */
@@ -425,7 +425,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
       default:
         pmsg_error("do not know how to deal with rectype=%d "
           "at line %d of %s\n", ihex.rectyp, lineno, infile);
-        free(buffer);
+        mmt_free(buffer);
         return -1;
     }
   }
@@ -623,7 +623,7 @@ static int srec2b(const char *infile, FILE * inf,
   reccount = 0;
   digits = mem->size > 0x10000? 5: 4;
 
-  for(char *buffer; (buffer = str_fgets(inf, &errstr)); free(buffer)) {
+  for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
     int len = strlen(buffer);
     if(len > 0 && buffer[len-1] == '\n')
@@ -633,13 +633,13 @@ static int srec2b(const char *infile, FILE * inf,
     rc = srec_readrec(&srec, buffer);
     if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
-      free(buffer);
+      mmt_free(buffer);
       return -1;
     }
     if(rc != srec.cksum) {
       pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
-      free(buffer);
+      mmt_free(buffer);
       return -1;
     }
 
@@ -665,14 +665,14 @@ static int srec2b(const char *infile, FILE * inf,
 
       case '4':                 // S4: symbol record (LSI extension)
         pmsg_error("not supported record at line %d of %s\n", lineno, infile);
-        free(buffer);
+        mmt_free(buffer);
         return -1;
 
       case '5':                 // S5: count of S1, S2 and S3 records previously tx'd
         if (srec.loadofs != reccount){
           pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
           imsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
-          free(buffer);
+          mmt_free(buffer);
           return -1;
         }
         break;
@@ -680,13 +680,13 @@ static int srec2b(const char *infile, FILE * inf,
       case '7':                 // S7: end record for 32 bit addresses
       case '8':                 // S8: end record for 24 bit addresses
       case '9':                 // S9: end record for 16 bit addresses
-        free(buffer);
+        mmt_free(buffer);
         return maxaddr;
 
       default:
         pmsg_error("do not know how to deal with rectype S%d at line %d of %s\n",
           srec.rectyp, lineno, infile);
-        free(buffer);
+        mmt_free(buffer);
         return -1;
     }
 
@@ -695,7 +695,7 @@ static int srec2b(const char *infile, FILE * inf,
       if (nextaddr < fileoffset) {
         pmsg_error("address 0x%0*x below memory offset at line %d of %s\n",
           hexdigs, nextaddr, lineno, infile);
-        free(buffer);
+        mmt_free(buffer);
         return -1;
       }
       nextaddr -= fileoffset;
@@ -704,7 +704,7 @@ static int srec2b(const char *infile, FILE * inf,
         pmsg_error("Motorola S-Record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
           digits, nextaddr, digits, nextaddr+srec.reclen-1, digits, beg, digits, end);
         imsg_error("at line %d of %s\n", lineno, infile);
-        free(buffer);
+        mmt_free(buffer);
         return -1;
       }
       for(int i=0; i<srec.reclen; i++) {
@@ -1047,7 +1047,7 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
   const char *errstr;
   int n = segp->addr, end = segp->addr + segp->len;
 
-  p = line = cfg_strdup(__func__, fname);
+  p = line = mmt_strdup(fname);
 
   switch (fio->op) {
     case FIO_READ:
@@ -1055,7 +1055,7 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
         int set = str_membuf(tok, STR_ANY, mem->buf+n, end-n, &errstr);
         if(errstr || set < 0) {
           pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
-          free(line);
+          mmt_free(line);
           return -1;
         }
         memset(mem->tags+n, TAG_ALLOCATED, set);
@@ -1065,16 +1065,16 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 
     case FIO_WRITE:
       pmsg_error("invalid file format 'immediate' for output\n");
-      free(line);
+      mmt_free(line);
       return -1;
 
     default:
       pmsg_error("invalid operation=%d\n", fio->op);
-      free(line);
+      mmt_free(line);
       return -1;
   }
 
-  free(line);
+  mmt_free(line);
   return n;
 }
 
@@ -1232,14 +1232,14 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment
         int set = str_membuf(tok, STR_ANY, mem->buf+n, end-n, &errstr);
         if(errstr || set < 0) {
           pmsg_error("invalid data %s in immediate mode: %s\n", tok, errstr);
-          free(line);
+          mmt_free(line);
           return -1;
         }
         memset(mem->tags+n, TAG_ALLOCATED, set);
         n += set;
       }
     }
-    free(line);
+    mmt_free(line);
   }
   if(geterr) {
     pmsg_error("fgets() errror: %s\n", geterr);
@@ -1386,7 +1386,7 @@ int fileio_fmt_autodetect_fp(FILE *f) {
     unsigned char *buf;
     for(int first = 1; ret == FMT_ERROR && (buf = (unsigned char *) str_fgets(f, &err)); first = 0) {
       ret = couldbe(first, buf);
-      free(buf);
+      mmt_free(buf);
     }
     if(err)
       pmsg_error("fgets() error: %s\n", err);
@@ -1612,10 +1612,10 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
 int fileio_segments(int oprwv, const char *filename, FILEFMT format,
   const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *list) {
 
-  Segment_t *seglist = cfg_malloc(__func__, n*sizeof*seglist);
+  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
   memcpy(seglist, list, n*sizeof*seglist);
   int ret = fileio_segments_normalise(oprwv, filename, format, p, mem, n, seglist);
-  free(seglist);
+  mmt_free(seglist);
 
   return ret;
 }

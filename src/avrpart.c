@@ -989,7 +989,7 @@ void avr_free_part(AVRPART * d) {
   d->mem = NULL;
   ldestroy_cb(d->mem_alias, (void(*)(void *)) avr_free_memalias);
   d->mem_alias = NULL;
-  ldestroy_cb(d->variants, cfg_free);
+  ldestroy_cb(d->variants, mmt_f_free);
   d->variants = NULL;
 
   /* do not free d->parent_id and d->config_file */

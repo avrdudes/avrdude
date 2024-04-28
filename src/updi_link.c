@@ -579,12 +579,7 @@ int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uin
 
   unsigned int temp_buffer_size = 3 + 3 + 2 + (words * 2) + 3;
   unsigned int num=0;
-  unsigned char* temp_buffer = malloc(temp_buffer_size);
-
-  if (temp_buffer == 0) {
-    pmsg_debug("allocating temporary buffer failed\n");
-    return -1;
-  }
+  unsigned char* temp_buffer = mmt_malloc(temp_buffer_size);
 
   if (blocksize == -1) {
     blocksize = temp_buffer_size;
@@ -608,7 +603,7 @@ int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uin
   if (blocksize < 10) {
     if (updi_physical_send(pgm, temp_buffer, 6) < 0) {
       pmsg_debug("unable to send first package\n");
-      free(temp_buffer);
+      mmt_free(temp_buffer);
       return -1;
     }
     num = 6;
@@ -625,13 +620,13 @@ int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uin
 
     if (updi_physical_send(pgm, temp_buffer + num, next_package_size) < 0) {
       pmsg_debug("unable to send package\n");
-      free(temp_buffer);
+      mmt_free(temp_buffer);
       return -1;
     }
 
     num+=next_package_size;
   }
-  free(temp_buffer);
+  mmt_free(temp_buffer);
   return 0;
 }
 

@@ -134,11 +134,11 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
   if (hid_get_serial_number_string(dev, sn, sizeof(sn)/sizeof(*sn)) == 0) {
     size_t n = wcstombs(NULL, sn, 0) + 1;
     if (n) {
-      char *cn = cfg_malloc(__func__, n);
+      char *cn = mmt_malloc(n);
       if (wcstombs(cn, sn, n) != (size_t) -1)
         if(serdev)
           serdev->usbsn = cache_string(cn);
-      free(cn);
+      mmt_free(cn);
     }
   }
 
