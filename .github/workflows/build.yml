@@ -244,6 +244,43 @@ jobs:
             build/src/avrdude
             build/src/avrdude.conf
 
+  macos-x86_64_autotools:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install prerequisites
+        run: >-
+          # brew update
+
+          brew install
+          automake
+          autoconf
+          libtool
+          gettext
+          flex
+          bison
+          libelf
+          libusb
+          hidapi
+          libftdi
+          readline
+          libserialport
+          pkg-config
+      - name: Configure
+        run: >-
+          ./src/bootstrap
+
+          mkdir _ambuild && cd _ambuild
+
+          CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" ../src/configure
+          
+      - name: Build
+        run: make -C _ambuild -j$(nproc)
+      - name: Install
+        run: sudo make -C _ambuild install
+      - name: Dryrun_test
+        run: printf "\n\n" | ./tools/test-avrdude -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
+        
   msvc:
     runs-on: windows-latest
     strategy:
