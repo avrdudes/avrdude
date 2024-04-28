@@ -247,8 +247,8 @@ static void xbeeStatsAdd(struct XBeeStaticticsSummary *summary,
 
 static void xbeeStatsSummarise(struct XBeeStaticticsSummary const *summary)
 {
-  pmsg_notice("  Minimum response time: %lu.%06lu\n", summary->minimum.tv_sec, summary->minimum.tv_usec);
-  pmsg_notice("  Maximum response time: %lu.%06lu\n", summary->maximum.tv_sec, summary->maximum.tv_usec);
+  pmsg_notice("  Minimum response time: %lu.%06lu\n", summary->minimum.tv_sec, (unsigned long) summary->minimum.tv_usec);
+  pmsg_notice("  Maximum response time: %lu.%06lu\n", summary->maximum.tv_sec, (unsigned long) summary->maximum.tv_usec);
 
   struct timeval average;
 
@@ -261,7 +261,7 @@ static void xbeeStatsSummarise(struct XBeeStaticticsSummary const *summary)
   average.tv_sec += usecs / 1000000;
   average.tv_usec = usecs % 1000000;
 
-  pmsg_notice("  Average response time: %lu.%06lu\n", average.tv_sec, average.tv_usec);
+  pmsg_notice("  Average response time: %lu.%06lu\n", average.tv_sec, (unsigned long) average.tv_usec);
 }
 
 static void XBeeBootSessionInit(struct XBeeBootSession *xbs) {
