@@ -245,6 +245,39 @@ jobs:
             build/src/avrdude
             build/src/avrdude.conf
 
+  macos-x86_64_autotools:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install prerequisites
+        run: >-
+          # brew update
+
+          brew install
+          automake
+          autoconf
+          libtool
+          gettext
+          flex
+          bison
+          libelf
+          libusb
+          hidapi
+          libftdi
+          readline
+          libserialport
+          pkg-config
+      - name: Configure
+        run: >-
+          ./src/bootstrap
+
+          mkdir _ambuild && cd _ambuild
+
+          CFLAGS="-I/opt/homebrew/local/include" LDFLAGS="-L/opt/homebrew/Cellar" ../src/configure
+          
+      - name: Build
+        run: make -C _ambuild -j$(nproc)
+        
   msvc:
     runs-on: windows-latest
     strategy:
