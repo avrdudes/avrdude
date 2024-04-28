@@ -394,10 +394,10 @@ void dfu_show_info(struct dfu_dev *dfu)
     msg_info("    USB Product         : 0x%04hX\n",
       (unsigned short) dfu->dev_desc.idProduct);
 
-  msg_info("    USB Release         : %hu.%hu.%hu\n",
-    ((unsigned short) dfu->dev_desc.bcdDevice >> 8) & 0xFF,
-    ((unsigned short) dfu->dev_desc.bcdDevice >> 4) & 0xF,
-    ((unsigned short) dfu->dev_desc.bcdDevice >> 0) & 0xF);
+  msg_info("    USB Release         : %u.%u.%u\n",
+    (dfu->dev_desc.bcdDevice >> 8) & 0xFF,
+    (dfu->dev_desc.bcdDevice >> 4) & 0xF,
+    (dfu->dev_desc.bcdDevice >> 0) & 0xF);
 
   if (dfu->serno_str != NULL)
     msg_info("    USB Serial No       : %s\n", dfu->serno_str);

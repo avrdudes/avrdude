@@ -555,9 +555,9 @@ static void flip2_show_info(struct flip2 *flip2) {
       (char) (flip2->part_rev / 26 - 1 + 'A'),
       (char) (flip2->part_rev % 26 + 'A'));
 
-  msg_info("    Bootloader version  : 2.%hu.%hu\n",
-    ((unsigned short) flip2->boot_ver >> 4) & 0xF,
-    ((unsigned short) flip2->boot_ver >> 0) & 0xF);
+  msg_info("    Bootloader version  : 2.%u.%u\n",
+    (flip2->boot_ver >> 4) & 0xF,
+    (flip2->boot_ver >> 0) & 0xF);
 
   msg_info("    USB max packet size : %hu\n",
     (unsigned short) flip2->dfu->dev_desc.bMaxPacketSize0);
@@ -778,7 +778,7 @@ flip2_read_max1k_status:
     if (status.bStatus == ((FLIP2_STATUS_OUTOFRANGE >> 8) & 0xFF) &&
         status.bState == ((FLIP2_STATUS_OUTOFRANGE >> 0) & 0xFF))
     {
-      pmsg_error("address out of range [0x%04hX,0x%04hX]\n", offset, offset+size-1);
+      pmsg_error("address out of range [0x%04X,0x%04X]\n", offset, (offset+size-1) & 0xffff);
     } else
       pmsg_error("DFU status %s\n", flip2_status_str(&status));
     dfu_clrstatus(dfu);
@@ -836,7 +836,7 @@ static int flip2_write_max1k(struct dfu_dev *dfu,
     if (status.bStatus == ((FLIP2_STATUS_OUTOFRANGE >> 8) & 0xFF) &&
         status.bState == ((FLIP2_STATUS_OUTOFRANGE >> 0) & 0xFF))
     {
-      pmsg_error("address out of range [0x%04hX,0x%04hX]\n", offset, offset+size-1);
+      pmsg_error("address out of range [0x%04X,0x%04X]\n", offset, (offset+size-1) & 0xffff);
     } else
       pmsg_error("DFU status %s\n", flip2_status_str(&status));
     dfu_clrstatus(dfu);
