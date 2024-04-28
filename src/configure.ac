@@ -529,17 +529,27 @@ if test "x$enabled_linuxgpio" = xyes; then
 		have_libgpiod=yes
 		have_libgpiodv2=yes
 		AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
-		AC_DEFINE([HAVE_LIBGPIOD_V2], [1], [Linux libgpiod (v2.x) available])
+		AC_DEFINE([HAVE_LIBGPIOD_V1_6], [0], [Linux libgpiod >= v1.6 but < 2.0 available])
+		AC_DEFINE([HAVE_LIBGPIOD_V2], [1], [Linux libgpiod >= 2.0 available])
 	], [
-		PKG_CHECK_MODULES([LIBGPIOD], [libgpiod], [
+		PKG_CHECK_MODULES([LIBGPIOD], [libgpiod >= 1.6], [
 			have_libgpiod=yes
-			have_libgpiodv2=no
+			have_libgpiodv1_6=yes
 			AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
+			AC_DEFINE([HAVE_LIBGPIOD_V1_6], [1], [Linux libgpiod >= v1.6 but < 2.0 available])
+			AC_DEFINE([HAVE_LIBGPIOD_V2], [0], [Linux libgpiod >= 2.0 available])
 		], [
-			have_libgpiod=no
-			have_libgpiodv2=no
+			PKG_CHECK_MODULES([LIBGPIOD], [libgpiod], [
+				have_libgpiod=yes
+				AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
+				AC_DEFINE([HAVE_LIBGPIOD_V1_6], [0], [Linux libgpiod >= v1.6 but < 2.0 available])
+				AC_DEFINE([HAVE_LIBGPIOD_V2], [0], [Linux libgpiod >= 2.0 available])
+			], [
+				have_libgpiod=no
+			])
 		])
 	])
+
 else
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_BEGIN@/,/^@HAVE_LINUXGPIO_END@/d"
 fi
@@ -748,9 +758,11 @@ fi
 if test "x$enabled_linuxgpio" = xyes; then
    echo "ENABLED    linuxgpio"
    if test "x$have_libgpiodv2" = xyes; then
-       echo "DO HAVE    libgpiod (v2.x)"
+       echo "DO HAVE    libgpiod (>= 2.0)"
+   elif test "x$have_libgpiodv1_6" = xyes; then
+       echo "DO HAVE    libgpiod (>= 1.6 < 2.0)"
    elif test "x$have_libgpiod" = xyes; then
-       echo "DO HAVE    libgpiod"
+       echo "DO HAVE    libgpiod (< 1.6)"
    else
        echo "DON'T HAVE libgpiod"
    fi
