@@ -23,7 +23,7 @@ extern "C" {
  * Usage:
  *  - first call `int length = wai_getExecutablePath(NULL, 0, NULL);` to
  *    retrieve the length of the path
- *  - allocate the destination buffer with `path = (char*)malloc(length + 1);`
+ *  - allocate the destination buffer with `path = (char*) mmt_malloc(length + 1);`
  *  - call `wai_getExecutablePath(path, length, NULL)` again to retrieve the
  *    path
  *  - add a terminal NUL character with `path[length] = '\0';`
@@ -45,7 +45,7 @@ int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length);
  * Usage:
  *  - first call `int length = wai_getModulePath(NULL, 0, NULL);` to retrieve
  *    the length  of the path
- *  - allocate the destination buffer with `path = (char*)malloc(length + 1);`
+ *  - allocate the destination buffer with `path = (char*) mmt_malloc(length + 1);`
  *  - call `wai_getModulePath(path, length, NULL)` again to retrieve the path
  *  - add a terminal NUL character with `path[length] = '\0';`
  *

@@ -158,7 +158,7 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
 
-  unsigned char *pagecopy = cfg_malloc(__func__, pgsize);
+  unsigned char *pagecopy = mmt_malloc(pgsize);
   memcpy(pagecopy, mem->buf + base, pgsize);
   if((rc = pgm->paged_load(pgm, p, mem, pgsize, base, pgsize)) >= 0)
     memcpy(buf, mem->buf + base, pgsize);
@@ -175,7 +175,7 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
     if(rc == LIBAVRDUDE_SUCCESS)
       memcpy(buf, pagecopy, pgsize);
   }
-  free(pagecopy);
+  mmt_free(pagecopy);
 
   if(rc < 0)
     led_set(pgm, LED_ERR);
@@ -200,12 +200,12 @@ int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   if(pgsize == 1)
     return fallback_write_byte(pgm, p, mem, addr, *data);
 
-  unsigned char *pagecopy = cfg_malloc(__func__, pgsize);
+  unsigned char *pagecopy = mmt_malloc(pgsize);
   memcpy(pagecopy, mem->buf + base, pgsize);
   memcpy(mem->buf + base, data, pgsize);
   rc = pgm->paged_write(pgm, p, mem, pgsize, base, pgsize);
   memcpy(mem->buf + base, pagecopy, pgsize);
-  free(pagecopy);
+  mmt_free(pagecopy);
 
   return rc;
 }
@@ -271,9 +271,9 @@ static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
   cp->size = basemem->size;
   cp->page_size = basemem->page_size;
   cp->offset = basemem->offset;
-  cp->cont = cfg_malloc("initCache()", cp->size);
-  cp->copy = cfg_malloc("initCache()", cp->size);
-  cp->iscached = cfg_malloc("initCache()", cp->size/cp->page_size);
+  cp->cont = mmt_malloc(cp->size);
+  cp->copy = mmt_malloc( cp->size);
+  cp->iscached = mmt_malloc(cp->size/cp->page_size);
 
   if((pgm->prog_modes & PM_SPM) && mem_is_in_flash(basemem)) { // Could be vector bootloader
     // Caching the vector page hands over to the progammer that then can patch the reset vector
@@ -802,11 +802,11 @@ int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p_unused) {
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
     AVR_Cache *cp = mems[i];
     if(cp->cont)
-      free(cp->cont);
+      mmt_free(cp->cont);
     if(cp->copy)
-      free(cp->copy);
+      mmt_free(cp->copy);
     if(cp->iscached)
-      free(cp->iscached);
+      mmt_free(cp->iscached);
     memset(cp, 0, sizeof*cp);
   }
 

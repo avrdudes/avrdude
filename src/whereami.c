@@ -14,18 +14,23 @@ extern "C" {
 
 #if !defined(WAI_MALLOC) || !defined(WAI_FREE) || !defined(WAI_REALLOC)
 #include <stdlib.h>
+#ifndef PATH_MAX
+#define PATH_MAX _MAX_PATH
+#endif
+#include "avrdude.h"
+#include "libavrdude.h"
 #endif
 
 #if !defined(WAI_MALLOC)
-#define WAI_MALLOC(size) malloc(size)
+#define WAI_MALLOC(size) mmt_malloc(size)
 #endif
 
 #if !defined(WAI_FREE)
-#define WAI_FREE(p) free(p)
+#define WAI_FREE(p) mmt_free(p)
 #endif
 
 #if !defined(WAI_REALLOC)
-#define WAI_REALLOC(p, size) realloc(p, size)
+#define WAI_REALLOC(p, size) mmt_realloc(p, size)
 #endif
 
 #ifndef WAI_NOINLINE

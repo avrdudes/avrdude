@@ -160,7 +160,7 @@ struct XBeeStaticticsSummary {
 #define XBEE_STATS_TRANSMIT 2
 #define XBEE_STATS_RECEIVE 3
 
-static const char* groupNames[] =
+static const char * const groupNames[] =
   {
    "FRAME_LOCAL",
    "FRAME_REMOTE",
@@ -247,8 +247,8 @@ static void xbeeStatsAdd(struct XBeeStaticticsSummary *summary,
 
 static void xbeeStatsSummarise(struct XBeeStaticticsSummary const *summary)
 {
-  pmsg_notice("  Minimum response time: %lu.%06lu\n", summary->minimum.tv_sec, summary->minimum.tv_usec);
-  pmsg_notice("  Maximum response time: %lu.%06lu\n", summary->maximum.tv_sec, summary->maximum.tv_usec);
+  pmsg_notice("  Minimum response time: %lu.%06lu\n", summary->minimum.tv_sec, (unsigned long) summary->minimum.tv_usec);
+  pmsg_notice("  Maximum response time: %lu.%06lu\n", summary->maximum.tv_sec, (unsigned long) summary->maximum.tv_usec);
 
   struct timeval average;
 
@@ -261,7 +261,7 @@ static void xbeeStatsSummarise(struct XBeeStaticticsSummary const *summary)
   average.tv_sec += usecs / 1000000;
   average.tv_usec = usecs % 1000000;
 
-  pmsg_notice("  Average response time: %lu.%06lu\n", average.tv_sec, average.tv_usec);
+  pmsg_notice("  Average response time: %lu.%06lu\n", average.tv_sec, (unsigned long) average.tv_usec);
 }
 
 static void XBeeBootSessionInit(struct XBeeBootSession *xbs) {
@@ -1036,7 +1036,7 @@ static int xbeeATError(int rc) {
 static void xbeedev_free(struct XBeeBootSession *xbs)
 {
   xbs->serialDevice->close(&xbs->serialDescriptor);
-  free(xbs);
+  mmt_free(xbs);
 }
 
 static void xbeedev_close(union filedescriptor *fdp)
@@ -1065,12 +1065,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     return -1;
   }
 
-  struct XBeeBootSession *xbs = malloc(sizeof(struct XBeeBootSession));
-  if (xbs == NULL) {
-    pmsg_error("out of memory\n");
-    return -1;
-  }
-
+  struct XBeeBootSession *xbs = mmt_malloc(sizeof(struct XBeeBootSession));
   XBeeBootSessionInit(xbs);
 
   char *tty = &ttySeparator[1];
@@ -1107,7 +1102,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
 
     if (addrIndex != 8 || address != ttySeparator || nybble != -1) {
       pmsg_error("XBee: bad XBee address, require 16-character hexadecimal address\n");
-      free(xbs);
+      mmt_free(xbs);
       return -1;
     }
 
@@ -1174,7 +1169,7 @@ static int xbeedev_open(const char *port, union pinfo pinfo,
     const int rc = xbs->serialDevice->open(tty, pinfo,
                                            &xbs->serialDescriptor);
     if (rc < 0) {
-      free(xbs);
+      mmt_free(xbs);
       return rc;
     }
   }
@@ -1499,20 +1494,6 @@ static int xbeedev_set_dtr_rts(const union filedescriptor *fdp, int is_on)
   return 0;
 }
 
-/*
- * Device descriptor for XBee framing.
- */
-static struct serial_device xbee_serdev_frame = {
-  .open = xbeedev_open,
-  .close = xbeedev_close,
-  .rawclose = xbeedev_close,
-  .send = xbeedev_send,
-  .recv = xbeedev_recv,
-  .drain = xbeedev_drain,
-  .set_dtr_rts = xbeedev_set_dtr_rts,
-  .flags = SERDEV_FL_NONE,
-};
-
 static int xbee_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[2], resp[2];
 
@@ -1562,7 +1543,15 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
   /* Wireless is lossier than normal serial */
   serial_recv_timeout = 1000;
 
-  serdev = &xbee_serdev_frame;
+  serdev = &PDATA(pgm)->xbee_serdev;
+  serdev->open = xbeedev_open;
+  serdev->close = xbeedev_close;
+  serdev->rawclose = xbeedev_close;
+  serdev->send = xbeedev_send;
+  serdev->recv = xbeedev_recv;
+  serdev->drain = xbeedev_drain;
+  serdev->set_dtr_rts = xbeedev_set_dtr_rts;
+  serdev->flags = SERDEV_FL_NONE;
 
   if (serial_open(port, pinfo, &pgm->fd) == -1) {
     return -1;
@@ -1656,7 +1645,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xxbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);

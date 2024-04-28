@@ -99,6 +99,13 @@ AC_PROG_LEX([noyywrap])
 AM_PROG_AR
 LT_INIT()
 
+# If macro PKG_PROG_PKG_CONFIG is not available, Autoconf generates a misleading error message,
+# so check for existence first, and otherwise provide helpful advice.
+m4_ifndef([PKG_PROG_PKG_CONFIG], [m4_fatal(m4_normalize([
+  Macro PKG_PROG_PKG_CONFIG is not available.
+  It is usually defined in file pkg.m4 provided by package pkg-config.]))])
+PKG_PROG_PKG_CONFIG([0.23])
+
 AH_TEMPLATE([HAVE_YYLEX_DESTROY],
             [Define if lex/flex has yylex_destroy])
 # flex should have this
@@ -411,7 +418,7 @@ AC_ARG_ENABLE(
 AC_ARG_ENABLE(
 	[linuxgpio],
 	AS_HELP_STRING([--enable-linuxgpio],
-	               [Enable the Linux sysfs GPIO interface programmer type]),
+	               [Enable the Linux GPIO interface programmer type]),
 	[case "${enableval}" in
 		yes) enabled_linuxgpio=yes ;;
 		no)  enabled_linuxgpio=no ;;
@@ -517,6 +524,32 @@ fi
 if test "x$enabled_linuxgpio" = xyes; then
 	AC_DEFINE([HAVE_LINUXGPIO], [1], [Linux sysfs GPIO support enabled])
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_/d"
+
+	PKG_CHECK_MODULES([LIBGPIOD], [libgpiod >= 2.0], [
+		have_libgpiod=yes
+		have_libgpiodv2=yes
+		AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
+		AC_DEFINE([HAVE_LIBGPIOD_V1_6], [0], [Linux libgpiod >= v1.6 but < 2.0 available])
+		AC_DEFINE([HAVE_LIBGPIOD_V2], [1], [Linux libgpiod >= 2.0 available])
+	], [
+		PKG_CHECK_MODULES([LIBGPIOD], [libgpiod >= 1.6], [
+			have_libgpiod=yes
+			have_libgpiodv1_6=yes
+			AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
+			AC_DEFINE([HAVE_LIBGPIOD_V1_6], [1], [Linux libgpiod >= v1.6 but < 2.0 available])
+			AC_DEFINE([HAVE_LIBGPIOD_V2], [0], [Linux libgpiod >= 2.0 available])
+		], [
+			PKG_CHECK_MODULES([LIBGPIOD], [libgpiod], [
+				have_libgpiod=yes
+				AC_DEFINE([HAVE_LIBGPIOD], [1], [Linux libgpiod available])
+				AC_DEFINE([HAVE_LIBGPIOD_V1_6], [0], [Linux libgpiod >= v1.6 but < 2.0 available])
+				AC_DEFINE([HAVE_LIBGPIOD_V2], [0], [Linux libgpiod >= 2.0 available])
+			], [
+				have_libgpiod=no
+			])
+		])
+	])
+
 else
 	confsubst="$confsubst -e /^@HAVE_LINUXGPIO_BEGIN@/,/^@HAVE_LINUXGPIO_END@/d"
 fi
@@ -533,7 +566,7 @@ fi
 # If we are compiling with gcc, enable all warnings and make warnings errors.
 ENABLE_WARNINGS=""
 if test "x$GCC" = xyes; then
-	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter"
+	ENABLE_WARNINGS="-Wall -Wextra -Wno-unused-parameter -Wno-format-zero-length"
 
 	# does this compiler support -Wno-pointer-sign ?
 	AC_MSG_CHECKING([if gcc accepts -Wno-pointer-sign ])
@@ -724,6 +757,15 @@ fi
 
 if test "x$enabled_linuxgpio" = xyes; then
    echo "ENABLED    linuxgpio"
+   if test "x$have_libgpiodv2" = xyes; then
+       echo "DO HAVE    libgpiod (>= 2.0)"
+   elif test "x$have_libgpiodv1_6" = xyes; then
+       echo "DO HAVE    libgpiod (>= 1.6 < 2.0)"
+   elif test "x$have_libgpiod" = xyes; then
+       echo "DO HAVE    libgpiod (< 1.6)"
+   else
+       echo "DON'T HAVE libgpiod"
+   fi
 else
    echo "DISABLED   linuxgpio"
 fi

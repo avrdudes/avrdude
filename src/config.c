@@ -162,10 +162,10 @@ Component_t avr_comp[] = {
 
 void cleanup_config(void)
 {
-  ldestroy_cb(part_list, (void(*)(void*))avr_free_part);
-  ldestroy_cb(programmers, (void(*)(void*))pgm_free);
-  ldestroy_cb(string_list, (void(*)(void*))free_token);
-  ldestroy_cb(number_list, (void(*)(void*))free_token);
+  ldestroy_cb(part_list, (void(*)(void*)) avr_free_part);
+  ldestroy_cb(programmers, (void(*)(void*)) pgm_free);
+  ldestroy_cb(string_list, (void(*)(void*)) free_token);
+  ldestroy_cb(number_list, (void(*)(void*)) free_token);
 }
 
 int init_config(void)
@@ -188,7 +188,8 @@ int init_config(void)
 void *cfg_malloc(const char *funcname, size_t n) {
   void *ret = malloc(n);
   if(!ret) {
-    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s() for malloc(); needed %lu bytes\n",
+      funcname, (unsigned long) n);
     exit(1);
   }
   memset(ret, 0, n);
@@ -197,12 +198,11 @@ void *cfg_malloc(const char *funcname, size_t n) {
 
 void *cfg_realloc(const char *funcname, void *p, size_t n) {
   void *ret;
-
   if(!(ret = p? realloc(p, n): calloc(1, n))) {
-    pmsg_error("out of memory in %s (needed %lu bytes)\n", funcname, (unsigned long) n);
+    pmsg_error("out of memory in %s() for %salloc(); needed %lu bytes\n",
+      funcname, p? "re": "c", (unsigned long) n);
     exit(1);
   }
-
   return ret;
 }
 
@@ -210,10 +210,15 @@ void *cfg_realloc(const char *funcname, void *p, size_t n) {
 char *cfg_strdup(const char *funcname, const char *s) {
   char *ret = strdup(s);
   if(!ret) {
-    pmsg_error("out of memory in %s\n", funcname);
+    pmsg_error("out of memory in %s() for strdup()\n", funcname);
     exit(1);
   }
   return ret;
+}
+
+
+void mmt_f_free(void *ptr) {
+  mmt_free(ptr);
 }
 
 
@@ -258,7 +263,7 @@ int yywarning(char * errmsg, ...)
 
 
 TOKEN * new_token(int primary) {
-  TOKEN * tkn = (TOKEN *) cfg_malloc("new_token()", sizeof(TOKEN));
+  TOKEN * tkn = (TOKEN *) mmt_malloc(sizeof(TOKEN));
   tkn->primary = primary;
   return tkn;
 }
@@ -270,12 +275,12 @@ void free_token(TOKEN * tkn)
     switch (tkn->value.type) {
       case V_STR:
         if (tkn->value.string)
-          free(tkn->value.string);
+          mmt_free(tkn->value.string);
         tkn->value.string = NULL;
         break;
     }
 
-    free(tkn);
+    mmt_free(tkn);
   }
 }
 
@@ -377,7 +382,7 @@ TOKEN *new_constant(const char *con) {
 TOKEN *new_string(const char *text) {
   struct token_t *tkn = new_token(TKN_STRING);
   tkn->value.type   = V_STR;
-  tkn->value.string = cfg_strdup("new_string()", text);
+  tkn->value.string = mmt_strdup(text);
 
 #if DEBUG
   msg_info("STRING(%s)\n", tkn->value.string);
@@ -446,7 +451,7 @@ int read_config(const char * file)
   f = fopen(cfg_infile, "r");
   if (f == NULL) {
     pmsg_ext_error("cannot open config file %s: %s\n", cfg_infile, strerror(errno));
-    free(cfg_infile);
+    mmt_free(cfg_infile);
     cfg_infile = NULL;
     return -1;
   }
@@ -464,7 +469,7 @@ int read_config(const char * file)
   fclose(f);
 
   if(cfg_infile) {
-    free(cfg_infile);
+    mmt_free(cfg_infile);
     cfg_infile = NULL;
   }
 
@@ -495,18 +500,18 @@ const char *cache_string(const char *p) {
 
   h = strhash(p) % (sizeof hstrings/sizeof*hstrings);
   if(!(hs=hstrings[h]))
-    hs = hstrings[h] = (char **) cfg_realloc("cache_string()", NULL, (16+1)*sizeof**hstrings);
+    hs = hstrings[h] = (char **) mmt_realloc(NULL, (16+1)*sizeof**hstrings);
 
   for(k=0; hs[k]; k++)
     if(*p == *hs[k] && str_eq(p, hs[k]))
       return hs[k];
 
   if(k && k%16 == 0)
-    hstrings[h] = (char **) cfg_realloc("cache_string()", hstrings[h], (k+16+1)*sizeof**hstrings);
+    hstrings[h] = (char **) mmt_realloc(hstrings[h], (k+16+1)*sizeof**hstrings);
 
-  hstrings[h][k+1]=NULL;
+  hstrings[h][k+1] = NULL;
 
-  return hstrings[h][k] = cfg_strdup("cache_string()", p);
+  return hstrings[h][k] = mmt_strdup(p);
 }
 
 
@@ -532,9 +537,9 @@ COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
 
 static void addcomment(int rhs) {
   if(lkw) {
-    COMMENT *node = cfg_malloc("addcomment()", sizeof(*node));
+    COMMENT *node = mmt_malloc(sizeof(*node));
     node->rhs = rhs;
-    node->kw = cfg_strdup("addcomment()", lkw);
+    node->kw = mmt_strdup(lkw);
     node->comms = cfg_comms;
     cfg_comms = NULL;
     if(!cfg_strctcomms)
@@ -557,7 +562,7 @@ LISTID cfg_get_prologue(void) {
 void capture_comment_str(const char *com, int lineno) {
   if(!cfg_comms)
     cfg_comms = lcreat(NULL, 0);
-  ladd(cfg_comms, cfg_strdup("capture_comment_str()", com));
+  ladd(cfg_comms, mmt_strdup(com));
 
   // Last keyword lineno is the same as this comment's
   if(lkw && lkw_lineno == lineno)
@@ -578,8 +583,8 @@ void capture_lvalue_kw(const char *kw, int lineno) {
     kw = "*";                   // Show comment before programmer/part/memory
 
   if(lkw)
-    free(lkw);
-  lkw = cfg_strdup("capture_lvalue_kw()", kw);
+    mmt_free(lkw);
+  lkw = mmt_strdup(kw);
   lkw_lineno = lineno;
   if(cfg_comms)                 // Accrued list of # one-line comments
     addcomment(0);              // Register comment to appear before lkw assignment
@@ -784,7 +789,7 @@ char *cfg_unescape(char *d, const char *s) {
   return (char *) cfg_unescapeu((unsigned char *) d, (const unsigned char *) s);
 }
 
-// Return an escaped string that looks like a C-style input string incl quotes, memory is malloc'd
+// Return an mmt_malloc'd escaped string that looks like a C-style input string incl quotes
 char *cfg_escape(const char *s) {
   char buf[50*1024], *d = buf;
 
@@ -828,7 +833,7 @@ char *cfg_escape(const char *s) {
   *d++ = '"';
   *d = 0;
 
-  return cfg_strdup("cfg_escape()", buf);
+  return mmt_strdup(buf);
 }
 
 

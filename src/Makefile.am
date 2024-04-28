@@ -62,10 +62,10 @@ libavrdude_la_CPPFLAGS = $(libavrdude_a_CPPFLAGS)
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
-libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@
+libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@ $(LIBGPIOD_CFLAGS)
 libavrdude_la_CFLAGS  = $(libavrdude_a_CFLAGS)
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ -lm
+avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ $(LIBGPIOD_LIBS) -lm
 
 bin_PROGRAMS = avrdude
 

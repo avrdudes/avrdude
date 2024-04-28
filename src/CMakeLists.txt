@@ -80,7 +80,7 @@ if(MSVC)
     list(APPEND EXTRA_WINDOWS_INCLUDES "msvc")
 else()
     set(LIB_MATH m)
-    add_compile_options(-Wall -Wextra -Wno-unused-parameter)
+    add_compile_options(-Wall -Wextra -Wno-unused-parameter -Wno-format-zero-length)
 endif()
 
 # =====================================

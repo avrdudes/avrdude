@@ -323,12 +323,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   if (read_mem[i].len > maxsize)
     read_mem[i].len = maxsize;
 
-  uint8_t *buf = malloc(read_mem[i].len);
-  if (buf == NULL) {
-    pmsg_error("(%s) out of memory\n", cmd);
-    return -1;
-  }
-
+  uint8_t *buf = mmt_malloc(read_mem[i].len);
   if(argc < 4 && verbose)
     term_out(">>> %s %s 0x%x 0x%x\n", cmd, read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
 
@@ -341,7 +336,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
       pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) read_mem[i].addr + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
-      free(buf);
+      mmt_free(buf);
       return -1;
     }
     report_progress(j, read_mem[i].len, NULL);
@@ -351,7 +346,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
   lterm_out("");
 
-  free(buf);
+  mmt_free(buf);
 
   read_mem[i].addr = (read_mem[i].addr + read_mem[i].len) % maxsize;
 
@@ -478,12 +473,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     pmsg_error("(write) too large memory request (%lu)\n", (unsigned long) bufsz);
     return -1;
   }
-  unsigned char *buf = calloc(bufsz, 1), *tags = calloc(bufsz, 1);
-  if(buf == NULL || tags == NULL) {
-    pmsg_error("(write) out of memory\n");
-    return -1;
-  }
-
+  unsigned char *buf = mmt_malloc(bufsz), *tags = mmt_malloc(bufsz);
   // Find the first argument to write to flash and how many arguments to parse and write
   if(str_eq(argv[argc - 1], "...")) {
     write_mode = WRITE_MODE_FILL;
@@ -491,7 +481,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     len = str_int(argv[3], STR_INT32, &errptr);
     if(errptr) {
       pmsg_error("(write ...) length %s: %s\n", argv[3], errptr);
-      free(buf); free(tags);
+      mmt_free(buf); mmt_free(tags);
       return -1;
     }
 
@@ -526,7 +516,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       sd = str_todata(argv[i], STR_ANY, p, mem->desc);
       if(!sd->type || sd->errstr) {
         pmsg_error("(write) data %s: %s\n", argv[i], sd->errstr? sd->errstr: "str_todata");
-        free(buf); free(tags);
+        mmt_free(buf); mmt_free(tags);
         str_freedata(sd);
         return -1;
       }
@@ -628,7 +618,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
   report_progress(1, 1, NULL);
 
-  free(buf);
+  mmt_free(buf);
 
   return 0;
 }
@@ -671,11 +661,11 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     }
     len -= 2;
   }
-  char *filename = memcpy(cfg_malloc(__func__, len+1), fn, len);
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
 
   mem = avr_dup_mem(omem);
   int n = argc > 3? (argc-3)/2: 1;
-  Segment_t *seglist = cfg_malloc(__func__, n*sizeof*seglist);
+  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
 
   int ret = -1;
 
@@ -734,8 +724,8 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
  done:
   avr_free_mem(mem);
-  free(seglist);
-  free(filename);
+  mmt_free(seglist);
+  mmt_free(filename);
 
   return ret < 0? ret: 0;
 }
@@ -983,7 +973,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
     (!islock && (cci->t->memoffset < 0 || cci->t->memoffset >= (int) (sizeof fl->fuses/sizeof*fl->fuses)))) {
 
     err = cache_string(tofree = str_sprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
-    free(tofree);
+    mmt_free(tofree);
     goto back;
   }
 
@@ -1002,13 +992,13 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
   const AVRMEM *mem = avr_locate_mem(p, cci->memstr);
   if(!mem) {
     err = cache_string(tofree = str_sprintf("memory %s not defined for part %s", cci->memstr, p->desc));
-    free(tofree);
+    mmt_free(tofree);
     goto back;
   }
 
   if((islock && mem->size != 4 && mem->size != 1) || (!islock && mem->size != 2 && mem->size != 1)) {
     err = cache_string(tofree = str_sprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
-    free(tofree);
+    mmt_free(tofree);
     goto back;
   }
 
@@ -1016,7 +1006,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
   for(int i=0; i<mem->size; i++)
     if(led_read_byte(pgm, p, mem, i, m.b+i) < 0) {
       err = cache_string(tofree = str_sprintf("cannot read %s's %s memory", p->desc, mem->desc));
-      free(tofree);
+      mmt_free(tofree);
       goto back;
     }
 
@@ -1357,8 +1347,8 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   int ret = 0;
-  cc = cfg_malloc(__func__, sizeof *cc*nc);
-  fc = cfg_malloc(__func__, sizeof *fc*nc);
+  cc = mmt_malloc(sizeof *cc*nc);
+  fc = mmt_malloc(sizeof *fc*nc);
 
   AVRMEM *m = avr_locate_lock(p);
   const char *locktype = m? m->desc: "lock";
@@ -1555,8 +1545,8 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cmd_config(pgm, p, 2, av);
 
 finished:
-  free(cc);
-  free(fc);
+  mmt_free(cc);
+  mmt_free(fc);
 
   return ret;
 }
@@ -1750,11 +1740,11 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     return -1;
   }
 
-  char *reg = cfg_strdup(__func__, argc > 1? argv[1]: ""), *rhs = strrchr(reg, '=');
+  char *reg = mmt_strdup(argc > 1? argv[1]: ""), *rhs = strrchr(reg, '=');
   if(rhs)                       // Right-hand side of assignment
     *rhs++ = 0;                 // Terminate lhs
 
-  // Create malloc'd NULL-terminated list of register pointers
+  // Create mmt_malloc'd NULL-terminated list of register pointers
   const Register_file_t *r, **rl, **rlist;
   rlist = avr_locate_registerlist(rf, nr, reg, str_is_pattern(reg)? str_matched_by: str_contains);
 
@@ -1842,13 +1832,13 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
   }
 
 success:
-  free(reg);
-  free(rlist);
+  mmt_free(reg);
+  mmt_free(rlist);
   return 0;
 
 error:
-  free(reg);
-  free(rlist);
+  mmt_free(reg);
+  mmt_free(rlist);
   return -1;
 }
 
@@ -2317,8 +2307,8 @@ static char *tokenize(char *s, int *argcp, const char ***argvp) {
   if(slen > 2*((INT_MAX - 2*sizeof(char *))/(sizeof(char *)+3)))
     return NULL;
 
-  // Allocate once for pointers and contents, so caller only needs to free(argv)
-  argv = cfg_malloc(__func__, (nargs+2)*sizeof(char *) + slen + nargs);
+  // Allocate once for pointers and contents, so caller only needs to mmt_free(argv)
+  argv = mmt_malloc((nargs+2)*sizeof(char *) + slen + nargs);
   buf  = (char *) (argv+nargs+1);
 
   for(n=0, r=s; *r; ) {
@@ -2390,7 +2380,7 @@ char *terminal_get_input(const char *prompt) {
     int len = strlen(input);
     if(len > 0 && input[len-1] == '\n')
       input[len-1] = 0;
-    return cfg_strdup(__func__, input);
+    return mmt_strdup(input);
   }
 
   return NULL;
@@ -2436,7 +2426,7 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
         imsg_info("allow_subshells = yes; into ~/.config/avrdude/avrdude.rc or ~/.avrduderc\n");
 #endif
       }
-      free(argv);
+      mmt_free(argv);
       return 0;
     }
 
@@ -2450,7 +2440,7 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
       led_set(pgm, LED_ERR);
     led_clr(pgm, LED_PGM);
 
-    free(argv);
+    mmt_free(argv);
   } while(*q);
 
   return rc;
@@ -2466,9 +2456,9 @@ static int process_line(char *q, const PROGRAMMER *pgm, const AVRPART *p) {
  */
 
 int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line) {
-  char *ln = cfg_strdup(__func__, line);
+  char *ln = mmt_strdup(line);
   int ret = process_line(ln, pgm, p);
-  free(ln);
+  mmt_free(ln);
 
   return ret;
 }
@@ -2535,7 +2525,7 @@ static void term_gotline(char *cmdstr) {
       if(process_line(cmdstr, term_pgm, term_p) > 0)
         term_running = 0;
     }
-    free(cmdstr);
+    mmt_free(cmdstr);
     /*
      * This is a workaround for a bug apparently present in the
      * readline compat layer of libedit which is natively present in
@@ -2588,7 +2578,7 @@ int terminal_mode_noninteractive(const PROGRAMMER *pgm, const AVRPART *p) {
 
   while((cmdbuf = terminal_get_input("avrdude> "))) {
     int rc = process_line(cmdbuf, pgm, p);
-    free(cmdbuf);
+    mmt_free(cmdbuf);
     if(rc > 0)
       break;
   }
@@ -2658,7 +2648,7 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     return -1;
   }
 
-  for(char *buffer; (buffer = str_fgets(fp, &errstr)); free(buffer)) {
+  for(char *buffer; (buffer = str_fgets(fp, &errstr)); mmt_free(buffer)) {
     lineno++;
     if(echo) {
       term_out("# ");
@@ -2710,15 +2700,15 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     lmsg_info("");              // Print new line unless already done before
     last = done = 0;            // OK, we have a header, start reporting
     if(header)
-      free(header);
-    header = cfg_strdup(__func__, hdr);
+      mmt_free(header);
+    header = mmt_strdup(hdr);
   }
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(!done) {
     if(!header)
-      header = cfg_strdup(__func__, "report");
+      header = mmt_strdup("report");
 
     int showperc = finish >= 0? percent: last;
 

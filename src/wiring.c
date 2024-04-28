@@ -69,12 +69,14 @@ static void wiring_setup(PROGRAMMER *pgm) {
   stk500v2_setup(pgm);
 
   // Then prepare our data and store in a safe place for the time being
-  ((struct pdata *)(pgm->cookie))->chained_pdata = cfg_malloc(__func__, sizeof(struct wiringpdata));
+  ((struct pdata *)(pgm->cookie))->chained_pdata = mmt_malloc(sizeof(struct wiringpdata));
 }
 
 static void wiring_teardown(PROGRAMMER *pgm) {
-  free(((struct pdata *)(pgm->cookie))->chained_pdata);
+  if(pgm->cookie)
+    mmt_free(((struct pdata *)(pgm->cookie))->chained_pdata);
   stk500v2_teardown(pgm);
+  pgm->cookie = NULL;
 }
 
 static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
@@ -109,7 +111,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("  -xsnooze=<arg> Wait snooze [ms] before protocol sync after port open\n");
       msg_error("  -xdelay=<arg>  Add delay [ms] after reset, can be negative\n");
       msg_error("  -xhelp         Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
@@ -174,7 +176,7 @@ static void wiring_close(PROGRAMMER * pgm)
   pgm->fd.ifd = -1;
 }
 
-const char wiring_desc[] = "http://wiring.org.co/, Basically STK500v2 protocol, with some glue to trigger the bootloader.";
+const char wiring_desc[] = "Bootloader using STK500v2 protocol, see http://wiring.org.co";
 
 void wiring_initpgm(PROGRAMMER *pgm) {
   /* The Wiring bootloader uses a near-complete STK500v2 protocol. */

@@ -63,6 +63,8 @@
 #define BP_FLAG_XPARM_CPUFREQ       (1<<5)
 #define BP_FLAG_XPARM_RAWFREQ       (1<<6)
 #define BP_FLAG_NOPAGEDREAD         (1<<7)
+#define BP_FLAG_PULLUPS             (1<<8)
+#define BP_FLAG_HIZ                 (1<<9)
 
 struct pdata
 {
@@ -77,13 +79,21 @@ struct pdata
 	unsigned char pin_val;		/* Last written pin values for bitbang mode */
 	int     unread_bytes;		/* How many bytes we expected, but ignored */
 	int     flag;
+	char buf_local[100];            /* Local buffer for buspirate_readline_noexit() */
 };
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 /* ====== Feature checks ====== */
-static inline int
-buspirate_uses_ascii(const PROGRAMMER *pgm) {
+static inline int buspirate_uses_ascii(const PROGRAMMER *pgm) {
 	return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
+}
+
+static inline int buspirate_uses_pullups(const PROGRAMMER *pgm) {
+	return (PDATA(pgm)->flag & BP_FLAG_PULLUPS);
+}
+
+static inline int buspirate_uses_hiz(const PROGRAMMER *pgm) {
+	return (PDATA(pgm)->flag & BP_FLAG_HIZ);
 }
 
 /* ====== Serial talker functions - binmode ====== */
@@ -174,12 +184,9 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
 	int c;
 	long orig_serial_recv_timeout = serial_recv_timeout;
 
-	/* Static local buffer - this may come handy at times */
-	static char buf_local[100];
-
 	if (buf == NULL) {
-		buf = buf_local;
-		len = sizeof(buf_local);
+		buf = PDATA(pgm)->buf_local;
+		len = sizeof(PDATA(pgm)->buf_local);
 	}
 	buf_p = buf;
 	memset(buf, 0, len);
@@ -214,6 +221,7 @@ static char *buspirate_readline(const PROGRAMMER *pgm, char *buf, size_t len) {
 	}
 	return ret;
 }
+
 static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	int rc;
 	const char * readline;
@@ -279,8 +287,7 @@ static void buspirate_dummy_6(const PROGRAMMER *pgm, const char *p) {
 }
 
 /* ====== Config / parameters handling functions ====== */
-static int
-buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 	LNODEID ln;
 	const char *extended_param;
 	char reset[10];
@@ -294,6 +301,16 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 		extended_param = ldata(ln);
 		if (str_eq(extended_param, "ascii")) {
 			PDATA(pgm)->flag |= BP_FLAG_XPARM_FORCE_ASCII;
+			continue;
+		}
+
+		if (str_eq(extended_param, "pullups")) {
+			PDATA(pgm)->flag |= BP_FLAG_PULLUPS;
+			continue;
+		}
+
+		if (str_eq(extended_param, "hiz")) {
+			PDATA(pgm)->flag |= BP_FLAG_HIZ;
 			continue;
 		}
 
@@ -386,8 +403,10 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 			msg_error("  -xnopagedread               Disable page read functionality\n");
 			msg_error("  -xcpufreq=<125..4000>       Set the AUX pin to output a frequency to n [kHz]\n");
 			msg_error("  -xserial_recv_timeout=<arg> Set serial receive timeout to <arg> [ms]\n");
+			msg_error("  -xpullups                   Enable internal pull-ups\n");
+			msg_error("  -xhiz                       SPI HiZ mode (open collector)\n");
 			msg_error("  -xhelp                      Show this help menu and exit\n");
-			exit(0);
+			return LIBAVRDUDE_EXIT;;
 		}
 
 		pmsg_error("do not understand extended param '%s'\n", extended_param);
@@ -397,8 +416,7 @@ buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 	return 0;
 }
 
-static int
-buspirate_verifyconfig(const PROGRAMMER *pgm) {
+static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
 	/* Default reset pin is CS */
 	if (PDATA(pgm)->reset == 0x00)
 		PDATA(pgm)->reset |= BP_RESET_CS;
@@ -515,6 +533,10 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		 *          of the pulse (0)
 		 *       => 0b10001010 = 0x8a */
 		submode.config = 0x8A;
+		if (buspirate_uses_hiz(pgm)) {
+			submode.config &= ~(1<<3);
+            pmsg_info("spi hi-z mode (open-collector)\n");
+        }
 	}
 
 	unsigned char buf[20] = { '\0' };
@@ -575,7 +597,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		pgm->paged_write = NULL;
 	} else {
 		/* Check for write-then-read without !CS/CS and disable paged_write if absent: */
-		static const unsigned char buf2[] = {5,0,0,0,0};
+		const unsigned char buf2[] = {5, 0, 0, 0, 0};
 		buspirate_send_bin(pgm, buf2, sizeof(buf2));
 		buspirate_recv_bin(pgm, buf, 1);
 		if (buf[0] != 0x01) {
@@ -599,6 +621,11 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	/* 0b0100wxyz - Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
 	 * we want power (0x48) and all reset pins high. */
 	PDATA(pgm)->current_peripherals_config  = 0x48 | PDATA(pgm)->reset;
+	if (buspirate_uses_pullups(pgm)) {
+		PDATA(pgm)->current_peripherals_config |= 1<<2;
+        submode.config &= ~(1<<3);
+        pmsg_info("enabling pull-ups (open-collector)\n");
+    }
 	if (buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01) < 0)
 		return -1;
 	usleep(50000); // sleep for 50ms after power up
@@ -621,7 +648,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			return -1;
 		if (rv) {
 			unsigned int ver = 0;
-			static const unsigned char buf2[] = {1};
+			const unsigned char buf2[] = {1};
 			buspirate_send_bin(pgm, buf2, sizeof(buf2));
 			buspirate_recv_bin(pgm, buf, 3);
 			ver = buf[1] << 8 | buf[2];
@@ -693,8 +720,8 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 }
 
 static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
-	static const char *reset_str = "#\n";
-	static const char *accept_str = "y\n";
+	const char * const reset_str = "#\n";
+	const char * const accept_str = "y\n";
 	char *rcvd;
 	int rc, print_banner = 0;
 
@@ -721,7 +748,7 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 
 	msg_info("attempting to initiate BusPirate ASCII mode ...\n");
 
-	/* Call buspirate_send_bin() instead of buspirate_send() 
+	/* Call buspirate_send_bin() instead of buspirate_send()
 	 * because we don't know if BP is in text or bin mode */
 	rc = buspirate_send_bin(pgm, (const unsigned char*)reset_str, strlen(reset_str));
 	if (rc) {
@@ -937,6 +964,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 
 	return n_bytes;
 }
+
 /* Paged write function which utilizes the Bus Pirate's "Write then Read" binary SPI instruction */
 static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int base_addr, unsigned int n_data_bytes) {
@@ -1087,20 +1115,16 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 /* Interface - management */
-static void buspirate_setup(PROGRAMMER *pgm)
-{
-	/* Allocate private data */
-	if ((pgm->cookie = calloc(1, sizeof(struct pdata))) == 0) {
-		pmsg_error("out of memory allocating private data\n");
-		exit(1);
-	}
+static void buspirate_setup(PROGRAMMER *pgm) {
+	pgm->cookie = mmt_malloc(sizeof(struct pdata));
 	PDATA(pgm)->serial_recv_timeout = 100;
 }
 
-static void buspirate_teardown(PROGRAMMER *pgm)
-{
-	free(pgm->cookie);
+static void buspirate_teardown(PROGRAMMER *pgm) {
+	mmt_free(pgm->cookie);
+	pgm->cookie = NULL;
 }
+
 const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
 
 void buspirate_initpgm(PROGRAMMER *pgm) {
@@ -1180,7 +1204,7 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	return;
 }
 
-/* 
+/*
    Direction:
    010xxxxx
    Input (1) or output (0):
@@ -1248,7 +1272,7 @@ static int buspirate_bb_setpin_internal(const PROGRAMMER *pgm, int pin, int valu
 
 	if (value)
 		PDATA(pgm)->pin_val |= (1 << (pin - 1));
-	else 
+	else
 		PDATA(pgm)->pin_val &= ~(1 << (pin - 1));
 
 	buf[0] = PDATA(pgm)->pin_val | 0x80;

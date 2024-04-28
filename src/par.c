@@ -51,7 +51,7 @@ struct ppipins_t {
   int inverted;
 };
 
-static struct ppipins_t ppipins[] = {
+static const struct ppipins_t ppipins[] = {
   {  1, PPICTRL,   0x01, 1 },
   {  2, PPIDATA,   0x01, 0 },
   {  3, PPIDATA,   0x02, 0 },
@@ -334,7 +334,7 @@ static void par_close(PROGRAMMER *pgm) {
  * parse the -E string
  */
 static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
-  char *cp, *s, *str = cfg_strdup("par_parseexitspecs()", sp);
+  char *cp, *s, *str = mmt_strdup(sp);
 
   s = str;
   while((cp = strtok(s, ","))) {
@@ -357,13 +357,13 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
       pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
 
     else {
-      free(str);
+      mmt_free(str);
       return -1;
     }
     s = NULL; // Only call strtok() once with the actual string
   }
 
-  free(str);
+  mmt_free(str);
   return 0;
 }
 

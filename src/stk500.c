@@ -489,6 +489,8 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if ((m = avr_locate_eeprom(p))) {
     buf[11] = m->readback[0];
     buf[12] = m->readback[1];
+    if(!buf[11] && !buf[12])    // Make default readback values 0xff for eeproms
+      buf[11] = buf[12] = 0xff;
     buf[15] = (m->size >> 8) & 0x00ff;
     buf[16] = m->size & 0x00ff;
   } else {
@@ -799,7 +801,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       }
       msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
       msg_error("  -xhelp                Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
      pmsg_error("invalid extended parameter %s\n", extended_param);
@@ -1253,7 +1255,7 @@ static int stk500_get_varef(const PROGRAMMER *pgm, unsigned int chan /* unused *
 
 static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
   unsigned prescale, cmatch, fosc;
-  static unsigned ps[] = {
+  static const unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
   size_t idx;
@@ -1307,7 +1309,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
 
 static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
   unsigned prescale=0, cmatch=0;
-  static unsigned ps[] = {
+  static const unsigned ps[] = {
     1, 8, 32, 64, 128, 256, 1024
   };
   int rc;
@@ -1567,13 +1569,8 @@ static void stk500_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   stk500_print_parms1(pgm, "", fp);
 }
 
-static void stk500_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    return;
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void stk500_setup(PROGRAMMER * pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff;
   PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
   // nanoSTK (Arduino Nano HW) uses 16 MHz
@@ -1583,9 +1580,8 @@ static void stk500_setup(PROGRAMMER * pgm)
     PDATA(pgm)->xtal = STK500_XTAL;
 }
 
-static void stk500_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void stk500_teardown(PROGRAMMER * pgm) {
+  mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
 

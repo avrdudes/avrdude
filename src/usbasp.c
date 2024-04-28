@@ -65,13 +65,33 @@
 
 #include <sys/time.h>
 
+// Private data for this programmer
+struct pdata {
+#ifdef USE_LIBUSB_1_0
+  libusb_device_handle *usbhandle;
+#else
+  usb_dev_handle *usbhandle;
+#endif
+  int sckfreq_hz;
+  unsigned int capabilities;
+  int use_tpi;
+  int section_e;
+  int sck_3mhz;
+
+#ifdef USE_LIBUSB_1_0
+  libusb_context *ctx;
+  char msg[30];                 // Used in errstr()
+#endif
+  int USB_init;                 // Used in both usbOpenDevice() variants
+};
+
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+
 #ifdef USE_LIBUSB_1_0
 
-static libusb_context *ctx = NULL;
-
-static const char *errstr(int result)
-{
-	static char msg[30];
+static const char *errstr(const PROGRAMMER *pgm, int result) {
+	char *msg = PDATA(pgm)->msg;
+	size_t msgsiz = sizeof(PDATA(pgm)->msg);
 	int n = 0;
 
 	switch (result) {
@@ -122,7 +142,7 @@ static const char *errstr(int result)
 		n = ENOSYS;
 		break;
 	default:
-		snprintf(msg, sizeof msg, "Unknown libusb error code %d", result);
+		snprintf(msg, msgsiz, "Unknown libusb error code %d", result);
 		return msg;
 	}
 	return strerror(n);
@@ -131,41 +151,21 @@ static const char *errstr(int result)
 #endif
 
 
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
-#ifdef USE_LIBUSB_1_0
-  libusb_device_handle *usbhandle;
-#else
-  usb_dev_handle *usbhandle;
-#endif
-  int sckfreq_hz;
-  unsigned int capabilities;
-  int use_tpi;
-  int section_e;
-  int sck_3mhz;
-};
-
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
-#define IMPORT_PDATA(pgm) struct pdata *pdata = PDATA(pgm)
-
-
-
 /* Prototypes */
 // interface - management
-static void usbasp_setup(PROGRAMMER * pgm);
-static void usbasp_teardown(PROGRAMMER * pgm);
+static void usbasp_setup(PROGRAMMER *pgm);
+static void usbasp_teardown(PROGRAMMER *pgm);
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms);
 // internal functions
 static int usbasp_transmit(const PROGRAMMER *pgm, unsigned char receive,
 			   unsigned char functionid, const unsigned char *send,
 			   unsigned char *buffer, int buffersize);
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName, int product, const char *productName, const char *port);
+static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port);
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName, int product, const char *productName, const char *port);
+static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port);
 #endif
 // interface - prog.
 static int usbasp_open(PROGRAMMER *pgm, const char *port);
@@ -272,18 +272,13 @@ static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
 
 /* Interface - management */
-static void usbasp_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(struct pdata))) == 0) {
-    pmsg_error(" out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(struct pdata));
+static void usbasp_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void usbasp_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void usbasp_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
@@ -303,7 +298,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
       msg_error("  -xhelp           Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
@@ -372,7 +367,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 				   buffersize & 0xffff,
 				   5000);
   if(nbytes < 0){
-    pmsg_ext_error("%s\n", errstr(nbytes));
+    pmsg_ext_error("%s\n", errstr(pgm, nbytes));
     return -1;
   }
 #else
@@ -428,22 +423,21 @@ static int check_for_port_argument_match(const char *port, char *bus, char *devi
  * shared VID/PID
  */
 #ifdef USE_LIBUSB_1_0
-static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *vendorName,
-                         int product, const char *productName, const char *port)
-{
+static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port) {
+
     libusb_device_handle *handle = NULL;
     int                  errorCode = USB_ERROR_NOTFOUND;
-    static int           didUsbInit = 0;
     int j;
     int r;
 
-    if(!didUsbInit){
-        didUsbInit = 1;
-        libusb_init(&ctx);
+    if(!PDATA(pgm)->USB_init){
+        PDATA(pgm)->USB_init = 1;
+        libusb_init(&PDATA(pgm)->ctx);
     }
     
     libusb_device **dev_list;
-    int dev_list_len = libusb_get_device_list(ctx, &dev_list);
+    int dev_list_len = libusb_get_device_list(PDATA(pgm)->ctx, &dev_list);
 
     for (j=0; j<dev_list_len; ++j) {
         libusb_device *dev = dev_list[j];
@@ -455,7 +449,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
             r = libusb_open(dev, &handle);
             if (!handle) {
                  errorCode = USB_ERROR_ACCESS;
-                 pmsg_warning("cannot open USB device: %s\n", errstr(r));
+                 pmsg_warning("cannot open USB device: %s\n", errstr(pgm, r));
                  continue;
             }
             errorCode = 0;
@@ -465,7 +459,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
             if (r < 0) {
                 if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_warning("cannot query manufacturer for device: %s\n", errstr(r));
+                    pmsg_warning("cannot query manufacturer for device: %s\n", errstr(pgm, r));
 		}
             } else {
                 pmsg_notice2("seen device from vendor >%s<\n", string);
@@ -477,7 +471,7 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
             if (r < 0) {
                 if ((productName != NULL) && (productName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
-                    pmsg_warning("cannot query product for device: %s\n", errstr(r));
+                    pmsg_warning("cannot query product for device: %s\n", errstr(pgm, r));
 		}
             } else {
                 pmsg_notice2("seen product >%s<\n", string);
@@ -510,17 +504,16 @@ static int usbOpenDevice(libusb_device_handle **device, int vendor, const char *
     return errorCode;
 }
 #else
-static int usbOpenDevice(usb_dev_handle **device, int vendor, const char *vendorName,
-                         int product, const char *productName, const char *port)
-{
-struct usb_bus       *bus;
-struct usb_device    *dev;
-usb_dev_handle       *handle = NULL;
-int                  errorCode = USB_ERROR_NOTFOUND;
-static int           didUsbInit = 0;
+static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int vendor,
+  const char *vendorName, int product, const char *productName, const char *port) {
 
-    if(!didUsbInit){
-        didUsbInit = 1;
+    struct usb_bus * bus;
+    struct usb_device * dev;
+    usb_dev_handle * handle = NULL;
+    int errorCode = USB_ERROR_NOTFOUND;
+
+    if(!PDATA(pgm)->USB_init) {
+        PDATA(pgm)->USB_init = 1;
         usb_init();
     }
     usb_find_busses();
@@ -608,13 +601,13 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     pid = USBASP_SHARED_PID;
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
-  if (usbOpenDevice(&PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
+  if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
     /* try alternatives */
     if(str_eq(pgmid, "usbasp")) {
     /* for id usbasp autodetect some variants */
       if(str_caseeq(port, "nibobee")) {
         pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
-        if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
+        if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
                           USBASP_NIBOBEE_PID, "NIBObee", port) != 0) {
           pmsg_error("cannot find USB device NIBObee with vid=0x%x pid=0x%x\n",
             USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
@@ -623,7 +616,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
         return 0;
       }
       /* check if device with old VID/PID is available */
-      if (usbOpenDevice(&PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
+      if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
                         USBASP_OLD_PID, "USBasp", port) == 0) {
         /* found USBasp with old IDs */
         pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
@@ -668,7 +661,7 @@ static void usbasp_close(PROGRAMMER * pgm)
 #endif
   }
 #ifdef USE_LIBUSB_1_0
-  libusb_exit(ctx);
+  libusb_exit(PDATA(pgm)->ctx);
 #else
   /* nothing for usb 0.1 ? */
 #endif
@@ -677,14 +670,10 @@ static void usbasp_close(PROGRAMMER * pgm)
 
 /* Dummy functions */
 static void usbasp_disable(const PROGRAMMER *pgm) {
-  /* Do nothing. */
-
   return;
 }
 
 static void usbasp_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  /* Do nothing. */
-
   return;
 }
 
@@ -700,7 +689,7 @@ static void usbasp_display(const PROGRAMMER *pgm, const char *p) {
 static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char temp[4];
   unsigned char res[4];
-  IMPORT_PDATA(pgm);
+  struct pdata *pdata = PDATA(pgm);
 
   pmsg_debug("usbasp_initialize()\n");
 
@@ -945,7 +934,7 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 }
 
 /* The list of SCK frequencies in Hz supported by USBasp */
-static struct sckoptions_t usbaspSCKoptions[] = {
+static const struct sckoptions_t usbaspSCKoptions[] = {
   { USBASP_ISP_SCK_3000, 3000000 },
   { USBASP_ISP_SCK_1500, 1500000 },
   { USBASP_ISP_SCK_750, 750000 },
@@ -1207,12 +1196,12 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
   return n_bytes;
 }
 
-static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
   unsigned char cmd[4];
   unsigned char* sptr;
-  int writed, clen, n;
+  int written, clen, n;
   uint16_t pr;
 
 
@@ -1220,11 +1209,10 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 
   sptr = addr + m->buf;
   pr = addr + m->offset;
-  writed = 0;
+  written = 0;
 
   /* must erase fuse first, TPI parts only have one fuse */
-  if(mem_is_a_fuse(m))
-  {
+  if(mem_is_a_fuse(m)) {        // Keep fuse writing ability for backward compatibility
     /* Set PR */
     usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
     usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
@@ -1246,9 +1234,9 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
   usbasp_tpi_send_byte(pgm, (pr >> 8) );
 
-  while(writed < (int) n_bytes)
+  while(written < (int) n_bytes)
   {
-    clen = n_bytes - writed;
+    clen = n_bytes - written;
     if(clen > 32)
       clen = 32;
 
@@ -1264,7 +1252,7 @@ static int usbasp_tpi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       return -3;
     }
     
-    writed += clen;
+    written += clen;
     pr += clen;
     sptr += clen;
   }
@@ -1281,7 +1269,6 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
   int n;
   uint16_t pr;
 
-
   pmsg_debug("usbasp_tpi_read_byte(\"%s\", 0x%0lx)\n", m->desc, addr);
 
   pr = m->offset + addr;
@@ -1292,19 +1279,68 @@ static int usbasp_tpi_read_byte(const PROGRAMMER * pgm, const AVRPART *p, const 
   cmd[2] = 0;
   cmd[3] = 0;
   n = usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_READBLOCK, cmd, value, 1);
-  if(n != 1)
-  {
-    pmsg_error("wrong reading bytes %x\n", n);
+  if(n != 1) {
+    if(n >= 0)
+      pmsg_error("wrong number %d of bytes read (expected 1)\n", n);
     return -3;
   }
   return 0;
 }
 
 static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-  unsigned long addr, unsigned char data) { // FIXME: use avr_write_byte_cache() when implemented
+  unsigned long addr, unsigned char data) {
+  pmsg_debug("%s(\"%s\", 0x%0lx, 0x%02x)\n", __func__, m->desc, addr, data);
 
-  pmsg_error("usbasp_write_byte in TPI mode; all writes have to be done at page level\n");
-  return -1;
+  if(mem_is_flash(m)) {
+    pmsg_error("cannot write_byte() to %s; use paged_write()\n", m->desc);
+    return -1;
+  }
+
+  // Memories left: fuse and lockbits
+  if(addr != 0) {
+    pmsg_error("unexpected address 0x%04lx of %s memory\n", addr, m->desc);
+    return -1;
+  }  
+
+  uint16_t pr = addr + m->offset;
+
+  usbasp_tpi_nvm_waitbusy(pgm);
+
+  // Must erase fuse first, TPI parts only have one fuse
+  if(mem_is_a_fuse(m)) { // Lockbits are reset during chip erase
+    // Set pointer register to pr + 1
+    usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
+    usbasp_tpi_send_byte(pgm, (pr & 0xFF) | 1 );
+    usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
+    usbasp_tpi_send_byte(pgm, (pr >> 8) );
+    // Select SECTION_ERASE
+    usbasp_tpi_send_byte(pgm, TPI_OP_SOUT(NVMCMD));
+    usbasp_tpi_send_byte(pgm, NVMCMD_SECTION_ERASE);
+    // Dummy write
+    usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+    usbasp_tpi_send_byte(pgm, 0x00);
+
+    usbasp_tpi_nvm_waitbusy(pgm);
+  }
+
+  // Reset pointer register to pr
+  usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(0));
+  usbasp_tpi_send_byte(pgm, pr & 0xFF);
+  usbasp_tpi_send_byte(pgm, TPI_OP_SSTPR(1));
+  usbasp_tpi_send_byte(pgm, (pr >> 8) );
+  // Select word write
+  usbasp_tpi_send_byte(pgm, TPI_OP_SOUT(NVMCMD));
+  usbasp_tpi_send_byte(pgm, NVMCMD_WORD_WRITE);
+  // Write low byte
+  usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+  usbasp_tpi_send_byte(pgm, data);
+  // Write high byte to start word write
+  usbasp_tpi_send_byte(pgm, TPI_OP_SST_INC);
+  usbasp_tpi_send_byte(pgm, 0xff);
+
+  usbasp_tpi_nvm_waitbusy(pgm);
+
+  return 0;
 }
 
 
@@ -1358,4 +1394,3 @@ void usbasp_initpgm(PROGRAMMER *pgm) {
 #endif  /* HAVE_LIBUSB */
 
 const char usbasp_desc[] = "USBasp programmer, see http://www.fischl.de/usbasp/";
-

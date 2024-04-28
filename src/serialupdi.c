@@ -48,20 +48,15 @@
 static int serialupdi_enter_progmode(const PROGRAMMER *pgm);
 static int serialupdi_leave_progmode(const PROGRAMMER *pgm);
 
-static void serialupdi_setup(PROGRAMMER * pgm)
-{
-  if ((pgm->cookie = malloc(sizeof(updi_state))) == 0) {
-    pmsg_error("out of memory allocating private data\n");
-    exit(1);
-  }
-  memset(pgm->cookie, 0, sizeof(updi_state));
+static void serialupdi_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(updi_state));
   updi_set_rts_mode(pgm, RTS_MODE_DEFAULT);
   updi_set_datalink_mode(pgm, UPDI_LINK_MODE_16BIT);
 }
 
-static void serialupdi_teardown(PROGRAMMER * pgm)
-{
-  free(pgm->cookie);
+static void serialupdi_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int serialupdi_open(PROGRAMMER *pgm, const char *port) {
@@ -1032,7 +1027,7 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xrtsdtr=low,high Force RTS/DTR lines low or high state during programming\n");
       msg_error("  -xhelp            Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);

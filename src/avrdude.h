@@ -40,7 +40,17 @@ extern int quell_progress;   // Quell progress report -q, reduce effective verbo
 extern const char *partdesc; // Part -p string
 extern const char *pgmid;    // Programmer -c string
 
-int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
+// Magic memory tree: these functions succeed or exit()
+#define mmt_strdup(s) cfg_strdup(__func__, s)
+#define mmt_malloc(n) cfg_malloc(__func__, n)
+#define mmt_realloc(p, n) cfg_realloc(__func__, p, n)
+#define mmt_free(p) free(p)
+
+int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...)
+#if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
+   __attribute__ ((format (printf, 7, 8)))
+#endif
+;
 
 // Shortcuts
 #define msg_ext_error(...)  avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_EXT_ERROR, __VA_ARGS__)

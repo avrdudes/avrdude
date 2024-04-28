@@ -59,6 +59,7 @@ typedef uint32_t pinmask_t;
 #define LIBAVRDUDE_NOTSUPPORTED (-2) // operation not supported
 #define LIBAVRDUDE_SOFTFAIL (-3) // returned, eg, by avr_signature() if caller
                                  // might proceed with chip erase
+#define LIBAVRDUDE_EXIT (-4)     // End all operations in this session
 
 /* Message system */
 /* This functions is supposed to be supplied by the application */
@@ -1093,6 +1094,7 @@ void serialadapter_not_found(const char *sea_id);
 extern "C" {
 #endif
 
+void         pgm_init_functions(PROGRAMMER *pgm);
 PROGRAMMER * pgm_new(void);
 PROGRAMMER * pgm_dup(const PROGRAMMER *src);
 void         pgm_free(PROGRAMMER *p);
@@ -1405,10 +1407,9 @@ extern "C" {
 #endif
 
 void *cfg_malloc(const char *funcname, size_t n);
-
 void *cfg_realloc(const char *funcname, void *p, size_t n);
-
 char *cfg_strdup(const char *funcname, const char *s);
+void mmt_f_free(void *ptr);
 
 int init_config(void);
 
@@ -1531,6 +1532,7 @@ void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
+char *str_frq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 

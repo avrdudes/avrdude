@@ -45,7 +45,7 @@
  */
 UPDATE *parse_op(const char *s) {
   // Assume -U <file>[:<fmt>] first
-  UPDATE *upd = (UPDATE *) cfg_malloc(__func__, sizeof *upd);
+  UPDATE *upd = (UPDATE *) mmt_malloc(sizeof *upd);
   upd->memstr = NULL;           // Defaults to flash or application
   upd->op = DEVICE_WRITE;
   const char *fn = s;
@@ -56,12 +56,12 @@ UPDATE *parse_op(const char *s) {
     if(!strchr("rwv", fc[1])) {
       pmsg_error("invalid I/O mode :%c: in -U %s\n", fc[1], s);
       imsg_error("I/O mode can be r, w or v for read, write or verify device\n");
-      free(upd->memstr);
-      free(upd);
+      mmt_free(upd->memstr);
+      mmt_free(upd);
       return NULL;
     }
 
-    upd->memstr = memcpy(cfg_malloc(__func__, fc-s+1), s, fc-s);
+    upd->memstr = memcpy(mmt_malloc(fc-s+1), s, fc-s);
     upd->op =
       fc[1]=='r'? DEVICE_READ:
       fc[1]=='w'? DEVICE_WRITE: DEVICE_VERIFY;
@@ -83,32 +83,32 @@ UPDATE *parse_op(const char *s) {
         if(f != FMT_ERROR)
           imsg_error("  :%c %s\n", c, fileio_fmtstr(f));
       }
-      free(upd->memstr);
-      free(upd);
+      mmt_free(upd->memstr);
+      mmt_free(upd);
       return NULL;
     }
     len -= 2;
   }
 
-  upd->filename = memcpy(cfg_malloc(__func__, len+1), fn, len);
+  upd->filename = memcpy(mmt_malloc(len+1), fn, len);
 
   return upd;
 }
 
 
 UPDATE *dup_update(const UPDATE *upd) {
-  UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
+  UPDATE *u = (UPDATE *) mmt_malloc(sizeof *u);
   memcpy(u, upd, sizeof*u);
-  u->memstr = upd->memstr? cfg_strdup(__func__, upd->memstr): NULL;
-  u->filename = cfg_strdup(__func__, upd->filename);
+  u->memstr = upd->memstr? mmt_strdup(upd->memstr): NULL;
+  u->filename = mmt_strdup(upd->filename);
 
   return u;
 }
 
 UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
-  UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
-  u->memstr = cfg_strdup(__func__, memstr);
-  u->filename = cfg_strdup(__func__, fname);
+  UPDATE *u = (UPDATE *) mmt_malloc(sizeof *u);
+  u->memstr = mmt_strdup(memstr);
+  u->filename = mmt_strdup(fname);
   u->op = op;
   u->format = filefmt;
 
@@ -116,7 +116,7 @@ UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
 }
 
 UPDATE *cmd_update(const char *cmd) {
-  UPDATE *u = (UPDATE *) cfg_malloc(__func__, sizeof *u);
+  UPDATE *u = (UPDATE *) mmt_malloc(sizeof *u);
   u->cmdline = cmd;
 
   return u;
@@ -124,10 +124,10 @@ UPDATE *cmd_update(const char *cmd) {
 
 void free_update(UPDATE *u) {
   if(u) {
-    free(u->memstr);
-    free(u->filename);
+    mmt_free(u->memstr);
+    mmt_free(u->filename);
     memset(u, 0, sizeof *u);
-    free(u);
+    mmt_free(u);
   }
 }
 
@@ -273,7 +273,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
   if(upd->cmdline) {            // Todo: parse terminal command line?
-    termcmds = realloc(termcmds, sizeof(*termcmds) * (nterms+1));
+    termcmds = mmt_realloc(termcmds, sizeof(*termcmds) * (nterms+1));
     termcmds[nterms++] = upd->cmdline;
     return 0;
   }
@@ -342,7 +342,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
         ioerror("writeable", upd);
         ret = LIBAVRDUDE_SOFTFAIL;
       } else if(upd->filename) { // Record filename (other than stdout) is available for future reads
-        if(!str_eq(upd->filename, "-") && (wrote = realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
+        if(!str_eq(upd->filename, "-") && (wrote = mmt_realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
           wrote[nfwritten++] = upd->filename;
       }
     }
@@ -371,7 +371,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   lmsg_info("\n");              // Ensure an empty line for visual separation of operations
   pmsg_info("processing %s\n", tofree = update_str(upd));
-  free(tofree);
+  mmt_free(tofree);
 
   if(upd->cmdline) {
     if(!str_eq(upd->cmdline, "interactive terminal"))
@@ -388,7 +388,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   }
 
   AVRMEM_ALIAS *alias_mem = avr_find_memalias(p, mem);
-  char *alias_mem_desc = cfg_malloc("do_op()", 2 + (alias_mem && alias_mem->desc? strlen(alias_mem->desc): 0));
+  char *alias_mem_desc = mmt_malloc(2 + (alias_mem && alias_mem->desc? strlen(alias_mem->desc): 0));
   if(alias_mem && alias_mem->desc && *alias_mem->desc) {
     *alias_mem_desc = '/';
     strcpy(alias_mem_desc+1, alias_mem->desc);

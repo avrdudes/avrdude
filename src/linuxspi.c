@@ -62,16 +62,14 @@
 
 #define LINUXSPI "linuxspi"
 
-/*
- * Private data for this programmer.
- */
+// Private data for this programmer
 struct pdata {
   int disable_no_cs;
+  int fd_spidev, fd_gpiochip, fd_linehandle;
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
-
-static int fd_spidev, fd_gpiochip, fd_linehandle;
+// Use private programmer data as if they were a global structure my
+#define my (*(struct pdata *)(pgm->cookie))
 
 /**
  * @brief Sends/receives a message in full duplex mode
@@ -91,7 +89,8 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
     };
 
     errno = 0;
-    ret = ioctl(fd_spidev, SPI_IOC_MESSAGE(1), &tr);
+
+    ret = ioctl(my.fd_spidev, SPI_IOC_MESSAGE(1), &tr);
     if (ret != len) {
         int ioctl_errno = errno;
         msg_error("\n");
@@ -105,11 +104,12 @@ static int linuxspi_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, u
 }
 
 static void linuxspi_setup(PROGRAMMER *pgm) {
-  pgm->cookie = cfg_malloc("linuxspi_setup()", sizeof(struct pdata));
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void linuxspi_teardown(PROGRAMMER* pgm) {
-  free(pgm->cookie);
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
@@ -118,10 +118,10 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
 
     /*
      * Set the reset state and keep it. The pin will be released and set back to
-     * its initial value, once the fd_gpiochip is closed.
+     * its initial value, once the my.fd_gpiochip is closed.
      */
     data.values[0] = active ^ !(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
-    ret = ioctl(fd_linehandle, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
+    ret = ioctl(my.fd_linehandle, GPIOHANDLE_SET_LINE_VALUES_IOCTL, &data);
 #ifdef GPIO_V2_LINE_SET_VALUES_IOCTL
     if (ret == -1) {
         struct gpio_v2_line_values val;
@@ -129,7 +129,7 @@ static int linuxspi_reset_mcu(const PROGRAMMER *pgm, bool active) {
         val.mask = 1;
         val.bits = active ^ !(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
 
-        ret = ioctl(fd_linehandle, GPIO_V2_LINE_SET_VALUES_IOCTL, &val);
+        ret = ioctl(my.fd_linehandle, GPIO_V2_LINE_SET_VALUES_IOCTL, &val);
     }
 #endif
     if (ret == -1) {
@@ -147,7 +147,7 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
       "please use the format /dev/spidev:/dev/gpiochip[:resetno]\n";
     char port_default[] = "/dev/spidev0.0:/dev/gpiochip0";
     char *spidev, *gpiochip, *reset_pin;
-    char *port = cfg_strdup("linuxspi_open()", pt);
+    char *port = mmt_strdup(pt);
     struct gpiohandle_request req;
     int ret;
 
@@ -179,26 +179,26 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     }
 
     pgm->port = port;
-    fd_spidev = open(pgm->port, O_RDWR);
-    if (fd_spidev < 0) {
+    my.fd_spidev = open(pgm->port, O_RDWR);
+    if (my.fd_spidev < 0) {
         pmsg_ext_error("unable to open the spidev device %s: %s\n", pgm->port, strerror(errno));
         return -1;
     }
 
     uint32_t mode = SPI_MODE_0;
-    if (!PDATA(pgm)->disable_no_cs)
+    if (!my.disable_no_cs)
         mode |= SPI_NO_CS;
 
-    ret = ioctl(fd_spidev, SPI_IOC_WR_MODE32, &mode);
+    ret = ioctl(my.fd_spidev, SPI_IOC_WR_MODE32, &mode);
     if (ret == -1) {
         int ioctl_errno = errno;
         pmsg_ext_error("unable to set SPI mode %02X on %s: %s\n", mode, spidev, strerror(errno));
-        if(ioctl_errno == EINVAL && !PDATA(pgm)->disable_no_cs)
+        if(ioctl_errno == EINVAL && !my.disable_no_cs)
             pmsg_error("try -x disable_no_cs\n");
         goto close_spidev;
     }
-    fd_gpiochip = open(gpiochip, 0);
-    if (fd_gpiochip < 0) {
+    my.fd_gpiochip = open(gpiochip, 0);
+    if (my.fd_gpiochip < 0) {
         pmsg_ext_error("unable to open the gpiochip %s: %s\n", gpiochip, strerror(errno));
         ret = -1;
         goto close_spidev;
@@ -210,9 +210,9 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     req.default_values[0] = !!(pgm->pinno[PIN_AVR_RESET] & PIN_INVERSE);
     req.flags = GPIOHANDLE_REQUEST_OUTPUT;
 
-    ret = ioctl(fd_gpiochip, GPIO_GET_LINEHANDLE_IOCTL, &req);
+    ret = ioctl(my.fd_gpiochip, GPIO_GET_LINEHANDLE_IOCTL, &req);
     if (ret != -1)
-        fd_linehandle = req.fd;
+        my.fd_linehandle = req.fd;
 #ifdef GPIO_V2_GET_LINE_IOCTL
     if (ret == -1) {
         struct gpio_v2_line_request reqv2;
@@ -227,9 +227,9 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
         reqv2.config.attrs[0].mask = 1;
         reqv2.num_lines = 1;
 
-        ret = ioctl(fd_gpiochip, GPIO_V2_GET_LINE_IOCTL, &reqv2);
+        ret = ioctl(my.fd_gpiochip, GPIO_V2_GET_LINE_IOCTL, &reqv2);
         if (ret != -1)
-            fd_linehandle = reqv2.fd;
+            my.fd_linehandle = reqv2.fd;
     }
 #endif
     if (ret == -1) {
@@ -254,11 +254,11 @@ static int linuxspi_open(PROGRAMMER *pgm, const char *pt) {
     return 0;
 
 close_out:
-    close(fd_linehandle);
+    close(my.fd_linehandle);
 close_gpiochip:
-    close(fd_gpiochip);
+    close(my.fd_gpiochip);
 close_spidev:
-    close(fd_spidev);
+    close(my.fd_spidev);
     return ret;
 }
 
@@ -276,9 +276,9 @@ static void linuxspi_close(PROGRAMMER *pgm) {
         break;
     }
 
-    close(fd_linehandle);
-    close(fd_spidev);
-    close(fd_gpiochip);
+    close(my.fd_linehandle);
+    close(my.fd_spidev);
+    close(my.fd_gpiochip);
 }
 
 static void linuxspi_disable(const PROGRAMMER* pgm) {
@@ -380,7 +380,7 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
-    char *cp, *s, *str = cfg_strdup("linuxspi_parseextitspecs()", sp);
+    char *cp, *s, *str = mmt_strdup(sp);
 
     s = str;
     while ((cp = strtok(s, ","))) {
@@ -393,11 +393,11 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
             pgm->exit_reset = EXIT_RESET_DISABLED;
             continue;
         }
-        free(str);
+        mmt_free(str);
         return -1;
     }
 
-    free(str);
+    mmt_free(str);
     return 0;
 }
 
@@ -410,14 +410,14 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
     extended_param = ldata(ln);
 
     if (str_eq(extended_param, "disable_no_cs")) {
-      PDATA(pgm)->disable_no_cs = 1;
+      my.disable_no_cs = 1;
       continue;
     }
     if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xdisable_no_cs Do not use the SPI_NO_CS bit for the SPI driver\n");
       msg_error("  -xhelp          Show this help menu and exit\n");
-      exit(0);
+      return LIBAVRDUDE_EXIT;
     }
 
     pmsg_error("invalid extended parameter '%s'\n", extended_param);
