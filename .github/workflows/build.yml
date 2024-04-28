@@ -273,7 +273,7 @@ jobs:
 
           mkdir _ambuild && cd _ambuild
 
-          CFLAGS="-I/opt/homebrew/local/include" LDFLAGS="-L/opt/homebrew/Cellar" ../src/configure
+          CFLAGS="-I/opt/homebrew/include" LDFLAGS="-L/opt/homebrew/lib" ../src/configure
           
       - name: Build
         run: make -C _ambuild -j$(nproc)
