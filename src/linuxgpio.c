@@ -344,7 +344,23 @@ void linuxgpio_teardown(PROGRAMMER *pgm) {
 
 #ifdef HAVE_LIBGPIOD
 
-#ifdef HAVE_LIBGPIOD_V2
+#if !HAVE_LIBGPIOD_V1_6 && !HAVE_LIBGPIOD_V2
+
+int gpiod_line_set_direction_input(struct gpiod_line **gpio_line) {
+  struct gpiod_chip *chip = gpiod_line_get_chip(*gpio_line);
+  unsigned int gpio_num = gpiod_line_offset(*gpio_line);
+
+  // release to pin first...
+  gpiod_line_release(*gpio_line);
+
+  // so that we can re-acquire it as input
+  *gpio_line = gpiod_chip_get_line(chip, gpio_num);
+  return gpiod_line_request_input(*gpio_line, "avrdude");
+}
+
+#endif
+
+#if HAVE_LIBGPIOD_V2
 
 struct gpiod_line {
   struct gpiod_chip *chip;
@@ -490,6 +506,14 @@ static inline int gpiod_line_get_value(struct gpiod_line *gpio_line) {
 
 #endif
 
+static inline unsigned int linuxgpio_get_gpio_num(struct gpiod_line *gpio_line) {
+#if HAVE_LIBGPIOD_V2
+  return gpio_line->gpio_num;
+#else
+  return gpiod_line_offset(gpio_line);
+#endif
+}
+
 struct gpiod_line * linuxgpio_libgpiod_lines[N_PINS];
 
 // Try to tell if libgpiod is going to work.
@@ -565,10 +589,14 @@ static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
   // This should avoid possible conflicts when AVR firmware starts.
   for (i = 0; i < N_PINS; ++i) {
     if (linuxgpio_libgpiod_lines[i] != NULL && i != PIN_AVR_RESET) {
+#if HAVE_LIBGPIOD_V1_6 || HAVE_LIBGPIOD_V2
       int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[i]);
+#else
+      int r = gpiod_line_set_direction_input(&linuxgpio_libgpiod_lines[i]);
+#endif
       if (r != 0) {
         msg_error("failed to set pin %u to input: %s\n",
-          linuxgpio_libgpiod_lines[i]->gpio_num, strerror(errno));
+          linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[i]), strerror(errno));
       }
       gpiod_line_release(linuxgpio_libgpiod_lines[i]);
       linuxgpio_libgpiod_lines[i] = NULL;
@@ -577,10 +605,14 @@ static void linuxgpio_libgpiod_close(PROGRAMMER *pgm) {
 
   // Configure RESET as input.
   if (linuxgpio_libgpiod_lines[PIN_AVR_RESET] != NULL) {
+#if HAVE_LIBGPIOD_V1_6 || HAVE_LIBGPIOD_V2
     int r = gpiod_line_set_direction_input(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+#else
+    int r = gpiod_line_set_direction_input(&linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
+#endif
     if (r != 0) {
       msg_error("failed to set pin %u to input: %s\n",
-        linuxgpio_libgpiod_lines[PIN_AVR_RESET]->gpio_num, strerror(errno));
+        linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[PIN_AVR_RESET]), strerror(errno));
     }
     gpiod_line_release(linuxgpio_libgpiod_lines[PIN_AVR_RESET]);
     linuxgpio_libgpiod_lines[PIN_AVR_RESET] = NULL;
@@ -606,7 +638,7 @@ static int linuxgpio_libgpiod_setpin(const PROGRAMMER *pgm, int pinfunc, int val
   int r = gpiod_line_set_value(linuxgpio_libgpiod_lines[pinfunc], value);
   if (r != 0) {
     msg_error("failed to set value of %s (%u) to %d: %s\n", avr_pin_name(pinfunc),
-      linuxgpio_libgpiod_lines[pinfunc]->gpio_num, value, strerror(errno));
+      linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[pinfunc]), value, strerror(errno));
     return -1;
   }
 
@@ -632,7 +664,7 @@ static int linuxgpio_libgpiod_getpin(const PROGRAMMER *pgm, int pinfunc) {
 
   int r = gpiod_line_get_value(linuxgpio_libgpiod_lines[pinfunc]);
   if (r == -1) {
-    msg_error("failed to read %u: %s\n", linuxgpio_libgpiod_lines[pinfunc]->gpio_num, strerror(errno));
+    msg_error("failed to read %u: %s\n", linuxgpio_get_gpio_num(linuxgpio_libgpiod_lines[pinfunc]), strerror(errno));
     return -1;
   }
 
