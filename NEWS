@@ -62,8 +62,11 @@ Changes since version 7.3:
     - Remove calls to exit() from libavrdude library #1790
     - Include libgpiod-dev in build.yml for Linux builds #1788
     - linuxgpio: add support for libgpiod v1.4 #1792
+    - Use magic memory tree interface throughout #1795
+    - Silence MacOS compiler warning #1794
+    - Add macOS autotools to github action #1798
 
-* Internals:
+  * Internals:
 
 
 Changes in version 7.3:
