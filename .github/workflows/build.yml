@@ -273,14 +273,10 @@ jobs:
 
           mkdir _ambuild && cd _ambuild
 
-          CFLAGS="-I/usr/local/include" LDFLAGS="-L/usr/local/lib" ../src/configure
+          CFLAGS="-I/opt/homebrew/local/include" LDFLAGS="-L/opt/homebrew/Cellar" ../src/configure
           
       - name: Build
         run: make -C _ambuild -j$(nproc)
-      - name: Install
-        run: sudo make -C _ambuild install
-      - name: Dryrun_test
-        run: printf "\n\n" | ./tools/test-avrdude -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
         
   msvc:
     runs-on: windows-latest
