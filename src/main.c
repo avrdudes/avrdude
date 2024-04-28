@@ -1269,11 +1269,11 @@ int main(int argc, char * argv [])
         break;
 
       case CONNTYPE_SPI:
-        port = mmt_strdup(
 #ifdef HAVE_LINUXSPI
-         *default_spi? default_spi:
+        port = mmt_strdup(*default_spi? default_spi: "unknown");
+#else
+        port = mmt_strdup("unknown");
 #endif
-           "unknown");
         break;
 
       case CONNTYPE_LINUXGPIO:
