@@ -857,16 +857,16 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
   }
 
   const char *endianname;
-  unsigned char endianess;
+  unsigned char endianness;
   if (p->prog_modes & PM_aWire) { // AVR32
-    endianess = ELFDATA2MSB;
+    endianness = ELFDATA2MSB;
     endianname = "little";
   } else {
-    endianess = ELFDATA2LSB;
+    endianness = ELFDATA2LSB;
     endianname = "big";
   }
   if (id[EI_CLASS] != ELFCLASS32 ||
-      id[EI_DATA] != endianess) {
+      id[EI_DATA] != endianness) {
     pmsg_error("ELF file %s is not a 32-bit, %s-endian file that was expected\n",
       infile, endianname);
     goto done;

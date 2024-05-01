@@ -912,7 +912,7 @@ void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v) {
         cp->name, cfg_strct_name(strct), cfg_comp_type(cp->type), cfg_v_type(v->type));
       return;
     }
-    // TODO: consider endianess (code currently assumes little endian)
+    // TODO: consider endianness (code currently assumes little endian)
     num = v->number;
     memcpy(sp+cp->offset, &num, cp->size);
     break;
