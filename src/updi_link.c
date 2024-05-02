@@ -90,7 +90,7 @@ static int updi_physical_send(const PROGRAMMER *pgm, unsigned char *buf, size_t 
   size_t i;
   int rv;
 
-  pmsg_debug("sending %lu bytes [", len);
+  pmsg_debug("sending %lu bytes [", (unsigned long) len);
   for (i=0; i<len; i++) {
     msg_debug("0x%02x", buf[i]);
     if (i<len-1) {
@@ -114,7 +114,7 @@ static int updi_physical_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t 
     return -1;
   }
 
-  pmsg_debug("received %lu bytes [", len);
+  pmsg_debug("received %lu bytes [", (unsigned long) len);
   for (i=0; i<len; i++) {
     msg_debug("0x%02x", buf[i]);
     if (i<len-1) {
