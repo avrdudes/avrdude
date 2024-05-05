@@ -94,21 +94,21 @@ enum cs_mode {
 
 // little endian helper functions
 
-static uint16_t read_le16(unsigned char* buf) {
+static uint16_t read_le16(unsigned char *buf) {
     return buf[0] | (buf[1] << 8);
 }
 
-static uint32_t read_le32(unsigned char* buf) {
+static uint32_t read_le32(unsigned char *buf) {
     return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 }
 
-static void write_le24(unsigned char* buf, uint32_t val) {
+static void write_le24(unsigned char *buf, uint32_t val) {
     buf[0] = val;
     buf[1] = val >> 8;
     buf[2] = val >> 16;
 }
 
-static void write_le32(unsigned char* buf, uint32_t val) {
+static void write_le32(unsigned char *buf, uint32_t val) {
     buf[0] = val;
     buf[1] = val >> 8;
     buf[2] = val >> 16;
@@ -118,9 +118,9 @@ static void write_le32(unsigned char* buf, uint32_t val) {
 // serprog communication functions
 
 static int perform_serprog_cmd_full(const PROGRAMMER *pgm, uint8_t cmd,
-                                    const unsigned char* params, int params_len,
-                                    const unsigned char* send_buf, int send_len,
-                                    unsigned char* recv_buf, int recv_len) {
+                                    const unsigned char *params, int params_len,
+                                    const unsigned char *send_buf, int send_len,
+                                    unsigned char *recv_buf, int recv_len) {
     unsigned char resp_status_code = 0;
 
     serial_send(&pgm->fd, &cmd, 1);
@@ -140,8 +140,8 @@ static int perform_serprog_cmd_full(const PROGRAMMER *pgm, uint8_t cmd,
 }
 
 static int perform_serprog_cmd(const PROGRAMMER *pgm, uint8_t cmd,
-                               const unsigned char* params, int params_len,
-                               unsigned char* recv_buf, int recv_len) {
+                               const unsigned char *params, int params_len,
+                               unsigned char *recv_buf, int recv_len) {
     return perform_serprog_cmd_full(pgm, cmd, params, params_len, NULL, 0, recv_buf, recv_len);
 }
 
@@ -442,20 +442,20 @@ static int serprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return 0;
 }
 
-static void serprog_disable(const PROGRAMMER* pgm) {
+static void serprog_disable(const PROGRAMMER *pgm) {
 }
 
 static void serprog_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
-static void serprog_display(const PROGRAMMER* pgm, const char* p) {
+static void serprog_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 static void serprog_setup(PROGRAMMER *pgm) {
     pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
-static void serprog_teardown(PROGRAMMER* pgm) {
+static void serprog_teardown(PROGRAMMER *pgm) {
     mmt_free(pgm->cookie);
     pgm->cookie = NULL;
 }
