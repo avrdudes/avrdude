@@ -214,14 +214,14 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     // sync
     memset(buf, 0, sizeof(buf));
     if (perform_serprog_cmd(pgm, S_CMD_SYNCNOP, NULL, 0, buf, 1) != 1 || buf[0] != S_ACK) {
-        pmsg_error("can not sync. is this a serprog programmer?\n");
+        pmsg_error("cannot sync; is this a serprog programmer?\n");
         return -1;
     }
 
     // get command bitmap
     memset(my.cmd_bitmap, 0, sizeof(my.cmd_bitmap));
     if (perform_serprog_cmd(pgm, S_CMD_Q_CMDMAP, NULL, 0, my.cmd_bitmap, 32) != 0) {
-        pmsg_error("can not get list of supported serprog commands.\n");
+        pmsg_error("cannot get list of supported serprog commands\n");
         return -1;
     }
 
@@ -229,7 +229,7 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     memset(buf, 0, sizeof(buf));
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_Q_IFACE)
         || perform_serprog_cmd(pgm, S_CMD_Q_IFACE, NULL, 0, buf, 2) != 0) {
-        pmsg_error("can not get serprog protocol version.\n");
+        pmsg_error("cannot get serprog protocol version\n");
         return -1;
     }
     if (read_le16(buf) != 0x01) {
@@ -243,7 +243,7 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_Q_PGMNAME)) {
         memset(buf, 0, sizeof(buf));
         if (perform_serprog_cmd(pgm, S_CMD_Q_PGMNAME, NULL, 0, buf, 16) != 0) {
-            pmsg_error("can not get programmer name.\n");
+            pmsg_error("cannot get programmer name\n");
             return -1;
         }
         pmsg_info("programmer name: %s\n", buf);
@@ -251,17 +251,17 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
 
     // check if required commands are supported
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_O_SPIOP)) {
-        pmsg_error("this programmer does not support SPI operations.\n");
+        pmsg_error("this programmer does not support SPI operations\n");
         return -1;
     }
 
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_CS_MODE)) {
-        pmsg_error("this programmer does not support setting the CS mode.\n");
+        pmsg_error("this programmer does not support setting the CS mode\n");
         return -1;
     }
 
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_MODE)) {
-        pmsg_error("this programmer does not support setting the SPI mode.\n");
+        pmsg_error("this programmer does not support setting the SPI mode\n");
         return -1;
     }
 
@@ -270,11 +270,11 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
         memset(buf, 0, sizeof(buf));
         write_le32(buf, 115200);
         if (perform_serprog_cmd(pgm, S_CMD_S_SPI_FREQ, buf, 4, buf, 4) != 0) {
-            pmsg_error("can not set SPI frequency.\n");
+            pmsg_error("cannot set SPI frequency\n");
             return -1;
         }
         if (read_le32(buf) != 115200) {
-            pmsg_error("set SPI frequency differs from requested.\n");
+            pmsg_error("set SPI frequency differs from the requested one\n");
             return -1;
         }
     }
@@ -285,11 +285,11 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
             memset(buf, 0, sizeof(buf));
             buf[0] = cs;
             if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
-                pmsg_error("can not change CS.\n");
+                pmsg_error("cannot change CS\n");
                 return -1;
             }
         } else {
-            pmsg_error("changing the CS is not supported by the programmer.\n");
+            pmsg_error("changing the CS is not supported by the programmer\n");
             return -1;
         }
     }
@@ -298,7 +298,7 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     memset(buf, 0, sizeof(buf));
     buf[0] = SPI_MODE_FULL_DUPLEX;
     if (perform_serprog_cmd(pgm, S_CMD_S_SPI_MODE, buf, 1, NULL, 0) != 0) {
-        pmsg_error("can not set SPI full duplex mode.\n");
+        pmsg_error("cannot set SPI full duplex mode\n");
         return -1;
     }
 
@@ -307,7 +307,7 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
         memset(buf, 0, sizeof(buf));
         buf[0] = 1; // Pin state enable
         if (perform_serprog_cmd(pgm, S_CMD_S_PIN_STATE, buf, 1, NULL, 0) != 0) {
-            pmsg_error("can not enable pin state.\n");
+            pmsg_error("cannot enable pin state\n");
             return -1;
         }
     }
@@ -315,7 +315,7 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     // enable the CS / reset pin
     const unsigned char cs_mode = CS_MODE_SELECTED;
     if (perform_serprog_cmd(pgm, S_CMD_S_CS_MODE, &cs_mode, 1, NULL, 0) != 0) {
-        pmsg_error("can not enable the reset pin.\n");
+        pmsg_error("cannot enable the reset pin\n");
         return -1;
     }
     return 0;
@@ -326,28 +326,28 @@ static void serprog_close(PROGRAMMER *pgm) {
     // switch cs to auto
     const unsigned char cs_mode = CS_MODE_AUTO;
     if (perform_serprog_cmd(pgm, S_CMD_S_CS_MODE, &cs_mode, 1, NULL, 0) != 0) {
-        pmsg_error("can not reset the CS mode to auto.\n");
+        pmsg_error("cannot reset the CS mode to auto\n");
     }
     // disable output
     if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_PIN_STATE)) {
         memset(buf, 0, sizeof(buf));
         buf[0] = 0; // Pin state disable
         if (perform_serprog_cmd(pgm, S_CMD_S_PIN_STATE, buf, 1, NULL, 0) != 0) {
-            pmsg_error("can not disable pin state.\n");
+            pmsg_error("cannot disable pin state\n");
         }
     }
     // restore half duplex
     memset(buf, 0, sizeof(buf));
     buf[0] = SPI_MODE_HALF_DUPLEX;
     if (perform_serprog_cmd(pgm, S_CMD_S_SPI_MODE, buf, 1, NULL, 0) != 0) {
-        pmsg_error("can not reset SPI half duplex mode.\n");
+        pmsg_error("cannot reset SPI half duplex mode\n");
     }
     // reset CS to CS_0
     if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
         memset(buf, 0, sizeof(buf));
         buf[0] = 0;
         if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
-            pmsg_error("can not reset CS to CS_0.\n");
+            pmsg_error("cannot reset CS to CS_0\n");
         }
     }
 
@@ -396,7 +396,7 @@ static int serprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     if (res[2] != cmd[1]) {
         /** From ATtiny441 datasheet:
          *
-         * In some systems, the programmer can not guarantee that SCK is held low
+         * In some systems, the programmer cannot guarantee that SCK is held low
          * during power-up. In this case, RESET must be given a positive pulse after
          * SCK has been set to '0'. The duration of the pulse must be at least t RST
          * plus two CPU clock cycles. See Table 25-5 on page 240 for definition of
