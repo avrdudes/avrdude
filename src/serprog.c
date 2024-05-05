@@ -94,11 +94,11 @@ enum cs_mode {
 
 // little endian helper functions
 
-static uint16_t read_le16(unsigned char *buf) {
+static uint16_t read_le16(const unsigned char *buf) {
     return buf[0] | (buf[1] << 8);
 }
 
-static uint32_t read_le32(unsigned char *buf) {
+static uint32_t read_le32(const unsigned char *buf) {
     return buf[0] | (buf[1] << 8) | (buf[2] << 16) | (buf[3] << 24);
 }
 
@@ -160,7 +160,7 @@ static int serprog_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, un
     return len;
 }
 
-static bool is_serprog_cmd_supported(unsigned char *cmd_bitmap, unsigned char cmd) {
+static bool is_serprog_cmd_supported(const unsigned char *cmd_bitmap, unsigned char cmd) {
     return (cmd_bitmap[cmd / 8] >> (cmd % 8)) & 1;
 }
 
