@@ -37,8 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define serprog "serprog"
-
 const char serprog_desc[] = "Programmer using the serprog protocol";
 
 /*
@@ -251,17 +249,17 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
 
     // check if required commands are supported
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_O_SPIOP)) {
-        pmsg_error("this programmer does not support SPI operations\n");
+        pmsg_error("the %s programmer does not support SPI operations\n", pgmid);
         return -1;
     }
 
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_CS_MODE)) {
-        pmsg_error("this programmer does not support setting the CS mode\n");
+        pmsg_error("the %s programmer does not support setting the CS mode\n", pgmid);
         return -1;
     }
 
     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_MODE)) {
-        pmsg_error("this programmer does not support setting the SPI mode\n");
+        pmsg_error("the %s programmer does not support setting the SPI mode\n", pgmid);
         return -1;
     }
 
@@ -289,7 +287,7 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
                 return -1;
             }
         } else {
-            pmsg_error("changing the CS is not supported by the programmer\n");
+            pmsg_error("changing the CS is not supported by the %s programmer\n", pgmid);
             return -1;
         }
     }
@@ -363,7 +361,7 @@ static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (p->prog_modes & PM_TPI) {
         /* We do not support TPI. This is a dedicated SPI thing */
-        pmsg_error("programmer " serprog " does not support TPI\n");
+        pmsg_error("the %s programmer does not support TPI\n", pgmid);
         return -1;
     }
 
@@ -463,7 +461,7 @@ static void serprog_teardown(PROGRAMMER* pgm) {
 }
 
 void serprog_initpgm(PROGRAMMER *pgm) {
-    strcpy(pgm->type, serprog);
+    strcpy(pgm->type, "serprog");
 
     // required fields
     pgm->initialize     = serprog_initialize;
