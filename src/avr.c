@@ -291,15 +291,14 @@ rcerror:
 int avr_mem_hiaddr(const AVRMEM * mem)
 {
   int i, n;
-  static int disableffopt;
 
-  /* calling once with NULL disables any future trailing-0xff optimisation */
+  // Deprecated: calling with NULL disables trailing 0xff optimisation (remove in v8.0)
   if(!mem) {
-    disableffopt = 1;
+    cx->avr_disableffopt = 1;
     return 0;
   }
 
-  if(disableffopt)
+  if(cx->avr_disableffopt)
     return mem->size;
 
   /* if the memory is not a flash-type memory do not remove trailing 0xff */
@@ -578,16 +577,14 @@ uint64_t avr_ustimestamp() {
 
   memset(&tv, 0, sizeof tv);
   if(gettimeofday(&tv, NULL) == 0) {
-    static uint64_t epoch;
-    static int init;
     uint64_t now;
 
     now = tv.tv_sec*1000000ULL + tv.tv_usec;
-    if(!init) {
-      epoch = now;
-      init = 1;
+    if(!cx->avr_epoch_init) {
+      cx->avr_epoch = now;
+      cx->avr_epoch_init = 1;
     }
-    return now - epoch;
+    return now - cx->avr_epoch;
   }
 
   return 0;
@@ -1445,9 +1442,15 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 }
 
 
-// Returns a pointer to static memory of list of programming modes
+// Returns a string in closed-circuit space with list of programming modes
 char *avr_prog_modes(int pm) {
-  static char type[1024];
+  // Return string is overwritten after a few calls
+  if(!cx->avr_s)
+    cx->avr_s = cx->avr_space;
+  char *type = cx->avr_s + strlen(cx->avr_s) + 1;
+  // Overwrite space once only 128 bytes left
+  if((size_t) (type - cx->avr_space) > sizeof cx->avr_space - 128)
+    type = cx->avr_space;
 
   strcpy(type, "?");
   if(pm & PM_SPM)
@@ -1477,7 +1480,8 @@ char *avr_prog_modes(int pm) {
   if(pm & PM_aWire)
     strcat(type, ", aWire");
 
-  return type + (type[1] == 0? 0: 3);
+  cx->avr_s = type + (type[1] == 0? 0: 3);
+  return cx->avr_s;
 }
 
 
@@ -1710,8 +1714,6 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
  */
 
 void report_progress(int completed, int total, const char *hdr) {
-  static int last;
-  static double start_time;
   int percent;
   double t;
 
@@ -1725,12 +1727,12 @@ void report_progress(int completed, int total, const char *hdr) {
 
   t = avr_timestamp();
 
-  if(hdr || !start_time)
-    start_time = t;
+  if(hdr || !cx->avr_start_time)
+    cx->avr_start_time = t;
 
-  if(hdr || percent > last) {
-    last = percent;
-    update_progress(percent, t - start_time, hdr, total < 0? -1: !!total);
+  if(hdr || percent > cx->avr_last_percent) {
+    cx->avr_last_percent = percent;
+    update_progress(percent, t - cx->avr_start_time, hdr, total < 0? -1: !!total);
   }
 }
 

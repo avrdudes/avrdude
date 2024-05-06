@@ -188,6 +188,9 @@ struct list_walk_cookie
     const char *prefix;
 };
 
+
+cx_t *cx;                       // Context pointer, eventually the only global variable
+
 static LISTID updates = NULL;
 
 static LISTID extended_params = NULL;
@@ -642,6 +645,7 @@ int main(int argc, char * argv [])
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
+  cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
   (void) avr_ustimestamp();     // Base timestamps from program start
 
 #ifdef _MSC_VER
@@ -823,7 +827,7 @@ int main(int argc, char * argv [])
         /* fall through */
 
       case 'A': /* explicit disabling of trailing-0xff removal */
-        disable_trailing_ff_removal();
+        cx->avr_disableffopt = 1;
         break;
 
       case 'e': /* perform a chip erase */

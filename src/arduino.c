@@ -135,5 +135,5 @@ void arduino_initpgm(PROGRAMMER *pgm) {
   pgm->open = arduino_open;
   pgm->close = arduino_close;
 
-  disable_trailing_ff_removal(); /* so that arduino bootloader can ignore chip erase */
+  cx->avr_disableffopt = 1;     // Disable trailing 0xff removal
 }

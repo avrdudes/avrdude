@@ -2584,7 +2584,7 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->readonly = urclock_readonly;
   pgm->flash_readhook = urclock_flash_readhook;
 
-  disable_trailing_ff_removal();
+  cx->avr_disableffopt = 1;     // Disable trailing 0xff removal
 #if defined(HAVE_LIBREADLINE)
   pmsg_notice2("libreadline is used; avrdude -t -c urclock should work interactively\n");
 #else

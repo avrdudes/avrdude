@@ -1171,7 +1171,6 @@ int avr_mem_is_known(const char *str);
 
 int avr_mem_might_be_known(const char *str);
 
-#define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(const AVRMEM * mem);
 
 int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
@@ -1531,6 +1530,28 @@ void terminal_setup_update_progress(void);
 #ifdef __cplusplus
 }
 #endif
+
+/*
+ * Context structure
+ *
+ * Global and static variables should go here; the only remaining static
+ * variables ought to be read-only tables. Access should be via a global
+ * pointer cx_t *cx; applications using libavrdude ought to allocate cx =
+ * mmt_malloc(sizeof *cx) for each instantiation (and set initial values
+ * if needed) and deallocate with mmt_free(cx).
+ */
+
+typedef struct {
+  // Static variables from avr.c
+  int avr_disableffopt;         // Disables trailing 0xff flash optimisation
+  uint64_t avr_epoch;           // Epoch for avr_ustimestamp()
+  int avr_epoch_init;           // Whether above epoch is initialised
+  char avr_space[1024], *avr_s; // Closed-circuit space for avr+prog_modes()
+  int avr_last_percent;         // Last valid percentage for report_progress()
+  double avr_start_time;        // Start time in s of report_progress() activity
+} cx_t;
+
+extern cx_t *cx;
 
 /* formerly confwin.h */
 
