@@ -20,7 +20,7 @@ static int avrftdi_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef notyet
 static void avrftdi_debug_frame(uint16_t frame) {
-	static char bit_name[] = "IDLES01234567PSS";
+	static const char bit_name[] = "IDLES01234567PSS";
 	//static char bit_name[] = "SSP76543210SELDI";
 	char line0[34], line1[34], line2[34];
 	int bit, pos;
