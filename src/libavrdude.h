@@ -1548,6 +1548,16 @@ typedef struct {
   char avr_space[1024], *avr_s; // Closed-circuit space for avr+prog_modes()
   int avr_last_percent;         // Last valid percentage for report_progress()
   double avr_start_time;        // Start time in s of report_progress() activity
+
+  // Static variables from bitbang.c
+  int bb_delay_decrement;
+#if defined(WIN32)
+  int bb_has_perfcount;
+  uint64_t bb_freq;             // Should be LARGE_INTEGER but what to include?
+#else
+  int bb_done;                  // Handshake variable in alarm handler
+  void (*bb_saved_alarmf)(int); // Saved alarm handler
+#endif
 } cx_t;
 
 extern cx_t *cx;
