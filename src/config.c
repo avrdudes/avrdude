@@ -488,8 +488,6 @@ unsigned strhash(const char *str) {
 }
 
 
-static char **hstrings[1<<12];
-
 // Return a copy of the argument as hashed string
 const char *cache_string(const char *p) {
   int h, k;
@@ -498,31 +496,22 @@ const char *cache_string(const char *p) {
   if(!p)
     p = "(NULL)";
 
-  h = strhash(p) % (sizeof hstrings/sizeof*hstrings);
-  if(!(hs=hstrings[h]))
-    hs = hstrings[h] = (char **) mmt_realloc(NULL, (16+1)*sizeof**hstrings);
+  h = strhash(p) % (sizeof cx->cfg_hstrings/sizeof*cx->cfg_hstrings);
+  if(!(hs=cx->cfg_hstrings[h]))
+    hs = cx->cfg_hstrings[h] = (char **) mmt_realloc(NULL, (16+1)*sizeof**cx->cfg_hstrings);
 
   for(k=0; hs[k]; k++)
     if(*p == *hs[k] && str_eq(p, hs[k]))
       return hs[k];
 
   if(k && k%16 == 0)
-    hstrings[h] = (char **) mmt_realloc(hstrings[h], (k+16+1)*sizeof**hstrings);
+    cx->cfg_hstrings[h] = (char **) mmt_realloc(cx->cfg_hstrings[h], (k+16+1)*sizeof**cx->cfg_hstrings);
 
-  hstrings[h][k+1] = NULL;
+  cx->cfg_hstrings[h][k+1] = NULL;
 
-  return hstrings[h][k] = mmt_strdup(p);
+  return cx->cfg_hstrings[h][k] = mmt_strdup(p);
 }
 
-
-static LISTID cfg_comms;        // A chain of comment lines
-static LISTID cfg_prologue;     // Comment lines at start of avrdude.conf
-static char *lkw;               // Last seen keyword
-static int lkw_lineno;          // Line number of that
-
-static LISTID cfg_strctcomms;   // Passed on to config_gram.y
-static LISTID cfg_pushedcomms;  // Temporarily pushed main comments
-static int cfg_pushed;          // ... for memory sections
 
 COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
   if(comments)
@@ -536,57 +525,57 @@ COMMENT *locate_comment(const LISTID comments, const char *where, int rhs) {
 }
 
 static void addcomment(int rhs) {
-  if(lkw) {
+  if(cx->cfg_lkw) {
     COMMENT *node = mmt_malloc(sizeof(*node));
     node->rhs = rhs;
-    node->kw = mmt_strdup(lkw);
-    node->comms = cfg_comms;
-    cfg_comms = NULL;
-    if(!cfg_strctcomms)
-      cfg_strctcomms = lcreat(NULL, 0);
-    ladd(cfg_strctcomms, node);
+    node->kw = mmt_strdup(cx->cfg_lkw);
+    node->comms = cx->cfg_comms;
+    cx->cfg_comms = NULL;
+    if(!cx->cfg_strctcomms)
+      cx->cfg_strctcomms = lcreat(NULL, 0);
+    ladd(cx->cfg_strctcomms, node);
   }
 }
 
 // Capture prologue during parsing (triggered by lexer.l)
 void cfg_capture_prologue(void) {
-  cfg_prologue = cfg_comms;
-  cfg_comms = NULL;
+  cx->cfg_prologue = cx->cfg_comms;
+  cx->cfg_comms = NULL;
 }
 
 LISTID cfg_get_prologue(void) {
-  return cfg_prologue;
+  return cx->cfg_prologue;
 }
 
 // Captures comments during parsing
 void capture_comment_str(const char *com, int lineno) {
-  if(!cfg_comms)
-    cfg_comms = lcreat(NULL, 0);
-  ladd(cfg_comms, mmt_strdup(com));
+  if(!cx->cfg_comms)
+    cx->cfg_comms = lcreat(NULL, 0);
+  ladd(cx->cfg_comms, mmt_strdup(com));
 
   // Last keyword lineno is the same as this comment's
-  if(lkw && lkw_lineno == lineno)
+  if(cx->cfg_lkw && cx->cfg_lkw_lineno == lineno)
     addcomment(1);              // Register comms to show right of lkw = ...;
 }
 
 // Capture assignments (keywords left of =) and associate comments to them
 void capture_lvalue_kw(const char *kw, int lineno) {
   if(str_eq(kw, "memory")) {    // Push part comments and start memory comments
-    if(!cfg_pushed) {           // config_gram.y pops the part comments
-      cfg_pushed = 1;
-      cfg_pushedcomms = cfg_strctcomms;
-      cfg_strctcomms = NULL;
+    if(!cx->cfg_pushed) {       // config_gram.y pops the part comments
+      cx->cfg_pushed = 1;
+      cx->cfg_pushedcomms = cx->cfg_strctcomms;
+      cx->cfg_strctcomms = NULL;
     }
   }
 
   if(str_eq(kw, "programmer") || str_eq(kw, "serialadapter") || str_eq(kw, "part") || str_eq(kw, "memory"))
     kw = "*";                   // Show comment before programmer/part/memory
 
-  if(lkw)
-    mmt_free(lkw);
-  lkw = mmt_strdup(kw);
-  lkw_lineno = lineno;
-  if(cfg_comms)                 // Accrued list of # one-line comments
+  if(cx->cfg_lkw)
+    mmt_free(cx->cfg_lkw);
+  cx->cfg_lkw = mmt_strdup(kw);
+  cx->cfg_lkw_lineno = lineno;
+  if(cx->cfg_comms)             // Accrued list of # one-line comments
     addcomment(0);              // Register comment to appear before lkw assignment
 }
 
@@ -594,16 +583,16 @@ void capture_lvalue_kw(const char *kw, int lineno) {
 LISTID cfg_move_comments(void) {
   capture_lvalue_kw(";", -1);
 
-  LISTID ret = cfg_strctcomms;
-  cfg_strctcomms = NULL;
+  LISTID ret = cx->cfg_strctcomms;
+  cx->cfg_strctcomms = NULL;
   return ret;
 }
 
 // config_gram.y calls this after ingressing the memory structure
 void cfg_pop_comms(void) {
-  if(cfg_pushed) {
-    cfg_pushed = 0;
-    cfg_strctcomms = cfg_pushedcomms;
+  if(cx->cfg_pushed) {
+    cx->cfg_pushed = 0;
+    cx->cfg_strctcomms = cx->cfg_pushedcomms;
   }
 }
 
@@ -845,10 +834,9 @@ static int cmp_comp(const void *v1, const void *v2) {
 }
 
 Component_t *cfg_comp_search(const char *name, int strct) {
-  static int init;
   Component_t key;
 
-  if(!init++)
+  if(!cx->cfg_init_search++)
     qsort(avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component_t), cmp_comp);
 
 

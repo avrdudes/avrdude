@@ -1558,6 +1558,17 @@ typedef struct {
   int bb_done;                  // Handshake variable in alarm handler
   void (*bb_saved_alarmf)(int); // Saved alarm handler
 #endif
+
+  // Static variables from config.c
+  char **cfg_hstrings[1<<12];   // Hash lists for cache_string()
+  LISTID cfg_comms;             // A chain of comment lines
+  LISTID cfg_prologue;          // Comment lines at start of avrdude.conf
+  char *cfg_lkw;                // Last seen keyword
+  int cfg_lkw_lineno;           // Line number of that
+  LISTID cfg_strctcomms;        // Passed on to config_gram.y
+  LISTID cfg_pushedcomms;       // Temporarily pushed main comments
+  int cfg_pushed;               // ... for memory sections
+  int cfg_init_search;          // used in cfg_comp_search()
 } cx_t;
 
 extern cx_t *cx;
