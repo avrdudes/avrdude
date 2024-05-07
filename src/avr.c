@@ -1442,8 +1442,13 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 }
 
 
-// Returns a string in closed-circuit space with list of programming modes
-char *avr_prog_modes(int pm) {
+/*
+ * Returns a string in closed-circuit space with a comma-separated list of
+ * programming modes; variant creates the list in subtly different way
+ *  - 0: PM_SPM prints bootloader, pm == 0 prints "?"
+ *  - 1: PM_SPM prints SPM, pm == 0 prints "0"
+ */
+static char *prog_modes_string(int pm, int variant) {
   // Return string is overwritten after a few calls
   if(!cx->avr_s)
     cx->avr_s = cx->avr_space;
@@ -1452,8 +1457,8 @@ char *avr_prog_modes(int pm) {
   if((size_t) (type - cx->avr_space) > sizeof cx->avr_space - 128)
     type = cx->avr_space;
 
-  strcpy(type, "?");
-  if(pm & PM_SPM)
+  strcpy(type, variant? "0": "?");
+  if(variant == 0 && (pm & PM_SPM))
     strcat(type, ", bootloader");
   if(pm & PM_TPI)
     strcat(type, ", TPI");
@@ -1479,9 +1484,21 @@ char *avr_prog_modes(int pm) {
     strcat(type, ", AVR32JTAG");
   if(pm & PM_aWire)
     strcat(type, ", aWire");
+  if(variant == 1 && (pm & PM_SPM))
+    strcat(type, ", SPM");
 
   cx->avr_s = type + (type[1] == 0? 0: 3);
   return cx->avr_s;
+}
+
+// Returns a string in closed-circuit space with list of programming modes or "0"
+char *avr_prog_modes_str(int pm) {
+  return prog_modes_string(pm, 1);
+}
+
+// Returns a string in closed-circuit space with list of programming modes or "?"
+char *avr_prog_modes(int pm) {
+  return prog_modes_string(pm, 0);
 }
 
 
