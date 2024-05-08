@@ -59,14 +59,14 @@
 //  - Output again with -p*/s or -c*/s (no /i) and use that for final avrdude.conf
 //  - Remove entries from below tables
 
-static struct {
+static const struct {
   const char *pgmid, *var, *value;
 } pgminj[] = {
   // Add triples here, eg, {"stk500v2", "prog_modes", "PM_TPI|PM_ISP"},
   {NULL, NULL, NULL},
 };
 
-static struct {
+static const struct {
   const char *mcu, *var, *value;
 } ptinj[] = {
   // Add triples here, eg, {"ATmega328P", "mcuid", "999"},
