@@ -24412,6 +24412,132 @@ part parent "64du28" # 64du32
 ;
 
 #------------------------------------------------------------
+# AVR16DU14
+#------------------------------------------------------------
+
+part parent "64du28" # 16du14
+    desc                   = "AVR16DU14";
+    id                     = "16du14";
+    variants               =
+        "AVR16DU14-SOIC: DIP14, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 386;
+    signature              = 0x1e 0x94 0x3b;
+
+    memory "flash"
+        size               = 0x4000;
+    ;
+
+    memory "sram"
+        size               = 2048;
+        offset             = 0x7800;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR16DU20
+#------------------------------------------------------------
+
+part parent "16du14" # 16du20
+    desc                   = "AVR16DU20";
+    id                     = "16du20";
+    variants               =
+        "AVR16DU20-SSOP: DIP20, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR16DU20-VQFN: QFP20, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 387;
+    signature              = 0x1e 0x94 0x3a;
+;
+
+#------------------------------------------------------------
+# AVR16DU28
+#------------------------------------------------------------
+
+part parent "16du14" # 16du28
+    desc                   = "AVR16DU28";
+    id                     = "16du28";
+    variants               =
+        "AVR16DU28-SSOP/SPDIP: DIP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR16DU28-VQFN:       QFP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 388;
+    signature              = 0x1e 0x94 0x39;
+;
+
+#------------------------------------------------------------
+# AVR16DU32
+#------------------------------------------------------------
+
+part parent "16du14" # 16du32
+    desc                   = "AVR16DU32";
+    id                     = "16du32";
+    variants               =
+        "AVR16DU32-VQFN/TQFP: QFP32, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 389;
+    signature              = 0x1e 0x94 0x38;
+;
+
+#------------------------------------------------------------
+# AVR32DU14
+#------------------------------------------------------------
+
+part parent "64du28" # 32du14
+    desc                   = "AVR32DU14";
+    id                     = "32du14";
+    variants               =
+        "AVR32DU14-SOIC: DIP14, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 390;
+    signature              = 0x1e 0x95 0x4f;
+
+    memory "flash"
+        size               = 0x8000;
+    ;
+
+    memory "sram"
+        size               = 4096;
+        offset             = 0x7000;
+    ;
+;
+
+#------------------------------------------------------------
+# AVR32DU20
+#------------------------------------------------------------
+
+part parent "32du14" # 32du20
+    desc                   = "AVR32DU20";
+    id                     = "32du20";
+    variants               =
+        "AVR32DU20-SSOP: DIP20, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR32DU20-VQFN: QFP20, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 391;
+    signature              = 0x1e 0x95 0x4e;
+;
+
+#------------------------------------------------------------
+# AVR32DU28
+#------------------------------------------------------------
+
+part parent "32du14" # 32du28
+    desc                   = "AVR32DU28";
+    id                     = "32du28";
+    variants               =
+        "AVR32DU28-SSOP/SPDIP: DIP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]",
+        "AVR32DU28-VQFN:       QFP28, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 392;
+    signature              = 0x1e 0x95 0x40;
+;
+
+#------------------------------------------------------------
+# AVR32DU32
+#------------------------------------------------------------
+
+part parent "32du14" # 32du32
+    desc                   = "AVR32DU32";
+    id                     = "32du32";
+    variants               =
+        "AVR32DU32-VQFN/TQFP: QFP32, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.8 V, 5.5 V]";
+    mcuid                  = 393;
+    signature              = 0x1e 0x95 0x3f;
+;
+
+#------------------------------------------------------------
 # AVR-Ex family common values
 #------------------------------------------------------------
 
