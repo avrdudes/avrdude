@@ -253,6 +253,11 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
         return -1;
     }
 
+    if (my.cs > 0 && !is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
+        pmsg_error("the %s programmer does not support changing the CS\n", pgmid);
+        return -1;
+    }
+
     // set SPI clock frequency
     if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
         memset(buf, 0, sizeof(buf));
@@ -267,17 +272,18 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
         }
     }
 
+    return 0;
+}
+
+static void serprog_enable(PROGRAMMER *pgm, const AVRPART *p) {
+    unsigned char buf[32];
     // set active chip select
     if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
         memset(buf, 0, sizeof(buf));
         buf[0] = my.cs;
         if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
             pmsg_error("cannot change CS\n");
-            return -1;
         }
-    } else if (my.cs > 0) {
-        pmsg_error("changing the CS is not supported by the programmer\n");
-        return -1;
     }
 
     // set full duplex
@@ -285,7 +291,6 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     buf[0] = SPI_MODE_FULL_DUPLEX;
     if (perform_serprog_cmd(pgm, S_CMD_S_SPI_MODE, buf, 1, NULL, 0) != 0) {
         pmsg_error("cannot set SPI full duplex mode\n");
-        return -1;
     }
 
     // set output
@@ -294,7 +299,6 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
         buf[0] = 1; // Pin state enable
         if (perform_serprog_cmd(pgm, S_CMD_S_PIN_STATE, buf, 1, NULL, 0) != 0) {
             pmsg_error("cannot enable pin state\n");
-            return -1;
         }
     }
 
@@ -302,12 +306,10 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     const unsigned char cs_mode = CS_MODE_SELECTED;
     if (perform_serprog_cmd(pgm, S_CMD_S_CS_MODE, &cs_mode, 1, NULL, 0) != 0) {
         pmsg_error("cannot enable the reset pin\n");
-        return -1;
     }
-    return 0;
 }
 
-static void serprog_close(PROGRAMMER *pgm) {
+static void serprog_disable(const PROGRAMMER *pgm) {
     unsigned char buf[32];
     // switch cs to auto
     const unsigned char cs_mode = CS_MODE_AUTO;
@@ -336,7 +338,9 @@ static void serprog_close(PROGRAMMER *pgm) {
             pmsg_error("cannot reset CS to CS_0\n");
         }
     }
+}
 
+static void serprog_close(PROGRAMMER *pgm) {
     serial_close(&pgm->fd);
 }
 
@@ -428,12 +432,6 @@ static int serprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pgm->initialize(pgm, p);
 
     return 0;
-}
-
-static void serprog_disable(const PROGRAMMER *pgm) {
-}
-
-static void serprog_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void serprog_display(const PROGRAMMER *pgm, const char *p) {
