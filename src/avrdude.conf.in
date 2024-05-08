@@ -1485,8 +1485,8 @@ programmer # serialupdi
 
 # The Serprog programmer implementation allows programming
 # with programmers using the serprog protocol from flashrom.
-# See https://flashrom.org/classic_cli_manpage.html#serprog-programmer
-# and https://wiki.flashrom.org/Serprog
+# See https://flashrom.org/supported_hw/supported_prog/serprog/overview.html
+# and https://flashrom.org/supported_hw/supported_prog/serprog/serprog-protocol.html
 # for details.
 
 programmer # serprog

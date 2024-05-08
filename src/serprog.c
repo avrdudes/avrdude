@@ -1,6 +1,8 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Support for using serprog programmers to program over ISP
+ * Support for using serprog programmers to program over ISP.
+ * For information on serprog see:
+ * https://flashrom.org/supported_hw/supported_prog/serprog/index.html
  *
  * Copyright (C) 2024 Sydney Louisa Wilke <git@funkeleinhorn.com>
  * used linuxspi.c as a template:
@@ -136,12 +138,8 @@ static int perform_serprog_cmd_full(const PROGRAMMER *pgm, uint8_t cmd,
 
     if (serial_recv(&pgm->fd, &resp_status_code, 1) < 0 || serial_recv(&pgm->fd, recv_buf, recv_len) < 0)
         return -1;
-    if (resp_status_code == S_ACK)
-        return 0;
-    else if (resp_status_code == S_NAK)
-        return 1;
-    else
-        return -1;
+
+    return resp_status_code == S_ACK? 0: resp_status_code == S_NAK? 1: -1;
 }
 
 static int perform_serprog_cmd(const PROGRAMMER *pgm, uint8_t cmd,
@@ -466,7 +464,11 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
 
         if (str_eq(extended_param, "help")) {
             msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xcs=cs_num    Set the chip select to use\n");
+            msg_error("  -xcs=cs_num    Sets the chip select (CS) to use on supported programmers.\n");
+            msg_error("                 Programmers supporting the 0x16 serprog command can have more than the default CS (0).\n");
+            msg_error("                 This option allows to choose this additional CS's (1,2,3,...) for programming the AVR.\n");
+            msg_error("                 Here you can find the addition to the serprog spec enabling that:\n");
+            msg_error("                 https://review.coreboot.org/c/flashrom/+/80498\n");
             msg_error("  -xhelp         Show this help menu and exit\n");
             return LIBAVRDUDE_EXIT;
         }

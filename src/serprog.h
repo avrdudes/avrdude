@@ -1,6 +1,8 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2013 Kevin Cuzner <kevin@kevincuner.com>
+ * Copyright (C) 2024 Sydney Louisa Wilke <git@funkeleinhorn.com>
+ * used linuxspi.h as a template:
+ *     Copyright (C) 2013 Kevin Cuzner <kevin@kevincuzner.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
