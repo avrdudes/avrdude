@@ -1568,6 +1568,9 @@ typedef struct {
   LISTID cfg_pushedcomms;       // Temporarily pushed main comments
   int cfg_pushed;               // ... for memory sections
   int cfg_init_search;          // used in cfg_comp_search()
+
+  // Static variable from dfu.c
+  uint16_t dfu_wIndex;          // A running number for USB messages
 } cx_t;
 
 extern cx_t *cx;
