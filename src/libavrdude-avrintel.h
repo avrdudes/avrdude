@@ -12,7 +12,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 13.04.2024
+ * 08.05.2024
  *
  */
 
@@ -82,7 +82,7 @@ typedef struct {                // Value of -1 typically means unknown
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
-extern const uPcore_t uP_table[386];
+extern const uPcore_t uP_table[394];
 
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
@@ -425,25 +425,33 @@ extern const uPcore_t uP_table[386];
 #define id_avr8ea28        327u
 #define id_avr8ea32        328u
 #define id_avr16dd14       329u
+#define id_avr16du14       386u
 #define id_avr16eb14       380u
 #define id_avr16dd20       330u
+#define id_avr16du20       387u
 #define id_avr16eb20       381u
 #define id_avr16dd28       331u
+#define id_avr16du28       388u
 #define id_avr16ea28       332u
 #define id_avr16eb28       382u
 #define id_avr16dd32       333u
+#define id_avr16du32       389u
 #define id_avr16ea32       334u
 #define id_avr16eb32       383u
 #define id_avr16ea48       335u
 #define id_avr32dd14       336u
+#define id_avr32du14       390u
 #define id_avr32dd20       337u
+#define id_avr32du20       391u
 #define id_avr32da28       338u
 #define id_avr32db28       339u
 #define id_avr32dd28       340u
+#define id_avr32du28       392u
 #define id_avr32ea28       341u
 #define id_avr32da32       342u
 #define id_avr32db32       343u
 #define id_avr32dd32       344u
+#define id_avr32du32       393u
 #define id_avr32ea32       345u
 #define id_avr32da48       346u
 #define id_avr32db48       347u
@@ -797,25 +805,33 @@ extern const uPcore_t uP_table[386];
 #define vts_atmega4808       36
 #define vts_atmega4809       40
 #define vts_avr16dd14        36
+#define vts_avr16du14        34
 #define vts_avr16eb14        31
 #define vts_avr16dd20        36
+#define vts_avr16du20        34
 #define vts_avr16eb20        31
 #define vts_avr16dd28        36
+#define vts_avr16du28        34
 #define vts_avr16ea28        37
 #define vts_avr16eb28        31
 #define vts_avr16dd32        36
+#define vts_avr16du32        34
 #define vts_avr16ea32        37
 #define vts_avr16eb32        31
 #define vts_avr16ea48        45
 #define vts_avr32dd14        36
+#define vts_avr32du14        34
 #define vts_avr32dd20        36
+#define vts_avr32du20        34
 #define vts_avr32da28        41
 #define vts_avr32db28        42
 #define vts_avr32dd28        36
+#define vts_avr32du28        34
 #define vts_avr32ea28        37
 #define vts_avr32da32        44
 #define vts_avr32db32        44
 #define vts_avr32dd32        36
+#define vts_avr32du32        34
 #define vts_avr32ea32        37
 #define vts_avr32da48        58
 #define vts_avr32db48        61
@@ -1169,25 +1185,33 @@ extern const uPcore_t uP_table[386];
 #define vbu_atmega4808       36
 #define vbu_atmega4809       40
 #define vbu_avr16dd14        36
+#define vbu_avr16du14        34
 #define vbu_avr16eb14        31
 #define vbu_avr16dd20        36
+#define vbu_avr16du20        34
 #define vbu_avr16eb20        31
 #define vbu_avr16dd28        36
+#define vbu_avr16du28        34
 #define vbu_avr16ea28        37
 #define vbu_avr16eb28        31
 #define vbu_avr16dd32        36
+#define vbu_avr16du32        34
 #define vbu_avr16ea32        37
 #define vbu_avr16eb32        31
 #define vbu_avr16ea48        45
 #define vbu_avr32dd14        36
+#define vbu_avr32du14        34
 #define vbu_avr32dd20        36
+#define vbu_avr32du20        34
 #define vbu_avr32da28        41
 #define vbu_avr32db28        42
 #define vbu_avr32dd28        36
+#define vbu_avr32du28        34
 #define vbu_avr32ea28        37
 #define vbu_avr32da32        41
 #define vbu_avr32db32        44
 #define vbu_avr32dd32        36
+#define vbu_avr32du32        34
 #define vbu_avr32ea32        37
 #define vbu_avr32da48        58
 #define vbu_avr32db48        59
@@ -1669,6 +1693,14 @@ extern const char * const    vtab_avr64dd32[36];
 
 extern const char * const    vtab_avr64du32[34];
 #define vtab_avr64du28       vtab_avr64du32
+#define vtab_avr32du32       vtab_avr64du32
+#define vtab_avr32du28       vtab_avr64du32
+#define vtab_avr32du20       vtab_avr64du32
+#define vtab_avr32du14       vtab_avr64du32
+#define vtab_avr16du32       vtab_avr64du32
+#define vtab_avr16du28       vtab_avr64du32
+#define vtab_avr16du20       vtab_avr64du32
+#define vtab_avr16du14       vtab_avr64du32
 
 extern const char * const    vtab_avr64ea32[37];
 #define vtab_avr64ea28       vtab_avr64ea32
@@ -2167,6 +2199,17 @@ extern const Configitem_t    cfgtab_atmega808[15];
 #define cfgtab_atmega4808    cfgtab_atmega808
 #define cfgtab_atmega4809    cfgtab_atmega808
 
+extern const Configitem_t    cfgtab_avr16du14[20];
+#define cfgtab_avr16du20     cfgtab_avr16du14
+#define cfgtab_avr16du28     cfgtab_avr16du14
+#define cfgtab_avr16du32     cfgtab_avr16du14
+#define cfgtab_avr32du14     cfgtab_avr16du14
+#define cfgtab_avr32du20     cfgtab_avr16du14
+#define cfgtab_avr32du28     cfgtab_avr16du14
+#define cfgtab_avr32du32     cfgtab_avr16du14
+#define cfgtab_avr64du28     cfgtab_avr16du14
+#define cfgtab_avr64du32     cfgtab_avr16du14
+
 extern const Configitem_t    cfgtab_avr16eb14[18];
 #define cfgtab_avr16eb20     cfgtab_avr16eb14
 #define cfgtab_avr16eb28     cfgtab_avr16eb14
@@ -2195,9 +2238,6 @@ extern const Configitem_t    cfgtab_avr32db28[16];
 #define cfgtab_avr128db32    cfgtab_avr32db28
 #define cfgtab_avr128db48    cfgtab_avr32db28
 #define cfgtab_avr128db64    cfgtab_avr32db28
-
-extern const Configitem_t    cfgtab_avr64du28[20];
-#define cfgtab_avr64du32     cfgtab_avr64du28
 
 // I/O Register files
 
@@ -2654,7 +2694,19 @@ extern const Register_file_t rgftab_atmega3208[406];
 extern const Register_file_t rgftab_atmega3209[432];
 #define rgftab_atmega4809    rgftab_atmega3209
 
+extern const Register_file_t rgftab_avr16du14[371];
+#define rgftab_avr32du14     rgftab_avr16du14
+
 extern const Register_file_t rgftab_avr16eb14[391];
+
+extern const Register_file_t rgftab_avr16du20[372];
+#define rgftab_avr16du28     rgftab_avr16du20
+#define rgftab_avr16du32     rgftab_avr16du20
+#define rgftab_avr32du20     rgftab_avr16du20
+#define rgftab_avr32du28     rgftab_avr16du20
+#define rgftab_avr32du32     rgftab_avr16du20
+#define rgftab_avr64du28     rgftab_avr16du20
+#define rgftab_avr64du32     rgftab_avr16du20
 
 extern const Register_file_t rgftab_avr16eb20[393];
 #define rgftab_avr16eb28     rgftab_avr16eb20
@@ -2687,9 +2739,6 @@ extern const Register_file_t rgftab_avr32db48[643];
 
 extern const Register_file_t rgftab_avr64da28[433];
 #define rgftab_avr128da28    rgftab_avr64da28
-
-extern const Register_file_t rgftab_avr64du28[372];
-#define rgftab_avr64du32     rgftab_avr64du28
 
 extern const Register_file_t rgftab_avr64da32[448];
 #define rgftab_avr128da32    rgftab_avr64da32
