@@ -1581,8 +1581,7 @@ extern cx_t *cx;
 extern "C" {
 #endif
 
-void win_sys_config_set(char sys_config[PATH_MAX]);
-void win_usr_config_set(char usr_config[PATH_MAX]);
+int win_set_path(char *path, int n, const char *file);
 
 #ifdef __cplusplus
 }

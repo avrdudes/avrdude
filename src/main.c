@@ -750,7 +750,7 @@ int main(int argc, char * argv [])
 
    // Determine the location of personal configuration file
 #if defined(WIN32)
-  win_usr_config_set(usr_config);
+  win_set_path(usr_config, sizeof usr_config, USER_CONF_FILE);
 #else
   usr_config[0] = 0;
   if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
@@ -1024,7 +1024,7 @@ int main(int argc, char * argv [])
     if (!sys_config_found) {
       // 3. Check CONFIG_DIR/avrdude.conf
 #if defined(WIN32)
-      win_sys_config_set(sys_config);
+      win_set_path(sys_config, sizeof sys_config, SYSTEM_CONF_FILE);
 #else
       strcpy(sys_config, CONFIG_DIR);
       i = strlen(sys_config);
