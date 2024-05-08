@@ -20,6 +20,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * known limitations:
+ *  - performance is suboptimal
+ *  - connecting over TCP/IP to programmers is not implemented yet
  */
 
 #include "ac_cfg.h"
@@ -44,40 +48,41 @@ const char serprog_desc[] = "Programmer using the serprog protocol";
  */
 struct pdata {
     unsigned char cmd_bitmap[32];
+    unsigned int cs;
 };
 
 #define my (*(struct pdata *)(pgm->cookie))
 
 // serprog protocol specification
 
-/* According to Serial Flasher Protocol Specification - version 1 */
+// According to Serial Flasher Protocol Specification - version 1
 #define S_ACK 0x06
 #define S_NAK 0x15
-#define S_CMD_NOP               0x00    /* No operation                                 */
-#define S_CMD_Q_IFACE           0x01    /* Query interface version                      */
-#define S_CMD_Q_CMDMAP          0x02    /* Query supported commands bitmap              */
-#define S_CMD_Q_PGMNAME         0x03    /* Query programmer name                        */
-#define S_CMD_Q_SERBUF          0x04    /* Query Serial Buffer Size                     */
-#define S_CMD_Q_BUSTYPE         0x05    /* Query supported bustypes                     */
-#define S_CMD_Q_CHIPSIZE        0x06    /* Query supported chipsize (2^n format)        */
-#define S_CMD_Q_OPBUF           0x07    /* Query operation buffer size                  */
-#define S_CMD_Q_WRNMAXLEN       0x08    /* Query Write to opbuf: Write-N maximum length */
-#define S_CMD_R_BYTE            0x09    /* Read a single byte                           */
-#define S_CMD_R_NBYTES          0x0A    /* Read n bytes                                 */
-#define S_CMD_O_INIT            0x0B    /* Initialize operation buffer                  */
-#define S_CMD_O_WRITEB          0x0C    /* Write opbuf: Write byte with address         */
-#define S_CMD_O_WRITEN          0x0D    /* Write to opbuf: Write-N                      */
-#define S_CMD_O_DELAY           0x0E    /* Write opbuf: udelay                          */
-#define S_CMD_O_EXEC            0x0F    /* Execute operation buffer                     */
-#define S_CMD_SYNCNOP           0x10    /* Special no-operation that returns NAK+ACK    */
-#define S_CMD_Q_RDNMAXLEN       0x11    /* Query read-n maximum length                  */
-#define S_CMD_S_BUSTYPE         0x12    /* Set used bustype(s).                         */
-#define S_CMD_O_SPIOP           0x13    /* Perform SPI operation.                       */
-#define S_CMD_S_SPI_FREQ        0x14    /* Set SPI clock frequency                      */
-#define S_CMD_S_PIN_STATE       0x15    /* Enable/disable output drivers                */
-#define S_CMD_S_SPI_CS          0x16    /* Set SPI chip select to use                   */
-#define S_CMD_S_SPI_MODE        0x17    /* Sets the spi mode used by S_CMD_O_SPIOP      */
-#define S_CMD_S_CS_MODE         0x18    /* Sets the way the CS is controlled            */
+#define S_CMD_NOP               0x00    // No operation
+#define S_CMD_Q_IFACE           0x01    // Query interface version
+#define S_CMD_Q_CMDMAP          0x02    // Query supported commands bitmap
+#define S_CMD_Q_PGMNAME         0x03    // Query programmer name
+#define S_CMD_Q_SERBUF          0x04    // Query Serial Buffer Size
+#define S_CMD_Q_BUSTYPE         0x05    // Query supported bustypes
+#define S_CMD_Q_CHIPSIZE        0x06    // Query supported chipsize (2^n format)
+#define S_CMD_Q_OPBUF           0x07    // Query operation buffer size
+#define S_CMD_Q_WRNMAXLEN       0x08    // Query Write to opbuf: Write-N maximum length
+#define S_CMD_R_BYTE            0x09    // Read a single byte
+#define S_CMD_R_NBYTES          0x0A    // Read n bytes
+#define S_CMD_O_INIT            0x0B    // Initialize operation buffer
+#define S_CMD_O_WRITEB          0x0C    // Write opbuf: Write byte with address
+#define S_CMD_O_WRITEN          0x0D    // Write to opbuf: Write-N
+#define S_CMD_O_DELAY           0x0E    // Write opbuf: udelay
+#define S_CMD_O_EXEC            0x0F    // Execute operation buffer
+#define S_CMD_SYNCNOP           0x10    // Special no-operation that returns NAK+ACK
+#define S_CMD_Q_RDNMAXLEN       0x11    // Query read-n maximum length
+#define S_CMD_S_BUSTYPE         0x12    // Set used bustype(s).
+#define S_CMD_O_SPIOP           0x13    // Perform SPI operation.
+#define S_CMD_S_SPI_FREQ        0x14    // Set SPI clock frequency
+#define S_CMD_S_PIN_STATE       0x15    // Enable/disable output drivers
+#define S_CMD_S_SPI_CS          0x16    // Set SPI chip select to use
+#define S_CMD_S_SPI_MODE        0x17    // Sets the spi mode used by S_CMD_O_SPIOP
+#define S_CMD_S_CS_MODE         0x18    // Sets the way the CS is controlled
 
 enum spi_mode {
     SPI_MODE_HALF_DUPLEX = 0,
@@ -169,7 +174,7 @@ static bool is_serprog_cmd_supported(const unsigned char *cmd_bitmap, unsigned c
 static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     const char *port_error =
         "unknown port specification, "
-        "please use the format /dev/ttyACM0,cs=0\n";
+        "please use the format /dev/ttyACM0\n";
     char port_default[] = "/dev/ttyACM0";
     char *serialdev;
     char *port = mmt_strdup(pt);
@@ -182,21 +187,6 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     if (!serialdev) {
         pmsg_error("%s", port_error);
         return -1;
-    }
-
-    // parse chip select if specified
-    uint8_t cs = 0;
-    char *option_str = strtok(NULL, ",");
-    if (option_str) {
-        char *option_name = strtok(option_str, "=");
-        if (strcmp(option_name, "cs") != 0) {
-            pmsg_error("unkown parameter: %s\n", option_name);
-            return -1;
-        }
-        char *option_value = strtok(NULL, "=");
-        if (option_value) {
-            cs = atoi(option_value);
-        }
     }
 
     union pinfo pinfo;
@@ -278,18 +268,16 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     }
 
     // set active chip select
-    if (option_str != NULL) {
-        if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
-            memset(buf, 0, sizeof(buf));
-            buf[0] = cs;
-            if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
-                pmsg_error("cannot change CS\n");
-                return -1;
-            }
-        } else {
-            pmsg_error("changing the CS is not supported by the %s programmer\n", pgmid);
+    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
+        memset(buf, 0, sizeof(buf));
+        buf[0] = my.cs;
+        if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
+            pmsg_error("cannot change CS\n");
             return -1;
         }
+    } else if (my.cs > 0) {
+        pmsg_error("changing the CS is not supported by the programmer\n");
+        return -1;
     }
 
     // set full duplex
@@ -460,6 +448,38 @@ static void serprog_teardown(PROGRAMMER *pgm) {
     pgm->cookie = NULL;
 }
 
+static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
+    LNODEID ln;
+    const char *extended_param;
+    int rv = 0;
+
+    for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+        extended_param = ldata(ln);
+
+        if (str_starts(extended_param, "cs=")) {
+            unsigned int cs;
+            if (sscanf(extended_param, "cs=%u", &cs) != 1) {
+                pmsg_error("invalid chip select '%s'\n", extended_param);
+                rv = -1;
+            }
+            my.cs = cs;
+            continue;
+        }
+
+        if (str_eq(extended_param, "help")) {
+            msg_error("%s -c %s extended options:\n", progname, pgmid);
+            msg_error("  -xcs=cs_num    Set the chip select to use\n");
+            msg_error("  -xhelp         Show this help menu and exit\n");
+            return LIBAVRDUDE_EXIT;
+        }
+
+        pmsg_error("invalid extended parameter '%s'\n", extended_param);
+        rv = -1;
+    }
+
+    return rv;
+}
+
 void serprog_initpgm(PROGRAMMER *pgm) {
     strcpy(pgm->type, "serprog");
 
@@ -479,5 +499,6 @@ void serprog_initpgm(PROGRAMMER *pgm) {
     // optional fields
     pgm->setup          = serprog_setup;
     pgm->teardown       = serprog_teardown;
+    pgm->parseextparams = serprog_parseextparams;
 }
 
