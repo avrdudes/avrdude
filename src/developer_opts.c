@@ -133,43 +133,6 @@ static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa
 }
 
 
-
-// Programming modes
-
-static char *prog_modes_str(int pm) {
-  static char type[1024];
-
-  strcpy(type, "0");
-  if(pm & PM_SPM)
-    strcat(type, " | PM_SPM");
-  if(pm & PM_TPI)
-    strcat(type, " | PM_TPI");
-  if(pm & PM_ISP)
-    strcat(type, " | PM_ISP");
-  if(pm & PM_PDI)
-    strcat(type, " | PM_PDI");
-  if(pm & PM_UPDI)
-    strcat(type, " | PM_UPDI");
-  if(pm & PM_HVSP)
-    strcat(type, " | PM_HVSP");
-  if(pm & PM_HVPP)
-    strcat(type, " | PM_HVPP");
-  if(pm & PM_debugWIRE)
-    strcat(type, " | PM_debugWIRE");
-  if(pm & PM_JTAG)
-    strcat(type, " | PM_JTAG");
-  if(pm & PM_JTAGmkI)
-    strcat(type, " | PM_JTAGmkI");
-  if(pm & PM_XMEGAJTAG)
-    strcat(type, " | PM_XMEGAJTAG");
-  if(pm & PM_AVR32JTAG)
-    strcat(type, " | PM_AVR32JTAG");
-  if(pm & PM_aWire)
-    strcat(type, " | PM_aWire");
-
-  return type + (type[1] == 0? 0: 4);
-}
-
 static char *extra_features_str(int m) {
   static char mode[1024];
 
@@ -620,7 +583,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   }
 
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
-  _if_partout_str(intcmp, mmt_strdup(prog_modes_str(p->prog_modes)), prog_modes);
+  _if_partout_str(intcmp, mmt_strdup(dev_prog_modes(p->prog_modes)), prog_modes);
   if(p->mcuid == 21) {
     _if_partout_str(intcmp, mmt_strdup("XVII + IV"), mcuid);
   } else {
@@ -1124,7 +1087,7 @@ void dev_output_part_defs(char *partdesc) {
           nfuses,
           ok,
           p->flags,
-          prog_modes_str(p->prog_modes),
+          dev_prog_modes(p->prog_modes),
           p->config_file, p->lineno
         );
       }
@@ -1318,7 +1281,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
-  _if_pgmout_str(intcmp, mmt_strdup(prog_modes_str(pgm->prog_modes)), prog_modes);
+  _if_pgmout_str(intcmp, mmt_strdup(dev_prog_modes(pgm->prog_modes)), prog_modes);
   _if_pgmout_str(boolcmp, mmt_strdup(pgm->is_serialadapter? "yes": "no"), is_serialadapter);
   _if_pgmout_str(intcmp, mmt_strdup(extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
