@@ -748,19 +748,18 @@ const char * avr_pin_lcname(int pinname);
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a pointer to a string, which was created by strdup
+ * @returns a string that was created by mmt_strdup()
  */
 char *pins_to_strdup(const struct pindef_t * const pindef);
 
 /**
- * This function returns a string representation of pins in the mask, eg, 1,3,5-7,9,12
- * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are represented as start-end.
+ * This function returns a string representation of pins in the mask, eg, 1, 3, 5-7, 9, 12
+ * Consecutive pin numbers are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
- * @returns pointer to a static string.
+ * @returns a string that was created by mmt_strdup()
  */
-const char * pinmask_to_str(const pinmask_t * const pinmask);
+char *pinmask_to_strdup(const pinmask_t * const pinmask);
 
 /* formerly serial.h */
 

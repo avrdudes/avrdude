@@ -222,10 +222,11 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 		return 0;
 	}
 
-	pmsg_debug("setting pin %s (%s) as %s: %s (%s active)\n",
-	          pinmask_to_str(pin.mask), ftdi_pin_name(pdata, pin),
-						avr_pin_name(pinfunc),
-	          (value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
+	char *pmsk = pinmask_to_strdup(pin.mask);
+	pmsg_debug("setting pin %s (%s) as %s: %s (%s active)\n", pmsk,
+		ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
+		(value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
+	mmt_free(pmsk);
 
 	pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pinfunc, value);
 
