@@ -740,8 +740,7 @@ static int srec2b(const char *infile, FILE * inf,
  * the entire ELF file "as is" (including things like the program
  * header table itself).
  */
-static inline
-int is_section_in_segment(Elf32_Shdr *sh, Elf32_Phdr *ph)
+static inline int is_section_in_segment(Elf32_Shdr *sh, Elf32_Phdr *ph)
 {
     if (sh->sh_offset < ph->p_offset)
         return 0;
