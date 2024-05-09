@@ -273,40 +273,6 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
     return 0;
 }
 
-static void serprog_enable(PROGRAMMER *pgm, const AVRPART *p) {
-    unsigned char buf[32];
-    // set active chip select
-    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
-        memset(buf, 0, sizeof(buf));
-        buf[0] = my.cs;
-        if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
-            pmsg_error("cannot change CS\n");
-        }
-    }
-
-    // set full duplex
-    memset(buf, 0, sizeof(buf));
-    buf[0] = SPI_MODE_FULL_DUPLEX;
-    if (perform_serprog_cmd(pgm, S_CMD_S_SPI_MODE, buf, 1, NULL, 0) != 0) {
-        pmsg_error("cannot set SPI full duplex mode\n");
-    }
-
-    // set output
-    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_PIN_STATE)) {
-        memset(buf, 0, sizeof(buf));
-        buf[0] = 1; // Pin state enable
-        if (perform_serprog_cmd(pgm, S_CMD_S_PIN_STATE, buf, 1, NULL, 0) != 0) {
-            pmsg_error("cannot enable pin state\n");
-        }
-    }
-
-    // enable the CS / reset pin
-    const unsigned char cs_mode = CS_MODE_SELECTED;
-    if (perform_serprog_cmd(pgm, S_CMD_S_CS_MODE, &cs_mode, 1, NULL, 0) != 0) {
-        pmsg_error("cannot enable the reset pin\n");
-    }
-}
-
 static void serprog_disable(const PROGRAMMER *pgm) {
     unsigned char buf[32];
     // switch cs to auto
@@ -347,13 +313,50 @@ static int serprog_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 }
 
 static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-    int tries, ret;
-
     if (p->prog_modes & PM_TPI) {
         /* We do not support TPI. This is a dedicated SPI thing */
         pmsg_error("the %s programmer does not support TPI\n", pgmid);
         return -1;
     }
+
+    unsigned char buf[32];
+
+    // set active chip select
+    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
+        memset(buf, 0, sizeof(buf));
+        buf[0] = my.cs;
+        if (perform_serprog_cmd(pgm, S_CMD_S_SPI_CS, buf, 1, NULL, 0) != 0) {
+            pmsg_error("cannot change CS\n");
+            return -1;
+        }
+    }
+
+    // set full duplex
+    memset(buf, 0, sizeof(buf));
+    buf[0] = SPI_MODE_FULL_DUPLEX;
+    if (perform_serprog_cmd(pgm, S_CMD_S_SPI_MODE, buf, 1, NULL, 0) != 0) {
+        pmsg_error("cannot set SPI full duplex mode\n");
+        return -1;
+    }
+
+    // set output
+    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_PIN_STATE)) {
+        memset(buf, 0, sizeof(buf));
+        buf[0] = 1; // Pin state enable
+        if (perform_serprog_cmd(pgm, S_CMD_S_PIN_STATE, buf, 1, NULL, 0) != 0) {
+            pmsg_error("cannot enable pin state\n");
+            return -1;
+        }
+    }
+
+    // enable the CS / reset pin
+    const unsigned char cs_mode = CS_MODE_SELECTED;
+    if (perform_serprog_cmd(pgm, S_CMD_S_CS_MODE, &cs_mode, 1, NULL, 0) != 0) {
+        pmsg_error("cannot enable the reset pin\n");
+        return -1;
+    }
+
+    int tries, ret;
 
     //enable programming on the part
     tries = 0;
@@ -433,6 +436,9 @@ static int serprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void serprog_display(const PROGRAMMER *pgm, const char *p) {
+}
+
+static void serprog_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void serprog_setup(PROGRAMMER *pgm) {
