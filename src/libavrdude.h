@@ -745,15 +745,6 @@ const char * avr_pin_name(int pinname);
 const char * avr_pin_lcname(int pinname);
 
 /**
- * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
- * Another execution of this function will overwrite the previous result in the static buffer.
- *
- * @param[in] pindef the pin definition for which we want the string representation
- * @returns pointer to a static string.
- */
-const char * pins_to_str(const struct pindef_t * const pindef);
-
-/**
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation

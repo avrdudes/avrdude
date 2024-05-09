@@ -315,40 +315,6 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
   return rv;
 }
 
-/**
- * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
- * Another execution of this function will overwrite the previous result in the static buffer.
- *
- * @param[in] pindef the pin definition for which we want the string representation
- * @returns pointer to a static string.
- */
-const char * pins_to_str(const struct pindef_t * const pindef) {
-  static char buf[(PIN_MAX + 1) * 5]; // should be enough for PIN_MAX=255
-  char *p = buf;
-  int n;
-  int pin;
-  const char * fmt;
-
-  buf[0] = 0;
-  for(pin = PIN_MIN; pin <= PIN_MAX; pin++) {
-    int index = pin / PIN_FIELD_ELEMENT_SIZE;
-    int bit = pin % PIN_FIELD_ELEMENT_SIZE;
-    if(pindef->mask[index] & (1 << bit)) {
-      if(pindef->inverse[index] & (1 << bit)) {
-        fmt = (buf[0] == 0) ? "~%d" : ",~%d";
-      } else {
-        fmt = (buf[0] == 0) ? " %d" : ",%d";
-      }
-      n = sprintf(p, fmt, pin);
-      p += n;
-    }
-  }
-
-  if(buf[0] == 0)
-    return " (not used)";
-
-  return buf;
-}
 
 /**
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
