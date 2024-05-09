@@ -549,7 +549,10 @@ pin_number_non_empty:
 pin_number:
   pin_number_non_empty
   |
-  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+  /* empty */ {
+    if(pin_name >= 0 && pin_name < N_PINS)
+      pin_clear_all(&(current_prog->pin[pin_name]));
+  }
 ;
 
 pin_list_element:
@@ -568,7 +571,10 @@ pin_list_non_empty:
 pin_list:
   pin_list_non_empty
   |
-  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+  /* empty */ {
+    if(pin_name >= 0 && pin_name < N_PINS)
+      pin_clear_all(&(current_prog->pin[pin_name]));
+  }
 ;
 
 prog_parm_pins:
