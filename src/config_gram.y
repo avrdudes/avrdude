@@ -51,7 +51,7 @@ static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op, int opnum);
 
-static int pin_name;
+#define pin_name (cx->cfgy_pin_name)
 %}
 
 %token K_NULL;

@@ -1571,6 +1571,9 @@ typedef struct {
 
   // Static variable from dfu.c
   uint16_t dfu_wIndex;          // A running number for USB messages
+
+  // Static variable from config_gram.y
+ int cfgy_pin_name;             // Temporary variable for grammar parsing
 } cx_t;
 
 extern cx_t *cx;
