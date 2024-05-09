@@ -601,21 +601,26 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 		avrftdi_check_pins_bb(pgm, true);
 		imsg_error("pin configuration for FTDI MPSSE must be:\n");
 		if (pgm->flag == PGM_FL_IS_JTAG) {
-			imsg_error("%s: 0, %s: 1, %s: 2, %s :3 (is: %s, %s, %s, %s)\n",
+			char *ptck = pins_to_strdup(&pgm->pin[PIN_JTAG_TCK]),
+			     *ptdi = pins_to_strdup(&pgm->pin[PIN_JTAG_TDI]),
+			     *ptdo = pins_to_strdup(&pgm->pin[PIN_JTAG_TDO]),
+			     *ptms = pins_to_strdup(&pgm->pin[PIN_JTAG_TMS]);
+			imsg_error("%s: 0; %s: 1; %s: 2; %s: 3 (is: %s; %s; %s; %s)\n",
 				avr_pin_name(PIN_JTAG_TCK), avr_pin_name(PIN_JTAG_TDI),
 				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
-				pins_to_str(&pgm->pin[PIN_JTAG_TCK]),
-				pins_to_str(&pgm->pin[PIN_JTAG_TDI]),
-				pins_to_str(&pgm->pin[PIN_JTAG_TDO]),
-				pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
+				*ptck? ptck: "?", *ptdi? ptdi: "?",
+				*ptdo? ptdo: "?", *ptms? ptms: "?");
+			free(ptck); free(ptdi); free(ptdo); free(ptms);
 		} else {
-			imsg_error("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n",
-				avr_pin_name(PIN_AVR_SCK),
-				avr_pin_name(PIN_AVR_SDO),
+			char *psck = pins_to_strdup(&pgm->pin[PIN_AVR_SCK]),
+			     *psdo = pins_to_strdup(&pgm->pin[PIN_AVR_SDO]),
+			     *psdi = pins_to_strdup(&pgm->pin[PIN_AVR_SDI]);
+			imsg_error("%s: 0; %s: 1; %s: 2 (is: %s; %s; %s)\n",
+				avr_pin_name(PIN_AVR_SCK), avr_pin_name(PIN_AVR_SDO),
 				avr_pin_name(PIN_AVR_SDI),
-				pins_to_str(&pgm->pin[PIN_AVR_SCK]),
-				pins_to_str(&pgm->pin[PIN_AVR_SDO]),
-				pins_to_str(&pgm->pin[PIN_AVR_SDI]));
+				*psck? psck: "?", *psdo? psdo: "?",
+				*psdi? psdi: "?");
+			free(psck); free(psdo); free(psdi);
 		}
 		imsg_error("if other pin configuration is used, fallback to slower bitbanging mode is used\n");
 
