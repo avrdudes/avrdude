@@ -291,7 +291,7 @@ void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int
     if(show & (1<<pbit)) {
       char *pinstr = pins_to_strdup(pgm->pin + pbit);
       msg_info("%s  %-6s = %s\n", p, avr_pin_name(pbit), *pinstr? pinstr: "(not used)");
-      free(pinstr);
+      mmt_free(pinstr);
     }
 }
 

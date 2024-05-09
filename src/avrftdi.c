@@ -611,7 +611,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
 				*ptck? ptck: "?", *ptdi? ptdi: "?",
 				*ptdo? ptdo: "?", *ptms? ptms: "?");
-			free(ptck); free(ptdi); free(ptdo); free(ptms);
+			mmt_free(ptck); mmt_free(ptdi); mmt_free(ptdo); mmt_free(ptms);
 		} else {
 			char *psck = pins_to_strdup(&pgm->pin[PIN_AVR_SCK]),
 			     *psdo = pins_to_strdup(&pgm->pin[PIN_AVR_SDO]),
@@ -621,7 +621,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				avr_pin_name(PIN_AVR_SDI),
 				*psck? psck: "?", *psdo? psdo: "?",
 				*psdi? psdi: "?");
-			free(psck); free(psdo); free(psdi);
+			mmt_free(psck); mmt_free(psdo); mmt_free(psdi);
 		}
 		imsg_error("if other pin configuration is used, fallback to slower bitbanging mode is used\n");
 
