@@ -1598,6 +1598,20 @@ typedef struct {
   struct termios ser_original_termios;
   int ser_saved_original_termios;
 #endif
+
+  // Static variables from term.c
+  int term_spi_mode;
+  struct mem_addr_len {
+    const AVRMEM *mem;
+    int addr, len;
+  } term_rmem[32];
+  int term_mi;
+  const PROGRAMMER *term_pgm;
+  const AVRPART *term_p;
+  int term_running;
+  char *term_header;
+  int term_tty_last, term_tty_todo;
+  int term_notty_last, term_notty_todo;
 } cx_t;
 
 extern cx_t *cx;

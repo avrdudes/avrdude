@@ -126,7 +126,7 @@ struct command cmd[] = {
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
 
 
-static int spi_mode = 0;
+#define spi_mode (cx->term_spi_mode)
 
 static int hexdump_line(char *buffer, unsigned char *p, int n, int pad) {
   char *hexdata = "0123456789abcdef";
@@ -206,16 +206,10 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 
 
 static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  static struct mem_addr_len {
-    int addr;
-    int len;
-    const AVRMEM *mem;
-  } term_rmem[32];
-  static int term_mi;
-  int i = term_mi;
+  int i = cx->term_mi;
   const char *cmd = tolower(**argv) == 'd'? "dump": "read";
 
-  if ((argc < 2 && term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
+  if ((argc < 2 && cx->term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: %s <mem> <addr> <len> # display entire region\n"
       "        %s <mem> <addr>       # start at <addr>\n"
@@ -239,7 +233,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   if(argc > 1)
     memstr = argv[1];
   else
-    memstr = term_rmem[i].mem->desc;
+    memstr = cx->term_rmem[i].mem->desc;
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
     pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
@@ -252,22 +246,22 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     return -1;
   }
 
-  // Iterate through the term_rmem structs to find relevant address and length info
+  // Iterate through the cx->term_rmem structs to find relevant address and length info
   for(i = 0; i < 32; i++) {
-    if(term_rmem[i].mem == NULL)
-      term_rmem[i].mem = mem;
-    if(term_rmem[i].mem == mem) {
-      if(term_rmem[i].len == 0)
-        term_rmem[i].len = maxsize > read_size? read_size: maxsize;
+    if(cx->term_rmem[i].mem == NULL)
+      cx->term_rmem[i].mem = mem;
+    if(cx->term_rmem[i].mem == mem) {
+      if(cx->term_rmem[i].len == 0)
+        cx->term_rmem[i].len = maxsize > read_size? read_size: maxsize;
       break;
     }
   }
 
   if(i >= 32) { // Catch highly unlikely case
-    pmsg_error("(%s) term_rmem[] under-dimensioned; increase and recompile\n", cmd);
+    pmsg_error("(%s) cx->term_rmem[] under-dimensioned; increase and recompile\n", cmd);
     return -1;
   }
-  term_mi = i;
+  cx->term_mi = i;
 
   // Get start address if present
   const char *errptr;
@@ -288,15 +282,15 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
         cmd, mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
       return -1;
     }
-    term_rmem[i].addr = addr;
+    cx->term_rmem[i].addr = addr;
   }
 
   // Get number of bytes to read if present
   if (argc >= 3) {
     if(str_eq(argv[argc - 1], "...")) {
       if (argc == 3)
-        term_rmem[i].addr = 0;
-      term_rmem[i].len = maxsize - term_rmem[i].addr;
+        cx->term_rmem[i].addr = 0;
+      cx->term_rmem[i].len = maxsize - cx->term_rmem[i].addr;
     } else if (argc == 4) {
       int len = str_int(argv[3], STR_INT32, &errptr);
       if(errptr) {
@@ -306,7 +300,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
       // Turn negative len value (number of bytes from top of memory) into an actual length
       if (len < 0)
-        len = maxsize + len + 1 - term_rmem[i].addr;
+        len = maxsize + len + 1 - cx->term_rmem[i].addr;
 
       if (len == 0)
         return 0;
@@ -314,43 +308,45 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
         return -1;
       }
-      term_rmem[i].len = len;
+      cx->term_rmem[i].len = len;
     }
   }
   // Wrap around if the memory address is greater than the maximum size
-  if(term_rmem[i].addr >= maxsize)
-    term_rmem[i].addr = 0; // Wrap around
+  if(cx->term_rmem[i].addr >= maxsize)
+    cx->term_rmem[i].addr = 0; // Wrap around
 
   // Trim len if nessary to prevent reading from the same memory address twice
-  if (term_rmem[i].len > maxsize)
-    term_rmem[i].len = maxsize;
+  if (cx->term_rmem[i].len > maxsize)
+    cx->term_rmem[i].len = maxsize;
 
-  uint8_t *buf = mmt_malloc(term_rmem[i].len);
+  uint8_t *buf = mmt_malloc(cx->term_rmem[i].len);
   if(argc < 4 && verbose)
-    term_out(">>> %s %s 0x%x 0x%x\n", cmd, term_rmem[i].mem->desc, term_rmem[i].addr, term_rmem[i].len);
+    term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[i].mem->desc,
+      cx->term_rmem[i].addr, cx->term_rmem[i].len);
 
   report_progress(0, 1, "Reading");
-  for (int j = 0; j < term_rmem[i].len; j++) {
-    int addr = (term_rmem[i].addr + j) % mem->size;
-    int rc = pgm->read_byte_cached(pgm, p, term_rmem[i].mem, addr, &buf[j]);
+  for (int j = 0; j < cx->term_rmem[i].len; j++) {
+    int addr = (cx->term_rmem[i].addr + j) % mem->size;
+    int rc = pgm->read_byte_cached(pgm, p, cx->term_rmem[i].mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
-      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) term_rmem[i].addr + j, p->desc);
+      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc,
+        (long) cx->term_rmem[i].addr + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       mmt_free(buf);
       return -1;
     }
-    report_progress(j, term_rmem[i].len, NULL);
+    report_progress(j, cx->term_rmem[i].len, NULL);
   }
   report_progress(1, 1, NULL);
 
-  hexdump_buf(stdout, mem, term_rmem[i].addr, buf, term_rmem[i].len);
+  hexdump_buf(stdout, mem, cx->term_rmem[i].addr, buf, cx->term_rmem[i].len);
   lterm_out("");
 
   mmt_free(buf);
 
-  term_rmem[i].addr = (term_rmem[i].addr + term_rmem[i].len) % maxsize;
+  cx->term_rmem[i].addr = (cx->term_rmem[i].addr + cx->term_rmem[i].len) % maxsize;
 
   return 0;
 }
@@ -493,7 +489,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     if (len == 0)
       return 0;
     if (len < 0 || len > maxsize - addr) {
-      pmsg_error("(write ...) effective %s start address 0x%0*x and effective length %d not compatible with memory size %d\n",
+      pmsg_error("(write ...) effective %s start address 0x%0*x and effective length %d incompatible with memory size %d\n",
         mem->desc, maxsize > 0x10000? 5: 4, addr, len, maxsize);
       return -1;
     }
@@ -937,7 +933,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
 // Config command
 
-static const int MAX_PAD = 10;  // Align value labels if difference between their lengths is less than this
+static const int MAX_PAD = 10;  // Align value labels if their length difference is less than this
 
 typedef union {                 // Lock memory can be 1 or 4 bytes
   uint8_t b[4];
@@ -1364,7 +1360,8 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     if(!nf || !str_eq(fc[nf-1].memstr, mt))
       fc[nf++].memstr = mt;
     if(fc[nf-1].mask & ct[i].mask) { // This should not happen
-      pmsg_error("(config) overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name, ct[i].mask, p->desc, cc[i].memstr);
+      pmsg_error("(config) overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name,
+        ct[i].mask, p->desc, cc[i].memstr);
       ret = -1;
       goto finished;
     }
@@ -1480,7 +1477,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   if((toassign<<ct[ci].lsh) & ~ct[ci].mask) {
-    pmsg_error("(config) attempt to assign bits in 0x%02x outside mask 0x%02x; max value is 0x%02x; not assigned\n",
+    pmsg_error("(config) attempt to assign bits in 0x%02x outside mask 0x%02x (max value is 0x%02x); not assigned\n",
       toassign<<ct[ci].lsh, ct[ci].mask, ct[ci].mask>>ct[ci].lsh);
     ret = -1;
     goto finished;
@@ -2463,11 +2460,6 @@ int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line) {
 
 #if defined(HAVE_LIBREADLINE)
 
-static const PROGRAMMER *term_pgm;
-static const AVRPART *term_p;
-
-static int term_running;
-
 // Any character in standard input available (without sleeping)?
 static int readytoread() {
 #ifdef _MSC_VER
@@ -2519,8 +2511,8 @@ static void term_gotline(char *cmdstr) {
     if(*cmdstr) {
       add_history(cmdstr);
       // Only quit returns a value > 0
-      if(process_line(cmdstr, term_pgm, term_p) > 0)
-        term_running = 0;
+      if(process_line(cmdstr, cx->term_pgm, cx->term_p) > 0)
+        cx->term_running = 0;
     }
     mmt_free(cmdstr);
     /*
@@ -2530,36 +2522,36 @@ static void term_gotline(char *cmdstr) {
      *
      * see https://github.com/avrdudes/avrdude/issues/1173
      */
-    if(term_running) {
+    if(cx->term_running) {
       rl_callback_handler_remove();
       rl_callback_handler_install("avrdude> ", term_gotline);
     }
   } else {
     // End of file or terminal ^D
     lterm_out("");
-    cmd_quit(term_pgm, term_p, 0, NULL);
-    term_running = 0;
+    cmd_quit(cx->term_pgm, cx->term_p, 0, NULL);
+    cx->term_running = 0;
   }
-  if(!term_running)
+  if(!cx->term_running)
     rl_callback_handler_remove();
 }
 
 
 static int terminal_mode_interactive(const PROGRAMMER *pgm, const AVRPART *p) {
-  term_pgm = pgm;               // For callback routine
-  term_p = p;
+  cx->term_pgm = pgm;           // For callback routine
+  cx->term_p = p;
 
   rl_callback_handler_install("avrdude> ", term_gotline);
 
-  term_running = 1;
-  for(int n=1; term_running; n++) {
+  cx->term_running = 1;
+  for(int n=1; cx->term_running; n++) {
     if(n%16 == 0) {             // Every 100 ms (16*6.25 us) reset bootloader watchdog timer
       if(pgm->term_keep_alive)
         pgm->term_keep_alive(pgm, NULL);
       led_set(pgm, LED_NOP);
     }
     usleep(6250);
-    if(readytoread() > 0 && term_running)
+    if(readytoread() > 0 && cx->term_running)
       rl_callback_read_char();
   }
 
@@ -2687,28 +2679,26 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
  *    1 terminate progress bar with \n when finishing at 100 percent
  */
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
-  static char *term_header;
-  static int term_tty_last, term_tty_todo;
   int i;
 
   setvbuf(stderr, (char *) NULL, _IONBF, 0); // Set stderr to be ubuffered
 
   if(hdr) {
     lmsg_info("");              // Print new line unless already done before
-    term_tty_last = 0;
-    term_tty_todo = 1;      // OK, we have a header, start reporting
-    if(term_header)
-      mmt_free(term_header);
-    term_header = mmt_strdup(hdr);
+    cx->term_tty_last = 0;
+    cx->term_tty_todo = 1;      // OK, we have a header, start reporting
+    if(cx->term_header)
+      mmt_free(cx->term_header);
+    cx->term_header = mmt_strdup(hdr);
   }
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
-  if(term_tty_todo) {
-    if(!term_header)
-      term_header = mmt_strdup("report");
+  if(cx->term_tty_todo) {
+    if(!cx->term_header)
+      cx->term_header = mmt_strdup("report");
 
-    int showperc = finish >= 0? percent: term_tty_last;
+    int showperc = finish >= 0? percent: cx->term_tty_last;
 
     char hashes[51];
     memset(hashes, finish >= 0? ' ': '-', 50);
@@ -2717,43 +2707,41 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     hashes[50] = 0;
 
     // Overwrite line using \r
-    msg_info("\r%s | %s | %d%% %0.2f s ", term_header, hashes, showperc, etime);
+    msg_info("\r%s | %s | %d%% %0.2f s ", cx->term_header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
         lmsg_info("");
-      term_tty_todo = 0;    // Stop future reporting
+      cx->term_tty_todo = 0;    // Stop future reporting
     }
   }
-  term_tty_last = percent;
+  cx->term_tty_last = percent;
 
   setvbuf(stderr, (char *) NULL, _IOLBF, 0); // Set stderr to be line buffered
 }
 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
-  static int term_notty_last, term_notty_todo;
-
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
     lmsg_info("%s | ", hdr);
-    term_notty_last = 0;
-    term_notty_todo = 1;
+    cx->term_notty_last = 0;
+    cx->term_notty_todo = 1;
   }
 
-  if(term_notty_todo) {
-    for(int cnt = percent/2; cnt > term_notty_last/2; cnt--)
+  if(cx->term_notty_todo) {
+    for(int cnt = percent/2; cnt > cx->term_notty_last/2; cnt--)
       msg_info(finish >= 0? "#": "-");
 
     if(percent == 100) {
-      msg_info(" | %d%% %0.2fs", finish >= 0? 100: term_notty_last, etime);
+      msg_info(" | %d%% %0.2fs", finish >= 0? 100: cx->term_notty_last, etime);
       if(finish)
         lmsg_info("");
-      term_notty_todo = 0;
+      cx->term_notty_todo = 0;
     }
   }
-  term_notty_last = percent;
+  cx->term_notty_last = percent;
 
   setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 }
