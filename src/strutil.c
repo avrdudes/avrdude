@@ -724,10 +724,11 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
       if(is_signed && is_out_of_range)
         Warning("%s out of int%d range, interpreted as %d-byte %lld%sU",
-          stri, sd->size*8, sd->size, sd->ll, sd->size == 4? "L": sd->size==2? "H": "HH");
+          stri, sd->size*8, sd->size, (long long int) sd->ll,
+          sd->size == 4? "L": sd->size==2? "H": "HH");
       else if(is_out_of_range)
         Warning("%s out of uint%d range, interpreted as %d-byte %llu",
-          stri, sd->size*8, sd->size, sd->ull);
+          stri, sd->size*8, sd->size, (long long unsigned int) sd->ull);
       else if(is_outside_int64_t)
         Warning("%s out of int64 range (consider U suffix)", stri);
 
