@@ -570,7 +570,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
  */
 
 #define Return(...) do { \
-  sd->errstr = str_sprintf(__VA_ARGS__); \
+  sd->errstr = mmt_sprintf(__VA_ARGS__); \
   sd->type = 0; \
   mmt_free(str); \
   return sd; \
@@ -579,7 +579,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
 #define Warning(...) do { \
   if(sd->warnstr) \
     mmt_free(sd->warnstr); \
-   sd->warnstr = str_sprintf(__VA_ARGS__); \
+   sd->warnstr = mmt_sprintf(__VA_ARGS__); \
 } while (0)
 
 #define sizeforsigned(ll) ( \

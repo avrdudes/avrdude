@@ -133,9 +133,9 @@ void free_update(UPDATE *u) {
 
 char *update_str(const UPDATE *upd) {
   if(upd->cmdline)
-    return str_sprintf("-%c %s",
+    return mmt_sprintf("-%c %s",
       str_eq("interactive terminal", upd->cmdline)? 't': 'T', upd->cmdline);
-  return str_sprintf("-U %s:%c:%s:%c",
+  return mmt_sprintf("-U %s:%c:%s:%c",
     upd->memstr,
     upd->op == DEVICE_READ? 'r': upd->op == DEVICE_WRITE? 'w': 'v',
     upd->filename,

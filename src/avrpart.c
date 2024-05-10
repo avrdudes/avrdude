@@ -766,7 +766,7 @@ int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
 
 
 static char *print_num(const char *fmt, int n) {
-  return str_sprintf(n<10? "%d": fmt, n);
+  return mmt_sprintf(n<10? "%d": fmt, n);
 }
 
 static int num_len(const char *fmt, int n) {
@@ -835,7 +835,7 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
 
     // Create mem desc string including alias if present
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    char *m_desc_str = str_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
+    char *m_desc_str = mmt_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
 
     // Print memory table content
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {

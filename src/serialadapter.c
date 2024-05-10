@@ -217,7 +217,7 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
       if(sa_unique_by_sea(sea, "", sp, n, i))
         Plist[Pi++] = mmt_strdup(id);
       else if(*sn && sa_unique_by_sea(sea, sn, sp, n, i))
-        Plist[Pi++] = str_sprintf("%s:%s", id, sn);
+        Plist[Pi++] = mmt_sprintf("%s:%s", id, sn);
       else if(!via && sa_num_matches_by_sea(sea, "", sp+i, 1))
         via = id;
 
@@ -232,11 +232,11 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
 
   if(Pi == 0 && sp[i].vid) {    // No unique serial adapter, so maybe vid:pid[:sn] works?
     if(sa_unique_by_ids(sp[i].vid, sp[i].pid, "", sp, n, i))
-      Plist[Pi++] = str_sprintf("usb:%04x:%04x", sp[i].vid, sp[i].pid);
+      Plist[Pi++] = mmt_sprintf("usb:%04x:%04x", sp[i].vid, sp[i].pid);
     else if(*sn && sa_unique_by_ids(sp[i].vid, sp[i].pid, sn, sp, n, i))
-      Plist[Pi++] = str_sprintf("usb:%04x:%04x:%s", sp[i].vid, sp[i].pid, sn);
+      Plist[Pi++] = mmt_sprintf("usb:%04x:%04x:%s", sp[i].vid, sp[i].pid, sn);
     else if(via && Pi == 0)
-      Plist[Pi++] = str_sprintf("(via %s serial adapter)", via);
+      Plist[Pi++] = mmt_sprintf("(via %s serial adapter)", via);
   }
 
   Plist[Pi] = NULL;

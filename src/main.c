@@ -218,8 +218,8 @@ static void usage(void)
   char *home = getenv("HOME");
   size_t l = home? strlen(home): 0;
   char *cfg = home && str_casestarts(usr_config, home)?
-     str_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
-     str_sprintf("%s", usr_config);
+     mmt_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
+     mmt_sprintf("%s", usr_config);
 
   msg_error(
     "Usage: %s [options]\n"
