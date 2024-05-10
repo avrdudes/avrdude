@@ -187,14 +187,14 @@ static void dumpBlock(const char *prefix, const unsigned char *buf, int len)
 
 static const char *usbErrorText(int usbErrno) {
     switch(usbErrno){
-        case USB_ERROR_NONE:    return "Success";
-        case USB_ERROR_ACCESS:  return "Access denied";
-        case USB_ERROR_NOTFOUND:return "Device not found";
-        case USB_ERROR_BUSY:    return "Device is busy";
+        case USB_ERROR_NONE:    return "success";
+        case USB_ERROR_ACCESS:  return "access denied";
+        case USB_ERROR_NOTFOUND:return "device not found";
+        case USB_ERROR_BUSY:    return "device is busy";
         case USB_ERROR_IO:      return "I/O Error";
         default: {
             char *buffer = avr_cc_buffer(32);
-            sprintf(buffer, "Unknown error %d", usbErrno);
+            sprintf(buffer, "unknown error %d", usbErrno);
             return buffer;
         }
     }
@@ -210,7 +210,7 @@ static int avrdoper_open(const char *port, union pinfo pinfo, union filedescript
 
     rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
     if(rval != 0){
-        pmsg_ext_error("%s\n", usbErrorText(rval));
+        pmsg_ext_error("USB %s\n", usbErrorText(rval));
         return -1;
     }
     return 0;
@@ -256,7 +256,7 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
         rval = usbSetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, (char *)buffer,
 			    reportDataSizes[lenIndex] + 2);
         if(rval != 0){
-            pmsg_error("%s\n", usbErrorText(rval));
+            pmsg_error("USB %s\n", usbErrorText(rval));
             return -1;
         }
         buflen -= thisLen;
@@ -281,7 +281,7 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         usbErr = usbGetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, lenIndex + 1,
 			      (char *)buffer, &len);
         if(usbErr != 0){
-            pmsg_error("%s\n", usbErrorText(usbErr));
+            pmsg_error("USB %s\n", usbErrorText(usbErr));
             return -1;
         }
         msg_trace("Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
