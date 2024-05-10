@@ -2686,14 +2686,15 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
  */
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
   static char *header;
-  static int last, done = 1;
+  static int term_tty_last, term_tty_todo;
   int i;
 
-  setvbuf(stderr, (char *) NULL, _IONBF, 0);  // Set stderr to be ubuffered
+  setvbuf(stderr, (char *) NULL, _IONBF, 0); // Set stderr to be ubuffered
 
   if(hdr) {
     lmsg_info("");              // Print new line unless already done before
-    last = done = 0;            // OK, we have a header, start reporting
+    term_tty_last = 0;
+    term_tty_todo = 1;      // OK, we have a header, start reporting
     if(header)
       mmt_free(header);
     header = mmt_strdup(hdr);
@@ -2701,11 +2702,11 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
-  if(!done) {
+  if(term_tty_todo) {
     if(!header)
       header = mmt_strdup("report");
 
-    int showperc = finish >= 0? percent: last;
+    int showperc = finish >= 0? percent: term_tty_last;
 
     char hashes[51];
     memset(hashes, finish >= 0? ' ': '-', 50);
@@ -2718,16 +2719,16 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     if(percent == 100) {
       if(finish)
         lmsg_info("");
-      done = 1;                 // Stop future reporting
+      term_tty_todo = 0;    // Stop future reporting
     }
   }
-  last = percent;
+  term_tty_last = percent;
 
   setvbuf(stderr, (char *) NULL, _IOLBF, 0); // Set stderr to be line buffered
 }
 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
-  static int last, done = 1;
+  static int term_notty_last, term_notty_todo;
 
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
@@ -2735,21 +2736,22 @@ static void update_progress_no_tty(int percent, double etime, const char *hdr, i
 
   if(hdr) {
     lmsg_info("%s | ", hdr);
-    last = done = 0;
+    term_notty_last = 0;
+    term_notty_todo = 1;
   }
 
-  if(!done) {
-    for(int cnt = percent/2; cnt > last/2; cnt--)
+  if(term_notty_todo) {
+    for(int cnt = percent/2; cnt > term_notty_last/2; cnt--)
       msg_info(finish >= 0? "#": "-");
 
     if(percent == 100) {
-      msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
+      msg_info(" | %d%% %0.2fs", finish >= 0? 100: term_notty_last, etime);
       if(finish)
         lmsg_info("");
-      done = 1;
+      term_notty_todo = 0;
     }
   }
-  last = percent;
+  term_notty_last = percent;
 
   setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 }
