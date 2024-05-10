@@ -283,6 +283,19 @@ const char *str_ccprintf(const char *fmt, ...) {
   return p;
 }
 
+// Returns a temporary, possibly abbreviated copy of str in closed-circuit space
+const char *str_ccstrdup(const char *str) {
+  size_t size = strlen(str) + 1, avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  if(size > avail)
+    size = avail;
+  char *ret = avr_cc_buffer(size);
+  strncpy(ret, str, size);
+  ret[size-1] = 0;
+
+  return ret;
+}
+
+
 // Reads a potentially long line and returns it in a mmt_malloc'd buffer
 char *str_fgets(FILE *fp, const char **errpp) {
   int bs = 1023;                // Must be 2^n - 1

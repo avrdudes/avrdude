@@ -1483,6 +1483,7 @@ const char *str_ccprintf(const char *fmt, ...)
    __attribute__ ((format (printf, 1, 2)))
 #endif
 ;
+const char *str_ccstrdup(const char *str);
 char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
