@@ -50,7 +50,7 @@ static unsigned char serial_over_ethernet = 0;
 
 /* HANDLE hComPort=INVALID_HANDLE_VALUE; */
 
-static struct baud_mapping baud_lookup_table [] = {
+static const struct baud_mapping baud_lookup_table [] = {
   { 300,    CBR_300 },
   { 600,    CBR_600 },
   { 1200,   CBR_1200 },
@@ -64,20 +64,12 @@ static struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
-static DWORD serial_baud_lookup(long baud)
-{
-  struct baud_mapping *map = baud_lookup_table;
-
-  while (map->baud) {
+static DWORD serial_baud_lookup(long baud) {
+  for(const struct baud_mapping *map = baud_lookup_table; map->baud; map++)
     if (map->baud == baud)
       return map->speed;
-    map++;
-  }
 
-  /*
-   * If a non-standard BAUD rate is used, issue
-   * a warning (if we are verbose) and return the raw rate
-   */
+  // Return the raw rate when asked for non-standard baud rate
   pmsg_notice2("serial_baud_lookup(): using non-standard baud rate: %ld", baud);
 
   return baud;
