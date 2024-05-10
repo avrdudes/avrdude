@@ -965,15 +965,13 @@ typedef struct {                // Context parameters to be passed to functions
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
 static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
   const char *err = NULL;
-  char *tofree;
   int islock;
 
   islock = str_starts(cci->memstr, "lock");
   if((islock && cci->t->memoffset != 0) ||
     (!islock && (cci->t->memoffset < 0 || cci->t->memoffset >= (int) (sizeof fl->fuses/sizeof*fl->fuses)))) {
 
-    err = cache_string(tofree = str_sprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
-    mmt_free(tofree);
+    err = cache_string(str_ccprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
     goto back;
   }
 
@@ -991,22 +989,19 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
 
   const AVRMEM *mem = avr_locate_mem(p, cci->memstr);
   if(!mem) {
-    err = cache_string(tofree = str_sprintf("memory %s not defined for part %s", cci->memstr, p->desc));
-    mmt_free(tofree);
+    err = cache_string(str_ccprintf("memory %s not defined for part %s", cci->memstr, p->desc));
     goto back;
   }
 
   if((islock && mem->size != 4 && mem->size != 1) || (!islock && mem->size != 2 && mem->size != 1)) {
-    err = cache_string(tofree = str_sprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
-    mmt_free(tofree);
+    err = cache_string(str_ccprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
     goto back;
   }
 
   fl_t m = {.i = 0};
   for(int i=0; i<mem->size; i++)
     if(led_read_byte(pgm, p, mem, i, m.b+i) < 0) {
-      err = cache_string(tofree = str_sprintf("cannot read %s's %s memory", p->desc, mem->desc));
-      mmt_free(tofree);
+      err = cache_string(str_ccprintf("cannot read %s's %s memory", p->desc, mem->desc));
       goto back;
     }
 

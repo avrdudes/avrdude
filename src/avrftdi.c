@@ -176,22 +176,19 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	}
 
 	if (divisor < 0) {
-		char *f = str_frq(freq, 6), *h = str_frq(clock/2.0, 6);
-		pmsg_warning("frequency %s too high, resetting to %s\n", f, h);
-		mmt_free(f); mmt_free(h);
+		pmsg_warning("frequency %s too high, resetting to %s\n",
+			str_ccfrq(freq, 6), str_ccfrq(clock/2.0, 6));
 		divisor = 0;
 	}
 
 	if (divisor > 65535) {
-		char *f = str_frq(freq, 6), *l = str_frq(clock/2.0 / 65536, 6);
-		pmsg_warning("frequency %s too low, resetting to %s\n", f, l);
-		mmt_free(f); mmt_free(l);
+		pmsg_warning("frequency %s too low, resetting to %s\n",
+			str_ccfrq(freq, 6), str_ccfrq(clock/2.0 / 65536, 6));
 		divisor = 65535;
 	}
 
-	char *f = str_frq(clock/2.0 / (divisor + 1), 6);
-	imsg_notice(" - frequency %s (clock divisor %d = 0x%04x)\n", f, divisor, divisor);
-	mmt_free(f);
+	imsg_notice(" - frequency %s (clock divisor %d = 0x%04x)\n",
+		str_ccfrq(clock/2.0 / (divisor + 1), 6), divisor, divisor);
 
 	*ptr++ = TCK_DIVISOR;
 	*ptr++ = (uint8_t)(divisor & 0xff);

@@ -1478,6 +1478,11 @@ char *str_sprintf(const char *fmt, ...)
    __attribute__ ((format (printf, 1, 2)))
 #endif
 ;
+const char *str_ccprintf(const char *fmt, ...)
+#if defined(__GNUC__)
+   __attribute__ ((format (printf, 1, 2)))
+#endif
+;
 char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
@@ -1498,7 +1503,7 @@ void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
-char *str_frq(double f, int n);
+const char *str_ccfrq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 

@@ -255,6 +255,33 @@ char *str_sprintf(const char *fmt, ...) {
   return p;
 }
 
+// Return a string in closed-circuit space with the sprintf() result
+const char *str_ccprintf(const char *fmt, ...) {
+  int size = 0, avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  va_list ap;
+
+  // Compute size
+  va_start(ap, fmt);
+  size = vsnprintf(NULL, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    return "";
+
+  size++;                       // For terminating '\0'
+  if(size > avail)
+    size = avail;
+  char *p = avr_cc_buffer(size);
+
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    *p = 0;
+
+  return p;
+}
 
 // Reads a potentially long line and returns it in a mmt_malloc'd buffer
 char *str_fgets(FILE *fp, const char **errpp) {
@@ -877,7 +904,6 @@ void str_freedata(Str2data *sd) {
  */
 
 unsigned long long int str_int(const char *str, int type, const char **errpp) {
-  char *tofree;
   const char *err = NULL;
   Str2data *sd = NULL;
   unsigned long long int ret = 0ULL;
@@ -919,20 +945,17 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
 
     if(signd == STR_SIGNED) {   // Strictly signed
       if(sd->ll < smin[lds] || sd->ll > smax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of int%d range", 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of int%d range", 1<<(3+lds)));
         goto finished;
       }
     } else if(signd == STR_UNSIGNED) { // Strictly unsigned are out of range if u and -u are
       if(sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of uint%d range", 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of uint%d range", 1<<(3+lds)));
         goto finished;
       }
     } else {                    // Neither strictly signed or unsigned
       if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
         goto finished;
       }
     }
@@ -1028,14 +1051,14 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
   return (char *) q;
 }
 
-// Return mmt_malloc'd string for frequency with n significant digits and xHz unit
-char *str_frq(double f, int n) {
+// Return string for frequency with n significant digits and xHz unit in closed-circuit space
+const char *str_ccfrq(double f, int n) {
   struct { double fq; const char *pre; } prefix[] = {{1e9, "G"},  {1e6, "M"},  {1e3, "k"},};
 
   for(size_t i = 0; i < sizeof prefix/sizeof*prefix; i++)
     if(f >= prefix[i].fq)
-      return str_sprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
-  return str_sprintf("%.*g Hz", n, f);
+      return str_ccprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
+  return str_ccprintf("%.*g Hz", n, f);
 }
 
 /*
