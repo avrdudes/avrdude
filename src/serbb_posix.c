@@ -72,7 +72,7 @@ static const int serregbits[DB9PINS + 1] =
 { 0, TIOCM_CD, 0, 0, TIOCM_DTR, 0, TIOCM_DSR, TIOCM_RTS, TIOCM_CTS, TIOCM_RI };
 
 #ifdef DEBUG
-static const char *serpins[DB9PINS + 1] =
+static const char * const serpins[DB9PINS + 1] =
   { "NONE", "CD", "RXD", "TXD", "DTR", "GND", "DSR", "RTS", "CTS", "RI" };
 #endif
 
