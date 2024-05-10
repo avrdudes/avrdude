@@ -156,9 +156,9 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
  * Consecutive pin numbers are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
- * @returns a string that was created by mmt_strdup()
+ * @returns a temporary string that lives in closed-circuit space
  */
-char *pinmask_to_strdup(const pinmask_t * const pinmask) {
+const char *pinmask_to_str(const pinmask_t * const pinmask) {
   char buf[6 * (PIN_MAX + 1)];
   char *p = buf;
   int n;
@@ -196,7 +196,7 @@ char *pinmask_to_strdup(const pinmask_t * const pinmask) {
     p += n;
   }
 
-  return mmt_strdup(*buf? buf: "(no pins)");
+  return str_ccstrdup(*buf? buf: "(no pins)");
 }
 
 
@@ -269,36 +269,26 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
     }
     if(invalid) {
       if(output) {
-        char *mskinvalid = pinmask_to_strdup(invalid_used);
         pmsg_error("%s: these pins are not valid pins for this function: %s\n",
-          avr_pin_name(pinname), mskinvalid);
-        mmt_free(mskinvalid);
-        char *mskvalid = pinmask_to_strdup(valid_pins->mask);
+          avr_pin_name(pinname), pinmask_to_str(invalid_used));
         pmsg_notice("%s: valid pins for this function are: %s\n",
-          avr_pin_name(pinname), mskvalid);
-        mmt_free(mskvalid);
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
     }
     if(inverse) {
       if(output) {
-        char *mskinvalidinv = pinmask_to_strdup(inverse_used);
         pmsg_error("%s: these pins are not usable as inverse pins for this function: %s\n",
-          avr_pin_name(pinname), mskinvalidinv);
-        mmt_free(mskinvalidinv);
-        char *mskvalidinv = pinmask_to_strdup(valid_pins->inverse);
+          avr_pin_name(pinname), pinmask_to_str(inverse_used));
         pmsg_notice("%s: valid inverse pins for this function are: %s\n",
-          avr_pin_name(pinname), mskvalidinv);
-        mmt_free(mskvalidinv);
+          avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
     }
     if(used) {
       if(output) {
-        char *pmsk = pinmask_to_strdup(already_used);
         pmsg_error("%s: these pins are set for other functions too: %s\n",
-          avr_pin_name(pinname), pmsk);
-        mmt_free(pmsk);
+          avr_pin_name(pinname), pinmask_to_str(already_used));
         is_ok = false;
       }
     }
@@ -322,9 +312,9 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a string that was created by mmt_strdup()
+ * @returns a temporary string that lives in closed-circuit space
  */
-char *pins_to_strdup(const struct pindef_t * const pindef) {
+const char *pins_to_str(const struct pindef_t * const pindef) {
   char buf[6*(PIN_MAX+1)], *p = buf;
 
   *buf = 0;
@@ -337,7 +327,7 @@ char *pins_to_strdup(const struct pindef_t * const pindef) {
     }
   }
 
-  return mmt_strdup(buf);
+  return str_ccstrdup(buf);
 }
 
 /**

@@ -1304,13 +1304,10 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbproduct), usbproduct);
 
   for(int i=0; i<N_PINS; i++) {
-    char *str = pins_to_strdup(pgm->pin+i);
-    char *bstr = base? pins_to_strdup(base->pin+i): NULL;
+    const char *str = pins_to_str(pgm->pin+i);
+    const char *bstr = base? pins_to_str(base->pin+i): NULL;
     if(!base || !str_eq(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
-
-    mmt_free(str);
-    mmt_free(bstr);
   }
 
   pgmstr = dev_hvupdi_support_liststr(pgm);

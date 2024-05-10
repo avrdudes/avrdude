@@ -219,11 +219,9 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 		return 0;
 	}
 
-	char *pmsk = pinmask_to_strdup(pin.mask);
-	pmsg_debug("setting pin %s (%s) as %s: %s (%s active)\n", pmsk,
-		ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
+	pmsg_debug("setting pin %s (%s) as %s: %s (%s active)\n",
+		pinmask_to_str(pin.mask), ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
 		(value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
-	mmt_free(pmsk);
 
 	pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pinfunc, value);
 
@@ -599,26 +597,21 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 		avrftdi_check_pins_bb(pgm, true);
 		imsg_error("pin configuration for FTDI MPSSE must be:\n");
 		if (pgm->flag == PGM_FL_IS_JTAG) {
-			char *ptck = pins_to_strdup(&pgm->pin[PIN_JTAG_TCK]),
-			     *ptdi = pins_to_strdup(&pgm->pin[PIN_JTAG_TDI]),
-			     *ptdo = pins_to_strdup(&pgm->pin[PIN_JTAG_TDO]),
-			     *ptms = pins_to_strdup(&pgm->pin[PIN_JTAG_TMS]);
 			imsg_error("%s: 0; %s: 1; %s: 2; %s: 3 (is: %s; %s; %s; %s)\n",
 				avr_pin_name(PIN_JTAG_TCK), avr_pin_name(PIN_JTAG_TDI),
 				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
-				*ptck? ptck: "?", *ptdi? ptdi: "?",
-				*ptdo? ptdo: "?", *ptms? ptms: "?");
-			mmt_free(ptck); mmt_free(ptdi); mmt_free(ptdo); mmt_free(ptms);
+				pins_to_str(&pgm->pin[PIN_JTAG_TCK]),
+				pins_to_str(&pgm->pin[PIN_JTAG_TDI]),
+				pins_to_str(&pgm->pin[PIN_JTAG_TDO]),
+				pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
 		} else {
-			char *psck = pins_to_strdup(&pgm->pin[PIN_AVR_SCK]),
-			     *psdo = pins_to_strdup(&pgm->pin[PIN_AVR_SDO]),
-			     *psdi = pins_to_strdup(&pgm->pin[PIN_AVR_SDI]);
 			imsg_error("%s: 0; %s: 1; %s: 2 (is: %s; %s; %s)\n",
-				avr_pin_name(PIN_AVR_SCK), avr_pin_name(PIN_AVR_SDO),
+				avr_pin_name(PIN_AVR_SCK),
+				avr_pin_name(PIN_AVR_SDO),
 				avr_pin_name(PIN_AVR_SDI),
-				*psck? psck: "?", *psdo? psdo: "?",
-				*psdi? psdi: "?");
-			mmt_free(psck); mmt_free(psdo); mmt_free(psdi);
+				pins_to_str(&pgm->pin[PIN_AVR_SCK]),
+				pins_to_str(&pgm->pin[PIN_AVR_SDO]),
+				pins_to_str(&pgm->pin[PIN_AVR_SDI]));
 		}
 		imsg_error("if other pin configuration is used, fallback to slower bitbanging mode is used\n");
 

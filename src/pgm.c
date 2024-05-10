@@ -289,9 +289,8 @@ void programmer_display(PROGRAMMER *pgm, const char * p) {
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show) {
   for(int pbit = 1; pbit < N_PINS; pbit++)
     if(show & (1<<pbit)) {
-      char *pinstr = pins_to_strdup(pgm->pin + pbit);
+      const char *pinstr = pins_to_str(pgm->pin + pbit);
       msg_info("%s  %-6s = %s\n", p, avr_pin_name(pbit), *pinstr? pinstr: "(not used)");
-      mmt_free(pinstr);
     }
 }
 
