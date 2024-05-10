@@ -1484,7 +1484,7 @@ const char *str_outname(const char *fn);
 const char *str_interval(int a, int b);
 bool is_bigendian(void);
 void change_endian(void *p, int size);
-int memall(const void *p, char c, size_t n);
+int is_memset(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
 Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
 void str_freedata(Str2data *sd);

@@ -470,7 +470,7 @@ static int is_mantissa_only(char *p) {
 }
 
 // Return 1 if all n bytes in memory pointed to by p are c, 0 otherwise
-int memall(const void *p, char c, size_t n) {
+int is_memset(const void *p, char c, size_t n) {
   const char *q = (const char *) p;
   return n <= 0 || (*q == c && memcmp(q, q+1, n-1) == 0);
 }

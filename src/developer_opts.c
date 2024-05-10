@@ -492,11 +492,6 @@ static void dev_raw_dump(const void *v, int nbytes, const char *name, const char
   }
 }
 
-static int _is_all_zero(const void *p, size_t n) {
-  const char *q = (const char *) p;
-  return n <= 0 || (*q == 0 && memcmp(q, q+1, n-1) == 0);
-}
-
 static char *opsnm(const char *pre, int opnum) {
   static char ret[128];
   sprintf(ret, "%.31s.%.95s", pre, opcodename(opnum));
@@ -510,7 +505,7 @@ static void dev_part_raw(const AVRPART *part) {
   dev_raw_dump(&dp, (char *)&dp.base-(char *)&dp, part->desc, "part.intro", 0);
   dev_raw_dump(&dp.base, sizeof dp.base, part->desc, "part", 0);
   for(int i=0; i<AVR_OP_MAX; i++)
-    if(!_is_all_zero(dp.ops+i, sizeof*dp.ops))
+    if(!is_memset(dp.ops+i, 0, sizeof*dp.ops))
       dev_raw_dump(dp.ops+i, sizeof*dp.ops, part->desc, opsnm("part", i), 1);
 
   for(int i=0; i<di; i++) {
@@ -519,7 +514,7 @@ static void dev_part_raw(const AVRPART *part) {
     dev_raw_dump(nm, sizeof dp.mems[i].descbuf, part->desc, nm, i+2);
     dev_raw_dump(&dp.mems[i].base, sizeof dp.mems[i].base, part->desc, nm, i+2);
     for(int j=0; j<AVR_OP_MAX; j++)
-      if(!_is_all_zero(dp.mems[i].ops+j, sizeof(OPCODE)))
+      if(!is_memset(dp.mems[i].ops+j, 0, sizeof(OPCODE)))
         dev_raw_dump(dp.mems[i].ops+j, sizeof(OPCODE), part->desc, opsnm(nm, j), i+2);
   }
 }
