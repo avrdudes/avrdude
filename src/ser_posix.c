@@ -119,9 +119,6 @@ static const struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
-static struct termios original_termios;
-static int saved_original_termios;
-
 static speed_t serial_baud_lookup(long baud, bool *nonstandard) {
   *nonstandard = false;
 
@@ -158,9 +155,8 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
   /*
    * copy termios for ser_close if we haven't already
    */
-  if (! saved_original_termios++) {
-    original_termios = termios;
-  }
+  if(!cx->ser_saved_original_termios++)
+    cx->ser_original_termios = termios;
 
   if (cflags & SERIAL_CREAD) {
     termios.c_cflag |= CREAD; 
@@ -403,15 +399,12 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 }
 
 static void ser_close(union filedescriptor *fd) {
-  /*
-   * restore original termios settings from ser_open
-   */
-  if (saved_original_termios) {
-    int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &original_termios);
-    if (rc) {
+  // Restore original termios settings from ser_open
+  if(cx->ser_saved_original_termios) {
+    int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &cx->ser_original_termios);
+    if(rc)
       pmsg_ext_error("cannot reset attributes for device: %s\n", strerror(errno));
-    }
-    saved_original_termios = 0;
+    cx->ser_saved_original_termios = 0;
   }
 
   close(fd->ifd);
@@ -419,7 +412,7 @@ static void ser_close(union filedescriptor *fd) {
 
 // Close but don't restore attributes
 static void ser_rawclose(union filedescriptor *fd) {
-  saved_original_termios = 0;
+  cx->ser_saved_original_termios = 0;
   close(fd->ifd);
 }
 

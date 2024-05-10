@@ -26,6 +26,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#if !defined(WIN32)
+#include <termios.h>
+#endif
 
 #ifdef LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
 #error LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS is defined. Do not do that.
@@ -1581,6 +1584,13 @@ typedef struct {
   unsigned char sad_avrdoperRxBuffer[280]; // Buffer for receiving data
   int sad_avrdoperRxLength;     // Amount of valid bytes in rx buffer
   int sad_avrdoperRxPosition;   // Amount of bytes already consumed in rx buffer
+
+  // Static variables from ser_win32.c/ser_posix.c
+#if defined(WIN32)
+#else
+  struct termios ser_original_termios;
+  int ser_saved_original_termios;
+#endif
 } cx_t;
 
 extern cx_t *cx;
