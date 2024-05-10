@@ -1488,7 +1488,7 @@ char *str_endnumber(const char *str);
 const char *str_plural(int x);
 const char *str_inname(const char *fn);
 const char *str_outname(const char *fn);
-const char *str_interval(int a, int b);
+const char *str_ccinterval(int a, int b);
 bool is_bigendian(void);
 void change_endian(void *p, int size);
 int is_memset(const void *p, char c, size_t n);

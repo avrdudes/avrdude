@@ -412,21 +412,12 @@ const char *str_outname(const char *fn) {
   return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
 }
 
-// Return sth like "[0, 0x1ff]"
-const char *str_interval(int a, int b) {
-  // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
-  static char space[20*41 + 80], *sp;
-  if(!sp || sp-space > (int) sizeof space - 80)
-    sp = space;
+// Return sth like "[0, 0x1ff]" in closed-circuit space
+const char *str_ccinterval(int a, int b) {
+  char *ret = avr_cc_buffer(45); // Interval strings each max 45 bytes at 64-bit int
 
-  char *ret = sp;
-
-  sprintf(sp, a<16? "[%d": "[0x%x", a);
-  sp += strlen(sp);
-  sprintf(sp, b<16? ", %d]": ", 0x%x]", b);
-
-  // Advance beyond return string in temporary ring buffer
-  sp += strlen(sp)+1;
+  sprintf(ret, a<16? "[%d": "[0x%x", a);
+  sprintf(ret+strlen(ret), b<16? ", %d]": ", 0x%x]", b);
 
   return ret;
 }

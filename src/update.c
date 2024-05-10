@@ -443,7 +443,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     imsg_info("with %d byte%s in %d section%s within %s\n",
       fs.nbytes, str_plural(fs.nbytes),
       fs.nsections, str_plural(fs.nsections),
-      str_interval(fs.firstaddr, fs.lastaddr));
+      str_ccinterval(fs.firstaddr, fs.lastaddr));
     if(mem->page_size > 1) {
       imsg_info("using %d page%s and %d pad byte%s",
         fs.npages, str_plural(fs.npages),
@@ -471,7 +471,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
             imsg_notice2("with %d byte%s in %d section%s within %s\n",
               fs_patched.nbytes, str_plural(fs_patched.nbytes),
               fs_patched.nsections, str_plural(fs_patched.nsections),
-              str_interval(fs_patched.firstaddr, fs_patched.lastaddr));
+              str_ccinterval(fs_patched.firstaddr, fs_patched.lastaddr));
             if(mem->page_size > 1) {
               imsg_notice2("using %d page%s and %d pad byte%s",
                 fs_patched.npages, str_plural(fs_patched.npages),
