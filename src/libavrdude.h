@@ -1567,6 +1567,11 @@ typedef struct {
 
   // Static variable from ppi.c
   unsigned char ppi_shadow[3];
+
+  // Static variables from ser_avrdoper.c
+  unsigned char sad_avrdoperRxBuffer[280]; // Buffer for receiving data
+  int sad_avrdoperRxLength;     // Amount of valid bytes in rx buffer
+  int sad_avrdoperRxPosition;   // Amount of bytes already consumed in rx buffer
 } cx_t;
 
 extern cx_t *cx;

@@ -57,10 +57,6 @@
 
 static const int reportDataSizes[4] = {13, 29, 61, 125};
 
-static unsigned char    avrdoperRxBuffer[280];  /* buffer for receive data */
-static int              avrdoperRxLength = 0;   /* amount of valid bytes in rx buffer */
-static int              avrdoperRxPosition = 0; /* amount of bytes already consumed in rx buffer */
-
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
 /* ------------------------------------------------------------------------ */
@@ -275,11 +271,11 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
 static int avrdoperFillBuffer(const union filedescriptor *fdp) {
     int bytesPending = reportDataSizes[1];  /* guess how much data is buffered in device */
 
-    avrdoperRxPosition = avrdoperRxLength = 0;
+    cx->sad_avrdoperRxPosition = cx->sad_avrdoperRxLength = 0;
     while(bytesPending > 0){
         int len, usbErr, lenIndex = chooseDataSize(bytesPending);
         unsigned char buffer[128];
-        len = sizeof(avrdoperRxBuffer) - avrdoperRxLength;  /* bytes remaining */
+        len = sizeof(cx->sad_avrdoperRxBuffer) - cx->sad_avrdoperRxLength;  /* bytes remaining */
         if(reportDataSizes[lenIndex] + 2 > len) /* requested data would not fit into buffer */
             break;
         len = reportDataSizes[lenIndex] + 2;
@@ -294,12 +290,12 @@ static int avrdoperFillBuffer(const union filedescriptor *fdp) {
         bytesPending = buffer[1] - len; /* amount still buffered */
         if(len > buffer[1])             /* cut away padding */
             len = buffer[1];
-        if(avrdoperRxLength + len > (int) sizeof(avrdoperRxBuffer)){
+        if(cx->sad_avrdoperRxLength + len > (int) sizeof(cx->sad_avrdoperRxBuffer)){
             pmsg_error("buffer overflow\n");
             return -1;
         }
-        memcpy(avrdoperRxBuffer + avrdoperRxLength, buffer + 2, len);
-        avrdoperRxLength += len;
+        memcpy(cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxLength, buffer + 2, len);
+        cx->sad_avrdoperRxLength += len;
     }
     return 0;
 }
@@ -310,17 +306,17 @@ static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, si
     int             remaining = buflen;
 
     while(remaining > 0){
-        int len, available = avrdoperRxLength - avrdoperRxPosition;
+        int len, available = cx->sad_avrdoperRxLength - cx->sad_avrdoperRxPosition;
         if(available <= 0){ /* buffer is empty */
             if (avrdoperFillBuffer(fdp) < 0)
                 return -1;
             continue;
         }
         len = remaining < available ? remaining : available;
-        memcpy(p, avrdoperRxBuffer + avrdoperRxPosition, len);
+        memcpy(p, cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxPosition, len);
         p += len;
         remaining -= len;
-        avrdoperRxPosition += len;
+        cx->sad_avrdoperRxPosition += len;
     }
     if(verbose > 3)
         dumpBlock("Receive", buf, buflen);
@@ -334,7 +330,7 @@ static int avrdoper_drain(const union filedescriptor *fdp, int display)
     do{
         if (avrdoperFillBuffer(fdp) < 0)
             return -1;
-    }while(avrdoperRxLength > 0);
+    }while(cx->sad_avrdoperRxLength > 0);
     return 0;
 }
 
