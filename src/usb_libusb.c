@@ -372,8 +372,7 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
  * and transparently issue another USB read request if the buffer is
  * empty and more data are requested.
  */
-static int
-usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
+static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
 {
   int rv;
 
