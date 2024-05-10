@@ -210,12 +210,12 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     int addr;
     int len;
     const AVRMEM *mem;
-  } read_mem[32];
+  } term_rmem[32];
   static int term_mi;
   int i = term_mi;
   const char *cmd = tolower(**argv) == 'd'? "dump": "read";
 
-  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
+  if ((argc < 2 && term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: %s <mem> <addr> <len> # display entire region\n"
       "        %s <mem> <addr>       # start at <addr>\n"
@@ -239,7 +239,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   if(argc > 1)
     memstr = argv[1];
   else
-    memstr = read_mem[i].mem->desc;
+    memstr = term_rmem[i].mem->desc;
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
     pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
@@ -252,19 +252,19 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     return -1;
   }
 
-  // Iterate through the read_mem structs to find relevant address and length info
+  // Iterate through the term_rmem structs to find relevant address and length info
   for(i = 0; i < 32; i++) {
-    if(read_mem[i].mem == NULL)
-      read_mem[i].mem = mem;
-    if(read_mem[i].mem == mem) {
-      if(read_mem[i].len == 0)
-        read_mem[i].len = maxsize > read_size? read_size: maxsize;
+    if(term_rmem[i].mem == NULL)
+      term_rmem[i].mem = mem;
+    if(term_rmem[i].mem == mem) {
+      if(term_rmem[i].len == 0)
+        term_rmem[i].len = maxsize > read_size? read_size: maxsize;
       break;
     }
   }
 
   if(i >= 32) { // Catch highly unlikely case
-    pmsg_error("(%s) read_mem[] under-dimensioned; increase and recompile\n", cmd);
+    pmsg_error("(%s) term_rmem[] under-dimensioned; increase and recompile\n", cmd);
     return -1;
   }
   term_mi = i;
@@ -288,15 +288,15 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
         cmd, mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
       return -1;
     }
-    read_mem[i].addr = addr;
+    term_rmem[i].addr = addr;
   }
 
   // Get number of bytes to read if present
   if (argc >= 3) {
     if(str_eq(argv[argc - 1], "...")) {
       if (argc == 3)
-        read_mem[i].addr = 0;
-      read_mem[i].len = maxsize - read_mem[i].addr;
+        term_rmem[i].addr = 0;
+      term_rmem[i].len = maxsize - term_rmem[i].addr;
     } else if (argc == 4) {
       int len = str_int(argv[3], STR_INT32, &errptr);
       if(errptr) {
@@ -306,7 +306,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
       // Turn negative len value (number of bytes from top of memory) into an actual length
       if (len < 0)
-        len = maxsize + len + 1 - read_mem[i].addr;
+        len = maxsize + len + 1 - term_rmem[i].addr;
 
       if (len == 0)
         return 0;
@@ -314,43 +314,43 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
         return -1;
       }
-      read_mem[i].len = len;
+      term_rmem[i].len = len;
     }
   }
   // Wrap around if the memory address is greater than the maximum size
-  if(read_mem[i].addr >= maxsize)
-    read_mem[i].addr = 0; // Wrap around
+  if(term_rmem[i].addr >= maxsize)
+    term_rmem[i].addr = 0; // Wrap around
 
   // Trim len if nessary to prevent reading from the same memory address twice
-  if (read_mem[i].len > maxsize)
-    read_mem[i].len = maxsize;
+  if (term_rmem[i].len > maxsize)
+    term_rmem[i].len = maxsize;
 
-  uint8_t *buf = mmt_malloc(read_mem[i].len);
+  uint8_t *buf = mmt_malloc(term_rmem[i].len);
   if(argc < 4 && verbose)
-    term_out(">>> %s %s 0x%x 0x%x\n", cmd, read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
+    term_out(">>> %s %s 0x%x 0x%x\n", cmd, term_rmem[i].mem->desc, term_rmem[i].addr, term_rmem[i].len);
 
   report_progress(0, 1, "Reading");
-  for (int j = 0; j < read_mem[i].len; j++) {
-    int addr = (read_mem[i].addr + j) % mem->size;
-    int rc = pgm->read_byte_cached(pgm, p, read_mem[i].mem, addr, &buf[j]);
+  for (int j = 0; j < term_rmem[i].len; j++) {
+    int addr = (term_rmem[i].addr + j) % mem->size;
+    int rc = pgm->read_byte_cached(pgm, p, term_rmem[i].mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
-      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) read_mem[i].addr + j, p->desc);
+      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) term_rmem[i].addr + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       mmt_free(buf);
       return -1;
     }
-    report_progress(j, read_mem[i].len, NULL);
+    report_progress(j, term_rmem[i].len, NULL);
   }
   report_progress(1, 1, NULL);
 
-  hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
+  hexdump_buf(stdout, mem, term_rmem[i].addr, buf, term_rmem[i].len);
   lterm_out("");
 
   mmt_free(buf);
 
-  read_mem[i].addr = (read_mem[i].addr + read_mem[i].len) % maxsize;
+  term_rmem[i].addr = (term_rmem[i].addr + term_rmem[i].len) % maxsize;
 
   return 0;
 }
