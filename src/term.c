@@ -1100,8 +1100,8 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
 }
 
 // Comment printed next to symbolic value
-static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
-  static char buf[512], bin[129];
+static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
+  char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
 
@@ -1135,7 +1135,7 @@ static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int va
       strcat(buf+strlen(buf), "factory");
     strcat(buf+strlen(buf), ")");
   }
-  return buf;
+  return str_ccstrdup(buf);
 }
 
 // How a single property is printed
