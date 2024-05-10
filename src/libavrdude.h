@@ -1587,6 +1587,7 @@ typedef struct {
 
   // Static variables from ser_win32.c/ser_posix.c
 #if defined(WIN32)
+  unsigned char ser_serial_over_ethernet;
 #else
   struct termios ser_original_termios;
   int ser_saved_original_termios;
