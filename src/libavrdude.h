@@ -1616,6 +1616,12 @@ typedef struct {
   // Static variables from update.c
   const char **upd_wrote, **upd_termcmds;
   int upd_nfwritten, upd_nterms;
+
+  // Static variables from usb_libusb.c
+#include "usbdevs.h"
+  char usb_buf[USBDEV_MAX_XFER_3];
+  int usb_buflen, usb_bufptr; // @@@ Check whether usb_buflen needs initialising with -1
+  int usb_interface;
 } cx_t;
 
 extern cx_t *cx;
