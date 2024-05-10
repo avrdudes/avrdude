@@ -211,7 +211,8 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     int len;
     const AVRMEM *mem;
   } read_mem[32];
-  static int i;
+  static int term_mi;
+  int i = term_mi;
   const char *cmd = tolower(**argv) == 'd'? "dump": "read";
 
   if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
@@ -266,6 +267,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     pmsg_error("(%s) read_mem[] under-dimensioned; increase and recompile\n", cmd);
     return -1;
   }
+  term_mi = i;
 
   // Get start address if present
   const char *errptr;
@@ -2685,7 +2687,7 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
  *    1 terminate progress bar with \n when finishing at 100 percent
  */
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
-  static char *header;
+  static char *term_header;
   static int term_tty_last, term_tty_todo;
   int i;
 
@@ -2695,16 +2697,16 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     lmsg_info("");              // Print new line unless already done before
     term_tty_last = 0;
     term_tty_todo = 1;      // OK, we have a header, start reporting
-    if(header)
-      mmt_free(header);
-    header = mmt_strdup(hdr);
+    if(term_header)
+      mmt_free(term_header);
+    term_header = mmt_strdup(hdr);
   }
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(term_tty_todo) {
-    if(!header)
-      header = mmt_strdup("report");
+    if(!term_header)
+      term_header = mmt_strdup("report");
 
     int showperc = finish >= 0? percent: term_tty_last;
 
@@ -2715,7 +2717,7 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     hashes[50] = 0;
 
     // Overwrite line using \r
-    msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
+    msg_info("\r%s | %s | %d%% %0.2f s ", term_header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
         lmsg_info("");
