@@ -101,6 +101,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
         case 7:  /* rts */
                 dwFunc = value? SETRTS: CLRRTS;
                 name = value? "SETRTS": "CLRRTS";
+                my.rts = value;
                 break;
 
         default:
