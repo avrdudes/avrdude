@@ -1564,6 +1564,9 @@ typedef struct {
 
   // Static variable from config_gram.y
  int cfgy_pin_name;             // Temporary variable for grammar parsing
+
+  // Static variable from ppi.c
+  unsigned char ppi_shadow[3];
 } cx_t;
 
 extern cx_t *cx;
