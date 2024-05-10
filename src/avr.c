@@ -1444,18 +1444,24 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 
 // Return temporary string buffer with n bytes from a closed-circuit space
 char *avr_cc_buffer(size_t n) {
-  if(n > sizeof cx->avr_space) {
-    pmsg_error("requested size %lu too big for cx->avr_space[%lu] (change source)\n",
-      (unsigned long) n, (unsigned long) sizeof cx->avr_space);
+  size_t avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  if(!is_memset(cx->avr_space + avail, 0, AVR_SAFETY_MARGIN)) {
+    pmsg_warning("avr_cc_buffer(n) overran; n chosen too small in previous calls? Change and recompile\n");
+    memset(cx->avr_space + avail, 0, AVR_SAFETY_MARGIN);
+  }
+
+  if(n > avail) {
+    pmsg_error("requested size %lu too big for cx->avr_space[%lu+AVR_SAFETY_MARGIN] (change source)\n",
+      (unsigned long) n, (unsigned long) avail);
     cx->avr_s = cx->avr_space;
-    n = sizeof cx->avr_space;
+    n = avail;
   } else if(!cx->avr_s)
     cx->avr_s = cx->avr_space;
 
   cx->avr_s += strlen(cx->avr_s) + 1; // Move behind string from last call
 
   // Rewind if too little space left
-  if((size_t) (cx->avr_s - cx->avr_space) > sizeof cx->avr_space - n)
+  if((size_t) (cx->avr_s - cx->avr_space) > avail - n)
     cx->avr_s = cx->avr_space;
 
   memset(cx->avr_s, 0, n);
