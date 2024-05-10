@@ -764,7 +764,7 @@ static int flip1_set_mem_page(struct dfu_dev *dfu, unsigned short page_addr) {
 }
 
 static const char *flip1_status_str(const struct dfu_status *status) {
-  static const char *msg[] = {
+  static const char * const msg[] = {
     "No error condition is present",
     "File is not targeted for use by this device",
     "File is for this device but fails some vendor-specific verification test",
