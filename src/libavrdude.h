@@ -1515,6 +1515,8 @@ int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line);
 char *terminal_get_input(const char *prompt);
 void terminal_setup_update_progress(void);
 
+char *avr_cc_buffer(size_t n);
+
 #ifdef __cplusplus
 }
 #endif
@@ -1530,11 +1532,13 @@ void terminal_setup_update_progress(void);
  */
 
 typedef struct {
+  // Closed-circuit space for returning strings in a persistent buffer
+  char *avr_s, avr_space[8192];
+
   // Static variables from avr.c
   int avr_disableffopt;         // Disables trailing 0xff flash optimisation
   uint64_t avr_epoch;           // Epoch for avr_ustimestamp()
   int avr_epoch_init;           // Whether above epoch is initialised
-  char avr_space[1024], *avr_s; // Closed-circuit space for avr+prog_modes()
   int avr_last_percent;         // Last valid percentage for report_progress()
   double avr_start_time;        // Start time in s of report_progress() activity
 

@@ -1442,6 +1442,26 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 }
 
 
+// Return temporary string buffer with n bytes from a closed-circuit space
+char *avr_cc_buffer(size_t n) {
+  if(n > sizeof cx->avr_space) {
+    pmsg_error("requested size %lu too big for cx->avr_space[%lu] (change source)\n",
+      (unsigned long) n, (unsigned long) sizeof cx->avr_space);
+    cx->avr_s = cx->avr_space;
+    n = sizeof cx->avr_space;
+  } else if(!cx->avr_s)
+    cx->avr_s = cx->avr_space;
+
+  cx->avr_s += strlen(cx->avr_s) + 1; // Move behind string from last call
+
+  // Rewind if too little space left
+  if((size_t) (cx->avr_s - cx->avr_space) > sizeof cx->avr_space - n)
+    cx->avr_s = cx->avr_space;
+
+  memset(cx->avr_s, 0, n);
+  return cx->avr_s;
+}
+
 /*
  * Returns a string in closed-circuit space with a list of programming
  * modes encoded in pm; variant creates the list in subtly different ways:
@@ -1451,13 +1471,7 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
  * If pm is 0 (no programming modes) returns "0"
  */
 static char *prog_modes_string(int pm, int variant) {
-  // Return string is overwritten after a few calls
-  if(!cx->avr_s)
-    cx->avr_s = cx->avr_space;
-  char *type = cx->avr_s + strlen(cx->avr_s) + 1;
-  // Overwrite space once only 128 bytes left
-  if((size_t) (type - cx->avr_space) > sizeof cx->avr_space - 128)
-    type = cx->avr_space;
+  char *type = avr_cc_buffer(256); // Longest returned string has 142 chars
 
   const char *spm = variant? "SPM": "bootloader";
   const char *sep = variant == 2? " | PM_": ", ";
@@ -1491,8 +1505,7 @@ static char *prog_modes_string(int pm, int variant) {
   if(pm & PM_aWire)
     strcat(strcat(type, sep), "aWire");
 
-  cx->avr_s = type + (type[1] == 0? 0: skip);
-  return cx->avr_s;
+  return type + (type[1] == 0? 0: skip);
 }
 
 char *avr_prog_modes(int pm) {  // PM_SPM prints bootloader
