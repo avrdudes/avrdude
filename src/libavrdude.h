@@ -1612,6 +1612,10 @@ typedef struct {
   char *term_header;
   int term_tty_last, term_tty_todo;
   int term_notty_last, term_notty_todo;
+
+  // Static variables from update.c
+  const char **upd_wrote, **upd_termcmds;
+  int upd_nfwritten, upd_nterms;
 } cx_t;
 
 extern cx_t *cx;
