@@ -1167,7 +1167,7 @@ static size_t csubs(size_t w, unsigned char c1, unsigned char c2) {
   if(w < 8)
     w = 8;
 
-  static size_t wmat[128][128];
+  static size_t wmat[128][128]; // Compute once, read-only cache
   if(!wmat[0][1])               // Initialize weight matrix
     for(size_t k1 = 0; k1 < 128; k1++)
       for(size_t k2 = 0; k2 < 128; k2++)
