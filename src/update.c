@@ -267,14 +267,14 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
 
 // Basic checks to reveal serious failure before programming (and on autodetect set format)
 int update_dryrun(const AVRPART *p, UPDATE *upd) {
-  static const char **wrote, **termcmds;
-  static int nfwritten, nterms;
+  static const char **upd_wrote, **upd_termcmds;
+  static int upd_nfwritten, upd_nterms;
 
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
   if(upd->cmdline) {            // Todo: parse terminal command line?
-    termcmds = mmt_realloc(termcmds, sizeof(*termcmds) * (nterms+1));
-    termcmds[nterms++] = upd->cmdline;
+    upd_termcmds = mmt_realloc(upd_termcmds, sizeof(*upd_termcmds) * (upd_nterms+1));
+    upd_termcmds[upd_nterms++] = upd->cmdline;
     return 0;
   }
 
@@ -293,16 +293,16 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   if(upd->op == DEVICE_VERIFY || upd->op == DEVICE_WRITE || upd->format == FMT_AUTO) {
     if(upd->format != FMT_IMM) {
       // Need to read the file: was it written before, so will be known?
-      for(int i = 0; i < nfwritten; i++)
-        if(!wrote || (upd->filename && str_eq(wrote[i], upd->filename)))
+      for(int i = 0; i < upd_nfwritten; i++)
+        if(!upd_wrote || (upd->filename && str_eq(upd_wrote[i], upd->filename)))
           known = 1;
       // Could a -T terminal command have created the file?
-      for(int i = 0; i < nterms; i++)
-        if(!termcmds || (upd->filename && str_contains(termcmds[i], upd->filename)))
+      for(int i = 0; i < upd_nterms; i++)
+        if(!upd_termcmds || (upd->filename && str_contains(upd_termcmds[i], upd->filename)))
           known = 1;
       // Any -t interactive terminal could have created it
-      for(int i = 0; i < nterms; i++)
-        if(!termcmds || str_eq(termcmds[i], "interactive terminal"))
+      for(int i = 0; i < upd_nterms; i++)
+        if(!upd_termcmds || str_eq(upd_termcmds[i], "interactive terminal"))
           known = 1;
 
       errno = 0;
@@ -342,8 +342,9 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
         ioerror("writeable", upd);
         ret = LIBAVRDUDE_SOFTFAIL;
       } else if(upd->filename) { // Record filename (other than stdout) is available for future reads
-        if(!str_eq(upd->filename, "-") && (wrote = mmt_realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
-          wrote[nfwritten++] = upd->filename;
+        if(!str_eq(upd->filename, "-") &&
+          (upd_wrote = mmt_realloc(upd_wrote, sizeof(*upd_wrote) * (upd_nfwritten+1))))
+          upd_wrote[upd_nfwritten++] = upd->filename;
       }
     }
     break;
