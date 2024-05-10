@@ -1470,7 +1470,11 @@ int str_casematch(const char *pattern, const char *string);
 int str_matched_by(const char *string, const char *pattern);
 int str_casematched_by(const char *string, const char *pattern);
 int str_is_pattern(const char *str);
-char *str_sprintf(const char *fmt, ...);
+char *str_sprintf(const char *fmt, ...)
+#if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
+   __attribute__ ((format (printf, 1, 2)))
+#endif
+;
 char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
