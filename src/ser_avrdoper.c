@@ -185,19 +185,18 @@ static void dumpBlock(const char *prefix, const unsigned char *buf, int len)
     }
 }
 
-static char *usbErrorText(int usbErrno)
-{
-    static char buffer[32];
-
+static const char *usbErrorText(int usbErrno) {
     switch(usbErrno){
         case USB_ERROR_NONE:    return "Success";
         case USB_ERROR_ACCESS:  return "Access denied";
         case USB_ERROR_NOTFOUND:return "Device not found";
         case USB_ERROR_BUSY:    return "Device is busy";
         case USB_ERROR_IO:      return "I/O Error";
-        default:
+        default: {
+            char *buffer = avr_cc_buffer(32);
             sprintf(buffer, "Unknown error %d", usbErrno);
             return buffer;
+        }
     }
 }
 
