@@ -52,7 +52,7 @@
 #include "config.h"
 #include "developer_opts.h"
 
-char * progname;
+char * progname = "avrdude";
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
