@@ -5,9 +5,6 @@
  * https://flashrom.org/supported_hw/supported_prog/serprog/index.html
  *
  * Copyright (C) 2024 Sydney Louisa Wilke <git@funkeleinhorn.com>
- * used linuxspi.c as a template:
- *    Copyright (C) 2013 Kevin Cuzner <kevin@kevincuzner.com>
- *    Copyright (C) 2018 Ralf Ramsauer <ralf@vmexit.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +20,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
- * known limitations:
+ * Known limitations:
  *  - performance is suboptimal
  *  - connecting over TCP/IP to programmers is not implemented yet
  */
@@ -43,7 +40,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-const char serprog_desc[] = "Programmer using the serprog protocol";
+const char serprog_desc[] = "Program via the Serprog protocol from Flashrom";
 
 /*
  * Private data for this programmer.
@@ -51,6 +48,7 @@ const char serprog_desc[] = "Programmer using the serprog protocol";
 struct pdata {
     unsigned char cmd_bitmap[32];
     unsigned int cs;
+    uint32_t actual_frequency;
 };
 
 #define my (*(struct pdata *)(pgm->cookie))
@@ -130,11 +128,14 @@ static int perform_serprog_cmd_full(const PROGRAMMER *pgm, uint8_t cmd,
                                     unsigned char *recv_buf, int recv_len) {
     unsigned char resp_status_code = 0;
 
-    serial_send(&pgm->fd, &cmd, 1);
+    if(serial_send(&pgm->fd, &cmd, 1) < 0)
+        return -1;
     if (params_len > 0)
-        serial_send(&pgm->fd, params, params_len);
+        if(serial_send(&pgm->fd, params, params_len) < 0)
+            return -1;
     if (send_len > 0)
-        serial_send(&pgm->fd, send_buf, send_len);
+        if(serial_send(&pgm->fd, send_buf, send_len) < 0)
+            return -1;
 
     if (serial_recv(&pgm->fd, &resp_status_code, 1) < 0 || serial_recv(&pgm->fd, recv_buf, recv_len) < 0)
         return -1;
@@ -169,24 +170,7 @@ static bool is_serprog_cmd_supported(const unsigned char *cmd_bitmap, unsigned c
 
 // programmer lifecycle handlers
 
-static int serprog_open(PROGRAMMER *pgm, const char *pt) {
-    const char *port_error =
-        "unknown port specification, "
-        "please use the format /dev/ttyACM0\n";
-    char port_default[] = "/dev/ttyACM0";
-    char *serialdev;
-    char *port = mmt_strdup(pt);
-
-    if (str_eq(port, "unknown")) {
-        port = port_default;
-    }
-
-    serialdev = strtok(port, ",");
-    if (!serialdev) {
-        pmsg_error("%s", port_error);
-        return -1;
-    }
-
+static int serprog_open(PROGRAMMER *pgm, const char *port) {
     union pinfo pinfo;
     pgm->port = port;
     pinfo.serialinfo.baud = pgm->baudrate? pgm->baudrate: 115200;
@@ -256,20 +240,6 @@ static int serprog_open(PROGRAMMER *pgm, const char *pt) {
         return -1;
     }
 
-    // set SPI clock frequency
-    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
-        memset(buf, 0, sizeof(buf));
-        write_le32(buf, 115200);
-        if (perform_serprog_cmd(pgm, S_CMD_S_SPI_FREQ, buf, 4, buf, 4) != 0) {
-            pmsg_error("cannot set SPI frequency\n");
-            return -1;
-        }
-        if (read_le32(buf) != 115200) {
-            pmsg_error("set SPI frequency differs from the requested one\n");
-            return -1;
-        }
-    }
-
     return 0;
 }
 
@@ -312,14 +282,33 @@ static int serprog_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return serprog_spi_duplex(pgm, cmd, res, 4);
 }
 
-static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-    if (p->prog_modes & PM_TPI) {
+static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
+    if (part->prog_modes & PM_TPI) {
         /* We do not support TPI. This is a dedicated SPI thing */
         pmsg_error("the %s programmer does not support TPI\n", pgmid);
         return -1;
     }
 
     unsigned char buf[32];
+
+    // set SPI clock frequency
+    if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
+        memset(buf, 0, sizeof(buf));
+        uint32_t frequency;
+        if (pgm->bitclock > 0) {
+            frequency = pgm->bitclock;
+        } else if (part->factory_fcpu > 0) {
+            frequency = (part->factory_fcpu / 4);
+        } else {
+	    frequency = 250000;
+	}
+        write_le32(buf, frequency);
+        if (perform_serprog_cmd(pgm, S_CMD_S_SPI_FREQ, buf, 4, buf, 4) != 0) {
+            pmsg_error("cannot set SPI frequency\n");
+            return -1;
+        }
+        my.actual_frequency = read_le32(buf);
+    }
 
     // set active chip select
     if (is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_CS)) {
@@ -361,7 +350,7 @@ static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     //enable programming on the part
     tries = 0;
     do {
-        ret = pgm->program_enable(pgm, p);
+        ret = pgm->program_enable(pgm, part);
         if (ret == 0 || ret == -1)
             break;
     } while(tries++ < 65);
@@ -372,6 +361,10 @@ static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return ret;
 }
 
+/* used linuxspi.c as a template:
+ *   Copyright (C) 2013 Kevin Cuzner <kevin@kevincuzner.com>
+ *   Copyright (C) 2018 Ralf Ramsauer <ralf@vmexit.de>
+ */
 static int serprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     unsigned char cmd[4], res[4];
 
@@ -450,6 +443,26 @@ static void serprog_teardown(PROGRAMMER *pgm) {
     pgm->cookie = NULL;
 }
 
+static int serprog_set_sck_period(const PROGRAMMER *pgm, double v) {
+     if (!is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
+         return -1;
+     }
+     unsigned char buf[8];
+     memset(buf, 0, sizeof(buf));
+     write_le32(buf, v);
+     if (perform_serprog_cmd(pgm, S_CMD_S_SPI_FREQ, buf, 4, buf, 4) != 0) {
+         pmsg_error("cannot set SPI frequency\n");
+         return -1;
+     }
+     my.actual_frequency = read_le32(buf);
+     return 0;
+}
+
+static int serprog_get_sck_period(const PROGRAMMER *pgm, double *v) {
+    *v = my.actual_frequency;
+    return 0;
+}
+
 static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
     LNODEID ln;
     const char *extended_param;
@@ -470,11 +483,7 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
 
         if (str_eq(extended_param, "help")) {
             msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xcs=cs_num    Sets the chip select (CS) to use on supported programmers.\n");
-            msg_error("                 Programmers supporting the 0x16 serprog command can have more than the default CS (0).\n");
-            msg_error("                 This option allows to choose this additional CS's (1,2,3,...) for programming the AVR.\n");
-            msg_error("                 Here you can find the addition to the serprog spec enabling that:\n");
-            msg_error("                 https://review.coreboot.org/c/flashrom/+/80498\n");
+            msg_error("  -xcs=cs_num    Sets the chip select (CS) to use on supported programmers\n");
             msg_error("  -xhelp         Show this help menu and exit\n");
             return LIBAVRDUDE_EXIT;
         }
@@ -506,5 +515,7 @@ void serprog_initpgm(PROGRAMMER *pgm) {
     pgm->setup          = serprog_setup;
     pgm->teardown       = serprog_teardown;
     pgm->parseextparams = serprog_parseextparams;
+    pgm->get_sck_period = serprog_get_sck_period;
+    pgm->set_sck_period = serprog_set_sck_period;
 }
 

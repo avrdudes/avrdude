@@ -1491,7 +1491,7 @@ programmer # serialupdi
 
 programmer # serprog
     id                     = "serprog";
-    desc                   = "Serprog";
+    desc                   = "Program via the Serprog protocol from Flashrom";
     type                   = "serprog";
     prog_modes             = PM_ISP;
     connection_type        = serial;
