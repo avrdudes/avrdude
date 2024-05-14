@@ -1539,9 +1539,9 @@ char *avr_cc_buffer(size_t n);
  *
  * Global and static variables should go here; the only remaining static
  * variables ought to be read-only tables. Access should be via a global
- * pointer cx_t *cx; applications using libavrdude ought to allocate cx =
- * mmt_malloc(sizeof *cx) for each instantiation (and set initial values
- * if needed) and deallocate with mmt_free(cx).
+ * pointer libavrdude_context *cx; applications using libavrdude ought to
+ * allocate cx = mmt_malloc(sizeof *cx) for each instantiation (and set
+ * initial values if needed) and deallocate with mmt_free(cx).
  */
 
 typedef struct {
@@ -1622,9 +1622,9 @@ typedef struct {
   char usb_buf[USBDEV_MAX_XFER_3];
   int usb_buflen, usb_bufptr; // @@@ Check whether usb_buflen needs initialising with -1
   int usb_interface;
-} cx_t;
+} libavrdude_context;
 
-extern cx_t *cx;
+extern libavrdude_context *cx;
 
 /* formerly confwin.h */
 

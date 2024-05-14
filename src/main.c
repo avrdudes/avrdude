@@ -189,7 +189,7 @@ struct list_walk_cookie
 };
 
 
-cx_t *cx;                       // Context pointer, eventually the only global variable
+libavrdude_context *cx;         // Context pointer, eventually the only global variable
 
 static LISTID updates = NULL;
 
