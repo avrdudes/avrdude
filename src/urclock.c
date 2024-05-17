@@ -922,8 +922,11 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     buf += strlen(buf);
     *buf++ = (hi < 077 && (type & UR_PGMWRITEPAGE)) || (hi >= 077 && rjmpwp != ret_opcode)? 'w': '-';
     *buf++ = type & UR_EEPROM? 'e': '-';
-    if(hi >= 076) {             // From urboot version 7.6 URPROTOCOL has its own bit
-      *buf++ = type & UR_URPROTOCOL? 'u': 's';
+    if(hi >= 076) {
+      if(hi > 077)              // From version 8.0 it's always urprotocol
+        *buf++ = type & UR_EXPEDITE? 'U': 'u';
+      else
+        *buf++ = type & UR_URPROTOCOL? 'u': 's';
       *buf++ = type & UR_DUAL? 'd': '-';
     } else {
       *buf++ = '-';             // Dummy bit
@@ -931,7 +934,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
       // D = Dual boot with SE & SPI restoration, d = dual boot with SE, f = dual boot only
       *buf++ = flags==3? 'D': flags==2? 'd': flags? 'f': '-';
     }
-    flags = (type/UR_VBL) & 3;
+    flags = (type/(UR_VBLMASK & -UR_VBLMASK)) & (hi > 077? 1: 3); // Only use 1 bit for v8.0+
     // V = VBL, patch & verify, v = VBL, patch only, j = VBL, jump only
     *buf++ = flags==3? 'V': flags==2? 'v': flags? 'j': 'h';
     *buf++ = hi < 077? (type & UR_PROTECTME? 'p': '-'): (type & UR_PROTECTME? 'P': 'p');

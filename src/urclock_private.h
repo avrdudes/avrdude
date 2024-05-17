@@ -90,9 +90,10 @@ typedef struct {
 
 // Capability byte of bootloader from version 7.2 onwards
 #define UR_PGMWRITEPAGE     128 // pgm_write_page() can be called from application at FLASHEND+1-4
-#define UR_AUTOBAUD         128 // Bootloader has autobaud detection (from  v7.7)
+#define UR_AUTOBAUD         128 // Bootloader has autobaud detection (from v7.7)
 #define UR_EEPROM            64 // EEPROM read/write support
 #define UR_URPROTOCOL        32 // Using urprotocol (v7.6 and v7.7 only)
+#define UR_EXPEDITE          32 // Check need to write flash first (from v8.0)
 #define UR_DUAL              16 // Dual boot
 #define UR_VBLMASK           12 // Vector bootloader bits (up to v7.7 only)
 #define UR_VBLPATCHVERIFY    12 // Patch reset/interrupt vectors and show original ones on verify
