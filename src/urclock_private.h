@@ -18,8 +18,8 @@
 
 /* $Id$ */
 
-#ifndef urclock_private_h__
-#define urclock_private_h__
+#ifndef urclock_private_h
+#define urclock_private_h
 
 // EEPROM or flash cache for bytewise access
 typedef struct {
@@ -90,16 +90,18 @@ typedef struct {
 
 // Capability byte of bootloader from version 7.2 onwards
 #define UR_PGMWRITEPAGE     128 // pgm_write_page() can be called from application at FLASHEND+1-4
-#define UR_AUTOBAUD         128 // Bootloader has autobaud detection (from  v7.7)
+#define UR_AUTOBAUD         128 // Bootloader has autobaud detection (from v7.7)
 #define UR_EEPROM            64 // EEPROM read/write support
-#define UR_URPROTOCOL        32 // Bootloader uses urprotocol that requires avrdude -c urclock
+#define UR_URPROTOCOL        32 // Using urprotocol (v7.6 and v7.7 only)
+#define UR_EXPEDITE          32 // Check need to write flash first (from v8.0)
 #define UR_DUAL              16 // Dual boot
-#define UR_VBLMASK           12 // Vector bootloader bits
+#define UR_VBLMASK           12 // Vector bootloader bits (up to v7.7 only)
 #define UR_VBLPATCHVERIFY    12 // Patch reset/interrupt vectors and show original ones on verify
 #define UR_VBLPATCH           8 // Patch reset/interrupt vectors only (expect an error on verify)
 #define UR_VBL                4 // Merely start application via interrupt vector instead of reset
 #define UR_NO_VBL             0 // Not a vector bootloader, must set fuses to HW bootloader support
 #define UR_PROTECTME          2 // Bootloader safeguards against overwriting itself
+#define UR_PROTECTRESET       2 // Bootloader safeguards against overwriting itself and reset
 #define UR_RESETFLAGS         1 // Load reset flags into register R2 before starting application
 #define UR_HAS_CE             1 // Bootloader has Chip Erase (from v7.7)
 
@@ -116,39 +118,56 @@ typedef struct {
   (uint8_t) (_vh >= 072 && _vh != 0xff? _vh: 0); })
 
 #define vercapis(capver, mask)  ({ uint16_t _vi = capver; !!(capabilities_cv(_vi) & (mask)); })
-#define ispgmwritepage_cv(capver) vercapis(capver, UR_PGMWRITEPAGE) // up to v7.6
-#define isautobaud_cv(capver)     vercapis(capver, UR_AUTOBAUD)     // from v7.7
-#define iseeprom_cv(capver)       vercapis(capver, UR_EEPROM)
-#define isurprotocol_cv(capver)   vercapis(capver, UR_URPROTOCOL)
-#define isdual_cv(capver)         vercapis(capver, UR_DUAL)
-#define isvectorbl_cv(capver)     vercapis(capver, UR_VBLMASK)
-#define isprotectme_cv(capver)    vercapis(capver, UR_PROTECTME)
-#define isresetflags_cv(capver)   vercapis(capver, UR_RESETFLAGS)   // up to v7.6
-#define ishas_ce_cv(capver)       vercapis(capver, UR_HAS_CE)       // from v7.7
+#define isautobaud_cv(capver)        vercapis(capver, UR_AUTOBAUD)     // from v7.7
+#define iseeprom_cv(capver)          vercapis(capver, UR_EEPROM)
+#define isdual_cv(capver)            vercapis(capver, UR_DUAL)
+#define isprotectreset_cv(capver)    vercapis(capver, UR_PROTECTRESET) // from 7.7
+#define ishas_ce_cv(capver)          vercapis(capver, UR_HAS_CE)       // from v7.7
+
+// Up to v7.7
+#define isurprotocol077_cv(capver)   vercapis(capver, UR_URPROTOCOL)
+#define isvectorbl077_cv(capver)     vercapis(capver, UR_VBLMASK)
+
+// Up to v7.6
+#define ispgmwritepage076_cv(capver) vercapis(capver, UR_PGMWRITEPAGE)
+#define isprotectme076_cv(capver)    vercapis(capver, UR_PROTECTME)
+#define isresetflags076_cv(capver)   vercapis(capver, UR_RESETFLAGS)
+
 
 // Capability bits incl position
-#define pgmwritepage_bit_cap(cap) ((cap) & UR_PGMWRITEPAGE) // up to v7.6
-#define autibaud_bit_cap(cap)     ((cap) & UR_AUTOBAUD)     // from v7.7
-#define eeprom_bit_cap(cap)       ((cap) & UR_EEPROM)
-#define dual_bit_cap(cap)         ((cap) & UR_DUAL)
-#define vector_bits_cap(cap)      ((cap) & UR_VBLMASK))
-#define protectme_bit_cap(cap)    ((cap) & UR_PROTECTME)
-#define urprotocol_bit_cap(cap)   ((cap) & UR_URPROTOCOL)
-#define resetflags_bit_cap(cap)   ((cap) & UR_RESETFLAGS)  // up to v7.6
-#define has_ce_bit_cap(cap)       ((cap) & UR_HAS_CE)      // from v7.7
+#define autobaud_bit_cap(cap)        ((cap) & UR_AUTOBAUD)     // from v7.7
+#define eeprom_bit_cap(cap)          ((cap) & UR_EEPROM)
+#define dual_bit_cap(cap)            ((cap) & UR_DUAL)
+#define protectreset_bit_cap(cap)    ((cap) & UR_PROTECTRESET) // from v7.7
+#define has_ce_bit_cap(cap)          ((cap) & UR_HAS_CE)       // from v7.7
+
+// Up to v7.7
+#define urprotocol077_bit_cap(cap)   ((cap) & UR_URPROTOCOL)
+#define vector077_bits_cap(cap)      ((cap) & UR_VBLMASK))
+
+// Up to v7.6
+#define pgmwritepage076_bit_cap(cap) ((cap) & UR_PGMWRITEPAGE)
+#define protectme076_bit_cap(cap)    ((cap) & UR_PROTECTME)
+#define resetflags076_bit_cap(cap)   ((cap) & UR_RESETFLAGS)
+
 
 // Boolean capabilities
-#define ispgmwritepage_cap(cap) (!!((cap) & UR_PGMWRITEPAGE)) // up to v7.6
-#define isautobaud_cap(cap)     (!!((cap) & UR_AUTOBAUD))     // from v7.7
-#define iseeprom_cap(cap)       (!!((cap) & UR_EEPROM))
-#define isdual_cap(cap)         (!!((cap) & UR_DUAL))
-#define isvectorbl_cap(cap)     (!!((cap) & UR_VBLMASK)))
-#define isprotectme_cap(cap)    (!!((cap) & UR_PROTECTME))
-#define isurprotocol_cap(cap)   (!!((cap) & UR_URPROTOCOL))
-#define isresetflags_cap(cap)   (!!((cap) & UR_RESETFLAGS))   // up to v7.6
-#define ishas_ce_cap(cap)       (!!((cap) & UR_HAS_CE))       // from v7.7
+#define isautobaud_cap(cap)        (!!((cap) & UR_AUTOBAUD))     // from v7.7
+#define iseeprom_cap(cap)          (!!((cap) & UR_EEPROM))
+#define isdual_cap(cap)            (!!((cap) & UR_DUAL))
+#define isprotectreset_cap(cap)    (!!((cap) & UR_PROTECTRESET)) // from v7.7
+#define ishas_ce_cap(cap)          (!!((cap) & UR_HAS_CE))       // from v7.7
 
-// Capability levels 0, 1, 2 or 3
-#define vectorbl_level_cap(cap) (((cap) & UR_VBLMASK)/UR_VBL)
+// Up to v7.7
+#define isurprotocol077_cap(cap)   (!!((cap) & UR_URPROTOCOL))
+#define isvectorbl077_cap(cap)     (!!((cap) & UR_VBLMASK)))
+
+// Up to v7.6
+#define ispgmwritepage076_cap(cap) (!!((cap) & UR_PGMWRITEPAGE))
+#define isprotectme076_cap(cap)    (!!((cap) & UR_PROTECTME))
+#define isresetflags076_cap(cap)   (!!((cap) & UR_RESETFLAGS))
+
+// Capability levels 0, 1, 2 or 3 (only for bootloaders up to v7.7)
+#define vectorbl_level077_cap(cap) (((cap) & UR_VBLMASK)/(UR_VBLMASK & -UR_VBLMASK))
 
 #endif

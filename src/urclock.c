@@ -544,7 +544,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   const char *fname, int size) { // size is max memory address + 1
 
   int nmdata, maxsize, firstbeg, firstlen;
-  int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large parts need 4-byte jmp
+  const int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large a 4-byte jmp
 
   set_date_filename(pgm, fname);
 
@@ -922,8 +922,11 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     buf += strlen(buf);
     *buf++ = (hi < 077 && (type & UR_PGMWRITEPAGE)) || (hi >= 077 && rjmpwp != ret_opcode)? 'w': '-';
     *buf++ = type & UR_EEPROM? 'e': '-';
-    if(hi >= 076) {             // From urboot version 7.6 URPROTOCOL has its own bit
-      *buf++ = type & UR_URPROTOCOL? 'u': 's';
+    if(hi >= 076) {
+      if(hi > 077)              // From version 8.0 it's always urprotocol
+        *buf++ = type & UR_EXPEDITE? 'U': 'u';
+      else
+        *buf++ = type & UR_URPROTOCOL? 'u': 's';
       *buf++ = type & UR_DUAL? 'd': '-';
     } else {
       *buf++ = '-';             // Dummy bit
@@ -931,7 +934,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
       // D = Dual boot with SE & SPI restoration, d = dual boot with SE, f = dual boot only
       *buf++ = flags==3? 'D': flags==2? 'd': flags? 'f': '-';
     }
-    flags = (type/UR_VBL) & 3;
+    flags = (type/(UR_VBLMASK & -UR_VBLMASK)) & (hi > 077? 1: 3); // Only use 1 bit for v8.0+
     // V = VBL, patch & verify, v = VBL, patch only, j = VBL, jump only
     *buf++ = flags==3? 'V': flags==2? 'v': flags? 'j': 'h';
     *buf++ = hi < 077? (type & UR_PROTECTME? 'p': '-'): (type & UR_PROTECTME? 'P': 'p');
@@ -1349,9 +1352,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if((rc = ur_readEF(pgm, p, spc, flm->size-6, 6, 'F')))
       return rc;
 
-    // In a urboot bootloader (v7.2 onwards) these six are as follows
-    uint8_t numpags = spc[0];   // Actually, these two only exist from v7.5 onwards
-    uint8_t vectnum = spc[1];
+    // In a urboot bootloader these six (v7.5 onwards) are as follows
+    uint8_t numpags = spc[0] & 0x7f; // Number of bootloader pages (undefined before v7.5)
+    uint8_t vectnum = spc[1] & 0x7f; // Vector number for application start (undefined before v7.5)
     rjmpwp = buf2uint16(spc+2); // rjmp to bootloader pgm_write_page() or ret opcode
     uint8_t cap = spc[4];       // Capability byte
     uint8_t urver = spc[5];     // Urboot version (low three bits are minor version: 076 is v7.6)
@@ -1359,12 +1362,12 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
     // Extensively check this is an urboot bootloader v7.2 .. v12.7 == 0147 and extract properties
     if(urver >= 072 && urver <= 0147 && (isRjmp(rjmpwp) || rjmpwp == ret_opcode)) { // Prob urboot
-      ur.blurversion = urver;
-      ur.bleepromrw = iseeprom_cap(cap);
-      // Vector bootloader: 0 = none, 1 = external patching, 2 = bl patches, 3 = patches + verifies
-      if(!ur.vbllevel)          // Unless manually overwritten
-        ur.vbllevel = vectorbl_level_cap(cap);
-      if(urver >= 075) {        // Urboot v7.5+ encodes # of bootloader pages and vbl vector number
+      if(urver < 075) {         // Early urboot versions don't offer many sanity checks
+        ur.blurversion = urver;
+        ur.bleepromrw = iseeprom_cap(cap);
+        if(!ur.vbllevel)        // Unless manually overwritten
+          ur.vbllevel = vectorbl_level077_cap(cap);
+      } else {                  // Urboot v7.5+ encodes bootloader size and vector number
         int blsize = numpags*flm->page_size;
         // Size of urboot bootloader should be in [64, 2048] (in v7.6 these are 224-512 bytes)
         if(blsize >= 64 && blsize <= 2048 && vectnum <= ur.uP.ninterrupts) { // Within range
@@ -1375,7 +1378,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
               if(flm->size - blsize != ur.blstart) {
                 pmsg_warning("urboot bootloader size %d explicitly overwritten by -xbootsize=%d\n",
                   blsize, ur.xbootsize);
-                if(!ovsigck && ur.vbllevel) {
+                if(!ovsigck && vectnum) {
                   imsg_warning("this can lead to bricking the vector bootloader\n");
                   return -1;
                 }
@@ -1392,8 +1395,18 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
                   vectnum, ur.xvectornum);
                 imsg_warning("the application might not start correctly\n");
               }
-            } else
+            } else {
               ur.vblvectornum = vectnum;
+              /*
+               * Urboot v8.0 (urver == 0100) onwards no longer supports self-patching
+               * bootloaders. The vbllevel is either 0 (vectnum == 0) or 1 (vectnum > 0).
+               * No longer refer to the capability byte from v8.0 thus freeing 2 bits.
+               */
+              ur.vbllevel = urver <= 077? vectorbl_level077_cap(cap): vectnum > 0;
+            }
+
+            ur.blurversion = urver;
+            ur.bleepromrw = iseeprom_cap(cap);
           }
         }
       }
@@ -1489,7 +1502,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
           ur.bloptiversion>>8, ur.bloptiversion & 255);
       Return("unknown bootloader ... please specify -xbootsize=<num>\n");
     }
-  } else if(!ur.boothigh) { // Fixme: guess bootloader size from low flash
+  } else if(!ur.boothigh) { // @@@ Fixme: guess bootloader size from low flash
   }
 
 vblvecfound:
@@ -1684,7 +1697,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     if(len != ur.uP.pagesize)
       Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
 
-    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel==1) {
+    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       unsigned char jmptoboot[4];
       int resetsize = set_reset(pgm, jmptoboot, vecsz);
@@ -2151,7 +2164,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   ur.done_ce = 1;
 
   if(!emulated) {               // Write jump to boot section to reset vector
-    if(ur.boothigh && ur.blstart && ur.vbllevel==1) {
+    if(ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       AVRMEM *flm = avr_locate_flash(p);
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
