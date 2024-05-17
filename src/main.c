@@ -515,7 +515,9 @@ static int suggest_programmers(const char *programmer, LISTID programmers) {
   return n;
 }
 
-static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pmode) {
+static void programmer_not_found(const char *programmer, const PROGRAMMER *pgm, const AVRPART *pt) {
+  int pmode = pt? pt->prog_modes: ~0;
+
   if(!programmer || !*programmer) {
     pmsg_error("no programmer has been specified on the command line or in the\n");
     imsg_error("config file(s); specify one using the -c option and try again\n");
@@ -557,9 +559,15 @@ static void programmer_not_found(const char *programmer, PROGRAMMER *pgm, int pm
       }
     }
   } else if(!pgm || !pgm->id || !lsize(pgm->id)) {
-    pmsg_error("cannot find programmer id %s\n", programmer);
-    suggest_programmers(programmer, programmers);
-    msg_info("use -c? to see all possible programmers\n");
+    PROGRAMMER *pg = locate_programmer(programmers, programmer);
+    if(!pgm && pt && pg && !(pg->prog_modes & pmode)) {
+      pmsg_error("programmer %s and part %s have no programming modes in common\n", programmer, pt->desc);
+      msg_info("use -c? -p %s to see all possible programmers for %s\n", pt->desc, pt->desc);
+    } else {
+      pmsg_error("cannot find programmer id %s\n", programmer);
+      suggest_programmers(programmer, programmers);
+      msg_info("use -c? to see all possible programmers\n");
+    }
   } else
     pmsg_error("programmer %s lacks %s setting\n", programmer,
       !pgm->prog_modes? "prog_modes": !pgm->initpgm? "type": "some");
@@ -1157,7 +1165,7 @@ int main(int argc, char * argv [])
       if(pgmid && *pgmid && explicit_c) {
         PROGRAMMER *pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, NULL);
         if(!pgm || !is_programmer(pgm)) {
-          programmer_not_found(pgmid, pgm, ~0);
+          programmer_not_found(pgmid, pgm, NULL);
           exit(1);
         }
         msg_error("\nValid parts for programmer %s are:\n", pgmid);
@@ -1200,14 +1208,14 @@ int main(int argc, char * argv [])
   msg_notice("\n");
 
   if(!pgmid || !*pgmid) {
-    programmer_not_found(NULL, NULL, ~0);
+    programmer_not_found(NULL, NULL, NULL);
     exit(1);
   }
 
   p = partdesc  && *partdesc? locate_part(part_list, partdesc): NULL;
   pgm = locate_programmer_starts_set(programmers, pgmid, &pgmid, p);
   if (pgm == NULL || !is_programmer(pgm)) {
-    programmer_not_found(pgmid, pgm, p? p->prog_modes: ~0);
+    programmer_not_found(pgmid, pgm, p);
     exit(1);
   }
 

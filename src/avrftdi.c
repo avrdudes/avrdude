@@ -704,7 +704,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	// Todo: use desc and index argument, currently set to NULL and 0
 	err = ftdi_usb_open_desc_index(pdata->ftdic, vid, pid, NULL, serial, 0);
 	if(err) {
-		pmsg_error("error %d occurred: %s\n", err, ftdi_get_error_string(pdata->ftdic));
+		pmsg_error("%s (%d)\n", ftdi_get_error_string(pdata->ftdic), err);
 		// usb_dev is initialized to the last usb device from probing
 		pdata->ftdic->usb_dev = NULL;
 		return err;
