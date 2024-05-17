@@ -1359,12 +1359,12 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
     // Extensively check this is an urboot bootloader v7.2 .. v12.7 == 0147 and extract properties
     if(urver >= 072 && urver <= 0147 && (isRjmp(rjmpwp) || rjmpwp == ret_opcode)) { // Prob urboot
-      ur.blurversion = urver;
-      ur.bleepromrw = iseeprom_cap(cap);
-      // Vector bootloader: 0 = none, 1 = external patching, 2 = bl patches, 3 = patches + verifies
-      if(!ur.vbllevel)          // Unless manually overwritten
-        ur.vbllevel = vectorbl_level_cap(cap);
-      if(urver >= 075) {        // Urboot v7.5+ encodes # of bootloader pages and vbl vector number
+      if(urver < 075) {         // Early urboot versions don't offer many sanity checks
+        ur.blurversion = urver;
+        ur.bleepromrw = iseeprom_cap(cap);
+        if(!ur.vbllevel)        // Unless manually overwritten
+          ur.vbllevel = vectorbl_level_cap(cap);
+      } else {                  // Urboot v7.5+ encodes bootloader size and vector number
         int blsize = numpags*flm->page_size;
         // Size of urboot bootloader should be in [64, 2048] (in v7.6 these are 224-512 bytes)
         if(blsize >= 64 && blsize <= 2048 && vectnum <= ur.uP.ninterrupts) { // Within range
@@ -1375,7 +1375,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
               if(flm->size - blsize != ur.blstart) {
                 pmsg_warning("urboot bootloader size %d explicitly overwritten by -xbootsize=%d\n",
                   blsize, ur.xbootsize);
-                if(!ovsigck && ur.vbllevel) {
+                if(!ovsigck && vectnum) {
                   imsg_warning("this can lead to bricking the vector bootloader\n");
                   return -1;
                 }
@@ -1394,6 +1394,11 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
               }
             } else
               ur.vblvectornum = vectnum;
+
+            ur.blurversion = urver;
+            ur.bleepromrw = iseeprom_cap(cap);
+            if(!ur.vbllevel)        // Unless manually overwritten
+              ur.vbllevel = vectorbl_level_cap(cap);
           }
         }
       }
@@ -1684,7 +1689,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     if(len != ur.uP.pagesize)
       Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
 
-    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel==1) {
+    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       unsigned char jmptoboot[4];
       int resetsize = set_reset(pgm, jmptoboot, vecsz);
@@ -2151,7 +2156,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   ur.done_ce = 1;
 
   if(!emulated) {               // Write jump to boot section to reset vector
-    if(ur.boothigh && ur.blstart && ur.vbllevel==1) {
+    if(ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       AVRMEM *flm = avr_locate_flash(p);
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
