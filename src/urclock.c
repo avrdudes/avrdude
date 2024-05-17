@@ -544,7 +544,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   const char *fname, int size) { // size is max memory address + 1
 
   int nmdata, maxsize, firstbeg, firstlen;
-  int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large parts need 4-byte jmp
+  const int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large a 4-byte jmp
 
   set_date_filename(pgm, fname);
 
@@ -1489,7 +1489,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
           ur.bloptiversion>>8, ur.bloptiversion & 255);
       Return("unknown bootloader ... please specify -xbootsize=<num>\n");
     }
-  } else if(!ur.boothigh) { // Fixme: guess bootloader size from low flash
+  } else if(!ur.boothigh) { // @@@ Fixme: guess bootloader size from low flash
   }
 
 vblvecfound:
