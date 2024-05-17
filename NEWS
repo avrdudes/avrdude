@@ -11,9 +11,13 @@ Changes since version 7.3:
 
   * New devices supported:
 
+    - AVR16DU14, AVR16DU20, AVR16DU28, AVR16DU32
+    - AVR32DU14, AVR32DU20, AVR32DU28, AVR32DU32
+
   * New programmers supported:
 
   * Issues fixed:
+
     - Avrintel.h missing from installation #1683
     - Use of undeclared identifier 'AVRDUDE_FULL_VERSION' #1706
     - Wrong message level in jtag3_prmsg() #1726
@@ -27,8 +31,13 @@ Changes since version 7.3:
     - Remove calls to exit() from libavrdude library #774
     - cmake enabling LINUXGPIO on ubuntu 20.04 fails #1782
     - macOS github action failed. #1793
+    - Format mismatch warnings #1799
+    - 0xff optimization when reading #1732
+    - Add support for more AVR-DU parts #1742
+    - Misleading error message: cannot find programmer id #1805
 
   * Pull requests:
+
     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
     - Make avrintel.h an internal header file for libavrdude #1686
     - Fix -Wcalloc-transposed-args warning #1680
@@ -65,9 +74,19 @@ Changes since version 7.3:
     - Use magic memory tree interface throughout #1795
     - Silence MacOS compiler warning #1794
     - Add macOS autotools to github action #1798
+    - Silence compiler warnings #1800
+    - Fix 7 typos in 4 files #1802
+    - Put static variables into context structure #1803
+    - Add new AVRnnDUnn parts #1804
+    - Differentiate cause when programmer isn't found #1806
+    - Prepare for next urboot version #1808
 
   * Internals:
 
+    - Created a context structure pointed to by cx, which harbours global
+      and static variables
+    - Made programmers libavrdude ready: remove exit() calls and moved
+      static variables into local struct pdata
 
 Changes in version 7.3:
 
