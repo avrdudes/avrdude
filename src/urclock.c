@@ -1349,9 +1349,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if((rc = ur_readEF(pgm, p, spc, flm->size-6, 6, 'F')))
       return rc;
 
-    // In a urboot bootloader (v7.2 onwards) these six are as follows
-    uint8_t numpags = spc[0];   // Actually, these two only exist from v7.5 onwards
-    uint8_t vectnum = spc[1];
+    // In a urboot bootloader these six (v7.5 onwards) are as follows
+    uint8_t numpags = spc[0] & 0x7f; // Number of bootloader pages (undefined before v7.5)
+    uint8_t vectnum = spc[1] & 0x7f; // Vector number for application start (undefined before v7.5)
     rjmpwp = buf2uint16(spc+2); // rjmp to bootloader pgm_write_page() or ret opcode
     uint8_t cap = spc[4];       // Capability byte
     uint8_t urver = spc[5];     // Urboot version (low three bits are minor version: 076 is v7.6)
