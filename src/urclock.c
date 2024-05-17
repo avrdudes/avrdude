@@ -1363,7 +1363,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
         ur.blurversion = urver;
         ur.bleepromrw = iseeprom_cap(cap);
         if(!ur.vbllevel)        // Unless manually overwritten
-          ur.vbllevel = vectorbl_level_cap(cap);
+          ur.vbllevel = vectorbl_level077_cap(cap);
       } else {                  // Urboot v7.5+ encodes bootloader size and vector number
         int blsize = numpags*flm->page_size;
         // Size of urboot bootloader should be in [64, 2048] (in v7.6 these are 224-512 bytes)
@@ -1399,7 +1399,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
                * bootloaders. The vbllevel is either 0 (vectnum == 0) or 1 (vectnum > 0).
                * No longer refer to the capability byte from v8.0 thus freeing 2 bits.
                */
-              ur.vbllevel = urver <= 077? vectorbl_level_cap(cap): vectnum > 0;
+              ur.vbllevel = urver <= 077? vectorbl_level077_cap(cap): vectnum > 0;
             }
 
             ur.blurversion = urver;
