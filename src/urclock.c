@@ -1392,13 +1392,18 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
                   vectnum, ur.xvectornum);
                 imsg_warning("the application might not start correctly\n");
               }
-            } else
+            } else {
               ur.vblvectornum = vectnum;
+              /*
+               * Urboot v8.0 (urver == 0100) onwards no longer supports self-patching
+               * bootloaders. The vbllevel is either 0 (vectnum == 0) or 1 (vectnum > 0).
+               * No longer refer to the capability byte from v8.0 thus freeing 2 bits.
+               */
+              ur.vbllevel = urver <= 077? vectorbl_level_cap(cap): vectnum > 0;
+            }
 
             ur.blurversion = urver;
             ur.bleepromrw = iseeprom_cap(cap);
-            if(!ur.vbllevel)        // Unless manually overwritten
-              ur.vbllevel = vectorbl_level_cap(cap);
           }
         }
       }
