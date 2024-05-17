@@ -335,7 +335,7 @@ typedef enum
  * In appnote AVR067, struct device_descriptor is written with
  * int/long field types.  We cannot use them directly, as they were
  * neither properly aligned for portability, nor did they care for
- * endianess issues.  We thus use arrays of unsigned chars, plus
+ * endianness issues.  We thus use arrays of unsigned chars, plus
  * conversion macros.
  */
 struct device_descriptor

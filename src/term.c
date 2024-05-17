@@ -522,7 +522,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       }
       if(sd->warnstr)
         pmsg_warning("(write) %s\n", sd->warnstr);
-      // Always write little endian (assume double and int have same endianess)
+      // Always write little endian (assume double and int have same endianness)
       if(is_bigendian() && sd->size > 0 && (sd->type & STR_NUMBER))
         change_endian(sd->a, sd->size);
     } else {
