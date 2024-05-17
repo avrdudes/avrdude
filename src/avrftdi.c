@@ -176,22 +176,19 @@ static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
 	}
 
 	if (divisor < 0) {
-		char *f = str_frq(freq, 6), *h = str_frq(clock/2.0, 6);
-		pmsg_warning("frequency %s too high, resetting to %s\n", f, h);
-		mmt_free(f); mmt_free(h);
+		pmsg_warning("frequency %s too high, resetting to %s\n",
+			str_ccfrq(freq, 6), str_ccfrq(clock/2.0, 6));
 		divisor = 0;
 	}
 
 	if (divisor > 65535) {
-		char *f = str_frq(freq, 6), *l = str_frq(clock/2.0 / 65536, 6);
-		pmsg_warning("frequency %s too low, resetting to %s\n", f, l);
-		mmt_free(f); mmt_free(l);
+		pmsg_warning("frequency %s too low, resetting to %s\n",
+			str_ccfrq(freq, 6), str_ccfrq(clock/2.0 / 65536, 6));
 		divisor = 65535;
 	}
 
-	char *f = str_frq(clock/2.0 / (divisor + 1), 6);
-	imsg_notice(" - frequency %s (clock divisor %d = 0x%04x)\n", f, divisor, divisor);
-	mmt_free(f);
+	imsg_notice(" - frequency %s (clock divisor %d = 0x%04x)\n",
+		str_ccfrq(clock/2.0 / (divisor + 1), 6), divisor, divisor);
 
 	*ptr++ = TCK_DIVISOR;
 	*ptr++ = (uint8_t)(divisor & 0xff);
@@ -223,9 +220,8 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 	}
 
 	pmsg_debug("setting pin %s (%s) as %s: %s (%s active)\n",
-	          pinmask_to_str(pin.mask), ftdi_pin_name(pdata, pin),
-						avr_pin_name(pinfunc),
-	          (value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
+		pinmask_to_str(pin.mask), ftdi_pin_name(pdata, pin), avr_pin_name(pinfunc),
+		(value) ? "high" : "low", (pin.inverse[0]) ? "low" : "high");
 
 	pdata->pin_value = SET_BITS_0(pdata->pin_value, pgm, pinfunc, value);
 
@@ -601,7 +597,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 		avrftdi_check_pins_bb(pgm, true);
 		imsg_error("pin configuration for FTDI MPSSE must be:\n");
 		if (pgm->flag == PGM_FL_IS_JTAG) {
-			imsg_error("%s: 0, %s: 1, %s: 2, %s :3 (is: %s, %s, %s, %s)\n",
+			imsg_error("%s: 0; %s: 1; %s: 2; %s: 3 (is: %s; %s; %s; %s)\n",
 				avr_pin_name(PIN_JTAG_TCK), avr_pin_name(PIN_JTAG_TDI),
 				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
 				pins_to_str(&pgm->pin[PIN_JTAG_TCK]),
@@ -609,7 +605,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				pins_to_str(&pgm->pin[PIN_JTAG_TDO]),
 				pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
 		} else {
-			imsg_error("%s: 0, %s: 1, %s: 2 (is: %s, %s, %s)\n",
+			imsg_error("%s: 0; %s: 1; %s: 2 (is: %s; %s; %s)\n",
 				avr_pin_name(PIN_AVR_SCK),
 				avr_pin_name(PIN_AVR_SDO),
 				avr_pin_name(PIN_AVR_SDI),

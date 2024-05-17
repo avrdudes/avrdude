@@ -766,7 +766,7 @@ int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
 
 
 static char *print_num(const char *fmt, int n) {
-  return str_sprintf(n<10? "%d": fmt, n);
+  return mmt_sprintf(n<10? "%d": fmt, n);
 }
 
 static int num_len(const char *fmt, int n) {
@@ -835,7 +835,7 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
 
     // Create mem desc string including alias if present
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    char *m_desc_str = str_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
+    char *m_desc_str = mmt_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
 
     // Print memory table content
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
@@ -1083,44 +1083,10 @@ void sort_avrparts(LISTID avrparts)
   lsort(avrparts,(int (*)(void*, void*)) sort_avrparts_compare);
 }
 
-const char *avr_prog_modes_str(int pm) {
-  static char type[1024];
-
-  strcpy(type, "0");
-  if(pm & PM_TPI)
-    strcat(type, ", TPI");
-  if(pm & PM_ISP)
-    strcat(type, ", ISP");
-  if(pm & PM_PDI)
-    strcat(type, ", PDI");
-  if(pm & PM_UPDI)
-    strcat(type, ", UPDI");
-  if(pm & PM_HVSP)
-    strcat(type, ", HVSP");
-  if(pm & PM_HVPP)
-    strcat(type, ", HVPP");
-  if(pm & PM_debugWIRE)
-    strcat(type, ", debugWIRE");
-  if(pm & PM_JTAG)
-    strcat(type, ", JTAG");
-  if(pm & PM_JTAGmkI)
-    strcat(type, ", JTAGmkI");
-  if(pm & PM_XMEGAJTAG)
-    strcat(type, ", XMEGAJTAG");
-  if(pm & PM_AVR32JTAG)
-    strcat(type, ", AVR32JTAG");
-  if(pm & PM_aWire)
-    strcat(type, ", aWire");
-  if(pm & PM_SPM)
-    strcat(type, ", SPM");
-
-  return type + (type[1] == 0? 0: 3);
-}
-
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(f, "%sAVR Part              : %s\n", prefix, p->desc);
-  fprintf(f, "%sProgramming modes     : %s\n", prefix, avr_prog_modes_str(p->prog_modes));
+  fprintf(f, "%sProgramming modes     : %s\n", prefix, str_prog_modes(p->prog_modes));
 
   if(verbose > 1) {
     avr_mem_display(f, p, prefix);

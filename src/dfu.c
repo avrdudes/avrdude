@@ -88,8 +88,6 @@ int dfu_upload(struct dfu_dev *dfu, void * ptr, int size) {
  * is sent to the device.
  */
 
-static uint16_t wIndex = 0;
-
 /* INTERNAL FUNCTION PROTOTYPES
  */
 
@@ -325,10 +323,10 @@ int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
   int result;
 
   pmsg_trace("dfu_dnload(): issuing control OUT message, wIndex = %d, ptr = %p, size = %d\n",
-    wIndex, ptr, size);
+    cx->dfu_wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
-    USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, wIndex++, 0,
+    USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, cx->dfu_wIndex++, 0,
     ptr, size, dfu->timeout);
 
   if (result < 0) {
@@ -354,10 +352,10 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
   int result;
 
   pmsg_trace("dfu_upload(): issuing control IN message, wIndex = %d, ptr = %p, size = %d\n",
-    wIndex, ptr, size);
+    cx->dfu_wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
-    0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, wIndex++, 0,
+    0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, cx->dfu_wIndex++, 0,
     ptr, size, dfu->timeout);
 
   if (result < 0) {

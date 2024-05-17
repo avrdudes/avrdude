@@ -53,11 +53,6 @@
 #  undef interface
 #endif
 
-static char usbbuf[USBDEV_MAX_XFER_3];
-static int buflen = -1, bufptr;
-
-static int usb_interface;
-
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
@@ -213,7 +208,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 
 		  for (iface = 0; iface < dev->config[0].bNumInterfaces; iface++)
 		    {
-		      usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
+		      cx->usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
 #ifdef LIBUSB_HAS_GET_DRIVER_NP
 		      /*
 		       * Many Linux systems attach the usbhid driver
@@ -221,12 +216,12 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		       * those, the driver needs to be detached before
 		       * we can claim the interface.
 		       */
-		      (void)usb_detach_kernel_driver_np(udev, usb_interface);
+		      (void) usb_detach_kernel_driver_np(udev, cx->usb_interface);
 #endif
-		      if (usb_claim_interface(udev, usb_interface))
+		      if (usb_claim_interface(udev, cx->usb_interface))
 			{
 			  pmsg_error("unable to claim interface %d: %s\n",
-                            usb_interface, usb_strerror());
+                            cx->usb_interface, usb_strerror());
 			}
 		      else
 			{
@@ -311,7 +306,7 @@ static void usbdev_close(union filedescriptor *fd)
   if (udev == NULL)
     return;
 
-  (void)usb_release_interface(udev, usb_interface);
+  (void) usb_release_interface(udev, cx->usb_interface);
 
 #if defined(__linux__)
   /*
@@ -372,15 +367,14 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
  * and transparently issue another USB read request if the buffer is
  * empty and more data are requested.
  */
-static int
-usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
+static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
 {
   int rv;
 
   if (use_interrupt_xfer)
-    rv = usb_interrupt_read(udev, ep, usbbuf, maxsize, 10000);
+    rv = usb_interrupt_read(udev, ep, cx->usb_buf, maxsize, 10000);
   else
-    rv = usb_bulk_read(udev, ep, usbbuf, maxsize, 10000);
+    rv = usb_bulk_read(udev, ep, cx->usb_buf, maxsize, 10000);
   if (rv < 0)
     {
       pmsg_notice2("usb_fill_buf(): usb_%s_read() error: %s\n",
@@ -388,8 +382,8 @@ usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
       return -1;
     }
 
-  buflen = rv;
-  bufptr = 0;
+  cx->usb_buflen = rv;
+  cx->usb_bufptr = 0;
 
   return 0;
 }
@@ -405,14 +399,14 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
 
   for (i = 0; nbytes > 0;)
     {
-      if (buflen <= bufptr)
+      if (cx->usb_buflen <= cx->usb_bufptr)
 	{
 	  if (usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep, fd->usb.use_interrupt_xfer) < 0)
 	    return -1;
 	}
-      amnt = buflen - bufptr > (int) nbytes? (int) nbytes: buflen - bufptr;
-      memcpy(buf + i, usbbuf + bufptr, amnt);
-      bufptr += amnt;
+      amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
+      memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
+      cx->usb_bufptr += amnt;
       nbytes -= amnt;
       i += amnt;
     }
@@ -444,11 +438,11 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
   /* If there's an event EP, and it has data pending, return it first. */
   if (fd->usb.eep != 0)
   {
-      rv = usb_bulk_read(udev, fd->usb.eep, usbbuf,
+      rv = usb_bulk_read(udev, fd->usb.eep, cx->usb_buf,
                          fd->usb.max_xfer, 1);
       if (rv > 4)
       {
-	  memcpy(buf, usbbuf, rv);
+	  memcpy(buf, cx->usb_buf, rv);
 	  n = rv;
 	  n |= USB_RECV_FLAG_EVENT;
 	  goto printout;
@@ -464,10 +458,10 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
   do
     {
       if (fd->usb.use_interrupt_xfer)
-	rv = usb_interrupt_read(udev, fd->usb.rep, usbbuf,
+	rv = usb_interrupt_read(udev, fd->usb.rep, cx->usb_buf,
 				fd->usb.max_xfer, 10000);
       else
-	rv = usb_bulk_read(udev, fd->usb.rep, usbbuf,
+	rv = usb_bulk_read(udev, fd->usb.rep, cx->usb_buf,
 			   fd->usb.max_xfer, 10000);
       if (rv < 0)
 	{
@@ -478,7 +472,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 
       if (rv <= (int) nbytes)
 	{
-	  memcpy (buf, usbbuf, rv);
+	  memcpy (buf, cx->usb_buf, rv);
 	  buf += rv;
 	}
       else

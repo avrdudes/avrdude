@@ -152,19 +152,17 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
 }
 
 /**
- * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
- * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are represented as start-end.
+ * This function returns a string representation of pins in the mask eg. 1, 3, 5-7, 9, 12
+ * Consecutive pin numbers are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
- * @returns pointer to a static string.
+ * @returns a temporary string that lives in closed-circuit space
  */
-const char * pinmask_to_str(const pinmask_t * const pinmask) {
-  static char buf[(PIN_MAX + 1) * 5]; // should be enough for PIN_MAX=255
+const char *pinmask_to_str(const pinmask_t * const pinmask) {
+  char buf[6 * (PIN_MAX + 1)];
   char *p = buf;
   int n;
   int pin;
-  const char * fmt;
   int start = -1;
   int end = -1;
 
@@ -189,11 +187,8 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
         start = pin;
         end = start;
       }
-      if(output) {
-        fmt = (buf[0] == 0) ? "%d" : ",%d";
-        n = sprintf(p, fmt, pin);
-        p += n;
-      }
+      if(output)
+        p += n = sprintf(p, *buf? ", %d": "%d", pin);
     }
   }
   if(start != end) {
@@ -201,10 +196,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
     p += n;
   }
 
-  if(buf[0] == 0)
-    return  "(no pins)";
-
-  return buf;
+  return str_ccstrdup(*buf? buf: "(no pins)");
 }
 
 
@@ -315,48 +307,14 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
   return rv;
 }
 
-/**
- * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
- * Another execution of this function will overwrite the previous result in the static buffer.
- *
- * @param[in] pindef the pin definition for which we want the string representation
- * @returns pointer to a static string.
- */
-const char * pins_to_str(const struct pindef_t * const pindef) {
-  static char buf[(PIN_MAX + 1) * 5]; // should be enough for PIN_MAX=255
-  char *p = buf;
-  int n;
-  int pin;
-  const char * fmt;
-
-  buf[0] = 0;
-  for(pin = PIN_MIN; pin <= PIN_MAX; pin++) {
-    int index = pin / PIN_FIELD_ELEMENT_SIZE;
-    int bit = pin % PIN_FIELD_ELEMENT_SIZE;
-    if(pindef->mask[index] & (1 << bit)) {
-      if(pindef->inverse[index] & (1 << bit)) {
-        fmt = (buf[0] == 0) ? "~%d" : ",~%d";
-      } else {
-        fmt = (buf[0] == 0) ? " %d" : ",%d";
-      }
-      n = sprintf(p, fmt, pin);
-      p += n;
-    }
-  }
-
-  if(buf[0] == 0)
-    return " (not used)";
-
-  return buf;
-}
 
 /**
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a pointer to a string, which was created by mmt_strdup()
+ * @returns a temporary string that lives in closed-circuit space
  */
-char *pins_to_strdup(const struct pindef_t * const pindef) {
+const char *pins_to_str(const struct pindef_t * const pindef) {
   char buf[6*(PIN_MAX+1)], *p = buf;
 
   *buf = 0;
@@ -369,7 +327,7 @@ char *pins_to_strdup(const struct pindef_t * const pindef) {
     }
   }
 
-  return mmt_strdup(buf);
+  return str_ccstrdup(buf);
 }
 
 /**

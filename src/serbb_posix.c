@@ -44,7 +44,13 @@
 
 #undef DEBUG
 
-static struct termios oldmode;
+struct pdata {
+  struct termios oldmode;
+};
+
+// Use private programmer data as if they were a global structure my
+#define my (*(struct pdata *)(pgm->cookie))
+
 
 /*
   serial port/pin mapping
@@ -62,11 +68,11 @@ static struct termios oldmode;
 
 #define DB9PINS 9
 
-static int serregbits[DB9PINS + 1] =
+static const int serregbits[DB9PINS + 1] =
 { 0, TIOCM_CD, 0, 0, TIOCM_DTR, 0, TIOCM_DSR, TIOCM_RTS, TIOCM_CTS, TIOCM_RI };
 
 #ifdef DEBUG
-static char *serpins[DB9PINS + 1] =
+static const char * const serpins[DB9PINS + 1] =
   { "NONE", "CD", "RXD", "TXD", "DTR", "GND", "DSR", "RTS", "CTS", "RI" };
 #endif
 
@@ -243,7 +249,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
     pmsg_ext_error("%s, tcgetattr(): %s\n", port, strerror(errno));
     return(-1);
   }
-  oldmode = mode;
+  my.oldmode = mode;
 
   mode.c_iflag = IGNBRK | IGNPAR;
   mode.c_oflag = 0;
@@ -277,11 +283,20 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 static void serbb_close(PROGRAMMER *pgm) {
   if (pgm->fd.ifd != -1)
   {
-	  (void)tcsetattr(pgm->fd.ifd, TCSANOW, &oldmode);
+	  (void) tcsetattr(pgm->fd.ifd, TCSANOW, &my.oldmode);
 	  pgm->setpin(pgm, PIN_AVR_RESET, 1);
 	  close(pgm->fd.ifd);
   }
   return;
+}
+
+static void serbb_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
+}
+
+static void serbb_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 const char serbb_desc[] = "Serial port bitbanging";
@@ -291,6 +306,8 @@ void serbb_initpgm(PROGRAMMER *pgm) {
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
+  pgm->setup          = serbb_setup;
+  pgm->teardown       = serbb_teardown;
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
   pgm->pgm_led        = bitbang_pgm_led;

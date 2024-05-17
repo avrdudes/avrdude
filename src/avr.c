@@ -291,15 +291,14 @@ rcerror:
 int avr_mem_hiaddr(const AVRMEM * mem)
 {
   int i, n;
-  static int disableffopt;
 
-  /* calling once with NULL disables any future trailing-0xff optimisation */
+  // Deprecated: calling with NULL disables trailing 0xff optimisation (remove in v8.0)
   if(!mem) {
-    disableffopt = 1;
+    cx->avr_disableffopt = 1;
     return 0;
   }
 
-  if(disableffopt)
+  if(cx->avr_disableffopt)
     return mem->size;
 
   /* if the memory is not a flash-type memory do not remove trailing 0xff */
@@ -578,16 +577,14 @@ uint64_t avr_ustimestamp() {
 
   memset(&tv, 0, sizeof tv);
   if(gettimeofday(&tv, NULL) == 0) {
-    static uint64_t epoch;
-    static int init;
     uint64_t now;
 
     now = tv.tv_sec*1000000ULL + tv.tv_usec;
-    if(!init) {
-      epoch = now;
-      init = 1;
+    if(!cx->avr_epoch_init) {
+      cx->avr_epoch = now;
+      cx->avr_epoch_init = 1;
     }
-    return now - epoch;
+    return now - cx->avr_epoch;
   }
 
   return 0;
@@ -1445,39 +1442,88 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 }
 
 
-// Returns a pointer to static memory of list of programming modes
-char *avr_prog_modes(int pm) {
-  static char type[1024];
+// Return temporary string buffer with n bytes from a closed-circuit space
+char *avr_cc_buffer(size_t n) {
+  size_t avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  if(!is_memset(cx->avr_space + avail, 0, AVR_SAFETY_MARGIN)) {
+    pmsg_warning("avr_cc_buffer(n) overran; n chosen too small in previous calls? Change and recompile\n");
+    memset(cx->avr_space + avail, 0, AVR_SAFETY_MARGIN);
+  }
 
-  strcpy(type, "?");
+  if(n > avail) {
+    pmsg_error("requested size %lu too big for cx->avr_space[%lu+AVR_SAFETY_MARGIN] (change source)\n",
+      (unsigned long) n, (unsigned long) avail);
+    cx->avr_s = cx->avr_space;
+    n = avail;
+  } else if(!cx->avr_s)
+    cx->avr_s = cx->avr_space;
+
+  cx->avr_s += strlen(cx->avr_s) + 1; // Move behind string from last call
+
+  // Rewind if too little space left
+  if((size_t) (cx->avr_s - cx->avr_space) > avail - n)
+    cx->avr_s = cx->avr_space;
+
+  memset(cx->avr_s, 0, n);
+  return cx->avr_s;
+}
+
+/*
+ * Returns a string in closed-circuit space with a list of programming
+ * modes encoded in pm; variant creates the list in subtly different ways:
+ *  - variants == 0: PM_SPM prints bootloader
+ *  - variants == 1: PM_SPM prints SPM
+ *  - variants == 2: rather than a comma-separated list it's | PM_... separated
+ * If pm is 0 (no programming modes) returns "0"
+ */
+static char *prog_modes_string(int pm, int variant) {
+  char *type = avr_cc_buffer(256); // Longest returned string has 142 chars
+
+  const char *spm = variant? "SPM": "bootloader";
+  const char *sep = variant == 2? " | PM_": ", ";
+  int skip = 3 + (variant == 2);
+
+  strcpy(type, "0");
   if(pm & PM_SPM)
-    strcat(type, ", bootloader");
+    strcat(strcat(type, sep), spm);
   if(pm & PM_TPI)
-    strcat(type, ", TPI");
+    strcat(strcat(type, sep), "TPI");
   if(pm & PM_ISP)
-    strcat(type, ", ISP");
+    strcat(strcat(type, sep), "ISP");
   if(pm & PM_PDI)
-    strcat(type, ", PDI");
+    strcat(strcat(type, sep), "PDI");
   if(pm & PM_UPDI)
-    strcat(type, ", UPDI");
+    strcat(strcat(type, sep), "UPDI");
   if(pm & PM_HVSP)
-    strcat(type, ", HVSP");
+    strcat(strcat(type, sep), "HVSP");
   if(pm & PM_HVPP)
-    strcat(type, ", HVPP");
+    strcat(strcat(type, sep), "HVPP");
   if(pm & PM_debugWIRE)
-    strcat(type, ", debugWIRE");
+    strcat(strcat(type, sep), "debugWIRE");
   if(pm & PM_JTAG)
-    strcat(type, ", JTAG");
+    strcat(strcat(type, sep), "JTAG");
   if(pm & PM_JTAGmkI)
-    strcat(type, ", JTAGmkI");
+    strcat(strcat(type, sep), "JTAGmkI");
   if(pm & PM_XMEGAJTAG)
-    strcat(type, ", XMEGAJTAG");
+    strcat(strcat(type, sep), "XMEGAJTAG");
   if(pm & PM_AVR32JTAG)
-    strcat(type, ", AVR32JTAG");
+    strcat(strcat(type, sep), "AVR32JTAG");
   if(pm & PM_aWire)
-    strcat(type, ", aWire");
+    strcat(strcat(type, sep), "aWire");
 
-  return type + (type[1] == 0? 0: 3);
+  return type + (type[1] == 0? 0: skip);
+}
+
+char *avr_prog_modes(int pm) {  // PM_SPM prints bootloader
+  return prog_modes_string(pm, 0);
+}
+
+char *str_prog_modes(int pm) {  // PM_SPM prints SPM
+  return prog_modes_string(pm, 1);
+}
+
+char *dev_prog_modes(int pm) {  // Symbolic C code of prog_modes
+  return prog_modes_string(pm, 2);
 }
 
 
@@ -1710,8 +1756,6 @@ int avr_unlock(const PROGRAMMER *pgm, const AVRPART *p) {
  */
 
 void report_progress(int completed, int total, const char *hdr) {
-  static int last;
-  static double start_time;
   int percent;
   double t;
 
@@ -1725,12 +1769,12 @@ void report_progress(int completed, int total, const char *hdr) {
 
   t = avr_timestamp();
 
-  if(hdr || !start_time)
-    start_time = t;
+  if(hdr || !cx->avr_start_time)
+    cx->avr_start_time = t;
 
-  if(hdr || percent > last) {
-    last = percent;
-    update_progress(percent, t - start_time, hdr, total < 0? -1: !!total);
+  if(hdr || percent > cx->avr_last_percent) {
+    cx->avr_last_percent = percent;
+    update_progress(percent, t - cx->avr_start_time, hdr, total < 0? -1: !!total);
   }
 }
 

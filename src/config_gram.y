@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +51,7 @@ static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op, int opnum);
 
-static int pin_name;
+#define pin_name (cx->cfgy_pin_name)
 %}
 
 %token K_NULL;
@@ -549,7 +550,10 @@ pin_number_non_empty:
 pin_number:
   pin_number_non_empty
   |
-  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+  /* empty */ {
+    if(pin_name >= 0 && pin_name < N_PINS)
+      pin_clear_all(&(current_prog->pin[pin_name]));
+  }
 ;
 
 pin_list_element:
@@ -568,7 +572,10 @@ pin_list_non_empty:
 pin_list:
   pin_list_non_empty
   |
-  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+  /* empty */ {
+    if(pin_name >= 0 && pin_name < N_PINS)
+      pin_clear_all(&(current_prog->pin[pin_name]));
+  }
 ;
 
 prog_parm_pins:

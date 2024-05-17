@@ -133,9 +133,9 @@ void free_update(UPDATE *u) {
 
 char *update_str(const UPDATE *upd) {
   if(upd->cmdline)
-    return str_sprintf("-%c %s",
+    return mmt_sprintf("-%c %s",
       str_eq("interactive terminal", upd->cmdline)? 't': 'T', upd->cmdline);
-  return str_sprintf("-U %s:%c:%s:%c",
+  return mmt_sprintf("-U %s:%c:%s:%c",
     upd->memstr,
     upd->op == DEVICE_READ? 'r': upd->op == DEVICE_WRITE? 'w': 'v',
     upd->filename,
@@ -267,14 +267,11 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
 
 // Basic checks to reveal serious failure before programming (and on autodetect set format)
 int update_dryrun(const AVRPART *p, UPDATE *upd) {
-  static const char **wrote, **termcmds;
-  static int nfwritten, nterms;
-
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
   if(upd->cmdline) {            // Todo: parse terminal command line?
-    termcmds = mmt_realloc(termcmds, sizeof(*termcmds) * (nterms+1));
-    termcmds[nterms++] = upd->cmdline;
+    cx->upd_termcmds = mmt_realloc(cx->upd_termcmds, sizeof(*cx->upd_termcmds) * (cx->upd_nterms+1));
+    cx->upd_termcmds[cx->upd_nterms++] = upd->cmdline;
     return 0;
   }
 
@@ -293,16 +290,16 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   if(upd->op == DEVICE_VERIFY || upd->op == DEVICE_WRITE || upd->format == FMT_AUTO) {
     if(upd->format != FMT_IMM) {
       // Need to read the file: was it written before, so will be known?
-      for(int i = 0; i < nfwritten; i++)
-        if(!wrote || (upd->filename && str_eq(wrote[i], upd->filename)))
+      for(int i = 0; i < cx->upd_nfwritten; i++)
+        if(!cx->upd_wrote || (upd->filename && str_eq(cx->upd_wrote[i], upd->filename)))
           known = 1;
       // Could a -T terminal command have created the file?
-      for(int i = 0; i < nterms; i++)
-        if(!termcmds || (upd->filename && str_contains(termcmds[i], upd->filename)))
+      for(int i = 0; i < cx->upd_nterms; i++)
+        if(!cx->upd_termcmds || (upd->filename && str_contains(cx->upd_termcmds[i], upd->filename)))
           known = 1;
       // Any -t interactive terminal could have created it
-      for(int i = 0; i < nterms; i++)
-        if(!termcmds || str_eq(termcmds[i], "interactive terminal"))
+      for(int i = 0; i < cx->upd_nterms; i++)
+        if(!cx->upd_termcmds || str_eq(cx->upd_termcmds[i], "interactive terminal"))
           known = 1;
 
       errno = 0;
@@ -342,8 +339,9 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
         ioerror("writeable", upd);
         ret = LIBAVRDUDE_SOFTFAIL;
       } else if(upd->filename) { // Record filename (other than stdout) is available for future reads
-        if(!str_eq(upd->filename, "-") && (wrote = mmt_realloc(wrote, sizeof(*wrote) * (nfwritten+1))))
-          wrote[nfwritten++] = upd->filename;
+        if(!str_eq(upd->filename, "-") &&
+          (cx->upd_wrote = mmt_realloc(cx->upd_wrote, sizeof(*cx->upd_wrote) * (cx->upd_nfwritten+1))))
+          cx->upd_wrote[cx->upd_nfwritten++] = upd->filename;
       }
     }
     break;
@@ -443,7 +441,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     imsg_info("with %d byte%s in %d section%s within %s\n",
       fs.nbytes, str_plural(fs.nbytes),
       fs.nsections, str_plural(fs.nsections),
-      str_interval(fs.firstaddr, fs.lastaddr));
+      str_ccinterval(fs.firstaddr, fs.lastaddr));
     if(mem->page_size > 1) {
       imsg_info("using %d page%s and %d pad byte%s",
         fs.npages, str_plural(fs.npages),
@@ -471,7 +469,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
             imsg_notice2("with %d byte%s in %d section%s within %s\n",
               fs_patched.nbytes, str_plural(fs_patched.nbytes),
               fs_patched.nsections, str_plural(fs_patched.nsections),
-              str_interval(fs_patched.firstaddr, fs_patched.lastaddr));
+              str_ccinterval(fs_patched.firstaddr, fs_patched.lastaddr));
             if(mem->page_size > 1) {
               imsg_notice2("using %d page%s and %d pad byte%s",
                 fs_patched.npages, str_plural(fs_patched.npages),

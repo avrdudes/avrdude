@@ -287,34 +287,11 @@ void programmer_display(PROGRAMMER *pgm, const char * p) {
 
 
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show) {
-  if(show & (1<<PPI_AVR_VCC)) 
-    msg_info("%s  VCC     = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_VCC]));
-  if(show & (1<<PPI_AVR_BUFF))
-    msg_info("%s  BUFF    = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_BUFF]));
-  if(show & (1<<PIN_AVR_RESET))
-    msg_info("%s  RESET   = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_RESET]));
-  if(show & (1<<PIN_AVR_SCK))
-    msg_info("%s  SCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SCK]));
-  if(show & (1<<PIN_AVR_SDO))
-    msg_info("%s  SDO     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SDO]));
-  if(show & (1<<PIN_AVR_SDI))
-    msg_info("%s  SDI     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SDI]));
-  if(show & (1<<PIN_JTAG_TCK))
-    msg_info("%s  TCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TCK]));
-  if(show & (1<<PIN_JTAG_TDI))
-    msg_info("%s  TDI     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TDI]));
-  if(show & (1<<PIN_JTAG_TDO))
-    msg_info("%s  TDO     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TDO]));
-  if(show & (1<<PIN_JTAG_TMS))
-    msg_info("%s  TMS     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
-  if(show & (1<<PIN_LED_ERR))
-    msg_info("%s  ERR LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_ERR]));
-  if(show & (1<<PIN_LED_RDY))
-    msg_info("%s  RDY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_RDY]));
-  if(show & (1<<PIN_LED_PGM))
-    msg_info("%s  PGM LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_PGM]));
-  if(show & (1<<PIN_LED_VFY))
-    msg_info("%s  VFY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_VFY]));
+  for(int pbit = 1; pbit < N_PINS; pbit++)
+    if(show & (1<<pbit)) {
+      const char *pinstr = pins_to_str(pgm->pin + pbit);
+      msg_info("%s  %-6s = %s\n", p, avr_pin_name(pbit), *pinstr? pinstr: "(not used)");
+    }
 }
 
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {

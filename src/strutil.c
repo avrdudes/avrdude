@@ -255,6 +255,46 @@ char *str_sprintf(const char *fmt, ...) {
   return p;
 }
 
+// Return a string in closed-circuit space with the sprintf() result
+const char *str_ccprintf(const char *fmt, ...) {
+  int size = 0, avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  va_list ap;
+
+  // Compute size
+  va_start(ap, fmt);
+  size = vsnprintf(NULL, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    return "";
+
+  size++;                       // For terminating '\0'
+  if(size > avail)
+    size = avail;
+  char *p = avr_cc_buffer(size);
+
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    *p = 0;
+
+  return p;
+}
+
+// Returns a temporary, possibly abbreviated copy of str in closed-circuit space
+const char *str_ccstrdup(const char *str) {
+  size_t size = strlen(str) + 1, avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  if(size > avail)
+    size = avail;
+  char *ret = avr_cc_buffer(size);
+  strncpy(ret, str, size);
+  ret[size-1] = 0;
+
+  return ret;
+}
+
 
 // Reads a potentially long line and returns it in a mmt_malloc'd buffer
 char *str_fgets(FILE *fp, const char **errpp) {
@@ -412,21 +452,12 @@ const char *str_outname(const char *fn) {
   return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
 }
 
-// Return sth like "[0, 0x1ff]"
-const char *str_interval(int a, int b) {
-  // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
-  static char space[20*41 + 80], *sp;
-  if(!sp || sp-space > (int) sizeof space - 80)
-    sp = space;
+// Return sth like "[0, 0x1ff]" in closed-circuit space
+const char *str_ccinterval(int a, int b) {
+  char *ret = avr_cc_buffer(45); // Interval strings each max 45 bytes at 64-bit int
 
-  char *ret = sp;
-
-  sprintf(sp, a<16? "[%d": "[0x%x", a);
-  sp += strlen(sp);
-  sprintf(sp, b<16? ", %d]": ", 0x%x]", b);
-
-  // Advance beyond return string in temporary ring buffer
-  sp += strlen(sp)+1;
+  sprintf(ret, a<16? "[%d": "[0x%x", a);
+  sprintf(ret+strlen(ret), b<16? ", %d]": ", 0x%x]", b);
 
   return ret;
 }
@@ -470,7 +501,7 @@ static int is_mantissa_only(char *p) {
 }
 
 // Return 1 if all n bytes in memory pointed to by p are c, 0 otherwise
-int memall(const void *p, char c, size_t n) {
+int is_memset(const void *p, char c, size_t n) {
   const char *q = (const char *) p;
   return n <= 0 || (*q == c && memcmp(q, q+1, n-1) == 0);
 }
@@ -579,7 +610,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
  */
 
 #define Return(...) do { \
-  sd->errstr = str_sprintf(__VA_ARGS__); \
+  sd->errstr = mmt_sprintf(__VA_ARGS__); \
   sd->type = 0; \
   mmt_free(str); \
   return sd; \
@@ -588,7 +619,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
 #define Warning(...) do { \
   if(sd->warnstr) \
     mmt_free(sd->warnstr); \
-   sd->warnstr = str_sprintf(__VA_ARGS__); \
+   sd->warnstr = mmt_sprintf(__VA_ARGS__); \
 } while (0)
 
 #define sizeforsigned(ll) ( \
@@ -724,10 +755,11 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
       if(is_signed && is_out_of_range)
         Warning("%s out of int%d range, interpreted as %d-byte %lld%sU",
-          stri, sd->size*8, sd->size, sd->ll, sd->size == 4? "L": sd->size==2? "H": "HH");
+          stri, sd->size*8, sd->size, (long long int) sd->ll,
+          sd->size == 4? "L": sd->size==2? "H": "HH");
       else if(is_out_of_range)
         Warning("%s out of uint%d range, interpreted as %d-byte %llu",
-          stri, sd->size*8, sd->size, sd->ull);
+          stri, sd->size*8, sd->size, (long long unsigned int) sd->ull);
       else if(is_outside_int64_t)
         Warning("%s out of int64 range (consider U suffix)", stri);
 
@@ -885,7 +917,6 @@ void str_freedata(Str2data *sd) {
  */
 
 unsigned long long int str_int(const char *str, int type, const char **errpp) {
-  char *tofree;
   const char *err = NULL;
   Str2data *sd = NULL;
   unsigned long long int ret = 0ULL;
@@ -927,20 +958,17 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
 
     if(signd == STR_SIGNED) {   // Strictly signed
       if(sd->ll < smin[lds] || sd->ll > smax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of int%d range", 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of int%d range", 1<<(3+lds)));
         goto finished;
       }
     } else if(signd == STR_UNSIGNED) { // Strictly unsigned are out of range if u and -u are
       if(sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of uint%d range", 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of uint%d range", 1<<(3+lds)));
         goto finished;
       }
     } else {                    // Neither strictly signed or unsigned
       if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
         goto finished;
       }
     }
@@ -1036,14 +1064,14 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
   return (char *) q;
 }
 
-// Return mmt_malloc'd string for frequency with n significant digits and xHz unit
-char *str_frq(double f, int n) {
+// Return string for frequency with n significant digits and xHz unit in closed-circuit space
+const char *str_ccfrq(double f, int n) {
   struct { double fq; const char *pre; } prefix[] = {{1e9, "G"},  {1e6, "M"},  {1e3, "k"},};
 
   for(size_t i = 0; i < sizeof prefix/sizeof*prefix; i++)
     if(f >= prefix[i].fq)
-      return str_sprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
-  return str_sprintf("%.*g Hz", n, f);
+      return str_ccprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
+  return str_ccprintf("%.*g Hz", n, f);
 }
 
 /*
@@ -1175,7 +1203,7 @@ static size_t csubs(size_t w, unsigned char c1, unsigned char c2) {
   if(w < 8)
     w = 8;
 
-  static size_t wmat[128][128];
+  static size_t wmat[128][128]; // Compute once, read-only cache
   if(!wmat[0][1])               // Initialize weight matrix
     for(size_t k1 = 0; k1 < 128; k1++)
       for(size_t k2 = 0; k2 < 128; k2++)

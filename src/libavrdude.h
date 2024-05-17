@@ -26,6 +26,9 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+#if !defined(WIN32)
+#include <termios.h>
+#endif
 
 #ifdef LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS
 #error LIBAVRDUDE_INCLUDE_INTERNAL_HEADERS is defined. Do not do that.
@@ -573,7 +576,7 @@ AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes);
-const char *avr_prog_modes_str(int pm);
+char *avr_prog_modes(int pm), *str_prog_modes(int pm), *dev_prog_modes(int pm);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
 
@@ -745,31 +748,21 @@ const char * avr_pin_name(int pinname);
 const char * avr_pin_lcname(int pinname);
 
 /**
- * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
- * Another execution of this function will overwrite the previous result in the static buffer.
- *
- * @param[in] pindef the pin definition for which we want the string representation
- * @returns pointer to a static string.
- */
-const char * pins_to_str(const struct pindef_t * const pindef);
-
-/**
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a pointer to a string, which was created by strdup
+ * @returns a temporary string that lives in closed-circuit space
  */
-char *pins_to_strdup(const struct pindef_t * const pindef);
+const char *pins_to_str(const struct pindef_t * const pindef);
 
 /**
- * This function returns a string representation of pins in the mask, eg, 1,3,5-7,9,12
- * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are represented as start-end.
+ * This function returns a string representation of pins in the mask, eg, 1, 3, 5-7, 9, 12
+ * Consecutive pin numbers are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
- * @returns pointer to a static string.
+ * @returns a temporary string that lives in closed-circuit space
  */
-const char * pinmask_to_str(const pinmask_t * const pinmask);
+const char *pinmask_to_str(const pinmask_t * const pinmask);
 
 /* formerly serial.h */
 
@@ -1155,8 +1148,6 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
 int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
-char *avr_prog_modes(int pm);
-
 int avr_get_mem_type(const char *str);
 
 int avr_mem_is_flash_type(const AVRMEM *mem);
@@ -1171,7 +1162,6 @@ int avr_mem_is_known(const char *str);
 
 int avr_mem_might_be_known(const char *str);
 
-#define disable_trailing_ff_removal() avr_mem_hiaddr(NULL)
 int avr_mem_hiaddr(const AVRMEM * mem);
 
 int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
@@ -1483,7 +1473,17 @@ int str_casematch(const char *pattern, const char *string);
 int str_matched_by(const char *string, const char *pattern);
 int str_casematched_by(const char *string, const char *pattern);
 int str_is_pattern(const char *str);
-char *str_sprintf(const char *fmt, ...);
+char *str_sprintf(const char *fmt, ...)
+#if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
+   __attribute__ ((format (printf, 1, 2)))
+#endif
+;
+const char *str_ccprintf(const char *fmt, ...)
+#if defined(__GNUC__)
+   __attribute__ ((format (printf, 1, 2)))
+#endif
+;
+const char *str_ccstrdup(const char *str);
 char *str_fgets(FILE *fp, const char **errpp);
 char *str_lc(char *s);
 char *str_uc(char *s);
@@ -1494,17 +1494,17 @@ char *str_endnumber(const char *str);
 const char *str_plural(int x);
 const char *str_inname(const char *fn);
 const char *str_outname(const char *fn);
-const char *str_interval(int a, int b);
+const char *str_ccinterval(int a, int b);
 bool is_bigendian(void);
 void change_endian(void *p, int size);
-int memall(const void *p, char c, size_t n);
+int is_memset(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
 Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
-char *str_frq(double f, int n);
+const char *str_ccfrq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 
@@ -1528,9 +1528,103 @@ int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line);
 char *terminal_get_input(const char *prompt);
 void terminal_setup_update_progress(void);
 
+char *avr_cc_buffer(size_t n);
+
 #ifdef __cplusplus
 }
 #endif
+
+/*
+ * Context structure
+ *
+ * Global and static variables should go here; the only remaining static
+ * variables ought to be read-only tables. Access should be via a global
+ * pointer libavrdude_context *cx; applications using libavrdude ought to
+ * allocate cx = mmt_malloc(sizeof *cx) for each instantiation (and set
+ * initial values if needed) and deallocate with mmt_free(cx).
+ */
+
+typedef struct {
+  // Closed-circuit space for returning strings in a persistent buffer
+#define AVR_SAFETY_MARGIN 128
+  char *avr_s, avr_space[8192+AVR_SAFETY_MARGIN];
+
+  // Static variables from avr.c
+  int avr_disableffopt;         // Disables trailing 0xff flash optimisation
+  uint64_t avr_epoch;           // Epoch for avr_ustimestamp()
+  int avr_epoch_init;           // Whether above epoch is initialised
+  int avr_last_percent;         // Last valid percentage for report_progress()
+  double avr_start_time;        // Start time in s of report_progress() activity
+
+  // Static variables from bitbang.c
+  int bb_delay_decrement;
+#if defined(WIN32)
+  int bb_has_perfcount;
+  uint64_t bb_freq;             // Should be LARGE_INTEGER but what to include?
+#else
+  int bb_done;                  // Handshake variable in alarm handler
+  void (*bb_saved_alarmf)(int); // Saved alarm handler
+#endif
+
+  // Static variables from config.c
+  char **cfg_hstrings[1<<12];   // Hash lists for cache_string()
+  LISTID cfg_comms;             // A chain of comment lines
+  LISTID cfg_prologue;          // Comment lines at start of avrdude.conf
+  char *cfg_lkw;                // Last seen keyword
+  int cfg_lkw_lineno;           // Line number of that
+  LISTID cfg_strctcomms;        // Passed on to config_gram.y
+  LISTID cfg_pushedcomms;       // Temporarily pushed main comments
+  int cfg_pushed;               // ... for memory sections
+  int cfg_init_search;          // used in cfg_comp_search()
+
+  // Static variable from dfu.c
+  uint16_t dfu_wIndex;          // A running number for USB messages
+
+  // Static variable from config_gram.y
+ int cfgy_pin_name;             // Temporary variable for grammar parsing
+
+  // Static variable from ppi.c
+  unsigned char ppi_shadow[3];
+
+  // Static variables from ser_avrdoper.c
+  unsigned char sad_avrdoperRxBuffer[280]; // Buffer for receiving data
+  int sad_avrdoperRxLength;     // Amount of valid bytes in rx buffer
+  int sad_avrdoperRxPosition;   // Amount of bytes already consumed in rx buffer
+
+  // Static variables from ser_win32.c/ser_posix.c
+#if defined(WIN32)
+  unsigned char ser_serial_over_ethernet;
+#else
+  struct termios ser_original_termios;
+  int ser_saved_original_termios;
+#endif
+
+  // Static variables from term.c
+  int term_spi_mode;
+  struct mem_addr_len {
+    const AVRMEM *mem;
+    int addr, len;
+  } term_rmem[32];
+  int term_mi;
+  const PROGRAMMER *term_pgm;
+  const AVRPART *term_p;
+  int term_running;
+  char *term_header;
+  int term_tty_last, term_tty_todo;
+  int term_notty_last, term_notty_todo;
+
+  // Static variables from update.c
+  const char **upd_wrote, **upd_termcmds;
+  int upd_nfwritten, upd_nterms;
+
+  // Static variables from usb_libusb.c
+#include "usbdevs.h"
+  char usb_buf[USBDEV_MAX_XFER_3];
+  int usb_buflen, usb_bufptr; // @@@ Check whether usb_buflen needs initialising with -1
+  int usb_interface;
+} libavrdude_context;
+
+extern libavrdude_context *cx;
 
 /* formerly confwin.h */
 
@@ -1540,8 +1634,7 @@ void terminal_setup_update_progress(void);
 extern "C" {
 #endif
 
-void win_sys_config_set(char sys_config[PATH_MAX]);
-void win_usr_config_set(char usr_config[PATH_MAX]);
+int win_set_path(char *path, int n, const char *file);
 
 #ifdef __cplusplus
 }

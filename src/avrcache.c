@@ -330,13 +330,6 @@ error:
 }
 
 
-// Does the memory region only haxe 0xff?
-static int _is_all_0xff(const void *p, size_t n) {
-  const unsigned char *q = (const unsigned char *) p;
-  return n <= 0 || (*q == 0xff && memcmp(q, q+1, n-1) == 0);
-}
-
-
 // A coarse guess where any bootloader might start (prob underestimates the start)
 static int guessBootStart(const PROGRAMMER *pgm, const AVRPART *p) {
   int bootstart = 0;
@@ -539,7 +532,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       } else if(mems[i].iseeprom) {
         // Don't know whether chip erase has zapped EEPROM
         for(int n = 0; n < cp->size; n += cp->page_size) {
-          if(!_is_all_0xff(cp->copy + n, cp->page_size)) { // First page that had EEPROM data
+          if(!is_memset(cp->copy + n, 0xff, cp->page_size)) { // First page that had EEPROM data
             if(avr_read_page_default(pgm, p, mem, n, cp->copy + n) < 0) {
               report_progress(1, -1, NULL);
               if(quell_progress)
@@ -547,8 +540,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
               pmsg_error("EEPROM read failed at addr 0x%04x\n", n);
               return LIBAVRDUDE_GENERAL_FAILURE;
             }
-            // EEPROM zapped by chip erase? Set all copy to 0xff
-            if(_is_all_0xff(cp->copy + n, cp->page_size))
+            // EEPROM zapped by chip erase? Set all of copy to 0xff
+            if(is_memset(cp->copy + n, 0xff, cp->page_size))
               memset(cp->copy, 0xff, cp->size);
             break;
           }
@@ -729,10 +722,10 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
       bool erasedee = 0;
       for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
         if(cp->iscached[pgno]) {
-          if(!_is_all_0xff(cp->copy + n, cp->page_size)) { // Page has EEPROM data?
+          if(!is_memset(cp->copy + n, 0xff, cp->page_size)) { // Page has EEPROM data?
             if(avr_read_page_default(pgm, p, mem, n, cp->copy + n) < 0)
               return LIBAVRDUDE_GENERAL_FAILURE;
-            erasedee = _is_all_0xff(cp->copy + n, cp->page_size);
+            erasedee = is_memset(cp->copy + n, 0xff, cp->page_size);
             break;
           }
         }
@@ -788,7 +781,7 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   if(loadCachePage(cp, pgm, p, mem, (int) addr, cacheaddr, 0) < 0)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
-  if(!_is_all_0xff(cp->cont + (cacheaddr & ~(cp->page_size-1)), cp->page_size))
+  if(!is_memset(cp->cont + (cacheaddr & ~(cp->page_size-1)), 0xff, cp->page_size))
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   return LIBAVRDUDE_SUCCESS;

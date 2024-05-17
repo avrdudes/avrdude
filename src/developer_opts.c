@@ -59,14 +59,14 @@
 //  - Output again with -p*/s or -c*/s (no /i) and use that for final avrdude.conf
 //  - Remove entries from below tables
 
-static struct {
+static const struct {
   const char *pgmid, *var, *value;
 } pgminj[] = {
   // Add triples here, eg, {"stk500v2", "prog_modes", "PM_TPI|PM_ISP"},
   {NULL, NULL, NULL},
 };
 
-static struct {
+static const struct {
   const char *mcu, *var, *value;
 } ptinj[] = {
   // Add triples here, eg, {"ATmega328P", "mcuid", "999"},
@@ -132,43 +132,6 @@ static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa
     printopcode(p, d, opa[i], i);
 }
 
-
-
-// Programming modes
-
-static char *prog_modes_str(int pm) {
-  static char type[1024];
-
-  strcpy(type, "0");
-  if(pm & PM_SPM)
-    strcat(type, " | PM_SPM");
-  if(pm & PM_TPI)
-    strcat(type, " | PM_TPI");
-  if(pm & PM_ISP)
-    strcat(type, " | PM_ISP");
-  if(pm & PM_PDI)
-    strcat(type, " | PM_PDI");
-  if(pm & PM_UPDI)
-    strcat(type, " | PM_UPDI");
-  if(pm & PM_HVSP)
-    strcat(type, " | PM_HVSP");
-  if(pm & PM_HVPP)
-    strcat(type, " | PM_HVPP");
-  if(pm & PM_debugWIRE)
-    strcat(type, " | PM_debugWIRE");
-  if(pm & PM_JTAG)
-    strcat(type, " | PM_JTAG");
-  if(pm & PM_JTAGmkI)
-    strcat(type, " | PM_JTAGmkI");
-  if(pm & PM_XMEGAJTAG)
-    strcat(type, " | PM_XMEGAJTAG");
-  if(pm & PM_AVR32JTAG)
-    strcat(type, " | PM_AVR32JTAG");
-  if(pm & PM_aWire)
-    strcat(type, " | PM_aWire");
-
-  return type + (type[1] == 0? 0: 4);
-}
 
 static char *extra_features_str(int m) {
   static char mode[1024];
@@ -529,11 +492,6 @@ static void dev_raw_dump(const void *v, int nbytes, const char *name, const char
   }
 }
 
-static int _is_all_zero(const void *p, size_t n) {
-  const char *q = (const char *) p;
-  return n <= 0 || (*q == 0 && memcmp(q, q+1, n-1) == 0);
-}
-
 static char *opsnm(const char *pre, int opnum) {
   static char ret[128];
   sprintf(ret, "%.31s.%.95s", pre, opcodename(opnum));
@@ -547,7 +505,7 @@ static void dev_part_raw(const AVRPART *part) {
   dev_raw_dump(&dp, (char *)&dp.base-(char *)&dp, part->desc, "part.intro", 0);
   dev_raw_dump(&dp.base, sizeof dp.base, part->desc, "part", 0);
   for(int i=0; i<AVR_OP_MAX; i++)
-    if(!_is_all_zero(dp.ops+i, sizeof*dp.ops))
+    if(!is_memset(dp.ops+i, 0, sizeof*dp.ops))
       dev_raw_dump(dp.ops+i, sizeof*dp.ops, part->desc, opsnm("part", i), 1);
 
   for(int i=0; i<di; i++) {
@@ -556,7 +514,7 @@ static void dev_part_raw(const AVRPART *part) {
     dev_raw_dump(nm, sizeof dp.mems[i].descbuf, part->desc, nm, i+2);
     dev_raw_dump(&dp.mems[i].base, sizeof dp.mems[i].base, part->desc, nm, i+2);
     for(int j=0; j<AVR_OP_MAX; j++)
-      if(!_is_all_zero(dp.mems[i].ops+j, sizeof(OPCODE)))
+      if(!is_memset(dp.mems[i].ops+j, 0, sizeof(OPCODE)))
         dev_raw_dump(dp.mems[i].ops+j, sizeof(OPCODE), part->desc, opsnm(nm, j), i+2);
   }
 }
@@ -620,7 +578,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   }
 
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
-  _if_partout_str(intcmp, mmt_strdup(prog_modes_str(p->prog_modes)), prog_modes);
+  _if_partout_str(intcmp, mmt_strdup(dev_prog_modes(p->prog_modes)), prog_modes);
   if(p->mcuid == 21) {
     _if_partout_str(intcmp, mmt_strdup("XVII + IV"), mcuid);
   } else {
@@ -1124,7 +1082,7 @@ void dev_output_part_defs(char *partdesc) {
           nfuses,
           ok,
           p->flags,
-          prog_modes_str(p->prog_modes),
+          dev_prog_modes(p->prog_modes),
           p->config_file, p->lineno
         );
       }
@@ -1318,7 +1276,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
-  _if_pgmout_str(intcmp, mmt_strdup(prog_modes_str(pgm->prog_modes)), prog_modes);
+  _if_pgmout_str(intcmp, mmt_strdup(dev_prog_modes(pgm->prog_modes)), prog_modes);
   _if_pgmout_str(boolcmp, mmt_strdup(pgm->is_serialadapter? "yes": "no"), is_serialadapter);
   _if_pgmout_str(intcmp, mmt_strdup(extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
@@ -1346,13 +1304,10 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbproduct), usbproduct);
 
   for(int i=0; i<N_PINS; i++) {
-    char *str = pins_to_strdup(pgm->pin+i);
-    char *bstr = base? pins_to_strdup(base->pin+i): NULL;
+    const char *str = pins_to_str(pgm->pin+i);
+    const char *bstr = base? pins_to_str(base->pin+i): NULL;
     if(!base || !str_eq(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
-
-    mmt_free(str);
-    mmt_free(bstr);
   }
 
   pgmstr = dev_hvupdi_support_liststr(pgm);

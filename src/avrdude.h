@@ -44,6 +44,7 @@ extern const char *pgmid;    // Programmer -c string
 #define mmt_strdup(s) cfg_strdup(__func__, s)
 #define mmt_malloc(n) cfg_malloc(__func__, n)
 #define mmt_realloc(p, n) cfg_realloc(__func__, p, n)
+#define mmt_sprintf(...) str_sprintf(__VA_ARGS__)
 #define mmt_free(p) free(p)
 
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...)

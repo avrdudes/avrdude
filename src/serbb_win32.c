@@ -40,8 +40,12 @@
 #include "bitbang.h"
 #include "serbb.h"
 
-/* cached status lines */
-static int dtr, rts, txd;
+struct pdata {
+  int dtr, rts, txd;            // Cached status lines
+};
+
+// Use private programmer data as if they were a global structure my
+#define my (*(struct pdata *)(pgm->cookie))
 
 #define W32SERBUFSIZE 1024
 
@@ -85,18 +89,19 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
         case 3:  /* txd */
                 dwFunc = value? SETBREAK: CLRBREAK;
                 name = value? "SETBREAK": "CLRBREAK";
-                txd = value;
+                my.txd = value;
                 break;
 
         case 4:  /* dtr */
                 dwFunc = value? SETDTR: CLRDTR;
                 name = value? "SETDTR": "CLRDTR";
-                dtr = value;
+                my.dtr = value;
                 break;
 
         case 7:  /* rts */
                 dwFunc = value? SETRTS: CLRRTS;
                 name = value? "SETRTS": "CLRRTS";
+                my.rts = value;
                 break;
 
         default:
@@ -191,15 +196,15 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
         switch (pin)
         {
         case 3: /* txd */
-                rv = txd;
+                rv = my.txd;
                 name = "TXD";
                 break;
         case 4: /* dtr */
-                rv = dtr;
+                rv = my.dtr;
                 name = "DTR";
                 break;
         case 7: /* rts */
-                rv = rts;
+                rv = my.rts;
                 name = "RTS";
                 break;
         default:
@@ -303,7 +308,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 
         pgm->fd.pfd = (void *)hComPort;
 
-        dtr = rts = txd = 0;
+        my.dtr = my.rts = my.txd = 0;
 
         return 0;
 }
@@ -320,6 +325,15 @@ static void serbb_close(PROGRAMMER *pgm) {
 	hComPort = INVALID_HANDLE_VALUE;
 }
 
+static void serbb_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
+}
+
+static void serbb_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
+}
+
 const char serbb_desc[] = "Serial port bitbanging";
 
 void serbb_initpgm(PROGRAMMER *pgm) {
@@ -327,6 +341,8 @@ void serbb_initpgm(PROGRAMMER *pgm) {
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
+  pgm->setup          = serbb_setup;
+  pgm->teardown       = serbb_teardown;
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
   pgm->pgm_led        = bitbang_pgm_led;

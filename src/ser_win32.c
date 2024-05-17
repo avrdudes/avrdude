@@ -46,11 +46,9 @@ struct baud_mapping {
   DWORD speed;
 };
 
-static unsigned char serial_over_ethernet = 0;
-
 /* HANDLE hComPort=INVALID_HANDLE_VALUE; */
 
-static struct baud_mapping baud_lookup_table [] = {
+static const struct baud_mapping baud_lookup_table [] = {
   { 300,    CBR_300 },
   { 600,    CBR_600 },
   { 1200,   CBR_1200 },
@@ -64,20 +62,12 @@ static struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
-static DWORD serial_baud_lookup(long baud)
-{
-  struct baud_mapping *map = baud_lookup_table;
-
-  while (map->baud) {
+static DWORD serial_baud_lookup(long baud) {
+  for(const struct baud_mapping *map = baud_lookup_table; map->baud; map++)
     if (map->baud == baud)
       return map->speed;
-    map++;
-  }
 
-  /*
-   * If a non-standard BAUD rate is used, issue
-   * a warning (if we are verbose) and return the raw rate
-   */
+  // Return the raw rate when asked for non-standard baud rate
   pmsg_notice2("serial_baud_lookup(): using non-standard baud rate: %ld", baud);
 
   return baud;
@@ -96,57 +86,55 @@ static BOOL serial_w32SetTimeOut(HANDLE hComPort, DWORD timeout) // in ms
 }
 
 static int ser_setparams(const union filedescriptor *fd, long baud, unsigned long cflags) {
-	if (serial_over_ethernet) {
+	if(cx->ser_serial_over_ethernet)
 		return -ENOTTY;
-	} else {
-		DCB dcb;
-		HANDLE hComPort = (HANDLE)fd->pfd;
 
-		ZeroMemory (&dcb, sizeof(DCB));
-		dcb.DCBlength = sizeof(DCB);
-		dcb.BaudRate = serial_baud_lookup (baud);
-		dcb.fBinary = 1;
-		dcb.fDtrControl = DTR_CONTROL_DISABLE;
-		dcb.fRtsControl = RTS_CONTROL_DISABLE;
-		switch ((cflags & (SERIAL_CS5 | SERIAL_CS6 | SERIAL_CS7 | SERIAL_CS8))) {
-			case SERIAL_CS5:
-				dcb.ByteSize = 5;
-				break;
-			case SERIAL_CS6:
-				dcb.ByteSize = 6;
-				break;
-			case SERIAL_CS7:
-				dcb.ByteSize = 7;
-				break;
-			case SERIAL_CS8:
-				dcb.ByteSize = 8;
-				break;
-		}
-		switch ((cflags & (SERIAL_NO_PARITY | SERIAL_PARENB | SERIAL_PARODD))) {
-			case SERIAL_NO_PARITY:
-				dcb.Parity = NOPARITY;
-				break;
-			case SERIAL_PARENB:
-				dcb.Parity = EVENPARITY;
-				break;
-			case SERIAL_PARODD:
-				dcb.Parity = ODDPARITY;
-				break;
-		}
-		switch ((cflags & (SERIAL_NO_CSTOPB | SERIAL_CSTOPB))) {
-			case SERIAL_NO_CSTOPB:
-				dcb.StopBits = ONESTOPBIT;
-				break;
-			case SERIAL_CSTOPB:
-				dcb.StopBits = TWOSTOPBITS;
-				break;
-		}
+	DCB dcb;
+	HANDLE hComPort = (HANDLE)fd->pfd;
 
-		if (!SetCommState(hComPort, &dcb))
-			return -1;
-
-		return 0;
+	ZeroMemory (&dcb, sizeof(DCB));
+	dcb.DCBlength = sizeof(DCB);
+	dcb.BaudRate = serial_baud_lookup (baud);
+	dcb.fBinary = 1;
+	dcb.fDtrControl = DTR_CONTROL_DISABLE;
+	dcb.fRtsControl = RTS_CONTROL_DISABLE;
+	switch ((cflags & (SERIAL_CS5 | SERIAL_CS6 | SERIAL_CS7 | SERIAL_CS8))) {
+	case SERIAL_CS5:
+		dcb.ByteSize = 5;
+		break;
+	case SERIAL_CS6:
+		dcb.ByteSize = 6;
+		break;
+	case SERIAL_CS7:
+		dcb.ByteSize = 7;
+		break;
+	case SERIAL_CS8:
+		dcb.ByteSize = 8;
+		break;
 	}
+	switch ((cflags & (SERIAL_NO_PARITY | SERIAL_PARENB | SERIAL_PARODD))) {
+	case SERIAL_NO_PARITY:
+		dcb.Parity = NOPARITY;
+		break;
+	case SERIAL_PARENB:
+		dcb.Parity = EVENPARITY;
+		break;
+	case SERIAL_PARODD:
+		dcb.Parity = ODDPARITY;
+		break;
+	}
+	switch ((cflags & (SERIAL_NO_CSTOPB | SERIAL_CSTOPB))) {
+	case SERIAL_NO_CSTOPB:
+		dcb.StopBits = ONESTOPBIT;
+		break;
+	case SERIAL_CSTOPB:
+		dcb.StopBits = TWOSTOPBITS;
+		break;
+	}
+	if (!SetCommState(hComPort, &dcb))
+		return -1;
+
+	return 0;
 }
 
 static int net_open(const char *port, union filedescriptor *fdp) {
@@ -231,7 +219,7 @@ static int net_open(const char *port, union filedescriptor *fdp) {
 
 	fdp->ifd = fd;
 
-	serial_over_ethernet = 1;
+	cx->ser_serial_over_ethernet = 1;
 	return 0;
 }
 
@@ -308,7 +296,7 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 
 
 static void ser_close(union filedescriptor *fd) {
-	if (serial_over_ethernet) {
+	if (cx->ser_serial_over_ethernet) {
 		closesocket(fd->ifd);
 		WSACleanup();
 	} else {
@@ -321,20 +309,15 @@ static void ser_close(union filedescriptor *fd) {
 }
 
 static int ser_set_dtr_rts(const union filedescriptor *fd, int is_on) {
-	if (serial_over_ethernet) {
+	if(cx->ser_serial_over_ethernet)
 		return 0;
-	} else {
-		HANDLE hComPort=(HANDLE)fd->pfd;
 
-		if (is_on) {
-			EscapeCommFunction(hComPort, SETDTR);
-			EscapeCommFunction(hComPort, SETRTS);
-		} else {
-			EscapeCommFunction(hComPort, CLRDTR);
-			EscapeCommFunction(hComPort, CLRRTS);
-		}
-		return 0;
-	}
+	HANDLE hComPort=(HANDLE)fd->pfd;
+
+	EscapeCommFunction(hComPort, is_on? SETDTR: CLRDTR);
+	EscapeCommFunction(hComPort, is_on? SETRTS: CLRRTS);
+
+	return 0;
 }
 
 static int net_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
@@ -378,7 +361,7 @@ static int net_send(const union filedescriptor *fd, const unsigned char *buf, si
 
 
 static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
-	if (serial_over_ethernet)
+	if(cx->ser_serial_over_ethernet)
 		return net_send(fd, buf, len);
 
 	DWORD written;
@@ -489,7 +472,7 @@ reselect:
 }
 
 static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
-	if (serial_over_ethernet)
+	if(cx->ser_serial_over_ethernet)
 		return net_recv(fd, buf, buflen);
 
 	DWORD read;
@@ -611,9 +594,8 @@ static int net_drain(const union filedescriptor *fd, int display) {
 }
 
 static int ser_drain(const union filedescriptor *fd, int display) {
-	if (serial_over_ethernet) {
+	if(cx->ser_serial_over_ethernet)
 		return net_drain(fd, display);
-	}
 
 	// int rc;
 	unsigned char buf[10];

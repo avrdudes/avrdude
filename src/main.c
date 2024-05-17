@@ -52,7 +52,7 @@
 #include "config.h"
 #include "developer_opts.h"
 
-char * progname;
+char * progname = "avrdude";
 char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
                              length as progname; used for lining up
                              multiline messages */
@@ -188,6 +188,9 @@ struct list_walk_cookie
     const char *prefix;
 };
 
+
+libavrdude_context *cx;         // Context pointer, eventually the only global variable
+
 static LISTID updates = NULL;
 
 static LISTID extended_params = NULL;
@@ -215,8 +218,8 @@ static void usage(void)
   char *home = getenv("HOME");
   size_t l = home? strlen(home): 0;
   char *cfg = home && str_casestarts(usr_config, home)?
-     str_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
-     str_sprintf("%s", usr_config);
+     mmt_sprintf("~/%s", usr_config+l+(usr_config[l]=='/')):
+     mmt_sprintf("%s", usr_config);
 
   msg_error(
     "Usage: %s [options]\n"
@@ -642,6 +645,7 @@ int main(int argc, char * argv [])
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
+  cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
   (void) avr_ustimestamp();     // Base timestamps from program start
 
 #ifdef _MSC_VER
@@ -746,7 +750,7 @@ int main(int argc, char * argv [])
 
    // Determine the location of personal configuration file
 #if defined(WIN32)
-  win_usr_config_set(usr_config);
+  win_set_path(usr_config, sizeof usr_config, USER_CONF_FILE);
 #else
   usr_config[0] = 0;
   if(!concatpath(usr_config, getenv("XDG_CONFIG_HOME"), XDG_USER_CONF_FILE, sizeof usr_config))
@@ -823,7 +827,7 @@ int main(int argc, char * argv [])
         /* fall through */
 
       case 'A': /* explicit disabling of trailing-0xff removal */
-        disable_trailing_ff_removal();
+        cx->avr_disableffopt = 1;
         break;
 
       case 'e': /* perform a chip erase */
@@ -1020,7 +1024,7 @@ int main(int argc, char * argv [])
     if (!sys_config_found) {
       // 3. Check CONFIG_DIR/avrdude.conf
 #if defined(WIN32)
-      win_sys_config_set(sys_config);
+      win_set_path(sys_config, sizeof sys_config, SYSTEM_CONF_FILE);
 #else
       strcpy(sys_config, CONFIG_DIR);
       i = strlen(sys_config);

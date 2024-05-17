@@ -44,21 +44,12 @@
 #include "tpi.h"
 #include "bitbang.h"
 
-static int delay_decrement;
-
 #if defined(WIN32)
-static int has_perfcount;
-static LARGE_INTEGER freq;
+#define freq (*(LARGE_INTEGER *)&cx->bb_freq)
 #else
-static volatile int done;
-
-typedef void (*mysighandler_t)(int);
-static mysighandler_t saved_alarmhandler;
-
-static void alarmhandler(int signo)
-{
-  done = 1;
-  signal(SIGALRM, saved_alarmhandler);
+static void alarmhandler(int signo) {
+  *(volatile int *)&cx->bb_done = 1;
+  signal(SIGALRM, cx->bb_saved_alarmf);
 }
 #endif /* WIN32 */
 
@@ -75,7 +66,7 @@ static void bitbang_calibrate_delay(void)
    */
   if (QueryPerformanceFrequency(&freq))
   {
-    has_perfcount = 1;
+    cx->bb_has_perfcount = 1;
     pmsg_notice2("using performance counter for bitbang delays\n");
   }
   else
@@ -90,7 +81,7 @@ static void bitbang_calibrate_delay(void)
      * comparable hardware.
      */
     pmsg_notice2("using guessed per-microsecond delay count for bitbang delays\n");
-    delay_decrement = 100;
+    cx->bb_delay_decrement = 100;
   }
 #else  /* !WIN32 */
   struct itimerval itv;
@@ -98,8 +89,8 @@ static void bitbang_calibrate_delay(void)
 
   pmsg_notice2("calibrating delay loop ...");
   i = 0;
-  done = 0;
-  saved_alarmhandler = signal(SIGALRM, alarmhandler);
+  *(volatile int *)&cx->bb_done = 0;
+  cx->bb_saved_alarmf = signal(SIGALRM, alarmhandler);
   /*
    * Set ITIMER_REAL to 100 ms.  All known systems have a timer
    * granularity of 10 ms or better, so counting the delay cycles
@@ -114,16 +105,15 @@ static void bitbang_calibrate_delay(void)
   itv.it_value.tv_usec = 100000;
   itv.it_interval.tv_sec = itv.it_interval.tv_usec = 0;
   setitimer(ITIMER_REAL, &itv, 0);
-  while (!done)
+  while (!*(volatile int *)&cx->bb_done)
     i--;
   itv.it_value.tv_sec = itv.it_value.tv_usec = 0;
   setitimer(ITIMER_REAL, &itv, 0);
   /*
    * Calculate back from 100 ms to 1 us.
    */
-  delay_decrement = -i / 100000;
-  msg_notice2(" calibrated to %d cycles per us\n",
-                  delay_decrement);
+  cx->bb_delay_decrement = -i / 100000;
+  msg_notice2(" calibrated to %d cycles per us\n", cx->bb_delay_decrement);
 #endif /* WIN32 */
 }
 
@@ -137,7 +127,7 @@ void bitbang_delay(unsigned int us)
 #if defined(WIN32)
   LARGE_INTEGER countNow, countEnd;
 
-  if (has_perfcount)
+  if (cx->bb_has_perfcount)
   {
     QueryPerformanceCounter(&countNow);
     countEnd.QuadPart = countNow.QuadPart + freq.QuadPart * us / 1000000ll;
@@ -148,7 +138,7 @@ void bitbang_delay(unsigned int us)
   else /* no performance counters -- run normal uncalibrated delay */
   {
 #endif  /* WIN32 */
-  volatile unsigned int del = us * delay_decrement;
+  volatile unsigned int del = us * cx->bb_delay_decrement;
 
   while (del > 0)
     del--;
