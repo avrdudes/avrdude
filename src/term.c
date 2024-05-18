@@ -365,7 +365,7 @@ static size_t maxstrlen(int argc, const char **argv) {
 typedef enum {
   WRITE_MODE_STANDARD = 0,
   WRITE_MODE_FILL     = 1,
-} Write_mode_t;
+} Write_mode;
 
 static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
@@ -418,7 +418,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   int i;
-  int write_mode;               // Operation mode, standard or fill
+  Write_mode write_mode;        // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   const char *memstr = argv[1]; // Memory name string
