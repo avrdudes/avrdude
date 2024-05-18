@@ -934,7 +934,7 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 }
 
 /* The list of SCK frequencies in Hz supported by USBasp */
-static const struct sckoptions_t usbaspSCKoptions[] = {
+static const struct sckoptions usbaspSCKoptions[] = {
   { USBASP_ISP_SCK_3000, 3000000 },
   { USBASP_ISP_SCK_1500, 1500000 },
   { USBASP_ISP_SCK_750, 750000 },

@@ -115,7 +115,7 @@
 #define NVMCMD_WORD_WRITE    0x1D
 
 
-typedef struct sckoptions_t {
+typedef struct sckoptions {
   int id;
   double frequency;
 } CLOCKOPTIONS;
