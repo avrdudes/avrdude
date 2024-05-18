@@ -958,7 +958,7 @@ typedef struct {
 
 typedef struct {                // Context parameters to be passed to functions
   int verb, allscript, flheaders, allv, vmax, printfactory;
-} Cfg_opts_t;
+} Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
 static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
@@ -1098,7 +1098,7 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
 }
 
 // Comment printed next to symbolic value
-static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
+static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts o) {
   char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
@@ -1137,14 +1137,14 @@ static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, 
 }
 
 // How a single property is printed
-static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts_t o) {
+static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts o) {
   int value = vp? vp->value: cc[ii].val;
   term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
 // Prints a list of all possible values (o.allv) or just the one proporty cc[ii]
-static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
+static void printproperty(Cfg_t *cc, int ii, Cfg_opts o) {
   const Valueitem_t *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
@@ -1209,7 +1209,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
 }
 
 // Print the fuse/lock bits header (-f, o.flheaders)
-static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts_t o) {
+static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts o) {
   char buf[512];
   int fj;
   for(fj=0; fj<nf; fj++)
@@ -1238,7 +1238,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
 
 // Show or change configuration properties of the part
 static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  Cfg_opts_t o = { 0 };
+  Cfg_opts o = { 0 };
   int help = 0, invalid = 0, itemac=1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
