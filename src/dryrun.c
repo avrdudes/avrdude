@@ -53,10 +53,10 @@ typedef struct {
   AVRPART *dp;
   Dry_prog bl;                  // Bootloader and, if so, at top/bottom of flash?
   int blsize;                   // Bootloader size min(flash size/4, 512)
-} dryrun_t;
+} Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
-#define dry (*(dryrun_t *)(pgm->cookie))
+#define dry (*(Dryrun_data *)(pgm->cookie))
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
@@ -535,7 +535,7 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static void dryrun_setup(PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
   // Allocate dry
-  pgm->cookie = mmt_malloc(sizeof(dryrun_t));
+  pgm->cookie = mmt_malloc(sizeof(Dryrun_data));
 }
 
 
