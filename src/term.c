@@ -954,14 +954,14 @@ typedef struct {
   const char *alt;              // Set when memstr is an alias
   int match;                    // Matched by user request
   int ok, val, initval;         // Has value val been read OK? Initval == -1 if not known
-} Cfg_t;
+} Cnfg;
 
 typedef struct {                // Context parameters to be passed to functions
   int verb, allscript, flheaders, allv, vmax, printfactory;
 } Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
-static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
+static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cnfg *cci, const char **errpp) {
   const char *err = NULL;
   int islock;
 
@@ -1022,7 +1022,7 @@ back:
   return err? -1: 0;
 }
 
-static int setmatches(const char *str, int n, Cfg_t *cc) {
+static int setmatches(const char *str, int n, Cnfg *cc) {
   int matches = 0;
 
   if(!*str)
@@ -1075,7 +1075,7 @@ typedef struct {                // Fuse/lock properties of the part
 
 
 // Fill in cc record with the actual value of the relevant fuse
-static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
+static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
   Fusel_t *fuselp, Flock_t *fc, int nf) {
 
   // Load current value of this config item
@@ -1137,14 +1137,14 @@ static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, 
 }
 
 // How a single property is printed
-static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts o) {
+static void printoneproperty(Cnfg *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts o) {
   int value = vp? vp->value: cc[ii].val;
   term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
 // Prints a list of all possible values (o.allv) or just the one proporty cc[ii]
-static void printproperty(Cfg_t *cc, int ii, Cfg_opts o) {
+static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
   const Valueitem_t *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
@@ -1209,7 +1209,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts o) {
 }
 
 // Print the fuse/lock bits header (-f, o.flheaders)
-static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts o) {
+static void printfuse(Cnfg *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts o) {
   char buf[512];
   int fj;
   for(fj=0; fj<nf; fj++)
@@ -1317,7 +1317,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   Fusel_t fusel;                // Copy of fuses and lock bits
   const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
-  Cfg_t *cc;                    // Current configuration; cc[] and ct[] are parallel arrays
+  Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
   Flock_t *fc;                  // Current fuse and lock bits memories
   int nf = 0;                   // Number of involved fuse and lock bits memories
 
@@ -1434,7 +1434,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   // ci is fixed now: save what we have for sanity check
-  Cfg_t safecc = cc[ci];
+  Cnfg safecc = cc[ci];
 
   nv = ct[ci].nvalues;
   vt = ct[ci].vlist;
