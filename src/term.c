@@ -946,7 +946,7 @@ typedef struct {                // Fuses and lock bits
   int fread[16], lread;
   int islock;
   uint32_t current;
-} Fusel_t;
+} Part_FL;
 
 typedef struct {
   const Configitem_t *t;        // Configuration bitfield table
@@ -961,7 +961,7 @@ typedef struct {                // Context parameters to be passed to functions
 } Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
-static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cnfg *cci, const char **errpp) {
+static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Part_FL *fl, const Cnfg *cci, const char **errpp) {
   const char *err = NULL;
   int islock;
 
@@ -1076,7 +1076,7 @@ typedef struct {                // Fuse/lock properties of the part
 
 // Fill in cc record with the actual value of the relevant fuse
 static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
-  Fusel_t *fuselp, FL_item *fc, int nf) {
+  Part_FL *fuselp, FL_item *fc, int nf) {
 
   // Load current value of this config item
   const char *errstr = NULL;
@@ -1314,7 +1314,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   int idx = -1;                 // Index in uP_table[]
   const Configitem_t *ct;       // Configuration bitfield table
   int nc;                       // Number of config properties, some may not be available
-  Fusel_t fusel;                // Copy of fuses and lock bits
+  Part_FL fusel;                // Copy of fuses and lock bits
   const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
   Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
