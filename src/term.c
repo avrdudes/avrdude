@@ -1071,12 +1071,12 @@ typedef struct {                // Fuse/lock properties of the part
   const char *memstr;
   int mask;
   int value;
-} Flock_t;
+} FL_item;
 
 
 // Fill in cc record with the actual value of the relevant fuse
 static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
-  Fusel_t *fuselp, Flock_t *fc, int nf) {
+  Fusel_t *fuselp, FL_item *fc, int nf) {
 
   // Load current value of this config item
   const char *errstr = NULL;
@@ -1209,7 +1209,7 @@ static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
 }
 
 // Print the fuse/lock bits header (-f, o.flheaders)
-static void printfuse(Cnfg *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts o) {
+static void printfuse(Cnfg *cc, int ii, FL_item *fc, int nf, int printed, Cfg_opts o) {
   char buf[512];
   int fj;
   for(fj=0; fj<nf; fj++)
@@ -1318,7 +1318,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
   Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
-  Flock_t *fc;                  // Current fuse and lock bits memories
+  FL_item *fc;                  // Current fuse and lock bits memories
   int nf = 0;                   // Number of involved fuse and lock bits memories
 
   memset(&fusel, 0, sizeof fusel);
