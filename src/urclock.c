@@ -1092,10 +1092,10 @@ static uint32_t jenkins_hash(const uint8_t* key, size_t length) {
 typedef struct {
   uint16_t sz, ee;
   uint32_t h256, hash;
-} Blhash_t;
+} Bl_hash;
 
 static int cmpblhash(const void *va, const void *vb) {
-  const Blhash_t *a = va, *b = vb;
+  const Bl_hash *a = va, *b = vb;
   return a->sz > b->sz? 1: a->sz < b->sz? -1: a->hash > b->hash? 1: a->hash < b->hash? -1: 0;
 }
 
@@ -1103,7 +1103,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
   if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Cannot read flash
     return;
 
-  Blhash_t blist[] = {
+  Bl_hash blist[] = {
     // From https://github.com/arduino/ArduinoCore-avr/tree/master/bootloaders
     { 1024, 0, 0x35445c45, 0x9ef77953 }, // ATmegaBOOT-prod-firmware-2009-11-07.hex
     { 1024, 0, 0x32b1376c, 0xceba80bb }, // ATmegaBOOT.hex
