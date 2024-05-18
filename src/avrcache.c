@@ -363,12 +363,12 @@ typedef struct {
   AVRMEM *mem;
   AVR_Cache *cp;
   int isflash, iseeprom, zopaddr, pgerase;
-} CacheDesc_t;
+} Cache_desc;
 
 
 // Write flash, EEPROM, bootrow and usersig caches to device and free them
 int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
-  CacheDesc_t mems[] = {
+  Cache_desc mems[] = {
     { avr_locate_flash(p), pgm->cp_flash, 1, 0, -1, 0 },
     { avr_locate_eeprom(p), pgm->cp_eeprom, 0, 1, -1, 0 },
     { avr_locate_bootrow(p), pgm->cp_bootrow, 0, 0, -1, 0 },
@@ -689,7 +689,7 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
 // Erase the chip and set the cache accordingly
 int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
-  CacheDesc_t mems[3] = {
+  Cache_desc mems[3] = {
     { avr_locate_flash(p), pgm->cp_flash, 1, 0, -1, 0 },
     { avr_locate_eeprom(p), pgm->cp_eeprom, 0, 1, -1, 0 },
     // bootrow/usersig is unaffected by CE
