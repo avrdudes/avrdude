@@ -47,11 +47,11 @@ typedef enum {
   DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
   DRY_TOP,                      // Bootloader and it sits at top of flash
   DRY_BOTTOM,                   // Bootloader sits at bottom of flash (UPDI parts)
-} dry_prog_t;
+} Dry_prog;
 
 typedef struct {
   AVRPART *dp;
-  dry_prog_t bl;                // Bootloader and, if so, at top/bottom of flash?
+  Dry_prog bl;                  // Bootloader and, if so, at top/bottom of flash?
   int blsize;                   // Bootloader size min(flash size/4, 512)
 } dryrun_t;
 
