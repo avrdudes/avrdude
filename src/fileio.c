@@ -153,7 +153,7 @@ FILEFMT fileio_format(char c) {
 typedef enum {
   FIRST_SEG = 1,
   LAST_SEG  = 2,
-} Segorder_t;
+} Segorder;
 
 
 static void print_ihex_extended_addr(int n_64k, FILE *outf) {
@@ -176,7 +176,7 @@ static void print_ihex_extended_addr(int n_64k, FILE *outf) {
  * Return the maximum memory address within mem->buf that was read from
  * plus one. If an error occurs, return -1.
  */
-static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder_t where,
+static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder where,
   int recsize, int startaddr, const char *outfile_unused, FILE *outf,
   FILEFMT ffmt) {
 
@@ -458,7 +458,7 @@ static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, i
 
 
 // Binary to Motorola S-Record, see https://en.wikipedia.org/wiki/SREC_(file_format)
-static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
+static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder where,
   int recsize, int startaddr, const char *outfile_unused, FILE *outf) {
 
   const unsigned char *buf;
@@ -1079,7 +1079,7 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 
 
 static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, FILEFMT ffmt, Segorder_t where) {
+  const AVRMEM *mem, const Segment_t *segp, FILEFMT ffmt, Segorder where) {
 
   int rc;
 
@@ -1102,7 +1102,7 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, Segorder_t where) {
+  const AVRMEM *mem, const Segment_t *segp, Segorder where) {
 
   int rc;
 
@@ -1540,7 +1540,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
       memset(mem->buf+addr, 0xff, len);
     memset(mem->tags+addr, 0, len);
-    Segorder_t where = 0;
+    Segorder where = 0;
 
     if(i == 0)
       where |= FIRST_SEG;
