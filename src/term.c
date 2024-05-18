@@ -938,7 +938,7 @@ static const int MAX_PAD = 10;  // Align value labels if their length difference
 typedef union {                 // Lock memory can be 1 or 4 bytes
   uint8_t b[4];
   uint32_t i;
-} fl_t;
+} Intbytes;
 
 typedef struct {                // Fuses and lock bits
   uint16_t fuses[16];           // pdicfg fuse has two bytes
@@ -996,7 +996,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
     goto back;
   }
 
-  fl_t m = {.i = 0};
+  Intbytes m = {.i = 0};
   for(int i=0; i<mem->size; i++)
     if(led_read_byte(pgm, p, mem, i, m.b+i) < 0) {
       err = cache_string(str_ccprintf("cannot read %s's %s memory", p->desc, mem->desc));
@@ -1510,7 +1510,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     goto finished;
   }
 
-  fl_t towrite;
+  Intbytes towrite;
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
   const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
