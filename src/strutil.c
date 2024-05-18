@@ -642,7 +642,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
   // Try integers and assign data size
   if(type & STR_INTEGER) {
-    bool is_big_endian, is_signed = 0, is_outside_int64_t = 0, is_out_of_range = 0;
+    bool is_big_endian, is_signed = 0, is_outside_int64 = 0, is_out_of_range = 0;
     char *stri = str;
 
     while(isspace(*stri & 0xff))
@@ -684,9 +684,9 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
           if(is_signed) {       // Is input in range for int64_t?
             if(*stri == '-' && (sd->ull == ~(~0ULL>>1) || sd->ll > 0))
-              is_outside_int64_t = 1;
+              is_outside_int64 = 1;
             if(*stri != '-' && sd->ll < 0)
-              is_outside_int64_t = 1;
+              is_outside_int64 = 1;
           }
 
           // Set size
@@ -699,7 +699,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
             } else if(is_signed) {
               // Smallest size that fits signed or unsigned (asymmetric to meet user expectation)
               sd->size =
-                is_outside_int64_t? 8:
+                is_outside_int64? 8:
                 sd->ll < INT32_MIN || sd->ll > (long long) UINT32_MAX? 8:
                 sd->ll < INT16_MIN || sd->ll > (long long) UINT16_MAX? 4:
                 sd->ll < INT8_MIN  || sd->ll > (long long) UINT8_MAX? 2: 1;
@@ -760,7 +760,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
       else if(is_out_of_range)
         Warning("%s out of uint%d range, interpreted as %d-byte %llu",
           stri, sd->size*8, sd->size, (long long unsigned int) sd->ull);
-      else if(is_outside_int64_t)
+      else if(is_outside_int64)
         Warning("%s out of int64 range (consider U suffix)", stri);
 
       sd->type = STR_INTEGER;
