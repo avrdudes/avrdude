@@ -72,7 +72,7 @@ enum jtag_cmd {
 };
 
 #define to_pdata(pgm) \
-  ((avrftdi_t *)((pgm)->cookie))
+  ((Avrftdi_data *)((pgm)->cookie))
 
 typedef struct avrftdi_s {
   /* pointer to struct maintained by libftdi to identify the device */
@@ -98,7 +98,7 @@ typedef struct avrftdi_s {
   struct pindef_t valid_pins;   // Used in avrftdi_check_pins_bb()
   struct pindef_t mpsse_pins[4]; // Used in avrftdi_check_pins_mpsse()
   struct pindef_t other_pins;   // Used in avrftdi_check_pins_mpsse()
-} avrftdi_t;
+} Avrftdi_data;
 
 #endif /* DO_NOT_BUILD_AVRFDTI */
 

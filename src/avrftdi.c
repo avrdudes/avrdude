@@ -84,13 +84,13 @@ enum {
 	FTDI_TMS_CS,
 };
 
-static int write_flush(avrftdi_t *);
+static int write_flush(Avrftdi_data *);
 
 /*
  * returns a human-readable name for a pin number. The name should match with
  * the pin names used in FTDI datasheets.
  */
-static char *ftdi_pin_name(avrftdi_t *pdata, struct pindef_t pin) {
+static char *ftdi_pin_name(Avrftdi_data *pdata, struct pindef_t pin) {
 	char *str = pdata->name_str;
 	size_t strsiz = sizeof pdata->name_str;
 
@@ -145,8 +145,7 @@ static void buf_dump(const unsigned char *buf, int len, char *desc,
  * calculates the so-called 'divisor'-value from a given frequency.
  * the divisor is sent to the chip.
  */
-static int set_frequency(avrftdi_t* ftdi, uint32_t freq)
-{
+static int set_frequency(Avrftdi_data *ftdi, uint32_t freq) {
 	int32_t clock, divisor;
 	float hs_error, ls_error;
 	uint8_t buf[4], *ptr = buf;
@@ -211,7 +210,7 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 	if(pinfunc < 0 || pinfunc >= N_PINS)
 		return -1;
 
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	struct pindef_t pin = pgm->pin[pinfunc];
 	
 	if (pin.mask[0] == 0) {
@@ -271,7 +270,7 @@ static inline int set_data(const PROGRAMMER *pgm, unsigned char *buf, unsigned c
 	int j;
 	int buf_pos = 0;
 	unsigned char bit = 0x80;
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 	for (j=0; j<8; j++) {
 		pdata->pin_value = SET_BITS_0(pdata->pin_value,pgm,PIN_AVR_SDO,data & bit);
@@ -324,7 +323,7 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
 {
 	size_t remaining = buf_size;
 	size_t written = 0;
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	size_t blocksize = pdata->rx_buffer_size/2; // we are reading 2 bytes per data byte
 
 	// determine a maximum size of data block
@@ -387,7 +386,7 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
  * Write is only performed when mode contains MPSSE_DO_WRITE.
  * Read is only performed when mode contains MPSSE_DO_WRITE and MPSSE_DO_READ.
  */
-static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const unsigned char *buf,
+static int avrftdi_transmit_mpsse(Avrftdi_data *pdata, unsigned char mode, const unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
 	size_t blocksize;
@@ -440,14 +439,14 @@ static int avrftdi_transmit_mpsse(avrftdi_t* pdata, unsigned char mode, const un
 static inline int avrftdi_transmit(const PROGRAMMER *pgm, unsigned char mode, const unsigned char *buf,
 			    unsigned char *data, int buf_size)
 {
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	if (pdata->use_bitbanging)
 		return avrftdi_transmit_bb(pgm, mode, buf, data, buf_size);
 	else
 		return avrftdi_transmit_mpsse(pdata, mode, buf, data, buf_size);
 }
 
-static int write_flush(avrftdi_t* pdata)
+static int write_flush(Avrftdi_data *pdata)
 {
 	unsigned char buf[6];
 
@@ -502,7 +501,7 @@ static int avrftdi_check_pins_bb(const PROGRAMMER *pgm, bool output) {
 	/* pin checklist. */
 	struct pin_checklist_t pin_checklist[N_PINS];
 
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 	/* value for 8/12/16 bit wide interface */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
@@ -529,7 +528,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 	/* pin checklist. */
 	struct pin_checklist_t pin_checklist[N_PINS];
 
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 	struct pindef_t *valid_pins = pdata->mpsse_pins;
 
@@ -585,7 +584,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	 * pin setup *
 	 *************/
 
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 
 	bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verbose>3));
@@ -663,7 +662,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	int vid, pid, interface, err;
 	
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 	/************************
 	 * parameter validation *
@@ -784,9 +783,8 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	return avrftdi_pin_setup(pgm)? -1: 0;
 }
 
-static void avrftdi_close(PROGRAMMER * pgm)
-{
-	avrftdi_t* pdata = to_pdata(pgm);
+static void avrftdi_close(PROGRAMMER *pgm) {
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 	if(pdata->ftdic->usb_dev) {
 		set_pin(pgm, PIN_AVR_RESET, ON);
@@ -909,7 +907,7 @@ static int avrftdi_lext(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m
 	if(m->op[AVR_OP_LOAD_EXT_ADDR] == NULL)
 		return 0;
 
-	avrftdi_t *pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[] = { 0x00, 0x00, 0x00, 0x00 };
 
 	/* only send load extended address command if high byte changed */
@@ -1091,7 +1089,7 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 static int avrftdi_flash_read(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 		unsigned int page_size, unsigned int addr, unsigned int len)
 {
-	OPCODE * readop;
+	OPCODE *readop;
 
 	unsigned int buf_size = 4 * len + 4;
 	unsigned char* o_buf = alloca(buf_size);
@@ -1186,10 +1184,10 @@ static int avrftdi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 		return -2;
 }
 
-static void avrftdi_setup(PROGRAMMER * pgm) {
-	avrftdi_t* pdata;
+static void avrftdi_setup(PROGRAMMER *pgm) {
+	Avrftdi_data *pdata;
 
-	pgm->cookie = mmt_malloc(sizeof(avrftdi_t));
+	pgm->cookie = mmt_malloc(sizeof(Avrftdi_data));
 	pdata = to_pdata(pgm);
 
 	/* SCK/SDO/SDI are fixed and not invertible? */
@@ -1216,9 +1214,9 @@ static void avrftdi_setup(PROGRAMMER * pgm) {
 	pdata->lext_byte = 0xff;
 }
 
-static void avrftdi_teardown(PROGRAMMER * pgm) {
+static void avrftdi_teardown(PROGRAMMER *pgm) {
 	if(pgm->cookie) {
-		avrftdi_t *pdata = to_pdata(pgm);
+		Avrftdi_data *pdata = to_pdata(pgm);
 		ftdi_deinit(pdata->ftdic);
 		ftdi_free(pdata->ftdic);
 		mmt_free(pdata);
@@ -1230,9 +1228,8 @@ static void avrftdi_teardown(PROGRAMMER * pgm) {
 /* JTAG functions */
 /******************/
 
-static int avrftdi_jtag_reset(const PROGRAMMER *pgm)
-{
-	avrftdi_t *pdata = to_pdata(pgm);
+static int avrftdi_jtag_reset(const PROGRAMMER *pgm) {
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[3], *ptr = buf;
 
 	/* Unknown -> Reset -> Run-Test/Idle */
@@ -1245,9 +1242,8 @@ static int avrftdi_jtag_reset(const PROGRAMMER *pgm)
 	return 0;
 }
 
-static int avrftdi_jtag_ir_out(const PROGRAMMER *pgm, unsigned char ir)
-{
-	avrftdi_t *pdata = to_pdata(pgm);
+static int avrftdi_jtag_ir_out(const PROGRAMMER *pgm, unsigned char ir) {
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[9], *ptr = buf;
 
 	/* Idle -> Select-DR -> Select-IR -> Capture-IR -> Shift-IR */
@@ -1270,9 +1266,8 @@ static int avrftdi_jtag_ir_out(const PROGRAMMER *pgm, unsigned char ir)
 	return 0;
 }
 
-static int avrftdi_jtag_dr_out(const PROGRAMMER *pgm, unsigned int dr, int bits)
-{
-	avrftdi_t *pdata = to_pdata(pgm);
+static int avrftdi_jtag_dr_out(const PROGRAMMER *pgm, unsigned int dr, int bits) {
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[18], *ptr = buf;
 
 	if (bits <= 0 || bits > 31) {
@@ -1314,7 +1309,7 @@ static int avrftdi_jtag_dr_out(const PROGRAMMER *pgm, unsigned int dr, int bits)
 static int avrftdi_jtag_dr_inout(const PROGRAMMER *pgm, unsigned int dr,
 		int bits)
 {
-	avrftdi_t *pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[19], *ptr = buf;
 	unsigned char bytes = 1, pos;
 	unsigned int dr_in;
@@ -1419,9 +1414,8 @@ static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
 	return 0;
 }
 
-static void avrftdi_jtag_disable(const PROGRAMMER *pgm)
-{
-	avrftdi_t *pdata = to_pdata(pgm);
+static void avrftdi_jtag_disable(const PROGRAMMER *pgm) {
+	Avrftdi_data *pdata = to_pdata(pgm);
 
 	/* NOP command */
 	avrftdi_jtag_ir_out(pgm, JTAG_IR_PROG_COMMANDS);
@@ -1682,7 +1676,7 @@ static int avrftdi_jtag_paged_read(const PROGRAMMER *pgm, const AVRPART *p,
 		const AVRMEM *m, unsigned int page_size, unsigned int addr,
 		unsigned int n_bytes)
 {
-	avrftdi_t *pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned int maxaddr = addr + n_bytes;
 	unsigned char *buf, *ptr;
 	unsigned int bytes;
