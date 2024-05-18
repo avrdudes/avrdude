@@ -73,7 +73,7 @@ enum {                          // Value types for VALUE struct
   V_COMPONENT,
 };
 
-typedef struct value_t {
+typedef struct {
   int type;
   union {
     int     number;
