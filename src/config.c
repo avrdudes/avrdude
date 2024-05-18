@@ -46,20 +46,20 @@ double default_bitclock;
 char const *default_linuxgpio;
 int allow_subshells;
 
-LISTID       string_list;
-LISTID       number_list;
-PROGRAMMER * current_prog;
-AVRPART    * current_part;
-AVRMEM     * current_mem;
-int          current_strct;
-LISTID       part_list;
-LISTID       programmers;
-bool         is_alias;
+LISTID      string_list;
+LISTID      number_list;
+PROGRAMMER *current_prog;
+AVRPART    *current_part;
+AVRMEM     *current_mem;
+int         current_strct;
+LISTID      part_list;
+LISTID      programmers;
+bool        is_alias;
 
-int    cfg_lineno;
-char * cfg_infile;
+int   cfg_lineno;
+char *cfg_infile;
 
-extern char * yytext;
+extern char *yytext;
 
 #define pgm_comp_desc(x, type)  { #x, COMP_PROGRAMMER, offsetof(PROGRAMMER, x), sizeof(((PROGRAMMER *) NULL)->x), type }
 #define part_comp_desc(x, type) { #x, COMP_AVRPART, offsetof(AVRPART, x), sizeof(((AVRPART *) NULL)->x), type }
@@ -228,8 +228,7 @@ int yywrap()
 }
 
 
-int yyerror(char * errmsg, ...)
-{
+int yyerror(char *errmsg, ...) {
   va_list args;
 
   char message[512];
@@ -245,8 +244,7 @@ int yyerror(char * errmsg, ...)
 }
 
 
-int yywarning(char * errmsg, ...)
-{
+int yywarning(char *errmsg, ...) {
   va_list args;
 
   char message[512];
@@ -262,15 +260,14 @@ int yywarning(char * errmsg, ...)
 }
 
 
-TOKEN * new_token(int primary) {
-  TOKEN * tkn = (TOKEN *) mmt_malloc(sizeof(TOKEN));
+TOKEN *new_token(int primary) {
+  TOKEN *tkn = (TOKEN *) mmt_malloc(sizeof(TOKEN));
   tkn->primary = primary;
   return tkn;
 }
 
 
-void free_token(TOKEN * tkn)
-{
+void free_token(TOKEN *tkn) {
   if (tkn) {
     switch (tkn->value.type) {
       case V_STR:
@@ -287,7 +284,7 @@ void free_token(TOKEN * tkn)
 
 void free_tokens(int n, ...)
 {
-  TOKEN * t;
+  TOKEN *t;
   va_list ap;
 
   va_start(ap, n);
@@ -302,7 +299,7 @@ void free_tokens(int n, ...)
 
 TOKEN *new_number(const char *text) {
   const char *errstr;
-  struct token_t *tkn = new_token(TKN_NUMBER);
+  TOKEN *tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM;
   tkn->value.number = str_int(text, STR_INT32, &errstr);
   if(errstr) {
@@ -320,7 +317,7 @@ TOKEN *new_number(const char *text) {
 
 TOKEN *new_number_real(const char *text) {
   char *endptr;
-  struct token_t * tkn = new_token(TKN_NUMBER);
+  TOKEN *tkn = new_token(TKN_NUMBER);
   tkn->value.type   = V_NUM_REAL;
   tkn->value.number_real = strtod(text, &endptr);
   if(endptr == text || *endptr) {
@@ -337,7 +334,7 @@ TOKEN *new_number_real(const char *text) {
 }
 
 TOKEN *new_constant(const char *con) {
-  struct token_t *tkn = new_token(TKN_NUMBER);
+  TOKEN *tkn = new_token(TKN_NUMBER);
   int assigned = 1;
 
   tkn->value.type = V_NUM;
@@ -380,7 +377,7 @@ TOKEN *new_constant(const char *con) {
 }
 
 TOKEN *new_string(const char *text) {
-  struct token_t *tkn = new_token(TKN_STRING);
+  TOKEN *tkn = new_token(TKN_STRING);
   tkn->value.type   = V_STR;
   tkn->value.string = mmt_strdup(text);
 
@@ -397,8 +394,7 @@ TOKEN *new_keyword(int primary) {
 }
 
 
-void print_token(TOKEN * tkn)
-{
+void print_token(TOKEN *tkn) {
   if (!tkn)
     return;
 
@@ -438,9 +434,8 @@ void pyytext(void)
 extern int yylex_destroy(void);
 #endif
 
-int read_config(const char * file)
-{
-  FILE * f;
+int read_config(const char *file) {
+  FILE *f;
   int r;
 
   if(!(cfg_infile = realpath(file, NULL))) {

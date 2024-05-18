@@ -74,33 +74,33 @@ enum {                          // Value types for VALUE struct
 };
 
 typedef struct value_t {
-  int      type;
+  int type;
   union {
-    int      number;
-    double   number_real;
-    char   * string;
+    int     number;
+    double  number_real;
+    char   *string;
     Component_t *comp;
   };
 } VALUE;
 
 
-typedef struct token_t {
+typedef struct token {
   int primary;
   VALUE value;
 } TOKEN;
-typedef struct token_t *token_p;
+typedef struct token *token_p;
 
 
-extern FILE       * yyin;
-extern PROGRAMMER * current_prog;
-extern AVRPART    * current_part;
-extern AVRMEM     * current_mem;
-extern int          current_strct;
-extern int          cfg_lineno;
-extern char       * cfg_infile;
-extern LISTID       string_list;
-extern LISTID       number_list;
-extern bool         is_alias; // current entry is alias
+extern FILE       *yyin;
+extern PROGRAMMER *current_prog;
+extern AVRPART    *current_part;
+extern AVRMEM     *current_mem;
+extern int         current_strct;
+extern int         cfg_lineno;
+extern char       *cfg_infile;
+extern LISTID      string_list;
+extern LISTID      number_list;
+extern bool        is_alias; // current entry is alias
 
 
 #if !defined(HAS_YYSTYPE)
