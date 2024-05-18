@@ -324,10 +324,10 @@ typedef struct {
 
   char title[254];              // Use instead of filename for metadata - same size as filename
   char iddesc[64];              // Location of Urclock ID, eg F.12324.6 or E.-4.4 (default E.257.6)
-} Urclock_t;
+} Urclock_data;
 
 // Use private programmer data as if they were a global structure ur
-#define ur (*(Urclock_t *)(pgm->cookie))
+#define ur (*(Urclock_data *)(pgm->cookie))
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
@@ -2552,7 +2552,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
 
 static void urclock_setup(PROGRAMMER *pgm) {
   // Allocate ur
-  pgm->cookie = mmt_malloc(sizeof(Urclock_t));
+  pgm->cookie = mmt_malloc(sizeof(Urclock_data));
 
   ur.xvectornum    = -1;        // Initialise, to ascertain whether user had set to 0
   ur.ext_addr_byte = 0xff;      // So first memory address will load extended address
