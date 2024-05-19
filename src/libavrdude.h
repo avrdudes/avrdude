@@ -672,7 +672,7 @@ enum {
 /**
  * Data structure to hold used pins by logical function (PIN_AVR_*, ...)
  */
-struct pindef_t {
+struct pindef {
   pinmask_t mask[PIN_FIELD_SIZE]; ///< bitfield of used pins
   pinmask_t inverse[PIN_FIELD_SIZE]; ///< bitfield of inverse/normal usage of used pins
 };
@@ -683,7 +683,7 @@ struct pindef_t {
 struct pin_checklist_t {
   int pinname; ///< logical pinname eg. PIN_AVR_SCK
   int mandatory; ///< is this a mandatory pin
-  const struct pindef_t* valid_pins; ///< mask defines allowed pins, inverse define is they might be used inverted
+  const struct pindef *valid_pins; ///< mask defines allowed pins, inverse define is they might be used inverted
 };
 
 /**
@@ -693,14 +693,14 @@ struct pin_checklist_t {
  * @param[in] pin number of pin [0..PIN_MAX]
  * @param[in] inverse inverse (true) or normal (false) pin
  */
-void pin_set_value(struct pindef_t * const pindef, const int pin, const bool inverse);
+void pin_set_value(struct pindef * const pindef, const int pin, const bool inverse);
 
 /**
  * Clear all defined pins in pindef.
  *
  * @param[out] pindef pin definition to clear
  */
-void pin_clear_all(struct pindef_t * const pindef);
+void pin_clear_all(struct pindef * const pindef);
 
 typedef struct programmer PROGRAMMER; // Forward declaration
 
@@ -753,7 +753,7 @@ const char * avr_pin_lcname(int pinname);
  * @param[in] pindef the pin definition for which we want the string representation
  * @returns a temporary string that lives in closed-circuit space
  */
-const char *pins_to_str(const struct pindef_t * const pindef);
+const char *pins_to_str(const struct pindef * const pindef);
 
 /**
  * This function returns a string representation of pins in the mask, eg, 1, 3, 5-7, 9, 12
@@ -943,7 +943,7 @@ typedef struct programmer {
   int prog_modes;               // Programming interfaces, see #define PM_...
   int is_serialadapter;         // Programmer is also a serialadapter
   int extra_features;
-  struct pindef_t pin[N_PINS];
+  struct pindef pin[N_PINS];
   conntype_t conntype;
   int baudrate;
   int usbvid;

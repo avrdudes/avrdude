@@ -95,9 +95,9 @@ typedef struct avrftdi_s {
   uint8_t lext_byte;
 
   char name_str[128];           // Used in ftdi_pin_name()
-  struct pindef_t valid_pins;   // Used in avrftdi_check_pins_bb()
-  struct pindef_t mpsse_pins[4]; // Used in avrftdi_check_pins_mpsse()
-  struct pindef_t other_pins;   // Used in avrftdi_check_pins_mpsse()
+  struct pindef valid_pins;     // Used in avrftdi_check_pins_bb()
+  struct pindef mpsse_pins[4];  // Used in avrftdi_check_pins_mpsse()
+  struct pindef other_pins;     // Used in avrftdi_check_pins_mpsse()
 } Avrftdi_data;
 
 #endif /* DO_NOT_BUILD_AVRFDTI */

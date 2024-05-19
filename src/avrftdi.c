@@ -90,7 +90,7 @@ static int write_flush(Avrftdi_data *);
  * returns a human-readable name for a pin number. The name should match with
  * the pin names used in FTDI datasheets.
  */
-static char *ftdi_pin_name(Avrftdi_data *pdata, struct pindef_t pin) {
+static char *ftdi_pin_name(Avrftdi_data *pdata, struct pindef pin) {
 	char *str = pdata->name_str;
 	size_t strsiz = sizeof pdata->name_str;
 
@@ -211,7 +211,7 @@ static int set_pin(const PROGRAMMER *pgm, int pinfunc, int value) {
 		return -1;
 
 	Avrftdi_data *pdata = to_pdata(pgm);
-	struct pindef_t pin = pgm->pin[pinfunc];
+	struct pindef pin = pgm->pin[pinfunc];
 	
 	if (pin.mask[0] == 0) {
 		// ignore not defined pins (might be the led or vcc or buff if not needed)
@@ -507,7 +507,7 @@ static int avrftdi_check_pins_bb(const PROGRAMMER *pgm, bool output) {
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
 
 	pmsg_debug("using valid mask bitbanging: 0x%08x\n", valid_mask);
-	struct pindef_t *valid_pins_p = &pdata->valid_pins;
+	struct pindef *valid_pins_p = &pdata->valid_pins;
 	valid_pins_p->mask[0] = valid_mask;
 	valid_pins_p->inverse[0] = valid_mask ;
 
@@ -530,7 +530,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 
 	Avrftdi_data *pdata = to_pdata(pgm);
 
-	struct pindef_t *valid_pins = pdata->mpsse_pins;
+	struct pindef *valid_pins = pdata->mpsse_pins;
 
 	/* value for 8/12/16 bit wide interface for other pins */
 	int valid_mask = ((1 << pdata->pin_limit) - 1);
@@ -542,7 +542,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 	}
 
 	pmsg_debug("using valid mask mpsse: 0x%08x\n", valid_mask);
-	struct pindef_t *valid_pins_others_p = &pdata->other_pins;
+	struct pindef *valid_pins_others_p = &pdata->other_pins;
 	valid_pins_others_p->mask[0] = valid_mask;
 	valid_pins_others_p->inverse[0] = valid_mask ;
 
@@ -1192,7 +1192,7 @@ static void avrftdi_setup(PROGRAMMER *pgm) {
 
 	/* SCK/SDO/SDI are fixed and not invertible? */
 	/* TODO: inverted SCK/SDI/SDO */
-	const struct pindef_t valid_mpsse_pins[4] = {
+	const struct pindef valid_mpsse_pins[4] = {
 		{{0x01}, {0x00}},
 		{{0x02}, {0x00}},
 		{{0x04}, {0x00}},
