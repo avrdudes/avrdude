@@ -189,7 +189,7 @@ enum { /* these are assigned to reset_disposition of AVRPART */
   RESET_IO            /* reset pin might be configured as an I/O pin */
 };
 
-enum ctl_stack_t {
+enum ctl_stack {
   CTL_STACK_NONE,     /* no control stack defined */
   CTL_STACK_PP,	      /* parallel programming control stack */
   CTL_STACK_HVSP      /* high voltage serial programming control stack */
@@ -300,7 +300,7 @@ typedef struct avrpart {
   int           postdelay;
   int           pollmethod;
 
-  enum ctl_stack_t ctl_stack_type;  /* what to use the ctl stack for */
+  enum ctl_stack ctl_stack_type;  /* what to use the ctl stack for */
   unsigned char controlstack[CTL_STACK_SIZE]; /* stk500v2 PP/HVSP ctl stack */
   unsigned char flash_instr[FLASH_INSTR_SIZE]; /* flash instructions (debugWire, JTAG) */
   unsigned char eeprom_instr[EEPROM_INSTR_SIZE]; /* EEPROM instructions (debugWire, JTAG) */
