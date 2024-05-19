@@ -702,7 +702,7 @@ void pin_set_value(struct pindef_t * const pindef, const int pin, const bool inv
  */
 void pin_clear_all(struct pindef_t * const pindef);
 
-typedef struct programmer_t PROGRAMMER; // Forward declaration
+typedef struct programmer PROGRAMMER; // Forward declaration
 
 /**
  * Convert for given programmer new pin definitions to old pin definitions.
@@ -934,7 +934,7 @@ typedef struct {
  *  - pgm_new() in pgm.c for initialisation; note that all const char * must
  *    be initialised with ""
  */
-typedef struct programmer_t {
+typedef struct programmer {
   LISTID id;
   const char *desc;
   void (*initpgm)(PROGRAMMER *pgm); // Sets up the AVRDUDE programmer
