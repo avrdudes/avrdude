@@ -12,7 +12,7 @@
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * v 1.3
- * 08.05.2024
+ * 20.05.2024
  *
  */
 
@@ -27,19 +27,19 @@ typedef struct {
   int value;                    // Value (to be shifted into mask position)
   const char *label;            // Symbolic label for this config item
   const char *vcomment;         // Expanded semantic comment
-} Valueitem_t;
+} Configvalue;
 
 typedef struct {
   const char *name;             // Name of this configuration item
   int nvalues;                  // Number of (symbolic) values
-  const Valueitem_t *vlist;     // Pointer to nvalues value items
+  const Configvalue *vlist;     // Pointer to nvalues value items
   const char *memstr;           // Fuse/Lock memory for this configuration
   int memoffset;                // Byte offset within fuses (always 0 for lock)
   int mask;                     // Bit mask of fuse/lock memory
   int lsh;                      // Values need shifting left by lsh to be in mask
   int initval;                  // Factory default, to be shifted into mask position
   const char *ccomment;         // Expanded semantic name for this configuration item
-} Configitem_t;
+} Configitem;
 
 typedef struct {
   const char *reg;              // Name of I/O register
@@ -48,7 +48,7 @@ typedef struct {
   int mask;                     // Bit mask for register, if any (-1 means none/unknown)
   int initval;                  // Reset value, if any (-1 means none/unknown)
   const char *caption;          // Expanded semantic name
-} Register_file_t;
+} Register_file;
 
 typedef struct {                // Value of -1 typically means unknown
   const char *name;             // Name of part
@@ -70,10 +70,10 @@ typedef struct {                // Value of -1 typically means unknown
   uint8_t ninterrupts;          // Number of vectors in interrupt vector table
   const char * const *isrtable; // Interrupt vector table vector names
   uint8_t nconfigs;             // Number of configuration bitfields in fuses/locks
-  const Configitem_t *cfgtable; // Configuration bitfield table
+  const Configitem *cfgtable;   // Configuration bitfield table
   uint16_t nregisters;          // Number of I/O registers
-  const Register_file_t *regf;  // Register file
-} uPcore_t;
+  const Register_file *regf;    // Register file
+} Avrintel;
 
 #define F_AVR8L               1 // TPI programming, ATtiny(4|5|9|10|20|40|102|104)
 #define F_AVR8                2 // ISP programming with SPI, "classic" AVRs
@@ -82,7 +82,7 @@ typedef struct {                // Value of -1 typically means unknown
 
 #define UB_N_MCU           2040 // mcuid is in 0..2039
 
-extern const uPcore_t uP_table[394];
+extern const Avrintel uP_table[394];
 
 
 // MCU id: running number in arbitrary order; once assigned never change for backward compatibility
@@ -1745,54 +1745,54 @@ extern const char * const    vtab_avr128db64[65];
 
 // Configuration table names
 
-extern const Configitem_t    cfgtab_atmega328[14];
+extern const Configitem    cfgtab_atmega328[14];
 #define cfgtab_atmega328p    cfgtab_atmega328
 #define cfgtab_ata6614q      cfgtab_atmega328
 
-extern const Configitem_t    cfgtab_atmega16m1[17];
+extern const Configitem    cfgtab_atmega16m1[17];
 
-extern const Configitem_t    cfgtab_atmega16hva2[9];
+extern const Configitem    cfgtab_atmega16hva2[9];
 
-extern const Configitem_t    cfgtab_atmega32hvbrevb[12];
+extern const Configitem    cfgtab_atmega32hvbrevb[12];
 
-extern const Configitem_t    cfgtab_atmega64hve[13];
+extern const Configitem    cfgtab_atmega64hve[13];
 
-extern const Configitem_t    cfgtab_atmega328pb[15];
+extern const Configitem    cfgtab_atmega328pb[15];
 
-extern const Configitem_t    cfgtab_atmega8515[13];
+extern const Configitem    cfgtab_atmega8515[13];
 
-extern const Configitem_t    cfgtab_attiny102[5];
+extern const Configitem    cfgtab_attiny102[5];
 #define cfgtab_attiny104     cfgtab_attiny102
 
-extern const Configitem_t    cfgtab_attiny28[3];
+extern const Configitem    cfgtab_attiny28[3];
 
-extern const Configitem_t    cfgtab_attiny441[14];
+extern const Configitem    cfgtab_attiny441[14];
 #define cfgtab_attiny841     cfgtab_attiny441
 
-extern const Configitem_t    cfgtab_at90pwm2[18];
+extern const Configitem    cfgtab_at90pwm2[18];
 #define cfgtab_at90pwm3      cfgtab_at90pwm2
 
-extern const Configitem_t    cfgtab_at90pwm81[19];
+extern const Configitem    cfgtab_at90pwm81[19];
 #define cfgtab_at90pwm161    cfgtab_at90pwm81
 
-extern const Configitem_t    cfgtab_at90can128[15];
+extern const Configitem    cfgtab_at90can128[15];
 
-extern const Configitem_t    cfgtab_at90usb162[15];
+extern const Configitem    cfgtab_at90usb162[15];
 #define cfgtab_atmega16u2    cfgtab_at90usb162
 #define cfgtab_at90usb82     cfgtab_at90usb162
 
-extern const Configitem_t    cfgtab_at90s1200[3];
+extern const Configitem    cfgtab_at90s1200[3];
 
-extern const Configitem_t    cfgtab_at90s2313[3];
+extern const Configitem    cfgtab_at90s2313[3];
 #define cfgtab_at90s4414     cfgtab_at90s2313
 #define cfgtab_at90s4434     cfgtab_at90s2313
 #define cfgtab_at90s8515     cfgtab_at90s2313
 #define cfgtab_at90s8535     cfgtab_at90s2313
 
-extern const Configitem_t    cfgtab_ata5700m322[9];
+extern const Configitem    cfgtab_ata5700m322[9];
 #define cfgtab_ata5702m322   cfgtab_ata5700m322
 
-extern const Configitem_t    cfgtab_ata5781[11];
+extern const Configitem    cfgtab_ata5781[11];
 #define cfgtab_ata5782       cfgtab_ata5781
 #define cfgtab_ata5783       cfgtab_ata5781
 #define cfgtab_ata5831       cfgtab_ata5781
@@ -1803,17 +1803,17 @@ extern const Configitem_t    cfgtab_ata5781[11];
 #define cfgtab_ata8510       cfgtab_ata5781
 #define cfgtab_ata8515       cfgtab_ata5781
 
-extern const Configitem_t    cfgtab_ata5790[11];
+extern const Configitem    cfgtab_ata5790[11];
 #define cfgtab_ata5791       cfgtab_ata5790
 
-extern const Configitem_t    cfgtab_ata6285[17];
+extern const Configitem    cfgtab_ata6285[17];
 #define cfgtab_ata6286       cfgtab_ata6285
 
-extern const Configitem_t    cfgtab_atxmega16e5[17];
+extern const Configitem    cfgtab_atxmega16e5[17];
 #define cfgtab_atxmega8e5    cfgtab_atxmega16e5
 #define cfgtab_atxmega32e5   cfgtab_atxmega16e5
 
-extern const Configitem_t    cfgtab_atxmega128a3[16];
+extern const Configitem    cfgtab_atxmega128a3[16];
 #define cfgtab_atxmega64a1   cfgtab_atxmega128a3
 #define cfgtab_atxmega64a3   cfgtab_atxmega128a3
 #define cfgtab_atxmega128a1  cfgtab_atxmega128a3
@@ -1822,7 +1822,7 @@ extern const Configitem_t    cfgtab_atxmega128a3[16];
 #define cfgtab_atxmega256a3  cfgtab_atxmega128a3
 #define cfgtab_atxmega256a3b cfgtab_atxmega128a3
 
-extern const Configitem_t    cfgtab_atxmega128a3u[17];
+extern const Configitem    cfgtab_atxmega128a3u[17];
 #define cfgtab_atxmega16a4u  cfgtab_atxmega128a3u
 #define cfgtab_atxmega32a4u  cfgtab_atxmega128a3u
 #define cfgtab_atxmega64a1u  cfgtab_atxmega128a3u
@@ -1834,7 +1834,7 @@ extern const Configitem_t    cfgtab_atxmega128a3u[17];
 #define cfgtab_atxmega256a3bu cfgtab_atxmega128a3u
 #define cfgtab_atxmega256a3u cfgtab_atxmega128a3u
 
-extern const Configitem_t    cfgtab_attiny204[23];
+extern const Configitem    cfgtab_attiny204[23];
 #define cfgtab_attiny202     cfgtab_attiny204
 #define cfgtab_attiny212     cfgtab_attiny204
 #define cfgtab_attiny214     cfgtab_attiny204
@@ -1854,7 +1854,7 @@ extern const Configitem_t    cfgtab_attiny204[23];
 #define cfgtab_attiny3216    cfgtab_attiny204
 #define cfgtab_attiny3217    cfgtab_attiny204
 
-extern const Configitem_t    cfgtab_attiny1624[16];
+extern const Configitem    cfgtab_attiny1624[16];
 #define cfgtab_attiny424     cfgtab_attiny1624
 #define cfgtab_attiny426     cfgtab_attiny1624
 #define cfgtab_attiny427     cfgtab_attiny1624
@@ -1867,7 +1867,7 @@ extern const Configitem_t    cfgtab_attiny1624[16];
 #define cfgtab_attiny3226    cfgtab_attiny1624
 #define cfgtab_attiny3227    cfgtab_attiny1624
 
-extern const Configitem_t    cfgtab_avr32dd14[17];
+extern const Configitem    cfgtab_avr32dd14[17];
 #define cfgtab_avr16dd14     cfgtab_avr32dd14
 #define cfgtab_avr16dd20     cfgtab_avr32dd14
 #define cfgtab_avr16dd28     cfgtab_avr32dd14
@@ -1880,7 +1880,7 @@ extern const Configitem_t    cfgtab_avr32dd14[17];
 #define cfgtab_avr64dd28     cfgtab_avr32dd14
 #define cfgtab_avr64dd32     cfgtab_avr32dd14
 
-extern const Configitem_t    cfgtab_avr64ea48[16];
+extern const Configitem    cfgtab_avr64ea48[16];
 #define cfgtab_avr16ea28     cfgtab_avr64ea48
 #define cfgtab_avr16ea32     cfgtab_avr64ea48
 #define cfgtab_avr16ea48     cfgtab_avr64ea48
@@ -1890,48 +1890,48 @@ extern const Configitem_t    cfgtab_avr64ea48[16];
 #define cfgtab_avr64ea28     cfgtab_avr64ea48
 #define cfgtab_avr64ea32     cfgtab_avr64ea48
 
-extern const Configitem_t    cfgtab_atmega103comp[15];
+extern const Configitem    cfgtab_atmega103comp[15];
 
-extern const Configitem_t    cfgtab_at90scr100h[13];
+extern const Configitem    cfgtab_at90scr100h[13];
 #define cfgtab_at90scr100    cfgtab_at90scr100h
 
-extern const Configitem_t    cfgtab_atmega161comp[15];
+extern const Configitem    cfgtab_atmega161comp[15];
 
-extern const Configitem_t    cfgtab_at90s8535comp[13];
+extern const Configitem    cfgtab_at90s8535comp[13];
 
-extern const Configitem_t    cfgtab_attiny4[4];
+extern const Configitem    cfgtab_attiny4[4];
 #define cfgtab_attiny5       cfgtab_attiny4
 #define cfgtab_attiny9       cfgtab_attiny4
 #define cfgtab_attiny10      cfgtab_attiny4
 
-extern const Configitem_t    cfgtab_attiny20[5];
+extern const Configitem    cfgtab_attiny20[5];
 #define cfgtab_attiny40      cfgtab_attiny20
 
-extern const Configitem_t    cfgtab_attiny11[4];
+extern const Configitem    cfgtab_attiny11[4];
 
-extern const Configitem_t    cfgtab_attiny12[6];
+extern const Configitem    cfgtab_attiny12[6];
 
-extern const Configitem_t    cfgtab_attiny13[10];
+extern const Configitem    cfgtab_attiny13[10];
 #define cfgtab_attiny13a     cfgtab_attiny13
 
-extern const Configitem_t    cfgtab_attiny15[6];
+extern const Configitem    cfgtab_attiny15[6];
 
-extern const Configitem_t    cfgtab_attiny22[3];
+extern const Configitem    cfgtab_attiny22[3];
 
-extern const Configitem_t    cfgtab_attiny24[11];
+extern const Configitem    cfgtab_attiny24[11];
 #define cfgtab_attiny24a     cfgtab_attiny24
 #define cfgtab_attiny44      cfgtab_attiny24
 #define cfgtab_attiny44a     cfgtab_attiny24
 #define cfgtab_attiny84      cfgtab_attiny24
 #define cfgtab_attiny84a     cfgtab_attiny24
 
-extern const Configitem_t    cfgtab_attiny25[11];
+extern const Configitem    cfgtab_attiny25[11];
 #define cfgtab_attiny45      cfgtab_attiny25
 #define cfgtab_attiny85      cfgtab_attiny25
 
-extern const Configitem_t    cfgtab_attiny26[8];
+extern const Configitem    cfgtab_attiny26[8];
 
-extern const Configitem_t    cfgtab_attiny43u[11];
+extern const Configitem    cfgtab_attiny43u[11];
 #define cfgtab_attiny261     cfgtab_attiny43u
 #define cfgtab_attiny261a    cfgtab_attiny43u
 #define cfgtab_attiny461     cfgtab_attiny43u
@@ -1939,10 +1939,10 @@ extern const Configitem_t    cfgtab_attiny43u[11];
 #define cfgtab_attiny861     cfgtab_attiny43u
 #define cfgtab_attiny861a    cfgtab_attiny43u
 
-extern const Configitem_t    cfgtab_attiny48[11];
+extern const Configitem    cfgtab_attiny48[11];
 #define cfgtab_attiny88      cfgtab_attiny48
 
-extern const Configitem_t    cfgtab_attiny87[11];
+extern const Configitem    cfgtab_attiny87[11];
 #define cfgtab_attiny167     cfgtab_attiny87
 #define cfgtab_ata5272       cfgtab_attiny87
 #define cfgtab_ata5505       cfgtab_attiny87
@@ -1950,96 +1950,96 @@ extern const Configitem_t    cfgtab_attiny87[11];
 #define cfgtab_ata6617c      cfgtab_attiny87
 #define cfgtab_ata664251     cfgtab_attiny87
 
-extern const Configitem_t    cfgtab_attiny828[16];
+extern const Configitem    cfgtab_attiny828[16];
 #define cfgtab_attiny828r    cfgtab_attiny828
 
-extern const Configitem_t    cfgtab_attiny1634[13];
+extern const Configitem    cfgtab_attiny1634[13];
 #define cfgtab_attiny1634r   cfgtab_attiny1634
 
-extern const Configitem_t    cfgtab_attiny2313[11];
+extern const Configitem    cfgtab_attiny2313[11];
 
-extern const Configitem_t    cfgtab_attiny2313a[11];
+extern const Configitem    cfgtab_attiny2313a[11];
 #define cfgtab_attiny4313    cfgtab_attiny2313a
 
-extern const Configitem_t    cfgtab_atmega8[13];
+extern const Configitem    cfgtab_atmega8[13];
 #define cfgtab_atmega8a      cfgtab_atmega8
 
-extern const Configitem_t    cfgtab_atmega8hva[7];
+extern const Configitem    cfgtab_atmega8hva[7];
 #define cfgtab_atmega16hva   cfgtab_atmega8hva
 
-extern const Configitem_t    cfgtab_atmega8u2[15];
+extern const Configitem    cfgtab_atmega8u2[15];
 
-extern const Configitem_t    cfgtab_atmega16[13];
+extern const Configitem    cfgtab_atmega16[13];
 #define cfgtab_atmega16a     cfgtab_atmega16
 
-extern const Configitem_t    cfgtab_atmega16hvb[12];
+extern const Configitem    cfgtab_atmega16hvb[12];
 
-extern const Configitem_t    cfgtab_atmega16hvbrevb[12];
+extern const Configitem    cfgtab_atmega16hvbrevb[12];
 
-extern const Configitem_t    cfgtab_atmega16u4[15];
+extern const Configitem    cfgtab_atmega16u4[15];
 
-extern const Configitem_t    cfgtab_atmega32[13];
+extern const Configitem    cfgtab_atmega32[13];
 #define cfgtab_atmega32a     cfgtab_atmega32
 
-extern const Configitem_t    cfgtab_atmega32hvb[12];
+extern const Configitem    cfgtab_atmega32hvb[12];
 
-extern const Configitem_t    cfgtab_atmega32c1[17];
+extern const Configitem    cfgtab_atmega32c1[17];
 #define cfgtab_atmega32m1    cfgtab_atmega32c1
 
-extern const Configitem_t    cfgtab_atmega32u2[15];
+extern const Configitem    cfgtab_atmega32u2[15];
 
-extern const Configitem_t    cfgtab_atmega32u4[15];
+extern const Configitem    cfgtab_atmega32u4[15];
 
-extern const Configitem_t    cfgtab_atmega32u6[15];
+extern const Configitem    cfgtab_atmega32u6[15];
 
-extern const Configitem_t    cfgtab_atmega48[11];
+extern const Configitem    cfgtab_atmega48[11];
 #define cfgtab_atmega48a     cfgtab_atmega48
 #define cfgtab_atmega48p     cfgtab_atmega48
 #define cfgtab_atmega48pa    cfgtab_atmega48
 
-extern const Configitem_t    cfgtab_atmega48pb[11];
+extern const Configitem    cfgtab_atmega48pb[11];
 
-extern const Configitem_t    cfgtab_atmega64[15];
+extern const Configitem    cfgtab_atmega64[15];
 #define cfgtab_atmega64a     cfgtab_atmega64
 
-extern const Configitem_t    cfgtab_atmega64c1[17];
+extern const Configitem    cfgtab_atmega64c1[17];
 #define cfgtab_atmega64m1    cfgtab_atmega64c1
 
-extern const Configitem_t    cfgtab_atmega64hve2[13];
+extern const Configitem    cfgtab_atmega64hve2[13];
 #define cfgtab_atmega32hve2  cfgtab_atmega64hve2
 
-extern const Configitem_t    cfgtab_atmega64rfr2[14];
+extern const Configitem    cfgtab_atmega64rfr2[14];
 #define cfgtab_atmega644rfr2 cfgtab_atmega64rfr2
 
-extern const Configitem_t    cfgtab_atmega88[14];
+extern const Configitem    cfgtab_atmega88[14];
 #define cfgtab_atmega88a     cfgtab_atmega88
 #define cfgtab_atmega88p     cfgtab_atmega88
 #define cfgtab_atmega88pa    cfgtab_atmega88
 #define cfgtab_ata6612c      cfgtab_atmega88
 
-extern const Configitem_t    cfgtab_atmega88pb[14];
+extern const Configitem    cfgtab_atmega88pb[14];
 
-extern const Configitem_t    cfgtab_atmega103[4];
+extern const Configitem    cfgtab_atmega103[4];
 
-extern const Configitem_t    cfgtab_atmega128[15];
+extern const Configitem    cfgtab_atmega128[15];
 #define cfgtab_atmega128a    cfgtab_atmega128
 
-extern const Configitem_t    cfgtab_atmega128rfa1[14];
+extern const Configitem    cfgtab_atmega128rfa1[14];
 
-extern const Configitem_t    cfgtab_atmega128rfr2[14];
+extern const Configitem    cfgtab_atmega128rfr2[14];
 #define cfgtab_atmega1284rfr2 cfgtab_atmega128rfr2
 
-extern const Configitem_t    cfgtab_atmega161[7];
+extern const Configitem    cfgtab_atmega161[7];
 
-extern const Configitem_t    cfgtab_atmega162[15];
+extern const Configitem    cfgtab_atmega162[15];
 
-extern const Configitem_t    cfgtab_atmega163[9];
+extern const Configitem    cfgtab_atmega163[9];
 
-extern const Configitem_t    cfgtab_atmega164a[14];
+extern const Configitem    cfgtab_atmega164a[14];
 #define cfgtab_atmega164p    cfgtab_atmega164a
 #define cfgtab_atmega164pa   cfgtab_atmega164a
 
-extern const Configitem_t    cfgtab_atmega165[15];
+extern const Configitem    cfgtab_atmega165[15];
 #define cfgtab_atmega165a    cfgtab_atmega165
 #define cfgtab_atmega165p    cfgtab_atmega165
 #define cfgtab_atmega165pa   cfgtab_atmega165
@@ -2048,26 +2048,26 @@ extern const Configitem_t    cfgtab_atmega165[15];
 #define cfgtab_atmega169p    cfgtab_atmega165
 #define cfgtab_atmega169pa   cfgtab_atmega165
 
-extern const Configitem_t    cfgtab_atmega168[14];
+extern const Configitem    cfgtab_atmega168[14];
 #define cfgtab_atmega168a    cfgtab_atmega168
 #define cfgtab_atmega168p    cfgtab_atmega168
 #define cfgtab_atmega168pa   cfgtab_atmega168
 #define cfgtab_ata6613c      cfgtab_atmega168
 
-extern const Configitem_t    cfgtab_atmega168pb[14];
+extern const Configitem    cfgtab_atmega168pb[14];
 
-extern const Configitem_t    cfgtab_atmega256rfr2[14];
+extern const Configitem    cfgtab_atmega256rfr2[14];
 #define cfgtab_atmega2564rfr2 cfgtab_atmega256rfr2
 
-extern const Configitem_t    cfgtab_atmega323[12];
+extern const Configitem    cfgtab_atmega323[12];
 
-extern const Configitem_t    cfgtab_atmega324a[14];
+extern const Configitem    cfgtab_atmega324a[14];
 #define cfgtab_atmega324p    cfgtab_atmega324a
 #define cfgtab_atmega324pa   cfgtab_atmega324a
 
-extern const Configitem_t    cfgtab_atmega324pb[15];
+extern const Configitem    cfgtab_atmega324pb[15];
 
-extern const Configitem_t    cfgtab_atmega325[15];
+extern const Configitem    cfgtab_atmega325[15];
 #define cfgtab_atmega325a    cfgtab_atmega325
 #define cfgtab_atmega325p    cfgtab_atmega325
 #define cfgtab_atmega325pa   cfgtab_atmega325
@@ -2084,16 +2084,16 @@ extern const Configitem_t    cfgtab_atmega325[15];
 #define cfgtab_atmega3290p   cfgtab_atmega325
 #define cfgtab_atmega3290pa  cfgtab_atmega325
 
-extern const Configitem_t    cfgtab_atmega406[10];
+extern const Configitem    cfgtab_atmega406[10];
 
-extern const Configitem_t    cfgtab_atmega640[14];
+extern const Configitem    cfgtab_atmega640[14];
 
-extern const Configitem_t    cfgtab_atmega644[14];
+extern const Configitem    cfgtab_atmega644[14];
 #define cfgtab_atmega644a    cfgtab_atmega644
 #define cfgtab_atmega644p    cfgtab_atmega644
 #define cfgtab_atmega644pa   cfgtab_atmega644
 
-extern const Configitem_t    cfgtab_atmega645[15];
+extern const Configitem    cfgtab_atmega645[15];
 #define cfgtab_atmega645a    cfgtab_atmega645
 #define cfgtab_atmega645p    cfgtab_atmega645
 #define cfgtab_atmega649     cfgtab_atmega645
@@ -2106,58 +2106,58 @@ extern const Configitem_t    cfgtab_atmega645[15];
 #define cfgtab_atmega6490a   cfgtab_atmega645
 #define cfgtab_atmega6490p   cfgtab_atmega645
 
-extern const Configitem_t    cfgtab_atmega1280[14];
+extern const Configitem    cfgtab_atmega1280[14];
 #define cfgtab_atmega1281    cfgtab_atmega1280
 
-extern const Configitem_t    cfgtab_atmega1284[14];
+extern const Configitem    cfgtab_atmega1284[14];
 #define cfgtab_atmega1284p   cfgtab_atmega1284
 
-extern const Configitem_t    cfgtab_atmega2560[14];
+extern const Configitem    cfgtab_atmega2560[14];
 #define cfgtab_atmega2561    cfgtab_atmega2560
 
-extern const Configitem_t    cfgtab_atmega8535[13];
+extern const Configitem    cfgtab_atmega8535[13];
 
-extern const Configitem_t    cfgtab_at90pwm1[17];
+extern const Configitem    cfgtab_at90pwm1[17];
 
-extern const Configitem_t    cfgtab_at90pwm2b[18];
+extern const Configitem    cfgtab_at90pwm2b[18];
 #define cfgtab_at90pwm3b     cfgtab_at90pwm2b
 
-extern const Configitem_t    cfgtab_at90can32[15];
+extern const Configitem    cfgtab_at90can32[15];
 
-extern const Configitem_t    cfgtab_at90can64[15];
+extern const Configitem    cfgtab_at90can64[15];
 
-extern const Configitem_t    cfgtab_at90pwm216[18];
+extern const Configitem    cfgtab_at90pwm216[18];
 
-extern const Configitem_t    cfgtab_at90pwm316[18];
+extern const Configitem    cfgtab_at90pwm316[18];
 
-extern const Configitem_t    cfgtab_at90usb646[15];
+extern const Configitem    cfgtab_at90usb646[15];
 #define cfgtab_at90usb647    cfgtab_at90usb646
 
-extern const Configitem_t    cfgtab_at90usb1286[15];
+extern const Configitem    cfgtab_at90usb1286[15];
 #define cfgtab_at90usb1287   cfgtab_at90usb1286
 
-extern const Configitem_t    cfgtab_at90s2323[3];
+extern const Configitem    cfgtab_at90s2323[3];
 
-extern const Configitem_t    cfgtab_at90s2333[5];
+extern const Configitem    cfgtab_at90s2333[5];
 
-extern const Configitem_t    cfgtab_at90s2343[3];
+extern const Configitem    cfgtab_at90s2343[3];
 
-extern const Configitem_t    cfgtab_at90s4433[5];
+extern const Configitem    cfgtab_at90s4433[5];
 
-extern const Configitem_t    cfgtab_at90s8515comp[13];
+extern const Configitem    cfgtab_at90s8515comp[13];
 
-extern const Configitem_t    cfgtab_ata5787[11];
+extern const Configitem    cfgtab_ata5787[11];
 #define cfgtab_ata5835       cfgtab_ata5787
 
-extern const Configitem_t    cfgtab_ata5790n[10];
+extern const Configitem    cfgtab_ata5790n[10];
 #define cfgtab_ata5795       cfgtab_ata5790n
 
-extern const Configitem_t    cfgtab_ata6289[17];
+extern const Configitem    cfgtab_ata6289[17];
 
-extern const Configitem_t    cfgtab_atxmega16a4[16];
+extern const Configitem    cfgtab_atxmega16a4[16];
 #define cfgtab_atxmega32a4   cfgtab_atxmega16a4
 
-extern const Configitem_t    cfgtab_atxmega16c4[15];
+extern const Configitem    cfgtab_atxmega16c4[15];
 #define cfgtab_atxmega16d4   cfgtab_atxmega16c4
 #define cfgtab_atxmega32c3   cfgtab_atxmega16c4
 #define cfgtab_atxmega32d3   cfgtab_atxmega16c4
@@ -2176,21 +2176,21 @@ extern const Configitem_t    cfgtab_atxmega16c4[15];
 #define cfgtab_atxmega384c3  cfgtab_atxmega16c4
 #define cfgtab_atxmega384d3  cfgtab_atxmega16c4
 
-extern const Configitem_t    cfgtab_atxmega64b1[17];
+extern const Configitem    cfgtab_atxmega64b1[17];
 #define cfgtab_atxmega64b3   cfgtab_atxmega64b1
 #define cfgtab_atxmega128b1  cfgtab_atxmega64b1
 #define cfgtab_atxmega128b3  cfgtab_atxmega64b1
 
-extern const Configitem_t    cfgtab_attiny416auto[23];
+extern const Configitem    cfgtab_attiny416auto[23];
 
-extern const Configitem_t    cfgtab_attiny804[15];
+extern const Configitem    cfgtab_attiny804[15];
 #define cfgtab_attiny806     cfgtab_attiny804
 #define cfgtab_attiny807     cfgtab_attiny804
 #define cfgtab_attiny1604    cfgtab_attiny804
 #define cfgtab_attiny1606    cfgtab_attiny804
 #define cfgtab_attiny1607    cfgtab_attiny804
 
-extern const Configitem_t    cfgtab_atmega808[15];
+extern const Configitem    cfgtab_atmega808[15];
 #define cfgtab_atmega809     cfgtab_atmega808
 #define cfgtab_atmega1608    cfgtab_atmega808
 #define cfgtab_atmega1609    cfgtab_atmega808
@@ -2199,7 +2199,7 @@ extern const Configitem_t    cfgtab_atmega808[15];
 #define cfgtab_atmega4808    cfgtab_atmega808
 #define cfgtab_atmega4809    cfgtab_atmega808
 
-extern const Configitem_t    cfgtab_avr16du14[20];
+extern const Configitem    cfgtab_avr16du14[20];
 #define cfgtab_avr16du20     cfgtab_avr16du14
 #define cfgtab_avr16du28     cfgtab_avr16du14
 #define cfgtab_avr16du32     cfgtab_avr16du14
@@ -2210,12 +2210,12 @@ extern const Configitem_t    cfgtab_avr16du14[20];
 #define cfgtab_avr64du28     cfgtab_avr16du14
 #define cfgtab_avr64du32     cfgtab_avr16du14
 
-extern const Configitem_t    cfgtab_avr16eb14[18];
+extern const Configitem    cfgtab_avr16eb14[18];
 #define cfgtab_avr16eb20     cfgtab_avr16eb14
 #define cfgtab_avr16eb28     cfgtab_avr16eb14
 #define cfgtab_avr16eb32     cfgtab_avr16eb14
 
-extern const Configitem_t    cfgtab_avr32da28[15];
+extern const Configitem    cfgtab_avr32da28[15];
 #define cfgtab_avr32da32     cfgtab_avr32da28
 #define cfgtab_avr32da48     cfgtab_avr32da28
 #define cfgtab_avr64da28     cfgtab_avr32da28
@@ -2227,7 +2227,7 @@ extern const Configitem_t    cfgtab_avr32da28[15];
 #define cfgtab_avr128da48    cfgtab_avr32da28
 #define cfgtab_avr128da64    cfgtab_avr32da28
 
-extern const Configitem_t    cfgtab_avr32db28[16];
+extern const Configitem    cfgtab_avr32db28[16];
 #define cfgtab_avr32db32     cfgtab_avr32db28
 #define cfgtab_avr32db48     cfgtab_avr32db28
 #define cfgtab_avr64db28     cfgtab_avr32db28
@@ -2241,74 +2241,74 @@ extern const Configitem_t    cfgtab_avr32db28[16];
 
 // I/O Register files
 
-extern const Register_file_t rgftab_atmega328[81];
+extern const Register_file rgftab_atmega328[81];
 #define rgftab_atmega328p    rgftab_atmega328
 
-extern const Register_file_t rgftab_atmega16m1[136];
+extern const Register_file rgftab_atmega16m1[136];
 #define rgftab_atmega32m1    rgftab_atmega16m1
 
-extern const Register_file_t rgftab_atmega32hvbrevb[91];
+extern const Register_file rgftab_atmega32hvbrevb[91];
 #define rgftab_atmega16hvb   rgftab_atmega32hvbrevb
 #define rgftab_atmega16hvbrevb rgftab_atmega32hvbrevb
 #define rgftab_atmega32hvb   rgftab_atmega32hvbrevb
 
-extern const Register_file_t rgftab_atmega328pb[123];
+extern const Register_file rgftab_atmega328pb[123];
 
-extern const Register_file_t rgftab_atmega8515[52];
+extern const Register_file rgftab_atmega8515[52];
 
-extern const Register_file_t rgftab_attiny102[55];
+extern const Register_file rgftab_attiny102[55];
 #define rgftab_attiny104     rgftab_attiny102
 
-extern const Register_file_t rgftab_attiny28[20];
+extern const Register_file rgftab_attiny28[20];
 
-extern const Register_file_t rgftab_attiny441[101];
+extern const Register_file rgftab_attiny441[101];
 #define rgftab_attiny841     rgftab_attiny441
 
-extern const Register_file_t rgftab_at90pwm81[84];
+extern const Register_file rgftab_at90pwm81[84];
 
-extern const Register_file_t rgftab_at90can128[137];
+extern const Register_file rgftab_at90can128[137];
 #define rgftab_at90can32     rgftab_at90can128
 #define rgftab_at90can64     rgftab_at90can128
 
-extern const Register_file_t rgftab_at90usb162[92];
+extern const Register_file rgftab_at90usb162[92];
 #define rgftab_at90usb82     rgftab_at90usb162
 
-extern const Register_file_t rgftab_ata5700m322[337];
+extern const Register_file rgftab_ata5700m322[337];
 
-extern const Register_file_t rgftab_ata5781[262];
+extern const Register_file rgftab_ata5781[262];
 #define rgftab_ata5782       rgftab_ata5781
 #define rgftab_ata5783       rgftab_ata5781
 #define rgftab_ata8210       rgftab_ata5781
 #define rgftab_ata8215       rgftab_ata5781
 
-extern const Register_file_t rgftab_ata5790[112];
+extern const Register_file rgftab_ata5790[112];
 
-extern const Register_file_t rgftab_ata6285[79];
+extern const Register_file rgftab_ata6285[79];
 #define rgftab_ata6286       rgftab_ata6285
 
-extern const Register_file_t rgftab_atxmega16e5[438];
+extern const Register_file rgftab_atxmega16e5[438];
 #define rgftab_atxmega8e5    rgftab_atxmega16e5
 #define rgftab_atxmega32e5   rgftab_atxmega16e5
 
-extern const Register_file_t rgftab_atxmega128a3[680];
+extern const Register_file rgftab_atxmega128a3[680];
 #define rgftab_atxmega64a3   rgftab_atxmega128a3
 #define rgftab_atxmega192a3  rgftab_atxmega128a3
 #define rgftab_atxmega256a3  rgftab_atxmega128a3
 
-extern const Register_file_t rgftab_atxmega128a3u[792];
+extern const Register_file rgftab_atxmega128a3u[792];
 #define rgftab_atxmega64a3u  rgftab_atxmega128a3u
 #define rgftab_atxmega192a3u rgftab_atxmega128a3u
 #define rgftab_atxmega256a3u rgftab_atxmega128a3u
 
-extern const Register_file_t rgftab_attiny204[235];
+extern const Register_file rgftab_attiny204[235];
 #define rgftab_attiny404     rgftab_attiny204
 
-extern const Register_file_t rgftab_attiny1624[307];
+extern const Register_file rgftab_attiny1624[307];
 #define rgftab_attiny424     rgftab_attiny1624
 #define rgftab_attiny824     rgftab_attiny1624
 #define rgftab_attiny3224    rgftab_attiny1624
 
-extern const Register_file_t rgftab_avr32dd14[401];
+extern const Register_file rgftab_avr32dd14[401];
 #define rgftab_avr16dd14     rgftab_avr32dd14
 #define rgftab_avr16dd20     rgftab_avr32dd14
 #define rgftab_avr16dd28     rgftab_avr32dd14
@@ -2321,118 +2321,118 @@ extern const Register_file_t rgftab_avr32dd14[401];
 #define rgftab_avr64dd28     rgftab_avr32dd14
 #define rgftab_avr64dd32     rgftab_avr32dd14
 
-extern const Register_file_t rgftab_avr64ea48[502];
+extern const Register_file rgftab_avr64ea48[502];
 #define rgftab_avr16ea48     rgftab_avr64ea48
 #define rgftab_avr32ea48     rgftab_avr64ea48
 
-extern const Register_file_t rgftab_attiny4[36];
+extern const Register_file rgftab_attiny4[36];
 #define rgftab_attiny9       rgftab_attiny4
 
-extern const Register_file_t rgftab_attiny5[41];
+extern const Register_file rgftab_attiny5[41];
 #define rgftab_attiny10      rgftab_attiny5
 
-extern const Register_file_t rgftab_attiny20[61];
+extern const Register_file rgftab_attiny20[61];
 
-extern const Register_file_t rgftab_attiny40[63];
+extern const Register_file rgftab_attiny40[63];
 
-extern const Register_file_t rgftab_attiny11[14];
+extern const Register_file rgftab_attiny11[14];
 
-extern const Register_file_t rgftab_attiny12[18];
+extern const Register_file rgftab_attiny12[18];
 
-extern const Register_file_t rgftab_attiny13[35];
+extern const Register_file rgftab_attiny13[35];
 
-extern const Register_file_t rgftab_attiny13a[37];
+extern const Register_file rgftab_attiny13a[37];
 
-extern const Register_file_t rgftab_attiny15[28];
+extern const Register_file rgftab_attiny15[28];
 
-extern const Register_file_t rgftab_attiny24[55];
+extern const Register_file rgftab_attiny24[55];
 #define rgftab_attiny24a     rgftab_attiny24
 
-extern const Register_file_t rgftab_attiny25[55];
+extern const Register_file rgftab_attiny25[55];
 
-extern const Register_file_t rgftab_attiny26[37];
+extern const Register_file rgftab_attiny26[37];
 
-extern const Register_file_t rgftab_attiny43u[54];
+extern const Register_file rgftab_attiny43u[54];
 
-extern const Register_file_t rgftab_attiny44[55];
+extern const Register_file rgftab_attiny44[55];
 #define rgftab_attiny44a     rgftab_attiny44
 
-extern const Register_file_t rgftab_attiny45[55];
+extern const Register_file rgftab_attiny45[55];
 #define rgftab_attiny85      rgftab_attiny45
 
-extern const Register_file_t rgftab_attiny48[74];
+extern const Register_file rgftab_attiny48[74];
 
-extern const Register_file_t rgftab_attiny84[55];
+extern const Register_file rgftab_attiny84[55];
 #define rgftab_attiny84a     rgftab_attiny84
 
-extern const Register_file_t rgftab_attiny87[80];
+extern const Register_file rgftab_attiny87[80];
 #define rgftab_attiny167     rgftab_attiny87
 
-extern const Register_file_t rgftab_attiny88[74];
+extern const Register_file rgftab_attiny88[74];
 
-extern const Register_file_t rgftab_attiny261[63];
+extern const Register_file rgftab_attiny261[63];
 #define rgftab_attiny261a    rgftab_attiny261
 
-extern const Register_file_t rgftab_attiny461[63];
+extern const Register_file rgftab_attiny461[63];
 #define rgftab_attiny461a    rgftab_attiny461
 
-extern const Register_file_t rgftab_attiny828[94];
+extern const Register_file rgftab_attiny828[94];
 
-extern const Register_file_t rgftab_attiny861[63];
+extern const Register_file rgftab_attiny861[63];
 #define rgftab_attiny861a    rgftab_attiny861
 
-extern const Register_file_t rgftab_attiny1634[89];
+extern const Register_file rgftab_attiny1634[89];
 
-extern const Register_file_t rgftab_attiny2313[54];
+extern const Register_file rgftab_attiny2313[54];
 
-extern const Register_file_t rgftab_attiny2313a[58];
+extern const Register_file rgftab_attiny2313a[58];
 
-extern const Register_file_t rgftab_attiny4313[58];
+extern const Register_file rgftab_attiny4313[58];
 
-extern const Register_file_t rgftab_atmega8[61];
+extern const Register_file rgftab_atmega8[61];
 #define rgftab_atmega8a      rgftab_atmega8
 
-extern const Register_file_t rgftab_atmega8hva[74];
+extern const Register_file rgftab_atmega8hva[74];
 #define rgftab_atmega16hva   rgftab_atmega8hva
 
-extern const Register_file_t rgftab_atmega8u2[92];
+extern const Register_file rgftab_atmega8u2[92];
 #define rgftab_atmega16u2    rgftab_atmega8u2
 #define rgftab_atmega32u2    rgftab_atmega8u2
 
-extern const Register_file_t rgftab_atmega16[70];
+extern const Register_file rgftab_atmega16[70];
 
-extern const Register_file_t rgftab_atmega16a[70];
+extern const Register_file rgftab_atmega16a[70];
 
-extern const Register_file_t rgftab_atmega16u4[139];
+extern const Register_file rgftab_atmega16u4[139];
 #define rgftab_atmega32u4    rgftab_atmega16u4
 
-extern const Register_file_t rgftab_atmega32[68];
+extern const Register_file rgftab_atmega32[68];
 
-extern const Register_file_t rgftab_atmega32a[66];
+extern const Register_file rgftab_atmega32a[66];
 
-extern const Register_file_t rgftab_atmega32c1[117];
+extern const Register_file rgftab_atmega32c1[117];
 
-extern const Register_file_t rgftab_atmega48[81];
+extern const Register_file rgftab_atmega48[81];
 #define rgftab_atmega48p     rgftab_atmega48
 
-extern const Register_file_t rgftab_atmega48a[82];
+extern const Register_file rgftab_atmega48a[82];
 #define rgftab_atmega48pa    rgftab_atmega48a
 
-extern const Register_file_t rgftab_atmega48pb[95];
+extern const Register_file rgftab_atmega48pb[95];
 
-extern const Register_file_t rgftab_atmega64[103];
+extern const Register_file rgftab_atmega64[103];
 #define rgftab_atmega64a     rgftab_atmega64
 
-extern const Register_file_t rgftab_atmega64c1[122];
+extern const Register_file rgftab_atmega64c1[122];
 
-extern const Register_file_t rgftab_atmega64m1[136];
+extern const Register_file rgftab_atmega64m1[136];
 
-extern const Register_file_t rgftab_atmega64hve2[89];
+extern const Register_file rgftab_atmega64hve2[89];
 
-extern const Register_file_t rgftab_atmega64rfr2[269];
+extern const Register_file rgftab_atmega64rfr2[269];
 #define rgftab_atmega644rfr2 rgftab_atmega64rfr2
 
-extern const Register_file_t rgftab_atmega88[81];
+extern const Register_file rgftab_atmega88[81];
 #define rgftab_atmega88a     rgftab_atmega88
 #define rgftab_atmega88p     rgftab_atmega88
 #define rgftab_atmega88pa    rgftab_atmega88
@@ -2441,222 +2441,222 @@ extern const Register_file_t rgftab_atmega88[81];
 #define rgftab_atmega168p    rgftab_atmega88
 #define rgftab_atmega168pa   rgftab_atmega88
 
-extern const Register_file_t rgftab_atmega88pb[95];
+extern const Register_file rgftab_atmega88pb[95];
 #define rgftab_atmega168pb   rgftab_atmega88pb
 
-extern const Register_file_t rgftab_atmega128[103];
+extern const Register_file rgftab_atmega128[103];
 
-extern const Register_file_t rgftab_atmega128a[103];
+extern const Register_file rgftab_atmega128a[103];
 
-extern const Register_file_t rgftab_atmega128rfa1[237];
+extern const Register_file rgftab_atmega128rfa1[237];
 
-extern const Register_file_t rgftab_atmega128rfr2[270];
+extern const Register_file rgftab_atmega128rfr2[270];
 #define rgftab_atmega1284rfr2 rgftab_atmega128rfr2
 
-extern const Register_file_t rgftab_atmega162[79];
+extern const Register_file rgftab_atmega162[79];
 
-extern const Register_file_t rgftab_atmega164a[96];
+extern const Register_file rgftab_atmega164a[96];
 #define rgftab_atmega164p    rgftab_atmega164a
 #define rgftab_atmega164pa   rgftab_atmega164a
 #define rgftab_atmega324a    rgftab_atmega164a
 #define rgftab_atmega324p    rgftab_atmega164a
 #define rgftab_atmega324pa   rgftab_atmega164a
 
-extern const Register_file_t rgftab_atmega165a[86];
+extern const Register_file rgftab_atmega165a[86];
 #define rgftab_atmega165p    rgftab_atmega165a
 #define rgftab_atmega165pa   rgftab_atmega165a
 
-extern const Register_file_t rgftab_atmega169a[106];
+extern const Register_file rgftab_atmega169a[106];
 #define rgftab_atmega169p    rgftab_atmega169a
 #define rgftab_atmega169pa   rgftab_atmega169a
 
-extern const Register_file_t rgftab_atmega256rfr2[271];
+extern const Register_file rgftab_atmega256rfr2[271];
 
-extern const Register_file_t rgftab_atmega324pb[134];
+extern const Register_file rgftab_atmega324pb[134];
 
-extern const Register_file_t rgftab_atmega325[86];
+extern const Register_file rgftab_atmega325[86];
 #define rgftab_atmega325a    rgftab_atmega325
 #define rgftab_atmega325p    rgftab_atmega325
 #define rgftab_atmega325pa   rgftab_atmega325
 
-extern const Register_file_t rgftab_atmega329[106];
+extern const Register_file rgftab_atmega329[106];
 
-extern const Register_file_t rgftab_atmega329a[106];
+extern const Register_file rgftab_atmega329a[106];
 #define rgftab_atmega329pa   rgftab_atmega329a
 
-extern const Register_file_t rgftab_atmega329p[106];
+extern const Register_file rgftab_atmega329p[106];
 
-extern const Register_file_t rgftab_atmega406[79];
+extern const Register_file rgftab_atmega406[79];
 
-extern const Register_file_t rgftab_atmega640[160];
+extern const Register_file rgftab_atmega640[160];
 
-extern const Register_file_t rgftab_atmega644[88];
+extern const Register_file rgftab_atmega644[88];
 
-extern const Register_file_t rgftab_atmega644a[93];
+extern const Register_file rgftab_atmega644a[93];
 #define rgftab_atmega644p    rgftab_atmega644a
 #define rgftab_atmega644pa   rgftab_atmega644a
 
-extern const Register_file_t rgftab_atmega645[86];
+extern const Register_file rgftab_atmega645[86];
 #define rgftab_atmega645a    rgftab_atmega645
 #define rgftab_atmega645p    rgftab_atmega645
 
-extern const Register_file_t rgftab_atmega649[106];
+extern const Register_file rgftab_atmega649[106];
 #define rgftab_atmega649a    rgftab_atmega649
 #define rgftab_atmega649p    rgftab_atmega649
 
-extern const Register_file_t rgftab_atmega1280[161];
+extern const Register_file rgftab_atmega1280[161];
 #define rgftab_atmega2560    rgftab_atmega1280
 
-extern const Register_file_t rgftab_atmega1281[138];
+extern const Register_file rgftab_atmega1281[138];
 
-extern const Register_file_t rgftab_atmega1284[104];
+extern const Register_file rgftab_atmega1284[104];
 #define rgftab_atmega1284p   rgftab_atmega1284
 
-extern const Register_file_t rgftab_atmega2561[139];
+extern const Register_file rgftab_atmega2561[139];
 
-extern const Register_file_t rgftab_atmega2564rfr2[271];
+extern const Register_file rgftab_atmega2564rfr2[271];
 
-extern const Register_file_t rgftab_atmega3250[94];
+extern const Register_file rgftab_atmega3250[94];
 #define rgftab_atmega3250a   rgftab_atmega3250
 #define rgftab_atmega3250p   rgftab_atmega3250
 #define rgftab_atmega3250pa  rgftab_atmega3250
 
-extern const Register_file_t rgftab_atmega3290[118];
+extern const Register_file rgftab_atmega3290[118];
 #define rgftab_atmega3290a   rgftab_atmega3290
 
-extern const Register_file_t rgftab_atmega3290p[118];
+extern const Register_file rgftab_atmega3290p[118];
 
-extern const Register_file_t rgftab_atmega3290pa[118];
+extern const Register_file rgftab_atmega3290pa[118];
 
-extern const Register_file_t rgftab_atmega6450[94];
+extern const Register_file rgftab_atmega6450[94];
 #define rgftab_atmega6450a   rgftab_atmega6450
 #define rgftab_atmega6450p   rgftab_atmega6450
 
-extern const Register_file_t rgftab_atmega6490[118];
+extern const Register_file rgftab_atmega6490[118];
 #define rgftab_atmega6490a   rgftab_atmega6490
 #define rgftab_atmega6490p   rgftab_atmega6490
 
-extern const Register_file_t rgftab_atmega8535[67];
+extern const Register_file rgftab_atmega8535[67];
 
-extern const Register_file_t rgftab_at90pwm1[92];
+extern const Register_file rgftab_at90pwm1[92];
 
-extern const Register_file_t rgftab_at90pwm2b[100];
+extern const Register_file rgftab_at90pwm2b[100];
 
-extern const Register_file_t rgftab_at90pwm3[115];
+extern const Register_file rgftab_at90pwm3[115];
 
-extern const Register_file_t rgftab_at90pwm3b[115];
+extern const Register_file rgftab_at90pwm3b[115];
 
-extern const Register_file_t rgftab_at90pwm161[86];
+extern const Register_file rgftab_at90pwm161[86];
 
-extern const Register_file_t rgftab_at90pwm216[102];
+extern const Register_file rgftab_at90pwm216[102];
 
-extern const Register_file_t rgftab_at90pwm316[117];
+extern const Register_file rgftab_at90pwm316[117];
 
-extern const Register_file_t rgftab_at90usb646[157];
+extern const Register_file rgftab_at90usb646[157];
 #define rgftab_at90usb647    rgftab_at90usb646
 #define rgftab_at90usb1287   rgftab_at90usb646
 
-extern const Register_file_t rgftab_at90usb1286[132];
+extern const Register_file rgftab_at90usb1286[132];
 
-extern const Register_file_t rgftab_ata5272[80];
+extern const Register_file rgftab_ata5272[80];
 #define rgftab_ata5505       rgftab_ata5272
 
-extern const Register_file_t rgftab_ata5702m322[378];
+extern const Register_file rgftab_ata5702m322[378];
 
-extern const Register_file_t rgftab_ata5787[292];
+extern const Register_file rgftab_ata5787[292];
 
-extern const Register_file_t rgftab_ata5790n[117];
+extern const Register_file rgftab_ata5790n[117];
 #define rgftab_ata5791       rgftab_ata5790n
 
-extern const Register_file_t rgftab_ata5795[84];
+extern const Register_file rgftab_ata5795[84];
 
-extern const Register_file_t rgftab_ata5831[279];
+extern const Register_file rgftab_ata5831[279];
 #define rgftab_ata5832       rgftab_ata5831
 #define rgftab_ata5833       rgftab_ata5831
 #define rgftab_ata8510       rgftab_ata5831
 #define rgftab_ata8515       rgftab_ata5831
 
-extern const Register_file_t rgftab_ata5835[307];
+extern const Register_file rgftab_ata5835[307];
 
-extern const Register_file_t rgftab_ata6612c[81];
+extern const Register_file rgftab_ata6612c[81];
 #define rgftab_ata6613c      rgftab_ata6612c
 
-extern const Register_file_t rgftab_ata6614q[81];
+extern const Register_file rgftab_ata6614q[81];
 
-extern const Register_file_t rgftab_ata6616c[81];
+extern const Register_file rgftab_ata6616c[81];
 #define rgftab_ata6617c      rgftab_ata6616c
 #define rgftab_ata664251     rgftab_ata6616c
 
-extern const Register_file_t rgftab_atxmega16a4[553];
+extern const Register_file rgftab_atxmega16a4[553];
 #define rgftab_atxmega32a4   rgftab_atxmega16a4
 
-extern const Register_file_t rgftab_atxmega16a4u[630];
+extern const Register_file rgftab_atxmega16a4u[630];
 #define rgftab_atxmega32a4u  rgftab_atxmega16a4u
 
-extern const Register_file_t rgftab_atxmega16c4[482];
+extern const Register_file rgftab_atxmega16c4[482];
 #define rgftab_atxmega32c4   rgftab_atxmega16c4
 
-extern const Register_file_t rgftab_atxmega16d4[460];
+extern const Register_file rgftab_atxmega16d4[460];
 #define rgftab_atxmega32d4   rgftab_atxmega16d4
 
-extern const Register_file_t rgftab_atxmega32c3[569];
+extern const Register_file rgftab_atxmega32c3[569];
 #define rgftab_atxmega64c3   rgftab_atxmega32c3
 #define rgftab_atxmega128c3  rgftab_atxmega32c3
 #define rgftab_atxmega192c3  rgftab_atxmega32c3
 #define rgftab_atxmega256c3  rgftab_atxmega32c3
 
-extern const Register_file_t rgftab_atxmega32d3[567];
+extern const Register_file rgftab_atxmega32d3[567];
 #define rgftab_atxmega64d3   rgftab_atxmega32d3
 #define rgftab_atxmega128d3  rgftab_atxmega32d3
 #define rgftab_atxmega192d3  rgftab_atxmega32d3
 #define rgftab_atxmega256d3  rgftab_atxmega32d3
 
-extern const Register_file_t rgftab_atxmega64a1[814];
+extern const Register_file rgftab_atxmega64a1[814];
 #define rgftab_atxmega128a1  rgftab_atxmega64a1
 
-extern const Register_file_t rgftab_atxmega64a1u[943];
+extern const Register_file rgftab_atxmega64a1u[943];
 #define rgftab_atxmega128a1u rgftab_atxmega64a1u
 
-extern const Register_file_t rgftab_atxmega64b1[574];
+extern const Register_file rgftab_atxmega64b1[574];
 #define rgftab_atxmega128b1  rgftab_atxmega64b1
 
-extern const Register_file_t rgftab_atxmega64b3[458];
+extern const Register_file rgftab_atxmega64b3[458];
 #define rgftab_atxmega128b3  rgftab_atxmega64b3
 
-extern const Register_file_t rgftab_atxmega64a4u[632];
+extern const Register_file rgftab_atxmega64a4u[632];
 #define rgftab_atxmega128a4u rgftab_atxmega64a4u
 
-extern const Register_file_t rgftab_atxmega64d4[460];
+extern const Register_file rgftab_atxmega64d4[460];
 #define rgftab_atxmega128d4  rgftab_atxmega64d4
 
-extern const Register_file_t rgftab_atxmega256a3b[665];
+extern const Register_file rgftab_atxmega256a3b[665];
 
-extern const Register_file_t rgftab_atxmega256a3bu[780];
+extern const Register_file rgftab_atxmega256a3bu[780];
 
-extern const Register_file_t rgftab_atxmega384c3[603];
+extern const Register_file rgftab_atxmega384c3[603];
 
-extern const Register_file_t rgftab_atxmega384d3[560];
+extern const Register_file rgftab_atxmega384d3[560];
 
-extern const Register_file_t rgftab_attiny202[217];
+extern const Register_file rgftab_attiny202[217];
 #define rgftab_attiny402     rgftab_attiny202
 
-extern const Register_file_t rgftab_attiny212[247];
+extern const Register_file rgftab_attiny212[247];
 #define rgftab_attiny412     rgftab_attiny212
 
-extern const Register_file_t rgftab_attiny214[265];
+extern const Register_file rgftab_attiny214[265];
 #define rgftab_attiny414     rgftab_attiny214
 
-extern const Register_file_t rgftab_attiny406[253];
+extern const Register_file rgftab_attiny406[253];
 
-extern const Register_file_t rgftab_attiny416[283];
+extern const Register_file rgftab_attiny416[283];
 
-extern const Register_file_t rgftab_attiny416auto[283];
+extern const Register_file rgftab_attiny416auto[283];
 
-extern const Register_file_t rgftab_attiny417[283];
+extern const Register_file rgftab_attiny417[283];
 #define rgftab_attiny816     rgftab_attiny417
 #define rgftab_attiny817     rgftab_attiny417
 
-extern const Register_file_t rgftab_attiny426[308];
+extern const Register_file rgftab_attiny426[308];
 #define rgftab_attiny427     rgftab_attiny426
 #define rgftab_attiny826     rgftab_attiny426
 #define rgftab_attiny827     rgftab_attiny426
@@ -2665,41 +2665,41 @@ extern const Register_file_t rgftab_attiny426[308];
 #define rgftab_attiny3226    rgftab_attiny426
 #define rgftab_attiny3227    rgftab_attiny426
 
-extern const Register_file_t rgftab_attiny804[255];
+extern const Register_file rgftab_attiny804[255];
 #define rgftab_attiny806     rgftab_attiny804
 #define rgftab_attiny807     rgftab_attiny804
 #define rgftab_attiny1604    rgftab_attiny804
 #define rgftab_attiny1606    rgftab_attiny804
 #define rgftab_attiny1607    rgftab_attiny804
 
-extern const Register_file_t rgftab_attiny814[265];
+extern const Register_file rgftab_attiny814[265];
 
-extern const Register_file_t rgftab_attiny1614[308];
+extern const Register_file rgftab_attiny1614[308];
 
-extern const Register_file_t rgftab_attiny1616[326];
+extern const Register_file rgftab_attiny1616[326];
 #define rgftab_attiny1617    rgftab_attiny1616
 
-extern const Register_file_t rgftab_attiny3216[326];
+extern const Register_file rgftab_attiny3216[326];
 #define rgftab_attiny3217    rgftab_attiny3216
 
-extern const Register_file_t rgftab_atmega808[406];
+extern const Register_file rgftab_atmega808[406];
 #define rgftab_atmega1608    rgftab_atmega808
 
-extern const Register_file_t rgftab_atmega809[432];
+extern const Register_file rgftab_atmega809[432];
 #define rgftab_atmega1609    rgftab_atmega809
 
-extern const Register_file_t rgftab_atmega3208[406];
+extern const Register_file rgftab_atmega3208[406];
 #define rgftab_atmega4808    rgftab_atmega3208
 
-extern const Register_file_t rgftab_atmega3209[432];
+extern const Register_file rgftab_atmega3209[432];
 #define rgftab_atmega4809    rgftab_atmega3209
 
-extern const Register_file_t rgftab_avr16du14[371];
+extern const Register_file rgftab_avr16du14[371];
 #define rgftab_avr32du14     rgftab_avr16du14
 
-extern const Register_file_t rgftab_avr16eb14[391];
+extern const Register_file rgftab_avr16eb14[391];
 
-extern const Register_file_t rgftab_avr16du20[372];
+extern const Register_file rgftab_avr16du20[372];
 #define rgftab_avr16du28     rgftab_avr16du20
 #define rgftab_avr16du32     rgftab_avr16du20
 #define rgftab_avr32du20     rgftab_avr16du20
@@ -2708,53 +2708,60 @@ extern const Register_file_t rgftab_avr16du20[372];
 #define rgftab_avr64du28     rgftab_avr16du20
 #define rgftab_avr64du32     rgftab_avr16du20
 
-extern const Register_file_t rgftab_avr16eb20[393];
+extern const Register_file rgftab_avr16eb20[393];
 #define rgftab_avr16eb28     rgftab_avr16eb20
 #define rgftab_avr16eb32     rgftab_avr16eb20
 
-extern const Register_file_t rgftab_avr16ea28[402];
+extern const Register_file rgftab_avr16ea28[402];
 #define rgftab_avr16ea32     rgftab_avr16ea28
 #define rgftab_avr32ea28     rgftab_avr16ea28
 #define rgftab_avr32ea32     rgftab_avr16ea28
 #define rgftab_avr64ea28     rgftab_avr16ea28
 #define rgftab_avr64ea32     rgftab_avr16ea28
 
-extern const Register_file_t rgftab_avr32da28[432];
+extern const Register_file rgftab_avr32da28[432];
 
-extern const Register_file_t rgftab_avr32db28[462];
+extern const Register_file rgftab_avr32db28[462];
 #define rgftab_avr64db28     rgftab_avr32db28
 #define rgftab_avr128db28    rgftab_avr32db28
 
-extern const Register_file_t rgftab_avr32da32[447];
+extern const Register_file rgftab_avr32da32[447];
 
-extern const Register_file_t rgftab_avr32db32[477];
+extern const Register_file rgftab_avr32db32[477];
 #define rgftab_avr64db32     rgftab_avr32db32
 #define rgftab_avr128db32    rgftab_avr32db32
 
-extern const Register_file_t rgftab_avr32da48[600];
+extern const Register_file rgftab_avr32da48[600];
 
-extern const Register_file_t rgftab_avr32db48[643];
+extern const Register_file rgftab_avr32db48[643];
 #define rgftab_avr64db48     rgftab_avr32db48
 #define rgftab_avr128db48    rgftab_avr32db48
 
-extern const Register_file_t rgftab_avr64da28[433];
+extern const Register_file rgftab_avr64da28[433];
 #define rgftab_avr128da28    rgftab_avr64da28
 
-extern const Register_file_t rgftab_avr64da32[448];
+extern const Register_file rgftab_avr64da32[448];
 #define rgftab_avr128da32    rgftab_avr64da32
 
-extern const Register_file_t rgftab_avr64da48[601];
+extern const Register_file rgftab_avr64da48[601];
 #define rgftab_avr128da48    rgftab_avr64da48
 
-extern const Register_file_t rgftab_avr64da64[659];
+extern const Register_file rgftab_avr64da64[659];
 #define rgftab_avr128da64    rgftab_avr64da64
 
-extern const Register_file_t rgftab_avr64db64[698];
+extern const Register_file rgftab_avr64db64[698];
 #define rgftab_avr128db64    rgftab_avr64db64
 
 int upidxmcuid(int mcuid);
 int upidxsig(const uint8_t *sigs);
 int upidxname(const char *name);
 int upmatchingsig(uint8_t sigs[3], char *p, size_t n);
+
+#ifndef TO_BE_DEPRECATED_IN_2026
+typedef Configvalue Valueitem_t;
+typedef Configitem Configitem_t;
+typedef Register_file Register_file_t;
+typedef Avrintel uPcore_t;
+#endif
 
 #endif
