@@ -1311,7 +1311,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd);
 
 /*LISTID programmer_types;*/
 
-typedef struct programmer_type_t {
+typedef struct programmer_type {
   const char * const id;
   void (*initpgm)(PROGRAMMER *pgm);
   const char * const desc;
