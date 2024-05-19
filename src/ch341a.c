@@ -333,7 +333,7 @@ static int ch341a_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsig
 }
 
 
-static int ch341a_spi_chip_erase(const struct programmer_t *pgm, const AVRPART *p) {
+static int ch341a_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
 
@@ -477,12 +477,12 @@ void ch341a_initpgm(PROGRAMMER *pgm) {
 // ----------------------------------------------------------------------
 #else // !defined(HAVE_LIBUSB_1_0)
 
-static int ch341a_nousb_open(struct programmer_t *pgm, const char *name) {
+static int ch341a_nousb_open(PROGRAMMER *pgm, const char *name) {
   pmsg_error("no usb support, please compile again with libusb installed\n");
   return -1;
 }
 
-void ch341a_initpgm(PROGRAMMER * pgm) {
+void ch341a_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "ch341a");
   pgm->open = ch341a_nousb_open;
 }

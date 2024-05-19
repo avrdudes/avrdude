@@ -21,8 +21,16 @@
 #ifndef urclock_h__
 #define urclock_h__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern const char urclock_desc[];
 void urclock_initpgm (PROGRAMMER *pgm);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
 

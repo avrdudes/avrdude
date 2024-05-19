@@ -2419,9 +2419,7 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 
 // Return whether an address is write protected
-static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unused,
-  const AVRMEM *mem, unsigned int addr) {
-
+static int urclock_readonly(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *mem, unsigned int addr) {
   if(mem_is_in_flash(mem)) {
     if(addr > (unsigned int) ur.pfend)
       return 1;

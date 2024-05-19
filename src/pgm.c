@@ -407,7 +407,7 @@ void sort_programmers(LISTID programmers)
 }
 
 
-// Soft assignment: some struct programmer_t entries can be both programmers and serial adapters
+// Soft assignment: some PROGRAMMER entries can be both programmers and serial adapters
 int is_programmer(const PROGRAMMER *p) {
  return p && p->id && lsize(p->id) && p->prog_modes && p->initpgm;
 }
