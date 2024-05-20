@@ -24,7 +24,7 @@ Changes since version 7.3:
     - Old avrdude_message() can go away #1719
     - avr_{read,write}_mem fail to initialize progress reporting #1718
     - avr*timestamp() oddities #1722
-    - -F option not honored bug #1740
+    - -F option not honoured #1740
     - "jtag2 is not a unique start of a programmer name" #1739
     - Regression: EEPROM issue with official STK500 V1 FW #1713
     - usbasp_write_byte in TPI mode not implemented #1755
@@ -35,6 +35,7 @@ Changes since version 7.3:
     - 0xff optimization when reading #1732
     - Add support for more AVR-DU parts #1742
     - Misleading error message: cannot find programmer id #1805
+    - Custom programmer broken in v7.3 #1807
 
   * Pull requests:
 
@@ -80,6 +81,8 @@ Changes since version 7.3:
     - Add new AVRnnDUnn parts #1804
     - Differentiate cause when programmer isn't found #1806
     - Prepare for next urboot version #1808
+    - Rename AVRDUDE symbol names ending in _t #1809
+    - Warn when programmer failes to define prog_modes #1810
 
   * Internals:
 
