@@ -257,7 +257,7 @@ typedef struct opcode {
 /*
  * Any changes in AVRPART or AVRMEM, please also ensure changes are made in
  *  - lexer.l
- *  - Either Component_t avr_comp[] of config.c or in config_gram.y
+ *  - Either Component avr_comp[] of config.c or in config_gram.y
  *  - dev_part_strct() in developer_opts.c
  *  - avr_new_part() and/or avr_new_mem() in avrpart.c for
  *    initialisation; note that all const char * must be initialised with ""
@@ -929,7 +929,7 @@ typedef struct {
 /*
  * Any changes in PROGRAMMER, please also ensure changes are made in
  *  - lexer.l
- *  - Either Component_t avr_comp[] of config.c or config_gram.y
+ *  - Either Component avr_comp[] of config.c or config_gram.y
  *  - dev_pgm_strct() in developer_opts.c
  *  - pgm_new() in pgm.c for initialisation; note that all const char * must
  *    be initialised with ""

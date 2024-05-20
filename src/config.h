@@ -62,7 +62,7 @@ typedef struct {                // Description of a component in a structure
   const char *name;             // Component name
   int strct;                    // Structure, eg, COMP_AVRPART
   int offset, size, type;       // Location, size and type within structure
-} Component_t;
+} Component;
 
 
 enum {                          // Value types for VALUE struct
@@ -79,7 +79,7 @@ typedef struct {
     int     number;
     double  number_real;
     char   *string;
-    Component_t *comp;
+    Component *comp;
   };
 } VALUE;
 
@@ -152,13 +152,13 @@ LISTID cfg_move_comments(void);
 
 void cfg_pop_comms(void);
 
-Component_t *cfg_comp_search(const char *name, int strct);
+Component *cfg_comp_search(const char *name, int strct);
 
 const char *cfg_v_type(int type);
 
 const char *cfg_strct_name(int strct);
 
-void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v);
+void cfg_assign(char *sp, int strct, Component *cp, VALUE *v);
 
 void cfg_update_mcuid(AVRPART *part);
 

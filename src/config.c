@@ -66,7 +66,7 @@ extern char *yytext;
 #define mem_comp_desc(x, type)  { #x, COMP_AVRMEM, offsetof(AVRMEM, x), sizeof(((AVRMEM *) NULL)->x), type }
 
 // Component description for config_gram.y, will be sorted appropriately on first use
-Component_t avr_comp[] = {
+Component avr_comp[] = {
   // PROGRAMMER
   pgm_comp_desc(desc, COMP_STRING),
   pgm_comp_desc(prog_modes, COMP_INT),
@@ -822,22 +822,22 @@ char *cfg_escape(const char *s) {
 
 
 static int cmp_comp(const void *v1, const void *v2) {
-  const Component_t *c1 = v1, *c2 = v2;
+  const Component *c1 = v1, *c2 = v2;
   int ret = strcmp(c1->name, c2->name);
 
   return ret? ret: c1->strct - c2->strct;
 }
 
-Component_t *cfg_comp_search(const char *name, int strct) {
-  Component_t key;
+Component *cfg_comp_search(const char *name, int strct) {
+  Component key;
 
   if(!cx->cfg_init_search++)
-    qsort(avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component_t), cmp_comp);
+    qsort(avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component), cmp_comp);
 
 
   key.name = name;
   key.strct = strct;
-  return bsearch(&key, avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component_t), cmp_comp);
+  return bsearch(&key, avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component), cmp_comp);
 }
 
 
@@ -881,7 +881,7 @@ const char *cfg_comp_type(int type) {
 
 
 // Used by config_gram.y to assign a component in one of the relevant structures with a value
-void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v) {
+void cfg_assign(char *sp, int strct, Component *cp, VALUE *v) {
   const char *str;
   int num;
 

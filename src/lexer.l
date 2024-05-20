@@ -159,7 +159,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
   paged | size | num_pages | initval | bitmask | n_word_writes | offset | min_write_delay | max_write_delay | pwroff_after_write |
   readback_p1 | readback_p2 | mode | delay | blocksize | readsize ) {
   /* struct components for PROGRAMMER, AVRPART and AVRMEM */
-  Component_t *cp = cfg_comp_search(yytext, current_strct);
+  Component *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
     yyerror("unknown component %s in %s", yytext, cfg_strct_name(current_strct));
     return YYERRCODE;
