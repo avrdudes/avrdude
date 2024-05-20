@@ -897,7 +897,7 @@ typedef enum {
   EXIT_DATAHIGH_UNSPEC,
   EXIT_DATAHIGH_ENABLED,
   EXIT_DATAHIGH_DISABLED
-} exit_datahigh_t;
+} Exit_datahigh;
 
 typedef enum {
   CONNTYPE_PARALLEL,
@@ -961,7 +961,7 @@ typedef struct programmer {
   unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
   exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
   exit_reset_t exit_reset;
-  exit_datahigh_t exit_datahigh;
+  Exit_datahigh exit_datahigh;
   int ppidata;
   int ppictrl;
   int ispdelay;                 // ISP clock delay
