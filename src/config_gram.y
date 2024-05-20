@@ -275,6 +275,9 @@ prog_def :
         yyerror("programmer type not specified");
         YYABORT;
       }
+      if(!current_prog->prog_modes && cx->lex_kw_is_programmer)
+        yywarning("programmer %s fails to specify prog_modes = PM_...;",
+          (char *) ldata(lfirst(current_prog->id)));
       for(LNODEID ln = lfirst(current_prog->id); ln; ln = lnext(ln)) {
         char *id = ldata(ln);
         if((existing_prog = locate_programmer(programmers, id))) {

@@ -1563,7 +1563,7 @@ typedef struct {
   uint16_t dfu_wIndex;          // A running number for USB messages
 
   // Static variable from config_gram.y
- int cfgy_pin_name;             // Temporary variable for grammar parsing
+  int cfgy_pin_name;            // Temporary variable for grammar parsing
 
   // Static variable from ppi.c
   unsigned char ppi_shadow[3];
@@ -1604,6 +1604,9 @@ typedef struct {
   char usb_buf[USBDEV_MAX_XFER_3];
   int usb_buflen, usb_bufptr; // @@@ Check whether usb_buflen needs initialising with -1
   int usb_interface;
+
+  // Variable connecting lexer.l and config_gram.y
+  int lex_kw_is_programmer;     // Was the K_PROGRAMMER keyword "programmer"?
 } libavrdude_context;
 
 extern libavrdude_context *cx;

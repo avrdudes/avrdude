@@ -226,7 +226,8 @@ part             { yylval=NULL; ccap(); current_strct = COMP_AVRPART; return K_P
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); ccap(); return K_PGM_ENABLE; }
 pgmled           { yylval=NULL; ccap(); return K_PGMLED; }
 pp_controlstack  { yylval=NULL; ccap(); return K_PP_CONTROLSTACK; }
-(programmer|serialadapter) { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER; return K_PROGRAMMER; }
+(programmer|serialadapter) { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER;
+                   cx->lex_kw_is_programmer = *yytext == 'p'; return K_PROGRAMMER; }
 rdyled           { yylval=NULL; ccap(); return K_RDYLED; }
 read             { yylval=new_token(K_READ); ccap(); return K_READ; }
 read_hi          { yylval=new_token(K_READ_HI); ccap(); return K_READ_HI; }
