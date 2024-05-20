@@ -1625,6 +1625,49 @@ int win_set_path(char *path, int n, const char *file);
 #endif  /* WIN32 */
 
 #ifndef TO_BE_DEPRECATED_IN_2026
+
+/*
+ * AVRDUDE type names ending in _t have been renamed, as POSIX reserves
+ * all of these. Below typedefs that give access to some of these _t names
+ * but will be withdrawn in future. If you want to update your project
+ * code that uses libavrdude feel free to copy and paste the lines below
+ * into a file avrdude_t.sed and execute in your code directory
+ *
+ * $ sed -i -f avrdude_t.sed *.{c,h,cpp,hpp,l,y}
+ *
+
+s/\btypedef struct programmer_t\b/typedef struct programmer/g
+s/\bstruct programmer_t\b/PROGRAMMER/g
+s/\bprogrammer_t\b/programmer/g
+s/\bprogrammer_type_t\b/programmer_type/g
+s/\bctl_stack_t\b/ctl_stack/g
+s/\bpindef_t\b/pindef/g
+s/\bpin_checklist_t\b/Pin_checklist/g
+s/\bpinmask_t\b/Pinmask/g
+s/\bupdate_t\b/update/g
+s/\buPcore_t\b/Avrintel/g
+s/\bComponent_t\b/Component/g
+s/\bValueitem_t\b/Configvalue/g
+s/\bConfigitem_t\b/Configitem/g
+s/\bRegister_file_t\b/Register_file/g
+s/\bconntype_t\b/Conntype/g
+s/\bexit_datahigh_t\b/Exit_datahigh/g
+s/\bexit_reset_t\b/Exit_reset/g
+s/\bexit_vcc_t\b/Exit_vcc/g
+s/\bleds_t\b/Leds/g
+s/\bmemtable_t\b/Memtable/g
+s/\bmemtype_t\b/Memtype/g
+s/\bSegment_t\b/Segment/g
+
+ *
+ */
+
+typedef Configvalue Valueitem_t;
+typedef Configitem Configitem_t;
+typedef Register_file Register_file_t;
+typedef Avrintel uPcore_t;
+
+typedef Pin_checklist pin_checklist_t;
 typedef Pinmask pinmask_t;
 typedef Conntype conntype_t;
 typedef Exit_datahigh exit_datahigh_t;
@@ -1634,6 +1677,7 @@ typedef Leds leds_t;
 typedef Memtable memtable_t;
 typedef Memtype memtype_t;
 typedef Segment Segment_t;
+
 #endif
 
 #endif  /* libavrdude_h */
