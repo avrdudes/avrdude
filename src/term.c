@@ -1047,7 +1047,7 @@ static int setmatches(const char *str, int n, Cnfg *cc) {
   return matches;
 }
 
-static int getvalidx(const char *str, int n, const Valueitem_t *vt) {
+static int getvalidx(const char *str, int n, const Configvalue *vt) {
   int hold, matches = 0;
 
   if(!*str)
@@ -1098,7 +1098,7 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
 }
 
 // Comment printed next to symbolic value
-static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts o) {
+static const char *valuecomment(const Configitem_t *cti, const Configvalue *vp, int value, Cfg_opts o) {
   char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
@@ -1137,7 +1137,7 @@ static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, 
 }
 
 // How a single property is printed
-static void printoneproperty(Cnfg *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts o) {
+static void printoneproperty(Cnfg *cc, int ii, const Configvalue *vp, int llen, const char *vstr, Cfg_opts o) {
   int value = vp? vp->value: cc[ii].val;
   term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
@@ -1145,7 +1145,7 @@ static void printoneproperty(Cnfg *cc, int ii, const Valueitem_t *vp, int llen, 
 
 // Prints a list of all possible values (o.allv) or just the one proporty cc[ii]
 static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
-  const Valueitem_t *vt = cc[ii].t->vlist, *vp;
+  const Configvalue *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
   char buf[32];
@@ -1315,7 +1315,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   const Configitem_t *ct;       // Configuration bitfield table
   int nc;                       // Number of config properties, some may not be available
   Part_FL fusel;                // Copy of fuses and lock bits
-  const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
+  const Configvalue *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
   Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
   FL_item *fc;                  // Current fuse and lock bits memories

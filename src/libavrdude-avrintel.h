@@ -2758,7 +2758,7 @@ int upidxname(const char *name);
 int upmatchingsig(uint8_t sigs[3], char *p, size_t n);
 
 #ifndef TO_BE_DEPRECATED_IN_2026
-typedef Configvalue Valueitem_t;
+typedef Configvalue Configvalue;
 typedef Configitem Configitem_t;
 typedef Register_file Register_file_t;
 typedef Avrintel Avrintel;
