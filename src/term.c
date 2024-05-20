@@ -663,7 +663,7 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   mem = avr_dup_mem(omem);
   int n = argc > 3? (argc-3)/2: 1;
-  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
+  Segment *seglist = mmt_malloc(n*sizeof*seglist);
 
   int ret = -1;
 
