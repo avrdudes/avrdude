@@ -1624,5 +1624,16 @@ int win_set_path(char *path, int n, const char *file);
 
 #endif  /* WIN32 */
 
+#ifndef TO_BE_DEPRECATED_IN_2026
+typedef Pinmask pinmask_t;
+typedef Conntype conntype_t;
+typedef Exit_datahigh exit_datahigh_t;
+typedef Exit_reset exit_reset_t;
+typedef Exit_vcc exit_vcc_t;
+typedef Leds leds_t;
+typedef Memtable memtable_t;
+typedef Memtype memtype_t;
+typedef Segment Segment_t;
+#endif
 
 #endif  /* libavrdude_h */
