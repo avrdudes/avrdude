@@ -1261,7 +1261,7 @@ enum updateflags {
 };
 
 
-typedef struct update_t {
+typedef struct update {
   const char *cmdline;          // -T line is stored here and takes precedence if it exists
   char *memstr;                 // Memory name for -U
   int   op;                     // Symbolic memory operation DEVICE_... for -U
