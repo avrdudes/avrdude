@@ -355,7 +355,7 @@ typedef unsigned int memtype_t;
 typedef struct {
   const char *str;
   memtype_t type;
-} memtable_t;
+} Memtable;
 
 // The least significant 4 bits of type are the offset of a fuse in fuses mem
 #define MEM_FUSEOFF_MASK     15 // Mask for offset
@@ -1082,7 +1082,7 @@ void sort_programmers(LISTID programmers);
 typedef void (*FP_UpdateProgress)(int percent, double etime, const char *hdr, int finish);
 
 extern struct avrpart parts[];
-extern memtable_t avr_mem_order[100];
+extern Memtable avr_mem_order[100];
 
 extern FP_UpdateProgress update_progress;
 
