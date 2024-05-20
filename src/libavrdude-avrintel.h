@@ -2761,7 +2761,7 @@ int upmatchingsig(uint8_t sigs[3], char *p, size_t n);
 typedef Configvalue Valueitem_t;
 typedef Configitem Configitem_t;
 typedef Register_file Register_file_t;
-typedef Avrintel uPcore_t;
+typedef Avrintel Avrintel;
 #endif
 
 #endif

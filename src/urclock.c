@@ -251,7 +251,7 @@ typedef struct {
 
   unsigned char ext_addr_byte;  // Ext-addr byte for STK500v1 protocol and MCUs with > 128k
 
-  uPcore_t uP;                  // Info about the connected processor (copied from uP_table)
+  Avrintel uP;                  // Info about the connected processor (copied from uP_table)
 
   bool initialised;             // Is this structure initialised?
   bool bleepromrw;              // Bootloader has EEPROM r/w support
