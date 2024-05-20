@@ -949,7 +949,7 @@ typedef struct {                // Fuses and lock bits
 } Part_FL;
 
 typedef struct {
-  const Configitem_t *t;        // Configuration bitfield table
+  const Configitem *t;        // Configuration bitfield table
   const char *memstr;           // Memory name but could also be "lockbits"
   const char *alt;              // Set when memstr is an alias
   int match;                    // Matched by user request
@@ -1098,7 +1098,7 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
 }
 
 // Comment printed next to symbolic value
-static const char *valuecomment(const Configitem_t *cti, const Configvalue *vp, int value, Cfg_opts o) {
+static const char *valuecomment(const Configitem *cti, const Configvalue *vp, int value, Cfg_opts o) {
   char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
@@ -1312,7 +1312,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   int idx = -1;                 // Index in uP_table[]
-  const Configitem_t *ct;       // Configuration bitfield table
+  const Configitem *ct;       // Configuration bitfield table
   int nc;                       // Number of config properties, some may not be available
   Part_FL fusel;                // Copy of fuses and lock bits
   const Configvalue *vt;        // Pointer to symbolic labels and associated values

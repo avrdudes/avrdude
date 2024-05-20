@@ -1429,16 +1429,16 @@ extern "C" {
 #endif
 
 int avr_locate_upidx(const AVRPART *p);
-const Configitem_t *avr_locate_configitems(const AVRPART *p, int *ncp);
+const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp);
 const char * const *avr_locate_isrtable(const AVRPART *p, int *nip);
 const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp);
 const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, const char *reg,
  int (*match)(const char *, const char*));
 const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
  int (*match)(const char *, const char*));
-const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
+const Configitem *avr_locate_config(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char*));
-const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
+const Configitem **avr_locate_configlist(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char*));
 int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep);
 int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value);

@@ -511,7 +511,7 @@ int avr_locate_upidx(const AVRPART *p) {
 }
 
 // Return pointer to config table for the part and set number of config bitfields
-const Configitem_t *avr_locate_configitems(const AVRPART *p, int *ncp) {
+const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp) {
   int idx = avr_locate_upidx(p);
   if(idx < 0)
     return NULL;
@@ -635,13 +635,13 @@ const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int 
  * str_matched_by etc. If name is the full name of a configuration bitfield
  * then a pointer to that is returned irrespective of the matching function.
  */
-const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
+const Configitem *avr_locate_config(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char*)) {
 
   if(!cfg || nc < 1 || !name || !match)
     return NULL;
 
-  const Configitem_t *ret = NULL;
+  const Configitem *ret = NULL;
   int nmatches = 0;
 
   for(int i = 0; i < nc; i++) {
@@ -663,10 +663,10 @@ const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const cha
  * returned list is confined to this specific entry irrespective of the
  * matching function.
  */
-const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
+const Configitem **avr_locate_configlist(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char*)) {
 
-  const Configitem_t **ret = mmt_malloc(sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
+  const Configitem **ret = mmt_malloc(sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
 
   if(cfg && name && match) {
     for(int i = 0; i < nc; i++)
@@ -684,19 +684,19 @@ const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, cons
   return ret;
 }
 
-// Return memory associated with config item and fill in pointer to Configitem_t record
+// Return memory associated with config item and fill in pointer to Configitem record
 static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPART *p,
-  const char *cname, const Configitem_t **cp, int *valp) {
+  const char *cname, const Configitem **cp, int *valp) {
 
   int nc = 0;
-  const Configitem_t *cfg = avr_locate_configitems(p, &nc);
+  const Configitem *cfg = avr_locate_configitems(p, &nc);
 
   if(!cfg || nc < 1) {
     pmsg_error("avrintel.c does not hold configuration information for %s\n", p->desc);
     return NULL;
   }
 
-  const Configitem_t *c = avr_locate_config(cfg, nc, cname, str_contains);
+  const Configitem *c = avr_locate_config(cfg, nc, cname, str_contains);
   if(!c) {
     pmsg_error("%s does not have a unique config item matched by %s\n", p->desc, cname);
     return NULL;
@@ -729,7 +729,7 @@ static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPAR
 
 // Initialise *valuep with configuration value of named configuration bitfield
 int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
-  const Configitem_t *c;
+  const Configitem *c;
   int fusel;
 
   if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
@@ -742,7 +742,7 @@ int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
 // Set configuration value of named configuration bitfield to value
 int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value) {
   AVRMEM *mem;
-  const Configitem_t *c;
+  const Configitem *c;
   int fusel;
 
   if(!(mem=avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel)))
