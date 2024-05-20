@@ -885,7 +885,7 @@ typedef enum {
   EXIT_VCC_UNSPEC,
   EXIT_VCC_ENABLED,
   EXIT_VCC_DISABLED
-} exit_vcc_t;
+} Exit_vcc;
 
 typedef enum {
   EXIT_RESET_UNSPEC,
@@ -959,7 +959,7 @@ typedef struct programmer {
   char type[PGM_TYPELEN];
   const char *port;
   unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
-  exit_vcc_t exit_vcc;          // Should these be set in avrdude.conf?
+  Exit_vcc exit_vcc;          // Should these be set in avrdude.conf?
   Exit_reset exit_reset;
   Exit_datahigh exit_datahigh;
   int ppidata;
