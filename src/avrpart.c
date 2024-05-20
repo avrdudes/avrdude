@@ -531,7 +531,7 @@ const char * const *avr_locate_isrtable(const AVRPART *p, int *nip) {
 }
 
 // Return pointer to register file for the part and set number of registers
-const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp) {
+const Register_file *avr_locate_register_file(const AVRPART *p, int *nrp) {
   int idx = avr_locate_upidx(p);
   if(idx < 0)
     return NULL;
@@ -556,13 +556,13 @@ const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp) {
  * though there are other registers that start with adc, eg, adc.adcsra.
  */
 
-const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, const char *reg,
+const Register_file *avr_locate_register(const Register_file *rgf, int nr, const char *reg,
   int (*match)(const char *, const char*)) {
 
   if(!rgf || nr < 1 || !reg || !match)
     return NULL;
 
-  const Register_file_t *ret = NULL;
+  const Register_file *ret = NULL;
   int nmatches = 0, eqmatch = match == str_eq;
 
   for(int i = 0; i < nr; i++) {
@@ -597,10 +597,10 @@ const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, c
  * behaviour can be suppressed by specifying a pattern for reg, eg, adc*
  * together with the matching function str_matched_by.
  */
-const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
+const Register_file **avr_locate_registerlist(const Register_file *rgf, int nr, const char *reg,
   int (*match)(const char *, const char*)) {
 
-  const Register_file_t **ret = mmt_malloc(sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
+  const Register_file **ret = mmt_malloc(sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
   int eqmatch = match == str_eq;
 
   if(rgf && reg && match)

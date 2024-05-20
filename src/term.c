@@ -1727,7 +1727,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
   int do_read = p->prog_modes & (PM_UPDI | PM_PDI);
   int nr;
-  const Register_file_t *rf = avr_locate_register_file(p, &nr);
+  const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(!rf || nr <= 0) {
     pmsg_error("(regfile) .atdf file not published for %s: unknown register file\n", p->desc);
@@ -1739,7 +1739,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     *rhs++ = 0;                 // Terminate lhs
 
   // Create mmt_malloc'd NULL-terminated list of register pointers
-  const Register_file_t *r, **rl, **rlist;
+  const Register_file *r, **rl, **rlist;
   rlist = avr_locate_registerlist(rf, nr, reg, str_is_pattern(reg)? str_matched_by: str_contains);
 
   if(rhs) {                     // Write to single register

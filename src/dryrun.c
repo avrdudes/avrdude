@@ -191,7 +191,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         }
       } else if(mem_is_io(m)) { // Initialise reset values (if known)
         int nr;
-        const Register_file_t *rf = avr_locate_register_file(p, &nr);
+        const Register_file *rf = avr_locate_register_file(p, &nr);
         if(rf)
           for(int i = 0; i < nr; i++)
             if(rf[i].initval != -1 && rf[i].size > 0 && rf[i].size < 5)
