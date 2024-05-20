@@ -351,10 +351,10 @@ typedef struct avrpart {
 } AVRPART;
 
 
-typedef unsigned int memtype_t;
+typedef unsigned int Memtype;
 typedef struct {
   const char *str;
-  memtype_t type;
+  Memtype type;
 } Memtable;
 
 // The least significant 4 bits of type are the offset of a fuse in fuses mem
@@ -497,7 +497,7 @@ typedef struct {
 
 typedef struct avrmem {
   const char *desc;           /* memory description ("flash", "eeprom", etc) */
-  memtype_t type;             /* internally used type, cannot be set in conf files */
+  Memtype type;               /* Internally used type, cannot be set in conf files */
   LISTID comments;            // Used by developer options -p*/[ASsr...]
   int paged;                  /* 16-bit page addressed, e.g., ATmega flash but not EEPROM */
   int size;                   /* total memory size in bytes */
@@ -562,7 +562,7 @@ void     avr_free_memalias(AVRMEM_ALIAS * m);
 AVRMEM * avr_locate_mem(const AVRPART *p, const char *desc);
 AVRMEM * avr_locate_mem_noalias(const AVRPART *p, const char *desc);
 AVRMEM * avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off);
-AVRMEM * avr_locate_mem_by_type(const AVRPART *p, memtype_t type);
+AVRMEM * avr_locate_mem_by_type(const AVRPART *p, Memtype type);
 unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);

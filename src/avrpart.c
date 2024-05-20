@@ -462,10 +462,10 @@ AVRMEM *avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off) {
 }
 
 // Return the first memory that shares the type incl any fuse identified by offset in fuses
-AVRMEM *avr_locate_mem_by_type(const AVRPART *p, memtype_t type) {
+AVRMEM *avr_locate_mem_by_type(const AVRPART *p, Memtype type) {
   AVRMEM *m;
-  memtype_t off = type & MEM_FUSEOFF_MASK;
-  type &= ~(memtype_t) MEM_FUSEOFF_MASK;
+  Memtype off = type & MEM_FUSEOFF_MASK;
+  type &= ~(Memtype) MEM_FUSEOFF_MASK;
 
   if(p && p->mem)
     for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
