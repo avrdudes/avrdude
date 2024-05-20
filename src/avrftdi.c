@@ -499,7 +499,7 @@ static int avrftdi_check_pins_bb(const PROGRAMMER *pgm, bool output) {
 	int pin;
 
 	/* pin checklist. */
-	struct pin_checklist_t pin_checklist[N_PINS];
+	Pin_checklist pin_checklist[N_PINS];
 
 	Avrftdi_data *pdata = to_pdata(pgm);
 
@@ -526,7 +526,7 @@ static int avrftdi_check_pins_mpsse(const PROGRAMMER *pgm, bool output) {
 	int pin;
 
 	/* pin checklist. */
-	struct pin_checklist_t pin_checklist[N_PINS];
+	Pin_checklist pin_checklist[N_PINS];
 
 	Avrftdi_data *pdata = to_pdata(pgm);
 

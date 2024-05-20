@@ -680,11 +680,11 @@ struct pindef {
 /**
  * Data structure to define a checklist of valid pins for each function.
  */
-struct pin_checklist_t {
+typedef struct pin_checklist {
   int pinname; ///< logical pinname eg. PIN_AVR_SCK
   int mandatory; ///< is this a mandatory pin
   const struct pindef *valid_pins; ///< mask defines allowed pins, inverse define is they might be used inverted
-};
+} Pin_checklist;
 
 /**
  * Adds a pin in the pin definition as normal or inverse pin.
@@ -729,7 +729,7 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm);
  * @param[in] output false suppresses error messages to the user
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
-int pins_check(const PROGRAMMER * const pgm, const struct pin_checklist_t * const checklist, const int size, const bool output);
+int pins_check(const PROGRAMMER * const pgm, const Pin_checklist * const checklist, const int size, const bool output);
 
 /**
  * Returns the name of the pin as string.
