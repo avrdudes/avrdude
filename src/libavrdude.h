@@ -905,7 +905,7 @@ typedef enum {
   CONNTYPE_USB,
   CONNTYPE_SPI,
   CONNTYPE_LINUXGPIO
-} conntype_t;
+} Conntype;
 
 
 #define LED_N                 4 // Max number of LEDs driven by programmers
@@ -944,7 +944,7 @@ typedef struct programmer {
   int is_serialadapter;         // Programmer is also a serialadapter
   int extra_features;
   struct pindef pin[N_PINS];
-  conntype_t conntype;
+  Conntype conntype;
   int baudrate;
   int usbvid;
   LISTID usbpid;
