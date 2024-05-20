@@ -459,7 +459,7 @@ prog_parm_type:
 
 prog_parm_type_id:
   TKN_STRING        {
-  const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
+  const PROGRAMMER_TYPE *pgm_type = locate_programmer_type($1->value.string);
     if (pgm_type == NULL) {
         yyerror("programmer type %s not found", $1->value.string);
         free_token($1); 

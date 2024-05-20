@@ -64,7 +64,7 @@ int
 avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	int ret;
 
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 0x01, 0x00, 0xff, 0xff };
 
 	pmsg_info("Setting /Reset pin low\n");
@@ -132,7 +132,7 @@ static uint16_t tpi_byte2frame(uint8_t byte) {
 	return frame;
 }
 
-static int tpi_frame2byte(uint16_t frame, uint8_t * byte) {
+static int tpi_frame2byte(uint16_t frame, uint8_t *byte) {
 	/* drop idle and start bit(s) */
 	*byte = (frame >> 5) & 0xff;
 

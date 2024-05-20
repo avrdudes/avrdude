@@ -62,7 +62,7 @@ typedef struct {                // Description of a component in a structure
   const char *name;             // Component name
   int strct;                    // Structure, eg, COMP_AVRPART
   int offset, size, type;       // Location, size and type within structure
-} Component_t;
+} Component;
 
 
 enum {                          // Value types for VALUE struct
@@ -73,34 +73,34 @@ enum {                          // Value types for VALUE struct
   V_COMPONENT,
 };
 
-typedef struct value_t {
-  int      type;
+typedef struct {
+  int type;
   union {
-    int      number;
-    double   number_real;
-    char   * string;
-    Component_t *comp;
+    int     number;
+    double  number_real;
+    char   *string;
+    Component *comp;
   };
 } VALUE;
 
 
-typedef struct token_t {
+typedef struct token {
   int primary;
   VALUE value;
 } TOKEN;
-typedef struct token_t *token_p;
+typedef struct token *token_p;
 
 
-extern FILE       * yyin;
-extern PROGRAMMER * current_prog;
-extern AVRPART    * current_part;
-extern AVRMEM     * current_mem;
-extern int          current_strct;
-extern int          cfg_lineno;
-extern char       * cfg_infile;
-extern LISTID       string_list;
-extern LISTID       number_list;
-extern bool         is_alias; // current entry is alias
+extern FILE       *yyin;
+extern PROGRAMMER *current_prog;
+extern AVRPART    *current_part;
+extern AVRMEM     *current_mem;
+extern int         current_strct;
+extern int         cfg_lineno;
+extern char       *cfg_infile;
+extern LISTID      string_list;
+extern LISTID      number_list;
+extern bool        is_alias; // current entry is alias
 
 
 #if !defined(HAS_YYSTYPE)
@@ -152,13 +152,13 @@ LISTID cfg_move_comments(void);
 
 void cfg_pop_comms(void);
 
-Component_t *cfg_comp_search(const char *name, int strct);
+Component *cfg_comp_search(const char *name, int strct);
 
 const char *cfg_v_type(int type);
 
 const char *cfg_strct_name(int strct);
 
-void cfg_assign(char *sp, int strct, Component_t *cp, VALUE *v);
+void cfg_assign(char *sp, int strct, Component *cp, VALUE *v);
 
 void cfg_update_mcuid(AVRPART *part);
 

@@ -2081,22 +2081,22 @@ static void scratchmonkey_led_state(const PROGRAMMER *pgm, int flag, int value) 
   stk500v2_setparm_real(pgm, PARAM_SCRATCHMONKEY_STATUS_LEDS, PDATA(pgm)->scratchmonkey_leds);
 }
 
-static int scratchmonkey_rdy_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_rdy_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_RDY_LED, value);
   return 0;
 }
 
-static int scratchmonkey_err_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_err_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_ERR_LED, value);
   return 0;
 }
 
-static int scratchmonkey_pgm_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_pgm_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_PGM_LED, value);
   return 0;
 }
 
-static int scratchmonkey_vfy_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_vfy_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_VFY_LED, value);
   return 0;
 }

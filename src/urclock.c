@@ -251,7 +251,7 @@ typedef struct {
 
   unsigned char ext_addr_byte;  // Ext-addr byte for STK500v1 protocol and MCUs with > 128k
 
-  uPcore_t uP;                  // Info about the connected processor (copied from uP_table)
+  Avrintel uP;                  // Info about the connected processor (copied from uP_table)
 
   bool initialised;             // Is this structure initialised?
   bool bleepromrw;              // Bootloader has EEPROM r/w support
@@ -324,10 +324,10 @@ typedef struct {
 
   char title[254];              // Use instead of filename for metadata - same size as filename
   char iddesc[64];              // Location of Urclock ID, eg F.12324.6 or E.-4.4 (default E.257.6)
-} Urclock_t;
+} Urclock_data;
 
 // Use private programmer data as if they were a global structure ur
-#define ur (*(Urclock_t *)(pgm->cookie))
+#define ur (*(Urclock_data *)(pgm->cookie))
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
@@ -1092,10 +1092,10 @@ static uint32_t jenkins_hash(const uint8_t* key, size_t length) {
 typedef struct {
   uint16_t sz, ee;
   uint32_t h256, hash;
-} Blhash_t;
+} Bl_hash;
 
 static int cmpblhash(const void *va, const void *vb) {
-  const Blhash_t *a = va, *b = vb;
+  const Bl_hash *a = va, *b = vb;
   return a->sz > b->sz? 1: a->sz < b->sz? -1: a->hash > b->hash? 1: a->hash < b->hash? -1: 0;
 }
 
@@ -1103,7 +1103,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
   if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Cannot read flash
     return;
 
-  Blhash_t blist[] = {
+  Bl_hash blist[] = {
     // From https://github.com/arduino/ArduinoCore-avr/tree/master/bootloaders
     { 1024, 0, 0x35445c45, 0x9ef77953 }, // ATmegaBOOT-prod-firmware-2009-11-07.hex
     { 1024, 0, 0x32b1376c, 0xceba80bb }, // ATmegaBOOT.hex
@@ -2419,9 +2419,7 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 
 // Return whether an address is write protected
-static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unused,
-  const AVRMEM *mem, unsigned int addr) {
-
+static int urclock_readonly(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *mem, unsigned int addr) {
   if(mem_is_in_flash(mem)) {
     if(addr > (unsigned int) ur.pfend)
       return 1;
@@ -2552,7 +2550,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
 
 static void urclock_setup(PROGRAMMER *pgm) {
   // Allocate ur
-  pgm->cookie = mmt_malloc(sizeof(Urclock_t));
+  pgm->cookie = mmt_malloc(sizeof(Urclock_data));
 
   ur.xvectornum    = -1;        // Initialise, to ascertain whether user had set to 0
   ur.ext_addr_byte = 0xff;      // So first memory address will load extended address

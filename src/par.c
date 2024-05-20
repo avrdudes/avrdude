@@ -44,14 +44,14 @@
 
 #if HAVE_PARPORT
 
-struct ppipins_t {
+struct ppipins {
   int pin;
   int reg;
   int bit;
   int inverted;
 };
 
-static const struct ppipins_t ppipins[] = {
+static const struct ppipins ppipins[] = {
   {  1, PPICTRL,   0x01, 1 },
   {  2, PPIDATA,   0x01, 0 },
   {  3, PPIDATA,   0x02, 0 },
@@ -71,7 +71,7 @@ static const struct ppipins_t ppipins[] = {
   { 17, PPICTRL,   0x08, 1 }
 };
 
-#define NPINS (sizeof(ppipins)/sizeof(struct ppipins_t))
+#define NPINS (sizeof(ppipins)/sizeof(struct ppipins))
 
 static int par_setpin_internal(const PROGRAMMER *pgm, int pin, int value) {
   int inverted;

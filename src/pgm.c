@@ -169,7 +169,7 @@ PROGRAMMER *pgm_new(void) {
     pin_clear_all(&(pgm->pin[i]));
   }
 
-  pgm->leds = mmt_malloc(sizeof(leds_t));
+  pgm->leds = mmt_malloc(sizeof(Leds));
 
   pgm_init_functions(pgm);
 
@@ -218,7 +218,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     if(pgm->cp_usersig)
       mmt_free(pgm->cp_usersig);
 
-    leds_t *ls = pgm->leds;
+    Leds *ls = pgm->leds;
     memcpy(pgm, src, sizeof(*pgm));
     if(ls && src->leds)
       memcpy(ls, src->leds, sizeof *ls);
@@ -407,7 +407,7 @@ void sort_programmers(LISTID programmers)
 }
 
 
-// Soft assignment: some struct programmer_t entries can be both programmers and serial adapters
+// Soft assignment: some PROGRAMMER entries can be both programmers and serial adapters
 int is_programmer(const PROGRAMMER *p) {
  return p && p->id && lsize(p->id) && p->prog_modes && p->initpgm;
 }

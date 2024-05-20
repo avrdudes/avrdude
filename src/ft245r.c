@@ -804,9 +804,9 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 }
 
 /* lower 8 pins are accepted, they might be also inverted */
-static const struct pindef_t valid_pins = {{0xff}, {0xff}} ;
+static const struct pindef valid_pins = {{0xff}, {0xff}};
 
-static const struct pin_checklist_t pin_checklist[] = {
+static const Pin_checklist pin_checklist[] = {
     { PIN_AVR_SCK, 1, &valid_pins},
     { PIN_AVR_SDO, 1, &valid_pins},
     { PIN_AVR_SDI, 1, &valid_pins},

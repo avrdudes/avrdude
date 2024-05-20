@@ -47,16 +47,16 @@ typedef enum {
   DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
   DRY_TOP,                      // Bootloader and it sits at top of flash
   DRY_BOTTOM,                   // Bootloader sits at bottom of flash (UPDI parts)
-} dry_prog_t;
+} Dry_prog;
 
 typedef struct {
   AVRPART *dp;
-  dry_prog_t bl;                // Bootloader and, if so, at top/bottom of flash?
+  Dry_prog bl;                  // Bootloader and, if so, at top/bottom of flash?
   int blsize;                   // Bootloader size min(flash size/4, 512)
-} dryrun_t;
+} Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
-#define dry (*(dryrun_t *)(pgm->cookie))
+#define dry (*(Dryrun_data *)(pgm->cookie))
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
@@ -191,7 +191,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         }
       } else if(mem_is_io(m)) { // Initialise reset values (if known)
         int nr;
-        const Register_file_t *rf = avr_locate_register_file(p, &nr);
+        const Register_file *rf = avr_locate_register_file(p, &nr);
         if(rf)
           for(int i = 0; i < nr; i++)
             if(rf[i].initval != -1 && rf[i].size > 0 && rf[i].size < 5)
@@ -535,7 +535,7 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 static void dryrun_setup(PROGRAMMER *pgm) {
   pmsg_debug("%s()\n", __func__);
   // Allocate dry
-  pgm->cookie = mmt_malloc(sizeof(dryrun_t));
+  pgm->cookie = mmt_malloc(sizeof(Dryrun_data));
 }
 
 

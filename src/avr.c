@@ -1528,7 +1528,7 @@ char *dev_prog_modes(int pm) {  // Symbolic C code of prog_modes
 
 
 // Typical order in which memories show in avrdude.conf, runtime adds unknown ones (if any)
-memtable_t avr_mem_order[100] = {
+Memtable avr_mem_order[100] = {
   {"eeprom",      MEM_EEPROM},
   {"flash",       MEM_FLASH | MEM_IN_FLASH},
   {"application", MEM_APPLICATION | MEM_IN_FLASH},

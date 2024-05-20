@@ -1175,7 +1175,7 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
 }
 
 
-static const char *connstr(conntype_t conntype) {
+static const char *connstr(Conntype conntype) {
   switch(conntype) {
   case CONNTYPE_LINUXGPIO: return "linuxgpio";
   case CONNTYPE_PARALLEL: return "parallel";

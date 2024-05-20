@@ -153,7 +153,7 @@ FILEFMT fileio_format(char c) {
 typedef enum {
   FIRST_SEG = 1,
   LAST_SEG  = 2,
-} Segorder_t;
+} Segorder;
 
 
 static void print_ihex_extended_addr(int n_64k, FILE *outf) {
@@ -176,7 +176,7 @@ static void print_ihex_extended_addr(int n_64k, FILE *outf) {
  * Return the maximum memory address within mem->buf that was read from
  * plus one. If an error occurs, return -1.
  */
-static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder_t where,
+static int b2ihex(const unsigned char *buf, const Segment *segp, Segorder where,
   int recsize, int startaddr, const char *outfile_unused, FILE *outf,
   FILEFMT ffmt) {
 
@@ -339,7 +339,7 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
  * plus one. If an error occurs, return -1.
  */
 static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
-  const Segment_t *segp, unsigned int fileoffset, FILEFMT ffmt) {
+  const Segment *segp, unsigned int fileoffset, FILEFMT ffmt) {
 
   const char *errstr;
   unsigned int nextaddr, baseaddr, maxaddr;
@@ -458,7 +458,7 @@ static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, i
 
 
 // Binary to Motorola S-Record, see https://en.wikipedia.org/wiki/SREC_(file_format)
-static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
+static int b2srec(const AVRMEM *mem, const Segment *segp, Segorder where,
   int recsize, int startaddr, const char *outfile_unused, FILE *outf) {
 
   const unsigned char *buf;
@@ -609,7 +609,7 @@ static int srec_readrec(struct ihexsrec *srec, char *rec) {
 
 // Motorola S-Record to binary
 static int srec2b(const char *infile, FILE * inf,
-  const AVRMEM *mem, const Segment_t *segp, unsigned int fileoffset) {
+  const AVRMEM *mem, const Segment *segp, unsigned int fileoffset) {
 
   const char *errstr;
   unsigned int nextaddr, maxaddr;
@@ -805,7 +805,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 
 // ELF format to binary (the memory segment to read into is ignored)
 static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
-  const AVRPART *p, const Segment_t *segp_unused, unsigned int fileoffset_unused) {
+  const AVRPART *p, const Segment *segp_unused, unsigned int fileoffset_unused) {
 
   Elf *e;
   int rv = 0, size = 0;
@@ -1012,7 +1012,7 @@ done:
 
 // Read/write binary files and return highest memory addr set + 1
 static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp) {
+  const AVRMEM *mem, const Segment *segp) {
 
   int rc;
   switch (fio->op) {
@@ -1040,7 +1040,7 @@ static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
- const AVRMEM *mem, const Segment_t *segp) {
+ const AVRMEM *mem, const Segment *segp) {
 
   char *tok, *p, *line;
   const char *errstr;
@@ -1079,7 +1079,7 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 
 
 static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, FILEFMT ffmt, Segorder_t where) {
+  const AVRMEM *mem, const Segment *segp, FILEFMT ffmt, Segorder where) {
 
   int rc;
 
@@ -1102,7 +1102,7 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, Segorder_t where) {
+  const AVRMEM *mem, const Segment *segp, Segorder where) {
 
   int rc;
 
@@ -1126,7 +1126,7 @@ static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
 
 #ifdef HAVE_LIBELF
 static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const AVRPART *p, const Segment_t *segp) {
+  const AVRMEM *mem, const AVRPART *p, const Segment *segp) {
 
   int rc;
 
@@ -1150,7 +1150,7 @@ static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
 #endif
 
 
-static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment_t *segp, FILEFMT fmt) {
+static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment *segp, FILEFMT fmt) {
   const char *prefix;
   int base;
 
@@ -1214,7 +1214,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
 }
 
 
-static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment_t *segp) {
+static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment *segp) {
   const char *geterr = NULL;
   char *line;
   int n = segp->addr, end = segp->addr + segp->len;
@@ -1250,7 +1250,7 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment
 
 
 static int fileio_num(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, FILEFMT fmt) {
+  const AVRMEM *mem, const Segment *segp, FILEFMT fmt) {
 
   switch (fio->op) {
     case FIO_WRITE:
@@ -1422,13 +1422,13 @@ int fileio(int op, const char *filename, FILEFMT format,
   if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
     size = mem->size;
 
-  const Segment_t seg = {0, size};
+  const Segment seg = {0, size};
   return fileio_segments(op, filename, format, p, mem, 1, &seg);
 }
 
 
 // Normalise segment address and length to be non-negative
-int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
+int segment_normalise(const AVRMEM *mem, Segment *segp) {
   int addr = segp->addr, len = segp->len, maxsize = mem->size;
   int digits = maxsize > 0x10000? 5: 4;
 
@@ -1458,7 +1458,7 @@ int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
 
 
 static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, const AVRMEM *mem, int n, Segment_t *seglist) {
+  const AVRPART *p, const AVRMEM *mem, int n, Segment *seglist) {
 
   int op, rc;
   FILE * f;
@@ -1540,7 +1540,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
       memset(mem->buf+addr, 0xff, len);
     memset(mem->tags+addr, 0, len);
-    Segorder_t where = 0;
+    Segorder where = 0;
 
     if(i == 0)
       where |= FIRST_SEG;
@@ -1609,9 +1609,9 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
 }
 
 int fileio_segments(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *list) {
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment *list) {
 
-  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
+  Segment *seglist = mmt_malloc(n*sizeof*seglist);
   memcpy(seglist, list, n*sizeof*seglist);
   int ret = fileio_segments_normalise(oprwv, filename, format, p, mem, n, seglist);
   mmt_free(seglist);

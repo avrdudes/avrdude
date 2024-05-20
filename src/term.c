@@ -365,7 +365,7 @@ static size_t maxstrlen(int argc, const char **argv) {
 typedef enum {
   WRITE_MODE_STANDARD = 0,
   WRITE_MODE_FILL     = 1,
-} Write_mode_t;
+} Write_mode;
 
 static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
@@ -418,7 +418,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   int i;
-  int write_mode;               // Operation mode, standard or fill
+  Write_mode write_mode;        // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   const char *memstr = argv[1]; // Memory name string
@@ -663,7 +663,7 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   mem = avr_dup_mem(omem);
   int n = argc > 3? (argc-3)/2: 1;
-  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
+  Segment *seglist = mmt_malloc(n*sizeof*seglist);
 
   int ret = -1;
 
@@ -938,7 +938,7 @@ static const int MAX_PAD = 10;  // Align value labels if their length difference
 typedef union {                 // Lock memory can be 1 or 4 bytes
   uint8_t b[4];
   uint32_t i;
-} fl_t;
+} Intbytes;
 
 typedef struct {                // Fuses and lock bits
   uint16_t fuses[16];           // pdicfg fuse has two bytes
@@ -946,22 +946,22 @@ typedef struct {                // Fuses and lock bits
   int fread[16], lread;
   int islock;
   uint32_t current;
-} Fusel_t;
+} Part_FL;
 
 typedef struct {
-  const Configitem_t *t;        // Configuration bitfield table
+  const Configitem *t;        // Configuration bitfield table
   const char *memstr;           // Memory name but could also be "lockbits"
   const char *alt;              // Set when memstr is an alias
   int match;                    // Matched by user request
   int ok, val, initval;         // Has value val been read OK? Initval == -1 if not known
-} Cfg_t;
+} Cnfg;
 
 typedef struct {                // Context parameters to be passed to functions
   int verb, allscript, flheaders, allv, vmax, printfactory;
-} Cfg_opts_t;
+} Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
-static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
+static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Part_FL *fl, const Cnfg *cci, const char **errpp) {
   const char *err = NULL;
   int islock;
 
@@ -996,7 +996,7 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
     goto back;
   }
 
-  fl_t m = {.i = 0};
+  Intbytes m = {.i = 0};
   for(int i=0; i<mem->size; i++)
     if(led_read_byte(pgm, p, mem, i, m.b+i) < 0) {
       err = cache_string(str_ccprintf("cannot read %s's %s memory", p->desc, mem->desc));
@@ -1022,7 +1022,7 @@ back:
   return err? -1: 0;
 }
 
-static int setmatches(const char *str, int n, Cfg_t *cc) {
+static int setmatches(const char *str, int n, Cnfg *cc) {
   int matches = 0;
 
   if(!*str)
@@ -1047,7 +1047,7 @@ static int setmatches(const char *str, int n, Cfg_t *cc) {
   return matches;
 }
 
-static int getvalidx(const char *str, int n, const Valueitem_t *vt) {
+static int getvalidx(const char *str, int n, const Configvalue *vt) {
   int hold, matches = 0;
 
   if(!*str)
@@ -1071,12 +1071,12 @@ typedef struct {                // Fuse/lock properties of the part
   const char *memstr;
   int mask;
   int value;
-} Flock_t;
+} FL_item;
 
 
 // Fill in cc record with the actual value of the relevant fuse
-static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
-  Fusel_t *fuselp, Flock_t *fc, int nf) {
+static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
+  Part_FL *fuselp, FL_item *fc, int nf) {
 
   // Load current value of this config item
   const char *errstr = NULL;
@@ -1098,7 +1098,7 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
 }
 
 // Comment printed next to symbolic value
-static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
+static const char *valuecomment(const Configitem *cti, const Configvalue *vp, int value, Cfg_opts o) {
   char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
@@ -1137,15 +1137,15 @@ static const char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, 
 }
 
 // How a single property is printed
-static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts_t o) {
+static void printoneproperty(Cnfg *cc, int ii, const Configvalue *vp, int llen, const char *vstr, Cfg_opts o) {
   int value = vp? vp->value: cc[ii].val;
   term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
 // Prints a list of all possible values (o.allv) or just the one proporty cc[ii]
-static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
-  const Valueitem_t *vt = cc[ii].t->vlist, *vp;
+static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
+  const Configvalue *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
   char buf[32];
@@ -1209,7 +1209,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
 }
 
 // Print the fuse/lock bits header (-f, o.flheaders)
-static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts_t o) {
+static void printfuse(Cnfg *cc, int ii, FL_item *fc, int nf, int printed, Cfg_opts o) {
   char buf[512];
   int fj;
   for(fj=0; fj<nf; fj++)
@@ -1238,7 +1238,7 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
 
 // Show or change configuration properties of the part
 static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  Cfg_opts_t o = { 0 };
+  Cfg_opts o = { 0 };
   int help = 0, invalid = 0, itemac=1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
@@ -1312,13 +1312,13 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   int idx = -1;                 // Index in uP_table[]
-  const Configitem_t *ct;       // Configuration bitfield table
+  const Configitem *ct;       // Configuration bitfield table
   int nc;                       // Number of config properties, some may not be available
-  Fusel_t fusel;                // Copy of fuses and lock bits
-  const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
+  Part_FL fusel;                // Copy of fuses and lock bits
+  const Configvalue *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
-  Cfg_t *cc;                    // Current configuration; cc[] and ct[] are parallel arrays
-  Flock_t *fc;                  // Current fuse and lock bits memories
+  Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
+  FL_item *fc;                  // Current fuse and lock bits memories
   int nf = 0;                   // Number of involved fuse and lock bits memories
 
   memset(&fusel, 0, sizeof fusel);
@@ -1434,7 +1434,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   // ci is fixed now: save what we have for sanity check
-  Cfg_t safecc = cc[ci];
+  Cnfg safecc = cc[ci];
 
   nv = ct[ci].nvalues;
   vt = ct[ci].vlist;
@@ -1510,7 +1510,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     goto finished;
   }
 
-  fl_t towrite;
+  Intbytes towrite;
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
   const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
@@ -1727,7 +1727,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
   int do_read = p->prog_modes & (PM_UPDI | PM_PDI);
   int nr;
-  const Register_file_t *rf = avr_locate_register_file(p, &nr);
+  const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(!rf || nr <= 0) {
     pmsg_error("(regfile) .atdf file not published for %s: unknown register file\n", p->desc);
@@ -1739,7 +1739,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     *rhs++ = 0;                 // Terminate lhs
 
   // Create mmt_malloc'd NULL-terminated list of register pointers
-  const Register_file_t *r, **rl, **rlist;
+  const Register_file *r, **rl, **rlist;
   rlist = avr_locate_registerlist(rf, nr, reg, str_is_pattern(reg)? str_matched_by: str_contains);
 
   if(rhs) {                     // Write to single register
