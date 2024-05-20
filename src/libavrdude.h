@@ -924,7 +924,7 @@ typedef enum {
 typedef struct {
   int now, chg, phy, end, set;  // LED states (current, change needed next period, physical, at end, ever set)
   unsigned long ms[LED_N];      // Time in ms after last physical change
-} leds_t;
+} Leds;
 
 /*
  * Any changes in PROGRAMMER, please also ensure changes are made in
@@ -959,7 +959,7 @@ typedef struct programmer {
   char type[PGM_TYPELEN];
   const char *port;
   unsigned int pinno[N_PINS];   // TODO to be removed if old pin data no longer needed
-  Exit_vcc exit_vcc;          // Should these be set in avrdude.conf?
+  Exit_vcc exit_vcc;            // Should these be set in avrdude.conf?
   Exit_reset exit_reset;
   Exit_datahigh exit_datahigh;
   int ppidata;
@@ -967,7 +967,7 @@ typedef struct programmer {
   int ispdelay;                 // ISP clock delay
   int page_size;                // Page size if the programmer supports paged write/load
   double bitclock;              // JTAG ICE clock period in microseconds
-  leds_t *leds;                 // State of LEDs as tracked by led_...()  functions in leds.c
+  Leds *leds;                   // State of LEDs as tracked by led_...()  functions in leds.c
 
   int  (*rdy_led)        (const PROGRAMMER *pgm, int value);
   int  (*err_led)        (const PROGRAMMER *pgm, int value);
