@@ -51,7 +51,7 @@
  * compiled from source together with the application.
  */
 
-typedef uint32_t pinmask_t;
+typedef uint32_t Pinmask;
 /*
  * Values returned by library functions.
  * Some library functions also return a count, i.e. a positive
@@ -627,7 +627,7 @@ enum {
 #endif
 
 /** Number of pins in each element of the bitfield */
-#define PIN_FIELD_ELEMENT_SIZE (sizeof(pinmask_t) * 8)
+#define PIN_FIELD_ELEMENT_SIZE (sizeof(Pinmask) * 8)
 /** Numer of elements to store the complete bitfield of all pins */
 #define PIN_FIELD_SIZE ((PIN_MAX+1 + PIN_FIELD_ELEMENT_SIZE-1)/PIN_FIELD_ELEMENT_SIZE)
 
@@ -673,8 +673,8 @@ enum {
  * Data structure to hold used pins by logical function (PIN_AVR_*, ...)
  */
 struct pindef {
-  pinmask_t mask[PIN_FIELD_SIZE]; ///< bitfield of used pins
-  pinmask_t inverse[PIN_FIELD_SIZE]; ///< bitfield of inverse/normal usage of used pins
+  Pinmask mask[PIN_FIELD_SIZE]; ///< bitfield of used pins
+  Pinmask inverse[PIN_FIELD_SIZE]; ///< bitfield of inverse/normal usage of used pins
 };
 
 /**
@@ -762,7 +762,7 @@ const char *pins_to_str(const struct pindef * const pindef);
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns a temporary string that lives in closed-circuit space
  */
-const char *pinmask_to_str(const pinmask_t * const pinmask);
+const char *pinmask_to_str(const Pinmask * const pinmask);
 
 /* formerly serial.h */
 

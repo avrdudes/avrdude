@@ -158,7 +158,7 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns a temporary string that lives in closed-circuit space
  */
-const char *pinmask_to_str(const pinmask_t * const pinmask) {
+const char *pinmask_to_str(const Pinmask * const pinmask) {
   char buf[6 * (PIN_MAX + 1)];
   char *p = buf;
   int n;
@@ -221,7 +221,7 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
   static const struct pindef no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
   int rv = 0; // return value
   int pinname; // loop counter through pinnames
-  pinmask_t already_used_all[PIN_FIELD_SIZE] = {0}; // collect pin definitions of all pin names for check of double use
+  Pinmask already_used_all[PIN_FIELD_SIZE] = {0}; // collect pin definitions of all pin names for check of double use
   // loop over all possible pinnames
   for(pinname = 0; pinname < N_PINS; pinname++) {
     bool used = false;
@@ -229,9 +229,9 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
     bool inverse = false;
     int index;
     bool mandatory_used = false;
-    pinmask_t invalid_used[PIN_FIELD_SIZE] = {0};
-    pinmask_t inverse_used[PIN_FIELD_SIZE] = {0};
-    pinmask_t already_used[PIN_FIELD_SIZE] = {0};
+    Pinmask invalid_used[PIN_FIELD_SIZE] = {0};
+    Pinmask inverse_used[PIN_FIELD_SIZE] = {0};
+    Pinmask already_used[PIN_FIELD_SIZE] = {0};
     const struct pindef * valid_pins = &no_valid_pins;
     bool is_mandatory = false;
     bool is_ok = true;
