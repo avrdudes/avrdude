@@ -1,3 +1,4 @@
+
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  *
@@ -31,6 +32,4 @@ void serprog_initpgm(PROGRAMMER *pgm);
 #ifdef __cplusplus
 }
 #endif
-
-#endif //serprog_h
-
+#endif // serprog_h
