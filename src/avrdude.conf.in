@@ -3452,13 +3452,6 @@ part # t11
     synchcycles            = 6;
     factory_fcpu           = 1200000;
 
-    memory "eeprom"
-        size               = 64;
-        delay              = 5;
-        blocksize          = 64;
-        readsize           = 256;
-    ;
-
     memory "flash"
         size               = 1024;
         delay              = 3;
