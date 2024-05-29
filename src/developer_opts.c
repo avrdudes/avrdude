@@ -1363,9 +1363,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 }
 
 
-// -c <wildcard>/[ASsrtiBUPTIJWHQ]
+// -c <wildcard>/[dASsrtiBUPTIJWHQ]
 void dev_output_pgm_defs(char *pgmidcp) {
-  bool astrc, strct, cmpst, raw, tsv, injct;
+  bool descs, astrc, strct, cmpst, raw, tsv, injct;
   char *flags;
   int nprinted;
   PROGRAMMER *nullpgm = pgm_new();
@@ -1376,7 +1376,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
   if(!flags && str_eq(pgmidcp, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
-  if(!*flags || !strchr("ASsrtiBUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dASsrtiBUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -1385,6 +1385,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
       "  jtag*pdi matches jtag2pdi, jtag3pdi, jtag3updi and jtag2updi\n"
       "  jtag?pdi matches jtag2pdi and jtag3pdi\n"
       "Flags (one or more of the characters below):\n"
+      "         d  description of core programmer features\n"
       "         A  show entries of avrdude.conf programmers with all values\n"
       "         S  show entries of avrdude.conf programmers with necessary values\n"
       "         s  show short entries of avrdude.conf programmers using parent\n"
@@ -1410,6 +1411,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
   astrc = !!strchr(flags, 'A');
   strct = !!strchr(flags, 'S');
   cmpst = !!strchr(flags, 's');
+  descs = !!strchr(flags, 'd');
   raw   = !!strchr(flags, 'r');
   tsv   = !!strchr(flags, 't');
   injct = !!strchr(flags, 'i');
@@ -1431,7 +1433,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
     if(!prog_modes_in_flags(pgm->prog_modes, flags))
       continue;
 
-    if(dev_nprinted > nprinted) {
+    if(!descs && dev_nprinted > nprinted) {
       dev_info("\n");
       nprinted = dev_nprinted;
     }
@@ -1442,6 +1444,19 @@ void dev_output_pgm_defs(char *pgmidcp) {
         strct? nullpgm:
         pgm->parent_id && *pgm->parent_id? locate_programmer(programmers, pgm->parent_id): nullpgm,
         injct);
+
+    if(descs)
+      for(LNODEID idn=lfirst(pgm->id); idn; idn=lnext(idn)) {
+        char *id = ldata(idn);
+        int len = 19-strlen(id);
+        dev_info("%s '%s' =>%*s ['%s', '%s'], # %s %d\n",
+          tsv? ".desc": "   ",
+          id, len > 0? len: 0, "",
+          dev_prog_modes(pgm->prog_modes),
+          pgm->desc,
+          pgm->config_file, pgm->lineno
+        );
+      }
 
     if(raw)
       dev_pgm_raw(pgm);
