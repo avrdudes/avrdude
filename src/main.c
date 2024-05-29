@@ -437,11 +437,11 @@ static void replace_backslashes(char *s)
   }
 }
 
-// Return 2 if str is * or starts with */, 1 if str contains / but is not a valid part, 0 otherwise
+// Return whether a part/programmer string is a developer option and if so which type
 static int dev_opt(const char *str) {
   return
     !str? 0:
-    str_eq(str, "*") || str_starts(str, "*/")? 2:
+    str_eq(str, "*") || str_starts(str, "*/s")? 2: // Print PART DEFINITIONS comment as well
     strchr(str, '/') && !locate_part(part_list, str);
 }
 
@@ -1127,8 +1127,8 @@ int main(int argc, char * argv [])
     pgmid = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
-  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[sSArt]
-  int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[dsSArcow*t]
+  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[ASsrtiBUPTIJWHQ]
+  int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[cdoASsrw*tiBUPTIJWHQ]
 
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
     dev_output_pgm_part(dev_opt_c, pgmid, dev_opt_p, partdesc);

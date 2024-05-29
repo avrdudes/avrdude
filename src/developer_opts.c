@@ -827,7 +827,29 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
 }
 
 
-// -p */[dASsrcow*ti]
+// Which programming modes should be considered, given the flags?
+static int prog_modes_in_flags(int prog_modes, const char *flags) {
+  int pm = 0,  quirky = 0;
+
+  for(const char *p = flags; *p; p++)
+    switch(*p) {
+    case 'B': pm |= PM_SPM; break;
+    case 'U': pm |= PM_UPDI; break;
+    case 'P': pm |= PM_PDI; break;
+    case 'T': pm |= PM_TPI; break;
+    case 'I': pm |= PM_ISP; break;
+    case 'J': pm |= PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG; break;
+    case 'W': pm |= PM_debugWIRE; break;
+    case 'H': pm |= PM_HVPP | PM_HVSP; break;
+    case 'Q': pm |= PM_ALL & ~(PM_SPM | PM_UPDI | PM_PDI | PM_TPI | PM_ISP | PM_JTAG | PM_JTAGmkI |
+                    PM_XMEGAJTAG | PM_debugWIRE | PM_HVPP | PM_HVSP);
+              quirky = 1;
+    }
+
+  return (prog_modes == 0 && quirky) || !pm || (prog_modes & pm);
+}
+
+// -p <wildcard>/[cdoASsrw*tiBUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
   bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
@@ -840,7 +862,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("cdoASsrw*ti", *flags)) {
+  if(!*flags || !strchr("cdoASsrw*tiBUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -849,20 +871,22 @@ void dev_output_part_defs(char *partdesc) {
       "  *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
       "      *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
       "Flags (one or more of the characters below):\n"
-      "       d  description of core part features\n"
-      "       A  show entries of avrdude.conf parts with all values\n"
-      "       S  show entries of avrdude.conf parts with necessary values\n"
-      "       s  show short entries of avrdude.conf parts using parent\n"
-      "       r  show entries of avrdude.conf parts as raw dump\n"
-      "       c  check and report errors in address bits of SPI commands\n"
-      "       o  opcodes for SPI programming parts and memories\n"
-      "       w  wd_... constants for ISP parts\n"
-      "       *  all of the above except s and S\n"
-      "       t  use tab separated values as much as possible\n"
-      "       i  inject assignments from source code table\n"
+      "         d  description of core part features\n"
+      "         A  show entries of avrdude.conf parts with all values\n"
+      "         S  show entries of avrdude.conf parts with necessary values\n"
+      "         s  show short entries of avrdude.conf parts using parent\n"
+      "         r  show entries of avrdude.conf parts as raw dump\n"
+      "         c  check and report errors in address bits of SPI commands\n"
+      "         o  opcodes for SPI programming parts and memories\n"
+      "         w  wd_... constants for ISP parts\n"
+      "         *  as first character: all of the above except s and S\n"
+      " BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
+      "         t  use tab separated values as much as possible\n"
+      "         i  inject assignments from source code table\n"
       "Examples:\n"
       "  $ avrdude -p ATmega328P/s\n"
       "  $ avrdude -p m328*/st | grep chip_erase_delay\n"
+      "  $ avrdude -p ATmega*/Ud | wc -l\n"
       "  avrdude -p*/r | sort\n"
       "Notes:\n"
       "  -p * is the same as -p */s\n"
@@ -887,7 +911,6 @@ void dev_output_part_defs(char *partdesc) {
   cmpst = !!strchr(flags, 's');
   tsv   = !!strchr(flags, 't');
   injct = !!strchr(flags, 'i');
-
 
   // Go through all memories and add them to the memory order list
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
@@ -917,6 +940,8 @@ void dev_output_part_defs(char *partdesc) {
       }
 
     if(!part_eq(p, partdesc, str_casematch))
+      continue;
+    if(!prog_modes_in_flags(p->prog_modes, flags))
       continue;
 
     if(astrc || strct || cmpst)
@@ -1338,7 +1363,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 }
 
 
-// -c */[ASsrti]
+// -c <wildcard>/[ASsrtiBUPTIJWHQ]
 void dev_output_pgm_defs(char *pgmidcp) {
   bool astrc, strct, cmpst, raw, tsv, injct;
   char *flags;
@@ -1351,7 +1376,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
   if(!flags && str_eq(pgmidcp, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
-  if(!*flags || !strchr("ASsrti", *flags)) {
+  if(!*flags || !strchr("ASsrtiBUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -1360,12 +1385,13 @@ void dev_output_pgm_defs(char *pgmidcp) {
       "  jtag*pdi matches jtag2pdi, jtag3pdi, jtag3updi and jtag2updi\n"
       "  jtag?pdi matches jtag2pdi and jtag3pdi\n"
       "Flags (one or more of the characters below):\n"
-      "       A  show entries of avrdude.conf programmers with all values\n"
-      "       S  show entries of avrdude.conf programmers with necessary values\n"
-      "       s  show short entries of avrdude.conf programmers using parent\n"
-      "       r  show entries of avrdude.conf programmers as raw dump\n"
-      "       t  use tab separated values as much as possible\n"
-      "       i  inject assignments from source code table\n"
+      "         A  show entries of avrdude.conf programmers with all values\n"
+      "         S  show entries of avrdude.conf programmers with necessary values\n"
+      "         s  show short entries of avrdude.conf programmers using parent\n"
+      "         r  show entries of avrdude.conf programmers as raw dump\n"
+      "         t  use tab separated values as much as possible\n"
+      "         i  inject assignments from source code table\n"
+      " BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
       "Examples:\n"
       "  $ avrdude -c usbasp/s\n"
       "  $ avrdude -c */st | grep baudrate\n"
@@ -1401,6 +1427,8 @@ void dev_output_pgm_defs(char *pgmidcp) {
       }
     }
     if(!matched)
+      continue;
+    if(!prog_modes_in_flags(pgm->prog_modes, flags))
       continue;
 
     if(dev_nprinted > nprinted) {
