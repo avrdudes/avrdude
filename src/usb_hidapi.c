@@ -97,14 +97,14 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
 
     walk = list;
     while (walk) {
-      pmsg_notice("usbhid_open(): found %ls, serno: %ls\n", walk->product_string, walk->serial_number);
-      size_t slen = wcslen(walk->serial_number);
-      if (slen >= serlen && wcscmp(walk->serial_number + slen - serlen, wserno) == 0)
-      {
-        /* Found matching serial number */
-        break;
+      if(walk->serial_number) {
+        pmsg_notice("usbhid_open(): found %ls, serno: %ls\n", walk->product_string, walk->serial_number);
+        size_t slen = wcslen(walk->serial_number);
+        // Found matching serial number?
+        if (slen >= serlen && wcscmp(walk->serial_number + slen - serlen, wserno) == 0)
+          break;
+        pmsg_debug("usbhid_open(): serial number does not match\n");
       }
-      pmsg_debug("usbhid_open(): serial number does not match\n");
       walk = walk->next;
     }
     if (walk == NULL) {
