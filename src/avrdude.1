@@ -1988,6 +1988,15 @@ the CS line being managed outside the application.
 .It Ar help
 Show help menu and exit.
 .El
+.It Ar serprog
+.Bl -tag -offset indent -width indent
+.It Ar cs
+Sets the chip select (CS) to use on supported programmers.
+Programmers supporting the 0x16 serprog command can have more than the default CS (0).
+This option allows to choose these additional CSes (1, 2, ...) for programming the AVR.
+.It Ar help
+Show help menu and exit.
+.El
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX

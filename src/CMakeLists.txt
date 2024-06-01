@@ -231,6 +231,8 @@ add_library(libavrdude
     serialadapter.c
     serialupdi.c
     serialupdi.h
+    serprog.c
+    serprog.h
     solaris_ecpp.h
     stk500.c
     stk500.h

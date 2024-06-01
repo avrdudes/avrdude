@@ -1480,6 +1480,24 @@ programmer # serialupdi
 ;
 
 #------------------------------------------------------------
+# serprog
+#------------------------------------------------------------
+
+# The Serprog programmer implementation allows programming
+# with programmers using the serprog protocol from flashrom.
+# See https://flashrom.org/supported_hw/supported_prog/serprog/overview.html
+# and https://flashrom.org/supported_hw/supported_prog/serprog/serprog-protocol.html
+# for details.
+
+programmer # serprog
+    id                     = "serprog";
+    desc                   = "Program via the Serprog protocol from Flashrom";
+    type                   = "serprog";
+    prog_modes             = PM_ISP;
+    connection_type        = serial;
+;
+
+#------------------------------------------------------------
 # avrisp
 #------------------------------------------------------------
 

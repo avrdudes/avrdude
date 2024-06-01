@@ -1645,6 +1645,19 @@ the CS line being managed outside the application.
 Show help menu and exit.
 @end table
 
+@cindex Option @code{-x} serprog
+@item serprog
+
+The serprog programmer type accepts the following extended parameter:
+@table @code
+@item @samp{cs}
+Sets the chip select (CS) to use on supported programmers.
+Programmers supporting the 0x16 serprog command can have more than the default CS (0).
+This option allows to choose these additional CSes (1, 2, ...) for programming the AVR.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
 @end table
 
 @page
