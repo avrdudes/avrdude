@@ -16,6 +16,8 @@ Changes since version 7.3:
 
   * New programmers supported:
 
+    - serprog
+
   * Issues fixed:
 
     - Avrintel.h missing from installation #1683
@@ -36,6 +38,7 @@ Changes since version 7.3:
     - Add support for more AVR-DU parts #1742
     - Misleading error message: cannot find programmer id #1805
     - Custom programmer broken in v7.3 #1807
+    - ATtiny11 does not have EEPROM #1812
 
   * Pull requests:
 
@@ -83,6 +86,10 @@ Changes since version 7.3:
     - Prepare for next urboot version #1808
     - Rename AVRDUDE symbol names ending in _t #1809
     - Warn when programmer failes to define prog_modes #1810
+    - Add serprog programmer #1801
+    - Remove EEPROM from ATtiny11 avrdude.conf entry #1814
+    - Guard serial_number access in usbhid_open() to avoid segfault #1815
+    - Allow selection of program modes for developer options #1816
 
   * Internals:
 
