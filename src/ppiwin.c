@@ -1,8 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003, 2004, 2006
- *    Eric B. Weddington <eweddington@cso.atmel.com>
- * Copyright 2008, Joerg Wunsch
+ * Copyright (C) 2003, 2004, 2006 Eric B. Weddington <eweddington@cso.atmel.com>
+ * Copyright (C) 2008 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

@@ -16,7 +16,7 @@ Contributors:
 	Eric Weddington <ericw@evcohs.com>
 	Jan-Hinnerk Reichert <hinni@despammed.com>
 	Alex Shepherd <maillists@ajsystems.co.nz>
-	Martin Thomas <mthomas@rhrk.uni-kl.de>
+	Martin J. Thomas <mthomas@rhrk.uni-kl.de>
 	Theodore A. Roth <troth@openavr.org>
 	Juliane Holzt <avrdude@juliane.holzt.de>
 	Colin O'Flynn <coflynn@newae.com>
@@ -47,4 +47,3 @@ Contributors to code no longer present:
 	Chris Liechti for loaddrv modifications
 
 For minor contributions, please see the ChangeLog files / Git log.
-

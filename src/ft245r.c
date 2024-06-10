@@ -1,6 +1,6 @@
 /*
  * AVRDUDE - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004 Theodore A. Roth <troth@openavr.org>
  * some code:
  * Copyright (C) 2011-2012 Roger E. Wolff <R.E.Wolff@BitWizard.nl>
  *
