@@ -258,7 +258,6 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
   int offset, len;
   char * e;
   unsigned char cksum;
-  int rc;
 
   len    = strlen(rec);
   offset = 1;
@@ -320,9 +319,10 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
   if (e == buf || *e != 0)
     return -1;
 
-  rc = -cksum & 0x000000ff;
+  pmsg_debug("read ihex record type 0x%02x at 0x%04x with %2d bytes and chksum 0x%02x (0x%02x)\n",
+    ihex->rectyp, ihex->loadofs, ihex->reclen, ihex->cksum, -cksum & 0xff);
 
-  return rc;
+  return -cksum & 0xff;
 }
 
 
