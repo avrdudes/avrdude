@@ -13,32 +13,48 @@ AVRDUDE is currently maintained by:
 Contributors:
 
 	Joerg Wunsch <j@uriah.heep.sax.de>
-	Eric Weddington <ericw@evcohs.com>
-	Jan-Hinnerk Reichert <hinni@despammed.com>
-	Alex Shepherd <maillists@ajsystems.co.nz>
+	Eric B. Weddington <eweddington@cso.atmel.com>
 	Martin J. Thomas <mthomas@rhrk.uni-kl.de>
 	Theodore A. Roth <troth@openavr.org>
+	Erik Walthinsen
+	Jan-Hinnerk Reichert <hinni@despammed.com>
+	Alex Shepherd <maillists@ajsystems.co.nz>
 	Juliane Holzt <avrdude@juliane.holzt.de>
 	Colin O'Flynn <coflynn@newae.com>
 	Thomas Fischl <tfischl@gmx.de>
 	David Hoerl <dhoerl@mac.com>
+	Christian Starkjohann
+	David Moore
+	David Brownell
+	Dick Streefland
+	Limor Fried
+	Klaus Leidinger <klaus@mikrocontroller-projekte.de>
+	Lars Immisch
 	Michal Ludvig <mludvig@logix.net.nz>
+	Roger E. Wolff <R.E.Wolff@BitWizard.nl>
 	Darell Tan <darell.tan@gmail.com>
+	Brett Hagman <bhagman@roguerobotics.com>
 	Wolfgang Moser
 	Ville Voipio
 	Hannes Weisbach
 	Doug Springer
-	Brett Hagman <bhagman@roguerobotics.com>
 	Rene Liebscher <r.liebscher@gmx.de>
 	Jim Paris <jim@jtan.com>
 	Jan Egil Ruud <janegil.ruud@microchip.com>
 	David Mosberger <davidm@egauge.net>
+	Kirill Levchenko
+	Kevin Cuzner <kevin@kevincuzner.com>
 	David Sainty
+	Alexey Sadkov
 	Marius Greuel <greuelm@mgtek.com>
+	Ralf Ramsauer <ralf@vmexit.de>
 	Dawid Buchwald <dawid.buchwald@hotmail.com>
 	Hans Eirik Bull
 	Stefan Rueger
 	Xiaofan Chen
+	Jeff Kent
+	Sebastian Kuzminsky <seb@highlab.com>
+	Sydney Louisa Wilke <git@funkeleinhorn.com>
 
 Contributors to code no longer present:
 
