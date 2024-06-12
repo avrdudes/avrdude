@@ -380,7 +380,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
     unsigned below = 0;
     switch (ihex.rectyp) {
       case 0: /* data record */
-        if (fileoffset != 0 && ihex.loadofs + baseaddr < fileoffset) {
+        if(ihex.loadofs + baseaddr < fileoffset) {
           if(!ovsigck) {
             pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
               ihex.loadofs + baseaddr, fileoffset, lineno, infile);
