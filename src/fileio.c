@@ -415,7 +415,6 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
             unsigned low = beg - nextaddr;
             if(low < ihex.reclen) { // Clip record
               ihex.reclen -= low;
-              ihex.loadofs += low;
               nextaddr += low;
               below += low;
             } else {            // Nothing to write
@@ -740,7 +739,6 @@ static int srec2b(const char *infile, FILE * inf,
         below = fileoffset - nextaddr;
         if(below < srec.reclen) { // Clip record
           nextaddr += below;
-          srec.loadofs += below;
           srec.reclen -= below;
         } else {                // Ignore record
           srec.reclen = 0;
@@ -763,7 +761,6 @@ static int srec2b(const char *infile, FILE * inf,
           unsigned low = beg - nextaddr;
           if(low < srec.reclen) { // Clip record
             srec.reclen -= low;
-            srec.loadofs += low;
             nextaddr += low;
             below += low;
           } else {              // Nothing to write
