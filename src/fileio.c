@@ -377,28 +377,62 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
       imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
     }
 
+    unsigned below = 0;
     switch (ihex.rectyp) {
       case 0: /* data record */
         if (fileoffset != 0 && ihex.loadofs + baseaddr < fileoffset) {
-          pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+          if(!ovsigck) {
+            pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+              ihex.loadofs + baseaddr, fileoffset, lineno, infile);
+            imsg_error("use -F to skip this check\n");
+            mmt_free(buffer);
+            return -1;
+          }
+          pmsg_warning("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
             ihex.loadofs + baseaddr, fileoffset, lineno, infile);
-          mmt_free(buffer);
-          return -1;
+          below = fileoffset - baseaddr - ihex.loadofs;
+          if(below < ihex.reclen) { // Clip record
+            ihex.reclen -= below;
+            ihex.loadofs += below;
+          } else {              // Nothing to write
+            ihex.reclen = 0;
+          }
+          imsg_warning("%s record\n", ihex.reclen? "clipping": "ignoring");
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
         unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
-        if(nextaddr < beg || nextaddr + ihex.reclen-1 > end) {
-          pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
+        if(ihex.reclen && (nextaddr < beg || nextaddr + ihex.reclen-1 > end)) {
+          if(!ovsigck) {
+            pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
+              digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
+            imsg_error("at line %d of %s; use -F to skip this check\n", lineno, infile);
+            mmt_free(buffer);
+            return -1;
+          }
+          pmsg_warning("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
             digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
-          imsg_error("at line %d of %s\n", lineno, infile);
-          mmt_free(buffer);
-          return -1;
+          if(nextaddr < beg) {
+            unsigned low = beg - nextaddr;
+            if(low < ihex.reclen) { // Clip record
+              ihex.reclen -= low;
+              ihex.loadofs += low;
+              nextaddr += low;
+              below += low;
+            } else {            // Nothing to write
+              ihex.reclen = 0;
+            }
+          }
+          if(ihex.reclen && nextaddr + ihex.reclen-1 > end) {
+            int above =  nextaddr + ihex.reclen-1 - end;
+            ihex.reclen = above < ihex.reclen? ihex.reclen - above: 0; // Clip or zap
+          }
+          imsg_warning("at line %d of %s; %s record\n", lineno, infile, ihex.reclen? "clipping": "ignoring");
         }
         for(int i=0; i<ihex.reclen; i++) {
-          mem->buf[nextaddr+i] = ihex.data[i];
+          mem->buf[nextaddr+i] = ihex.data[below + i];
           mem->tags[nextaddr+i] = TAG_ALLOCATED;
         }
-        if (nextaddr+ihex.reclen > maxaddr)
+        if(ihex.reclen && nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
         break;
 
