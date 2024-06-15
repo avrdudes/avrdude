@@ -1203,8 +1203,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
     if (do_write) {
       if(avr_write_byte(pgm, p, m, i, data)) {
-        msg_error(" ***failed;\n");
+        msg_error(" *** failed\n");
         led_set(pgm, LED_ERR);
+        goto error;
       }
     }
 
@@ -1212,15 +1213,20 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       flush_page = 0;
 
       if(avr_write_page(pgm, p, m, i)) {
-        msg_error(" *** page %d (addresses 0x%04x - 0x%04x) failed to write\n\n",
+        msg_error(" *** failed to write page %d [0x%04x, 0x%04x]\n",
           i / m->page_size, i - m->page_size + 1, i);
         led_set(pgm, LED_ERR);
+        goto error;
       }
     }
   }
 
   led_clr(pgm, LED_PGM);
   return i;
+
+error:
+  led_clr(pgm, LED_PGM);
+  return -1;
 }
 
 
