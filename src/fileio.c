@@ -150,6 +150,7 @@ FILEFMT fileio_format(char c) {
   }
 }
 
+// Tells lower level .hex/.srec routines whether to write intros/outros
 typedef enum {
   FIRST_SEG = 1,
   LAST_SEG  = 2,
@@ -1610,10 +1611,8 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
       memset(mem->buf+addr, 0xff, len);
     memset(mem->tags+addr, 0, len);
-    Segorder where = 0;
 
-    if(i == 0)
-      where |= FIRST_SEG;
+    Segorder where = i == 0? FIRST_SEG: 0;
     if(i+1 == n)
       where |= LAST_SEG;
 
