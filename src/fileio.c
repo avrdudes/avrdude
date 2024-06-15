@@ -860,6 +860,10 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
       *lowbound = 0x850000;
       *highbound = 0x85ffff;
       *fileoff = 0;
+    } else if (mem_is_bootrow(mem)) {
+      *lowbound = 0x860000;
+      *highbound = 0x86ffff;
+      *fileoff = 0;
     } else {
       rv = -1;
     }
