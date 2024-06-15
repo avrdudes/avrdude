@@ -582,7 +582,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     pmsg_warning("(write) clipping data to fit into %s %s memory\n", p->desc, mem->desc);
   }
 
-  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02x",
+  pmsg_notice2("(write) writing %d byte%s starting from address 0x%04x",
     len + bytes_grown, str_plural(len + bytes_grown), addr);
   if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
