@@ -1634,6 +1634,11 @@ int avr_mem_cmp(void *mem1, void *mem2) {
     return diff;
   if(!m1)                       // Sanity, if called with NULL pointers
     return 0;
+  if(mem_is_in_fuses(m1)) {     // Sort by fuse offset if fuses or a fuse
+    diff = mem_fuse_offset(m1) - mem_fuse_offset(m2);
+    if(diff)
+      return diff;
+  }
   diff = m1->offset - m2->offset; // Sort by offset within each group
   if(diff)
     return diff;
