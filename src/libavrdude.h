@@ -1543,8 +1543,8 @@ char *avr_cc_buffer(size_t n);
 
 typedef struct {
   // Closed-circuit space for returning strings in a persistent buffer
-#define AVR_SAFETY_MARGIN 128
-  char *avr_s, avr_space[8192+AVR_SAFETY_MARGIN];
+#define AVR_SAFETY_MARGIN 1024
+  char *avr_s, avr_space[32768+AVR_SAFETY_MARGIN];
 
   // Static variables from avr.c
   int avr_disableffopt;         // Disables trailing 0xff flash optimisation

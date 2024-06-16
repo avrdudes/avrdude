@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2005 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2007 Joerg Wunsch
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
+#include <ctype.h>
 #include <time.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -276,14 +278,30 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   }
 
   /*
-   * Reject an update if memory name is not known amongst any part (suspect a typo)
-   * but accept when the specific part does not have it (allow unifying i/faces)
+   * Allow memory name to be a list. Reject an update if memory name is not
+   * known amongst any part (suspect a typo) but accept when the specific part
+   * does not have it (allow unifying i/faces); also accept pseudo memory all
    */
-  if(!avr_mem_might_be_known(upd->memstr)) {
-    pmsg_error("unknown memory %s\n", upd->memstr);
-    ret = LIBAVRDUDE_GENERAL_FAILURE;
-  } else if(p && !avr_locate_mem(p, upd->memstr))
-    ret = LIBAVRDUDE_SOFTFAIL;
+  char *umstr = upd->memstr, *dstr = mmt_strdup(umstr), *s = dstr, *e;
+  for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
+    if(e) {                     // Terminate and remove trailing space
+      *e = 0;
+      for(char *z = e-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
+        *z = 0;
+    }
+    while(*s && isascii(*s & 0xff) && isspace(*s & 0xff)) // Skip spaces
+      s++;
+    if(*s && !avr_mem_might_be_known(s) && !str_eq(s, "all")) {
+      pmsg_error("unknown memory %s in -U %s:...\n", s, umstr);
+      ret = LIBAVRDUDE_GENERAL_FAILURE;
+      break;
+    } else if(*s && !avr_locate_mem(p, s))
+      ret = LIBAVRDUDE_SOFTFAIL;
+    if(!e)
+      break;
+    s = e+1;
+  }
+  mmt_free(dstr);
 
   known = 0;
   // Necessary to check whether the file is readable?
@@ -358,14 +376,24 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   return ret;
 }
 
+// Whether a memory should be backup-ed: exclude sub-memories
+static int backup_mem(const AVRPART *p, const AVRMEM *mem) {
+  return mem_is_in_flash(mem)? mem_is_flash(mem):
+    mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
+    mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
+    mem_is_io(mem)? 0:
+    !mem_is_sram(mem);
+}
+
 
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updateflags flags) {
+  int retval = LIBAVRDUDE_GENERAL_FAILURE;
   AVRPART *v;
-  AVRMEM *mem;
-  int size;
-  int rc;
+  AVRMEM *mem, **umemlist = NULL, *m;
+  Segment *seglist = NULL;
   Filestats fs, fs_patched;
   char *tofree;
+  const char *umstr = upd->memstr;
 
   lmsg_info("\n");              // Ensure an empty line for visual separation of operations
   pmsg_info("processing %s\n", tofree = update_str(upd));
@@ -379,57 +407,136 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     return terminal_mode(pgm, p);
   }
 
-  mem = avr_locate_mem(p, upd->memstr);
+  int size, len, maxmemstrlen = 0, ns = 0;
+  // Compute list of multiple memories if umstr indicates so
+  if(str_eq(umstr, "all") || strchr(umstr, ',')) {
+    ns = (lsize(p->mem) + 1) * ((int) str_numc(umstr, ',') + 1); // Upper limit of memories
+    umemlist = mmt_malloc(ns*sizeof*umemlist);
+    ns = 0;                     // Now count how many there really are mentioned
+
+    char *dstr = mmt_strdup(umstr), *s = dstr, *e;
+    for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
+      if(e) {                   // Terminate and remove trailing space
+        *e = 0;
+        for(char *z = e-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
+          *z = 0;
+      }
+      while(*s && isascii(*s & 0xff) && isspace(*s & 0xff)) // Skip spaces
+        s++;
+      if(str_eq(s, "all")) {
+        for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
+          if(backup_mem(p, (m = ldata(lm))))
+            umemlist[ns++] = m;
+      } else if(!*s) {          // Ignore empty list elements
+      } else {
+        if(!(m = avr_locate_mem(p, s)))
+          pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, umstr);
+        else
+          umemlist[ns++] = m;
+      }
+      if(!e)
+        break;
+      s = e+1;
+    }
+    mmt_free(dstr);
+
+    if(!ns) {
+      pmsg_warning("skipping -U %s:... as no memory in part %s available\n", umstr, p->desc);
+      mmt_free(umemlist);
+      return LIBAVRDUDE_SOFTFAIL;
+    }
+    // Maximum length of memory name for to-be-read memories
+    for(int i=0; i<ns; i++)
+      if((len = strlen(avr_mem_name(p, umemlist[i]))) > maxmemstrlen)
+        maxmemstrlen = len;
+    seglist = mmt_malloc(ns*sizeof*seglist);
+  }
+
+  mem = umemlist? avr_new_memory("multi", ANY_MEM_SIZE): avr_locate_mem(p, umstr);
   if (mem == NULL) {
-    pmsg_warning("skipping -U %s:... as memory not defined for part %s\n", upd->memstr, p->desc);
+    pmsg_warning("skipping -U %s:... as memory not defined for part %s\n", umstr, p->desc);
     return LIBAVRDUDE_SOFTFAIL;
   }
 
+  int rc = 0;
   const char *mem_desc = avr_mem_name(p, mem);
   switch (upd->op) {
   case DEVICE_READ:
     // Read out the specified device memory and write it to a file
     if (upd->format == FMT_IMM) {
       pmsg_error("invalid file format 'immediate' for output\n");
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      goto error;
     }
-    pmsg_info("reading %s memory ...\n", mem_desc);
+    if(umemlist) {
+      pmsg_info("reading %s memor%s ...\n",
+        ns==1? avr_mem_name(p, umemlist[0]): "multiple", ns==1? "y": "ies");
+      int nn = 0;
+      for(int ii = 0; ii < ns; ii++) {
+        m = umemlist[ii];
+        const char *m_name = avr_mem_name(p, m);
+        const char *caption = str_ccprintf("Reading %-*s", maxmemstrlen, m_name);
+        report_progress(0, 1, caption);
+        int ret = avr_read_mem(pgm, p, m, NULL);
+        report_progress(1, 1, NULL);
+        if(ret < 0) {
+          pmsg_warning("unable to read %s (ret = %d), skipping...\n", m_name, ret);
+          continue;
+        }
+        unsigned off = fileio_mem_offset(p, m);
+        if(off == -1U) {
+          pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
+          continue;
+        }
+        if(ret > 0) {
+          // Copy individual memory into multi memory
+          memcpy(mem->buf+off, m->buf, ret);
+          seglist[nn].addr = off;
+          seglist[nn].len = ret;
+          nn++;
+        }
+      }
 
-    if(mem->size > 32 || verbose > 1)
-      report_progress(0, 1, "Reading");
-    
-    rc = avr_read(pgm, p, upd->memstr, 0);
-    report_progress(1, 1, NULL);
-    if (rc < 0) {
-      pmsg_error("unable to read all of %s, rc=%d\n", mem_desc, rc);
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      if(nn)
+        rc = fileio_segments(FIO_WRITE, upd->filename, upd->format, p, mem, nn, seglist);
+      else
+        pmsg_notice("empty memory, resulting file has no contents\n");
+    } else {                    // Regular file
+      pmsg_info("reading %s memory ...\n", mem_desc);
+      if(mem->size > 32 || verbose > 1)
+        report_progress(0, 1, "Reading");
+
+      rc = avr_read(pgm, p, umstr, 0);
+      report_progress(1, 1, NULL);
+      if (rc < 0) {
+        pmsg_error("unable to read all of %s, rc=%d\n", mem_desc, rc);
+        goto error;
+      }
+      if (rc == 0)
+        pmsg_notice("empty memory, resulting file has no contents\n");
+      pmsg_info("writing output file %s\n", str_outname(upd->filename));
+      rc = fileio_mem(FIO_WRITE, upd->filename, upd->format, p, mem, rc);
     }
-    size = rc;
 
-    if (rc == 0)
-      pmsg_notice("flash is empty, resulting file has no contents\n");
-    pmsg_info("writing output file %s\n", str_outname(upd->filename));
-
-    rc = fileio(FIO_WRITE, upd->filename, upd->format, p, upd->memstr, size);
     if (rc < 0) {
       pmsg_error("write to file %s failed\n", str_outname(upd->filename));
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      goto error;
     }
+
     break;
 
   case DEVICE_WRITE:
     // Write the selected device memory using data from a file
 
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, upd->memstr, -1);
+    rc = fileio(FIO_READ, upd->filename, upd->format, p, umstr, -1);
     if (rc < 0) {
       pmsg_error("read from file %s failed\n", str_inname(upd->filename));
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      goto error;
     }
 
     pmsg_info("reading input file %s for %s\n", str_inname(upd->filename), mem_desc);
 
-    if(memstats(p, upd->memstr, rc, &fs) < 0)
-      return LIBAVRDUDE_GENERAL_FAILURE;
+    if(memstats(p, umstr, rc, &fs) < 0)
+      goto error;
 
     imsg_info("with %d byte%s in %d section%s within %s\n",
       fs.nbytes, str_plural(fs.nbytes),
@@ -447,15 +554,15 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     // Patch flash input, eg, for vector bootloaders
     if(pgm->flash_readhook) {
-      AVRMEM *mem = avr_locate_mem(p, upd->memstr);
+      AVRMEM *mem = avr_locate_mem(p, umstr);
       if(mem && mem_is_flash(mem)) {
         rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
         if (rc < 0) {
           pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));
-          return LIBAVRDUDE_GENERAL_FAILURE;
+          goto error;
         }
-        if(memstats(p, upd->memstr, rc, &fs_patched) < 0)
-          return LIBAVRDUDE_GENERAL_FAILURE;
+        if(memstats(p, umstr, rc, &fs_patched) < 0)
+          goto error;
         if(memcmp(&fs_patched, &fs, sizeof fs)) {
           pmsg_info("preparing flash input for device%s\n",
             pgm->prog_modes & PM_SPM? " bootloader": "");
@@ -484,16 +591,16 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     if (!(flags & UF_NOWRITE)) {
       if(mem->size > 32 || verbose > 1)
         report_progress(0, 1, "Writing");
-      rc = avr_write(pgm, p, upd->memstr, size, (flags & UF_AUTO_ERASE) != 0);
+      rc = avr_write(pgm, p, umstr, size, (flags & UF_AUTO_ERASE) != 0);
       report_progress(1, 1, NULL);
     } else {
       // Test mode: write to stdout in intel hex rather than to the chip
-      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, upd->memstr, size);
+      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, umstr, size);
     }
 
     if (rc < 0) {
       pmsg_error("unable to write %s, rc=%d\n", mem_desc, rc);
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      goto error;
     }
 
     pmsg_info("%d byte%s of %s written\n", fs.nbytes, str_plural(fs.nbytes), mem_desc);
@@ -514,20 +621,20 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     if (userverify) {
       pmsg_notice("load %s data from input file %s\n", mem_desc, str_inname(upd->filename));
 
-      rc = fileio(FIO_READ_FOR_VERIFY, upd->filename, upd->format, p, upd->memstr, -1);
+      rc = fileio(FIO_READ_FOR_VERIFY, upd->filename, upd->format, p, umstr, -1);
 
       if (rc < 0) {
         pmsg_error("read from file %s failed\n", str_inname(upd->filename));
         led_set(pgm, LED_ERR);
         led_clr(pgm, LED_VFY);
-        return LIBAVRDUDE_GENERAL_FAILURE;
+        goto error;
       }
       size = rc;
 
-      if(memstats(p, upd->memstr, size, &fs) < 0) {
+      if(memstats(p, umstr, size, &fs) < 0) {
         led_set(pgm, LED_ERR);
         led_clr(pgm, LED_VFY);
-        return LIBAVRDUDE_GENERAL_FAILURE;
+        goto error;
       }
     } else {
       // Correct size of last read to include potentially cut off, trailing 0xff (flash)
@@ -545,26 +652,26 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     if(mem->size > 32 || verbose > 1)
       report_progress (0,1,"Reading");
-    rc = avr_read(pgm, p, upd->memstr, v);
+    rc = avr_read(pgm, p, umstr, v);
     report_progress (1,1,NULL);
     if (rc < 0) {
       pmsg_error("unable to read all of %s, rc = %d\n", mem_desc, rc);
       led_set(pgm, LED_ERR);
       led_clr(pgm, LED_VFY);
       avr_free_part(v);
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      goto error;
     }
 
     if (quell_progress < 2)
       pmsg_notice2("verifying ...\n");
 
-    rc = avr_verify(pgm, p, v, upd->memstr, size);
+    rc = avr_verify(pgm, p, v, umstr, size);
     if (rc < 0) {
       pmsg_error("verification mismatch\n");
       led_set(pgm, LED_ERR);
       led_clr(pgm, LED_VFY);
       avr_free_part(v);
-      return LIBAVRDUDE_GENERAL_FAILURE;
+      goto error;
     }
 
     int verified = fs.nbytes+fs.ntrailing;
@@ -576,8 +683,16 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   default:
     pmsg_error("invalid update operation (%d) requested\n", upd->op);
-    return LIBAVRDUDE_GENERAL_FAILURE;
+    goto error;
   }
 
-  return LIBAVRDUDE_SUCCESS;
+  retval = LIBAVRDUDE_SUCCESS;
+
+error:
+  if(umemlist) {
+    avr_free_mem(mem);
+    mmt_free(umemlist);
+    mmt_free(seglist);
+  }
+  return retval;
 }
