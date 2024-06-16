@@ -377,7 +377,8 @@ typedef struct {
 #define MEM_BOOT        (1<< 8) // boot
 #define MEM_FUSES       (1<< 9) // fuses
 #define MEM_LOCK        (1<<10) // lock lockbits
-#define MEM_SIGROW      (1<<11) // prodsig sigrow
+#define MEM_SIGROW      (1<<11) // sigrow prodsig
+#define MEM_PRODSIG  MEM_SIGROW
 #define MEM_SIGNATURE   (1<<12) // signature
 #define MEM_CALIBRATION (1<<13) // calibration
 #define MEM_TEMPSENSE   (1<<14) // tempsense
@@ -388,6 +389,7 @@ typedef struct {
 #define MEM_OSC20ERR    (1<<19) // osc20err
 #define MEM_BOOTROW     (1<<20) // bootrow
 #define MEM_USERROW     (1<<21) // userrow usersig
+#define MEM_USERSIG MEM_USERROW
 #define MEM_IO          (1<<22) // io
 #define MEM_SRAM        (1<<23) // sram
 #define MEM_SIB         (1<<24) // sib
@@ -408,7 +410,7 @@ typedef struct {
 #define avr_locate_fuses(p) avr_locate_mem_by_type((p), MEM_FUSES)
 #define avr_locate_lock(p) avr_locate_mem_by_type((p), MEM_LOCK)
 #define avr_locate_lockbits(p) avr_locate_mem_by_type((p), MEM_LOCK)
-#define avr_locate_prodsig(p) avr_locate_mem_by_type((p), MEM_SIGROW)
+#define avr_locate_prodsig(p) avr_locate_mem_by_type((p), MEM_PRODSIG)
 #define avr_locate_sigrow(p) avr_locate_mem_by_type((p), MEM_SIGROW)
 #define avr_locate_signature(p) avr_locate_mem_by_type((p), MEM_SIGNATURE)
 #define avr_locate_calibration(p) avr_locate_mem_by_type((p), MEM_CALIBRATION)
@@ -419,7 +421,7 @@ typedef struct {
 #define avr_locate_osc16err(p) avr_locate_mem_by_type((p), MEM_OSC16ERR)
 #define avr_locate_osc20err(p) avr_locate_mem_by_type((p), MEM_OSC20ERR)
 #define avr_locate_bootrow(p) avr_locate_mem_by_type((p), MEM_BOOTROW)
-#define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERROW)
+#define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERSIG)
 #define avr_locate_userrow(p) avr_locate_mem_by_type((p), MEM_USERROW)
 #define avr_locate_io(p) avr_locate_mem_by_type((p), MEM_IO)
 #define avr_locate_sram(p) avr_locate_mem_by_type((p), MEM_SRAM)
@@ -458,6 +460,7 @@ typedef struct {
 #define mem_is_boot(mem) (!!((mem)->type & MEM_BOOT))
 #define mem_is_fuses(mem) (!!((mem)->type & MEM_FUSES))
 #define mem_is_lock(mem) (!!((mem)->type & MEM_LOCK))
+#define mem_is_prodsig(mem) (!!((mem)->type & MEM_PRODSIG))
 #define mem_is_sigrow(mem) (!!((mem)->type & MEM_SIGROW))
 #define mem_is_signature(mem) (!!((mem)->type & MEM_SIGNATURE))
 #define mem_is_calibration(mem) (!!((mem)->type & MEM_CALIBRATION))
@@ -469,6 +472,7 @@ typedef struct {
 #define mem_is_osc20err(mem) (!!((mem)->type & MEM_OSC20ERR))
 #define mem_is_bootrow(mem) (!!((mem)->type & MEM_BOOTROW))
 #define mem_is_userrow(mem) (!!((mem)->type & MEM_USERROW))
+#define mem_is_usersig(mem) (!!((mem)->type & MEM_USERSIG))
 #define mem_is_io(mem) (!!((mem)->type & MEM_IO))
 #define mem_is_sram(mem) (!!((mem)->type & MEM_SRAM))
 #define mem_is_sib(mem) (!!((mem)->type & MEM_SIB))
