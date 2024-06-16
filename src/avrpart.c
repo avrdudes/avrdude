@@ -326,6 +326,23 @@ AVRMEM_ALIAS *avr_new_memalias(void) {
   return m;
 }
 
+// Return longer name of memory including alias if any, eg, fuse7/codesize
+const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem) {
+  char ret[1024];
+  const int n = sizeof ret - 1;
+
+  strncpy(ret, mem->desc, n/2);
+  ret[n/2] = 0;
+
+  AVRMEM_ALIAS *alias = avr_find_memalias(p, mem);
+  if(alias && alias->desc && *alias->desc) {
+    int l = strlen(ret);
+    ret[l] = '/';
+    strncpy(ret+l+1, alias->desc, n-l-1);
+    ret[n] = 0;
+  }
+  return cache_string(ret);
+}
 
 /*
  * Allocate and initialize memory buffers for each of the device's

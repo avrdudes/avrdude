@@ -560,6 +560,7 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed);
 AVRMEM * avr_new_mem(void);
 AVRMEM *avr_new_memory(const char *name, int size);
 AVRMEM_ALIAS * avr_new_memalias(void);
+const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem);
 int avr_initmem(const AVRPART *p);
 AVRMEM * avr_dup_mem(const AVRMEM *m);
 void     avr_free_mem(AVRMEM * m);

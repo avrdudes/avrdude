@@ -385,13 +385,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     return LIBAVRDUDE_SOFTFAIL;
   }
 
-  AVRMEM_ALIAS *alias_mem = avr_find_memalias(p, mem);
-  char *alias_mem_desc = mmt_malloc(2 + (alias_mem && alias_mem->desc? strlen(alias_mem->desc): 0));
-  if(alias_mem && alias_mem->desc && *alias_mem->desc) {
-    *alias_mem_desc = '/';
-    strcpy(alias_mem_desc+1, alias_mem->desc);
-  }
-  
+  const char *mem_desc = avr_mem_name(p, mem);
   switch (upd->op) {
   case DEVICE_READ:
     // Read out the specified device memory and write it to a file
@@ -399,7 +393,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       pmsg_error("invalid file format 'immediate' for output\n");
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
-    pmsg_info("reading %s%s memory ...\n", mem->desc, alias_mem_desc);
+    pmsg_info("reading %s memory ...\n", mem_desc);
 
     if(mem->size > 32 || verbose > 1)
       report_progress(0, 1, "Reading");
@@ -407,7 +401,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     rc = avr_read(pgm, p, upd->memstr, 0);
     report_progress(1, 1, NULL);
     if (rc < 0) {
-      pmsg_error("unable to read all of %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
+      pmsg_error("unable to read all of %s, rc=%d\n", mem_desc, rc);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
     size = rc;
@@ -432,8 +426,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
-    pmsg_info("reading input file %s for %s%s\n",
-      str_inname(upd->filename), mem->desc, alias_mem_desc);
+    pmsg_info("reading input file %s for %s\n", str_inname(upd->filename), mem_desc);
 
     if(memstats(p, upd->memstr, rc, &fs) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
@@ -485,8 +478,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     size = rc;
 
     // Write the buffer contents to the selected memory
-    pmsg_info("writing %d byte%s %s%s ...\n", fs.nbytes,
-      str_plural(fs.nbytes), mem->desc, alias_mem_desc);
+    pmsg_info("writing %d byte%s %s ...\n", fs.nbytes,
+      str_plural(fs.nbytes), mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
       if(mem->size > 32 || verbose > 1)
@@ -499,12 +492,11 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     }
 
     if (rc < 0) {
-      pmsg_error("unable to write %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
+      pmsg_error("unable to write %s, rc=%d\n", mem_desc, rc);
       return LIBAVRDUDE_GENERAL_FAILURE;
     }
 
-    pmsg_info("%d byte%s of %s%s written\n", fs.nbytes,
-      str_plural(fs.nbytes), mem->desc, alias_mem_desc);
+    pmsg_info("%d byte%s of %s written\n", fs.nbytes, str_plural(fs.nbytes), mem_desc);
 
     if (!(flags & UF_VERIFY))   // Fall through for auto verify unless
       break;
@@ -516,13 +508,11 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     int userverify = upd->op == DEVICE_VERIFY; // Explicit -U :v by user
 
-    pmsg_info("verifying %s%s memory against %s\n", mem->desc,
-      alias_mem_desc, str_inname(upd->filename));
+    pmsg_info("verifying %s against %s\n", mem_desc, str_inname(upd->filename));
 
     // No need to read file when fallen through from DEVICE_WRITE
     if (userverify) {
-      pmsg_notice("load %s%s data from input file %s\n", mem->desc,
-        alias_mem_desc, str_inname(upd->filename));
+      pmsg_notice("load %s data from input file %s\n", mem_desc, str_inname(upd->filename));
 
       rc = fileio(FIO_READ_FOR_VERIFY, upd->filename, upd->format, p, upd->memstr, -1);
 
@@ -550,7 +540,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       if (userverify)
         pmsg_notice("input file %s contains %d byte%s\n",
           str_inname(upd->filename), fs.nbytes, str_plural(fs.nbytes));
-      pmsg_notice2("reading on-chip %s%s data ...\n", mem->desc, alias_mem_desc);
+      pmsg_notice2("reading on-chip %s data ...\n", mem_desc);
     }
 
     if(mem->size > 32 || verbose > 1)
@@ -558,7 +548,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     rc = avr_read(pgm, p, upd->memstr, v);
     report_progress (1,1,NULL);
     if (rc < 0) {
-      pmsg_error("unable to read all of %s%s memory, rc=%d\n", mem->desc, alias_mem_desc, rc);
+      pmsg_error("unable to read all of %s, rc = %d\n", mem_desc, rc);
       led_set(pgm, LED_ERR);
       led_clr(pgm, LED_VFY);
       avr_free_part(v);
@@ -578,7 +568,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     }
 
     int verified = fs.nbytes+fs.ntrailing;
-    pmsg_info("%d byte%s of %s%s verified\n", verified, str_plural(verified), mem->desc, alias_mem_desc);
+    pmsg_info("%d byte%s of %s verified\n", verified, str_plural(verified), mem_desc);
 
     led_clr(pgm, LED_VFY);
     avr_free_part(v);
