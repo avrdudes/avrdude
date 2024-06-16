@@ -327,31 +327,98 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
 }
 
 
+// Extends where memory is put in flat address space of .elf files
+unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
+  AVRMEM *base;
+
+  unsigned location =
+    mem_is_in_flash(mem) && (base = avr_locate_flash(p))? mem->offset - base->offset:
+    mem_is_io(mem) || mem_is_sram(mem)? MAX_FLASH_SIZE + mem->offset:
+    mem_is_eeprom(mem)? 0x810000:
+    mem_is_in_fuses(mem)? 0x820000 + mem_fuse_offset(mem):
+    mem_is_lock(mem)? 0x830000:
+    // Classic parts intersperse signature and calibration bytes, this code places them together
+    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_signature(mem)? 0x840000:
+    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_calibration(mem)? 0x840003:
+    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_sigrow(mem)? 0x840010: // Few parts, eg m328pb
+    // XMEGA parts have signature separate from prodsig, place prodsig at +0x10 as above
+    (p->prog_modes & PM_PDI) && mem_is_signature(mem)? 0x840000:
+    (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem) && (base = avr_locate_sigrow(p))?
+      0x840010 + mem->offset - base->offset:
+    mem_is_in_sigrow(mem) && (base = avr_locate_sigrow(p))? 0x840000 + mem->offset - base->offset:
+    mem_is_sib(mem)? 0x841000:  // Arbitrary 0x1000 offset in signature section for sib
+    mem_is_userrow(mem)? 0x850000:
+    mem_is_bootrow(mem)? 0x860000:
+    -1U;
+
+  if(location == -1U)
+    pmsg_error("unable to locate %s's %s in multi-memory address space\n", p->desc, mem->desc);
+  else if(location >= ANY_MEM_SIZE || location + mem->size > ANY_MEM_SIZE) { // Consider overflow
+    pmsg_error("%s's %s location [0x%06x, 0x%06x] outside flat address space [0, 0x%06x]\n",
+      p->desc, mem->desc, location, location + mem->size-1, ANY_MEM_SIZE-1);
+    location = -1U;
+  } else if(location < MAX_FLASH_SIZE && location + mem->size > MAX_FLASH_SIZE) {
+    pmsg_error("%s's %s location [0x%06x, 0x%06x] straddles flash section boundary 0x%06x\n",
+      p->desc, mem->desc, location, location + mem->size-1, MAX_FLASH_SIZE);
+    location = -1U;
+  } else if(location >= MAX_FLASH_SIZE && location/0x10000 != (location + mem->size-1)/0x10000) {
+    pmsg_error("%s's %s memory location [0x%06x, 0x%06x] straddles memory section boundary 0x%02x0000\n",
+      p->desc, mem->desc, location, location + mem->size-1, 1+location/0x10000);
+    location = -1U;
+  }
+
+  return location;
+}
+
+// Extract correct memory from large any memory assuming multi-memory model
+static int any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp,
+  const AVRMEM *any, unsigned maxsize) {
+
+  // Compute location for multi-memory file input
+  unsigned location = maxsize > MAX_FLASH_SIZE? fileio_mem_offset(p, mem): 0;
+
+  if(location == -1U)
+    return -1;
+
+  unsigned ret = 0;
+  // Copy over memory to right place and return highest written address plus one
+  for(unsigned i = segp->addr, end = segp->addr + segp->len; i < end; i++)
+    if(any->tags[location + i]) {
+      mem->buf[i] = any->buf[location + i];
+      mem->tags[i] = any->tags[location + i];
+      ret = i+1;
+    }
+
+  return ret;
+}
 
 /*
  * Intel Hex to binary buffer
  *
- * Given an open file 'inf' which contains Intel Hex formatted data,
- * parse the file and lay it out within the memory buffer pointed to
- * by mem->buf. The segment within buf, segp, is honoured; if data
- * were to fall outside of the memory segment, an error is generated.
+ * Given an open file 'inf' which contains Intel Hex formatted data, parse
+ * the file, which potentially contains many AVR memories, and lay it out
+ * in a temporary AVR "any memory". This also determines whether inf
+ * contains the AVR memory mem to write to. Only the segment within
+ * mem->buf, segp, is written to.
  *
- * Return the maximum memory address within mem->buf that was written
- * plus one. If an error occurs, return -1.
+ * Return 0 if nothing was written, otherwise the maximum memory address
+ * within mem->buf that was written plus one. On error, return -1.
  */
-static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
+static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM *mem,
   const Segment *segp, unsigned int fileoffset, FILEFMT ffmt) {
 
   const char *errstr;
   unsigned int nextaddr, baseaddr, maxaddr;
-  int lineno, rc, digits;
+  int lineno, rc;
   struct ihexsrec ihex;
 
   lineno   = 0;
   baseaddr = 0;
   maxaddr  = 0;
   nextaddr = 0;
-  digits = mem->size > 0x10000? 5: 4;
+  rewind(inf);
+
+  AVRMEM *any = avr_new_memory("any", ANY_MEM_SIZE);
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -364,21 +431,21 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
     if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
       mmt_free(buffer);
-      return -1;
+      goto error;
     }
     if(rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
         pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
         imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
         mmt_free(buffer);
-        return -1;
+        goto error;
       }
       // Just warn with more permissive format FMT_IHXC
       pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
     }
 
-    unsigned below = 0;
+    unsigned below = 0, anysize = any->size;
     switch (ihex.rectyp) {
       case 0: /* data record */
         if(ihex.loadofs + baseaddr < fileoffset) {
@@ -387,9 +454,9 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
               ihex.loadofs + baseaddr, fileoffset, lineno, infile);
             imsg_error("use -F to skip this check\n");
             mmt_free(buffer);
-            return -1;
+            goto error;
           }
-          pmsg_warning("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+          pmsg_warning("address 0x%04x below fileoffset 0x%x at line %d of %s: ",
             ihex.loadofs + baseaddr, fileoffset, lineno, infile);
           below = fileoffset - baseaddr - ihex.loadofs;
           if(below < ihex.reclen) { // Clip record
@@ -398,39 +465,28 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
           } else {              // Nothing to write
             ihex.reclen = 0;
           }
-          imsg_warning("%s record\n", ihex.reclen? "clipping": "ignoring");
+          msg_warning("%s record\n", ihex.reclen? "clipping": "ignoring");
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
-        unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
-        if(ihex.reclen && (nextaddr < beg || nextaddr + ihex.reclen-1 > end)) {
+        if(ihex.reclen && nextaddr + ihex.reclen > anysize) {
           if(!ovsigck) {
-            pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
-              digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
+            pmsg_error("Intel Hex record [0x%06x, 0x%06x] out of range [0, 0x%06x]\n",
+              nextaddr, nextaddr+ihex.reclen-1, anysize-1);
             imsg_error("at line %d of %s; use -F to skip this check\n", lineno, infile);
             mmt_free(buffer);
-            return -1;
+            goto error;
           }
-          pmsg_warning("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
-            digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
-          if(nextaddr < beg) {
-            unsigned low = beg - nextaddr;
-            if(low < ihex.reclen) { // Clip record
-              ihex.reclen -= low;
-              nextaddr += low;
-              below += low;
-            } else {            // Nothing to write
-              ihex.reclen = 0;
-            }
-          }
-          if(ihex.reclen && nextaddr + ihex.reclen-1 > end) {
-            unsigned above = nextaddr + ihex.reclen-1 - end;
+          pmsg_warning("Intel Hex record [0x%06x, 0x%06x] out of range [0, 0x%06x]: ",
+            nextaddr, nextaddr+ihex.reclen-1, anysize-1);
+          if(ihex.reclen && nextaddr + ihex.reclen > anysize) {
+            unsigned above = nextaddr + ihex.reclen - anysize;
             ihex.reclen = above < ihex.reclen? ihex.reclen - above: 0; // Clip or zap
           }
-          imsg_warning("at line %d of %s; %s record\n", lineno, infile, ihex.reclen? "clipping": "ignoring");
+          msg_warning("%s it\n", ihex.reclen? "clipping": "ignoring");
         }
         for(int i=0; i<ihex.reclen; i++) {
-          mem->buf[nextaddr+i] = ihex.data[below + i];
-          mem->tags[nextaddr+i] = TAG_ALLOCATED;
+          any->buf[nextaddr+i] = ihex.data[below + i];
+          any->tags[nextaddr+i] = TAG_ALLOCATED;
         }
         if(ihex.reclen && nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
@@ -438,7 +494,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
 
       case 1: /* end of file record */
         mmt_free(buffer);
-        return maxaddr;
+        goto done;
 
       case 2: /* extended segment address record */
         baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
@@ -460,22 +516,32 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
         pmsg_error("do not know how to deal with rectype=%d "
           "at line %d of %s\n", ihex.rectyp, lineno, infile);
         mmt_free(buffer);
-        return -1;
+        goto error;
     }
   }
 
   if(errstr) {
     pmsg_error("read error in Intel Hex file %s: %s\n", infile, errstr);
-    return -1;
+    goto error;
   }
 
   if (maxaddr == 0) {
     pmsg_error("no valid record found in Intel Hex file %s\n", infile);
-    return -1;
+    goto error;
   }
 
   pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
-  return maxaddr;
+
+done:
+  rc = any2mem(p, mem, segp, any, maxaddr);
+  avr_free_mem(any);
+  if(!rc)
+    pmsg_warning("no %s data found in Intel Hex file %s\n", mem->desc, infile);
+  return rc;
+
+error:
+  avr_free_mem(any);
+  return -1;
 }
 
 static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, int addr_width) {
@@ -642,7 +708,7 @@ static int srec_readrec(struct ihexsrec *srec, char *rec) {
 }
 
 // Motorola S-Record to binary
-static int srec2b(const char *infile, FILE * inf,
+static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
   const AVRMEM *mem, const Segment *segp, unsigned int fileoffset) {
 
   const char *errstr;
@@ -1150,7 +1216,7 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 
 
 static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment *segp, FILEFMT ffmt, Segorder where) {
+  const AVRPART *p, const AVRMEM *mem, const Segment *segp, FILEFMT ffmt, Segorder where) {
 
   int rc;
 
@@ -1160,7 +1226,7 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, mem, segp, fio->fileoffset, ffmt);
+      rc = ihex2b(filename, f, p, mem, segp, fio->fileoffset, ffmt);
       break;
 
     default:
@@ -1173,7 +1239,7 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment *segp, Segorder where) {
+  const AVRPART* p, const AVRMEM *mem, const Segment *segp, Segorder where) {
 
   int rc;
 
@@ -1183,7 +1249,7 @@ static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
       break;
 
     case FIO_READ:
-      rc = srec2b(filename, f, mem, segp, fio->fileoffset);
+      rc = srec2b(filename, f, p, mem, segp, fio->fileoffset);
       break;
 
     default:
@@ -1620,11 +1686,11 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     switch(format) {
     case FMT_IHEX:
     case FMT_IHXC:
-      thisrc = fileio_ihex(&fio, fname, f, mem, seglist+i, format, where);
+      thisrc = fileio_ihex(&fio, fname, f, p, mem, seglist+i, format, where);
       break;
 
     case FMT_SREC:
-      thisrc = fileio_srec(&fio, fname, f, mem, seglist+i, where);
+      thisrc = fileio_srec(&fio, fname, f, p, mem, seglist+i, where);
       break;
 
     case FMT_RBIN:

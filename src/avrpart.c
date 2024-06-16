@@ -2,6 +2,8 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2023- Hans Eirik Bull
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -298,6 +300,20 @@ AVRMEM *avr_new_mem(void) {
   AVRMEM *m = (AVRMEM *) mmt_malloc(sizeof(*m));
   m->desc = cache_string("");
   m->page_size = 1;             // Ensure not 0
+  m->initval = -1;              // Unknown value represented as -1
+  m->bitmask = -1;              // Default to -1
+
+  return m;
+}
+
+// Create memory from name and size
+AVRMEM *avr_new_memory(const char *name, int size) {
+  AVRMEM *m = (AVRMEM *) mmt_malloc(sizeof(*m));
+  m->desc = cache_string(name);
+  m->page_size = 1;             // Ensure not 0
+  m->size = size;
+  m->buf = mmt_malloc(size);
+  m->tags = mmt_malloc(size);
   m->initval = -1;              // Unknown value represented as -1
   m->bitmask = -1;              // Default to -1
 

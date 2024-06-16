@@ -554,6 +554,7 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_mem(void);
+AVRMEM *avr_new_memory(const char *name, int size);
 AVRMEM_ALIAS * avr_new_memalias(void);
 int avr_initmem(const AVRPART *p);
 AVRMEM * avr_dup_mem(const AVRMEM *m);
@@ -1216,6 +1217,9 @@ enum {
   FIO_READ_FOR_VERIFY,
 };
 
+#define ANY_MEM_SIZE   0x870000 // Max size of multi-memory input file, see fileio_mem_offset()
+#define MAX_FLASH_SIZE 0x800000 // rjmp/call can only address 8 MiB in AVR8 architectures
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1225,6 +1229,8 @@ FILEFMT fileio_format(char c);
 char *fileio_fmtstr(FILEFMT format);
 
 int fileio_fmtchr(FILEFMT format);
+
+unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
 
 FILE *fileio_fopenr(const char *fname);
 

@@ -367,6 +367,8 @@ part_def :
 
           m->num_pages = m->size / m->page_size;
         }
+        if(fileio_mem_offset(current_part, m) == -1U)
+          yywarning("revise fileio_mem_offset(), avrdude.conf entry or memory type assignment");
       }
 
       existing_part = locate_part(part_list, current_part->id);
