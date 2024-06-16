@@ -450,13 +450,13 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
       case 0: /* data record */
         if(ihex.loadofs + baseaddr < fileoffset) {
           if(!ovsigck) {
-            pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+            pmsg_error("address 0x%06x below memory offset 0x%x at line %d of %s\n",
               ihex.loadofs + baseaddr, fileoffset, lineno, infile);
             imsg_error("use -F to skip this check\n");
             mmt_free(buffer);
             goto error;
           }
-          pmsg_warning("address 0x%04x below fileoffset 0x%x at line %d of %s: ",
+          pmsg_warning("address 0x%06x below memory offset 0x%x at line %d of %s: ",
             ihex.loadofs + baseaddr, fileoffset, lineno, infile);
           below = fileoffset - baseaddr - ihex.loadofs;
           if(below < ihex.reclen) { // Clip record
@@ -714,14 +714,16 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
   const char *errstr;
   unsigned int nextaddr, maxaddr;
   struct ihexsrec srec;
-  int lineno, rc, digits, hexdigs;
+  int lineno, rc, hexdigs;
   unsigned int reccount;
   unsigned char datarec;
 
   lineno   = 0;
   maxaddr  = 0;
   reccount = 0;
-  digits = mem->size > 0x10000? 5: 4;
+  rewind(inf);
+
+  AVRMEM *any = avr_new_memory("any", ANY_MEM_SIZE);
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -734,13 +736,13 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
     if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
       mmt_free(buffer);
-      return -1;
+      goto error;
     }
     if(rc != srec.cksum) {
       pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
       mmt_free(buffer);
-      return -1;
+      goto error;
     }
 
     datarec=0; 
@@ -766,14 +768,14 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
       case '4':                 // S4: symbol record (LSI extension)
         pmsg_error("not supported record at line %d of %s\n", lineno, infile);
         mmt_free(buffer);
-        return -1;
+        goto error;
 
       case '5':                 // S5: count of S1, S2 and S3 records previously tx'd
         if (srec.loadofs != reccount){
           pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
           imsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
           mmt_free(buffer);
-          return -1;
+          goto error;
         }
         break;
 
@@ -781,28 +783,28 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
       case '8':                 // S8: end record for 24 bit addresses
       case '9':                 // S9: end record for 16 bit addresses
         mmt_free(buffer);
-        return maxaddr;
+        goto done;
 
       default:
         pmsg_error("do not know how to deal with rectype S%d at line %d of %s\n",
           srec.rectyp, lineno, infile);
         mmt_free(buffer);
-        return -1;
+        goto error;
     }
 
     if (datarec == 1) {
       nextaddr = srec.loadofs;
-      unsigned below = 0;
+      unsigned below = 0, anysize = any->size;
       if (nextaddr < fileoffset) {
         if(!ovsigck) {
-          pmsg_error("address 0x%0*x below memory offset at line %d of %s\n",
-            hexdigs, nextaddr, lineno, infile);
+          pmsg_error("address 0x%0*x below memory offset 0x%x at line %d of %s\n",
+            hexdigs, nextaddr, fileoffset, lineno, infile);
           imsg_error("use -F to skip this check\n");
           mmt_free(buffer);
-          return -1;
+          goto error;
         }
-        pmsg_warning("address 0x%0*x below memory offset at line %d of %s\n",
-          hexdigs, nextaddr, lineno, infile);
+        pmsg_warning("address 0x%0*x below memory offset 0x%x at line %d of %s: ",
+          hexdigs, nextaddr, fileoffset, lineno, infile);
         below = fileoffset - nextaddr;
         if(below < srec.reclen) { // Clip record
           nextaddr += below;
@@ -810,39 +812,28 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
         } else {                // Ignore record
           srec.reclen = 0;
         }
-        imsg_warning("%s record\n", srec.reclen? "clipping": "ignoring");
+        msg_warning("%s record\n", srec.reclen? "clipping": "ignoring");
       }
       nextaddr -= fileoffset;
-      unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
-      if(srec.reclen && (nextaddr < beg || nextaddr + srec.reclen-1 > end)) {
+      if(srec.reclen && nextaddr + srec.reclen > anysize) {
         if(!ovsigck) {
-          pmsg_error("Motorola S-Record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
-            digits, nextaddr, digits, nextaddr+srec.reclen-1, digits, beg, digits, end);
+          pmsg_error("Motorola S-Record [0x%06x, 0x%06x] out of range [0, 0x%06x]\n",
+            nextaddr, nextaddr+srec.reclen-1, anysize-1);
           imsg_error("at line %d of %s; use -F to skip this check\n", lineno, infile);
           mmt_free(buffer);
-          return -1;
+          goto error;
         }
-        pmsg_warning("Motorola S-Record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
-          digits, nextaddr, digits, nextaddr+srec.reclen-1, digits, beg, digits, end);
-        if(nextaddr < beg) {
-          unsigned low = beg - nextaddr;
-          if(low < srec.reclen) { // Clip record
-            srec.reclen -= low;
-            nextaddr += low;
-            below += low;
-          } else {              // Nothing to write
-            srec.reclen = 0;
-          }
-        }
-        if(srec.reclen && nextaddr + srec.reclen-1 > end) {
-          unsigned above = nextaddr + srec.reclen-1 - end;
+        pmsg_warning("Motorola S-Record [0x%06x, 0x%06x] out of range [0, 0x%06x]: ",
+          nextaddr, nextaddr+srec.reclen-1, anysize-1);
+        if(srec.reclen && nextaddr + srec.reclen > anysize) {
+          unsigned above = nextaddr + srec.reclen - anysize;
           srec.reclen = above < srec.reclen? srec.reclen - above: 0; // Clip or zap
         }
-        imsg_warning("at line %d of %s; %s record\n", lineno, infile, srec.reclen? "clipping": "ignoring");
+        msg_warning("%s it\n", srec.reclen? "clipping": "ignoring");
       }
       for(int i=0; i<srec.reclen; i++) {
-        mem->buf[nextaddr+i] = srec.data[below + i];
-        mem->tags[nextaddr+i] = TAG_ALLOCATED;
+        any->buf[nextaddr+i] = srec.data[below + i];
+        any->tags[nextaddr+i] = TAG_ALLOCATED;
       }
       if(srec.reclen && nextaddr+srec.reclen > maxaddr)
         maxaddr = nextaddr+srec.reclen;
@@ -852,11 +843,20 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
 
   if(errstr) {
     pmsg_error("read error in Motorola S-Record file %s: %s\n", infile, errstr);
-    return -1;
+    goto error;
   }
 
   pmsg_warning("no end of file record found for Motorola S-Records file %s\n", infile);
-  return maxaddr;
+done:
+  rc = any2mem(p, mem, segp, any, maxaddr);
+  avr_free_mem(any);
+  if(!rc)
+    pmsg_warning("no %s data found in Motorola S-Record file %s\n", mem->desc, infile);
+  return rc;
+
+error:
+  avr_free_mem(any);
+  return -1;
 }
 
 
