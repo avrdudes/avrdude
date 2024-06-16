@@ -1569,8 +1569,8 @@ Memtable avr_mem_order[100] = {
   {"lockbits",    MEM_LOCK},
   {"prodsig",     MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
   {"sigrow",      MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
-  {"signature",   MEM_SIGNATURE | MEM_IN_SIGROW | MEM_READONLY},
-  {"calibration", MEM_CALIBRATION | MEM_IN_SIGROW | MEM_READONLY},
+  {"signature",   MEM_SIGNATURE | MEM_IN_SIGROW | MEM_READONLY}, // Not in SIGROW in Classic/XMEGA parts
+  {"calibration", MEM_CALIBRATION | MEM_IN_SIGROW | MEM_READONLY}, // Not in SIGROW in Classic parts
   {"tempsense",   MEM_TEMPSENSE | MEM_IN_SIGROW | MEM_READONLY},
   {"sernum",      MEM_SERNUM | MEM_IN_SIGROW | MEM_READONLY},
   {"osccal16",    MEM_OSCCAL16 | MEM_IN_SIGROW | MEM_READONLY},

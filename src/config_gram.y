@@ -367,8 +367,19 @@ part_def :
 
           m->num_pages = m->size / m->page_size;
         }
+        // Remove MEM_IN_SIGROW attribute from classic calibration and classic/XMEGA signature mem
+        if(!(current_part->prog_modes & (PM_PDI|PM_UPDI))) {
+          if(mem_is_signature(m))
+            m->type &= ~MEM_IN_SIGROW;
+          if(mem_is_calibration(m))
+            m->type &= ~MEM_IN_SIGROW;
+        } else if(current_part->prog_modes & PM_PDI) {
+          if(mem_is_signature(m))
+            m->type &= ~MEM_IN_SIGROW;
+        }
         if(fileio_mem_offset(current_part, m) == -1U)
           yywarning("revise fileio_mem_offset(), avrdude.conf entry or memory type assignment");
+
       }
 
       existing_part = locate_part(part_list, current_part->id);
