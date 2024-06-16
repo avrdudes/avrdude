@@ -77,7 +77,6 @@ int str_caseends(const char *str, const char *ends) {
   return str_caseeq(str + str_len - ends_len, ends);
 }
 
-
 /*
  * Match string against the partname pattern, returning 1 if it matches, 0 if
  * not. Note: str_match_core() is a modified old copy of !fnmatch() from the
@@ -336,6 +335,17 @@ char *str_fgets(FILE *fp, const char **errpp) {
   return ret;
 }
 
+
+// Return the number of times a character c occurs in str
+size_t str_numc(const char *str, char c) {
+  size_t ret = 0;
+  char is;
+
+  while((is = *str++))
+    if(is == c)
+      ret++;
+  return ret;
+}
 
 // Changes string to be all lowercase and returns original pointer
 char *str_lc(char *s) {
