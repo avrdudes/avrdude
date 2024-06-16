@@ -479,7 +479,7 @@ typedef struct {
 
 #define mem_is_in_flash(mem) (!!((mem)->type & MEM_IN_FLASH))
 #define mem_is_a_fuse(mem) (!!((mem)->type & MEM_IS_A_FUSE))
-#define mem_is_in_fuses(mem) (!!((mem)->type & (MEM_FUSES | MEM_IS_A_FUSE))) // If fuses exists, that is
+#define mem_is_in_fuses(mem) (!!((mem)->type & (MEM_FUSES | MEM_IS_A_FUSE))) // If fuses exists!
 #define mem_is_user_type(mem) (!!((mem)->type & MEM_USER_TYPE))
 #define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
 #define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
@@ -1242,6 +1242,9 @@ FILE *fileio_fopenr(const char *fname);
 int fileio_fmt_autodetect_fp(FILE *f);
 
 int fileio_fmt_autodetect(const char *fname);
+
+int fileio_mem(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int size);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
   const AVRPART *p, const char *memstr, int size);

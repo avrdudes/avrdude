@@ -1547,6 +1547,17 @@ int fileio_fmt_autodetect(const char *fname) {
 
 
 
+int fileio_mem(int op, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int size) {
+
+  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
+    size = mem->size;
+
+  const Segment seg = {0, size};
+  return fileio_segments(op, filename, format, p, mem, 1, &seg);
+}
+
+
 int fileio(int op, const char *filename, FILEFMT format,
   const AVRPART *p, const char *memstr, int size) {
 
@@ -1556,11 +1567,7 @@ int fileio(int op, const char *filename, FILEFMT format,
     return -1;
   }
 
-  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
-    size = mem->size;
-
-  const Segment seg = {0, size};
-  return fileio_segments(op, filename, format, p, mem, 1, &seg);
+  return fileio_mem(op, filename, format, p, mem, size);
 }
 
 
