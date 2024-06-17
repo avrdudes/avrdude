@@ -379,7 +379,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
 }
 
 // Whether a memory should be backup-ed: exclude sub-memories
-static int backup_mem(const AVRPART *p, const AVRMEM *mem) {
+static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
   return mem_is_in_flash(mem)? mem_is_flash(mem):
     mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
     mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
@@ -423,7 +423,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       s = str_trim(s);
       if(str_eq(s, "all")) {
         for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
-          if(backup_mem(p, (m = ldata(lm))))
+          if(is_backup_mem(p, (m = ldata(lm))))
             umemlist[ns++] = m;
       } else if(!*s) {          // Ignore empty list elements
       } else {
@@ -466,6 +466,21 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       goto error;
     }
     if(umemlist) {
+      /*
+       * Writing to all memories or a list of memories. It is crucial not to
+       * skip empty flash memory: otherwise the output file cannot distinguish
+       * between flash having been deliberately dropped by the user or it
+       * having been empty. Therefore the code switches temporarily off
+       * trailing 0xff optimisation. In theory, the output file could only
+       * store those pages that are non-empty for a paged memory, and if it was
+       * all empty, store only the first empty page to indicate the memory was
+       * selected. However, file space on a PC is cheap and fast; the main use
+       * case for saving "all" memory is a backup, and AVRDUDE does not want to
+       * rely on the uploader to know that the backup file requires the paged
+       * memories to be erased first, so the code goes the full hog.
+       */
+      int dffo = cx->avr_disableffopt;
+      cx->avr_disableffopt = 1;
       pmsg_info("reading %s memor%s ...\n",
         ns==1? avr_mem_name(p, umemlist[0]): "multiple", ns==1? "y": "ies");
       int nn = 0;
@@ -498,6 +513,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
         rc = fileio_segments(FIO_WRITE, upd->filename, upd->format, p, mem, nn, seglist);
       else
         pmsg_notice("empty memory, resulting file has no contents\n");
+      cx->avr_disableffopt = dffo;
     } else {                    // Regular file
       pmsg_info("reading %s memory ...\n", mem_desc);
       if(mem->size > 32 || verbose > 1)
