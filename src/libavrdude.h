@@ -1307,6 +1307,7 @@ char *update_str(const UPDATE *upd);
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
 int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp);
+int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp);
 
 // Helper functions for dry run to determine file access
 int update_is_okfile(const char *fn);

@@ -146,7 +146,6 @@ char *update_str(const UPDATE *upd) {
 
 // Memory statistics considering holes after a file read returned size bytes
 int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp) {
-  Filestats ret = { 0 };
   AVRMEM *mem = avr_locate_mem(p, memstr);
 
   if(!mem) {
@@ -154,8 +153,15 @@ int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp) {
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
+  return memstats_mem(p, mem, size, fsp);
+}
+
+// Memory statistics considering holes after a file read returned size bytes
+int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp) {
+  Filestats ret = { 0 };
+
   if(!mem->buf || !mem->tags) {
-    pmsg_error("%s %s is not set\n", p->desc, memstr);
+    pmsg_error("%s %s is not set\n", p->desc, mem->desc);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
@@ -164,7 +170,7 @@ int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp) {
     pgsize = 1;
 
   if(size < 0 || size > mem->size) {
-    pmsg_error("size %d at odds with %s %s size %d\n", size, p->desc, memstr, mem->size);
+    pmsg_error("size %d at odds with %s %s size %d\n", size, p->desc, mem->desc, mem->size);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
 
