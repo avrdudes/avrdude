@@ -437,6 +437,14 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       s = e+1;
     }
     mmt_free(dstr);
+    // De-duplicate list, keeping order
+    for(int i=0; i < ns; i++) {
+      m = umemlist[i];
+      // Move down remaining list whenever same memory detected
+      for(int j = i+1; j < ns; j++)
+         for(; j < ns && m == umemlist[j]; ns--)
+           memmove(umemlist+j, umemlist+j+1, (ns-j-1)*sizeof*umemlist);
+    }
 
     if(!ns) {
       pmsg_warning("skipping -U %s:... as no memory in part %s available\n", umstr, p->desc);
