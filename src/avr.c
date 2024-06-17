@@ -323,10 +323,9 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 
 
 /*
- * Read the entirety of the specified memory into the corresponding
- * buffer of the avrpart pointed to by p. If v is non-NULL, verify against
- * v's memory area, only those cells that are tagged TAG_ALLOCATED are
- * verified.
+ * Read the entirety of the specified memory into the corresponding buffer of
+ * the avrpart pointed to by p. If v is non-NULL, verify against v's memory
+ * area, only those cells that are tagged TAG_ALLOCATED are verified.
  *
  * Return the number of bytes read, or < 0 if an error occurs.
  */
@@ -340,14 +339,6 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, const 
   return avr_read_mem(pgm, p, mem, v);
 }
 
-
-/*
- * Read the entirety of the specified memory into the corresponding buffer of
- * the avrpart pointed to by p. If v is non-NULL, verify against v's memory
- * area, only those cells that are tagged TAG_ALLOCATED are verified.
- *
- * Return the number of bytes read, or < 0 if an error occurs.
- */
 int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v) {
   unsigned long i, lastaddr;
   unsigned char cmd[4];
@@ -934,14 +925,6 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int s
   return avr_write_mem(pgm, p, m, size, auto_erase);
 }
 
-/*
- * Write the whole memory region of the specified memory from its buffer of
- * the avrpart pointed to by p to the device.  Write up to size bytes from
- * the buffer.  Data is only written if the corresponding tags byte is set.
- * Data beyond size bytes are not affected.
- *
- * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
- */
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int size, int auto_erase) {
   int              wsize;
   unsigned int     i, lastaddr;
@@ -1272,7 +1255,7 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
 }
 
 // Bitmask for ISP programming (classic parts only)
-static uint8_t get_fuse_bitmask(AVRMEM * m) {
+static uint8_t get_fuse_bitmask(const AVRMEM *m) {
   uint8_t bitmask_r = 0;
   uint8_t bitmask_w = 0;
   int i;
@@ -1304,27 +1287,29 @@ int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
 }
 
 /*
- * Verify the memory buffer of p with that of v.  The byte range of v
- * may be a subset of p.  The byte range of p should cover the whole
- * chip's memory size.
+ * Verify the memory buffer of p with that of v. The byte range of v may be a
+ * subset of p. The byte range of p should cover the whole chip's memory size.
  *
  * Return the number of bytes verified, or -1 if they don't match.
  */
 int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memstr, int size) {
-  int i;
-  unsigned char * buf1, * buf2;
-  int vsize;
-  AVRMEM * a, * b;
+  const AVRMEM *a = avr_locate_mem(p, memstr);
 
-  a = avr_locate_mem(p, memstr);
-  if (a == NULL) {
+  if(!a) {
     pmsg_error("memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
+  return avr_verify_mem(pgm, p, v, a, size);
+}
 
-  b = avr_locate_mem(v, memstr);
-  if (b == NULL) {
-    pmsg_error("memory %s not defined for part %s\n", memstr, v->desc);
+int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const AVRMEM *a, int size) {
+  int i;
+  unsigned char *buf1, *buf2;
+  int vsize;
+  AVRMEM *b;
+
+  if(!(b = avr_locate_mem(v, a->desc))) {
+    pmsg_error("memory %s not defined for part %s\n", a->desc, v->desc);
     return -1;
   }
 
@@ -1334,7 +1319,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 
   if (vsize < size) {
     pmsg_warning("requested verification for %d bytes\n", size);
-    imsg_warning("%s memory region only contains %d bytes\n", memstr, vsize);
+    imsg_warning("%s memory region only contains %d bytes\n", a->desc, vsize);
     imsg_warning("only %d bytes will be verified\n", vsize);
     size = vsize;
   }
@@ -1371,12 +1356,12 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
           imsg_warning("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
           imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
         }

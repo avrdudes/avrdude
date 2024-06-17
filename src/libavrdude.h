@@ -1102,9 +1102,8 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			  unsigned long addr, unsigned char * value);
 
-int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
-
-int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const AVRPART *v);
+int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
+int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, const AVRPART *v);
 
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
@@ -1128,7 +1127,6 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 			   unsigned long addr, unsigned char data);
 
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
-
 int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase);
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
@@ -1136,6 +1134,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr);
 
 int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *m, int size);
+int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const AVRMEM *a, int size);
 
 int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
