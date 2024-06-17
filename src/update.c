@@ -388,12 +388,86 @@ static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
 }
 
 
+static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  const UPDATE *upd, enum updateflags flags, int size, const char *caption) {
+
+  int rc = 0;
+  Filestats fs, fs_patched;
+
+  if(memstats_mem(p, mem, size, &fs) < 0)
+    return -1;
+  imsg_info("read %d byte%s in %d section%s within %s\n",
+    fs.nbytes, str_plural(fs.nbytes),
+    fs.nsections, str_plural(fs.nsections),
+    str_ccinterval(fs.firstaddr, fs.lastaddr));
+  if(mem->page_size > 1) {
+    imsg_info("using %d page%s and %d pad byte%s",
+      fs.npages, str_plural(fs.npages),
+      fs.nfill, str_plural(fs.nfill));
+    if(fs.ntrailing)
+      msg_info(", cutting off %d trailing 0xff byte%s",
+        fs.ntrailing, str_plural(fs.ntrailing));
+    msg_info("\n");
+  }
+
+  // Patch flash input, eg, for vector bootloaders
+  if(pgm->flash_readhook && mem_is_flash(mem)) {
+    if((size = pgm->flash_readhook(pgm, p, mem, upd->filename, size)) < 0) {
+      pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));
+      return -1;
+    }
+    if(memstats_mem(p, mem, size, &fs_patched) < 0)
+      return -1;
+    if(memcmp(&fs_patched, &fs, sizeof fs)) {
+      pmsg_info("preparing flash input for device%s\n",
+        pgm->prog_modes & PM_SPM? " bootloader": "");
+        imsg_notice2("with %d byte%s in %d section%s within %s\n",
+          fs_patched.nbytes, str_plural(fs_patched.nbytes),
+          fs_patched.nsections, str_plural(fs_patched.nsections),
+          str_ccinterval(fs_patched.firstaddr, fs_patched.lastaddr));
+        if(mem->page_size > 1) {
+          imsg_notice2("using %d page%s and %d pad byte%s",
+            fs_patched.npages, str_plural(fs_patched.npages),
+            fs_patched.nfill, str_plural(fs_patched.nfill));
+          if(fs_patched.ntrailing)
+            msg_notice2(", and %d trailing 0xff byte%s",
+              fs_patched.ntrailing, str_plural(fs_patched.ntrailing));
+          msg_notice2("\n");
+        }
+      memcpy(&fs, &fs_patched, sizeof fs);
+    }
+  }
+
+  // Write the buffer contents to the selected memory
+  pmsg_info("writing %d byte%s to %s ...\n", fs.nbytes,
+    str_plural(fs.nbytes), mem->desc);
+
+  if(!(flags & UF_NOWRITE)) {
+    if(mem->size > 32 || verbose > 1)
+      report_progress(0, 1, "Writing");
+    rc = avr_write_mem(pgm, p, mem, size, (flags & UF_AUTO_ERASE) != 0);
+    report_progress(1, 1, NULL);
+  } else {
+    // Test mode: write to stdout in intel hex rather than to the chip
+    rc = fileio_mem(FIO_WRITE, "-", FMT_IHEX, p, mem, size);
+  }
+
+  if (rc < 0) {
+    pmsg_error("unable to write %s, rc=%d\n", mem->desc, rc);
+    return -1;
+  }
+
+  pmsg_info("%d byte%s of %s written\n", fs.nbytes, str_plural(fs.nbytes), mem->desc);
+
+  return rc;
+}
+
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updateflags flags) {
   int retval = LIBAVRDUDE_GENERAL_FAILURE;
   AVRPART *v;
   AVRMEM *mem, **umemlist = NULL, *m;
   Segment *seglist = NULL;
-  Filestats fs, fs_patched;
+  Filestats fs;
   char *tofree;
   const char *umstr = upd->memstr;
 
@@ -558,74 +632,11 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     if(memstats_mem(p, mem, rc, &fs) < 0)
       goto error;
 
-    imsg_info("with %d byte%s in %d section%s within %s\n",
-      fs.nbytes, str_plural(fs.nbytes),
-      fs.nsections, str_plural(fs.nsections),
-      str_ccinterval(fs.firstaddr, fs.lastaddr));
-    if(mem->page_size > 1) {
-      imsg_info("using %d page%s and %d pad byte%s",
-        fs.npages, str_plural(fs.npages),
-        fs.nfill, str_plural(fs.nfill));
-      if(fs.ntrailing)
-        msg_info(", cutting off %d trailing 0xff byte%s",
-          fs.ntrailing, str_plural(fs.ntrailing));
-      msg_info("\n");
-    }
-
-
-
-    // Patch flash input, eg, for vector bootloaders
-    if(pgm->flash_readhook) {
-      AVRMEM *mem = avr_locate_mem(p, umstr);
-      if(mem && mem_is_flash(mem)) {
-        rc = pgm->flash_readhook(pgm, p, mem, upd->filename, rc);
-        if (rc < 0) {
-          pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));
-          goto error;
-        }
-        if(memstats(p, umstr, rc, &fs_patched) < 0)
-          goto error;
-        if(memcmp(&fs_patched, &fs, sizeof fs)) {
-          pmsg_info("preparing flash input for device%s\n",
-            pgm->prog_modes & PM_SPM? " bootloader": "");
-            imsg_notice2("with %d byte%s in %d section%s within %s\n",
-              fs_patched.nbytes, str_plural(fs_patched.nbytes),
-              fs_patched.nsections, str_plural(fs_patched.nsections),
-              str_ccinterval(fs_patched.firstaddr, fs_patched.lastaddr));
-            if(mem->page_size > 1) {
-              imsg_notice2("using %d page%s and %d pad byte%s",
-                fs_patched.npages, str_plural(fs_patched.npages),
-                fs_patched.nfill, str_plural(fs_patched.nfill));
-              if(fs_patched.ntrailing)
-                msg_notice2(", and %d trailing 0xff byte%s",
-                  fs_patched.ntrailing, str_plural(fs_patched.ntrailing));
-              msg_notice2("\n");
-            }
-        }
-      }
-    }
-    size = rc;
-
-    // Write the buffer contents to the selected memory
-    pmsg_info("writing %d byte%s to %s ...\n", fs.nbytes,
-      str_plural(fs.nbytes), mem_desc);
-
-    if (!(flags & UF_NOWRITE)) {
-      if(mem->size > 32 || verbose > 1)
-        report_progress(0, 1, "Writing");
-      rc = avr_write(pgm, p, umstr, size, (flags & UF_AUTO_ERASE) != 0);
-      report_progress(1, 1, NULL);
+    if(umemlist) {
+      break;
     } else {
-      // Test mode: write to stdout in intel hex rather than to the chip
-      rc = fileio(FIO_WRITE, "-", FMT_IHEX, p, umstr, size);
+      update_avr_write(pgm, p, mem, upd, flags, rc, "Writing");
     }
-
-    if (rc < 0) {
-      pmsg_error("unable to write %s, rc=%d\n", mem_desc, rc);
-      goto error;
-    }
-
-    pmsg_info("%d byte%s of %s written\n", fs.nbytes, str_plural(fs.nbytes), mem_desc);
 
     if (!(flags & UF_VERIFY))   // Fall through for auto verify unless
       break;
