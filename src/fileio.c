@@ -331,6 +331,9 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
 unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
   AVRMEM *base;
 
+  if(mem->type == 0 && mem->size == ANY_MEM_SIZE)
+    return 0;
+
   unsigned location =
     mem_is_in_flash(mem) && (base = avr_locate_flash(p))? mem->offset - base->offset:
     mem_is_io(mem) || mem_is_sram(mem)? MAX_FLASH_SIZE + mem->offset:
@@ -1544,7 +1547,6 @@ int fileio_fmt_autodetect(const char *fname) {
 
   return format;
 }
-
 
 
 int fileio_mem(int op, const char *filename, FILEFMT format,

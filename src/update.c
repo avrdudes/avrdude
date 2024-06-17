@@ -396,8 +396,8 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if(memstats_mem(p, mem, size, &fs) < 0)
     return -1;
-  imsg_info("read %d byte%s in %d section%s within %s\n",
-    fs.nbytes, str_plural(fs.nbytes),
+  imsg_info("read %d byte%s for %s in %d section%s within %s\n",
+    fs.nbytes, str_plural(fs.nbytes), avr_mem_name(p, mem),
     fs.nsections, str_plural(fs.nsections),
     str_ccinterval(fs.firstaddr, fs.lastaddr));
   if(mem->page_size > 1) {
@@ -633,6 +633,37 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       goto error;
 
     if(umemlist) {
+      int allsize = rc;
+      for(int i=0; i<ns; i++) {
+        m = umemlist[i];
+        // Silently skip readonly memories
+        if(mem_is_readonly(m))
+          continue;
+
+        const char *m_name = avr_mem_name(p, m);
+        const char *caption = str_ccprintf("Writing %-*s", maxmemstrlen, m_name);
+        int off = fileio_mem_offset(p, m);
+        if(off < 0) {
+          pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
+          continue;
+        }
+        if(allsize <= off) {
+          pmsg_warning("input file has no data for %s, skipping ...\n", m_name);
+          continue;
+        }
+        // Copy input file contents into memory
+        size = m->size;
+        if(allsize - off < size)
+          size = allsize - off;
+        memcpy(m->buf, mem->buf+off, size);
+        memcpy(m->tags, mem->tags+off, size);
+
+        int ret = update_avr_write(pgm, p, m, upd, flags, size, caption);
+        if(ret < 0) {
+          pmsg_warning("unable to write %s (ret = %d), skipping...\n", m_name, ret);
+          continue;
+        }
+      }
       break;
     } else {
       update_avr_write(pgm, p, mem, upd, flags, rc, "Writing");
