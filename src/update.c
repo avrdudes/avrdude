@@ -290,13 +290,9 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
    */
   char *umstr = upd->memstr, *dstr = mmt_strdup(umstr), *s = dstr, *e;
   for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
-    if(e) {                     // Terminate and remove trailing space
+    if(e)
       *e = 0;
-      for(char *z = e-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
-        *z = 0;
-    }
-    while(*s && isascii(*s & 0xff) && isspace(*s & 0xff)) // Skip spaces
-      s++;
+    s = str_trim(s);
     if(*s && !avr_mem_might_be_known(s) && !str_eq(s, "all")) {
       pmsg_error("unknown memory %s in -U %s:...\n", s, umstr);
       ret = LIBAVRDUDE_GENERAL_FAILURE;
@@ -422,13 +418,9 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
     char *dstr = mmt_strdup(umstr), *s = dstr, *e;
     for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
-      if(e) {                   // Terminate and remove trailing space
+      if(e)
         *e = 0;
-        for(char *z = e-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
-          *z = 0;
-      }
-      while(*s && isascii(*s & 0xff) && isspace(*s & 0xff)) // Skip spaces
-        s++;
+      s = str_trim(s);
       if(str_eq(s, "all")) {
         for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
           if(backup_mem(p, (m = ldata(lm))))
