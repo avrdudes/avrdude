@@ -464,8 +464,9 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     return LIBAVRDUDE_SOFTFAIL;
   }
 
+  const char *mem_desc = !umemlist? avr_mem_name(p, mem):
+    ns==1? avr_mem_name(p, umemlist[0]): "multiple memories";
   int rc = 0;
-  const char *mem_desc = avr_mem_name(p, mem);
   switch (upd->op) {
   case DEVICE_READ:
     // Read out the specified device memory and write it to a file
@@ -489,8 +490,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
        */
       int dffo = cx->avr_disableffopt;
       cx->avr_disableffopt = 1;
-      pmsg_info("reading %s memor%s ...\n",
-        ns==1? avr_mem_name(p, umemlist[0]): "multiple", ns==1? "y": "ies");
+      pmsg_info("reading %s ...\n", mem_desc);
       int nn = 0;
       for(int ii = 0; ii < ns; ii++) {
         m = umemlist[ii];
@@ -547,17 +547,15 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     break;
 
   case DEVICE_WRITE:
-    // Write the selected device memory using data from a file
+    // Write the selected device memory/ies using data from a file
 
-    rc = fileio(FIO_READ, upd->filename, upd->format, p, umstr, -1);
+    pmsg_info("reading input file %s for %s\n", str_inname(upd->filename), mem_desc);
+    rc = fileio_mem(FIO_READ, upd->filename, upd->format, p, mem, -1);
     if (rc < 0) {
       pmsg_error("read from file %s failed\n", str_inname(upd->filename));
       goto error;
     }
-
-    pmsg_info("reading input file %s for %s\n", str_inname(upd->filename), mem_desc);
-
-    if(memstats(p, umstr, rc, &fs) < 0)
+    if(memstats_mem(p, mem, rc, &fs) < 0)
       goto error;
 
     imsg_info("with %d byte%s in %d section%s within %s\n",
@@ -573,6 +571,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
           fs.ntrailing, str_plural(fs.ntrailing));
       msg_info("\n");
     }
+
+
 
     // Patch flash input, eg, for vector bootloaders
     if(pgm->flash_readhook) {
@@ -607,7 +607,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     size = rc;
 
     // Write the buffer contents to the selected memory
-    pmsg_info("writing %d byte%s %s ...\n", fs.nbytes,
+    pmsg_info("writing %d byte%s to %s ...\n", fs.nbytes,
       str_plural(fs.nbytes), mem_desc);
 
     if (!(flags & UF_NOWRITE)) {
