@@ -347,6 +347,37 @@ size_t str_numc(const char *str, char c) {
   return ret;
 }
 
+// Return a pointer to the first non-white-space character in a string (or the end)
+const char *str_ltrim(const char *s) {
+  while(*s && isascii(*s & 0xff) && isspace(*s & 0xff))
+    s++;
+  return s;
+}
+
+// Terminate at position n and remove white space before that
+char *str_nrtrim(char *s, size_t n) {
+  s[n] = 0;
+  if(n)
+    for(char *z = s+n-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
+      *z = 0;
+  return s;
+}
+
+// Remove trailing white space
+char *str_rtrim(char *s) {
+  return str_nrtrim(s, strlen(s));
+}
+
+// Terminate at position n and remove leading and trailing white space
+char *str_ntrim(char *s, size_t n) {
+  return (char *) str_ltrim(str_nrtrim(s, n));
+}
+
+// Remove leading and trailing white space
+char *str_trim(char *s) {
+  return (char *) str_ltrim(str_nrtrim(s, strlen(s)));
+}
+
 // Changes string to be all lowercase and returns original pointer
 char *str_lc(char *s) {
   for(char *t = s; *t; t++)

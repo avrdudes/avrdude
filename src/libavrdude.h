@@ -1488,6 +1488,11 @@ const char *str_ccprintf(const char *fmt, ...)
 const char *str_ccstrdup(const char *str);
 char *str_fgets(FILE *fp, const char **errpp);
 size_t str_numc(const char *str, char c);
+const char *str_ltrim(const char *s);
+char *str_nrtrim(char *s, size_t n);
+char *str_rtrim(char *s);
+char *str_ntrim(char *s, size_t n);
+char *str_trim(char *s);
 char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);
