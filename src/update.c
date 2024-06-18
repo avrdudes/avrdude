@@ -272,6 +272,61 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
   msg_ext_error("\n");
 }
 
+// Whether a memory should be backup-ed: exclude sub-memories
+static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
+  return mem_is_in_flash(mem)? mem_is_flash(mem):
+    mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
+    mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
+    mem_is_io(mem)? 0:
+    !mem_is_sram(mem);
+}
+
+// Generate memory list from string and put number of memories into *np
+static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *rwvsoftfailp) {
+  AVRMEM *m;
+
+  int ns = (lsize(p->mem) + 1) * ((int) str_numc(umstr, ',') + 1); // Upper limit of memories
+  AVRMEM **umemlist = mmt_malloc(ns*sizeof*umemlist);
+  ns = 0;                     // Now count how many there really are mentioned
+
+  // Parse comma-separated list of memories incl memory all
+  char *dstr = mmt_strdup(umstr), *s = dstr, *e;
+  for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
+    if(e)
+      *e = 0;
+    s = str_trim(s);
+    if(str_eq(s, "all")) {
+      for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
+        if(is_backup_mem(p, (m = ldata(lm))))
+          umemlist[ns++] = m;
+    } else if(!*s) {          // Ignore empty list elements
+    } else {
+      if((m = avr_locate_mem(p, s)))
+        umemlist[ns++] = m;
+      else if(rwvsoftfailp) {
+        pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, umstr);
+        *rwvsoftfailp = 1;
+      }
+    }
+    if(!e)
+      break;
+    s = e+1;
+  }
+  mmt_free(dstr);
+
+  // De-duplicate list, keeping order
+  for(int i=0; i < ns; i++) {
+    m = umemlist[i];
+    // Move down remaining list whenever same memory detected
+    for(int j = i+1; j < ns; j++)
+       for(; j < ns && m == umemlist[j]; ns--)
+         memmove(umemlist+j, umemlist+j+1, (ns-j-1)*sizeof*umemlist);
+  }
+
+  *np = ns;
+  return umemlist;
+}
+
 // Basic checks to reveal serious failure before programming (and on autodetect set format)
 int update_dryrun(const AVRPART *p, UPDATE *upd) {
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
@@ -377,15 +432,6 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   return ret;
 }
 
-
-// Whether a memory should be backup-ed: exclude sub-memories
-static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
-  return mem_is_in_flash(mem)? mem_is_flash(mem):
-    mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
-    mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
-    mem_is_io(mem)? 0:
-    !mem_is_sram(mem);
-}
 
 static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   const UPDATE *upd, enum updateflags flags, int size, int multiple) {
@@ -575,43 +621,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   int allsize, len, maxrlen = 0, ns = 0;
 
   if(str_eq(umstr, "all") || strchr(umstr, ',')) {
-    ns = (lsize(p->mem) + 1) * ((int) str_numc(umstr, ',') + 1); // Upper limit of memories
-    umemlist = mmt_malloc(ns*sizeof*umemlist);
-    ns = 0;                     // Now count how many there really are mentioned
-
-    // Parse comma-separated list of memories incl memory all
-    char *dstr = mmt_strdup(umstr), *s = dstr, *e;
-    for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
-      if(e)
-        *e = 0;
-      s = str_trim(s);
-      if(str_eq(s, "all")) {
-        for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
-          if(is_backup_mem(p, (m = ldata(lm))))
-            umemlist[ns++] = m;
-      } else if(!*s) {          // Ignore empty list elements
-      } else {
-        if((m = avr_locate_mem(p, s)))
-          umemlist[ns++] = m;
-        else {
-          pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, umstr);
-          rwvsoftfail = 1;
-        }
-      }
-      if(!e)
-        break;
-      s = e+1;
-    }
-    mmt_free(dstr);
-
-    // De-duplicate list, keeping order
-    for(int i=0; i < ns; i++) {
-      m = umemlist[i];
-      // Move down remaining list whenever same memory detected
-      for(int j = i+1; j < ns; j++)
-         for(; j < ns && m == umemlist[j]; ns--)
-           memmove(umemlist+j, umemlist+j+1, (ns-j-1)*sizeof*umemlist);
-    }
+    umemlist = memory_list(umstr, p, &ns, &rwvsoftfail);
 
     if(!ns) {                   // ns is number of memories listed
       pmsg_warning("skipping -U %s:... as no memory in part %s available\n", umstr, p->desc);
