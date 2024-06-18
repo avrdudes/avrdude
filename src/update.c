@@ -260,6 +260,7 @@ int update_is_readable(const char *fn) {
   return access(fn, R_OK) == 0 && update_is_okfile(fn);
 }
 
+
 static void ioerror(const char *iotype, const UPDATE *upd) {
   int errnocp = errno;
 
@@ -455,6 +456,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if(rc < 0)
     return -1;
+  // @@@ has there has been output in the meantime to make the ", x bytes written" look out of place?
   if(pbar && !(flags & UF_VERIFY))
     imsg_info("%d byte%s of %s written", fs.nbytes, str_plural(fs.nbytes), m_name);
   else if(!pbar)
@@ -492,6 +494,7 @@ static int update_avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     goto error;
   }
 
+  // @@@ has there has been output in the meantime to make the ", x bytes verified" look out of place?
   int verified = fs.nbytes + fs.ntrailing;
   if(pbar || upd->op == DEVICE_VERIFY)
     imsg_info("%d byte%s of %s verified\n", verified, str_plural(verified), m_name);
@@ -504,6 +507,49 @@ error:
   led_clr(pgm, LED_VFY);
   avr_free_part(v);
   return retval;
+}
+
+static int update_mem_from_all(const UPDATE *upd, const AVRPART *p, const AVRMEM *m,
+  const AVRMEM *all, int allsize) {
+
+  const char *m_name = avr_mem_name(p, m);
+  int off = fileio_mem_offset(p, m);
+  if(off < 0) {
+    pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
+    return LIBAVRDUDE_GENERAL_FAILURE;
+  }
+  // Copy input file contents into memory
+  int size = m->size;
+  if(allsize-off < size)  // Clip to available data in input
+    size = allsize > off? allsize-off: 0;
+  if(is_memset(all->tags+off, 0, size)) // Nothing set? This memory was not present
+    size = 0;
+  if(size == 0)
+    pmsg_warning("%s has no data for %s, skipping ...\n", str_inname(upd->filename), m_name);
+
+  memcpy(m->buf, all->buf+off, size);
+  memcpy(m->tags, all->tags+off, size);
+
+  return size;
+}
+
+static int update_all_from_file(const UPDATE *upd, const AVRPART *p, const AVRMEM *all,
+  const char *mem_desc, Filestats *fsp) {
+  // On writing to the device trailing 0xff might be cut off
+  int op = upd->op == DEVICE_WRITE? FIO_READ: FIO_READ_FOR_VERIFY;
+  int allsize = fileio_mem(op, upd->filename, upd->format, p, all, -1);
+  if(allsize < 0) {
+    pmsg_error("reading from file %s failed\n", str_inname(upd->filename));
+    return -1;
+  }
+  if(memstats_mem(p, all, allsize, fsp) < 0)
+    return -1;
+  pmsg_info(upd->op == DEVICE_WRITE?
+    "reading %d byte%s for %s from input file %s\n":
+    "verifying %d byte%s of %s against input file %s\n",
+    fsp->nbytes, str_plural(fsp->nbytes), mem_desc, str_inname(upd->filename)
+  );
+  return allsize;
 }
 
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updateflags flags) {
@@ -526,8 +572,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     return terminal_mode(pgm, p);
   }
 
-  int size, len, maxrlen = 0, ns = 0;
-  // Compute list of multiple memories if umstr indicates so
+  int allsize, len, maxrlen = 0, ns = 0;
+
   if(str_eq(umstr, "all") || strchr(umstr, ',')) {
     ns = (lsize(p->mem) + 1) * ((int) str_numc(umstr, ',') + 1); // Upper limit of memories
     umemlist = mmt_malloc(ns*sizeof*umemlist);
@@ -659,7 +705,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       rc = avr_read(pgm, p, umstr, 0);
       report_progress(1, 1, NULL);
       if(rc < 0) {
-        pmsg_error("unable to read all of %s, rc=%d\n", mem_desc, rc);
+        pmsg_error("unable to read all of %s (rc = %d)\n", mem_desc, rc);
         goto error;
       }
       if(rc == 0)
@@ -677,58 +723,37 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   case DEVICE_WRITE:
     // Write the selected device memory/ies using data from a file
-    rc = fileio_mem(FIO_READ, upd->filename, upd->format, p, mem, -1);
-    if(rc < 0) {
-      pmsg_error("read from file %s failed\n", str_inname(upd->filename));
+    if((allsize = update_all_from_file(upd, p, mem, mem_desc, &fs)) < 0)
       goto error;
-    }
-    if(memstats_mem(p, mem, rc, &fs) < 0)
-      goto error;
-    pmsg_info("reading %d byte%s for %s from input file %s\n",
-      fs.nbytes, str_plural(fs.nbytes), mem_desc, str_inname(upd->filename));
-
     if(umemlist) {
-      int allsize = rc, ret;
       for(int i=0; i<ns; i++) {
         m = umemlist[i];
         // Silently skip readonly memories and fuses/lock in bootloaders
         if(mem_is_readonly(m) || ((pgm->prog_modes & PM_SPM) && (mem_is_in_fuses(m) || mem_is_lock(m))))
           continue;
 
-        const char *m_name = avr_mem_name(p, m);
-        int off = fileio_mem_offset(p, m);
-        if(off < 0) {
-          pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
-          rwvproblem = 1;
-          continue;
-        }
-        // Copy input file contents into memory
-        size = m->size;
-        if(allsize-off < size)  // Clip to available data in input
-          size = allsize > off? allsize-off: 0;
-        if(is_memset(mem->tags+off, 0, size)) // Nothing set? This memory was not present
-          size = 0;
-        if(size == 0) {
-          pmsg_warning("%s has no data for %s, skipping ...\n", str_inname(upd->filename), m_name);
-          rwvsoftfail = 1;
-          continue;
-        }
-        memcpy(m->buf, mem->buf+off, size);
-        memcpy(m->tags, mem->tags+off, size);
-        if((ret = update_avr_write(pgm, p, m, upd, flags, size, 1)) < 0) {
-          pmsg_warning("unable to write %s (ret = %d), skipping...\n", m_name, ret);
-          rwvproblem = 1;
-          continue;
-        }
-        if((flags & UF_VERIFY) && update_avr_verify(pgm, p, m, upd, size, rcap) < 0) {
-          rwvproblem = 1;
-          continue;
+        int ret, size = update_mem_from_all(upd, p, m, mem, allsize);
+        switch(size) {
+        case LIBAVRDUDE_GENERAL_FAILURE:
+          rwvproblem = 1; break;
+        case 0:
+          rwvsoftfail = 1; break;
+        default:
+          if((ret = update_avr_write(pgm, p, m, upd, flags, size, 1)) < 0) {
+            pmsg_warning("unable to write %s (ret = %d), skipping...\n", avr_mem_name(p, m), ret);
+            rwvproblem = 1;
+            continue;
+          }
+          // @@@ verify size could be too small if file was not a multi-file and had trailing 0xff
+          if((flags & UF_VERIFY) && update_avr_verify(pgm, p, m, upd, size, rcap) < 0) {
+            rwvproblem = 1;
+            continue;
+          }
         }
       }
-      break;
     } else {
-      if((rc = update_avr_write(pgm, p, mem, upd, flags, rc, 0)) < 0) {
-        pmsg_error("unable to write %s, rc=%d\n", mem_desc, rc);
+      if((rc = update_avr_write(pgm, p, mem, upd, flags, allsize, 0)) < 0) {
+        pmsg_error("unable to write %s (rc = %d)\n", mem_desc, rc);
         goto error;
       }
       if((flags & UF_VERIFY) && update_avr_verify(pgm, p, mem, upd, fs.lastaddr+1, rcap) < 0)
@@ -738,20 +763,27 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   case DEVICE_VERIFY:
     // Verify that the in memory file is the same as what is on the chip
-    rc = fileio_mem(FIO_READ_FOR_VERIFY, upd->filename, upd->format, p, mem, -1);
-    if(rc < 0) {
-      pmsg_error("read from file %s failed\n", str_inname(upd->filename));
+    if((allsize = update_all_from_file(upd, p, mem, mem_desc, &fs)) < 0)
       goto error;
-    }
-    size = rc;
-    if(memstats_mem(p, mem, size, &fs) < 0)
-      goto error;
-    pmsg_info("verifying %d byte%s for %s from input file %s\n",
-      fs.nbytes, str_plural(fs.nbytes), mem_desc, str_inname(upd->filename));
-
     if(umemlist) {
+      for(int i=0; i<ns; i++) {
+        m = umemlist[i];
+
+        int size = update_mem_from_all(upd, p, m, mem, allsize);
+        switch(size) {
+        case LIBAVRDUDE_GENERAL_FAILURE:
+          rwvproblem = 1; break;
+        case 0:
+          rwvsoftfail = 1; break;
+        default:
+          if(update_avr_verify(pgm, p, m, upd, size, rcap) < 0) {
+            rwvproblem = 1;
+            continue;
+          }
+        }
+      }
     } else {
-      if(update_avr_verify(pgm, p, mem, upd, size, rcap) < 0)
+      if(update_avr_verify(pgm, p, mem, upd, allsize, rcap) < 0)
         goto error;
     }
     break;
