@@ -282,7 +282,7 @@ static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
 }
 
 // Generate memory list from string and put number of memories into *np
-static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *rwvsoftfailp) {
+static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *rwvsoftfailp, int *dry) {
   AVRMEM *m;
 
   int ns = (lsize(p->mem) + 1) * ((int) str_numc(umstr, ',') + 1); // Upper limit of memories
@@ -301,6 +301,16 @@ static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *r
           umemlist[ns++] = m;
     } else if(!*s) {          // Ignore empty list elements
     } else {
+      if(dry) {
+        // Reject an update if memory name is not known amongst any part (suspect a typo)
+        if(!avr_mem_might_be_known(s)) {
+          pmsg_error("unknown memory %s in -U %s:...\n", s, umstr);
+          *dry = LIBAVRDUDE_GENERAL_FAILURE;
+          mmt_free(dstr);
+          goto done;
+        } else if(!avr_locate_mem(p, s))
+          *dry = LIBAVRDUDE_SOFTFAIL;
+      }
       if((m = avr_locate_mem(p, s)))
         umemlist[ns++] = m;
       else if(rwvsoftfailp) {
@@ -323,7 +333,13 @@ static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *r
          memmove(umemlist+j, umemlist+j+1, (ns-j-1)*sizeof*umemlist);
   }
 
-  *np = ns;
+done:
+  if(np)
+    *np = ns;
+  if(dry) {
+    mmt_free(umemlist);
+    umemlist = NULL;
+  }
   return umemlist;
 }
 
@@ -337,27 +353,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
     return 0;
   }
 
-  /*
-   * Allow memory name to be a list. Reject an update if memory name is not
-   * known amongst any part (suspect a typo) but accept when the specific part
-   * does not have it (allow unifying i/faces); also accept pseudo memory all
-   */
-  char *umstr = upd->memstr, *dstr = mmt_strdup(umstr), *s = dstr, *e;
-  for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
-    if(e)
-      *e = 0;
-    s = str_trim(s);
-    if(*s && !avr_mem_might_be_known(s) && !str_eq(s, "all")) {
-      pmsg_error("unknown memory %s in -U %s:...\n", s, umstr);
-      ret = LIBAVRDUDE_GENERAL_FAILURE;
-      break;
-    } else if(*s && !avr_locate_mem(p, s))
-      ret = LIBAVRDUDE_SOFTFAIL;
-    if(!e)
-      break;
-    s = e+1;
-  }
-  mmt_free(dstr);
+  (void) memory_list(upd->memstr, p, NULL, NULL, &ret);
 
   known = 0;
   // Necessary to check whether the file is readable?
@@ -621,7 +617,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   int allsize, len, maxrlen = 0, ns = 0;
 
   if(str_eq(umstr, "all") || strchr(umstr, ',')) {
-    umemlist = memory_list(umstr, p, &ns, &rwvsoftfail);
+    umemlist = memory_list(umstr, p, &ns, &rwvsoftfail, NULL);
 
     if(!ns) {                   // ns is number of memories listed
       pmsg_warning("skipping -U %s:... as no memory in part %s available\n", umstr, p->desc);
