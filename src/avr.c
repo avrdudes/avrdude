@@ -1333,7 +1333,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         if(quell_progress < 2) {
           if(vroerror < 10) {
             if(!(verror + vroerror))
-              pmsg_warning("verification mismatch%s\n",
+              pmsg_warning("%s verification mismatch%s\n", a->desc,
                 mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
             imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location: ignored)\n",
               buf1[i], buf2[i], i);
@@ -1345,7 +1345,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         // Mismatch is not just in unused bits
         if(verror < maxerrs) {
           if(!(verror + vroerror))
-            pmsg_warning("verification mismatch\n");
+            pmsg_warning("%s verification mismatch\n", a->desc);
           imsg_error("device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
         } else if(verror == maxerrs) {
           imsg_warning("suppressing further verification errors\n");
