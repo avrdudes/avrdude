@@ -281,16 +281,37 @@ static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
     !mem_is_sram(mem);
 }
 
-// Generate memory list from string and put number of memories into *np
-static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *rwvsoftfailp, int *dry) {
-  AVRMEM *m;
+/*
+ * Generate memory list from string and put number of memories into *np; Memory
+ * list can be sth like ee,fl,all\cal,efuse. Exactly one without operator \ can
+ * be present: it removes the second list from first. Normal use is to pass
+ * NULL for dry and let the function write to *np (ie, the number of resulting
+ * memories) and *rwvsoftfail indicating unknown memories for this part. If dry
+ * is set then -1 will be written to *dry when a generally unknown memory is
+ * mentioned or the string has a syntax error.
+ */
+static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
+  int nsub = 0, nm = (lsize(p->mem) + 1) * ((int) str_numc(mstr, ',') + 1); // Upper limit
+  AVRMEM *m, **sub = NULL, **umemlist = mmt_malloc(nm*sizeof*umemlist);
+  char *dstr = mmt_strdup(mstr), *s = dstr, *e;
 
-  int ns = (lsize(p->mem) + 1) * ((int) str_numc(umstr, ',') + 1); // Upper limit of memories
-  AVRMEM **umemlist = mmt_malloc(ns*sizeof*umemlist);
-  ns = 0;                     // Now count how many there really are mentioned
+  switch(str_numc(dstr, '\\')) {
+  case 0:
+    break;
+  default:
+   pmsg_error("list subtracting another with \\ only allowed once: %s\n", mstr);
+   if(*dry)
+     *dry = LIBAVRDUDE_GENERAL_FAILURE;
+    mmt_free(dstr);
+    goto done;
+  case 1:
+    e = strchr(dstr, '\\');
+    sub = memory_list(e+1, p, &nsub, rwvsoftp, dry);
+    *e = 0;
+  }
 
+  nm = 0;                       // Now count how many there really are mentioned
   // Parse comma-separated list of memories incl memory all
-  char *dstr = mmt_strdup(umstr), *s = dstr, *e;
   for(e = strchr(s, ','); 1; e = strchr(s, ',')) {
     if(e)
       *e = 0;
@@ -298,13 +319,13 @@ static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *r
     if(str_eq(s, "all")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_backup_mem(p, (m = ldata(lm))))
-          umemlist[ns++] = m;
-    } else if(!*s) {          // Ignore empty list elements
+          umemlist[nm++] = m;
+    } else if(!*s) {            // Ignore empty list elements
     } else {
       if(dry) {
         // Reject an update if memory name is not known amongst any part (suspect a typo)
         if(!avr_mem_might_be_known(s)) {
-          pmsg_error("unknown memory %s in -U %s:...\n", s, umstr);
+          pmsg_error("unknown memory %s in -U %s:...\n", s, mstr);
           *dry = LIBAVRDUDE_GENERAL_FAILURE;
           mmt_free(dstr);
           goto done;
@@ -312,10 +333,10 @@ static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *r
           *dry = LIBAVRDUDE_SOFTFAIL;
       }
       if((m = avr_locate_mem(p, s)))
-        umemlist[ns++] = m;
-      else if(rwvsoftfailp) {
-        pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, umstr);
-        *rwvsoftfailp = 1;
+        umemlist[nm++] = m;
+      else if(rwvsoftp) {
+        pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, mstr);
+        *rwvsoftp = 1;
       }
     }
     if(!e)
@@ -324,22 +345,28 @@ static AVRMEM **memory_list(const char *umstr, const AVRPART *p, int *np, int *r
   }
   mmt_free(dstr);
 
-  // De-duplicate list, keeping order
-  for(int i=0; i < ns; i++) {
-    m = umemlist[i];
-    // Move down remaining list whenever same memory detected
-    for(int j = i+1; j < ns; j++)
-       for(; j < ns && m == umemlist[j]; ns--)
-         memmove(umemlist+j, umemlist+j+1, (ns-j-1)*sizeof*umemlist);
+  if(sub) {                     // Subtract all memories of second list
+    for(int d=0; d<nsub; d++)
+      for(int i=0; i < nm; i++)
+        if(umemlist[i] == sub[d])
+          umemlist[i] = NULL;
+    mmt_free(sub);
   }
+
+  for(int i=0; i < nm; i++)     // De-duplicate list, keeping order
+    for(int j = i+1; j < nm; j++)
+       if(umemlist[j] == umemlist[i])
+         umemlist[j] = NULL;
+
+  int nj = 0;
+  for(int i = 0; i < nm; i++)   // Remove NULL entries
+    if((umemlist[nj] = umemlist[i]))
+      nj++;
+  nm = nj;
 
 done:
   if(np)
-    *np = ns;
-  if(dry) {
-    mmt_free(umemlist);
-    umemlist = NULL;
-  }
+    *np = nm;
   return umemlist;
 }
 
@@ -353,7 +380,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
     return 0;
   }
 
-  (void) memory_list(upd->memstr, p, NULL, NULL, &ret);
+  mmt_free(memory_list(upd->memstr, p, NULL, NULL, &ret));
 
   known = 0;
   // Necessary to check whether the file is readable?
@@ -616,7 +643,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   int allsize, len, maxrlen = 0, ns = 0;
 
-  if(str_eq(umstr, "all") || strchr(umstr, ',')) {
+  if(str_eq(umstr, "all") || strchr(umstr, ',') || strchr(umstr, '\\')) {
     umemlist = memory_list(umstr, p, &ns, &rwvsoftfail, NULL);
 
     if(!ns) {                   // ns is number of memories listed
