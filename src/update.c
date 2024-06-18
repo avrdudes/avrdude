@@ -316,7 +316,7 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
     if(e)
       *e = 0;
     s = str_trim(s);
-    if(str_eq(s, "all")) {
+    if(str_eq(s, "all") || str_eq(s, "etc")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_backup_mem(p, (m = ldata(lm))))
           umemlist[nm++] = m;
@@ -643,7 +643,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   int allsize, len, maxrlen = 0, ns = 0;
 
-  if(str_eq(umstr, "all") || strchr(umstr, ',') || strchr(umstr, '\\')) {
+  if(str_eq(umstr, "all") || str_eq(umstr, "etc") || strchr(umstr, ',') || strchr(umstr, '\\')) {
     umemlist = memory_list(umstr, p, &ns, &rwvsoftfail, NULL);
 
     if(!ns) {                   // ns is number of memories listed
@@ -687,9 +687,9 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
        * store those pages that are non-empty for a paged memory, and if it was
        * all empty, store only the first empty page to indicate the memory was
        * selected. However, file space on a PC is cheap and fast; the main use
-       * case for saving "all" memory is a backup, and AVRDUDE does not want to
-       * rely on the uploader to know that the backup file requires the paged
-       * memories to be erased first, so the code goes the full hog.
+       * case for saving "all/etc" memory is a backup, and AVRDUDE does not
+       * want to rely on the uploader to know that the backup file requires the
+       * paged memories to be erased first, so the code goes the full hog.
        */
       int dffo = cx->avr_disableffopt;
       cx->avr_disableffopt = 1;
@@ -734,7 +734,6 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       imsg_info("reading %s memory ...\n", mem_desc);
       if(mem->size > 32)
         report_progress(0, 1, rcap);
-
       rc = avr_read(pgm, p, umstr, 0);
       report_progress(1, 1, NULL);
       if(rc < 0) {
@@ -828,7 +827,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   retval =
     rwvproblem? LIBAVRDUDE_GENERAL_FAILURE:
-    rwvsoftfail? LIBAVRDUDE_SOFTFAIL : LIBAVRDUDE_SUCCESS;
+    rwvsoftfail? LIBAVRDUDE_SOFTFAIL: LIBAVRDUDE_SUCCESS;
 
 error:
   if(umemlist) {
