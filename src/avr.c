@@ -1325,16 +1325,17 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
   }
 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size+1: 10;
+  int ro = mem_is_readonly(a); // Other memories can have known protected zones such as bootloaders
   for (i=0; i<size; i++) {
     if ((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = p->prog_modes & PM_ISP? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
-      if(pgm->readonly && pgm->readonly(pgm, p, a, i)) {
+      if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
         if(quell_progress < 2) {
           if(vroerror < 10) {
             if(!(verror + vroerror))
               pmsg_warning("verification mismatch%s\n",
                 mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
-            imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location)\n",
+            imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location: ignored)\n",
               buf1[i], buf2[i], i);
           } else if(vroerror == 10)
             imsg_warning("suppressing further mismatches in read-only areas\n");
