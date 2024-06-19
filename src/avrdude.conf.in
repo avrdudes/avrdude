@@ -17351,6 +17351,21 @@ part # .xmega-cd
         offset             = 0x1000090;
     ;
 
+    memory "calibration"
+        size               = 5;
+        offset             = 0x8e0200;
+    ;
+
+    memory "tempsense"
+        size               = 2;
+        offset             = 0x8e022e;
+    ;
+
+    memory "sernum"
+        size               = 14;
+        offset             = 0x8e0208;
+    ;
+
     memory "usersig"
         size               = 256;
         page_size          = 256;
@@ -17441,6 +17456,10 @@ part parent ".xmega-cd" # .xmega-ab
     memory "prodsig"
         size               = 52;
         readsize           = 52;
+    ;
+
+    memory "calibration"
+        size               = 4;
     ;
 ;
 
@@ -18508,6 +18527,10 @@ part parent ".xmega-ab" # x64b1
         initval            = 0xff;
     ;
 
+    memory "calibration"
+        size               = 5;
+    ;
+
     memory "sram"
         size               = 4096;
     ;
@@ -18554,6 +18577,10 @@ part parent ".xmega-ab" # x64b3
 
     memory "fuse4"
         initval            = 0xff;
+    ;
+
+    memory "calibration"
+        size               = 5;
     ;
 
     memory "sram"
@@ -19177,6 +19204,10 @@ part parent ".xmega-ab" # x128b1
         initval            = 0xff;
     ;
 
+    memory "calibration"
+        size               = 5;
+    ;
+
     memory "sram"
         size               = 8192;
     ;
@@ -19226,6 +19257,10 @@ part parent ".xmega-ab" # x128b3
 
     memory "fuse4"
         initval            = 0xff;
+    ;
+
+    memory "calibration"
+        size               = 5;
     ;
 
     memory "sram"
