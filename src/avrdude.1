@@ -845,6 +845,9 @@ Application flash area
 Application table flash area
 .It boot
 Boot flash area
+.It   calibration
+An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
+oscillator calibration values; this is a sub-memory of prodsig
 .It fuse0
 A.k.a. jtaguid: JTAG user ID for some devices
 .It fuse1
@@ -857,12 +860,17 @@ Other fuse bytes of ATxmega devices, where
 is 2, 4 or 5, for system configuration
 .It prodsig
 The production signature row is a read-only memory section for factory
-programmed data such as the signature and calibration values for
-oscillators or analogue modules; it also contains a serial number that
-consists of the production lot number, wafer number and wafer coordinates
-for the part
+programmed data such as the calibration values for oscillators or analogue
+modules; it also contains a serial number that consists of the production
+lot number, wafer number and wafer coordinates for the part
+.It sernum
+Serial number with a unique ID for the part consisting of 10 bytes; these
+are part of the prodsig memory above
 .It sigrow
 Memory alias for prodsig
+.It tempsense
+A two-byte memory, which is located within prodsig; it contains a 12-bit
+temperature sensor calibration value
 .It usersig
 Additional flash memory page that can be used for firmware settings; this
 memory is not erased during a chip erase
