@@ -6233,6 +6233,11 @@ part parent "m324p" # m324pb
     memory "sigrow"
         alias "prodsig";
     ;
+
+    memory "sernum"
+        size               = 10;
+        offset             = 0xe; # Sub-region of prodsig
+    ;
 ;
 
 #------------------------------------------------------------
@@ -11035,6 +11040,11 @@ part parent "m328" # m328pb
 
     memory "sigrow"
         alias "prodsig";
+    ;
+
+    memory "sernum"
+        size               = 10;
+        offset             = 0xe; # Sub-region of prodsig
     ;
 ;
 
@@ -20763,6 +20773,11 @@ part parent ".reduced_core_tiny" # t102
         alias "prodsig";
     ;
 
+    memory "sernum"
+        size               = 10;
+        offset             = 0x6; # Sub-region of prodsig
+    ;
+
     memory "io"
         size               = 64;
     ;
@@ -20804,6 +20819,11 @@ part parent ".reduced_core_tiny" # t104
 
     memory "sigrow"
         alias "prodsig";
+    ;
+
+    memory "sernum"
+        size               = 10;
+        offset             = 0x6; # Sub-region of prodsig
     ;
 
     memory "io"
