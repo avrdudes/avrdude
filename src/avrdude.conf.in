@@ -17262,18 +17262,46 @@ part parent "m645" # m6450p
 ;
 
 #------------------------------------------------------------
-# AVR XMEGA family common values
+# AVR XMEGA-C/D family common values
 #------------------------------------------------------------
 
-part # .xmega
-    desc                   = "AVR XMEGA family common values";
-    id                     = ".xmega";
+part # .xmega-cd
+    desc                   = "AVR XMEGA-C/D family common values";
+    id                     = ".xmega-cd";
     prog_modes             = PM_SPM | PM_PDI;
     n_boot_sections        = 1;
     mcu_base               = 0x0090;
     nvm_base               = 0x01c0;
     autobaud_sync          = 0x20;
     factory_fcpu           = 2000000;
+
+    memory "eeprom"
+        page_size          = 32;
+        offset             = 0x8c0000;
+        readsize           = 256;
+    ;
+
+    memory "flash"
+        page_size          = 256;
+        offset             = 0x800000;
+        readsize           = 256;
+    ;
+
+    memory "application"
+        page_size          = 256;
+        offset             = 0x800000;
+        readsize           = 256;
+    ;
+
+    memory "apptable"
+        page_size          = 256;
+        readsize           = 256;
+    ;
+
+    memory "boot"
+        page_size          = 256;
+        readsize           = 256;
+    ;
 
     memory "fuse1"
         size               = 1;
@@ -17309,9 +17337,9 @@ part # .xmega
     ;
 
     memory "prodsig"
-        size               = 50;
+        size               = 64;
         offset             = 0x8e0200;
-        readsize           = 50;
+        readsize           = 64;
     ;
 
     memory "sigrow"
@@ -17321,6 +17349,13 @@ part # .xmega
     memory "signature"
         size               = 3;
         offset             = 0x1000090;
+    ;
+
+    memory "usersig"
+        size               = 256;
+        page_size          = 256;
+        offset             = 0x8e0400;
+        readsize           = 256;
     ;
 
     memory "io"
@@ -17339,26 +17374,58 @@ part # .xmega
 
 # Fuse for fault detection action on Px0..5 (unique to XMEGA-E)
 
-part parent ".xmega" # .xmega-e
+part parent ".xmega-cd" # .xmega-e
     desc                   = "AVR XMEGA-E family common values";
     id                     = ".xmega-e";
+    n_interrupts           = 43;
+
+    memory "flash"
+        page_size          = 128;
+    ;
+
+    memory "application"
+        page_size          = 128;
+    ;
+
+    memory "apptable"
+        page_size          = 128;
+    ;
+
+    memory "boot"
+        page_size          = 128;
+    ;
+
+    memory "fuse2"
+        bitmask            = 0x43;
+    ;
 
     memory "fuse6"
         size               = 1;
         initval            = 0xff;
         offset             = 0x8f0026;
     ;
+
+    memory "prodsig"
+        size               = 54;
+        readsize           = 54;
+    ;
+
+    memory "usersig"
+        size               = 128;
+        page_size          = 128;
+    ;
 ;
 
 #------------------------------------------------------------
-# AVR XMEGA-A family common values
+# AVR XMEGA-A/B family common values
 #------------------------------------------------------------
 
-# JTAG user ID (unique to XMEGA-A and XMEGA-B)
+# Most XMEGA-A/B have JTAG, and therefore JTAG user ID
 
-part parent ".xmega" # .xmega-a
-    desc                   = "AVR XMEGA-A family common values";
-    id                     = ".xmega-a";
+part parent ".xmega-cd" # .xmega-ab
+    desc                   = "AVR XMEGA-A/B family common values";
+    id                     = ".xmega-ab";
+    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
 
     memory "fuse0"
         size               = 1;
@@ -17367,7 +17434,13 @@ part parent ".xmega" # .xmega-a
     ;
 
     memory "fuse4"
+        initval            = 0xfe;
         bitmask            = 0x1f;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
     ;
 ;
 
@@ -17375,7 +17448,7 @@ part parent ".xmega" # .xmega-a
 # ATxmega16A4U
 #------------------------------------------------------------
 
-part parent ".xmega-a" # x16a4u
+part parent ".xmega-ab" # x16a4u
     desc                   = "ATxmega16A4U";
     id                     = "x16a4u";
     variants               =
@@ -17388,6 +17461,7 @@ part parent ".xmega-a" # x16a4u
         "ATxmega16A4U-M7:  VQFN44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4U-MH:  QFN44,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4U-MHR: VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
+    prog_modes             = PM_SPM | PM_PDI;
     mcuid                  = 232;
     n_interrupts           = 127;
     boot_section_size      = 4096;
@@ -17396,53 +17470,24 @@ part parent ".xmega-a" # x16a4u
 
     memory "eeprom"
         size               = 1024;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x5000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x4000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x803000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x804000;
-        readsize           = 256;
-    ;
-
-    memory "fuse4"
-        initval            = 0xfe;
-    ;
-
-    memory "prodsig"
-        size               = 52;
-        readsize           = 52;
-    ;
-
-    memory "usersig"
-        size               = 256;
-        page_size          = 256;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -17454,7 +17499,7 @@ part parent ".xmega-a" # x16a4u
 # ATxmega16C4
 #------------------------------------------------------------
 
-part parent "x16a4u" # x16c4
+part parent ".xmega-cd" # x16c4
     desc                   = "ATxmega16C4";
     id                     = "x16c4";
     variants               =
@@ -17467,19 +17512,39 @@ part parent "x16a4u" # x16c4
         "ATxmega16C4-MH:  VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16C4-MHR: VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 233;
+    n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x43;
+    usbpid                 = 0x2fe3;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 1024;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x5000;
+    ;
+
+    memory "application"
+        size               = 0x4000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x803000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x804000;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
+    ;
+
+    memory "sram"
+        size               = 2048;
     ;
 ;
 
@@ -17487,7 +17552,7 @@ part parent "x16a4u" # x16c4
 # ATxmega16D4
 #------------------------------------------------------------
 
-part parent "x16a4u" # x16d4
+part parent ".xmega-cd" # x16d4
     desc                   = "ATxmega16D4";
     id                     = "x16d4";
     variants               =
@@ -17502,13 +17567,39 @@ part parent "x16a4u" # x16d4
         "ATxmega16D4-MHR: VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 234;
     n_interrupts           = 91;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x42;
+    usbpid                 = 0x2fe3;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 1024;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x5000;
+    ;
+
+    memory "application"
+        size               = 0x4000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x803000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x804000;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
+    ;
+
+    memory "sram"
+        size               = 2048;
     ;
 ;
 
@@ -17516,7 +17607,7 @@ part parent "x16a4u" # x16d4
 # ATxmega16A4
 #------------------------------------------------------------
 
-part parent "x16a4u" # x16a4
+part parent ".xmega-ab" # x16a4
     desc                   = "ATxmega16A4";
     id                     = "x16a4";
     variants               =
@@ -17528,11 +17619,41 @@ part parent "x16a4u" # x16a4
         "ATxmega16A4-MH:  QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-MHR: QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
+    prog_modes             = PM_SPM | PM_PDI;
     mcuid                  = 231;
     n_interrupts           = 94;
+    boot_section_size      = 4096;
+    signature              = 0x1e 0x94 0x41;
+    usbpid                 = 0x2fe3;
+
+    memory "eeprom"
+        size               = 1024;
+    ;
+
+    memory "flash"
+        size               = 0x5000;
+    ;
+
+    memory "application"
+        size               = 0x4000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x803000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x804000;
+    ;
 
     memory "fuse2"
         bitmask            = 0x43;
+    ;
+
+    memory "sram"
+        size               = 2048;
     ;
 ;
 
@@ -17540,7 +17661,7 @@ part parent "x16a4u" # x16a4
 # ATxmega32A4U
 #------------------------------------------------------------
 
-part parent ".xmega-a" # x32a4u
+part parent ".xmega-ab" # x32a4u
     desc                   = "ATxmega32A4U";
     id                     = "x32a4u";
     variants               =
@@ -17553,6 +17674,7 @@ part parent ".xmega-a" # x32a4u
         "ATxmega32A4U-M7:  VQFN44,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-MH:  QFN44,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4U-MHR: VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
+    prog_modes             = PM_SPM | PM_PDI;
     mcuid                  = 239;
     n_interrupts           = 127;
     boot_section_size      = 4096;
@@ -17561,53 +17683,24 @@ part parent ".xmega-a" # x32a4u
 
     memory "eeprom"
         size               = 1024;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x9000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x8000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x807000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x808000;
-        readsize           = 256;
-    ;
-
-    memory "fuse4"
-        initval            = 0xfe;
-    ;
-
-    memory "prodsig"
-        size               = 52;
-        readsize           = 52;
-    ;
-
-    memory "usersig"
-        size               = 256;
-        page_size          = 256;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -17619,7 +17712,7 @@ part parent ".xmega-a" # x32a4u
 # ATxmega32C4
 #------------------------------------------------------------
 
-part parent "x32a4u" # x32c4
+part parent ".xmega-cd" # x32c4
     desc                   = "ATxmega32C4";
     id                     = "x32c4";
     variants               =
@@ -17632,19 +17725,39 @@ part parent "x32a4u" # x32c4
         "ATxmega32C4-MH:  VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32C4-MHR: VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 240;
+    n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x44;
+    usbpid                 = 0x2fe4;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 1024;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x9000;
+    ;
+
+    memory "application"
+        size               = 0x8000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x807000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x808000;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17652,7 +17765,7 @@ part parent "x32a4u" # x32c4
 # ATxmega32D4
 #------------------------------------------------------------
 
-part parent "x32a4u" # x32d4
+part parent ".xmega-cd" # x32d4
     desc                   = "ATxmega32D4";
     id                     = "x32d4";
     variants               =
@@ -17668,13 +17781,39 @@ part parent "x32a4u" # x32d4
         "ATxmega32D4-MHR: VQFN44,  Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 241;
     n_interrupts           = 91;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x42;
+    usbpid                 = 0x2fe4;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 1024;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x9000;
+    ;
+
+    memory "application"
+        size               = 0x8000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x807000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x808000;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17682,7 +17821,7 @@ part parent "x32a4u" # x32d4
 # ATxmega32A4
 #------------------------------------------------------------
 
-part parent "x32a4u" # x32a4
+part parent ".xmega-ab" # x32a4
     desc                   = "ATxmega32A4";
     id                     = "x32a4";
     variants               =
@@ -17694,11 +17833,41 @@ part parent "x32a4u" # x32a4
         "ATxmega32A4-MH:  QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-MHR: QFN44,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32A4-MU:  VQFN44, Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
+    prog_modes             = PM_SPM | PM_PDI;
     mcuid                  = 238;
     n_interrupts           = 94;
+    boot_section_size      = 4096;
+    signature              = 0x1e 0x95 0x41;
+    usbpid                 = 0x2fe4;
+
+    memory "eeprom"
+        size               = 1024;
+    ;
+
+    memory "flash"
+        size               = 0x9000;
+    ;
+
+    memory "application"
+        size               = 0x8000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x807000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x808000;
+    ;
 
     memory "fuse2"
         bitmask            = 0x43;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17706,7 +17875,7 @@ part parent "x32a4u" # x32a4
 # ATxmega64A4U
 #------------------------------------------------------------
 
-part parent ".xmega-a" # x64a4u
+part parent ".xmega-ab" # x64a4u
     desc                   = "ATxmega64A4U";
     id                     = "x64a4u";
     variants               =
@@ -17718,6 +17887,7 @@ part parent ".xmega-a" # x64a4u
         "ATxmega64A4U-M7:  VQFN44PW, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A4U-MH:  VQFN44,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A4U-MHR: VQFN44,   Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]";
+    prog_modes             = PM_SPM | PM_PDI;
     mcuid                  = 252;
     n_interrupts           = 127;
     boot_section_size      = 4096;
@@ -17726,54 +17896,30 @@ part parent ".xmega-a" # x64a4u
 
     memory "eeprom"
         size               = 2048;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x11000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x10000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x80f000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x810000;
-        readsize           = 256;
-    ;
-
-    memory "fuse4"
-        initval            = 0xfe;
     ;
 
     memory "prodsig"
         size               = 64;
         page_size          = 64;
         readsize           = 64;
-    ;
-
-    memory "usersig"
-        size               = 256;
-        page_size          = 256;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -17785,7 +17931,7 @@ part parent ".xmega-a" # x64a4u
 # ATxmega32C3
 #------------------------------------------------------------
 
-part parent "x32a4u" # x32c3
+part parent ".xmega-cd" # x32c3
     desc                   = "ATxmega32C3";
     id                     = "x32c3";
     variants               =
@@ -17797,19 +17943,39 @@ part parent "x32a4u" # x32c3
         "ATxmega32C3-MH:  VQFN64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32C3-MHR: VQFN64, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]";
     mcuid                  = 236;
+    n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x49;
+    usbpid                 = 0x2fe4;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 1024;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x9000;
+    ;
+
+    memory "application"
+        size               = 0x8000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x807000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x808000;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17817,7 +17983,7 @@ part parent "x32a4u" # x32c3
 # ATxmega32D3
 #------------------------------------------------------------
 
-part parent "x32a4u" # x32d3
+part parent ".xmega-cd" # x32d3
     desc                   = "ATxmega32D3";
     id                     = "x32d3";
     variants               =
@@ -17830,13 +17996,39 @@ part parent "x32a4u" # x32d3
         "ATxmega32D3-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 237;
     n_interrupts           = 114;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x4a;
+    usbpid                 = 0x2fe4;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 1024;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x9000;
+    ;
+
+    memory "application"
+        size               = 0x8000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x807000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x808000;
+    ;
+
+    memory "prodsig"
+        size               = 52;
+        readsize           = 52;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17844,7 +18036,7 @@ part parent "x32a4u" # x32d3
 # ATxmega64C3
 #------------------------------------------------------------
 
-part parent "x64a4u" # x64c3
+part parent ".xmega-cd" # x64c3
     desc                   = "ATxmega64C3";
     id                     = "x64c3";
     variants               =
@@ -17856,14 +18048,39 @@ part parent "x64a4u" # x64c3
         "ATxmega64C3-MH:  VQFN64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64C3-MHR: VQFN64, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 249;
+    n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x49;
     usbpid                 = 0x2fd6;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 2048;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
+    ;
+
+    memory "prodsig"
+        page_size          = 64;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17871,7 +18088,7 @@ part parent "x64a4u" # x64c3
 # ATxmega64D3
 #------------------------------------------------------------
 
-part parent "x64a4u" # x64d3
+part parent ".xmega-cd" # x64d3
     desc                   = "ATxmega64D3";
     id                     = "x64d3";
     variants               =
@@ -17885,19 +18102,39 @@ part parent "x64a4u" # x64d3
         "ATxmega64D3-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 250;
     n_interrupts           = 114;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x4a;
+    usbpid                 = 0x2fe5;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 2048;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
     ;
 
     memory "prodsig"
         size               = 52;
-        page_size          = 1;
         readsize           = 52;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17905,7 +18142,7 @@ part parent "x64a4u" # x64d3
 # ATxmega64D4
 #------------------------------------------------------------
 
-part parent "x64a4u" # x64d4
+part parent ".xmega-cd" # x64d4
     desc                   = "ATxmega64D4";
     id                     = "x64d4";
     variants               =
@@ -17919,13 +18156,38 @@ part parent "x64a4u" # x64d4
         "ATxmega64D4-MHR: VQFN44,  Fmax=N/A,    T=[N/A,     N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 253;
     n_interrupts           = 91;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x47;
+    usbpid                 = 0x2fe5;
 
-    memory "fuse0"         = NULL;
+    memory "eeprom"
+        size               = 2048;
+    ;
 
-    memory "fuse4"
-        initval            = 0xff;
-        bitmask            = 0x1e;
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
+    ;
+
+    memory "prodsig"
+        page_size          = 64;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17933,7 +18195,7 @@ part parent "x64a4u" # x64d4
 # ATxmega64A1
 #------------------------------------------------------------
 
-part parent "x64a4u" # x64a1
+part parent ".xmega-ab" # x64a1
     desc                   = "ATxmega64A1";
     id                     = "x64a1";
     variants               =
@@ -17944,19 +18206,40 @@ part parent "x64a4u" # x64a1
         "ATxmega64A1-C7UR: VFBGA100, Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-CU:   CBGA100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega64A1-CUR:  BGA100,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 243;
     n_interrupts           = 125;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x4e;
+    usbpid                 = 0x2fe5;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
+    ;
 
     memory "fuse2"
         bitmask            = 0x43;
     ;
 
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -17964,7 +18247,7 @@ part parent "x64a4u" # x64a1
 # ATxmega64A1U
 #------------------------------------------------------------
 
-part parent "x64a1" # x64a1u
+part parent ".xmega-ab" # x64a1u
     desc                   = "ATxmega64A1U";
     id                     = "x64a1u";
     variants               =
@@ -17977,10 +18260,30 @@ part parent "x64a1" # x64a1u
         "ATxmega64A1U-CUR:  TFBGA100, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]";
     mcuid                  = 244;
     n_interrupts           = 127;
+    boot_section_size      = 4096;
+    signature              = 0x1e 0x96 0x4e;
     usbpid                 = 0x2fe8;
 
-    memory "fuse2"
-        bitmask            = 0x63;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
     ;
 
     memory "prodsig"
@@ -17988,13 +18291,17 @@ part parent "x64a1" # x64a1u
         page_size          = 64;
         readsize           = 64;
     ;
+
+    memory "sram"
+        size               = 4096;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega64A3
 #------------------------------------------------------------
 
-part parent "x64a1" # x64a3
+part parent ".xmega-ab" # x64a3
     desc                   = "ATxmega64A3";
     id                     = "x64a3";
     variants               =
@@ -18006,14 +18313,46 @@ part parent "x64a1" # x64a3
         "ATxmega64A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 246;
     n_interrupts           = 122;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x42;
+    usbpid                 = 0x2fe5;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
+    ;
+
+    memory "fuse2"
+        bitmask            = 0x43;
+    ;
+
+    memory "sram"
+        size               = 4096;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega64A3U
 #------------------------------------------------------------
 
-part parent "x64a1" # x64a3u
+part parent ".xmega-ab" # x64a3u
     desc                   = "ATxmega64A3U";
     id                     = "x64a3u";
     variants               =
@@ -18025,10 +18364,34 @@ part parent "x64a1" # x64a3u
         "ATxmega64A3U-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 247;
     n_interrupts           = 127;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x42;
+    usbpid                 = 0x2fe5;
 
-    memory "fuse2"
-        bitmask            = 0x63;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -18036,13 +18399,38 @@ part parent "x64a1" # x64a3u
 # ATxmega64A4
 #------------------------------------------------------------
 
-part parent "x64a1" # x64a4
+part parent ".xmega-ab" # x64a4
     desc                   = "ATxmega64A4";
     id                     = "x64a4";
     variants               =
         "ATxmega64A4: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 251;
+    n_interrupts           = 125;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
+    usbpid                 = 0x2fe5;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
+    ;
 
     memory "fuse0"
         initval            = -1;
@@ -18070,13 +18458,17 @@ part parent "x64a1" # x64a4
     memory "lock"
         initval            = -1;
     ;
+
+    memory "sram"
+        size               = 4096;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega64B1
 #------------------------------------------------------------
 
-part parent "x64a1" # x64b1
+part parent ".xmega-ab" # x64b1
     desc                   = "ATxmega64B1";
     id                     = "x64b1";
     variants               =
@@ -18086,15 +18478,38 @@ part parent "x64a1" # x64b1
         "ATxmega64B1-CUR: TQFP100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 245;
     n_interrupts           = 81;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x52;
     usbpid                 = 0x2fe1;
 
-    memory "fuse2"
-        bitmask            = 0x63;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
     ;
 
     memory "fuse4"
         initval            = 0xff;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -18102,7 +18517,7 @@ part parent "x64a1" # x64b1
 # ATxmega64B3
 #------------------------------------------------------------
 
-part parent "x64a1" # x64b3
+part parent ".xmega-ab" # x64b3
     desc                   = "ATxmega64B3";
     id                     = "x64b3";
     variants               =
@@ -18111,15 +18526,38 @@ part parent "x64a1" # x64b3
         "ATxmega64B3-MH:  QFN64,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 248;
     n_interrupts           = 54;
+    boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x51;
     usbpid                 = 0x2fdf;
 
-    memory "fuse2"
-        bitmask            = 0x63;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x11000;
+    ;
+
+    memory "application"
+        size               = 0x10000;
+    ;
+
+    memory "apptable"
+        size               = 4096;
+        offset             = 0x80f000;
+    ;
+
+    memory "boot"
+        size               = 4096;
+        offset             = 0x810000;
     ;
 
     memory "fuse4"
         initval            = 0xff;
+    ;
+
+    memory "sram"
+        size               = 4096;
     ;
 ;
 
@@ -18127,7 +18565,7 @@ part parent "x64a1" # x64b3
 # ATxmega128C3
 #------------------------------------------------------------
 
-part parent ".xmega" # x128c3
+part parent ".xmega-cd" # x128c3
     desc                   = "ATxmega128C3";
     id                     = "x128c3";
     variants               =
@@ -18145,50 +18583,37 @@ part parent ".xmega" # x128c3
 
     memory "eeprom"
         size               = 2048;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x22000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x20000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 8192;
         page_size          = 512;
         offset             = 0x81e000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
         page_size          = 512;
         offset             = 0x820000;
-        readsize           = 256;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
     ;
 
     memory "usersig"
         size               = 512;
         page_size          = 512;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -18200,7 +18625,7 @@ part parent ".xmega" # x128c3
 # ATxmega128D3
 #------------------------------------------------------------
 
-part parent "x128c3" # x128d3
+part parent ".xmega-cd" # x128d3
     desc                   = "ATxmega128D3";
     id                     = "x128d3";
     variants               =
@@ -18213,12 +18638,48 @@ part parent "x128c3" # x128d3
         "ATxmega128D3-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 262;
     n_interrupts           = 114;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x48;
+    usbpid                 = 0x2fd7;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x22000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x820000;
+    ;
 
     memory "prodsig"
         size               = 52;
-        page_size          = 1;
         readsize           = 52;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -18226,7 +18687,7 @@ part parent "x128c3" # x128d3
 # ATxmega128D4
 #------------------------------------------------------------
 
-part parent "x128c3" # x128d4
+part parent ".xmega-cd" # x128d4
     desc                   = "ATxmega128D4";
     id                     = "x128d4";
     variants               =
@@ -18240,10 +18701,46 @@ part parent "x128c3" # x128d4
         "ATxmega128D4-MHR: VQFN44,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 265;
     n_interrupts           = 91;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x47;
+    usbpid                 = 0x2fd7;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
 
     memory "flash"
-        page_size          = 256;
+        size               = 0x22000;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x820000;
+    ;
+
+    memory "prodsig"
+        page_size          = 64;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -18251,7 +18748,7 @@ part parent "x128c3" # x128d4
 # ATxmega128A1
 #------------------------------------------------------------
 
-part parent "x128c3" # x128a1
+part parent ".xmega-ab" # x128a1
     desc                   = "ATxmega128A1";
     id                     = "x128a1";
     variants               =
@@ -18262,30 +18759,49 @@ part parent "x128c3" # x128a1
         "ATxmega128A1-C7UR: VFBGA100, Fmax=N/A,    T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-CU:   CBGA100,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A1-CUR:  BGA100,   Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 254;
     n_interrupts           = 125;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4c;
+    usbpid                 = 0x2fd7;
 
-    memory "fuse0"
-        size               = 1;
-        initval            = 0xff;
-        offset             = 0x8f0020;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x22000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x820000;
     ;
 
     memory "fuse2"
         bitmask            = 0x43;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -18304,7 +18820,7 @@ part parent "x128a1" # x128a1d
 # ATxmega128A1U
 #------------------------------------------------------------
 
-part parent "x128a1" # x128a1u
+part parent ".xmega-ab" # x128a1u
     desc                   = "ATxmega128A1U";
     id                     = "x128a1u";
     variants               =
@@ -18318,10 +18834,34 @@ part parent "x128a1" # x128a1u
         "ATxmega128A1U-CUR:  CBGA100,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 256;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
+    signature              = 0x1e 0x97 0x4c;
     usbpid                 = 0x2fed;
 
-    memory "fuse2"
-        bitmask            = 0x63;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x22000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x820000;
     ;
 
     memory "prodsig"
@@ -18329,13 +18869,22 @@ part parent "x128a1" # x128a1u
         page_size          = 64;
         readsize           = 64;
     ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 8192;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega128A3
 #------------------------------------------------------------
 
-part parent "x128a1" # x128a3
+part parent ".xmega-ab" # x128a3
     desc                   = "ATxmega128A3";
     id                     = "x128a3";
     variants               =
@@ -18347,14 +18896,55 @@ part parent "x128a1" # x128a3
         "ATxmega128A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 258;
     n_interrupts           = 122;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x42;
+    usbpid                 = 0x2fd7;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x22000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x820000;
+    ;
+
+    memory "fuse2"
+        bitmask            = 0x43;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 8192;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega128A3U
 #------------------------------------------------------------
 
-part parent "x128a1" # x128a3u
+part parent ".xmega-ab" # x128a3u
     desc                   = "ATxmega128A3U";
     id                     = "x128a3u";
     variants               =
@@ -18366,11 +18956,43 @@ part parent "x128a1" # x128a3u
         "ATxmega128A3U-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 259;
     n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x42;
     usbpid                 = 0x2fe6;
 
-    memory "fuse2"
-        bitmask            = 0x63;
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x22000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x820000;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 8192;
     ;
 ;
 
@@ -18378,53 +19000,42 @@ part parent "x128a1" # x128a3u
 # ATxmega128A4
 #------------------------------------------------------------
 
-part parent ".xmega" # x128a4
+part parent ".xmega-ab" # x128a4
     desc                   = "ATxmega128A4";
     id                     = "x128a4";
     variants               =
         "ATxmega128A4: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 263;
     signature              = 0x1e 0x97 0x46;
 
     memory "eeprom"
         size               = 2048;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x22000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x20000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
         page_size          = 512;
         offset             = 0x81f000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
         page_size          = 512;
         offset             = 0x820000;
-        readsize           = 256;
     ;
 
     memory "fuse0"
-        size               = 1;
-        offset             = 0x8f0020;
+        initval            = -1;
     ;
 
     memory "fuse1"
@@ -18450,11 +19061,14 @@ part parent ".xmega" # x128a4
         initval            = -1;
     ;
 
+    memory "prodsig"
+        size               = 50;
+        readsize           = 50;
+    ;
+
     memory "usersig"
         size               = 512;
         page_size          = 512;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -18466,7 +19080,7 @@ part parent ".xmega" # x128a4
 # ATxmega128A4U
 #------------------------------------------------------------
 
-part parent ".xmega-a" # x128a4u
+part parent ".xmega-ab" # x128a4u
     desc                   = "ATxmega128A4U";
     id                     = "x128a4u";
     variants               =
@@ -18477,6 +19091,7 @@ part parent ".xmega-a" # x128a4u
         "ATxmega128A4U-M7:  VQFN44PW, Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A4U-MH:  VQFN44,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128A4U-MHR: VQFN44,   Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
+    prog_modes             = PM_SPM | PM_PDI;
     mcuid                  = 264;
     n_interrupts           = 127;
     boot_section_size      = 8192;
@@ -18485,54 +19100,30 @@ part parent ".xmega-a" # x128a4u
 
     memory "eeprom"
         size               = 2048;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x22000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x20000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
-        page_size          = 256;
         offset             = 0x81f000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
-        page_size          = 256;
         offset             = 0x820000;
-        readsize           = 256;
-    ;
-
-    memory "fuse4"
-        initval            = 0xfe;
     ;
 
     memory "prodsig"
         size               = 64;
         page_size          = 64;
         readsize           = 64;
-    ;
-
-    memory "usersig"
-        size               = 256;
-        page_size          = 256;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -18544,7 +19135,7 @@ part parent ".xmega-a" # x128a4u
 # ATxmega128B1
 #------------------------------------------------------------
 
-part parent ".xmega" # x128b1
+part parent ".xmega-ab" # x128b1
     desc                   = "ATxmega128B1";
     id                     = "x128b1";
     variants               =
@@ -18553,7 +19144,6 @@ part parent ".xmega" # x128b1
         "ATxmega128B1-AUR: TQFP100,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128B1-CU:  VFBGA100, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega128B1-CUR: TFBGA100, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 257;
     n_interrupts           = 81;
     boot_section_size      = 8192;
@@ -18562,59 +19152,28 @@ part parent ".xmega" # x128b1
 
     memory "eeprom"
         size               = 2048;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x22000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x20000;
-        page_size          = 256;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 8192;
-        page_size          = 256;
         offset             = 0x81e000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
-        page_size          = 256;
         offset             = 0x820000;
-        readsize           = 256;
-    ;
-
-    memory "fuse0"
-        size               = 1;
-        initval            = 0xff;
-        offset             = 0x8f0020;
     ;
 
     memory "fuse4"
-        bitmask            = 0x1f;
-    ;
-
-    memory "prodsig"
-        size               = 52;
-        readsize           = 52;
-    ;
-
-    memory "usersig"
-        size               = 256;
-        page_size          = 256;
-        offset             = 0x8e0400;
-        readsize           = 256;
+        initval            = 0xff;
     ;
 
     memory "sram"
@@ -18626,7 +19185,7 @@ part parent ".xmega" # x128b1
 # ATxmega128B3
 #------------------------------------------------------------
 
-part parent "x128b1" # x128b3
+part parent ".xmega-ab" # x128b3
     desc                   = "ATxmega128B3";
     id                     = "x128b3";
     variants               =
@@ -18638,15 +19197,46 @@ part parent "x128b1" # x128b3
         "ATxmega128B3-MHR:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 260;
     n_interrupts           = 54;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4b;
     usbpid                 = 0x2fe0;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x22000;
+    ;
+
+    memory "application"
+        size               = 0x20000;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        offset             = 0x81e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        offset             = 0x820000;
+    ;
+
+    memory "fuse4"
+        initval            = 0xff;
+    ;
+
+    memory "sram"
+        size               = 8192;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega192C3
 #------------------------------------------------------------
 
-part parent ".xmega" # x192c3
+part parent ".xmega-cd" # x192c3
     desc                   = "ATxmega192C3";
     id                     = "x192c3";
     variants               =
@@ -18663,50 +19253,37 @@ part parent ".xmega" # x192c3
 
     memory "eeprom"
         size               = 2048;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x32000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x30000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 8192;
         page_size          = 512;
         offset             = 0x82e000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
         page_size          = 512;
         offset             = 0x830000;
-        readsize           = 256;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
     ;
 
     memory "usersig"
         size               = 512;
         page_size          = 512;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -18718,7 +19295,7 @@ part parent ".xmega" # x192c3
 # ATxmega192D3
 #------------------------------------------------------------
 
-part parent "x192c3" # x192d3
+part parent ".xmega-cd" # x192d3
     desc                   = "ATxmega192D3";
     id                     = "x192d3";
     variants               =
@@ -18731,12 +19308,49 @@ part parent "x192c3" # x192d3
         "ATxmega192D3-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 270;
     n_interrupts           = 114;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x49;
+
+#   usbpid                 = 0x2f??;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x32000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x30000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x82e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x830000;
+    ;
 
     memory "prodsig"
         size               = 52;
-        page_size          = 1;
         readsize           = 52;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -18744,19 +19358,47 @@ part parent "x192c3" # x192d3
 # ATxmega192A1
 #------------------------------------------------------------
 
-part parent "x192c3" # x192a1
+part parent ".xmega-ab" # x192a1
     desc                   = "ATxmega192A1";
     id                     = "x192a1";
     variants               =
         "ATxmega192A1-AU: TQFP100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A1-CU: CBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 266;
+    n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4e;
 
+#   usbpid                 = 0x2f??;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x32000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x30000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x82e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x830000;
+    ;
+
     memory "fuse0"
-        size               = 1;
-        offset             = 0x8f0020;
+        initval            = -1;
     ;
 
     memory "fuse1"
@@ -18781,13 +19423,28 @@ part parent "x192c3" # x192a1
     memory "lock"
         initval            = -1;
     ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega192A3
 #------------------------------------------------------------
 
-part parent "x192c3" # x192a3
+part parent ".xmega-ab" # x192a3
     desc                   = "ATxmega192A3";
     id                     = "x192a3";
     variants               =
@@ -18797,30 +19454,50 @@ part parent "x192c3" # x192a3
         "ATxmega192A3-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A3-MHR: QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega192A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 267;
     n_interrupts           = 122;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x44;
 
-    memory "fuse0"
-        size               = 1;
-        initval            = 0xff;
-        offset             = 0x8f0020;
+#   usbpid                 = 0x2f??;
+
+    memory "eeprom"
+        size               = 2048;
+    ;
+
+    memory "flash"
+        size               = 0x32000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x30000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x82e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x830000;
     ;
 
     memory "fuse2"
         bitmask            = 0x43;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -18828,7 +19505,7 @@ part parent "x192c3" # x192a3
 # ATxmega192A3U
 #------------------------------------------------------------
 
-part parent "x192a1" # x192a3u
+part parent ".xmega-ab" # x192a3u
     desc                   = "ATxmega192A3U";
     id                     = "x192a3u";
     variants               =
@@ -18840,40 +19517,46 @@ part parent "x192a1" # x192a3u
         "ATxmega192A3U-MHR: VQFN64, Fmax=N/A,    T=[N/A,     N/A], Vcc=[N/A,     N/A]",
         "ATxmega192A3U-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 268;
+    n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x44;
     usbpid                 = 0x2fe7;
 
-    memory "fuse0"
-        initval            = 0xff;
+#   usbpid                 = 0x2f??;
+
+    memory "eeprom"
+        size               = 2048;
     ;
 
-    memory "fuse1"
-        initval            = 0x00;
+    memory "flash"
+        size               = 0x32000;
+        page_size          = 512;
     ;
 
-    memory "fuse2"
-        initval            = 0xff;
-        bitmask            = 0x63;
+    memory "application"
+        size               = 0x30000;
+        page_size          = 512;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x82e000;
     ;
 
-    memory "fuse5"
-        initval            = 0xff;
-        bitmask            = 0x3f;
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x830000;
     ;
 
-    memory "lock"
-        initval            = 0xff;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -18881,7 +19564,7 @@ part parent "x192a1" # x192a3u
 # ATxmega256C3
 #------------------------------------------------------------
 
-part parent ".xmega" # x256c3
+part parent ".xmega-cd" # x256c3
     desc                   = "ATxmega256C3";
     id                     = "x256c3";
     variants               =
@@ -18899,50 +19582,37 @@ part parent ".xmega" # x256c3
 
     memory "eeprom"
         size               = 4096;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x42000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x40000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 8192;
         page_size          = 512;
         offset             = 0x83e000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
         page_size          = 512;
         offset             = 0x840000;
-        readsize           = 256;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
     ;
 
     memory "usersig"
         size               = 512;
         page_size          = 512;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -18954,7 +19624,7 @@ part parent ".xmega" # x256c3
 # ATxmega256D3
 #------------------------------------------------------------
 
-part parent "x256c3" # x256d3
+part parent ".xmega-cd" # x256d3
     desc                   = "ATxmega256D3";
     id                     = "x256d3";
     variants               =
@@ -18967,12 +19637,48 @@ part parent "x256c3" # x256d3
         "ATxmega256D3-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 277;
     n_interrupts           = 114;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x44;
+    usbpid                 = 0x2fda;
+
+    memory "eeprom"
+        size               = 4096;
+    ;
+
+    memory "flash"
+        size               = 0x42000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x40000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x83e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x840000;
+    ;
 
     memory "prodsig"
         size               = 52;
-        page_size          = 1;
         readsize           = 52;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -18980,18 +19686,46 @@ part parent "x256c3" # x256d3
 # ATxmega256A1
 #------------------------------------------------------------
 
-part parent "x256c3" # x256a1
+part parent ".xmega-ab" # x256a1
     desc                   = "ATxmega256A1";
     id                     = "x256a1";
     variants               =
         "ATxmega256A1-AU: TQFP100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A1-CU: CBGA100, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
-    prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 271;
+    n_interrupts           = 127;
+    boot_section_size      = 8192;
+    signature              = 0x1e 0x98 0x46;
+    usbpid                 = 0x2fda;
+
+    memory "eeprom"
+        size               = 4096;
+    ;
+
+    memory "flash"
+        size               = 0x42000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x40000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x83e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x840000;
+    ;
 
     memory "fuse0"
-        size               = 1;
-        offset             = 0x8f0020;
+        initval            = -1;
     ;
 
     memory "fuse1"
@@ -19016,13 +19750,28 @@ part parent "x256c3" # x256a1
     memory "lock"
         initval            = -1;
     ;
+
+    memory "prodsig"
+        size               = 64;
+        page_size          = 64;
+        readsize           = 64;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 0x4000;
+    ;
 ;
 
 #------------------------------------------------------------
 # ATxmega256A3
 #------------------------------------------------------------
 
-part parent "x256a1" # x256a3
+part parent ".xmega-ab" # x256a3
     desc                   = "ATxmega256A3";
     id                     = "x256a3";
     variants               =
@@ -19034,39 +19783,47 @@ part parent "x256a1" # x256a3
         "ATxmega256A3-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 272;
     n_interrupts           = 122;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x42;
+    usbpid                 = 0x2fda;
 
-    memory "fuse0"
-        initval            = 0xff;
+    memory "eeprom"
+        size               = 4096;
     ;
 
-    memory "fuse1"
-        initval            = 0x00;
+    memory "flash"
+        size               = 0x42000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x40000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x83e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x840000;
     ;
 
     memory "fuse2"
-        initval            = 0xff;
         bitmask            = 0x43;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "fuse5"
-        initval            = 0xff;
-        bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        initval            = 0xff;
-    ;
-
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -19074,7 +19831,7 @@ part parent "x256a1" # x256a3
 # ATxmega256A3U
 #------------------------------------------------------------
 
-part parent "x256a1" # x256a3u
+part parent ".xmega-ab" # x256a3u
     desc                   = "ATxmega256A3U";
     id                     = "x256a3u";
     variants               =
@@ -19086,40 +19843,44 @@ part parent "x256a1" # x256a3u
         "ATxmega256A3U-MHR: QFN64,  Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3U-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 275;
+    n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x42;
     usbpid                 = 0x2fec;
 
-    memory "fuse0"
-        initval            = 0xff;
+    memory "eeprom"
+        size               = 4096;
     ;
 
-    memory "fuse1"
-        initval            = 0x00;
+    memory "flash"
+        size               = 0x42000;
+        page_size          = 512;
     ;
 
-    memory "fuse2"
-        initval            = 0xff;
-        bitmask            = 0x63;
+    memory "application"
+        size               = 0x40000;
+        page_size          = 512;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x83e000;
     ;
 
-    memory "fuse5"
-        initval            = 0xff;
-        bitmask            = 0x3f;
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x840000;
     ;
 
-    memory "lock"
-        initval            = 0xff;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -19127,7 +19888,7 @@ part parent "x256a1" # x256a3u
 # ATxmega256A3B
 #------------------------------------------------------------
 
-part parent "x256a1" # x256a3b
+part parent ".xmega-ab" # x256a3b
     desc                   = "ATxmega256A3B";
     id                     = "x256a3b";
     variants               =
@@ -19138,39 +19899,47 @@ part parent "x256a1" # x256a3b
         "ATxmega256A3B-MU:  QFN64,  Fmax=32 MHz, T=[N/A,    N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 273;
     n_interrupts           = 122;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x43;
+    usbpid                 = 0x2fda;
 
-    memory "fuse0"
-        initval            = 0xff;
+    memory "eeprom"
+        size               = 4096;
     ;
 
-    memory "fuse1"
-        initval            = 0x00;
+    memory "flash"
+        size               = 0x42000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x40000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x83e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x840000;
     ;
 
     memory "fuse2"
-        initval            = 0xff;
         bitmask            = 0x43;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "fuse5"
-        initval            = 0xff;
-        bitmask            = 0x3f;
-    ;
-
-    memory "lock"
-        initval            = 0xff;
-    ;
-
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -19178,7 +19947,7 @@ part parent "x256a1" # x256a3b
 # ATxmega256A3BU
 #------------------------------------------------------------
 
-part parent "x256a1" # x256a3bu
+part parent ".xmega-ab" # x256a3bu
     desc                   = "ATxmega256A3BU";
     id                     = "x256a3bu";
     variants               =
@@ -19187,40 +19956,44 @@ part parent "x256a1" # x256a3bu
         "ATxmega256A3BU-MH:  QFN64,  Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega256A3BU-MHR: VQFN64, Fmax=32 MHz, T=[-40 C, 85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 274;
+    n_interrupts           = 127;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x43;
     usbpid                 = 0x2fe2;
 
-    memory "fuse0"
-        initval            = 0xff;
+    memory "eeprom"
+        size               = 4096;
     ;
 
-    memory "fuse1"
-        initval            = 0x00;
+    memory "flash"
+        size               = 0x42000;
+        page_size          = 512;
     ;
 
-    memory "fuse2"
-        initval            = 0xff;
-        bitmask            = 0x63;
+    memory "application"
+        size               = 0x40000;
+        page_size          = 512;
     ;
 
-    memory "fuse4"
-        initval            = 0xfe;
-        bitmask            = 0x1f;
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x83e000;
     ;
 
-    memory "fuse5"
-        initval            = 0xff;
-        bitmask            = 0x3f;
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x840000;
     ;
 
-    memory "lock"
-        initval            = 0xff;
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
     ;
 
-    memory "prodsig"
-        size               = 52;
-        page_size          = 1;
-        readsize           = 52;
+    memory "sram"
+        size               = 0x4000;
     ;
 ;
 
@@ -19228,7 +20001,7 @@ part parent "x256a1" # x256a3bu
 # ATxmega384C3
 #------------------------------------------------------------
 
-part parent ".xmega" # x384c3
+part parent ".xmega-cd" # x384c3
     desc                   = "ATxmega384C3";
     id                     = "x384c3";
     variants               =
@@ -19246,50 +20019,37 @@ part parent ".xmega" # x384c3
 
     memory "eeprom"
         size               = 4096;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x62000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x60000;
         page_size          = 512;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 8192;
         page_size          = 512;
         offset             = 0x85e000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 8192;
         page_size          = 512;
         offset             = 0x860000;
-        readsize           = 256;
     ;
 
     memory "prodsig"
-        size               = 64;
         page_size          = 64;
-        readsize           = 64;
     ;
 
     memory "usersig"
         size               = 512;
         page_size          = 512;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -19301,7 +20061,7 @@ part parent ".xmega" # x384c3
 # ATxmega384D3
 #------------------------------------------------------------
 
-part parent "x384c3" # x384d3
+part parent ".xmega-cd" # x384d3
     desc                   = "ATxmega384D3";
     id                     = "x384d3";
     variants               =
@@ -19312,7 +20072,48 @@ part parent "x384c3" # x384d3
         "ATxmega384D3-MN:  QFN64,  Fmax=32 MHz, T=[-40 C, 105 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 279;
     n_interrupts           = 114;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x98 0x47;
+    usbpid                 = 0x2fdb;
+
+    memory "eeprom"
+        size               = 4096;
+    ;
+
+    memory "flash"
+        size               = 0x62000;
+        page_size          = 512;
+    ;
+
+    memory "application"
+        size               = 0x60000;
+        page_size          = 512;
+    ;
+
+    memory "apptable"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x85e000;
+    ;
+
+    memory "boot"
+        size               = 8192;
+        page_size          = 512;
+        offset             = 0x860000;
+    ;
+
+    memory "prodsig"
+        page_size          = 64;
+    ;
+
+    memory "usersig"
+        size               = 512;
+        page_size          = 512;
+    ;
+
+    memory "sram"
+        size               = 0x8000;
+    ;
 ;
 
 #------------------------------------------------------------
@@ -19335,59 +20136,29 @@ part parent ".xmega-e" # x8e5
         "ATxmega8E5-MU:   VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega8E5-MUR:  VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 230;
-    n_interrupts           = 43;
     boot_section_size      = 2048;
     signature              = 0x1e 0x93 0x41;
 
     memory "eeprom"
         size               = 512;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x2800;
-        page_size          = 128;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 8192;
-        page_size          = 128;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 2048;
-        page_size          = 128;
         offset             = 0x801800;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 2048;
-        page_size          = 128;
         offset             = 0x802000;
-        readsize           = 256;
-    ;
-
-    memory "fuse2"
-        bitmask            = 0x43;
-    ;
-
-    memory "prodsig"
-        size               = 54;
-        readsize           = 54;
-    ;
-
-    memory "usersig"
-        size               = 128;
-        page_size          = 128;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -19415,59 +20186,29 @@ part parent ".xmega-e" # x16e5
         "ATxmega16E5-MU:   VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega16E5-MUR:  VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 235;
-    n_interrupts           = 43;
     boot_section_size      = 4096;
     signature              = 0x1e 0x94 0x45;
 
     memory "eeprom"
         size               = 512;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x5000;
-        page_size          = 128;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x4000;
-        page_size          = 128;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
-        page_size          = 128;
         offset             = 0x803000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 4096;
-        page_size          = 128;
         offset             = 0x804000;
-        readsize           = 256;
-    ;
-
-    memory "fuse2"
-        bitmask            = 0x43;
-    ;
-
-    memory "prodsig"
-        size               = 54;
-        readsize           = 54;
-    ;
-
-    memory "usersig"
-        size               = 128;
-        page_size          = 128;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
@@ -19495,59 +20236,29 @@ part parent ".xmega-e" # x32e5
         "ATxmega32E5-MU:   VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]",
         "ATxmega32E5-MUR:  VQFN32, Fmax=32 MHz, T=[-40 C,  85 C], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 242;
-    n_interrupts           = 43;
     boot_section_size      = 4096;
     signature              = 0x1e 0x95 0x4c;
 
     memory "eeprom"
         size               = 1024;
-        page_size          = 32;
-        offset             = 0x8c0000;
-        readsize           = 256;
     ;
 
     memory "flash"
         size               = 0x9000;
-        page_size          = 128;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "application"
         size               = 0x8000;
-        page_size          = 128;
-        offset             = 0x800000;
-        readsize           = 256;
     ;
 
     memory "apptable"
         size               = 4096;
-        page_size          = 128;
         offset             = 0x807000;
-        readsize           = 256;
     ;
 
     memory "boot"
         size               = 4096;
-        page_size          = 128;
         offset             = 0x808000;
-        readsize           = 256;
-    ;
-
-    memory "fuse2"
-        bitmask            = 0x43;
-    ;
-
-    memory "prodsig"
-        size               = 54;
-        readsize           = 54;
-    ;
-
-    memory "usersig"
-        size               = 128;
-        page_size          = 128;
-        offset             = 0x8e0400;
-        readsize           = 256;
     ;
 
     memory "sram"
