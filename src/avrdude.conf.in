@@ -19006,6 +19006,7 @@ part parent ".xmega-ab" # x128a4
     variants               =
         "ATxmega128A4: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.6 V, 3.6 V]";
     mcuid                  = 263;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x46;
 
     memory "eeprom"
