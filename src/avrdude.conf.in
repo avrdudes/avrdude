@@ -17313,6 +17313,18 @@ part # .xmega-cd
         readsize           = 256;
     ;
 
+    ######
+    # Collective fuses memory
+    #  - Does not know factory settings (only individual fuse bytes do)
+    #  - fuses[0] (jtaguid) only used for (most) XMEGA-A/B parts
+    #  - fuses[3] always reserved
+    #  - fuses[6] only used in XMEGA-E parts
+    #
+    memory "fuses"
+        size               = 7;
+        offset             = 0x8f0020;
+    ;
+
     memory "fuse1"
         size               = 1;
         initval            = 0x00;
