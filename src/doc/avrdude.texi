@@ -904,6 +904,10 @@ Boot flash area
 @item calibration
 An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
 oscillator calibration values; this is a sub-memory of @code{prodsig}
+@item fuses
+A logical memory of 7 bytes containing all @code{fuse}X of a part, which
+can be used to program all fuses at the same time; note that some of the
+fuse bytes will be reserved, though
 @item fuse0
 A.k.a. jtaguid: JTAG user ID for some devices
 @item fuse1
@@ -957,7 +961,7 @@ A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks o
 @item fusea
 A.k.a. pdicfg: configures/locks updi access; it is the only fuse that consists of two bytes
 @item fuses
-A "logical" memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
+A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
 @item osc16err
 Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
 @item osc20err
