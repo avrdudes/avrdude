@@ -1221,9 +1221,6 @@ enum {
   FIO_READ_FOR_VERIFY,
 };
 
-#define ANY_MEM_SIZE   0x870000 // Max size of multi-memory input file, see fileio_mem_offset()
-#define MAX_FLASH_SIZE 0x800000 // rjmp/call can only address 8 MiB in AVR8 architectures
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1233,6 +1230,8 @@ FILEFMT fileio_format(char c);
 char *fileio_fmtstr(FILEFMT format);
 
 int fileio_fmtchr(FILEFMT format);
+
+AVRMEM *fileio_any_memory(const char *name);
 
 unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
 

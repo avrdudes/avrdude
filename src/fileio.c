@@ -327,44 +327,84 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
 }
 
 
+// Multi-memory file flat address space layout (also used by avr-gcc's elf)
+
+enum {
+  MULTI_FLASH, MULTI_DATA, MULTI_EEPROM,
+  MULTI_FUSES, MULTI_LOCK,
+  MULTI_SIGROW, MULTI_USERROW, MULTI_BOOTROW,
+  MULTI_N,
+};
+
+static const struct {
+  unsigned base, size;
+  char *name;
+} mulmem[] = {
+  {      0, 0x800000, "flash"}, // rjmp/call can only address 8 MiB in AVR8 architectures
+  {0x800000, 0x10000, "data"},  // IO/SRAM
+  {0x810000, 0x10000, "eeprom"},
+  {0x820000, 0x10000, "fuses"},
+  {0x830000, 0x10000, "lock"},
+  {0x840000, 0x10000, "sigrow"},
+  {0x850000, 0x10000, "userrow"},
+  {0x860000, 0x10000, "bootrow"},
+};
+
+#define ANY_MEM_SIZE (mulmem[MULTI_N-1].base + mulmem[MULTI_N-1].size)
+
+#define MBASE(n) (mulmem[MULTI_ ## n].base)
+#define MSIZE(n) (mulmem[MULTI_ ## n].size)
+#define MEND(n) (MBASE(n) + MSIZE(n) - 1)
+
+
+// Memory that holds all possible multi-memories as laid out above
+AVRMEM *fileio_any_memory(const char *name) {
+  return avr_new_memory(name, ANY_MEM_SIZE);
+}
+
+#define boffset(p, basemem) baseoffset((p), avr_locate_ ## basemem(p), # basemem)
+
+static int baseoffset(const AVRPART *p, const AVRMEM *base, const char *memname) {
+  if(!base)
+    pmsg_error("failed to locate %s memory in %s\n", memname, p->desc);
+  return base? base->offset: 0;
+}
+
 // Extends where memory is put in flat address space of .elf files
 unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
-  AVRMEM *base;
-
-  if(mem->type == 0 && mem->size == ANY_MEM_SIZE)
+  if(mem->type == 0 && mem->size == (int) ANY_MEM_SIZE)
     return 0;
 
   unsigned location =
-    mem_is_in_flash(mem) && (base = avr_locate_flash(p))? mem->offset - base->offset:
-    mem_is_io(mem) || mem_is_sram(mem)? MAX_FLASH_SIZE + mem->offset:
-    mem_is_eeprom(mem)? 0x810000:
-    mem_is_in_fuses(mem)? 0x820000 + mem_fuse_offset(mem):
-    mem_is_lock(mem)? 0x830000:
+    mem_is_in_flash(mem)? MBASE(FLASH) + mem->offset - boffset(p, flash):
+    mem_is_io(mem) || mem_is_sram(mem)? MBASE(DATA) + mem->offset:
+    mem_is_eeprom(mem)? MBASE(EEPROM):
+    mem_is_in_fuses(mem)? MBASE(FUSES) + mem_fuse_offset(mem):
+    mem_is_lock(mem)? MBASE(LOCK):
     // Classic parts intersperse signature and calibration bytes, this code places them together
-    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_signature(mem)? 0x840000:
-    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_calibration(mem)? 0x840003:
-    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_sigrow(mem)? 0x840010: // Few parts, eg m328pb
+    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_signature(mem)? MBASE(SIGROW):
+    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_calibration(mem)? MBASE(SIGROW)+3:
+    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_sigrow(mem)? MBASE(SIGROW)+0x10: // Eg, m328pb
     // XMEGA parts have signature separate from prodsig, place prodsig at +0x10 as above
-    (p->prog_modes & PM_PDI) && mem_is_signature(mem)? 0x840000:
-    (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem) && (base = avr_locate_sigrow(p))?
-      0x840010 + mem->offset - base->offset:
-    mem_is_in_sigrow(mem) && (base = avr_locate_sigrow(p))? 0x840000 + mem->offset - base->offset:
-    mem_is_sib(mem)? 0x841000:  // Arbitrary 0x1000 offset in signature section for sib
-    mem_is_userrow(mem)? 0x850000:
-    mem_is_bootrow(mem)? 0x860000:
+    (p->prog_modes & PM_PDI) && mem_is_signature(mem)? MBASE(SIGROW):
+    (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW)+0x10 + mem->offset - boffset(p, sigrow):
+    mem_is_in_sigrow(mem)? MBASE(SIGROW) + mem->offset - boffset(p, sigrow): // UPDI + rare classic
+    mem_is_sib(mem)? MBASE(SIGROW) + 0x1000: // Arbitrary 0x1000 offset in signature section for sib
+    mem_is_userrow(mem)? MBASE(USERROW):
+    mem_is_bootrow(mem)? MBASE(BOOTROW):
     -1U;
 
   if(location == -1U)
     pmsg_error("unable to locate %s's %s in multi-memory address space\n", p->desc, mem->desc);
-  else if(location >= ANY_MEM_SIZE || location + mem->size > ANY_MEM_SIZE) { // Consider overflow
+  else if(location >= ANY_MEM_SIZE || location + mem->size > ANY_MEM_SIZE) { // Overflow
     pmsg_error("%s's %s location [0x%06x, 0x%06x] outside flat address space [0, 0x%06x]\n",
       p->desc, mem->desc, location, location + mem->size-1, ANY_MEM_SIZE-1);
     location = -1U;
-  } else if(location < MAX_FLASH_SIZE && location + mem->size > MAX_FLASH_SIZE) {
+  } else if(location <= MEND(FLASH) && location + mem->size > MEND(FLASH)+1) {
     pmsg_error("%s's %s location [0x%06x, 0x%06x] straddles flash section boundary 0x%06x\n",
-      p->desc, mem->desc, location, location + mem->size-1, MAX_FLASH_SIZE);
+      p->desc, mem->desc, location, location + mem->size-1, MEND(FLASH)+1);
     location = -1U;
-  } else if(location >= MAX_FLASH_SIZE && location/0x10000 != (location + mem->size-1)/0x10000) {
+  } else if(location > MEND(FLASH) && location/0x10000 != (location + mem->size-1)/0x10000) {
     pmsg_error("%s's %s memory location [0x%06x, 0x%06x] straddles memory section boundary 0x%02x0000\n",
       p->desc, mem->desc, location, location + mem->size-1, 1+location/0x10000);
     location = -1U;
@@ -378,7 +418,7 @@ static int any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp,
   const AVRMEM *any, unsigned maxsize) {
 
   // Compute location for multi-memory file input
-  unsigned location = maxsize > MAX_FLASH_SIZE? fileio_mem_offset(p, mem): 0;
+  unsigned location = maxsize > MEND(FLASH)+1? fileio_mem_offset(p, mem): 0;
 
   if(location == -1U)
     return -1;
@@ -421,7 +461,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
   nextaddr = 0;
   rewind(inf);
 
-  AVRMEM *any = avr_new_memory("any", ANY_MEM_SIZE);
+  AVRMEM *any = fileio_any_memory("any");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -726,7 +766,7 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
   reccount = 0;
   rewind(inf);
 
-  AVRMEM *any = avr_new_memory("any", ANY_MEM_SIZE);
+  AVRMEM *any = fileio_any_memory("any");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -903,36 +943,36 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
     }
   } else {
     if (mem_is_in_flash(mem)) {
-      *lowbound = 0;
-      *highbound = 0x7Fffff;    // Max 8 MiB
+      *lowbound = MBASE(FLASH);
+      *highbound = MEND(FLASH); // Max 8 MiB
       *fileoff = 0;
     } else if (mem_is_io(mem) || mem_is_sram(mem)) { // IO & SRAM in data space
-      *lowbound = 0x800000 + mem->offset;
-      *highbound = 0x80ffff;
+      *lowbound = MBASE(DATA) + mem->offset;
+      *highbound = MEND(DATA);
       *fileoff = 0;
     } else if (mem_is_eeprom(mem)) {
-      *lowbound = 0x810000;
-      *highbound = 0x81ffff;    // Max 64 KiB
+      *lowbound = MBASE(EEPROM);
+      *highbound = MEND(EEPROM); // Max 64 KiB
       *fileoff = 0;
     } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
-      *lowbound = 0x820000;
-      *highbound = 0x82ffff;
+      *lowbound = MBASE(FUSES);
+      *highbound = MEND(FUSES);
       *fileoff = mem_is_a_fuse(mem)? mem_fuse_offset(mem): 0;
     } else if (mem_is_lock(mem)) { // Lock or lockbits
-      *lowbound = 0x830000;
-      *highbound = 0x83ffff;
+      *lowbound = MBASE(LOCK);
+      *highbound = MEND(LOCK);
       *fileoff = 0;
     } else if (mem_is_signature(mem)) { // Read only
-      *lowbound = 0x840000;
-      *highbound = 0x84ffff;
+      *lowbound = MBASE(SIGROW);
+      *highbound = MEND(SIGROW);
       *fileoff = 0;
     } else if (mem_is_userrow(mem)) { // usersig or userrow
-      *lowbound = 0x850000;
-      *highbound = 0x85ffff;
+      *lowbound = MBASE(USERROW);
+      *highbound = MEND(USERROW);
       *fileoff = 0;
     } else if (mem_is_bootrow(mem)) {
-      *lowbound = 0x860000;
-      *highbound = 0x86ffff;
+      *lowbound = MBASE(BOOTROW);
+      *highbound = MEND(BOOTROW);
       *fileoff = 0;
     } else {
       rv = -1;

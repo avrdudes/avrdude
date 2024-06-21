@@ -685,7 +685,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     seglist = mmt_malloc(ns*sizeof*seglist);
   }
 
-  mem = umemlist? avr_new_memory("multi", ANY_MEM_SIZE): avr_locate_mem(p, umstr);
+  mem = umemlist? fileio_any_memory("any"): avr_locate_mem(p, umstr);
   if(mem == NULL) {
     pmsg_warning("skipping -U %s:... as memory not defined for part %s\n", umstr, p->desc);
     return LIBAVRDUDE_SOFTFAIL;
