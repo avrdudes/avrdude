@@ -272,13 +272,17 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
   msg_ext_error("\n");
 }
 
+// Whether a memory should be returned for ALL: exclude IO/SRAM
+static int is_interesting_mem(const AVRPART *p, const AVRMEM *mem) {
+  return !(mem_is_io(mem) || mem_is_sram(mem));
+}
+
 // Whether a memory should be backup-ed: exclude sub-memories
 static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
   return mem_is_in_flash(mem)? mem_is_flash(mem):
     mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
     mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
-    mem_is_io(mem)? 0:
-    !mem_is_sram(mem);
+    is_interesting_mem(p, mem);
 }
 
 /*
@@ -316,7 +320,11 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
     if(e)
       *e = 0;
     s = str_trim(s);
-    if(str_eq(s, "all") || str_eq(s, "etc")) {
+    if(str_eq(s, "ALL")) {
+      for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
+        if(is_interesting_mem(p, (m = ldata(lm))))
+          umemlist[nm++] = m;
+    } else if(str_eq(s, "all") || str_eq(s, "etc")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_backup_mem(p, (m = ldata(lm))))
           umemlist[nm++] = m;
@@ -660,7 +668,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   int allsize, len, maxrlen = 0, ns = 0;
 
-  if(str_eq(umstr, "all") || str_eq(umstr, "etc") || strchr(umstr, ',') || strchr(umstr, '\\')) {
+  if(str_eq(umstr, "ALL") || str_eq(umstr, "all") || str_eq(umstr, "etc") || strpbrk(umstr, ",\\")) {
     umemlist = memory_list(umstr, p, &ns, &rwvsoftfail, NULL);
 
     if(!ns) {                   // ns is number of memories listed
