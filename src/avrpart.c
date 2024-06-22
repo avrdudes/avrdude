@@ -543,6 +543,14 @@ int avr_locate_upidx(const AVRPART *p) {
   return idx;
 }
 
+// Return pointer to uP_table entry for part p
+const Avrintel *avr_locate_uP(const AVRPART *p) {
+  int idx = avr_locate_upidx(p);
+
+  return idx < 0? NULL: uP_table + idx;
+}
+
+
 // Return pointer to config table for the part and set number of config bitfields
 const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp) {
   int idx = avr_locate_upidx(p);
@@ -768,7 +776,8 @@ int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
   if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
     return -1;
 
-  *valuep = (fusel & c->mask) >> c->lsh;
+  if(valuep)
+    *valuep = (fusel & c->mask) >> c->lsh;
   return 0;
 }
 

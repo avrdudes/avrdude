@@ -1442,6 +1442,7 @@ extern "C" {
 #endif
 
 int avr_locate_upidx(const AVRPART *p);
+const Avrintel *avr_locate_uP(const AVRPART *p);
 const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp);
 const char * const *avr_locate_isrtable(const AVRPART *p, int *nip);
 const Register_file *avr_locate_register_file(const AVRPART *p, int *nrp);
