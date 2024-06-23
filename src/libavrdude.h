@@ -1514,7 +1514,7 @@ char *str_nexttok(char *buf, const char *delim, char **next);
 const char *str_ccfrq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
-int str_mcunames_signature(uint8_t *sigs, char *p, size_t n);
+int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);
