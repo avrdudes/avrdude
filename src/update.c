@@ -36,6 +36,11 @@
 #include "libavrdude.h"
 
 
+// Is s a multi-memory string (comma-separates list, all, ALL, etc or list subtraction)?
+static int is_multimem(const char *s) {
+  return str_eq(s, "ALL") || str_eq(s, "all") || str_eq(s, "etc") || strpbrk(s, ",\\");
+}
+
 /*
  * Parsing of [<memory>:<op>:<file>[:<fmt>] | <file>[:<fmt>]]
  *
@@ -70,8 +75,9 @@ UPDATE *parse_op(const char *s) {
     fn = fc+3;
   }
 
-  // Default to AUTO for write and verify, and to raw binary for read
-  upd->format = upd->op == DEVICE_READ? FMT_RBIN: FMT_AUTO;
+   // Autodetect for file reads, and hex (multi-mem)/raw (single mem) for file writes
+  upd->format = upd->op != DEVICE_READ? FMT_AUTO:
+    is_multimem(upd->memstr)? FMT_IHXC: FMT_RBIN;
 
   // Filename: last char is format if the penultimate char is a colon
   size_t len = strlen(fn);
@@ -668,7 +674,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
   int allsize, len, maxrlen = 0, ns = 0;
 
-  if(str_eq(umstr, "ALL") || str_eq(umstr, "all") || str_eq(umstr, "etc") || strpbrk(umstr, ",\\")) {
+  if(is_multimem(umstr)) {
     umemlist = memory_list(umstr, p, &ns, &rwvsoftfail, NULL);
 
     if(!ns) {                   // ns is number of memories listed
