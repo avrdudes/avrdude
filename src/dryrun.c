@@ -326,19 +326,13 @@ static int dryrun_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
       // Copy chunk to overlapping XMEGA's apptable, application, boot and flash memories
       if(mchr == 'F') {
-        if(mem_is_flash(dmem)) {
-          for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
-            dm2 = ldata(ln);
-            if(mem_is_in_flash(dm2) && !mem_is_flash(dm2)) { // Overlapping region?
-              unsigned int cpaddr = addr + dmem->offset - dm2->offset;
-              if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
-                memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
-            }
+        for(LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
+          dm2 = ldata(ln);
+          if(mem_is_in_flash(dm2) && dmem != dm2) { // Overlapping region?
+            unsigned int cpaddr = addr + dmem->offset - dm2->offset;
+            if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
+              memmove(dm2->buf+cpaddr, dmem->buf+addr, chunk);
           }
-        } else if((dm2 = avr_locate_flash(dry.dp))) {
-          unsigned int cpaddr = addr + dmem->offset - dm2->offset;
-          if(cpaddr < (unsigned int) dm2->size && cpaddr + chunk <= (unsigned int) dm2->size)
-            memcpy(dm2->buf+cpaddr, dmem->buf+addr, chunk);
         }
       }
     }
