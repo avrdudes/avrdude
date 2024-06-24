@@ -24555,6 +24555,7 @@ part parent "32du14" # 32du32
 part parent ".avrdx" # .avrex
     desc                   = "AVR-Ex family common values";
     id                     = ".avrex";
+    boot_section_size      = 256;
     # Shared UPDI pin, HV on _RESET
     hvupdi_variant         = 2;
     factory_fcpu           = 20000000;
