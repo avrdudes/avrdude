@@ -37,7 +37,7 @@ static void pgm_default_4(const PROGRAMMER *);
 static int  pgm_default_5(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data);
 static void pgm_default_6(const PROGRAMMER *, const char *);
-
+static void pgm_default_setup_teardown(PROGRAMMER *pgm);
 
 static int pgm_default_open(PROGRAMMER *pgm, const char *name) {
   pmsg_error("programmer does not support open()");
@@ -96,6 +96,8 @@ void pgm_init_functions(PROGRAMMER *pgm) {
   pgm->page_erase_cached = avr_page_erase_cached;
   pgm->flush_cache    = avr_flush_cache;
   pgm->reset_cache    = avr_reset_cache;
+  pgm->setup          = pgm_default_setup_teardown;
+  pgm->teardown       = pgm_default_setup_teardown;
 
   /*
    * optional functions - these are checked to make sure they are
@@ -129,8 +131,6 @@ void pgm_init_functions(PROGRAMMER *pgm) {
   pgm->parseexitspecs = NULL;
   pgm->perform_osccal = NULL;
   pgm->parseextparams = NULL;
-  pgm->setup          = NULL;
-  pgm->teardown       = NULL;
   pgm->readonly       = NULL;
   pgm->flash_readhook = NULL;
 }
@@ -275,6 +275,11 @@ static int  pgm_default_5 (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
 static void pgm_default_6 (const PROGRAMMER *pgm, const char *p) {
   pgm_default();
+}
+
+static void pgm_default_setup_teardown(PROGRAMMER *pgm) {
+  // ignore
+  (void)pgm;
 }
 
 
