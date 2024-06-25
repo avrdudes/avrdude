@@ -228,6 +228,14 @@ int str_is_pattern(const char *str) {
     }
 }
 
+// Is the string s in the list l of strings as matched by f(s, l[i])?
+int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char*)) {
+  for(size_t i=0; i<nl; i++)
+    if(f(s, l[i]))
+      return 1;
+  return 0;
+}
+
 // Return a mmt_malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {
   int size = 0;

@@ -1474,6 +1474,7 @@ int str_casematch(const char *pattern, const char *string);
 int str_matched_by(const char *string, const char *pattern);
 int str_casematched_by(const char *string, const char *pattern);
 int str_is_pattern(const char *str);
+int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char*));
 char *str_sprintf(const char *fmt, ...)
 #if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
    __attribute__ ((format (printf, 1, 2)))
