@@ -232,6 +232,7 @@ typedef struct opcode {
 #define PM_XMEGAJTAG       1024 // JTAG, some XMEGA parts
 #define PM_AVR32JTAG       2048 // JTAG for 32-bit AVRs
 #define PM_aWire           4096 // For 32-bit AVRs
+#define PM_Classic (PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI)
 #define PM_ALL           0x1fff // All programming interfaces
 
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
