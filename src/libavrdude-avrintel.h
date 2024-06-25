@@ -11,8 +11,8 @@
  * Published under GNU General Public License, version 3 (GPL-3.0)
  * Meta-author Stefan Rueger <stefan.rueger@urclocks.com>
  *
- * v 1.3
- * 20.05.2024
+ * v 1.39
+ * 25.06.2024
  *
  */
 
@@ -55,7 +55,7 @@ typedef struct {                // Value of -1 typically means unknown
   uint16_t mcuid;               // ID of MCU in 0..2039
   uint8_t  avrarch;             // F_AVR8L, F_AVR8, F_XMEGA or F_AVR8X
   uint8_t sigs[3];              // Signature bytes
-  int32_t flashoffset;          // Flash offset
+  int32_t flashoffset;          // Flash offset in dual-chip MCUs (not flash->offset)
   int32_t flashsize;            // Flash size
   int16_t pagesize;             // Flash page size
   int8_t  nboots;               // Number of supported boot sections
