@@ -18397,7 +18397,7 @@ part parent ".xmega" # x128a4
 
     memory "flash"
         size               = 0x22000;
-        page_size          = 512;
+        page_size          = 256;
         offset             = 0x800000;
         readsize           = 256;
     ;
