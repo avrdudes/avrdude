@@ -42,6 +42,9 @@
 #include "dryrun.h"
 #include "dryrun_private.h"
 
+#define random() rand()         // For platform independence
+#define srandom(n) srand(n)
+
 // Context of the programmer
 typedef enum {
   DRY_NOBOOTLOADER,             // No bootloader, taking to an ordinary programmer
