@@ -67,6 +67,7 @@ struct command {
 static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_backup (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
@@ -97,6 +98,7 @@ struct command cmd[] = {
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
   { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
+  { "backup", cmd_backup,  _fo(write_byte_cached), "backup memories to file" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
@@ -646,17 +648,8 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   const char *fn = argv[argc-1];
   size_t len = strlen(fn);
   if(len > 2 && fn[len-2] == ':') { // Assume format specified
-    format = fileio_format(fn[len-1]);
-    if(format == FMT_ERROR) {
-      pmsg_error("(save) invalid file format :%c; known formats are\n", fn[len-1]);
-      for(int f, c, i=0; i<62; i++) {
-        c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
-        f = fileio_format(c);
-        if(f != FMT_ERROR)
-          msg_error("  :%c %s\n", c, fileio_fmtstr(f));
-      }
+    if((format = fileio_format_with_errmsg(fn[len-1], "(save) ")) == FMT_ERROR)
       return -1;
-    }
     len -= 2;
   }
   char *filename = memcpy(mmt_malloc(len+1), fn, len);
@@ -727,6 +720,48 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   return ret < 0? ret: 0;
 }
+
+
+static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: backup <memlist> <file>[:<format>]\n"
+      "Function: save memories to file; default format :I Intel Hex + comments\n"
+      "Notes:\n"
+      "  - Backup flushes the cache before reading memories\n"
+      "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
+      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - A single list subtraction \\ (without) is allowed, eg, all\\backup\n"
+    );
+    return -1;
+  }
+
+  FILEFMT format = FMT_IHXC;
+  const char *fn = argv[2];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // Assume format specified
+    if((format = fileio_format_with_errmsg(fn[len-1], "(backup) ")) == FMT_ERROR)
+      return -1;
+    len -= 2;
+  }
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
+
+  UPDATE upd = {
+    .cmdline = NULL,
+    .memstr = mmt_strdup(argv[1]),
+    .op = DEVICE_READ,
+    .filename = filename,
+    .format = format,
+  };
+
+  pgm->flush_cache(pgm, p); // Flush cache before any device memory access
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_VERIFY); // -U argv[1]:r:file (and no -V)
+  mmt_free(upd.filename);
+  mmt_free(upd.memstr);
+
+  return ret <= 0? ret: 0;
+}
+
 
 static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
