@@ -82,15 +82,8 @@ UPDATE *parse_op(const char *s) {
   // Filename: last char is format if the penultimate char is a colon
   size_t len = strlen(fn);
   if(len > 2 && fn[len-2] == ':') { // Assume format specified
-    upd->format = fileio_format(fn[len-1]);
+    upd->format = fileio_format_with_errmsg(fn[len-1], "");
     if(upd->format == FMT_ERROR) {
-      pmsg_error("invalid file format :%c in -U %s; known formats are\n", fn[len-1], s);
-      for(int f, c, i=0; i<62; i++) {
-        c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
-        f = fileio_format(c);
-        if(f != FMT_ERROR)
-          imsg_error("  :%c %s\n", c, fileio_fmtstr(f));
-      }
       mmt_free(upd->memstr);
       mmt_free(upd);
       return NULL;
