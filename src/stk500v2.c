@@ -4496,7 +4496,7 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         b[1] = XPRG_MEM_TYPE_FUSE;
     } else if (mem_is_lock(mem)) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
+    } else if (mem_is_calibration(mem) || mem_is_in_sigrow(mem)) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (mem_is_userrow(mem)) {
         b[1] = XPRG_MEM_TYPE_USERSIG;

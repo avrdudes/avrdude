@@ -183,9 +183,8 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       } else if(mem_is_sigrow(m) && m->size >= 6) {
         prodsigm = m;
         memset(m->buf, 0xff, m->size);
-        if(p->prog_modes & PM_PDI) {
-          m->buf[0] = m->buf[1] = 'U';
-        } else if(!(p->prog_modes & PM_UPDI)) { // Classic parts: signature at even addresses
+        // Classic parts: signature at even addresses @@@ but not t102/t104?
+        if(!(p->prog_modes & (PM_UPDI | PM_PDI))) {
           for(int i=0; i<3; i++)
             m->buf[2*i] = dry.dp->signature[i];
         }
@@ -201,7 +200,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
     if(prodsigm) {
-      if(p->prog_modes & PM_UPDI) {
+      if(p->prog_modes & (PM_UPDI | PM_PDI)) {
         for (LNODEID ln=lfirst(dry.dp->mem); ln; ln=lnext(ln)) {
           AVRMEM *m = ldata(ln);
           if(m->buf == prodsigm->buf) // Skip prodsig memory
@@ -214,7 +213,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
         }
       }
       if(!(p->prog_modes & (PM_PDI|PM_UPDI)) && (calm = avr_locate_calibration(dry.dp))) {
-        // Calibration bytes of classic parts are interspersed with signature
+        // Calibration bytes of classic parts are interspersed with signature @@@ but not t102/t104?
         for(int i=0; i<calm->size; i++)
           if(2*i+1 < prodsigm->size)
             prodsigm->buf[2*i+1] = 'U';
