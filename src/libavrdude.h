@@ -1227,6 +1227,7 @@ extern "C" {
 #endif
 
 FILEFMT fileio_format(char c);
+FILEFMT fileio_format_with_errmsg(char c, const char *who);
 
 char *fileio_fmtstr(FILEFMT format);
 

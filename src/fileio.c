@@ -151,6 +151,23 @@ FILEFMT fileio_format(char c) {
 }
 
 
+// Same as fileio_format(ch) but show error message with originator who and list possible formats
+FILEFMT fileio_format_with_errmsg(char ch, const char *who) {
+  FILEFMT format = fileio_format(ch);
+  if(format == FMT_ERROR) {
+    pmsg_error("%sinvalid file format :%c; known formats are\n", who? who: "", ch);
+    for(int f, c, i=0; i<62; i++) {
+      c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
+      f = fileio_format(c);
+      if(f != FMT_ERROR)
+        msg_error("  :%c %s\n", c, fileio_fmtstr(f));
+    }
+  }
+
+  return format;
+}
+
+
 // Multi-memory file flat address space layout (also used by avr-gcc's elf)
 
 enum {
