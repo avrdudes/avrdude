@@ -69,6 +69,7 @@ static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_backup (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_verify (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
@@ -101,6 +102,7 @@ struct command cmd[] = {
   { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
   { "backup", cmd_backup,  _fo(write_byte_cached), "backup memories to file" },
   { "restore", cmd_restore,  _fo(write_byte_cached), "restore memories from file" },
+  { "verify", cmd_verify,  _fo(write_byte_cached), "compare memories with file" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
@@ -803,6 +805,46 @@ static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
   mmt_free(upd.filename);
   mmt_free(upd.memstr);
   pgm->reset_cache(pgm, p); // Reset cache after writing to memories
+
+  return ret <= 0? ret: 0;
+}
+
+static int cmd_verify(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: verify <memlist> <file>[:<format>]\n"
+      "Function: compare memories with file\n"
+      "Notes:\n"
+      "  - Verify flushes the cache before verifying memories\n"
+      "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
+      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - A single list subtraction \\ (without) is allowed, eg, all\\bootrow\n"
+    );
+    return -1;
+  }
+
+  FILEFMT format = FMT_AUTO;
+  const char *fn = argv[2];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // :format
+    if((format = fileio_format_with_errmsg(fn[len-1], "(verify) ")) == FMT_ERROR)
+      return -1;
+    len -= 2;
+  }
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
+
+  UPDATE upd = {
+    .cmdline = NULL,
+    .memstr = mmt_strdup(argv[1]),
+    .op = DEVICE_VERIFY,
+    .filename = filename,
+    .format = format,
+  };
+
+  pgm->flush_cache(pgm, p); // Flush cache before any device memory access
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE); // -V -U argv[1]:v:file
+  mmt_free(upd.filename);
+  mmt_free(upd.memstr);
 
   return ret <= 0? ret: 0;
 }
