@@ -68,6 +68,7 @@ static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_backup (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
@@ -99,6 +100,7 @@ struct command cmd[] = {
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
   { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
   { "backup", cmd_backup,  _fo(write_byte_cached), "backup memories to file" },
+  { "restore", cmd_restore,  _fo(write_byte_cached), "restore memories from file" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
@@ -721,7 +723,6 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   return ret < 0? ret: 0;
 }
 
-
 static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
@@ -731,7 +732,7 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "  - Backup flushes the cache before reading memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
       "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
-      "  - A single list subtraction \\ (without) is allowed, eg, all\\backup\n"
+      "  - A single list subtraction \\ (without) is allowed, eg, all\\bootrow\n"
     );
     return -1;
   }
@@ -739,7 +740,7 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   FILEFMT format = FMT_IHXC;
   const char *fn = argv[2];
   size_t len = strlen(fn);
-  if(len > 2 && fn[len-2] == ':') { // Assume format specified
+  if(len > 2 && fn[len-2] == ':') { // :format
     if((format = fileio_format_with_errmsg(fn[len-1], "(backup) ")) == FMT_ERROR)
       return -1;
     len -= 2;
@@ -755,9 +756,53 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   };
 
   pgm->flush_cache(pgm, p); // Flush cache before any device memory access
-  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_VERIFY); // -U argv[1]:r:file (and no -V)
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE); // -U argv[1]:r:file
   mmt_free(upd.filename);
   mmt_free(upd.memstr);
+
+  return ret <= 0? ret: 0;
+}
+
+static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: restore <memlist> <file>[:<format>]\n"
+      "Function: restore memories from file\n"
+      "Notes:\n"
+      "  - User should erase flash before using restore involving flash\n"
+      "  - Restore flushes the cache before writing memories\n"
+      "  - After writing memories restore resets the cache\n"
+      "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
+      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - A single list subtraction \\ (without) is allowed, eg, all\\bootrow\n"
+      "  - Restoring a read-only memory verifies file contents with MUC memory\n"
+    );
+    return -1;
+  }
+
+  FILEFMT format = FMT_AUTO;
+  const char *fn = argv[2];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // :format
+    if((format = fileio_format_with_errmsg(fn[len-1], "(restore) ")) == FMT_ERROR)
+      return -1;
+    len -= 2;
+  }
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
+
+  UPDATE upd = {
+    .cmdline = NULL,
+    .memstr = mmt_strdup(argv[1]),
+    .op = DEVICE_WRITE,
+    .filename = filename,
+    .format = format,
+  };
+
+  pgm->flush_cache(pgm, p); // Flush cache before any device memory access
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_VERIFY); // -U argv[1]:w:file (no -V)
+  mmt_free(upd.filename);
+  mmt_free(upd.memstr);
+  pgm->reset_cache(pgm, p); // Reset cache after writing to memories
 
   return ret <= 0? ret: 0;
 }
