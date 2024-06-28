@@ -849,7 +849,7 @@ static int prog_modes_in_flags(int prog_modes, const char *flags) {
   return (prog_modes == 0 && quirky) || !pm || (prog_modes & pm);
 }
 
-// -p <wildcard>/[cdoASsrw*tiBUPTIJWHQ]
+// -p <wildcard>/[dsASReow*tiBUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
   bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
@@ -862,27 +862,27 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("cdoASsrw*tiBUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dsASReow*tiBUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
-      "         * all known parts\n"
-      "  ATtiny10 just this part\n"
-      "  *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
-      "      *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
+      "          * all known parts\n"
+      "   ATtiny10 just this part\n"
+      "   *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
+      "       *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
       "Flags (one or more of the characters below):\n"
-      "         d  description of core part features\n"
-      "         A  show entries of avrdude.conf parts with all values\n"
-      "         S  show entries of avrdude.conf parts with necessary values\n"
-      "         s  show short entries of avrdude.conf parts using parent\n"
-      "         r  show entries of avrdude.conf parts as raw dump\n"
-      "         c  check and report errors in address bits of SPI commands\n"
-      "         o  opcodes for SPI programming parts and memories\n"
-      "         w  wd_... constants for ISP parts\n"
-      "         *  as first character: all of the above except s and S\n"
-      " BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
-      "         t  use tab separated values as much as possible\n"
-      "         i  inject assignments from source code table\n"
+      "          d  description of core part features\n"
+      "          s  show short entries of avrdude.conf parts using parent\n"
+      "          A  show entries of avrdude.conf parts with all values\n"
+      "          S  show entries of avrdude.conf parts with necessary values\n"
+      "          R  show entries of avrdude.conf parts as raw dump\n"
+      "          e  check and report errors in address bits of SPI commands\n"
+      "          o  opcodes for SPI programming parts and memories\n"
+      "          w  wd_... constants for ISP parts\n"
+      "          *  as first character: all of the above except s and S\n"
+      "  BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
+      "          t  use tab separated values as much as possible\n"
+      "          i  inject assignments from source code table\n"
       "Examples:\n"
       "  $ avrdude -p ATmega328P/s\n"
       "  $ avrdude -p m328*/st | grep chip_erase_delay\n"
@@ -901,12 +901,12 @@ void dev_output_part_defs(char *partdesc) {
   }
 
   all = *flags == '*';
-  cmdok = all || !!strchr(flags, 'c');
+  cmdok = all || !!strchr(flags, 'e');
   descs = all || !!strchr(flags, 'd');
   opspi = all || !!strchr(flags, 'o');
   waits = all || !!strchr(flags, 'w');
   astrc = all || !!strchr(flags, 'A');
-  raw   = all || !!strchr(flags, 'r');
+  raw   = all || !!strchr(flags, 'R');
   strct = !!strchr(flags, 'S');
   cmpst = !!strchr(flags, 's');
   tsv   = !!strchr(flags, 't');
