@@ -284,34 +284,30 @@ static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
     is_interesting_mem(p, mem);
 }
 
+// Add (not == 0) or subtract (not == 1) a memory from list
+static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
+  for(int i = 0; i < nm; i++)
+    if(mlist[i] == m) {
+      if(not)
+        mlist[i] = NULL;
+      return nm;
+    }
+  if(!not)
+    mlist[nm++] = m;
+  return nm;
+}
+
 /*
- * Generate memory list from string and put number of memories into *np; Memory
- * list can be sth like ee,fl,all\cal,efuse. Exactly one without operator \ can
- * be present: it removes the second list from first. Normal use is to pass
- * NULL for dry and let the function write to *np (ie, the number of resulting
- * memories) and *rwvsoftfail indicating unknown memories for this part. If dry
- * is set then -1 will be written to *dry when a generally unknown memory is
- * mentioned or the string has a syntax error.
+ * Generate a memory list from string mstr and put number of memories into *np.
+ * Memory list can be sth like ee,fl,all,-cal,efuse. -mem or /mem removes it
+ * from the list. Normal use is to pass NULL for dry and let the function write
+ * to *np and *rwvsoftfail indicating unknown memories for this part. If dry is
+ * set then -1 will be written to *dry when a generally unknown memory is used.
  */
 static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
-  int nsub = 0, nm = (lsize(p->mem) + 1) * ((int) str_numc(mstr, ',') + 1); // Upper limit
-  AVRMEM *m, **sub = NULL, **umemlist = mmt_malloc(nm*sizeof*umemlist);
+  int not, nm = (lsize(p->mem) + 1) * ((int) str_numc(mstr, ',') + 1); // Upper limit
+  AVRMEM *m, **umemlist = mmt_malloc(nm*sizeof*umemlist);
   char *dstr = mmt_strdup(mstr), *s = dstr, *e;
-
-  switch(str_numc(dstr, '\\')) {
-  case 0:
-    break;
-  default:
-   pmsg_error("list subtracting another with \\ only allowed once: %s\n", mstr);
-   if(*dry)
-     *dry = LIBAVRDUDE_GENERAL_FAILURE;
-    mmt_free(dstr);
-    goto done;
-  case 1:
-    e = strchr(dstr, '\\');
-    sub = memory_list(e+1, p, &nsub, rwvsoftp, dry);
-    *e = 0;
-  }
 
   nm = 0;                       // Now count how many there really are mentioned
   // Parse comma-separated list of memories incl memory all
@@ -319,14 +315,16 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
     if(e)
       *e = 0;
     s = str_trim(s);
+    if((not = *s == '/' || *s =='-'))  // /mem or -mem removes the memory
+      s++;
     if(str_eq(s, "ALL")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_interesting_mem(p, (m = ldata(lm))))
-          umemlist[nm++] = m;
+          nm = memadd(umemlist, nm, not,  m);
     } else if(str_eq(s, "all") || str_eq(s, "etc")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_backup_mem(p, (m = ldata(lm))))
-          umemlist[nm++] = m;
+          nm = memadd(umemlist, nm, not,  m);
     } else if(!*s) {            // Ignore empty list elements
     } else {
       if(dry) {
@@ -340,7 +338,7 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
           *dry = LIBAVRDUDE_SOFTFAIL;
       }
       if((m = avr_locate_mem(p, s)))
-        umemlist[nm++] = m;
+        nm = memadd(umemlist, nm, not,  m);
       else if(rwvsoftp) {
         pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, mstr);
         *rwvsoftp = 1;
@@ -352,19 +350,6 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
   }
   mmt_free(dstr);
 
-  if(sub) {                     // Subtract all memories of second list
-    for(int d=0; d<nsub; d++)
-      for(int i=0; i < nm; i++)
-        if(umemlist[i] == sub[d])
-          umemlist[i] = NULL;
-    mmt_free(sub);
-  }
-
-  for(int i=0; i < nm; i++)     // De-duplicate list, keeping order
-    for(int j = i+1; j < nm; j++)
-       if(umemlist[j] == umemlist[i])
-         umemlist[j] = NULL;
-
   int nj = 0;
   for(int i = 0; i < nm; i++)   // Remove NULL entries
     if((umemlist[nj] = umemlist[i]))
@@ -374,6 +359,7 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
 done:
   if(np)
     *np = nm;
+
   return umemlist;
 }
 
