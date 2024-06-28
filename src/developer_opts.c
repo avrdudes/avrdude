@@ -850,9 +850,19 @@ static int prog_modes_in_flags(int prog_modes, const char *flags) {
   return (prog_modes == 0 && quirky) || !pm || (prog_modes & pm);
 }
 
-// -p <wildcard>/[dsASReow*tiBCUPTIJWHQ]
+// Return pointer to uP_table entry for part p
+static const Avrintel *silent_locate_uP(const AVRPART *p) {
+  int bakverb = verbose, idx;
+  verbose = -123;
+  idx = avr_locate_upidx(p);
+  verbose = bakverb;
+
+  return idx < 0? NULL: uP_table + idx;
+}
+
+// -p <wildcard>/[dsASRveow*tiBCUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, vtabs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -863,7 +873,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("dsASReow*tiBCUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dsASRveow*tiBCUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -877,6 +887,7 @@ void dev_output_part_defs(char *partdesc) {
       "          A  show entries of avrdude.conf parts with all values\n"
       "          S  show entries of avrdude.conf parts with necessary values\n"
       "          R  show entries of avrdude.conf parts as raw dump\n"
+      "          v  show vector table list for parts\n"
       "          e  check and report errors in address bits of SPI commands\n"
       "          o  opcodes for SPI programming parts and memories\n"
       "          w  wd_... constants for ISP parts\n"
@@ -902,8 +913,9 @@ void dev_output_part_defs(char *partdesc) {
   }
 
   all = *flags == '*';
-  cmdok = all || !!strchr(flags, 'e');
   descs = all || !!strchr(flags, 'd');
+  vtabs = all || !!strchr(flags, 'v');
+  cmdok = all || !!strchr(flags, 'e');
   opspi = all || !!strchr(flags, 'o');
   waits = all || !!strchr(flags, 'w');
   astrc = all || !!strchr(flags, 'A');
@@ -979,6 +991,7 @@ void dev_output_part_defs(char *partdesc) {
       int ok, nfuses;
       AVRMEM *m;
       OPCODE *oc;
+      const Avrintel *up;
 
       ok = 2047;
       nfuses = 0;
@@ -1112,6 +1125,10 @@ void dev_output_part_defs(char *partdesc) {
           p->config_file, p->lineno
         );
       }
+
+      if(vtabs && (up = silent_locate_uP(p)) && up->isrtable)
+        for(int i=0; i < up->ninterrupts; i++)
+          dev_info("%s\t%3d\t%s\n", p->desc, i, up->isrtable[i]);
     }
 
     if(opspi) {
