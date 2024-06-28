@@ -1135,7 +1135,7 @@ void dev_output_part_defs(char *partdesc) {
 
       if(vtabs && (up = silent_locate_uP(p)) && up->isrtable)
         for(int i=0; i < up->ninterrupts; i++)
-          dev_info("%s\t%3d\t%s\n", p->desc, i, up->isrtable[i]);
+          dev_info(".vtab\t%s\t%d\t%s\n", p->desc, i, up->isrtable[i]);
 
       if(confs && (up = silent_locate_uP(p)) && up->cfgtable)
         for(int i=0; i < up->nconfigs; i++) {
@@ -1146,15 +1146,15 @@ void dev_output_part_defs(char *partdesc) {
               n &= n-1;
             n = 1<<c;
           }
-          dev_info("%s\t%3d\t%s\n", p->desc, n, cp->name);
+          dev_info(".cfgt\t%s\t%d\t%s\n", p->desc, n, cp->name);
           if(cp->vlist && verbose)
             for(int k=0; k < cp->nvalues; k++)
-              dev_info("%s\t\tvalue\t%3d\t%s\n", p->desc, cp->vlist[k].value, cp->vlist[k].label);
+              dev_info(".cfgv\t%s\t\tvalue\t%d\t%s\n", p->desc, cp->vlist[k].value, cp->vlist[k].label);
         }
 
       if(regis && (up = silent_locate_uP(p)) && up->regf)
         for(int i=0; i < up->nregisters; i++)
-          dev_info("%s\t0x%02x\t%d\t%s\n", p->desc, up->regf[i].addr, up->regf[i].size, up->regf[i].reg);
+          dev_info(".regf\t%s\t0x%02x\t%d\t%s\n", p->desc, up->regf[i].addr, up->regf[i].size, up->regf[i].reg);
     }
 
     if(opspi) {
