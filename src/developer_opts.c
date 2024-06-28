@@ -214,6 +214,9 @@ static char *dev_sprintf(const char *fmt, ...) {
 
 static int dev_nprinted;
 
+#if defined(__GNUC__)
+   __attribute__ ((format (printf, 2, 3)))
+#endif
 int dev_message(int msglvl, const char *fmt, ...) {
   va_list ap;
   int rc = 0;
@@ -530,7 +533,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
     if(!cp || !dev_has_subsstr_comms(cp->comms, del)) {
       dev_info("%s\n", del);
-      dev_info("# %.*s\n", strlen(descstr)-2, descstr+1); // Remove double quotes
+      dev_info("# %.*s\n", (int) strlen(descstr)-2, descstr+1); // Remove double quotes
       dev_info("%s\n\n", del);
     }
     if(cp)
@@ -689,7 +692,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     bm = base? dev_locate_mem(base, avr_mem_order[mi].str): NULL;
 
     if(!m && bm && !tsv)
-      dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13-strlen(bm->desc): 0, "");
+      dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13 - (int) strlen(bm->desc): 0, "");
 
     if(!m)
       continue;
@@ -1298,7 +1301,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
         if(!firstid)
           dev_info("/");
         firstid = 0;
-        dev_info("%s", ldata(ln));
+        dev_info("%s", (char *) ldata(ln));
       }
       dev_info("\n%s\n\n", del);
     }
@@ -1307,9 +1310,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
     const char *prog_sea = is_programmer(pgm)? "programmer": is_serialadapter(pgm)? "serialadapter": "programmer";
     if(pgm->parent_id && *pgm->parent_id)
-      dev_info("%s parent \"%s\" # %s\n", prog_sea, pgm->parent_id, ldata(lfirst(pgm->id)));
+      dev_info("%s parent \"%s\" # %s\n", prog_sea, pgm->parent_id, (char *) ldata(lfirst(pgm->id)));
     else
-      dev_info("%s # %s\n", prog_sea, ldata(lfirst(pgm->id)));
+      dev_info("%s # %s\n", prog_sea, (char *) ldata(lfirst(pgm->id)));
   }
 
   if(tsv)
