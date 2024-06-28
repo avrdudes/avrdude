@@ -834,6 +834,7 @@ static int prog_modes_in_flags(int prog_modes, const char *flags) {
   for(const char *p = flags; *p; p++)
     switch(*p) {
     case 'B': pm |= PM_SPM; break;
+    case 'C': pm |= PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI; break;
     case 'U': pm |= PM_UPDI; break;
     case 'P': pm |= PM_PDI; break;
     case 'T': pm |= PM_TPI; break;
@@ -849,7 +850,7 @@ static int prog_modes_in_flags(int prog_modes, const char *flags) {
   return (prog_modes == 0 && quirky) || !pm || (prog_modes & pm);
 }
 
-// -p <wildcard>/[dsASReow*tiBUPTIJWHQ]
+// -p <wildcard>/[dsASReow*tiBCUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
   bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
@@ -862,7 +863,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("dsASReow*tiBUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dsASReow*tiBCUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -880,7 +881,7 @@ void dev_output_part_defs(char *partdesc) {
       "          o  opcodes for SPI programming parts and memories\n"
       "          w  wd_... constants for ISP parts\n"
       "          *  as first character: all of the above except s and S\n"
-      "  BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
+      " BCUPTIJWHQ  only Boot/Classic/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
       "          t  use tab separated values as much as possible\n"
       "          i  inject assignments from source code table\n"
       "Examples:\n"
