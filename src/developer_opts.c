@@ -863,9 +863,9 @@ static const Avrintel *silent_locate_uP(const AVRPART *p) {
   return idx < 0? NULL: uP_table + idx;
 }
 
-// -p <wildcard>/[dsASRvceow*tiBCUPTIJWHQ]
+// -p <wildcard>/[dsASRvcreow*tiBCUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, vtabs, confs, astrc, strct, cmpst, injct, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, vtabs, confs, regis, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -876,7 +876,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("dsASRvceow*tiBCUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dsASRvcreow*tiBCUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -890,8 +890,9 @@ void dev_output_part_defs(char *partdesc) {
       "          A  show entries of avrdude.conf parts with all values\n"
       "          S  show entries of avrdude.conf parts with necessary values\n"
       "          R  show entries of avrdude.conf parts as raw dump\n"
-      "          v  list interrupt vector names for parts\n"
-      "          c  list configuration options for parts\n"
+      "          v  list interrupt vector names\n"
+      "          c  list configuration options in fuses\n"
+      "          r  list registers with I/O address and size\n"
       "          e  check and report errors in address bits of SPI commands\n"
       "          o  opcodes for SPI programming parts and memories\n"
       "          w  wd_... constants for ISP parts\n"
@@ -910,7 +911,7 @@ void dev_output_part_defs(char *partdesc) {
       "  Leaving no space after -p can be an OK substitute for quoting in shells\n"
       "  /s, /S and /A outputs are designed to be used as input in avrdude.conf\n"
       "  Sorted /r output should stay invariant when rearranging avrdude.conf\n"
-      "  The /c, /o and /w flags are less generic and may be removed sometime\n"
+      "  The /e, /o and /w flags are less generic and may be removed sometime\n"
       "  These options are just to help development, so not further documented\n"
     );
     return;
@@ -920,6 +921,7 @@ void dev_output_part_defs(char *partdesc) {
   descs = all || !!strchr(flags, 'd');
   vtabs = all || !!strchr(flags, 'v');
   confs = all || !!strchr(flags, 'c');
+  regis = all || !!strchr(flags, 'r');
   cmdok = all || !!strchr(flags, 'e');
   opspi = all || !!strchr(flags, 'o');
   waits = all || !!strchr(flags, 'w');
@@ -1149,6 +1151,10 @@ void dev_output_part_defs(char *partdesc) {
             for(int k=0; k < cp->nvalues; k++)
               dev_info("%s\t\tvalue\t%3d\t%s\n", p->desc, cp->vlist[k].value, cp->vlist[k].label);
         }
+
+      if(regis && (up = silent_locate_uP(p)) && up->regf)
+        for(int i=0; i < up->nregisters; i++)
+          dev_info("%s\t0x%02x\t%d\t%s\n", p->desc, up->regf[i].addr, up->regf[i].size, up->regf[i].reg);
     }
 
     if(opspi) {
