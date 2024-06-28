@@ -860,9 +860,9 @@ static const Avrintel *silent_locate_uP(const AVRPART *p) {
   return idx < 0? NULL: uP_table + idx;
 }
 
-// -p <wildcard>/[dsASRveow*tiBCUPTIJWHQ]
+// -p <wildcard>/[dsASRvceow*tiBCUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, vtabs, astrc, strct, cmpst, injct, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, vtabs, confs, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -873,7 +873,7 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("dsASRveow*tiBCUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("dsASRvceow*tiBCUPTIJWHQ", *flags)) {
     dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -887,7 +887,8 @@ void dev_output_part_defs(char *partdesc) {
       "          A  show entries of avrdude.conf parts with all values\n"
       "          S  show entries of avrdude.conf parts with necessary values\n"
       "          R  show entries of avrdude.conf parts as raw dump\n"
-      "          v  show vector table list for parts\n"
+      "          v  list interrupt vector names for parts\n"
+      "          c  list configuration options for parts\n"
       "          e  check and report errors in address bits of SPI commands\n"
       "          o  opcodes for SPI programming parts and memories\n"
       "          w  wd_... constants for ISP parts\n"
@@ -915,6 +916,7 @@ void dev_output_part_defs(char *partdesc) {
   all = *flags == '*';
   descs = all || !!strchr(flags, 'd');
   vtabs = all || !!strchr(flags, 'v');
+  confs = all || !!strchr(flags, 'c');
   cmdok = all || !!strchr(flags, 'e');
   opspi = all || !!strchr(flags, 'o');
   waits = all || !!strchr(flags, 'w');
@@ -1129,6 +1131,21 @@ void dev_output_part_defs(char *partdesc) {
       if(vtabs && (up = silent_locate_uP(p)) && up->isrtable)
         for(int i=0; i < up->ninterrupts; i++)
           dev_info("%s\t%3d\t%s\n", p->desc, i, up->isrtable[i]);
+
+      if(confs && (up = silent_locate_uP(p)) && up->cfgtable)
+        for(int i=0; i < up->nconfigs; i++) {
+          const Configitem *cp = up->cfgtable+i;
+          unsigned c, n = cp->nvalues;
+          if(!n || !cp->vlist) { // Count bits set in mask
+            for(n = cp->mask, c=0; n; c++)
+              n &= n-1;
+            n = 1<<c;
+          }
+          dev_info("%s\t%3d\t%s\n", p->desc, n, cp->name);
+          if(cp->vlist && verbose)
+            for(int k=0; k < cp->nvalues; k++)
+              dev_info("%s\t\tvalue\t%3d\t%s\n", p->desc, cp->vlist[k].value, cp->vlist[k].label);
+        }
     }
 
     if(opspi) {
