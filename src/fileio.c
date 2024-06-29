@@ -222,9 +222,9 @@ unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
     mem_is_in_fuses(mem)? MBASE(FUSES) + mem_fuse_offset(mem):
     mem_is_lock(mem)? MBASE(LOCK):
     // Classic parts intersperse signature and calibration bytes, this code places them together
-    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_signature(mem)? MBASE(SIGROW):
-    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_calibration(mem)? MBASE(SIGROW)+3:
-    !(p->prog_modes & (PM_PDI|PM_UPDI)) && mem_is_sigrow(mem)? MBASE(SIGROW)+0x10: // Eg, m328pb
+    (p->prog_modes & PM_Classic) && mem_is_signature(mem)? MBASE(SIGROW):
+    (p->prog_modes & PM_Classic) && mem_is_calibration(mem)? MBASE(SIGROW)+3:
+    (p->prog_modes & PM_Classic) && mem_is_sigrow(mem)? MBASE(SIGROW)+0x10: // Eg, m328pb
     // XMEGA parts have signature separate from prodsig, place prodsig at +0x10 as above
     (p->prog_modes & PM_PDI) && mem_is_signature(mem)? MBASE(SIGROW):
     (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW)+0x10 + mem->offset - boffset(p, sigrow):
