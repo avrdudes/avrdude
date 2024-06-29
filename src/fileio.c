@@ -228,7 +228,7 @@ unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
     // XMEGA parts have signature separate from prodsig, place prodsig at +0x10 as above
     (p->prog_modes & PM_PDI) && mem_is_signature(mem)? MBASE(SIGROW):
     (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW)+0x10 + mem->offset - boffset(p, sigrow):
-    mem_is_in_sigrow(mem)? MBASE(SIGROW) + mem->offset - boffset(p, sigrow): // UPDI + rare classic
+    (p->prog_modes & PM_UPDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + mem->offset - boffset(p, sigrow):
     mem_is_sib(mem)? MBASE(SIGROW) + 0x1000: // Arbitrary 0x1000 offset in signature section for sib
     mem_is_userrow(mem)? MBASE(USERROW):
     mem_is_bootrow(mem)? MBASE(BOOTROW):
