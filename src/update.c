@@ -263,7 +263,7 @@ int update_is_readable(const char *fn) {
 static void ioerror(const char *iotype, const UPDATE *upd) {
   int errnocp = errno;
 
-  pmsg_ext_error("file %s is not %s: ", str_outname(upd->filename), iotype);
+  pmsg_ext_error("file %s is not %s: ", str_outfilename(upd->filename), iotype);
   if(errnocp)
     msg_ext_error("%s", strerror(errnocp));
   else if(upd->filename && *upd->filename)
@@ -476,7 +476,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   // Patch flash input, eg, for vector bootloaders
   if(pgm->flash_readhook && mem_is_flash(mem)) {
     if((size = pgm->flash_readhook(pgm, p, mem, upd->filename, size)) < 0) {
-      pmsg_notice("readhook for file %s failed\n", str_inname(upd->filename));
+      pmsg_notice("readhook for file %s failed\n", str_infilename(upd->filename));
       return -1;
     }
     if(memstats_mem(p, mem, size, &fs_patched) < 0)
@@ -587,7 +587,7 @@ static int update_mem_from_all(const UPDATE *upd, const AVRPART *p, const AVRMEM
   if(is_memset(all->tags+off, 0, size)) // Nothing set? This memory was not present
     size = 0;
   if(size == 0)
-    pmsg_warning("%s has no data for %s, skipping ...\n", str_inname(upd->filename), m_name);
+    pmsg_warning("%s has no data for %s, skipping ...\n", str_infilename(upd->filename), m_name);
 
   memcpy(m->buf, all->buf+off, size);
   memcpy(m->tags, all->tags+off, size);
@@ -601,7 +601,7 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
   int op = upd->op == DEVICE_WRITE? FIO_READ: FIO_READ_FOR_VERIFY;
   int allsize = fileio_mem(op, upd->filename, upd->format, p, all, -1);
   if(allsize < 0) {
-    pmsg_error("reading from file %s failed\n", str_inname(upd->filename));
+    pmsg_error("reading from file %s failed\n", str_infilename(upd->filename));
     return -1;
   }
   if(memstats_mem(p, all, allsize, fsp) < 0)
@@ -609,7 +609,7 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
   pmsg_info(upd->op == DEVICE_WRITE?
     "reading %d byte%s for %s from input file %s\n":
     "verifying %d byte%s of %s against input file %s\n",
-    fsp->nbytes, str_plural(fsp->nbytes), mem_desc, str_inname(upd->filename)
+    fsp->nbytes, str_plural(fsp->nbytes), mem_desc, str_infilename(upd->filename)
   );
 
   return allsize;
@@ -718,7 +718,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       }
 
       imsg_info("writing %d byte%s to output file %s\n",
-        nbytes, str_plural(nbytes), str_outname(upd->filename));
+        nbytes, str_plural(nbytes), str_outfilename(upd->filename));
       if(nn)
         rc = fileio_segments(FIO_WRITE, upd->filename, upd->format, p, mem, nn, seglist);
       else
@@ -737,12 +737,12 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       if(rc == 0)
         pmsg_notice("empty memory, resulting file has no contents\n");
       imsg_info("writing %d byte%s to output file %s\n",
-        rc, str_plural(rc), str_outname(upd->filename));
+        rc, str_plural(rc), str_outfilename(upd->filename));
       rc = fileio_mem(FIO_WRITE, upd->filename, upd->format, p, mem, rc);
     }
 
     if(rc < 0) {
-      pmsg_error("write to file %s failed\n", str_outname(upd->filename));
+      pmsg_error("write to file %s failed\n", str_outfilename(upd->filename));
       goto error;
     }
     break;
