@@ -315,7 +315,7 @@ static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rw
     if(e)
       *e = 0;
     s = str_trim(s);
-    if((not = *s == '/' || *s =='-'))  // /mem or -mem removes the memory
+    if((not = *s == '\\' || *s =='-'))  // \mem or -mem removes the memory
       s++;
     if(str_eq(s, "ALL")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
