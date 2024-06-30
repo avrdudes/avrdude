@@ -493,12 +493,30 @@ const char *str_plural(int x) {
   return x==1? "": "s";
 }
 
+// Path name fn or <stdin> if fn is -
 const char *str_inname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdin>";
+  return !fn? "???": str_eq(fn, "-")? "<stdin>": fn;
 }
 
+// File name of fn or <stdin> if fn is -
+const char *str_infilename(const char *fn) {
+  if(!fn)
+    fn = "???";
+  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  return str_eq(fn, "-")? "<stdin>": p1? p1+1: p2? p2+1: fn;
+}
+
+// Path name fn or <stdout> if fn is -
 const char *str_outname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
+  return !fn? "???": str_eq(fn, "-")? "<stdout>": fn;
+}
+
+// File name of fn or <stdout> if fn is -
+const char *str_outfilename(const char *fn) {
+  if(!fn)
+    fn = "???";
+  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  return str_eq(fn, "-")? "<stdout>": p1? p1+1: p2? p2+1: fn;
 }
 
 // Return sth like "[0, 0x1ff]" in closed-circuit space
