@@ -613,21 +613,6 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
     fsp->nbytes, str_plural(fsp->nbytes), mem_desc, str_inname(upd->filename)
   );
 
-  if(!ovsigck)                  // Check part signature is sane as multi-file signature
-    if((sig = avr_locate_signature(p)) && sig->size > 0 && (off = fileio_mem_offset(p, sig)) >= 0)
-      if(off+sig->size <= all->size && is_memset(all->tags+off, TAG_ALLOCATED, sig->size))
-        if(avr_read_mem(pgm, p, sig, NULL) == sig->size)
-          if(memcmp(sig->buf, all->buf+off, sig->size)) { // Uh-oh: multi-file is for another part
-            pmsg_error("signature of %s does not match file", p->desc);
-            char names[1024] = {0};
-            (void) str_mcunames_signature(all->buf+off, names, sizeof names);
-            if(*names)
-              msg_error(" (%s)", names);
-            msg_error("\n");
-            imsg_error("use -F to override this check\n");
-            allsize = -1;
-          }
-
   return allsize;
 }
 

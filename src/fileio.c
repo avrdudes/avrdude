@@ -577,6 +577,14 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
           any->buf[nextaddr+i] = ihex.data[below + i];
           any->tags[nextaddr+i] = TAG_ALLOCATED;
         }
+        if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && ihex.reclen >= 3)
+          if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
+            pmsg_error("signature of %s incompatible with file's (%s)\n", p->desc,
+              str_ccmcunames_signature(any->buf+nextaddr));
+            imsg_error("use -F to override this check\n");
+            mmt_free(buffer);
+            goto error;
+          }
         if(ihex.reclen && nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
         break;
@@ -924,6 +932,15 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
         any->buf[nextaddr+i] = srec.data[below + i];
         any->tags[nextaddr+i] = TAG_ALLOCATED;
       }
+      if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && srec.reclen >= 3)
+        if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
+          pmsg_error("signature of %s incompatible with file's (%s)\n", p->desc,
+            str_ccmcunames_signature(any->buf+nextaddr));
+          imsg_error("use -F to override this check\n");
+          mmt_free(buffer);
+          goto error;
+        }
+
       if(srec.reclen && nextaddr+srec.reclen > maxaddr)
         maxaddr = nextaddr+srec.reclen;
       reccount++;      
