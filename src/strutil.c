@@ -1330,3 +1330,11 @@ int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n) {
 
   return matching;
 }
+
+// Returns a comma-separated list of matching MCU names in closed-circuit space
+const char *str_ccmcunames_signature(const unsigned char *sigs) {
+  char names[1024] = {0};
+  (void) str_mcunames_signature(sigs, names, sizeof names);
+
+  return str_ccprintf("%s", names);
+}

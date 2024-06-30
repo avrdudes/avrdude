@@ -583,6 +583,7 @@ AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes);
+
 char *avr_prog_modes(int pm), *str_prog_modes(int pm), *dev_prog_modes(int pm);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
@@ -1518,6 +1519,7 @@ const char *str_ccfrq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n);
+const char *str_ccmcunames_signature(const unsigned char *sigs);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);
