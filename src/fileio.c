@@ -660,7 +660,7 @@ static int b2srec(const AVRMEM *mem, const Segment *segp, Segorder where,
 
   const unsigned char *buf;
   unsigned int nextaddr;
-  int n, hiaddr, addr_width, reccount;
+  int n, hiaddr, addr_width;
 
   buf = mem->buf + segp->addr;
   nextaddr = startaddr + segp->addr;
@@ -697,9 +697,9 @@ static int b2srec(const AVRMEM *mem, const Segment *segp, Segorder where,
     for(int i = 0; i < len; i++)
       fprintf(outf, "%02X", s[i]);
     fprintf(outf, "%02X\n", cksum_srec((unsigned char *) s, len, 0, 2));
+    cx->reccount = 0;
   }
 
-  reccount = 0;
   for(int bufsize = segp->len; bufsize; bufsize -= n) {
     n = recsize;
     if(n > bufsize)
@@ -713,15 +713,15 @@ static int b2srec(const AVRMEM *mem, const Segment *segp, Segorder where,
     buf += n;
     nextaddr += n;
     hiaddr +=n;
-    reccount++;
+    cx->reccount++;
   }
 
   // Add S5/6 record count record and S7/8/9 end of data record
   if(where & LAST_SEG) {
-    if(reccount >= 0 && reccount <= 0xffffff) {
-      int wd = reccount <= 0xffff? 2: 3;
-      fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, reccount,
-        cksum_srec(NULL, 0, reccount, wd));
+    if(cx->reccount >= 0 && cx->reccount <= 0xffffff) {
+      int wd = cx->reccount <= 0xffff? 2: 3;
+      fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, cx->reccount,
+        cksum_srec(NULL, 0, cx->reccount, wd));
     }
     fprintf(outf, "S%c%02X%0*X", endrec, addr_width + 1, 2*addr_width, startaddr);
     fprintf(outf, "%02X\n", cksum_srec(NULL, 0, startaddr, addr_width));

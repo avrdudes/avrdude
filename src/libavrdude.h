@@ -1626,6 +1626,9 @@ typedef struct {
   const char **upd_wrote, **upd_termcmds;
   int upd_nfwritten, upd_nterms;
 
+  // Static variable from fileio.c
+  int reccount;
+
   // Static variables from usb_libusb.c
 #include "usbdevs.h"
   char usb_buf[USBDEV_MAX_XFER_3];
