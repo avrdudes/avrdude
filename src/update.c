@@ -598,8 +598,7 @@ static int update_mem_from_all(const UPDATE *upd, const AVRPART *p, const AVRMEM
 static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *all, const char *mem_desc, Filestats *fsp) {
   // On writing to the device trailing 0xff might be cut off
-  AVRMEM *sig;
-  int off, op = upd->op == DEVICE_WRITE? FIO_READ: FIO_READ_FOR_VERIFY;
+  int op = upd->op == DEVICE_WRITE? FIO_READ: FIO_READ_FOR_VERIFY;
   int allsize = fileio_mem(op, upd->filename, upd->format, p, all, -1);
   if(allsize < 0) {
     pmsg_error("reading from file %s failed\n", str_inname(upd->filename));
