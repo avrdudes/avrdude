@@ -2,6 +2,7 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2011 Darell Tan <darell.tan@gmail.com>
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -322,10 +323,9 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 
 
 /*
- * Read the entirety of the specified memory into the corresponding
- * buffer of the avrpart pointed to by p. If v is non-NULL, verify against
- * v's memory area, only those cells that are tagged TAG_ALLOCATED are
- * verified.
+ * Read the entirety of the specified memory into the corresponding buffer of
+ * the avrpart pointed to by p. If v is non-NULL, verify against v's memory
+ * area, only those cells that are tagged TAG_ALLOCATED are verified.
  *
  * Return the number of bytes read, or < 0 if an error occurs.
  */
@@ -339,14 +339,6 @@ int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, const 
   return avr_read_mem(pgm, p, mem, v);
 }
 
-
-/*
- * Read the entirety of the specified memory into the corresponding buffer of
- * the avrpart pointed to by p. If v is non-NULL, verify against v's memory
- * area, only those cells that are tagged TAG_ALLOCATED are verified.
- *
- * Return the number of bytes read, or < 0 if an error occurs.
- */
 int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v) {
   unsigned long i, lastaddr;
   unsigned char cmd[4];
@@ -933,14 +925,6 @@ int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int s
   return avr_write_mem(pgm, p, m, size, auto_erase);
 }
 
-/*
- * Write the whole memory region of the specified memory from its buffer of
- * the avrpart pointed to by p to the device.  Write up to size bytes from
- * the buffer.  Data is only written if the corresponding tags byte is set.
- * Data beyond size bytes are not affected.
- *
- * Return the number of bytes written, or LIBAVRDUDE_GENERAL_FAILURE on error.
- */
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int size, int auto_erase) {
   int              wsize;
   unsigned int     i, lastaddr;
@@ -1104,14 +1088,14 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
           // Read flash contents to separate memory spc and fill in holes
           if(avr_read_page_default(pgm, p, cm, beg, spc) >= 0) {
-            pmsg_notice2("padding %s [0x%04x, 0x%04x]\n", cm->desc, beg, end-1);
+            pmsg_debug("padding %s [0x%04x, 0x%04x]\n", cm->desc, beg, end-1);
             for(i = beg; i < end; i++)
               if(!(cm->tags[i] & TAG_ALLOCATED)) {
                 cm->tags[i] |= TAG_ALLOCATED;
                 cm->buf[i] = spc[i-beg];
               }
           } else {
-            pmsg_notice2("cannot read %s [0x%04x, 0x%04x] to pad page\n",
+            pmsg_debug("cannot read %s [0x%04x, 0x%04x] to pad page\n",
               cm->desc, beg, end-1);
           }
         }
@@ -1271,7 +1255,7 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
 }
 
 // Bitmask for ISP programming (classic parts only)
-static uint8_t get_fuse_bitmask(AVRMEM * m) {
+static uint8_t get_fuse_bitmask(const AVRMEM *m) {
   uint8_t bitmask_r = 0;
   uint8_t bitmask_w = 0;
   int i;
@@ -1303,27 +1287,29 @@ int compare_memory_masked(AVRMEM * m, uint8_t b1, uint8_t b2) {
 }
 
 /*
- * Verify the memory buffer of p with that of v.  The byte range of v
- * may be a subset of p.  The byte range of p should cover the whole
- * chip's memory size.
+ * Verify the memory buffer of p with that of v. The byte range of v may be a
+ * subset of p. The byte range of p should cover the whole chip's memory size.
  *
  * Return the number of bytes verified, or -1 if they don't match.
  */
 int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *memstr, int size) {
-  int i;
-  unsigned char * buf1, * buf2;
-  int vsize;
-  AVRMEM * a, * b;
+  const AVRMEM *a = avr_locate_mem(p, memstr);
 
-  a = avr_locate_mem(p, memstr);
-  if (a == NULL) {
+  if(!a) {
     pmsg_error("memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
+  return avr_verify_mem(pgm, p, v, a, size);
+}
 
-  b = avr_locate_mem(v, memstr);
-  if (b == NULL) {
-    pmsg_error("memory %s not defined for part %s\n", memstr, v->desc);
+int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const AVRMEM *a, int size) {
+  int i;
+  unsigned char *buf1, *buf2;
+  int vsize;
+  AVRMEM *b;
+
+  if(!(b = avr_locate_mem(v, a->desc))) {
+    pmsg_error("memory %s not defined for part %s\n", a->desc, v->desc);
     return -1;
   }
 
@@ -1333,22 +1319,23 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
 
   if (vsize < size) {
     pmsg_warning("requested verification for %d bytes\n", size);
-    imsg_warning("%s memory region only contains %d bytes\n", memstr, vsize);
+    imsg_warning("%s memory region only contains %d bytes\n", a->desc, vsize);
     imsg_warning("only %d bytes will be verified\n", vsize);
     size = vsize;
   }
 
   int verror = 0, vroerror = 0, maxerrs = verbose >= MSG_DEBUG? size+1: 10;
+  int ro = mem_is_readonly(a); // Other memories can have known protected zones such as bootloaders
   for (i=0; i<size; i++) {
     if ((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
       uint8_t bitmask = p->prog_modes & PM_ISP? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
-      if(pgm->readonly && pgm->readonly(pgm, p, a, i)) {
+      if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
         if(quell_progress < 2) {
           if(vroerror < 10) {
             if(!(verror + vroerror))
-              pmsg_warning("verification mismatch%s\n",
+              pmsg_warning("%s verification mismatch%s\n", a->desc,
                 mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
-            imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location)\n",
+            imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location: ignored)\n",
               buf1[i], buf2[i], i);
           } else if(vroerror == 10)
             imsg_warning("suppressing further mismatches in read-only areas\n");
@@ -1358,7 +1345,7 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
         // Mismatch is not just in unused bits
         if(verror < maxerrs) {
           if(!(verror + vroerror))
-            pmsg_warning("verification mismatch\n");
+            pmsg_warning("%s verification mismatch\n", a->desc);
           imsg_error("device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
         } else if(verror == maxerrs) {
           imsg_warning("suppressing further verification errors\n");
@@ -1370,12 +1357,12 @@ int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const 
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
           imsg_warning("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", memstr);
+          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
           imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
           imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
         }
@@ -1569,8 +1556,8 @@ Memtable avr_mem_order[100] = {
   {"lockbits",    MEM_LOCK},
   {"prodsig",     MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
   {"sigrow",      MEM_SIGROW | MEM_IN_SIGROW | MEM_READONLY},
-  {"signature",   MEM_SIGNATURE | MEM_IN_SIGROW | MEM_READONLY},
-  {"calibration", MEM_CALIBRATION | MEM_IN_SIGROW | MEM_READONLY},
+  {"signature",   MEM_SIGNATURE | MEM_IN_SIGROW | MEM_READONLY}, // Not in SIGROW in Classic/XMEGA parts
+  {"calibration", MEM_CALIBRATION | MEM_IN_SIGROW | MEM_READONLY}, // Not in SIGROW in Classic parts
   {"tempsense",   MEM_TEMPSENSE | MEM_IN_SIGROW | MEM_READONLY},
   {"sernum",      MEM_SERNUM | MEM_IN_SIGROW | MEM_READONLY},
   {"osccal16",    MEM_OSCCAL16 | MEM_IN_SIGROW | MEM_READONLY},
@@ -1634,6 +1621,11 @@ int avr_mem_cmp(void *mem1, void *mem2) {
     return diff;
   if(!m1)                       // Sanity, if called with NULL pointers
     return 0;
+  if(mem_is_in_fuses(m1)) {     // Sort by fuse offset if fuses or a fuse
+    diff = mem_fuse_offset(m1) - mem_fuse_offset(m2);
+    if(diff)
+      return diff;
+  }
   diff = m1->offset - m2->offset; // Sort by offset within each group
   if(diff)
     return diff;

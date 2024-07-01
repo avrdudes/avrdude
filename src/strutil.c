@@ -77,7 +77,6 @@ int str_caseends(const char *str, const char *ends) {
   return str_caseeq(str + str_len - ends_len, ends);
 }
 
-
 /*
  * Match string against the partname pattern, returning 1 if it matches, 0 if
  * not. Note: str_match_core() is a modified old copy of !fnmatch() from the
@@ -229,6 +228,14 @@ int str_is_pattern(const char *str) {
     }
 }
 
+// Is the string s in the list l of strings as matched by f(s, l[i])?
+int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char*)) {
+  for(size_t i=0; i<nl; i++)
+    if(f(s, l[i]))
+      return 1;
+  return 0;
+}
+
 // Return a mmt_malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {
   int size = 0;
@@ -337,6 +344,48 @@ char *str_fgets(FILE *fp, const char **errpp) {
 }
 
 
+// Return the number of times a character c occurs in str
+size_t str_numc(const char *str, char c) {
+  size_t ret = 0;
+  char is;
+
+  while((is = *str++))
+    if(is == c)
+      ret++;
+  return ret;
+}
+
+// Return a pointer to the first non-white-space character in a string (or the end)
+const char *str_ltrim(const char *s) {
+  while(*s && isascii(*s & 0xff) && isspace(*s & 0xff))
+    s++;
+  return s;
+}
+
+// Terminate at position n and remove white space before that
+char *str_nrtrim(char *s, size_t n) {
+  s[n] = 0;
+  if(n)
+    for(char *z = s+n-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
+      *z = 0;
+  return s;
+}
+
+// Remove trailing white space
+char *str_rtrim(char *s) {
+  return str_nrtrim(s, strlen(s));
+}
+
+// Terminate at position n and remove leading and trailing white space
+char *str_ntrim(char *s, size_t n) {
+  return (char *) str_ltrim(str_nrtrim(s, n));
+}
+
+// Remove leading and trailing white space
+char *str_trim(char *s) {
+  return (char *) str_ltrim(str_nrtrim(s, strlen(s)));
+}
+
 // Changes string to be all lowercase and returns original pointer
 char *str_lc(char *s) {
   for(char *t = s; *t; t++)
@@ -444,12 +493,30 @@ const char *str_plural(int x) {
   return x==1? "": "s";
 }
 
+// Path name fn or <stdin> if fn is -
 const char *str_inname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdin>";
+  return !fn? "???": str_eq(fn, "-")? "<stdin>": fn;
 }
 
+// File name of fn or <stdin> if fn is -
+const char *str_infilename(const char *fn) {
+  if(!fn)
+    fn = "???";
+  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  return str_eq(fn, "-")? "<stdin>": p1? p1+1: p2? p2+1: fn;
+}
+
+// Path name fn or <stdout> if fn is -
 const char *str_outname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
+  return !fn? "???": str_eq(fn, "-")? "<stdout>": fn;
+}
+
+// File name of fn or <stdout> if fn is -
+const char *str_outfilename(const char *fn) {
+  if(!fn)
+    fn = "???";
+  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  return str_eq(fn, "-")? "<stdout>": p1? p1+1: p2? p2+1: fn;
 }
 
 // Return sth like "[0, 0x1ff]" in closed-circuit space
@@ -1259,4 +1326,33 @@ size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
   mmt_free(row1);
   mmt_free(row2);
   return i;
+}
+
+
+// Puts a comma-separated list of matching MCU names into array p with n chars space
+int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n) {
+  int matching = 0;
+
+  for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++) {
+    if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs)) {
+      if(matching && n > 2)
+        strcpy(p, ", "),  n -= 2, p += 2;
+      size_t len = strlen(uP_table[i].name);
+      if(n > len) {
+        strcpy(p, uP_table[i].name);
+        n -= len; p += len;
+      }
+      matching++;
+    }
+  }
+
+  return matching;
+}
+
+// Returns a comma-separated list of matching MCU names in closed-circuit space
+const char *str_ccmcunames_signature(const unsigned char *sigs) {
+  char names[1024] = {0};
+  (void) str_mcunames_signature(sigs, names, sizeof names);
+
+  return str_ccprintf("%s", names);
 }
