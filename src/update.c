@@ -700,6 +700,10 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
        */
       int dffo = cx->avr_disableffopt;
       cx->avr_disableffopt = 1;
+      if(upd->format != FMT_IHEX && upd->format != FMT_IHXC && upd->format != FMT_SREC && upd->format != FMT_ELF) {
+        pmsg_warning("generating %s file format with multiple memories that cannot\n", fileio_fmtstr(upd->format));
+        imsg_warning("be read by %s; consider using :I :i or :s instead\n", progname);
+      }
       imsg_info("reading %s ...\n", mem_desc);
       int nn = 0, nbytes = 0;
       for(int ii = 0; ii < ns; ii++) {
