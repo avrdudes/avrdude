@@ -99,7 +99,7 @@ struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
-  { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
+  { "save",  cmd_save,  _fo(write_byte_cached), "save memory segments to file" },
   { "backup", cmd_backup,  _fo(write_byte_cached), "backup memories to file" },
   { "restore", cmd_restore,  _fo(write_byte_cached), "restore memories from file" },
   { "verify", cmd_verify,  _fo(write_byte_cached), "compare memories with file" },
@@ -729,12 +729,12 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: backup <memlist> <file>[:<format>]\n"
-      "Function: save memories to file; default format :I Intel Hex + comments\n"
+      "Function: backup memories to file; default format :I Intel Hex + comments\n"
       "Notes:\n"
       "  - Backup flushes the cache before reading memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
       "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
-      "  - A single list subtraction \\ (without) is allowed, eg, all\\bootrow\n"
+      "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
     );
     return -1;
   }
@@ -776,7 +776,7 @@ static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       "  - After writing memories restore resets the cache\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
       "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
-      "  - A single list subtraction \\ (without) is allowed, eg, all\\bootrow\n"
+      "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
       "  - Restoring a read-only memory verifies file contents with MUC memory\n"
     );
     return -1;
@@ -818,7 +818,7 @@ static int cmd_verify(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "  - Verify flushes the cache before verifying memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
       "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
-      "  - A single list subtraction \\ (without) is allowed, eg, all\\bootrow\n"
+      "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
     );
     return -1;
   }
