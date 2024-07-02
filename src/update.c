@@ -38,7 +38,7 @@
 
 // Is s a multi-memory string (comma-separates list, all, ALL, etc or list subtraction)?
 static int is_multimem(const char *s) {
-  return str_eq(s, "ALL") || str_eq(s, "all") || str_eq(s, "etc") || strpbrk(s, ",\\");
+  return str_eq(s, "ALL") || str_eq(s, "all") || str_eq(s, "etc") || strpbrk(s, "-,\\");
 }
 
 /*
@@ -304,7 +304,7 @@ static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
  * to *np and *rwvsoftfail indicating unknown memories for this part. If dry is
  * set then -1 will be written to *dry when a generally unknown memory is used.
  */
-static AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
+AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
   int not, nm = (lsize(p->mem) + 1) * ((int) str_numc(mstr, ',') + 1); // Upper limit
   AVRMEM *m, **umemlist = mmt_malloc(nm*sizeof*umemlist);
   char *dstr = mmt_strdup(mstr), *s = dstr, *e;
@@ -361,6 +361,19 @@ done:
     *np = nm;
 
   return umemlist;
+}
+
+
+// Returns whether or not the memory list contains a flash memory
+int memlist_contains_flash(const char *mstr, const AVRPART *p) {
+  int ret = 0, nm = 0;
+  AVRMEM **mlist = memory_list(mstr, p, &nm, NULL, NULL);
+  for(int i=0; i<nm; i++)
+    if(mem_is_in_flash(mlist[i]))
+      ret = 1;
+
+   mmt_free(mlist);
+   return ret;
 }
 
 // Basic checks to reveal serious failure before programming (and on autodetect set format)

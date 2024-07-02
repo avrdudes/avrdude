@@ -242,7 +242,7 @@ static void usage(void)
     "  -r                     Reconnect to -P port after \"touching\" it; wait\n"
     "                         400 ms for each -r; needed for some USB boards\n"
     "  -F                     Override invalid signature or initial checks\n"
-    "  -e                     Perform a chip erase\n"
+    "  -e                     Perform a chip erase at the beginning\n"
     "  -O                     Perform RC oscillator calibration (see AVR053)\n"
     "  -t                     Run an interactive terminal when it is its turn\n"
     "  -T <terminal cmd line> Run terminal line when it is its turn\n"
@@ -1686,22 +1686,13 @@ skipopen:
       imsg_info("Each page will be erased before programming it, but no chip erase is performed.\n");
       imsg_info("To disable page erases, specify the -D option; for a chip-erase, use the -e option.\n");
     } else {
-      AVRMEM * m;
-      const char *memname = p->prog_modes & PM_PDI? "application": "flash";
-
       uflags &= ~UF_AUTO_ERASE;
-      for (ln=lfirst(updates); ln; ln=lnext(ln)) {
+      for(ln=lfirst(updates); !erase && ln; ln=lnext(ln)) {
         upd = ldata(ln);
-        if(!upd->memstr)
-          continue;
-        m = avr_locate_mem(p, upd->memstr);
-        if (m == NULL)
-          continue;
-        if(str_eq(m->desc, memname) && upd->op == DEVICE_WRITE) {
+        if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           erase = 1;
-          pmsg_info("Note: %s memory has been specified, an erase cycle will be performed.\n", memname);
-          imsg_info("To disable this feature, specify the -D option.\n");
-          break;
+          pmsg_info("Note: carrying out an erase cycle as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
+          imsg_info("specify the -D option to disable this feature\n");
         }
       }
     }

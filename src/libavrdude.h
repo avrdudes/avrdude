@@ -1318,6 +1318,8 @@ int update_is_readable(const char *fn);
 
 int update_dryrun(const AVRPART *p, UPDATE *upd);
 
+AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry);
+int memlist_contains_flash(const char *mstr, const AVRPART *p);
 
 #ifdef __cplusplus
 }
