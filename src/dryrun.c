@@ -509,10 +509,11 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if(dry.dp)                    // Already configured
     return;
 
-  unsigned char inifuses[16]; // For fuses: made up from fuse0, fuse1, ...
+  unsigned char inifuses[16];   // For fuses: made up from fuse0, fuse1, ...
   AVRMEM *m, *fusesm = NULL, *prodsigm = NULL, *calm;
-  AVRPART *q = dry.dp = avr_dup_part(p);   // Allocate dryrun part and abbreviate with q
+  AVRPART *q = dry.dp = avr_dup_part(p); // Allocate dryrun part and abbreviate with q
 
+  memset(inifuses, 0xff, sizeof inifuses);
   srandom(dry.seed? dry.seed: time(NULL));
 
   // Initialise the device with factory setting and erase flash/EEPROM to 0xff
@@ -630,26 +631,6 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   randflashconfig(pgm, q, up, cp, nc);
   if(flashlayout(pgm, q, flm, up, cp, nc) < 0)
     return;
-
-#if 0 // Only a dryrun device, but what if saved random fuses are stored to a real device?
-  if(dry.random) {
-    const char *exempt[] = {
-      "rstdisbl", "selfprgen", "spien", // Here be dragons?
-      "rstpincfg", "updipincfg", "nvmkey", "nvmlevel",
-      "ap", "blb0", "blb1", "blba", "blbat", "blbb", "blp", "key", "lb", // lockbits
-      "crcsel", "crcsrc",     // Not emulating CRCs in code/boot sections (yet)
-      "bootsize", "bootend", "codesize", "append", "bootrst", "bootsz", // Already randomly set
-    };
-    for(int i=0; i<nc; i++) {
-      if(!str_is_in_list(cp[i].name, exempt, sizeof exempt/sizeof *exempt, str_eq)) {
-        int v = cp[i].nvalues > 0 && cp[i].vlist?
-          cp[i].vlist[random() % cp[i].nvalues].value: // Have existing list of values, pick one
-          (random() & cp[i].mask) >> cp[i].lsh;        // "free" value, shift mask into position
-        set_config_values(pgm, q, cp[i].name, v);
-      }
-    }
-  }
-#endif
 
   int vtb = putvectortable(q, flm, dry.appstart), urbtsz = 0;
 
