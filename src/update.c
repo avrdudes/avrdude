@@ -633,12 +633,14 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   AVRMEM *mem, **umemlist = NULL, *m;
   Segment *seglist = NULL;
   Filestats fs;
-  char *tofree;
   const char *umstr = upd->memstr;
 
-  lmsg_info("\n");              // Ensure an empty line for visual separation of operations
-  pmsg_info("processing %s\n", tofree = update_str(upd));
-  mmt_free(tofree);
+  if(!(flags & UF_NOHEADING)) {
+    char *heading  = update_str(upd);
+    lmsg_info("\n");            // Ensure an empty line for visual separation of operations
+    pmsg_info("processing %s\n", heading);
+    mmt_free(heading);
+  }
 
   if(upd->cmdline) {
     if(!str_eq(upd->cmdline, "interactive terminal"))

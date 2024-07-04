@@ -1274,6 +1274,7 @@ enum updateflags {
   UF_NOWRITE = 1,
   UF_AUTO_ERASE = 2,
   UF_VERIFY = 4,
+  UF_NOHEADING = 8,
 };
 
 

@@ -758,7 +758,7 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   };
 
   pgm->flush_cache(pgm, p); // Flush cache before any device memory access
-  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE); // -U argv[1]:r:file
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_NOHEADING); // -U argv[1]:r:file
   mmt_free(upd.filename);
   mmt_free(upd.memstr);
 
@@ -802,7 +802,7 @@ static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
   };
 
   pgm->flush_cache(pgm, p); // Flush cache before any device memory access
-  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_VERIFY); // -U argv[1]:w:file (no -V)
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_VERIFY|UF_NOHEADING); // -U argv[1]:w:file (no -V)
   mmt_free(upd.filename);
   mmt_free(upd.memstr);
   pgm->reset_cache(pgm, p); // Reset cache after writing to memories
@@ -843,7 +843,7 @@ static int cmd_verify(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   };
 
   pgm->flush_cache(pgm, p); // Flush cache before any device memory access
-  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE); // -V -U argv[1]:v:file
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_NOHEADING); // -V -U argv[1]:v:file
   mmt_free(upd.filename);
   mmt_free(upd.memstr);
 
