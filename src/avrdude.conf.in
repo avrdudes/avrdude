@@ -18385,6 +18385,7 @@ part parent ".xmega" # x128a4
         "ATxmega128A4: N/A, Fmax=N/A, T=[N/A, N/A], Vcc=[1.6 V, 3.6 V]";
     prog_modes             = PM_SPM | PM_PDI | PM_XMEGAJTAG;
     mcuid                  = 263;
+    boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x46;
 
     memory "eeprom"
@@ -18396,7 +18397,7 @@ part parent ".xmega" # x128a4
 
     memory "flash"
         size               = 0x22000;
-        page_size          = 512;
+        page_size          = 256;
         offset             = 0x800000;
         readsize           = 256;
     ;
@@ -24555,6 +24556,7 @@ part parent "32du14" # 32du32
 part parent ".avrdx" # .avrex
     desc                   = "AVR-Ex family common values";
     id                     = ".avrex";
+    boot_section_size      = 256;
     # Shared UPDI pin, HV on _RESET
     hvupdi_variant         = 2;
     factory_fcpu           = 20000000;

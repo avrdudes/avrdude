@@ -339,6 +339,10 @@ part_def :
 
       cfg_update_mcuid(current_part);
 
+      Memtype and_mask = ~ (    // Remove in-flash/in-sigrow attributes if no respective memories
+        (!avr_locate_flash(current_part)? MEM_IN_FLASH: 0) |
+        (!avr_locate_sigrow(current_part)? MEM_IN_SIGROW: 0));
+
       // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);
@@ -367,6 +371,20 @@ part_def :
 
           m->num_pages = m->size / m->page_size;
         }
+
+        m->type &= and_mask;
+        // Remove MEM_IN_SIGROW attribute from classic calibration and classic/XMEGA signature mem
+        if(!(current_part->prog_modes & (PM_PDI|PM_UPDI))) {
+          if(mem_is_signature(m))
+            m->type &= ~MEM_IN_SIGROW;
+          if(mem_is_calibration(m))
+            m->type &= ~MEM_IN_SIGROW;
+        } else if(current_part->prog_modes & PM_PDI) {
+          if(mem_is_signature(m))
+            m->type &= ~MEM_IN_SIGROW;
+        }
+        if(fileio_mem_offset(current_part, m) == -1U)
+          yywarning("revise fileio_mem_offset(), avrdude.conf entry or memory type assignment");
       }
 
       existing_part = locate_part(part_list, current_part->id);
