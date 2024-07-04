@@ -17286,30 +17286,37 @@ part # .xmega-cd
     factory_fcpu           = 2000000;
 
     memory "eeprom"
+        size               = 2048;
         page_size          = 32;
         offset             = 0x8c0000;
         readsize           = 256;
     ;
 
     memory "flash"
+        size               = 0x11000;
         page_size          = 256;
         offset             = 0x800000;
         readsize           = 256;
     ;
 
     memory "application"
+        size               = 0x10000;
         page_size          = 256;
         offset             = 0x800000;
         readsize           = 256;
     ;
 
     memory "apptable"
+        size               = 4096;
         page_size          = 256;
+        offset             = 0x80f000;
         readsize           = 256;
     ;
 
     memory "boot"
+        size               = 4096;
         page_size          = 256;
+        offset             = 0x810000;
         readsize           = 256;
     ;
 
@@ -17522,12 +17529,10 @@ part parent ".xmega-ab" # x16a4u
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x803000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x804000;
     ;
 
@@ -17571,12 +17576,10 @@ part parent ".xmega-cd" # x16c4
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x803000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x804000;
     ;
 
@@ -17625,12 +17628,10 @@ part parent ".xmega-cd" # x16d4
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x803000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x804000;
     ;
 
@@ -17680,12 +17681,10 @@ part parent ".xmega-ab" # x16a4
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x803000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x804000;
     ;
 
@@ -17735,12 +17734,10 @@ part parent ".xmega-ab" # x32a4u
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
@@ -17784,12 +17781,10 @@ part parent ".xmega-cd" # x32c4
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
@@ -17839,12 +17834,10 @@ part parent ".xmega-cd" # x32d4
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
@@ -17894,12 +17887,10 @@ part parent ".xmega-ab" # x32a4
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
@@ -17934,28 +17925,6 @@ part parent ".xmega-ab" # x64a4u
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
     usbpid                 = 0x2fe5;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
 
     memory "prodsig"
         size               = 64;
@@ -18002,12 +17971,10 @@ part parent ".xmega-cd" # x32c3
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
@@ -18054,12 +18021,10 @@ part parent ".xmega-cd" # x32d3
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
@@ -18094,28 +18059,6 @@ part parent ".xmega-cd" # x64c3
     signature              = 0x1e 0x96 0x49;
     usbpid                 = 0x2fd6;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
-
     memory "prodsig"
         page_size          = 64;
     ;
@@ -18146,28 +18089,6 @@ part parent ".xmega-cd" # x64d3
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x4a;
     usbpid                 = 0x2fe5;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
 
     memory "prodsig"
         size               = 52;
@@ -18201,28 +18122,6 @@ part parent ".xmega-cd" # x64d4
     signature              = 0x1e 0x96 0x47;
     usbpid                 = 0x2fe5;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
-
     memory "prodsig"
         page_size          = 64;
     ;
@@ -18253,28 +18152,6 @@ part parent ".xmega-ab" # x64a1
     signature              = 0x1e 0x96 0x4e;
     usbpid                 = 0x2fe5;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
-
     memory "fuse2"
         bitmask            = 0x43;
     ;
@@ -18304,28 +18181,6 @@ part parent ".xmega-ab" # x64a1u
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x4e;
     usbpid                 = 0x2fe8;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
 
     memory "prodsig"
         size               = 64;
@@ -18358,28 +18213,6 @@ part parent ".xmega-ab" # x64a3
     signature              = 0x1e 0x96 0x42;
     usbpid                 = 0x2fe5;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
-
     memory "fuse2"
         bitmask            = 0x43;
     ;
@@ -18409,28 +18242,6 @@ part parent ".xmega-ab" # x64a3u
     signature              = 0x1e 0x96 0x42;
     usbpid                 = 0x2fe5;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
-
     memory "sram"
         size               = 4096;
     ;
@@ -18450,28 +18261,6 @@ part parent ".xmega-ab" # x64a4
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x46;
     usbpid                 = 0x2fe5;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
 
     memory "fuse0"
         initval            = -1;
@@ -18523,28 +18312,6 @@ part parent ".xmega-ab" # x64b1
     signature              = 0x1e 0x96 0x52;
     usbpid                 = 0x2fe1;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
-
     memory "fuse4"
         initval            = 0xff;
     ;
@@ -18574,28 +18341,6 @@ part parent ".xmega-ab" # x64b3
     boot_section_size      = 4096;
     signature              = 0x1e 0x96 0x51;
     usbpid                 = 0x2fdf;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
-    memory "flash"
-        size               = 0x11000;
-    ;
-
-    memory "application"
-        size               = 0x10000;
-    ;
-
-    memory "apptable"
-        size               = 4096;
-        offset             = 0x80f000;
-    ;
-
-    memory "boot"
-        size               = 4096;
-        offset             = 0x810000;
-    ;
 
     memory "fuse4"
         initval            = 0xff;
@@ -18629,10 +18374,6 @@ part parent ".xmega-cd" # x128c3
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x52;
     usbpid                 = 0x2fd7;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x22000;
@@ -18690,10 +18431,6 @@ part parent ".xmega-cd" # x128d3
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x48;
     usbpid                 = 0x2fd7;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x22000;
@@ -18754,10 +18491,6 @@ part parent ".xmega-cd" # x128d4
     signature              = 0x1e 0x97 0x47;
     usbpid                 = 0x2fd7;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
     ;
@@ -18813,10 +18546,6 @@ part parent ".xmega-ab" # x128a1
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4c;
     usbpid                 = 0x2fd7;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x22000;
@@ -18887,10 +18616,6 @@ part parent ".xmega-ab" # x128a1u
     signature              = 0x1e 0x97 0x4c;
     usbpid                 = 0x2fed;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
         page_size          = 512;
@@ -18949,10 +18674,6 @@ part parent ".xmega-ab" # x128a3
     signature              = 0x1e 0x97 0x42;
     usbpid                 = 0x2fd7;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
         page_size          = 512;
@@ -19009,10 +18730,6 @@ part parent ".xmega-ab" # x128a3u
     signature              = 0x1e 0x97 0x42;
     usbpid                 = 0x2fe6;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
         page_size          = 512;
@@ -19058,13 +18775,8 @@ part parent ".xmega-ab" # x128a4
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x46;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
-        page_size          = 256;
     ;
 
     memory "application"
@@ -19073,7 +18785,6 @@ part parent ".xmega-ab" # x128a4
     ;
 
     memory "apptable"
-        size               = 4096;
         page_size          = 512;
         offset             = 0x81f000;
     ;
@@ -19148,10 +18859,6 @@ part parent ".xmega-ab" # x128a4u
     signature              = 0x1e 0x97 0x46;
     usbpid                 = 0x2fde;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
     ;
@@ -19161,7 +18868,6 @@ part parent ".xmega-ab" # x128a4u
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x81f000;
     ;
 
@@ -19199,10 +18905,6 @@ part parent ".xmega-ab" # x128b1
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4d;
     usbpid                 = 0x2fea;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x22000;
@@ -19255,10 +18957,6 @@ part parent ".xmega-ab" # x128b3
     signature              = 0x1e 0x97 0x4b;
     usbpid                 = 0x2fe0;
 
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x22000;
     ;
@@ -19306,12 +19004,6 @@ part parent ".xmega-cd" # x192c3
     n_interrupts           = 127;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x51;
-
-#   usbpid                 = 0x2f??;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x32000;
@@ -19369,12 +19061,6 @@ part parent ".xmega-cd" # x192d3
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x49;
 
-#   usbpid                 = 0x2f??;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x32000;
         page_size          = 512;
@@ -19426,12 +19112,6 @@ part parent ".xmega-ab" # x192a1
     n_interrupts           = 127;
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x4e;
-
-#   usbpid                 = 0x2f??;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x32000;
@@ -19517,12 +19197,6 @@ part parent ".xmega-ab" # x192a3
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x44;
 
-#   usbpid                 = 0x2f??;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
-
     memory "flash"
         size               = 0x32000;
         page_size          = 512;
@@ -19579,12 +19253,6 @@ part parent ".xmega-ab" # x192a3u
     boot_section_size      = 8192;
     signature              = 0x1e 0x97 0x44;
     usbpid                 = 0x2fe7;
-
-#   usbpid                 = 0x2f??;
-
-    memory "eeprom"
-        size               = 2048;
-    ;
 
     memory "flash"
         size               = 0x32000;
@@ -20260,12 +19928,10 @@ part parent ".xmega-e" # x16e5
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x803000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x804000;
     ;
 
@@ -20310,12 +19976,10 @@ part parent ".xmega-e" # x32e5
     ;
 
     memory "apptable"
-        size               = 4096;
         offset             = 0x807000;
     ;
 
     memory "boot"
-        size               = 4096;
         offset             = 0x808000;
     ;
 
