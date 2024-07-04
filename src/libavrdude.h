@@ -232,6 +232,7 @@ typedef struct opcode {
 #define PM_XMEGAJTAG       1024 // JTAG, some XMEGA parts
 #define PM_AVR32JTAG       2048 // JTAG for 32-bit AVRs
 #define PM_aWire           4096 // For 32-bit AVRs
+#define PM_Classic (PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI)
 #define PM_ALL           0x1fff // All programming interfaces
 
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
@@ -377,7 +378,8 @@ typedef struct {
 #define MEM_BOOT        (1<< 8) // boot
 #define MEM_FUSES       (1<< 9) // fuses
 #define MEM_LOCK        (1<<10) // lock lockbits
-#define MEM_SIGROW      (1<<11) // prodsig sigrow
+#define MEM_SIGROW      (1<<11) // sigrow prodsig
+#define MEM_PRODSIG  MEM_SIGROW
 #define MEM_SIGNATURE   (1<<12) // signature
 #define MEM_CALIBRATION (1<<13) // calibration
 #define MEM_TEMPSENSE   (1<<14) // tempsense
@@ -388,6 +390,7 @@ typedef struct {
 #define MEM_OSC20ERR    (1<<19) // osc20err
 #define MEM_BOOTROW     (1<<20) // bootrow
 #define MEM_USERROW     (1<<21) // userrow usersig
+#define MEM_USERSIG MEM_USERROW
 #define MEM_IO          (1<<22) // io
 #define MEM_SRAM        (1<<23) // sram
 #define MEM_SIB         (1<<24) // sib
@@ -408,7 +411,7 @@ typedef struct {
 #define avr_locate_fuses(p) avr_locate_mem_by_type((p), MEM_FUSES)
 #define avr_locate_lock(p) avr_locate_mem_by_type((p), MEM_LOCK)
 #define avr_locate_lockbits(p) avr_locate_mem_by_type((p), MEM_LOCK)
-#define avr_locate_prodsig(p) avr_locate_mem_by_type((p), MEM_SIGROW)
+#define avr_locate_prodsig(p) avr_locate_mem_by_type((p), MEM_PRODSIG)
 #define avr_locate_sigrow(p) avr_locate_mem_by_type((p), MEM_SIGROW)
 #define avr_locate_signature(p) avr_locate_mem_by_type((p), MEM_SIGNATURE)
 #define avr_locate_calibration(p) avr_locate_mem_by_type((p), MEM_CALIBRATION)
@@ -419,7 +422,7 @@ typedef struct {
 #define avr_locate_osc16err(p) avr_locate_mem_by_type((p), MEM_OSC16ERR)
 #define avr_locate_osc20err(p) avr_locate_mem_by_type((p), MEM_OSC20ERR)
 #define avr_locate_bootrow(p) avr_locate_mem_by_type((p), MEM_BOOTROW)
-#define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERROW)
+#define avr_locate_usersig(p) avr_locate_mem_by_type((p), MEM_USERSIG)
 #define avr_locate_userrow(p) avr_locate_mem_by_type((p), MEM_USERROW)
 #define avr_locate_io(p) avr_locate_mem_by_type((p), MEM_IO)
 #define avr_locate_sram(p) avr_locate_mem_by_type((p), MEM_SRAM)
@@ -458,6 +461,7 @@ typedef struct {
 #define mem_is_boot(mem) (!!((mem)->type & MEM_BOOT))
 #define mem_is_fuses(mem) (!!((mem)->type & MEM_FUSES))
 #define mem_is_lock(mem) (!!((mem)->type & MEM_LOCK))
+#define mem_is_prodsig(mem) (!!((mem)->type & MEM_PRODSIG))
 #define mem_is_sigrow(mem) (!!((mem)->type & MEM_SIGROW))
 #define mem_is_signature(mem) (!!((mem)->type & MEM_SIGNATURE))
 #define mem_is_calibration(mem) (!!((mem)->type & MEM_CALIBRATION))
@@ -469,13 +473,14 @@ typedef struct {
 #define mem_is_osc20err(mem) (!!((mem)->type & MEM_OSC20ERR))
 #define mem_is_bootrow(mem) (!!((mem)->type & MEM_BOOTROW))
 #define mem_is_userrow(mem) (!!((mem)->type & MEM_USERROW))
+#define mem_is_usersig(mem) (!!((mem)->type & MEM_USERSIG))
 #define mem_is_io(mem) (!!((mem)->type & MEM_IO))
 #define mem_is_sram(mem) (!!((mem)->type & MEM_SRAM))
 #define mem_is_sib(mem) (!!((mem)->type & MEM_SIB))
 
 #define mem_is_in_flash(mem) (!!((mem)->type & MEM_IN_FLASH))
 #define mem_is_a_fuse(mem) (!!((mem)->type & MEM_IS_A_FUSE))
-#define mem_is_in_fuses(mem) (!!((mem)->type & (MEM_FUSES | MEM_IS_A_FUSE))) // If fuses exists, that is
+#define mem_is_in_fuses(mem) (!!((mem)->type & (MEM_FUSES | MEM_IS_A_FUSE))) // If fuses exists!
 #define mem_is_user_type(mem) (!!((mem)->type & MEM_USER_TYPE))
 #define mem_is_in_sigrow(mem) (!!((mem)->type & MEM_IN_SIGROW)) // If sigrow exists, that is
 #define mem_is_readonly(mem) (!!((mem)->type & MEM_READONLY))
@@ -554,7 +559,9 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed);
 
 /* Functions for AVRMEM structures */
 AVRMEM * avr_new_mem(void);
+AVRMEM *avr_new_memory(const char *name, int size);
 AVRMEM_ALIAS * avr_new_memalias(void);
+const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem);
 int avr_initmem(const AVRPART *p);
 AVRMEM * avr_dup_mem(const AVRMEM *m);
 void     avr_free_mem(AVRMEM * m);
@@ -576,6 +583,8 @@ AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRPART * locate_part_by_avr910_devcode(const LISTID parts, int devcode);
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes);
+int avr_sig_compatible(const unsigned char *sig1, const unsigned char *sig2);
+
 char *avr_prog_modes(int pm), *str_prog_modes(int pm), *dev_prog_modes(int pm);
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
 int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
@@ -1096,9 +1105,8 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			  unsigned long addr, unsigned char * value);
 
-int avr_read_mem(const PROGRAMMER * pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
-
-int avr_read(const PROGRAMMER * pgm, const AVRPART *p, const char *memstr, const AVRPART *v);
+int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, const AVRPART *v);
+int avr_read(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, const AVRPART *v);
 
 int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr);
@@ -1122,7 +1130,6 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 			   unsigned long addr, unsigned char data);
 
 int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int size, int auto_erase);
-
 int avr_write(const PROGRAMMER *pgm, const AVRPART *p, const char *memstr, int size, int auto_erase);
 
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
@@ -1130,6 +1137,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr);
 
 int avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const char *m, int size);
+int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, const AVRMEM *a, int size);
 
 int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
@@ -1221,16 +1229,24 @@ extern "C" {
 #endif
 
 FILEFMT fileio_format(char c);
+FILEFMT fileio_format_with_errmsg(char c, const char *who);
 
 char *fileio_fmtstr(FILEFMT format);
 
 int fileio_fmtchr(FILEFMT format);
+
+AVRMEM *fileio_any_memory(const char *name);
+
+unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem);
 
 FILE *fileio_fopenr(const char *fname);
 
 int fileio_fmt_autodetect_fp(FILE *f);
 
 int fileio_fmt_autodetect(const char *fname);
+
+int fileio_mem(int oprwv, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int size);
 
 int fileio(int oprwv, const char *filename, FILEFMT format,
   const AVRPART *p, const char *memstr, int size);
@@ -1258,6 +1274,7 @@ enum updateflags {
   UF_NOWRITE = 1,
   UF_AUTO_ERASE = 2,
   UF_VERIFY = 4,
+  UF_NOHEADING = 8,
 };
 
 
@@ -1293,6 +1310,7 @@ char *update_str(const UPDATE *upd);
 int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd,
   enum updateflags flags);
 int memstats(const AVRPART *p, const char *memstr, int size, Filestats *fsp);
+int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp);
 
 // Helper functions for dry run to determine file access
 int update_is_okfile(const char *fn);
@@ -1301,6 +1319,8 @@ int update_is_readable(const char *fn);
 
 int update_dryrun(const AVRPART *p, UPDATE *upd);
 
+AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry);
+int memlist_contains_flash(const char *mstr, const AVRPART *p);
 
 #ifdef __cplusplus
 }
@@ -1429,6 +1449,7 @@ extern "C" {
 #endif
 
 int avr_locate_upidx(const AVRPART *p);
+const Avrintel *avr_locate_uP(const AVRPART *p);
 const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp);
 const char * const *avr_locate_isrtable(const AVRPART *p, int *nip);
 const Register_file *avr_locate_register_file(const AVRPART *p, int *nrp);
@@ -1460,6 +1481,7 @@ int str_casematch(const char *pattern, const char *string);
 int str_matched_by(const char *string, const char *pattern);
 int str_casematched_by(const char *string, const char *pattern);
 int str_is_pattern(const char *str);
+int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char*));
 char *str_sprintf(const char *fmt, ...)
 #if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
    __attribute__ ((format (printf, 1, 2)))
@@ -1472,6 +1494,12 @@ const char *str_ccprintf(const char *fmt, ...)
 ;
 const char *str_ccstrdup(const char *str);
 char *str_fgets(FILE *fp, const char **errpp);
+size_t str_numc(const char *str, char c);
+const char *str_ltrim(const char *s);
+char *str_nrtrim(char *s, size_t n);
+char *str_rtrim(char *s);
+char *str_ntrim(char *s, size_t n);
+char *str_trim(char *s);
 char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);
@@ -1480,7 +1508,9 @@ char *str_utoa(unsigned n, char *buf, int base);
 char *str_endnumber(const char *str);
 const char *str_plural(int x);
 const char *str_inname(const char *fn);
+const char *str_infilename(const char *fn);
 const char *str_outname(const char *fn);
+const char *str_outfilename(const char *fn);
 const char *str_ccinterval(int a, int b);
 bool is_bigendian(void);
 void change_endian(void *p, int size);
@@ -1494,6 +1524,8 @@ char *str_nexttok(char *buf, const char *delim, char **next);
 const char *str_ccfrq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
+int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n);
+const char *str_ccmcunames_signature(const unsigned char *sigs);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);
@@ -1528,8 +1560,8 @@ char *avr_cc_buffer(size_t n);
 
 typedef struct {
   // Closed-circuit space for returning strings in a persistent buffer
-#define AVR_SAFETY_MARGIN 128
-  char *avr_s, avr_space[8192+AVR_SAFETY_MARGIN];
+#define AVR_SAFETY_MARGIN 1024
+  char *avr_s, avr_space[32768+AVR_SAFETY_MARGIN];
 
   // Static variables from avr.c
   int avr_disableffopt;         // Disables trailing 0xff flash optimisation
@@ -1598,6 +1630,9 @@ typedef struct {
   // Static variables from update.c
   const char **upd_wrote, **upd_termcmds;
   int upd_nfwritten, upd_nterms;
+
+  // Static variable from fileio.c
+  int reccount;
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"

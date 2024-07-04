@@ -2,6 +2,8 @@
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2023- Hans Eirik Bull
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -304,12 +306,43 @@ AVRMEM *avr_new_mem(void) {
   return m;
 }
 
+// Create memory from name and size
+AVRMEM *avr_new_memory(const char *name, int size) {
+  AVRMEM *m = (AVRMEM *) mmt_malloc(sizeof(*m));
+  m->desc = cache_string(name);
+  m->page_size = 1;             // Ensure not 0
+  m->size = size;
+  m->buf = mmt_malloc(size);
+  m->tags = mmt_malloc(size);
+  m->initval = -1;              // Unknown value represented as -1
+  m->bitmask = -1;              // Default to -1
+
+  return m;
+}
+
 AVRMEM_ALIAS *avr_new_memalias(void) {
   AVRMEM_ALIAS *m = (AVRMEM_ALIAS *) mmt_malloc(sizeof *m);
   m->desc = cache_string("");
   return m;
 }
 
+// Return longer name of memory including alias if any, eg, fuse7/codesize
+const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem) {
+  char ret[1024];
+  const int n = sizeof ret - 1;
+
+  strncpy(ret, mem->desc, n/2);
+  ret[n/2] = 0;
+
+  AVRMEM_ALIAS *alias = avr_find_memalias(p, mem);
+  if(alias && alias->desc && *alias->desc) {
+    int l = strlen(ret);
+    ret[l] = '/';
+    strncpy(ret+l+1, alias->desc, n-l-1);
+    ret[n] = 0;
+  }
+  return cache_string(ret);
+}
 
 /*
  * Allocate and initialize memory buffers for each of the device's
@@ -509,6 +542,14 @@ int avr_locate_upidx(const AVRPART *p) {
 
   return idx;
 }
+
+// Return pointer to uP_table entry for part p
+const Avrintel *avr_locate_uP(const AVRPART *p) {
+  int idx = avr_locate_upidx(p);
+
+  return idx < 0? NULL: uP_table + idx;
+}
+
 
 // Return pointer to config table for the part and set number of config bitfields
 const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp) {
@@ -735,7 +776,8 @@ int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
   if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
     return -1;
 
-  *valuep = (fusel & c->mask) >> c->lsh;
+  if(valuep)
+    *valuep = (fusel & c->mask) >> c->lsh;
   return 0;
 }
 
@@ -1042,6 +1084,48 @@ AVRPART *locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int
 
 AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
   return locate_part_by_signature_pm(parts, sig, sigsize, PM_ALL);
+}
+
+// Return whether two signatures represent SW-compatible parts
+int avr_sig_compatible(const unsigned char *sig1, const unsigned char *sig2) {
+  // SW-compatible parts (same memories, interrupts and regfiles) despite different signatures
+  static const struct { unsigned char sig[3], equ[3]; } compat[] = {
+    {{0x1e, 0x97, 0x06}, {0x1e, 0x97, 0x05}}, // ATmega1284 vs ATmega1284P
+    {{0x1e, 0xa7, 0x03}, {0x1e, 0xa7, 0x02}}, // ATmega1284RFR2 vs ATmega128RFR2
+    {{0x1e, 0x94, 0x0f}, {0x1e, 0x94, 0x0a}}, // ATmega164A vs ATmega164P=ATmega164PA
+    {{0x1e, 0x94, 0x10}, {0x1e, 0x94, 0x07}}, // ATmega165A vs ATmega165=ATmega165=ATmega165PA
+    {{0x1e, 0x94, 0x06}, {0x1e, 0x94, 0x0b}}, // ATmega168=ATmega168A vs ATmega168P=ATmega168PA
+    {{0x1e, 0x94, 0x11}, {0x1e, 0x94, 0x05}}, // ATmega169A vs ATmega169=ATmega169P=ATmega169PA
+    {{0x1e, 0xa8, 0x03}, {0x1e, 0xa8, 0x02}}, // ATmega2564RFR2 vs ATmega256RFR2
+    {{0x1e, 0x95, 0x15}, {0x1e, 0x95, 0x08}}, // ATmega324A vs ATmega324P
+    {{0x1e, 0x95, 0x15}, {0x1e, 0x95, 0x11}}, // ATmega324A vs ATmega324PA
+    {{0x1e, 0x95, 0x08}, {0x1e, 0x95, 0x11}}, // ATmega324P vs ATmega324PA
+    {{0x1e, 0x95, 0x06}, {0x1e, 0x95, 0x0e}}, // ATmega3250=ATmega3250A vs ATmega3250P=ATmega3250PA
+    {{0x1e, 0x95, 0x05}, {0x1e, 0x95, 0x0d}}, // ATmega325=ATmega325A vs ATmega325P=ATmega325PA
+    {{0x1e, 0x95, 0x04}, {0x1e, 0x95, 0x0c}}, // ATmega3290=ATmega3290A vs ATmega3290P=ATmega3290PA
+    {{0x1e, 0x95, 0x03}, {0x1e, 0x95, 0x0b}}, // ATmega329=ATmega329A vs ATmega329P=ATmega329PA
+    {{0x1e, 0x92, 0x05}, {0x1e, 0x92, 0x0a}}, // ATmega48=ATmega48A vs ATmega48P=ATmega48PA
+    {{0x1e, 0x92, 0x05}, {0x1e, 0x92, 0x0a}}, // ATmega48=ATmega48A vs ATmega48P=ATmega48PA
+    {{0x1e, 0x96, 0x09}, {0x1e, 0x96, 0x0a}}, // ATmega644=ATmega644A vs ATmega644P=ATmega644PA
+    {{0x1e, 0xa6, 0x03}, {0x1e, 0xa6, 0x02}}, // ATmega644RFR2 vs ATmega64RFR2
+    {{0x1e, 0x96, 0x06}, {0x1e, 0x96, 0x0e}}, // ATmega6450=ATmega6450A vs ATmega6450P
+    {{0x1e, 0x96, 0x05}, {0x1e, 0x96, 0x0d}}, // ATmega645=ATmega645A vs ATmega645P
+    {{0x1e, 0x96, 0x04}, {0x1e, 0x96, 0x0c}}, // ATmega6490=ATmega6490A vs ATmega6490P
+    {{0x1e, 0x96, 0x03}, {0x1e, 0x96, 0x0b}}, // ATmega649=ATmega649A vs ATmega649P
+    {{0x1e, 0x93, 0x0a}, {0x1e, 0x93, 0x0f}}, // ATmega88=ATmega88A=ATA6612C vs ATmega88P=ATmega88PA
+  };
+
+  if(!memcmp(sig1, sig2, 3))
+    return 1;
+
+  for(size_t i = 0; i < sizeof compat/sizeof *compat; i++) {
+    if(!memcmp(sig1, compat[i].sig, 3) && !memcmp(sig2, compat[i].equ, 3))
+      return 1;
+    if(!memcmp(sig2, compat[i].sig, 3) && !memcmp(sig1, compat[i].equ, 3))
+      return 1;
+  }
+
+  return 0;
 }
 
 /*
