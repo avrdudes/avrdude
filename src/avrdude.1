@@ -961,7 +961,10 @@ field specifies what operation to perform:
 .It Ar r
 read device memory and write to the specified file
 .It Ar w
-read data from the specified file and write to the device memory
+read data from the specified file and write to the device memories in the
+list; read-only memories in a memory list are skipped, as are fuses and
+lock bits when the programmer is a bootloader; writing to single read-only
+memories fails only if the contents differs between the file and memory
 .It Ar v
 read data from both the device and the specified file and perform a verify
 .El

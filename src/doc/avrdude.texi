@@ -1000,13 +1000,16 @@ The @var{op} field specifies what operation to perform:
 
 @table @code
 @item r
-read the specified device memory and write to the specified file
+read device memories and write to the specified file
 
 @item w
-read the specified file and write it to the specified device memory
+read data from the specified file and write to the device memories in the
+list; read-only memories in a memory list are skipped, as are fuses and
+lock bits when the programmer is a bootloader; writing to single read-only
+memories fails only if the contents differs between the file and memory
 
 @item v
-read the specified device memory and the specified file and perform a verify operation
+read data from both the device and the specified file and perform a verify
 
 @end table
 
