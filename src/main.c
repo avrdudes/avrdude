@@ -1724,6 +1724,8 @@ skipopen:
 
 
   int wrmem = 0, terminal = 0;
+  if(lsize(updates) <= 1)
+    uflags |=  UF_NOHEADING;
   for (ln=lfirst(updates); ln; ln=lnext(ln)) {
     const AVRMEM *m;
     upd = ldata(ln);
