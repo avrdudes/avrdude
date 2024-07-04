@@ -19064,7 +19064,7 @@ part parent ".xmega-ab" # x128a4
 
     memory "flash"
         size               = 0x22000;
-        page_size          = 512;
+        page_size          = 256;
     ;
 
     memory "application"
