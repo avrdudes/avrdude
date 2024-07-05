@@ -282,6 +282,17 @@ int updi_nvm_write_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
   return nvm_write_V2(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS);
 }
 
+int updi_nvm_write_boot_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+/*
+  Perform write operation as if it was regular flash memory, but perform erase operation first
+*/
+  if (updi_nvm_erase_flash_page_V2(pgm, p, address) <0) {
+    pmsg_error("Flash page erase failed for bootrow\n");
+    return -1;
+  }
+  return updi_nvm_write_flash_V2(pgm, p, address, buffer, size);
+}
+
 int updi_nvm_write_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):

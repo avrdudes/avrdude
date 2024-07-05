@@ -39,6 +39,7 @@ int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p);
 int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size);
 int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
+int updi_nvm_write_boot_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value);
 int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p);

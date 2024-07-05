@@ -157,6 +157,25 @@ int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
   }
 }
 
+int updi_nvm_write_boot_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+  switch(updi_get_nvm_mode(pgm))
+  {
+    case UPDI_NVM_MODE_V0:
+      return updi_nvm_write_boot_row_V0(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V2:
+      return updi_nvm_write_boot_row_V2(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V3:
+      return updi_nvm_write_boot_row_V3(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V4:
+      return updi_nvm_write_boot_row_V4(pgm, p, address, buffer, size);
+    case UPDI_NVM_MODE_V5:
+      return updi_nvm_write_boot_row_V5(pgm, p, address, buffer, size);
+    default:
+      pmsg_error("invalid NVM Mode %d\n", updi_get_nvm_mode(pgm));
+      return -1;
+  }
+}
+
 int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
   switch(updi_get_nvm_mode(pgm))
   {
