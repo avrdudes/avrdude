@@ -9,6 +9,8 @@ Changes since version 7.3:
 
   * Major changes compared to the previous version:
 
+    - Support of multi-memory .hex and .srec files and memory lists
+
   * New devices supported:
 
     - AVR16DU14, AVR16DU20, AVR16DU28, AVR16DU32
@@ -40,6 +42,7 @@ Changes since version 7.3:
     - Custom programmer broken in v7.3 #1807
     - ATtiny11 does not have EEPROM #1812
     - AVRDUDE fails to return -1 on some write errors #1821
+    - Multi-memory files #1817
 
   * Pull requests:
 
@@ -95,6 +98,8 @@ Changes since version 7.3:
     - Extend elf format for bootrow #1820
     - Update AUTHORS list #1819
     - Downgrade out-of-range file input errors on -F #1818
+    - Multi-memory file handling #1828
+    - Add developer options -p*/vcr to explore SW compatibility #1830
 
   * Internals:
 
