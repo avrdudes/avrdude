@@ -964,7 +964,16 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     return cmd_write(pgm, p, 6, args);
   }
 
-  term_out("erasing chip ...\n");
+  const char *note = "";
+  if(avr_locate_eeprom(p)) {
+    int eesave, bakverb = verbose;
+    verbose = -123;             // Silently read EESAVE configuration bit
+    if(avr_get_config_value(pgm, p, "eesave", &eesave) == 0)
+      note = eesave == !(p->prog_modes & PM_UPDI)? "(including EEPROM) ": "(but not EEPROM) ";
+    verbose = bakverb;
+  }
+
+  term_out("erasing chip %s...\n", note);
 
   // Erase chip and clear cache
   int rc = pgm->chip_erase_cached(pgm, p);
