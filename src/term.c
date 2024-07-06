@@ -965,7 +965,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   const char *note = "";
-  if(avr_locate_eeprom(p)) {
+  if(!(pgm->prog_modes & PM_SPM) && avr_locate_eeprom(p)) { // Not a bootloader: is EEPROM saved?
     int eesave, bakverb = verbose;
     verbose = -123;             // Silently read EESAVE configuration bit
     if(avr_get_config_value(pgm, p, "eesave", &eesave) == 0)
