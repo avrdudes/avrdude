@@ -146,6 +146,30 @@ static int dryrun_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned 
 }
 
 
+static int dryrun_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int addr) {
+
+  pmsg_debug("%s(%s, 0x%04x)\n", __func__, m->desc, addr);
+  if(!dry.dp)
+    Return("no dryrun device?");
+
+  AVRMEM *dmem;
+  if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
+    Return("cannot locate %s %s memory for paged write", dry.dp->desc, m->desc);
+
+  if(!avr_has_paged_access(pgm, dmem) || addr >= (unsigned) dmem->size)
+    Return("%s does not support paged access", dmem->desc);
+  addr &= ~(dmem->page_size-1);
+  if(addr + dmem->page_size > (unsigned) dmem->size)
+    Return("%s page erase of %s reaches outside %s?", dmem->desc,
+     str_ccinterval(addr, addr + dmem->page_size-1), str_ccinterval(0, dmem->size-1));
+
+  memset(dmem->buf+addr, 0xff, dmem->page_size);
+
+  return 0;
+}
+
+
 static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused) {
   pmsg_debug("%s()\n", __func__);
 
@@ -625,6 +649,10 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if((m = avr_locate_flash(q)) && m->size >= 1024 && (pgm->prog_modes & PM_SPM))
     dry.bl = (q->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
 
+  // So that dryrun can emulate AVRDUDE page erase
+  if(!(pgm->prog_modes & PM_SPM) && (q->prog_modes & (PM_PDI | PM_UPDI)))
+    pgm->page_erase = dryrun_page_erase;
+
   if(!dry.random && !dry.init) // OK, no further initialisation needed
     return;
 
@@ -693,6 +721,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     putother(pgm, q, m, "The five boxing wizards jump quickly. ");
   if((m = avr_locate_bootrow(q)))
     putother(pgm, q, m, "Lorem ipsum dolor sit amet. ");
+
   dry.initialised = 1;
 }
 
