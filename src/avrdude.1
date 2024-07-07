@@ -472,17 +472,15 @@ arduino.
 .It Fl D
 Disable auto erase for flash.  When the
 .Fl U
-option with flash memory is specified,
+option for writing to any flash memory is specified,
 .Nm
 will perform a chip erase before starting any of the programming
-operations, since it generally is a mistake to program the flash
-without performing an erase first.  This option disables that.
-Auto erase is not used for ATxmega devices as these devices can
-use page erase before writing each page so no explicit chip erase
-is required.
-Note however that any page not affected by the current operation
-will retain its previous contents.
-Setting
+operations, since it generally is a mistake to program the flash without
+performing an erase first.  This option disables that. Auto erase is not
+used for ATxmega parts nor for the UPDI (AVR8X family) parts as these can
+use page erase before writing each page so no explicit chip erase is
+required. Note, however, that any flash page not affected by the current
+operation will retain its previous contents. Setting
 .Fl D
 implies
 .Fl A.
@@ -491,9 +489,9 @@ Causes a chip erase to be executed.  This will reset the contents of the
 flash ROM and EEPROM to the value
 .Ql 0xff ,
 and clear all lock bits.
-Except for ATxmega devices which can use page erase,
-it is basically a prerequisite command before the flash ROM can be
-reprogrammed again.  The only exception would be if the new
+Except for ATxmega and UPDI (AVR8X family) devices, all of which can use
+page erase, it is basically a prerequisite command before the flash ROM
+can be reprogrammed again.  The only exception would be if the new
 contents would exclusively cause bits to be programmed from the value
 .Ql 1
 to
@@ -797,6 +795,7 @@ The available memory types are device-dependent, the actual configuration
 can be viewed with the
 .Cm part
 command in terminal mode.
+.Pp
 Typically, a device's memory configuration at least contains
 the memories
 .Ar flash ,
@@ -812,10 +811,26 @@ memory contains the three device signature bytes, which should
 be, but not always are, unique for the part. The
 .Ar lock
 memory of one or four bytes typically details whether or not external
-reading/writing of the flash memory, or parts of it, is allowed. Parts
-will also typically have fuse bytes, which are read/write memories for
-configuration of the device and calibration memories that typically
-contain read-only factory calibration values.
+reading/writing of the flash memory, or parts of it, is allowed. After
+restricting access via the lock memory, often the only way to unlock
+memory is via a chip erase. Parts will also typically have fuse bytes,
+which are read/write memories for configuration of the device and
+calibration memories that typically contain read-only factory calibration
+values.
+.Pp
+The flash memory, being physically implemented as NOR-memory, is special
+in the sense that it is normally only possible to program bits to change
+from 1 to 0. Before reprogramming takes place normally flash memory has
+to be erased. Older parts would only offer a chip erase to do so, which
+also erases EEPROM unless a fuse configuration preserves its contents. If
+AVRDUDE detects a -U option that writes to a flash memory it will
+automatically trigger a chip erase for these older parts.  ATxmegas or
+UPDI parts (AVR8X family) offer a page erase, and AVRDUDE takes advantage
+of that by erasing pages before programming them unless -e (chip erase) or
+-D (do not erase before writing) was requested. It should be noted that in
+absence of the -e chip erase option any ATxmega or UPDI flash pages not
+affected by the programming will retain their previous content.
+
 .Pp
 Classic devices may have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "  calibration" -compact
@@ -949,10 +964,11 @@ Temperature sensor calibration values
 .It bootrow
 Extra page of memory that is only accessible by the MCU in bootloader
 code; UDPI can read and write this memory only when the device is
-unlocked; bootrow is not erased during chip erase
+unlocked
 .It userrow
 Extra page of EEPROM memory that can be used for firmware settings; this
-memory is not erased during a chip erase
+memory is not erased during a chip erase; UPDI cannot read this memory
+when the device is locked
 .It sib
 Special system information block memory with information about AVR family, chip revision etc.
 .It io
@@ -1275,8 +1291,9 @@ command line argument.
 .Ar verify
 flushes the cache before verifying memories.
 .It Ar erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
-Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
+Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
+a corresponding value at the last reset prior to the operation.
 .It Ar erase memory
 Erase the entire specified memory.
 .It Ar erase memory addr len
@@ -1286,8 +1303,8 @@ Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
-erase needs to be issued before writing arbitrary data. Bootrow and usersig are
-generally unaffected by a chip erase. When a memory looks like a NOR
+erase needs to be issued before writing arbitrary data. Usersig is
+unaffected by a chip erase. When a memory looks like a NOR
 memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
 fully read in, a chip erase command is issued and both EEPROM and flash

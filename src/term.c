@@ -964,7 +964,9 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     return cmd_write(pgm, p, 6, args);
   }
 
-  term_out("erasing chip ...\n");
+  term_out("%s chip erase; discarded pending writes to flash%s\n",
+    (pgm->prog_modes & PM_SPM)? "asking bootloader to perform": "performing",
+    avr_locate_bootrow(p)? ", EEPROM and bootrow": avr_locate_eeprom(p)? "and EEPROM": "");
 
   // Erase chip and clear cache
   int rc = pgm->chip_erase_cached(pgm, p);
