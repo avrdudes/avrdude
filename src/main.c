@@ -1681,18 +1681,25 @@ skipopen:
   }
 
   if (uflags & UF_AUTO_ERASE) {
-    if ((p->prog_modes & PM_PDI) && pgm->page_erase && lsize(updates) > 0) {
-      pmsg_info("Note: programmer supports page erase for Xmega devices.\n");
-      imsg_info("Each page will be erased before programming it, but no chip erase is performed.\n");
-      imsg_info("To disable page erases, specify the -D option; for a chip-erase, use the -e option.\n");
+    if((p->prog_modes & (PM_PDI | PM_UPDI)) && pgm->page_erase && lsize(updates) > 0) {
+      for(ln=lfirst(updates); ln; ln=lnext(ln)) {
+        upd = ldata(ln);
+        if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
+          cx->avr_disableffopt = 1; // Must write full flash file including trailing 0xff
+          pmsg_info("NOT erasing chip as page erase will be used for new flash%s contents\n",
+            avr_locate_bootrow(p)? "/bootrow": "");
+          imsg_notice("unprogrammed flash contents remains: use -e for an explicit chip-erase\n");
+          break;
+        }
+      }
     } else {
       uflags &= ~UF_AUTO_ERASE;
       for(ln=lfirst(updates); !erase && ln; ln=lnext(ln)) {
         upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           erase = 1;
-          pmsg_info("Note: carrying out an erase cycle as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
-          imsg_info("specify the -D option to disable this feature\n");
+          pmsg_info("Performing a chip erase as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
+          imsg_notice("specify the -D option to disable this feature\n");
         }
       }
     }
