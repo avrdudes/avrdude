@@ -43,6 +43,7 @@ Changes since version 7.3:
     - ATtiny11 does not have EEPROM #1812
     - AVRDUDE fails to return -1 on some write errors #1821
     - Multi-memory files #1817
+    - Terminal erase command #1833
 
   * Pull requests:
 
@@ -100,6 +101,8 @@ Changes since version 7.3:
     - Downgrade out-of-range file input errors on -F #1818
     - Multi-memory file handling #1828
     - Add developer options -p*/vcr to explore SW compatibility #1830
+    - Improve chip erase emulation for dryboot/dryrun #1836
+    - Use page erase for UPDI programming #1837
 
   * Internals:
 
