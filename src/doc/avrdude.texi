@@ -2509,8 +2509,9 @@ comma separated list of memories just as in the @code{-U} command line
 argument. @code{verify} flushes the cache before verifying memories.
 
 @item erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
-Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
+Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
+a corresponding value at the last reset prior to the operation.
 
 @item erase @var{memory}
 Erase the entire specified memory.

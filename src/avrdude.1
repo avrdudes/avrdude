@@ -1264,8 +1264,9 @@ command line argument.
 .Ar verify
 flushes the cache before verifying memories.
 .It Ar erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
-Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
+Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
+a corresponding value at the last reset prior to the operation.
 .It Ar erase memory
 Erase the entire specified memory.
 .It Ar erase memory addr len
