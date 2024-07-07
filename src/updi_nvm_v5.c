@@ -300,9 +300,9 @@ int updi_nvm_write_user_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
 
 int updi_nvm_write_boot_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
-  Perform the operation as the regular flash write, but with page erase/page write command 
+  Perform the operation as the regular flash write
 */
-  return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_ERASE_WRITE);
+  return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
 int updi_nvm_write_eeprom_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {

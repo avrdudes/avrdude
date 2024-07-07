@@ -285,13 +285,9 @@ int updi_nvm_write_user_row_V4(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
 
 int updi_nvm_write_boot_row_V4(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
-  Write it as a regular flash page, but perform page erase first
+  Write it as a regular flash page
 */
-  if (updi_nvm_erase_flash_page_V4(pgm, p, address) <0) {
-    pmsg_error("Flash page erase failed for bootrow\n");
-    return -1;
-  }
-  return updi_nvm_write_flash_V4(pgm, p, address, buffer, size);
+  return nvm_write_V4(pgm, p, address, buffer, size, USE_WORD_ACCESS);
 }
 
 int updi_nvm_write_eeprom_V4(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
