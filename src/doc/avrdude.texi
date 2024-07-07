@@ -981,7 +981,7 @@ Temperature sensor calibration values
 @item bootrow
 Extra page of memory that is only accessible by the MCU in bootloader
 code; UDPI can read and write this memory only when the device is
-unlocked; bootrow is not erased during chip erase
+unlocked
 @item userrow
 Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -2509,8 +2509,9 @@ comma separated list of memories just as in the @code{-U} command line
 argument. @code{verify} flushes the cache before verifying memories.
 
 @item erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
-Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
+Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
+a corresponding value at the last reset prior to the operation.
 
 @item erase @var{memory}
 Erase the entire specified memory.
@@ -2523,8 +2524,8 @@ Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
-erase needs to be issued before writing arbitrary data. Bootrow and usersig are
-generally unaffected by a chip erase. When a memory looks like a NOR
+erase needs to be issued before writing arbitrary data. Usersig is
+unaffected by a chip erase. When a memory looks like a NOR
 memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
 fully read in, a chip erase command is issued and both EEPROM and flash

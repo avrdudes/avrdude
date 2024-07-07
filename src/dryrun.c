@@ -62,6 +62,7 @@ typedef struct {
   int appstart, appsize;        // Start and size of application section
   int datastart, datasize;      // Start and size of application data section (if any)
   int bootstart, bootsize;      // Start and size of boot section (if any)
+  int initialised;              // 1 once the part memories are initialised
 } Dryrun_data;
 
 // Use private programmer data as if they were a global structure dry
@@ -87,19 +88,40 @@ static int dryrun_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 }
 
 
-// Emulate chip erase (only erase flash, pretend EESAVE fuse is active - FIXME: check EESAVE fuse)
+// Emulate chip erase
 static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
-  AVRMEM *flm;
+  AVRMEM *mem;
 
   pmsg_debug("%s()\n", __func__);
   if(!dry.dp)
     Return("no dryrun device?");
-  if(!(flm = avr_locate_flash(dry.dp)))
+  if(!(mem = avr_locate_flash(dry.dp)))
     Return("cannot locate %s flash memory for chip erase", dry.dp->desc);
-  if(flm->size < 1)
-    Return("cannot erase %s flash memory owing to its size %d", dry.dp->desc, flm->size);
+  if(mem->size < 1)
+    Return("cannot erase %s flash memory owing to its size %d", dry.dp->desc, mem->size);
 
-  memset(flm->buf, 0xff, flm->size);
+  if(dry.bl) {                  // Bootloaders won't overwrite themselves
+    memset(mem->buf + (dry.bl == DRY_TOP? 0: dry.bootsize), 0xff, mem->size-dry.bootsize);
+    return 0;                   // Assume that's all a bootloader does
+  }
+
+  memset(mem->buf, 0xff, mem->size);
+
+  int eesave, bakverb = verbose;
+  verbose = -123;
+  if((mem = avr_locate_eeprom(dry.dp))) // Check whether EEPROM needs erasing
+    if(avr_get_config_value(pgm, dry.dp, "eesave", &eesave) == 0 && eesave == !(dry.dp->prog_modes & PM_UPDI))
+      if(mem->size > 0)
+        memset(mem->buf, 0xff, mem->size);
+  verbose = bakverb;
+
+  if((mem = avr_locate_bootrow(dry.dp))) // Also erase bootrow if it's there
+    if(mem->size > 0)
+      memset(mem->buf, 0xff, mem->size);
+
+  if((mem = avr_locate_lock(dry.dp)))
+    if(mem->initval != -1 && mem->size > 0 && mem->size <= (int) sizeof(mem->initval))
+      memcpy(mem->buf, &mem->initval, mem->size); // FIXME: relying on little endian here
 
   return 0;
 }
@@ -121,6 +143,30 @@ static int dryrun_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned 
   res[3] = 0xff;
 
   return ret;
+}
+
+
+static int dryrun_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+  unsigned int addr) {
+
+  pmsg_debug("%s(%s, 0x%04x)\n", __func__, m->desc, addr);
+  if(!dry.dp)
+    Return("no dryrun device?");
+
+  AVRMEM *dmem;
+  if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
+    Return("cannot locate %s %s memory for paged write", dry.dp->desc, m->desc);
+
+  if(!avr_has_paged_access(pgm, dmem) || addr >= (unsigned) dmem->size)
+    Return("%s does not support paged access", dmem->desc);
+  addr &= ~(dmem->page_size-1);
+  if(addr + dmem->page_size > (unsigned) dmem->size)
+    Return("%s page erase of %s reaches outside %s?", dmem->desc,
+     str_ccinterval(addr, addr + dmem->page_size-1), str_ccinterval(0, dmem->size-1));
+
+  memset(dmem->buf+addr, 0xff, dmem->page_size);
+
+  return 0;
 }
 
 
@@ -603,6 +649,10 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if((m = avr_locate_flash(q)) && m->size >= 1024 && (pgm->prog_modes & PM_SPM))
     dry.bl = (q->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
 
+  // So that dryrun can emulate AVRDUDE page erase
+  if(!(pgm->prog_modes & PM_SPM) && (q->prog_modes & (PM_PDI | PM_UPDI)))
+    pgm->page_erase = dryrun_page_erase;
+
   if(!dry.random && !dry.init) // OK, no further initialisation needed
     return;
 
@@ -640,7 +690,12 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     int ps = flm->page_size;
     urbtsz = dry.bootsize? dry.bootsize: flm->size > 32768? 512: flm->size < 16384? 256: 384;
     urbtsz = (urbtsz + ps-1)/ps*ps;
-    int ubaddr = dry.bootsize? dry.bootstart: flm->size - urbtsz;
+    if(!dry.bootsize && !dry.datasize) {
+      dry.bootsize += urbtsz;
+      dry.appsize -= urbtsz;
+      dry.bootstart = dry.appsize;
+    }
+    int ubaddr = dry.bootstart;
     putflash(pgm, flm, ubaddr, urbtsz, urbtsz==384? U384: U512);
     flm->buf[ubaddr] = 0xff; flm->buf[ubaddr+1] = 0xcf; // rjmp .-2
   } else if(dry.bootsize) {
@@ -666,6 +721,8 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     putother(pgm, q, m, "The five boxing wizards jump quickly. ");
   if((m = avr_locate_bootrow(q)))
     putother(pgm, q, m, "Lorem ipsum dolor sit amet. ");
+
+  dry.initialised = 1;
 }
 
 
@@ -942,7 +999,7 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   // @@@ check for bootloader write protection
 
-  if(mem_is_in_fuses(mem) || mem_is_lock(mem))
+  if(dry.initialised && (mem_is_in_fuses(mem) || mem_is_lock(mem)))
     return 1;
 
   return 0;
