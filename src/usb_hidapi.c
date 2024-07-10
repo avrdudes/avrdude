@@ -149,7 +149,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
    * provide us with an API function for that, nor for the report
    * descriptor (which also contains that information).
    *
-   * Since the Atmel tools a very picky to only respond to incoming
+   * Since the Atmel tools are very picky to only respond to incoming
    * packets that have full size, we need to know whether our device
    * handles 512-byte data (JTAGICE3 in CMSIS-DAP mode, or AtmelICE,
    * both on USB 2.0 connections), or 64-byte data only (both these on
