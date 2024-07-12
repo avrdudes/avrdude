@@ -2165,7 +2165,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if (pgm->flag & PGM_FL_IS_DW)
         unsupp = 1;
     }
-  } else if (!(p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_calibration(mem)) { // Classic part calibration
+  } else if ((p->prog_modes & PM_Classic) && mem_is_calibration(mem)) { // Classic part calibration
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2815,7 +2815,7 @@ static unsigned char tpi_get_mtype(const AVRMEM *m) {
     mem_is_lock(m)? XPRG_MEM_TYPE_LOCKBITS:
     mem_is_calibration(m)? XPRG_MEM_TYPE_LOCKBITS: // Sic, uses offset to distingish memories
     mem_is_signature(m)? XPRG_MEM_TYPE_LOCKBITS:
-    mem_is_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
+    mem_is_in_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
     XPRG_MEM_TYPE_APPL;         // Sic, TPI parts do not have eeprom
 }
 
