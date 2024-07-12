@@ -6237,6 +6237,7 @@ part parent "m324p" # m324pb
     memory "sernum"
         size               = 10;
         offset             = 0xe; # Sub-region of prodsig
+        read               = "0 0 1 1 a0 0 0 0  0 0 0 0 0 0 0 0  0 0 0 0 a4 a3 a2 a1  o o o o o o o o";
     ;
 ;
 
@@ -11045,6 +11046,7 @@ part parent "m328" # m328pb
     memory "sernum"
         size               = 10;
         offset             = 0xe; # Sub-region of prodsig
+        read               = "0 0 1 1 a0 0 0 0  0 0 0 0 0 0 0 0  0 0 0 0 a4 a3 a2 a1  o o o o o o o o";
     ;
 ;
 
@@ -20451,7 +20453,7 @@ part parent ".reduced_core_tiny" # t102
 
     memory "sernum"
         size               = 10;
-        offset             = 0x6; # Sub-region of prodsig
+        offset             = 0x3fc6; # Sub-region of prodsig
     ;
 
     memory "io"
@@ -20499,7 +20501,7 @@ part parent ".reduced_core_tiny" # t104
 
     memory "sernum"
         size               = 10;
-        offset             = 0x6; # Sub-region of prodsig
+        offset             = 0x3fc6; # Sub-region of prodsig
     ;
 
     memory "io"
