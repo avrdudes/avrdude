@@ -2308,11 +2308,11 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
   } else if (mem_is_signature(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP;
-  } else if (mem_is_sigrow(mem)) {
+  } else if (mem_is_in_sigrow(mem)) {
     buf[0] = addr&1?
       (mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP):
       (mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP);
-    addr /= 2;
+    addr = (addr + avr_sigrow_offset(p, mem, addr))/2;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
@@ -2391,7 +2391,7 @@ static int stk500hvsp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
 static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			       unsigned long addr, unsigned char * value)
 {
-  int result, pollidx;
+  int result, pollidx, offset = 0;
   unsigned char buf[6];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0;
@@ -2441,8 +2441,9 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     buf[0] = CMD_READ_OSCCAL_ISP;
   } else if (mem_is_signature(mem)) {
     buf[0] = CMD_READ_SIGNATURE_ISP;
-  } else if (mem_is_sigrow(mem)) {
+  } else if (mem_is_in_sigrow(mem)) { // Sernum and prodsig/sigrow (m324pb/m328pb)
     buf[0] = addr&1? CMD_READ_OSCCAL_ISP: CMD_READ_SIGNATURE_ISP;
+    offset = avr_sigrow_offset(p, mem, addr);
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
@@ -2459,7 +2460,7 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     pollidx = 3;
   }
   buf[1] = pollidx + 1;
-  avr_set_addr(op, buf + 2, addr);
+  avr_set_addr(op, buf + 2, addr + offset);
 
   pmsg_notice2("stk500isp_read_byte(): sending read memory command: ");
 
@@ -4570,7 +4571,7 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
         mtype = XPRG_MEM_TYPE_FUSE;
     } else if (mem_is_lock(mem)) {
         mtype = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
+    } else if (mem_is_calibration(mem) || mem_is_in_sigrow(mem)) {
         mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (mem_is_userrow(mem)) {
         mtype = XPRG_MEM_TYPE_USERSIG;
