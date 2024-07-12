@@ -1450,7 +1450,7 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if(p->prog_modes & PM_Classic)
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 }
@@ -1865,7 +1865,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !mem_is_userrow(m)) {
+  if((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
