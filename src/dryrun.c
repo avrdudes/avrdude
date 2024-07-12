@@ -603,10 +603,11 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
     } else if(mem_is_sigrow(m) && m->size >= 6) {
       prodsigm = m;
       memset(m->buf, 0xff, m->size);
-      // Classic parts: signature at even addresses @@@ but not t102/t104
+      // Classic parts: signature at even addresses
+      int n = q->prog_modes & PM_TPI? 1: 2; // ... unless it's the TPI parts t102/t104
       if(q->prog_modes & PM_Classic)
         for(int i=0; i<3; i++)
-          m->buf[2*i] = q->signature[i];
+          m->buf[n*i] = q->signature[i];
     } else if(mem_is_io(m)) { // Initialise reset values (if known)
       int nr;
       const Register_file *rf = avr_locate_register_file(q, &nr);
@@ -632,10 +633,18 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
     if((q->prog_modes & PM_Classic) && (calm = avr_locate_calibration(q))) {
-      // Calibration bytes of classic parts are interspersed with signature @@@ but not t102/104
-      for(int i=0; i<calm->size; i++)
-        if(2*i+1 < prodsigm->size)
-          prodsigm->buf[2*i+1] = 'U';
+      // Calibration bytes of classic parts are interspersed with signature
+      int n, tpi = !!(q->prog_modes & PM_TPI); // ... unless it's the TPI parts t102/t104
+      for(int i=0; i<calm->size; i++) {
+        if((n = tpi? 3+i: 2*i+1) < prodsigm->size)
+          prodsigm->buf[n] = 'U';
+      }
+    }
+    if((q->prog_modes & PM_Classic) && (m = avr_locate_sernum(q))) { // m324pb/m328pb, t102/t104
+      int off = m->offset - prodsigm->offset;
+      int cpy = m->size;
+      if(off >= 0 && off+cpy <= prodsigm->size)
+        memcpy(prodsigm->buf + off, m->buf, cpy);
     }
   }
   if(fusesm) {
