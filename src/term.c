@@ -2009,7 +2009,8 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   else if(onlyvariants)
     avr_variants_display(stdout, p, "");
   else {
-    term_out("%s with programming modes %s\n", p->desc, str_prog_modes(p->prog_modes));
+    char *q = str_prog_modes(p->prog_modes);
+    term_out("%s with programming mode%s %s\n", p->desc, strchr(q, ',')? "s": "", q);
     avr_mem_display(stdout, p, "");
     avr_variants_display(stdout, p, "");
   }
