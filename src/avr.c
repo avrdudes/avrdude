@@ -181,6 +181,22 @@ static int avr_tpi_setup_rw(const PROGRAMMER *pgm, const AVRMEM *mem,
   return 0;
 }
 
+// If mem is a sub-memory of sigrow return its offset within sigrow, 0 otherwise
+int avr_sigrow_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
+  int offset = 0;
+
+  if(mem_is_in_sigrow(mem)) {
+    AVRMEM *m = avr_locate_sigrow(p);
+    if(m) {
+      int off = mem->offset - m->offset;
+      if(off >= 0 && off + addr < m->size)
+        offset = off;
+    }
+  }
+
+  return offset;
+}
+
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                           unsigned long addr, unsigned char * value)
 {
@@ -258,7 +274,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   memset(cmd, 0, sizeof(cmd));
 
   avr_set_bits(readop, cmd);
-  avr_set_addr(readop, cmd, addr);
+  avr_set_addr(readop, cmd, addr + avr_sigrow_offset(p, mem, addr));
   rc = pgm->cmd(pgm, cmd, res);
   if(rc < 0)
     goto rcerror;
