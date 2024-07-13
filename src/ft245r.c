@@ -111,6 +111,7 @@ void ft245r_initpgm(PROGRAMMER *pgm) {
 #define REQ_OUTSTANDINGS      10
 
 #define FT245R_DEBUG	0
+#define FT245R_DEBUG_DATA	0
 /*
   Some revisions of the FTDI chips mess up the timing in bitbang mode
   unless the bitclock is set to the max (3MHz).  For example, see:
@@ -200,6 +201,14 @@ static int ft245r_fill(const PROGRAMMER *pgm) {
 #if FT245R_DEBUG
     msg_info("%s: read %d bytes (pending=%d)\n",  __func__, nread, my.rx.pending);
 #endif
+
+#if FT245R_DEBUG_DATA
+    msg_info("%s: read data:",  __func__);
+    for (i = 0; i < nread; ++i)
+        msginfo(" %02x", raw[i]);
+
+    msginfo("\n");
+#endif
     for (i = 0; i < nread; ++i)
 	ft245r_rx_buf_put(pgm, raw[i]);
     return nread;
@@ -237,6 +246,14 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 
 #if FT245R_DEBUG
 	msg_info("%s: writing %d bytes\n", __func__, avail);
+#endif
+
+#if FT245R_DEBUG_DATA
+    msg_info("%s: write data:",  __func__);
+    for (int i = 0; i < avail; ++i)
+        msginfo(" %02x", src[i]);
+
+    msginfo("\n");
 #endif
 	rv = ftdi_write_data(my.handle, src, avail);
 	if (rv != avail) {
@@ -680,7 +697,9 @@ static int ft245r_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned 
     for (i=0; i<4; i++) {
         buf_pos += set_data(pgm, buf+buf_pos, cmd[i]);
     }
-    buf[buf_pos] = 0;
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SDO, 0);
+    my.ft245r_out = SET_BITS_0(my.ft245r_out, pgm, PIN_AVR_SCK, 0);
+    buf[buf_pos] = my.ft245r_out;
     buf_pos++;
 
     ft245r_send (pgm, buf, buf_pos);
