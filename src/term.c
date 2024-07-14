@@ -733,7 +733,7 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "Notes:\n"
       "  - Backup flushes the cache before reading memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
-      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
       "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
     );
     return -1;
@@ -775,7 +775,7 @@ static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       "  - Restore flushes the cache before writing memories\n"
       "  - After writing memories restore resets the cache\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
-      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
       "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
       "  - Skips read-only memories in a list and, for bootloaders, also fuses and lock\n"
       "  - Writing to single read-only memories only fails if the contents differs\n"
@@ -818,7 +818,7 @@ static int cmd_verify(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "Notes:\n"
       "  - Verify flushes the cache before verifying memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
-      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
       "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
     );
     return -1;
