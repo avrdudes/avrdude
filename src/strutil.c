@@ -1337,12 +1337,17 @@ int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n)
 
   if(!pm || (pm & PM_ALL) == PM_ALL) // Look up uP table when unrestricted by prog modes
     for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++)
-      if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs) && matching < N)
-        matches[matching++] = uP_table[i].name;
+      if(!is_memset(uP_table[i].sigs, 0xff, 3) && !is_memset(uP_table[i].sigs, 0, 3))
+        if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs) && matching < N)
+          matches[matching++] = uP_table[i].name;
 
   for(LNODEID lp = lfirst(part_list); lp; lp = lnext(lp)) {
     AVRPART *pp = ldata(lp);
-    if(0 == memcmp(sigs, pp->signature, 3) && (!pm || (pp->prog_modes & pm))) {
+    if(!*pp->id || *pp->id == '.') // Skip invalid entries
+      continue;
+    if(is_memset(pp->signature, 0xff, 3) || is_memset(pp->signature, 0, 3))
+      continue;
+    if(!memcmp(sigs, pp->signature, 3) && (!pm || (pp->prog_modes & pm))) {
       for(k = 0; k < matching; k++)
         if(str_eq(matches[k], pp->desc))
           break;
