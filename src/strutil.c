@@ -1330,19 +1330,40 @@ size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
 
 
 // Puts a comma-separated list of matching MCU names into array p with n chars space
-int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n) {
-  int matching = 0;
+int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n) {
+  int matching = 0, k;
+  const int N = 100;
+  const char *matches[N];
 
-  for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++) {
-    if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs)) {
-      if(matching && n > 2)
-        strcpy(p, ", "),  n -= 2, p += 2;
-      size_t len = strlen(uP_table[i].name);
-      if(n > len) {
-        strcpy(p, uP_table[i].name);
-        n -= len; p += len;
+  if(!pm || (pm & PM_ALL) == PM_ALL) // Look up uP table when unrestricted by prog modes
+    for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++)
+      if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs) && matching < N)
+        matches[matching++] = uP_table[i].name;
+
+  for(LNODEID lp = lfirst(part_list); lp; lp = lnext(lp)) {
+    AVRPART *pp = ldata(lp);
+    if(0 == memcmp(sigs, pp->signature, 3) && (!pm || (pp->prog_modes & pm))) {
+      for(k = 0; k < matching; k++)
+        if(str_eq(matches[k], pp->desc))
+          break;
+      if(k == matching && matching < N)
+        matches[matching++] = pp->desc;
+    }
+  }
+
+  if(n && p) {
+    *p = 0;
+
+    for(int i = 0; i < matching; i++) {
+      size_t len = strlen(matches[i]);
+      if(n > len + 2) {
+        if(i) {
+          strcpy(p, ", ");
+          n -= 2, p += 2;
+        }
+        strcpy(p, matches[i]);
+        n -= len, p += len;
       }
-      matching++;
     }
   }
 
@@ -1350,9 +1371,11 @@ int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n) {
 }
 
 // Returns a comma-separated list of matching MCU names in closed-circuit space
-const char *str_ccmcunames_signature(const unsigned char *sigs) {
-  char names[1024] = {0};
-  (void) str_mcunames_signature(sigs, names, sizeof names);
+const char *str_ccmcunames_signature(const unsigned char *sigs, int pm) {
+  char names[1024];
+  // If no match is found, given required prog_modes, relax the match to any prog mode
+  if(!str_mcunames_signature(sigs, pm, names, sizeof names) && pm && (pm & PM_ALL) != PM_ALL)
+    (void) str_mcunames_signature(sigs, 0, names, sizeof names);
 
   return str_ccprintf("%s", names);
 }

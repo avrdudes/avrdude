@@ -352,8 +352,7 @@ static int b2ihex(const AVRPART *p, const AVRMEM *mem, const Segment *segp, Sego
         if(name) {
           fprintf(outf, " %s", name);
           if((str_eq(name, "sigrow") || str_eq(name, "signature")) && !nextaddr) {
-            char mculist[1024] = {0};
-            str_mcunames_signature(buf, mculist, sizeof mculist);
+            const char *mculist = str_ccmcunames_signature(buf, PM_ALL);
             if(*mculist)
               fprintf(outf, " (%s)", mculist);
           }
@@ -580,7 +579,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
         if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && ihex.reclen >= 3)
           if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
             pmsg_error("signature of %s incompatible with file's (%s)\n", p->desc,
-              str_ccmcunames_signature(any->buf+nextaddr));
+              str_ccmcunames_signature(any->buf+nextaddr, PM_ALL));
             imsg_error("use -F to override this check\n");
             mmt_free(buffer);
             goto error;
@@ -935,7 +934,7 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
       if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && srec.reclen >= 3)
         if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
           pmsg_error("signature of %s incompatible with file's (%s)\n", p->desc,
-            str_ccmcunames_signature(any->buf+nextaddr));
+            str_ccmcunames_signature(any->buf+nextaddr, PM_ALL));
           imsg_error("use -F to override this check\n");
           mmt_free(buffer);
           goto error;
