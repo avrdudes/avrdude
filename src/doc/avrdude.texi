@@ -892,9 +892,14 @@ Low fuse byte
 @item prodsig
 Signature, calibration byte and serial number in a small read-only memory,
 which is only documented to be available for ATmega324PB, ATmega328PB,
-ATtiny102 and ATtiny104; programmers may or may not be able to read this memory
+ATtiny102 and ATtiny104; AVRDUDE generally tries to make this memory
+available, also for parts where it is not documented, but not all
+programmers may be able to read this memory
 @item sigrow
 Memory alias for prodsig
+@item sernum
+The serial number part of prodsig; owing to scarce documentation this may not
+actually turn out to be a serial number or be readable by some programmers
 @item usersig
 Three extra flash pages for firmware settings; this memory is not erased
 during a chip erase. Only some classic parts,
