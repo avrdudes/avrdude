@@ -2135,7 +2135,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (mem_is_eeprom(mem)) {
-    if ( (pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & PM_PDI) || (p->prog_modes & PM_UPDI) ) {
+    if ((pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & (PM_PDI | PM_UPDI))) {
       cmd[3] = MTYPE_EEPROM;
     } else {
       cmd[3] = MTYPE_EEPROM_PAGE;
@@ -2212,8 +2212,8 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       msg_error("address out of range for signature memory: %lu\n", addr);
       return -1;
     }
-  } else if(mem_is_in_sigrow(mem)) { // sigrow submemories but not signature nor sigrow itself
-    cmd[3] = MTYPE_PRODSIG;
+  } else if(mem_is_in_sigrow(mem)) { // sigrow sub-memories but not signature nor sigrow itself
+    cmd[3] = (p->prog_modes & PM_UPDI)? MTYPE_SIGN_JTAG: MTYPE_PRODSIG;
     AVRMEM *sigrow = avr_locate_sigrow(p);
     if(sigrow)
       addr += mem->offset - sigrow->offset; // Adjust offset for parent memory
