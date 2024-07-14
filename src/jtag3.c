@@ -2213,7 +2213,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return -1;
     }
   } else if(mem_is_in_sigrow(mem)) { // sigrow submemories but not signature nor sigrow itself
-    cmd[3] = (p->prog_modes & PM_PDI)? MTYPE_SIGN_JTAG: MTYPE_PRODSIG;
+    cmd[3] = MTYPE_PRODSIG;
     AVRMEM *sigrow = avr_locate_sigrow(p);
     if(sigrow)
       addr += mem->offset - sigrow->offset; // Adjust offset for parent memory
