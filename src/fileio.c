@@ -232,22 +232,22 @@ unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
     mem_is_sib(mem)? MBASE(SIGROW) + 0x1000: // Arbitrary 0x1000 offset in signature section for sib
     mem_is_userrow(mem)? MBASE(USERROW):
     mem_is_bootrow(mem)? MBASE(BOOTROW):
-    -1U;
+    ~0U;
 
-  if(location == -1U)
+  if(location == ~0U)
     pmsg_error("unable to locate %s's %s in multi-memory address space\n", p->desc, mem->desc);
   else if(location >= ANY_MEM_SIZE || location + mem->size > ANY_MEM_SIZE) { // Overflow
     pmsg_error("%s's %s location [0x%06x, 0x%06x] outside flat address space [0, 0x%06x]\n",
       p->desc, mem->desc, location, location + mem->size-1, ANY_MEM_SIZE-1);
-    location = -1U;
+    location = ~0U;
   } else if(location <= MEND(FLASH) && location + mem->size > MEND(FLASH)+1) {
     pmsg_error("%s's %s location [0x%06x, 0x%06x] straddles flash section boundary 0x%06x\n",
       p->desc, mem->desc, location, location + mem->size-1, MEND(FLASH)+1);
-    location = -1U;
+    location = ~0U;
   } else if(location > MEND(FLASH) && location/0x10000 != (location + mem->size-1)/0x10000) {
     pmsg_error("%s's %s memory location [0x%06x, 0x%06x] straddles memory section boundary 0x%02x0000\n",
       p->desc, mem->desc, location, location + mem->size-1, 1+location/0x10000);
-    location = -1U;
+    location = ~0U;
   }
 
   return location;
@@ -465,7 +465,7 @@ static int any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp,
   // Compute location for multi-memory file input
   unsigned location = maxsize > MEND(FLASH)+1? fileio_mem_offset(p, mem): 0;
 
-  if(location == -1U)
+  if(location == ~0U)
     return -1;
 
   unsigned ret = 0;

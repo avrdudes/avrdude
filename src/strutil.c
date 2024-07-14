@@ -1331,9 +1331,8 @@ size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
 
 // Puts a comma-separated list of matching MCU names into array p with n chars space
 int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n) {
-  int matching = 0, k;
-  const int N = 100;
-  const char *matches[N];
+  const char *matches[100];
+  int matching = 0, k, N = sizeof matches/sizeof*matches;
 
   if(!pm || (pm & PM_ALL) == PM_ALL) // Look up uP table when unrestricted by prog modes
     for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++)
