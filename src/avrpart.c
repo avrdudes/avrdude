@@ -1071,12 +1071,16 @@ AVRPART *locate_part_by_avr910_devcode(const LISTID parts, int devcode) {
   return NULL;
 }
 
+// Return pointer to first part that has signature sig (unless all 0xff or all 0x00); NULL if no match
 AVRPART *locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes) {
   if(parts && sigsize == 3) {
     for(LNODEID ln=lfirst(parts); ln; ln=lnext(ln)) {
       AVRPART *p = ldata(ln);
-      if(memcmp(p->signature, sig, 3) == 0 && p->prog_modes & prog_modes)
-        return p;
+      if(!*p->id || *p->id == '.') // Skip stump entries
+        continue;
+      if(!is_memset(p->signature, 0xff, 3) && !is_memset(p->signature, 0, 3))
+        if(!memcmp(p->signature, sig, 3) && p->prog_modes & prog_modes)
+          return p;
     }
   }
   return NULL;

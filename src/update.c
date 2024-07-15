@@ -721,7 +721,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
           continue;
         }
         unsigned off = fileio_mem_offset(p, m);
-        if(off == -1U) {
+        if(off == ~0U) {
           pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
           rwvproblem = 1;
           continue;

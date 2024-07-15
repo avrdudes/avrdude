@@ -383,7 +383,7 @@ part_def :
           if(mem_is_signature(m))
             m->type &= ~MEM_IN_SIGROW;
         }
-        if(fileio_mem_offset(current_part, m) == -1U)
+        if(fileio_mem_offset(current_part, m) == ~0U)
           yywarning("revise fileio_mem_offset(), avrdude.conf entry or memory type assignment");
       }
 

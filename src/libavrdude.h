@@ -511,7 +511,7 @@ typedef struct avrmem {
   int initval;                /* factory setting of fuses and lock bits */
   int bitmask;                /* bits used in fuses and lock bits */
   int n_word_writes;          /* TPI only: number words to write at a time */
-  unsigned int offset;        /* offset in IO memory (ATxmega) */
+  unsigned int offset;        /* offset in IO memory (ATxmega, UPDI, some classic memories) */
   int min_write_delay;        /* microseconds */
   int max_write_delay;        /* microseconds */
   int pwroff_after_write;     /* after this memory is written to,
@@ -1525,8 +1525,8 @@ char *str_nexttok(char *buf, const char *delim, char **next);
 const char *str_ccfrq(double f, int n);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
-int str_mcunames_signature(const unsigned char *sigs, char *p, size_t n);
-const char *str_ccmcunames_signature(const unsigned char *sigs);
+int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n);
+const char *str_ccmcunames_signature(const unsigned char *sigs, int pm);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);

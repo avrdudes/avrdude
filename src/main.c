@@ -1594,7 +1594,7 @@ skipopen:
             if (uflags & UF_NOWRITE) {
               pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
             } else {
-              pmsg_info("erasing chip\n");
+              pmsg_info("trying to unlock the chip\n");
               exitrc = avr_unlock(pgm, p);
               if(exitrc)
                 goto main_exit;
@@ -1619,33 +1619,48 @@ skipopen:
     sig = avr_locate_signature(p);
     if (sig == NULL)
       pmsg_warning("signature memory not defined for device %s\n", p->desc);
+    else {
+      const char *mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes);
+      if(!*mculist) {
+        if(p->prog_modes & PM_UPDI) { // UPDI parts have different(!) offsets for signature
+          int k, n = 0;               // Gather list of known different signature offsets
+          unsigned myoff = sig->offset, offlist[10];
+          for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
+            AVRMEM *m = avr_locate_signature(ldata(ln1));
+            if(m && m->offset != myoff) {
+              for(k=0; k<n; k++)
+                if(m->offset == offlist[k])
+                  break;
+              if(k == n && k < (int) (sizeof offlist/sizeof*offlist))
+                offlist[n++] = m->offset;
+            }
+          }
+          // Now go through the list of other(!) sig offsets and try these
+          for(k=0; k<n; k++) {
+            sig->offset = offlist[k];
+            if(avr_signature(pgm, p) >= 0)
+              if(*(mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes)))
+                break;
+          }
+          sig->offset = myoff;
+        }
+      }
 
-    if (sig != NULL) {
-      int ff, zz;
-
-      pmsg_info("device signature = 0x");
-      ff = zz = 1;
+      pmsg_info("device signature =");
+      int ff = 1, zz = 1;
       for (i=0; i<sig->size; i++) {
-        msg_info("%02x", sig->buf[i]);
+        msg_info(" %02X", sig->buf[i]);
         if (sig->buf[i] != 0xff)
           ff = 0;
         if (sig->buf[i] != 0x00)
           zz = 0;
       }
+      if(*mculist)
+        msg_info(" (%s)", mculist);
 
-      bool signature_matches =
-          sig->size == 3 &&
-          sig->buf[0] == p->signature[0] &&
-          sig->buf[1] == p->signature[1] &&
-          sig->buf[2] == p->signature[2];
+      bool signature_matches = sig->size >= 3 && !memcmp(sig->buf, p->signature, 3);
 
-      if (quell_progress < 2) {
-        AVRPART *part;
-        if((part = locate_part_by_signature_pm(part_list, sig->buf, sig->size, pgm->prog_modes)) ||
-           (part = locate_part_by_signature(part_list, sig->buf, sig->size)))
-          msg_info(" (probably %s)", signature_matches? p->id: part->id);
-      }
-      if (ff || zz) {
+      if (ff || zz) {           // All three bytes are 0xff or all three bytes are 0x00
         if (++attempt < 3) {
           waittime *= 5;
           msg_info(" (retrying)\n");
