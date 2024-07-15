@@ -298,14 +298,22 @@ static int flashlayout(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *fl
 // Write a vector table to flash addr and return number of bytes written
 static int putvectortable(const AVRPART *p, const AVRMEM *flm, int addr) {
   int vecsz = flm->size <= 8192? 2: 4, ret = p->n_interrupts * vecsz;
+  int app = (ret + vecsz - 2)/2; // Distance to application in words
 
-  for(int i = 0; i < ret; i += vecsz) { // First store rjmps
-    flm->buf[addr + i]     = 255-i/2;
-    flm->buf[addr + i + 1] = 0xcf; // rjmp .-2, rjmp .-6, ...
+  for(int i = 0; i < ret; i += vecsz) { // First store rjmps to after table
+    flm->buf[addr + i]     = app;
+    flm->buf[addr + i + 1] = 0xc0 + (app>>8); // rjmp app, rjmp app, ...
+    app -= vecsz/2;
   }
+  for(int i=0; i < vecsz; i++)  // Leave one vector gap
+    flm->buf[addr + ret++] = ' ';
+
+  flm->buf[addr + ret++] = 0xff; // Put endless lopp as application
+  flm->buf[addr + ret++] = 0xcf;
+
   // Then round up to multiples of 32
   while(ret%32)
-    flm->buf[ret++] = ' ';
+    flm->buf[addr + ret++] = ' ';
 
   return ret;
 }
