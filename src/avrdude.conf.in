@@ -5127,8 +5127,6 @@ part parent "t44" # t44a
         "ATtiny44A-SSU:  SOIC14,  Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]",
         "ATtiny44A-SSUR: SOIC14N, Fmax=20 MHz, T=[-40 C,  85 C], Vcc=[1.8 V, 5.5 V]";
     mcuid                  = XVII + IV; # 21;
-
-
 ;
 
 #------------------------------------------------------------
