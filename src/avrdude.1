@@ -847,11 +847,17 @@ Low fuse byte
 .It   lock
 Lock byte
 .It prodsig
-Signature, calibration byte and serial number in a small read-only memory,
+Signature, calibration byte(s) and serial number in a small read-only memory,
 which is only documented to be available for ATmega324PB, ATmega328PB,
-ATtiny102 and ATtiny104; programmers may or may not be able to read this memory
+ATtiny102 and ATtiny104;
+.Nm
+generally tries to make this memory available, also for parts where it is
+not documented, but not all programmers may be able to read this memory
 .It sigrow
 Memory alias for prodsig
+.It sernum
+The serial number part of prodsig; owing to scarce documentation this may not
+actually turn out to be a serial number or be readable by some programmers
 .It usersig
 Three extra flash pages for firmware settings; this memory is not erased
 during a chip erase. Only some classic parts,
@@ -880,6 +886,13 @@ Application flash area
 Application table flash area
 .It boot
 Boot flash area
+.It   calibration
+An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
+oscillator calibration values; this is a sub-memory of prodsig
+.It fuses
+A logical memory of 7 bytes containing all fuseX of a part, which can be
+used to program all fuses at the same time; note that some fuse bytes will
+be reserved, though
 .It fuse0
 A.k.a. jtaguid: JTAG user ID for some devices
 .It fuse1
@@ -892,12 +905,17 @@ Other fuse bytes of ATxmega devices, where
 is 2, 4 or 5, for system configuration
 .It prodsig
 The production signature row is a read-only memory section for factory
-programmed data such as the signature and calibration values for
-oscillators or analogue modules; it also contains a serial number that
-consists of the production lot number, wafer number and wafer coordinates
-for the part
+programmed data such as the calibration values for oscillators or analogue
+modules; it also contains a serial number that consists of the production
+lot number, wafer number and wafer coordinates for the part
+.It sernum
+Serial number with a unique ID for the part consisting of 10 bytes; these
+are part of the prodsig memory above
 .It sigrow
 Memory alias for prodsig
+.It tempsense
+A two-byte memory, which is located within prodsig; it contains a 12-bit
+temperature sensor calibration value
 .It usersig
 Additional flash memory page that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -930,7 +948,7 @@ A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks o
 .It fusea
 A.k.a. pdicfg: configures/locks updi access; it is the only fuse that consists of two bytes
 .It fuses
-A "logical" memory of up to 16 bytes containing all fuseX of a part, which can be
+A logical memory of up to 16 bytes containing all fuseX of a part, which can be
 used to program all fuses at the same time
 .It osc16err
 Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively

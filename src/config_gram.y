@@ -374,7 +374,7 @@ part_def :
 
         m->type &= and_mask;
         // Remove MEM_IN_SIGROW attribute from classic calibration and classic/XMEGA signature mem
-        if(!(current_part->prog_modes & (PM_PDI|PM_UPDI))) {
+        if(current_part->prog_modes & PM_Classic) {
           if(mem_is_signature(m))
             m->type &= ~MEM_IN_SIGROW;
           if(mem_is_calibration(m))
@@ -1396,11 +1396,11 @@ static int parse_cmdbits(OPCODE * op, int opnum)
         case 'a':
           sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
           if(bitno < 8 || bitno > 23) {
-            if(!current_mem || !mem_is_sigrow(current_mem)) // Known exemption
+            if(!current_mem || !mem_is_in_sigrow(current_mem)) // Known exemptions
               yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
           } else if((bn & 31) != sb) {
             if(!current_part || !str_casestarts(current_part->desc, "AT89S5")) // Exempt AT89S5x
-              if(!current_mem || !mem_is_sigrow(current_mem)) // and prodsig
+              if(!current_mem || !mem_is_in_sigrow(current_mem)) // ... and prodsig/sernum
                 yywarning("a%d would normally be expected to be a%d", bn, sb);
           } else if(bn < 0 || bn > 31)
             yywarning("invalid address bit a%d, using a%d", bn, bn & 31);

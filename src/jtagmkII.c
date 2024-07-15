@@ -832,7 +832,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if (p->prog_modes & PM_Classic)
       pgm->initialize(pgm, p);
 
   PDATA(pgm)->recently_written = 1;
@@ -892,7 +892,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
   sendbuf.dd.ucCacheType =
-    p->prog_modes & (PM_PDI | PM_UPDI)? 0x02 /* ATxmega */: 0x00;
+    p->prog_modes & (PM_PDI | PM_UPDI)? 0x02: 0x00;
 
   pmsg_notice2("jtagmkII_set_devdescr(): "
     "Sending set device descriptor command: ");
@@ -1292,7 +1292,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
-  if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->prog_modes & (PM_PDI | PM_UPDI))) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) && (p->prog_modes & PM_Classic)) {
     int ocden = 0;
     if(avr_get_config_value(pgm, p, "ocden", &ocden) == 0 && ocden) // ocden == 1 means disabled
       pmsg_warning("OCDEN fuse not programmed, single-byte EEPROM updates not possible\n");
@@ -1323,7 +1323,7 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
 
 static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if(p->prog_modes & PM_Classic)
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 
@@ -1796,7 +1796,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI)) && !mem_is_userrow(m)) {
+  if ((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -2139,7 +2139,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_a_fuse(mem))
+    if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2193,6 +2193,9 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if ((p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_in_sigrow(mem)) {
     cmd[1] = MTYPE_PRODSIG;
     pmsg_notice2("in_sigrow addr 0x%05lx\n", addr);
+  } else if (mem_is_in_sigrow(mem)) { // Classic part
+    cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+    addr /= 2;
   } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH;
     addr += avr_data_offset(p);
@@ -2308,7 +2311,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_a_fuse(mem))
+    if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;

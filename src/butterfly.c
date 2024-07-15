@@ -491,7 +491,9 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
                                   unsigned long addr, unsigned char * value)
 {
   int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
-  char mtype = mem_is_flash(m)? 'F': mem_is_sigrow(m)? 'P': mem_is_userrow(m)? 'U': '?';
+  char mtype = mem_is_flash(m)? 'F': mem_is_in_sigrow(m)? 'P': mem_is_userrow(m)? 'U': '?';
+
+  addr += avr_sigrow_offset(p, m, addr);
 
   if(mtype == '?') {
     pmsg_error("cannot read memory %s\n", m->desc);
@@ -533,7 +535,7 @@ static int butterfly_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 {
   char cmd;
 
-  if (mem_is_flash(m) || mem_is_sigrow(m) || mem_is_userrow(m)) {
+  if (mem_is_flash(m) || mem_is_in_sigrow(m) || mem_is_userrow(m)) {
     return butterfly_read_byte_flash(pgm, p, m, addr, value);
   }
 

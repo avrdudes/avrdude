@@ -1184,8 +1184,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
       }
     }
-    if(p->prog_modes & (PM_PDI | PM_UPDI))
-      u32_to_b4(xd.nvm_data_offset, DATA_OFFSET);
+    u32_to_b4(xd.nvm_data_offset, DATA_OFFSET);
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;
@@ -1245,8 +1244,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
-    if (p->prog_modes & PM_UPDI &&
-        PDATA(pgm)->use_hvupdi == true &&
+    if (PDATA(pgm)->use_hvupdi == true &&
         p->hvupdi_variant != HV_UPDI_VARIANT_1) {
       parm[0] = PARM3_UPDI_HV_NONE;
       for (LNODEID ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
@@ -1452,7 +1450,7 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if(p->prog_modes & PM_Classic)
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 }
@@ -1867,7 +1865,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !mem_is_userrow(m)) {
+  if((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -2108,7 +2106,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   paddr = jtag3_memaddr(pgm, p, mem, addr);
   if (paddr != addr)
-    imsg_notice2("mapped to address: 0x%lx\n", paddr);
+    imsg_debug("addr 0x%lx mapped to address 0x%lx\n", addr, paddr);
   paddr = 0;
 
   if (mem->size < 1) {
@@ -2131,13 +2129,13 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_FLASH_PAGE;
   if (mem_is_in_flash(mem)) {
-    addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash */
+    addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash @@@ could be max 8M */
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (mem_is_eeprom(mem)) {
-    if ( (pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & PM_PDI) || (p->prog_modes & PM_UPDI) ) {
+    if ((pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & (PM_PDI | PM_UPDI))) {
       cmd[3] = MTYPE_EEPROM;
     } else {
       cmd[3] = MTYPE_EEPROM_PAGE;
@@ -2167,19 +2165,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if (pgm->flag & PGM_FL_IS_DW)
         unsupp = 1;
     }
-  } else if (mem_is_sernum(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osccal16(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osccal20(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_tempsense(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osc16err(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osc20err(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_calibration(mem)) {
+  } else if ((p->prog_modes & PM_Classic) && mem_is_calibration(mem)) { // Classic part calibration
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2226,6 +2212,11 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       msg_error("address out of range for signature memory: %lu\n", addr);
       return -1;
     }
+  } else if(mem_is_in_sigrow(mem)) { // sigrow sub-memories but not signature nor sigrow itself
+    cmd[3] = (p->prog_modes & PM_UPDI)? MTYPE_SIGN_JTAG: MTYPE_PRODSIG;
+    AVRMEM *sigrow = avr_locate_sigrow(p);
+    if(sigrow)
+      addr += mem->offset - sigrow->offset; // Adjust offset for parent memory
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
@@ -2824,7 +2815,7 @@ static unsigned char tpi_get_mtype(const AVRMEM *m) {
     mem_is_lock(m)? XPRG_MEM_TYPE_LOCKBITS:
     mem_is_calibration(m)? XPRG_MEM_TYPE_LOCKBITS: // Sic, uses offset to distingish memories
     mem_is_signature(m)? XPRG_MEM_TYPE_LOCKBITS:
-    mem_is_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
+    mem_is_in_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
     XPRG_MEM_TYPE_APPL;         // Sic, TPI parts do not have eeprom
 }
 

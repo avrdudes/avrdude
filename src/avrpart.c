@@ -1150,7 +1150,7 @@ void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie)
 }
 
 /*
- * Compare function to sort the list of programmers
+ * Compare function to sort a list of parts
  */
 static int sort_avrparts_compare(const AVRPART *p1, const AVRPART *p2) {
   if(p1 == NULL || p1->desc == NULL || p2 == NULL || p2->desc == NULL)
@@ -1160,7 +1160,7 @@ static int sort_avrparts_compare(const AVRPART *p1, const AVRPART *p2) {
 }
 
 /*
- * Sort the list of programmers given as "programmers"
+ * Sort the list avrparts of parts
  */
 void sort_avrparts(LISTID avrparts)
 {

@@ -1102,6 +1102,7 @@ extern "C" {
 int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm);
 int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned char guard_time);
+int avr_sigrow_offset(const AVRPART *p, const AVRMEM *mem, int addr);
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			  unsigned long addr, unsigned char * value);
 

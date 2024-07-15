@@ -1006,9 +1006,9 @@ static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if(mem_is_eeprom(m)) {
     *memchrp = 'E';
-    // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
+    // Word addr for bootloaders or Arduino as ISP if part is a classic part; byte addr otherwise
     *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp")) \
-       && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
+       && (p->prog_modes & PM_Classic)? 2: 1;
     return 0;
   }
 

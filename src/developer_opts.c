@@ -372,8 +372,15 @@ static int avrmem_deep_copy(AVRMEMdeep *d, const AVRMEM *m) {
   // Copy over the SPI operations themselves
   memset(d->ops, 0, sizeof d->ops);
   for(size_t i=0; i<AVR_OP_MAX; i++)
-    if(m->op[i])
+    if(m->op[i]) {
       d->ops[i] = *m->op[i];
+      for(int b=0; b<32; b++) { // Replace x with 0 as they are treated the same
+        if(d->ops[i].bit[b].type == AVR_CMDBIT_IGNORE) {
+          d->ops[i].bit[b].type = AVR_CMDBIT_VALUE;
+          d->ops[i].bit[b].value = 0;
+        }
+      }
+    }
 
   return 0;
 }

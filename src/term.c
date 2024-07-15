@@ -733,7 +733,7 @@ static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "Notes:\n"
       "  - Backup flushes the cache before reading memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
-      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
       "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
     );
     return -1;
@@ -775,7 +775,7 @@ static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       "  - Restore flushes the cache before writing memories\n"
       "  - After writing memories restore resets the cache\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
-      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
       "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
       "  - Skips read-only memories in a list and, for bootloaders, also fuses and lock\n"
       "  - Writing to single read-only memories only fails if the contents differs\n"
@@ -818,7 +818,7 @@ static int cmd_verify(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       "Notes:\n"
       "  - Verify flushes the cache before verifying memories\n"
       "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
-      "  - ALL includes submemories, eg, boot in flash; all doesn't; etc is same as all\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
       "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
     );
     return -1;
@@ -966,7 +966,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
 
   term_out("%s chip erase; discarded pending writes to flash%s\n",
     (pgm->prog_modes & PM_SPM)? "asking bootloader to perform": "performing",
-    avr_locate_bootrow(p)? ", EEPROM and bootrow": avr_locate_eeprom(p)? "and EEPROM": "");
+    avr_locate_bootrow(p)? ", EEPROM and bootrow": avr_locate_eeprom(p)? " and EEPROM": "");
 
   // Erase chip and clear cache
   int rc = pgm->chip_erase_cached(pgm, p);
@@ -2009,7 +2009,8 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   else if(onlyvariants)
     avr_variants_display(stdout, p, "");
   else {
-    term_out("%s with programming modes %s\n", p->desc, str_prog_modes(p->prog_modes));
+    char *q = str_prog_modes(p->prog_modes);
+    term_out("%s with programming mode%s %s\n", p->desc, strchr(q, ',')? "s": "", q);
     avr_mem_display(stdout, p, "");
     avr_variants_display(stdout, p, "");
   }
