@@ -769,6 +769,11 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     buffer[0]=value;
     return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
   }
+  if (mem_is_bootrow(mem)) {
+    unsigned char buffer[1];
+    buffer[0]=value;
+    return updi_nvm_write_boot_row(pgm, p, mem->offset + addr, buffer, 1);
+  }
   // Read-only memories
   if(mem_is_readonly(mem)) {
     unsigned char is;
@@ -841,6 +846,9 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       } else if (mem_is_userrow(m)) {
         rc = serialupdi_write_userrow(pgm, p, m, page_size, write_offset, 
                                       remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
+      } else if (mem_is_bootrow(m)) {
+        rc = updi_nvm_write_boot_row(pgm, p, m->offset + write_offset, m->buf + write_offset, 
+                                     remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
       } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         return -1;
@@ -866,6 +874,8 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       rc = updi_nvm_write_flash(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
     } else if (mem_is_userrow(m)) {
       rc = serialupdi_write_userrow(pgm, p, m, page_size, addr, n_bytes);
+    } else if (mem_is_bootrow(m)) {
+      rc = updi_nvm_write_boot_row(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
     } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         rc = -1;

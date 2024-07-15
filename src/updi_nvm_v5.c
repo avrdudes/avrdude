@@ -298,6 +298,13 @@ int updi_nvm_write_user_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
   return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
+int updi_nvm_write_boot_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+/*
+  Perform the operation as the regular flash write
+*/
+  return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
+}
+
 int updi_nvm_write_eeprom_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):

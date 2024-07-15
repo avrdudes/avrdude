@@ -283,6 +283,13 @@ int updi_nvm_write_user_row_V4(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
   return nvm_write_V4(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS);
 }
 
+int updi_nvm_write_boot_row_V4(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+/*
+  Write it as a regular flash page
+*/
+  return nvm_write_V4(pgm, p, address, buffer, size, USE_WORD_ACCESS);
+}
+
 int updi_nvm_write_eeprom_V4(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):

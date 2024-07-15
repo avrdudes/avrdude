@@ -282,6 +282,13 @@ int updi_nvm_write_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
   return nvm_write_V2(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS);
 }
 
+int updi_nvm_write_boot_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+/*
+  Perform write operation as if it was regular flash memory
+*/
+  return nvm_write_V2(pgm, p, address, buffer, size, USE_WORD_ACCESS);
+}
+
 int updi_nvm_write_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):
