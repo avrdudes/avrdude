@@ -1460,11 +1460,76 @@ typedef struct {
   int FlashSize;
 } Disasm_options;
 
+typedef enum {
+  OPCODE_add,      OPCODE_adc,      OPCODE_adiw,     OPCODE_sub,
+  OPCODE_subi,     OPCODE_sbc,      OPCODE_sbci,     OPCODE_sbiw,
+  OPCODE_and,      OPCODE_andi,     OPCODE_or,       OPCODE_ori,
+  OPCODE_eor,      OPCODE_com,      OPCODE_neg,      OPCODE_sbr,
+  OPCODE_cbr,      OPCODE_inc,      OPCODE_dec,      OPCODE_tst,
+  OPCODE_clr,      OPCODE_ser,      OPCODE_mul,      OPCODE_muls,
+  OPCODE_mulsu,    OPCODE_fmul,     OPCODE_fmuls,    OPCODE_fmulsu,
+  OPCODE_des,      OPCODE_rjmp,     OPCODE_ijmp,     OPCODE_eijmp,
+  OPCODE_jmp,      OPCODE_rcall,    OPCODE_icall,    OPCODE_eicall,
+  OPCODE_call,     OPCODE_ret,      OPCODE_reti,     OPCODE_cpse,
+  OPCODE_cp,       OPCODE_cpc,      OPCODE_cpi,      OPCODE_sbrc,
+  OPCODE_sbrs,     OPCODE_sbic,     OPCODE_sbis,     OPCODE_brcs,
+  OPCODE_brlo,     OPCODE_breq,     OPCODE_brmi,     OPCODE_brvs,
+  OPCODE_brlt,     OPCODE_brhs,     OPCODE_brts,     OPCODE_brie,
+  OPCODE_brbs,     OPCODE_brcc,     OPCODE_brsh,     OPCODE_brne,
+  OPCODE_brpl,     OPCODE_brvc,     OPCODE_brge,     OPCODE_brhc,
+  OPCODE_brtc,     OPCODE_brid,     OPCODE_brbc,     OPCODE_mov,
+  OPCODE_movw,     OPCODE_ldi,      OPCODE_lds,      OPCODE_lds_rc,
+  OPCODE_ld_1,     OPCODE_ld_2,     OPCODE_ld_3,     OPCODE_ld_4,
+  OPCODE_ld_5,     OPCODE_ld_6,     OPCODE_ldd_1,    OPCODE_ld_7,
+  OPCODE_ld_8,     OPCODE_ld_9,     OPCODE_ldd_2,    OPCODE_sts,
+  OPCODE_sts_rc,   OPCODE_st_1,     OPCODE_st_2,     OPCODE_st_3,
+  OPCODE_st_4,     OPCODE_st_5,     OPCODE_st_6,     OPCODE_std_1,
+  OPCODE_st_7,     OPCODE_st_8,     OPCODE_st_9,     OPCODE_std_2,
+  OPCODE_lpm_1,    OPCODE_lpm_2,    OPCODE_lpm_3,    OPCODE_elpm_1,
+  OPCODE_elpm_2,   OPCODE_elpm_3,   OPCODE_spm,      OPCODE_spm_zz,
+  OPCODE_in,       OPCODE_out,      OPCODE_push,     OPCODE_pop,
+  OPCODE_xch,      OPCODE_las,      OPCODE_lac,      OPCODE_lat,
+  OPCODE_lsl,      OPCODE_lsr,      OPCODE_rol,      OPCODE_ror,
+  OPCODE_asr,      OPCODE_swap,     OPCODE_bset,     OPCODE_bclr,
+  OPCODE_sbi,      OPCODE_cbi,      OPCODE_bst,      OPCODE_bld,
+  OPCODE_sec,      OPCODE_clc,      OPCODE_sen,      OPCODE_cln,
+  OPCODE_sez,      OPCODE_clz,      OPCODE_sei,      OPCODE_cli,
+  OPCODE_ses,      OPCODE_cls,      OPCODE_sev,      OPCODE_clv,
+  OPCODE_set,      OPCODE_clt,      OPCODE_seh,      OPCODE_clh,
+  OPCODE_break,    OPCODE_nop,      OPCODE_sleep,    OPCODE_wdr,
+  OPCODE_x_nop_1,  OPCODE_x_nop_2,  OPCODE_x_nop_3,  OPCODE_x_nop_4,
+  OPCODE_x_nop_5,  OPCODE_x_nop_6,  OPCODE_x_nop_7,  OPCODE_x_icall,
+  OPCODE_x_eicall, OPCODE_x_ret,    OPCODE_x_reti,   OPCODE_x_nop_8,
+  OPCODE_x_nop_9,  OPCODE_x_nop_a,  OPCODE_x_ijmp,   OPCODE_x_eijmp,
+  OPCODE_x_bld,    OPCODE_x_bst,    OPCODE_x_sbrc,   OPCODE_x_sbrs,
+} AVR_opcode;
+
 typedef struct {
   char *Opcode_String;
-  void (*Callback)(const char *, int, int);
-  int MNemonic;
+  void (*Callback)(const char *, int, AVR_opcode);
+  AVR_opcode mnemo;
 } Disasm_opcode;
+
+
+
+typedef struct {
+  int mask, value, nwords;
+  const char *opcode_bits;      // Eg, "0000 11rd dddd rrrr"
+  AVR_opcode mnemo;             // OPCODE_add, ...
+  const char
+    *opcode,                    // "add"
+    *operands,                  // "Rd, Rr"
+    *description,               // "Add without Carry"
+    *operation,                 // "Rd ← Rd+Rr"
+    *flags,                     // "Z,C,N,V,S,H"
+    *clocks_e,                  // Timing for AVRe (extended AVR opcode set)
+    *clocks_xm,                 // Timing for AVRxm (XMEGA)
+    *clocks_xt,                 // Timing for AVRxt (modern UPDI)
+    *clocks_rc,                 // Timing for AVRrc (reduced core)
+    *note, *remarks;
+} AVR_opcode_data;
+
+extern const AVR_opcode_data avr_opcodes[164];
 
 #define CODESTYLE_AVR_INSTRUCTION_SET 0
 #define CODESTYLE_AVRGCC              1

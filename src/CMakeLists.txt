@@ -166,6 +166,7 @@ add_library(libavrdude
     avrftdi_tpi.h
     avrintel.c
     libavrdude-avrintel.h
+    avr_opcodes.c
     avrpart.c
     bitbang.c
     bitbang.h
@@ -190,8 +191,6 @@ add_library(libavrdude
     disasm_ioregisters.h
     disasm_jumpcall.c
     disasm_jumpcall.h
-    disasm_mnemonics.c
-    disasm_mnemonics.h
     disasm_tagfile.c
     disasm_tagfile.h
     dfu.c

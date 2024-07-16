@@ -33,6 +33,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "avrdude.h"
 #include "libavrdude.h"
 
 #include "disasm_globals.h"
@@ -40,7 +41,6 @@
 #include "disasm_callbacks_pseudocode.h"
 #include "disasm_jumpcall.h"
 #include "disasm_ioregisters.h"
-#include "disasm_mnemonics.h"
 #include "disasm_tagfile.h"
 
 void Display_Registers() {
@@ -80,25 +80,24 @@ int Compare_Opcode(const char *Bitstream, const char *Bitmask) {
   return 1;                     // Match
 }
 
-void Register_Opcode(void (*Callback)(const char *, int, int), const char *New_Opcode_String, int New_MNemonic) {
+void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
   cx->dis_n_ops++;
   cx->dis_op[cx->dis_n_ops - 1].Opcode_String = malloc(strlen(New_Opcode_String) + 1);
   strcpy(cx->dis_op[cx->dis_n_ops - 1].Opcode_String, New_Opcode_String);
-  cx->dis_op[cx->dis_n_ops - 1].MNemonic = New_MNemonic;
+  cx->dis_op[cx->dis_n_ops - 1].mnemo = mnemo;
   cx->dis_op[cx->dis_n_ops - 1].Callback = Callback;
 }
 
-void Supersede_Opcode(void (*Callback)(const char *, int, int), int New_MNemonic) {
+void Supersede_Opcode(void (*Callback)(const char *, int, AVR_opcode), AVR_opcode mnemo) {
   int i;
 
   for(i = 0; i < cx->dis_n_ops; i++) {
-    if(cx->dis_op[i].MNemonic == New_MNemonic) {
-      // Supersede callback
+    if(cx->dis_op[i].mnemo == mnemo) {
       cx->dis_op[i].Callback = Callback;
       return;
     }
   }
-  fprintf(stderr, "Error: No callback to supersede opcode %d found (%s).\n", New_MNemonic, MNemonic[New_MNemonic]);
+  fprintf(stderr, "Error: No callback fund to supersede opcode %d (%s).\n", mnemo, avr_opcodes[mnemo].opcode);
 }
 
 int Get_Bitmask_Length(const char *Bitmask) {
@@ -230,7 +229,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       if(Opcode == -1) {
         Pos += 2;
       } else {
-        cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].MNemonic);
+        cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].mnemo);
         Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
       }
     }
@@ -258,7 +257,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       cx->dis_code[0] = 0;
       cx->dis_comment[0] = 0;
       cx->dis_after_code[0] = 0;
-      cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].MNemonic);
+      cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].mnemo);
 
       if(cx->dis_opts.Process_Labels) {
         Print_JumpCalls(Pos);
@@ -266,14 +265,8 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
 
       if(cx->dis_opts.Show_Addresses)
         printf("%4x:   ", Pos);
-      if(cx->dis_opts.Show_Cycles) {
-        const char *Cycle = Cycles[cx->dis_op[Opcode].MNemonic];
-
-        if(!Cycle)
-          printf("      ");
-        else
-          printf("[%-3s] ", Cycle);
-      }
+      if(cx->dis_opts.Show_Cycles) // @@@ select correct clocks_xx
+        printf("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clocks_e);
 
       if(cx->dis_opts.Show_Opcodes) {
         // Now display the Opcode
@@ -289,7 +282,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
 
       if(cx->dis_code[0] == 0) {
         // No code was generated?
-        printf("; - Not implemented opcode: %d -\n", cx->dis_op[Opcode].MNemonic);
+        printf("; - Not implemented opcode: %d -\n", cx->dis_op[Opcode].mnemo);
       } else {
         if((cx->dis_comment[0] == 0) || (!cx->dis_opts.Show_Comments)) {
           // No comment
@@ -360,6 +353,41 @@ int disasm(const char *Bitstream, int Read, int addr) {
     if(!Read_Tagfile(cx->dis_opts.Tagfile))
       return 0;
 
+  /*
+   * 8 untreated opcodes and 20 "unofficial" ones
+   *
+   * OPCODE_des
+   * OPCODE_xch
+   * OPCODE_lac
+   * OPCODE_las
+   * OPCODE_lat
+   *
+   * OPCODE_lds_rc
+   * OPCODE_spm_zz
+   * OPCODE_sts_rc
+   *
+   * OPCODE_x_bld
+   * OPCODE_x_bst
+   * OPCODE_x_eicall
+   * OPCODE_x_eijmp
+   * OPCODE_x_icall
+   * OPCODE_x_ijmp
+   * OPCODE_x_nop_1
+   * OPCODE_x_nop_2
+   * OPCODE_x_nop_3
+   * OPCODE_x_nop_4
+   * OPCODE_x_nop_5
+   * OPCODE_x_nop_6
+   * OPCODE_x_nop_7
+   * OPCODE_x_nop_8
+   * OPCODE_x_nop_9
+   * OPCODE_x_nop_a
+   * OPCODE_x_ret
+   * OPCODE_x_reti
+   * OPCODE_x_sbrc
+   * OPCODE_x_sbrs
+   */
+
   cx->dis_n_ops = 0;
 
   Register_Opcode(adc_Callback, "0001 11rd  dddd rrrr", OPCODE_adc);
@@ -399,7 +427,6 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(clh_Callback, "1001 0100  1101 1000", OPCODE_clh);
   Register_Opcode(cli_Callback, "1001 0100  1111 1000", OPCODE_cli);
   Register_Opcode(cln_Callback, "1001 0100  1010 1000", OPCODE_cln);
-
   // Register_Opcode(clr_Callback, "0010 01dd  dddd dddd", OPCODE_clr); // Implied by eor
   Register_Opcode(cls_Callback, "1001 0100  1100 1000", OPCODE_cls);
   Register_Opcode(clt_Callback, "1001 0100  1110 1000", OPCODE_clt);
@@ -441,7 +468,6 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(lpm1_Callback, "1001 0101  1100 1000", OPCODE_lpm_1);
   Register_Opcode(lpm2_Callback, "1001 000d  dddd 0100", OPCODE_lpm_2);
   Register_Opcode(lpm3_Callback, "1001 000d  dddd 0101", OPCODE_lpm_3);
-
   // Register_Opcode(lsl_Callback, "0000 11dd  dddd dddd", OPCODE_lsl); // Implied by add
   Register_Opcode(lsr_Callback, "1001 010d  dddd 0110", OPCODE_lsr);
   Register_Opcode(mov_Callback, "0010 11rd  dddd rrrr", OPCODE_mov);
@@ -460,7 +486,6 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(ret_Callback, "1001 0101  0000 1000", OPCODE_ret);
   Register_Opcode(reti_Callback, "1001 0101  0001 1000", OPCODE_reti);
   Register_Opcode(rjmp_Callback, "1100 kkkk  kkkk kkkk", OPCODE_rjmp);
-
   // Register_Opcode(rol_Callback, "0001 11dd  dddd dddd", OPCODE_rol); // Implied by adc
   Register_Opcode(ror_Callback, "1001 010d  dddd 0111", OPCODE_ror);
   Register_Opcode(sbc_Callback, "0000 10rd  dddd rrrr", OPCODE_sbc);
@@ -498,7 +523,6 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(sub_Callback, "0001 10rd  dddd rrrr", OPCODE_sub);
   Register_Opcode(subi_Callback, "0101 KKKK  dddd KKKK", OPCODE_subi);
   Register_Opcode(swap_Callback, "1001 010d  dddd 0010", OPCODE_swap);
-
   // Register_Opcode(tst_Callback, "0010 00dd  dddd dddd", OPCODE_tst); // Implied by and
   Register_Opcode(wdr_Callback, "1001 0101  1010 1000", OPCODE_wdr);
 
@@ -570,6 +594,12 @@ int disasm(const char *Bitstream, int Read, int addr) {
   }
 
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);
+
+  for(size_t i = 0; i < sizeof avr_opcodes/sizeof*avr_opcodes; i++)
+    if(avr_opcodes[i].mnemo != i) {
+      msg_error("avr_opcodes[] table broken (this should never happen)\n");
+      return -1;
+    }
 
   Disassemble(Bitstream, Read, addr);
   return 0;

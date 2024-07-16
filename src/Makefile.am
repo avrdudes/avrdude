@@ -105,6 +105,7 @@ libavrdude_a_SOURCES = \
 	avrintel.c \
 	libavrdude-avrintel.h \
 	avrpart.c \
+	avr_opcodes.c \
 	bitbang.c \
 	bitbang.h \
 	buspirate.c \
@@ -128,8 +129,6 @@ libavrdude_a_SOURCES = \
 	disasm_ioregisters.h \
 	disasm_jumpcall.c \
 	disasm_jumpcall.h \
-	disasm_mnemonics.c \
-	disasm_mnemonics.h \
 	disasm_tagfile.c \
 	disasm_tagfile.h \
 	dfu.c \

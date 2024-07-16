@@ -32,7 +32,6 @@
 #include "libavrdude.h"
 
 #include "disasm_globals.h"
-#include "disasm_mnemonics.h"
 #include "disasm_tagfile.h"
 #include "disasm_jumpcall.h"
 
@@ -45,7 +44,7 @@ void Display_JumpCalls() {
   printf("%d jumps/calls found:\n", JumpCall_Count);
   for(i = 0; i < JumpCall_Count; i++) {
     printf("%3d: 0x%-4x -> 0x%-4x     %s (%d)\n", i, (unsigned int) JumpCalls[i].From, (unsigned int) JumpCalls[i].To,
-      MNemonic[JumpCalls[i].Type], JumpCalls[i].FunctionCall);
+      avr_opcodes[JumpCalls[i].Type].opcode, JumpCalls[i].FunctionCall);
   }
 }
 
@@ -180,7 +179,7 @@ void Print_JumpCalls(int Position) {
         printf("\n");
         Match = 1;
       }
-      printf("; Referenced from offset 0x%02x by %s\n", JumpCalls[i].From, MNemonic[JumpCalls[i].Type]);
+      printf("; Referenced from offset 0x%02x by %s\n", JumpCalls[i].From, avr_opcodes[JumpCalls[i].Type].opcode);
     }
   }
   if(Match == 1) {
