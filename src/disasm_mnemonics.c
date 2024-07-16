@@ -27,6 +27,8 @@
 
 #include <stdio.h>
 
+#include "libavrdude.h"
+
 const char *MNemonic[] = {
   "adc",
   "add",

@@ -29,12 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "libavrdude.h"
+
 #include "disasm_globals.h"
 #include "disasm_mnemonics.h"
 #include "disasm_tagfile.h"
 #include "disasm_jumpcall.h"
 
-extern struct Options Options;
 static int JumpCall_Count;
 static struct JumpCall *JumpCalls;
 
@@ -49,17 +50,17 @@ void Display_JumpCalls() {
 }
 
 int FixTargetAddress(int Address) {
-  if(Options.FlashSize) {
-    Address %= Options.FlashSize;
+  if(cx->dis_opts.FlashSize) {
+    Address %= cx->dis_opts.FlashSize;
     if(Address < 0) {
-      Address += Options.FlashSize;
+      Address += cx->dis_opts.FlashSize;
     }
   }
   return Address;
 }
 
 void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall) {
-  if((Options.Process_Labels == 1) && (Options.Pass == 1)) {
+  if((cx->dis_opts.Process_Labels == 1) && (cx->dis_opts.Pass == 1)) {
     JumpCall_Count++;
     JumpCalls = realloc(JumpCalls, sizeof(struct JumpCall) * (JumpCall_Count));
     JumpCalls[JumpCall_Count - 1].From = From;

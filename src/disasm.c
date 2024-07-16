@@ -33,22 +33,20 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include "libavrdude.h"
+
 #include "disasm_globals.h"
 #include "disasm_callbacks_assembly.h"
 #include "disasm_callbacks_pseudocode.h"
-#include "disasm_options.h"
 #include "disasm_jumpcall.h"
 #include "disasm_ioregisters.h"
 #include "disasm_mnemonics.h"
 #include "disasm_tagfile.h"
 
-#define READ_BUFFER     131072  // 128 kB
-
 static int Number_Opcodes = 0;
 static struct Opcode Opcodes[256];
 static int Registers[256];
 
-struct Options Options;
 static char Code_Line[256];
 static char Comment_Line[256];
 static char After_Code_Line[256];
@@ -225,50 +223,15 @@ int Get_Next_Opcode(char *Bitstream) {
   return -1;
 }
 
-void Disassemble(char *Filename) {
-  FILE *f;
-  char Bitstream[READ_BUFFER];
-  int Read;
+void Disassemble(char *Bitstream, int Read) {
   int Pos;
   int Opcode;
   int i;
 
-#ifndef DOS_BASED_OS
-  f = fopen(Filename, "r");
-#else
-  f = fopen(Filename, "rb");
-#endif
-
-  if(!f) {
-    fprintf(stderr, "Error opening file '%s' for disassembly: %s\n", Filename, strerror(errno));
-    return;
-  }
-
-  if(Options.Show_PseudoCode == 1) {
-    printf("#include <stdio.h>\n");
-    printf("\n");
-    printf("/* Disassembly of %s (pseudocode) */\n", Filename);
-    printf("\n");
-    printf("int  r0,  r1,  r2,  r3,  r4,  r5,  r6,  r7,  r8,  r9;\n");
-    printf("int r10, r11, r12, r13, r14, r15, r16, r17, r18, r19;\n");
-    printf("int r20, r21, r22, r23, r24, r25, r26, r27, r28, r29;\n");
-    printf("int r30, r31, r32;\n");
-    printf("\n");
-    printf("int main(int argc, char **argv) {\n");
-  } else {
-    if(Options.CodeStyle == CODESTYLE_AVRGCC) {
-      printf("; Disassembly of %s (avr-gcc style)\n", Filename);
-    } else {
-      printf("; Disassembly of %s (AVR instruction set style)\n", Filename);
-    }
-    printf("\n");
-  }
-
-  Read = fread(Bitstream, 1, READ_BUFFER, f);
-  Options.Pass = 1;
+  cx->dis_opts.Pass = 1;
   Pos = 0;
 
-  if((Options.Process_Labels == 1) || ((!Options.Show_PseudoCode) && (Options.CodeStyle == CODESTYLE_AVRGCC))) {
+  if((cx->dis_opts.Process_Labels == 1) || ((!cx->dis_opts.Show_PseudoCode) && (cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC))) {
     // Preprocess to gather jump labels or to gain knowledge about registers which are being used
     while(Pos < Read) {
       Opcode = Get_Next_Opcode(Bitstream + Pos);
@@ -280,15 +243,12 @@ void Disassemble(char *Filename) {
       }
     }
     Enumerate_Labels();
-    Options.Pass = 2;
+    cx->dis_opts.Pass = 2;
     Pos = 0;
   }
 
-  if(Options.CodeStyle == CODESTYLE_AVRGCC) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC)
     Emit_Used_IO_Registers();
-    printf(".text\n");
-    printf("main:\n");
-  }
 
   while(Pos < Read) {
     int Added;
@@ -308,13 +268,13 @@ void Disassemble(char *Filename) {
       After_Code_Line[0] = 0;
       Opcodes[Opcode].Callback(Bitstream + Pos, Pos, Opcodes[Opcode].MNemonic);
 
-      if(Options.Process_Labels) {
+      if(cx->dis_opts.Process_Labels) {
         Print_JumpCalls(Pos);
       }
 
-      if(Options.Show_Addresses)
+      if(cx->dis_opts.Show_Addresses)
         printf("%4x:   ", Pos);
-      if(Options.Show_Cycles) {
+      if(cx->dis_opts.Show_Cycles) {
         const char *Cycle = Cycles[Opcodes[Opcode].MNemonic];
 
         if(!Cycle)
@@ -323,7 +283,7 @@ void Disassemble(char *Filename) {
           printf("[%-3s] ", Cycle);
       }
 
-      if(Options.Show_Opcodes) {
+      if(cx->dis_opts.Show_Opcodes) {
         // Now display the Opcode
         for(i = 0; i < (Get_Bitmask_Length(Opcodes[Opcode].Opcode_String)) / 8; i++) {
           printf("%02x ", (unsigned char) (Bitstream[Pos + i]));
@@ -339,12 +299,12 @@ void Disassemble(char *Filename) {
         // No code was generated?
         printf("; - Not implemented opcode: %d -\n", Opcodes[Opcode].MNemonic);
       } else {
-        if((Comment_Line[0] == 0) || (!Options.Show_Comments)) {
+        if((Comment_Line[0] == 0) || (!cx->dis_opts.Show_Comments)) {
           // No comment
           printf("%s\n", Code_Line);
         } else {
           // Comment available
-          if(!Options.Show_PseudoCode) {
+          if(!cx->dis_opts.Show_PseudoCode) {
             printf("%-23s ; %s\n", Code_Line, Comment_Line);
           } else {
             printf("%-35s ; %s\n", Code_Line, Comment_Line);
@@ -360,9 +320,8 @@ void Disassemble(char *Filename) {
       Pos += 2;
     }
   }
-  fclose(f);
 
-  if(Options.Show_PseudoCode) {
+  if(cx->dis_opts.Show_PseudoCode) { // {
     printf("}\n");
     printf("\n");
   }
@@ -404,13 +363,15 @@ int Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-int disasm(int argc, char **argv) {
-  Options_Default(&Options);
-  if(!Options_ParseCmdLine(&Options, argc, argv))
-    return 1;
+int disasm(char *Bitstream, int Read, int addr) {
+  if(cx->dis_opts.Tagfile)
+    if(!Read_Tagfile(cx->dis_opts.Tagfile))
+      return 0;
 
-  Activate_Callbacks(Code_Line, Comment_Line, After_Code_Line, Registers, &Options);
-  Activate_PC_Callbacks(Code_Line, Comment_Line, After_Code_Line, Registers, &Options);
+  Number_Opcodes = 0;
+
+     Activate_Callbacks(Code_Line, Comment_Line, After_Code_Line, Registers, &cx->dis_opts);
+  Activate_PC_Callbacks(Code_Line, Comment_Line, After_Code_Line, Registers, &cx->dis_opts);
   Register_Opcode(adc_Callback, "0001 11rd  dddd rrrr", OPCODE_adc);
   Register_Opcode(add_Callback, "0000 11rd  dddd rrrr", OPCODE_add);
   Register_Opcode(adiw_Callback, "1001 0110  KKdd KKKK", OPCODE_adiw);
@@ -551,7 +512,7 @@ int disasm(int argc, char **argv) {
   // Register_Opcode(tst_Callback, "0010 00dd  dddd dddd", OPCODE_tst); // Implied by and
   Register_Opcode(wdr_Callback, "1001 0101  1010 1000", OPCODE_wdr);
 
-  if(Options.Show_PseudoCode) {
+  if(cx->dis_opts.Show_PseudoCode) {
     Supersede_Opcode(adc_Callback_PC, OPCODE_adc);
     Supersede_Opcode(add_Callback_PC, OPCODE_add);
     Supersede_Opcode(sub_Callback_PC, OPCODE_sub);
@@ -620,6 +581,6 @@ int disasm(int argc, char **argv) {
 
   qsort(Opcodes, Number_Opcodes, sizeof(struct Opcode), Comparison);
 
-  Disassemble(Options.Filename);
+  Disassemble(Bitstream, Read);
   return 0;
 }

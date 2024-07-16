@@ -130,8 +130,6 @@ libavrdude_a_SOURCES = \
 	disasm_jumpcall.h \
 	disasm_mnemonics.c \
 	disasm_mnemonics.h \
-	disasm_options.c \
-	disasm_options.h \
 	disasm_tagfile.c \
 	disasm_tagfile.h \
 	dfu.c \

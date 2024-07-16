@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "libavrdude.h"
+
 #include "disasm_mnemonics.h"
 #include "disasm_globals.h"
 #include "disasm_callbacks_pseudocode.h"
@@ -39,15 +41,13 @@ static char *Code_Line;
 static char *Comment_Line;
 static char *After_Code_Line;
 static int *Registers;
-static struct Options *Options;
 
 void Activate_PC_Callbacks(char *New_Code_Line, char *New_Comment_Line, char *New_After_Code_Line, int *New_Registers,
-  struct Options *New_Options) {
+  Disasm_options *New_Options) {
   Code_Line = New_Code_Line;
   Comment_Line = New_Comment_Line;
   After_Code_Line = New_After_Code_Line;
   Registers = New_Registers;
-  Options = New_Options;
 }
 
 void PC_Operation_Simple(int MNemonic_Int) {
@@ -186,7 +186,7 @@ void PC_Operation_Rd_K(int MNemonic_Int) {
 }
 
 void PC_Operation_RdW_K(int MNemonic_Int) {
-  if(Options->CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], Rd + 1, Rd, RK);
   } else {
     snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, RK);
@@ -195,7 +195,7 @@ void PC_Operation_RdW_K(int MNemonic_Int) {
 }
 
 void PC_Operation_RdW_RrW(int MNemonic_Int) {
-  if(Options->CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(Code_Line, 255, "%-7s r%d:%d, r%d:%d", MNemonic[MNemonic_Int], (2 * Rd) + 1, 2 * Rd, (2 * Rr) + 1, 2 * Rr);
   } else {
     snprintf(Code_Line, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], 2 * Rd, 2 * Rr);
@@ -213,7 +213,7 @@ void PC_Operation_s_k(int MNemonic_Int, int Position) {
   int Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "%-7s %d, .+%d", MNemonic[MNemonic_Int], Bits, Offset);
     } else {
@@ -293,7 +293,7 @@ void PC_Operation_k(int MNemonic_Int, int Position, char *Pseudocode) {
   int Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "if (%s) goto .+%d;", Pseudocode, Offset);
     } else {
@@ -501,7 +501,7 @@ CALLBACK(call_Callback_PC) {
 
   Pos = FixTargetAddress(2 * Rk);
   Register_JumpCall(Position, Pos, MNemonic_Int, 1);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     snprintf(Code_Line, 255, "0x%02x();", Pos);
   } else {
     char *LabelName;
@@ -525,7 +525,7 @@ CALLBACK(rcall_Callback_PC) {
   int Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, MNemonic_Int, 1);
-  if(!Options->Process_Labels) {
+  if(!cx->dis_opts.Process_Labels) {
     snprintf(Comment_Line, 255, "0x%02x();", Target);
   } else {
     char *LabelName;
@@ -563,7 +563,7 @@ CALLBACK(jmp_Callback_PC) {
   int Pos;
 
   Pos = FixTargetAddress(2 * Rk);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     snprintf(Code_Line, 255, "goto 0x%02x;", Pos);
   } else {
     snprintf(Code_Line, 255, "goto %s;", Get_Label_Name(Pos, NULL));
@@ -582,7 +582,7 @@ CALLBACK(rjmp_Callback_PC) {
 
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
 
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "goto .+%d;", Offset);
     } else {

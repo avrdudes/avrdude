@@ -1445,6 +1445,24 @@ typedef struct {
 #define STR_XINT32  STR_4
 #define STR_XINT64  STR_8
 
+typedef struct {
+  char Show_Addresses;
+  char Show_Opcodes;
+  char Show_Comments;
+  char Show_Cycles;
+  char Show_PseudoCode;
+  char Filename[256];
+  char MCU[8];
+  const char *Tagfile;
+  char CodeStyle;
+  char Process_Labels;
+  char Pass;
+  int FlashSize;
+} Disasm_options;
+
+#define CODESTYLE_AVR_INSTRUCTION_SET 0
+#define CODESTYLE_AVRGCC              1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1545,9 +1563,12 @@ void terminal_setup_update_progress(void);
 
 char *avr_cc_buffer(size_t n);
 
+int disasm(char *buf, int len, int addr);
+
 #ifdef __cplusplus
 }
 #endif
+
 
 /*
  * Context structure
@@ -1634,6 +1655,10 @@ typedef struct {
 
   // Static variable from fileio.c
   int reccount;
+
+  // Static variables from disasm*.c
+  Disasm_options dis_opts;
+  int dis_initopts;
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"

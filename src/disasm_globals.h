@@ -36,9 +36,6 @@
 
 #define CALLBACK(name)  void name(char *Bitstream, int Position, int MNemonic_Int)
 
-#define CODESTYLE_AVR_INSTRUCTION_SET       0
-#define CODESTYLE_AVRGCC                    1
-
 struct Opcode {
   char *Opcode_String;
   void (*Callback)(char *, int, int);
@@ -51,21 +48,6 @@ struct JumpCall {
   int Type;
   unsigned int LabelNumber;
   unsigned char FunctionCall;
-};
-
-struct Options {
-  char Show_Addresses;
-  char Show_Opcodes;
-  char Show_Comments;
-  char Show_Cycles;
-  char Show_PseudoCode;
-  char Filename[256];
-  char MCU[8];
-  char Tagfile[256];
-  char CodeStyle;
-  char Process_Labels;
-  char Pass;
-  int FlashSize;
 };
 
 struct IO_Register {

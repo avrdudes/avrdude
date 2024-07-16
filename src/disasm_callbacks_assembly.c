@@ -28,6 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "libavrdude.h"
+
 #include "disasm_mnemonics.h"
 #include "disasm_globals.h"
 #include "disasm_callbacks_assembly.h"
@@ -39,15 +41,13 @@ static char *Code_Line;
 static char *Comment_Line;
 static char *After_Code_Line;
 static int *Registers;
-static struct Options *Options;
 
 void Activate_Callbacks(char *New_Code_Line, char *New_Comment_Line, char *New_After_Code_Line, int *New_Registers,
-  struct Options *New_Options) {
+  Disasm_options *New_Options) {
   Code_Line = New_Code_Line;
   Comment_Line = New_Comment_Line;
   After_Code_Line = New_After_Code_Line;
   Registers = New_Registers;
-  Options = New_Options;
 }
 
 // Return the number of bits set in Number
@@ -92,7 +92,7 @@ void Operation_Rd_K(int MNemonic_Int) {
 }
 
 void Operation_RdW_K(int MNemonic_Int) {
-  if(Options->CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], Rd + 1, Rd, RK);
   } else {
     snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, RK);
@@ -101,7 +101,7 @@ void Operation_RdW_K(int MNemonic_Int) {
 }
 
 void Operation_RdW_RrW(int MNemonic_Int) {
-  if(Options->CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(Code_Line, 255, "%-7s r%d:%d, r%d:%d", MNemonic[MNemonic_Int], (2 * Rd) + 1, 2 * Rd, (2 * Rr) + 1, 2 * Rr);
   } else {
     snprintf(Code_Line, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], 2 * Rd, 2 * Rr);
@@ -119,7 +119,7 @@ void Operation_s_k(int MNemonic_Int, int Position) {
   Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "%-7s %d, .+%d", MNemonic[MNemonic_Int], Bits, Offset);
     } else {
@@ -184,7 +184,7 @@ void Operation_k(int MNemonic_Int, int Position, char *Pseudocode) {
   Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
     } else {
@@ -215,7 +215,7 @@ CALLBACK(add_Callback) {
 }
 
 CALLBACK(adiw_Callback) {
-  if(Options->CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 25, 2 * Rd + 24, RK);
   } else {
     snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 24, RK);
@@ -350,7 +350,7 @@ CALLBACK(call_Callback) {
 
   Pos = FixTargetAddress(2 * Rk);
   Register_JumpCall(Position, Pos, MNemonic_Int, 1);
-  if(!Options->Process_Labels) {
+  if(!cx->dis_opts.Process_Labels) {
     snprintf(Code_Line, 255, "%-7s 0x%02x", MNemonic[MNemonic_Int], Pos);
   } else {
     char *LabelName;
@@ -493,7 +493,7 @@ CALLBACK(jmp_Callback) {
   int Pos;
 
   Pos = FixTargetAddress(2 * Rk);
-  if(!Options->Process_Labels) {
+  if(!cx->dis_opts.Process_Labels) {
     snprintf(Code_Line, 255, "%-7s 0x%02x", MNemonic[MNemonic_Int], Pos);
   } else {
     snprintf(Code_Line, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Pos, NULL));
@@ -644,7 +644,7 @@ CALLBACK(rcall_Callback) {
   Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, MNemonic_Int, 1);
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
     } else {
@@ -682,7 +682,7 @@ CALLBACK(rjmp_Callback) {
 
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
 
-  if(Options->Process_Labels == 0) {
+  if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(Code_Line, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
     } else {
@@ -723,7 +723,7 @@ CALLBACK(sbis_Callback) {
 }
 
 CALLBACK(sbiw_Callback) {
-  if(Options->CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
+  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 25, 2 * Rd + 24, RK);
   } else {
     snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 24, RK);

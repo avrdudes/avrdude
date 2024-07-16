@@ -26,7 +26,7 @@
 */
 
 void Activate_PC_Callbacks(char *New_Code_Line, char *New_Comment_Line, char *New_After_Code_Line, int *New_Registers,
-  struct Options *New_Options);
+  Disasm_options *New_Options);
 void PC_Operation_Simple(int MNemonic_Int);
 void PC_Operation_Rd(int MNemonic_Int);
 void PC_Operation_Rd16(int MNemonic_Int);

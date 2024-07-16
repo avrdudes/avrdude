@@ -29,9 +29,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "disasm_globals.h"
+#include "libavrdude.h"
 
-extern struct Options Options;
+#include "disasm_globals.h"
 
 static struct IO_Register *KnownIORegisters = NULL;
 static unsigned int KnownIORegistersCount = 0;
@@ -82,7 +82,7 @@ unsigned int ReadIORegisterFile() {
       } else if(!strcmp(Token, "Unit")) {
         if(!(Token = strtok(NULL, "\t\n")))
           continue;
-        CurrentMCU = (!strcmp(Token, Options.MCU)) || (!strcmp(Token, "Global"));
+        CurrentMCU = (!strcmp(Token, cx->dis_opts.MCU)) || (!strcmp(Token, "Global"));
       }
     }
   }
@@ -95,7 +95,7 @@ const char *Resolve_IO_Register(int Number) {
   int Resolved;
   unsigned int i;
 
-  if(!strcmp(Options.MCU, "None"))
+  if(!strcmp(cx->dis_opts.MCU, "None"))
     return NULL;
 
   Resolved = -1;
@@ -117,7 +117,7 @@ const char *Resolve_IO_Register(int Number) {
 void Emit_Used_IO_Registers() {
   unsigned int i;
 
-  if(Options.Show_PseudoCode)
+  if(cx->dis_opts.Show_PseudoCode)
     return;
   for(i = 0; i < KnownIORegistersCount; i++) {
     if(KnownIORegisters[i].Used)

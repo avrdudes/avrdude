@@ -30,6 +30,8 @@
 #include <string.h>
 #include <errno.h>
 
+#include "libavrdude.h"
+
 #include "disasm_tagfile.h"
 
 struct CodeLabel {
