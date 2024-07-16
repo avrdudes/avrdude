@@ -1,8 +1,9 @@
+
 /*
-	avrdisas - A disassembler for AVR microcontroller units
-	Copyright (C) 2007 Johannes Bauer
-	
-	This file is part of avrdisas.
+    avrdisas - A disassembler for AVR microcontroller units
+    Copyright (C) 2007 Johannes Bauer
+
+    This file is part of avrdisas.
 
     avrdisas is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,20 +19,17 @@
     along with avrdisas; if not, write to the Free Software
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-	Johannes Bauer
-	Mussinanstr. 140
-	92318 Neumarkt/Opf.
-	JohannesBauer@gmx.de
+    Johannes Bauer
+    Mussinanstr. 140
+    92318 Neumarkt/Opf.
+    JohannesBauer@gmx.de
 */
 
-#include "Tools.h"
+#ifdef DOS_BASED_OS
+#define snprintf _snprintf
+#endif
 
-unsigned char BitCount(unsigned char Number) {
-	unsigned char Result = 0;
-	int i;
-	for (i = 0; i < 8; i++) {
-		if (Number & 0x01) Result++;
-		Number >>= 1;
-	}
-	return Result;
-}
+#ifdef DESPERATE_SPRINTF_FALLBACK
+#warning "Your C library does not support snprintf. Please upgrade! Fallback to sprintf used."
+#define snprintf(dest, len, str...) sprintf(dest, str)
+#endif
