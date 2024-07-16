@@ -197,7 +197,7 @@ int Match_Opcode(char *Bitmask, char *Bitstream) {
       } else {
         if(Stream_Val == 0) {
 
-          /*/printf("\nMatch failed.\n")
+          // printf("\nMatch failed.\n")
           return 0;
         }
       }
@@ -404,7 +404,7 @@ int Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-int main(int argc, char **argv) {
+int disasm(int argc, char **argv) {
   Options_Default(&Options);
   if(!Options_ParseCmdLine(&Options, argc, argv))
     return 1;

@@ -180,6 +180,25 @@ add_library(libavrdude
     confwin.c
     crc16.c
     crc16.h
+    disasm.c
+    disasm_callbacks_assembly.c
+    disasm_callbacks_assembly.h
+    disasm_callbacks_pseudocode.c
+    disasm_callbacks_pseudocode.h
+    disasm_functions.h
+    disasm_globals.h
+    disasm_ioregisters.c
+    disasm_ioregisters.h
+    disasm_jumpcall.c
+    disasm_jumpcall.h
+    disasm_mnemonics.c
+    disasm_mnemonics.h
+    disasm_options.c
+    disasm_options.h
+    disasm_tagfile.c
+    disasm_tagfile.h
+    disasm_tools.c
+    disasm_tools.h
     dfu.c
     dfu.h
     dryrun.c
