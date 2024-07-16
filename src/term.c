@@ -65,6 +65,7 @@ struct command {
 
 
 static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_disasm (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_backup (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
@@ -98,6 +99,7 @@ static int cmd_quell  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
+  { "disasm", cmd_disasm, _fo(read_byte_cached), "disassemble a memory section" },
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
   { "save",  cmd_save,  _fo(write_byte_cached), "save memory segments to file" },
   { "backup", cmd_backup,  _fo(write_byte_cached), "backup memories to file" },
@@ -211,27 +213,43 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 }
 
 
-static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  int i = cx->term_mi;
-  const char *cmd = tolower(**argv) == 'd'? "dump": "read";
+// Just read in memory; used by cmd_dump() and cmd_disasm()
+static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[],
+  const AVRMEM **memp, int *baddr, int *blen) {
 
+  int i = cx->term_mi;
+  const char *cmd = tolower(**argv) == 'r'? "read": str_casestarts(*argv, "di")? "disasm [<opts>]": "dump";
   if ((argc < 2 && cx->term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
-      "Syntax: %s <mem> <addr> <len> # display entire region\n"
-      "        %s <mem> <addr>       # start at <addr>\n"
-      "        %s <mem>              # Continue displaying memory where left off\n"
-      "        %s                    # Continue displaying most recently shown <mem>\n"
-      "Function: display memory section as hex dump\n"
-      "\n"
+      "Syntax: %s <mem> <addr> <len> # Entire region\n"
+      "        %s <mem> <addr>       # Start at <addr>\n"
+      "        %s <mem>              # Continue with memory where left off\n"
+      "        %s                    # Continue with most recently shown <mem>\n"
+      "Function: %s\n",
+      cmd, cmd, cmd, cmd,
+      cmd[1] == 'i'? "disassemble memory section": "display memory section as hex dump"
+    );
+    if(cmd[1] == 'i') {
+      msg_error("Options:\n"
+        "    -a        show addresses, -A don't show addresses\n"
+        "    -o        show opcodes, -O don't show opcodes\n"
+        "    -c        show comments, -C don't show comments\n"
+        "    -q        show call cycles, -Q don't show call cycles\n"
+        "    -s        use avr-gcc code style, -S use AVR instruction set code style\n"
+        "    -p        include pseudocode, -P don't include pseudocode\n"
+        "    -l        preprocess jump/call, -L don't preprocess jump/call\n"
+        "    -t=<file> set the tagfile to be used\n"
+      );
+    }
+    msg_error("\n"
       "Both the <addr> and <len> can be negative numbers; a negative <addr> starts\n"
       "an interval from that many bytes below the memory size; a negative <len> ends\n"
       "the interval at that many bytes below the memory size.\n"
       "\n"
       "The latter two versions of the command page through the memory with a page\n"
-      "size of the last used effective length (256 bytes default)\n",
-      cmd, cmd, cmd, cmd
+      "size of the last used effective length (256 bytes default)\n"
     );
-    return -1;
+    return NULL;
   }
 
   enum { read_size = 256 };
@@ -243,13 +261,13 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   const AVRMEM *mem = avr_locate_mem(p, memstr);
   if (mem == NULL) {
     pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
-    return -1;
+    return NULL;
   }
 
   int maxsize = mem->size;
   if(maxsize <= 0) { // Sanity check
     pmsg_error("(%s) cannot read memory %s of size %d\n", cmd, mem->desc, maxsize);
-    return -1;
+    return NULL;
   }
 
   // Iterate through the cx->term_rmem structs to find relevant address and length info
@@ -265,7 +283,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   if(i >= 32) { // Catch highly unlikely case
     pmsg_error("(%s) cx->term_rmem[] under-dimensioned; increase and recompile\n", cmd);
-    return -1;
+    return NULL;;
   }
   cx->term_mi = i;
 
@@ -275,7 +293,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     int addr = str_int(argv[2], STR_INT32, &errptr);
     if(errptr) {
       pmsg_error("(%s) address %s: %s\n", cmd, argv[2], errptr);
-      return -1;
+      return NULL;
     }
 
     // Turn negative addr value (counting from top and down) into an actual memory address
@@ -286,7 +304,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
       int digits = mem->size > 0x10000? 5: 4;
       pmsg_error("(%s) %s address %s is out of range [-0x%0*x, 0x%0*x]\n",
         cmd, mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
-      return -1;
+      return NULL;
     }
     cx->term_rmem[i].addr = addr;
   }
@@ -301,18 +319,25 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
       int len = str_int(argv[3], STR_INT32, &errptr);
       if(errptr) {
         pmsg_error("(%s) length %s: %s\n", cmd, argv[3], errptr);
-        return -1;
+        return NULL;
       }
 
       // Turn negative len value (number of bytes from top of memory) into an actual length
       if (len < 0)
         len = maxsize + len + 1 - cx->term_rmem[i].addr;
 
-      if (len == 0)
-        return 0;
+      if (len == 0) {
+        if(memp)
+          *memp = mem;
+        if(baddr)
+          *baddr = 0;
+        if(blen)
+          *blen = 0;
+        return mmt_malloc(1);
+      }
       if (len < 0) {
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
-        return -1;
+        return NULL;
       }
       cx->term_rmem[i].len = len;
     }
@@ -341,18 +366,127 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       mmt_free(buf);
-      return -1;
+      return NULL;
     }
     report_progress(j, cx->term_rmem[i].len, NULL);
   }
   report_progress(1, 1, NULL);
 
-  hexdump_buf(stdout, mem, cx->term_rmem[i].addr, buf, cx->term_rmem[i].len);
-  lterm_out("");
-
-  mmt_free(buf);
+  if(memp)
+    *memp = mem;
+  if(baddr)
+    *baddr = cx->term_rmem[i].addr;
+  if(blen)
+    *blen = cx->term_rmem[i].len;
 
   cx->term_rmem[i].addr = (cx->term_rmem[i].addr + cx->term_rmem[i].len) % maxsize;
+
+  return buf;
+}
+
+static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  int addr, len;
+  const AVRMEM *mem = NULL;
+  uint8_t *buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len);
+
+  if(!buf)
+    return -1;
+
+  hexdump_buf(stdout, mem, addr, buf, len);
+  lterm_out("");
+  mmt_free(buf);
+
+  return 0;
+}
+
+
+static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  int addr, len;
+  const AVRMEM *mem = NULL;
+  uint8_t *buf;
+
+  int help = 0, invalid = 0, itemac = 1, chr;
+
+  if(!cx->dis_initopts) {
+    cx->dis_opts.Show_Addresses = 0;
+    cx->dis_opts.Show_Opcodes = 0;
+    cx->dis_opts.Show_Comments = 1;
+    cx->dis_opts.Show_Cycles = 0;
+    cx->dis_opts.Show_PseudoCode = 0;
+    cx->dis_opts.Filename[0] = 0;
+    cx->dis_opts.MCU[0] = 0;
+    cx->dis_opts.Tagfile = NULL;
+    cx->dis_opts.CodeStyle = CODESTYLE_AVRGCC; // CODESTYLE_AVR_INSTRUCTION_SET
+    cx->dis_opts.Process_Labels = 1;
+    cx->dis_opts.FlashSize = 0;
+    cx->dis_initopts++;
+  }
+  cx->dis_opts.Pass = 1;
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q = argv[++ai]) != '-' || !q[1])
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch((chr = *q & 0xff)) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'a': case 'A':
+          cx->dis_opts.Show_Addresses = tolower(chr);
+          break;
+        case 'o': case 'O':
+          cx->dis_opts.Show_Opcodes = tolower(chr);
+          break;
+        case 'c': case 'C':
+          cx->dis_opts.Show_Comments = tolower(chr);
+          break;
+        case 'q': case 'Q':
+          cx->dis_opts.Show_Cycles = tolower(chr);
+          break;
+        case 'p': case 'P':
+          cx->dis_opts.Show_PseudoCode = tolower(chr);
+          break;
+        case 's': case 'S':
+          cx->dis_opts.CodeStyle = tolower(chr)? CODESTYLE_AVRGCC: CODESTYLE_AVR_INSTRUCTION_SET;
+          break;
+        case 'l': case 'L':
+          cx->dis_opts.Process_Labels = tolower(chr);
+          break;
+        case 't':
+          if(*++q == '=')
+            q++;
+          cx->dis_opts.Tagfile = q;
+          q = "x";
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(disasm) invalid option %c, see usage:\n", chr);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(help || invalid) {
+    const char *help[] = { "disasm", "-?", NULL, };
+    readbuf(pgm, p, 2, help, NULL, NULL, NULL);
+    return -1;
+  }
+
+
+  buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len);
+
+  if(!buf)
+    return -1;
+
+  if(len > 0)
+    disasm((char *) buf, len, addr);
+  lterm_out("");
+  mmt_free(buf);
 
   return 0;
 }
@@ -1364,7 +1498,7 @@ static void printfuse(Cnfg *cc, int ii, FL_item *fc, int nf, int printed, Cfg_op
 // Show or change configuration properties of the part
 static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   Cfg_opts o = { 0 };
-  int help = 0, invalid = 0, itemac=1;
+  int help = 0, invalid = 0, itemac = 1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;
