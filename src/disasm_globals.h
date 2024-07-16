@@ -25,22 +25,16 @@
     JohannesBauer@gmx.de
 */
 
-#define Rd              (Registers[(int)'d'])
-#define Rr              (Registers[(int)'r'])
-#define Rk              (Registers[(int)'k'])
-#define RK              (Registers[(int)'K'])
-#define Rs              (Registers[(int)'s'])
-#define RA              (Registers[(int)'A'])
-#define Rb              (Registers[(int)'b'])
-#define Rq              (Registers[(int)'q'])
+#define Rd (cx->dis_regs['d'])
+#define Rr (cx->dis_regs['r'])
+#define Rk (cx->dis_regs['k'])
+#define RK (cx->dis_regs['K'])
+#define Rs (cx->dis_regs['s'])
+#define RA (cx->dis_regs['A'])
+#define Rb (cx->dis_regs['b'])
+#define Rq (cx->dis_regs['q'])
 
 #define CALLBACK(name)  void name(const char *Bitstream, int Position, int MNemonic_Int)
-
-struct Opcode {
-  char *Opcode_String;
-  void (*Callback)(const char *, int, int);
-  int MNemonic;
-};
 
 struct JumpCall {
   int From;

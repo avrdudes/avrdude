@@ -25,8 +25,6 @@
     JohannesBauer@gmx.de
 */
 
-void Activate_Callbacks(char *New_Code_Line, char *New_Comment_Line, char *New_After_Code_Line, int *New_Registers,
-  Disasm_options *New_Options);
 void Operation_Simple(int MNemonic_Int);
 void Operation_Rd(int MNemonic_Int);
 void Operation_Rd16(int MNemonic_Int);

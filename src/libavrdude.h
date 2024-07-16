@@ -1460,6 +1460,12 @@ typedef struct {
   int FlashSize;
 } Disasm_options;
 
+typedef struct {
+  char *Opcode_String;
+  void (*Callback)(const char *, int, int);
+  int MNemonic;
+} Disasm_opcode;
+
 #define CODESTYLE_AVR_INSTRUCTION_SET 0
 #define CODESTYLE_AVRGCC              1
 
@@ -1657,8 +1663,12 @@ typedef struct {
   int reccount;
 
   // Static variables from disasm*.c
-  Disasm_options dis_opts;
   int dis_initopts;
+  Disasm_options dis_opts;
+  int dis_n_ops;
+  Disasm_opcode dis_op[256];    // Must be 256
+  int dis_regs[256];            // Must be 256
+  char dis_code[256], dis_comment[256], dis_after_code[256]; // Must be 256
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"

@@ -37,19 +37,6 @@
 #include "disasm_ioregisters.h"
 #include "disasm_tagfile.h"
 
-static char *Code_Line;
-static char *Comment_Line;
-static char *After_Code_Line;
-static int *Registers;
-
-void Activate_Callbacks(char *New_Code_Line, char *New_Comment_Line, char *New_After_Code_Line, int *New_Registers,
-  Disasm_options *New_Options) {
-  Code_Line = New_Code_Line;
-  Comment_Line = New_Comment_Line;
-  After_Code_Line = New_After_Code_Line;
-  Registers = New_Registers;
-}
-
 // Return the number of bits set in Number
 static unsigned BitCount(unsigned n) {
   unsigned ret;
@@ -62,49 +49,49 @@ static unsigned BitCount(unsigned n) {
 }
 
 void Operation_Simple(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%s", MNemonic[MNemonic_Int]);
+  snprintf(cx->dis_code, 255, "%s", MNemonic[MNemonic_Int]);
 }
 
 void Operation_Rd(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%-7s r%d", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d", MNemonic[MNemonic_Int], Rd);
 }
 
 void Operation_Rd16(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%-7s r%d", MNemonic[MNemonic_Int], Rd + 16);
+  snprintf(cx->dis_code, 255, "%-7s r%d", MNemonic[MNemonic_Int], Rd + 16);
 }
 
 void Operation_Rd_Rr(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], Rd, Rr);
+  snprintf(cx->dis_code, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], Rd, Rr);
 }
 
 void Operation_Rd16_Rr16(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], Rd + 16, Rr + 16);
+  snprintf(cx->dis_code, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], Rd + 16, Rr + 16);
 }
 
 void Operation_Rd16_K(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd + 16, RK);
-  snprintf(Comment_Line, 255, "%d", RK);
+  snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd + 16, RK);
+  snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
 void Operation_Rd_K(int MNemonic_Int) {
-  snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, RK);
-  snprintf(Comment_Line, 255, "%d", RK);
+  snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, RK);
+  snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
 void Operation_RdW_K(int MNemonic_Int) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
-    snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], Rd + 1, Rd, RK);
+    snprintf(cx->dis_code, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], Rd + 1, Rd, RK);
   } else {
-    snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, RK);
+    snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, RK);
   }
-  snprintf(Comment_Line, 255, "%d", RK);
+  snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
 void Operation_RdW_RrW(int MNemonic_Int) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
-    snprintf(Code_Line, 255, "%-7s r%d:%d, r%d:%d", MNemonic[MNemonic_Int], (2 * Rd) + 1, 2 * Rd, (2 * Rr) + 1, 2 * Rr);
+    snprintf(cx->dis_code, 255, "%-7s r%d:%d, r%d:%d", MNemonic[MNemonic_Int], (2 * Rd) + 1, 2 * Rd, (2 * Rr) + 1, 2 * Rr);
   } else {
-    snprintf(Code_Line, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], 2 * Rd, 2 * Rr);
+    snprintf(cx->dis_code, 255, "%-7s r%d, r%d", MNemonic[MNemonic_Int], 2 * Rd, 2 * Rr);
   }
 }
 
@@ -121,14 +108,14 @@ void Operation_s_k(int MNemonic_Int, int Position) {
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
   if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
-      snprintf(Code_Line, 255, "%-7s %d, .+%d", MNemonic[MNemonic_Int], Bits, Offset);
+      snprintf(cx->dis_code, 255, "%-7s %d, .+%d", MNemonic[MNemonic_Int], Bits, Offset);
     } else {
-      snprintf(Code_Line, 255, "%-7s %d, .%d", MNemonic[MNemonic_Int], Bits, Offset);
+      snprintf(cx->dis_code, 255, "%-7s %d, .%d", MNemonic[MNemonic_Int], Bits, Offset);
     }
-    snprintf(Comment_Line, 255, "0x%02x = %d -> 0x%02x", (1 << Bits), (1 << Bits), Target);
+    snprintf(cx->dis_comment, 255, "0x%02x = %d -> 0x%02x", (1 << Bits), (1 << Bits), Target);
   } else {
-    snprintf(Code_Line, 255, "%-7s %d, %s", MNemonic[MNemonic_Int], Bits, Get_Label_Name(Target, NULL));
-    snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bits), (1 << Bits));
+    snprintf(cx->dis_code, 255, "%-7s %d, %s", MNemonic[MNemonic_Int], Bits, Get_Label_Name(Target, NULL));
+    snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bits), (1 << Bits));
   }
 }
 
@@ -137,8 +124,8 @@ void Operation_r_b(int MNemonic_Int) {
 
   Register = Rr;
   Bit = Rb;
-  snprintf(Code_Line, 255, "%-7s r%d, %d", MNemonic[MNemonic_Int], Register, Bit);
-  snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
+  snprintf(cx->dis_code, 255, "%-7s r%d, %d", MNemonic[MNemonic_Int], Register, Bit);
+  snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
 void Operation_Rd_b(int MNemonic_Int) {
@@ -146,8 +133,8 @@ void Operation_Rd_b(int MNemonic_Int) {
 
   Register = Rd;
   Bit = Rb;
-  snprintf(Code_Line, 255, "%-7s r%d, %d", MNemonic[MNemonic_Int], Register, Bit);
-  snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
+  snprintf(cx->dis_code, 255, "%-7s r%d, %d", MNemonic[MNemonic_Int], Register, Bit);
+  snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
 void Operation_A_b(int MNemonic_Int) {
@@ -158,11 +145,11 @@ void Operation_A_b(int MNemonic_Int) {
   Bit = Rb;
   Register_Name = Resolve_IO_Register(Register);
   if(Register_Name == NULL) {
-    snprintf(Code_Line, 255, "%-7s 0x%02x, %d", MNemonic[MNemonic_Int], Register, Bit);
-    snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
+    snprintf(cx->dis_code, 255, "%-7s 0x%02x, %d", MNemonic[MNemonic_Int], Register, Bit);
+    snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
   } else {
-    snprintf(Code_Line, 255, "%-7s %s, %d", MNemonic[MNemonic_Int], Register_Name, Bit);
-    snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
+    snprintf(cx->dis_code, 255, "%-7s %s, %d", MNemonic[MNemonic_Int], Register_Name, Bit);
+    snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
   }
 }
 
@@ -170,8 +157,8 @@ void Operation_s(int MNemonic_Int) {
   int Bit;
 
   Bit = Rs;
-  snprintf(Code_Line, 255, "%-7s %d", MNemonic[MNemonic_Int], Bit);
-  snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
+  snprintf(cx->dis_code, 255, "%-7s %d", MNemonic[MNemonic_Int], Bit);
+  snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
 void Operation_k(int MNemonic_Int, int Position, const char *Pseudocode) {
@@ -186,13 +173,13 @@ void Operation_k(int MNemonic_Int, int Position, const char *Pseudocode) {
   Register_JumpCall(Position, Target, MNemonic_Int, 0);
   if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
-      snprintf(Code_Line, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
+      snprintf(cx->dis_code, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
     } else {
-      snprintf(Code_Line, 255, "%-7s .%d", MNemonic[MNemonic_Int], Offset);
+      snprintf(cx->dis_code, 255, "%-7s .%d", MNemonic[MNemonic_Int], Offset);
     }
-    snprintf(Comment_Line, 255, "0x%02x", Target);
+    snprintf(cx->dis_comment, 255, "0x%02x", Target);
   } else {
-    snprintf(Code_Line, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Target, NULL));
+    snprintf(cx->dis_code, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Target, NULL));
   }
 }
 
@@ -216,11 +203,11 @@ CALLBACK(add_Callback) {
 
 CALLBACK(adiw_Callback) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
-    snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 25, 2 * Rd + 24, RK);
+    snprintf(cx->dis_code, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 25, 2 * Rd + 24, RK);
   } else {
-    snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 24, RK);
+    snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 24, RK);
   }
-  snprintf(Comment_Line, 255, "%d", RK);
+  snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
 CALLBACK(and_Callback) {
@@ -351,15 +338,15 @@ CALLBACK(call_Callback) {
   Pos = FixTargetAddress(2 * Rk);
   Register_JumpCall(Position, Pos, MNemonic_Int, 1);
   if(!cx->dis_opts.Process_Labels) {
-    snprintf(Code_Line, 255, "%-7s 0x%02x", MNemonic[MNemonic_Int], Pos);
+    snprintf(cx->dis_code, 255, "%-7s 0x%02x", MNemonic[MNemonic_Int], Pos);
   } else {
     char *LabelName;
     char *LabelComment = NULL;
 
     LabelName = Get_Label_Name(Pos, &LabelComment);
-    snprintf(Code_Line, 255, "%-7s %s", MNemonic[MNemonic_Int], LabelName);
+    snprintf(cx->dis_code, 255, "%-7s %s", MNemonic[MNemonic_Int], LabelName);
     if(LabelComment != NULL)
-      snprintf(Comment_Line, 255, "%s", LabelComment);
+      snprintf(cx->dis_comment, 255, "%s", LabelComment);
   }
 }
 
@@ -436,11 +423,11 @@ CALLBACK(elpm1_Callback) {
 }
 
 CALLBACK(elpm2_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(elpm3_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z+", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z+", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(eor_Callback) {
@@ -478,10 +465,10 @@ CALLBACK(in_Callback) {
   Register_Number = RA;
   Register_Name = Resolve_IO_Register(Register_Number);
   if(Register_Name != NULL) {
-    snprintf(Code_Line, 255, "%-7s r%d, %s", MNemonic[MNemonic_Int], Rd, Register_Name);
+    snprintf(cx->dis_code, 255, "%-7s r%d, %s", MNemonic[MNemonic_Int], Rd, Register_Name);
   } else {
-    snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, Register_Number);
-    snprintf(Comment_Line, 255, "%d", RA);
+    snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], Rd, Register_Number);
+    snprintf(cx->dis_comment, 255, "%d", RA);
   }
 }
 
@@ -494,55 +481,55 @@ CALLBACK(jmp_Callback) {
 
   Pos = FixTargetAddress(2 * Rk);
   if(!cx->dis_opts.Process_Labels) {
-    snprintf(Code_Line, 255, "%-7s 0x%02x", MNemonic[MNemonic_Int], Pos);
+    snprintf(cx->dis_code, 255, "%-7s 0x%02x", MNemonic[MNemonic_Int], Pos);
   } else {
-    snprintf(Code_Line, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Pos, NULL));
+    snprintf(cx->dis_code, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Pos, NULL));
   }
   Register_JumpCall(Position, Pos, MNemonic_Int, 0);
 }
 
 CALLBACK(ld1_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, X", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, X", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ld2_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, X+", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, X+", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ld3_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, -X", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, -X", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldy1_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Y", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Y", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldy2_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Y+", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Y+", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldy3_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, -Y", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, -Y", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldy4_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Y+%d", MNemonic[MNemonic_Int], Rd, Rq);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Y+%d", MNemonic[MNemonic_Int], Rd, Rq);
 }
 
 CALLBACK(ldz1_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldz2_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z+", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z+", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldz3_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, -Z", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, -Z", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(ldz4_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z+%d", MNemonic[MNemonic_Int], Rd, Rq);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z+%d", MNemonic[MNemonic_Int], Rd, Rq);
 }
 
 CALLBACK(ldi_Callback) {
@@ -552,11 +539,11 @@ CALLBACK(ldi_Callback) {
 CALLBACK(lds_Callback) {
   const char *MemAddress;
 
-  snprintf(Code_Line, 255, "%-7s r%d, 0x%04x", MNemonic[MNemonic_Int], Rd, Rk);
+  snprintf(cx->dis_code, 255, "%-7s r%d, 0x%04x", MNemonic[MNemonic_Int], Rd, Rk);
   MemAddress = Tagfile_Resolve_Mem_Address(Rk);
-  snprintf(Code_Line, 255, "%-7s 0x%04x, r%d", MNemonic[MNemonic_Int], Rk, Rd);
+  snprintf(cx->dis_code, 255, "%-7s 0x%04x, r%d", MNemonic[MNemonic_Int], Rk, Rd);
   if(MemAddress) {
-    snprintf(Comment_Line, 255, "%s", MemAddress);
+    snprintf(cx->dis_comment, 255, "%s", MemAddress);
   }
 }
 
@@ -565,11 +552,11 @@ CALLBACK(lpm1_Callback) {
 }
 
 CALLBACK(lpm2_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(lpm3_Callback) {
-  snprintf(Code_Line, 255, "%-7s r%d, Z+", MNemonic[MNemonic_Int], Rd);
+  snprintf(cx->dis_code, 255, "%-7s r%d, Z+", MNemonic[MNemonic_Int], Rd);
 }
 
 CALLBACK(lsr_Callback) {
@@ -619,10 +606,10 @@ CALLBACK(out_Callback) {
   Register_Number = RA;
   Register_Name = Resolve_IO_Register(Register_Number);
   if(Register_Name != NULL) {
-    snprintf(Code_Line, 255, "%-7s %s, r%d", MNemonic[MNemonic_Int], Register_Name, Rr);
+    snprintf(cx->dis_code, 255, "%-7s %s, r%d", MNemonic[MNemonic_Int], Register_Name, Rr);
   } else {
-    snprintf(Code_Line, 255, "%-7s 0x%02x, r%d", MNemonic[MNemonic_Int], Register_Number, Rr);
-    snprintf(Comment_Line, 255, "%d", RA);
+    snprintf(cx->dis_code, 255, "%-7s 0x%02x, r%d", MNemonic[MNemonic_Int], Register_Number, Rr);
+    snprintf(cx->dis_comment, 255, "%d", RA);
   }
 }
 
@@ -646,25 +633,25 @@ CALLBACK(rcall_Callback) {
   Register_JumpCall(Position, Target, MNemonic_Int, 1);
   if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
-      snprintf(Code_Line, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
+      snprintf(cx->dis_code, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
     } else {
-      snprintf(Code_Line, 255, "%-7s .%d", MNemonic[MNemonic_Int], Offset);
+      snprintf(cx->dis_code, 255, "%-7s .%d", MNemonic[MNemonic_Int], Offset);
     }
-    snprintf(Comment_Line, 255, "0x%02x", Target);
+    snprintf(cx->dis_comment, 255, "0x%02x", Target);
   } else {
     char *LabelName;
     char *LabelComment = NULL;
 
     LabelName = Get_Label_Name(Target, &LabelComment);
-    snprintf(Code_Line, 255, "%-7s %s", MNemonic[MNemonic_Int], LabelName);
+    snprintf(cx->dis_code, 255, "%-7s %s", MNemonic[MNemonic_Int], LabelName);
     if(LabelComment != NULL)
-      snprintf(Comment_Line, 255, "%s", LabelComment);
+      snprintf(cx->dis_comment, 255, "%s", LabelComment);
   }
 }
 
 CALLBACK(ret_Callback) {
   Operation_Simple(MNemonic_Int);
-  snprintf(After_Code_Line, 255, "\n");
+  snprintf(cx->dis_after_code, 255, "\n");
 }
 
 CALLBACK(reti_Callback) {
@@ -684,17 +671,17 @@ CALLBACK(rjmp_Callback) {
 
   if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
-      snprintf(Code_Line, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
+      snprintf(cx->dis_code, 255, "%-7s .+%d", MNemonic[MNemonic_Int], Offset);
     } else {
-      snprintf(Code_Line, 255, "%-7s .%d", MNemonic[MNemonic_Int], Offset);
+      snprintf(cx->dis_code, 255, "%-7s .%d", MNemonic[MNemonic_Int], Offset);
     }
     if(Target >= 0) {
-      snprintf(Comment_Line, 255, "0x%02x", Target);
+      snprintf(cx->dis_comment, 255, "0x%02x", Target);
     } else {
-      snprintf(Comment_Line, 255, "-0x%02x - Illegal jump position -- specify flash size!", -Target);
+      snprintf(cx->dis_comment, 255, "-0x%02x - Illegal jump position -- specify flash size!", -Target);
     }
   } else {
-    snprintf(Code_Line, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Target, NULL));
+    snprintf(cx->dis_code, 255, "%-7s %s", MNemonic[MNemonic_Int], Get_Label_Name(Target, NULL));
   }
 }
 
@@ -724,11 +711,11 @@ CALLBACK(sbis_Callback) {
 
 CALLBACK(sbiw_Callback) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
-    snprintf(Code_Line, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 25, 2 * Rd + 24, RK);
+    snprintf(cx->dis_code, 255, "%-7s r%d:%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 25, 2 * Rd + 24, RK);
   } else {
-    snprintf(Code_Line, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 24, RK);
+    snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", MNemonic[MNemonic_Int], 2 * Rd + 24, RK);
   }
-  snprintf(Comment_Line, 255, "%d", RK);
+  snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
 CALLBACK(sbr_Callback) {
@@ -788,47 +775,47 @@ CALLBACK(spm_Callback) {
 }
 
 CALLBACK(st1_Callback) {
-  snprintf(Code_Line, 255, "%-7s X, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s X, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(st2_Callback) {
-  snprintf(Code_Line, 255, "%-7s X+, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s X+, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(st3_Callback) {
-  snprintf(Code_Line, 255, "%-7s -X, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s -X, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(sty1_Callback) {
-  snprintf(Code_Line, 255, "%-7s Y, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s Y, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(sty2_Callback) {
-  snprintf(Code_Line, 255, "%-7s Y+, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s Y+, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(sty3_Callback) {
-  snprintf(Code_Line, 255, "%-7s -Y, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s -Y, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(sty4_Callback) {
-  snprintf(Code_Line, 255, "%-7s Y+%d, r%d", MNemonic[MNemonic_Int], Rq, Rr);
+  snprintf(cx->dis_code, 255, "%-7s Y+%d, r%d", MNemonic[MNemonic_Int], Rq, Rr);
 }
 
 CALLBACK(stz1_Callback) {
-  snprintf(Code_Line, 255, "%-7s Z, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s Z, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(stz2_Callback) {
-  snprintf(Code_Line, 255, "%-7s Z+, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s Z+, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(stz3_Callback) {
-  snprintf(Code_Line, 255, "%-7s -Z, r%d", MNemonic[MNemonic_Int], Rr);
+  snprintf(cx->dis_code, 255, "%-7s -Z, r%d", MNemonic[MNemonic_Int], Rr);
 }
 
 CALLBACK(stz4_Callback) {
-  snprintf(Code_Line, 255, "%-7s Z+%d, r%d", MNemonic[MNemonic_Int], Rq, Rr);
+  snprintf(cx->dis_code, 255, "%-7s Z+%d, r%d", MNemonic[MNemonic_Int], Rq, Rr);
 }
 
 CALLBACK(sts_Callback) {
@@ -836,9 +823,9 @@ CALLBACK(sts_Callback) {
   const char *MemAddress;
 
   MemAddress = Tagfile_Resolve_Mem_Address(Rk);
-  snprintf(Code_Line, 255, "%-7s 0x%04x, r%d", MNemonic[MNemonic_Int], Rk, Rd);
+  snprintf(cx->dis_code, 255, "%-7s 0x%04x, r%d", MNemonic[MNemonic_Int], Rk, Rd);
   if(MemAddress) {
-    snprintf(Comment_Line, 255, "%s", MemAddress);
+    snprintf(cx->dis_comment, 255, "%s", MemAddress);
   }
 }
 

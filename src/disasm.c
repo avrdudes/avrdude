@@ -43,21 +43,13 @@
 #include "disasm_mnemonics.h"
 #include "disasm_tagfile.h"
 
-static int Number_Opcodes = 0;
-static struct Opcode Opcodes[256];
-static int Registers[256];
-
-static char Code_Line[256];
-static char Comment_Line[256];
-static char After_Code_Line[256];
-
 void Display_Registers() {
   int i;
 
   printf("Register dump:\n");
   for(i = 0; i < 256; i++) {
-    if(Registers[i] != 0) {
-      printf("Registers[%3d] '%c': %d = 0x%x\n", i, i, Registers[i], Registers[i]);
+    if(cx->dis_regs[i] != 0) {
+      printf("Registers[%3d] '%c': %d = 0x%x\n", i, i, cx->dis_regs[i], cx->dis_regs[i]);
     }
   }
   printf("End of register dump.\n");
@@ -89,20 +81,20 @@ int Compare_Opcode(const char *Bitstream, const char *Bitmask) {
 }
 
 void Register_Opcode(void (*Callback)(const char *, int, int), const char *New_Opcode_String, int New_MNemonic) {
-  Number_Opcodes++;
-  Opcodes[Number_Opcodes - 1].Opcode_String = malloc(strlen(New_Opcode_String) + 1);
-  strcpy(Opcodes[Number_Opcodes - 1].Opcode_String, New_Opcode_String);
-  Opcodes[Number_Opcodes - 1].MNemonic = New_MNemonic;
-  Opcodes[Number_Opcodes - 1].Callback = Callback;
+  cx->dis_n_ops++;
+  cx->dis_op[cx->dis_n_ops - 1].Opcode_String = malloc(strlen(New_Opcode_String) + 1);
+  strcpy(cx->dis_op[cx->dis_n_ops - 1].Opcode_String, New_Opcode_String);
+  cx->dis_op[cx->dis_n_ops - 1].MNemonic = New_MNemonic;
+  cx->dis_op[cx->dis_n_ops - 1].Callback = Callback;
 }
 
 void Supersede_Opcode(void (*Callback)(const char *, int, int), int New_MNemonic) {
   int i;
 
-  for(i = 0; i < Number_Opcodes; i++) {
-    if(Opcodes[i].MNemonic == New_MNemonic) {
+  for(i = 0; i < cx->dis_n_ops; i++) {
+    if(cx->dis_op[i].MNemonic == New_MNemonic) {
       // Supersede callback
-      Opcodes[i].Callback = Callback;
+      cx->dis_op[i].Callback = Callback;
       return;
     }
   }
@@ -124,7 +116,7 @@ void Clear_Registers() {
   int i;
 
   for(i = 0; i < 256; i++)
-    Registers[i] = 0;
+    cx->dis_regs[i] = 0;
 }
 
 char Get_From_Bitmask(const char *Bitmask, int Byte, int Bit) {
@@ -201,10 +193,10 @@ int Match_Opcode(const char *Bitmask, const char *Bitstream) {
       }
     } else {
       // This Bit is a register Bit, set in appropriate place
-      Registers[(int) Mask_Val] <<= 1;
-      Registers[(int) Mask_Val] |= Stream_Val;
+      cx->dis_regs[(int) Mask_Val] <<= 1;
+      cx->dis_regs[(int) Mask_Val] |= Stream_Val;
 
-      // printf("-> %d Stored [%x]",Stream_Val,Registers[(int)Mask_Val]);
+      // printf("-> %d Stored [%x]", Stream_Val, cx->dis_regs[(int) Mask_Val]);
     }
 
     // printf("\n");
@@ -215,15 +207,15 @@ int Match_Opcode(const char *Bitmask, const char *Bitstream) {
 int Get_Next_Opcode(const char *Bitstream) {
   int i;
 
-  for(i = 0; i < Number_Opcodes; i++) {
-    if(Match_Opcode(Opcodes[i].Opcode_String, Bitstream) == 1) {
+  for(i = 0; i < cx->dis_n_ops; i++) {
+    if(Match_Opcode(cx->dis_op[i].Opcode_String, Bitstream) == 1) {
       return i;
     }
   }
   return -1;
 }
 
-void Disassemble(const char *Bitstream, int Read) {
+void Disassemble(const char *Bitstream, int Read, int addr) {
   int Pos;
   int Opcode;
   int i;
@@ -231,15 +223,15 @@ void Disassemble(const char *Bitstream, int Read) {
   cx->dis_opts.Pass = 1;
   Pos = 0;
 
-  if((cx->dis_opts.Process_Labels == 1) || ((!cx->dis_opts.Show_PseudoCode) && (cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC))) {
+  if(cx->dis_opts.Process_Labels || (!cx->dis_opts.Show_PseudoCode && cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC)) {
     // Preprocess to gather jump labels or to gain knowledge about registers which are being used
     while(Pos < Read) {
       Opcode = Get_Next_Opcode(Bitstream + Pos);
       if(Opcode == -1) {
         Pos += 2;
       } else {
-        Opcodes[Opcode].Callback(Bitstream + Pos, Pos, Opcodes[Opcode].MNemonic);
-        Pos += Get_Bitmask_Length(Opcodes[Opcode].Opcode_String) / 8;
+        cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].MNemonic);
+        Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
       }
     }
     Enumerate_Labels();
@@ -263,10 +255,10 @@ void Disassemble(const char *Bitstream, int Read) {
 
     Opcode = Get_Next_Opcode(Bitstream + Pos);
     if(Opcode != -1) {
-      Code_Line[0] = 0;
-      Comment_Line[0] = 0;
-      After_Code_Line[0] = 0;
-      Opcodes[Opcode].Callback(Bitstream + Pos, Pos, Opcodes[Opcode].MNemonic);
+      cx->dis_code[0] = 0;
+      cx->dis_comment[0] = 0;
+      cx->dis_after_code[0] = 0;
+      cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].MNemonic);
 
       if(cx->dis_opts.Process_Labels) {
         Print_JumpCalls(Pos);
@@ -275,7 +267,7 @@ void Disassemble(const char *Bitstream, int Read) {
       if(cx->dis_opts.Show_Addresses)
         printf("%4x:   ", Pos);
       if(cx->dis_opts.Show_Cycles) {
-        const char *Cycle = Cycles[Opcodes[Opcode].MNemonic];
+        const char *Cycle = Cycles[cx->dis_op[Opcode].MNemonic];
 
         if(!Cycle)
           printf("      ");
@@ -285,35 +277,35 @@ void Disassemble(const char *Bitstream, int Read) {
 
       if(cx->dis_opts.Show_Opcodes) {
         // Now display the Opcode
-        for(i = 0; i < (Get_Bitmask_Length(Opcodes[Opcode].Opcode_String)) / 8; i++) {
+        for(i = 0; i < (Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8; i++) {
           printf("%02x ", (unsigned char) (Bitstream[Pos + i]));
         }
         printf(" ");
         // Missing spaces
-        for(i = 0; i < 5 - ((Get_Bitmask_Length(Opcodes[Opcode].Opcode_String)) / 8); i++) {
+        for(i = 0; i < 5 - ((Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8); i++) {
           printf("   ");
         }
       }
 
-      if(Code_Line[0] == 0) {
+      if(cx->dis_code[0] == 0) {
         // No code was generated?
-        printf("; - Not implemented opcode: %d -\n", Opcodes[Opcode].MNemonic);
+        printf("; - Not implemented opcode: %d -\n", cx->dis_op[Opcode].MNemonic);
       } else {
-        if((Comment_Line[0] == 0) || (!cx->dis_opts.Show_Comments)) {
+        if((cx->dis_comment[0] == 0) || (!cx->dis_opts.Show_Comments)) {
           // No comment
-          printf("%s\n", Code_Line);
+          printf("%s\n", cx->dis_code);
         } else {
           // Comment available
           if(!cx->dis_opts.Show_PseudoCode) {
-            printf("%-23s ; %s\n", Code_Line, Comment_Line);
+            printf("%-23s ; %s\n", cx->dis_code, cx->dis_comment);
           } else {
-            printf("%-35s ; %s\n", Code_Line, Comment_Line);
+            printf("%-35s ; %s\n", cx->dis_code, cx->dis_comment);
           }
         }
       }
-      printf("%s", After_Code_Line);
+      printf("%s", cx->dis_after_code);
 
-      Pos += Get_Bitmask_Length(Opcodes[Opcode].Opcode_String) / 8;
+      Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
     } else {
       printf(".word 0x%02x%02x    ; Invalid opcode at 0x%04x (%d). Disassembler skipped two bytes.\n",
         ((unsigned char *) Bitstream)[Pos + 1], ((unsigned char *) Bitstream)[Pos], Pos, Pos);
@@ -330,10 +322,10 @@ void Disassemble(const char *Bitstream, int Read) {
 void Display_Opcodes() {
   unsigned int i;
 
-  printf("%d opcodes registered:\n", Number_Opcodes);
-  for(i = 0; i < Number_Opcodes; i++) {
-    // This invokes UB as a function pointer is converted to void* - beware
-    printf("%3d: '%-80s' -> %p\n", i, Opcodes[i].Opcode_String, (void *) Opcodes[i].Callback);
+  printf("%d opcodes registered:\n", cx->dis_n_ops);
+  for(i = 0; i < cx->dis_n_ops; i++) {
+    // This invokes UB as a function pointer is converted to void * - beware
+    printf("%3d: '%-80s' -> %p\n", i, cx->dis_op[i].Opcode_String, (void *) cx->dis_op[i].Callback);
   }
 }
 
@@ -349,11 +341,11 @@ int Get_Specifity(const char *Opcode) {
 }
 
 int Comparison(const void *Element1, const void *Element2) {
-  struct Opcode *OC1, *OC2;
+  Disasm_opcode *OC1, *OC2;
   int SP1, SP2;
 
-  OC1 = (struct Opcode *) Element1;
-  OC2 = (struct Opcode *) Element2;
+  OC1 = (Disasm_opcode *) Element1;
+  OC2 = (Disasm_opcode *) Element2;
   SP1 = Get_Specifity(OC1->Opcode_String);
   SP2 = Get_Specifity(OC2->Opcode_String);
   if(SP1 < SP2)
@@ -368,10 +360,8 @@ int disasm(const char *Bitstream, int Read, int addr) {
     if(!Read_Tagfile(cx->dis_opts.Tagfile))
       return 0;
 
-  Number_Opcodes = 0;
+  cx->dis_n_ops = 0;
 
-     Activate_Callbacks(Code_Line, Comment_Line, After_Code_Line, Registers, &cx->dis_opts);
-  Activate_PC_Callbacks(Code_Line, Comment_Line, After_Code_Line, Registers, &cx->dis_opts);
   Register_Opcode(adc_Callback, "0001 11rd  dddd rrrr", OPCODE_adc);
   Register_Opcode(add_Callback, "0000 11rd  dddd rrrr", OPCODE_add);
   Register_Opcode(adiw_Callback, "1001 0110  KKdd KKKK", OPCODE_adiw);
@@ -579,8 +569,8 @@ int disasm(const char *Bitstream, int Read, int addr) {
     Supersede_Opcode(st2_Callback_PC, OPCODE_st_2);
   }
 
-  qsort(Opcodes, Number_Opcodes, sizeof(struct Opcode), Comparison);
+  qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);
 
-  Disassemble(Bitstream, Read);
+  Disassemble(Bitstream, Read, addr);
   return 0;
 }
