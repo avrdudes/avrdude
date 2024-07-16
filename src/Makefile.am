@@ -123,7 +123,6 @@ libavrdude_a_SOURCES = \
 	disasm_callbacks_assembly.h \
 	disasm_callbacks_pseudocode.c \
 	disasm_callbacks_pseudocode.h \
-	disasm_functions.h \
 	disasm_globals.h \
 	disasm_ioregisters.c \
 	disasm_ioregisters.h \
@@ -135,8 +134,6 @@ libavrdude_a_SOURCES = \
 	disasm_options.h \
 	disasm_tagfile.c \
 	disasm_tagfile.h \
-	disasm_tools.c \
-	disasm_tools.h \
 	dfu.c \
 	dfu.h \
 	dryrun.c \

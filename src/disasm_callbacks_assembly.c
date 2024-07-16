@@ -33,8 +33,6 @@
 #include "disasm_callbacks_assembly.h"
 #include "disasm_jumpcall.h"
 #include "disasm_ioregisters.h"
-#include "disasm_functions.h"
-#include "disasm_tools.h"
 #include "disasm_tagfile.h"
 
 static char *Code_Line;
@@ -50,6 +48,17 @@ void Activate_Callbacks(char *New_Code_Line, char *New_Comment_Line, char *New_A
   After_Code_Line = New_After_Code_Line;
   Registers = New_Registers;
   Options = New_Options;
+}
+
+// Return the number of bits set in Number
+static unsigned BitCount(unsigned n) {
+  unsigned ret;
+
+  // A la Kernighan (and Richie): iteratively clear the least significant bit set
+  for(ret = 0; n; ret++)
+    n &= n -1;
+
+  return ret;
 }
 
 void Operation_Simple(int MNemonic_Int) {

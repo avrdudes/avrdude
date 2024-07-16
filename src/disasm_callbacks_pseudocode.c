@@ -33,7 +33,6 @@
 #include "disasm_callbacks_pseudocode.h"
 #include "disasm_jumpcall.h"
 #include "disasm_ioregisters.h"
-#include "disasm_functions.h"
 #include "disasm_tagfile.h"
 
 static char *Code_Line;
