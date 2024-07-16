@@ -63,7 +63,7 @@ void Display_Registers() {
   printf("End of register dump.\n");
 }
 
-int Compare_Opcode(char *Bitstream, char *Bitmask) {
+int Compare_Opcode(const char *Bitstream, const char *Bitmask) {
   size_t i;
   char Bit;
 
@@ -78,7 +78,7 @@ int Compare_Opcode(char *Bitstream, char *Bitmask) {
     // Retrieve the i-th Bit of Bitstream
     Bit = (Bitstream[i / 8] >> (7 - (i % 8))) & 1;
 
-    // printf("Bit %d is %d [should be %c]\n",i,Bit,Bitmask[i]);
+    // printf("Bit %d is %d [should be %c]\n", i, Bit, Bitmask[i]);
     if((Bitmask[i] == '1') && (Bit == 1))
       continue;
     if((Bitmask[i] == '0') && (Bit == 0))
@@ -88,7 +88,7 @@ int Compare_Opcode(char *Bitstream, char *Bitmask) {
   return 1;                     // Match
 }
 
-void Register_Opcode(void (*Callback)(char *, int, int), const char *New_Opcode_String, int New_MNemonic) {
+void Register_Opcode(void (*Callback)(const char *, int, int), const char *New_Opcode_String, int New_MNemonic) {
   Number_Opcodes++;
   Opcodes[Number_Opcodes - 1].Opcode_String = malloc(strlen(New_Opcode_String) + 1);
   strcpy(Opcodes[Number_Opcodes - 1].Opcode_String, New_Opcode_String);
@@ -96,7 +96,7 @@ void Register_Opcode(void (*Callback)(char *, int, int), const char *New_Opcode_
   Opcodes[Number_Opcodes - 1].Callback = Callback;
 }
 
-void Supersede_Opcode(void (*Callback)(char *, int, int), int New_MNemonic) {
+void Supersede_Opcode(void (*Callback)(const char *, int, int), int New_MNemonic) {
   int i;
 
   for(i = 0; i < Number_Opcodes; i++) {
@@ -109,7 +109,7 @@ void Supersede_Opcode(void (*Callback)(char *, int, int), int New_MNemonic) {
   fprintf(stderr, "Error: No callback to supersede opcode %d found (%s).\n", New_MNemonic, MNemonic[New_MNemonic]);
 }
 
-int Get_Bitmask_Length(char *Bitmask) {
+int Get_Bitmask_Length(const char *Bitmask) {
   int Length = 0;
   size_t i;
 
@@ -127,7 +127,7 @@ void Clear_Registers() {
     Registers[i] = 0;
 }
 
-char Get_From_Bitmask(char *Bitmask, int Byte, int Bit) {
+char Get_From_Bitmask(const char *Bitmask, int Byte, int Bit) {
   size_t i;
   int Cnt = 0;
   int GetBit;
@@ -143,7 +143,7 @@ char Get_From_Bitmask(char *Bitmask, int Byte, int Bit) {
   return '?';
 }
 
-void Display_Binary(char *Bitstream, int Count) {
+void Display_Binary(const char *Bitstream, int Count) {
   int i, j;
 
   for(i = 0; i < Count; i++) {
@@ -162,7 +162,7 @@ void Display_Binary(char *Bitstream, int Count) {
   printf("\n");
 }
 
-int Match_Opcode(char *Bitmask, char *Bitstream) {
+int Match_Opcode(const char *Bitmask, const char *Bitstream) {
   int i;
   int Length;
   int Byte_Mask, Bit_Mask;
@@ -212,7 +212,7 @@ int Match_Opcode(char *Bitmask, char *Bitstream) {
   return 1;
 }
 
-int Get_Next_Opcode(char *Bitstream) {
+int Get_Next_Opcode(const char *Bitstream) {
   int i;
 
   for(i = 0; i < Number_Opcodes; i++) {
@@ -223,7 +223,7 @@ int Get_Next_Opcode(char *Bitstream) {
   return -1;
 }
 
-void Disassemble(char *Bitstream, int Read) {
+void Disassemble(const char *Bitstream, int Read) {
   int Pos;
   int Opcode;
   int i;
@@ -337,7 +337,7 @@ void Display_Opcodes() {
   }
 }
 
-int Get_Specifity(char *Opcode) {
+int Get_Specifity(const char *Opcode) {
   size_t i;
   int Specifity = 0;
 
@@ -363,7 +363,7 @@ int Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-int disasm(char *Bitstream, int Read, int addr) {
+int disasm(const char *Bitstream, int Read, int addr) {
   if(cx->dis_opts.Tagfile)
     if(!Read_Tagfile(cx->dis_opts.Tagfile))
       return 0;

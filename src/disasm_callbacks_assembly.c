@@ -174,7 +174,7 @@ void Operation_s(int MNemonic_Int) {
   snprintf(Comment_Line, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
-void Operation_k(int MNemonic_Int, int Position, char *Pseudocode) {
+void Operation_k(int MNemonic_Int, int Position, const char *Pseudocode) {
   int Offset;
   int Target;
 

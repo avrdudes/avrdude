@@ -34,11 +34,11 @@
 #define Rb              (Registers[(int)'b'])
 #define Rq              (Registers[(int)'q'])
 
-#define CALLBACK(name)  void name(char *Bitstream, int Position, int MNemonic_Int)
+#define CALLBACK(name)  void name(const char *Bitstream, int Position, int MNemonic_Int)
 
 struct Opcode {
   char *Opcode_String;
-  void (*Callback)(char *, int, int);
+  void (*Callback)(const char *, int, int);
   int MNemonic;
 };
 

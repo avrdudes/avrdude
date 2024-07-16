@@ -392,24 +392,24 @@ const char *Tagfile_Resolve_Mem_Address(int Address) {
   return NULL;
 }
 
-static int Tagfile_Process_Byte(char *Bitstream, int Position, int ArgumentNo, const char *Label) {
-  printf(".byte 0x%02x\n", ((unsigned char *) Bitstream)[Position]);
+static int Tagfile_Process_Byte(const char *Bitstream, int Position, int ArgumentNo, const char *Label) {
+  printf(".byte 0x%02x\n", Bitstream[Position] & 0xff);
   return 1;
 }
 
-static int Tagfile_Process_Word(char *Bitstream, int Position, int ArgumentNo, const char *Label) {
-  printf(".word 0x%02x%02x\n", ((unsigned char *) Bitstream)[Position + 1], ((unsigned char *) Bitstream)[Position]);
+static int Tagfile_Process_Word(const char *Bitstream, int Position, int ArgumentNo, const char *Label) {
+  printf(".word 0x%02x%02x\n", Bitstream[Position + 1] & 0xff, Bitstream[Position] & 0xff);
   return 2;
 }
 
-static int Tagfile_Process_String(char *Bitstream, int Position, int ArgumentNo, const char *Label) {
+static int Tagfile_Process_String(const char *Bitstream, int Position, int ArgumentNo, const char *Label) {
   int i;
   unsigned char c;
   unsigned int InString = 0;
 
   printf("String_0x%s_%d:    ; Address 0x%x (%d)\n", Label, ArgumentNo, Position, Position);
   i = 0;
-  while((c = ((unsigned char *) Bitstream)[Position + i])) {
+  while((c = Bitstream[Position + i])) {
     if((c >= 32) && (c <= 127)) {
       if(!InString)
         printf(".ascii \"");
@@ -444,11 +444,11 @@ static void Sanitize_String(char *String) {
   }
 }
 
-int Tagfile_Process_Data(char *Bitstream, int Position) {
+int Tagfile_Process_Data(const char *Bitstream, int Position) {
   int i;
   int BytesAdvanced;
   int Index;
-  int (*ProcessingFunction)(char *, int, int, const char *) = NULL;
+  int (*ProcessingFunction)(const char *, int, int, const char *) = NULL;
   char Buffer[32];
 
   Index = Tagfile_FindPGMAddress(Position);
