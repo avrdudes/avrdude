@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "avrdude.h"
 #include "libavrdude.h"
 
 #include "disasm_private.h"
@@ -63,7 +64,7 @@ int FixTargetAddress(int Address) {
 void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall) {
   if((cx->dis_opts.Process_Labels == 1) && (cx->dis_opts.Pass == 1)) {
     JumpCall_Count++;
-    JumpCalls = realloc(JumpCalls, sizeof(struct JumpCall) * (JumpCall_Count));
+    JumpCalls = mmt_realloc(JumpCalls, sizeof(struct JumpCall) * (JumpCall_Count));
     JumpCalls[JumpCall_Count - 1].From = From;
     JumpCalls[JumpCall_Count - 1].To = To;
     JumpCalls[JumpCall_Count - 1].Type = Type;

@@ -519,6 +519,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
 }
 
 
+// Allocate, copy, append a suffix (H, L, 0...8 or nothing), make upper case and return
 static char *regname(const char *reg, int suf) {
   char *ret =
     suf <= -1? mmt_strdup(reg):
@@ -550,7 +551,7 @@ void initRegisters(const AVRPART *p) {
 
     // Count how many entries are needed
     for(int i = 0; i< nr; i++)
-      if(rf[i].addr < 0x40)
+      if(rf[i].addr < 0x40 && rf[i].size > 0)
         nio += rf[i].size;
     IORegisters = mmt_malloc(nio*sizeof*IORegisters);
     MemLabels = mmt_malloc(nr*sizeof*MemLabels);
@@ -577,7 +578,7 @@ void initRegisters(const AVRPART *p) {
           IORegisters[nio].Name = regname(rf[i].reg, 'h');
           IORegisters[nio].Address = rf[i].addr+1;
           nio++;
-        } else {
+        } else if(rf[i].size > 2) {
           for(int k = 0; k < rf[i].size; k++) {
             IORegisters[nio].Name = regname(rf[i].reg, k);
             IORegisters[nio].Address = rf[i].addr + k;
