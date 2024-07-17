@@ -333,56 +333,25 @@ int Tagfile_FindPGMAddress(int Address) {
 }
 
 const char *Tagfile_Resolve_Mem_Address(int Address) {
-  static char Buffer[64];
-  int i;
+  for(int i = 0; i < MemLabelCount && MemLabels[i].Address <= Address; i++) {
+    int Start = MemLabels[i].Address;
+    int Size = MemLabels[i].Type == TYPE_WORD? 2: 1;
+    int End = MemLabels[i].Address + MemLabels[i].Count * Size - 1;
 
-  for(i = 0; i < MemLabelCount; i++) {
-    int Start, End, Size;
-
-    Size = 0;
-    if(MemLabels[i].Address > Address)
-      return NULL;
-
-    Start = MemLabels[i].Address;
-    switch (MemLabels[i].Type) {
-    case TYPE_BYTE:
-      Size = 1;
-      break;
-    case TYPE_WORD:
-      Size = 2;
-      break;
-    }
-    End = MemLabels[i].Address + MemLabels[i].Count * Size - 1;
-
-    if((Address >= Start) && (Address <= End)) {
-      if(MemLabels[i].Count == 1) {
-        // Single variable
-        if(Size == 1) {
-          strncpy(Buffer, MemLabels[i].Comment, sizeof(Buffer));
-        } else {
-          if((Address - Start) == 0) {
-            snprintf(Buffer, sizeof(Buffer), "_lo8(%s)", MemLabels[i].Comment);
-          } else {
-            snprintf(Buffer, sizeof(Buffer), "_hi8(%s)", MemLabels[i].Comment);
-          }
-        }
-      } else {
-        // Array
-        if(Size == 1) {
-          snprintf(Buffer, sizeof(Buffer), "%s[%d]", MemLabels[i].Comment, (Address - Start) / 1);
-        } else {
-          int HiLo = (Address - Start) % 2;
-
-          if(HiLo == 0) {
-            snprintf(Buffer, sizeof(Buffer), "_lo8(%s[%d])", MemLabels[i].Comment, (Address - Start) / 2);
-          } else {
-            snprintf(Buffer, sizeof(Buffer), "_hi8(%s[%d])", MemLabels[i].Comment, (Address - Start) / 2);
-          }
-        }
+    if(Address >= Start && Address <= End) {
+      if(MemLabels[i].Count == 1) { // Single variable
+        if(Size == 1)
+          return str_ccprintf("%s", MemLabels[i].Comment);
+        return str_ccprintf("_%s8(%s)", Address == Start? "lo": "hi", MemLabels[i].Comment);
       }
-      return Buffer;
+      // Array
+      if(Size == 1)
+        return str_ccprintf("%s[%d]", MemLabels[i].Comment, Address - Start);
+      return str_ccprintf("_%s8(%s[%d])", (Address-Start)%2? "hi": "lo", MemLabels[i].Comment,
+        (Address - Start)/2);
     }
   }
+
   return NULL;
 }
 
