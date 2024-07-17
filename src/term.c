@@ -236,7 +236,6 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         "    -c        show comments, -C don't show comments\n"
         "    -q        show call cycles, -Q don't show call cycles\n"
         "    -s        use avr-gcc code style, -S use AVR instruction set code style\n"
-        "    -p        include pseudocode, -P don't include pseudocode\n"
         "    -l        preprocess jump/call, -L don't preprocess jump/call\n"
         "    -t=<file> set the tagfile to be used\n"
       );
@@ -460,7 +459,6 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.Show_Opcodes = 0;
     cx->dis_opts.Show_Comments = 1;
     cx->dis_opts.Show_Cycles = 0;
-    cx->dis_opts.Show_PseudoCode = 0;
     cx->dis_opts.Filename[0] = 0;
     cx->dis_opts.MCU[0] = 0;
     cx->dis_opts.Tagfile = NULL;
@@ -480,31 +478,28 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
-        switch((chr = *q & 0xff)) {
+        switch((chr = *q & 0x7f)) {
         case '?':
         case 'h':
           help++;
           break;
         case 'a': case 'A':
-          cx->dis_opts.Show_Addresses = tolower(chr);
+          cx->dis_opts.Show_Addresses = !!islower(chr);
           break;
         case 'o': case 'O':
-          cx->dis_opts.Show_Opcodes = tolower(chr);
+          cx->dis_opts.Show_Opcodes = !!islower(chr);
           break;
         case 'c': case 'C':
-          cx->dis_opts.Show_Comments = tolower(chr);
+          cx->dis_opts.Show_Comments = !!islower(chr);
           break;
         case 'q': case 'Q':
-          cx->dis_opts.Show_Cycles = tolower(chr);
-          break;
-        case 'p': case 'P':
-          cx->dis_opts.Show_PseudoCode = tolower(chr);
+          cx->dis_opts.Show_Cycles = !!islower(chr);
           break;
         case 's': case 'S':
-          cx->dis_opts.CodeStyle = tolower(chr)? CODESTYLE_AVRGCC: CODESTYLE_AVR_INSTRUCTION_SET;
+          cx->dis_opts.CodeStyle = islower(chr)? CODESTYLE_AVRGCC: CODESTYLE_AVR_INSTRUCTION_SET;
           break;
         case 'l': case 'L':
-          cx->dis_opts.Process_Labels = tolower(chr);
+          cx->dis_opts.Process_Labels = !!islower(chr);
           break;
         case 't':
           if(*++q == '=')

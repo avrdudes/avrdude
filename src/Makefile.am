@@ -122,8 +122,6 @@ libavrdude_a_SOURCES = \
 	disasm.c \
 	disasm_callbacks_assembly.c \
 	disasm_callbacks_assembly.h \
-	disasm_callbacks_pseudocode.c \
-	disasm_callbacks_pseudocode.h \
 	disasm_globals.h \
 	disasm_ioregisters.c \
 	disasm_ioregisters.h \

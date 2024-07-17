@@ -38,7 +38,6 @@
 
 #include "disasm_globals.h"
 #include "disasm_callbacks_assembly.h"
-#include "disasm_callbacks_pseudocode.h"
 #include "disasm_jumpcall.h"
 #include "disasm_ioregisters.h"
 #include "disasm_tagfile.h"
@@ -222,7 +221,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
   cx->dis_opts.Pass = 1;
   Pos = 0;
 
-  if(cx->dis_opts.Process_Labels || (!cx->dis_opts.Show_PseudoCode && cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC)) {
+  if(cx->dis_opts.Process_Labels || cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC) {
     // Preprocess to gather jump labels or to gain knowledge about registers which are being used
     while(Pos < Read) {
       Opcode = Get_Next_Opcode(Bitstream + Pos);
@@ -289,11 +288,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
           printf("%s\n", cx->dis_code);
         } else {
           // Comment available
-          if(!cx->dis_opts.Show_PseudoCode) {
-            printf("%-23s ; %s\n", cx->dis_code, cx->dis_comment);
-          } else {
-            printf("%-35s ; %s\n", cx->dis_code, cx->dis_comment);
-          }
+          printf("%-23s ; %s\n", cx->dis_code, cx->dis_comment);
         }
       }
       printf("%s", cx->dis_after_code);
@@ -306,10 +301,6 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
     }
   }
 
-  if(cx->dis_opts.Show_PseudoCode) { // {
-    printf("}\n");
-    printf("\n");
-  }
 }
 
 void Display_Opcodes() {
@@ -525,73 +516,6 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(swap_Callback, "1001 010d  dddd 0010", OPCODE_swap);
   // Register_Opcode(tst_Callback, "0010 00dd  dddd dddd", OPCODE_tst); // Implied by and
   Register_Opcode(wdr_Callback, "1001 0101  1010 1000", OPCODE_wdr);
-
-  if(cx->dis_opts.Show_PseudoCode) {
-    Supersede_Opcode(adc_Callback_PC, OPCODE_adc);
-    Supersede_Opcode(add_Callback_PC, OPCODE_add);
-    Supersede_Opcode(sub_Callback_PC, OPCODE_sub);
-    Supersede_Opcode(sbc_Callback_PC, OPCODE_sbc);
-    Supersede_Opcode(mov_Callback_PC, OPCODE_mov);
-    Supersede_Opcode(brcc_Callback_PC, OPCODE_brcc);
-    Supersede_Opcode(brcs_Callback_PC, OPCODE_brcs);
-    Supersede_Opcode(breq_Callback_PC, OPCODE_breq);
-    Supersede_Opcode(brge_Callback_PC, OPCODE_brge);
-    Supersede_Opcode(brhc_Callback_PC, OPCODE_brhc);
-    Supersede_Opcode(brhs_Callback_PC, OPCODE_brhs);
-    Supersede_Opcode(brid_Callback_PC, OPCODE_brid);
-    Supersede_Opcode(brie_Callback_PC, OPCODE_brie);
-    Supersede_Opcode(brlo_Callback_PC, OPCODE_brlo);
-    Supersede_Opcode(brlt_Callback_PC, OPCODE_brlt);
-    Supersede_Opcode(brmi_Callback_PC, OPCODE_brmi);
-    Supersede_Opcode(brne_Callback_PC, OPCODE_brne);
-    Supersede_Opcode(brpl_Callback_PC, OPCODE_brpl);
-    Supersede_Opcode(brsh_Callback_PC, OPCODE_brsh);
-    Supersede_Opcode(brtc_Callback_PC, OPCODE_brtc);
-    Supersede_Opcode(brts_Callback_PC, OPCODE_brts);
-    Supersede_Opcode(brvc_Callback_PC, OPCODE_brvc);
-    Supersede_Opcode(brvs_Callback_PC, OPCODE_brvs);
-    Supersede_Opcode(out_Callback_PC, OPCODE_out);
-    Supersede_Opcode(in_Callback_PC, OPCODE_in);
-    Supersede_Opcode(cli_Callback_PC, OPCODE_cli);
-    Supersede_Opcode(sei_Callback_PC, OPCODE_sei);
-    Supersede_Opcode(ret_Callback_PC, OPCODE_ret);
-    Supersede_Opcode(reti_Callback_PC, OPCODE_reti);
-    Supersede_Opcode(andi_Callback_PC, OPCODE_andi);
-    Supersede_Opcode(subi_Callback_PC, OPCODE_subi);
-    Supersede_Opcode(sbci_Callback_PC, OPCODE_sbci);
-    Supersede_Opcode(sbr_Callback_PC, OPCODE_sbr);
-    Supersede_Opcode(ori_Callback_PC, OPCODE_ori);
-    Supersede_Opcode(ldi_Callback_PC, OPCODE_ldi);
-    Supersede_Opcode(lds_Callback_PC, OPCODE_lds);
-    Supersede_Opcode(sts_Callback_PC, OPCODE_sts);
-    Supersede_Opcode(call_Callback_PC, OPCODE_call);
-    Supersede_Opcode(rcall_Callback_PC, OPCODE_rcall);
-    Supersede_Opcode(ror_Callback_PC, OPCODE_ror);
-    Supersede_Opcode(lsr_Callback_PC, OPCODE_lsr);
-    Supersede_Opcode(eor_Callback_PC, OPCODE_eor);
-    Supersede_Opcode(swap_Callback_PC, OPCODE_swap);
-    Supersede_Opcode(jmp_Callback_PC, OPCODE_jmp);
-    Supersede_Opcode(rjmp_Callback_PC, OPCODE_rjmp);
-    Supersede_Opcode(cpi_Callback_PC, OPCODE_cpi);
-    Supersede_Opcode(asr_Callback_PC, OPCODE_asr);
-    Supersede_Opcode(inc_Callback_PC, OPCODE_inc);
-    Supersede_Opcode(dec_Callback_PC, OPCODE_dec);
-    Supersede_Opcode(cp_Callback_PC, OPCODE_cp);
-    Supersede_Opcode(cpc_Callback_PC, OPCODE_cpc);
-    Supersede_Opcode(cpse_Callback_PC, OPCODE_cpse);
-    Supersede_Opcode(and_Callback_PC, OPCODE_and);
-    Supersede_Opcode(or_Callback_PC, OPCODE_or);
-    Supersede_Opcode(mul_Callback_PC, OPCODE_mul);
-    Supersede_Opcode(sbi_Callback_PC, OPCODE_sbi);
-    Supersede_Opcode(sbis_Callback_PC, OPCODE_sbis);
-    Supersede_Opcode(sbic_Callback_PC, OPCODE_sbic);
-    Supersede_Opcode(cbi_Callback_PC, OPCODE_cbi);
-    Supersede_Opcode(ser_Callback_PC, OPCODE_ser);
-    Supersede_Opcode(movw_Callback_PC, OPCODE_movw);
-    Supersede_Opcode(adiw_Callback_PC, OPCODE_adiw);
-    Supersede_Opcode(lpm1_Callback_PC, OPCODE_lpm_1);
-    Supersede_Opcode(stx2_Callback_PC, OPCODE_st_2);
-  }
 
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);
 

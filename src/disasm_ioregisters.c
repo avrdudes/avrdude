@@ -117,8 +117,6 @@ const char *Resolve_IO_Register(int Number) {
 void Emit_Used_IO_Registers() {
   unsigned int i;
 
-  if(cx->dis_opts.Show_PseudoCode)
-    return;
   for(i = 0; i < KnownIORegistersCount; i++) {
     if(KnownIORegisters[i].Used)
       printf(".equ %s, 0x%x\n", KnownIORegisters[i].Name, KnownIORegisters[i].Address);

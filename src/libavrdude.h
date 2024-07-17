@@ -1448,17 +1448,16 @@ typedef struct {
 
 
 typedef struct {
-  char Show_Addresses;
-  char Show_Opcodes;
-  char Show_Comments;
-  char Show_Cycles;
-  char Show_PseudoCode;
+  int Show_Addresses;
+  int Show_Opcodes;
+  int Show_Comments;
+  int Show_Cycles;
   char Filename[256];
   char MCU[8];
   const char *Tagfile;
-  char CodeStyle;
-  char Process_Labels;
-  char Pass;
+  int CodeStyle;
+  int Process_Labels;
+  int Pass;
   int FlashSize;
   int AVR_Level;
 } Disasm_options;
