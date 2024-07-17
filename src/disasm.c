@@ -80,23 +80,13 @@ int Compare_Opcode(const char *Bitstream, const char *Bitmask) {
 }
 
 void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
-  cx->dis_n_ops++;
-  cx->dis_op[cx->dis_n_ops - 1].Opcode_String = malloc(strlen(New_Opcode_String) + 1);
-  strcpy(cx->dis_op[cx->dis_n_ops - 1].Opcode_String, New_Opcode_String);
-  cx->dis_op[cx->dis_n_ops - 1].mnemo = mnemo;
-  cx->dis_op[cx->dis_n_ops - 1].Callback = Callback;
-}
-
-void Supersede_Opcode(void (*Callback)(const char *, int, AVR_opcode), AVR_opcode mnemo) {
-  int i;
-
-  for(i = 0; i < cx->dis_n_ops; i++) {
-    if(cx->dis_op[i].mnemo == mnemo) {
-      cx->dis_op[i].Callback = Callback;
-      return;
-    }
+  // Only register opcode if the part has it
+  if(avr_opcodes[mnemo].avrlevel & cx->dis_opts.AVR_Level) {
+    cx->dis_op[cx->dis_n_ops].Opcode_String = mmt_strdup(New_Opcode_String);
+    cx->dis_op[cx->dis_n_ops].mnemo = mnemo;
+    cx->dis_op[cx->dis_n_ops].Callback = Callback;
+    cx->dis_n_ops++;
   }
-  fprintf(stderr, "Error: No callback fund to supersede opcode %d (%s).\n", mnemo, avr_opcodes[mnemo].opcode);
 }
 
 int Get_Bitmask_Length(const char *Bitmask) {
