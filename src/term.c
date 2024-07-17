@@ -399,6 +399,54 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   return 0;
 }
 
+static int get_avr_archlevel(const AVRPART *p) {
+  int ret =
+    p->prog_modes & PM_UPDI? PART_AVR_XT:
+    p->prog_modes & PM_PDI?  PART_AVR_XM:
+    p->prog_modes & PM_TPI?  PART_AVR_RC: 0;
+
+  if(!ret) {                    // Non-TPI classic part
+    switch(p->archnum) {
+    case 1:
+      ret = PART_AVR1;
+      break;
+    default:                    // If AVRDUE doesn't know, it's probably rare & old
+    case 2:
+      ret = PART_AVR2;
+      break;
+    case 25:
+      ret = PART_AVR25;
+      break;
+    case 3: case 31: case 35:  // Sic
+      ret = PART_AVR3;
+      break;
+      break;
+    case 4:
+      ret = PART_AVR4;
+      break;
+    case 5:
+      ret = PART_AVR5;
+      break;
+    case 51:
+      ret = PART_AVR51;
+      break;
+    case  6:
+      ret = PART_AVR6;
+    }
+  }
+
+  AVRMEM *mem = avr_locate_flash(p);
+  if(mem) {                     // Add opcodes needed for large parts in any case
+    if(mem->size > 8192)
+      ret |= OP_AVR_M;          // JMP, CALL
+    if(mem->size > 65536)
+      ret |= OP_AVR_L;          // ELPM
+    if(mem->size > 128*1024)
+      ret |= OP_AVR_XL;         // EIJMP, EICALL
+  }
+
+  return ret;
+}
 
 static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int addr, len;
@@ -419,11 +467,12 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.CodeStyle = CODESTYLE_AVRGCC; // CODESTYLE_AVR_INSTRUCTION_SET
     cx->dis_opts.Process_Labels = 1;
     cx->dis_opts.FlashSize = 0;
+    if((mem = avr_locate_flash(p)))
+      cx->dis_opts.FlashSize = mem->size;
+    cx->dis_opts.AVR_Level = get_avr_archlevel(p);
     cx->dis_initopts++;
   }
   cx->dis_opts.Pass = 1;
-  if((mem = avr_locate_flash(p)))
-    cx->dis_opts.FlashSize = mem->size;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;

@@ -1460,6 +1460,7 @@ typedef struct {
   char Process_Labels;
   char Pass;
   int FlashSize;
+  int AVR_Level;
 } Disasm_options;
 
 typedef enum {
