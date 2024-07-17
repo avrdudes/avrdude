@@ -84,6 +84,7 @@ Component avr_comp[] = {
   part_comp_desc(family_id, COMP_STRING),
   part_comp_desc(prog_modes, COMP_INT),
   part_comp_desc(mcuid, COMP_INT),
+  part_comp_desc(archnum, COMP_INT),
   part_comp_desc(n_interrupts, COMP_INT),
   part_comp_desc(n_page_erase, COMP_INT),
   part_comp_desc(n_boot_sections, COMP_INT),

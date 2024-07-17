@@ -272,6 +272,7 @@ typedef struct avrpart {
   const char  * family_id;          /* family id in the SIB (avr8x) */
   int           prog_modes;         /* Programming interfaces, see #define PM_... */
   int           mcuid;              /* Unique id in 0..2039 for urclock programmer */
+  int           archnum;            /* avr-gcc architecture number for the part */
   int           n_interrupts;       /* Number of interrupts, used for vector bootloaders */
   int           n_page_erase;       /* If set, number of pages erased during NVM erase */
   int           n_boot_sections;    /* Number of boot sections */
