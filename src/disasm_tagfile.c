@@ -57,6 +57,12 @@ struct MemLabel {
   char *Comment;
 };
 
+struct IO_Register {
+  int Address;
+  char *Name;
+  unsigned char Used;
+};
+
 static int CodeLabelCount = 0;
 static struct CodeLabel *CodeLabels;
 
@@ -65,6 +71,9 @@ static struct PGMLabel *PGMLabels = NULL;
 
 static int MemLabelCount = 0;
 static struct MemLabel *MemLabels = NULL;
+
+static struct IO_Register *IORegisters = NULL;
+static int IORegistersCount = 0;
 
 /*
 static void Display_Tagfile() {
@@ -115,48 +124,30 @@ static int ahtoi(const char *String) {
 static void Add_LabelTag(int Address, const char *LabelText, const char *LabelComment) {
   CodeLabelCount++;
 
-  CodeLabels = (struct CodeLabel *) realloc(CodeLabels, sizeof(struct CodeLabel) * CodeLabelCount);
+  CodeLabels = (struct CodeLabel *) mmt_realloc(CodeLabels, sizeof(struct CodeLabel) * CodeLabelCount);
   CodeLabels[CodeLabelCount - 1].Address = Address;
-
-  CodeLabels[CodeLabelCount - 1].Text = (char *) malloc(strlen(LabelText) + 1);
-  strcpy(CodeLabels[CodeLabelCount - 1].Text, LabelText);
-
-  if(LabelComment != NULL) {
-    CodeLabels[CodeLabelCount - 1].Comment = (char *) malloc(strlen(LabelComment) + 1);
-    strcpy(CodeLabels[CodeLabelCount - 1].Comment, LabelComment);
-  } else {
-    CodeLabels[CodeLabelCount - 1].Comment = NULL;
-  }
+  CodeLabels[CodeLabelCount - 1].Text = LabelText? mmt_strdup(LabelText): NULL;
+  CodeLabels[CodeLabelCount - 1].Comment = LabelComment? mmt_strdup(LabelComment): NULL;
 }
 
 static void Add_PGM_Tag(int Address, char Type, unsigned int Count, const char *Comment) {
   PGMLabelCount++;
 
-  PGMLabels = (struct PGMLabel *) realloc(PGMLabels, sizeof(struct PGMLabel) * PGMLabelCount);
+  PGMLabels = (struct PGMLabel *) mmt_realloc(PGMLabels, sizeof(struct PGMLabel) * PGMLabelCount);
   PGMLabels[PGMLabelCount - 1].Address = Address;
   PGMLabels[PGMLabelCount - 1].Type = Type;
   PGMLabels[PGMLabelCount - 1].Count = Count;
-  if(Comment != NULL) {
-    PGMLabels[PGMLabelCount - 1].Comment = (char *) malloc(strlen(Comment) + 1);
-    strcpy(PGMLabels[PGMLabelCount - 1].Comment, Comment);
-  } else {
-    PGMLabels[PGMLabelCount - 1].Comment = NULL;
-  }
+  PGMLabels[PGMLabelCount - 1].Comment = Comment? mmt_strdup(Comment): NULL;
 }
 
 static void Add_Mem_Tag(int Address, char Type, unsigned int Count, const char *Comment) {
   MemLabelCount++;
 
-  MemLabels = (struct MemLabel *) realloc(MemLabels, sizeof(struct MemLabel) * MemLabelCount);
+  MemLabels = (struct MemLabel *) mmt_realloc(MemLabels, sizeof(struct MemLabel) * MemLabelCount);
   MemLabels[MemLabelCount - 1].Address = Address;
   MemLabels[MemLabelCount - 1].Type = Type;
   MemLabels[MemLabelCount - 1].Count = Count;
-  if(Comment != NULL) {
-    MemLabels[MemLabelCount - 1].Comment = (char *) malloc(strlen(Comment) + 1);
-    strcpy(MemLabels[MemLabelCount - 1].Comment, Comment);
-  } else {
-    MemLabels[MemLabelCount - 1].Comment = NULL;
-  }
+  MemLabels[MemLabelCount - 1].Comment = Comment? mmt_strdup(Comment): NULL;
 }
 
 static void Tagfile_Readline(char *Line, int LineNo) {
@@ -528,9 +519,6 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
 }
 
 
-static struct IO_Register *IORegisters = NULL;
-static int IORegistersCount = 0;
-
 static char *regname(const char *reg, int suf) {
   char *ret =
     suf <= -1? mmt_strdup(reg):
@@ -543,14 +531,21 @@ static char *regname(const char *reg, int suf) {
   return ret;
 }
 
-int initIORegisters(const AVRPART *p) {
-  int nr = 0, nio = 0;
+// Initialise IORegisters and MemLabels from part register file
+void initRegisters(const AVRPART *p) {
+  int nr = 0, nio = 0, offset = 0;
   const Register_file *rf = avr_locate_register_file(p, &nr);
+
   if(rf) {
     if(IORegisters) {
       for(int i = 0; i < IORegistersCount; i++)
         mmt_free(IORegisters[i].Name);
       mmt_free(IORegisters);
+    }
+    if(MemLabels) {
+      for(int i = 0; i < MemLabelCount; i++)
+        mmt_free(MemLabels[i].Comment);
+      mmt_free(MemLabels);
     }
 
     // Count how many entries are needed
@@ -558,9 +553,18 @@ int initIORegisters(const AVRPART *p) {
       if(rf[i].addr < 0x40)
         nio += rf[i].size;
     IORegisters = mmt_malloc(nio*sizeof*IORegisters);
+    MemLabels = mmt_malloc(nr*sizeof*MemLabels);
 
+    AVRMEM *mem = avr_locate_io(p);
+    if(mem)
+      offset = mem->offset;
     nio = 0;
     for(int i = 0; i< nr; i++) {
+      MemLabels[i].Address = offset + rf[i].addr;
+      MemLabels[i].Type = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
+      MemLabels[i].Count = rf[i].size > 2? rf[i].size: 1;
+      MemLabels[i].Comment = regname(rf[i].reg, -1);
+
       if(rf[i].addr < 0x40) {
         if(rf[i].size == 1) {
           IORegisters[nio].Name = regname(rf[i].reg, -1);
@@ -583,9 +587,9 @@ int initIORegisters(const AVRPART *p) {
       }
     }
     IORegistersCount = nio;
+    MemLabelCount = nr;
+    qsort(MemLabels, MemLabelCount, sizeof(struct MemLabel), MemLabelSort);
   }
-
-  return IORegistersCount;
 }
 
 const char *Resolve_IO_Register(int Number) {

@@ -44,9 +44,3 @@ struct JumpCall {
   unsigned char FunctionCall;
 };
 
-struct IO_Register {
-  int Address;
-  char *Name;
-  unsigned char Used;
-};
-
