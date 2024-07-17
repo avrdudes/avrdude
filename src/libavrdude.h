@@ -1445,6 +1445,7 @@ typedef struct {
 #define STR_XINT32  STR_4
 #define STR_XINT64  STR_8
 
+
 typedef struct {
   char Show_Addresses;
   char Show_Opcodes;
@@ -1511,10 +1512,46 @@ typedef struct {
 } Disasm_opcode;
 
 
+typedef enum {
+  OP_AVR_RC                = 1, // Reduced-core Tiny only (128 byte STS/LDS)
+  OP_AVR1                  = 2, // All AVR can run this OPCODE
+  OP_AVR1nRC               = 4, // All except reduced-core Tiny (TPI) and AT90S1200
+  OP_AVR2                  = 8, // AVR with archnum 2 and above
+  OP_AVR2nRC              = 16, // AVR with archnum 2+ but not reduced-core Tiny
+  OP_AVR25                = 32, // AVR with archnum 25 and above
+  OP_AVR_M                = 64, // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
+  OP_AVR4                = 128, // AVR with archnum 4 and above
+  OP_AVR_L               = 256, // AVR with flash > 64 kB (ELMP)
+  OP_AVR_XL              = 512, // AVR with flash > 128 kB (EIJMP, EICALL)
+  OP_AVR_XM             = 1024, // XMEGA only (DES, XCH, LAC, LAS, LAT)
+  OP_AVR_XTM            = 2048, // XMEGA and UPDI only (SPM Z+)
+} AVR_archlevel;
+
+/*
+ * Approximation(!) of which opcodes a part may have given its archnum
+ *   - Take with a pinch of salt
+ *   - For OP_AVR_XT and OP_AVR_XM one needs to add in OP_AVR_L/ OP_AVR_XL
+ *     depending on flash size
+ */
+#define PART_AVR1   OP_AVR1
+#define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVR_RC)
+#define PART_AVR2   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC)
+#define PART_AVR25  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
+#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
+#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
+#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
+#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
+#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L)
+#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L|OP_AVR_XL)
+#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XTM)
+#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XM|OP_AVR_XTM)
+
+
 
 typedef struct {
   int mask, value, nwords;
   const char *opcode_bits;      // Eg, "0000 11rd dddd rrrr"
+  AVR_archlevel avrlevel;       // Eg, OP_AVR1
   AVR_opcode mnemo;             // OPCODE_add, ...
   const char
     *opcode,                    // "add"
@@ -1526,7 +1563,7 @@ typedef struct {
     *clocks_xm,                 // Timing for AVRxm (XMEGA)
     *clocks_xt,                 // Timing for AVRxt (modern UPDI)
     *clocks_rc,                 // Timing for AVRrc (reduced core)
-    *note, *remarks;
+    *remarks;
 } AVR_opcode_data;
 
 extern const AVR_opcode_data avr_opcodes[164];
