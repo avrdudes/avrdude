@@ -422,6 +422,8 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_initopts++;
   }
   cx->dis_opts.Pass = 1;
+  if((mem = avr_locate_flash(p)))
+    cx->dis_opts.FlashSize = mem->size;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;

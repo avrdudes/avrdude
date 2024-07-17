@@ -49,11 +49,13 @@ void Display_JumpCalls() {
 }
 
 int FixTargetAddress(int Address) {
-  if(cx->dis_opts.FlashSize) {
-    Address %= cx->dis_opts.FlashSize;
-    if(Address < 0) {
-      Address += cx->dis_opts.FlashSize;
-    }
+  int flashsz = cx->dis_opts.FlashSize;
+
+  // Flash size is a power of two: flash wraps round
+  if(flashsz > 0 && !(flashsz & (flashsz - 1))) {
+    Address %= flashsz;
+    if(Address < 0)
+      Address += flashsz;
   }
   return Address;
 }
