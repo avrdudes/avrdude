@@ -103,4 +103,4 @@ void ser_Callback_PC(const char *Bitstream, int Position, AVR_opcode mnemo);
 void adiw_Callback_PC(const char *Bitstream, int Position, AVR_opcode mnemo);
 void movw_Callback_PC(const char *Bitstream, int Position, AVR_opcode mnemo);
 void lpm1_Callback_PC(const char *Bitstream, int Position, AVR_opcode mnemo);
-void st2_Callback_PC(const char *Bitstream, int Position, AVR_opcode mnemo);
+void stx2_Callback_PC(const char *Bitstream, int Position, AVR_opcode mnemo);

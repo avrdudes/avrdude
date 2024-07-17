@@ -452,9 +452,9 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(in_Callback, "1011 0AAd  dddd AAAA", OPCODE_in);
   Register_Opcode(inc_Callback, "1001 010d  dddd 0011", OPCODE_inc);
   Register_Opcode(jmp_Callback, "1001 010k  kkkk 110k    kkkk kkkk  kkkk kkkk", OPCODE_jmp);
-  Register_Opcode(ld1_Callback, "1001 000d  dddd 1100", OPCODE_ld_1);
-  Register_Opcode(ld2_Callback, "1001 000d  dddd 1101", OPCODE_ld_2);
-  Register_Opcode(ld3_Callback, "1001 000d  dddd 1110", OPCODE_ld_3);
+  Register_Opcode(ldx1_Callback, "1001 000d  dddd 1100", OPCODE_ld_1);
+  Register_Opcode(ldx2_Callback, "1001 000d  dddd 1101", OPCODE_ld_2);
+  Register_Opcode(ldx3_Callback, "1001 000d  dddd 1110", OPCODE_ld_3);
   Register_Opcode(ldy1_Callback, "1000 000d  dddd 1000", OPCODE_ld_4);
   Register_Opcode(ldy2_Callback, "1001 000d  dddd 1001", OPCODE_ld_5);
   Register_Opcode(ldy3_Callback, "1001 000d  dddd 1010", OPCODE_ld_6);
@@ -508,9 +508,9 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(sez_Callback, "1001 0100  0001 1000", OPCODE_sez);
   Register_Opcode(sleep_Callback, "1001 0101  1000 1000", OPCODE_sleep);
   Register_Opcode(spm_Callback, "1001 0101  1110 1000", OPCODE_spm);
-  Register_Opcode(st1_Callback, "1001 001r  rrrr 1100", OPCODE_st_1);
-  Register_Opcode(st2_Callback, "1001 001r  rrrr 1101", OPCODE_st_2);
-  Register_Opcode(st3_Callback, "1001 001r  rrrr 1110", OPCODE_st_3);
+  Register_Opcode(stx1_Callback, "1001 001r  rrrr 1100", OPCODE_st_1);
+  Register_Opcode(stx2_Callback, "1001 001r  rrrr 1101", OPCODE_st_2);
+  Register_Opcode(stx3_Callback, "1001 001r  rrrr 1110", OPCODE_st_3);
   Register_Opcode(sty1_Callback, "1000 001r  rrrr 1000", OPCODE_st_4);
   Register_Opcode(sty2_Callback, "1001 001r  rrrr 1001", OPCODE_st_5);
   Register_Opcode(sty3_Callback, "1001 001r  rrrr 1010", OPCODE_st_6);
@@ -590,7 +590,7 @@ int disasm(const char *Bitstream, int Read, int addr) {
     Supersede_Opcode(movw_Callback_PC, OPCODE_movw);
     Supersede_Opcode(adiw_Callback_PC, OPCODE_adiw);
     Supersede_Opcode(lpm1_Callback_PC, OPCODE_lpm_1);
-    Supersede_Opcode(st2_Callback_PC, OPCODE_st_2);
+    Supersede_Opcode(stx2_Callback_PC, OPCODE_st_2);
   }
 
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);

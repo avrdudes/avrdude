@@ -487,15 +487,15 @@ CALLBACK(jmp_Callback) {
   Register_JumpCall(Position, Pos, mnemo, 0);
 }
 
-CALLBACK(ld1_Callback) {
+CALLBACK(ldx1_Callback) {
   snprintf(cx->dis_code, 255, "%-7s r%d, X", avr_opcodes[mnemo].opcode, Rd);
 }
 
-CALLBACK(ld2_Callback) {
+CALLBACK(ldx2_Callback) {
   snprintf(cx->dis_code, 255, "%-7s r%d, X+", avr_opcodes[mnemo].opcode, Rd);
 }
 
-CALLBACK(ld3_Callback) {
+CALLBACK(ldx3_Callback) {
   snprintf(cx->dis_code, 255, "%-7s r%d, -X", avr_opcodes[mnemo].opcode, Rd);
 }
 
@@ -773,15 +773,15 @@ CALLBACK(spm_Callback) {
   Operation_Simple(mnemo);
 }
 
-CALLBACK(st1_Callback) {
+CALLBACK(stx1_Callback) {
   snprintf(cx->dis_code, 255, "%-7s X, r%d", avr_opcodes[mnemo].opcode, Rr);
 }
 
-CALLBACK(st2_Callback) {
+CALLBACK(stx2_Callback) {
   snprintf(cx->dis_code, 255, "%-7s X+, r%d", avr_opcodes[mnemo].opcode, Rr);
 }
 
-CALLBACK(st3_Callback) {
+CALLBACK(stx3_Callback) {
   snprintf(cx->dis_code, 255, "%-7s -X, r%d", avr_opcodes[mnemo].opcode, Rr);
 }
 

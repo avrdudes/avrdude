@@ -667,6 +667,6 @@ CALLBACK(lpm1_Callback_PC) {
   snprintf(cx->dis_code, 255, "r0 = Flash[r30:r31];");
 }
 
-CALLBACK(st2_Callback_PC) {
+CALLBACK(stx2_Callback_PC) {
   snprintf(cx->dis_code, 255, "Flash[[r26:r27]++] = r%d;", Rr);
 }
