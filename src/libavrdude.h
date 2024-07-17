@@ -1446,6 +1446,13 @@ typedef struct {
 #define STR_XINT32  STR_4
 #define STR_XINT64  STR_8
 
+typedef enum {
+  OP_AVRe,
+  OP_AVRxm,
+  OP_AVRxt,
+  OP_AVRrc,
+  OP_AVR_cycle_N
+} AVR_cycle_index;
 
 typedef struct {
   int Show_Addresses;
@@ -1460,6 +1467,7 @@ typedef struct {
   int Pass;
   int FlashSize;
   int AVR_Level;
+  AVR_cycle_index cycle_index;
 } Disasm_options;
 
 typedef enum {
@@ -1547,8 +1555,6 @@ typedef enum {
 #define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XTM)
 #define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XM|OP_AVR_XTM)
 
-
-
 typedef struct {
   int mask, value, nwords;
   const char *opcode_bits;      // Eg, "0000 11rd dddd rrrr"
@@ -1560,10 +1566,7 @@ typedef struct {
     *description,               // "Add without Carry"
     *operation,                 // "Rd ← Rd+Rr"
     *flags,                     // "Z,C,N,V,S,H"
-    *clocks_e,                  // Timing for AVRe (extended AVR opcode set)
-    *clocks_xm,                 // Timing for AVRxm (XMEGA)
-    *clocks_xt,                 // Timing for AVRxt (modern UPDI)
-    *clocks_rc,                 // Timing for AVRrc (reduced core)
+    *clock[OP_AVR_cycle_N],     // Timing tables for AVRe, AVRxm, AVRxt and AVRrc
     *remarks;
 } AVR_opcode_data;
 

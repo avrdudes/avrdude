@@ -265,7 +265,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       if(cx->dis_opts.Show_Addresses)
         printf("%4x:   ", Pos);
       if(cx->dis_opts.Show_Cycles) // @@@ select correct clocks_xx
-        printf("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clocks_e);
+        printf("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clock[cx->dis_opts.cycle_index]);
 
       if(cx->dis_opts.Show_Opcodes) {
         // Now display the Opcode
