@@ -41,42 +41,43 @@ static unsigned BitCount(unsigned n) {
 
   // A la Kernighan (and Richie): iteratively clear the least significant bit set
   for(ret = 0; n; ret++)
-    n &= n -1;
+    n &= n-1;
 
   return ret;
 }
 
-void Operation_Simple(AVR_opcode mnemo) {
+static void Operation_Simple(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%s", avr_opcodes[mnemo].opcode);
 }
 
-void Operation_Rd(AVR_opcode mnemo) {
+static void Operation_Rd(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d", avr_opcodes[mnemo].opcode, Rd);
 }
 
-void Operation_Rd16(AVR_opcode mnemo) {
+static void Operation_Rd16(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d", avr_opcodes[mnemo].opcode, Rd + 16);
 }
 
-void Operation_Rd_Rr(AVR_opcode mnemo) {
+static void Operation_Rd_Rr(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d, r%d", avr_opcodes[mnemo].opcode, Rd, Rr);
 }
 
-void Operation_Rd16_Rr16(AVR_opcode mnemo) {
+static void Operation_Rd16_Rr16(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d, r%d", avr_opcodes[mnemo].opcode, Rd + 16, Rr + 16);
 }
 
-void Operation_Rd16_K(AVR_opcode mnemo) {
+static void Operation_Rd16_K(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd + 16, RK);
   snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
-void Operation_Rd_K(AVR_opcode mnemo) {
+/****
+static void Operation_Rd_K(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd, RK);
   snprintf(cx->dis_comment, 255, "%d", RK);
 }
 
-void Operation_RdW_K(AVR_opcode mnemo) {
+static void Operation_RdW_K(AVR_opcode mnemo) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(cx->dis_code, 255, "%-7s r%d:%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd + 1, Rd, RK);
   } else {
@@ -84,8 +85,9 @@ void Operation_RdW_K(AVR_opcode mnemo) {
   }
   snprintf(cx->dis_comment, 255, "%d", RK);
 }
+****/
 
-void Operation_RdW_RrW(AVR_opcode mnemo) {
+static void Operation_RdW_RrW(AVR_opcode mnemo) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
     snprintf(cx->dis_code, 255, "%-7s r%d:%d, r%d:%d", avr_opcodes[mnemo].opcode, (2 * Rd) + 1, 2 * Rd, (2 * Rr) + 1, 2 * Rr);
   } else {
@@ -93,7 +95,7 @@ void Operation_RdW_RrW(AVR_opcode mnemo) {
   }
 }
 
-void Operation_s_k(AVR_opcode mnemo, int Position) {
+static void Operation_s_k(AVR_opcode mnemo, int Position) {
   int Bits, Offset;
   int Target;
 
@@ -117,7 +119,7 @@ void Operation_s_k(AVR_opcode mnemo, int Position) {
   }
 }
 
-void Operation_r_b(AVR_opcode mnemo) {
+static void Operation_r_b(AVR_opcode mnemo) {
   int Register, Bit;
 
   Register = Rr;
@@ -126,7 +128,7 @@ void Operation_r_b(AVR_opcode mnemo) {
   snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
-void Operation_Rd_b(AVR_opcode mnemo) {
+static void Operation_Rd_b(AVR_opcode mnemo) {
   int Register, Bit;
 
   Register = Rd;
@@ -135,7 +137,7 @@ void Operation_Rd_b(AVR_opcode mnemo) {
   snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
-void Operation_A_b(AVR_opcode mnemo) {
+static void Operation_A_b(AVR_opcode mnemo) {
   int Register, Bit;
   const char *Register_Name;
 
@@ -151,7 +153,7 @@ void Operation_A_b(AVR_opcode mnemo) {
   }
 }
 
-void Operation_s(AVR_opcode mnemo) {
+static void Operation_s(AVR_opcode mnemo) {
   int Bit;
 
   Bit = Rs;
@@ -159,7 +161,7 @@ void Operation_s(AVR_opcode mnemo) {
   snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
-void Operation_k(AVR_opcode mnemo, int Position, const char *Pseudocode) {
+static void Operation_k(AVR_opcode mnemo, int Position, const char *Pseudocode) {
   int Offset;
   int Target;
 

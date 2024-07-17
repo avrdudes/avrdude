@@ -25,21 +25,6 @@
     JohannesBauer@gmx.de
 */
 
-void Operation_Simple(AVR_opcode mnemo);
-void Operation_Rd(AVR_opcode mnemo);
-void Operation_Rd16(AVR_opcode mnemo);
-void Operation_Rd_Rr(AVR_opcode mnemo);
-void Operation_Rd16_Rr16(AVR_opcode mnemo);
-void Operation_Rd16_K(AVR_opcode mnemo);
-void Operation_Rd_K(AVR_opcode mnemo);
-void Operation_RdW_K(AVR_opcode mnemo);
-void Operation_RdW_RrW(AVR_opcode mnemo);
-void Operation_s_k(AVR_opcode mnemo, int Position);
-void Operation_r_b(AVR_opcode mnemo);
-void Operation_Rd_b(AVR_opcode mnemo);
-void Operation_A_b(AVR_opcode mnemo);
-void Operation_s(AVR_opcode mnemo);
-void Operation_k(AVR_opcode mnemo, int Position, const char *Pseudocode);
 void adc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void add_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void adiw_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
