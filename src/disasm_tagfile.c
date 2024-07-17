@@ -28,10 +28,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 #include <errno.h>
 
+#include "avrdude.h"
 #include "libavrdude.h"
 
+#include "disasm_private.h"
 #include "disasm_tagfile.h"
 
 struct CodeLabel {
@@ -522,4 +525,82 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
 
   printf("\n");
   return BytesAdvanced;
+}
+
+
+static struct IO_Register *IORegisters = NULL;
+static int IORegistersCount = 0;
+
+static char *regname(const char *reg, int suf) {
+  char *ret =
+    suf <= -1? mmt_strdup(reg):
+    suf == 'h' || suf == 'l'? str_sprintf("%s%c", reg, suf):
+    str_sprintf("%s%d", reg, suf);
+
+  for(char *s = ret; *s; s++)
+    *s = *s == '.'? '_': isascii(*s & 0xff)? toupper(*s & 0xff): *s;
+
+  return ret;
+}
+
+int initIORegisters(const AVRPART *p) {
+  int nr = 0, nio = 0;
+  const Register_file *rf = avr_locate_register_file(p, &nr);
+  if(rf) {
+    if(IORegisters) {
+      for(int i = 0; i < IORegistersCount; i++)
+        mmt_free(IORegisters[i].Name);
+      mmt_free(IORegisters);
+    }
+
+    // Count how many entries are needed
+    for(int i = 0; i< nr; i++)
+      if(rf[i].addr < 0x40)
+        nio += rf[i].size;
+    IORegisters = mmt_malloc(nio*sizeof*IORegisters);
+
+    nio = 0;
+    for(int i = 0; i< nr; i++) {
+      if(rf[i].addr < 0x40) {
+        if(rf[i].size == 1) {
+          IORegisters[nio].Name = regname(rf[i].reg, -1);
+          IORegisters[nio].Address = rf[i].addr;
+          nio++;
+        } else if(rf[i].size == 2) {
+          IORegisters[nio].Name = regname(rf[i].reg, 'l');
+          IORegisters[nio].Address = rf[i].addr;
+          nio++;
+          IORegisters[nio].Name = regname(rf[i].reg, 'h');
+          IORegisters[nio].Address = rf[i].addr+1;
+          nio++;
+        } else {
+          for(int k = 0; k < rf[i].size; k++) {
+            IORegisters[nio].Name = regname(rf[i].reg, k);
+            IORegisters[nio].Address = rf[i].addr + k;
+            nio++;
+          }
+        }
+      }
+    }
+    IORegistersCount = nio;
+  }
+
+  return IORegistersCount;
+}
+
+const char *Resolve_IO_Register(int Number) {
+  for(int i = 0; i < IORegistersCount; i++) {
+    if(IORegisters[i].Address == Number) {
+      IORegisters[i].Used = 1;
+      return IORegisters[i].Name;
+    }
+  }
+
+  return NULL;
+}
+
+void Emit_Used_IO_Registers() {
+  for(int i = 0; i < IORegistersCount; i++)
+    if(IORegisters[i].Used)
+      printf(".equ %s, 0x%x\n", IORegisters[i].Name, IORegisters[i].Address);
 }

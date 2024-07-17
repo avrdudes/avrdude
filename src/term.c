@@ -477,6 +477,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       cx->dis_opts.FlashSize = mem->size;
     cx->dis_opts.AVR_Level = get_avr_archlevel(p);
     cx->dis_opts.cycle_index = get_avr_cycle_index(p);
+    initIORegisters(p);
     cx->dis_initopts++;
   }
   cx->dis_opts.Pass = 1;

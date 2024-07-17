@@ -30,10 +30,9 @@
 
 #include "libavrdude.h"
 
-#include "disasm_globals.h"
+#include "disasm_private.h"
 #include "disasm_callbacks_assembly.h"
 #include "disasm_jumpcall.h"
-#include "disasm_ioregisters.h"
 #include "disasm_tagfile.h"
 
 // Return the number of bits set in Number

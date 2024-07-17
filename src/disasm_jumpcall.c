@@ -31,7 +31,7 @@
 
 #include "libavrdude.h"
 
-#include "disasm_globals.h"
+#include "disasm_private.h"
 #include "disasm_tagfile.h"
 #include "disasm_jumpcall.h"
 

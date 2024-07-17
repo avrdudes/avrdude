@@ -120,11 +120,9 @@ libavrdude_a_SOURCES = \
 	crc16.c \
 	crc16.h \
 	disasm.c \
+	disasm_private.h \
 	disasm_callbacks_assembly.c \
 	disasm_callbacks_assembly.h \
-	disasm_globals.h \
-	disasm_ioregisters.c \
-	disasm_ioregisters.h \
 	disasm_jumpcall.c \
 	disasm_jumpcall.h \
 	disasm_tagfile.c \

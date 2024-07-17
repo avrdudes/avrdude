@@ -46,7 +46,7 @@ struct JumpCall {
 
 struct IO_Register {
   int Address;
-  char Name[16];
+  char *Name;
   unsigned char Used;
 };
 

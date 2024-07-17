@@ -37,3 +37,6 @@ char *Tagfile_GetLabelComment(int TagIndex);
 int Tagfile_FindPGMAddress(int Address);
 const char *Tagfile_Resolve_Mem_Address(int Address);
 int Tagfile_Process_Data(const char *Bitstream, int Position);
+
+const char *Resolve_IO_Register(int Number);
+void Emit_Used_IO_Registers();
