@@ -559,7 +559,6 @@ CALLBACK(lds_Callback) {
 
   snprintf(cx->dis_code, 255, "%-7s r%d, 0x%04x", avr_opcodes[mnemo].opcode, Rd, Rk);
   MemAddress = Tagfile_Resolve_Mem_Address(Rk);
-  snprintf(cx->dis_code, 255, "%-7s 0x%04x, r%d", avr_opcodes[mnemo].opcode, Rk, Rd);
   if(MemAddress) {
     snprintf(cx->dis_comment, 255, "%s", MemAddress);
   }
