@@ -362,7 +362,8 @@ int disasm_init(const AVRPART *p) {
   Register_Opcode(inc_Callback, "1001 010d  dddd 0011", OPCODE_inc);
   Register_Opcode(jmp_Callback, "1001 010k  kkkk 110k    kkkk kkkk  kkkk kkkk", OPCODE_jmp);
   Register_Opcode(lac_Callback, "1001 001d  dddd 0110", OPCODE_lac);
-  Register_Opcode(las_Callback, "1001 001d  dddd 0101", OPCODE_lac);
+  Register_Opcode(las_Callback, "1001 001d  dddd 0101", OPCODE_las);
+  Register_Opcode(lat_Callback, "1001 001d  dddd 0111", OPCODE_lat);
   Register_Opcode(ldx1_Callback, "1001 000d  dddd 1100", OPCODE_ld_1);
   Register_Opcode(ldx2_Callback, "1001 000d  dddd 1101", OPCODE_ld_2);
   Register_Opcode(ldx3_Callback, "1001 000d  dddd 1110", OPCODE_ld_3);
