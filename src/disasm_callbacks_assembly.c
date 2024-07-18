@@ -565,6 +565,21 @@ CALLBACK(lds_Callback) {
   }
 }
 
+CALLBACK(lds_rc_Callback) {
+  const char *MemAddress;
+
+  /*
+   * ADDR[7:0] ← (/INST[8], INST[8], INST[10], INST[9], INST[3], INST[2], INST[1], INST[0])
+   * ADDR[7:0] ← (/k[4], k[4], k[6], k[5], k[3], k[2], k[1], k[0])
+   */
+  int addr = (Rk & 0xf) | ((Rk >> 1) & 0x30) | ((Rk & 0x10) << 2) | (((Rk & 0x10) ^ 0x10) << 3);
+
+  snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd+16, addr);
+  MemAddress = Tagfile_Resolve_Mem_Address(addr);
+  if(MemAddress)
+    snprintf(cx->dis_comment, 255, "%s", MemAddress);
+}
+
 CALLBACK(lpm1_Callback) {
   Operation_Simple(mnemo);
 }

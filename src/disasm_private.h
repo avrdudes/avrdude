@@ -134,6 +134,7 @@ void ldz3_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void ldz4_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void ldi_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void lds_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
+void lds_rc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void lpm1_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void lpm2_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void lpm3_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
