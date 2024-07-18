@@ -174,6 +174,7 @@ void sev_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sez_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sleep_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void spm_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
+void spm_zz_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void stx1_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void stx2_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void stx3_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);

@@ -786,6 +786,10 @@ CALLBACK(spm_Callback) {
   Operation_Simple(mnemo);
 }
 
+CALLBACK(spm_zz_Callback) {
+  snprintf(cx->dis_code, 255, "%-7s Z+", avr_opcodes[mnemo].opcode);
+}
+
 CALLBACK(stx1_Callback) {
   snprintf(cx->dis_code, 255, "%-7s X, r%d", avr_opcodes[mnemo].opcode, Rr);
 }

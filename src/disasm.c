@@ -264,11 +264,6 @@ int disasm_init(const AVRPART *p) {
   /*
    * 8 untreated opcodes and 20 "unofficial" ones
    *
-   * OPCODE_xch
-   * OPCODE_lac
-   * OPCODE_las
-   * OPCODE_lat
-   *
    * OPCODE_lds_rc
    * OPCODE_spm_zz
    * OPCODE_sts_rc
@@ -420,6 +415,7 @@ int disasm_init(const AVRPART *p) {
   Register_Opcode(sez_Callback, "1001 0100  0001 1000", OPCODE_sez);
   Register_Opcode(sleep_Callback, "1001 0101  1000 1000", OPCODE_sleep);
   Register_Opcode(spm_Callback, "1001 0101  1110 1000", OPCODE_spm);
+  Register_Opcode(spm_zz_Callback, "1001 0101  1111 1000", OPCODE_spm_zz);
   Register_Opcode(stx1_Callback, "1001 001r  rrrr 1100", OPCODE_st_1);
   Register_Opcode(stx2_Callback, "1001 001r  rrrr 1101", OPCODE_st_2);
   Register_Opcode(stx3_Callback, "1001 001r  rrrr 1110", OPCODE_st_3);
