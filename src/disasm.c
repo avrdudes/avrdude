@@ -41,6 +41,7 @@
 #include "disasm_jumpcall.h"
 #include "disasm_tagfile.h"
 
+/****
 void Display_Registers() {
   int i;
 
@@ -52,6 +53,7 @@ void Display_Registers() {
   }
   printf("End of register dump.\n");
 }
+****/
 
 int Compare_Opcode(const char *Bitstream, const char *Bitmask) {
   size_t i;

@@ -370,7 +370,6 @@ static void Sanitize_String(char *String) {
 }
 
 int Tagfile_Process_Data(const char *Bitstream, int Position) {
-  int i;
   int BytesAdvanced;
   int Index;
   int (*ProcessingFunction)(const char *, int, int, const char *) = NULL;
@@ -429,9 +428,8 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
   }
 
   BytesAdvanced = 0;
-  for(i = 0; i < cx->dis_PGMLabels[Index].Count; i++) {
+  for(unsigned i = 0; i < cx->dis_PGMLabels[Index].Count; i++)
     BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, i, Buffer);
-  }
 
   if(cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) {
     // Autoaligned string
