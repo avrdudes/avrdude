@@ -231,14 +231,14 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
     );
     if(cmd[1] == 'i') {
       msg_error("Options:\n"
-        "    -a        show addresses, -A don't show addresses\n"
-        "    -o        show opcode bytes, -O don't show opcode bytes\n"
-        "    -c        show comments, -C don't show comments\n"
-        "    -q        show call cycles, -Q don't show call cycles\n"
-        "    -s        use avr-gcc code style, -S use AVR instruction set code style\n"
-        "    -l        preprocess jump/call, -L don't preprocess jump/call\n"
-        "    -z        zap list of jumps/calls\n"
-        "    -t=<file> set the tagfile to be used\n"
+        "    -a        show addresses (default), -A don't show addresses\n"
+        "    -o        show opcode bytes (default), -O don't show opcode bytes\n"
+        "    -c        show comments (default), -C don't show comments\n"
+        "    -q        show call cycles, -Q don't show call cycles (default)\n"
+        "    -s        use avr-gcc code style (default), -S use AVR inst set code style\n"
+        "    -l        preprocess jump/call (default), -L don't preprocess jump/call\n"
+        "    -z        zap list of jumps/calls before disassembly\n"
+        "    -t=<file> set the tagfile (zaps old tagfile contents)\n"
       );
     }
     msg_error("\n"
@@ -464,16 +464,15 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   int help = 0, invalid = 0, itemac = 1, chr;
 
   if(!cx->dis_initopts) {
-    cx->dis_opts.Show_Addresses = 0;
-    cx->dis_opts.Show_Opcodes = 0;
+    cx->dis_opts.Show_Addresses = 1;
+    cx->dis_opts.Show_Opcodes = 1;
     cx->dis_opts.Show_Comments = 1;
     cx->dis_opts.Show_Cycles = 0;
     cx->dis_opts.Tagfile = NULL;
     cx->dis_opts.CodeStyle = CODESTYLE_AVRGCC; // CODESTYLE_AVR_INSTRUCTION_SET
     cx->dis_opts.Process_Labels = 1;
-    cx->dis_opts.FlashSize = 0;
-    if((mem = avr_locate_flash(p)))
-      cx->dis_opts.FlashSize = mem->size;
+    AVRMEM *m = avr_locate_flash(p);
+    cx->dis_opts.FlashSize = m? m->size: 0;
     cx->dis_opts.AVR_Level = get_avr_archlevel(p);
     cx->dis_opts.cycle_index = get_avr_cycle_index(p);
     disasm_init(p);
