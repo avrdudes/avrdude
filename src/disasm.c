@@ -264,7 +264,6 @@ int disasm_init(const AVRPART *p) {
   /*
    * 8 untreated opcodes and 20 "unofficial" ones
    *
-   * OPCODE_des
    * OPCODE_xch
    * OPCODE_lac
    * OPCODE_las
@@ -434,6 +433,7 @@ int disasm_init(const AVRPART *p) {
   Register_Opcode(subi_Callback, "0101 KKKK  dddd KKKK", OPCODE_subi);
   Register_Opcode(swap_Callback, "1001 010d  dddd 0010", OPCODE_swap);
   // Register_Opcode(tst_Callback, "0010 00dd  dddd dddd", OPCODE_tst); // Implied by and
+  Register_Opcode(xch_Callback, "1001 001d  dddd 0100", OPCODE_xch);
   Register_Opcode(wdr_Callback, "1001 0101  1010 1000", OPCODE_wdr);
 
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);

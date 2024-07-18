@@ -65,6 +65,10 @@ static void Operation_Rd(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d", avr_opcodes[mnemo].opcode, Rd);
 }
 
+static void Operation_Z_Rd(AVR_opcode mnemo) {
+  snprintf(cx->dis_code, 255, "%-7s Z, r%d", avr_opcodes[mnemo].opcode, Rd);
+}
+
 static void Operation_Rd16(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d", avr_opcodes[mnemo].opcode, Rd + 16);
 }
@@ -835,6 +839,10 @@ CALLBACK(subi_Callback) {
 
 CALLBACK(swap_Callback) {
   Operation_Rd(mnemo);
+}
+
+CALLBACK(xch_Callback) {
+  Operation_Z_Rd(mnemo);
 }
 
 CALLBACK(wdr_Callback) {

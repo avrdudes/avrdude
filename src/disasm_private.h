@@ -186,5 +186,6 @@ void sts_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sub_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void subi_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void swap_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
+void xch_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void wdr_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 

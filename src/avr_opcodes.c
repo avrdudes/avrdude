@@ -134,10 +134,10 @@ const AVR_opcode_data avr_opcodes[164] = {
   {0xf800, 0xb800, 1, "1011 1AAr  rrrr AAAA", OP_AVR1,    OPCODE_out, "out", "A, Rr", "Out To I/O Location", "I/O(A) <-- Rr", "None", {"1", "1", "1", "1"}, ""},
   {0xfe0f, 0x920f, 1, "1001 001d  dddd 1111", OP_AVR2,    OPCODE_push, "push", "Rr", "Push Register on Stack", "STACK <-- Rr", "None", {"2", "1", "1", "1"}, ""},
   {0xfe0f, 0x900f, 1, "1001 000d  dddd 1111", OP_AVR2,    OPCODE_pop, "pop", "Rd", "Pop Register from Stack", "Rd <-- STACK", "None", {"2", "2", "2", "3"}, ""},
-  {0xfe0f, 0x9204, 1, "1001 001r  rrrr 0100", OP_AVR_XM,  OPCODE_xch, "xch", "Z, Rd", "Exchange", "(Z) <-- Rd, Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
-  {0xfe0f, 0x9205, 1, "1001 001r  rrrr 0101", OP_AVR_XM,  OPCODE_las, "las", "Z, Rd", "Load and Set", "(Z) <-- Rd|(Z), Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
-  {0xfe0f, 0x9206, 1, "1001 001r  rrrr 0110", OP_AVR_XM,  OPCODE_lac, "lac", "Z, Rd", "Load and Clear", "(Z) <-- ($FF - Rd) & (Z), Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
-  {0xfe0f, 0x9207, 1, "1001 001r  rrrr 0111", OP_AVR_XM,  OPCODE_lat, "lat", "Z, Rd", "Load and Toggle", "(Z) <-- Rd^(Z), Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
+  {0xfe0f, 0x9204, 1, "1001 001d  dddd 0100", OP_AVR_XM,  OPCODE_xch, "xch", "Z, Rd", "Exchange", "(Z) <-- Rd, Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
+  {0xfe0f, 0x9205, 1, "1001 001d  dddd 0101", OP_AVR_XM,  OPCODE_las, "las", "Z, Rd", "Load and Set", "(Z) <-- Rd|(Z), Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
+  {0xfe0f, 0x9206, 1, "1001 001d  dddd 0110", OP_AVR_XM,  OPCODE_lac, "lac", "Z, Rd", "Load and Clear", "(Z) <-- ($FF - Rd) & (Z), Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
+  {0xfe0f, 0x9207, 1, "1001 001d  dddd 0111", OP_AVR_XM,  OPCODE_lat, "lat", "Z, Rd", "Load and Toggle", "(Z) <-- Rd^(Z), Rd <-- (Z)", "None", {"n/a", "1", "n/a", "n/a"}, ""},
 
   // Bit and Bit-test Instructions
   {0xfc00, 0x0c00, 1, "0000 11dd  dddd dddd", OP_AVR1,    OPCODE_lsl, "lsl", "Rd", "Logical Shift Left", "C <-- Rd(7) <-- Rd(6) ... Rd(1) <-- Rd(0) <-- 0", "Z,C,N,V,H", {"1", "1", "1", "1"}, "alias for ADD Rd, Rd"},
