@@ -261,10 +261,6 @@ static int Comparison(const void *Element1, const void *Element2) {
 }
 
 int disasm_init(const AVRPART *p) {
-  if(cx->dis_opts.Tagfile)
-    if(!Read_Tagfile(cx->dis_opts.Tagfile))
-      return -1;
-
   /*
    * 8 untreated opcodes and 20 "unofficial" ones
    *

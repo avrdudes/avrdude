@@ -1710,6 +1710,7 @@ void terminal_setup_update_progress(void);
 char *avr_cc_buffer(size_t n);
 
 int disasm_init(const AVRPART *p);
+int disasm_init_tagfile(const AVRPART *p, const char *file);
 int disasm(const char *buf, int len, int addr);
 
 #ifdef __cplusplus

@@ -482,6 +482,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
   cx->dis_opts.Pass = 1;
 
+
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;
     if(*(q = argv[++ai]) != '-' || !q[1])
@@ -533,6 +534,9 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     return -1;
   }
 
+  if(cx->dis_opts.Tagfile)
+    if(disasm_init_tagfile(p, cx->dis_opts.Tagfile) < 0)
+      return -1;
 
   buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len);
 
