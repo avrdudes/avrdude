@@ -494,6 +494,10 @@ CALLBACK(jmp_Callback) {
   Register_JumpCall(Position, Pos, mnemo, 0);
 }
 
+CALLBACK(lac_Callback) {
+  Operation_Z_Rd(mnemo);
+}
+
 CALLBACK(ldx1_Callback) {
   snprintf(cx->dis_code, 255, "%-7s r%d, X", avr_opcodes[mnemo].opcode, Rd);
 }
