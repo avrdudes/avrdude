@@ -49,7 +49,7 @@ void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall) {
 
     // Already entered this JC?
     for(int i = 0; i < N; i++)
-      if(jc[i].From == From && jc[N].To == To && jc[N].Type == Type && jc[N].FunctionCall == FunctionCall)
+      if(jc[i].From == From && jc[N].To == To && jc[N].Type == Type)
         return;
 
     jc = mmt_realloc(jc, sizeof(Disasm_JumpCall) * (N+1));
