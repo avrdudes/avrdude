@@ -317,17 +317,17 @@ const char *Tagfile_Resolve_Mem_Address(int Address) {
   return NULL;
 }
 
-static int Tagfile_Process_Byte(const char *Bitstream, int Position, int ArgumentNo, const char *Label) {
+static int Tagfile_Process_Byte(const char *Bitstream, int Position, int offset, int ArgumentNo, const char *Label) {
   printf(".byte 0x%02x\n", Bitstream[Position] & 0xff);
   return 1;
 }
 
-static int Tagfile_Process_Word(const char *Bitstream, int Position, int ArgumentNo, const char *Label) {
+static int Tagfile_Process_Word(const char *Bitstream, int Position, int offset, int ArgumentNo, const char *Label) {
   printf(".word 0x%02x%02x\n", Bitstream[Position + 1] & 0xff, Bitstream[Position] & 0xff);
   return 2;
 }
 
-static int Tagfile_Process_String(const char *Bitstream, int Position, int ArgumentNo, const char *Label) {
+static int Tagfile_Process_String(const char *Bitstream, int Position, int offset, int ArgumentNo, const char *Label) {
   int i;
   unsigned char c;
   unsigned int InString = 0;
@@ -369,13 +369,13 @@ static void Sanitize_String(char *String) {
   }
 }
 
-int Tagfile_Process_Data(const char *Bitstream, int Position) {
+int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   int BytesAdvanced;
   int Index;
-  int (*ProcessingFunction)(const char *, int, int, const char *) = NULL;
+  int (*ProcessingFunction)(const char *, int, int, int, const char *) = NULL;
   char Buffer[32];
 
-  Index = Tagfile_FindPGMAddress(Position);
+  Index = Tagfile_FindPGMAddress(Position + offset);
   if(Index == -1)
     return 0;
 
@@ -411,7 +411,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
   }
   if(cx->dis_PGMLabels[Index].Count != 1)
     printf("s");
-  printf(" starting at 0x%x", Position);
+  printf(" starting at 0x%x", Position + offset);
 
   if(cx->dis_PGMLabels[Index].Comment != NULL) {
     printf(" (%s)", cx->dis_PGMLabels[Index].Comment);
@@ -420,16 +420,16 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
 
   if((cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].Type == TYPE_STRING)) {
     if(cx->dis_PGMLabels[Index].Comment != NULL) {
-      snprintf(Buffer, sizeof(Buffer), "%x_%s", Position, cx->dis_PGMLabels[Index].Comment);
+      snprintf(Buffer, sizeof(Buffer), "%x_%s", Position + offset, cx->dis_PGMLabels[Index].Comment);
       Sanitize_String(Buffer);
     } else {
-      snprintf(Buffer, sizeof(Buffer), "%x", Position);
+      snprintf(Buffer, sizeof(Buffer), "%x", Position + offset);
     }
   }
 
   BytesAdvanced = 0;
   for(unsigned i = 0; i < cx->dis_PGMLabels[Index].Count; i++)
-    BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, i, Buffer);
+    BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, offset, i, Buffer);
 
   if(cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) {
     // Autoaligned string

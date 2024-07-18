@@ -219,7 +219,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       if(Opcode == -1) {
         Pos += 2;
       } else {
-        cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].mnemo);
+        cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos + addr, cx->dis_op[Opcode].mnemo);
         Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
       }
     }
@@ -235,7 +235,7 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
     int Added;
 
     // Check if this is actually code or maybe only data from tagfile
-    Added = Tagfile_Process_Data(Bitstream, Pos);
+    Added = Tagfile_Process_Data(Bitstream, Pos, addr);
     if(Added != 0) {
       // Data was added
       Pos += Added;
@@ -247,22 +247,22 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       cx->dis_code[0] = 0;
       cx->dis_comment[0] = 0;
       cx->dis_after_code[0] = 0;
-      cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos, cx->dis_op[Opcode].mnemo);
+      cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos + addr, cx->dis_op[Opcode].mnemo);
 
       if(cx->dis_opts.Process_Labels) {
-        Print_JumpCalls(Pos);
+        Print_JumpCalls(Pos + addr);
       }
 
       if(cx->dis_opts.Show_Addresses)
-        printf("%4x:   ", Pos);
-      if(cx->dis_opts.Show_Cycles) // @@@ select correct clocks_xx
+        printf("%4x:   ", Pos + addr);
+      if(cx->dis_opts.Show_Cycles)
         printf("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clock[cx->dis_opts.cycle_index]);
 
       if(cx->dis_opts.Show_Opcodes) {
         // Now display the Opcode
-        for(i = 0; i < (Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8; i++) {
+        for(i = 0; i < (Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8; i++)
           printf("%02x ", (unsigned char) (Bitstream[Pos + i]));
-        }
+
         printf(" ");
         // Missing spaces
         for(i = 0; i < 5 - ((Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8); i++) {
@@ -286,8 +286,8 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
 
       Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
     } else {
-      printf(".word 0x%02x%02x    ; Invalid opcode at 0x%04x (%d). Disassembler skipped two bytes.\n",
-        ((unsigned char *) Bitstream)[Pos + 1], ((unsigned char *) Bitstream)[Pos], Pos, Pos);
+      printf(".word 0x%02x%02x    ; Invalid opcode at 0x%04x\n", // @@@ show unoffical opcode what it might do
+        ((unsigned char *) Bitstream)[Pos + 1], ((unsigned char *) Bitstream)[Pos], Pos + addr);
       Pos += 2;
     }
   }
