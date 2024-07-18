@@ -566,16 +566,15 @@ CALLBACK(lds_Callback) {
 }
 
 CALLBACK(lds_rc_Callback) {
-  const char *MemAddress;
-
   /*
+   * Address is limited to 0x40...0xbf for the reduced-core (TPI part)
    * ADDR[7:0] ← (/INST[8], INST[8], INST[10], INST[9], INST[3], INST[2], INST[1], INST[0])
    * ADDR[7:0] ← (/k[4], k[4], k[6], k[5], k[3], k[2], k[1], k[0])
    */
   int addr = (Rk & 0xf) | ((Rk >> 1) & 0x30) | ((Rk & 0x10) << 2) | (((Rk & 0x10) ^ 0x10) << 3);
 
   snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd+16, addr);
-  MemAddress = Tagfile_Resolve_Mem_Address(addr);
+  const char *MemAddress = Tagfile_Resolve_Mem_Address(addr);
   if(MemAddress)
     snprintf(cx->dis_comment, 255, "%s", MemAddress);
 }
@@ -858,6 +857,20 @@ CALLBACK(sts_Callback) {
   if(MemAddress) {
     snprintf(cx->dis_comment, 255, "%s", MemAddress);
   }
+}
+
+CALLBACK(sts_rc_Callback) {
+  /*
+   * Address is limited to 0x40...0xbf for the reduced-core (TPI part)
+   * ADDR[7:0] ← (/INST[8], INST[8], INST[10], INST[9], INST[3], INST[2], INST[1], INST[0])
+   * ADDR[7:0] ← (/k[4], k[4], k[6], k[5], k[3], k[2], k[1], k[0])
+   */
+  int addr = (Rk & 0xf) | ((Rk >> 1) & 0x30) | ((Rk & 0x10) << 2) | (((Rk & 0x10) ^ 0x10) << 3);
+
+  snprintf(cx->dis_code, 255, "%-7s 0x%02x, r%d", avr_opcodes[mnemo].opcode, addr, Rd+16);
+  const char *MemAddress = Tagfile_Resolve_Mem_Address(addr);
+  if(MemAddress)
+    snprintf(cx->dis_comment, 255, "%s", MemAddress);
 }
 
 CALLBACK(sub_Callback) {

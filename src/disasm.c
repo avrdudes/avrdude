@@ -262,10 +262,7 @@ static int Comparison(const void *Element1, const void *Element2) {
 
 int disasm_init(const AVRPART *p) {
   /*
-   * 8 untreated opcodes and 20 "unofficial" ones
-   *
-   * OPCODE_lds_rc
-   * OPCODE_sts_rc
+   * 20 unallocated codes
    *
    * OPCODE_x_bld
    * OPCODE_x_bst
@@ -428,6 +425,7 @@ int disasm_init(const AVRPART *p) {
   Register_Opcode(stz3_Callback, "1001 001r  rrrr 0010", OPCODE_st_9);
   Register_Opcode(stz4_Callback, "10q0 qq1r  rrrr 0qqq", OPCODE_std_2);
   Register_Opcode(sts_Callback, "1001 001d  dddd 0000    kkkk kkkk  kkkk kkkk", OPCODE_sts);
+  Register_Opcode(sts_rc_Callback, "1010 1kkk  dddd kkkk", OPCODE_sts_rc);
   Register_Opcode(sub_Callback, "0001 10rd  dddd rrrr", OPCODE_sub);
   Register_Opcode(subi_Callback, "0101 KKKK  dddd KKKK", OPCODE_subi);
   Register_Opcode(swap_Callback, "1001 010d  dddd 0010", OPCODE_swap);

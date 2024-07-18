@@ -188,6 +188,7 @@ void stz2_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void stz3_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void stz4_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sts_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
+void sts_rc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sub_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void subi_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void swap_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
