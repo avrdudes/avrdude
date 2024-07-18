@@ -458,7 +458,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
     if((BytesAdvanced % 2) != 0) {
       // Not yet aligned correctly
       if(Bitstream[Position + BytesAdvanced] != 0x00)
-        fprintf(stderr, "Warning in autoalignment: expected zero but got 0x%0x padding. Ignored.\n",
+        pmsg_warning("autoalignment expected zero but got 0x%0x padding; ignored\n",
           ((unsigned char *) Bitstream)[Position + BytesAdvanced]);
       term_out(".byte 0x%02x        ; String Autoalignment\n", ((unsigned char *) Bitstream)[Position + BytesAdvanced]);
       BytesAdvanced++;

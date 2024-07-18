@@ -51,14 +51,10 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset);
 const char *Resolve_IO_Register(int Number);
 void Emit_Used_IO_Registers();
 
-void Display_JumpCalls();
 void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall);
-int JC_Comparison(const void *Element1, const void *Element2);
-void Sort_JumpCalls();
 void Enumerate_Labels();
 const char *Get_Label_Name(int Destination, char **LabelComment);
 void Print_JumpCalls(int Position);
-int FixTargetAddress(int Address);
 
 void adc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void add_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);

@@ -1459,12 +1459,9 @@ typedef struct {
   int Show_Opcodes;
   int Show_Comments;
   int Show_Cycles;
-  char Filename[256];
-  char MCU[8];
-  const char *Tagfile;
+  char *Tagfile;
   int CodeStyle;
   int Process_Labels;
-  int Pass;
   int FlashSize;
   int AVR_Level;
   AVR_cycle_index cycle_index;
@@ -1475,7 +1472,7 @@ typedef struct {
   int To;
   int Type;
   unsigned int LabelNumber;
-  unsigned char FunctionCall;
+  int FunctionCall;
 } Disasm_JumpCall;
 
 typedef struct {
@@ -1712,6 +1709,7 @@ char *avr_cc_buffer(size_t n);
 int disasm_init(const AVRPART *p);
 int disasm_init_tagfile(const AVRPART *p, const char *file);
 int disasm(const char *buf, int len, int addr);
+void disasm_zap_JumpCalls();
 
 #ifdef __cplusplus
 }
@@ -1805,7 +1803,7 @@ typedef struct {
   int reccount;
 
   // Static variables from disasm*.c
-  int dis_initopts;
+  int dis_initopts, dis_pass;
   Disasm_options dis_opts;
   int dis_n_ops;
   Disasm_opcode dis_op[256];    // Must be 256

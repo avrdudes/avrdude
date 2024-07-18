@@ -103,19 +103,19 @@ static int Match_Opcode(const char *Bitmask, const char *Bitstream) {
     Mask_Val = Get_From_Bitmask(Bitmask, Byte_Mask, Bit_Mask);
     Stream_Val = (Bitstream[Byte_Stream] >> Bit_Stream) & 0x01;
 
-    // printf("Extracting Bit %2d: Maske = (%d, %d) [%c], Stream = (%d, %d) [%d] ", i, Byte_Mask, Bit_Mask, Mask_Val, Byte_Stream, Bit_Stream, Stream_Val);
+    // term_out("Extracting Bit %2d: Maske = (%d, %d) [%c], Stream = (%d, %d) [%d] ", i, Byte_Mask, Bit_Mask, Mask_Val, Byte_Stream, Bit_Stream, Stream_Val);
     if((Mask_Val == '0') || (Mask_Val == '1')) {
       // This Bit is a identification Bit
       if(Mask_Val == '0') {
         if(Stream_Val == 1) {
 
-          // printf("\nMatch failed.\n")
+          // term_out("\nMatch failed.\n")
           return 0;
         }
       } else {
         if(Stream_Val == 0) {
 
-          // printf("\nMatch failed.\n")
+          // term_out("\nMatch failed.\n")
           return 0;
         }
       }
@@ -124,10 +124,10 @@ static int Match_Opcode(const char *Bitmask, const char *Bitstream) {
       cx->dis_regs[(int) Mask_Val] <<= 1;
       cx->dis_regs[(int) Mask_Val] |= Stream_Val;
 
-      // printf("-> %d Stored [%x]", Stream_Val, cx->dis_regs[(int) Mask_Val]);
+      // term_out("-> %d Stored [%x]", Stream_Val, cx->dis_regs[(int) Mask_Val]);
     }
 
-    // printf("\n");
+    // term_out("\n");
   }
   return 1;
 }
@@ -148,7 +148,7 @@ int disasm(const char *Bitstream, int Read, int addr) {
   int Opcode;
   int i;
 
-  cx->dis_opts.Pass = 1;
+  cx->dis_pass = 1;
   Pos = 0;
 
   if(cx->dis_opts.Process_Labels || cx->dis_opts.CodeStyle == CODESTYLE_AVRGCC) {
@@ -163,7 +163,7 @@ int disasm(const char *Bitstream, int Read, int addr) {
       }
     }
     Enumerate_Labels();
-    cx->dis_opts.Pass = 2;
+    cx->dis_pass = 2;
     Pos = 0;
   }
 
@@ -193,39 +193,39 @@ int disasm(const char *Bitstream, int Read, int addr) {
       }
 
       if(cx->dis_opts.Show_Addresses)
-        printf("%4x:   ", Pos + addr);
+        term_out("%4x:   ", Pos + addr);
       if(cx->dis_opts.Show_Cycles)
-        printf("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clock[cx->dis_opts.cycle_index]);
+        term_out("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clock[cx->dis_opts.cycle_index]);
 
       if(cx->dis_opts.Show_Opcodes) {
         // Now display the Opcode
         for(i = 0; i < (Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8; i++)
-          printf("%02x ", (unsigned char) (Bitstream[Pos + i]));
+          term_out("%02x ", (unsigned char) (Bitstream[Pos + i]));
 
-        printf(" ");
+        term_out(" ");
         // Missing spaces
         for(i = 0; i < 5 - ((Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String)) / 8); i++) {
-          printf("   ");
+          term_out("   ");
         }
       }
 
       if(cx->dis_code[0] == 0) {
         // No code was generated?
-        printf("; - Not implemented opcode: %d -\n", cx->dis_op[Opcode].mnemo);
+        term_out("; - Not implemented opcode: %d -\n", cx->dis_op[Opcode].mnemo);
       } else {
         if((cx->dis_comment[0] == 0) || (!cx->dis_opts.Show_Comments)) {
           // No comment
-          printf("%s\n", cx->dis_code);
+          term_out("%s\n", cx->dis_code);
         } else {
           // Comment available
-          printf("%-23s ; %s\n", cx->dis_code, cx->dis_comment);
+          term_out("%-23s ; %s\n", cx->dis_code, cx->dis_comment);
         }
       }
-      printf("%s", cx->dis_after_code);
+      term_out("%s", cx->dis_after_code);
 
       Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
     } else {
-      printf(".word 0x%02x%02x    ; Invalid opcode at 0x%04x\n", // @@@ show unoffical opcode what it might do
+      term_out(".word 0x%02x%02x    ; Invalid opcode at 0x%04x\n", // @@@ show unoffical opcode what it might do
         ((unsigned char *) Bitstream)[Pos + 1], ((unsigned char *) Bitstream)[Pos], Pos + addr);
       Pos += 2;
     }

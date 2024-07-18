@@ -31,6 +31,21 @@
 #include "libavrdude.h"
 #include "disasm_private.h"
 
+
+// Wrap r/jmp around flash where possible
+static int FixTargetAddress(int Address) {
+  int flashsz = cx->dis_opts.FlashSize;
+
+  // Flash size is a power of two: flash wraps round
+  if(flashsz > 0 && !(flashsz & (flashsz - 1))) {
+    Address %= flashsz;
+    if(Address < 0)
+      Address += flashsz;
+  }
+  return Address;
+}
+
+
 // Return the number of bits set in Number
 static unsigned BitCount(unsigned n) {
   unsigned ret;
@@ -66,22 +81,6 @@ static void Operation_Rd16_K(AVR_opcode mnemo) {
   snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd + 16, RK);
   snprintf(cx->dis_comment, 255, "%d", RK);
 }
-
-/****
-static void Operation_Rd_K(AVR_opcode mnemo) {
-  snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd, RK);
-  snprintf(cx->dis_comment, 255, "%d", RK);
-}
-
-static void Operation_RdW_K(AVR_opcode mnemo) {
-  if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
-    snprintf(cx->dis_code, 255, "%-7s r%d:%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd + 1, Rd, RK);
-  } else {
-    snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, Rd, RK);
-  }
-  snprintf(cx->dis_comment, 255, "%d", RK);
-}
-****/
 
 static void Operation_RdW_RrW(AVR_opcode mnemo) {
   if(cx->dis_opts.CodeStyle == CODESTYLE_AVR_INSTRUCTION_SET) {
@@ -662,7 +661,6 @@ CALLBACK(rjmp_Callback) {
   Target = FixTargetAddress(Position + Offset + 2);
 
   Register_JumpCall(Position, Target, mnemo, 0);
-
   if(cx->dis_opts.Process_Labels == 0) {
     if(Offset > 0) {
       snprintf(cx->dis_code, 255, "%-7s .+%d", avr_opcodes[mnemo].opcode, Offset);

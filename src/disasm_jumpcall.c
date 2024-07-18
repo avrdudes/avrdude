@@ -33,41 +33,38 @@
 #include "libavrdude.h"
 #include "disasm_private.h"
 
-void Display_JumpCalls() {
-  int i;
 
-  printf("%d jumps/calls found:\n", cx->dis_JumpCallN);
-  for(i = 0; i < cx->dis_JumpCallN; i++) {
-    printf("%3d: 0x%-4x -> 0x%-4x     %s (%d)\n", i, (unsigned int) cx->dis_JumpCalls[i].From, (unsigned int) cx->dis_JumpCalls[i].To,
-      avr_opcodes[cx->dis_JumpCalls[i].Type].opcode, cx->dis_JumpCalls[i].FunctionCall);
+void disasm_zap_JumpCalls() {
+  if(cx->dis_JumpCalls) {
+    mmt_free(cx->dis_JumpCalls);
+    cx->dis_JumpCalls = NULL;
   }
-}
-
-int FixTargetAddress(int Address) {
-  int flashsz = cx->dis_opts.FlashSize;
-
-  // Flash size is a power of two: flash wraps round
-  if(flashsz > 0 && !(flashsz & (flashsz - 1))) {
-    Address %= flashsz;
-    if(Address < 0)
-      Address += flashsz;
-  }
-  return Address;
+  cx->dis_JumpCallN = 0;
 }
 
 void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall) {
-  if((cx->dis_opts.Process_Labels == 1) && (cx->dis_opts.Pass == 1)) {
+  if((cx->dis_opts.Process_Labels == 1) && (cx->dis_pass == 1)) {
+    Disasm_JumpCall *jc = cx->dis_JumpCalls;
+    int N = cx->dis_JumpCallN;
+
+    // Already entered this JC?
+    for(int i = 0; i < N; i++)
+      if(jc[i].From == From && jc[N].To == To && jc[N].Type == Type && jc[N].FunctionCall == FunctionCall)
+        return;
+
+    jc = mmt_realloc(jc, sizeof(Disasm_JumpCall) * (N+1));
+    jc[N].From = From;
+    jc[N].To = To;
+    jc[N].Type = Type;
+    jc[N].LabelNumber = 0;
+    jc[N].FunctionCall = FunctionCall;
+
+    cx->dis_JumpCalls = jc;
     cx->dis_JumpCallN++;
-    cx->dis_JumpCalls = mmt_realloc(cx->dis_JumpCalls, sizeof(Disasm_JumpCall) * (cx->dis_JumpCallN));
-    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].From = From;
-    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].To = To;
-    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].Type = Type;
-    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].LabelNumber = 0;
-    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].FunctionCall = FunctionCall;
   }
 }
 
-int JC_Comparison(const void *Element1, const void *Element2) {
+static int JC_Comparison(const void *Element1, const void *Element2) {
   Disasm_JumpCall *JC1, *JC2;
 
   JC1 = (Disasm_JumpCall *) Element1;
@@ -79,11 +76,11 @@ int JC_Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-void Sort_JumpCalls() {
+static void Sort_JumpCalls() {
   qsort(cx->dis_JumpCalls, cx->dis_JumpCallN, sizeof(Disasm_JumpCall), JC_Comparison);
 }
 
-void Correct_Label_Types(void) {
+static void Correct_Label_Types(void) {
   int i, j;
   int LastIdx = 0;
   int LastDest = cx->dis_JumpCalls[0].To;
@@ -160,19 +157,19 @@ void Print_JumpCalls(int Position) {
   for(i = 0; i < cx->dis_JumpCallN; i++) {
     if((cx->dis_JumpCalls[i].To) == Position) {
       if(Match == 0) {
-        printf("\n");
+        term_out("\n");
         Match = 1;
       }
-      printf("; Referenced from offset 0x%02x by %s\n", cx->dis_JumpCalls[i].From, avr_opcodes[cx->dis_JumpCalls[i].Type].opcode);
+      term_out("; Referenced from offset 0x%02x by %s\n", cx->dis_JumpCalls[i].From, avr_opcodes[cx->dis_JumpCalls[i].Type].opcode);
     }
   }
   if(Match == 1) {
     char *LabelComment = NULL;
     const char *LabelName = Get_Label_Name(Position, &LabelComment);
     if(LabelComment == NULL) {
-      printf("%s:\n", LabelName);
+      term_out("%s:\n", LabelName);
     } else {
-      printf("%s:     ; %s\n", LabelName, LabelComment);
+      term_out("%s:     ; %s\n", LabelName, LabelComment);
     }
   }
 }
