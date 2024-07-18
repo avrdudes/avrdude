@@ -119,6 +119,7 @@ void in_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void inc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void jmp_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void lac_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
+void las_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void ldx1_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void ldx2_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void ldx3_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
