@@ -41,46 +41,8 @@
 #include "disasm_jumpcall.h"
 #include "disasm_tagfile.h"
 
-/****
-void Display_Registers() {
-  int i;
 
-  printf("Register dump:\n");
-  for(i = 0; i < 256; i++) {
-    if(cx->dis_regs[i] != 0) {
-      printf("Registers[%3d] '%c': %d = 0x%x\n", i, i, cx->dis_regs[i], cx->dis_regs[i]);
-    }
-  }
-  printf("End of register dump.\n");
-}
-****/
-
-int Compare_Opcode(const char *Bitstream, const char *Bitmask) {
-  size_t i;
-  char Bit;
-
-  for(i = 0; i < strlen(Bitmask); i++) {
-    if((Bitmask[i] != 'x') && (Bitmask[i] != '1') && (Bitmask[i] != '0')) {
-      fprintf(stderr, "Invalid Bitmask!\n");
-      return 0;
-    }
-
-    if(Bitmask[i] == 'x')
-      continue;                 // Ignore character
-    // Retrieve the i-th Bit of Bitstream
-    Bit = (Bitstream[i / 8] >> (7 - (i % 8))) & 1;
-
-    // printf("Bit %d is %d [should be %c]\n", i, Bit, Bitmask[i]);
-    if((Bitmask[i] == '1') && (Bit == 1))
-      continue;
-    if((Bitmask[i] == '0') && (Bit == 0))
-      continue;
-    return 0;                   // No match
-  }
-  return 1;                     // Match
-}
-
-void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
+static void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
   // Only register opcode if the part has it
   if(avr_opcodes[mnemo].avrlevel & cx->dis_opts.AVR_Level) {
     cx->dis_op[cx->dis_n_ops].Opcode_String = mmt_strdup(New_Opcode_String);
@@ -90,7 +52,7 @@ void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char
   }
 }
 
-int Get_Bitmask_Length(const char *Bitmask) {
+static int Get_Bitmask_Length(const char *Bitmask) {
   int Length = 0;
   size_t i;
 
@@ -101,14 +63,14 @@ int Get_Bitmask_Length(const char *Bitmask) {
   return Length;
 }
 
-void Clear_Registers() {
+static void Clear_Registers() {
   int i;
 
   for(i = 0; i < 256; i++)
     cx->dis_regs[i] = 0;
 }
 
-char Get_From_Bitmask(const char *Bitmask, int Byte, int Bit) {
+static char Get_From_Bitmask(const char *Bitmask, int Byte, int Bit) {
   size_t i;
   int Cnt = 0;
   int GetBit;
@@ -124,26 +86,7 @@ char Get_From_Bitmask(const char *Bitmask, int Byte, int Bit) {
   return '?';
 }
 
-void Display_Binary(const char *Bitstream, int Count) {
-  int i, j;
-
-  for(i = 0; i < Count; i++) {
-    for(j = 7; j >= 0; j--) {
-      if((Bitstream[i] & (1 << j)) != 0)
-        printf("1");
-      else
-        printf("0");
-      if(j == 4)
-        printf(" ");
-    }
-    printf("  ");
-    if((((i + 1) % 2) == 0) && (i != 0))
-      printf("  ");
-  }
-  printf("\n");
-}
-
-int Match_Opcode(const char *Bitmask, const char *Bitstream) {
+static int Match_Opcode(const char *Bitmask, const char *Bitstream) {
   int i;
   int Length;
   int Byte_Mask, Bit_Mask;
@@ -193,7 +136,7 @@ int Match_Opcode(const char *Bitmask, const char *Bitstream) {
   return 1;
 }
 
-int Get_Next_Opcode(const char *Bitstream) {
+static int Get_Next_Opcode(const char *Bitstream) {
   int i;
 
   for(i = 0; i < cx->dis_n_ops; i++) {
@@ -291,16 +234,9 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       Pos += 2;
     }
   }
-
 }
 
-void Display_Opcodes() {
-  printf("%d opcodes registered:\n", cx->dis_n_ops);
-  for(int i = 0; i < cx->dis_n_ops; i++)
-    printf("%3d: '%-80s' -> %p\n", i, cx->dis_op[i].Opcode_String, (void *) cx->dis_op[i].Callback);
-}
-
-int Get_Specifity(const char *Opcode) {
+static int Get_Specifity(const char *Opcode) {
   size_t i;
   int Specifity = 0;
 
@@ -311,7 +247,7 @@ int Get_Specifity(const char *Opcode) {
   return Specifity;
 }
 
-int Comparison(const void *Element1, const void *Element2) {
+static int Comparison(const void *Element1, const void *Element2) {
   Disasm_opcode *OC1, *OC2;
   int SP1, SP2;
 
