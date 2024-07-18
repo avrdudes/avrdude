@@ -139,6 +139,19 @@ static int Get_Next_Opcode(const char *Bitstream) {
   return -1;
 }
 
+int disasm_wrap(int addr) {
+  int flashsz = cx->dis_opts.FlashSize;
+
+  if(flashsz > 0) {
+    while(addr >= flashsz)
+      addr -= flashsz;
+    while(addr < 0)
+      addr += flashsz;
+  }
+
+  return addr;
+}
+
 int disasm(const char *Bitstream, int Read, int addr) {
   int Pos;
   int Opcode;
@@ -154,7 +167,7 @@ int disasm(const char *Bitstream, int Read, int addr) {
       if(Opcode == -1) {
         Pos += 2;
       } else {
-        cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos + addr, cx->dis_op[Opcode].mnemo);
+        cx->dis_op[Opcode].Callback(Bitstream + Pos, disasm_wrap(Pos + addr), cx->dis_op[Opcode].mnemo);
         Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
       }
     }
@@ -182,14 +195,13 @@ int disasm(const char *Bitstream, int Read, int addr) {
       cx->dis_code[0] = 0;
       cx->dis_comment[0] = 0;
       cx->dis_after_code[0] = 0;
-      cx->dis_op[Opcode].Callback(Bitstream + Pos, Pos + addr, cx->dis_op[Opcode].mnemo);
+      cx->dis_op[Opcode].Callback(Bitstream + Pos, disasm_wrap(Pos + addr), cx->dis_op[Opcode].mnemo);
 
-      if(cx->dis_opts.Process_Labels) {
-        Print_JumpCalls(Pos + addr);
-      }
+      if(cx->dis_opts.Process_Labels)
+        Print_JumpCalls(disasm_wrap(Pos + addr));
 
       if(cx->dis_opts.Show_Addresses)
-        term_out("%4x:   ", Pos + addr);
+        term_out("%4x:   ", disasm_wrap(Pos + addr));
       if(cx->dis_opts.Show_Cycles)
         term_out("[%-3s] ", avr_opcodes[cx->dis_op[Opcode].mnemo].clock[cx->dis_opts.cycle_index]);
 
@@ -221,8 +233,8 @@ int disasm(const char *Bitstream, int Read, int addr) {
 
       Pos += Get_Bitmask_Length(cx->dis_op[Opcode].Opcode_String) / 8;
     } else {
-      term_out(".word 0x%02x%02x    ; Invalid opcode at 0x%04x\n", // @@@ show unoffical opcode what it might do
-        ((unsigned char *) Bitstream)[Pos + 1], ((unsigned char *) Bitstream)[Pos], Pos + addr);
+      term_out(".word 0x%02x%02x    ; Invalid opcode at 0x%04x\n",
+        ((unsigned char *) Bitstream)[Pos + 1], ((unsigned char *) Bitstream)[Pos], disasm_wrap(Pos + addr));
       Pos += 2;
     }
   }

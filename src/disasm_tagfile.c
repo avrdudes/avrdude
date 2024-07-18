@@ -397,7 +397,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   int (*ProcessingFunction)(const char *, int, int, int, const char *) = NULL;
   char Buffer[32];
 
-  Index = Tagfile_FindPGMAddress(Position + offset);
+  Index = Tagfile_FindPGMAddress(disasm_wrap(Position + offset));
   if(Index == -1)
     return 0;
 
@@ -433,7 +433,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   }
   if(cx->dis_PGMLabels[Index].Count != 1)
     term_out("s");
-  term_out(" starting at 0x%x", Position + offset);
+  term_out(" starting at 0x%x", disasm_wrap(Position + offset));
 
   if(cx->dis_PGMLabels[Index].Comment != NULL) {
     term_out(" (%s)", cx->dis_PGMLabels[Index].Comment);
@@ -442,10 +442,10 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
 
   if((cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].Type == TYPE_STRING)) {
     if(cx->dis_PGMLabels[Index].Comment != NULL) {
-      snprintf(Buffer, sizeof(Buffer), "%x_%s", Position + offset, cx->dis_PGMLabels[Index].Comment);
+      snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_PGMLabels[Index].Comment);
       Sanitize_String(Buffer);
     } else {
-      snprintf(Buffer, sizeof(Buffer), "%x", Position + offset);
+      snprintf(Buffer, sizeof(Buffer), "%x", disasm_wrap(Position + offset));
     }
   }
 

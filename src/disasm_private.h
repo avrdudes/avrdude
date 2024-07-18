@@ -42,6 +42,7 @@
 #define TYPE_STRING     4
 
 void disasm_init_regfile(const AVRPART *p);
+int disasm_wrap(int addr);
 int Tagfile_FindLabelAddress(int Address);
 char *Tagfile_GetLabel(int TagIndex);
 char *Tagfile_GetLabelComment(int TagIndex);
