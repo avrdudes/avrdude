@@ -340,10 +340,9 @@ CALLBACK(call_Callback) {
   if(!cx->dis_opts.Process_Labels) {
     snprintf(cx->dis_code, 255, "%-7s 0x%02x", avr_opcodes[mnemo].opcode, Pos);
   } else {
-    char *LabelName;
     char *LabelComment = NULL;
+    const char *LabelName = Get_Label_Name(Pos, &LabelComment);
 
-    LabelName = Get_Label_Name(Pos, &LabelComment);
     snprintf(cx->dis_code, 255, "%-7s %s", avr_opcodes[mnemo].opcode, LabelName);
     if(LabelComment != NULL)
       snprintf(cx->dis_comment, 255, "%s", LabelComment);
@@ -639,10 +638,9 @@ CALLBACK(rcall_Callback) {
     }
     snprintf(cx->dis_comment, 255, "0x%02x", Target);
   } else {
-    char *LabelName;
     char *LabelComment = NULL;
+    const char *LabelName = Get_Label_Name(Target, &LabelComment);
 
-    LabelName = Get_Label_Name(Target, &LabelComment);
     snprintf(cx->dis_code, 255, "%-7s %s", avr_opcodes[mnemo].opcode, LabelName);
     if(LabelComment != NULL)
       snprintf(cx->dis_comment, 255, "%s", LabelComment);

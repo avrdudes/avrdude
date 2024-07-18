@@ -1470,6 +1470,40 @@ typedef struct {
   AVR_cycle_index cycle_index;
 } Disasm_options;
 
+typedef struct {
+  int From;
+  int To;
+  int Type;
+  unsigned int LabelNumber;
+  unsigned char FunctionCall;
+} Disasm_JumpCall;
+
+typedef struct {
+  int Address;
+  char *Text;
+  char *Comment;
+} Disasm_CodeLabel;
+
+typedef struct {
+  int Address;
+  char Type;
+  unsigned int Count;
+  char *Comment;
+} Disasm_PGMLabel;
+
+typedef struct {
+  int Address;
+  char Type;
+  unsigned int Count;
+  char *Comment;
+} Disasm_MemLabel;
+
+typedef struct {
+  int Address;
+  char *Name;
+  unsigned char Used;
+} Disasm_IO_Register;
+
 typedef enum {
   OPCODE_add,      OPCODE_adc,      OPCODE_adiw,     OPCODE_sub,
   OPCODE_subi,     OPCODE_sbc,      OPCODE_sbci,     OPCODE_sbiw,
@@ -1776,6 +1810,12 @@ typedef struct {
   Disasm_opcode dis_op[256];    // Must be 256
   int dis_regs[256];            // Must be 256
   char dis_code[256], dis_comment[256], dis_after_code[256]; // Must be 256
+  int dis_JumpCallN, dis_CodeLabelN, dis_PGMLabelN, dis_MemLabelN, dis_IORegisterN;
+  Disasm_JumpCall *dis_JumpCalls;
+  Disasm_CodeLabel *dis_CodeLabels;
+  Disasm_PGMLabel *dis_PGMLabels;
+  Disasm_MemLabel *dis_MemLabels;
+  Disasm_IO_Register *dis_IORegisters;
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"

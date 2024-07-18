@@ -36,16 +36,13 @@
 #include "disasm_tagfile.h"
 #include "disasm_jumpcall.h"
 
-static int JumpCall_Count;
-static struct JumpCall *JumpCalls;
-
 void Display_JumpCalls() {
   int i;
 
-  printf("%d jumps/calls found:\n", JumpCall_Count);
-  for(i = 0; i < JumpCall_Count; i++) {
-    printf("%3d: 0x%-4x -> 0x%-4x     %s (%d)\n", i, (unsigned int) JumpCalls[i].From, (unsigned int) JumpCalls[i].To,
-      avr_opcodes[JumpCalls[i].Type].opcode, JumpCalls[i].FunctionCall);
+  printf("%d jumps/calls found:\n", cx->dis_JumpCallN);
+  for(i = 0; i < cx->dis_JumpCallN; i++) {
+    printf("%3d: 0x%-4x -> 0x%-4x     %s (%d)\n", i, (unsigned int) cx->dis_JumpCalls[i].From, (unsigned int) cx->dis_JumpCalls[i].To,
+      avr_opcodes[cx->dis_JumpCalls[i].Type].opcode, cx->dis_JumpCalls[i].FunctionCall);
   }
 }
 
@@ -63,21 +60,21 @@ int FixTargetAddress(int Address) {
 
 void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall) {
   if((cx->dis_opts.Process_Labels == 1) && (cx->dis_opts.Pass == 1)) {
-    JumpCall_Count++;
-    JumpCalls = mmt_realloc(JumpCalls, sizeof(struct JumpCall) * (JumpCall_Count));
-    JumpCalls[JumpCall_Count - 1].From = From;
-    JumpCalls[JumpCall_Count - 1].To = To;
-    JumpCalls[JumpCall_Count - 1].Type = Type;
-    JumpCalls[JumpCall_Count - 1].LabelNumber = 0;
-    JumpCalls[JumpCall_Count - 1].FunctionCall = FunctionCall;
+    cx->dis_JumpCallN++;
+    cx->dis_JumpCalls = mmt_realloc(cx->dis_JumpCalls, sizeof(Disasm_JumpCall) * (cx->dis_JumpCallN));
+    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].From = From;
+    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].To = To;
+    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].Type = Type;
+    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].LabelNumber = 0;
+    cx->dis_JumpCalls[cx->dis_JumpCallN - 1].FunctionCall = FunctionCall;
   }
 }
 
 int JC_Comparison(const void *Element1, const void *Element2) {
-  struct JumpCall *JC1, *JC2;
+  Disasm_JumpCall *JC1, *JC2;
 
-  JC1 = (struct JumpCall *) Element1;
-  JC2 = (struct JumpCall *) Element2;
+  JC1 = (Disasm_JumpCall *) Element1;
+  JC2 = (Disasm_JumpCall *) Element2;
   if((JC1->To) > (JC2->To))
     return 1;
   else if((JC1->To) == (JC2->To))
@@ -86,27 +83,27 @@ int JC_Comparison(const void *Element1, const void *Element2) {
 }
 
 void Sort_JumpCalls() {
-  qsort(JumpCalls, JumpCall_Count, sizeof(struct JumpCall), JC_Comparison);
+  qsort(cx->dis_JumpCalls, cx->dis_JumpCallN, sizeof(Disasm_JumpCall), JC_Comparison);
 }
 
 void Correct_Label_Types(void) {
   int i, j;
   int LastIdx = 0;
-  int LastDest = JumpCalls[0].To;
-  char CurType = JumpCalls[0].FunctionCall;
+  int LastDest = cx->dis_JumpCalls[0].To;
+  char CurType = cx->dis_JumpCalls[0].FunctionCall;
 
-  for(i = 1; i < JumpCall_Count; i++) {
-    if(JumpCalls[i].To != LastDest) {
+  for(i = 1; i < cx->dis_JumpCallN; i++) {
+    if(cx->dis_JumpCalls[i].To != LastDest) {
       for(j = LastIdx; j < i; j++)
-        JumpCalls[j].FunctionCall = CurType;
+        cx->dis_JumpCalls[j].FunctionCall = CurType;
       LastIdx = i;
-      LastDest = JumpCalls[i].To;
+      LastDest = cx->dis_JumpCalls[i].To;
       CurType = 0;
     }
-    CurType = (CurType || JumpCalls[i].FunctionCall);
+    CurType = (CurType || cx->dis_JumpCalls[i].FunctionCall);
   }
-  for(j = LastIdx; j < JumpCall_Count; j++)
-    JumpCalls[j].FunctionCall = CurType;
+  for(j = LastIdx; j < cx->dis_JumpCallN; j++)
+    cx->dis_JumpCalls[j].FunctionCall = CurType;
 }
 
 void Enumerate_Labels(void) {
@@ -115,29 +112,29 @@ void Enumerate_Labels(void) {
   int CurrentFunctionNumber = 0;
   int Destination;
 
-  if(JumpCall_Count < 2)
+  if(cx->dis_JumpCallN < 2)
     return;
 
   Sort_JumpCalls();
   Correct_Label_Types();
 
-  Destination = JumpCalls[0].To;
-  if(JumpCalls[0].FunctionCall)
+  Destination = cx->dis_JumpCalls[0].To;
+  if(cx->dis_JumpCalls[0].FunctionCall)
     CurrentFunctionNumber++;
   else
     CurrentLabelNumber++;
-  for(i = 0; i < JumpCall_Count; i++) {
-    if(Destination != JumpCalls[i].To) {
-      if(JumpCalls[i].FunctionCall)
+  for(i = 0; i < cx->dis_JumpCallN; i++) {
+    if(Destination != cx->dis_JumpCalls[i].To) {
+      if(cx->dis_JumpCalls[i].FunctionCall)
         CurrentFunctionNumber++;
       else
         CurrentLabelNumber++;
-      Destination = JumpCalls[i].To;
+      Destination = cx->dis_JumpCalls[i].To;
     }
-    if(JumpCalls[i].FunctionCall)
-      JumpCalls[i].LabelNumber = CurrentFunctionNumber;
+    if(cx->dis_JumpCalls[i].FunctionCall)
+      cx->dis_JumpCalls[i].LabelNumber = CurrentFunctionNumber;
     else
-      JumpCalls[i].LabelNumber = CurrentLabelNumber;
+      cx->dis_JumpCalls[i].LabelNumber = CurrentLabelNumber;
   }
 }
 
@@ -151,9 +148,9 @@ const char *Get_Label_Name(int Destination, char **LabelComment) {
     return str_ccprintf("%s", Tagfile_GetLabel(TagIndex));
   }
 
-  for(int i = 0; i < JumpCall_Count; i++)
-    if(JumpCalls[i].To == Destination)
-      return str_ccprintf("%s%d", JumpCalls[i].FunctionCall? "Function": "Label", JumpCalls[i].LabelNumber);
+  for(int i = 0; i < cx->dis_JumpCallN; i++)
+    if(cx->dis_JumpCalls[i].To == Destination)
+      return str_ccprintf("%s%d", cx->dis_JumpCalls[i].FunctionCall? "Function": "Label", cx->dis_JumpCalls[i].LabelNumber);
 
   return "UNKNOWN";
 }
@@ -163,13 +160,13 @@ void Print_JumpCalls(int Position) {
   int i;
   int Match = 0;
 
-  for(i = 0; i < JumpCall_Count; i++) {
-    if((JumpCalls[i].To) == Position) {
+  for(i = 0; i < cx->dis_JumpCallN; i++) {
+    if((cx->dis_JumpCalls[i].To) == Position) {
       if(Match == 0) {
         printf("\n");
         Match = 1;
       }
-      printf("; Referenced from offset 0x%02x by %s\n", JumpCalls[i].From, avr_opcodes[JumpCalls[i].Type].opcode);
+      printf("; Referenced from offset 0x%02x by %s\n", cx->dis_JumpCalls[i].From, avr_opcodes[cx->dis_JumpCalls[i].Type].opcode);
     }
   }
   if(Match == 1) {

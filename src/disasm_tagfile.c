@@ -37,54 +37,16 @@
 #include "disasm_private.h"
 #include "disasm_tagfile.h"
 
-struct CodeLabel {
-  int Address;
-  char *Text;
-  char *Comment;
-};
-
-struct PGMLabel {
-  int Address;
-  char Type;
-  unsigned int Count;
-  char *Comment;
-};
-
-struct MemLabel {
-  int Address;
-  char Type;
-  unsigned int Count;
-  char *Comment;
-};
-
-struct IO_Register {
-  int Address;
-  char *Name;
-  unsigned char Used;
-};
-
-static int CodeLabelCount = 0;
-static struct CodeLabel *CodeLabels;
-
-static int PGMLabelCount = 0;
-static struct PGMLabel *PGMLabels = NULL;
-
-static int MemLabelCount = 0;
-static struct MemLabel *MemLabels = NULL;
-
-static struct IO_Register *IORegisters = NULL;
-static int IORegistersCount = 0;
-
 /*
 static void Display_Tagfile() {
   int i;
-  printf("%d code labels:\n", CodeLabelCount);
-  for(i = 0; i < CodeLabelCount; i++)
-    printf("%d: 0x%x = %s\n", i, CodeLabels[i].Address, CodeLabels[i].Text);
+  printf("%d code labels:\n", cx->dis_CodeLabelN);
+  for(i = 0; i < cx->dis_CodeLabelN; i++)
+    printf("%d: 0x%x = %s\n", i, cx->dis_CodeLabels[i].Address, cx->dis_CodeLabels[i].Text);
 
-  printf("%d PGM labels:\n", PGMLabelCount);
-  for(i = 0; i < PGMLabelCount; i++)
-     printf("%d: 0x%x = %d * %d\n", i, PGMLabels[i].Address, PGMLabels[i].Count, PGMLabels[i].Type);
+  printf("%d PGM labels:\n", cx->dis_PGMLabelN);
+  for(i = 0; i < cx->dis_PGMLabelN; i++)
+     printf("%d: 0x%x = %d * %d\n", i, cx->dis_PGMLabels[i].Address, cx->dis_PGMLabels[i].Count, cx->dis_PGMLabels[i].Type);
 }
 */
 
@@ -122,32 +84,32 @@ static int ahtoi(const char *String) {
 }
 
 static void Add_LabelTag(int Address, const char *LabelText, const char *LabelComment) {
-  CodeLabelCount++;
+  cx->dis_CodeLabelN++;
 
-  CodeLabels = (struct CodeLabel *) mmt_realloc(CodeLabels, sizeof(struct CodeLabel) * CodeLabelCount);
-  CodeLabels[CodeLabelCount - 1].Address = Address;
-  CodeLabels[CodeLabelCount - 1].Text = LabelText? mmt_strdup(LabelText): NULL;
-  CodeLabels[CodeLabelCount - 1].Comment = LabelComment? mmt_strdup(LabelComment): NULL;
+  cx->dis_CodeLabels = (Disasm_CodeLabel *) mmt_realloc(cx->dis_CodeLabels, sizeof(Disasm_CodeLabel) * cx->dis_CodeLabelN);
+  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Address = Address;
+  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Text = LabelText? mmt_strdup(LabelText): NULL;
+  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Comment = LabelComment? mmt_strdup(LabelComment): NULL;
 }
 
 static void Add_PGM_Tag(int Address, char Type, unsigned int Count, const char *Comment) {
-  PGMLabelCount++;
+  cx->dis_PGMLabelN++;
 
-  PGMLabels = (struct PGMLabel *) mmt_realloc(PGMLabels, sizeof(struct PGMLabel) * PGMLabelCount);
-  PGMLabels[PGMLabelCount - 1].Address = Address;
-  PGMLabels[PGMLabelCount - 1].Type = Type;
-  PGMLabels[PGMLabelCount - 1].Count = Count;
-  PGMLabels[PGMLabelCount - 1].Comment = Comment? mmt_strdup(Comment): NULL;
+  cx->dis_PGMLabels = (Disasm_PGMLabel *) mmt_realloc(cx->dis_PGMLabels, sizeof(Disasm_PGMLabel) * cx->dis_PGMLabelN);
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Address = Address;
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Type = Type;
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Count = Count;
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Comment = Comment? mmt_strdup(Comment): NULL;
 }
 
 static void Add_Mem_Tag(int Address, char Type, unsigned int Count, const char *Comment) {
-  MemLabelCount++;
+  cx->dis_MemLabelN++;
 
-  MemLabels = (struct MemLabel *) mmt_realloc(MemLabels, sizeof(struct MemLabel) * MemLabelCount);
-  MemLabels[MemLabelCount - 1].Address = Address;
-  MemLabels[MemLabelCount - 1].Type = Type;
-  MemLabels[MemLabelCount - 1].Count = Count;
-  MemLabels[MemLabelCount - 1].Comment = Comment? mmt_strdup(Comment): NULL;
+  cx->dis_MemLabels = (Disasm_MemLabel *) mmt_realloc(cx->dis_MemLabels, sizeof(Disasm_MemLabel) * cx->dis_MemLabelN);
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Address = Address;
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Type = Type;
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Count = Count;
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Comment = Comment? mmt_strdup(Comment): NULL;
 }
 
 static void Tagfile_Readline(char *Line, int LineNo) {
@@ -237,10 +199,10 @@ static void Tagfile_Readline(char *Line, int LineNo) {
 }
 
 static int CodeLabelSort(const void *A, const void *B) {
-  const struct CodeLabel *X, *Y;
+  const Disasm_CodeLabel *X, *Y;
 
-  X = (const struct CodeLabel *) A;
-  Y = (const struct CodeLabel *) B;
+  X = (const Disasm_CodeLabel *) A;
+  Y = (const Disasm_CodeLabel *) B;
   if(X->Address == Y->Address)
     return 0;
   if(X->Address < Y->Address)
@@ -249,10 +211,10 @@ static int CodeLabelSort(const void *A, const void *B) {
 }
 
 static int PGMLabelSort(const void *A, const void *B) {
-  const struct PGMLabel *X, *Y;
+  const Disasm_PGMLabel *X, *Y;
 
-  X = (const struct PGMLabel *) A;
-  Y = (const struct PGMLabel *) B;
+  X = (const Disasm_PGMLabel *) A;
+  Y = (const Disasm_PGMLabel *) B;
   if(X->Address == Y->Address)
     return 0;
   if(X->Address < Y->Address)
@@ -261,10 +223,10 @@ static int PGMLabelSort(const void *A, const void *B) {
 }
 
 static int MemLabelSort(const void *A, const void *B) {
-  const struct MemLabel *X, *Y;
+  const Disasm_MemLabel *X, *Y;
 
-  X = (const struct MemLabel *) A;
-  Y = (const struct MemLabel *) B;
+  X = (const Disasm_MemLabel *) A;
+  Y = (const Disasm_MemLabel *) B;
   if(X->Address == Y->Address)
     return 0;
   if(X->Address < Y->Address)
@@ -273,9 +235,9 @@ static int MemLabelSort(const void *A, const void *B) {
 }
 
 static void Tagfile_SortLabels() {
-  qsort(CodeLabels, CodeLabelCount, sizeof(struct CodeLabel), CodeLabelSort);
-  qsort(PGMLabels, PGMLabelCount, sizeof(struct PGMLabel), PGMLabelSort);
-  qsort(MemLabels, MemLabelCount, sizeof(struct MemLabel), MemLabelSort);
+  qsort(cx->dis_CodeLabels, cx->dis_CodeLabelN, sizeof(Disasm_CodeLabel), CodeLabelSort);
+  qsort(cx->dis_PGMLabels, cx->dis_PGMLabelN, sizeof(Disasm_PGMLabel), PGMLabelSort);
+  qsort(cx->dis_MemLabels, cx->dis_MemLabelN, sizeof(Disasm_MemLabel), MemLabelSort);
 }
 
 int Read_Tagfile(const char *Filename) {
@@ -303,51 +265,51 @@ int Read_Tagfile(const char *Filename) {
 }
 
 int Tagfile_FindLabelAddress(int Address) {
-  struct CodeLabel Goal;
-  struct CodeLabel *Result;
+  Disasm_CodeLabel Goal;
+  Disasm_CodeLabel *Result;
 
   Goal.Address = Address;
-  Result = bsearch(&Goal, CodeLabels, CodeLabelCount, sizeof(struct CodeLabel), CodeLabelSort);
+  Result = bsearch(&Goal, cx->dis_CodeLabels, cx->dis_CodeLabelN, sizeof(Disasm_CodeLabel), CodeLabelSort);
   if(Result == NULL)
     return -1;
-  return Result - CodeLabels;
+  return Result - cx->dis_CodeLabels;
 }
 
 char *Tagfile_GetLabel(int TagIndex) {
-  return CodeLabels[TagIndex].Text;
+  return cx->dis_CodeLabels[TagIndex].Text;
 }
 
 char *Tagfile_GetLabelComment(int TagIndex) {
-  return CodeLabels[TagIndex].Comment;
+  return cx->dis_CodeLabels[TagIndex].Comment;
 }
 
 int Tagfile_FindPGMAddress(int Address) {
-  struct PGMLabel Goal;
-  struct PGMLabel *Result;
+  Disasm_PGMLabel Goal;
+  Disasm_PGMLabel *Result;
 
   Goal.Address = Address;
-  Result = bsearch(&Goal, PGMLabels, PGMLabelCount, sizeof(struct PGMLabel), PGMLabelSort);
+  Result = bsearch(&Goal, cx->dis_PGMLabels, cx->dis_PGMLabelN, sizeof(Disasm_PGMLabel), PGMLabelSort);
   if(Result == NULL)
     return -1;
-  return Result - PGMLabels;
+  return Result - cx->dis_PGMLabels;
 }
 
 const char *Tagfile_Resolve_Mem_Address(int Address) {
-  for(int i = 0; i < MemLabelCount && MemLabels[i].Address <= Address; i++) {
-    int Start = MemLabels[i].Address;
-    int Size = MemLabels[i].Type == TYPE_WORD? 2: 1;
-    int End = MemLabels[i].Address + MemLabels[i].Count * Size - 1;
+  for(int i = 0; i < cx->dis_MemLabelN && cx->dis_MemLabels[i].Address <= Address; i++) {
+    int Start = cx->dis_MemLabels[i].Address;
+    int Size = cx->dis_MemLabels[i].Type == TYPE_WORD? 2: 1;
+    int End = cx->dis_MemLabels[i].Address + cx->dis_MemLabels[i].Count * Size - 1;
 
     if(Address >= Start && Address <= End) {
-      if(MemLabels[i].Count == 1) { // Single variable
+      if(cx->dis_MemLabels[i].Count == 1) { // Single variable
         if(Size == 1)
-          return str_ccprintf("%s", MemLabels[i].Comment);
-        return str_ccprintf("_%s8(%s)", Address == Start? "lo": "hi", MemLabels[i].Comment);
+          return str_ccprintf("%s", cx->dis_MemLabels[i].Comment);
+        return str_ccprintf("_%s8(%s)", Address == Start? "lo": "hi", cx->dis_MemLabels[i].Comment);
       }
       // Array
       if(Size == 1)
-        return str_ccprintf("%s[%d]", MemLabels[i].Comment, Address - Start);
-      return str_ccprintf("_%s8(%s[%d])", (Address-Start)%2? "hi": "lo", MemLabels[i].Comment,
+        return str_ccprintf("%s[%d]", cx->dis_MemLabels[i].Comment, Address - Start);
+      return str_ccprintf("_%s8(%s[%d])", (Address-Start)%2? "hi": "lo", cx->dis_MemLabels[i].Comment,
         (Address - Start)/2);
     }
   }
@@ -418,7 +380,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
   if(Index == -1)
     return 0;
 
-  switch (PGMLabels[Index].Type) {
+  switch (cx->dis_PGMLabels[Index].Type) {
   case TYPE_BYTE:
     ProcessingFunction = Tagfile_Process_Byte;
     break;
@@ -433,8 +395,8 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
     break;
   }
 
-  printf("; Inline PGM data: %d ", PGMLabels[Index].Count);
-  switch (PGMLabels[Index].Type) {
+  printf("; Inline PGM data: %d ", cx->dis_PGMLabels[Index].Count);
+  switch (cx->dis_PGMLabels[Index].Type) {
   case TYPE_BYTE:
     printf("byte");
     break;
@@ -448,18 +410,18 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
     printf("string");
     break;
   }
-  if(PGMLabels[Index].Count != 1)
+  if(cx->dis_PGMLabels[Index].Count != 1)
     printf("s");
   printf(" starting at 0x%x", Position);
 
-  if(PGMLabels[Index].Comment != NULL) {
-    printf(" (%s)", PGMLabels[Index].Comment);
+  if(cx->dis_PGMLabels[Index].Comment != NULL) {
+    printf(" (%s)", cx->dis_PGMLabels[Index].Comment);
   }
   printf("\n");
 
-  if((PGMLabels[Index].Type == TYPE_ASTRING) || (PGMLabels[Index].Type == TYPE_STRING)) {
-    if(PGMLabels[Index].Comment != NULL) {
-      snprintf(Buffer, sizeof(Buffer), "%x_%s", Position, PGMLabels[Index].Comment);
+  if((cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].Type == TYPE_STRING)) {
+    if(cx->dis_PGMLabels[Index].Comment != NULL) {
+      snprintf(Buffer, sizeof(Buffer), "%x_%s", Position, cx->dis_PGMLabels[Index].Comment);
       Sanitize_String(Buffer);
     } else {
       snprintf(Buffer, sizeof(Buffer), "%x", Position);
@@ -467,11 +429,11 @@ int Tagfile_Process_Data(const char *Bitstream, int Position) {
   }
 
   BytesAdvanced = 0;
-  for(i = 0; i < PGMLabels[Index].Count; i++) {
+  for(i = 0; i < cx->dis_PGMLabels[Index].Count; i++) {
     BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, i, Buffer);
   }
 
-  if(PGMLabels[Index].Type == TYPE_ASTRING) {
+  if(cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) {
     // Autoaligned string
     if((BytesAdvanced % 2) != 0) {
       // Not yet aligned correctly
@@ -501,72 +463,72 @@ static char *regname(const char *reg, int suf) {
   return ret;
 }
 
-// Initialise IORegisters and MemLabels from part register file
+// Initialise cx->dis_IORegisters and cx->dis_MemLabels from part register file
 void initRegisters(const AVRPART *p) {
   int nr = 0, nio = 0, offset = 0;
   const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(rf) {
-    if(IORegisters) {
-      for(int i = 0; i < IORegistersCount; i++)
-        mmt_free(IORegisters[i].Name);
-      mmt_free(IORegisters);
+    if(cx->dis_IORegisters) {
+      for(int i = 0; i < cx->dis_IORegisterN; i++)
+        mmt_free(cx->dis_IORegisters[i].Name);
+      mmt_free(cx->dis_IORegisters);
     }
-    if(MemLabels) {
-      for(int i = 0; i < MemLabelCount; i++)
-        mmt_free(MemLabels[i].Comment);
-      mmt_free(MemLabels);
+    if(cx->dis_MemLabels) {
+      for(int i = 0; i < cx->dis_MemLabelN; i++)
+        mmt_free(cx->dis_MemLabels[i].Comment);
+      mmt_free(cx->dis_MemLabels);
     }
 
     // Count how many entries are needed
     for(int i = 0; i< nr; i++)
       if(rf[i].addr < 0x40 && rf[i].size > 0)
         nio += rf[i].size;
-    IORegisters = mmt_malloc(nio*sizeof*IORegisters);
-    MemLabels = mmt_malloc(nr*sizeof*MemLabels);
+    cx->dis_IORegisters = mmt_malloc(nio*sizeof*cx->dis_IORegisters);
+    cx->dis_MemLabels = mmt_malloc(nr*sizeof*cx->dis_MemLabels);
 
     AVRMEM *mem = avr_locate_io(p);
     if(mem)
       offset = mem->offset;
     nio = 0;
     for(int i = 0; i< nr; i++) {
-      MemLabels[i].Address = offset + rf[i].addr;
-      MemLabels[i].Type = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
-      MemLabels[i].Count = rf[i].size > 2? rf[i].size: 1;
-      MemLabels[i].Comment = regname(rf[i].reg, -1);
+      cx->dis_MemLabels[i].Address = offset + rf[i].addr;
+      cx->dis_MemLabels[i].Type = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
+      cx->dis_MemLabels[i].Count = rf[i].size > 2? rf[i].size: 1;
+      cx->dis_MemLabels[i].Comment = regname(rf[i].reg, -1);
 
       if(rf[i].addr < 0x40) {
         if(rf[i].size == 1) {
-          IORegisters[nio].Name = regname(rf[i].reg, -1);
-          IORegisters[nio].Address = rf[i].addr;
+          cx->dis_IORegisters[nio].Name = regname(rf[i].reg, -1);
+          cx->dis_IORegisters[nio].Address = rf[i].addr;
           nio++;
         } else if(rf[i].size == 2) {
-          IORegisters[nio].Name = regname(rf[i].reg, 'l');
-          IORegisters[nio].Address = rf[i].addr;
+          cx->dis_IORegisters[nio].Name = regname(rf[i].reg, 'l');
+          cx->dis_IORegisters[nio].Address = rf[i].addr;
           nio++;
-          IORegisters[nio].Name = regname(rf[i].reg, 'h');
-          IORegisters[nio].Address = rf[i].addr+1;
+          cx->dis_IORegisters[nio].Name = regname(rf[i].reg, 'h');
+          cx->dis_IORegisters[nio].Address = rf[i].addr+1;
           nio++;
         } else if(rf[i].size > 2) {
           for(int k = 0; k < rf[i].size; k++) {
-            IORegisters[nio].Name = regname(rf[i].reg, k);
-            IORegisters[nio].Address = rf[i].addr + k;
+            cx->dis_IORegisters[nio].Name = regname(rf[i].reg, k);
+            cx->dis_IORegisters[nio].Address = rf[i].addr + k;
             nio++;
           }
         }
       }
     }
-    IORegistersCount = nio;
-    MemLabelCount = nr;
-    qsort(MemLabels, MemLabelCount, sizeof(struct MemLabel), MemLabelSort);
+    cx->dis_IORegisterN = nio;
+    cx->dis_MemLabelN = nr;
+    qsort(cx->dis_MemLabels, cx->dis_MemLabelN, sizeof(Disasm_MemLabel), MemLabelSort);
   }
 }
 
 const char *Resolve_IO_Register(int Number) {
-  for(int i = 0; i < IORegistersCount; i++) {
-    if(IORegisters[i].Address == Number) {
-      IORegisters[i].Used = 1;
-      return IORegisters[i].Name;
+  for(int i = 0; i < cx->dis_IORegisterN; i++) {
+    if(cx->dis_IORegisters[i].Address == Number) {
+      cx->dis_IORegisters[i].Used = 1;
+      return cx->dis_IORegisters[i].Name;
     }
   }
 
@@ -574,7 +536,7 @@ const char *Resolve_IO_Register(int Number) {
 }
 
 void Emit_Used_IO_Registers() {
-  for(int i = 0; i < IORegistersCount; i++)
-    if(IORegisters[i].Used)
-      printf(".equ %s, 0x%x\n", IORegisters[i].Name, IORegisters[i].Address);
+  for(int i = 0; i < cx->dis_IORegisterN; i++)
+    if(cx->dis_IORegisters[i].Used)
+      printf(".equ %s, 0x%x\n", cx->dis_IORegisters[i].Name, cx->dis_IORegisters[i].Address);
 }

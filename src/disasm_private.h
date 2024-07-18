@@ -36,11 +36,3 @@
 
 #define CALLBACK(name)  void name(const char *Bitstream, int Position, AVR_opcode mnemo)
 
-struct JumpCall {
-  int From;
-  int To;
-  int Type;
-  unsigned int LabelNumber;
-  unsigned char FunctionCall;
-};
-

@@ -293,13 +293,9 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
 }
 
 void Display_Opcodes() {
-  unsigned int i;
-
   printf("%d opcodes registered:\n", cx->dis_n_ops);
-  for(i = 0; i < cx->dis_n_ops; i++) {
-    // This invokes UB as a function pointer is converted to void * - beware
+  for(int i = 0; i < cx->dis_n_ops; i++)
     printf("%3d: '%-80s' -> %p\n", i, cx->dis_op[i].Opcode_String, (void *) cx->dis_op[i].Callback);
-  }
 }
 
 int Get_Specifity(const char *Opcode) {
