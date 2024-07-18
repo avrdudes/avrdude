@@ -346,6 +346,7 @@ int disasm_init(const AVRPART *p) {
   Register_Opcode(cpc_Callback, "0000 01rd  dddd rrrr", OPCODE_cpc);
   Register_Opcode(cpi_Callback, "0011 KKKK  dddd KKKK", OPCODE_cpi);
   Register_Opcode(cpse_Callback, "0001 00rd  dddd rrrr", OPCODE_cpse);
+  Register_Opcode(des_Callback, "1001 0100  KKKK 1011", OPCODE_des);
   Register_Opcode(dec_Callback, "1001 010d  dddd 1010", OPCODE_dec);
   Register_Opcode(eicall_Callback, "1001 0101  0001 1001", OPCODE_eicall);
   Register_Opcode(eijmp_Callback, "1001 0100  0001 1001", OPCODE_eijmp);

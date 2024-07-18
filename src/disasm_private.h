@@ -103,6 +103,7 @@ void cpc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void cpi_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void cpse_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void dec_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
+void des_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void eicall_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void eijmp_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void elpm1_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);

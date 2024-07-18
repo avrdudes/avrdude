@@ -156,6 +156,10 @@ static void Operation_s(AVR_opcode mnemo) {
   snprintf(cx->dis_comment, 255, "0x%02x = %d", (1 << Bit), (1 << Bit));
 }
 
+static void Operation_K(AVR_opcode mnemo) {
+  snprintf(cx->dis_code, 255, "%-7s %d", avr_opcodes[mnemo].opcode, RK);
+}
+
 static void Operation_k(AVR_opcode mnemo, int Position, const char *Pseudocode) {
   int Offset;
   int Target;
@@ -402,6 +406,10 @@ CALLBACK(cpse_Callback) {
 
 CALLBACK(dec_Callback) {
   Operation_Rd(mnemo);
+}
+
+CALLBACK(des_Callback) {
+  Operation_K(mnemo);
 }
 
 CALLBACK(eicall_Callback) {
