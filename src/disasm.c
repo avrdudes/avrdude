@@ -39,8 +39,7 @@
 #include "disasm_private.h"
 
 static void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
-  // Only register opcode if the part has it
-  if((avr_opcodes[mnemo].avrlevel & cx->dis_opts.AVR_Level) && cx->dis_n_ops < (int) sizeof cx->dis_op/sizeof*cx->dis_op) {
+  if(cx->dis_n_ops < (int) (sizeof cx->dis_op/sizeof*cx->dis_op)) {
     cx->dis_op[cx->dis_n_ops].Opcode_String = mmt_strdup(New_Opcode_String);
     cx->dis_op[cx->dis_n_ops].mnemo = mnemo;
     cx->dis_op[cx->dis_n_ops].Callback = Callback;
@@ -133,13 +132,10 @@ static int Match_Opcode(const char *Bitmask, const char *Bitstream) {
 }
 
 static int Get_Next_Opcode(const char *Bitstream) {
-  int i;
-
-  for(i = 0; i < cx->dis_n_ops; i++) {
-    if(Match_Opcode(cx->dis_op[i].Opcode_String, Bitstream) == 1) {
-      return i;
-    }
-  }
+  for(int i = 0; i < cx->dis_n_ops; i++)
+    if(avr_opcodes[cx->dis_op[i].mnemo].avrlevel & cx->dis_opts.AVR_Level)
+      if(Match_Opcode(cx->dis_op[i].Opcode_String, Bitstream) == 1)
+        return i;
   return -1;
 }
 
@@ -235,57 +231,36 @@ int disasm(const char *Bitstream, int Read, int addr) {
 }
 
 static int Get_Specifity(const char *Opcode) {
-  size_t i;
   int Specifity = 0;
 
-  for(i = 0; i < strlen(Opcode); i++) {
+  for(size_t i = 0; i < strlen(Opcode); i++)
     if((Opcode[i] == '0') || (Opcode[i] == '1'))
       Specifity++;
-  }
+
   return Specifity;
 }
 
+// Percolate higher specifity towards beginning of array but ensure illegal opcodes are last
 static int Comparison(const void *Element1, const void *Element2) {
   Disasm_opcode *OC1, *OC2;
-  int SP1, SP2;
-
+  int SP1, SP2, illegal1, illegal2, diff;
   OC1 = (Disasm_opcode *) Element1;
   OC2 = (Disasm_opcode *) Element2;
+  illegal1 = avr_opcodes[OC1->mnemo].avrlevel == OP_AVR_ILL;
+  illegal2 = avr_opcodes[OC2->mnemo].avrlevel == OP_AVR_ILL;
+  if((diff = illegal1 - illegal2))
+    return diff;
   SP1 = Get_Specifity(OC1->Opcode_String);
   SP2 = Get_Specifity(OC2->Opcode_String);
-  if(SP1 < SP2)
-    return 1;
-  else if(SP2 == SP1)
-    return 0;
-  return -1;
+  if((diff = SP1 - SP2))
+    return -diff;
+  // Tie break by mnemonic
+  return OC1->mnemo - OC2->mnemo;
 }
 
 int disasm_init(const AVRPART *p) {
-  /*
-   * 20 unallocated codes
-   *
-   * OPCODE_x_bld
-   * OPCODE_x_bst
-   * OPCODE_x_eicall
-   * OPCODE_x_eijmp
-   * OPCODE_x_icall
-   * OPCODE_x_ijmp
-   * OPCODE_x_nop_1
-   * OPCODE_x_nop_2
-   * OPCODE_x_nop_3
-   * OPCODE_x_nop_4
-   * OPCODE_x_nop_5
-   * OPCODE_x_nop_6
-   * OPCODE_x_nop_7
-   * OPCODE_x_nop_8
-   * OPCODE_x_nop_9
-   * OPCODE_x_nop_a
-   * OPCODE_x_ret
-   * OPCODE_x_reti
-   * OPCODE_x_sbrc
-   * OPCODE_x_sbrs
-   */
-
+  for(int i=0; i<cx->dis_n_ops; i++)
+    mmt_free(cx->dis_op[i].Opcode_String);
   cx->dis_n_ops = 0;
 
   Register_Opcode(adc_Callback, "0001 11rd  dddd rrrr", OPCODE_adc);
@@ -432,6 +407,28 @@ int disasm_init(const AVRPART *p) {
   // Register_Opcode(tst_Callback, "0010 00dd  dddd dddd", OPCODE_tst); // Implied by and
   Register_Opcode(xch_Callback, "1001 001d  dddd 0100", OPCODE_xch);
   Register_Opcode(wdr_Callback, "1001 0101  1010 1000", OPCODE_wdr);
+
+  // Also register unallocated opcodes
+  Register_Opcode(nop_Callback, "0000 0000  xxxx xxxx", OPCODE_x_nop_1);
+  Register_Opcode(nop_Callback, "1001 000x  xxxx 0011", OPCODE_x_nop_2);
+  Register_Opcode(nop_Callback, "1001 000x  xxxx 1000", OPCODE_x_nop_3);
+  Register_Opcode(nop_Callback, "1001 000x  xxxx 1011", OPCODE_x_nop_4);
+  Register_Opcode(nop_Callback, "1001 001x  xxxx 0011", OPCODE_x_nop_5);
+  Register_Opcode(nop_Callback, "1001 001x  xxxx 1000", OPCODE_x_nop_6);
+  Register_Opcode(nop_Callback, "1001 001x  xxxx 1011", OPCODE_x_nop_7);
+  Register_Opcode(icall_Callback, "1001 0101  xxx0 1001", OPCODE_x_icall);
+  Register_Opcode(eicall_Callback, "1001 0101  xxx1 1001", OPCODE_x_eicall);
+  Register_Opcode(ret_Callback, "1001 0101  0xx0 1000", OPCODE_x_ret);
+  Register_Opcode(reti_Callback, "1001 0101  0xx1 1000", OPCODE_x_reti);
+  Register_Opcode(nop_Callback, "1001 0101  1011 1000", OPCODE_x_nop_8);
+  Register_Opcode(nop_Callback, "1001 010x  xxxx 0100", OPCODE_x_nop_9);
+  Register_Opcode(nop_Callback, "1001 0101  xxxx 1011", OPCODE_x_nop_a);
+  Register_Opcode(ijmp_Callback, "1001 0100  xxx0 1001", OPCODE_x_ijmp);
+  Register_Opcode(eijmp_Callback, "1001 0100  xxx1 1001", OPCODE_x_eijmp);
+  Register_Opcode(bld_Callback, "1111 100d  dddd 1bbb", OPCODE_x_bld);
+  Register_Opcode(bst_Callback, "1111 101d  dddd 1bbb", OPCODE_x_bst);
+  Register_Opcode(sbrc_Callback, "1111 110r  rrrr 1bbb", OPCODE_x_sbrc);
+  Register_Opcode(sbrs_Callback, "1111 111r  rrrr 1bbb", OPCODE_x_sbrs);
 
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);
 

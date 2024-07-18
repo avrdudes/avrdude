@@ -237,8 +237,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         "    -q        show call cycles, -Q don't show call cycles (default)\n"
         "    -s        use avr-gcc code style (default), -S use AVR inst set code style\n"
         "    -l        preprocess jump/call (default), -L don't preprocess jump/call\n"
-        "    -d        decode all opcodes (irrespective of part)\n"
-        "    -D        decode all opcodes, even unallocated illegal opcodes\n"
+        "    -d        decode all (even unallocated) opcodes; -D only those of the part\n"
         "    -z        zap list of jumps/calls before disassembly\n"
         "    -t=<file> set the tagfile (zaps old tagfile contents)\n"
       );
@@ -473,14 +472,13 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.Tagfile = NULL;
     cx->dis_opts.CodeStyle = CODESTYLE_AVRGCC; // CODESTYLE_AVR_INSTRUCTION_SET
     cx->dis_opts.Process_Labels = 1;
+    mem = avr_locate_flash(p);
+    cx->dis_opts.FlashSize = mem? mem->size: 0;
+    cx->dis_opts.AVR_Level = get_avr_archlevel(p);
+    cx->dis_opts.cycle_index = get_avr_cycle_index(p);
     disasm_init(p);
     cx->dis_initopts++;
   }
-
-  mem = avr_locate_flash(p);
-  cx->dis_opts.FlashSize = mem? mem->size: 0;
-  cx->dis_opts.AVR_Level = get_avr_archlevel(p);
-  cx->dis_opts.cycle_index = get_avr_cycle_index(p);
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;
@@ -515,10 +513,10 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           disasm_zap_JumpCalls();
           break;
         case 'd':
-          cx->dis_opts.AVR_Level = PART_ALL;
+          cx->dis_opts.AVR_Level = PART_ALL | OP_AVR_ILL;
           break;
         case 'D':
-          cx->dis_opts.AVR_Level = PART_ALL | OP_AVR_ILL;
+          cx->dis_opts.AVR_Level = get_avr_archlevel(p);
           break;
         case 't':
           if(*++q == '=')
