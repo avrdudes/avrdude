@@ -141,34 +141,21 @@ void Enumerate_Labels(void) {
   }
 }
 
-char *Get_Label_Name(int Destination, char **LabelComment) {
-  int i;
-  static char Buffer[256];
+const char *Get_Label_Name(int Destination, char **LabelComment) {
   int TagIndex;
-  char *TagLabel;
 
   TagIndex = Tagfile_FindLabelAddress(Destination);
   if(TagIndex != -1) {
-    TagLabel = Tagfile_GetLabel(TagIndex);
-    snprintf(Buffer, sizeof(Buffer), "%s", TagLabel);
-    if(LabelComment != NULL)
+    if(LabelComment)
       *LabelComment = Tagfile_GetLabelComment(TagIndex);
-    return Buffer;
+    return str_ccprintf("%s", Tagfile_GetLabel(TagIndex));
   }
 
-  for(i = 0; i < JumpCall_Count; i++) {
-    if((JumpCalls[i].To) == Destination) {
-      if(JumpCalls[i].FunctionCall) {
-        snprintf(Buffer, sizeof(Buffer), "Function%d", JumpCalls[i].LabelNumber);
-      } else {
-        snprintf(Buffer, sizeof(Buffer), "Label%d", JumpCalls[i].LabelNumber);
-      }
-      return Buffer;
-    }
-  }
+  for(int i = 0; i < JumpCall_Count; i++)
+    if(JumpCalls[i].To == Destination)
+      return str_ccprintf("%s%d", JumpCalls[i].FunctionCall? "Function": "Label", JumpCalls[i].LabelNumber);
 
-  snprintf(Buffer, sizeof(Buffer), "UNKNOWN");
-  return Buffer;
+  return "UNKNOWN";
 }
 
 // Show all references which refer to "Position" as destination
@@ -186,10 +173,8 @@ void Print_JumpCalls(int Position) {
     }
   }
   if(Match == 1) {
-    char *LabelName;
     char *LabelComment = NULL;
-
-    LabelName = Get_Label_Name(Position, &LabelComment);
+    const char *LabelName = Get_Label_Name(Position, &LabelComment);
     if(LabelComment == NULL) {
       printf("%s:\n", LabelName);
     } else {
