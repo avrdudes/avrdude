@@ -332,7 +332,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
           *baddr = 0;
         if(blen)
           *blen = 0;
-        return mmt_malloc(1);
+        return mmt_malloc(16);
       }
       if (len < 0) {
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
@@ -349,7 +349,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   if (cx->term_rmem[i].len > maxsize)
     cx->term_rmem[i].len = maxsize;
 
-  uint8_t *buf = mmt_malloc(cx->term_rmem[i].len);
+  uint8_t *buf = mmt_malloc(cx->term_rmem[i].len + 16); // Add safety margin
   if(argc < 4 && verbose)
     term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[i].mem->desc,
       cx->term_rmem[i].addr, cx->term_rmem[i].len);
@@ -477,7 +477,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       cx->dis_opts.FlashSize = mem->size;
     cx->dis_opts.AVR_Level = get_avr_archlevel(p);
     cx->dis_opts.cycle_index = get_avr_cycle_index(p);
-    initRegisters(p);
+    disasm_init(p);
     cx->dis_initopts++;
   }
   cx->dis_opts.Pass = 1;

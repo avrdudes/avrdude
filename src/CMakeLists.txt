@@ -184,11 +184,8 @@ add_library(libavrdude
     disasm.c
     disasm_private.h
     disasm_callbacks_assembly.c
-    disasm_callbacks_assembly.h
     disasm_jumpcall.c
-    disasm_jumpcall.h
     disasm_tagfile.c
-    disasm_tagfile.h
     dfu.c
     dfu.h
     dryrun.c

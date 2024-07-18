@@ -33,22 +33,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-
 #include "disasm_private.h"
-#include "disasm_tagfile.h"
-
-/*
-static void Display_Tagfile() {
-  int i;
-  printf("%d code labels:\n", cx->dis_CodeLabelN);
-  for(i = 0; i < cx->dis_CodeLabelN; i++)
-    printf("%d: 0x%x = %s\n", i, cx->dis_CodeLabels[i].Address, cx->dis_CodeLabels[i].Text);
-
-  printf("%d PGM labels:\n", cx->dis_PGMLabelN);
-  for(i = 0; i < cx->dis_PGMLabelN; i++)
-     printf("%d: 0x%x = %d * %d\n", i, cx->dis_PGMLabels[i].Address, cx->dis_PGMLabels[i].Count, cx->dis_PGMLabels[i].Type);
-}
-*/
 
 static int LineError(const char *Token, const char *Message, int LineNo) {
   if((Token == NULL) || (strlen(Token) == 0)) {
@@ -241,9 +226,8 @@ static void Tagfile_SortLabels() {
 }
 
 int Read_Tagfile(const char *Filename) {
-  FILE *f;
+  FILE *f = fopen(Filename, "r");
 
-  f = fopen(Filename, "r");
   if(!f) {
     fprintf(stderr, "Error opening tagfile '%s': %s\n", Filename, strerror(errno));
     return 0;
@@ -462,7 +446,7 @@ static char *regname(const char *reg, int suf) {
 }
 
 // Initialise cx->dis_IORegisters and cx->dis_MemLabels from part register file
-void initRegisters(const AVRPART *p) {
+void disasm_init_regfile(const AVRPART *p) {
   int nr = 0, nio = 0, offset = 0;
   const Register_file *rf = avr_locate_register_file(p, &nr);
 

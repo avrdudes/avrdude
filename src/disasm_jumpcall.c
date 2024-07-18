@@ -31,10 +31,7 @@
 
 #include "avrdude.h"
 #include "libavrdude.h"
-
 #include "disasm_private.h"
-#include "disasm_tagfile.h"
-#include "disasm_jumpcall.h"
 
 void Display_JumpCalls() {
   int i;

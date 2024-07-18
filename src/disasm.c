@@ -37,10 +37,6 @@
 #include "libavrdude.h"
 
 #include "disasm_private.h"
-#include "disasm_callbacks_assembly.h"
-#include "disasm_jumpcall.h"
-#include "disasm_tagfile.h"
-
 
 static void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
   // Only register opcode if the part has it
@@ -147,7 +143,7 @@ static int Get_Next_Opcode(const char *Bitstream) {
   return -1;
 }
 
-void Disassemble(const char *Bitstream, int Read, int addr) {
+int disasm(const char *Bitstream, int Read, int addr) {
   int Pos;
   int Opcode;
   int i;
@@ -234,6 +230,8 @@ void Disassemble(const char *Bitstream, int Read, int addr) {
       Pos += 2;
     }
   }
+
+  return 0;
 }
 
 static int Get_Specifity(const char *Opcode) {
@@ -262,10 +260,10 @@ static int Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-int disasm(const char *Bitstream, int Read, int addr) {
+int disasm_init(const AVRPART *p) {
   if(cx->dis_opts.Tagfile)
     if(!Read_Tagfile(cx->dis_opts.Tagfile))
-      return 0;
+      return -1;
 
   /*
    * 8 untreated opcodes and 20 "unofficial" ones
@@ -449,6 +447,6 @@ int disasm(const char *Bitstream, int Read, int addr) {
       return -1;
     }
 
-  Disassemble(Bitstream, Read, addr);
+  disasm_init_regfile(p);
   return 0;
 }
