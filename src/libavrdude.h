@@ -1565,6 +1565,7 @@ typedef enum {
   OP_AVR_XL              = 512, // AVR with flash > 128 kB (EIJMP, EICALL)
   OP_AVR_XM             = 1024, // XMEGA only (DES, XCH, LAC, LAS, LAT)
   OP_AVR_XTM            = 2048, // XMEGA and UPDI only (SPM Z+)
+  OP_AVR_ILL            = 4096, // Unallocated (illegal) opcodes
 } AVR_archlevel;
 
 /*
@@ -1585,6 +1586,7 @@ typedef enum {
 #define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L|OP_AVR_XL)
 #define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XTM)
 #define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XM|OP_AVR_XTM)
+#define PART_ALL    (PART_AVR_XM|OP_AVR_L|OP_AVR_XL) // All but RC (the latter conflicts)
 
 typedef struct {
   int mask, value, nwords;

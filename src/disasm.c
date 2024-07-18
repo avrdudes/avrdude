@@ -40,7 +40,7 @@
 
 static void Register_Opcode(void (*Callback)(const char *, int, AVR_opcode), const char *New_Opcode_String, AVR_opcode mnemo) {
   // Only register opcode if the part has it
-  if(avr_opcodes[mnemo].avrlevel & cx->dis_opts.AVR_Level) {
+  if((avr_opcodes[mnemo].avrlevel & cx->dis_opts.AVR_Level) && cx->dis_n_ops < (int) sizeof cx->dis_op/sizeof*cx->dis_op) {
     cx->dis_op[cx->dis_n_ops].Opcode_String = mmt_strdup(New_Opcode_String);
     cx->dis_op[cx->dis_n_ops].mnemo = mnemo;
     cx->dis_op[cx->dis_n_ops].Callback = Callback;
