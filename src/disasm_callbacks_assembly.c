@@ -595,7 +595,7 @@ CALLBACK(or_Callback) {
 }
 
 CALLBACK(ori_Callback) {
-  Operation_Rd16_K(mnemo);
+  Operation_Rd16_K(BitCount(RK) < 4? mnemo: OPCODE_sbr);
 }
 
 CALLBACK(out_Callback) {
@@ -676,7 +676,7 @@ CALLBACK(rjmp_Callback) {
     if(Target >= 0) {
       snprintf(cx->dis_comment, 255, "0x%02x", Target);
     } else {
-      snprintf(cx->dis_comment, 255, "-0x%02x - Illegal jump position -- specify flash size!", -Target);
+      snprintf(cx->dis_comment, 255, "-0x%02x - Illegal jump position?", -Target);
     }
   } else {
     snprintf(cx->dis_code, 255, "%-7s %s", avr_opcodes[mnemo].opcode, Get_Label_Name(Target, NULL));
@@ -714,10 +714,6 @@ CALLBACK(sbiw_Callback) {
     snprintf(cx->dis_code, 255, "%-7s r%d, 0x%02x", avr_opcodes[mnemo].opcode, 2 * Rd + 24, RK);
   }
   snprintf(cx->dis_comment, 255, "%d", RK);
-}
-
-CALLBACK(sbr_Callback) {
-  Operation_Rd16_K(mnemo);
 }
 
 CALLBACK(sbrc_Callback) {

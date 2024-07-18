@@ -126,7 +126,6 @@ void sbi_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sbic_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sbis_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sbiw_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
-void sbr_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sbrc_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sbrs_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);
 void sec_Callback(const char *Bitstream, int Position, AVR_opcode mnemo);

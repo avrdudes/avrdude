@@ -43,7 +43,7 @@ const AVR_opcode_data avr_opcodes[164] = {
   {0xfe0f, 0x940a, 1, "1001 010d  dddd 1010", OP_AVR1,    OPCODE_dec, "dec", "Rd", "Decrement", "Rd <-- Rd-1", "Z,N,V,S", {"1", "1", "1", "1"}, ""},
   {0xfc00, 0x2000, 1, "0010 00dd  dddd dddd", OP_AVR1,    OPCODE_tst, "tst", "Rd", "Test for Zero or Minus", "Rd <-- Rd & Rd", "Z,N,V,S", {"1", "1", "1", "1"}, "alias for AND Rd, Rd"},
   {0xfc00, 0x2400, 1, "0010 01dd  dddd dddd", OP_AVR1,    OPCODE_clr, "clr", "Rd", "Clear Register", "Rd <-- Rd xor Rd", "Z,N,V,S", {"1", "1", "1", "1"}, "alias for EOR Rd, Rd"},
-  {0xff0f, 0xef0f, 1, "1110 1111  dddd 1111", OP_AVR1,    OPCODE_ser, "ser", "Rd", "Set Register", "Rd <-- $FF", "None", {"1", "1", "1", "1"}, "alias for LDI Rd, 0xFF"},
+  {0xff0f, 0xef0f, 1, "1110 1111  dddd 1111", OP_AVR1,    OPCODE_ser, "ser", "Rd", "Set Register", "Rd <-- $FF", "None", {"1", "1", "1", "1"}, "alias for LDI Rd, 0xFF; d = 16...31"},
   {0xfc00, 0x9c00, 1, "1001 11rd  dddd rrrr", OP_AVR4,    OPCODE_mul, "mul", "Rd, Rr", "Multiply Unsigned", "R1:R0 <-- Rd x Rr (UU)", "Z,C", {"2", "2", "2", "n/a"}, ""},
   {0xff00, 0x0200, 1, "0000 0010  dddd rrrr", OP_AVR4,    OPCODE_muls, "muls", "Rd, Rr", "Multiply Signed", "R1:R0 <-- Rd x Rr (SS)", "Z,C", {"2", "2", "2", "n/a"}, "d, r=16..31"},
   {0xff88, 0x0300, 1, "0000 0011  0ddd 0rrr", OP_AVR4,    OPCODE_mulsu, "mulsu", "Rd, Rr", "Multiply Signed with Unsigned", "R1:R0 <-- Rd x Rr (SU)", "Z,C", {"2", "2", "2", "n/a"}, "d, r=16..23"},

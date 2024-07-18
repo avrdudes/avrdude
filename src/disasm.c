@@ -337,6 +337,7 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(bst_Callback, "1111 101d  dddd 0bbb", OPCODE_bst);
   Register_Opcode(call_Callback, "1001 010k  kkkk 111k    kkkk kkkk  kkkk kkkk", OPCODE_call);
   Register_Opcode(cbi_Callback, "1001 1000  AAAA Abbb", OPCODE_cbi);
+  // Register_Opcode(cbr_Callback, "0111 KKKK  dddd KKKK", OPCODE_cbr); // Implied by (a function of) andi
   Register_Opcode(clc_Callback, "1001 0100  1000 1000", OPCODE_clc);
   Register_Opcode(clh_Callback, "1001 0100  1101 1000", OPCODE_clh);
   Register_Opcode(cli_Callback, "1001 0100  1111 1000", OPCODE_cli);
@@ -408,7 +409,7 @@ int disasm(const char *Bitstream, int Read, int addr) {
   Register_Opcode(sbic_Callback, "1001 1001  AAAA Abbb", OPCODE_sbic);
   Register_Opcode(sbis_Callback, "1001 1011  AAAA Abbb", OPCODE_sbis);
   Register_Opcode(sbiw_Callback, "1001 0111  KKdd KKKK", OPCODE_sbiw);
-  Register_Opcode(sbr_Callback, "0110 KKKK  dddd KKKK", OPCODE_sbr);
+  // Register_Opcode(sbr_Callback, "0110 KKKK  dddd KKKK", OPCODE_sbr); // Implied by ori
   Register_Opcode(sbrc_Callback, "1111 110r  rrrr 0bbb", OPCODE_sbrc);
   Register_Opcode(sbrs_Callback, "1111 111r  rrrr 0bbb", OPCODE_sbrs);
   Register_Opcode(sec_Callback, "1001 0100  0000 1000", OPCODE_sec);
