@@ -1413,9 +1413,11 @@ int main(int argc, char * argv [])
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
 skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
+#ifdef HAVE_LIBSERIALPORT
       list_available_serialports(programmers);
       if(touch_1200bps == 1)
         pmsg_info("alternatively, try -rr or -rrr for longer delays\n");
+#endif
     }
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
