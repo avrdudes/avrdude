@@ -1538,11 +1538,11 @@ typedef enum {
   OPCODE_ses,      OPCODE_cls,      OPCODE_sev,      OPCODE_clv,
   OPCODE_set,      OPCODE_clt,      OPCODE_seh,      OPCODE_clh,
   OPCODE_break,    OPCODE_nop,      OPCODE_sleep,    OPCODE_wdr,
-  OPCODE_x_nop_1,  OPCODE_x_nop_2,  OPCODE_x_nop_3,  OPCODE_x_nop_4,
-  OPCODE_x_nop_5,  OPCODE_x_nop_6,  OPCODE_x_nop_7,  OPCODE_x_icall,
-  OPCODE_x_eicall, OPCODE_x_ret,    OPCODE_x_reti,   OPCODE_x_nop_8,
-  OPCODE_x_nop_9,  OPCODE_x_nop_a,  OPCODE_x_ijmp,   OPCODE_x_eijmp,
-  OPCODE_x_bld,    OPCODE_x_bst,    OPCODE_x_sbrc,   OPCODE_x_sbrs,
+  OPCODE_u_nop_1,  OPCODE_u_nop_2,  OPCODE_u_nop_3,  OPCODE_u_nop_4,
+  OPCODE_u_nop_5,  OPCODE_u_nop_6,  OPCODE_u_nop_7,  OPCODE_u_icall,
+  OPCODE_u_eicall, OPCODE_u_ret,    OPCODE_u_reti,   OPCODE_u_nop_8,
+  OPCODE_u_nop_9,  OPCODE_u_nop_a,  OPCODE_u_ijmp,   OPCODE_u_eijmp,
+  OPCODE_u_bld,    OPCODE_u_bst,    OPCODE_u_sbrc,   OPCODE_u_sbrs,
 } AVR_opcode;
 
 typedef struct {
@@ -1615,17 +1615,18 @@ typedef enum {
 #define OTY_CONSTRAINT   0x2000 // Opcode has constraints: Rr == Rd (tst, clr, lsl, rol)
 
 typedef struct {
-  AVR_opcode mnemo;             // OPCODE_add, ...
+  AVR_opcode mnemo;             // Eg, OPCODE_add
+  const char *idname;           // Unique id, eg, "ldx_1" (for error msgs or debugging)
   int mask, value, nwords;
-  AVR_archlevel avrlevel;       // Eg, OP_AVR1
-  const char *bits;             // Eg, "0000 11rd  dddd rrrr"
-  int type;                     // Eg, OTY_ALBI|OTY_RALL
+  AVR_archlevel avrlevel;       // OP_AVR1
+  const char *bits;             // "0000 11rd  dddd rrrr"
+  int type;                     // OTY_ALBI|OTY_RALL
   const char
     *opcode,                    // "add"
     *operands,                  // "Rd, Rr"
     *description,               // "Add without Carry"
     *operation,                 // "Rd <-- Rd + Rr"
-    *flags,                     // "Z,C,N,V,S,H"
+    *flags,                     // "--HSVNZC"
     *clock[OP_AVR_cycle_N],     // Timings for AVRe, AVRxm, AVRxt and AVRrc
     *remarks;
 } AVR_opcode_data;

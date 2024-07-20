@@ -420,26 +420,26 @@ int disasm_init(const AVRPART *p) {
   Register_Opcode(wdr_Callback, "1001 0101  1010 1000", OPCODE_wdr);
 
   // Also register unallocated opcodes
-  Register_Opcode(nop_Callback, "0000 0000  xxxx xxxx", OPCODE_x_nop_1);
-  Register_Opcode(nop_Callback, "1001 000x  xxxx 0011", OPCODE_x_nop_2);
-  Register_Opcode(nop_Callback, "1001 000x  xxxx 1000", OPCODE_x_nop_3);
-  Register_Opcode(nop_Callback, "1001 000x  xxxx 1011", OPCODE_x_nop_4);
-  Register_Opcode(nop_Callback, "1001 001x  xxxx 0011", OPCODE_x_nop_5);
-  Register_Opcode(nop_Callback, "1001 001x  xxxx 1000", OPCODE_x_nop_6);
-  Register_Opcode(nop_Callback, "1001 001x  xxxx 1011", OPCODE_x_nop_7);
-  Register_Opcode(icall_Callback, "1001 0101  xxx0 1001", OPCODE_x_icall);
-  Register_Opcode(eicall_Callback, "1001 0101  xxx1 1001", OPCODE_x_eicall);
-  Register_Opcode(ret_Callback, "1001 0101  0xx0 1000", OPCODE_x_ret);
-  Register_Opcode(reti_Callback, "1001 0101  0xx1 1000", OPCODE_x_reti);
-  Register_Opcode(nop_Callback, "1001 0101  1011 1000", OPCODE_x_nop_8);
-  Register_Opcode(nop_Callback, "1001 010x  xxxx 0100", OPCODE_x_nop_9);
-  Register_Opcode(nop_Callback, "1001 0101  xxxx 1011", OPCODE_x_nop_a);
-  Register_Opcode(ijmp_Callback, "1001 0100  xxx0 1001", OPCODE_x_ijmp);
-  Register_Opcode(eijmp_Callback, "1001 0100  xxx1 1001", OPCODE_x_eijmp);
-  Register_Opcode(bld_Callback, "1111 100d  dddd 1bbb", OPCODE_x_bld);
-  Register_Opcode(bst_Callback, "1111 101d  dddd 1bbb", OPCODE_x_bst);
-  Register_Opcode(sbrc_Callback, "1111 110r  rrrr 1bbb", OPCODE_x_sbrc);
-  Register_Opcode(sbrs_Callback, "1111 111r  rrrr 1bbb", OPCODE_x_sbrs);
+  Register_Opcode(nop_Callback, "0000 0000  xxxx xxxx", OPCODE_u_nop_1);
+  Register_Opcode(nop_Callback, "1001 000x  xxxx 0011", OPCODE_u_nop_2);
+  Register_Opcode(nop_Callback, "1001 000x  xxxx 1000", OPCODE_u_nop_3);
+  Register_Opcode(nop_Callback, "1001 000x  xxxx 1011", OPCODE_u_nop_4);
+  Register_Opcode(nop_Callback, "1001 001x  xxxx 0011", OPCODE_u_nop_5);
+  Register_Opcode(nop_Callback, "1001 001x  xxxx 1000", OPCODE_u_nop_6);
+  Register_Opcode(nop_Callback, "1001 001x  xxxx 1011", OPCODE_u_nop_7);
+  Register_Opcode(icall_Callback, "1001 0101  xxx0 1001", OPCODE_u_icall);
+  Register_Opcode(eicall_Callback, "1001 0101  xxx1 1001", OPCODE_u_eicall);
+  Register_Opcode(ret_Callback, "1001 0101  0xx0 1000", OPCODE_u_ret);
+  Register_Opcode(reti_Callback, "1001 0101  0xx1 1000", OPCODE_u_reti);
+  Register_Opcode(nop_Callback, "1001 0101  1011 1000", OPCODE_u_nop_8);
+  Register_Opcode(nop_Callback, "1001 010x  xxxx 0100", OPCODE_u_nop_9);
+  Register_Opcode(nop_Callback, "1001 0101  xxxx 1011", OPCODE_u_nop_a);
+  Register_Opcode(ijmp_Callback, "1001 0100  xxx0 1001", OPCODE_u_ijmp);
+  Register_Opcode(eijmp_Callback, "1001 0100  xxx1 1001", OPCODE_u_eijmp);
+  Register_Opcode(bld_Callback, "1111 100d  dddd 1bbb", OPCODE_u_bld);
+  Register_Opcode(bst_Callback, "1111 101d  dddd 1bbb", OPCODE_u_bst);
+  Register_Opcode(sbrc_Callback, "1111 110r  rrrr 1bbb", OPCODE_u_sbrc);
+  Register_Opcode(sbrs_Callback, "1111 111r  rrrr 1bbb", OPCODE_u_sbrs);
 
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);
 
