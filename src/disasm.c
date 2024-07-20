@@ -444,7 +444,7 @@ int disasm_init(const AVRPART *p) {
   qsort(cx->dis_op, cx->dis_n_ops, sizeof(Disasm_opcode), Comparison);
 
   for(size_t i = 0; i < sizeof avr_opcodes/sizeof*avr_opcodes; i++)
-    if(avr_opcodes[i].mnemo != i) {
+    if(avr_opcodes[i].mnemo != (AVR_opcode) i) {
       msg_error("avr_opcodes[] table broken (this should never happen)\n");
       return -1;
     }

@@ -23,10 +23,59 @@
 /*
  * AVR opcode table
  *
- *  - Order makes the first match of a 16-bit opcode to be a "good" representation
- *  - Order of enums OPCODE_...  in libavedude.h must align with table order here
+ * - Order of enums OPCODE_...  in libavedude.h must align with table
+ *
+ * - Order makes the first match of a 16-bit opcode a "good" one
+ *     + Unallocated opcodes come last
+ *     + Specific reduced-core sts/lds opcodes are penultimate
+ *     + More specific opcodes before less specific ones (clr before eor)
+ *     + Opcodes labelled alias come behind those not labelled so
+ *
+ * - The operand field has a very specific syntax as follows
+ *
+ *     A  5-bit I/O address (sbic, sbis, sbi, cbi)
+ *        6-bit I/O address (in, out)
+ *
+ *     a  7-bit address in weird format 0x40..0xbf for reduced-core (lds, sts)
+ *
+ *     b  bit number 0..7 (sbrc, sbrs, sbic, sbis, sbi, cbi, bst, bld, u/bld,
+ *           u/bst, u/sbrc, u/sbrs)
+ *
+ *     k  7-bit signed relative address in words for 2*k+2 bytes PC offset in
+ *           [-126, 128] (brcs, brlo, breq, brmi, brvs, brlt, brhs, brts, brie,
+             brcc, brsh, brne, brpl, brvc, brge, brhc, brtc, brid, brbs, brbc)
+ *        12-bit signed relative address in words for 2*k+2 bytes PC offset in
+ *           [-4094, 4096] (rjmp, rcall)
+ *        16-bit absolute byte address (lds, sts)
+ *        22-bit absolute word address for the PC (jmp, call)
+ *
+ *     K  4-bit round index 0..15 (des)
+ *        6-bit constant 0..63 (adiw, sbiw)
+ *        8-bit constant 0..255 (subi, sbci, andi, ori, sbr, cbr, cpi, ldi)
+ *
+ *     q  6-bit displacement 0..63 (ldd, ldd, std, std)
+ *
+ *     Rd 2-bit destination register in r24, r26, r28, r30 (adiw, sbiw)
+ *        3-bit dest register in r16, ..., r23 (mulsu, fmul, fmuls, fmulsu)
+ *        4-bit destination register in r16, ..., r31 (subi, sbci, andi, ori,
+ *              sbr, cbr, ser, muls, cpi, ldi, lds)
+ *        4-bit destination register in r0, r2, ..., r30 (movw)
+ *        5-bit destination register in r0, r1, ..., r31 (add, adc, sub, sbc,
+ *              and, or, eor, com, neg, inc, dec, clr, mul, cpse, cp, cpc, mov,
+ *              lds, ld, ldd, lpm, elpm, in, pop, xch, las, lac, lat, lsl, lsr,
+ *              rol, ror, asr, swap, bld, u/bld)
+ *
+ *     Rr 3-bit source register in r16, ..., r23 (mulsu, fmul, fmuls, fmulsu)
+ *        4-bit source register in r16, ..., r31 (muls, sts)
+ *        4-bit source register in r0, ..., r30 (movw)
+ *        5-bit source register in r0, ..., r31 (add, adc, sub, sbc, and, or,
+ *              eor, tst, mul, cpse, cp, cpc, sbrc, sbrs, mov, sts, st, std,
+ *              out, push, bst, u/bst, u/sbrc, u/sbrs)
+ *
+ *     s  SREG bit number 0..7 (brbs, brbc, bset, bclr)
  *
  */
+
 const AVR_opcode_data avr_opcodes[164] = {
 #define OP_ID(nam) OPCODE_##nam, #nam
 
@@ -138,7 +187,7 @@ const AVR_opcode_data avr_opcodes[164] = {
   {OP_ID(eijmp),    0xffff, 0x9419, 1, OP_AVR_XL,  "1001 0100  0001 1001", OTY_JMPI,
     "eijmp", "-", "Extended Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"2", "2", "2", "n/a"}, ""},
-  {OP_ID(jmp),      0xfe0e, 0x940c, 2, OP_AVR_M,   "1001 010k  kkkk 110k    kkkk kkkk  kkkk kkkk", OTY_JMPI,
+  {OP_ID(jmp),      0xfe0e, 0x940c, 2, OP_AVR_M,   "1001 010k  kkkk 110k   kkkk kkkk  kkkk kkkk", OTY_JMPI,
     "jmp", "k", "Jump", "PC <-- k", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(rcall),    0xf000, 0xd000, 1, OP_AVR1,    "1101 kkkk  kkkk kkkk", OTY_RJMX,
@@ -150,7 +199,7 @@ const AVR_opcode_data avr_opcodes[164] = {
   {OP_ID(eicall),   0xffff, 0x9519, 1, OP_AVR_XL,  "1001 0101  0001 1001", OTY_JMPX,
     "eicall", "-", "Extended Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"4", "3", "3", "n/a"}, ""},
-  {OP_ID(call),     0xfe0e, 0x940e, 2, OP_AVR_M,   "1001 010k  kkkk 111k    kkkk kkkk  kkkk kkkk", OTY_JMPX,
+  {OP_ID(call),     0xfe0e, 0x940e, 2, OP_AVR_M,   "1001 010k  kkkk 111k   kkkk kkkk  kkkk kkkk", OTY_JMPX,
     "call", "k", "call Subroutine", "PC <-- k, STACK <-- PC, SP <-- SP - 2", "--------",
     {"4/5", "3/4", "3/4", "n/a"}, ""},
   {OP_ID(ret),      0xffff, 0x9508, 1, OP_AVR1,    "1001 0101  0000 1000", OTY_JMPX,
@@ -257,7 +306,7 @@ const AVR_opcode_data avr_opcodes[164] = {
   {OP_ID(ldi),      0xf000, 0xe000, 1, OP_AVR1,    "1110 KKKK  dddd KKKK", OTY_XFRI|OTY_RUPP,
     "ldi", "Rd, K", "Load Immediate", "Rd <-- K", "--------",
     {"1", "1", "1", "1"}, "d = 16..31"},
-  {OP_ID(lds),      0xfe0f, 0x9000, 2, OP_AVR2nRC, "1001 000d  dddd 0000    kkkk kkkk  kkkk kkkk", OTY_XFRX|OTY_RALL,
+  {OP_ID(lds),      0xfe0f, 0x9000, 2, OP_AVR2nRC, "1001 000d  dddd 0000   kkkk kkkk  kkkk kkkk", OTY_XFRX|OTY_RALL,
     "lds", "Rd, k", "Load Direct from data space", "Rd <-- (k)", "--------",
     {"2", "3", "3", "2"}, ""},
   {OP_ID(ld_1),     0xfe0f, 0x900c, 1, OP_AVR2,    "1001 000d  dddd 1100", OTY_XFRX|OTY_RALL,
@@ -293,7 +342,7 @@ const AVR_opcode_data avr_opcodes[164] = {
   {OP_ID(ldd_2),    0xd208, 0x8000, 1, OP_AVR2nRC, "10q0 qq0d  dddd 0qqq", OTY_XFRX|OTY_RALL,
     "ldd", "Rd, Z+q", "Load Indirect with Displacement", "Rd <-- (Z+q)", "--------",
     {"2", "3", "2", "n/a"}, ""},
-  {OP_ID(sts),      0xfe0f, 0x9200, 2, OP_AVR2nRC, "1001 001r  rrrr 0000    kkkk kkkk  kkkk kkkk", OTY_XFRX|OTY_RALL,
+  {OP_ID(sts),      0xfe0f, 0x9200, 2, OP_AVR2nRC, "1001 001r  rrrr 0000   kkkk kkkk  kkkk kkkk", OTY_XFRX|OTY_RALL,
     "sts", "k, Rr", "Store Direct to Data Space", "(k) <-- Rr", "--------",
     {"2", "2", "2", "1"}, ""},
   {OP_ID(st_1),     0xfe0f, 0x920c, 1, OP_AVR2,    "1001 001r  rrrr 1100", OTY_XFRX|OTY_RALL,
@@ -540,3 +589,31 @@ const AVR_opcode_data avr_opcodes[164] = {
     {"1-3", "1-3", "1-3", "1/2"}, ""},
 };
 
+// Return whether or not a 16-bit opcode has a 16-bit address argument
+int is_opcode32(int op) {
+  return
+    (op & 0xfe0e) == 0x940e ||  // call
+    (op & 0xfe0e) == 0x940c ||  // jmp
+    (op & 0xfe0f) == 0x9200 ||  // sts
+    (op & 0xfe0f) == 0x9000;    // lds
+}
+
+// Does the 16-bit opcode match the avr_opcodes table entry for mnemo?
+int opcode_match(int op, AVR_opcode mnemo) {
+  if((op & avr_opcodes[mnemo].mask) == avr_opcodes[mnemo].value) {
+    if(!(avr_opcodes[mnemo].type & OTY_CONSTRAINT))
+      return 1;
+    // Match constraint Rd == Rr as in "0010 00r=  rrrr ===="
+    return (op>>0 & 15) == (op>>4 & 15) && (op>>9 & 1) == (op>>8 & 1);
+  }
+  return 0;
+}
+
+// Return first match of opcode that is compatible with avrlevel or OPCODE_NONE
+AVR_opcode opcode_mnemo(int op, int avrlevel) {
+  for(AVR_opcode i = 0; i < OPCODE_N; i++)
+    if(avr_opcodes[i].avrlevel & avrlevel)
+      if(opcode_match(op, i))
+        return i;
+  return OPCODE_NONE;
+}

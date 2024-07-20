@@ -1503,6 +1503,7 @@ typedef struct {
 
 // Order of enums must align with avr_opcodes[] table order
 typedef enum {
+  OPCODE_NONE = -1,
   OPCODE_lsl,      OPCODE_add,      OPCODE_rol,      OPCODE_adc,
   OPCODE_ror,      OPCODE_asr,      OPCODE_adiw,     OPCODE_sub,
   OPCODE_subi,     OPCODE_sbc,      OPCODE_sbci,     OPCODE_sbiw,
@@ -1544,6 +1545,7 @@ typedef enum {
   OPCODE_u_eicall, OPCODE_u_ret,    OPCODE_u_reti,   OPCODE_u_nop_8,
   OPCODE_u_nop_9,  OPCODE_u_nop_a,  OPCODE_u_ijmp,   OPCODE_u_eijmp,
   OPCODE_u_bld,    OPCODE_u_bst,    OPCODE_u_sbrc,   OPCODE_u_sbrs,
+  OPCODE_N
 } AVR_opcode;
 
 typedef struct {
@@ -1736,6 +1738,10 @@ char *terminal_get_input(const char *prompt);
 void terminal_setup_update_progress(void);
 
 char *avr_cc_buffer(size_t n);
+
+int is_opcode32(int op);
+int opcode_match(int op, AVR_opcode mnemo);
+AVR_opcode opcode_mnemo(int op, int avrlevel);
 
 int disasm_init(const AVRPART *p);
 int disasm_init_tagfile(const AVRPART *p, const char *file);
