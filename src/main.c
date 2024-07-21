@@ -1331,6 +1331,7 @@ int main(int argc, char * argv [])
     // Use libserialport to find the actual serial port
     ser = locate_programmer(programmers, port_tok[0]);
     if (is_serialadapter(ser)) {
+#ifdef HAVE_LIBSERIALPORT
       int rv = setport_from_serialadapter(&port, ser, port_tok[1]);
       if (rv == -1) {
         pmsg_warning("serial adapter %s", port_tok[0]);
@@ -1344,6 +1345,7 @@ int main(int argc, char * argv [])
         print_ports = false;
       if(rv)
         ser = NULL;
+#endif
     } else if(str_eq(port_tok[0], DEFAULT_USB)) {
       // Port or usb:[vid]:[pid]
       int vid, pid;
