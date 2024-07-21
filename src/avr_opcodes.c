@@ -36,20 +36,20 @@
  *     A  5-bit I/O address (sbic, sbis, sbi, cbi)
  *        6-bit I/O address (in, out)
  *
- *     a  7-bit address in weird format 0x40..0xbf for reduced-core (lds, sts)
+ *     a  7-bit encoded address 0x40..0xbf for reduced-core (lds, sts)
  *
  *     b  bit number 0..7 (sbrc, sbrs, sbic, sbis, sbi, cbi, bst, bld, u/bld,
  *           u/bst, u/sbrc, u/sbrs)
  *
- *     k  7-bit signed relative address in words for 2*k+2 bytes PC offset in
- *           [-126, 128] (brcs, brlo, breq, brmi, brvs, brlt, brhs, brts, brie,
- *           brcc, brsh, brne, brpl, brvc, brge, brhc, brtc, brid, brbs, brbc)
- *        12-bit signed relative address in words for 2*k+2 bytes PC offset in
- *           [-4094, 4096] (rjmp, rcall)
+ *     k  signed 7-bit for 2*k+2 byte PC offset in [-126, 128] (brcs, brlo,
+ *           breq, brmi, brvs, brlt, brhs, brts, brie, brcc, brsh, brne, brpl,
+ *           brvc, brge, brhc, brtc, brid, brbs, brbc)
+ *        signed 12-bit for 2*k+2 bytes PC offset in [-4094, 4096] (rjmp,
+ *           rcall)
  *        16-bit absolute byte address (lds, sts)
  *        22-bit absolute word address for the PC (jmp, call)
  *
- *     K  4-bit round index 0..15 (des)
+ *     K  4-bit encryption round index 0..15 (des)
  *        6-bit constant 0..63 (adiw, sbiw)
  *        8-bit constant 0..255 (subi, sbci, andi, ori, sbr, cbr, cpi, ldi)
  *
@@ -67,10 +67,10 @@
  *
  *     Rr 3-bit source register in r16, ..., r23 (mulsu, fmul, fmuls, fmulsu)
  *        4-bit source register in r16, ..., r31 (muls, sts)
- *        4-bit source register in r0, ..., r30 (movw)
- *        5-bit source register in r0, ..., r31 (add, adc, sub, sbc, and, or,
- *              eor, tst, mul, cpse, cp, cpc, sbrc, sbrs, mov, sts, st, std,
- *              out, push, bst, u/bst, u/sbrc, u/sbrs)
+ *        4-bit source register in r0, r2, ..., r30 (movw)
+ *        5-bit source register in r0, r1, ..., r31 (add, adc, sub, sbc, and,
+ *              or, eor, tst, mul, cpse, cp, cpc, sbrc, sbrs, mov, sts, st,
+ *              std, out, push, bst, u/bst, u/sbrc, u/sbrs)
  *
  *     s  SREG bit number 0..7 (brbs, brbc, bset, bclr)
  *
@@ -182,7 +182,7 @@ const AVR_opcode_data avr_opcodes[164] = {
     "rjmp", "k", "Relative Jump", "PC <-- PC + k + 1", "--------",
     {"2", "2", "2", "2"}, ""},
   {OP_ID(ijmp),     0xffff, 0x9409, 1, OP_AVR2,    "1001 0100  0000 1001", OTY_JMPI,
-    "ijmp", "Z", "Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
+    "ijmp", "", "Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"2", "2", "2", "2"}, ""},
   {OP_ID(eijmp),    0xffff, 0x9419, 1, OP_AVR_XL,  "1001 0100  0001 1001", OTY_JMPI,
     "eijmp", "", "Extended Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
@@ -194,7 +194,7 @@ const AVR_opcode_data avr_opcodes[164] = {
     "rcall", "k", "Relative Call Subroutine", "PC <-- PC + k + 1", "--------",
     {"3/4", "2/3", "2/3", "3"}, ""},
   {OP_ID(icall),    0xffff, 0x9509, 1, OP_AVR2,    "1001 0101  0000 1001", OTY_JMPX,
-    "icall", "Z", "Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
+    "icall", "", "Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"3/4", "2/3", "2/3", "3"}, ""},
   {OP_ID(eicall),   0xffff, 0x9519, 1, OP_AVR_XL,  "1001 0101  0001 1001", OTY_JMPX,
     "eicall", "", "Extended Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
@@ -388,7 +388,7 @@ const AVR_opcode_data avr_opcodes[164] = {
     "lpm", "Rd, Z+", "Load Program Memory and Post- Increment", "Rd <-- (Z), Z <-- Z + 1", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(elpm_1),   0xffff, 0x95d8, 1, OP_AVR_L,   "1001 0101  1101 1000", OTY_XFRX,
-    "elpm", "R0, Z", "Extended Load Program Memory", "R0 <-- (RAMPZ:Z)", "--------",
+    "elpm", "", "Extended Load Program Memory", "R0 <-- (RAMPZ:Z)", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(elpm_2),   0xfe0f, 0x9006, 1, OP_AVR_L,   "1001 000d  dddd 0110", OTY_XFRX|OTY_RALL,
     "elpm", "Rd, Z", "Extended Load Program Memory", "Rd <-- (RAMPZ:Z)", "--------",
@@ -397,7 +397,7 @@ const AVR_opcode_data avr_opcodes[164] = {
     "elpm", "Rd, Z+", "Extended Load Program Memory and Post-Increment", "Rd <-- (RAMPZ:Z), Z <-- Z + 1", "--------",
     {"3", "3", "3", "n/a"}, ""},
   {OP_ID(spm),      0xffff, 0x95e8, 1, OP_AVR25,   "1001 0101  1110 1000", OTY_XFRX,
-    "spm", "Z", "Store Program Memory", "(RAMPZ:Z) <-- R1:R0", "--------",
+    "spm", "", "Store Program Memory", "(RAMPZ:Z) <-- R1:R0", "--------",
     {"-", "-", "-", "-"}, ""},
   {OP_ID(spm_zz),   0xffff, 0x95f8, 1, OP_AVR_XTM, "1001 0101  1111 1000", OTY_XFRX,
     "spm", "Z+", "Store Program Memory and Post-Increment by 2", "(RAMPZ:Z) <-- R1:R0, Z <-- Z + 2", "--------",
@@ -549,7 +549,7 @@ const AVR_opcode_data avr_opcodes[164] = {
     "u/nop", "", "alt No Operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
   {OP_ID(u_icall),  0xff1f, 0x9509, 1, OP_AVR_ILL, "1001 0101  xxx0 1001", OTY_JMPX,
-    "u/icall", "Z", "alt Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
+    "u/icall", "", "alt Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"3/4", "2/3", "2/3", "3"}, "xxx != 000"},
   {OP_ID(u_eicall), 0xff1f, 0x9519, 1, OP_AVR_ILL, "1001 0101  xxx1 1001", OTY_JMPX,
     "u/eicall", "", "alt Extended Indirect Call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
@@ -570,7 +570,7 @@ const AVR_opcode_data avr_opcodes[164] = {
     "u/nop", "", "alt No Operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
   {OP_ID(u_ijmp),   0xff1f, 0x9409, 1, OP_AVR_ILL, "1001 0100  xxx0 1001", OTY_JMPI,
-    "u/ijmp", "Z", "alt Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
+    "u/ijmp", "", "alt Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"2", "2", "2", "2"}, "xxx != 000"},
   {OP_ID(u_eijmp),  0xff1f, 0x9419, 1, OP_AVR_ILL, "1001 0100  xxx1 1001", OTY_JMPI,
     "u/eijmp", "", "alt Extended Indirect Jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
