@@ -1461,6 +1461,7 @@ typedef struct {
   int show_comments;
   int show_flags;
   int show_cycles;
+  int show_name;
   int avrgcc_style;
   int process_labels;
   int avrlevel;
@@ -1611,7 +1612,7 @@ typedef struct {
   const char
     *opcode,                    // "add"
     *operands,                  // "Rd, Rr"
-    *description,               // "Add without Carry"
+    *description,               // "add without carry"
     *operation,                 // "Rd <-- Rd + Rr"
     *flags,                     // "--HSVNZC"
     *clock[OP_AVR_cycle_N],     // Timings for AVRe, AVRxm, AVRxt and AVRrc

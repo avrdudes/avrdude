@@ -214,13 +214,14 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 
 static int disasm_ison(char c) {
   switch(c) {
-  case 'a': return cx->dis_opts.show_addresses;
-  case 'o': return cx->dis_opts.show_opcodes;
-  case 'c': return cx->dis_opts.show_comments;
-  case 'f': return cx->dis_opts.show_flags;
-  case 'q': return cx->dis_opts.show_cycles;
-  case 's': return cx->dis_opts.avrgcc_style;
-  case 'l': return cx->dis_opts.process_labels;
+  case 'a': return !!cx->dis_opts.show_addresses;
+  case 'o': return !!cx->dis_opts.show_opcodes;
+  case 'c': return !!cx->dis_opts.show_comments;
+  case 'f': return !!cx->dis_opts.show_flags;
+  case 'q': return !!cx->dis_opts.show_cycles;
+  case 'n': return !!cx->dis_opts.show_name;
+  case 's': return !!cx->dis_opts.avrgcc_style;
+  case 'l': return !!cx->dis_opts.process_labels;
   case 'd': return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
   }
   return 0;
@@ -265,6 +266,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         {{'c', 'C'}, {"show comments", "don't show comments"}},
         {{'f', 'F'}, {"show affected flags in SREG", "don't show SREG flags"}},
         {{'q', 'Q'}, {"show cycles", "don't show cycles"}},
+        {{'n', 'N'}, {"put opcode full name into comment", "don't show full name"}},
         {{'s', 'S'}, {"use avr-gcc code style", "use AVR instruction set style"}},
         {{'l', 'L'}, {"preprocess jump/call labels", "don't preprocess labels"}},
         {{'d', 'D'}, {"decode all opcodes", "decode only opcodes for the part"}},
@@ -481,6 +483,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.show_comments = 1;
     cx->dis_opts.show_flags = 0;
     cx->dis_opts.show_cycles = 0;
+    cx->dis_opts.show_name = 0;
     cx->dis_opts.avrgcc_style = 1;
     cx->dis_opts.process_labels = 1;
     cx->dis_opts.tagfile = NULL;
@@ -501,25 +504,28 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           help++;
           break;
         case 'a': case 'A':
-          cx->dis_opts.show_addresses = islower(chr);
+          cx->dis_opts.show_addresses = !!islower(chr);
           break;
         case 'o': case 'O':
-          cx->dis_opts.show_opcodes = islower(chr);
+          cx->dis_opts.show_opcodes = !!islower(chr);
           break;
         case 'c': case 'C':
-          cx->dis_opts.show_comments = islower(chr);
+          cx->dis_opts.show_comments = !!islower(chr);
           break;
         case 'f': case 'F':
-          cx->dis_opts.show_flags = islower(chr);
+          cx->dis_opts.show_flags = !!islower(chr);
           break;
         case 'q': case 'Q':
-          cx->dis_opts.show_cycles = islower(chr);
+          cx->dis_opts.show_cycles = !!islower(chr);
+          break;
+        case 'n': case 'N':
+          cx->dis_opts.show_name = !!islower(chr);
           break;
         case 's': case 'S':
-          cx->dis_opts.avrgcc_style = islower(chr);
+          cx->dis_opts.avrgcc_style = !!islower(chr);
           break;
         case 'l': case 'L':
-          cx->dis_opts.process_labels = islower(chr);
+          cx->dis_opts.process_labels = !!islower(chr);
           break;
         case 'z':
           disasm_zap_jumpcalls();
