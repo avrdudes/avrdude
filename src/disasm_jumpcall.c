@@ -75,24 +75,24 @@ static int JC_Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-static void Correct_Label_Types(void) {
+static void Correct_Label_IsFunct(void) {
   int i, j;
   int LastIdx = 0;
   int LastDest = cx->dis_JumpCalls[0].To;
-  char CurType = cx->dis_JumpCalls[0].FunctionCall;
+  char CurIsFunct = cx->dis_JumpCalls[0].FunctionCall;
 
   for(i = 1; i < cx->dis_JumpCallN; i++) {
     if(cx->dis_JumpCalls[i].To != LastDest) {
       for(j = LastIdx; j < i; j++)
-        cx->dis_JumpCalls[j].FunctionCall = CurType;
+        cx->dis_JumpCalls[j].FunctionCall = CurIsFunct;
       LastIdx = i;
       LastDest = cx->dis_JumpCalls[i].To;
-      CurType = 0;
+      CurIsFunct = 0;
     }
-    CurType = CurType || cx->dis_JumpCalls[i].FunctionCall;
+    CurIsFunct = CurIsFunct || cx->dis_JumpCalls[i].FunctionCall;
   }
   for(j = LastIdx; j < cx->dis_JumpCallN; j++)
-    cx->dis_JumpCalls[j].FunctionCall = CurType;
+    cx->dis_JumpCalls[j].FunctionCall = CurIsFunct;
 }
 
 void Enumerate_Labels(void) {
@@ -105,7 +105,7 @@ void Enumerate_Labels(void) {
     return;
 
   qsort(cx->dis_JumpCalls, cx->dis_JumpCallN, sizeof(Disasm_JumpCall), JC_Comparison);
-  Correct_Label_Types();
+  Correct_Label_IsFunct();
 
   Destination = cx->dis_JumpCalls[0].To;
   if(cx->dis_JumpCalls[0].FunctionCall)
@@ -165,7 +165,7 @@ void Print_JumpCalls(int Position) {
     if(LabelComment == NULL) {
       term_out("%s:\n", LabelName);
     } else {
-      term_out("%s:     ; %s\n", LabelName, LabelComment);
+      term_out("%-23s ; %s\n", str_ccprintf("%s:", LabelName), LabelComment);
     }
   }
 }

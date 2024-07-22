@@ -85,7 +85,7 @@ static void zap_MemLabels() {
 }
 
 
-static void Add_LabelTag(int Address, const char *LabelText, const char *LabelComment) {
+static void Add_Code_Tag(int Address, const char *LabelText, const char *LabelComment) {
   cx->dis_CodeLabelN++;
 
   cx->dis_CodeLabels = (Disasm_CodeLabel *) mmt_realloc(cx->dis_CodeLabels, sizeof(Disasm_CodeLabel) * cx->dis_CodeLabelN);
@@ -94,28 +94,28 @@ static void Add_LabelTag(int Address, const char *LabelText, const char *LabelCo
   cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Comment = LabelComment? mmt_strdup(LabelComment): NULL;
 }
 
-static void Add_PGM_Tag(int Address, char Type, unsigned int Count, const char *Comment) {
+static void Add_PGM_Tag(int Address, char subtype, unsigned int Count, const char *Comment) {
   cx->dis_PGMLabelN++;
 
   cx->dis_PGMLabels = (Disasm_PGMLabel *) mmt_realloc(cx->dis_PGMLabels, sizeof(Disasm_PGMLabel) * cx->dis_PGMLabelN);
   cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Address = Address;
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Type = Type;
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].subtype = subtype;
   cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Count = Count;
   cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Comment = Comment? mmt_strdup(Comment): NULL;
 }
 
-static void Add_Mem_Tag(int Address, char Type, unsigned int Count, const char *Comment) {
+static void Add_Mem_Tag(int Address, char subtype, unsigned int Count, const char *Comment) {
   cx->dis_MemLabelN++;
 
   cx->dis_MemLabels = (Disasm_MemLabel *) mmt_realloc(cx->dis_MemLabels, sizeof(Disasm_MemLabel) * cx->dis_MemLabelN);
   cx->dis_MemLabels[cx->dis_MemLabelN - 1].Address = Address;
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Type = Type;
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].subtype = subtype;
   cx->dis_MemLabels[cx->dis_MemLabelN - 1].Count = Count;
   cx->dis_MemLabels[cx->dis_MemLabelN - 1].Comment = Comment? mmt_strdup(Comment): NULL;
 }
 
 static int Tagfile_Readline(char *Line, int LineNo) {
-  char *Token, Type, Subtype;
+  char *Token, Type, Subtype, *Name;
   int Address, Count;
   const char *errptr;
 
@@ -125,9 +125,6 @@ static int Tagfile_Readline(char *Line, int LineNo) {
   Token = strtok(Line, " \t\n");
   if(LineError(Token, "nonempty line", LineNo))
     return -1;
-
-
-  // Token now holds an address, determine if hex or dec
   Address = str_int(Token, STR_INT32, &errptr);
   if(errptr) {
     pmsg_error("address %s: %s\n", Token, errptr);
@@ -138,25 +135,27 @@ static int Tagfile_Readline(char *Line, int LineNo) {
   if(LineError(Token, "no second argument", LineNo))
     return -1;
   if(strlen(Token) != 1) {
-    LineError(NULL, "second argument too long", LineNo);
+    LineError(NULL, "second argument should be a type (L, P or M)", LineNo);
     return -1;
   }
-
   Type = Token[0];
+
   Token = strtok(NULL, " \t\n");
   if(LineError(Token, "no third argument", LineNo))
     return -1;
 
   if(Type == 'L') {
-    char *LabelName = Token;
-
-    Token = strtok(NULL, " \t\n");
-    Add_LabelTag(Address, LabelName, Token);
+    Name = Token;               // Name, comment is optional
+    Add_Code_Tag(Address, Name, strtok(NULL, "\t\n"));
     return 0;
   }
 
   if(LineError(Token, "no fourth argument", LineNo))
     return -1;
+  if(strlen(Token) != 1) {
+    LineError(NULL, "fourth argument should be a subtype (B, W, A or S)", LineNo);
+    return -1;
+  }
   Subtype = Token[0];
 
   // Either B(yte), W(ord), A(utoterminated string) or S(tring)
@@ -174,12 +173,10 @@ static int Tagfile_Readline(char *Line, int LineNo) {
     Subtype = TYPE_STRING;
     break;
   default:
-    Subtype = 0;
-  }
-  if(!Subtype) {
-    LineError(NULL, "invalid type (expected one of L, B, W, A or S)", LineNo);
+    LineError(NULL, "invalid subtype (expected one of B, W, A or S)", LineNo);
     return -1;
   }
+
   if((Type == 'M') && ((Subtype != TYPE_BYTE) && (Subtype != TYPE_WORD))) {
     LineError(NULL, "memory labels can only be of type B or W", LineNo);
     return -1;
@@ -191,17 +188,16 @@ static int Tagfile_Readline(char *Line, int LineNo) {
     pmsg_error("count %s: %s\n", Token, errptr);
     return -1;
   }
-
   if(Count < 1) {
-    LineError(NULL, "invalid count given", LineNo);
+    LineError(NULL, str_ccprintf("invalid count %d given", Count), LineNo);
     return -1;
   }
 
-  Token = strtok(NULL, " \t\n");
+  Name = strtok(NULL, " \t\n");
   if(Type == 'P') {
-    Add_PGM_Tag(Address, Subtype, Count, Token);
+    Add_PGM_Tag(Address, Subtype, Count, Name);
   } else if(Type == 'M') {
-    Add_Mem_Tag(Address, Subtype, Count, Token);
+    Add_Mem_Tag(Address, Subtype, Count, Name);
   } else {
     pmsg_error("invalid tag type %c\n", Type);
     return -1;
@@ -318,7 +314,7 @@ int Tagfile_FindPGMAddress(int Address) {
 const char *Tagfile_Resolve_Mem_Address(int Address) {
   for(int i = 0; i < cx->dis_MemLabelN && cx->dis_MemLabels[i].Address <= Address; i++) {
     int Start = cx->dis_MemLabels[i].Address;
-    int Size = cx->dis_MemLabels[i].Type == TYPE_WORD? 2: 1;
+    int Size = cx->dis_MemLabels[i].subtype == TYPE_WORD? 2: 1;
     int End = cx->dis_MemLabels[i].Address + cx->dis_MemLabels[i].Count * Size - 1;
 
     if(Address >= Start && Address <= End) {
@@ -400,7 +396,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   if(Index == -1)
     return 0;
 
-  switch (cx->dis_PGMLabels[Index].Type) {
+  switch (cx->dis_PGMLabels[Index].subtype) {
   case TYPE_BYTE:
     ProcessingFunction = Tagfile_Process_Byte;
     break;
@@ -416,7 +412,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   }
 
   term_out("; Inline PGM data: %d ", cx->dis_PGMLabels[Index].Count);
-  switch (cx->dis_PGMLabels[Index].Type) {
+  switch (cx->dis_PGMLabels[Index].subtype) {
   case TYPE_BYTE:
     term_out("byte");
     break;
@@ -434,12 +430,11 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
     term_out("s");
   term_out(" starting at 0x%0*x", cx->dis_addrwidth, disasm_wrap(Position + offset));
 
-  if(cx->dis_PGMLabels[Index].Comment != NULL) {
+  if(cx->dis_PGMLabels[Index].Comment)
     term_out(" (%s)", cx->dis_PGMLabels[Index].Comment);
-  }
   term_out("\n");
 
-  if((cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].Type == TYPE_STRING)) {
+  if((cx->dis_PGMLabels[Index].subtype == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].subtype == TYPE_STRING)) {
     if(cx->dis_PGMLabels[Index].Comment != NULL) {
       snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_PGMLabels[Index].Comment);
       Sanitize_String(Buffer);
@@ -452,7 +447,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   for(unsigned i = 0; i < cx->dis_PGMLabels[Index].Count; i++)
     BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, offset, i, Buffer);
 
-  if(cx->dis_PGMLabels[Index].Type == TYPE_ASTRING) {
+  if(cx->dis_PGMLabels[Index].subtype == TYPE_ASTRING) {
     // Autoaligned string
     if((BytesAdvanced % 2) != 0) {
       // Not yet aligned correctly
@@ -504,7 +499,7 @@ void disasm_init_regfile(const AVRPART *p) {
     nio = 0;
     for(int i = 0; i< nr; i++) {
       cx->dis_MemLabels[i].Address = offset + rf[i].addr;
-      cx->dis_MemLabels[i].Type = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
+      cx->dis_MemLabels[i].subtype = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
       cx->dis_MemLabels[i].Count = rf[i].size > 2? rf[i].size: 1;
       cx->dis_MemLabels[i].Comment = regname(rf[i].reg, -1);
 

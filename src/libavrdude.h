@@ -1481,14 +1481,14 @@ typedef struct {
 
 typedef struct {
   int Address;
-  char Type;
+  int subtype;
   unsigned int Count;
   char *Comment;
 } Disasm_PGMLabel;
 
 typedef struct {
   int Address;
-  char Type;
+  int subtype;
   unsigned int Count;
   char *Comment;
 } Disasm_MemLabel;

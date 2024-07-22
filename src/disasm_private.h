@@ -42,7 +42,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset);
 const char *Resolve_IO_Register(int Number);
 void Emit_Used_IO_Registers();
 
-void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall);
+void Register_JumpCall(int From, int To, int mnemo, unsigned char FunctionCall);
 void Enumerate_Labels();
 const char *Get_Label_Name(int Destination, char **LabelComment);
 void Print_JumpCalls(int Position);
