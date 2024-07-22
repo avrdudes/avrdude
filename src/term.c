@@ -214,12 +214,12 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 
 static int disasm_ison(char c) {
   switch(c) {
-  case 'a': return cx->dis_opts.Show_Addresses;
-  case 'o': return cx->dis_opts.Show_Opcodes;
-  case 'c': return cx->dis_opts.Show_Comments;
-  case 'q': return cx->dis_opts.Show_Cycles;
+  case 'a': return cx->dis_opts.show_addresses;
+  case 'o': return cx->dis_opts.show_opcodes;
+  case 'c': return cx->dis_opts.show_comments;
+  case 'q': return cx->dis_opts.show_cycles;
   case 's': return cx->dis_opts.avrgcc_style;
-  case 'l': return cx->dis_opts.Process_Labels;
+  case 'l': return cx->dis_opts.process_labels;
   case 'd': return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
   }
   return 0;
@@ -472,13 +472,13 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   int help = 0, invalid = 0, itemac = 1, chr;
 
   if(!cx->dis_initopts) {
-    cx->dis_opts.Show_Addresses = 1;
-    cx->dis_opts.Show_Opcodes = 1;
-    cx->dis_opts.Show_Comments = 1;
-    cx->dis_opts.Show_Cycles = 0;
+    cx->dis_opts.show_addresses = 1;
+    cx->dis_opts.show_opcodes = 1;
+    cx->dis_opts.show_comments = 1;
+    cx->dis_opts.show_cycles = 0;
     cx->dis_opts.avrgcc_style = 1;
-    cx->dis_opts.Process_Labels = 1;
-    cx->dis_opts.Tagfile = NULL;
+    cx->dis_opts.process_labels = 1;
+    cx->dis_opts.tagfile = NULL;
     cx->dis_opts.avrlevel = avr_get_archlevel(p);
     disasm_init(p);
     cx->dis_initopts++;
@@ -496,25 +496,25 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           help++;
           break;
         case 'a': case 'A':
-          cx->dis_opts.Show_Addresses = islower(chr);
+          cx->dis_opts.show_addresses = islower(chr);
           break;
         case 'o': case 'O':
-          cx->dis_opts.Show_Opcodes = islower(chr);
+          cx->dis_opts.show_opcodes = islower(chr);
           break;
         case 'c': case 'C':
-          cx->dis_opts.Show_Comments = islower(chr);
+          cx->dis_opts.show_comments = islower(chr);
           break;
         case 'q': case 'Q':
-          cx->dis_opts.Show_Cycles = islower(chr);
+          cx->dis_opts.show_cycles = islower(chr);
           break;
         case 's': case 'S':
           cx->dis_opts.avrgcc_style = islower(chr);
           break;
         case 'l': case 'L':
-          cx->dis_opts.Process_Labels = islower(chr);
+          cx->dis_opts.process_labels = islower(chr);
           break;
         case 'z':
-          disasm_zap_JumpCalls();
+          disasm_zap_jumpcalls();
           break;
         case 'd':
           cx->dis_opts.avrlevel = PART_ALL | OP_AVR_ILL;
@@ -525,8 +525,8 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
         case 't':
           if(*++q == '=')
             q++;
-          mmt_free(cx->dis_opts.Tagfile);
-          cx->dis_opts.Tagfile = mmt_strdup(q);
+          mmt_free(cx->dis_opts.tagfile);
+          cx->dis_opts.tagfile = mmt_strdup(q);
           q = "x";
           break;
         default:
@@ -545,8 +545,8 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     return -1;
   }
 
-  if(cx->dis_opts.Tagfile)
-    if(disasm_init_tagfile(p, cx->dis_opts.Tagfile) < 0)
+  if(cx->dis_opts.tagfile)
+    if(disasm_init_tagfile(p, cx->dis_opts.tagfile) < 0)
       return -1;
 
   buf = readbuf(pgm, p, argc, argv, NULL, &addr, &len, &leadin, &leadout);

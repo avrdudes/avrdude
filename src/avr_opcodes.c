@@ -74,6 +74,7 @@
  *
  *     s  SREG bit number 0..7 (brbs, brbc, bset, bclr)
  *
+ * - Source: Table was curated from https://github.com/nlitsme/AVRInstructionSet
  */
 
 const AVR_opcode_data avr_opcodes[164] = {

@@ -1455,14 +1455,14 @@ typedef enum {
 } AVR_cycle_index;
 
 typedef struct {
-  int Show_Addresses;
-  int Show_Opcodes;
-  int Show_Comments;
-  int Show_Cycles;
+  int show_addresses;
+  int show_opcodes;
+  int show_comments;
+  int show_cycles;
   int avrgcc_style;
-  int Process_Labels;
+  int process_labels;
   int avrlevel;
-  char *Tagfile;
+  char *tagfile;
 } Disasm_options;
 
 typedef struct {
@@ -1472,12 +1472,6 @@ typedef struct {
   unsigned int LabelNumber;
   int FunctionCall;
 } Disasm_JumpCall;
-
-typedef struct {
-  int address;
-  char *name;
-  unsigned char used;
-} Disasm_IO_Register;
 
 typedef struct {
   char *name, *comment;
@@ -1732,10 +1726,10 @@ AVR_opcode opcode_mnemo(int op, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
 
+int disasm(const char *buf, int len, int addr, int leadin, int leadout);
 int disasm_init(const AVRPART *p);
 int disasm_init_tagfile(const AVRPART *p, const char *file);
-int disasm(const char *buf, int len, int addr, int leadin, int leadout);
-void disasm_zap_JumpCalls();
+void disasm_zap_jumpcalls();
 
 #ifdef __cplusplus
 }
