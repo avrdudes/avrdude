@@ -851,6 +851,21 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     *c = 0;
 }
 
+
+// Increase cycle number by 1 if it's a 3 byte PC
+static const char *cycles(int mnemo) {
+  if(mnemo < 0)
+    return "---";
+
+  const char *ret = avr_opcodes[mnemo].clock[cx->dis_cycle_index];
+
+  // A plus sign after the cycle number means add one for 3-byte PC
+  if(*ret && ret[1] == '+')
+    return str_ccprintf("%c", cx->dis_flashsz > 128*1024? *ret+1: *ret);
+
+  return ret;
+}
+
 /*
  * Disassemble buflen bytes at buf which corresponds to address addr
  *
@@ -905,7 +920,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       if(cx->dis_opts.show_flags)
         term_out("%s ", mnemo < 0? "--------": avr_opcodes[mnemo].flags);
       if(cx->dis_opts.show_cycles)
-        term_out("%3s ", mnemo < 0? "---": avr_opcodes[mnemo].clock[cx->dis_cycle_index]);
+        term_out("%3s ", cycles(mnemo));
     }
 
     if(cx->dis_opts.show_opcodes) {
