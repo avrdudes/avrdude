@@ -848,6 +848,8 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   }
   if(cx->dis_opts.show_name)
     add_comment(line, avr_opcodes[mnemo].description);
+  if(cx->dis_opts.show_explanation)
+    add_comment(line, avr_opcodes[mnemo].operation);
   // Trim trailing spaces
   while(--c >= line->code && *c == ' ')
     *c = 0;
@@ -934,7 +936,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
     if(!*line.comment || !cx->dis_opts.show_comments)
       term_out("%s\n", line.code);
     else
-      term_out("%-30s ; %s\n", line.code, line.comment);
+      term_out("%-27s ; %s\n", line.code, line.comment);
     if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_ret || mnemo == OPCODE_u_ret)
       term_out("\n");
 

@@ -1462,6 +1462,7 @@ typedef struct {
   int show_flags;
   int show_cycles;
   int show_name;
+  int show_explanation;
   int avrgcc_style;
   int process_labels;
   int avrlevel;
