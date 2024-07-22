@@ -217,6 +217,7 @@ static int disasm_ison(char c) {
   case 'a': return cx->dis_opts.show_addresses;
   case 'o': return cx->dis_opts.show_opcodes;
   case 'c': return cx->dis_opts.show_comments;
+  case 'f': return cx->dis_opts.show_flags;
   case 'q': return cx->dis_opts.show_cycles;
   case 's': return cx->dis_opts.avrgcc_style;
   case 'l': return cx->dis_opts.process_labels;
@@ -262,6 +263,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         {{'a', 'A'}, {"show addresses", "don't show addresses"}},
         {{'o', 'O'}, {"show opcode bytes", "don't show opcode bytes"}},
         {{'c', 'C'}, {"show comments", "don't show comments"}},
+        {{'f', 'F'}, {"show affected flags in SREG", "don't show SREG flags"}},
         {{'q', 'Q'}, {"show cycles", "don't show cycles"}},
         {{'s', 'S'}, {"use avr-gcc code style", "use AVR instruction set style"}},
         {{'l', 'L'}, {"preprocess jump/call labels", "don't preprocess labels"}},
@@ -477,6 +479,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.show_addresses = 1;
     cx->dis_opts.show_opcodes = 1;
     cx->dis_opts.show_comments = 1;
+    cx->dis_opts.show_flags = 0;
     cx->dis_opts.show_cycles = 0;
     cx->dis_opts.avrgcc_style = 1;
     cx->dis_opts.process_labels = 1;
@@ -505,6 +508,9 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           break;
         case 'c': case 'C':
           cx->dis_opts.show_comments = islower(chr);
+          break;
+        case 'f': case 'F':
+          cx->dis_opts.show_flags = islower(chr);
           break;
         case 'q': case 'Q':
           cx->dis_opts.show_cycles = islower(chr);

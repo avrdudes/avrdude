@@ -900,12 +900,16 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       print_jumpcalls(disasm_wrap(pos + addr));
 
     if(cx->dis_opts.show_addresses)
-      term_out("%*x:   ", awd, disasm_wrap(pos + addr));
-    if(cx->dis_opts.show_cycles)
-      term_out("[%-3s] ", mnemo < 0? "---": avr_opcodes[mnemo].clock[cx->dis_cycle_index]);
+      term_out("%*x: ", awd, disasm_wrap(pos + addr));
+    if(cx->dis_opts.show_cycles || cx->dis_opts.show_flags) {
+      if(cx->dis_opts.show_flags)
+        term_out("%s ", mnemo < 0? "--------": avr_opcodes[mnemo].flags);
+      if(cx->dis_opts.show_cycles)
+        term_out("%3s ", mnemo < 0? "---": avr_opcodes[mnemo].clock[cx->dis_cycle_index]);
+    }
 
     if(cx->dis_opts.show_opcodes) {
-      for(int i = 0; i < 5; i++)
+      for(int i = 0; i < 4; i++)
         term_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
       term_out(" ");
     }
