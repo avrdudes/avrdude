@@ -197,6 +197,22 @@ int avr_sigrow_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
   return offset;
 }
 
+// If mem is a sub-memory of flash return its offset within flash, 0 otherwise
+int avr_flash_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
+  int offset = 0;
+
+  if(mem_is_in_flash(mem)) {
+    AVRMEM *m = avr_locate_flash(p);
+    if(m) {
+      int off = mem->offset - m->offset;
+      if(off >= 0 && off + addr < m->size)
+        offset = off;
+    }
+  }
+
+  return offset;
+}
+
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                           unsigned long addr, unsigned char * value)
 {

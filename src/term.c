@@ -387,7 +387,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
 
   int toread = cx->term_rmem[i].len;
   int whence = cx->term_rmem[i].addr;
-  int before = 0, after = 0;
+  int before = 0, after = 0, flash_offset = 0;
   if(is_disasm) {               // Read a few bytes before/after & don't wrap round
     if(whence >= 2)
       before = 2, whence -= 2, toread += 2;
@@ -427,10 +427,12 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       after -= i-end;
     else if(i > end)            // Reduce length
       after += i-end;
+    // Disassembly of XMEGA's boot/apptable memory needs to know absolute addr in flash
+    flash_offset = avr_flash_offset(p, mem, whence + before);
   }
 
   if(memp)    *memp = mem;
-  if(baddr)   *baddr = whence + before;
+  if(baddr)   *baddr = whence + before + flash_offset;
   if(blen)    *blen = toread - before - after;
   if(prequel) *prequel = before;
   if(sequel)  *sequel = after;
