@@ -33,9 +33,9 @@
 
 void disasm_init_regfile(const AVRPART *p);
 int disasm_wrap(int addr);
-int Tagfile_FindLabelAddress(int address);
-char *Tagfile_GetLabel(int TagIndex);
-char *Tagfile_GetLabelComment(int TagIndex);
+int disasm_find_symbol(int type, int address);
+char *Tagfile_GetLabel(int index);
+char *Tagfile_GetLabelComment(int index);
 int Tagfile_FindPGMAddress(int address);
 const char *Tagfile_Resolve_Mem_Address(int address);
 int Tagfile_Process_Data(const char *Bitstream, int Position, int offset);

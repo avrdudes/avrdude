@@ -34,246 +34,172 @@
 #include "libavrdude.h"
 #include "disasm_private.h"
 
-static int LineError(const char *Token, const char *Message, int LineNo) {
-  if((Token == NULL) || (strlen(Token) == 0)) {
-    pmsg_error("%s in tagfile, line %d\n", Message, LineNo);
+static void zap_symbols() {
+  if(cx->dis_symbols) {
+    for(int i = 0; i < cx->dis_symbolN; i++) {
+      mmt_free(cx->dis_symbols[i].comment);
+      mmt_free(cx->dis_symbols[i].name);
+    }
+    mmt_free(cx->dis_symbols);
+    cx->dis_symbols = NULL;
+  }
+  cx->dis_symbolN = 0;
+}
+
+static int symbol_sort(const void *v1, const void *v2) {
+  const Disasm_symbol *p1 = v1, *p2 = v2;
+  int diff;
+
+  if((diff = p1->type - p2->type))
+    return diff;
+  return p1->address - p2->address;
+}
+
+int disasm_find_symbol(int type, int address) {
+  Disasm_symbol key, *found;
+
+  key.type = type;
+  key.address = address;
+  found = bsearch(&key, cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
+
+  return found? found - cx->dis_symbols: -1;
+}
+
+static void add_symbol(int address, int type, int subtype, int count, const char *name, const char *comment) {
+  int N = cx->dis_symbolN++;
+
+  cx->dis_symbols = (Disasm_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Disasm_symbol) * (N+1));
+  cx->dis_symbols[N].address = address;
+  cx->dis_symbols[N].type = type;
+  cx->dis_symbols[N].subtype = subtype;
+  cx->dis_symbols[N].count = count;
+  cx->dis_symbols[N].used = 0;
+  cx->dis_symbols[N].name = name? mmt_strdup(name): NULL;
+  cx->dis_symbols[N].comment = comment? mmt_strdup(comment): NULL;
+}
+
+static int LineError(const char *token, const char *message, int lineno) {
+  if((token == NULL) || (strlen(token) == 0)) {
+    pmsg_error("%s in tagfile, line %d\n", message, lineno);
     return 1;
   }
   return 0;
 }
 
-static void zap_IORegisters() {
-  if(cx->dis_IORegisters) {
-    for(int i = 0; i < cx->dis_IORegisterN; i++)
-      mmt_free(cx->dis_IORegisters[i].name);
-    mmt_free(cx->dis_IORegisters);
-    cx->dis_IORegisters = NULL;
-  }
-  cx->dis_IORegisterN = 0;
-}
-
-static void zap_CodeLabels() {
-  if(cx->dis_CodeLabels) {
-    for(int i = 0; i < cx->dis_CodeLabelN; i++) {
-      mmt_free(cx->dis_CodeLabels[i].comment);
-      mmt_free(cx->dis_CodeLabels[i].name);
-    }
-    mmt_free(cx->dis_CodeLabels);
-    cx->dis_CodeLabels = NULL;
-  }
-  cx->dis_CodeLabelN = 0;
-}
-
-static void zap_PGMLabels() {
-  if(cx->dis_PGMLabels) {
-    for(int i = 0; i < cx->dis_PGMLabelN; i++)
-      mmt_free(cx->dis_PGMLabels[i].name);
-    mmt_free(cx->dis_PGMLabels);
-    cx->dis_PGMLabels = NULL;
-  }
-  cx->dis_PGMLabelN = 0;
-}
-
-static void zap_MemLabels() {
-  if(cx->dis_MemLabels) {
-    for(int i = 0; i < cx->dis_MemLabelN; i++)
-      mmt_free(cx->dis_MemLabels[i].name);
-    mmt_free(cx->dis_MemLabels);
-    cx->dis_MemLabels = NULL;
-  }
-  cx->dis_MemLabelN = 0;
-}
-
-
-static void Add_Code_Tag(int address, const char *name, const char *comment) {
-  cx->dis_CodeLabelN++;
-
-  cx->dis_CodeLabels = (Disasm_CodeLabel *) mmt_realloc(cx->dis_CodeLabels, sizeof(Disasm_CodeLabel) * cx->dis_CodeLabelN);
-  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].address = address;
-  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].name = name? mmt_strdup(name): NULL;
-  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].comment = comment? mmt_strdup(comment): NULL;
-}
-
-static void Add_PGM_Tag(int address, char subtype, unsigned int Count, const char *name) {
-  cx->dis_PGMLabelN++;
-
-  cx->dis_PGMLabels = (Disasm_PGMLabel *) mmt_realloc(cx->dis_PGMLabels, sizeof(Disasm_PGMLabel) * cx->dis_PGMLabelN);
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].address = address;
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].subtype = subtype;
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Count = Count;
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].name = name? mmt_strdup(name): NULL;
-}
-
-static void Add_Mem_Tag(int address, char subtype, unsigned int Count, const char *name) {
-  cx->dis_MemLabelN++;
-
-  cx->dis_MemLabels = (Disasm_MemLabel *) mmt_realloc(cx->dis_MemLabels, sizeof(Disasm_MemLabel) * cx->dis_MemLabelN);
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].address = address;
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].subtype = subtype;
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Count = Count;
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].name = name? mmt_strdup(name): NULL;
-}
-
-static int Tagfile_Readline(char *Line, int LineNo) {
-  char *Token, Type, Subtype, *Name;
-  int address, Count;
+static int Tagfile_Readline(char *line, int lineno) {
+  char *token, type, subtype, *name;
+  int address, count;
   const char *errptr;
 
-  if(Line[0] == '#' || strlen(Line) <= 1)
+  if(line[0] == '#' || strlen(line) <= 1)
     return 0;
 
-  Token = strtok(Line, " \t\n");
-  if(LineError(Token, "nonempty line", LineNo))
+  token = strtok(line, " \t\n");
+  if(LineError(token, "nonempty line", lineno))
     return -1;
-  address = str_int(Token, STR_INT32, &errptr);
+  address = str_int(token, STR_INT32, &errptr);
   if(errptr) {
-    pmsg_error("address %s: %s\n", Token, errptr);
+    pmsg_error("address %s: %s\n", token, errptr);
     return -1;
   }
 
-  Token = strtok(NULL, " \t\n");
-  if(LineError(Token, "no second argument", LineNo))
+  token = strtok(NULL, " \t\n");
+  if(LineError(token, "no second argument", lineno))
     return -1;
-  if(strlen(Token) != 1) {
-    LineError(NULL, "second argument should be a type (L, P or M)", LineNo);
+  if(strlen(token) != 1) {
+    LineError(NULL, "second argument should be a type (L, P or M)", lineno);
     return -1;
   }
-  Type = Token[0];
+  type = token[0];
 
-  Token = strtok(NULL, " \t\n");
-  if(LineError(Token, "no third argument", LineNo))
+  token = strtok(NULL, " \t\n");
+  if(LineError(token, "no third argument", lineno))
     return -1;
 
-  if(Type == 'L') {
-    Name = Token;               // Name, comment is optional
-    Add_Code_Tag(address, Name, strtok(NULL, "\t\n"));
+  if(type == 'L') {
+    name = token;               // Name, comment is optional
+    add_symbol(address, 'L', 0, 0, name, strtok(NULL, "\t\n"));
     return 0;
   }
 
-  if(LineError(Token, "no fourth argument", LineNo))
+  if(LineError(token, "no fourth argument", lineno))
     return -1;
-  if(strlen(Token) != 1) {
-    LineError(NULL, "fourth argument should be a subtype (B, W, A or S)", LineNo);
+  if(strlen(token) != 1) {
+    LineError(NULL, "fourth argument should be a subtype (B, W, A or S)", lineno);
     return -1;
   }
-  Subtype = Token[0];
+  subtype = token[0];
 
   // Either B(yte), W(ord), A(utoterminated string) or S(tring)
-  switch (Subtype) {
+  switch(subtype) {
   case 'B':
-    Subtype = TYPE_BYTE;
+    subtype = TYPE_BYTE;
     break;
   case 'W':
-    Subtype = TYPE_WORD;
+    subtype = TYPE_WORD;
     break;
   case 'A':
-    Subtype = TYPE_ASTRING;
+    subtype = TYPE_ASTRING;
     break;
   case 'S':
-    Subtype = TYPE_STRING;
+    subtype = TYPE_STRING;
     break;
   default:
-    LineError(NULL, "invalid subtype (expected one of B, W, A or S)", LineNo);
+    LineError(NULL, "invalid subtype (expected one of B, W, A or S)", lineno);
     return -1;
   }
 
-  if((Type == 'M') && ((Subtype != TYPE_BYTE) && (Subtype != TYPE_WORD))) {
-    LineError(NULL, "memory labels can only be of type B or W", LineNo);
+  if((type == 'M') && ((subtype != TYPE_BYTE) && (subtype != TYPE_WORD))) {
+    LineError(NULL, "memory labels can only be of type B or W", lineno);
     return -1;
   }
 
-  Token = strtok(NULL, " \t\n");
-  Count = str_int(Token, STR_INT32, &errptr);
+  token = strtok(NULL, " \t\n");
+  count = str_int(token, STR_INT32, &errptr);
   if(errptr) {
-    pmsg_error("count %s: %s\n", Token, errptr);
+    pmsg_error("count %s: %s\n", token, errptr);
     return -1;
   }
-  if(Count < 1) {
-    LineError(NULL, str_ccprintf("invalid count %d given", Count), LineNo);
-    return -1;
-  }
-
-  Name = strtok(NULL, " \t\n");
-  if(Type == 'P') {
-    Add_PGM_Tag(address, Subtype, Count, Name);
-  } else if(Type == 'M') {
-    Add_Mem_Tag(address, Subtype, Count, Name);
-  } else {
-    pmsg_error("invalid tag type %c\n", Type);
+  if(count < 1) {
+    LineError(NULL, str_ccprintf("invalid count %d given", count), lineno);
     return -1;
   }
 
+  name = strtok(NULL, " \t\n");
+  if(type != 'P' && type != 'M') {
+    pmsg_error("invalid tag type %c (must be L, P or M)\n", type);
+    return -1;
+  }
+
+  add_symbol(address, type, subtype, count, name, NULL);
   return 0;
 }
 
-static int CodeLabelSort(const void *A, const void *B) {
-  const Disasm_CodeLabel *X, *Y;
 
-  X = (const Disasm_CodeLabel *) A;
-  Y = (const Disasm_CodeLabel *) B;
-  if(X->address == Y->address)
-    return 0;
-  if(X->address < Y->address)
-    return -1;
-  return 1;
-}
-
-static int PGMLabelSort(const void *A, const void *B) {
-  const Disasm_PGMLabel *X, *Y;
-
-  X = (const Disasm_PGMLabel *) A;
-  Y = (const Disasm_PGMLabel *) B;
-  if(X->address == Y->address)
-    return 0;
-  if(X->address < Y->address)
-    return -1;
-  return 1;
-}
-
-static int MemLabelSort(const void *A, const void *B) {
-  const Disasm_MemLabel *X, *Y;
-
-  X = (const Disasm_MemLabel *) A;
-  Y = (const Disasm_MemLabel *) B;
-  if(X->address == Y->address)
-    return 0;
-  if(X->address < Y->address)
-    return -1;
-  return 1;
-}
-
-static void Tagfile_SortLabels() {
-  qsort(cx->dis_CodeLabels, cx->dis_CodeLabelN, sizeof(Disasm_CodeLabel), CodeLabelSort);
-  qsort(cx->dis_PGMLabels, cx->dis_PGMLabelN, sizeof(Disasm_PGMLabel), PGMLabelSort);
-  qsort(cx->dis_MemLabels, cx->dis_MemLabelN, sizeof(Disasm_MemLabel), MemLabelSort);
-}
-
-int disasm_init_tagfile(const AVRPART *p, const char *Filename) {
-  FILE *inf = fopen(Filename, "r");
-  int LineNo = 1;
+int disasm_init_tagfile(const AVRPART *p, const char *fname) {
+  FILE *inf = fopen(fname, "r");
+  int lineno = 1;
   const char *errstr;
 
   if(!inf) {
-    pmsg_ext_error("cannot open tagfile %s: %s\n", Filename, strerror(errno));
+    pmsg_ext_error("cannot open tagfile %s: %s\n", fname, strerror(errno));
     return -1;
   }
 
-  zap_CodeLabels();
-  zap_PGMLabels();
-  zap_MemLabels();
+  zap_symbols();
   disasm_init_regfile(p);
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer))
-    if(Tagfile_Readline(buffer, LineNo++) < 0)
+    if(Tagfile_Readline(buffer, lineno++) < 0)
       goto error;
 
   if(errstr) {
-    pmsg_error("read error in tag file %s: %s\n", Filename, errstr);
+    pmsg_error("read error in tag file %s: %s\n", fname, errstr);
     goto error;
   }
 
   fclose(inf);
-  Tagfile_SortLabels();
+  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
   return 0;
 
 error:
@@ -281,53 +207,36 @@ error:
   return -1;
 }
 
-int Tagfile_FindLabelAddress(int address) {
-  Disasm_CodeLabel Goal;
-  Disasm_CodeLabel *Result;
-
-  Goal.address = address;
-  Result = bsearch(&Goal, cx->dis_CodeLabels, cx->dis_CodeLabelN, sizeof(Disasm_CodeLabel), CodeLabelSort);
-  if(Result == NULL)
-    return -1;
-  return Result - cx->dis_CodeLabels;
+char *Tagfile_GetLabel(int index) {
+  return cx->dis_symbols[index].name;
 }
 
-char *Tagfile_GetLabel(int TagIndex) {
-  return cx->dis_CodeLabels[TagIndex].name;
-}
-
-char *Tagfile_GetLabelComment(int TagIndex) {
-  return cx->dis_CodeLabels[TagIndex].comment;
-}
-
-int Tagfile_FindPGMAddress(int address) {
-  Disasm_PGMLabel Goal;
-  Disasm_PGMLabel *Result;
-
-  Goal.address = address;
-  Result = bsearch(&Goal, cx->dis_PGMLabels, cx->dis_PGMLabelN, sizeof(Disasm_PGMLabel), PGMLabelSort);
-  if(Result == NULL)
-    return -1;
-  return Result - cx->dis_PGMLabels;
+char *Tagfile_GetLabelComment(int index) {
+  return cx->dis_symbols[index].comment;
 }
 
 const char *Tagfile_Resolve_Mem_Address(int address) {
-  for(int i = 0; i < cx->dis_MemLabelN && cx->dis_MemLabels[i].address <= address; i++) {
-    int Start = cx->dis_MemLabels[i].address;
-    int Size = cx->dis_MemLabels[i].subtype == TYPE_WORD? 2: 1;
-    int End = cx->dis_MemLabels[i].address + cx->dis_MemLabels[i].Count * Size - 1;
+  for(int i = 0; i < cx->dis_symbolN; i++) {
+    if(cx->dis_symbols[i].type != 'M')
+      continue;
+    if(cx->dis_symbols[i].address > address)
+      break;
 
-    if(address >= Start && address <= End) {
-      if(cx->dis_MemLabels[i].Count == 1) { // Single variable
-        if(Size == 1)
-          return str_ccprintf("%s", cx->dis_MemLabels[i].name);
-        return str_ccprintf("_%s8(%s)", address == Start? "lo": "hi", cx->dis_MemLabels[i].name);
+    int start = cx->dis_symbols[i].address;
+    int size = cx->dis_symbols[i].subtype == TYPE_WORD? 2: 1;
+    int end = cx->dis_symbols[i].address + cx->dis_symbols[i].count * size - 1;
+
+    if(address >= start && address <= end) {
+      if(cx->dis_symbols[i].count == 1) { // Single variable
+        if(size == 1)
+          return str_ccprintf("%s", cx->dis_symbols[i].name);
+        return str_ccprintf("_%s8(%s)", address == start? "lo": "hi", cx->dis_symbols[i].name);
       }
       // Array
-      if(Size == 1)
-        return str_ccprintf("%s[%d]", cx->dis_MemLabels[i].name, address - Start);
-      return str_ccprintf("_%s8(%s[%d])", (address-Start)%2? "hi": "lo", cx->dis_MemLabels[i].name,
-        (address - Start)/2);
+      if(size == 1)
+        return str_ccprintf("%s[%d]", cx->dis_symbols[i].name, address - start);
+      return str_ccprintf("_%s8(%s[%d])", (address - start)%2? "hi": "lo",
+        cx->dis_symbols[i].name, (address - start)/2);
     }
   }
 
@@ -388,15 +297,14 @@ static void Sanitize_String(char *String) {
 
 int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   int BytesAdvanced;
-  int Index;
   int (*ProcessingFunction)(const char *, int, int, int, const char *) = NULL;
   char Buffer[32];
 
-  Index = Tagfile_FindPGMAddress(disasm_wrap(Position + offset));
-  if(Index == -1)
+  int index = disasm_find_symbol('P', disasm_wrap(Position + offset));
+  if(index < 0)
     return 0;
 
-  switch (cx->dis_PGMLabels[Index].subtype) {
+  switch(cx->dis_symbols[index].subtype) {
   case TYPE_BYTE:
     ProcessingFunction = Tagfile_Process_Byte;
     break;
@@ -411,8 +319,8 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
     break;
   }
 
-  term_out("; Inline PGM data: %d ", cx->dis_PGMLabels[Index].Count);
-  switch (cx->dis_PGMLabels[Index].subtype) {
+  term_out("; Inline PGM data: %d ", cx->dis_symbols[index].count);
+  switch(cx->dis_symbols[index].subtype) {
   case TYPE_BYTE:
     term_out("byte");
     break;
@@ -426,17 +334,17 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
     term_out("string");
     break;
   }
-  if(cx->dis_PGMLabels[Index].Count != 1)
+  if(cx->dis_symbols[index].count != 1)
     term_out("s");
   term_out(" starting at 0x%0*x", cx->dis_addrwidth, disasm_wrap(Position + offset));
 
-  if(cx->dis_PGMLabels[Index].name)
-    term_out(" (%s)", cx->dis_PGMLabels[Index].name);
+  if(cx->dis_symbols[index].name)
+    term_out(" (%s)", cx->dis_symbols[index].name);
   term_out("\n");
 
-  if((cx->dis_PGMLabels[Index].subtype == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].subtype == TYPE_STRING)) {
-    if(cx->dis_PGMLabels[Index].name != NULL) {
-      snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_PGMLabels[Index].name);
+  if((cx->dis_symbols[index].subtype == TYPE_ASTRING) || (cx->dis_symbols[index].subtype == TYPE_STRING)) {
+    if(cx->dis_symbols[index].name != NULL) {
+      snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_symbols[index].name);
       Sanitize_String(Buffer);
     } else {
       snprintf(Buffer, sizeof(Buffer), "%x", disasm_wrap(Position + offset));
@@ -444,10 +352,10 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   }
 
   BytesAdvanced = 0;
-  for(unsigned i = 0; i < cx->dis_PGMLabels[Index].Count; i++)
+  for(int i = 0; i < cx->dis_symbols[index].count; i++)
     BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, offset, i, Buffer);
 
-  if(cx->dis_PGMLabels[Index].subtype == TYPE_ASTRING) {
+  if(cx->dis_symbols[index].subtype == TYPE_ASTRING) {
     // Autoaligned string
     if((BytesAdvanced % 2) != 0) {
       // Not yet aligned correctly
@@ -465,11 +373,11 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
 
 
 // Allocate, copy, append a suffix (H, L, 0...8 or nothing), make upper case and return
-static char *regname(const char *reg, int suf) {
+static char *regname(const char *pre, const char *reg, int suf) {
   char *ret =
-    suf <= -1? mmt_strdup(reg):
-    suf == 'h' || suf == 'l'? str_sprintf("%s%c", reg, suf):
-    str_sprintf("%s%d", reg, suf);
+    suf <= -1? str_sprintf("%s%s", pre, reg):
+    suf == 'h' || suf == 'l'? str_sprintf("%s%s%c", pre, reg, suf):
+    str_sprintf("%s%s%d", pre, reg, suf);
 
   for(char *s = ret; *s; s++)
     *s = *s == '.'? '_': isascii(*s & 0xff)? toupper(*s & 0xff): *s;
@@ -477,64 +385,46 @@ static char *regname(const char *reg, int suf) {
   return ret;
 }
 
-// Initialise cx->dis_IORegisters and cx->dis_MemLabels from part register file
+// Initialise cx->dis_symbols from part register file
 void disasm_init_regfile(const AVRPART *p) {
-  int nr = 0, nio = 0, offset = 0;
+  int nr = 0, offset = 0;
   const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(rf) {
-    zap_MemLabels();
-    zap_IORegisters();
-
-    // Count how many entries are needed
-    for(int i = 0; i< nr; i++)
-      if(rf[i].addr < 0x40 && rf[i].size > 0)
-        nio += rf[i].size;
-    cx->dis_IORegisters = mmt_malloc(nio*sizeof*cx->dis_IORegisters);
-    cx->dis_MemLabels = mmt_malloc(nr*sizeof*cx->dis_MemLabels);
-
     AVRMEM *mem = avr_locate_io(p);
     if(mem)
       offset = mem->offset;
-    nio = 0;
+    const char *mpre = offset? "MEM_": "";
+    const char *ipre = offset? "IO_": "";
     for(int i = 0; i< nr; i++) {
-      cx->dis_MemLabels[i].address = offset + rf[i].addr;
-      cx->dis_MemLabels[i].subtype = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
-      cx->dis_MemLabels[i].Count = rf[i].size > 2? rf[i].size: 1;
-      cx->dis_MemLabels[i].name = regname(rf[i].reg, -1);
+      int addr = offset + rf[i].addr;
+      int sub = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
+      int count = rf[i].size > 2? rf[i].size: 1;
+      add_symbol(addr, 'M', sub, count, regname(mpre, rf[i].reg, -1), NULL);
 
       if(rf[i].addr < 0x40) {
-        if(rf[i].size == 1) {
-          cx->dis_IORegisters[nio].name = regname(rf[i].reg, -1);
-          cx->dis_IORegisters[nio].address = rf[i].addr;
-          nio++;
-        } else if(rf[i].size == 2) {
-          cx->dis_IORegisters[nio].name = regname(rf[i].reg, 'l');
-          cx->dis_IORegisters[nio].address = rf[i].addr;
-          nio++;
-          cx->dis_IORegisters[nio].name = regname(rf[i].reg, 'h');
-          cx->dis_IORegisters[nio].address = rf[i].addr+1;
-          nio++;
+        if(rf[i].size == 1)
+          add_symbol(rf[i].addr, 'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, -1), NULL);
+        else if(rf[i].size == 2) {
+          add_symbol(rf[i].addr,   'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, 'l'), NULL);
+          add_symbol(rf[i].addr+1, 'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, 'h'), NULL);
         } else if(rf[i].size > 2) {
-          for(int k = 0; k < rf[i].size; k++) {
-            cx->dis_IORegisters[nio].name = regname(rf[i].reg, k);
-            cx->dis_IORegisters[nio].address = rf[i].addr + k;
-            nio++;
-          }
+          for(int k = 0; k < rf[i].size; k++)
+            add_symbol(rf[i].addr+k, 'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, k), NULL);
         }
       }
     }
-    cx->dis_IORegisterN = nio;
-    cx->dis_MemLabelN = nr;
-    qsort(cx->dis_MemLabels, cx->dis_MemLabelN, sizeof(Disasm_MemLabel), MemLabelSort);
+    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
   }
 }
 
 const char *Resolve_IO_Register(int Number) {
-  for(int i = 0; i < cx->dis_IORegisterN; i++) {
-    if(cx->dis_IORegisters[i].address == Number) {
-      cx->dis_IORegisters[i].used = 1;
-      return cx->dis_IORegisters[i].name;
+  for(int i = 0; i < cx->dis_symbolN; i++) {
+    if(cx->dis_symbols[i].type != 'I')
+      continue;
+    if(cx->dis_symbols[i].address == Number) {
+      cx->dis_symbols[i].used = 1;
+      return cx->dis_symbols[i].name;
     }
   }
 
@@ -542,7 +432,7 @@ const char *Resolve_IO_Register(int Number) {
 }
 
 void Emit_Used_IO_Registers() {
-  for(int i = 0; i < cx->dis_IORegisterN; i++)
-    if(cx->dis_IORegisters[i].used)
-      term_out(".equ %s, 0x%02x\n", cx->dis_IORegisters[i].name, cx->dis_IORegisters[i].address);
+  for(int i = 0; i < cx->dis_symbolN; i++)
+    if(cx->dis_symbols[i].used)
+      term_out(".equ %s, 0x%02x\n", cx->dis_symbols[i].name, cx->dis_symbols[i].address);
 }

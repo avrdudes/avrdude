@@ -127,21 +127,19 @@ void Enumerate_Labels(void) {
   }
 }
 
-const char *Get_Label_Name(int Destination, char **LabelComment) {
-  int TagIndex;
-
-  TagIndex = Tagfile_FindLabelAddress(Destination);
-  if(TagIndex != -1) {
-    if(LabelComment)
-      *LabelComment = Tagfile_GetLabelComment(TagIndex);
-    return str_ccprintf("%s", Tagfile_GetLabel(TagIndex));
+const char *Get_Label_Name(int destination, char **comment) {
+  int index = disasm_find_symbol('L', destination);
+  if(index >= 0) {
+    if(comment)
+      *comment = Tagfile_GetLabelComment(index);
+    return str_ccprintf("%s", Tagfile_GetLabel(index));
   }
 
   for(int i = 0; i < cx->dis_JumpCallN; i++)
-    if(cx->dis_JumpCalls[i].To == Destination)
+    if(cx->dis_JumpCalls[i].To == destination)
       return str_ccprintf("%s%d", cx->dis_JumpCalls[i].FunctionCall? "Function": "Label", cx->dis_JumpCalls[i].LabelNumber);
 
-  return "UNKNOWN";
+  return "unknown";
 }
 
 // Show all references which refer to "Position" as destination

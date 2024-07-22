@@ -1476,26 +1476,6 @@ typedef struct {
 typedef struct {
   int address;
   char *name;
-  char *comment;
-} Disasm_CodeLabel;
-
-typedef struct {
-  int address;
-  int subtype;
-  unsigned int Count;
-  char *name;
-} Disasm_PGMLabel;
-
-typedef struct {
-  int address;
-  int subtype;
-  unsigned int Count;
-  char *name;
-} Disasm_MemLabel;
-
-typedef struct {
-  int address;
-  char *name;
   unsigned char used;
 } Disasm_IO_Register;
 
@@ -1851,12 +1831,9 @@ typedef struct {
   // Static variables from disasm*.c
   int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth, dis_cycle_index;
   Disasm_options dis_opts;
-  int dis_JumpCallN, dis_CodeLabelN, dis_PGMLabelN, dis_MemLabelN, dis_IORegisterN;
+  int dis_JumpCallN, dis_symbolN;
   Disasm_JumpCall *dis_JumpCalls;
-  Disasm_CodeLabel *dis_CodeLabels;
-  Disasm_PGMLabel *dis_PGMLabels;
-  Disasm_MemLabel *dis_MemLabels;
-  Disasm_IO_Register *dis_IORegisters;
+  Disasm_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"

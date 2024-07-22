@@ -21,7 +21,6 @@
 
 /* $Id$ */
 
-
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -98,9 +97,14 @@ static unsigned bitcount(unsigned n) {
 }
 
 void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm_line *line, int pass) {
-  const AVR_opcode_data *oc = avr_opcodes+mnemo;
   memset(line, 0, sizeof*line);
+  if(mnemo < 0) {
+    add_comment(line, "Invalid opcode");
+    snprintf(line->code, 256, ".word   0x%02x%02x", buf[1] & 0xff, buf[0] & 0xff);
+    return;
+  }
 
+  const AVR_opcode_data *oc = avr_opcodes+mnemo;
   int regs[128] = {0}, bits[128] = {0};
   unsigned bmask = 0x8000;
   for(const char *p = oc->bits; *p && bmask; p++) {
@@ -178,7 +182,6 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
   int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
   snprintf(line->code, 256, "%-7s ", oc->opcode);
   char *c = line->code + strlen(line->code);
-  *line->comment = 0;
 
   // Check for opcodes with undefined results
   switch(oc->type & OTY_WARN_MASK) {
@@ -309,81 +312,66 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
  * After the location buf+readlen there are leadout bytes available (0 -4)
  */
 int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
-  int Pos;
-  int opcode, mnemo, oplen;
-  int i;
+  int pos, opcode, mnemo, oplen;
   Disasm_line line;
+  int awd = cx->dis_addrwidth;
 
-  Pos = 0;
-
-  for(int i = 0; i < cx->dis_IORegisterN; i++)
-    cx->dis_IORegisters[i].used = 0;
+  pos = 0;
+  for(int i = 0; i < cx->dis_symbolN; i++)
+    if(cx->dis_symbols[i].type == 'I')
+      cx->dis_symbols[i].used = 0;
 
   if(cx->dis_opts.Process_Labels || cx->dis_opts.avrgcc_style) {
     // Preprocess to gather jump labels or to gain knowledge about registers which are being used
-    while(Pos < buflen) {
-      opcode = (buf[Pos] & 0xff) | (buf[Pos+1] & 0xff)<<8;
+    while(pos < buflen) {
+      opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
       mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
-      oplen = 2*avr_opcodes[mnemo].nwords;
-      if(mnemo == -1) {
-        Pos += 2;
-      } else {
-        disassemble(buf + Pos, disasm_wrap(Pos + addr), opcode, mnemo, &line, 1);
-        Pos += oplen;
-      }
+      disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line, 1);
+      pos += mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
     }
     Enumerate_Labels();
-    Pos = 0;
+    pos = 0;
   }
 
   if(cx->dis_opts.avrgcc_style)
     Emit_Used_IO_Registers();
 
-  while(Pos < buflen) {
+  while(pos < buflen) {
     // Check if this is actually code or maybe only data from tagfile
-    int Added = Tagfile_Process_Data(buf, Pos, addr);
-    if(Added) {
-      Pos += Added;
+    int added = Tagfile_Process_Data(buf, pos, addr);
+    if(added) {
+      pos += added;
       continue;
     }
 
-    opcode = (buf[Pos] & 0xff) | (buf[Pos+1] & 0xff)<<8;
+    opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
     mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
-    oplen = 2*avr_opcodes[mnemo].nwords;
+    oplen = mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
 
-    if(mnemo != -1) {
-      disassemble(buf + Pos, disasm_wrap(Pos + addr), opcode, mnemo, &line, 2);
+    disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line, 2);
 
-      if(cx->dis_opts.Process_Labels)
-        Print_JumpCalls(disasm_wrap(Pos + addr));
+    if(cx->dis_opts.Process_Labels)
+      Print_JumpCalls(disasm_wrap(pos + addr));
 
-      if(cx->dis_opts.Show_Addresses)
-        term_out("%4x:   ", disasm_wrap(Pos + addr));
-      if(cx->dis_opts.Show_Cycles)
-        term_out("[%-3s] ", avr_opcodes[mnemo].clock[cx->dis_cycle_index]);
+    if(cx->dis_opts.Show_Addresses)
+      term_out("%*x:   ", awd, disasm_wrap(pos + addr));
+    if(cx->dis_opts.Show_Cycles)
+      term_out("[%-3s] ", mnemo < 0? "---": avr_opcodes[mnemo].clock[cx->dis_cycle_index]);
 
-      if(cx->dis_opts.Show_Opcodes) {
-        // Now display the Opcode
-        for(i = 0; i < oplen; i++)
-          term_out("%02x ", buf[Pos + i] & 0xff);
-        term_out(" ");
-        for(i = 0; i < 5 - oplen; i++)
-          term_out("   ");
-      }
-
-      if(!*line.comment || !cx->dis_opts.Show_Comments)
-        term_out("%s\n", line.code);
-      else
-        term_out("%-23s ; %s\n", line.code, line.comment);
-      if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_ret || mnemo == OPCODE_u_ret)
-        term_out("\n");
-
-      Pos += oplen;
-    } else {
-      term_out("%-23s ; Invalid opcode\n",
-        str_ccprintf(".word 0x%02x%02x", buf[Pos+1] & 0xff, buf[Pos] & 0xff));
-      Pos += 2;
+    if(cx->dis_opts.Show_Opcodes) {
+      for(int i = 0; i < 5; i++)
+        term_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
+      term_out(" ");
     }
+
+    if(!*line.comment || !cx->dis_opts.Show_Comments)
+      term_out("%s\n", line.code);
+    else
+      term_out("%-23s ; %s\n", line.code, line.comment);
+    if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_ret || mnemo == OPCODE_u_ret)
+      term_out("\n");
+
+    pos += oplen;
   }
 
   return 0;
