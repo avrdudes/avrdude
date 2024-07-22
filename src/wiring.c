@@ -56,6 +56,7 @@
  */
 struct wiringpdata {
   int snoozetime, delay;
+  bool autoreset;
 };
 
 
@@ -106,10 +107,21 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       pmsg_notice2("%s(): delay set to %d ms\n", __func__, val);
       WIRINGPDATA(pgm)->delay = val;
       continue;
-    } else if (str_eq(extended_param, "help")) {
+    }
+    else if(str_starts(extended_param, "no_autoreset")) {
+      if(!str_eq(extended_param, "no_autoreset")) {
+        pmsg_error("invalid -xno_autoreset value %s. Use -xno_autoreset\n", extended_param);
+        rv = -1;
+        break;
+      }
+      WIRINGPDATA(pgm)->autoreset = false;
+      continue;
+    }
+    else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xsnooze=<arg> Wait snooze [ms] before protocol sync after port open\n");
       msg_error("  -xdelay=<arg>  Add delay [ms] after reset, can be negative\n");
+      msg_error("  -xno_autoreset Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
       msg_error("  -xhelp         Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;;
     }
@@ -134,19 +146,19 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
   if (WIRINGPDATA(pgm)->snoozetime > 0) {
     timetosnooze = WIRINGPDATA(pgm)->snoozetime;
 
-    pmsg_notice2("wiring_open(): snoozing for %d ms\n", timetosnooze);
+    pmsg_notice2("%s(): snoozing for %d ms\n", __func__, timetosnooze);
     while (timetosnooze--)
       usleep(1000);
-    pmsg_notice2("wiring_open(): done snoozing\n");
-  } else {
+    pmsg_notice2("%s(): done snoozing\n", __func__);
+  } else if (WIRINGPDATA(pgm)->autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
-    pmsg_notice2("wiring_open(): releasing DTR/RTS\n");
+    pmsg_notice2("%s(): releasing DTR/RTS\n", __func__);
     serial_set_dtr_rts(&pgm->fd, 0);
     usleep(50*1000);
 
     // Pull the RTS/DTR line low to reset AVR
-    pmsg_notice2("wiring_open(): asserting DTR/RTS\n");
+    pmsg_notice2("%s(): asserting DTR/RTS\n", __func__);
     serial_set_dtr_rts(&pgm->fd, 1);
 
     // Max 100 us: charging a cap longer creates a high reset spike above Vcc
@@ -170,8 +182,7 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
   return 0;
 }
 
-static void wiring_close(PROGRAMMER * pgm)
-{
+static void wiring_close(PROGRAMMER *pgm) {
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
@@ -184,9 +195,10 @@ void wiring_initpgm(PROGRAMMER *pgm) {
   stk500v2_initpgm(pgm);
 
   strcpy(pgm->type, "Wiring");
+  WIRINGPDATA(&pgm)->autoreset = true; // Auto-reset enabled by default
+
   pgm->open           = wiring_open;
   pgm->close          = wiring_close;
-
   pgm->setup          = wiring_setup;
   pgm->teardown       = wiring_teardown;
   pgm->parseextparams = wiring_parseextparms;
