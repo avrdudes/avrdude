@@ -317,7 +317,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   Pos = 0;
 
   for(int i = 0; i < cx->dis_IORegisterN; i++)
-    cx->dis_IORegisters[i].Used = 0;
+    cx->dis_IORegisters[i].used = 0;
 
   if(cx->dis_opts.Process_Labels || cx->dis_opts.avrgcc_style) {
     // Preprocess to gather jump labels or to gain knowledge about registers which are being used

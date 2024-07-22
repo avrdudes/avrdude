@@ -45,7 +45,7 @@ static int LineError(const char *Token, const char *Message, int LineNo) {
 static void zap_IORegisters() {
   if(cx->dis_IORegisters) {
     for(int i = 0; i < cx->dis_IORegisterN; i++)
-      mmt_free(cx->dis_IORegisters[i].Name);
+      mmt_free(cx->dis_IORegisters[i].name);
     mmt_free(cx->dis_IORegisters);
     cx->dis_IORegisters = NULL;
   }
@@ -55,8 +55,8 @@ static void zap_IORegisters() {
 static void zap_CodeLabels() {
   if(cx->dis_CodeLabels) {
     for(int i = 0; i < cx->dis_CodeLabelN; i++) {
-      mmt_free(cx->dis_CodeLabels[i].Comment);
-      mmt_free(cx->dis_CodeLabels[i].Text);
+      mmt_free(cx->dis_CodeLabels[i].comment);
+      mmt_free(cx->dis_CodeLabels[i].name);
     }
     mmt_free(cx->dis_CodeLabels);
     cx->dis_CodeLabels = NULL;
@@ -67,7 +67,7 @@ static void zap_CodeLabels() {
 static void zap_PGMLabels() {
   if(cx->dis_PGMLabels) {
     for(int i = 0; i < cx->dis_PGMLabelN; i++)
-      mmt_free(cx->dis_PGMLabels[i].Comment);
+      mmt_free(cx->dis_PGMLabels[i].name);
     mmt_free(cx->dis_PGMLabels);
     cx->dis_PGMLabels = NULL;
   }
@@ -77,7 +77,7 @@ static void zap_PGMLabels() {
 static void zap_MemLabels() {
   if(cx->dis_MemLabels) {
     for(int i = 0; i < cx->dis_MemLabelN; i++)
-      mmt_free(cx->dis_MemLabels[i].Comment);
+      mmt_free(cx->dis_MemLabels[i].name);
     mmt_free(cx->dis_MemLabels);
     cx->dis_MemLabels = NULL;
   }
@@ -85,38 +85,38 @@ static void zap_MemLabels() {
 }
 
 
-static void Add_Code_Tag(int Address, const char *LabelText, const char *LabelComment) {
+static void Add_Code_Tag(int address, const char *name, const char *comment) {
   cx->dis_CodeLabelN++;
 
   cx->dis_CodeLabels = (Disasm_CodeLabel *) mmt_realloc(cx->dis_CodeLabels, sizeof(Disasm_CodeLabel) * cx->dis_CodeLabelN);
-  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Address = Address;
-  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Text = LabelText? mmt_strdup(LabelText): NULL;
-  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].Comment = LabelComment? mmt_strdup(LabelComment): NULL;
+  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].address = address;
+  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].name = name? mmt_strdup(name): NULL;
+  cx->dis_CodeLabels[cx->dis_CodeLabelN - 1].comment = comment? mmt_strdup(comment): NULL;
 }
 
-static void Add_PGM_Tag(int Address, char subtype, unsigned int Count, const char *Comment) {
+static void Add_PGM_Tag(int address, char subtype, unsigned int Count, const char *name) {
   cx->dis_PGMLabelN++;
 
   cx->dis_PGMLabels = (Disasm_PGMLabel *) mmt_realloc(cx->dis_PGMLabels, sizeof(Disasm_PGMLabel) * cx->dis_PGMLabelN);
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Address = Address;
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].address = address;
   cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].subtype = subtype;
   cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Count = Count;
-  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].Comment = Comment? mmt_strdup(Comment): NULL;
+  cx->dis_PGMLabels[cx->dis_PGMLabelN - 1].name = name? mmt_strdup(name): NULL;
 }
 
-static void Add_Mem_Tag(int Address, char subtype, unsigned int Count, const char *Comment) {
+static void Add_Mem_Tag(int address, char subtype, unsigned int Count, const char *name) {
   cx->dis_MemLabelN++;
 
   cx->dis_MemLabels = (Disasm_MemLabel *) mmt_realloc(cx->dis_MemLabels, sizeof(Disasm_MemLabel) * cx->dis_MemLabelN);
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Address = Address;
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].address = address;
   cx->dis_MemLabels[cx->dis_MemLabelN - 1].subtype = subtype;
   cx->dis_MemLabels[cx->dis_MemLabelN - 1].Count = Count;
-  cx->dis_MemLabels[cx->dis_MemLabelN - 1].Comment = Comment? mmt_strdup(Comment): NULL;
+  cx->dis_MemLabels[cx->dis_MemLabelN - 1].name = name? mmt_strdup(name): NULL;
 }
 
 static int Tagfile_Readline(char *Line, int LineNo) {
   char *Token, Type, Subtype, *Name;
-  int Address, Count;
+  int address, Count;
   const char *errptr;
 
   if(Line[0] == '#' || strlen(Line) <= 1)
@@ -125,7 +125,7 @@ static int Tagfile_Readline(char *Line, int LineNo) {
   Token = strtok(Line, " \t\n");
   if(LineError(Token, "nonempty line", LineNo))
     return -1;
-  Address = str_int(Token, STR_INT32, &errptr);
+  address = str_int(Token, STR_INT32, &errptr);
   if(errptr) {
     pmsg_error("address %s: %s\n", Token, errptr);
     return -1;
@@ -146,7 +146,7 @@ static int Tagfile_Readline(char *Line, int LineNo) {
 
   if(Type == 'L') {
     Name = Token;               // Name, comment is optional
-    Add_Code_Tag(Address, Name, strtok(NULL, "\t\n"));
+    Add_Code_Tag(address, Name, strtok(NULL, "\t\n"));
     return 0;
   }
 
@@ -195,9 +195,9 @@ static int Tagfile_Readline(char *Line, int LineNo) {
 
   Name = strtok(NULL, " \t\n");
   if(Type == 'P') {
-    Add_PGM_Tag(Address, Subtype, Count, Name);
+    Add_PGM_Tag(address, Subtype, Count, Name);
   } else if(Type == 'M') {
-    Add_Mem_Tag(Address, Subtype, Count, Name);
+    Add_Mem_Tag(address, Subtype, Count, Name);
   } else {
     pmsg_error("invalid tag type %c\n", Type);
     return -1;
@@ -211,9 +211,9 @@ static int CodeLabelSort(const void *A, const void *B) {
 
   X = (const Disasm_CodeLabel *) A;
   Y = (const Disasm_CodeLabel *) B;
-  if(X->Address == Y->Address)
+  if(X->address == Y->address)
     return 0;
-  if(X->Address < Y->Address)
+  if(X->address < Y->address)
     return -1;
   return 1;
 }
@@ -223,9 +223,9 @@ static int PGMLabelSort(const void *A, const void *B) {
 
   X = (const Disasm_PGMLabel *) A;
   Y = (const Disasm_PGMLabel *) B;
-  if(X->Address == Y->Address)
+  if(X->address == Y->address)
     return 0;
-  if(X->Address < Y->Address)
+  if(X->address < Y->address)
     return -1;
   return 1;
 }
@@ -235,9 +235,9 @@ static int MemLabelSort(const void *A, const void *B) {
 
   X = (const Disasm_MemLabel *) A;
   Y = (const Disasm_MemLabel *) B;
-  if(X->Address == Y->Address)
+  if(X->address == Y->address)
     return 0;
-  if(X->Address < Y->Address)
+  if(X->address < Y->address)
     return -1;
   return 1;
 }
@@ -281,11 +281,11 @@ error:
   return -1;
 }
 
-int Tagfile_FindLabelAddress(int Address) {
+int Tagfile_FindLabelAddress(int address) {
   Disasm_CodeLabel Goal;
   Disasm_CodeLabel *Result;
 
-  Goal.Address = Address;
+  Goal.address = address;
   Result = bsearch(&Goal, cx->dis_CodeLabels, cx->dis_CodeLabelN, sizeof(Disasm_CodeLabel), CodeLabelSort);
   if(Result == NULL)
     return -1;
@@ -293,41 +293,41 @@ int Tagfile_FindLabelAddress(int Address) {
 }
 
 char *Tagfile_GetLabel(int TagIndex) {
-  return cx->dis_CodeLabels[TagIndex].Text;
+  return cx->dis_CodeLabels[TagIndex].name;
 }
 
 char *Tagfile_GetLabelComment(int TagIndex) {
-  return cx->dis_CodeLabels[TagIndex].Comment;
+  return cx->dis_CodeLabels[TagIndex].comment;
 }
 
-int Tagfile_FindPGMAddress(int Address) {
+int Tagfile_FindPGMAddress(int address) {
   Disasm_PGMLabel Goal;
   Disasm_PGMLabel *Result;
 
-  Goal.Address = Address;
+  Goal.address = address;
   Result = bsearch(&Goal, cx->dis_PGMLabels, cx->dis_PGMLabelN, sizeof(Disasm_PGMLabel), PGMLabelSort);
   if(Result == NULL)
     return -1;
   return Result - cx->dis_PGMLabels;
 }
 
-const char *Tagfile_Resolve_Mem_Address(int Address) {
-  for(int i = 0; i < cx->dis_MemLabelN && cx->dis_MemLabels[i].Address <= Address; i++) {
-    int Start = cx->dis_MemLabels[i].Address;
+const char *Tagfile_Resolve_Mem_Address(int address) {
+  for(int i = 0; i < cx->dis_MemLabelN && cx->dis_MemLabels[i].address <= address; i++) {
+    int Start = cx->dis_MemLabels[i].address;
     int Size = cx->dis_MemLabels[i].subtype == TYPE_WORD? 2: 1;
-    int End = cx->dis_MemLabels[i].Address + cx->dis_MemLabels[i].Count * Size - 1;
+    int End = cx->dis_MemLabels[i].address + cx->dis_MemLabels[i].Count * Size - 1;
 
-    if(Address >= Start && Address <= End) {
+    if(address >= Start && address <= End) {
       if(cx->dis_MemLabels[i].Count == 1) { // Single variable
         if(Size == 1)
-          return str_ccprintf("%s", cx->dis_MemLabels[i].Comment);
-        return str_ccprintf("_%s8(%s)", Address == Start? "lo": "hi", cx->dis_MemLabels[i].Comment);
+          return str_ccprintf("%s", cx->dis_MemLabels[i].name);
+        return str_ccprintf("_%s8(%s)", address == Start? "lo": "hi", cx->dis_MemLabels[i].name);
       }
       // Array
       if(Size == 1)
-        return str_ccprintf("%s[%d]", cx->dis_MemLabels[i].Comment, Address - Start);
-      return str_ccprintf("_%s8(%s[%d])", (Address-Start)%2? "hi": "lo", cx->dis_MemLabels[i].Comment,
-        (Address - Start)/2);
+        return str_ccprintf("%s[%d]", cx->dis_MemLabels[i].name, address - Start);
+      return str_ccprintf("_%s8(%s[%d])", (address-Start)%2? "hi": "lo", cx->dis_MemLabels[i].name,
+        (address - Start)/2);
     }
   }
 
@@ -430,13 +430,13 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
     term_out("s");
   term_out(" starting at 0x%0*x", cx->dis_addrwidth, disasm_wrap(Position + offset));
 
-  if(cx->dis_PGMLabels[Index].Comment)
-    term_out(" (%s)", cx->dis_PGMLabels[Index].Comment);
+  if(cx->dis_PGMLabels[Index].name)
+    term_out(" (%s)", cx->dis_PGMLabels[Index].name);
   term_out("\n");
 
   if((cx->dis_PGMLabels[Index].subtype == TYPE_ASTRING) || (cx->dis_PGMLabels[Index].subtype == TYPE_STRING)) {
-    if(cx->dis_PGMLabels[Index].Comment != NULL) {
-      snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_PGMLabels[Index].Comment);
+    if(cx->dis_PGMLabels[Index].name != NULL) {
+      snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_PGMLabels[Index].name);
       Sanitize_String(Buffer);
     } else {
       snprintf(Buffer, sizeof(Buffer), "%x", disasm_wrap(Position + offset));
@@ -498,27 +498,27 @@ void disasm_init_regfile(const AVRPART *p) {
       offset = mem->offset;
     nio = 0;
     for(int i = 0; i< nr; i++) {
-      cx->dis_MemLabels[i].Address = offset + rf[i].addr;
+      cx->dis_MemLabels[i].address = offset + rf[i].addr;
       cx->dis_MemLabels[i].subtype = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
       cx->dis_MemLabels[i].Count = rf[i].size > 2? rf[i].size: 1;
-      cx->dis_MemLabels[i].Comment = regname(rf[i].reg, -1);
+      cx->dis_MemLabels[i].name = regname(rf[i].reg, -1);
 
       if(rf[i].addr < 0x40) {
         if(rf[i].size == 1) {
-          cx->dis_IORegisters[nio].Name = regname(rf[i].reg, -1);
-          cx->dis_IORegisters[nio].Address = rf[i].addr;
+          cx->dis_IORegisters[nio].name = regname(rf[i].reg, -1);
+          cx->dis_IORegisters[nio].address = rf[i].addr;
           nio++;
         } else if(rf[i].size == 2) {
-          cx->dis_IORegisters[nio].Name = regname(rf[i].reg, 'l');
-          cx->dis_IORegisters[nio].Address = rf[i].addr;
+          cx->dis_IORegisters[nio].name = regname(rf[i].reg, 'l');
+          cx->dis_IORegisters[nio].address = rf[i].addr;
           nio++;
-          cx->dis_IORegisters[nio].Name = regname(rf[i].reg, 'h');
-          cx->dis_IORegisters[nio].Address = rf[i].addr+1;
+          cx->dis_IORegisters[nio].name = regname(rf[i].reg, 'h');
+          cx->dis_IORegisters[nio].address = rf[i].addr+1;
           nio++;
         } else if(rf[i].size > 2) {
           for(int k = 0; k < rf[i].size; k++) {
-            cx->dis_IORegisters[nio].Name = regname(rf[i].reg, k);
-            cx->dis_IORegisters[nio].Address = rf[i].addr + k;
+            cx->dis_IORegisters[nio].name = regname(rf[i].reg, k);
+            cx->dis_IORegisters[nio].address = rf[i].addr + k;
             nio++;
           }
         }
@@ -532,9 +532,9 @@ void disasm_init_regfile(const AVRPART *p) {
 
 const char *Resolve_IO_Register(int Number) {
   for(int i = 0; i < cx->dis_IORegisterN; i++) {
-    if(cx->dis_IORegisters[i].Address == Number) {
-      cx->dis_IORegisters[i].Used = 1;
-      return cx->dis_IORegisters[i].Name;
+    if(cx->dis_IORegisters[i].address == Number) {
+      cx->dis_IORegisters[i].used = 1;
+      return cx->dis_IORegisters[i].name;
     }
   }
 
@@ -543,6 +543,6 @@ const char *Resolve_IO_Register(int Number) {
 
 void Emit_Used_IO_Registers() {
   for(int i = 0; i < cx->dis_IORegisterN; i++)
-    if(cx->dis_IORegisters[i].Used)
-      term_out(".equ %s, 0x%02x\n", cx->dis_IORegisters[i].Name, cx->dis_IORegisters[i].Address);
+    if(cx->dis_IORegisters[i].used)
+      term_out(".equ %s, 0x%02x\n", cx->dis_IORegisters[i].name, cx->dis_IORegisters[i].address);
 }

@@ -1474,30 +1474,39 @@ typedef struct {
 } Disasm_JumpCall;
 
 typedef struct {
-  int Address;
-  char *Text;
-  char *Comment;
+  int address;
+  char *name;
+  char *comment;
 } Disasm_CodeLabel;
 
 typedef struct {
-  int Address;
+  int address;
   int subtype;
   unsigned int Count;
-  char *Comment;
+  char *name;
 } Disasm_PGMLabel;
 
 typedef struct {
-  int Address;
+  int address;
   int subtype;
   unsigned int Count;
-  char *Comment;
+  char *name;
 } Disasm_MemLabel;
 
 typedef struct {
-  int Address;
-  char *Name;
-  unsigned char Used;
+  int address;
+  char *name;
+  unsigned char used;
 } Disasm_IO_Register;
+
+typedef struct {
+  char *name, *comment;
+  int address;
+  int type;                     // I: I/O vars, M: mem vars, L: labels, P: PGM vars
+  int subtype;                  // B: byte, W: word, A: autoterminated string, S: string
+  int count;                    // array length for tag file variables
+  int used;                     // Whether used by disassembly process
+} Disasm_symbol;
 
 // Order of enums must align with avr_opcodes[] table order
 typedef enum {
