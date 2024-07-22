@@ -37,8 +37,8 @@
 
 // Wrap around flash
 int disasm_wrap(int addr) {
-  if(cx->dis_flashsz)
-    addr &= cx->dis_flashsz-1;
+  if(cx->dis_flashsz2)
+    addr &= cx->dis_flashsz2-1;
 
   return addr;
 }
@@ -184,15 +184,15 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
   switch(oc->type & OTY_WARN_MASK) {
   case OTY_XWRN:
     if(Rd == 26 || Rd == 27 || Rr == 26 || Rr == 27)
-      add_comment(line, "Warning: the result of this operation is undefined\n");
+      add_comment(line, "Warning: the result of this operation is undefined");
     break;
   case OTY_YWRN:
     if(Rd == 28 || Rd == 29 || Rr == 28 || Rr == 29)
-      add_comment(line, "Warning: the result of this operation is undefined\n");
+      add_comment(line, "Warning: the result of this operation is undefined");
     break;
   case OTY_ZWRN:
     if(Rd == 30 || Rd == 31 || Rr == 30 || Rr == 31)
-      add_comment(line, "Warning: the result of this operation is undefined\n");
+      add_comment(line, "Warning: the result of this operation is undefined");
     break;
   }
 
@@ -223,7 +223,10 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
     kmemaddr = Tagfile_Resolve_Mem_Address(Rk);
     break;
   case 22:
-    target = disasm_wrap(2*Rk);
+    if(cx->dis_flashsz && 2*Rk > cx->dis_flashsz)
+      add_comment(line,
+        str_ccprintf("Warning: destination outside flash [0, 0x%0*x]", awd, cx->dis_flashsz-1));
+    target = 2*Rk;              // disasm_wrap(2*Rk);
     if(pass == 1)
       Register_JumpCall(addr, target, mnemo, is_function);
     is_jumpcall = 1;
@@ -368,22 +371,17 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
           term_out("   ");
       }
 
-      if(line.code[0] == 0) {
-        // No code was generated?
-        term_out("; opcode %s not implemented\n", avr_opcodes[mnemo].idname);
-      } else {
-        if(!line.comment[0] || !cx->dis_opts.Show_Comments) {
-          term_out("%s\n", line.code);
-        } else {
-          term_out("%-23s ; %s\n", line.code, line.comment);
-        }
-      }
-      if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret) // @@@
+      if(!*line.comment || !cx->dis_opts.Show_Comments)
+        term_out("%s\n", line.code);
+      else
+        term_out("%-23s ; %s\n", line.code, line.comment);
+      if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_ret || mnemo == OPCODE_u_ret)
         term_out("\n");
 
       Pos += oplen;
     } else {
-      term_out(".word 0x%02x%02x    ; Invalid opcode\n", buf[Pos+1] & 0xff, buf[Pos] & 0xff);
+      term_out("%-23s ; Invalid opcode\n",
+        str_ccprintf(".word 0x%02x%02x", buf[Pos+1] & 0xff, buf[Pos] & 0xff));
       Pos += 2;
     }
   }
@@ -401,13 +399,15 @@ int disasm_init(const AVRPART *p) {
       return -1;
     }
 
-  cx->dis_flashsz = 0;        // Flash size rounded up to next power of two
+  cx->dis_flashsz = 0;        // Flash size
+  cx->dis_flashsz2 = 0;       // Flash size rounded up to next power of two
   cx->dis_addrwidth = 4;      // Number of hex digits needed for flash addresses
   cx->dis_sramwidth = 3;      // Number of hex digits needed for sram addresses
 
   if((mem = avr_locate_flash(p)) && mem->size > 1) {
     int nbits = intlog2(mem->size - 1) + 1;
-    cx->dis_flashsz = 1 << nbits;
+    cx->dis_flashsz = mem->size;
+    cx->dis_flashsz2 = 1 << nbits;
     cx->dis_addrwidth = (nbits+3)/4;
   }
 

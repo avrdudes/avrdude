@@ -1840,7 +1840,7 @@ typedef struct {
   int reccount;
 
   // Static variables from disasm*.c
-  int dis_initopts, dis_flashsz, dis_addrwidth, dis_sramwidth, dis_cycle_index;
+  int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth, dis_cycle_index;
   Disasm_options dis_opts;
   int dis_JumpCallN, dis_CodeLabelN, dis_PGMLabelN, dis_MemLabelN, dis_IORegisterN;
   Disasm_JumpCall *dis_JumpCalls;
