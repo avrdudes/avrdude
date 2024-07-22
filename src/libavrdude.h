@@ -1459,18 +1459,16 @@ typedef struct {
   int Show_Opcodes;
   int Show_Comments;
   int Show_Cycles;
-  char *Tagfile;
-  int CodeStyle;
+  int avrgcc_style;
   int Process_Labels;
-  int FlashSize;
-  int AVR_Level;
-  AVR_cycle_index cycle_index;
+  int avrlevel;
+  char *Tagfile;
 } Disasm_options;
 
 typedef struct {
   int From;
   int To;
-  int Type;
+  int mnemo;
   unsigned int LabelNumber;
   int FunctionCall;
 } Disasm_JumpCall;
@@ -1547,13 +1545,6 @@ typedef enum {
   OPCODE_u_bld,    OPCODE_u_bst,    OPCODE_u_sbrc,   OPCODE_u_sbrs,
   OPCODE_N
 } AVR_opcode;
-
-typedef struct {
-  char *Opcode_String;
-  void (*Callback)(const char *, int, AVR_opcode);
-  AVR_opcode mnemo;
-} Disasm_opcode;
-
 
 typedef enum {
   OP_AVR_RC                = 1, // Reduced-core Tiny only (128 byte STS/LDS)
@@ -1636,9 +1627,6 @@ typedef struct {
 
 extern const AVR_opcode_data avr_opcodes[164];
 
-#define CODESTYLE_AVR_INSTRUCTION_SET 0
-#define CODESTYLE_AVRGCC              1
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1711,6 +1699,7 @@ bool is_bigendian(void);
 void change_endian(void *p, int size);
 int is_memset(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
+int looks_like_number(const char *str);
 Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
@@ -1740,12 +1729,15 @@ void terminal_setup_update_progress(void);
 char *avr_cc_buffer(size_t n);
 
 int is_opcode32(int op);
+int ldi_register(int op);
 int opcode_match(int op, AVR_opcode mnemo);
 AVR_opcode opcode_mnemo(int op, int avrlevel);
+int avr_get_archlevel(const AVRPART *p);
+AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
 
 int disasm_init(const AVRPART *p);
 int disasm_init_tagfile(const AVRPART *p, const char *file);
-int disasm(const char *buf, int len, int addr);
+int disasm(const char *buf, int len, int addr, int leadin, int leadout);
 void disasm_zap_JumpCalls();
 
 #ifdef __cplusplus
@@ -1840,12 +1832,8 @@ typedef struct {
   int reccount;
 
   // Static variables from disasm*.c
-  int dis_initopts, dis_pass;
+  int dis_initopts, dis_flashsz, dis_addrwidth, dis_sramwidth, dis_cycle_index;
   Disasm_options dis_opts;
-  int dis_n_ops;
-  Disasm_opcode dis_op[256];    // Must be 256
-  int dis_regs[256];            // Must be 256
-  char dis_code[256], dis_comment[256], dis_after_code[256]; // Must be 256
   int dis_JumpCallN, dis_CodeLabelN, dis_PGMLabelN, dis_MemLabelN, dis_IORegisterN;
   Disasm_JumpCall *dis_JumpCalls;
   Disasm_CodeLabel *dis_CodeLabels;

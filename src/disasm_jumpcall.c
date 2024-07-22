@@ -41,20 +41,20 @@ void disasm_zap_JumpCalls() {
   cx->dis_JumpCallN = 0;
 }
 
-void Register_JumpCall(int From, int To, int Type, unsigned char FunctionCall) {
-  if((cx->dis_opts.Process_Labels == 1) && (cx->dis_pass == 1)) {
+void Register_JumpCall(int From, int To, int mnemo, unsigned char FunctionCall) {
+  if(cx->dis_opts.Process_Labels) {
     Disasm_JumpCall *jc = cx->dis_JumpCalls;
     int N = cx->dis_JumpCallN;
 
     // Already entered this JC?
     for(int i = 0; i < N; i++)
-      if(jc[i].From == From && jc[N].To == To && jc[N].Type == Type)
+      if(jc[i].From == From && jc[N].To == To && jc[N].mnemo == mnemo)
         return;
 
     jc = mmt_realloc(jc, sizeof(Disasm_JumpCall) * (N+1));
     jc[N].From = From;
     jc[N].To = To;
-    jc[N].Type = Type;
+    jc[N].mnemo = mnemo;
     jc[N].LabelNumber = 0;
     jc[N].FunctionCall = FunctionCall;
 
@@ -75,10 +75,6 @@ static int JC_Comparison(const void *Element1, const void *Element2) {
   return -1;
 }
 
-static void Sort_JumpCalls() {
-  qsort(cx->dis_JumpCalls, cx->dis_JumpCallN, sizeof(Disasm_JumpCall), JC_Comparison);
-}
-
 static void Correct_Label_Types(void) {
   int i, j;
   int LastIdx = 0;
@@ -93,7 +89,7 @@ static void Correct_Label_Types(void) {
       LastDest = cx->dis_JumpCalls[i].To;
       CurType = 0;
     }
-    CurType = (CurType || cx->dis_JumpCalls[i].FunctionCall);
+    CurType = CurType || cx->dis_JumpCalls[i].FunctionCall;
   }
   for(j = LastIdx; j < cx->dis_JumpCallN; j++)
     cx->dis_JumpCalls[j].FunctionCall = CurType;
@@ -108,7 +104,7 @@ void Enumerate_Labels(void) {
   if(cx->dis_JumpCallN < 2)
     return;
 
-  Sort_JumpCalls();
+  qsort(cx->dis_JumpCalls, cx->dis_JumpCallN, sizeof(Disasm_JumpCall), JC_Comparison);
   Correct_Label_Types();
 
   Destination = cx->dis_JumpCalls[0].To;
@@ -159,7 +155,8 @@ void Print_JumpCalls(int Position) {
         term_out("\n");
         Match = 1;
       }
-      term_out("; Referenced from offset 0x%02x by %s\n", cx->dis_JumpCalls[i].From, avr_opcodes[cx->dis_JumpCalls[i].Type].opcode);
+      term_out("; Referenced from 0x%0*x by %s\n", cx->dis_addrwidth, 
+        cx->dis_JumpCalls[i].From, avr_opcodes[cx->dis_JumpCalls[i].mnemo].opcode);
     }
   }
   if(Match == 1) {

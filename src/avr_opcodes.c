@@ -41,11 +41,11 @@
  *     b  bit number 0..7 (sbrc, sbrs, sbic, sbis, sbi, cbi, bst, bld, u/bld,
  *           u/bst, u/sbrc, u/sbrs)
  *
- *     k  signed 7-bit for 2*k+2 byte PC offset in [-126, 128] (brcs, brlo,
- *           breq, brmi, brvs, brlt, brhs, brts, brie, brcc, brsh, brne, brpl,
- *           brvc, brge, brhc, brtc, brid, brbs, brbc)
- *        signed 12-bit for 2*k+2 bytes PC offset in [-4094, 4096] (rjmp,
- *           rcall)
+ *     k  signed 7-bit for 2*k byte PC additional offset in [.-128, .+126]
+ *           (brcs, brlo, breq, brmi, brvs, brlt, brhs, brts, brie, brcc, brsh,
+ *           brne, brpl, brvc, brge, brhc, brtc, brid, brbs, brbc)
+ *        signed 12-bit for 2*k bytes PC additional offset in [.-4096, .+4094]
+ *           (rjmp, rcall)
  *        16-bit absolute byte address (lds, sts)
  *        22-bit absolute word address for the PC (jmp, call)
  *
@@ -589,13 +589,18 @@ const AVR_opcode_data avr_opcodes[164] = {
     {"1-3", "1-3", "1-3", "1/2"}, ""},
 };
 
-// Return whether or not a 16-bit opcode has a 16-bit address argument
+// Return whether or not the giveb 16-bit opcode has a 16-bit address argument
 int is_opcode32(int op) {
   return
     (op & 0xfe0e) == 0x940e ||  // call
     (op & 0xfe0e) == 0x940c ||  // jmp
     (op & 0xfe0f) == 0x9200 ||  // sts
     (op & 0xfe0f) == 0x9000;    // lds
+}
+
+// Return the register number of the 16-bit ldi opcode (and 0 if it's not ldi)
+int ldi_register(int op) {
+  return (op & 0xf000) == 0xe000? 16 + ((op >> 4) & 15): 0;
 }
 
 // Does the 16-bit opcode match the avr_opcodes table entry for mnemo?
@@ -616,4 +621,62 @@ AVR_opcode opcode_mnemo(int op, int avrlevel) {
       if(opcode_match(op, i))
         return i;
   return OPCODE_NONE;
+}
+
+// Opcodes in avr_opcodes[] that a part ought to be able to run
+int avr_get_archlevel(const AVRPART *p) {
+  int ret =
+    p->prog_modes & PM_UPDI? PART_AVR_XT:
+    p->prog_modes & PM_PDI?  PART_AVR_XM:
+    p->prog_modes & PM_TPI?  PART_AVR_RC: 0;
+
+  if(!ret) {                    // Non-TPI classic part
+    switch(p->archnum) {
+    case 1:
+      ret = PART_AVR1;
+      break;
+    default:                    // If AVRDUE doesn't know, it's probably rare & old
+    case 2:
+      ret = PART_AVR2;
+      break;
+    case 25:
+      ret = PART_AVR25;
+      break;
+    case 3: case 31: case 35:  // Sic
+      ret = PART_AVR3;
+      break;
+      break;
+    case 4:
+      ret = PART_AVR4;
+      break;
+    case 5:
+      ret = PART_AVR5;
+      break;
+    case 51:
+      ret = PART_AVR51;
+      break;
+    case  6:
+      ret = PART_AVR6;
+    }
+  }
+
+  AVRMEM *mem = avr_locate_flash(p);
+  if(mem) {                     // Add opcodes needed for large parts in any case
+    if(mem->size > 8192)
+      ret |= OP_AVR_M;          // JMP, CALL
+    if(mem->size > 65536)
+      ret |= OP_AVR_L;          // ELPM
+    if(mem->size > 128*1024)
+      ret |= OP_AVR_XL;         // EIJMP, EICALL
+  }
+
+  return ret;
+}
+
+// Index in the avr_opcodes[].clock[] array for timings of an opcode
+AVR_cycle_index avr_get_cycle_index(const AVRPART *p) {
+  return
+    p->prog_modes & PM_UPDI? OP_AVRxt:
+    p->prog_modes & PM_PDI?  OP_AVRxm:
+    p->prog_modes & PM_TPI?  OP_AVRrc: OP_AVRe;
 }

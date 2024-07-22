@@ -212,13 +212,41 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
   return 0;
 }
 
+static int disasm_ison(char c) {
+  switch(c) {
+  case 'a': return cx->dis_opts.Show_Addresses;
+  case 'o': return cx->dis_opts.Show_Opcodes;
+  case 'c': return cx->dis_opts.Show_Comments;
+  case 'q': return cx->dis_opts.Show_Cycles;
+  case 's': return cx->dis_opts.avrgcc_style;
+  case 'l': return cx->dis_opts.Process_Labels;
+  case 'd': return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
+  }
+  return 0;
+}
 
-// Just read in memory; used by cmd_dump() and cmd_disasm()
+/*
+ * Read in memory spec'd by disasm or read/dump's (argc, argv) syntax
+ *
+ * Return a buffer with three sections
+ *   - up to two lead-in bytes (*prequel)
+ *   - blen bytes (buf + *prequel corresponds to address *baddr)
+ *   - up to 7 lead-out bytes (*sequel)
+ *
+ * Also tell the caller which memory (*memp) was read from.
+ *
+ * dump/read needs *memp, *baddr and *blen (*prequel and *sequel are 0)
+ * disasm needs *baddr, *blen, *prequel and *sequel
+ */
+
 static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[],
-  const AVRMEM **memp, int *baddr, int *blen) {
+  const AVRMEM **memp, int *baddr, int *blen, int *prequel, int *sequel) {
 
   int i = cx->term_mi;
   const char *cmd = tolower(**argv) == 'r'? "read": str_casestarts(*argv, "di")? "disasm [<opts>]": "dump";
+  int is_disasm = cmd[1] == 'i';
+  int default_read_size = is_disasm? 32: 256;
+
   if ((argc < 2 && cx->term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
     msg_error(
       "Syntax: %s <mem> <addr> <len> # Entire region\n"
@@ -227,17 +255,25 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       "        %s                    # Continue with most recently shown <mem>\n"
       "Function: %s\n",
       cmd, cmd, cmd, cmd,
-      cmd[1] == 'i'? "disassemble memory section": "display memory section as hex dump"
+      is_disasm? "disassemble memory section": "display memory section as hex dump"
     );
-    if(cmd[1] == 'i') {
-      msg_error("Options:\n"
-        "    -a        show addresses (default), -A don't show addresses\n"
-        "    -o        show opcode bytes (default), -O don't show opcode bytes\n"
-        "    -c        show comments (default), -C don't show comments\n"
-        "    -q        show call cycles, -Q don't show call cycles (default)\n"
-        "    -s        use avr-gcc code style (default), -S use AVR inst set code style\n"
-        "    -l        preprocess jump/call (default), -L don't preprocess jump/call\n"
-        "    -d        decode all (even unallocated) opcodes; -D only those of the part\n"
+    if(is_disasm) {
+      struct { char ochr[2]; const char *info[2]; } opts[] = {
+        {{'a', 'A'}, {"show addresses", "don't show addresses"}},
+        {{'o', 'O'}, {"show opcode bytes", "don't show opcode bytes"}},
+        {{'c', 'C'}, {"show comments", "don't show comments"}},
+        {{'q', 'Q'}, {"show cycles", "don't show cycles"}},
+        {{'s', 'S'}, {"use avr-gcc code style", "use AVR instruction set style"}},
+        {{'l', 'L'}, {"preprocess jump/call labels", "don't preprocess labels"}},
+        {{'d', 'D'}, {"decode all opcodes", "decode only opcodes for the part"}},
+      };
+
+      msg_error("Options:\n");
+      for(size_t i = 0; i < sizeof opts/sizeof*opts; i++) {
+        int on = disasm_ison(opts[i].ochr[0]);
+        msg_error("    -%c        %s, -%c %s\n", opts[i].ochr[on], opts[i].info[on], opts[i].ochr[!on], opts[i].info[!on]);
+      }
+      msg_error(
         "    -z        zap list of jumps/calls before disassembly\n"
         "    -t=<file> set the tagfile (zaps old tagfile contents)\n"
       );
@@ -248,12 +284,11 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       "the interval at that many bytes below the memory size.\n"
       "\n"
       "The latter two versions of the command page through the memory with a page\n"
-      "size of the last used effective length (256 bytes default)\n"
+      "size of the last used effective length (%d bytes default)\n", default_read_size
     );
     return NULL;
   }
 
-  enum { read_size = 256 };
   const char *memstr;
   if(argc > 1)
     memstr = argv[1];
@@ -277,7 +312,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       cx->term_rmem[i].mem = mem;
     if(cx->term_rmem[i].mem == mem) {
       if(cx->term_rmem[i].len == 0)
-        cx->term_rmem[i].len = maxsize > read_size? read_size: maxsize;
+        cx->term_rmem[i].len = maxsize > default_read_size? default_read_size: maxsize;
       break;
     }
   }
@@ -327,15 +362,9 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       if (len < 0)
         len = maxsize + len + 1 - cx->term_rmem[i].addr;
 
-      if (len == 0) {
-        if(memp)
-          *memp = mem;
-        if(baddr)
-          *baddr = 0;
-        if(blen)
-          *blen = 0;
-        return mmt_malloc(16);
-      }
+      if (len == 0)
+        goto nocontent;
+
       if (len < 0) {
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
         return NULL;
@@ -356,39 +385,75 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
     term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[i].mem->desc,
       cx->term_rmem[i].addr, cx->term_rmem[i].len);
 
+  int toread = cx->term_rmem[i].len;
+  int whence = cx->term_rmem[i].addr;
+  int before = 0, after = 0;
+  if(is_disasm) {               // Read a few bytes before/after & don't wrap round
+    if(whence >= 2)
+      before = 2, whence -= 2, toread += 2;
+    if(whence + toread > maxsize) // Clip to end of memory
+      toread = maxsize - whence;
+    int gap = maxsize - whence - toread;
+    after = gap >= 7? 7: gap < 0? 0: gap;
+    toread += after;
+    if(toread-before < 2)
+      goto nocontent;
+  }
+
   report_progress(0, 1, "Reading");
-  for (int j = 0; j < cx->term_rmem[i].len; j++) {
-    int addr = (cx->term_rmem[i].addr + j) % mem->size;
+  for (int j = 0; j < toread; j++) {
+    int addr = (whence + j) % mem->size;
     int rc = pgm->read_byte_cached(pgm, p, cx->term_rmem[i].mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
       pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc,
-        (long) cx->term_rmem[i].addr + j, p->desc);
+        (long) whence + j, p->desc);
       if (rc == -1)
         imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       mmt_free(buf);
       return NULL;
     }
-    report_progress(j, cx->term_rmem[i].len, NULL);
+    report_progress(j, toread, NULL);
   }
   report_progress(1, 1, NULL);
 
-  if(memp)
-    *memp = mem;
-  if(baddr)
-    *baddr = cx->term_rmem[i].addr;
-  if(blen)
-    *blen = cx->term_rmem[i].len;
+  if(is_disasm) {               // Adjust length so buffer does not split opcodes
+    int i = before, end = toread-after, wend = after? end: end-1;
+    while(i < wend)
+      i += is_opcode32(buf[i] | buf[i+1]<<8)? 4: 2;
+    if(i < end)                 // Odd length: shorten by one byte
+      after += end-i;
+    else if(i > end && after >= i-end) // Increase length to accommodate last 32-bit opcode
+      after -= i-end;
+    else if(i > end)            // Reduce length
+      after += i-end;
+  }
 
-  cx->term_rmem[i].addr = (cx->term_rmem[i].addr + cx->term_rmem[i].len) % maxsize;
+  if(memp)    *memp = mem;
+  if(baddr)   *baddr = whence + before;
+  if(blen)    *blen = toread - before - after;
+  if(prequel) *prequel = before;
+  if(sequel)  *sequel = after;
+
+  // Memorise where to start next time
+  cx->term_rmem[i].addr = (whence + toread - after) % maxsize;
 
   return buf;
+
+nocontent:
+  if(memp)    *memp = mem;
+  if(baddr)   *baddr = 0;
+  if(blen)    *blen = 0;
+  if(prequel) *prequel = 0;
+  if(sequel)  *sequel = 0;
+
+  return mmt_malloc(16);
 }
 
 static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   int addr, len;
   const AVRMEM *mem = NULL;
-  uint8_t *buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len);
+  uint8_t *buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len, NULL, NULL);
 
   if(!buf)
     return -1;
@@ -400,66 +465,8 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   return 0;
 }
 
-static int get_avr_archlevel(const AVRPART *p) {
-  int ret =
-    p->prog_modes & PM_UPDI? PART_AVR_XT:
-    p->prog_modes & PM_PDI?  PART_AVR_XM:
-    p->prog_modes & PM_TPI?  PART_AVR_RC: 0;
-
-  if(!ret) {                    // Non-TPI classic part
-    switch(p->archnum) {
-    case 1:
-      ret = PART_AVR1;
-      break;
-    default:                    // If AVRDUE doesn't know, it's probably rare & old
-    case 2:
-      ret = PART_AVR2;
-      break;
-    case 25:
-      ret = PART_AVR25;
-      break;
-    case 3: case 31: case 35:  // Sic
-      ret = PART_AVR3;
-      break;
-      break;
-    case 4:
-      ret = PART_AVR4;
-      break;
-    case 5:
-      ret = PART_AVR5;
-      break;
-    case 51:
-      ret = PART_AVR51;
-      break;
-    case  6:
-      ret = PART_AVR6;
-    }
-  }
-
-  AVRMEM *mem = avr_locate_flash(p);
-  if(mem) {                     // Add opcodes needed for large parts in any case
-    if(mem->size > 8192)
-      ret |= OP_AVR_M;          // JMP, CALL
-    if(mem->size > 65536)
-      ret |= OP_AVR_L;          // ELPM
-    if(mem->size > 128*1024)
-      ret |= OP_AVR_XL;         // EIJMP, EICALL
-  }
-
-  return ret;
-}
-
-static AVR_cycle_index get_avr_cycle_index(const AVRPART *p) {
-  return
-    p->prog_modes & PM_UPDI? OP_AVRxt:
-    p->prog_modes & PM_PDI?  OP_AVRxm:
-    p->prog_modes & PM_TPI?  OP_AVRrc: OP_AVRe;
-}
-
-
 static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  int addr, len;
-  const AVRMEM *mem = NULL;
+  int addr, len, leadin, leadout;
   uint8_t *buf;
 
   int help = 0, invalid = 0, itemac = 1, chr;
@@ -469,20 +476,17 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     cx->dis_opts.Show_Opcodes = 1;
     cx->dis_opts.Show_Comments = 1;
     cx->dis_opts.Show_Cycles = 0;
-    cx->dis_opts.Tagfile = NULL;
-    cx->dis_opts.CodeStyle = CODESTYLE_AVRGCC; // CODESTYLE_AVR_INSTRUCTION_SET
+    cx->dis_opts.avrgcc_style = 1;
     cx->dis_opts.Process_Labels = 1;
-    mem = avr_locate_flash(p);
-    cx->dis_opts.FlashSize = mem? mem->size: 0;
-    cx->dis_opts.AVR_Level = get_avr_archlevel(p);
-    cx->dis_opts.cycle_index = get_avr_cycle_index(p);
+    cx->dis_opts.Tagfile = NULL;
+    cx->dis_opts.avrlevel = avr_get_archlevel(p);
     disasm_init(p);
     cx->dis_initopts++;
   }
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;
-    if(*(q = argv[++ai]) != '-' || !q[1])
+    if(*(q = argv[++ai]) != '-' || !q[1] || looks_like_number(q))
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
@@ -504,7 +508,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           cx->dis_opts.Show_Cycles = islower(chr);
           break;
         case 's': case 'S':
-          cx->dis_opts.CodeStyle = islower(chr)? CODESTYLE_AVRGCC: CODESTYLE_AVR_INSTRUCTION_SET;
+          cx->dis_opts.avrgcc_style = islower(chr);
           break;
         case 'l': case 'L':
           cx->dis_opts.Process_Labels = islower(chr);
@@ -513,10 +517,10 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           disasm_zap_JumpCalls();
           break;
         case 'd':
-          cx->dis_opts.AVR_Level = PART_ALL | OP_AVR_ILL;
+          cx->dis_opts.avrlevel = PART_ALL | OP_AVR_ILL;
           break;
         case 'D':
-          cx->dis_opts.AVR_Level = get_avr_archlevel(p);
+          cx->dis_opts.avrlevel = avr_get_archlevel(p);
           break;
         case 't':
           if(*++q == '=')
@@ -537,7 +541,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
 
   if(help || invalid) {
     const char *help[] = { "disasm", "-?", NULL, };
-    readbuf(pgm, p, 2, help, NULL, NULL, NULL);
+    readbuf(pgm, p, 2, help, NULL, NULL, NULL, NULL, NULL);
     return -1;
   }
 
@@ -545,13 +549,13 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     if(disasm_init_tagfile(p, cx->dis_opts.Tagfile) < 0)
       return -1;
 
-  buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len);
+  buf = readbuf(pgm, p, argc, argv, NULL, &addr, &len, &leadin, &leadout);
 
   if(!buf)
     return -1;
 
   if(len > 0)
-    disasm((char *) buf, len, addr);
+    disasm((char *) buf+leadin, len, addr, leadin, leadout);
   lterm_out("");
   mmt_free(buf);
 

@@ -432,7 +432,7 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
   }
   if(cx->dis_PGMLabels[Index].Count != 1)
     term_out("s");
-  term_out(" starting at 0x%x", disasm_wrap(Position + offset));
+  term_out(" starting at 0x%0*x", cx->dis_addrwidth, disasm_wrap(Position + offset));
 
   if(cx->dis_PGMLabels[Index].Comment != NULL) {
     term_out(" (%s)", cx->dis_PGMLabels[Index].Comment);
@@ -457,8 +457,8 @@ int Tagfile_Process_Data(const char *Bitstream, int Position, int offset) {
     if((BytesAdvanced % 2) != 0) {
       // Not yet aligned correctly
       if(Bitstream[Position + BytesAdvanced] != 0x00)
-        pmsg_warning("autoalignment expected zero but got 0x%0x padding; ignored\n",
-          ((unsigned char *) Bitstream)[Position + BytesAdvanced]);
+        pmsg_warning("autoalignment expected zero but got 0x%02x padding; ignored\n",
+          Bitstream[Position + BytesAdvanced] & 0xff);
       term_out(".byte 0x%02x        ; String Autoalignment\n", ((unsigned char *) Bitstream)[Position + BytesAdvanced]);
       BytesAdvanced++;
     }
@@ -549,5 +549,5 @@ const char *Resolve_IO_Register(int Number) {
 void Emit_Used_IO_Registers() {
   for(int i = 0; i < cx->dis_IORegisterN; i++)
     if(cx->dis_IORegisters[i].Used)
-      term_out(".equ %s, 0x%x\n", cx->dis_IORegisters[i].Name, cx->dis_IORegisters[i].Address);
+      term_out(".equ %s, 0x%02x\n", cx->dis_IORegisters[i].Name, cx->dis_IORegisters[i].Address);
 }
