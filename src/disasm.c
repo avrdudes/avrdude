@@ -152,7 +152,7 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
 
   // Apply register formula
   int regword = 0;
-  switch(oc->type & OTY_RMASK) {
+  switch(oc->type & OTY_REG_MASK) {
   case OTY_REVN:                // Even registers r0, r2, ..., r30
     Rd *= 2, Rr *= 2;
     regword = 1;                // movw
@@ -173,6 +173,27 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
      * ADDR[7:0] ← (/a[4], a[4], a[6], a[5], a[3], a[2], a[1], a[0])
      */
     Ra = (Ra & 0xf) | ((Ra >> 1) & 0x30) | ((Ra & 0x10) << 2) | (((Ra & 0x10) ^ 0x10) << 3);
+  }
+
+  int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
+  snprintf(line->code, 256, "%-7s ", oc->opcode);
+  char *c = line->code + strlen(line->code);
+  *line->comment = 0;
+
+  // Check for opcodes with undefined results
+  switch(oc->type & OTY_WARN_MASK) {
+  case OTY_XWRN:
+    if(Rd == 26 || Rd == 27 || Rr == 26 || Rr == 27)
+      add_comment(line, "Warning: the result of this operation is undefined\n");
+    break;
+  case OTY_YWRN:
+    if(Rd == 28 || Rd == 29 || Rr == 28 || Rr == 29)
+      add_comment(line, "Warning: the result of this operation is undefined\n");
+    break;
+  case OTY_ZWRN:
+    if(Rd == 30 || Rd == 31 || Rr == 30 || Rr == 31)
+      add_comment(line, "Warning: the result of this operation is undefined\n");
+    break;
   }
 
   int target = 0, offset = 0, is_jumpcall = 0, is_relative = 0;
@@ -207,15 +228,7 @@ void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm
       Register_JumpCall(addr, target, mnemo, is_function);
     is_jumpcall = 1;
     break;
-  default:
-    pmsg_warning("OPCODE_%s has an unexpected number %d of k bits\n",
-      oc->idname, Nk);
   }
-
-  int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
-  snprintf(line->code, 256, "%-7s ", oc->opcode);
-  char *c = line->code + strlen(line->code);
-  *line->comment = 0;
 
   for(const char *o = oc->operands; *o && c-line->code < 255; o++) {
     switch(*o) {
@@ -370,8 +383,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
 
       Pos += oplen;
     } else {
-      term_out(".word 0x%02x%02x    ; Invalid opcode at 0x%04x\n",
-        buf[Pos + 1] & 0xff, buf[Pos] & 0xff, disasm_wrap(Pos + addr));
+      term_out(".word 0x%02x%02x    ; Invalid opcode\n", buf[Pos+1] & 0xff, buf[Pos] & 0xff);
       Pos += 2;
     }
   }

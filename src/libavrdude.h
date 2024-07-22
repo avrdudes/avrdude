@@ -1583,30 +1583,38 @@ typedef enum {
 #define PART_ALL    (PART_AVR_XM|OP_AVR_L|OP_AVR_XL) // All but RC (the latter conflicts)
 
 // Opcode types
-#define OTY_RMASK             7 // Register formula mask
+#define OTY_REG_MASK          7 // Register formula mask
 #define OTY_RNONE             0 // No registers addressed in this opcode
 #define OTY_RALL              1 // Opcode can use all 32 registers (both Rd, Rr)
 #define OTY_REVN              2 // Opcode only uses even registers (Rd *= 2, Rr *= 2)
 #define OTY_RUPP              3 // Opcode only uses upper registers (Rd += 16, Rr += 16)
 #define OTY_RW24              4 // Opcode only uses r24, r26, r28, r30 (Rd = Rd *2 + 24)
 
-#define OTY_EXTERNAL      0x010 // Opcode might r/w either I/O region or memory
-#define OTY_ALBI          0x020 // Arithmetic, logic or bitwise operation
-#define OTY_ALBX          0x030 // Arithmetic, logic or bitwise operation (external)
-#define OTY_XFRI          0x040 // Data transfer (only affecting registers)
-#define OTY_XFRX          0x050 // Data transfer (between external I/O or memory and regs)
-#define OTY_JMPI          0x080 // Jump to potentially anywhere in flash (jmp, ijmp, eijmp)
-#define OTY_JMPX          0x090 // Jump to potentially anywhere in flash (calls and ret/i)
-#define OTY_RJMI          0x100 // Relative jump rjmp, range [-4094, 4096] bytes
-#define OTY_RJMX          0x110 // Relative call rcall, range [-4094, 4096] bytes
-#define OTY_BRAI          0x200 // Conditional branch, range [-126, 128] bytes
-#define OTY_SKPI          0x400 // Conditional skip, range [0, 4] bytes (cpse, sbrc, sbrs)
-#define OTY_SKPX          0x410 // Conditional skip, range [0, 4] bytes (sbic, sbis)
-#define OTY_MCUI          0x800 // nop and wdr
-#define OTY_MCUX          0x810 // sleep and break
+#define OTY_EXTERNAL      0x008 // Opcode might r/w either I/O region or memory
 
-#define OTY_ALIAS        0x1000 // Opcode is a strict alias for another one, eg, sbr == ori
-#define OTY_CONSTRAINT   0x2000 // Opcode has constraints: Rr == Rd (tst, clr, lsl, rol)
+#define OTY_TYPE_MASK      0x78 // OPCODE type mask
+#define OTY_ITYPE_MASK     0x70 // OPCODE type mask matching OTY_xxxI types
+#define OTY_MCUI           0x00 // nop and wdr
+#define OTY_MCUX           0x08 // sleep and break
+#define OTY_ALBI           0x10 // Arithmetic, logic or bitwise operation
+#define OTY_ALBX           0x18 // Arithmetic, logic or bitwise operation (external)
+#define OTY_XFRI           0x20 // Data transfer (only affecting registers)
+#define OTY_XFRX           0x28 // Data transfer (between external I/O or memory and regs)
+#define OTY_JMPI           0x30 // Jump to potentially anywhere in flash (jmp, ijmp, eijmp)
+#define OTY_JMPX           0x38 // Jump to potentially anywhere in flash (calls and ret/i)
+#define OTY_RJMI           0x40 // Relative jump rjmp, range [-4094, 4096] bytes
+#define OTY_RJMX           0x48 // Relative call rcall, range [-4094, 4096] bytes
+#define OTY_BRAI           0x50 // Conditional branch, range [-126, 128] bytes
+#define OTY_SKPI           0x60 // Conditional skip, range [0, 4] bytes (cpse, sbrc, sbrs)
+#define OTY_SKPX           0x68 // Conditional skip, range [0, 4] bytes (sbic, sbis)
+
+#define OTY_ALIAS         0x100 // Opcode is a strict alias for another one, eg, sbr == ori
+#define OTY_CONSTRAINT    0x200 // Opcode has constraints: Rr == Rd (tst, clr, lsl, rol)
+
+#define OTY_WARN_MASK     0xc00 // OPCODE warning mask
+#define OTY_XWRN          0x400 // Operand register must not be r27/r28
+#define OTY_YWRN          0x800 // Operand register must not be r29/r30
+#define OTY_ZWRN          0xc00 // Operand register must not be r29/r30
 
 typedef struct {
   AVR_opcode mnemo;             // Eg, OPCODE_add
