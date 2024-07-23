@@ -467,7 +467,7 @@ allow_subshells    = no;
 # support for the STK500 programmer which was the dominant serial port
 # programmer at that time. The parallel port was attractive because the
 # STK500 was fairly expensive at the time and people could build a
-# parallel port programmer for very little cost in parts if they didn’t
+# parallel port programmer for very little cost in parts if they didn't
 # already have them on-hand."
 #
 # Here a 2003 webpage about the bsd programmer:
