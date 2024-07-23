@@ -233,31 +233,37 @@ static int disasm_ison(char c) {
  *
  * Return a buffer with three sections
  *   - up to two lead-in bytes (*prequel)
- *   - blen bytes (buf + *prequel corresponds to address *baddr)
+ *   - *blen bytes (buf + *prequel corresponds to address *baddr)
  *   - up to 7 lead-out bytes (*sequel)
  *
  * Also tell the caller which memory (*memp) was read from.
  *
- * dump/read needs *memp, *baddr and *blen (*prequel and *sequel are 0)
+ * dump/read needs *memp, *baddr and *blen (*prequel and *sequel are set to 0)
  * disasm needs *baddr, *blen, *prequel and *sequel
  */
 
 static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[],
   const AVRMEM **memp, int *baddr, int *blen, int *prequel, int *sequel) {
 
-  int i = cx->term_mi;
-  const char *cmd = tolower(**argv) == 'r'? "read": str_casestarts(*argv, "di")? "disasm [<opts>]": "dump";
-  int is_disasm = cmd[1] == 'i';
-  int default_read_size = is_disasm? 32: 256;
+  const int Nmems = sizeof cx->term_rmem/sizeof*cx->term_rmem;
+  int mi = cx->term_mi;
+  if(mi < 0 || mi >= Nmems)
+    mi = 0;
 
-  if ((argc < 2 && cx->term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
+  const char *cmd = tolower(**argv) == 'r'? "read": str_casestarts(*argv, "di")? "disasm": "dump";
+  int is_disasm = cmd[1] == 'i';
+  int default_len = is_disasm? 32: 256;
+
+  if((argc < 2 && cx->term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    const char *hcmd = is_disasm? "disasm [<opts>]": cmd;
+
     msg_error(
       "Syntax: %s <mem> <addr> <len> # Entire region\n"
       "        %s <mem> <addr>       # Start at <addr>\n"
       "        %s <mem>              # Continue with memory where left off\n"
       "        %s                    # Continue with most recently shown <mem>\n"
       "Function: %s\n",
-      cmd, cmd, cmd, cmd,
+      hcmd, hcmd, hcmd, hcmd,
       is_disasm? "disassemble memory section": "display memory section as hex dump"
     );
     if(is_disasm) {
@@ -290,44 +296,46 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       "the interval at that many bytes below the memory size.\n"
       "\n"
       "The latter two versions of the command page through the memory with a page\n"
-      "size of the last used effective length (%d bytes default)\n", default_read_size
+      "size of the last used effective length (%d bytes default)\n", default_len
     );
     return NULL;
   }
 
-  const char *memstr;
-  if(argc > 1)
-    memstr = argv[1];
-  else
-    memstr = cx->term_rmem[i].mem->desc;
-  const AVRMEM *mem = avr_locate_mem(p, memstr);
+  const char *memstr =
+     argc > 1? argv[1]:
+     cx->term_rmem[mi].mem? cx->term_rmem[mi].mem->desc: NULL;
+
+  const AVRMEM *mem = memstr && *memstr? avr_locate_mem(p, memstr): NULL;
   if (mem == NULL) {
-    pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
+    pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr? memstr: "???", p->desc);
     return NULL;
   }
 
   int maxsize = mem->size;
-  if(maxsize <= 0) { // Sanity check
+  if(maxsize <= 0) {            // Sanity check
     pmsg_error("(%s) cannot read memory %s of size %d\n", cmd, mem->desc, maxsize);
     return NULL;
   }
 
   // Iterate through the cx->term_rmem structs to find relevant address and length info
-  for(i = 0; i < 32; i++) {
-    if(cx->term_rmem[i].mem == NULL)
-      cx->term_rmem[i].mem = mem;
-    if(cx->term_rmem[i].mem == mem) {
-      if(cx->term_rmem[i].len == 0)
-        cx->term_rmem[i].len = maxsize > default_read_size? default_read_size: maxsize;
+  for(mi = 0; mi < Nmems; mi++) {
+    if(cx->term_rmem[mi].mem == NULL)
+      cx->term_rmem[mi].mem = mem;
+    if(cx->term_rmem[mi].mem == mem) {
+      if(cx->term_rmem[mi].len <= 0)
+        cx->term_rmem[mi].len = maxsize > default_len? default_len: maxsize;
+      else if(cx->term_rmem[mi].len > maxsize)
+        cx->term_rmem[mi].len = maxsize;
+      if(cx->term_rmem[mi].addr < 0 || cx->term_rmem[mi].addr >= maxsize)
+        cx->term_rmem[mi].addr = 0;
       break;
     }
   }
-
-  if(i >= 32) { // Catch highly unlikely case
+  if(mi >= Nmems) {
     pmsg_error("(%s) cx->term_rmem[] under-dimensioned; increase and recompile\n", cmd);
     return NULL;;
   }
-  cx->term_mi = i;
+  cx->term_mi = mi;
 
   // Get start address if present
   const char *errptr;
@@ -343,20 +351,20 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
       addr = maxsize + addr;
 
     if (addr < 0 || addr >= maxsize) {
-      int digits = mem->size > 0x10000? 5: 4;
+      int digits = maxsize > 0x10000? 5: 4;
       pmsg_error("(%s) %s address %s is out of range [-0x%0*x, 0x%0*x]\n",
         cmd, mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
       return NULL;
     }
-    cx->term_rmem[i].addr = addr;
+    cx->term_rmem[mi].addr = addr;
   }
 
   // Get number of bytes to read if present
   if (argc >= 3) {
     if(str_eq(argv[argc - 1], "...")) {
       if (argc == 3)
-        cx->term_rmem[i].addr = 0;
-      cx->term_rmem[i].len = maxsize - cx->term_rmem[i].addr;
+        cx->term_rmem[mi].addr = 0;
+      cx->term_rmem[mi].len = maxsize - cx->term_rmem[mi].addr;
     } else if (argc == 4) {
       int len = str_int(argv[3], STR_INT32, &errptr);
       if(errptr) {
@@ -364,9 +372,9 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         return NULL;
       }
 
-      // Turn negative len value (number of bytes from top of memory) into an actual length
+      // Turn negative len (ends at number of bytes from top of memory) into an actual length
       if (len < 0)
-        len = maxsize + len + 1 - cx->term_rmem[i].addr;
+        len = maxsize + len + 1 - cx->term_rmem[mi].addr;
 
       if (len == 0)
         goto nocontent;
@@ -375,24 +383,24 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
         return NULL;
       }
-      cx->term_rmem[i].len = len;
+      cx->term_rmem[mi].len = len;
     }
   }
   // Wrap around if the memory address is greater than the maximum size
-  if(cx->term_rmem[i].addr >= maxsize)
-    cx->term_rmem[i].addr = 0; // Wrap around
+  if(cx->term_rmem[mi].addr >= maxsize)
+    cx->term_rmem[mi].addr = 0;
 
   // Trim len if nessary to prevent reading from the same memory address twice
-  if (cx->term_rmem[i].len > maxsize)
-    cx->term_rmem[i].len = maxsize;
+  if (cx->term_rmem[mi].len > maxsize)
+    cx->term_rmem[mi].len = maxsize;
 
-  uint8_t *buf = mmt_malloc(cx->term_rmem[i].len + 16); // Add safety margin
+  uint8_t *buf = mmt_malloc(cx->term_rmem[mi].len + 16); // Add margin for disasm
   if(argc < 4 && verbose)
-    term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[i].mem->desc,
-      cx->term_rmem[i].addr, cx->term_rmem[i].len);
+    term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[mi].mem->desc,
+      cx->term_rmem[mi].addr, cx->term_rmem[mi].len);
 
-  int toread = cx->term_rmem[i].len;
-  int whence = cx->term_rmem[i].addr;
+  int toread = cx->term_rmem[mi].len;
+  int whence = cx->term_rmem[mi].addr;
   int before = 0, after = 0, flash_offset = 0;
   if(is_disasm) {               // Read a few bytes before/after & don't wrap round
     if(whence >= 2)
@@ -402,20 +410,18 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
     int gap = maxsize - whence - toread;
     after = gap >= 7? 7: gap < 0? 0: gap;
     toread += after;
-    if(toread-before < 2)
+    if(toread-before < 2)       // Cannot disassemble just one byte
       goto nocontent;
   }
 
   report_progress(0, 1, "Reading");
-  for (int j = 0; j < toread; j++) {
-    int addr = (whence + j) % mem->size;
-    int rc = pgm->read_byte_cached(pgm, p, cx->term_rmem[i].mem, addr, &buf[j]);
+  for(int j = 0; j < toread; j++) {
+    int addr = (whence + j) % maxsize;
+    int rc = pgm->read_byte_cached(pgm, p, mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
       pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc,
         (long) whence + j, p->desc);
-      if (rc == -1)
-        imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
       mmt_free(buf);
       return NULL;
     }
@@ -424,15 +430,15 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   report_progress(1, 1, NULL);
 
   if(is_disasm) {               // Adjust length so buffer does not split opcodes
-    int i = before, end = toread-after, wend = after? end: end-1;
-    while(i < wend)
-      i += is_opcode32(buf[i] | buf[i+1]<<8)? 4: 2;
-    if(i < end)                 // Odd length: shorten by one byte
-      after += end-i;
-    else if(i > end && after >= i-end) // Increase length to accommodate last 32-bit opcode
-      after -= i-end;
-    else if(i > end)            // Reduce length
-      after += i-end;
+    int j = before, end = toread-after, wend = after? end: end-1;
+    while(j < wend)
+      j += is_opcode32(buf[j] | buf[j+1]<<8)? 4: 2;
+    if(j < end)                 // Odd length: shorten by one byte
+      after += end-j;
+    else if(j > end && after >= j-end) // Increase length to accommodate last 32-bit opcode
+      after -= j-end;
+    else if(j > end)            // Reduce length
+      after += j-end;
     // Disassembly of XMEGA's boot/apptable memory needs to know absolute addr in flash
     flash_offset = avr_flash_offset(p, mem, whence + before);
   }
@@ -444,7 +450,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   if(sequel)  *sequel = after;
 
   // Memorise where to start next time
-  cx->term_rmem[i].addr = (whence + toread - after) % maxsize;
+  cx->term_rmem[mi].addr = (whence + toread - after) % maxsize;
 
   return buf;
 
@@ -562,7 +568,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   if(help || invalid) {
     const char *help[] = { "disasm", "-?", NULL, };
     readbuf(pgm, p, 2, help, NULL, NULL, NULL, NULL, NULL);
-    return -1;
+    return invalid? -1: 0;
   }
 
   if(cx->dis_opts.tagfile)
@@ -574,7 +580,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   if(!buf)
     return -1;
 
-  if(len > 0)
+  if(len > 1)
     disasm((char *) buf+leadin, len, addr, leadin, leadout);
   lterm_out("");
   mmt_free(buf);
@@ -2944,7 +2950,7 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  int help = 0, invalid = 0, echo = 0, itemac=1;
+  int help = 0, invalid = 0, echo = 0, itemac = 1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;

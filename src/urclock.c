@@ -349,7 +349,7 @@ static int nmeta(int mcode, int flashsize) {
 #define ret_opcode 0x9508
 
 
-// Is the opcode an rjmp, ie, a relative jump [-4094, 4096] bytes from opcode address?
+// Is the opcode an rjmp, ie, a relative jump [.-4096, .+4094]
 static int isRjmp(uint16_t opcode) {
   return (opcode & 0xf000) == 0xc000;
 }
@@ -413,16 +413,6 @@ static int addr_jmp(uint32_t jmp) {
   addr <<= 1;                   // Convert to byte address
 
   return addr;
-}
-
-
-// Is the instruction word the lower 16 bit part of a 32-bit instruction?
-static int isop32(uint16_t opcode) {
-  return
-    (opcode & 0xfe0f) == 0x9200 || // sts
-    (opcode & 0xfe0f) == 0x9000 || // lds
-    (opcode & 0xfe0e) == 0x940c || // jmp
-    (opcode & 0xfe0e) == 0x940e;   // call
 }
 
 
@@ -1483,7 +1473,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
             } else if(isJmp(opcode) && toend > 6) { // 4 top bytes are data + 2 the jmp addr
               op16 = opcode;
               wasjmp = 1;       // Look at destination address in next loop iteration
-            } else if(isop32(opcode)) { // Skip next opcode, too
+            } else if(is_opcode32(opcode)) { // Skip next opcode, too
               wasop32 = 1;
             }
           }

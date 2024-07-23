@@ -615,12 +615,30 @@ int opcode_match(int op, AVR_opcode mnemo) {
   return 0;
 }
 
+// Returns bitmask of first character chr in bits
+static int bitmask_first_chr(const char *bits, int chr) {
+  int ret = 0x8000;
+  for(const char *c = bits; *c && *c != chr && ret; c++)
+    if(*c != ' ')
+      ret >>= 1;
+  return ret;
+}
+
 // Return first match of opcode that is compatible with avrlevel or OPCODE_NONE
 AVR_opcode opcode_mnemo(int op, int avrlevel) {
   for(AVR_opcode i = 0; i < OPCODE_N; i++)
     if(avr_opcodes[i].avrlevel & avrlevel)
-      if(opcode_match(op, i))
+      if(opcode_match(op, i)) {
+        if(avrlevel == PART_AVR_RC && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
+          // Reduced-core ATtiny does not have registers r0, ..., r15
+          int bmask;            // Assert highest bit in 5-bit r/d is set
+          if((bmask = bitmask_first_chr(avr_opcodes[i].bits, 'r')) && !(op & bmask))
+            return OPCODE_NONE;
+          if((bmask = bitmask_first_chr(avr_opcodes[i].bits, 'd')) && !(op & bmask))
+            return OPCODE_NONE;
+        }
         return i;
+      }
   return OPCODE_NONE;
 }
 

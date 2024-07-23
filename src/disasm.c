@@ -21,9 +21,9 @@
 
 /*
  * The disassembly code originates from the avrdisas disassembler written in
- * 2007 by Johannes Bauer. The current code has been ported by Stefan Rueger to
- *   - Enable disassembly of small memory chunks in AVRDUDE's terminal
- *   - Drive disassembly from the avr_opcode[] table
+ * 2007 by Johannes Bauer. The code here has been rewritten by Stefan Rueger
+ *   - To Enable disassembly of small memory chunks in AVRDUDE's terminal
+ *   - To drive disassembly from the avr_opcodes[] table alone
  */
 
 #include <stdio.h>
@@ -873,41 +873,37 @@ static const char *cycles(int mnemo) {
 /*
  * Disassemble buflen bytes at buf which corresponds to address addr
  *
- * Before(!) the location buf there are leadin bytes available (0 - 2)
- * After the location buf+readlen there are leadout bytes available (0 -4)
+ *  - Caller is responsible that buflen does not split an opcode
+ *  - Before(!) the location buf there are leadin bytes available (0-2)
+ *  - After the location buf+readlen there are leadout bytes available (0-4)
  */
 int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   int pos, opcode, mnemo, oplen;
   Disasm_line line;
   int awd = cx->dis_addrwidth;
 
-  pos = 0;
+  // Clear marker that symbol has been used
   for(int i = 0; i < cx->dis_symbolN; i++)
     if(cx->dis_symbols[i].type == 'I')
       cx->dis_symbols[i].used = 0;
 
   if(cx->dis_opts.process_labels || cx->dis_opts.avrgcc_style) {
     // Preprocess to gather jump labels or to gain knowledge about registers which are being used
-    while(pos < buflen) {
+    for(pos = 0; pos < buflen; pos += mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords) {
       opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
-      mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
+      mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel); // Can be -1 here
       disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line, 1);
-      pos += mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
     }
     enumerate_labels();
-    pos = 0;
   }
 
   if(cx->dis_opts.avrgcc_style)
     emit_used_io_registers();
 
-  while(pos < buflen) {
+  for(pos = 0; pos < buflen; pos += oplen) {
     // Check if this is actually code or maybe only data from tagfile
-    int added = process_data(buf, pos, addr);
-    if(added) {
-      pos += added;
+    if((oplen = process_data(buf, pos, addr)))
       continue;
-    }
 
     opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
     mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
@@ -939,8 +935,6 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       term_out("%-27s ; %s\n", line.code, line.comment);
     if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_ret || mnemo == OPCODE_u_ret)
       term_out("\n");
-
-    pos += oplen;
   }
 
   return 0;

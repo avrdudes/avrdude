@@ -1589,11 +1589,11 @@ typedef enum {
 #define OTY_XFRX           0x28 // Data transfer (between external I/O or memory and regs)
 #define OTY_JMPI           0x30 // Jump to potentially anywhere in flash (jmp, ijmp, eijmp)
 #define OTY_JMPX           0x38 // Jump to potentially anywhere in flash (calls and ret/i)
-#define OTY_RJMI           0x40 // Relative jump rjmp, range [-4094, 4096] bytes
-#define OTY_RJMX           0x48 // Relative call rcall, range [-4094, 4096] bytes
-#define OTY_BRAI           0x50 // Conditional branch, range [-126, 128] bytes
-#define OTY_SKPI           0x60 // Conditional skip, range [0, 4] bytes (cpse, sbrc, sbrs)
-#define OTY_SKPX           0x68 // Conditional skip, range [0, 4] bytes (sbic, sbis)
+#define OTY_RJMI           0x40 // Relative jump rjmp, range [.-4096, .+4094] bytes
+#define OTY_RJMX           0x48 // Relative call rcall, range [.-4096, .+4094] bytes
+#define OTY_BRAI           0x50 // Conditional branch, range [.-128, .+126] bytes
+#define OTY_SKPI           0x60 // Conditional skip, range [.+0, .+4] (cpse, sbrc, sbrs)
+#define OTY_SKPX           0x68 // Conditional skip, range [.+0, .+4] (sbic, sbis)
 
 #define OTY_ALIAS         0x100 // Opcode is a strict alias for another one, eg, sbr == ori
 #define OTY_CONSTRAINT    0x200 // Opcode has constraints: Rr == Rd (tst, clr, lsl, rol)
@@ -1826,7 +1826,7 @@ typedef struct {
   // Static variable from fileio.c
   int reccount;
 
-  // Static variables from disasm*.c
+  // Static variables from disasm.c
   int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth, dis_cycle_index;
   Disasm_options dis_opts;
   int dis_JumpCallN, dis_symbolN;
