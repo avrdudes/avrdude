@@ -435,6 +435,11 @@ static int process_num(const char *buf, int buflen, int nbytes, int pos, int off
   return nbytes;
 }
 
+static int process_fill0xff(const char *buf, int buflen, int nbytes, int pos, int offset) {
+  lineout(str_ccprintf(".fill   %d, 2, 0xffff", nbytes/2),  NULL, -1, 1, buf, pos, offset, 0);
+  return nbytes/2*2;
+}
+
 // Output quoted string
 static int process_string(const char *buf, int buflen, int pos, int offset) {
   char *code, *out;
@@ -466,9 +471,19 @@ static int process_string(const char *buf, int buflen, int pos, int offset) {
 static int process_data(const char *buf, int buflen, int pos, int offset) {
   int ret = 0, index = find_symbol('P', disasm_wrap(pos + offset));
   if(index < 0) {
-    // Try to see if there are PGM data at the next (odd) address
-    if((index = find_symbol('P', disasm_wrap(pos + offset + 1))) < 0)
+    if(pos+1 >= buflen)
       return 0;
+
+    if((index = find_symbol('P', disasm_wrap(pos + offset + 1))) < 0) { // No PGM label, check for fill block
+      int k = 0;
+      if((buf[pos] &0xff) == 0xff && (buf[pos+1] & 0xff) == 0xff)
+        for(k=pos+2; k<buflen; k++)
+          if((buf[k] & 0xff) != 0xff || find_symbol('P', disasm_wrap(k + offset)) >= 0)
+            break;
+      k &= ~1;
+      return !k || k-pos < 4? 0: process_fill0xff(buf, buflen, k-pos, pos, offset);
+    }
+    // Found PGM label at odd address, print byte and continue
     process_num(buf, buflen, 1, pos, offset);
     ret = 1;
   }
