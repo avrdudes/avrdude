@@ -21,9 +21,10 @@
 
 /*
  * The disassembly code originates from the avrdisas disassembler written in
- * 2007 by Johannes Bauer. The code here has been rewritten by Stefan Rueger
- *   - To Enable disassembly of small memory chunks in AVRDUDE's terminal
- *   - To drive disassembly from the avr_opcodes[] table alone
+ * 2007 by Johannes Bauer. This code has been rewritten by Stefan Rueger to
+ *   - Enable disassembly of small memory chunks in AVRDUDE's terminal
+ *   - Drive disassembly from the avr_opcodes[] table alone
+ *   - Generate a compilable source
  */
 
 #include <stdio.h>
@@ -76,9 +77,13 @@ static int find_symbol(int type, int address) {
 }
 
 static void add_symbol(int address, int type, int subtype, int count, const char *name, const char *comment) {
-  int N = cx->dis_symbolN++;
+  int N = find_symbol(0, -1);   // Do we have a recycled symbol?
 
-  cx->dis_symbols = (Disasm_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Disasm_symbol) * (N+1));
+  if(N < 0) {                   // No, increase symbol table
+    N = cx->dis_symbolN++;
+    if(N%1024 == 0)
+      cx->dis_symbols = (Disasm_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Disasm_symbol) * (N+1024));
+  }
   cx->dis_symbols[N].address = address;
   cx->dis_symbols[N].type = type;
   cx->dis_symbols[N].subtype = subtype;
@@ -88,7 +93,7 @@ static void add_symbol(int address, int type, int subtype, int count, const char
   cx->dis_symbols[N].comment = comment? mmt_strdup(comment): NULL;
 }
 
-static int LineError(const char *token, const char *message, int lineno) {
+static int line_error(const char *token, const char *message, int lineno) {
   if((token == NULL) || (strlen(token) == 0)) {
     pmsg_error("%s in tagfile, line %d\n", message, lineno);
     return 1;
@@ -105,7 +110,7 @@ static int Tagfile_Readline(char *line, int lineno) {
     return 0;
 
   token = strtok(line, " \t\n");
-  if(LineError(token, "nonempty line", lineno))
+  if(line_error(token, "nonempty line", lineno))
     return -1;
   address = str_int(token, STR_INT32, &errptr);
   if(errptr) {
@@ -114,16 +119,16 @@ static int Tagfile_Readline(char *line, int lineno) {
   }
 
   token = strtok(NULL, " \t\n");
-  if(LineError(token, "no second argument", lineno))
+  if(line_error(token, "no second argument", lineno))
     return -1;
   if(strlen(token) != 1) {
-    LineError(NULL, "second argument should be a type (L, P or M)", lineno);
+    line_error(NULL, "second argument should be a type (L, P or M)", lineno);
     return -1;
   }
   type = token[0];
 
   token = strtok(NULL, " \t\n");
-  if(LineError(token, "no third argument", lineno))
+  if(line_error(token, "no third argument", lineno))
     return -1;
 
   if(type == 'L') {
@@ -132,10 +137,10 @@ static int Tagfile_Readline(char *line, int lineno) {
     return 0;
   }
 
-  if(LineError(token, "no fourth argument", lineno))
+  if(line_error(token, "no fourth argument", lineno))
     return -1;
   if(strlen(token) != 1) {
-    LineError(NULL, "fourth argument should be a subtype (B, W, A or S)", lineno);
+    line_error(NULL, "fourth argument should be a subtype (B, W, A or S)", lineno);
     return -1;
   }
   subtype = token[0];
@@ -155,12 +160,12 @@ static int Tagfile_Readline(char *line, int lineno) {
     subtype = TYPE_STRING;
     break;
   default:
-    LineError(NULL, "invalid subtype (expected one of B, W, A or S)", lineno);
+    line_error(NULL, "invalid subtype (expected one of B, W, A or S)", lineno);
     return -1;
   }
 
   if((type == 'M') && ((subtype != TYPE_BYTE) && (subtype != TYPE_WORD))) {
-    LineError(NULL, "memory labels can only be of type B or W", lineno);
+    line_error(NULL, "memory labels can only be of type B or W", lineno);
     return -1;
   }
 
@@ -171,7 +176,7 @@ static int Tagfile_Readline(char *line, int lineno) {
     return -1;
   }
   if(count < 1) {
-    LineError(NULL, str_ccprintf("invalid count %d given", count), lineno);
+    line_error(NULL, str_ccprintf("invalid count %d given", count), lineno);
     return -1;
   }
 
@@ -262,11 +267,11 @@ error:
   return -1;
 }
 
-static char *Tagfile_GetLabel(int index) {
+static char *get_symbol_name(int index) {
   return cx->dis_symbols[index].name;
 }
 
-static char *Tagfile_GetLabelComment(int index) {
+static char *get_symbol_comment(int index) {
   return cx->dis_symbols[index].comment;
 }
 
@@ -298,56 +303,33 @@ static const char *resolve_mem_address(int address) {
   return NULL;
 }
 
-static int process_byte(const char *Bitstream, int Position, int offset, int ArgumentNo, const char *Label) {
-  term_out(".byte 0x%02x\n", Bitstream[Position] & 0xff);
-  return 1;
+// Increase cycle number by 1 if it's a 3 byte PC
+static const char *cycles(int mnemo) {
+  if(mnemo < 0)
+    return "---";
+
+  const char *ret = avr_opcodes[mnemo].clock[cx->dis_cycle_index];
+
+  // A plus sign after the cycle number means add one for 3-byte PC
+  if(*ret && ret[1] == '+')
+    return str_ccprintf("%c", cx->dis_flashsz > 128*1024? *ret+1: *ret);
+
+  return ret;
 }
 
-static int process_word(const char *Bitstream, int Position, int offset, int ArgumentNo, const char *Label) {
-  term_out(".word 0x%02x%02x\n", Bitstream[Position + 1] & 0xff, Bitstream[Position] & 0xff);
-  return 2;
-}
-
-static int process_string(const char *Bitstream, int Position, int offset, int ArgumentNo, const char *Label) {
-  int i;
-  unsigned char c;
-  unsigned int InString = 0;
-
-  term_out("String_0x%s_%d:    ; Address 0x%x (%d)\n", Label, ArgumentNo, Position, Position);
-  i = 0;
-  while((c = Bitstream[Position + i])) {
-    if((c >= 32) && (c <= 127)) {
-      if(!InString)
-        term_out(".ascii \"");
-      term_out("%c", c);
-      InString = 1;
-    } else {
-      if(InString)
-        term_out("\"\n");
-      term_out(".byte 0x%02x\n", c);
-      InString = 0;
-    }
-    i++;
+static const char *get_label_name(int destination, char **comment) {
+  int index = find_symbol('L', destination);
+  if(index >= 0) {
+    if(comment)
+      *comment = get_symbol_comment(index);
+    return str_ccprintf("%s", get_symbol_name(index));
   }
-  if(InString)
-    term_out("\\0\"\n");
-  else
-    term_out(".byte 0x00\n");
 
-  term_out("\n");
-  return i + 1;
-}
+  for(int i = 0; i < cx->dis_jumpcallN; i++)
+    if(cx->dis_jumpcalls[i].to == destination)
+      return str_ccprintf("%s%d", cx->dis_jumpcalls[i].is_func? "subroutine": "label", cx->dis_jumpcalls[i].labelno);
 
-static void Sanitize_String(char *String) {
-  size_t i;
-  size_t l = strlen(String);
-
-  for(i = 0; i < l; i++) {
-    if(!(((String[i] >= 'a') && (String[i] <= 'z')) ||
-        (((String[i] >= 'A') && (String[i] <= 'Z'))) || (((String[i] >= '0') && (String[i] <= '9'))))) {
-      String[i] = '_';
-    }
-  }
+  return "unknown";
 }
 
 // Wrap around flash
@@ -358,80 +340,167 @@ static int disasm_wrap(int addr) {
   return addr;
 }
 
-static int process_data(const char *Bitstream, int Position, int offset) {
-  int BytesAdvanced;
-  int (*ProcessingFunction)(const char *, int, int, int, const char *) = NULL;
-  char Buffer[32];
+#define disasm_out(...) do { \
+  if(cx->dis_pass != 2) \
+    break; \
+  if(cx->dis_para && cx->dis_written) \
+    term_out("\n"); \
+  cx->dis_para = 0, cx->dis_written = 1; \
+  term_out(__VA_ARGS__); \
+} while(0)
 
-  int index = find_symbol('P', disasm_wrap(Position + offset));
-  if(index < 0)
-    return 0;
+#define LINE_N 256
+typedef struct {
+  char label[LINE_N], code[LINE_N], comment[LINE_N];
+} Disasm_line;
 
-  switch(cx->dis_symbols[index].subtype) {
-  case TYPE_BYTE:
-    ProcessingFunction = process_byte;
-    break;
-  case TYPE_WORD:
-    ProcessingFunction = process_word;
-    break;
-  case TYPE_ASTRING:
-    ProcessingFunction = process_string;
-    break;
-  case TYPE_STRING:
-    ProcessingFunction = process_string;
-    break;
+
+// Column where opcode starts
+static int codecol() {
+  int ret = 0;
+  if(cx->dis_opts.show_addresses)
+    ret += 3 + cx->dis_addrwidth;
+  if(cx->dis_opts.show_flags)
+    ret += 9;
+  if(cx->dis_opts.show_cycles)
+    ret += 4;
+  if(cx->dis_opts.show_opcodes)
+    ret += 12;
+
+  return ret? ret+1: 2;
+}
+
+// Unified printing of a line
+static void lineout(const char *code, const char *comment,
+  int mnemo, int oplen, const char *buf, int pos, int addr, int labellable) {
+
+  int here = disasm_wrap(pos + addr), codewidth = 27;
+
+  if(cx->dis_opts.process_labels && labellable) {
+    int match = 0;
+
+    for(int i = 0; i < cx->dis_jumpcallN; i++) {
+      if((cx->dis_jumpcalls[i].to) == here) {
+        if(!match++)
+          cx->dis_para = 1;
+        disasm_out("; Referenced from L%0*x by %s\n", cx->dis_addrwidth,
+          cx->dis_jumpcalls[i].from, avr_opcodes[cx->dis_jumpcalls[i].mnemo].opcode);
+      }
+    }
+
+    if(match) {
+      char *comment = NULL;
+      const char *name = get_label_name(here, &comment);
+      if(comment == NULL)
+        disasm_out("%s:\n", name);
+      else
+        disasm_out("%-*s ; %s\n", codecol() + codewidth, str_ccprintf("%s:", name), comment);
+    }
+    if(cx->dis_pass == 1)       // Mark this position as one that can be label destination
+      add_symbol(here, 'l', 0, 0, NULL, NULL);
   }
 
-  term_out("; Inline PGM data: %d ", cx->dis_symbols[index].count);
-  switch(cx->dis_symbols[index].subtype) {
-  case TYPE_BYTE:
-    term_out("byte");
-    break;
-  case TYPE_WORD:
-    term_out("word");
-    break;
-  case TYPE_ASTRING:
-    term_out("autoaligned string");
-    break;
-  case TYPE_STRING:
-    term_out("string");
-    break;
+  if(cx->dis_opts.show_addresses)
+    disasm_out("L%0*x: ", cx->dis_addrwidth, here);
+  if(cx->dis_opts.show_flags)
+    disasm_out("%s ", mnemo < 0? "--------": avr_opcodes[mnemo].flags);
+  if(cx->dis_opts.show_cycles)
+    disasm_out("%3s ", cycles(mnemo));
+  if(cx->dis_opts.show_opcodes)
+    for(int i = 0; i < 4; i++)
+      disasm_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
+  disasm_out(codecol() > 2? " ": "  ");
+  if(!comment || !*comment || !cx->dis_opts.show_comments)
+    disasm_out("%s\n", code);
+  else
+    disasm_out("%-*s ; %s\n", codewidth, code, comment);
+  if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_reti || mnemo == OPCODE_u_reti)
+    cx->dis_para = 1;
+}
+
+// Process 1, 2 or 4 byte number
+static int process_num(const char *buf, int buflen, int nbytes, int pos, int offset) {
+  if(buflen - pos < nbytes)
+    nbytes = buflen - pos;
+  while(nbytes & (nbytes-1))    // Round down to next power of 2
+    nbytes &= nbytes-1;
+
+  const char *str =
+    nbytes == 1? str_ccprintf(".byte   0x%02x", buf[pos] & 0xff):
+    nbytes == 2? str_ccprintf(".word   0x%02x%02x", buf[pos+1] & 0xff, buf[pos] & 0xff):
+    nbytes == 4? str_ccprintf(".long   0x%02x%02x%02x%02x", buf[pos+3] & 0xff, buf[pos+2] & 0xff,
+     buf[pos+1] & 0xff, buf[pos] & 0xff): "nbytes?";
+
+  lineout(str, NULL, -1, 1, buf, pos, offset, 0);
+  return nbytes;
+}
+
+// Output quoted string
+static int process_string(const char *buf, int buflen, int pos, int offset) {
+  char *code, *out;
+  int i = pos;
+  while(i < buflen && buf[i])
+    i++;
+
+  if(i == buflen) {             // Ran out of buffer: string not terminated
+    char *str = mmt_malloc(i-pos + 1);
+    memcpy(str, buf+pos, i-pos);
+    str[i-pos] = 0;
+    out = cfg_escape(str);
+    mmt_free(str);
+    code = str_sprintf(".ascii  %s", out);
+  } else {                      // Nul terminated string
+    out = cfg_escape(buf + pos);
+    code = str_sprintf(".asciz  %s", out);
+    i++;
   }
-  if(cx->dis_symbols[index].count != 1)
-    term_out("s");
-  term_out(" starting at 0x%0*x", cx->dis_addrwidth, disasm_wrap(Position + offset));
 
-  if(cx->dis_symbols[index].name)
-    term_out(" (%s)", cx->dis_symbols[index].name);
-  term_out("\n");
+  lineout(code, NULL, -1, i-pos, buf, pos, offset, 0);
+  mmt_free(out);
+  mmt_free(code);
 
-  if((cx->dis_symbols[index].subtype == TYPE_ASTRING) || (cx->dis_symbols[index].subtype == TYPE_STRING)) {
-    if(cx->dis_symbols[index].name != NULL) {
-      snprintf(Buffer, sizeof(Buffer), "%x_%s", disasm_wrap(Position + offset), cx->dis_symbols[index].name);
-      Sanitize_String(Buffer);
-    } else {
-      snprintf(Buffer, sizeof(Buffer), "%x", disasm_wrap(Position + offset));
+  return i-pos;
+}
+
+// Returns number of bytes of PGM data at this position, printing them in pass 2
+static int process_data(const char *buf, int buflen, int pos, int offset) {
+  int ret = 0, index = find_symbol('P', disasm_wrap(pos + offset));
+  if(index < 0) {
+    // Try to see if there are PGM data at the next (odd) address
+    if((index = find_symbol('P', disasm_wrap(pos + offset + 1))) < 0)
+      return 0;
+    process_num(buf, buflen, 1, pos, offset);
+    ret = 1;
+  }
+  Disasm_symbol *s = cx->dis_symbols + index;
+
+  if(s->name) {
+    cx->dis_para = 1;
+    disasm_out("%s:\n", s->name);
+  }
+
+  for(int i = 0; i < s->count && pos+ret < buflen; i++) {
+    switch(s->subtype) {
+    case TYPE_BYTE:
+    case TYPE_WORD:
+      ret += process_num(buf, buflen, s->subtype, pos+ret, offset);
+      break;
+    case TYPE_ASTRING:
+    case TYPE_STRING:
+      ret += process_string(buf, buflen, pos+ret, offset);
     }
   }
 
-  BytesAdvanced = 0;
-  for(int i = 0; i < cx->dis_symbols[index].count; i++)
-    BytesAdvanced += ProcessingFunction(Bitstream, Position + BytesAdvanced, offset, i, Buffer);
-
-  if(cx->dis_symbols[index].subtype == TYPE_ASTRING) {
-    // Autoaligned string
-    if((BytesAdvanced % 2) != 0) {
-      // Not yet aligned correctly
-      if(Bitstream[Position + BytesAdvanced] != 0x00)
-        pmsg_warning("autoalignment expected zero but got 0x%02x padding; ignored\n",
-          Bitstream[Position + BytesAdvanced] & 0xff);
-      term_out(".byte 0x%02x        ; String Autoalignment\n", ((unsigned char *) Bitstream)[Position + BytesAdvanced]);
-      BytesAdvanced++;
+  if(s->subtype == TYPE_ASTRING) { // Autoaligned string
+    if(ret%2) {
+      if(buf[pos+ret])
+        pmsg_warning("autoalignment expects 0x00 padding but got 0x%02x\n", buf[pos+ret] & 0xff);
+      lineout(str_ccprintf(".byte   0x%02x", buf[pos+ret] & 0xff),
+        "String autoalignment", -1, 1, buf, pos+ret, offset, 0);
+      ret++;
     }
   }
-
-  term_out("\n");
-  return BytesAdvanced;
+  return ret;
 }
 
 static const char *resolve_io_register(int Number) {
@@ -450,148 +519,95 @@ static const char *resolve_io_register(int Number) {
 void emit_used_io_registers() {
   for(int i = 0; i < cx->dis_symbolN; i++)
     if(cx->dis_symbols[i].used)
-      term_out(".equ %s, 0x%02x\n", cx->dis_symbols[i].name, cx->dis_symbols[i].address);
+      disasm_out(".equ %s, 0x%02x\n", cx->dis_symbols[i].name, cx->dis_symbols[i].address);
 }
-
 
 void disasm_zap_jumpcalls() {
-  if(cx->dis_JumpCalls) {
-    mmt_free(cx->dis_JumpCalls);
-    cx->dis_JumpCalls = NULL;
+  if(cx->dis_jumpcalls) {
+    mmt_free(cx->dis_jumpcalls);
+    cx->dis_jumpcalls = NULL;
   }
-  cx->dis_JumpCallN = 0;
+  cx->dis_jumpcallN = 0;
 }
 
-static void register_jumpcall(int From, int To, int mnemo, unsigned char FunctionCall) {
+static void register_jumpcall(int from, int to, int mnemo, unsigned char is_func) {
   if(cx->dis_opts.process_labels) {
-    Disasm_JumpCall *jc = cx->dis_JumpCalls;
-    int N = cx->dis_JumpCallN;
+    Disasm_jumpcall *jc = cx->dis_jumpcalls;
+    int N = cx->dis_jumpcallN;
 
     // Already entered this JC?
     for(int i = 0; i < N; i++)
-      if(jc[i].From == From && jc[N].To == To && jc[N].mnemo == mnemo)
+      if(jc[i].from == from && jc[N].to == to && jc[N].mnemo == mnemo)
         return;
 
-    jc = mmt_realloc(jc, sizeof(Disasm_JumpCall) * (N+1));
-    jc[N].From = From;
-    jc[N].To = To;
+    if(N%1024 == 0)
+      jc = mmt_realloc(jc, sizeof(Disasm_jumpcall) * (N+1024));
+    jc[N].from = from;
+    jc[N].to = to;
     jc[N].mnemo = mnemo;
-    jc[N].LabelNumber = 0;
-    jc[N].FunctionCall = FunctionCall;
+    jc[N].labelno = 0;
+    jc[N].is_func = is_func;
 
-    cx->dis_JumpCalls = jc;
-    cx->dis_JumpCallN++;
+    cx->dis_jumpcalls = jc;
+    cx->dis_jumpcallN++;
   }
 }
 
 static int JC_Comparison(const void *Element1, const void *Element2) {
-  Disasm_JumpCall *JC1, *JC2;
+  Disasm_jumpcall *JC1, *JC2;
 
-  JC1 = (Disasm_JumpCall *) Element1;
-  JC2 = (Disasm_JumpCall *) Element2;
-  if((JC1->To) > (JC2->To))
+  JC1 = (Disasm_jumpcall *) Element1;
+  JC2 = (Disasm_jumpcall *) Element2;
+  if((JC1->to) > (JC2->to))
     return 1;
-  else if((JC1->To) == (JC2->To))
+  else if((JC1->to) == (JC2->to))
     return 0;
   return -1;
 }
 
-static void Correct_Label_IsFunct(void) {
+static void correct_is_funct(void) {
   int i, j;
-  int LastIdx = 0;
-  int LastDest = cx->dis_JumpCalls[0].To;
-  char CurIsFunct = cx->dis_JumpCalls[0].FunctionCall;
+  int last_idx = 0;
+  int last_dest = cx->dis_jumpcalls[0].to;
+  char cur_is_func = cx->dis_jumpcalls[0].is_func;
 
-  for(i = 1; i < cx->dis_JumpCallN; i++) {
-    if(cx->dis_JumpCalls[i].To != LastDest) {
-      for(j = LastIdx; j < i; j++)
-        cx->dis_JumpCalls[j].FunctionCall = CurIsFunct;
-      LastIdx = i;
-      LastDest = cx->dis_JumpCalls[i].To;
-      CurIsFunct = 0;
+  for(i = 1; i < cx->dis_jumpcallN; i++) {
+    if(cx->dis_jumpcalls[i].to != last_dest) {
+      for(j = last_idx; j < i; j++)
+        cx->dis_jumpcalls[j].is_func = cur_is_func;
+      last_idx = i;
+      last_dest = cx->dis_jumpcalls[i].to;
+      cur_is_func = 0;
     }
-    CurIsFunct = CurIsFunct || cx->dis_JumpCalls[i].FunctionCall;
+    cur_is_func = cur_is_func || cx->dis_jumpcalls[i].is_func;
   }
-  for(j = LastIdx; j < cx->dis_JumpCallN; j++)
-    cx->dis_JumpCalls[j].FunctionCall = CurIsFunct;
+  for(j = last_idx; j < cx->dis_jumpcallN; j++)
+    cx->dis_jumpcalls[j].is_func = cur_is_func;
 }
 
 static void enumerate_labels(void) {
-  int i;
-  int CurrentLabelNumber = 0;
-  int CurrentFunctionNumber = 0;
-  int Destination;
+  int i, dest, cur_labelno = 0, cur_funcno = 0;
 
-  if(cx->dis_JumpCallN < 2)
+  if(cx->dis_jumpcallN < 2)
     return;
 
-  qsort(cx->dis_JumpCalls, cx->dis_JumpCallN, sizeof(Disasm_JumpCall), JC_Comparison);
-  Correct_Label_IsFunct();
+  qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Disasm_jumpcall), JC_Comparison);
+  correct_is_funct();
 
-  Destination = cx->dis_JumpCalls[0].To;
-  if(cx->dis_JumpCalls[0].FunctionCall)
-    CurrentFunctionNumber++;
-  else
-    CurrentLabelNumber++;
-  for(i = 0; i < cx->dis_JumpCallN; i++) {
-    if(Destination != cx->dis_JumpCalls[i].To) {
-      if(cx->dis_JumpCalls[i].FunctionCall)
-        CurrentFunctionNumber++;
+  dest = 987654321;
+  for(i = 0; i < cx->dis_jumpcallN; i++) {
+    if(find_symbol('l', cx->dis_jumpcalls[i].to) < 0)
+      continue;
+    cx->dis_jumpcalls[i].labelno = cx->dis_jumpcalls[i].is_func? cur_funcno: cur_labelno;
+    if(dest != cx->dis_jumpcalls[i].to) {
+      if(cx->dis_jumpcalls[i].is_func)
+        cur_funcno++;
       else
-        CurrentLabelNumber++;
-      Destination = cx->dis_JumpCalls[i].To;
-    }
-    if(cx->dis_JumpCalls[i].FunctionCall)
-      cx->dis_JumpCalls[i].LabelNumber = CurrentFunctionNumber;
-    else
-      cx->dis_JumpCalls[i].LabelNumber = CurrentLabelNumber;
-  }
-}
-
-static const char *get_label_name(int destination, char **comment) {
-  int index = find_symbol('L', destination);
-  if(index >= 0) {
-    if(comment)
-      *comment = Tagfile_GetLabelComment(index);
-    return str_ccprintf("%s", Tagfile_GetLabel(index));
-  }
-
-  for(int i = 0; i < cx->dis_JumpCallN; i++)
-    if(cx->dis_JumpCalls[i].To == destination)
-      return str_ccprintf("%s%d", cx->dis_JumpCalls[i].FunctionCall? "Function": "Label", cx->dis_JumpCalls[i].LabelNumber);
-
-  return "unknown";
-}
-
-// Show all references which refer to "Position" as destination
-static void print_jumpcalls(int Position) {
-  int i;
-  int Match = 0;
-
-  for(i = 0; i < cx->dis_JumpCallN; i++) {
-    if((cx->dis_JumpCalls[i].To) == Position) {
-      if(Match == 0) {
-        term_out("\n");
-        Match = 1;
-      }
-      term_out("; Referenced from 0x%0*x by %s\n", cx->dis_addrwidth, 
-        cx->dis_JumpCalls[i].From, avr_opcodes[cx->dis_JumpCalls[i].mnemo].opcode);
-    }
-  }
-  if(Match == 1) {
-    char *LabelComment = NULL;
-    const char *LabelName = get_label_name(Position, &LabelComment);
-    if(LabelComment == NULL) {
-      term_out("%s:\n", LabelName);
-    } else {
-      term_out("%-23s ; %s\n", str_ccprintf("%s:", LabelName), LabelComment);
+        cur_labelno++;
+      dest = cx->dis_jumpcalls[i].to;
     }
   }
 }
-
-typedef struct {
-  char code[256], comment[256];
-} Disasm_line;
 
 #define Ra (regs['a'])
 #define Rd (regs['d'])
@@ -614,7 +630,7 @@ typedef struct {
 #define Nq (bits['q'])
 
 static char *add_comment(Disasm_line *line, const char *comment) {
-  int len = strlen(line->comment), rem = 256-len-1;
+  int len = strlen(line->comment), rem = LINE_N - len - 1;
   char *p = line->comment + len;
 
   if(len && *comment && rem > 2)
@@ -642,11 +658,11 @@ static unsigned bitcount(unsigned n) {
   return ret;
 }
 
-static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm_line *line, int pass) {
+static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm_line *line) {
   memset(line, 0, sizeof*line);
   if(mnemo < 0) {
     add_comment(line, "Invalid opcode");
-    snprintf(line->code, 256, ".word   0x%02x%02x", buf[1] & 0xff, buf[0] & 0xff);
+    snprintf(line->code, LINE_N, ".word   0x%02x%02x", buf[1] & 0xff, buf[0] & 0xff);
     return;
   }
 
@@ -726,8 +742,9 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   }
 
   int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
-  snprintf(line->code, 256, "%-7s ", oc->opcode);
-  char *c = line->code + strlen(line->code);
+  snprintf(line->code, LINE_N, "%-7s ", oc->opcode);
+  char *lc = line->code + strlen(line->code);
+#define add_operand(lc, ...) snprintf((lc), LINE_N - ((lc) - line->code),  __VA_ARGS__)
 
   // Check for opcodes with undefined results
   switch(oc->type & OTY_WARN_MASK) {
@@ -755,7 +772,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   case 7:                       // Branches
     offset = (int8_t) (Rk<<1);  // Sign-extend and multiply by 2
     target = disasm_wrap(addr + offset + 2);
-    if(pass == 1)
+    if(cx->dis_pass == 1)
       register_jumpcall(addr, target, mnemo, 0);
     is_jumpcall = 1;
     is_relative = 1;
@@ -763,7 +780,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   case 12:
     offset = (int16_t) (Rk<<4) >> 3; // Sign extend and multiply by 2
     target = disasm_wrap(addr + offset + 2);
-    if(pass == 1)
+    if(cx->dis_pass == 1)
       register_jumpcall(addr, target, mnemo, is_function);
     is_jumpcall = 1;
     is_relative = 1;
@@ -776,98 +793,85 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
       add_comment(line,
         str_ccprintf("Warning: destination outside flash [0, 0x%0*x]", awd, cx->dis_flashsz-1));
     target = 2*Rk;              // disasm_wrap(2*Rk);
-    if(pass == 1)
+    if(cx->dis_pass == 1)
       register_jumpcall(addr, target, mnemo, is_function);
     is_jumpcall = 1;
     break;
   }
 
-  for(const char *o = oc->operands; *o && c-line->code < 255; o++) {
+  for(const char *o = oc->operands; *o && lc-line->code < LINE_N - 1; o++) {
     switch(*o) {
     case 'R':
-      *c++ = 'r', *c = 0;
+      *lc++ = 'r', *lc = 0;
       break;
     default:
-      *c++ = *o, *c = 0;
+      *lc++ = *o, *lc = 0;
       break;
     case 'A':
       if((regname = resolve_io_register(RA)))
-        snprintf(c, 256-strlen(c), "%s", regname);
+        add_operand(lc, "%s", regname);
       else
-        snprintf(c, 256-strlen(c), "0x%02x", RA);
-      c += strlen(c);
+        add_operand(lc, "0x%02x", RA);
+      lc += strlen(lc);
       break;
     case 'a':
-      snprintf(c, 255 - (c-line->code), "0x%02x", Ra);
+      add_operand(lc, "0x%02x", Ra);
       if((memaddr = resolve_mem_address(Ra)))
         add_comment(line, str_ccprintf("%s", memaddr));
       break;
     case 'k':
       if(is_jumpcall) {
-        if(cx->dis_opts.process_labels) {
-          snprintf(c, 255 - (c-line->code), "%s", get_label_name(target, NULL));
-          add_comment(line, str_ccprintf("0x%0*x", awd, target));
+        const char *name = get_label_name(target, NULL);
+        if(cx->dis_opts.process_labels && find_symbol('l', target) >= 0) {
+          add_operand(lc, "%s", name);
+          add_comment(line, str_ccprintf("L%0*x", awd, target));
         } else {
           if(is_relative) {
-            snprintf(c, 255 - (c-line->code), ".%+d", offset);
-            add_comment(line, str_ccprintf("0x%0*x", awd, target));
+            add_operand(lc, ".%+d", offset);
+            add_comment(line, str_ccprintf("L%0*x", awd, target));
           } else
-            snprintf(c, 255 - (c-line->code), "0x%0*x", awd, target);
+            add_operand(lc, "0x%0*x", awd, target);
         }
       } else {
-        snprintf(c, 255 - (c-line->code), "0x%0*x", swd, Rk);
+        add_operand(lc, "0x%0*x", swd, Rk);
         if(kmemaddr)
           add_comment(line, str_ccprintf("%s", kmemaddr));
       }
       break;
     case 'b':
-      snprintf(c, 255 - (c-line->code), "%d", Rb);
+      add_operand(lc, "%d", Rb);
       add_comment(line, str_ccprintf("bit %d = 0x%02x", Rb, 1 << Rb));
       break;
     case 's':
-      snprintf(c, 255 - (c-line->code), "%d", Rs);
+      add_operand(lc, "%d", Rs);
       break;
     case 'd':
-      snprintf(c, 255 - (c-line->code), "%s", regstyle(Rd, regword));
+      add_operand(lc, "%s", regstyle(Rd, regword));
       break;
     case 'r':
-      snprintf(c, 255 - (c-line->code), "%s", regstyle(Rr, regword));
+      add_operand(lc, "%s", regstyle(Rr, regword));
       break;
     case 'K':
       if(NK == 4)
-        snprintf(c, 255 - (c-line->code), "%d", RK);
+        add_operand(lc, "%d", RK);
       else {
-        snprintf(c, 255 - (c-line->code), "0x%02x", RK);
+        add_operand(lc, "0x%02x", RK);
         add_comment(line, str_ccprintf("%d", RK));
       }
       break;
-    case 'q':        snprintf(c, 255 - (c-line->code), "%d", Rq);
+    case 'q':
+      add_operand(lc, "%d", Rq);
       break;
     }
-    c += strlen(c);
+    lc += strlen(lc);
   }
   if(cx->dis_opts.show_name)
     add_comment(line, avr_opcodes[mnemo].description);
   if(cx->dis_opts.show_explanation)
     add_comment(line, avr_opcodes[mnemo].operation);
   // Trim trailing spaces
-  while(--c >= line->code && *c == ' ')
-    *c = 0;
-}
-
-
-// Increase cycle number by 1 if it's a 3 byte PC
-static const char *cycles(int mnemo) {
-  if(mnemo < 0)
-    return "---";
-
-  const char *ret = avr_opcodes[mnemo].clock[cx->dis_cycle_index];
-
-  // A plus sign after the cycle number means add one for 3-byte PC
-  if(*ret && ret[1] == '+')
-    return str_ccprintf("%c", cx->dis_flashsz > 128*1024? *ret+1: *ret);
-
-  return ret;
+  while(--lc >= line->code && *lc == ' ')
+    *lc = 0;
 }
 
 /*
@@ -880,61 +884,46 @@ static const char *cycles(int mnemo) {
 int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   int pos, opcode, mnemo, oplen;
   Disasm_line line;
-  int awd = cx->dis_addrwidth;
 
-  // Clear marker that symbol has been used
-  for(int i = 0; i < cx->dis_symbolN; i++)
+  // Clear info that symbol has been used and recycle labellable marker 'l'
+  int recycled = 0;
+  for(int i = 0; i < cx->dis_symbolN; i++) {
     if(cx->dis_symbols[i].type == 'I')
       cx->dis_symbols[i].used = 0;
-
-  if(cx->dis_opts.process_labels || cx->dis_opts.avrgcc_style) {
-    // Preprocess to gather jump labels or to gain knowledge about registers which are being used
-    for(pos = 0; pos < buflen; pos += mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords) {
-      opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
-      mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel); // Can be -1 here
-      disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line, 1);
-    }
-    enumerate_labels();
+    if(cx->dis_symbols[i].type == 'l')
+      recycled = 1, cx->dis_symbols[i].type = 0, cx->dis_symbols[i].address = -1;
   }
+  if(recycled)
+    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
 
-  if(cx->dis_opts.avrgcc_style)
-    emit_used_io_registers();
-
-  for(pos = 0; pos < buflen; pos += oplen) {
-    // Check if this is actually code or maybe only data from tagfile
-    if((oplen = process_data(buf, pos, addr)))
-      continue;
-
-    opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
-    mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
-    oplen = mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
-
-    disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line, 2);
-
-    if(cx->dis_opts.process_labels)
-      print_jumpcalls(disasm_wrap(pos + addr));
-
-    if(cx->dis_opts.show_addresses)
-      term_out("%*x: ", awd, disasm_wrap(pos + addr));
-    if(cx->dis_opts.show_cycles || cx->dis_opts.show_flags) {
-      if(cx->dis_opts.show_flags)
-        term_out("%s ", mnemo < 0? "--------": avr_opcodes[mnemo].flags);
-      if(cx->dis_opts.show_cycles)
-        term_out("%3s ", cycles(mnemo));
+  // Make two passes: the first gathers labels, the second outputs the assembler code
+  for(cx->dis_pass = 1; cx->dis_pass < 3; cx->dis_pass++) {
+    if(cx->dis_pass == 2) {
+      enumerate_labels();
+      if(cx->dis_opts.avrgcc_style)
+        emit_used_io_registers();
+      if(cx->dis_opts.show_gcc_source) {
+        cx->dis_para=1;
+        disasm_out(".text\nmain:\n");
+      }
     }
+    for(pos = 0; pos < buflen; pos += oplen) {
+      // Check if this is actually code or maybe only data from tagfile
+      if((oplen = process_data(buf, buflen, pos, addr)))
+        continue;
 
-    if(cx->dis_opts.show_opcodes) {
-      for(int i = 0; i < 4; i++)
-        term_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
-      term_out(" ");
+      if(pos & 1) {               // Last of PGM data items left off at odd address
+        oplen = process_num(buf, buflen, 1, pos, addr);
+        continue;
+      }
+
+      opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
+      mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
+      oplen = mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
+
+      disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line);
+      lineout(line.code, line.comment, mnemo, oplen, buf, pos, addr, 1);
     }
-
-    if(!*line.comment || !cx->dis_opts.show_comments)
-      term_out("%s\n", line.code);
-    else
-      term_out("%-27s ; %s\n", line.code, line.comment);
-    if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_ret || mnemo == OPCODE_u_ret)
-      term_out("\n");
   }
 
   return 0;

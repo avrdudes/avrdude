@@ -1456,6 +1456,7 @@ typedef enum {
 } AVR_cycle_index;
 
 typedef struct {
+  int show_gcc_source;
   int show_addresses;
   int show_opcodes;
   int show_comments;
@@ -1470,12 +1471,12 @@ typedef struct {
 } Disasm_options;
 
 typedef struct {
-  int From;
-  int To;
+  int from;
+  int to;
   int mnemo;
-  unsigned int LabelNumber;
-  int FunctionCall;
-} Disasm_JumpCall;
+  unsigned int labelno;
+  int is_func;
+} Disasm_jumpcall;
 
 typedef struct {
   char *name, *comment;
@@ -1827,10 +1828,11 @@ typedef struct {
   int reccount;
 
   // Static variables from disasm.c
-  int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth, dis_cycle_index;
+  int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth;
+  int dis_pass, dis_para, dis_written, dis_cycle_index;
   Disasm_options dis_opts;
-  int dis_JumpCallN, dis_symbolN;
-  Disasm_JumpCall *dis_JumpCalls;
+  int dis_jumpcallN, dis_symbolN;
+  Disasm_jumpcall *dis_jumpcalls;
   Disasm_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c

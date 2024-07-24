@@ -214,6 +214,7 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 
 static int disasm_ison(char c) {
   switch(c) {
+  case 'g': return !!cx->dis_opts.show_gcc_source;
   case 'a': return !!cx->dis_opts.show_addresses;
   case 'o': return !!cx->dis_opts.show_opcodes;
   case 'c': return !!cx->dis_opts.show_comments;
@@ -268,6 +269,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
     );
     if(is_disasm) {
       struct { char ochr[2]; const char *info[2]; } opts[] = {
+        {{'g', 'G'}, {"generate avr-gcc source: sets -sOFQ", "don't create gcc source"}},
         {{'a', 'A'}, {"show addresses", "don't show addresses"}},
         {{'o', 'O'}, {"show opcode bytes", "don't show opcode bytes"}},
         {{'c', 'C'}, {"show comments", "don't show comments"}},
@@ -486,6 +488,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   int help = 0, invalid = 0, itemac = 1, chr;
 
   if(!cx->dis_initopts) {
+    cx->dis_opts.show_gcc_source = 0;
     cx->dis_opts.show_addresses = 1;
     cx->dis_opts.show_opcodes = 1;
     cx->dis_opts.show_comments = 1;
@@ -511,6 +514,15 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
         case '?':
         case 'h':
           help++;
+          break;
+        case 'g': case 'G':
+          cx->dis_opts.show_gcc_source = !!islower(chr);
+          if(cx->dis_opts.show_gcc_source) {
+            cx->dis_opts.show_opcodes = 0;
+            cx->dis_opts.show_flags = 0;
+            cx->dis_opts.show_cycles = 0;
+            cx->dis_opts.avrgcc_style = 1;
+          }
           break;
         case 'a': case 'A':
           cx->dis_opts.show_addresses = !!islower(chr);
