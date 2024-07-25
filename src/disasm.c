@@ -199,6 +199,24 @@ static char *regname(const char *pre, const char *reg, int suf) {
   return ret;
 }
 
+// Return the basename of a register, ie, the part after the first . (if any)
+static const char *regbase(const char *reg) {
+  const char *ret = strchr(reg, '.');
+  return ret? ret+1: reg;
+}
+
+// Return the basename of rf[i].reg if that's unique amongst the nr register entries
+static const char *shortrname(const Register_file *rf, int nr, int i) {
+  const char *f = rf[i].reg, *s = regbase(f);
+
+  if(f != s)
+    for(int k=0; k<nr; k++)
+      if(k != i && str_eq(s, regbase(rf[k].reg)))
+        return f;
+
+  return s;
+}
+
 // Initialise cx->dis_symbols from part register file
 static void init_regfile(const AVRPART *p) {
   int nr = 0, offset = 0;
@@ -215,16 +233,17 @@ static void init_regfile(const AVRPART *p) {
       int sub = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
       int count = rf[i].size > 2? rf[i].size: 1;
       add_symbol(addr, 'M', sub, count, regname(mpre, rf[i].reg, -1), NULL);
+      const char *rname = offset? shortrname(rf, nr, i): rf[i].reg;
 
       if(rf[i].addr < 0x40) {
         if(rf[i].size == 1)
-          add_symbol(rf[i].addr, 'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, -1), NULL);
+          add_symbol(rf[i].addr, 'I', TYPE_BYTE, 1, regname(ipre, rname, -1), NULL);
         else if(rf[i].size == 2) {
-          add_symbol(rf[i].addr,   'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, 'l'), NULL);
-          add_symbol(rf[i].addr+1, 'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, 'h'), NULL);
+          add_symbol(rf[i].addr,   'I', TYPE_BYTE, 1, regname(ipre, rname, 'l'), NULL);
+          add_symbol(rf[i].addr+1, 'I', TYPE_BYTE, 1, regname(ipre, rname, 'h'), NULL);
         } else if(rf[i].size > 2) {
           for(int k = 0; k < rf[i].size; k++)
-            add_symbol(rf[i].addr+k, 'I', TYPE_BYTE, 1, regname(ipre, rf[i].reg, k), NULL);
+            add_symbol(rf[i].addr+k, 'I', TYPE_BYTE, 1, regname(ipre, rname, k), NULL);
         }
       }
     }
@@ -528,9 +547,19 @@ static const char *resolve_io_register(int Number) {
 }
 
 void emit_used_io_registers() {
+  int maxlen = 0;
+
+  for(int i = 0; i < cx->dis_symbolN; i++)
+    if(cx->dis_symbols[i].used) {
+      int len = strlen(cx->dis_symbols[i].name);
+      if(len > maxlen)
+        maxlen = len;
+    }
+
   for(int i = 0; i < cx->dis_symbolN; i++)
     if(cx->dis_symbols[i].used)
-      disasm_out(".equ %s, 0x%02x\n", cx->dis_symbols[i].name, cx->dis_symbols[i].address);
+      disasm_out(".equ %s,%*s 0x%02x\n", cx->dis_symbols[i].name,
+       (int) (maxlen-strlen(cx->dis_symbols[i].name)), "", cx->dis_symbols[i].address);
 }
 
 void disasm_zap_jumpcalls() {
