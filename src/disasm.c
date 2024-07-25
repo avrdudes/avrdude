@@ -77,13 +77,9 @@ static int find_symbol(int type, int address) {
 }
 
 static void add_symbol(int address, int type, int subtype, int count, const char *name, const char *comment) {
-  int N = find_symbol(0, -1);   // Do we have a recycled symbol?
-
-  if(N < 0) {                   // No, increase symbol table
-    N = cx->dis_symbolN++;
-    if(N%1024 == 0)
-      cx->dis_symbols = (Disasm_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Disasm_symbol) * (N+1024));
-  }
+  int N = cx->dis_symbolN++;
+  if(N % 1024 == 0)
+    cx->dis_symbols = (Disasm_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Disasm_symbol) * (N+1024));
   cx->dis_symbols[N].address = address;
   cx->dis_symbols[N].type = type;
   cx->dis_symbols[N].subtype = subtype;
@@ -101,7 +97,7 @@ static int line_error(const char *token, const char *message, int lineno) {
   return 0;
 }
 
-static int Tagfile_Readline(char *line, int lineno) {
+static int tagfile_readline(char *line, int lineno) {
   char *token, type, subtype, *name;
   int address, count;
   const char *errptr;
@@ -250,7 +246,7 @@ int disasm_init_tagfile(const AVRPART *p, const char *fname) {
   init_regfile(p);
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer))
-    if(Tagfile_Readline(buffer, lineno++) < 0)
+    if(tagfile_readline(buffer, lineno++) < 0)
       goto error;
 
   if(errstr) {
@@ -265,14 +261,6 @@ int disasm_init_tagfile(const AVRPART *p, const char *fname) {
 error:
   fclose(inf);
   return -1;
-}
-
-static char *get_symbol_name(int index) {
-  return cx->dis_symbols[index].name;
-}
-
-static char *get_symbol_comment(int index) {
-  return cx->dis_symbols[index].comment;
 }
 
 static const char *resolve_mem_address(int address) {
@@ -321,8 +309,8 @@ static const char *get_label_name(int destination, char **comment) {
   int index = find_symbol('L', destination);
   if(index >= 0) {
     if(comment)
-      *comment = get_symbol_comment(index);
-    return str_ccprintf("%s", get_symbol_name(index));
+      *comment = cx->dis_symbols[index].comment;
+    return cx->dis_symbols[index].name;
   }
 
   for(int i = 0; i < cx->dis_jumpcallN; i++)
@@ -343,9 +331,9 @@ static int disasm_wrap(int addr) {
 #define disasm_out(...) do { \
   if(cx->dis_pass != 2) \
     break; \
-  if(cx->dis_para && cx->dis_written) \
+  if(cx->dis_para) \
     term_out("\n"); \
-  cx->dis_para = 0, cx->dis_written = 1; \
+  cx->dis_para = 0; \
   term_out(__VA_ARGS__); \
 } while(0)
 
@@ -353,7 +341,6 @@ static int disasm_wrap(int addr) {
 typedef struct {
   char label[LINE_N], code[LINE_N], comment[LINE_N];
 } Disasm_line;
-
 
 // Column where opcode starts
 static int codecol() {
@@ -370,13 +357,24 @@ static int codecol() {
   return ret? ret+1: 2;
 }
 
+static int is_jumpable(int address) {
+  if(!cx->dis_jumpable || address < cx->dis_start || address > cx->dis_end)
+    return 0;
+
+  int n = sizeof(int)*8, idx = (address - cx->dis_start)/2;
+  return cx->dis_jumpable[idx/n] & (1<<(idx%n));
+}
+
 // Unified printing of a line
 static void lineout(const char *code, const char *comment,
-  int mnemo, int oplen, const char *buf, int pos, int addr, int labellable) {
+  int mnemo, int oplen, const char *buf, int pos, int addr, int showlabel) {
+
+  if(cx->dis_pass == 1)
+    return;
 
   int here = disasm_wrap(pos + addr), codewidth = 27;
 
-  if(cx->dis_opts.process_labels && labellable) {
+  if(cx->dis_opts.process_labels && showlabel) {
     int match = 0;
 
     for(int i = 0; i < cx->dis_jumpcallN; i++) {
@@ -396,8 +394,6 @@ static void lineout(const char *code, const char *comment,
       else
         disasm_out("%-*s ; %s\n", codecol() + codewidth, str_ccprintf("%s:", name), comment);
     }
-    if(cx->dis_pass == 1)       // Mark this position as one that can be label destination
-      add_symbol(here, 'l', 0, 0, NULL, NULL);
   }
 
   if(cx->dis_opts.show_addresses)
@@ -538,10 +534,8 @@ void emit_used_io_registers() {
 }
 
 void disasm_zap_jumpcalls() {
-  if(cx->dis_jumpcalls) {
-    mmt_free(cx->dis_jumpcalls);
-    cx->dis_jumpcalls = NULL;
-  }
+  mmt_free(cx->dis_jumpcalls);
+  cx->dis_jumpcalls = NULL;
   cx->dis_jumpcallN = 0;
 }
 
@@ -555,7 +549,7 @@ static void register_jumpcall(int from, int to, int mnemo, unsigned char is_func
       if(jc[i].from == from && jc[N].to == to && jc[N].mnemo == mnemo)
         return;
 
-    if(N%1024 == 0)
+    if(N % 1024 == 0)
       jc = mmt_realloc(jc, sizeof(Disasm_jumpcall) * (N+1024));
     jc[N].from = from;
     jc[N].to = to;
@@ -568,27 +562,14 @@ static void register_jumpcall(int from, int to, int mnemo, unsigned char is_func
   }
 }
 
-static int JC_Comparison(const void *Element1, const void *Element2) {
-  Disasm_jumpcall *JC1, *JC2;
-
-  JC1 = (Disasm_jumpcall *) Element1;
-  JC2 = (Disasm_jumpcall *) Element2;
-  if((JC1->to) > (JC2->to))
-    return 1;
-  else if((JC1->to) == (JC2->to))
-    return 0;
-  return -1;
-}
-
 static void correct_is_funct(void) {
-  int i, j;
   int last_idx = 0;
   int last_dest = cx->dis_jumpcalls[0].to;
-  char cur_is_func = cx->dis_jumpcalls[0].is_func;
+  int cur_is_func = cx->dis_jumpcalls[0].is_func;
 
-  for(i = 1; i < cx->dis_jumpcallN; i++) {
+  for(int i = 1; i < cx->dis_jumpcallN; i++) {
     if(cx->dis_jumpcalls[i].to != last_dest) {
-      for(j = last_idx; j < i; j++)
+      for(int j = last_idx; j < i; j++)
         cx->dis_jumpcalls[j].is_func = cur_is_func;
       last_idx = i;
       last_dest = cx->dis_jumpcalls[i].to;
@@ -596,30 +577,31 @@ static void correct_is_funct(void) {
     }
     cur_is_func = cur_is_func || cx->dis_jumpcalls[i].is_func;
   }
-  for(j = last_idx; j < cx->dis_jumpcallN; j++)
+  for(int j = last_idx; j < cx->dis_jumpcallN; j++)
     cx->dis_jumpcalls[j].is_func = cur_is_func;
 }
 
+static int jumpcall_sort(const void *p1, const void *p2) {
+  return ((Disasm_jumpcall *) p1)->to - ((Disasm_jumpcall *) p2)->to;
+}
+
 static void enumerate_labels(void) {
-  int i, dest, cur_labelno = 0, cur_funcno = 0;
+  if(cx->dis_jumpcallN > 1) {
+    qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Disasm_jumpcall), jumpcall_sort);
+    correct_is_funct();
 
-  if(cx->dis_jumpcallN < 2)
-    return;
-
-  qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Disasm_jumpcall), JC_Comparison);
-  correct_is_funct();
-
-  dest = 987654321;
-  for(i = 0; i < cx->dis_jumpcallN; i++) {
-    if(find_symbol('l', cx->dis_jumpcalls[i].to) < 0)
-      continue;
-    cx->dis_jumpcalls[i].labelno = cx->dis_jumpcalls[i].is_func? cur_funcno: cur_labelno;
-    if(dest != cx->dis_jumpcalls[i].to) {
-      if(cx->dis_jumpcalls[i].is_func)
-        cur_funcno++;
-      else
-        cur_labelno++;
-      dest = cx->dis_jumpcalls[i].to;
+    int dest = 987654321, cur_labelno = 0, cur_funcno = 0;
+    for(int i = 0; i < cx->dis_jumpcallN; i++) {
+      if(!is_jumpable(cx->dis_jumpcalls[i].to))
+        continue;
+      cx->dis_jumpcalls[i].labelno = cx->dis_jumpcalls[i].is_func? cur_funcno: cur_labelno;
+      if(dest != cx->dis_jumpcalls[i].to) {
+        if(cx->dis_jumpcalls[i].is_func)
+          cur_funcno++;
+        else
+          cur_labelno++;
+        dest = cx->dis_jumpcalls[i].to;
+      }
     }
   }
 }
@@ -747,6 +729,12 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     break;
   }
 
+  int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
+
+  int target = 0, offset = 0, is_jumpcall = 0, is_relative = 0;
+  int is_function = !!(oc->type & OTY_EXTERNAL); // call/rcall affects stack memory
+  const char *kmemaddr = NULL, *amemaddr = NULL, *regname = NA? resolve_io_register(RA): NULL;
+
   if(Na) {
     /*
      * Address is limited to 0x40...0xbf for the reduced-core (TPI part)
@@ -754,32 +742,8 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
      * ADDR[7:0] ← (/a[4], a[4], a[6], a[5], a[3], a[2], a[1], a[0])
      */
     Ra = (Ra & 0xf) | ((Ra >> 1) & 0x30) | ((Ra & 0x10) << 2) | (((Ra & 0x10) ^ 0x10) << 3);
+    amemaddr = resolve_mem_address(Ra);
   }
-
-  int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
-  snprintf(line->code, LINE_N, "%-7s ", oc->opcode);
-  char *lc = line->code + strlen(line->code);
-#define add_operand(lc, ...) snprintf((lc), LINE_N - ((lc) - line->code),  __VA_ARGS__)
-
-  // Check for opcodes with undefined results
-  switch(oc->type & OTY_WARN_MASK) {
-  case OTY_XWRN:
-    if(Rd == 26 || Rd == 27 || Rr == 26 || Rr == 27)
-      add_comment(line, "Warning: the result of this operation is undefined");
-    break;
-  case OTY_YWRN:
-    if(Rd == 28 || Rd == 29 || Rr == 28 || Rr == 29)
-      add_comment(line, "Warning: the result of this operation is undefined");
-    break;
-  case OTY_ZWRN:
-    if(Rd == 30 || Rd == 31 || Rr == 30 || Rr == 31)
-      add_comment(line, "Warning: the result of this operation is undefined");
-    break;
-  }
-
-  int target = 0, offset = 0, is_jumpcall = 0, is_relative = 0;
-  int is_function = !!(oc->type & OTY_EXTERNAL); // call/rcall affects stack memory
-  const char *kmemaddr = NULL, *memaddr, *regname;
 
   switch(Nk) {
   case 0:
@@ -814,6 +778,29 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     break;
   }
 
+  if(cx->dis_pass == 1)
+    return;
+
+  snprintf(line->code, LINE_N, "%-7s ", oc->opcode);
+  char *lc = line->code + strlen(line->code);
+#define add_operand(lc, ...) snprintf((lc), LINE_N - ((lc) - line->code),  __VA_ARGS__)
+
+  // Check for opcodes with undefined results
+  switch(oc->type & OTY_WARN_MASK) {
+  case OTY_XWRN:
+    if(Rd == 26 || Rd == 27 || Rr == 26 || Rr == 27)
+      add_comment(line, "Warning: the result of this operation is undefined");
+    break;
+  case OTY_YWRN:
+    if(Rd == 28 || Rd == 29 || Rr == 28 || Rr == 29)
+      add_comment(line, "Warning: the result of this operation is undefined");
+    break;
+  case OTY_ZWRN:
+    if(Rd == 30 || Rd == 31 || Rr == 30 || Rr == 31)
+      add_comment(line, "Warning: the result of this operation is undefined");
+    break;
+  }
+
   for(const char *o = oc->operands; *o && lc-line->code < LINE_N - 1; o++) {
     switch(*o) {
     case 'R':
@@ -823,7 +810,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
       *lc++ = *o, *lc = 0;
       break;
     case 'A':
-      if((regname = resolve_io_register(RA)))
+      if(regname)
         add_operand(lc, "%s", regname);
       else
         add_operand(lc, "0x%02x", RA);
@@ -831,13 +818,13 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
       break;
     case 'a':
       add_operand(lc, "0x%02x", Ra);
-      if((memaddr = resolve_mem_address(Ra)))
-        add_comment(line, str_ccprintf("%s", memaddr));
+      if(amemaddr)
+        add_comment(line, str_ccprintf("%s", amemaddr));
       break;
     case 'k':
       if(is_jumpcall) {
         const char *name = get_label_name(target, NULL);
-        if(cx->dis_opts.process_labels && find_symbol('l', target) >= 0) {
+        if(cx->dis_opts.process_labels && is_jumpable(target)) {
           add_operand(lc, "%s", name);
           add_comment(line, str_ccprintf("L%0*x", awd, target));
         } else {
@@ -900,20 +887,17 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   int pos, opcode, mnemo, oplen;
   Disasm_line line;
 
-  // Clear info that symbol has been used and recycle labellable marker 'l'
-  int recycled = 0;
-  for(int i = 0; i < cx->dis_symbolN; i++) {
+  for(int i = 0; i < cx->dis_symbolN; i++) // Clear used-state of symbols
     if(cx->dis_symbols[i].type == 'I')
       cx->dis_symbols[i].used = 0;
-    if(cx->dis_symbols[i].type == 'l')
-      recycled = 1, cx->dis_symbols[i].type = 0, cx->dis_symbols[i].address = -1;
-  }
-  if(recycled)
-    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
+
+  cx->dis_jumpable = mmt_malloc((buflen+1)/2/8); // Allocate one bit per word address
+  cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
 
   // Make two passes: the first gathers labels, the second outputs the assembler code
   for(cx->dis_pass = 1; cx->dis_pass < 3; cx->dis_pass++) {
     if(cx->dis_pass == 2) {
+      cx->dis_para = 0;
       enumerate_labels();
       if(cx->dis_opts.avrgcc_style)
         emit_used_io_registers();
@@ -924,8 +908,10 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
     }
     for(pos = 0; pos < buflen; pos += oplen) {
       // Check if this is actually code or maybe only data from tagfile
-      if((oplen = process_data(buf, buflen, pos, addr)))
+      if((oplen = process_data(buf, buflen, pos, addr))) {
+        cx->dis_para = 1;
         continue;
+      }
 
       if(pos & 1) {               // Last of PGM data items left off at odd address
         oplen = process_num(buf, buflen, 1, pos, addr);
@@ -938,9 +924,14 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
 
       disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line);
       lineout(line.code, line.comment, mnemo, oplen, buf, pos, addr, 1);
+      if(cx->dis_pass == 1) {     // Mark this position as one that can be a jump/call destination
+        int n = sizeof(int)*8, idx = pos/2;
+        cx->dis_jumpable[idx/n] |= (1<<(idx%n));
+      }
     }
   }
 
+  mmt_free(cx->dis_jumpable); cx->dis_jumpable = NULL;
   return 0;
 }
 

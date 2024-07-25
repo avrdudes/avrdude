@@ -1829,9 +1829,9 @@ typedef struct {
 
   // Static variables from disasm.c
   int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth;
-  int dis_pass, dis_para, dis_written, dis_cycle_index;
+  int dis_pass, dis_para, dis_cycle_index;
   Disasm_options dis_opts;
-  int dis_jumpcallN, dis_symbolN;
+  int dis_jumpcallN, dis_symbolN, *dis_jumpable, dis_start, dis_end;
   Disasm_jumpcall *dis_jumpcalls;
   Disasm_symbol *dis_symbols;
 
