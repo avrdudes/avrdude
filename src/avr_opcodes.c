@@ -605,9 +605,14 @@ int is_opcode32(int op) {
     op16_is_mnemo(op, MNEMO_sts) || op16_is_mnemo(op, MNEMO_lds);
 }
 
-// Return the register number of the 16-bit ldi opcode (and 0 if it's not ldi)
-int ldi_register(int op) {
+// Return the register number of the 16-bit ldi opcode and 0 if it's not ldi
+int ldi_Rd(int op) {
   return op16_is_mnemo(op, MNEMO_ldi)? 16 + ((op >> 4) & 15): 0;
+}
+
+// Return the constant number in the 16-bit ldi opcode and -1 if it's not ldi
+int ldi_K(int op) {
+  return op16_is_mnemo(op, MNEMO_ldi)? ((op & 0x0f00) >> 4) | (op & 0x0f): -1;
 }
 
 // Returns bitmask of first character chr in bits

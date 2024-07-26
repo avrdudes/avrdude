@@ -340,7 +340,8 @@ static const char *get_label_name(int destination, const char **comment) {
 
   for(int i = 0; i < cx->dis_jumpcallN; i++)
     if(cx->dis_jumpcalls[i].to == destination)
-      return str_ccprintf("%s%d", cx->dis_jumpcalls[i].is_func? "Subroutine": "Label", cx->dis_jumpcalls[i].labelno);
+      return str_ccprintf("%s%d", cx->dis_jumpcalls[i].is_func? "Subroutine": "Label",
+        cx->dis_jumpcalls[i].labelno);
 
   return NULL;
 }

@@ -1456,26 +1456,15 @@ typedef enum {
 } AVR_cycle_index;
 
 typedef struct {
-  int gcc_source;
-  int addresses;
-  int opcode_bytes;
-  int comments;
-  int sreg_flags;
-  int cycles;
-  int op_names;
-  int op_explanations;
-  int avrgcc_style;
-  int labels;
-  int avrlevel;
-  char *tagfile;
+  // Flags how to display lines
+  int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
+  int op_names, op_explanations, avrgcc_style, labels;
+  int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
+  char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
 } Disasm_options;
 
 typedef struct {
-  int from;
-  int to;
-  int mnemo;
-  unsigned int labelno;
-  int is_func;
+  int from, to, mnemo, labelno, is_func;
 } Disasm_jumpcall;
 
 typedef struct {
@@ -1724,9 +1713,10 @@ void terminal_setup_update_progress(void);
 
 char *avr_cc_buffer(size_t n);
 
-int is_opcode32(int op);
-int ldi_register(int op);
 int op16_is_mnemo(int op, AVR_mnemo mnemo);
+int is_opcode32(int op);
+int ldi_Rd(int op);
+int ldi_K(int op);
 AVR_mnemo opcode_mnemo(int op, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
