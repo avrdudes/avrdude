@@ -330,7 +330,7 @@ static const char *cycles(int mnemo) {
   return ret;
 }
 
-static const char *get_label_name(int destination, char **comment) {
+static const char *get_label_name(int destination, const char **comment) {
   Disasm_symbol *s = find_symbol('L', destination);
   if(s) {
     if(comment)
@@ -340,9 +340,9 @@ static const char *get_label_name(int destination, char **comment) {
 
   for(int i = 0; i < cx->dis_jumpcallN; i++)
     if(cx->dis_jumpcalls[i].to == destination)
-      return str_ccprintf("%s%d", cx->dis_jumpcalls[i].is_func? "subroutine": "label", cx->dis_jumpcalls[i].labelno);
+      return str_ccprintf("%s%d", cx->dis_jumpcalls[i].is_func? "Subroutine": "Label", cx->dis_jumpcalls[i].labelno);
 
-  return "unknown";
+  return NULL;
 }
 
 // Wrap around flash
@@ -401,6 +401,7 @@ static void lineout(const char *code, const char *comment,
 
   if(cx->dis_opts.process_labels && showlabel) {
     int match = 0;
+    const char *comment = NULL, *name;
 
     for(int i = 0; i < cx->dis_jumpcallN; i++) {
       if(cx->dis_jumpcalls[i].to == here) {
@@ -411,9 +412,7 @@ static void lineout(const char *code, const char *comment,
       }
     }
 
-    if(match) {
-      char *comment = NULL;
-      const char *name = get_label_name(here, &comment);
+    if(match && (name = get_label_name(here, &comment))) {
       if(comment == NULL)
         disasm_out("%s:\n", name);
       else
@@ -777,7 +776,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   case 7:                       // Branches
     offset = (int8_t) (Rk<<1);  // Sign-extend and multiply by 2
     target = disasm_wrap(addr + offset + 2);
-    if(cx->dis_pass == 1)
+    if(cx->dis_pass == 1 && offset)
       register_jumpcall(addr, target, mnemo, 0);
     is_jumpcall = 1;
     is_relative = 1;
@@ -785,7 +784,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   case 12:
     offset = (int16_t) (Rk<<4) >> 3; // Sign extend and multiply by 2
     target = disasm_wrap(addr + offset + 2);
-    if(cx->dis_pass == 1)
+    if(cx->dis_pass == 1 && offset)
       register_jumpcall(addr, target, mnemo, is_function);
     is_jumpcall = 1;
     is_relative = 1;
@@ -850,7 +849,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     case 'k':
       if(is_jumpcall) {
         const char *name = get_label_name(target, NULL);
-        if(cx->dis_opts.process_labels && is_jumpable(target)) {
+        if(name && target != disasm_wrap(addr+2) && cx->dis_opts.process_labels && is_jumpable(target)) {
           add_operand(lc, "%s", name);
           add_comment(line, str_ccprintf("L%0*x", awd, target));
         } else {
