@@ -39,10 +39,10 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-#define TYPE_BYTE       1
-#define TYPE_WORD       2
-#define TYPE_ASTRING    3
-#define TYPE_STRING     4
+#define TYPE_BYTE             1 // 1 byte
+#define TYPE_WORD             2 // 2 bytes
+#define TYPE_ASTRING          3 // Autoaligned string
+#define TYPE_STRING           4 // String
 
 
 static void zap_symbols() {
@@ -60,10 +60,16 @@ static void zap_symbols() {
 static int symbol_sort(const void *v1, const void *v2) {
   const Disasm_symbol *p1 = v1, *p2 = v2;
   int diff;
-
   if((diff = p1->type - p2->type))
     return diff;
   return p1->address - p2->address;
+}
+
+static int symbol_qsort_stable(const void *v1, const void *v2) {
+  int diff = symbol_sort(v1, v2);
+  if(diff)
+    return diff;
+  return (char *) v1 - (char *) v2; // Keep original order if same keys (stable sort)
 }
 
 static int find_symbol(int type, int address) {
@@ -141,7 +147,6 @@ static int tagfile_readline(char *line, int lineno) {
   }
   subtype = token[0];
 
-  // Either B(yte), W(ord), A(utoterminated string) or S(tring)
   switch(subtype) {
   case 'B':
     subtype = TYPE_BYTE;
@@ -217,37 +222,32 @@ static const char *shortrname(const Register_file *rf, int nr, int i) {
   return s;
 }
 
+static void add_register(int io_off, int addr, const char *name, int suffix) {
+  add_symbol(io_off+addr, 'M', TYPE_BYTE, 1, regname(io_off? "MEM_": "", name, suffix), NULL);
+  if(addr < 0x40 && io_off) // Only keep I/O addresses separate if memory addresses have an offset
+    add_symbol(addr, 'I', TYPE_BYTE, 1, regname(io_off? "IO_": "", name, suffix), NULL);
+}
+
 // Initialise cx->dis_symbols from part register file
 static void init_regfile(const AVRPART *p) {
-  int nr = 0, offset = 0;
+  int nr = 0, io_off = cx->dis_io_offset;
   const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(rf) {
-    AVRMEM *mem = avr_locate_io(p);
-    if(mem)
-      offset = mem->offset;
-    const char *mpre = offset? "MEM_": "";
-    const char *ipre = offset? "IO_": "";
     for(int i = 0; i< nr; i++) {
-      int addr = offset + rf[i].addr;
-      int sub = rf[i].size == 2? TYPE_WORD: TYPE_BYTE;
-      int count = rf[i].size > 2? rf[i].size: 1;
-      add_symbol(addr, 'M', sub, count, regname(mpre, rf[i].reg, -1), NULL);
-      const char *rname = offset? shortrname(rf, nr, i): rf[i].reg;
+      const char *rname = io_off? shortrname(rf, nr, i): rf[i].reg;
 
-      if(rf[i].addr < 0x40) {
-        if(rf[i].size == 1)
-          add_symbol(rf[i].addr, 'I', TYPE_BYTE, 1, regname(ipre, rname, -1), NULL);
-        else if(rf[i].size == 2) {
-          add_symbol(rf[i].addr,   'I', TYPE_BYTE, 1, regname(ipre, rname, 'l'), NULL);
-          add_symbol(rf[i].addr+1, 'I', TYPE_BYTE, 1, regname(ipre, rname, 'h'), NULL);
-        } else if(rf[i].size > 2) {
-          for(int k = 0; k < rf[i].size; k++)
-            add_symbol(rf[i].addr+k, 'I', TYPE_BYTE, 1, regname(ipre, rname, k), NULL);
-        }
+      if(rf[i].size == 1) {
+        add_register(io_off, rf[i].addr, rname, -1);
+      } else if(rf[i].size == 2) {
+        add_register(io_off, rf[i].addr, rname, 'l');
+        add_register(io_off, rf[i].addr+1, rname, 'h');
+      } else if(rf[i].size > 2) {
+        for(int k = 0; k < rf[i].size; k++)
+          add_register(io_off, rf[i].addr+k, rname, k);
       }
     }
-    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
+    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_qsort_stable);
   }
 }
 
@@ -274,7 +274,7 @@ int disasm_init_tagfile(const AVRPART *p, const char *fname) {
   }
 
   fclose(inf);
-  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
+  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_qsort_stable);
   return 0;
 
 error:
@@ -282,32 +282,39 @@ error:
   return -1;
 }
 
-static const char *resolve_mem_address(int address) {
-  for(int i = 0; i < cx->dis_symbolN; i++) {
-    if(cx->dis_symbols[i].type != 'M')
-      continue;
-    if(cx->dis_symbols[i].address > address)
-      break;
+// Width of memory a symbol covers (only valid for I/O and memory symbols)
+static int symbol_width(Disasm_symbol *s) {
+  return s->count * (s->subtype == TYPE_WORD? 2: 1);
+}
 
-    int start = cx->dis_symbols[i].address;
-    int size = cx->dis_symbols[i].subtype == TYPE_WORD? 2: 1;
-    int end = cx->dis_symbols[i].address + cx->dis_symbols[i].count * size - 1;
+// Returns the first symbol for that address with the smallest width
+static Disasm_symbol *symbol_address(int type, int address) {
+  int k = find_symbol(type, address), m = k;
 
-    if(address >= start && address <= end) {
-      if(cx->dis_symbols[i].count == 1) { // Single variable
-        if(size == 1)
-          return str_ccprintf("%s", cx->dis_symbols[i].name);
-        return str_ccprintf("_%s8(%s)", address == start? "lo": "hi", cx->dis_symbols[i].name);
-      }
-      // Array
-      if(size == 1)
-        return str_ccprintf("%s[%d]", cx->dis_symbols[i].name, address - start);
-      return str_ccprintf("_%s8(%s[%d])", (address - start)%2? "hi": "lo",
-        cx->dis_symbols[i].name, (address - start)/2);
-    }
-  }
+  if(k < 0)
+    return NULL;
 
-  return NULL;
+  // Determine m as a matching symbol that has smallest width
+  Disasm_symbol *s = cx->dis_symbols;
+  int w, width = symbol_width(s+k);
+
+  for(int i = k-1; i >= 0 && symbol_sort(s+i, s+k) == 0; i--)
+    if((w = symbol_width(s+i)) <= width) // Want first entry of those with same min width
+      m = i, width = w;
+  for(int i = k+1; i < cx->dis_symbolN && symbol_sort(s+i, s+k) == 0; i++)
+    if((w = symbol_width(s+i)) < width) // < is deliberate, see above
+      m = i, width = w;
+
+  return s+m;
+}
+
+static const char *resolve_address(int type, int address) {
+  Disasm_symbol *s = symbol_address(type == 'I' && !cx->dis_io_offset? 'M': type, address);
+
+  if(s && s->name)
+    s->used = 1;
+
+  return s? s->name: NULL;
 }
 
 // Increase cycle number by 1 if it's a 3 byte PC
@@ -397,7 +404,7 @@ static void lineout(const char *code, const char *comment,
     int match = 0;
 
     for(int i = 0; i < cx->dis_jumpcallN; i++) {
-      if((cx->dis_jumpcalls[i].to) == here) {
+      if(cx->dis_jumpcalls[i].to == here) {
         if(!match++)
           cx->dis_para = 1;
         disasm_out("; Referenced from L%0*x by %s\n", cx->dis_addrwidth,
@@ -513,7 +520,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
     switch(s->subtype) {
     case TYPE_BYTE:
     case TYPE_WORD:
-      ret += process_num(buf, buflen, s->subtype, pos+ret, offset);
+      ret += process_num(buf, buflen, s->subtype == TYPE_WORD? 2: 1, pos+ret, offset);
       break;
     case TYPE_ASTRING:
     case TYPE_STRING:
@@ -533,19 +540,6 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
   return ret;
 }
 
-static const char *resolve_io_register(int Number) {
-  for(int i = 0; i < cx->dis_symbolN; i++) {
-    if(cx->dis_symbols[i].type != 'I')
-      continue;
-    if(cx->dis_symbols[i].address == Number) {
-      cx->dis_symbols[i].used = 1;
-      return cx->dis_symbols[i].name;
-    }
-  }
-
-  return NULL;
-}
-
 void emit_used_io_registers() {
   int maxlen = 0;
 
@@ -557,7 +551,7 @@ void emit_used_io_registers() {
     }
 
   for(int i = 0; i < cx->dis_symbolN; i++)
-    if(cx->dis_symbols[i].used)
+    if(cx->dis_symbols[i].used && (cx->dis_io_offset || cx->dis_symbols[i].type == 'M'))
       disasm_out(".equ %s,%*s 0x%02x\n", cx->dis_symbols[i].name,
        (int) (maxlen-strlen(cx->dis_symbols[i].name)), "", cx->dis_symbols[i].address);
 }
@@ -573,9 +567,9 @@ static void register_jumpcall(int from, int to, int mnemo, unsigned char is_func
     Disasm_jumpcall *jc = cx->dis_jumpcalls;
     int N = cx->dis_jumpcallN;
 
-    // Already entered this JC?
+    // Already entered this jumpcall?
     for(int i = 0; i < N; i++)
-      if(jc[i].from == from && jc[N].to == to && jc[N].mnemo == mnemo)
+      if(jc[i].from == from && jc[i].to == to && jc[i].mnemo == mnemo)
         return;
 
     if(N % 1024 == 0)
@@ -610,8 +604,12 @@ static void correct_is_funct(void) {
     cx->dis_jumpcalls[j].is_func = cur_is_func;
 }
 
-static int jumpcall_sort(const void *p1, const void *p2) {
-  return ((Disasm_jumpcall *) p1)->to - ((Disasm_jumpcall *) p2)->to;
+static int jumpcall_sort(const void *v1, const void *v2) {
+  const Disasm_jumpcall *p1 = v1, *p2 = v2;
+  int diff;
+  if((diff = p1->to - p2->to))
+    return diff;
+  return p1->from - p2->from;
 }
 
 static void enumerate_labels(void) {
@@ -762,7 +760,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
 
   int target = 0, offset = 0, is_jumpcall = 0, is_relative = 0;
   int is_function = !!(oc->type & OTY_EXTERNAL); // call/rcall affects stack memory
-  const char *kmemaddr = NULL, *amemaddr = NULL, *regname = NA? resolve_io_register(RA): NULL;
+  const char *kmemaddr = NULL, *amemaddr = NULL, *regname = NA? resolve_address('I', RA): NULL;
 
   if(Na) {
     /*
@@ -771,7 +769,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
      * ADDR[7:0] ← (/a[4], a[4], a[6], a[5], a[3], a[2], a[1], a[0])
      */
     Ra = (Ra & 0xf) | ((Ra >> 1) & 0x30) | ((Ra & 0x10) << 2) | (((Ra & 0x10) ^ 0x10) << 3);
-    amemaddr = resolve_mem_address(Ra);
+    amemaddr = resolve_address('M', Ra);
   }
 
   switch(Nk) {
@@ -794,7 +792,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     is_relative = 1;
     break;
   case 16:                      // lds/sts
-    kmemaddr = resolve_mem_address(Rk);
+    kmemaddr = resolve_address('M', Rk);
     break;
   case 22:
     if(cx->dis_flashsz && 2*Rk > cx->dis_flashsz)
@@ -843,12 +841,12 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
         add_operand(lc, "%s", regname);
       else
         add_operand(lc, "0x%02x", RA);
-      lc += strlen(lc);
       break;
     case 'a':
-      add_operand(lc, "0x%02x", Ra);
       if(amemaddr)
-        add_comment(line, str_ccprintf("%s", amemaddr));
+        add_operand(lc, "%s", amemaddr);
+      else
+        add_operand(lc, "0x%02x", Ra);
       break;
     case 'k':
       if(is_jumpcall) {
@@ -864,9 +862,10 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
             add_operand(lc, "0x%0*x", awd, target);
         }
       } else {
-        add_operand(lc, "0x%0*x", swd, Rk);
         if(kmemaddr)
-          add_comment(line, str_ccprintf("%s", kmemaddr));
+          add_operand(lc, "%s", kmemaddr);
+        else
+          add_operand(lc, "0x%0*x", swd, Rk);
       }
       break;
     case 'b':
@@ -994,7 +993,7 @@ int disasm_init(const AVRPART *p) {
   }
 
   cx->dis_cycle_index = avr_get_cycle_index(p);
-
+  cx->dis_io_offset = (mem = avr_locate_io(p))? mem->offset: 0;
   init_regfile(p);
   return 0;
 }
