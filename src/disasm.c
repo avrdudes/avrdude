@@ -125,9 +125,9 @@ static int line_error(const char *token, const char *message, int lineno) {
   return 0;
 }
 
-static int tagfile_readline(char *line, int lineno) {
+static int tagfile_readline(char *line, int lineno, const char * const *isrnames, int ni) {
   char *token, type, subtype, *name;
-  int address, count;
+  int vn, address, count;
   const char *errptr;
 
   if(line[0] == '#' || strlen(line) <= 1)
@@ -157,7 +157,12 @@ static int tagfile_readline(char *line, int lineno) {
 
   if(type == 'L') {
     name = token;               // Name, comment is optional
-    add_symbol(address, 'L', 1, 1, name, strtok(NULL, "\t\n"));
+
+    if(str_starts(name, "__vector_") && looks_like_number(name + 9))
+      if((vn = strtol(name+9, NULL, 0)) > 0 && vn < ni) // Don't replace __vectors_0
+        name = str_lc((char *) str_ccprintf("__vector_%s", isrnames[vn]));
+
+    add_symbol(address, 'L', TYPE_BYTE, 1, name, strtok(NULL, "\t\n"));
     return 0;
   }
 
@@ -253,7 +258,7 @@ static void init_regfile(const AVRPART *p) {
   const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(rf) {
-    for(int i = 0; i< nr; i++) {
+    for(int i = 0; i < nr; i++) {
       const char *rname = io_off? shortrname(rf, nr, i): rf[i].reg;
 
       if(rf[i].size == 1) {
@@ -272,8 +277,9 @@ static void init_regfile(const AVRPART *p) {
 
 int disasm_init_tagfile(const AVRPART *p, const char *fname) {
   FILE *inf = fopen(fname, "r");
-  int lineno = 1;
+  int ni = 0, lineno = 1;
   const char *errstr;
+  const char * const * isrnames = avr_locate_isrtable(p, &ni);
 
   if(!inf) {
     pmsg_ext_error("cannot open tagfile %s: %s\n", fname, strerror(errno));
@@ -284,7 +290,7 @@ int disasm_init_tagfile(const AVRPART *p, const char *fname) {
   init_regfile(p);
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer))
-    if(tagfile_readline(buffer, lineno++) < 0)
+    if(tagfile_readline(buffer, lineno++, isrnames, ni) < 0)
       goto error;
 
   if(errstr) {
@@ -970,6 +976,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   return 0;
 }
 
+// Should be called once per terminal session
 int disasm_init(const AVRPART *p) {
   AVRMEM *mem;
 
