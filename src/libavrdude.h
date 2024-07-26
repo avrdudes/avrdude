@@ -1473,7 +1473,8 @@ typedef struct {
   int type;                     // I: I/O vars, M: mem vars, L: labels, P: PGM vars
   int subtype;                  // B: byte, W: word, A: autoterminated string, S: string
   int count;                    // array length for tag file variables
-  int used;                     // Whether used by disassembly process
+  int used;                     // Whether symbol was referenced by disassembly process
+  int printed;                  // Whether this L/P label will be printed in pass 2
 } Disasm_symbol;
 
 // Order of enums must align with avr_opcodes[] table order
@@ -1497,15 +1498,15 @@ typedef enum {
   MNEMO_brcc,     MNEMO_brsh,     MNEMO_brne,     MNEMO_brpl,
   MNEMO_brvc,     MNEMO_brge,     MNEMO_brhc,     MNEMO_brtc,
   MNEMO_brid,     MNEMO_brbc,     MNEMO_mov,      MNEMO_movw,
-  MNEMO_ser,      MNEMO_ldi,      MNEMO_lds,      MNEMO_ld_1,
-  MNEMO_ld_2,     MNEMO_ld_3,     MNEMO_ld_4,     MNEMO_ld_5,
-  MNEMO_ld_6,     MNEMO_ldd_1,    MNEMO_ld_7,     MNEMO_ld_8,
-  MNEMO_ld_9,     MNEMO_ldd_2,    MNEMO_sts,      MNEMO_st_1,
-  MNEMO_st_2,     MNEMO_st_3,     MNEMO_st_4,     MNEMO_st_5,
-  MNEMO_st_6,     MNEMO_std_1,    MNEMO_st_7,     MNEMO_st_8,
-  MNEMO_st_9,     MNEMO_std_2,    MNEMO_lpm_1,    MNEMO_lpm_2,
-  MNEMO_lpm_3,    MNEMO_elpm_1,   MNEMO_elpm_2,   MNEMO_elpm_3,
-  MNEMO_spm,      MNEMO_spm_zz,   MNEMO_in,       MNEMO_out,
+  MNEMO_ser,      MNEMO_ldi,      MNEMO_lds,      MNEMO_ld_x,
+  MNEMO_ld_xp,    MNEMO_ld_mx,    MNEMO_ld_y,     MNEMO_ld_yp,
+  MNEMO_ld_my,    MNEMO_ldd_y,    MNEMO_ld_z,     MNEMO_ld_zp,
+  MNEMO_ld_mz,    MNEMO_ldd_z,    MNEMO_sts,      MNEMO_st_x,
+  MNEMO_st_xp,    MNEMO_st_mx,    MNEMO_st_y,     MNEMO_st_yp,
+  MNEMO_st_my,    MNEMO_std_y,    MNEMO_st_z,     MNEMO_st_zp,
+  MNEMO_st_mz,    MNEMO_std_z,    MNEMO_lpm_0,    MNEMO_lpm_z,
+  MNEMO_lpm_zp,   MNEMO_elpm_0,   MNEMO_elpm_z,   MNEMO_elpm_zp,
+  MNEMO_spm,      MNEMO_spm_zp,   MNEMO_in,       MNEMO_out,
   MNEMO_push,     MNEMO_pop,      MNEMO_xch,      MNEMO_las,
   MNEMO_lac,      MNEMO_lat,      MNEMO_lsr,      MNEMO_swap,
   MNEMO_sbi,      MNEMO_cbi,      MNEMO_bst,      MNEMO_bld,
@@ -1720,6 +1721,7 @@ int ldi_K(int op);
 AVR_mnemo opcode_mnemo(int op, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
+const char *mnemo_str(int op);
 
 int disasm(const char *buf, int len, int addr, int leadin, int leadout);
 int disasm_init(const AVRPART *p);
