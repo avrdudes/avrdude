@@ -434,7 +434,7 @@ static void lineout(const char *code, const char *comment,
     disasm_out("%s\n", code);
   else
     disasm_out("%-*s ; %s\n", codewidth, code, comment);
-  if(mnemo == OPCODE_ret || mnemo == OPCODE_u_ret || mnemo == OPCODE_reti || mnemo == OPCODE_u_reti)
+  if(mnemo == MNEMO_ret || mnemo == MNEMO_u_ret || mnemo == MNEMO_reti || mnemo == MNEMO_u_reti)
     cx->dis_para = 1;
 }
 
@@ -680,7 +680,7 @@ static unsigned bitcount(unsigned n) {
   return ret;
 }
 
-static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo, Disasm_line *line) {
+static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, Disasm_line *line) {
   memset(line, 0, sizeof*line);
   if(mnemo < 0) {
     add_comment(line, "Invalid opcode");
@@ -688,7 +688,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     return;
   }
 
-  const AVR_opcode_data *oc = avr_opcodes+mnemo;
+  const AVR_opcode *oc = avr_opcodes+mnemo;
   int regs[128] = {0}, bits[128] = {0};
   unsigned bmask = 0x8000;
   for(const char *p = oc->bits; *p && bmask; p++) {
@@ -727,15 +727,11 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
   if(Ns && Ns != 3)
     pmsg_warning("unexpected number of s bits in avr_opcodes table for OP_ID(%s)\n", oc->idname);
 
-  switch(mnemo) {               // Exceptions go here
-  case OPCODE_andi:             // cbr r17, 0x06 is marginally easier to read than andi r17, 0xf9
-    if(bitcount(RK) >= 4) {
-      RK = ~RK & 0xff;
-      mnemo = OPCODE_cbr;
-      oc = avr_opcodes+mnemo;
-    }
-  default:
-    break;
+  // cbr r17, 0x06 is marginally easier to read than andi r17, 0xf9
+  if(mnemo == MNEMO_andi && bitcount(RK) >= 4) {
+    RK = ~RK & 0xff;
+    mnemo = MNEMO_cbr;
+    oc = avr_opcodes+mnemo;
   }
 
   // Apply register formula
@@ -981,7 +977,7 @@ int disasm_init(const AVRPART *p) {
 
   // Sanity check (problems only occur if avr_opcodes was changed)
   for(size_t i = 0; i < sizeof avr_opcodes/sizeof*avr_opcodes; i++)
-    if(avr_opcodes[i].mnemo != (AVR_opcode) i) {
+    if(avr_opcodes[i].mnemo != (AVR_mnemo) i) {
       msg_error("avr_opcodes[] table broken (this should never happen)\n");
       return -1;
     }

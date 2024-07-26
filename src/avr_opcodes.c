@@ -23,7 +23,7 @@
 /*
  * AVR opcode table
  *
- * - Order of enums OPCODE_...  in libavedude.h must align with table
+ * - Order of enums MNEMO_...  in libavedude.h must align with table
  *
  * - Order makes the first match of a 16-bit opcode a "good" one
  *     + Unallocated opcodes come last
@@ -77,8 +77,8 @@
  * - Source: Table was curated from https://github.com/nlitsme/AVRInstructionSet
  */
 
-const AVR_opcode_data avr_opcodes[OPCODE_N] = {
-#define OP_ID(nam) OPCODE_##nam, #nam
+const AVR_opcode avr_opcodes[MNEMO_N] = {
+#define OP_ID(nam) MNEMO_##nam, #nam
 
   // Arithmetic and Logic Instructions
   {OP_ID(lsl),      0xfc00, 0x0c00, 1, OP_AVR1,    "0000 11d=  dddd ====", OTY_ALBI|OTY_RALL|OTY_CONSTRAINT,
@@ -592,7 +592,7 @@ const AVR_opcode_data avr_opcodes[OPCODE_N] = {
 
 // Return whether or not the given 16-bit opcode is the mnemonic
 int op16_is_mnemo(int op, int mnemo) {
-  return mnemo < 0 || mnemo >= OPCODE_N? 0:
+  return mnemo < 0 || mnemo >= MNEMO_N? 0:
     (op & avr_opcodes[mnemo].mask) != avr_opcodes[mnemo].value? 0:
     !(avr_opcodes[mnemo].type & OTY_CONSTRAINT)? 1:
     (op>>0 & 15) == (op>>4 & 15) && (op>>9 & 1) == (op>>8 & 1); // Constraint Rd == Rr
@@ -601,13 +601,13 @@ int op16_is_mnemo(int op, int mnemo) {
 // Return whether or not the given 16-bit opcode has a 16-bit address argument
 int is_opcode32(int op) {
   return
-    op16_is_mnemo(op, OPCODE_call) || op16_is_mnemo(op, OPCODE_jmp) ||
-    op16_is_mnemo(op, OPCODE_sts) || op16_is_mnemo(op, OPCODE_lds);
+    op16_is_mnemo(op, MNEMO_call) || op16_is_mnemo(op, MNEMO_jmp) ||
+    op16_is_mnemo(op, MNEMO_sts) || op16_is_mnemo(op, MNEMO_lds);
 }
 
 // Return the register number of the 16-bit ldi opcode (and 0 if it's not ldi)
 int ldi_register(int op) {
-  return op16_is_mnemo(op, OPCODE_ldi)? 16 + ((op >> 4) & 15): 0;
+  return op16_is_mnemo(op, MNEMO_ldi)? 16 + ((op >> 4) & 15): 0;
 }
 
 // Returns bitmask of first character chr in bits
@@ -619,22 +619,22 @@ static int bitmask_first_chr(const char *bits, int chr) {
   return ret;
 }
 
-// Return first match of opcode that is compatible with avrlevel or OPCODE_NONE
-AVR_opcode opcode_mnemo(int op, int avrlevel) {
-  for(AVR_opcode i = 0; i < OPCODE_N; i++)
+// Return first match of opcode that is compatible with avrlevel or MNEMO_NONE
+AVR_mnemo opcode_mnemo(int op, int avrlevel) {
+  for(AVR_mnemo i = 0; i < MNEMO_N; i++)
     if(avr_opcodes[i].avrlevel & avrlevel)
       if(op16_is_mnemo(op, i)) {
         if(avrlevel == PART_AVR_RC && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
           // Reduced-core ATtiny does not have registers r0, ..., r15
           int bmask;            // Assert highest bit in 5-bit r/d is set
           if((bmask = bitmask_first_chr(avr_opcodes[i].bits, 'r')) && !(op & bmask))
-            return OPCODE_NONE;
+            return MNEMO_NONE;
           if((bmask = bitmask_first_chr(avr_opcodes[i].bits, 'd')) && !(op & bmask))
-            return OPCODE_NONE;
+            return MNEMO_NONE;
         }
         return i;
       }
-  return OPCODE_NONE;
+  return MNEMO_NONE;
 }
 
 // Opcodes in avr_opcodes[] that a part ought to be able to run

@@ -1489,50 +1489,50 @@ typedef struct {
 
 // Order of enums must align with avr_opcodes[] table order
 typedef enum {
-  OPCODE_NONE = -1,
-  OPCODE_lsl,      OPCODE_add,      OPCODE_rol,      OPCODE_adc,
-  OPCODE_ror,      OPCODE_asr,      OPCODE_adiw,     OPCODE_sub,
-  OPCODE_subi,     OPCODE_sbc,      OPCODE_sbci,     OPCODE_sbiw,
-  OPCODE_tst,      OPCODE_and,      OPCODE_andi,     OPCODE_cbr,
-  OPCODE_or,       OPCODE_ori,      OPCODE_sbr,      OPCODE_clr,
-  OPCODE_eor,      OPCODE_com,      OPCODE_neg,      OPCODE_inc,
-  OPCODE_dec,      OPCODE_mul,      OPCODE_muls,     OPCODE_mulsu,
-  OPCODE_fmul,     OPCODE_fmuls,    OPCODE_fmulsu,   OPCODE_des,
-  OPCODE_rjmp,     OPCODE_ijmp,     OPCODE_eijmp,    OPCODE_jmp,
-  OPCODE_rcall,    OPCODE_icall,    OPCODE_eicall,   OPCODE_call,
-  OPCODE_ret,      OPCODE_reti,     OPCODE_cpse,     OPCODE_cp,
-  OPCODE_cpc,      OPCODE_cpi,      OPCODE_sbrc,     OPCODE_sbrs,
-  OPCODE_sbic,     OPCODE_sbis,     OPCODE_brcs,     OPCODE_brlo,
-  OPCODE_breq,     OPCODE_brmi,     OPCODE_brvs,     OPCODE_brlt,
-  OPCODE_brhs,     OPCODE_brts,     OPCODE_brie,     OPCODE_brbs,
-  OPCODE_brcc,     OPCODE_brsh,     OPCODE_brne,     OPCODE_brpl,
-  OPCODE_brvc,     OPCODE_brge,     OPCODE_brhc,     OPCODE_brtc,
-  OPCODE_brid,     OPCODE_brbc,     OPCODE_mov,      OPCODE_movw,
-  OPCODE_ser,      OPCODE_ldi,      OPCODE_lds,      OPCODE_ld_1,
-  OPCODE_ld_2,     OPCODE_ld_3,     OPCODE_ld_4,     OPCODE_ld_5,
-  OPCODE_ld_6,     OPCODE_ldd_1,    OPCODE_ld_7,     OPCODE_ld_8,
-  OPCODE_ld_9,     OPCODE_ldd_2,    OPCODE_sts,      OPCODE_st_1,
-  OPCODE_st_2,     OPCODE_st_3,     OPCODE_st_4,     OPCODE_st_5,
-  OPCODE_st_6,     OPCODE_std_1,    OPCODE_st_7,     OPCODE_st_8,
-  OPCODE_st_9,     OPCODE_std_2,    OPCODE_lpm_1,    OPCODE_lpm_2,
-  OPCODE_lpm_3,    OPCODE_elpm_1,   OPCODE_elpm_2,   OPCODE_elpm_3,
-  OPCODE_spm,      OPCODE_spm_zz,   OPCODE_in,       OPCODE_out,
-  OPCODE_push,     OPCODE_pop,      OPCODE_xch,      OPCODE_las,
-  OPCODE_lac,      OPCODE_lat,      OPCODE_lsr,      OPCODE_swap,
-  OPCODE_sbi,      OPCODE_cbi,      OPCODE_bst,      OPCODE_bld,
-  OPCODE_sec,      OPCODE_clc,      OPCODE_sen,      OPCODE_cln,
-  OPCODE_sez,      OPCODE_clz,      OPCODE_sei,      OPCODE_cli,
-  OPCODE_ses,      OPCODE_cls,      OPCODE_sev,      OPCODE_clv,
-  OPCODE_set,      OPCODE_clt,      OPCODE_seh,      OPCODE_clh,
-  OPCODE_bset,     OPCODE_bclr,     OPCODE_break,    OPCODE_nop,
-  OPCODE_sleep,    OPCODE_wdr,      OPCODE_lds_rc,   OPCODE_sts_rc,
-  OPCODE_u_nop_1,  OPCODE_u_nop_2,  OPCODE_u_nop_3,  OPCODE_u_nop_4,
-  OPCODE_u_nop_5,  OPCODE_u_nop_6,  OPCODE_u_nop_7,  OPCODE_u_icall,
-  OPCODE_u_eicall, OPCODE_u_ret,    OPCODE_u_reti,   OPCODE_u_nop_8,
-  OPCODE_u_nop_9,  OPCODE_u_nop_a,  OPCODE_u_ijmp,   OPCODE_u_eijmp,
-  OPCODE_u_bld,    OPCODE_u_bst,    OPCODE_u_sbrc,   OPCODE_u_sbrs,
-  OPCODE_N
-} AVR_opcode;
+  MNEMO_NONE = -1,
+  MNEMO_lsl,      MNEMO_add,      MNEMO_rol,      MNEMO_adc,
+  MNEMO_ror,      MNEMO_asr,      MNEMO_adiw,     MNEMO_sub,
+  MNEMO_subi,     MNEMO_sbc,      MNEMO_sbci,     MNEMO_sbiw,
+  MNEMO_tst,      MNEMO_and,      MNEMO_andi,     MNEMO_cbr,
+  MNEMO_or,       MNEMO_ori,      MNEMO_sbr,      MNEMO_clr,
+  MNEMO_eor,      MNEMO_com,      MNEMO_neg,      MNEMO_inc,
+  MNEMO_dec,      MNEMO_mul,      MNEMO_muls,     MNEMO_mulsu,
+  MNEMO_fmul,     MNEMO_fmuls,    MNEMO_fmulsu,   MNEMO_des,
+  MNEMO_rjmp,     MNEMO_ijmp,     MNEMO_eijmp,    MNEMO_jmp,
+  MNEMO_rcall,    MNEMO_icall,    MNEMO_eicall,   MNEMO_call,
+  MNEMO_ret,      MNEMO_reti,     MNEMO_cpse,     MNEMO_cp,
+  MNEMO_cpc,      MNEMO_cpi,      MNEMO_sbrc,     MNEMO_sbrs,
+  MNEMO_sbic,     MNEMO_sbis,     MNEMO_brcs,     MNEMO_brlo,
+  MNEMO_breq,     MNEMO_brmi,     MNEMO_brvs,     MNEMO_brlt,
+  MNEMO_brhs,     MNEMO_brts,     MNEMO_brie,     MNEMO_brbs,
+  MNEMO_brcc,     MNEMO_brsh,     MNEMO_brne,     MNEMO_brpl,
+  MNEMO_brvc,     MNEMO_brge,     MNEMO_brhc,     MNEMO_brtc,
+  MNEMO_brid,     MNEMO_brbc,     MNEMO_mov,      MNEMO_movw,
+  MNEMO_ser,      MNEMO_ldi,      MNEMO_lds,      MNEMO_ld_1,
+  MNEMO_ld_2,     MNEMO_ld_3,     MNEMO_ld_4,     MNEMO_ld_5,
+  MNEMO_ld_6,     MNEMO_ldd_1,    MNEMO_ld_7,     MNEMO_ld_8,
+  MNEMO_ld_9,     MNEMO_ldd_2,    MNEMO_sts,      MNEMO_st_1,
+  MNEMO_st_2,     MNEMO_st_3,     MNEMO_st_4,     MNEMO_st_5,
+  MNEMO_st_6,     MNEMO_std_1,    MNEMO_st_7,     MNEMO_st_8,
+  MNEMO_st_9,     MNEMO_std_2,    MNEMO_lpm_1,    MNEMO_lpm_2,
+  MNEMO_lpm_3,    MNEMO_elpm_1,   MNEMO_elpm_2,   MNEMO_elpm_3,
+  MNEMO_spm,      MNEMO_spm_zz,   MNEMO_in,       MNEMO_out,
+  MNEMO_push,     MNEMO_pop,      MNEMO_xch,      MNEMO_las,
+  MNEMO_lac,      MNEMO_lat,      MNEMO_lsr,      MNEMO_swap,
+  MNEMO_sbi,      MNEMO_cbi,      MNEMO_bst,      MNEMO_bld,
+  MNEMO_sec,      MNEMO_clc,      MNEMO_sen,      MNEMO_cln,
+  MNEMO_sez,      MNEMO_clz,      MNEMO_sei,      MNEMO_cli,
+  MNEMO_ses,      MNEMO_cls,      MNEMO_sev,      MNEMO_clv,
+  MNEMO_set,      MNEMO_clt,      MNEMO_seh,      MNEMO_clh,
+  MNEMO_bset,     MNEMO_bclr,     MNEMO_break,    MNEMO_nop,
+  MNEMO_sleep,    MNEMO_wdr,      MNEMO_lds_rc,   MNEMO_sts_rc,
+  MNEMO_u_nop_1,  MNEMO_u_nop_2,  MNEMO_u_nop_3,  MNEMO_u_nop_4,
+  MNEMO_u_nop_5,  MNEMO_u_nop_6,  MNEMO_u_nop_7,  MNEMO_u_icall,
+  MNEMO_u_eicall, MNEMO_u_ret,    MNEMO_u_reti,   MNEMO_u_nop_8,
+  MNEMO_u_nop_9,  MNEMO_u_nop_a,  MNEMO_u_ijmp,   MNEMO_u_eijmp,
+  MNEMO_u_bld,    MNEMO_u_bst,    MNEMO_u_sbrc,   MNEMO_u_sbrs,
+  MNEMO_N
+} AVR_mnemo;
 
 typedef enum {
   OP_AVR_RC                = 1, // Reduced-core Tiny only (128 byte STS/LDS)
@@ -1605,7 +1605,7 @@ typedef enum {
 #define OTY_ZWRN          0xc00 // Operand register must not be r29/r30
 
 typedef struct {
-  AVR_opcode mnemo;             // Eg, OPCODE_add
+  AVR_mnemo mnemo;              // Eg, MNEMO_add
   const char *idname;           // Unique id, eg, "ldx_1" (for error msgs or debugging)
   int mask, value, nwords;
   AVR_archlevel avrlevel;       // OP_AVR1
@@ -1619,9 +1619,9 @@ typedef struct {
     *flags,                     // "--HSVNZC"
     *clock[OP_AVR_cycle_N],     // Timings for AVRe, AVRxm, AVRxt and AVRrc
     *remarks;
-} AVR_opcode_data;
+} AVR_opcode;
 
-extern const AVR_opcode_data avr_opcodes[164];
+extern const AVR_opcode avr_opcodes[164];
 
 #ifdef __cplusplus
 extern "C" {
@@ -1726,8 +1726,8 @@ char *avr_cc_buffer(size_t n);
 
 int is_opcode32(int op);
 int ldi_register(int op);
-int op16_is_mnemo(int op, AVR_opcode mnemo);
-AVR_opcode opcode_mnemo(int op, int avrlevel);
+int op16_is_mnemo(int op, AVR_mnemo mnemo);
+AVR_mnemo opcode_mnemo(int op, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
 
