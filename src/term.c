@@ -214,16 +214,16 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 
 static int disasm_ison(char c) {
   switch(c) {
-  case 'g': return !!cx->dis_opts.show_gcc_source;
-  case 'a': return !!cx->dis_opts.show_addresses;
-  case 'o': return !!cx->dis_opts.show_opcodes;
-  case 'c': return !!cx->dis_opts.show_comments;
-  case 'f': return !!cx->dis_opts.show_flags;
-  case 'q': return !!cx->dis_opts.show_cycles;
-  case 'n': return !!cx->dis_opts.show_name;
-  case 'e': return !!cx->dis_opts.show_explanation;
+  case 'g': return !!cx->dis_opts.gcc_source;
+  case 'a': return !!cx->dis_opts.addresses;
+  case 'o': return !!cx->dis_opts.opcode_bytes;
+  case 'c': return !!cx->dis_opts.comments;
+  case 'f': return !!cx->dis_opts.sreg_flags;
+  case 'q': return !!cx->dis_opts.cycles;
+  case 'n': return !!cx->dis_opts.op_names;
+  case 'e': return !!cx->dis_opts.op_explanations;
   case 's': return !!cx->dis_opts.avrgcc_style;
-  case 'l': return !!cx->dis_opts.process_labels;
+  case 'l': return !!cx->dis_opts.labels;
   case 'd': return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
   }
   return 0;
@@ -488,16 +488,16 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   int help = 0, invalid = 0, itemac = 1, chr;
 
   if(!cx->dis_initopts) {
-    cx->dis_opts.show_gcc_source = 0;
-    cx->dis_opts.show_addresses = 1;
-    cx->dis_opts.show_opcodes = 1;
-    cx->dis_opts.show_comments = 1;
-    cx->dis_opts.show_flags = 0;
-    cx->dis_opts.show_cycles = 0;
-    cx->dis_opts.show_name = 0;
-    cx->dis_opts.show_explanation = 0;
+    cx->dis_opts.gcc_source = 0;
+    cx->dis_opts.addresses = 1;
+    cx->dis_opts.opcode_bytes = 1;
+    cx->dis_opts.comments = 1;
+    cx->dis_opts.sreg_flags = 0;
+    cx->dis_opts.cycles = 0;
+    cx->dis_opts.op_names = 0;
+    cx->dis_opts.op_explanations = 0;
     cx->dis_opts.avrgcc_style = 1;
-    cx->dis_opts.process_labels = 1;
+    cx->dis_opts.labels = 1;
     cx->dis_opts.tagfile = NULL;
     cx->dis_opts.avrlevel = avr_get_archlevel(p);
     disasm_init(p);
@@ -516,40 +516,40 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
           help++;
           break;
         case 'g': case 'G':
-          cx->dis_opts.show_gcc_source = !!islower(chr);
-          if(cx->dis_opts.show_gcc_source) {
-            cx->dis_opts.show_opcodes = 0;
-            cx->dis_opts.show_flags = 0;
-            cx->dis_opts.show_cycles = 0;
+          cx->dis_opts.gcc_source = !!islower(chr);
+          if(cx->dis_opts.gcc_source) {
+            cx->dis_opts.opcode_bytes = 0;
+            cx->dis_opts.sreg_flags = 0;
+            cx->dis_opts.cycles = 0;
             cx->dis_opts.avrgcc_style = 1;
           }
           break;
         case 'a': case 'A':
-          cx->dis_opts.show_addresses = !!islower(chr);
+          cx->dis_opts.addresses = !!islower(chr);
           break;
         case 'o': case 'O':
-          cx->dis_opts.show_opcodes = !!islower(chr);
+          cx->dis_opts.opcode_bytes = !!islower(chr);
           break;
         case 'c': case 'C':
-          cx->dis_opts.show_comments = !!islower(chr);
+          cx->dis_opts.comments = !!islower(chr);
           break;
         case 'f': case 'F':
-          cx->dis_opts.show_flags = !!islower(chr);
+          cx->dis_opts.sreg_flags = !!islower(chr);
           break;
         case 'q': case 'Q':
-          cx->dis_opts.show_cycles = !!islower(chr);
+          cx->dis_opts.cycles = !!islower(chr);
           break;
         case 'n': case 'N':
-          cx->dis_opts.show_name = !!islower(chr);
+          cx->dis_opts.op_names = !!islower(chr);
           break;
         case 'e': case 'E':
-          cx->dis_opts.show_explanation = !!islower(chr);
+          cx->dis_opts.op_explanations = !!islower(chr);
           break;
         case 's': case 'S':
           cx->dis_opts.avrgcc_style = !!islower(chr);
           break;
         case 'l': case 'L':
-          cx->dis_opts.process_labels = !!islower(chr);
+          cx->dis_opts.labels = !!islower(chr);
           break;
         case 'z':
           disasm_zap_jumpcalls();

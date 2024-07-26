@@ -370,13 +370,13 @@ typedef struct {
 // Column where opcode starts
 static int codecol() {
   int ret = 0;
-  if(cx->dis_opts.show_addresses)
+  if(cx->dis_opts.addresses)
     ret += 3 + cx->dis_addrwidth;
-  if(cx->dis_opts.show_flags)
+  if(cx->dis_opts.sreg_flags)
     ret += 9;
-  if(cx->dis_opts.show_cycles)
+  if(cx->dis_opts.cycles)
     ret += 4;
-  if(cx->dis_opts.show_opcodes)
+  if(cx->dis_opts.opcode_bytes)
     ret += 12;
 
   return ret? ret+1: 2;
@@ -399,7 +399,7 @@ static void lineout(const char *code, const char *comment,
 
   int here = disasm_wrap(pos + addr), codewidth = 27;
 
-  if(cx->dis_opts.process_labels && showlabel) {
+  if(cx->dis_opts.labels && showlabel) {
     int match = 0;
     const char *comment = NULL, *name;
 
@@ -420,17 +420,17 @@ static void lineout(const char *code, const char *comment,
     }
   }
 
-  if(cx->dis_opts.show_addresses)
+  if(cx->dis_opts.addresses)
     disasm_out("L%0*x: ", cx->dis_addrwidth, here);
-  if(cx->dis_opts.show_flags)
+  if(cx->dis_opts.sreg_flags)
     disasm_out("%s ", mnemo < 0? "--------": avr_opcodes[mnemo].flags);
-  if(cx->dis_opts.show_cycles)
+  if(cx->dis_opts.cycles)
     disasm_out("%3s ", cycles(mnemo));
-  if(cx->dis_opts.show_opcodes)
+  if(cx->dis_opts.opcode_bytes)
     for(int i = 0; i < 4; i++)
       disasm_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
   disasm_out(codecol() > 2? " ": "  ");
-  if(!comment || !*comment || !cx->dis_opts.show_comments)
+  if(!comment || !*comment || !cx->dis_opts.comments)
     disasm_out("%s\n", code);
   else
     disasm_out("%-*s ; %s\n", codewidth, code, comment);
@@ -561,7 +561,7 @@ void disasm_zap_jumpcalls() {
 }
 
 static void register_jumpcall(int from, int to, int mnemo, unsigned char is_func) {
-  if(cx->dis_opts.process_labels) {
+  if(cx->dis_opts.labels) {
     Disasm_jumpcall *jc = cx->dis_jumpcalls;
     int N = cx->dis_jumpcallN;
 
@@ -849,7 +849,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     case 'k':
       if(is_jumpcall) {
         const char *name = get_label_name(target, NULL);
-        if(name && target != disasm_wrap(addr+2) && cx->dis_opts.process_labels && is_jumpable(target)) {
+        if(name && target != disasm_wrap(addr+2) && cx->dis_opts.labels && is_jumpable(target)) {
           add_operand(lc, "%s", name);
           add_comment(line, str_ccprintf("L%0*x", awd, target));
         } else {
@@ -893,9 +893,9 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     }
     lc += strlen(lc);
   }
-  if(cx->dis_opts.show_name)
+  if(cx->dis_opts.op_names)
     add_comment(line, avr_opcodes[mnemo].description);
-  if(cx->dis_opts.show_explanation)
+  if(cx->dis_opts.op_explanations)
     add_comment(line, avr_opcodes[mnemo].operation);
   // Trim trailing spaces
   while(--lc >= line->code && *lc == ' ')
@@ -941,7 +941,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       enumerate_labels();
       if(cx->dis_opts.avrgcc_style)
         emit_used_io_registers();
-      if(cx->dis_opts.show_gcc_source) {
+      if(cx->dis_opts.gcc_source) {
         cx->dis_para=1;
         disasm_out(".text%s\n", have_own_main()? "": "main:\n");
       }

@@ -1456,16 +1456,16 @@ typedef enum {
 } AVR_cycle_index;
 
 typedef struct {
-  int show_gcc_source;
-  int show_addresses;
-  int show_opcodes;
-  int show_comments;
-  int show_flags;
-  int show_cycles;
-  int show_name;
-  int show_explanation;
+  int gcc_source;
+  int addresses;
+  int opcode_bytes;
+  int comments;
+  int sreg_flags;
+  int cycles;
+  int op_names;
+  int op_explanations;
   int avrgcc_style;
-  int process_labels;
+  int labels;
   int avrlevel;
   char *tagfile;
 } Disasm_options;
