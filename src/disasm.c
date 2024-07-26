@@ -72,14 +72,36 @@ static int symbol_qsort_stable(const void *v1, const void *v2) {
   return (char *) v1 - (char *) v2; // Keep original order if same keys (stable sort)
 }
 
-static int find_symbol(int type, int address) {
-  Disasm_symbol key, *found;
+static char *cleanup(char *str) {
+  for(char *s = str; *s; s++)
+    *s = *s == '.' || isalnum(*s & 0xff)? *s: '_';
+  return str;
+}
+
+// Width of memory a symbol covers (only valid for I/O and memory symbols)
+static int symbol_width(Disasm_symbol *s) {
+  return s->count * (s->subtype == TYPE_WORD? 2: 1);
+}
+
+static Disasm_symbol *find_symbol(int type, int address) {
+  Disasm_symbol key, *s = cx->dis_symbols, *found;
 
   key.type = type;
   key.address = address;
-  found = bsearch(&key, cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort);
+  if(!(found = bsearch(&key, s, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort)))
+    return NULL;
 
-  return found? found - cx->dis_symbols: -1;
+  // Determine m as first matching symbol that has smallest width
+  int k = found - s, m = k, w, width = symbol_width(s+k);
+
+  for(int i = k-1; i >= 0 && symbol_sort(s+i, s+k) == 0; i--)
+    if((w = symbol_width(s+i)) <= width) // Want first entry of those with same min width
+      m = i, width = w;
+  for(int i = k+1; i < cx->dis_symbolN && symbol_sort(s+i, s+k) == 0; i++)
+    if((w = symbol_width(s+i)) < width) // < is deliberate, see above
+      m = i, width = w;
+
+  return s+m;
 }
 
 static void add_symbol(int address, int type, int subtype, int count, const char *name, const char *comment) {
@@ -91,7 +113,7 @@ static void add_symbol(int address, int type, int subtype, int count, const char
   cx->dis_symbols[N].subtype = subtype;
   cx->dis_symbols[N].count = count;
   cx->dis_symbols[N].used = 0;
-  cx->dis_symbols[N].name = name? mmt_strdup(name): NULL;
+  cx->dis_symbols[N].name = name? cleanup(mmt_strdup(name)): NULL;
   cx->dis_symbols[N].comment = comment? mmt_strdup(comment): NULL;
 }
 
@@ -135,7 +157,7 @@ static int tagfile_readline(char *line, int lineno) {
 
   if(type == 'L') {
     name = token;               // Name, comment is optional
-    add_symbol(address, 'L', 0, 0, name, strtok(NULL, "\t\n"));
+    add_symbol(address, 'L', 1, 1, name, strtok(NULL, "\t\n"));
     return 0;
   }
 
@@ -191,17 +213,14 @@ static int tagfile_readline(char *line, int lineno) {
   return 0;
 }
 
-// Allocate, copy, append a suffix (H, L, 0...8 or nothing), make upper case and return
+// Allocate, copy, append a suffix (H, L, 0...8 or nothing), cleanup name and return
 static char *regname(const char *pre, const char *reg, int suf) {
   char *ret =
     suf <= -1? str_sprintf("%s%s", pre, reg):
     suf == 'h' || suf == 'l'? str_sprintf("%s%s%c", pre, reg, suf):
     str_sprintf("%s%s%d", pre, reg, suf);
 
-  for(char *s = ret; *s; s++)
-    *s = *s == '.'? '_': isascii(*s & 0xff)? toupper(*s & 0xff): *s;
-
-  return ret;
+  return cleanup(ret);
 }
 
 // Return the basename of a register, ie, the part after the first . (if any)
@@ -223,9 +242,9 @@ static const char *shortrname(const Register_file *rf, int nr, int i) {
 }
 
 static void add_register(int io_off, int addr, const char *name, int suffix) {
-  add_symbol(io_off+addr, 'M', TYPE_BYTE, 1, regname(io_off? "MEM_": "", name, suffix), NULL);
+  add_symbol(io_off+addr, 'M', TYPE_BYTE, 1, regname(io_off? "mem.": "", name, suffix), NULL);
   if(addr < 0x40 && io_off) // Only keep I/O addresses separate if memory addresses have an offset
-    add_symbol(addr, 'I', TYPE_BYTE, 1, regname(io_off? "IO_": "", name, suffix), NULL);
+    add_symbol(addr, 'I', TYPE_BYTE, 1, regname(io_off? "io.": "", name, suffix), NULL);
 }
 
 // Initialise cx->dis_symbols from part register file
@@ -282,34 +301,8 @@ error:
   return -1;
 }
 
-// Width of memory a symbol covers (only valid for I/O and memory symbols)
-static int symbol_width(Disasm_symbol *s) {
-  return s->count * (s->subtype == TYPE_WORD? 2: 1);
-}
-
-// Returns the first symbol for that address with the smallest width
-static Disasm_symbol *symbol_address(int type, int address) {
-  int k = find_symbol(type, address), m = k;
-
-  if(k < 0)
-    return NULL;
-
-  // Determine m as a matching symbol that has smallest width
-  Disasm_symbol *s = cx->dis_symbols;
-  int w, width = symbol_width(s+k);
-
-  for(int i = k-1; i >= 0 && symbol_sort(s+i, s+k) == 0; i--)
-    if((w = symbol_width(s+i)) <= width) // Want first entry of those with same min width
-      m = i, width = w;
-  for(int i = k+1; i < cx->dis_symbolN && symbol_sort(s+i, s+k) == 0; i++)
-    if((w = symbol_width(s+i)) < width) // < is deliberate, see above
-      m = i, width = w;
-
-  return s+m;
-}
-
 static const char *resolve_address(int type, int address) {
-  Disasm_symbol *s = symbol_address(type == 'I' && !cx->dis_io_offset? 'M': type, address);
+  Disasm_symbol *s = find_symbol(type == 'I' && !cx->dis_io_offset? 'M': type, address);
 
   if(s && s->name)
     s->used = 1;
@@ -332,11 +325,11 @@ static const char *cycles(int mnemo) {
 }
 
 static const char *get_label_name(int destination, char **comment) {
-  int index = find_symbol('L', destination);
-  if(index >= 0) {
+  Disasm_symbol *s = find_symbol('L', destination);
+  if(s) {
     if(comment)
-      *comment = cx->dis_symbols[index].comment;
-    return cx->dis_symbols[index].name;
+      *comment = s->comment;
+    return s->name;
   }
 
   for(int i = 0; i < cx->dis_jumpcallN; i++)
@@ -491,16 +484,17 @@ static int process_string(const char *buf, int buflen, int pos, int offset) {
 
 // Returns number of bytes of PGM data at this position, printing them in pass 2
 static int process_data(const char *buf, int buflen, int pos, int offset) {
-  int ret = 0, index = find_symbol('P', disasm_wrap(pos + offset));
-  if(index < 0) {
+  int ret = 0;
+  Disasm_symbol *s = find_symbol('P', disasm_wrap(pos + offset));
+  if(!s) {
     if(pos+1 >= buflen)
       return 0;
 
-    if((index = find_symbol('P', disasm_wrap(pos + offset + 1))) < 0) { // No PGM label, check for fill block
+    if(!(s = find_symbol('P', disasm_wrap(pos + offset + 1)))) { // No PGM label, check for fill block
       int k = 0;
       if((buf[pos] &0xff) == 0xff && (buf[pos+1] & 0xff) == 0xff)
         for(k=pos+2; k<buflen; k++)
-          if((buf[k] & 0xff) != 0xff || find_symbol('P', disasm_wrap(k + offset)) >= 0)
+          if((buf[k] & 0xff) != 0xff || find_symbol('P', disasm_wrap(k + offset)))
             break;
       k &= ~1;
       return !k || k-pos < 4? 0: process_fill0xff(buf, buflen, k-pos, pos, offset);
@@ -509,7 +503,6 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
     process_num(buf, buflen, 1, pos, offset);
     ret = 1;
   }
-  Disasm_symbol *s = cx->dis_symbols + index;
 
   if(s->name) {
     cx->dis_para = 1;
@@ -904,6 +897,20 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_opcode mnemo,
     *lc = 0;
 }
 
+// Is there a label called main and it is used as a destination by disasm()?
+static int have_own_main() {
+  int mainaddr = -1;
+  Disasm_symbol *s = cx->dis_symbols;
+  for(int i = 0; i < cx->dis_symbolN; i++)
+    if(s[i].type == 'L' && s[i].name && str_eq(s[i].name, "main"))
+      mainaddr = s[i].address;
+  if(mainaddr >= 0)
+    for(int i = 0; i < cx->dis_jumpcallN; i++)
+      if(cx->dis_jumpcalls[i].to == mainaddr)
+        return 1;
+  return 0;
+}
+
 /*
  * Disassemble buflen bytes at buf which corresponds to address addr
  *
@@ -931,7 +938,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
         emit_used_io_registers();
       if(cx->dis_opts.show_gcc_source) {
         cx->dis_para=1;
-        disasm_out(".text\nmain:\n");
+        disasm_out(".text%s\n", have_own_main()? "": "main:\n");
       }
     }
     for(pos = 0; pos < buflen; pos += oplen) {
