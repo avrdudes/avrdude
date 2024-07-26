@@ -1726,7 +1726,7 @@ char *avr_cc_buffer(size_t n);
 
 int is_opcode32(int op);
 int ldi_register(int op);
-int opcode_match(int op, AVR_opcode mnemo);
+int op16_is_mnemo(int op, AVR_opcode mnemo);
 AVR_opcode opcode_mnemo(int op, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);

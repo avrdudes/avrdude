@@ -77,7 +77,7 @@
  * - Source: Table was curated from https://github.com/nlitsme/AVRInstructionSet
  */
 
-const AVR_opcode_data avr_opcodes[164] = {
+const AVR_opcode_data avr_opcodes[OPCODE_N] = {
 #define OP_ID(nam) OPCODE_##nam, #nam
 
   // Arithmetic and Logic Instructions
@@ -590,29 +590,24 @@ const AVR_opcode_data avr_opcodes[164] = {
     {"1-3", "1-3", "1-3", "1/2"}, ""},
 };
 
+// Return whether or not the given 16-bit opcode is the mnemonic
+int op16_is_mnemo(int op, int mnemo) {
+  return mnemo < 0 || mnemo >= OPCODE_N? 0:
+    (op & avr_opcodes[mnemo].mask) != avr_opcodes[mnemo].value? 0:
+    !(avr_opcodes[mnemo].type & OTY_CONSTRAINT)? 1:
+    (op>>0 & 15) == (op>>4 & 15) && (op>>9 & 1) == (op>>8 & 1); // Constraint Rd == Rr
+}
+
 // Return whether or not the given 16-bit opcode has a 16-bit address argument
 int is_opcode32(int op) {
   return
-    (op & 0xfe0e) == 0x940e ||  // call
-    (op & 0xfe0e) == 0x940c ||  // jmp
-    (op & 0xfe0f) == 0x9200 ||  // sts
-    (op & 0xfe0f) == 0x9000;    // lds
+    op16_is_mnemo(op, OPCODE_call) || op16_is_mnemo(op, OPCODE_jmp) ||
+    op16_is_mnemo(op, OPCODE_sts) || op16_is_mnemo(op, OPCODE_lds);
 }
 
 // Return the register number of the 16-bit ldi opcode (and 0 if it's not ldi)
 int ldi_register(int op) {
-  return (op & 0xf000) == 0xe000? 16 + ((op >> 4) & 15): 0;
-}
-
-// Does the 16-bit opcode match the avr_opcodes table entry for mnemo?
-int opcode_match(int op, AVR_opcode mnemo) {
-  if((op & avr_opcodes[mnemo].mask) == avr_opcodes[mnemo].value) {
-    if(!(avr_opcodes[mnemo].type & OTY_CONSTRAINT))
-      return 1;
-    // Match constraint Rd == Rr as in "0010 00r=  rrrr ===="
-    return (op>>0 & 15) == (op>>4 & 15) && (op>>9 & 1) == (op>>8 & 1);
-  }
-  return 0;
+  return op16_is_mnemo(op, OPCODE_ldi)? 16 + ((op >> 4) & 15): 0;
 }
 
 // Returns bitmask of first character chr in bits
@@ -628,7 +623,7 @@ static int bitmask_first_chr(const char *bits, int chr) {
 AVR_opcode opcode_mnemo(int op, int avrlevel) {
   for(AVR_opcode i = 0; i < OPCODE_N; i++)
     if(avr_opcodes[i].avrlevel & avrlevel)
-      if(opcode_match(op, i)) {
+      if(op16_is_mnemo(op, i)) {
         if(avrlevel == PART_AVR_RC && (avr_opcodes[i].type & OTY_REG_MASK) == OTY_RALL) {
           // Reduced-core ATtiny does not have registers r0, ..., r15
           int bmask;            // Assert highest bit in 5-bit r/d is set
