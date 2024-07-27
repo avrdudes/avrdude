@@ -51,6 +51,7 @@
 
 #define buf2op16(i) ((buf[i] & 0xff) | (buf[(i)+1] & 0xff)<<8)
 
+
 static void zap_symbols() {
   if(cx->dis_symbols) {
     for(int i = 0; i < cx->dis_symbolN; i++) {
@@ -826,6 +827,12 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
   }
 
   const AVR_opcode *oc = avr_opcodes+mnemo;
+  const char *lsym = NULL;
+  if(op16_is_mnemo(opcode, MNEMO_ldi) && (lsym = get_ldi_context(oxp, opcode))) {
+    mnemo = MNEMO_ldi;          // Could have been ser
+    oc = avr_opcodes+mnemo;
+  }
+
   int regs[128] = {0}, bits[128] = {0};
   unsigned bmask = 0x8000;
   for(const char *p = oc->bits; *p && bmask; p++) {
@@ -1015,8 +1022,8 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
       if(NK == 4)
         add_operand(lc, "%d", RK);
       else {
-        if(op16_is_mnemo(opcode, MNEMO_ldi) && (name = get_ldi_context(oxp, opcode))) {
-          add_operand(lc, "%s", name);
+        if(mnemo == MNEMO_ldi && lsym) {
+          add_operand(lc, "%s", lsym);
           add_comment(line, str_ccprintf("0x%02x = %d", RK, RK));
         } else {
           add_operand(lc, "0x%02x", RK);
