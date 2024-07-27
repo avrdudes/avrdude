@@ -289,9 +289,14 @@ static void add_register(int io_off, int addr, const char *name, int suffix) {
 
 // Initialise cx->dis_symbols from part register file
 static void init_regfile(const AVRPART *p) {
+  AVRMEM *mem;
   int nr = 0, io_off = cx->dis_io_offset;
   const Register_file *rf = avr_locate_register_file(p, &nr);
 
+  if((mem = avr_locate_sram(p)) && mem->size > 1 && mem->offset <= 0x200) {
+    add_symbol(mem->offset, 'M', TYPE_BYTE, mem->size, "sram.start", NULL);
+    add_symbol(mem->offset+mem->size-1, 'M', TYPE_BYTE, 1, "sram.end", NULL);
+  }
   if(rf) {
     for(int i = 0; i < nr; i++) {
       const char *rname = io_off? shortrname(rf, nr, i): rf[i].reg;
@@ -1166,7 +1171,7 @@ int disasm_init(const AVRPART *p) {
   cx->dis_flashsz2 = 0;         // Flash size rounded up to next power of two
   cx->dis_addrwidth = 4;        // Number of hex digits needed for flash addresses
   cx->dis_sramwidth = 4;        // Number of hex digits needed for sram addresses
-  cx->dis_codewidth = 27;       // Width of the code column (ldi     r17, 0x32)
+  cx->dis_codewidth = 28;       // Width of the code column (eg, ldi r17, 0x32)
 
   if((mem = avr_locate_flash(p)) && mem->size > 1) {
     int nbits = intlog2(mem->size - 1) + 1;
