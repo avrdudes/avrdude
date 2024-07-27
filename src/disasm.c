@@ -74,7 +74,7 @@ static int type_order(int type) {
 }
 
 static int symbol_sort(const void *v1, const void *v2) {
-  const Disasm_symbol *p1 = v1, *p2 = v2;
+  const Dis_symbol *p1 = v1, *p2 = v2;
   int diff;
   if((diff = type_order(p1->type) - type_order(p2->type)))
     return diff;
@@ -95,16 +95,16 @@ static char *cleanup(char *str) {
 }
 
 // Width of memory a symbol covers
-static int symbol_width(Disasm_symbol *s) {
+static int symbol_width(Dis_symbol *s) {
   return s->count * (s->subtype == TYPE_WORD? 2: 1);
 }
 
-static Disasm_symbol *find_symbol(int type, int address) {
-  Disasm_symbol key, *s = cx->dis_symbols, *found;
+static Dis_symbol *find_symbol(int type, int address) {
+  Dis_symbol key, *s = cx->dis_symbols, *found;
 
   key.type = type;
   key.address = address;
-  if(!(found = bsearch(&key, s, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_sort)))
+  if(!(found = bsearch(&key, s, cx->dis_symbolN, sizeof(Dis_symbol), symbol_sort)))
     return NULL;
 
   // Determine m as first matching symbol that has smallest width
@@ -120,18 +120,18 @@ static Disasm_symbol *find_symbol(int type, int address) {
   return s+m;
 }
 
-static void add_symbol(int address, int type, int subtype, int count, const char *name, const char *comment) {
+static void add_symbol(int addr, int type, int sub, int count, const char *name, const char *com) {
   int N = cx->dis_symbolN++;
   if(N % 1024 == 0)
-    cx->dis_symbols = (Disasm_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Disasm_symbol) * (N+1024));
-  cx->dis_symbols[N].address = address;
+    cx->dis_symbols = (Dis_symbol *) mmt_realloc(cx->dis_symbols, sizeof(Dis_symbol)*(N+1024));
+  cx->dis_symbols[N].address = addr;
   cx->dis_symbols[N].type = type;
-  cx->dis_symbols[N].subtype = subtype;
+  cx->dis_symbols[N].subtype = sub;
   cx->dis_symbols[N].count = count;
   cx->dis_symbols[N].used = 0;
   cx->dis_symbols[N].printed = 0;
   cx->dis_symbols[N].name = name? cleanup(str_rtrim(mmt_strdup(str_ltrim(name)))): NULL;
-  cx->dis_symbols[N].comment = comment? str_rtrim(mmt_strdup(str_ltrim(comment))): NULL;
+  cx->dis_symbols[N].comment = com? str_rtrim(mmt_strdup(str_ltrim(com))): NULL;
 }
 
 /*
@@ -282,7 +282,7 @@ static const char *shortrname(const Register_file *rf, int nr, int i) {
 
 static void add_register(int io_off, int addr, const char *name, int suffix) {
   add_symbol(io_off+addr, 'M', TYPE_BYTE, 1, regname(io_off? "mem.": "", name, suffix), NULL);
-  if(addr < 0x40 && io_off) // Only keep I/O addresses separate if memory addresses have an offset
+  if(addr < 0x40 && io_off)   // Only keep I/O addresses separate if mem addresses have an offset
     add_symbol(addr, 'I', TYPE_BYTE, 1, regname(io_off? "io.": "", name, suffix), NULL);
 }
 
@@ -305,7 +305,7 @@ static void init_regfile(const AVRPART *p) {
           add_register(io_off, rf[i].addr+k, rname, k);
       }
     }
-    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_stable_qsort);
+    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Dis_symbol), symbol_stable_qsort);
   }
 }
 
@@ -333,7 +333,7 @@ int disasm_init_tagfile(const AVRPART *p, const char *fname) {
   }
 
   fclose(inf);
-  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_stable_qsort);
+  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Dis_symbol), symbol_stable_qsort);
   return 0;
 
 error:
@@ -342,7 +342,7 @@ error:
 }
 
 static const char *resolve_address(int type, int address) {
-  Disasm_symbol *s = find_symbol(type == 'I' && !cx->dis_io_offset? 'M': type, address);
+  Dis_symbol *s = find_symbol(type == 'I' && !cx->dis_io_offset? 'M': type, address);
 
   if(s && s->name)
     s->used = 1;
@@ -365,7 +365,7 @@ static const char *cycles(int mnemo) {
 }
 
 static const char *get_label_name(int destination, const char **commentp) {
-  Disasm_symbol *s = find_symbol('L', destination);
+  Dis_symbol *s = find_symbol('L', destination);
   if(s && s->name) {
     if(commentp)
       *commentp = s->comment;
@@ -392,7 +392,7 @@ static int disasm_wrap(int addr) {
 #define disasm_out(...) do { \
   if(cx->dis_pass != 2) \
     break; \
-  if(cx->dis_para) \
+  if(cx->dis_para > 0) \
     term_out("\n"); \
   cx->dis_para = 0; \
   term_out(__VA_ARGS__); \
@@ -401,10 +401,10 @@ static int disasm_wrap(int addr) {
 #define LINE_N 256
 typedef struct {
   char label[LINE_N], code[LINE_N], comment[LINE_N];
-} Disasm_line;
+} Dis_line;
 
-// Comments start in commentcol() + 1
-static int commentcol() {
+// Opcode starts in codecol()
+static int codecol() {
   int ret = 0;
   if(cx->dis_opts.addresses)
     ret += 3 + cx->dis_addrwidth;
@@ -415,7 +415,12 @@ static int commentcol() {
   if(cx->dis_opts.opcode_bytes)
     ret += 12;
 
-  return (ret? ret+1: 2) + cx->dis_codewidth;
+  return (ret? ret+1: 2);
+}
+
+// Comments start in commentcol() + 1
+static int commentcol() {
+  return codecol() + cx->dis_codewidth;
 }
 
 static int is_jumpable(int address) {
@@ -426,30 +431,71 @@ static int is_jumpable(int address) {
   return cx->dis_jumpable[idx/n] & (1<<(idx%n));
 }
 
+// Format output for a label list r referenced by mnemonic m
+static void output_references(const char *m, char *r) {
+  disasm_out("; %c%s from ", toupper(*m), m+1);
+  for(char *s = r; ; ) {
+    char *c = strchr(s+1, ',');
+    if(c && c-r > 80 && s > r) {
+      *s = 0; disasm_out("%s\n; %*s ", r, (int) strlen(m), ""); r = (char *) str_ltrim(s+1); s = r;
+    } else if(c && c-r > 70) {
+      *c = 0; disasm_out("%s\n; %*s ", r, (int) strlen(m), ""); r = (char *) str_ltrim(c+1); s = r;
+    } else if(c) {
+      s = c;
+    } else {
+      disasm_out("%s\n", r);
+      break;
+    }
+  }
+}
+
 // Unified printing of a line
 static void lineout(const char *code, const char *comment,
   int mnemo, int oplen, const char *buf, int pos, int addr, int showlabel) {
-
+  Dis_jumpcall *jc = cx->dis_jumpcalls;
   int here = disasm_wrap(pos + addr);
 
   if(cx->dis_opts.labels && showlabel) {
-    int match = 0;
+    int match = 0, first = -1;
     const char *comment = NULL, *name;
 
-    for(int i = 0; i < cx->dis_jumpcallN; i++) {
-      if(cx->dis_jumpcalls[i].to == here) {
+    for(int i = 0; i < cx->dis_jumpcallN; i++)
+      if(jc[i].to == here)
         if(!match++)
-          cx->dis_para = 1;
-        disasm_out("; %s from L%0*x\n", avr_opcodes[cx->dis_jumpcalls[i].mnemo].opcode,
-          cx->dis_addrwidth, cx->dis_jumpcalls[i].from);
-      }
-    }
+          first = i;
 
-    if(match && (name = get_label_name(here, &comment))) {
-      if(comment)
-        disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
-      else
-        disasm_out("%s:\n", name);
+    if(cx->dis_pass == 2 && match) {
+      cx->dis_para++;
+      char *reflist = mmt_malloc(match*(3+64)), *r = reflist; // Worst case length
+      int mne = jc[first].mnemo, one_mne = 1, nnmne = 0;
+      for(int i = first; i < cx->dis_jumpcallN && jc[i].to == here; i++) {
+        if(mne != jc[i].mnemo) { // More than one mnemonic reference this line
+          one_mne = 0;
+          output_references(avr_opcodes[mne].opcode, reflist);
+          mne = jc[i].mnemo;
+          r = reflist; *r = 0;
+          nnmne = 0;
+        }
+        strcpy(r, str_ccprintf(", L%0*x" + 2*(r==reflist), cx->dis_addrwidth, jc[i].from));
+        r += strlen(r);
+        nnmne++;
+      }
+      name = get_label_name(here, &comment);
+      if(!comment && strlen(reflist) + commentcol() < 70 && one_mne) { // Refs line with label
+        const char *mnestr = avr_opcodes[mne].opcode;
+        disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name),
+          str_ccprintf("%c%s from %s", toupper(*mnestr), mnestr+1, reflist));
+      } else {
+        output_references(avr_opcodes[mne].opcode, reflist);
+        if(comment)
+          disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
+        else
+          disasm_out("%s:\n", name);
+      }
+      cx->dis_para = -1;
+      mmt_free(reflist);
+    } else if(match) {
+      (void) get_label_name(here, &comment);
     }
   }
 
@@ -462,13 +508,13 @@ static void lineout(const char *code, const char *comment,
   if(cx->dis_opts.opcode_bytes)
     for(int i = 0; i < 4; i++)
       disasm_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
-  disasm_out(commentcol() > 2 + cx->dis_codewidth? " ": "  ");
+  disasm_out(codecol() > 2? " ": "  ");
   if(!comment || !*comment || !cx->dis_opts.comments)
     disasm_out("%s\n", code);
   else
     disasm_out("%-*s ; %s\n", cx->dis_codewidth, code, comment);
   if(mnemo == MNEMO_ret || mnemo == MNEMO_u_ret || mnemo == MNEMO_reti || mnemo == MNEMO_u_reti)
-    cx->dis_para = 1;
+    cx->dis_para++;
 }
 
 // Process 1, 2 or 4 byte number
@@ -488,6 +534,7 @@ static int process_num(const char *buf, int buflen, int nbytes, int pos, int off
 }
 
 static int process_fill0xff(const char *buf, int buflen, int nbytes, int pos, int offset) {
+  cx->dis_para++;
   lineout(str_ccprintf(".fill   %d, 2, 0xffff", nbytes/2),  NULL, -1, 1, buf, pos, offset, 0);
   return nbytes/2*2;
 }
@@ -522,12 +569,12 @@ static int process_string(const char *buf, int buflen, int pos, int offset) {
 // Returns number of bytes of PGM data at this position, printing them in pass 2
 static int process_data(const char *buf, int buflen, int pos, int offset) {
   int ret = 0;
-  Disasm_symbol *s = find_symbol('P', disasm_wrap(pos + offset));
+  Dis_symbol *s = find_symbol('P', disasm_wrap(pos + offset));
   if(!s) {
     if(pos+1 >= buflen)
       return 0;
 
-    if(!(s = find_symbol('P', disasm_wrap(pos + offset + 1)))) { // No PGM label, check for fill block
+    if(!(s = find_symbol('P', disasm_wrap(pos+offset+1)))) { // No PGM label, check for fill block
       int k = 0;
       if((buf[pos] &0xff) == 0xff && (buf[pos+1] & 0xff) == 0xff)
         for(k=pos+2; k<buflen; k++)
@@ -542,7 +589,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
   }
 
   if(s->name) {
-    cx->dis_para = 1;
+    cx->dis_para++;
     s->printed = 1;             // Will be printed in pass 2
     disasm_out("%s:\n", s->name);
   }
@@ -572,7 +619,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
 }
 
 static void emit_used_symbols() {
-  Disasm_symbol *s = cx->dis_symbols;
+  Dis_symbol *s = cx->dis_symbols;
   int len, maxlen = 0;
 
   for(int i = 0; i < cx->dis_symbolN; i++)
@@ -582,12 +629,12 @@ static void emit_used_symbols() {
 
   for(int i = 0; i < cx->dis_symbolN; i++)
     if(s[i].used && !s[i].printed && s[i].name) {
-      const char *equ = str_ccprintf(".equ %s,%*s 0x%02x", s[i].name,
+      const char *equ = str_ccprintf(".equ    %s,%*s 0x%02x", s[i].name,
         (int) (maxlen-strlen(s[i].name)), "", s[i].address);
       if(s[i].comment)
-        disasm_out("%-*s ; %s\n", commentcol(), equ, s[i].comment);
+        disasm_out("%*s%-*s ; %s\n", codecol(), "", cx->dis_codewidth, equ, s[i].comment);
       else
-        disasm_out("%s\n", equ);
+        disasm_out("%*s%s\n", codecol(), "", equ);
     }
 }
 
@@ -599,7 +646,7 @@ void disasm_zap_jumpcalls() {
 
 static void register_jumpcall(int from, int to, int mnemo, int is_func) {
   if(cx->dis_opts.labels) {
-    Disasm_jumpcall *jc = cx->dis_jumpcalls;
+    Dis_jumpcall *jc = cx->dis_jumpcalls;
     int N = cx->dis_jumpcallN;
 
     // Already entered this jumpcall?
@@ -608,7 +655,7 @@ static void register_jumpcall(int from, int to, int mnemo, int is_func) {
         return;
 
     if(N % 1024 == 0)
-      jc = mmt_realloc(jc, sizeof(Disasm_jumpcall) * (N+1024));
+      jc = mmt_realloc(jc, sizeof(Dis_jumpcall) * (N+1024));
     jc[N].from = from;
     jc[N].to = to;
     jc[N].mnemo = mnemo;
@@ -640,7 +687,7 @@ static void correct_is_funct(void) {
 }
 
 static int jumpcall_sort(const void *v1, const void *v2) {
-  const Disasm_jumpcall *p1 = v1, *p2 = v2;
+  const Dis_jumpcall *p1 = v1, *p2 = v2;
   int diff;
   if((diff = p1->to - p2->to))
     return diff;
@@ -651,7 +698,7 @@ static int jumpcall_sort(const void *v1, const void *v2) {
 
 static void enumerate_labels(void) {
   if(cx->dis_jumpcallN > 1) {
-    qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Disasm_jumpcall), jumpcall_sort);
+    qsort(cx->dis_jumpcalls, cx->dis_jumpcallN, sizeof(Dis_jumpcall), jumpcall_sort);
     correct_is_funct();
 
     int dest = 987654321, cur_labelno = 0, cur_funcno = 0;
@@ -690,7 +737,7 @@ static void enumerate_labels(void) {
 #define Nb (bits['b'])
 #define Nq (bits['q'])
 
-static char *add_comment(Disasm_line *line, const char *comment) {
+static char *add_comment(Dis_line *line, const char *comment) {
   int len = strlen(line->comment), rem = LINE_N - len - 1;
   char *p = line->comment + len;
 
@@ -724,7 +771,7 @@ typedef struct {
 } Op_context;
 
 static const char *get_ldi_name(int op1, int op2, Op_context *oxp) {
-  Disasm_symbol *s;
+  Dis_symbol *s;
   char buf[2];
 
   int ra = ldi_Rd(op1), rb = ldi_Rd(op2);
@@ -769,7 +816,7 @@ static const char *get_ldi_context(Op_context *oxp, int opcode) {
 }
 
 static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
-  Op_context *oxp, Disasm_line *line) {
+  Op_context *oxp, Dis_line *line) {
 
   memset(line, 0, sizeof*line);
   if(mnemo < 0) {
@@ -817,7 +864,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
   if(Ns && Ns != 3)
     pmsg_warning("unexpected number of s bits in avr_opcodes table for OP_ID(%s)\n", oc->idname);
 
-  // cbr r17, 0x06 is marginally easier to read than andi r17, 0xf9
+  // Cbr r17, 0x06 is marginally easier to read than andi r17, 0xf9
   if(mnemo == MNEMO_andi && bitcount(RK) >= 4) {
     RK = ~RK & 0xff;
     mnemo = MNEMO_cbr;
@@ -843,7 +890,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
   int awd = cx->dis_addrwidth, swd = cx->dis_sramwidth;
 
   int target = 0, offset = 0, is_jumpcall = 0, is_relative = 0;
-  int is_function = !!(oc->type & OTY_EXTERNAL); // call/rcall affects stack memory
+  int is_function = !!(oc->type & OTY_EXTERNAL); // Call/rcall affects stack memory
   const char *name, *ksym = NULL, *asym = NULL, *rsym = NA? resolve_address('I', RA): NULL;
 
   if(Na) {
@@ -934,11 +981,13 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
         name = get_label_name(target, NULL);
         if(name && target != disasm_wrap(addr+2) && cx->dis_opts.labels && is_jumpable(target)) {
           add_operand(lc, "%s", name);
-          add_comment(line, str_ccprintf("L%0*x", awd, target));
+          if(cx->dis_opts.addresses)
+            add_comment(line, str_ccprintf("L%0*x", awd, target));
         } else {
           if(is_relative) {
             add_operand(lc, ".%+d", offset);
-            add_comment(line, str_ccprintf("L%0*x", awd, target));
+            if(cx->dis_opts.addresses)
+              add_comment(line, str_ccprintf("L%0*x", awd, target));
           } else
             add_operand(lc, "0x%0*x", awd, target);
         }
@@ -951,7 +1000,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
       break;
     case 'b':
       add_operand(lc, "%d", Rb);
-      add_comment(line, str_ccprintf("bit %d = 0x%02x", Rb, 1 << Rb));
+      add_comment(line, str_ccprintf("Bit %d = 0x%02x", Rb, 1 << Rb));
       break;
     case 's':
       add_operand(lc, "%d", Rs);
@@ -968,7 +1017,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
       else {
         if(op16_is_mnemo(opcode, MNEMO_ldi) && (name = get_ldi_context(oxp, opcode))) {
           add_operand(lc, "%s", name);
-          add_comment(line, str_ccprintf("0x%02x", RK));
+          add_comment(line, str_ccprintf("0x%02x = %d", RK, RK));
         } else {
           add_operand(lc, "0x%02x", RK);
           add_comment(line, str_ccprintf("%d", RK));
@@ -993,7 +1042,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
 // Is there a label called main and it is used as a destination by disasm()?
 static int have_own_main() {
   int mainaddr = -1;
-  Disasm_symbol *s = cx->dis_symbols;
+  Dis_symbol *s = cx->dis_symbols;
   for(int i = 0; i < cx->dis_symbolN; i++)
     if(s[i].type == 'L' && s[i].name && str_eq(s[i].name, "main"))
       mainaddr = s[i].address;
@@ -1004,17 +1053,19 @@ static int have_own_main() {
   return 0;
 }
 
-static void set_context(Op_context *oxp, const char *buf, int pos, int buflen, int addr, int leadin, int leadout) {
+static void set_context(Op_context *oxp, const char *buf, int pos, int buflen, int addr,
+  int leadin, int leadout) {
+
   // Compute initial context structure: the opcode before and the following one
   oxp->from = disasm_wrap(pos+addr);
-  oxp->is_func = 0;             // the next Z-opcode ahead is an icall/eicall
-  oxp->is_lpm = 0;              // the next Z-opcode ahead is a lpm/elpm
+  oxp->is_func = 0;             // Next Z-opcode ahead is an icall/eicall
+  oxp->is_lpm = 0;              // Next Z-opcode ahead is a lpm/elpm
   oxp->preop = pos+leadin > 1? buf2op16(pos-2): -1;
   oxp->postop = -1;
-  oxp->zwd = 0;                 // 2: the next Z-opcode ahead uses Z as word addr, 1: as byte addr
+  oxp->zwd = 0;                 // 2: next Z-opcode ahead uses Z as word addr, 1: as byte addr
   int k = 0, op16, i = pos + op_width(buf2op16(pos));
   if(i < buflen+leadout-1) {
-    AVR_mnemo zm = 0;
+    AVR_mnemo z = 0;
 
     oxp->postop = op16 = buf2op16(i);
     // Check whether there is an opcode ahead that uses the Z register
@@ -1022,12 +1073,12 @@ static void set_context(Op_context *oxp, const char *buf, int pos, int buflen, i
       if(op16_is_mnemo(op16, MNEMO_rjmp) || op16_is_mnemo(op16, MNEMO_jmp) ||
           op16_is_mnemo(op16, MNEMO_ret) || op16_is_mnemo(op16, MNEMO_reti) ||
           op16_is_mnemo(op16, MNEMO_u_ret) || op16_is_mnemo(op16, MNEMO_u_reti) ||
-          (oxp->zwd = z_width((op16 = buf2op16(i)), &zm)))
+          (oxp->zwd = z_width((op16 = buf2op16(i)), &z)))
         break;
     if(oxp->zwd == 2)
-      oxp->is_func = zm == MNEMO_icall || zm == MNEMO_eicall ||  zm == MNEMO_u_icall || zm == MNEMO_u_eicall;
+      oxp->is_func = z==MNEMO_icall || z==MNEMO_eicall || z==MNEMO_u_icall || z==MNEMO_u_eicall;
     else
-      oxp->is_lpm = zm >= MNEMO_lpm_0 && zm <= MNEMO_elpm_zp;
+      oxp->is_lpm = z >= MNEMO_lpm_0 && z <= MNEMO_elpm_zp;
   }
 }
 
@@ -1040,7 +1091,7 @@ static void set_context(Op_context *oxp, const char *buf, int pos, int buflen, i
  */
 int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   int pos, opcode, mnemo, oplen;
-  Disasm_line line = {0};
+  Dis_line line = {0};
   Op_context ox = {0};
 
   for(int i = 0; i < cx->dis_symbolN; i++) // Clear used/printed state of symbols
@@ -1057,18 +1108,19 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       if(cx->dis_opts.avrgcc_style)
         emit_used_symbols();
       if(cx->dis_opts.gcc_source) {
-        cx->dis_para=1;
-        disasm_out(".text\n%s", have_own_main()? "": "main:\n");
+        cx->dis_para++;
+        disasm_out("%*s.text\n%s", codecol(), "", have_own_main()? "": "main:\n");
+        cx->dis_para = -1;
       }
     }
     for(pos = 0; pos < buflen; pos += oplen) {
       // Check if this is actually code or maybe only data from tagfile
       if((oplen = process_data(buf, buflen, pos, addr))) {
-        cx->dis_para = 1;
+        cx->dis_para++;
         continue;
       }
 
-      if(pos & 1) {               // Last of PGM data items left off at odd address
+      if(pos & 1) {             // Last of PGM data items left off at odd address
         oplen = process_num(buf, buflen, 1, pos, addr);
         continue;
       }
@@ -1081,7 +1133,7 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
         set_context(&ox, buf, pos, buflen, addr, leadin, leadout);
       disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &ox, &line);
       lineout(line.code, line.comment, mnemo, oplen, buf, pos, addr, 1);
-      if(cx->dis_pass == 1) {     // Mark this position as potential jump/call destination
+      if(cx->dis_pass == 1) {   // Mark this position as potential jump/call destination
         int n = sizeof(int)*8, idx = pos/2;
         cx->dis_jumpable[idx/n] |= (1<<(idx%n));
       }
@@ -1103,11 +1155,11 @@ int disasm_init(const AVRPART *p) {
       return -1;
     }
 
-  cx->dis_flashsz = 0;        // Flash size
-  cx->dis_flashsz2 = 0;       // Flash size rounded up to next power of two
-  cx->dis_addrwidth = 4;      // Number of hex digits needed for flash addresses
-  cx->dis_sramwidth = 4;      // Number of hex digits needed for sram addresses
-  cx->dis_codewidth = 27;     // Width of the code column (ldi     r17, 0x32)
+  cx->dis_flashsz = 0;          // Flash size
+  cx->dis_flashsz2 = 0;         // Flash size rounded up to next power of two
+  cx->dis_addrwidth = 4;        // Number of hex digits needed for flash addresses
+  cx->dis_sramwidth = 4;        // Number of hex digits needed for sram addresses
+  cx->dis_codewidth = 27;       // Width of the code column (ldi     r17, 0x32)
 
   if((mem = avr_locate_flash(p)) && mem->size > 1) {
     int nbits = intlog2(mem->size - 1) + 1;

@@ -1461,11 +1461,11 @@ typedef struct {
   int op_names, op_explanations, avrgcc_style, labels;
   int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
   char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
-} Disasm_options;
+} Dis_options;
 
 typedef struct {
   int from, to, mnemo, labelno, is_func;
-} Disasm_jumpcall;
+} Dis_jumpcall;
 
 typedef struct {
   char *name, *comment;
@@ -1475,7 +1475,7 @@ typedef struct {
   int count;                    // array length for tag file variables
   int used;                     // Whether symbol was referenced by disassembly process
   int printed;                  // Whether this L/P label will be printed in pass 2
-} Disasm_symbol;
+} Dis_symbol;
 
 // Order of enums must align with avr_opcodes[] table order
 typedef enum {
@@ -1825,10 +1825,10 @@ typedef struct {
   // Static variables from disasm.c
   int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth;
   int dis_pass, dis_para, dis_cycle_index, dis_io_offset, dis_codewidth;
-  Disasm_options dis_opts;
+  Dis_options dis_opts;
   int dis_jumpcallN, dis_symbolN, *dis_jumpable, dis_start, dis_end;
-  Disasm_jumpcall *dis_jumpcalls;
-  Disasm_symbol *dis_symbols;
+  Dis_jumpcall *dis_jumpcalls;
+  Dis_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"
