@@ -130,108 +130,125 @@ static void add_symbol(int address, int type, int subtype, int count, const char
   cx->dis_symbols[N].count = count;
   cx->dis_symbols[N].used = 0;
   cx->dis_symbols[N].printed = 0;
-  cx->dis_symbols[N].name = name? cleanup(mmt_strdup(name)): NULL;
-  cx->dis_symbols[N].comment = comment? mmt_strdup(comment): NULL;
+  cx->dis_symbols[N].name = name? cleanup(str_rtrim(mmt_strdup(str_ltrim(name)))): NULL;
+  cx->dis_symbols[N].comment = comment? str_rtrim(mmt_strdup(str_ltrim(comment))): NULL;
 }
 
-static int line_error(const char *token, const char *message, int lineno) {
-  if((token == NULL) || (strlen(token) == 0)) {
-    pmsg_error("%s in tagfile, line %d\n", message, lineno);
-    return 1;
+/*
+ * Tokenising of a tagfile line returning (argc, argv); parsing ends when
+ *   - A token starts with a comment character #
+ *   - The comment field after the name of the symbol is encountered
+ *   - The end of the string is encountered
+ *
+ * Argv is allocated once, so the caller only needs to mmt_free argv.
+ * On error NULL is returned (when input line was too long).
+ *
+ */
+static int tagfile_tokenize(char *s, int *argcp, const char ***argvp) {
+  size_t slen;
+  int n, nargs;
+  const char **argv;
+  char *buf, *q, *r;
+
+  // Upper estimate of the number of arguments
+  for(nargs=0, q=s; *q; nargs++) {
+    while(*q && !isspace((unsigned char) *q))
+      q++;
+    while(*q && isspace((unsigned char) *q))
+      q++;
   }
-  return 0;
-}
+  slen = q - s;
 
-static int tagfile_readline(char *line, int lineno, const char * const *isrnames, int ni) {
-  char *token, type, subtype, *name;
-  int vn, address, count;
-  const char *errptr;
-
-  if(line[0] == '#' || strlen(line) <= 1)
+  // Limit input line to some 186 Megabytes as max nargs is (slen+1)/2
+  if(slen > 2*((INT_MAX - 2*sizeof(char *))/(sizeof(char *)+3)))
     return 0;
 
-  token = strtok(line, " \t\n");
-  if(line_error(token, "nonempty line", lineno))
-    return -1;
-  address = str_int(token, STR_INT32, &errptr);
-  if(errptr) {
-    pmsg_error("address %s: %s\n", token, errptr);
-    return -1;
+  // Allocate once for pointers and contents, so caller only needs to mmt_free(argv)
+  argv = mmt_malloc((nargs+2)*sizeof(char *) + slen + nargs);
+  buf  = (char *) (argv+nargs+1);
+
+  for(n=0, r=s; *r; ) {
+    q = str_nexttok(r, " \t\n\r\v\f", &r);
+    size_t len = strlen(q);
+
+    if(*q == '#') {             // Inline comment: ignore rest of line
+      r = q+len;
+      break;
+    }
+    strcpy(buf, q);
+    if(*buf)                    // Don't record empty arguments
+      argv[n++] = buf;
+
+    if(n > 1 && n == (str_eq(argv[1], "L")? 3: 5)) { // Stop parsing after symbol name
+      if(*r)
+        argv[n] = r;            // Comment, if any
+      break;
+    }
+
+    buf += len + 1;
   }
 
-  token = strtok(NULL, " \t\n");
-  if(line_error(token, "no second argument", lineno))
-    return -1;
-  if(strlen(token) != 1) {
-    line_error(NULL, "second argument should be a type (L, P or M)", lineno);
-    return -1;
-  }
-  type = token[0];
+  *argcp = n;
+  *argvp = argv;
+  return 1;
+}
 
-  token = strtok(NULL, " \t\n");
-  if(line_error(token, "no third argument", lineno))
-    return -1;
+#define Return(fmt, ...) do { \
+  pmsg_error("tagfile line %d " fmt, lineno, __VA_ARGS__); msg_error("\n"); \
+  return -1; \
+} while (0)
+
+static int tagfile_readline(char *line, int lineno, const char * const *isrnames, int ni) {
+  int type, subtype, vn, address, count, argc = 0;
+  const char *errptr, **argv = NULL;
+
+  if(!tagfile_tokenize(line, &argc, &argv))
+    Return("%s", "is too long");
+  if(argc == 0)
+    return 0;
+  if(argc < 3)
+    Return("%s", "needs at least address, symbol type (L/P/M) and name");
+
+  address = str_int(argv[0], STR_INT32, &errptr);
+  if(errptr)
+    Return("address %s: %s", argv[0], errptr);
+
+  if(strlen(argv[1]) != 1 || !strchr("LPM", *argv[1]))
+    Return("%s", "2nd argument must be L, P or M");
+  type = *argv[1];
 
   if(type == 'L') {
-    name = token;               // Name, comment is optional
-
+    const char *name = argv[2];
     if(str_starts(name, "__vector_") && looks_like_number(name + 9))
       if((vn = strtol(name+9, NULL, 0)) > 0 && vn < ni) // Don't replace __vectors_0
         name = str_lc((char *) str_ccprintf("__vector_%s", isrnames[vn]));
-
-    add_symbol(address, 'L', TYPE_BYTE, 1, name, strtok(NULL, "\t\n"));
+    add_symbol(address, 'L', TYPE_BYTE, 1, name, argv[3]);
     return 0;
   }
 
-  if(line_error(token, "no fourth argument", lineno))
-    return -1;
-  if(strlen(token) != 1) {
-    line_error(NULL, "fourth argument should be a subtype (B, W, A or S)", lineno);
-    return -1;
-  }
-  subtype = token[0];
+  if(argc < 5 || strlen(argv[2]) != 1 || !strchr("BWAS", *argv[2]))
+    Return("needs to be <address> %c [%s] <count> <name>", type, type == 'M'? "BW": "BWAS");
 
-  switch(subtype) {
-  case 'B':
-    subtype = TYPE_BYTE;
-    break;
-  case 'W':
-    subtype = TYPE_WORD;
-    break;
-  case 'A':
-    subtype = TYPE_ASTRING;
-    break;
-  case 'S':
-    subtype = TYPE_STRING;
-    break;
-  default:
-    line_error(NULL, "invalid subtype (expected one of B, W, A or S)", lineno);
+  switch(*argv[2]) {
+  default: subtype = TYPE_BYTE; break;
+  case 'W': subtype = TYPE_WORD; break;
+  case 'A': subtype = TYPE_ASTRING; break;
+  case 'S': subtype = TYPE_STRING;
+  }
+
+  if(type == 'M' && subtype != TYPE_BYTE && subtype != TYPE_WORD) {
+    pmsg_error("memory label type can only be B(yte) or W(ord)");
     return -1;
   }
 
-  if((type == 'M') && ((subtype != TYPE_BYTE) && (subtype != TYPE_WORD))) {
-    line_error(NULL, "memory labels can only be of type B or W", lineno);
-    return -1;
-  }
+  count = str_int(argv[3], STR_INT32, &errptr);
+  if(errptr)
+    Return("count %s: %s\n", argv[3], errptr);
+  if(count < 1)
+    Return("tagfile line %d has invalid count %d", lineno, count);
 
-  token = strtok(NULL, " \t\n");
-  count = str_int(token, STR_INT32, &errptr);
-  if(errptr) {
-    pmsg_error("count %s: %s\n", token, errptr);
-    return -1;
-  }
-  if(count < 1) {
-    line_error(NULL, str_ccprintf("invalid count %d given", count), lineno);
-    return -1;
-  }
-
-  name = strtok(NULL, " \t\n");
-  if(type != 'P' && type != 'M') {
-    pmsg_error("invalid tag type %c (must be L, P or M)\n", type);
-    return -1;
-  }
-
-  add_symbol(address, type, subtype, count, name, NULL);
+  add_symbol(address, type, subtype, count, argv[4], argv[5]);
+  mmt_free(argv);
   return 0;
 }
 
@@ -386,8 +403,8 @@ typedef struct {
   char label[LINE_N], code[LINE_N], comment[LINE_N];
 } Disasm_line;
 
-// Column where opcode starts
-static int codecol() {
+// Comments start in commentcol() + 1
+static int commentcol() {
   int ret = 0;
   if(cx->dis_opts.addresses)
     ret += 3 + cx->dis_addrwidth;
@@ -398,7 +415,7 @@ static int codecol() {
   if(cx->dis_opts.opcode_bytes)
     ret += 12;
 
-  return ret? ret+1: 2;
+  return (ret? ret+1: 2) + cx->dis_codewidth;
 }
 
 static int is_jumpable(int address) {
@@ -413,7 +430,7 @@ static int is_jumpable(int address) {
 static void lineout(const char *code, const char *comment,
   int mnemo, int oplen, const char *buf, int pos, int addr, int showlabel) {
 
-  int here = disasm_wrap(pos + addr), codewidth = 27;
+  int here = disasm_wrap(pos + addr);
 
   if(cx->dis_opts.labels && showlabel) {
     int match = 0;
@@ -430,7 +447,7 @@ static void lineout(const char *code, const char *comment,
 
     if(match && (name = get_label_name(here, &comment))) {
       if(comment)
-        disasm_out("%-*s ; %s\n", codecol() + codewidth, str_ccprintf("%s:", name), comment);
+        disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name), comment);
       else
         disasm_out("%s:\n", name);
     }
@@ -445,11 +462,11 @@ static void lineout(const char *code, const char *comment,
   if(cx->dis_opts.opcode_bytes)
     for(int i = 0; i < 4; i++)
       disasm_out(i < oplen? "%02x ": "   ", buf[pos + i] & 0xff);
-  disasm_out(codecol() > 2? " ": "  ");
+  disasm_out(commentcol() > 2 + cx->dis_codewidth? " ": "  ");
   if(!comment || !*comment || !cx->dis_opts.comments)
     disasm_out("%s\n", code);
   else
-    disasm_out("%-*s ; %s\n", codewidth, code, comment);
+    disasm_out("%-*s ; %s\n", cx->dis_codewidth, code, comment);
   if(mnemo == MNEMO_ret || mnemo == MNEMO_u_ret || mnemo == MNEMO_reti || mnemo == MNEMO_u_reti)
     cx->dis_para = 1;
 }
@@ -559,14 +576,19 @@ static void emit_used_symbols() {
   int len, maxlen = 0;
 
   for(int i = 0; i < cx->dis_symbolN; i++)
-    if(s[i].used && !s[i].printed)
+    if(s[i].used && !s[i].printed && s[i].name)
       if((len = strlen(s[i].name)) > maxlen)
         maxlen = len;
 
   for(int i = 0; i < cx->dis_symbolN; i++)
-    if(s[i].used && !s[i].printed)
-      disasm_out(".equ %s,%*s 0x%02x\n", s[i].name,
-       (int) (maxlen-strlen(s[i].name)), "", s[i].address);
+    if(s[i].used && !s[i].printed && s[i].name) {
+      const char *equ = str_ccprintf(".equ %s,%*s 0x%02x", s[i].name,
+        (int) (maxlen-strlen(s[i].name)), "", s[i].address);
+      if(s[i].comment)
+        disasm_out("%-*s ; %s\n", commentcol(), equ, s[i].comment);
+      else
+        disasm_out("%s\n", equ);
+    }
 }
 
 void disasm_zap_jumpcalls() {
@@ -1085,6 +1107,7 @@ int disasm_init(const AVRPART *p) {
   cx->dis_flashsz2 = 0;       // Flash size rounded up to next power of two
   cx->dis_addrwidth = 4;      // Number of hex digits needed for flash addresses
   cx->dis_sramwidth = 4;      // Number of hex digits needed for sram addresses
+  cx->dis_codewidth = 27;     // Width of the code column (ldi     r17, 0x32)
 
   if((mem = avr_locate_flash(p)) && mem->size > 1) {
     int nbits = intlog2(mem->size - 1) + 1;
