@@ -1537,7 +1537,7 @@ typedef enum {
   OP_AVR_XL              = 512, // AVR with flash > 128 kB (EIJMP, EICALL)
   OP_AVR_XM             = 1024, // XMEGA only (DES, XCH, LAC, LAS, LAT)
   OP_AVR_XTM            = 2048, // XMEGA and UPDI only (SPM Z+)
-  OP_AVR_ILL            = 4096, // Unallocated (illegal) opcodes
+  OP_AVR_ILL            = 4096, // Undocumented (illegal) opcodes
 } AVR_archlevel;
 
 /*
@@ -1586,6 +1586,7 @@ typedef enum {
 #define OTY_SKPI           0x60 // Conditional skip, range [.+0, .+4] (cpse, sbrc, sbrs)
 #define OTY_SKPX           0x68 // Conditional skip, range [.+0, .+4] (sbic, sbis)
 
+#define OTY_ZWORD         0x080 // Opcode uses Z register for word address (ijmp, ical etc)
 #define OTY_ALIAS         0x100 // Opcode is a strict alias for another one, eg, sbr == ori
 #define OTY_CONSTRAINT    0x200 // Opcode has constraints: Rr == Rd (tst, clr, lsl, rol)
 
@@ -1714,14 +1715,16 @@ void terminal_setup_update_progress(void);
 
 char *avr_cc_buffer(size_t n);
 
-int op16_is_mnemo(int op, AVR_mnemo mnemo);
-int is_opcode32(int op);
-int ldi_Rd(int op);
-int ldi_K(int op);
-AVR_mnemo opcode_mnemo(int op, int avrlevel);
+int op16_is_mnemo(int op16, AVR_mnemo mnemo);
+int is_opcode32(int op16);
+int op_width(int op16);
+int ldi_Rd(int op16);
+int ldi_K(int op16);
+AVR_mnemo opcode_mnemo(int op16, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
-const char *mnemo_str(int op);
+const char *mnemo_str(int op16);
+int z_width(int op16, AVR_mnemo *mnenop);
 
 int disasm(const char *buf, int len, int addr, int leadin, int leadout);
 int disasm_init(const AVRPART *p);

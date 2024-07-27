@@ -435,7 +435,7 @@ static uint16_t buf2uint16(const unsigned char *buf) {
 
 
 // Write little endian 32-bit word into buffer
-void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
+static void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
   buf[0] = opcode32;
   buf[1] = opcode32>>8;
   buf[2] = opcode32>>16;
@@ -444,7 +444,7 @@ void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
 
 
 // Write little endian 16-bit word into buffer
-void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
+static void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
   buf[0] = opcode16;
   buf[1] = opcode16>>8;
 }

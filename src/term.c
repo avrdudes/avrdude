@@ -396,7 +396,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   if (cx->term_rmem[mi].len > maxsize)
     cx->term_rmem[mi].len = maxsize;
 
-  uint8_t *buf = mmt_malloc(cx->term_rmem[mi].len + 16); // Add margin for disasm
+  uint8_t *buf = mmt_malloc(cx->term_rmem[mi].len + 32); // Add margin for disasm
   if(argc < 4 && verbose)
     term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[mi].mem->desc,
       cx->term_rmem[mi].addr, cx->term_rmem[mi].len);
@@ -410,7 +410,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
     if(whence + toread > maxsize) // Clip to end of memory
       toread = maxsize - whence;
     int gap = maxsize - whence - toread;
-    after = gap >= 7? 7: gap < 0? 0: gap;
+    after = gap >= 16? 16: gap < 0? 0: gap;
     toread += after;
     if(toread-before < 2)       // Cannot disassemble just one byte
       goto nocontent;
@@ -434,7 +434,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   if(is_disasm) {               // Adjust length so buffer does not split opcodes
     int j = before, end = toread-after, wend = after? end: end-1;
     while(j < wend)
-      j += is_opcode32(buf[j] | buf[j+1]<<8)? 4: 2;
+      j += op_width(buf[j] | buf[j+1]<<8);
     if(j < end)                 // Odd length: shorten by one byte
       after += end-j;
     else if(j > end && after >= j-end) // Increase length to accommodate last 32-bit opcode

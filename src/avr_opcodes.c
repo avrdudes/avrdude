@@ -26,7 +26,7 @@
  * - Order of enums MNEMO_...  in libavedude.h must align with table
  *
  * - Order makes the first match of a 16-bit opcode a "good" one
- *     + Unallocated opcodes come last
+ *     + Undocumented opcodes come last
  *     + Specific reduced-core sts/lds opcodes are penultimate
  *     + More specific opcodes before less specific ones (clr before eor)
  *     + Opcodes labelled alias come behind those not labelled so
@@ -182,10 +182,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(rjmp),     0xf000, 0xc000, 1, OP_AVR1,    "1100 kkkk  kkkk kkkk", OTY_RJMI,
     "rjmp", "k", "relative jump", "PC <-- PC + k + 1", "--------",
     {"2", "2", "2", "2"}, ""},
-  {OP_ID(ijmp),     0xffff, 0x9409, 1, OP_AVR2,    "1001 0100  0000 1001", OTY_JMPI,
+  {OP_ID(ijmp),     0xffff, 0x9409, 1, OP_AVR2,    "1001 0100  0000 1001", OTY_JMPI|OTY_ZWORD,
     "ijmp", "", "indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"2", "2", "2", "2"}, ""},
-  {OP_ID(eijmp),    0xffff, 0x9419, 1, OP_AVR_XL,  "1001 0100  0001 1001", OTY_JMPI,
+  {OP_ID(eijmp),    0xffff, 0x9419, 1, OP_AVR_XL,  "1001 0100  0001 1001", OTY_JMPX|OTY_ZWORD,
     "eijmp", "", "extended indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"2", "2", "2", "n/a"}, ""},
   {OP_ID(jmp),      0xfe0e, 0x940c, 2, OP_AVR_M,   "1001 010k  kkkk 110k   kkkk kkkk  kkkk kkkk", OTY_JMPI,
@@ -194,10 +194,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(rcall),    0xf000, 0xd000, 1, OP_AVR1,    "1101 kkkk  kkkk kkkk", OTY_RJMX,
     "rcall", "k", "relative call subroutine", "PC <-- PC + k + 1", "--------",
     {"3+", "2+", "2+", "3"}, ""},
-  {OP_ID(icall),    0xffff, 0x9509, 1, OP_AVR2,    "1001 0101  0000 1001", OTY_JMPI,
+  {OP_ID(icall),    0xffff, 0x9509, 1, OP_AVR2,    "1001 0101  0000 1001", OTY_JMPX|OTY_ZWORD,
     "icall", "", "indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"3+", "2+", "2+", "3"}, ""},
-  {OP_ID(eicall),   0xffff, 0x9519, 1, OP_AVR_XL,  "1001 0101  0001 1001", OTY_JMPX,
+  {OP_ID(eicall),   0xffff, 0x9519, 1, OP_AVR_XL,  "1001 0101  0001 1001", OTY_JMPX|OTY_ZWORD,
     "eicall", "", "extended indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"4", "3", "3", "n/a"}, ""},
   {OP_ID(call),     0xfe0e, 0x940e, 2, OP_AVR_M,   "1001 010k  kkkk 111k   kkkk kkkk  kkkk kkkk", OTY_JMPX,
@@ -527,7 +527,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
     "sts", "a, Rr", "store direct to data space", "(a) <-- Rr", "--------",
     {"n/a", "n/a", "n/a", "1"}, "AVRrc only (TPI parts); a = 0x40..0xbf"},
 
-  // Unallocated codes: they are said(!) to do the following
+  // Undocumented opcodes: they are said(!) to do the following
   {OP_ID(u_nop_1),  0xff00, 0x0000, 1, OP_AVR_ILL, "0000 0000  xxxx xxxx", OTY_MCUI,
     "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, "xxxx xxxx != 0000 0000"},
@@ -549,10 +549,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(u_nop_7),  0xfe0f, 0x920b, 1, OP_AVR_ILL, "1001 001x  xxxx 1011", OTY_MCUI,
     "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_icall),  0xff1f, 0x9509, 1, OP_AVR_ILL, "1001 0101  xxx0 1001", OTY_JMPI,
+  {OP_ID(u_icall),  0xff1f, 0x9509, 1, OP_AVR_ILL, "1001 0101  xxx0 1001", OTY_JMPX|OTY_ZWORD,
     "u/icall", "", "indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"3+", "2+", "2+", "3"}, "xxx != 000"},
-  {OP_ID(u_eicall), 0xff1f, 0x9519, 1, OP_AVR_ILL, "1001 0101  xxx1 1001", OTY_JMPX,
+  {OP_ID(u_eicall), 0xff1f, 0x9519, 1, OP_AVR_ILL, "1001 0101  xxx1 1001", OTY_JMPX|OTY_ZWORD,
     "u/eicall", "", "extended indirect call to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"4", "3", "3", "n/a"}, "xxx != 000"},
   {OP_ID(u_ret),    0xff9f, 0x9508, 1, OP_AVR_ILL, "1001 0101  0xx0 1000", OTY_JMPX,
@@ -570,10 +570,10 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
   {OP_ID(u_nop_a),  0xff0f, 0x950b, 1, OP_AVR_ILL, "1001 0101  xxxx 1011", OTY_MCUI,
     "u/nop", "", "no operation", "-", "--------",
     {"1", "1", "1", "1"}, ""},
-  {OP_ID(u_ijmp),   0xff1f, 0x9409, 1, OP_AVR_ILL, "1001 0100  xxx0 1001", OTY_JMPI,
+  {OP_ID(u_ijmp),   0xff1f, 0x9409, 1, OP_AVR_ILL, "1001 0100  xxx0 1001", OTY_JMPI|OTY_ZWORD,
     "u/ijmp", "", "indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- 0", "--------",
     {"2", "2", "2", "2"}, "xxx != 000"},
-  {OP_ID(u_eijmp),  0xff1f, 0x9419, 1, OP_AVR_ILL, "1001 0100  xxx1 1001", OTY_JMPI,
+  {OP_ID(u_eijmp),  0xff1f, 0x9419, 1, OP_AVR_ILL, "1001 0100  xxx1 1001", OTY_JMPX|OTY_ZWORD,
     "u/eijmp", "", "extended indirect jump to (Z)", "PC(15:0) <-- Z, PC(21:16) <-- EIND", "--------",
     {"2", "2", "2", "n/a"}, "xxx != 000"},
   {OP_ID(u_bld),    0xfe08, 0xf808, 1, OP_AVR_ILL, "1111 100d  dddd 1bbb", OTY_ALBI|OTY_RALL,
@@ -603,6 +603,11 @@ int is_opcode32(int op) {
   return
     op16_is_mnemo(op, MNEMO_call) || op16_is_mnemo(op, MNEMO_jmp) ||
     op16_is_mnemo(op, MNEMO_sts) || op16_is_mnemo(op, MNEMO_lds);
+}
+
+// Return width of opcode in bytes (2 or 4)
+int op_width(int op16) {
+  return is_opcode32(op16)? 4: 2;
 }
 
 // Return the register number of the 16-bit ldi opcode and 0 if it's not ldi
@@ -706,4 +711,29 @@ const char *mnemo_str(int op) {
   if(mnemo < 0 || mnemo >= MNEMO_N)
     return "illegal";
   return avr_opcodes[mnemo].opcode;
+}
+
+/*
+ * Return
+ *    2 if opcode treats Z register as word address
+ *    1 if opcode treats Z as byte address
+ *    0 otherwise (Z not involved in opcode)
+ */
+int z_width(int op16, AVR_mnemo *mnemop) {
+  AVR_mnemo mlist[] = {
+    MNEMO_ijmp, MNEMO_eijmp, MNEMO_icall, MNEMO_eicall, MNEMO_u_icall, MNEMO_u_eicall,
+    MNEMO_u_ijmp, MNEMO_u_eijmp, MNEMO_ld_z, MNEMO_ld_zp, MNEMO_ld_mz, MNEMO_ldd_z,
+    MNEMO_st_z, MNEMO_st_zp, MNEMO_st_mz, MNEMO_std_z, MNEMO_lpm_0, MNEMO_lpm_z,
+    MNEMO_lpm_zp, MNEMO_elpm_0, MNEMO_elpm_z, MNEMO_elpm_zp, MNEMO_spm, MNEMO_spm_zp,
+    MNEMO_xch, MNEMO_las, MNEMO_lac, MNEMO_lat,
+  };
+
+  for(AVR_mnemo m=0; m < (AVR_mnemo) (sizeof mlist/sizeof*mlist); m++)
+    if(op16_is_mnemo(op16, mlist[m])) {
+      if(mnemop)
+        *mnemop = mlist[m];
+      return avr_opcodes[mlist[m]].type & OTY_ZWORD? 2: 1;
+    }
+
+  return 0;
 }
