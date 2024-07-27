@@ -20,11 +20,16 @@
 /* $Id$ */
 
 /*
- * The disassembly code originates from the avrdisas disassembler written in
- * 2007 by Johannes Bauer. This code has been rewritten by Stefan Rueger to
+ * This disassembly code originates from the avrdisas disassembler written in
+ * 2007 by Johannes Bauer. It has been rewritten by Stefan Rueger to
  *   - Enable disassembly of small memory chunks in AVRDUDE's terminal
  *   - Drive disassembly from the avr_opcodes[] table alone
  *   - Generate a compilable source
+ *   - Find symbolic values for ldi constants that initialise register pais
+ *
+ * Like the ship of Theseus there is little of the avrdisas orginal code that
+ * has remained, but it is fair to say that without it the AVRDUDE disasm
+ * command would not have happened.
  */
 
 #include <stdio.h>
@@ -44,6 +49,7 @@
 #define TYPE_ASTRING          3 // Autoaligned string
 #define TYPE_STRING           4 // String
 
+#define buf2op16(i) ((buf[i] & 0xff) | (buf[(i)+1] & 0xff)<<8)
 
 static void zap_symbols() {
   if(cx->dis_symbols) {
@@ -57,15 +63,25 @@ static void zap_symbols() {
   cx->dis_symbolN = 0;
 }
 
+static int type_order(int type) {
+  switch(type) {
+  case 'I': return '1';
+  case 'M': return '2';
+  case 'L': return '3';
+  case 'P': return '4';
+  default: return type;
+  }
+}
+
 static int symbol_sort(const void *v1, const void *v2) {
   const Disasm_symbol *p1 = v1, *p2 = v2;
   int diff;
-  if((diff = p1->type - p2->type))
+  if((diff = type_order(p1->type) - type_order(p2->type)))
     return diff;
   return p1->address - p2->address;
 }
 
-static int symbol_qsort_stable(const void *v1, const void *v2) {
+static int symbol_stable_qsort(const void *v1, const void *v2) {
   int diff = symbol_sort(v1, v2);
   if(diff)
     return diff;
@@ -78,7 +94,7 @@ static char *cleanup(char *str) {
   return str;
 }
 
-// Width of memory a symbol covers (only valid for I/O and memory symbols)
+// Width of memory a symbol covers
 static int symbol_width(Disasm_symbol *s) {
   return s->count * (s->subtype == TYPE_WORD? 2: 1);
 }
@@ -113,6 +129,7 @@ static void add_symbol(int address, int type, int subtype, int count, const char
   cx->dis_symbols[N].subtype = subtype;
   cx->dis_symbols[N].count = count;
   cx->dis_symbols[N].used = 0;
+  cx->dis_symbols[N].printed = 0;
   cx->dis_symbols[N].name = name? cleanup(mmt_strdup(name)): NULL;
   cx->dis_symbols[N].comment = comment? mmt_strdup(comment): NULL;
 }
@@ -271,7 +288,7 @@ static void init_regfile(const AVRPART *p) {
           add_register(io_off, rf[i].addr+k, rname, k);
       }
     }
-    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_qsort_stable);
+    qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_stable_qsort);
   }
 }
 
@@ -299,7 +316,7 @@ int disasm_init_tagfile(const AVRPART *p, const char *fname) {
   }
 
   fclose(inf);
-  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_qsort_stable);
+  qsort(cx->dis_symbols, cx->dis_symbolN, sizeof(Disasm_symbol), symbol_stable_qsort);
   return 0;
 
 error:
@@ -330,11 +347,12 @@ static const char *cycles(int mnemo) {
   return ret;
 }
 
-static const char *get_label_name(int destination, const char **comment) {
+static const char *get_label_name(int destination, const char **commentp) {
   Disasm_symbol *s = find_symbol('L', destination);
-  if(s) {
-    if(comment)
-      *comment = s->comment;
+  if(s && s->name) {
+    if(commentp)
+      *commentp = s->comment;
+    s->printed = 1;             // Will be printed in pass 2
     return s->name;
   }
 
@@ -395,9 +413,6 @@ static int is_jumpable(int address) {
 static void lineout(const char *code, const char *comment,
   int mnemo, int oplen, const char *buf, int pos, int addr, int showlabel) {
 
-  if(cx->dis_pass == 1)
-    return;
-
   int here = disasm_wrap(pos + addr), codewidth = 27;
 
   if(cx->dis_opts.labels && showlabel) {
@@ -408,16 +423,16 @@ static void lineout(const char *code, const char *comment,
       if(cx->dis_jumpcalls[i].to == here) {
         if(!match++)
           cx->dis_para = 1;
-        disasm_out("; Referenced from L%0*x by %s\n", cx->dis_addrwidth,
-          cx->dis_jumpcalls[i].from, avr_opcodes[cx->dis_jumpcalls[i].mnemo].opcode);
+        disasm_out("; %s from L%0*x\n", avr_opcodes[cx->dis_jumpcalls[i].mnemo].opcode,
+          cx->dis_addrwidth, cx->dis_jumpcalls[i].from);
       }
     }
 
     if(match && (name = get_label_name(here, &comment))) {
-      if(comment == NULL)
-        disasm_out("%s:\n", name);
-      else
+      if(comment)
         disasm_out("%-*s ; %s\n", codecol() + codewidth, str_ccprintf("%s:", name), comment);
+      else
+        disasm_out("%s:\n", name);
     }
   }
 
@@ -448,9 +463,8 @@ static int process_num(const char *buf, int buflen, int nbytes, int pos, int off
 
   const char *str =
     nbytes == 1? str_ccprintf(".byte   0x%02x", buf[pos] & 0xff):
-    nbytes == 2? str_ccprintf(".word   0x%02x%02x", buf[pos+1] & 0xff, buf[pos] & 0xff):
-    nbytes == 4? str_ccprintf(".long   0x%02x%02x%02x%02x", buf[pos+3] & 0xff, buf[pos+2] & 0xff,
-     buf[pos+1] & 0xff, buf[pos] & 0xff): "nbytes?";
+    nbytes == 2? str_ccprintf(".word   0x%04x", buf2op16(pos)):
+    nbytes == 4? str_ccprintf(".long   0x%04x%04x", buf2op16(pos+2), buf2op16(pos)): "nbytes?";
 
   lineout(str, NULL, -1, 1, buf, pos, offset, 0);
   return nbytes;
@@ -505,13 +519,14 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
       k &= ~1;
       return !k || k-pos < 4? 0: process_fill0xff(buf, buflen, k-pos, pos, offset);
     }
-    // Found PGM label at odd address, print byte and continue
+    // Found PGM label at odd address, print byte before label and continue
     process_num(buf, buflen, 1, pos, offset);
     ret = 1;
   }
 
   if(s->name) {
     cx->dis_para = 1;
+    s->printed = 1;             // Will be printed in pass 2
     disasm_out("%s:\n", s->name);
   }
 
@@ -539,20 +554,19 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
   return ret;
 }
 
-void emit_used_io_registers() {
-  int maxlen = 0;
+static void emit_used_symbols() {
+  Disasm_symbol *s = cx->dis_symbols;
+  int len, maxlen = 0;
 
   for(int i = 0; i < cx->dis_symbolN; i++)
-    if(cx->dis_symbols[i].used) {
-      int len = strlen(cx->dis_symbols[i].name);
-      if(len > maxlen)
+    if(s[i].used && !s[i].printed)
+      if((len = strlen(s[i].name)) > maxlen)
         maxlen = len;
-    }
 
   for(int i = 0; i < cx->dis_symbolN; i++)
-    if(cx->dis_symbols[i].used && (cx->dis_io_offset || cx->dis_symbols[i].type == 'M'))
-      disasm_out(".equ %s,%*s 0x%02x\n", cx->dis_symbols[i].name,
-       (int) (maxlen-strlen(cx->dis_symbols[i].name)), "", cx->dis_symbols[i].address);
+    if(s[i].used && !s[i].printed)
+      disasm_out(".equ %s,%*s 0x%02x\n", s[i].name,
+       (int) (maxlen-strlen(s[i].name)), "", s[i].address);
 }
 
 void disasm_zap_jumpcalls() {
@@ -561,7 +575,7 @@ void disasm_zap_jumpcalls() {
   cx->dis_jumpcallN = 0;
 }
 
-static void register_jumpcall(int from, int to, int mnemo, unsigned char is_func) {
+static void register_jumpcall(int from, int to, int mnemo, int is_func) {
   if(cx->dis_opts.labels) {
     Disasm_jumpcall *jc = cx->dis_jumpcalls;
     int N = cx->dis_jumpcallN;
@@ -607,6 +621,8 @@ static int jumpcall_sort(const void *v1, const void *v2) {
   const Disasm_jumpcall *p1 = v1, *p2 = v2;
   int diff;
   if((diff = p1->to - p2->to))
+    return diff;
+  if((diff = p1->mnemo - p2->mnemo))
     return diff;
   return p1->from - p2->from;
 }
@@ -681,7 +697,58 @@ static unsigned bitcount(unsigned n) {
   return ret;
 }
 
-static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, Disasm_line *line) {
+typedef struct {
+  int from, is_func, is_lpm, preop, postop, zwd;
+} Op_context;
+
+static const char *get_ldi_name(int op1, int op2, Op_context *oxp) {
+  Disasm_symbol *s;
+  char buf[2];
+
+  int ra = ldi_Rd(op1), rb = ldi_Rd(op2);
+  if((ra ^ rb) == 1) {        // Two successive ldi opcodes initialise a register pair
+    buf[ra & 1] = ldi_K(op1);
+    buf[rb & 1] = ldi_K(op2);
+    int addr = buf2op16(0);   // Address of register pair
+    // Assume address width is 2 if ldi acts on Z and is followed by e/icall within 5 opcodes
+    int awidth = (ra | 1) == 31 && oxp->zwd == 2? 2: 1;
+    for(const char *c = awidth == 2 || oxp->is_lpm? "LP": "MLP"; *c; c++)
+      if((s = find_symbol(*c, addr*awidth)))
+        break;
+    if(s && s->name) {          // Label matches the address loaded into register pair
+      s->used = 1;
+      return str_ccprintf("%s%s(%s)", awidth == 2? "pm_": "", ra & 1? "hi8": "lo8", s->name);
+    }
+    if((ra | 1) == 31 && oxp->is_lpm && addr >= cx->dis_start && addr < cx->dis_end) {
+      if(cx->dis_pass == 1)
+        register_jumpcall(oxp->from, addr, MNEMO_ldi, 0);
+      const char *name = get_label_name(addr, NULL);
+      if(name && cx->dis_opts.labels && is_jumpable(addr))
+        return str_ccprintf("%s(%s)", ra & 1? "hi8": "lo8", name);
+    } else if(awidth == 2 && 2*addr >= cx->dis_start && 2*addr < cx->dis_end) {
+      if(cx->dis_pass == 1)
+        register_jumpcall(oxp->from, 2*addr, MNEMO_ldi, oxp->is_func);
+      const char *name = get_label_name(2*addr, NULL);
+      if(name && cx->dis_opts.labels && is_jumpable(2*addr))
+        return str_ccprintf("pm_%s(%s)", ra & 1? "hi8": "lo8", name);
+    }
+  }
+  return NULL;
+}
+
+static const char *get_ldi_context(Op_context *oxp, int opcode) {
+  const char *ret;
+
+  if(oxp->preop >= 0 && (ret = get_ldi_name(opcode, oxp->preop, oxp)))
+    return ret;
+  if(oxp->postop >= 0 && (ret = get_ldi_name(opcode, oxp->postop, oxp)))
+    return ret;
+  return NULL;
+}
+
+static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo,
+  Op_context *oxp, Disasm_line *line) {
+
   memset(line, 0, sizeof*line);
   if(mnemo < 0) {
     add_comment(line, "Invalid opcode");
@@ -705,7 +772,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
   if(oc->nwords == 2) {
     bits['k'] += 16;
     regs['k'] <<= 16;
-    regs['k'] |= (buf[2] & 0xff) | (buf[3] & 0xff)<<8;
+    regs['k'] |= buf2op16(2);
   }
 
   // Some sanity checks for things the code relies on
@@ -755,7 +822,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
 
   int target = 0, offset = 0, is_jumpcall = 0, is_relative = 0;
   int is_function = !!(oc->type & OTY_EXTERNAL); // call/rcall affects stack memory
-  const char *kmemaddr = NULL, *amemaddr = NULL, *regname = NA? resolve_address('I', RA): NULL;
+  const char *name, *ksym = NULL, *asym = NULL, *rsym = NA? resolve_address('I', RA): NULL;
 
   if(Na) {
     /*
@@ -764,7 +831,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
      * ADDR[7:0] ← (/a[4], a[4], a[6], a[5], a[3], a[2], a[1], a[0])
      */
     Ra = (Ra & 0xf) | ((Ra >> 1) & 0x30) | ((Ra & 0x10) << 2) | (((Ra & 0x10) ^ 0x10) << 3);
-    amemaddr = resolve_address('M', Ra);
+    asym = resolve_address('M', Ra);
   }
 
   switch(Nk) {
@@ -787,7 +854,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
     is_relative = 1;
     break;
   case 16:                      // lds/sts
-    kmemaddr = resolve_address('M', Rk);
+    ksym = resolve_address('M', Rk);
     break;
   case 22:
     if(cx->dis_flashsz && 2*Rk > cx->dis_flashsz)
@@ -799,9 +866,6 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
     is_jumpcall = 1;
     break;
   }
-
-  if(cx->dis_pass == 1)
-    return;
 
   snprintf(line->code, LINE_N, "%-7s ", oc->opcode);
   char *lc = line->code + strlen(line->code);
@@ -832,20 +896,20 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
       *lc++ = *o, *lc = 0;
       break;
     case 'A':
-      if(regname)
-        add_operand(lc, "%s", regname);
+      if(rsym)
+        add_operand(lc, "%s", rsym);
       else
         add_operand(lc, "0x%02x", RA);
       break;
     case 'a':
-      if(amemaddr)
-        add_operand(lc, "%s", amemaddr);
+      if(asym)
+        add_operand(lc, "%s", asym);
       else
         add_operand(lc, "0x%02x", Ra);
       break;
     case 'k':
       if(is_jumpcall) {
-        const char *name = get_label_name(target, NULL);
+        name = get_label_name(target, NULL);
         if(name && target != disasm_wrap(addr+2) && cx->dis_opts.labels && is_jumpable(target)) {
           add_operand(lc, "%s", name);
           add_comment(line, str_ccprintf("L%0*x", awd, target));
@@ -857,8 +921,8 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
             add_operand(lc, "0x%0*x", awd, target);
         }
       } else {
-        if(kmemaddr)
-          add_operand(lc, "%s", kmemaddr);
+        if(ksym)
+          add_operand(lc, "%s", ksym);
         else
           add_operand(lc, "0x%0*x", swd, Rk);
       }
@@ -880,8 +944,13 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
       if(NK == 4)
         add_operand(lc, "%d", RK);
       else {
-        add_operand(lc, "0x%02x", RK);
-        add_comment(line, str_ccprintf("%d", RK));
+        if(op16_is_mnemo(opcode, MNEMO_ldi) && (name = get_ldi_context(oxp, opcode))) {
+          add_operand(lc, "%s", name);
+          add_comment(line, str_ccprintf("0x%02x", RK));
+        } else {
+          add_operand(lc, "0x%02x", RK);
+          add_comment(line, str_ccprintf("%d", RK));
+        }
       }
       break;
     case 'q':
@@ -913,20 +982,47 @@ static int have_own_main() {
   return 0;
 }
 
+static void set_context(Op_context *oxp, const char *buf, int pos, int buflen, int addr, int leadin, int leadout) {
+  // Compute initial context structure: the opcode before and the following one
+  oxp->from = disasm_wrap(pos+addr);
+  oxp->is_func = 0;             // the next Z-opcode ahead is an icall/eicall
+  oxp->is_lpm = 0;              // the next Z-opcode ahead is a lpm/elpm
+  oxp->preop = pos+leadin > 1? buf2op16(pos-2): -1;
+  oxp->postop = -1;
+  oxp->zwd = 0;                 // 2: the next Z-opcode ahead uses Z as word addr, 1: as byte addr
+  int k = 0, op16, i = pos + op_width(buf2op16(pos));
+  if(i < buflen+leadout-1) {
+    AVR_mnemo zm = 0;
+
+    oxp->postop = op16 = buf2op16(i);
+    // Check whether there is an opcode ahead that uses the Z register
+    for(k=0, i += op_width(op16); k < 6 && i < buflen+leadout-1; k++, i += op_width(op16))
+      if(op16_is_mnemo(op16, MNEMO_rjmp) || op16_is_mnemo(op16, MNEMO_jmp) ||
+          op16_is_mnemo(op16, MNEMO_ret) || op16_is_mnemo(op16, MNEMO_reti) ||
+          op16_is_mnemo(op16, MNEMO_u_ret) || op16_is_mnemo(op16, MNEMO_u_reti) ||
+          (oxp->zwd = z_width((op16 = buf2op16(i)), &zm)))
+        break;
+    if(oxp->zwd == 2)
+      oxp->is_func = zm == MNEMO_icall || zm == MNEMO_eicall ||  zm == MNEMO_u_icall || zm == MNEMO_u_eicall;
+    else
+      oxp->is_lpm = zm >= MNEMO_lpm_0 && zm <= MNEMO_elpm_zp;
+  }
+}
+
 /*
  * Disassemble buflen bytes at buf which corresponds to address addr
  *
  *  - Caller is responsible that buflen does not split an opcode
  *  - Before(!) the location buf there are leadin bytes available (0-2)
- *  - After the location buf+readlen there are leadout bytes available (0-4)
+ *  - After the location buf+readlen there are leadout bytes available (0-16)
  */
 int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
   int pos, opcode, mnemo, oplen;
-  Disasm_line line;
+  Disasm_line line = {0};
+  Op_context ox = {0};
 
-  for(int i = 0; i < cx->dis_symbolN; i++) // Clear used-state of symbols
-    if(cx->dis_symbols[i].type == 'I')
-      cx->dis_symbols[i].used = 0;
+  for(int i = 0; i < cx->dis_symbolN; i++) // Clear used/printed state of symbols
+    cx->dis_symbols[i].used = cx->dis_symbols[i].printed = 0;
 
   cx->dis_jumpable = mmt_malloc((buflen+1)/2/8); // Allocate one bit per word address
   cx->dis_start = addr, cx->dis_end = addr + buflen - 1;
@@ -937,10 +1033,10 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
       cx->dis_para = 0;
       enumerate_labels();
       if(cx->dis_opts.avrgcc_style)
-        emit_used_io_registers();
+        emit_used_symbols();
       if(cx->dis_opts.gcc_source) {
         cx->dis_para=1;
-        disasm_out(".text%s\n", have_own_main()? "": "main:\n");
+        disasm_out(".text\n%s", have_own_main()? "": "main:\n");
       }
     }
     for(pos = 0; pos < buflen; pos += oplen) {
@@ -955,13 +1051,15 @@ int disasm(const char *buf, int buflen, int addr, int leadin, int leadout) {
         continue;
       }
 
-      opcode = (buf[pos] & 0xff) | (buf[pos+1] & 0xff)<<8;
+      opcode = buf2op16(pos);
       mnemo = opcode_mnemo(opcode, cx->dis_opts.avrlevel);
       oplen = mnemo < 0? 2: 2*avr_opcodes[mnemo].nwords;
 
-      disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &line);
+      if(op16_is_mnemo(opcode, MNEMO_ldi))
+        set_context(&ox, buf, pos, buflen, addr, leadin, leadout);
+      disassemble(buf + pos, disasm_wrap(pos + addr), opcode, mnemo, &ox, &line);
       lineout(line.code, line.comment, mnemo, oplen, buf, pos, addr, 1);
-      if(cx->dis_pass == 1) {     // Mark this position as one that can be a jump/call destination
+      if(cx->dis_pass == 1) {     // Mark this position as potential jump/call destination
         int n = sizeof(int)*8, idx = pos/2;
         cx->dis_jumpable[idx/n] |= (1<<(idx%n));
       }
@@ -986,7 +1084,7 @@ int disasm_init(const AVRPART *p) {
   cx->dis_flashsz = 0;        // Flash size
   cx->dis_flashsz2 = 0;       // Flash size rounded up to next power of two
   cx->dis_addrwidth = 4;      // Number of hex digits needed for flash addresses
-  cx->dis_sramwidth = 3;      // Number of hex digits needed for sram addresses
+  cx->dis_sramwidth = 4;      // Number of hex digits needed for sram addresses
 
   if((mem = avr_locate_flash(p)) && mem->size > 1) {
     int nbits = intlog2(mem->size - 1) + 1;
