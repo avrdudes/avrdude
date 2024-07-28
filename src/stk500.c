@@ -650,7 +650,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
    for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
      extended_param = ldata(ln);
 
-    if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
+    if (sscanf(extended_param, "attempts=%i", &attempts) == 1) {
       PDATA(pgm)->retry_attempts = attempts;
       pmsg_info("setting number of retry attempts to %d\n", attempts);
       continue;
