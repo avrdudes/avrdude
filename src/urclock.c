@@ -319,6 +319,7 @@ typedef struct {
       nodate,                   // Don't store application filename and no date either
       nostore,                  // Don't store metadata except a flag saying so
       nometadata,               // Don't support metadata at all
+      noautoreset,              // Don't reset the board after opening the serial port
       delay,                    // Additional delay [ms] after resetting the board, can be negative
       strict;                   // Use strict synchronisation protocol
 
@@ -2247,16 +2248,18 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   if(serial_open(port, pinfo, &pgm->fd) == -1)
     return -1;
 
-  // This code assumes a negative-logic USB to TTL serial adapter
-  // Set RTS/DTR high to discharge the series-capacitor, if present
-  serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(20*1000);
-  // Pull the RTS/DTR line low to reset AVR
-  serial_set_dtr_rts(&pgm->fd, 1);
-  // Max 100 us: charging a cap longer creates a high reset spike above Vcc
-  usleep(100);
-  // Set the RTS/DTR line back to high, so direct connection to reset works
-  serial_set_dtr_rts(&pgm->fd, 0);
+  if(!ur.noautoreset) {
+    // This code assumes a negative-logic USB to TTL serial adapter
+    // Set RTS/DTR high to discharge the series-capacitor, if present
+    serial_set_dtr_rts(&pgm->fd, 0);
+    usleep(20*1000);
+    // Pull the RTS/DTR line low to reset AVR
+    serial_set_dtr_rts(&pgm->fd, 1);
+    // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+    usleep(100);
+    // Set the RTS/DTR line back to high, so direct connection to reset works
+    serial_set_dtr_rts(&pgm->fd, 0);
+  }
 
   if((120+ur.delay) > 0)
     usleep((120+ur.delay)*1000); // Wait until board comes out of reset
@@ -2477,6 +2480,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"nodate", &ur.nodate, NA,            "Do not store application filename and no date either"},
     {"nostore", &ur.nostore, NA,          "Do not store metadata except a flag saying so"},
     {"nometadata", &ur.nometadata, NA,    "Do not support metadata at all"},
+    {"noautoreset", &ur.nometadata, NA,   "Do not reset the board after opening the serial port"},
     {"delay", &ur.delay, ARG,             "Add delay [ms] after reset, can be negative"},
     {"strict", &ur.strict, NA,            "Use strict synchronisation protocol"},
     {"help", &help, NA,                   "Show this help menu and exit"},
