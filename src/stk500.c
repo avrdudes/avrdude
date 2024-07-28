@@ -116,7 +116,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   for (attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if (PDATA(pgm)->autoreset && attempt > 0) {
+    if(str_eq(pgm->type, "Arduino") && PDATA(pgm)->autoreset && attempt > 0) {
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
@@ -894,8 +894,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
 }
 
 
-static void stk500_close(PROGRAMMER * pgm)
-{
+static void stk500_close(PROGRAMMER *pgm) {
   // MIB510 close
   if (str_eq(pgmid, "mib510"))
     (void)mib510_isp(pgm, 0);
@@ -1569,7 +1568,7 @@ static void stk500_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   stk500_print_parms1(pgm, "", fp);
 }
 
-static void stk500_setup(PROGRAMMER * pgm) {
+static void stk500_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff;
   PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
@@ -1578,9 +1577,12 @@ static void stk500_setup(PROGRAMMER * pgm) {
     PDATA(pgm)->xtal = 16000000U;
   else
     PDATA(pgm)->xtal = STK500_XTAL;
+  // The -c arduino programmer has auto-reset enabled be default
+  if (str_eq(pgmid, "arduino"))
+    PDATA(pgm)->autoreset = true;
 }
 
-static void stk500_teardown(PROGRAMMER * pgm) {
+static void stk500_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }
