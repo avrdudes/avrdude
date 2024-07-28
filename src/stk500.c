@@ -784,7 +784,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 
     else if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
+      msg_error("  -xattempts=<n>        Specify the number <n> of connection retry attempts\n");
       if (pgm->extra_features & HAS_VTARG_READ) {
         msg_error("  -xvtarg               Read target supply voltage\n");
       }

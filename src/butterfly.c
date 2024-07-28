@@ -701,12 +701,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
   for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
 
-    if(str_starts(extended_param, "autoreset")) {
-      if(!str_eq(extended_param, "autoreset")) {
-        pmsg_error("invalid -xautoreset value %s. Use -xautoreset\n", extended_param);
-        rv = -1;
-        break;
-      }
+    if(str_eq(extended_param, "autoreset")) {
       PDATA(pgm)->autoreset = true;
       continue;
     }
@@ -718,7 +713,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       exit(0);
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter %s\n", extended_param);
     rv = -1;
   }
 

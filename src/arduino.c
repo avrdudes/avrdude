@@ -51,25 +51,20 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    if(str_starts(extended_param, "no_autoreset")) {
-      if(!str_eq(extended_param, "no_autoreset")) {
-        pmsg_error("invalid -xno_autoreset value %s. Use -xno_autoreset\n", extended_param);
-        rv = -1;
-        break;
-      }
+    if(str_eq(extended_param, "noautoreset")) {
       PDATA(pgm)->autoreset = false;
       continue;
     }
 
     if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xattempts=<arg> Specify no. connection retry attempts\n");
-      msg_error("  -xno_autoreset   Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
-      msg_error("  -xhelp           Show this help menu and exit\n");
+      msg_error("  -xattempts=<n> Specify the number <n> of connection retry attempts\n");
+      msg_error("  -xnoautoreset  Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
+      msg_error("  -xhelp         Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter %s\n", extended_param);
     rv = -1;
   }
 
@@ -154,8 +149,7 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   return 0;
 }
 
-static void arduino_close(PROGRAMMER *pgm)
-{
+static void arduino_close(PROGRAMMER *pgm) {
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
