@@ -1,14 +1,19 @@
 #!/usr/bin/env bash
 
+# Part of the AVRDUDE project https://github.com/avrdudes/avrdude
 # Published under GNU General Public License, version 2 (GPL-2.0)
 # Copyright (C) 2007 Johannes Bauer <JohannesBauer@gmx.de>
 # Copyright (C) 2024 Small modifications by Stefan Rueger <stefan.rueger@urclocks.com>
 
 progname=$(basename "$0")
+for pgm in sort grep awk avr-objdump avr-nm; do
+  hash $pgm 2>/dev/null || { echo "$progname: $pgm does not seem to be installed, exiting"; exit 1; }
+done
+
 if [ "$1" == "" ]; then
 cat <<END
 Syntax: $progname <file>.elf
-Function: output a tag file suitable for the terminal disasm -t=<tagfile> command
+Function: output a tagfile suitable for the avrdude disasm -t=<tagfile> command
 Options: none
 END
 exit 1
