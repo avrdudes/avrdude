@@ -1580,7 +1580,7 @@ static void stk500_setup(PROGRAMMER *pgm) {
   else
     PDATA(pgm)->xtal = STK500_XTAL;
   // The -c arduino programmer has auto-reset enabled be default
-  if (str_eq(pgmid, "arduino"))
+  if (str_eq(pgm->type, "Arduino"))
     PDATA(pgm)->autoreset = true;
 }
 
