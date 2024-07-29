@@ -1144,13 +1144,12 @@ static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) 
 #endif  // WIN32
 
 static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
-    LNODEID ln;
-    const char *extended_param;
     int rv = 0;
+    bool help = true;
 
-    for (ln = lfirst(extparms); ln; ln = lnext(ln))
+    for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln))
     {
-        extended_param = ldata(ln);
+        const char *extended_param = ldata(ln);
 
         if (str_starts(extended_param, "clockrate="))
         {
@@ -1167,7 +1166,6 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
 
             pmsg_notice2("pickit2_parseextparms(): clockrate set to 0x%02x\n", clock_rate);
             PDATA(pgm)->clock_period = clock_period;
-
             continue;
         }
 
@@ -1183,19 +1181,25 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
 
             pmsg_notice2("pickit2_parseextparms(): usb timeout set to 0x%02x\n", timeout);
             PDATA(pgm)->transaction_timeout = timeout;
-
             continue;
         }
-        if (str_eq(extended_param, "help")) {
-            msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
-            msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
-            msg_error("  -xhelp            Show this help menu and exit\n");
-            return LIBAVRDUDE_EXIT;;
+
+        if (str_eq(extended_param, "help"))
+        {
+            help = true;
+            rv = LIBAVRDUDE_EXIT;
         }
 
-        pmsg_error("invalid extended parameter '%s'\n", extended_param);
-        rv = -1;
+        if (!help)
+        {
+            pmsg_error("invalid extended parameter '%s'\n", extended_param);
+            rv = -1;
+        }
+        msg_error("%s -c %s extended options:\n", progname, pgmid);
+        msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
+        msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
+        msg_error("  -xhelp            Show this help menu and exit\n");
+        return rv;
     }
 
     return rv;

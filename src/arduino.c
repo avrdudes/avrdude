@@ -38,13 +38,12 @@
 #include "arduino.h"
 
 static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  const char *extended_param;
   int attempts;
   int rv = 0;
   bool help = 0;
 
   for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+    const char *extended_param = ldata(ln);
 
     if (sscanf(extended_param, "attempts=%i", &attempts) == 1) {
       PDATA(pgm)->retry_attempts = attempts;

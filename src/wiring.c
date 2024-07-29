@@ -81,13 +81,12 @@ static void wiring_teardown(PROGRAMMER *pgm) {
 }
 
 static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param, *errstr;
+  const char *errstr;
   int rv = 0;
   bool help = 0;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_starts(extended_param, "snooze=")) {
       int val = str_int(extended_param+7, STR_INT32, &errstr);
@@ -103,7 +102,8 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       int val = str_int(extended_param+6, STR_INT32, &errstr);
       if(errstr) {
         pmsg_error("-x%s: %s\n", extended_param, errstr);
-        return -1;
+        rv = -1;
+        break;
       }
       pmsg_notice2("%s(): delay set to %d ms\n", __func__, val);
       WIRINGPDATA(pgm)->delay = val;

@@ -1334,12 +1334,11 @@ static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (pgm->flag & PGM_FL_IS_JTAG) {
       if (str_eq(extended_param, "jtagchain=")) {
@@ -1356,7 +1355,6 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         PDATA(pgm)->jtagchain[1] = ua;
         PDATA(pgm)->jtagchain[2] = bb;
         PDATA(pgm)->jtagchain[3] = ba;
-
         continue;
       }
     }
@@ -1370,7 +1368,8 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           PDATA(pgm)->rts_mode = RTS_MODE_HIGH;
         } else {
           pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
-          return -1;
+          rv = -1;
+          break;
         }
         continue;
       }
@@ -1378,16 +1377,19 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
 
     if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (pgm->flag & PGM_FL_IS_JTAG)
-        msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if (pgm->flag & PGM_FL_IS_PDI)
-        msg_error("  -xrtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
-      msg_error(  "  -xhelp                  Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter '%s'\n", extended_param);
+      rv = -1;
+    }
+    if (pgm->flag & PGM_FL_IS_JTAG)
+      msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+    if (pgm->flag & PGM_FL_IS_PDI)
+      msg_error("  -xrtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
+    msg_error(  "  -xhelp                  Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

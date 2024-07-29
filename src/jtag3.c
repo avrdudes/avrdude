@@ -1456,12 +1456,11 @@ static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if(str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
@@ -1602,31 +1601,35 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if(str_eq(pgm->type, "JTAGICE3"))
-        msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if(lsize(pgm->hvupdi_support) > 1)
-        msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if(pgm->extra_features & HAS_SUFFER) {
-        msg_error("  -xsuffer                Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_SWITCH) {
-        msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg                 Read on-board target supply voltage\n");
-        msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
-      }
-      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
-      msg_error  ("  -xhelp                  Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if(str_eq(pgm->type, "JTAGICE3"))
+      msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+    if(lsize(pgm->hvupdi_support) > 1)
+      msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
+    if(pgm->extra_features & HAS_SUFFER) {
+      msg_error("  -xsuffer                Read SUFFER register value\n");
+      msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_SWITCH) {
+      msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
+      msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -xvtarg                 Read on-board target supply voltage\n");
+      msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
+    }
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+      msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
+    msg_error  ("  -xhelp                  Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

@@ -641,14 +641,12 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int attempts;
   int rv = 0;
   bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (sscanf(extended_param, "attempts=%i", &attempts) == 1) {
       PDATA(pgm)->retry_attempts = attempts;
