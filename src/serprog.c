@@ -482,7 +482,7 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
 
     if(str_eq(extended_param, "help")) {
       help = true;
-      return LIBAVRDUDE_EXIT;
+      rv = LIBAVRDUDE_EXIT;
     }
 
     if(!help) {
