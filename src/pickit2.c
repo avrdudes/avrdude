@@ -1145,7 +1145,7 @@ static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) 
 
 static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
     int rv = 0;
-    bool help = true;
+    bool help = false;
 
     for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln))
     {
