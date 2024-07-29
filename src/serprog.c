@@ -463,7 +463,7 @@ static int serprog_get_sck_period(const PROGRAMMER *pgm, double *v) {
 
 static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
   int rv = 0;
-  bool help = true;
+  bool help = false;
 
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *extended_param = ldata(ln);
