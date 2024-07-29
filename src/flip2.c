@@ -494,6 +494,8 @@ static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 // Parse the -E option flag
 static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   char *cp, *s, *str = mmt_strdup(sp);
+  int rv = 0;
+  bool help = false;
 
   s = str;
   while ((cp = strtok(s, ","))) {
@@ -506,12 +508,25 @@ static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
       pgm->exit_reset = EXIT_RESET_DISABLED;
       continue;
     }
+    if (str_eq(cp, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if (!help) {
+      pmsg_error("invalid exitspec parameter -E %s\n", cp);
+      rv = -1;
+    }
+    msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+    msg_error("  -E reset   Application will not start automatically after programming session\n");
+    msg_error("  -E noreset Application will start automatically after programming session\n");
+    msg_error("  -E help    Show this help menu and exit\n");
     mmt_free(str);
-    return -1;
+    return rv;
   }
 
   mmt_free(str);
-  return 0;
+  return rv;
 }
 
 static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {

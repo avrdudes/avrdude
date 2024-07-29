@@ -381,6 +381,8 @@ static int linuxspi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 
 static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
     char *cp, *s, *str = mmt_strdup(sp);
+    int rv = 0;
+    bool help = false;
 
     s = str;
     while ((cp = strtok(s, ","))) {
@@ -393,12 +395,25 @@ static int linuxspi_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
             pgm->exit_reset = EXIT_RESET_DISABLED;
             continue;
         }
+        if (str_eq(cp, "help")) {
+            help = true;
+            rv = LIBAVRDUDE_EXIT;
+        }
+
+        if (!help) {
+            pmsg_error("invalid exitspec parameter -E %s\n", cp);
+            rv = -1;
+        }
+        msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+        msg_error("  -E reset   Programmer will keep the reset line low after programming session\n");
+        msg_error("  -E noreset Programmer will not keep the reset line low after programming session\n");
+        msg_error("  -E help    Show this help menu and exit\n");
         mmt_free(str);
-        return -1;
+        return rv;
     }
 
     mmt_free(str);
-    return 0;
+    return rv;
 }
 
 static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {

@@ -1440,11 +1440,14 @@ skipopen:
     if (pgm->parseexitspecs == NULL) {
       pmsg_warning("-E option not supported by this programmer type\n");
       exitspecs = NULL;
-    }
-    else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
-      usage();
-      exitrc = 1;
-      goto main_exit;
+    } else {
+      int rc = pgm->parseexitspecs(pgm, exitspecs);
+      if(rc == LIBAVRDUDE_EXIT)
+        exit(0);
+      if(rc < 0) {
+        pmsg_error("unable to parse list of -E parameters\n");
+        exit(1);
+      }
     }
   }
 
