@@ -1815,7 +1815,7 @@ Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
 programming.  Date and filename are part of the metadata that the urclock
 programmer stores by default in high flash just under the bootloader; see also
--xnometadata.
+-x nometadata.
 .It Ar showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
 .It Ar title=<string>
@@ -1894,14 +1894,14 @@ Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
 available space then a metadata code byte 0xff is stored nevertheless to
 indicate there are no further metadata available. In absence of
--xnometadata, the default for the urclock programmer is to write as much
+-x nometadata, the default for the urclock programmer is to write as much
 metadata (filename, data and store information) as the size of the
 uploaded application and the other extended options allow. The subtle
 difference between -x nometadata and -x nostore is that the latter always
 explicitly stores in flash that no further metadata are available, so that
 a such prepared flash can always be queried with
 .Nm
--xshowall. In contrast to this, it cannot be guaranteed that a -x showall
+-x showall. In contrast to this, it cannot be guaranteed that a -x showall
 query on flash prepared with -x nometadata yields useful results.
 .It Ar delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a

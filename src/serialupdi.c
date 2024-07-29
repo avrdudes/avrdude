@@ -1027,7 +1027,7 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       } else if (str_caseeq(rts_mode, "high")) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
-        pmsg_error("-xrtsdtr=<mode>: RTS/DTR mode must be LOW or HIGH\n");
+        pmsg_error("-x rtsdtr=<mode>: RTS/DTR mode must be LOW or HIGH\n");
         rv = -1;
         break;
       }

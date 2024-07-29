@@ -1311,7 +1311,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   // Manual provision of above bootloader parameters
   if(ur.xbootsize) {
     if(ur.boothigh && ur.xbootsize % ur.uP.pagesize)
-      Return("-xbootsize=%d size not a multiple of flash page size %d",
+      Return("-x bootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
     if(ur.xbootsize < 64 || ur.xbootsize > urmin(8192, ur.uP.flashsize/4))
       Return("implausible -x bootsize=%d, should be in [64, %d]",
@@ -1342,8 +1342,8 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Bootloader that cannot read flash?
     if(ur.blend <= ur.blstart)
-      Return("please specify -x bootsize=<num> and, if needed, %s-xeepromrw",
-        ur.boothigh? "-xvectornum=<num> or ": "");
+      Return("please specify -x bootsize=<num> and, if needed, %s-x eepromrw",
+        ur.boothigh? "-x vectornum=<num> or ": "");
 
   uint16_t v16 = 0xffff, rjmpwp = ret_opcode;
 
@@ -1822,13 +1822,13 @@ static int parseUrclockID(const PROGRAMMER *pgm) {
     int ad, lg;
 
     if(!(strchr("EF", *idstr) && idstr[1] == '.')) {
-      pmsg_warning("-xid=%s string must start with E. or F.\n", ur.iddesc);
+      pmsg_warning("-x id=%s string must start with E. or F.\n", ur.iddesc);
       mmt_free(idstr);
       return -1;
     }
 
     if(!(idlenp = strchr(idstr+2, '.'))) {
-      pmsg_warning("-xid=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
+      pmsg_warning("-x id=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
       mmt_free(idstr);
       return -1;
     }

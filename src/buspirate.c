@@ -372,7 +372,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 				else if (str_caseeq(resetpin, "aux2"))
 					PDATA(pgm)->reset |= BP_RESET_AUX2;
 				else {
-					pmsg_error("-xreset= value must be either CS, AUX or AUX2\n");
+					pmsg_error("-x reset= value must be either CS, AUX or AUX2\n");
 					rv = -1;
 					break;
 				}

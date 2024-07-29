@@ -1222,14 +1222,14 @@ Other JTAG units might require a different bit shift count.
 @var{Power Debugger and Pickit 4 only}
 @*
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
-been set to RESET or GPIO mode. Use @samp{-xhvupdi} to enable high-voltage UPDI
+been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets.
 
 @item @samp{vtarg=VALUE, vtarg}
 @var{Power Debugger only}
 @*
 The voltage generator can be enabled by setting a target voltage.
-The current set-voltage can be read by @samp{-xvtarg} alone.
+The current set-voltage can be read by @samp{-x vtarg} alone.
 
 @item @samp{help}
 Show help menu and exit.
@@ -1245,7 +1245,7 @@ The PICkit 4 and MPLAB SNAP programmers accept the following extended parameters
 @item @samp{mode=avr,pic}
 Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
 programmer can only be utilised by Avrdude when in AVR mode.
-Use @samp{-xmode=avr} for switching to AVR mode, or @samp{-xmode=pic}
+Use @samp{-x mode=avr} for switching to AVR mode, or @samp{-x mode=pic}
 for switching to PIC mode.
 @item @samp{help}
 Show help menu and exit.
@@ -1260,7 +1260,7 @@ following extended parameters:
 @table @code
 @item @samp{suffer=VALUE}, @samp{suffer}
 The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
-The current state can be read by @samp{-xsuffer} alone.
+The current state can be read by @samp{-x suffer} alone.
 @table @code
 @item Bit 7 ARDUINO:
 Adds control of extra LEDs when set to 0
@@ -1278,7 +1278,7 @@ Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 @table @code
 @item @samp{vtarg_switch=VALUE}, @samp{vtarg_switch}
 The on-board target voltage switch can be turned on or off by writing a 1 or
-a 0. The current state can be read by @samp{-xvtarg_switch} alone.
+a 0. The current state can be read by @samp{-x vtarg_switch} alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
 
@@ -1293,7 +1293,7 @@ The Curiosity Nano board accepts the following extended parameter:
 @table @code
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
-The current set-voltage can be read by @samp{-xvtarg} alone.
+The current set-voltage can be read by @samp{-x vtarg} alone.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1307,21 +1307,21 @@ The STK500 and STK600 boards accept the following extended parameters:
 @table @code
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
-The current set-voltage can be read by @samp{-xvtarg} alone.
+The current set-voltage can be read by @samp{-x vtarg} alone.
 @item @samp{fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc}
 Set the programmable oscillator frequency in MHz, kHz or Hz.
-The current frequency can be read by @samp{-xfosc} alone.
+The current frequency can be read by @samp{-x fosc} alone.
 @item @samp{varef=VALUE, varef}
 The generated on-board analog reference voltage can be changed by specifying
 a new reference voltage. The current reference voltage can be read by
-@samp{-xvaref} alone.
+@samp{-x varef} alone.
 @item @samp{varef[0,1]=VALUE, varef[0,1]}
 @var{STK600 only}
 @*
 The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
-The current reference voltage can be read by @samp{-xvaref0} or
-@samp{-xvaref1} alone.
+The current reference voltage can be read by @samp{-x varef0} or
+@samp{-x varef1} alone.
 @item @samp{attemps[=<1..99>]}
 @var{STK500V1 only}
 @*
@@ -1374,7 +1374,7 @@ Show help menu and exit.
 The urclock programmer type accepts the following extended parameters:
 @table @code
 @item @samp{showall}
-Show all info for the connected part, then exit. The @code{-xshow...} options
+Show all info for the connected part, then exit. The @code{-x show...} options
 below can be used to assemble a bespoke response consisting of a subset
 (or only one item) of all available relevant information about the
 connected part and bootloader.
@@ -1383,7 +1383,7 @@ Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
 @item @samp{id=<E|F>.<addr>.<len>}
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
-number can be set by the @code{-xid=<E|F>.<addr>.<len>} extended parameter. @code{E}
+number can be set by the @code{-x id=<E|F>.<addr>.<len>} extended parameter. @code{E}
 stands for EEPROM and @code{F} stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
@@ -1392,7 +1392,7 @@ Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
 programming. Date and filename are part of the metadata that the urclock
 programmer stores by default in high flash just under the bootloader; see also
-@code{-xnometadata}.
+@code{-x nometadata}.
 @item @samp{showfilename}
 Show the input filename (or title) of the last flash writing session, then exit.
 @item @samp{title=<string>}
@@ -1449,7 +1449,7 @@ Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
-However, for vector bootloaders, even under the option @code{-xrestore} an
+However, for vector bootloaders, even under the option @code{-x restore} an
 input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
@@ -1471,14 +1471,14 @@ Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
 available space then a metadata code byte @code{0xff} is stored
 nevertheless to indicate there are no further metadata available. In
-absence of @code{-xnometadata}, the default for the urclock programmer is
+absence of @code{-x nometadata}, the default for the urclock programmer is
 to write as much metadata (filename, data and store information) as the
 size of the uploaded application and the other extended options allow. The
-subtle difference between @code{-xnometadata} and @code{-xnostore} is that
+subtle difference between @code{-x nometadata} and @code{-x nostore} is that
 the latter always explicitly stores in flash that no further metadata are
 available, so that a such prepared flash can always be queried with
 @code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
-that a @code{-x showall} query on flash prepared with @code{-xnometadata}
+that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
@@ -1488,7 +1488,7 @@ shortened accordingly.
 @item @samp{strict}
 Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
-with this, and they need the @code{-xstrict} option.
+with this, and they need the @code{-x strict} option.
 @item @samp{help}
 Show help menu and exit.
 @end table

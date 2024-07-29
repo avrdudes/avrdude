@@ -1905,10 +1905,10 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         }
         else if (str_contains(pgm->type, "STK600")) {
           msg_error("  -x varef          Read channel 0 analog reference voltage\n");
-          msg_error("  -x varef0         Alias for -xvaref\n");
+          msg_error("  -x varef0         Alias for -x varef\n");
           msg_error("  -x varef1         Read channel 1 analog reference voltage\n");
           msg_error("  -x varef=<dbl>    Set channel 0 analog reference voltage to <dbl> V\n");
-          msg_error("  -x varef0=<dbl>   Alias for -xvaref=<dbl>\n");
+          msg_error("  -x varef0=<dbl>   Alias for -x varef=<dbl>\n");
           msg_error("  -x varef1=<dbl>   Set channel 1 analog reference voltage to <dbl> V\n");
         }
       }
