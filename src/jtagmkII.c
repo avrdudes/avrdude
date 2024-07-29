@@ -1341,10 +1341,10 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     const char *extended_param = ldata(ln);
 
     if (pgm->flag & PGM_FL_IS_JTAG) {
-      if (str_eq(extended_param, "jtagchain=")) {
+      if (str_starts(extended_param, "jtagchain=")) {
         unsigned int ub, ua, bb, ba;
         if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-          pmsg_error("invalid JTAG chain '%s'\n", extended_param);
+          pmsg_error("invalid JTAG chain in -x %s\n", extended_param);
           rv = -1;
           continue;
         }
@@ -1381,14 +1381,14 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     if (!help) {
-      pmsg_error("invalid extended parameter '%s'\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rv = -1;
     }
     if (pgm->flag & PGM_FL_IS_JTAG)
-      msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+      msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
     if (pgm->flag & PGM_FL_IS_PDI)
-      msg_error("  -xrtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
-    msg_error(  "  -xhelp                  Show this help menu and exit\n");
+      msg_error("  -x rtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
+    msg_error(  "  -x help                  Show this help menu and exit\n");
     return rv;
   }
 

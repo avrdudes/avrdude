@@ -343,7 +343,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        pmsg_error("invalid -P value: '%s'\n", port);
+        pmsg_error("invalid -P value: %s\n", port);
         imsg_error("Use -P usb:bus:device\n");
         return -1;
     }
@@ -561,13 +561,13 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
 
         if (!help)
         {
-            pmsg_error("invalid extended parameter '%s'\n", extended_param);
+            pmsg_error("invalid extended parameter -x %s\n", extended_param);
             rv =  -1;
         }
         msg_error("%s -c %s extended options:\n", progname, pgmid);
-        msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
-        msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
-        msg_error("  -xhelp       Show this help menu and exit\n");
+        msg_error("  -x wait     Wait for the device to be plugged in if not connected\n");
+        msg_error("  -x wait=<n> Wait <n> s for the device to be plugged in if not connected\n");
+        msg_error("  -x help     Show this help menu and exit\n");
         return rv;
     }
 

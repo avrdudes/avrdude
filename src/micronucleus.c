@@ -900,13 +900,13 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
 
         if (!help)
         {
-            pmsg_error("invalid extended parameter '%s'\n", extended_param);
+            pmsg_error("invalid extended parameter -x %s\n", extended_param);
             rv = -1;
         }
         msg_error("%s -c %s extended options:\n", progname, pgmid);
-        msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
-        msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
-        msg_error("  -xhelp       Show this help menu and exit\n");
+        msg_error("  -x wait     Wait for the device to be plugged in if not connected\n");
+        msg_error("  -x wait=<n> Wait <n> s for the device to be plugged in if not connected\n");
+        msg_error("  -x help     Show this help menu and exit\n");
         return rv;
     }
 

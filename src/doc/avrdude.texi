@@ -1424,7 +1424,7 @@ i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
-@item @samp{vectornum=<arg>}
+@item @samp{vectornum=<n>}
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1477,8 +1477,8 @@ size of the uploaded application and the other extended options allow. The
 subtle difference between @code{-xnometadata} and @code{-xnostore} is that
 the latter always explicitly stores in flash that no further metadata are
 available, so that a such prepared flash can always be queried with
-@code{avrdude -xshowall}. In contrast to this, it cannot be guaranteed
-that a @code{-xshowall} query on flash prepared with @code{-xnometadata}
+@code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
+that a @code{-x showall} query on flash prepared with @code{-xnometadata}
 yields useful results.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
@@ -2165,7 +2165,7 @@ Valid programmers for part AVR32EA32 are:
 @smallexample
 @cartouche
 
-$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -xshowdate -xshowfilename
+$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -x showdate -x showfilename
 
 2023-05-19 11.13 blink.hex
 

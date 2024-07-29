@@ -252,7 +252,7 @@ static void usage(void)
     "  -n                     Do not write to the device whilst processing -U\n"
     "  -V                     Do not automatically verify during -U\n"
     "  -E <exitsp>[,<exitsp>] List programmer exit specifications\n"
-    "  -x <extended_param>    Pass <extended_param> to programmer, see -xhelp\n"
+    "  -x <extended_param>    Pass <extended_param> to programmer, see -x help\n"
     "  -v                     Verbose output; -v -v for more\n"
     "  -q                     Quell progress output; -q -q for less\n"
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
@@ -900,7 +900,7 @@ int main(int argc, char * argv [])
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
-          pmsg_error("unable to parse update operation '%s'\n", optarg);
+          pmsg_error("unable to parse update operation %s\n", optarg);
           exit(1);
         }
         ladd(updates, upd);
@@ -1248,7 +1248,7 @@ int main(int argc, char * argv [])
         const char *extended_param = ldata(ln);
         if (str_eq(extended_param, "help")) {
           msg_error("%s -c %s extended options:\n", progname, pgmid);
-          msg_error("  -xhelp    Show this help menu and exit\n");
+          msg_error("  -x help  Show this help menu and exit\n");
           exit(0);
         }
         else
@@ -1259,7 +1259,7 @@ int main(int argc, char * argv [])
       if(rc == LIBAVRDUDE_EXIT)
         exit(0);
       if(rc < 0) {
-        pmsg_error("unable to parse extended parameter list\n");
+        pmsg_error("unable to parse list of -x parameters\n");
         exit(1);
       }
     }

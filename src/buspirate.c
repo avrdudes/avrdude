@@ -372,9 +372,9 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 				else if (str_caseeq(resetpin, "aux2"))
 					PDATA(pgm)->reset |= BP_RESET_AUX2;
 				else {
-					pmsg_error("reset must be either CS or AUX\n");
+					pmsg_error("-xreset= value must be either CS, AUX or AUX2\n");
 					rv = -1;
-				  break;
+					break;
 				}
 			}
 			PDATA(pgm)->flag |= BP_FLAG_XPARM_RESET;
@@ -407,21 +407,21 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 		}
 
 		if (!help) {
-      pmsg_error("invalid extended parameter %s\n", extended_param);
-      rv = -1;
+			pmsg_error("invalid extended parameter -x %s\n", extended_param);
+			rv = -1;
 		}
 		msg_error("%s -c %s extended options:\n", progname, pgmid);
-		msg_error("  -xreset=cs,aux,aux2         Override default reset pin\n");
-		msg_error("  -xspifreq=<0..7>            Set binary SPI mode speed\n");
-		msg_error("  -xrawfreq=<0..3>            Set \"raw-wire\" SPI mode speed\n");
-		msg_error("  -xascii                     Use ASCII protocol between BP and Avrdude\n");
-		msg_error("  -xnopagedwrite              Disable page write functionality\n");
-		msg_error("  -xnopagedread               Disable page read functionality\n");
-		msg_error("  -xcpufreq=<125..4000>       Set the AUX pin to output a frequency to n [kHz]\n");
-		msg_error("  -xserial_recv_timeout=<arg> Set serial receive timeout to <arg> [ms]\n");
-		msg_error("  -xpullups                   Enable internal pull-ups\n");
-		msg_error("  -xhiz                       SPI HiZ mode (open collector)\n");
-		msg_error("  -xhelp                      Show this help menu and exit\n");
+		msg_error("  -x reset=[cs|aux|aux2]     Override default reset pin\n");
+		msg_error("  -x spifreq=<0..7>          Set binary SPI mode speed\n");
+		msg_error("  -x rawfreq=<0..3>          Set \"raw-wire\" SPI mode speed\n");
+		msg_error("  -x ascii                   Use ASCII protocol between BP and Avrdude\n");
+		msg_error("  -x nopagedwrite            Disable page write functionality\n");
+		msg_error("  -x nopagedread             Disable page read functionality\n");
+		msg_error("  -x cpufreq=<125..4000>     Set the AUX pin to output a frequency to <n> kHz\n");
+		msg_error("  -x serial_recv_timeout=<n> Set serial receive timeout to <n> ms\n");
+		msg_error("  -x pullups                 Enable internal pull-ups\n");
+		msg_error("  -x hiz                     SPI HiZ mode (open collector)\n");
+		msg_error("  -x help                    Show this help menu and exit\n");
 		return rv;
 	}
 
@@ -560,7 +560,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 5);
 	if (sscanf((const char*)buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
-		pmsg_error("binary mode not confirmed: '%s'\n", buf);
+		pmsg_error("binary mode not confirmed: %s\n", buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
@@ -598,7 +598,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 4);
 	if (sscanf((const char*)buf, submode.entered_format, &PDATA(pgm)->submode_version) != 1) {
-		pmsg_error("%s mode not confirmed: '%s'\n", submode.name, buf);
+		pmsg_error("%s mode not confirmed: %s\n", submode.name, buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
@@ -1193,7 +1193,7 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 5);
 	if (sscanf((char*)buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
-		pmsg_error("binary mode not confirmed: '%s'\n", buf);
+		pmsg_error("binary mode not confirmed: %s\n", buf);
 		buspirate_reset_from_binmode(pgm);
 		return;
 	}

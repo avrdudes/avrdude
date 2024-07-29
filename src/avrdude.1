@@ -1652,14 +1652,14 @@ Other JTAG units might require a different bit shift count.
 .sp 0.5
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use
-.Ar -xhvupdi
+.Ar -x hvupdi
 to enable high-voltage UPDI initialization for targets that supports this.
 .It Ar vtarg=VALUE, vtarg
 .Nm Power Debugger only
 .sp 0.5
 The voltage generator can be enabled by setting a target voltage.
 The current set-voltage can be read by
-.Ar -xvtarg
+.Ar -x vtarg
 alone.
 .It Ar help
 Show help menu and exit.
@@ -1672,9 +1672,9 @@ Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
 programmer can only be utilised by
 .Nm
 when in AVR mode. Use
-.Ar -xmode=avr
+.Ar -x mode=avr
 for switching to AVR mode, or
-.Ar -xmode=pic
+.Ar -x mode=pic
 for switching to PIC mode.
 .It Ar help
 Show help menu and exit.
@@ -1684,7 +1684,7 @@ Show help menu and exit.
 .It Ar suffer=VALUE, suffer
 The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
 The current state can be read by
-.Ar -xsuffer
+.Ar -x suffer
 alone.
 .Bl -tag -offset indent -width indent
 .It Bit 7 ARDUINO:
@@ -1704,7 +1704,7 @@ Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 .It Ar vtarg_switch=VALUE, vtarg_switch
 The on-board target voltage switch can be turned on or off by writing a 1 or
 a 0. The current state can be read by
-.Ar -xvtarg_switch
+.Ar -x vtarg_switch
 alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
@@ -1716,7 +1716,7 @@ Show help menu and exit.
 .It Ar vtarg=VALUE, vtarg
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by
-.Ar -xvtarg
+.Ar -x vtarg
 alone.
 .It Ar help
 Show help menu and exit.
@@ -1727,16 +1727,16 @@ Show help menu and exit.
 .It Ar vtarg=VALUE, vtarg
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by
-.Ar -xvtarg
+.Ar -x vtarg
 alone.
 .It Ar fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc
 Set the programmable oscillator frequency. The current frequency can be read by
-.Ar -xfosc
+.Ar -x fosc
 alone.
 .It Ar varef=VALUE, varef
 The generated on-board analog reference voltage can be changed by specifying
 a new reference voltage. The current reference voltage can be read by
-.Ar -xvaref
+.Ar -x varef
 alone.
 .It Ar varef[0,1]=VALUE, varef[0,1]
 .Nm STK600 only
@@ -1744,9 +1744,9 @@ alone.
 The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
 The current reference voltage can be read by
-.Ar -xvaref0
+.Ar -x varef0
 or
-.Ar -xvaref1
+.Ar -x varef1
 alone.
 .It Ar attemps[=<1..99>]
 .Nm STK500V1 only
@@ -1797,7 +1797,7 @@ Show help menu and exit.
 .It Ar Urclock
 .Bl -tag -offset indent -width indent
 .It Ar showall
-Show all info for the connected part, then exit. The -xshow... options
+Show all info for the connected part, then exit. The -x show... options
 below can be used to assemble a bespoke response consisting of a subset
 (or only one item) of all available relevant information about the
 connected part and bootloader.
@@ -1806,7 +1806,7 @@ Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
 .It Ar id=<E|F>.<addr>.<len>
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
-number can be set by the -xid=<E|F>.<addr>.<len> extended parameter. E
+number can be set by the -x id=<E|F>.<addr>.<len> extended parameter. E
 stands for EEPROM and F stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
@@ -1847,7 +1847,7 @@ i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
-.It Ar vectornum=<arg>
+.It Ar vectornum=<n>
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1872,7 +1872,7 @@ Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
-However, for vector bootloaders, even under the option -xrestore an
+However, for vector bootloaders, even under the option -x restore an
 input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
@@ -1897,12 +1897,12 @@ indicate there are no further metadata available. In absence of
 -xnometadata, the default for the urclock programmer is to write as much
 metadata (filename, data and store information) as the size of the
 uploaded application and the other extended options allow. The subtle
-difference between -xnometadata and -xnostore is that the latter always
+difference between -x nometadata and -x nostore is that the latter always
 explicitly stores in flash that no further metadata are available, so that
 a such prepared flash can always be queried with
 .Nm
--xshowall. In contrast to this, it cannot be guaranteed that a -xshowall
-query on flash prepared with -xnometadata yields useful results.
+-xshowall. In contrast to this, it cannot be guaranteed that a -x showall
+query on flash prepared with -x nometadata yields useful results.
 .It Ar delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
@@ -1911,7 +1911,7 @@ shortened accordingly.
 .It Ar strict
 Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
-with this, and they need the -xstrict option.
+with this, and they need the -x strict option.
 .It Ar help
 Show help menu and exit.
 .El

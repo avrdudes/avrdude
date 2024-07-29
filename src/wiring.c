@@ -91,17 +91,19 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     if (str_starts(extended_param, "snooze=")) {
       int val = str_int(extended_param+7, STR_INT32, &errstr);
       if(errstr || val < 0) {
-        pmsg_error("-x%s: %s\n", extended_param, errstr? errstr: "snooze time cannot be negative");
+        pmsg_error("-x %s: %s\n", extended_param, errstr? errstr: "snooze time cannot be negative");
         rv = -1;
-        continue;
+        break;
       }
       pmsg_notice2("%s(): snooze time set to %d ms\n", __func__, val);
       WIRINGPDATA(pgm)->snoozetime = val;
       continue;
-    } else if (str_starts(extended_param, "delay=")) {
+    }
+
+    if (str_starts(extended_param, "delay=")) {
       int val = str_int(extended_param+6, STR_INT32, &errstr);
       if(errstr) {
-        pmsg_error("-x%s: %s\n", extended_param, errstr);
+        pmsg_error("-x %s: %s\n", extended_param, errstr);
         rv = -1;
         break;
       }
@@ -109,24 +111,26 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       WIRINGPDATA(pgm)->delay = val;
       continue;
     }
-    else if(str_eq(extended_param, "noautoreset")) {
+
+    if(str_eq(extended_param, "noautoreset")) {
       WIRINGPDATA(pgm)->autoreset = false;
       continue;
     }
-    else if (str_eq(extended_param, "help")) {
+
+    if (str_eq(extended_param, "help")) {
       help = true;
       rv = LIBAVRDUDE_EXIT;
     }
 
     if (!help) {
-      pmsg_error("invalid extended parameter %s\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -xsnooze=<n>  Wait snooze <n> ms before protocol sync after port open\n");
-    msg_error("  -xdelay=<n>   Add delay [n] ms after reset, can be negative\n");
-    msg_error("  -xnoautoreset Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
-    msg_error("  -xhelp        Show this help menu and exit\n");
+    msg_error("  -x snooze=<n>   Wait snooze <n> ms before protocol sync after port open\n");
+    msg_error("  -x delay=<n>    Add delay [n] ms after reset, can be negative\n");
+    msg_error("  -x noautoreset  Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
+    msg_error("  -x help         Show this help menu and exit\n");
     return rv;
   }
 
@@ -175,7 +179,7 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
   stk500v2_drain(pgm, 0);
 
   if (stk500v2_getsync(pgm) < 0) {
-    pmsg_error("stk500v2_getsync() failed; try -xdelay=n with some n in [-80, 100]\n");
+    pmsg_error("stk500v2_getsync() failed; try -x delay=n with some n in [-80, 100]\n");
     return -1;
   }
 

@@ -713,12 +713,12 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     if (!help) {
-      pmsg_error("invalid extended parameter %s\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -xautoreset Toggle RTS/DTR lines on port open to issue a hardware reset\n");
-    msg_error("  -xhelp      Show this help menu and exit\n");
+    msg_error("  -x autoreset  Toggle RTS/DTR lines on port open to issue a hardware reset\n");
+    msg_error("  -x help       Show this help menu and exit\n");
     return rv;
   }
 

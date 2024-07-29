@@ -296,12 +296,12 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
     if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
-      msg_error("  -xhelp           Show this help menu and exit\n");
+      msg_error("  -x section_config  Erase configuration section only with -e (TPI only)\n");
+      msg_error("  -x help            Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter -x %s\n", extended_param);
     rv = -1;
   }
 

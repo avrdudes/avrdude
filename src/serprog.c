@@ -473,8 +473,9 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
       unsigned int cs;
 
       if(sscanf(extended_param, "cs=%u", &cs) != 1) {
-        pmsg_error("invalid chip select '%s'\n", extended_param);
+        pmsg_error("invalid chip select in -x %s\n", extended_param);
         rv = -1;
+        break;
       }
       my.cs = cs;
       continue;
@@ -482,12 +483,12 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
 
     if(str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xcs=cs_num    Sets the chip select (CS) to use on supported programmers\n");
-      msg_error("  -xhelp         Show this help menu and exit\n");
+      msg_error("  -x cs=<n> Sets the chip select line to CS<n> for supported programmers\n");
+      msg_error("  -x help   Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
+    pmsg_error("invalid extended parameter -x %s\n", extended_param);
     rv = -1;
   }
 

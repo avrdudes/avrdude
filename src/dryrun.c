@@ -1067,18 +1067,18 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(!help) {
-      pmsg_error("invalid extended parameter '%s'\n", xpara);
+      pmsg_error("invalid extended parameter -x %s\n", xpara);
       rc = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -xinit     Initialise memories with human-readable patterns (1, 2, 3)\n");
-    msg_error("  -xrandom   Initialise memories with random code/values (1, 3)\n");
-    msg_error("  -xseed=<n> Seed random number generator with <n>, default time(NULL)\n");
-    msg_error("  -xhelp     Show this help menu and exit\n");
+    msg_error("  -x init     Initialise memories with human-readable patterns (1, 2, 3)\n");
+    msg_error("  -x random   Initialise memories with random code/values (1, 3)\n");
+    msg_error("  -x seed=<n> Seed random number generator with <n>, n>0, default time(NULL)\n");
+    msg_error("  -x help     Show this help menu and exit\n");
     msg_error("Notes:\n");
-    msg_error("  (1) -xinit and -xrandom randomly configure flash wrt boot/data/code length\n");
+    msg_error("  (1) -x init and -x random randomly configure flash wrt boot/data/code length\n");
     msg_error("  (2) Patterns can best be seen with fixed-width font on -U flash:r:-:I\n");
-    msg_error("  (3) Choose, eg, -xseed=1 for reproducible flash configuration and output\n");
+    msg_error("  (3) Choose, eg, -x seed=1 for reproducible flash configuration and output\n");
     return rc;
   }
 

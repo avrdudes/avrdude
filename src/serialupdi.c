@@ -1027,7 +1027,7 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       } else if (str_caseeq(rts_mode, "high")) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
-        pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
+        pmsg_error("-xrtsdtr=<mode>: RTS/DTR mode must be LOW or HIGH\n");
         rv = -1;
         break;
       }
@@ -1040,12 +1040,12 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
     }
 
     if (!help) {
-      pmsg_error("invalid extended parameter '%s'\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -xrtsdtr=low,high Force RTS/DTR lines low or high state during programming\n");
-    msg_error("  -xhelp            Show this help menu and exit\n");
+    msg_error("  -x rtsdtr=[low|high] Set RTS/DTR lines low/high during programming\n");
+    msg_error("  -x help              Show this help menu and exit\n");
     return rv;
   }
 

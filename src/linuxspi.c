@@ -419,12 +419,12 @@ static int linuxspi_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     if (!help) {
-      pmsg_error("invalid extended parameter '%s'\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rc = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -xdisable_no_cs Do not use the SPI_NO_CS bit for the SPI driver\n");
-    msg_error("  -xhelp          Show this help menu and exit\n");
+    msg_error("  -x disable_no_cs Do not use the SPI_NO_CS bit for the SPI driver\n");
+    msg_error("  -x help          Show this help menu and exit\n");
     return rc;
   }
 

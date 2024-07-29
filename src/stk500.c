@@ -654,14 +654,14 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
 
-    else if (str_starts(extended_param, "vtarg")) {
+    if (str_starts(extended_param, "vtarg")) {
       if ((pgm->extra_features & HAS_VTARG_ADJ) && (str_starts(extended_param, "vtarg=")))  {
         // Set target voltage
         double vtarg_set_val = -1; // default = invlid value
         int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
         PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
         if (sscanf_success < 1 || vtarg_set_val < 0) {
-          pmsg_error("invalid vtarg value %s\n", extended_param);
+          pmsg_error("invalid target voltage in -x %s\n", extended_param);
           rv = -1;
           break;
         }
@@ -697,7 +697,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         if (PDATA(pgm)->varef_set) {
           PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || varef_set_val < 0) {
-            pmsg_error("invalid varef value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             PDATA(pgm)->varef_set = false;
             rv = -1;
             break;
@@ -715,7 +715,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           // allow spaces in fosc_str
           int sscanf_success = sscanf(extended_param, "fosc=%15[0-9.eE MmKkHhZzof]", fosc_str);
           if (sscanf_success < 1) {
-            pmsg_error("invalid fosc value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -724,13 +724,12 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           if (endp == fosc_str){ // no number
             while ( *endp == ' ' ) // remove leading spaces
               ++endp;
-            if (str_starts(endp, "off"))
-              PDATA(pgm)->fosc_data = 0.0;
-            else {
-              pmsg_error("invalid fosc value %s\n", fosc_str);
+            if (!str_eq(endp, "off")) {
+              pmsg_error("invalid -x fosc=%s value\n", fosc_str);
               rv = -1;
               break;
             }
+            PDATA(pgm)->fosc_data = 0.0;
           }
           while ( *endp == ' ' ) // remove leading spaces before unit
             ++endp;
@@ -757,14 +756,14 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         char xtal_str[16] = {0};
         int sscanf_success = sscanf(extended_param, "xtal=%15[0-9.eE MmKkHhZz]", xtal_str);
         if (sscanf_success < 1) {
-          pmsg_error("invalid xtal value %s\n", extended_param);
+          pmsg_error("invalid value in -x %s\n", extended_param);
           rv = -1;
           break;
         }
         char *endp;
         double v = strtod(xtal_str, &endp);
         if (endp == xtal_str){
-          pmsg_error("invalid xtal value %s\n", xtal_str);
+          pmsg_error("invalid -x xtal=%s value\n", xtal_str);
           rv = -1;
           break;
         }
@@ -786,27 +785,28 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if (!help) {
-      pmsg_error("invalid extended parameter %s\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -xattempts=<n>        Specify the number <n> of connection retry attempts\n");
+    msg_error("  -x attempts=<n>   Specify the number <n> of connection retry attempts\n");
     if (pgm->extra_features & HAS_VTARG_READ) {
-      msg_error("  -xvtarg               Read target supply voltage\n");
+      msg_error("  -x vtarg          Read target supply voltage\n");
     }
     if (pgm->extra_features & HAS_VTARG_ADJ) {
-      msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>    Set target supply voltage to <dbl> V\n");
     }
     if (pgm->extra_features & HAS_VAREF_ADJ) {
-      msg_error("  -xvaref               Read analog reference voltage\n");
-      msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
+      msg_error("  -x varef          Read analog reference voltage\n");
+      msg_error("  -x varef=<dbl>    Set analog reference voltage to <dbl> V\n");
     }
     if (pgm->extra_features & HAS_FOSC_ADJ) {
-      msg_error("  -xfosc                Read oscillator clock frequency\n");
-      msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
+      msg_error("  -x fosc           Read oscillator clock frequency\n");
+      msg_error("  -x fosc=<n>[unit] Set oscillator clock frequency to <n> Hz (or kHz/MHz)\n");
+      msg_error("  -x fosc=off       Switch the oscillator clock off\n");
     }
-    msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
-    msg_error("  -xhelp                Show this help menu and exit\n");
+    msg_error("  -x xtal=<n>[unit] Set programmer xtal frequency to <n> Hz (or kHz/MHz)\n");
+    msg_error("  -x help           Show this help menu and exit\n");
     return rv;
   }
 
