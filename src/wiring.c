@@ -83,7 +83,8 @@ static void wiring_teardown(PROGRAMMER *pgm) {
 static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param, *errstr;
-  int rv = 0, help = 0;
+  int rv = 0;
+  bool help = 0;
 
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -113,7 +114,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
     else if (str_eq(extended_param, "help")) {
-      help = 1;
+      help = true;
       rv = LIBAVRDUDE_EXIT;
     }
 

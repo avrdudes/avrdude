@@ -644,7 +644,8 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param;
   int attempts;
-  int rv = 0, help = 0;
+  int rv = 0;
+  bool help = false;
 
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -782,7 +783,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     else if (str_eq(extended_param, "help")) {
-      help = 1;
+      help = true;
       rv =  LIBAVRDUDE_EXIT;
     }
 

@@ -696,7 +696,8 @@ static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, con
 
 static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   const char *extended_param;
-  int rv = 0, help = 0;
+  int rv = 0;
+  bool help = 0;
 
   for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -707,7 +708,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     if (str_eq(extended_param, "help")) {
-      help = 1;
+      help = true;
       rv = LIBAVRDUDE_EXIT;
     }
 
