@@ -640,15 +640,14 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   return pgm->program_enable(pgm, p);
 }
 
-static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
- {
-   LNODEID ln;
-   const char *extended_param;
-   int attempts;
-   int rv = 0;
+static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  LNODEID ln;
+  const char *extended_param;
+  int attempts;
+  int rv = 0, help = 0;
 
-   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-     extended_param = ldata(ln);
+  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
 
     if (sscanf(extended_param, "attempts=%i", &attempts) == 1) {
       PDATA(pgm)->retry_attempts = attempts;
@@ -783,33 +782,37 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xattempts=<n>        Specify the number <n> of connection retry attempts\n");
-      if (pgm->extra_features & HAS_VTARG_READ) {
-        msg_error("  -xvtarg               Read target supply voltage\n");
-      }
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
-      }
-      if (pgm->extra_features & HAS_VAREF_ADJ) {
-        msg_error("  -xvaref               Read analog reference voltage\n");
-        msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
-      }
-      if (pgm->extra_features & HAS_FOSC_ADJ) {
-        msg_error("  -xfosc                Read oscillator clock frequency\n");
-        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
-      }
-      msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
-      msg_error("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = 1;
+      rv =  LIBAVRDUDE_EXIT;
     }
 
-     pmsg_error("invalid extended parameter %s\n", extended_param);
-     rv = -1;
-   }
+    if (!help) {
+      pmsg_error("invalid extended parameter %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -xattempts=<n>        Specify the number <n> of connection retry attempts\n");
+    if (pgm->extra_features & HAS_VTARG_READ) {
+      msg_error("  -xvtarg               Read target supply voltage\n");
+    }
+    if (pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
+    }
+    if (pgm->extra_features & HAS_VAREF_ADJ) {
+      msg_error("  -xvaref               Read analog reference voltage\n");
+      msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
+    }
+    if (pgm->extra_features & HAS_FOSC_ADJ) {
+      msg_error("  -xfosc                Read oscillator clock frequency\n");
+      msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
+    }
+    msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
+    msg_error("  -xhelp                Show this help menu and exit\n");
+    return rv;
+  }
 
-   return rv;
- }
+  return rv;
+}
 
 static void stk500_disable(const PROGRAMMER *pgm) {
   unsigned char buf[16];

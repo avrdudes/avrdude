@@ -83,7 +83,7 @@ static void wiring_teardown(PROGRAMMER *pgm) {
 static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   LNODEID ln;
   const char *extended_param, *errstr;
-  int rv = 0;
+  int rv = 0, help = 0;
 
   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -113,16 +113,20 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
     else if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xsnooze=<n>  Wait snooze <n> ms before protocol sync after port open\n");
-      msg_error("  -xdelay=<n>   Add delay [n] ms after reset, can be negative\n");
-      msg_error("  -xnoautoreset Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
-      msg_error("  -xhelp        Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = 1;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -xsnooze=<n>  Wait snooze <n> ms before protocol sync after port open\n");
+    msg_error("  -xdelay=<n>   Add delay [n] ms after reset, can be negative\n");
+    msg_error("  -xnoautoreset Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
+    msg_error("  -xhelp        Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

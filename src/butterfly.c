@@ -696,7 +696,7 @@ static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, con
 
 static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   const char *extended_param;
-  int rv = 0;
+  int rv = 0, help = 0;
 
   for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -707,14 +707,18 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xautoreset Toggle RTS/DTR lines on port open to issue a hardware reset\n");
-      msg_error("  -xhelp      Show this help menu and exit\n");
-      exit(0);
+      help = 1;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -xautoreset Toggle RTS/DTR lines on port open to issue a hardware reset\n");
+    msg_error("  -xhelp      Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

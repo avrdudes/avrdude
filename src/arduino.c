@@ -40,7 +40,7 @@
 static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
   const char *extended_param;
   int attempts;
-  int rv = 0;
+  int rv = 0, help = 0;
 
   for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     extended_param = ldata(ln);
@@ -57,17 +57,20 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xattempts=<n> Specify the number <n> of connection retry attempts\n");
-      msg_error("  -xnoautoreset  Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
-      msg_error("  -xhelp         Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;
+      help = 1;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -xattempts=<n> Specify the number <n> of connection retry attempts\n");
+    msg_error("  -xnoautoreset  Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
+    msg_error("  -xhelp         Show this help menu and exit\n");
+    return rv;
   }
-
   return rv;
 }
 
