@@ -269,16 +269,16 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
     );
     if(is_disasm) {
       struct { char ochr[2]; const char *info[2]; } opts[] = {
-        {{'g', 'G'}, {"generate avr-gcc source: sets -sOFQ", "don't create gcc source"}},
-        {{'a', 'A'}, {"show addresses", "don't show addresses"}},
-        {{'o', 'O'}, {"show opcode bytes", "don't show opcode bytes"}},
-        {{'c', 'C'}, {"show comments", "don't show comments"}},
-        {{'f', 'F'}, {"show affected flags in SREG", "don't show SREG flags"}},
-        {{'q', 'Q'}, {"show cycles", "don't show cycles"}},
-        {{'n', 'N'}, {"put opcode full name into comment", "don't show full name"}},
-        {{'e', 'E'}, {"put explanation into comment", "don't show explanation"}},
+        {{'g', 'G'}, {"generate avr-gcc source: sets -sOFQ", "do not create gcc source"}},
+        {{'a', 'A'}, {"show addresses", "do not show addresses"}},
+        {{'o', 'O'}, {"show opcode bytes", "do not show opcode bytes"}},
+        {{'c', 'C'}, {"show comments", "do not show comments"}},
+        {{'f', 'F'}, {"show affected flags in SREG", "do not show SREG flags"}},
+        {{'q', 'Q'}, {"show cycles", "do not show cycles"}},
+        {{'n', 'N'}, {"put opcode full name into comment", "do not show full names"}},
+        {{'e', 'E'}, {"put explanation into comment", "do not show explanation"}},
         {{'s', 'S'}, {"use avr-gcc code style", "use AVR instruction set style"}},
-        {{'l', 'L'}, {"preprocess jump/call labels", "don't preprocess labels"}},
+        {{'l', 'L'}, {"preprocess jump/call labels", "do not preprocess labels"}},
         {{'d', 'D'}, {"decode all opcodes", "decode only opcodes for the part"}},
       };
 
@@ -288,8 +288,8 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
         msg_error("    -%c        %s, -%c %s\n", opts[i].ochr[on], opts[i].info[on], opts[i].ochr[!on], opts[i].info[!on]);
       }
       msg_error(
-        "    -z        zap list of jumps/calls before disassembly\n"
-        "    -t=<file> set the tagfile (zaps old tagfile contents)\n"
+        "    -z        zap the list of jumps and calls before disassembly\n"
+        "    -t=<file> drop symbols from a previous tagfile and initialise them anew\n"
       );
     }
     msg_error("\n"
