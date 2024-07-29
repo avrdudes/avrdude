@@ -56,7 +56,7 @@
  */
 struct wiringpdata {
   int snoozetime, delay;
-  bool autoreset;
+  bool noautoreset;
 };
 
 
@@ -113,7 +113,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     }
 
     if(str_eq(extended_param, "noautoreset")) {
-      WIRINGPDATA(pgm)->autoreset = false;
+      WIRINGPDATA(pgm)->noautoreset = true;
       continue;
     }
 
@@ -154,7 +154,7 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
     while (timetosnooze--)
       usleep(1000);
     pmsg_notice2("%s(): done snoozing\n", __func__);
-  } else if (WIRINGPDATA(pgm)->autoreset) {
+  } else if (WIRINGPDATA(pgm)->noautoreset == false) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
     pmsg_notice2("%s(): releasing DTR/RTS\n", __func__);
@@ -199,7 +199,6 @@ void wiring_initpgm(PROGRAMMER *pgm) {
   stk500v2_initpgm(pgm);
 
   strcpy(pgm->type, "Wiring");
-  WIRINGPDATA(&pgm)->autoreset = true; // Auto-reset enabled by default
 
   pgm->open           = wiring_open;
   pgm->close          = wiring_close;
