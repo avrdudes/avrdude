@@ -462,12 +462,11 @@ static int serprog_get_sck_period(const PROGRAMMER *pgm, double *v) {
 }
 
 static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = true;
 
-  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if(str_starts(extended_param, "cs=")) {
       unsigned int cs;
@@ -482,14 +481,18 @@ static int serprog_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     if(str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -x cs=<n> Sets the chip select line to CS<n> for supported programmers\n");
-      msg_error("  -x help   Show this help menu and exit\n");
+      help = true;
       return LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter -x %s\n", extended_param);
-    rv = -1;
+    if(!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x cs=<n> Sets the chip select line to CS<n> for supported programmers\n");
+    msg_error("  -x help   Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;
