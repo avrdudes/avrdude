@@ -1610,9 +1610,10 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       rv = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    if(str_eq(pgm->type, "JTAGICE3"))
+    if(str_eq(pgm->type, "JTAGICE3")) {
       msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      msg_error("               UB/UA = units before/after, BB/BA = bits before/after\n");
+      msg_error("                           UB/UA = units before/after, BB/BA = bits before/after\n");
+    }
     if(lsize(pgm->hvupdi_support) > 1)
       msg_error("  -x hvupdi                Enable high-voltage UPDI initialization\n");
     if(pgm->extra_features & HAS_SUFFER) {
