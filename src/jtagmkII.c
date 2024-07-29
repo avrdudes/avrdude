@@ -1376,7 +1376,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
     }
 
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
+      help = true;
       rv = LIBAVRDUDE_EXIT;
     }
 
@@ -1384,6 +1384,7 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rv = -1;
     }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
     if (pgm->flag & PGM_FL_IS_JTAG)
       msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
     if (pgm->flag & PGM_FL_IS_PDI)
