@@ -156,6 +156,8 @@ libavrdude_a_SOURCES = \
 	pgm_type.c \
 	pickit2.c \
 	pickit2.h \
+	pickit5.c \
+	pickit5.h \
 	pindefs.c \
 	ppi.c \
 	ppi.h \
@@ -167,6 +169,8 @@ libavrdude_a_SOURCES = \
 	ser_posix.c \
 	ser_win32.c \
 	serialadapter.c \
+	scripts_lut.c \
+	scripts_lut.h \
 	solaris_ecpp.h \
 	stk500.c \
 	stk500.h \

@@ -42,6 +42,7 @@
 #define USB_DEVICE_PICKIT4_AVR_MODE     0x2177
 #define USB_DEVICE_PICKIT4_PIC_MODE     0x9012
 #define USB_DEVICE_PICKIT4_PIC_MODE_BL  0x9017 // PICkit4 in bootloader mode
+#define USB_DEVICE_PICKIT5              0x9036
 #define USB_DEVICE_SNAP_AVR_MODE        0x2180
 #define USB_DEVICE_SNAP_PIC_MODE        0x9018
 #define USB_DEVICE_SNAP_PIC_MODE_BL     0x9019 // SNAP in bootloader mode
