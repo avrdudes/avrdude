@@ -2994,6 +2994,44 @@ programmer # pickit4_tpi
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
+
+# Microchip PICkit 5. See
+# []
+# for details.
+#
+# The PICkit 5 supports the following programming modes
+# using different programmer names:
+#
+# Interface:   Programmer name:
+# UPDI         pickit5_updi
+#
+#
+# PIN  JTAG PDI   UPDI  DW   ISP
+# > 1             HVRST
+#   2  VCC  VCC   VCC   VCC  VCC
+#   3  GND  GND   GND   GND  GND
+#   4  TDO  DATA  UPDI       SDI
+#   5  TCK                   SCK
+#   6  RST  SCK         dW   RST
+#   7  TDI                   SDI
+#   8  TMS                      
+#
+
+#------------------------------------------------------------
+# pickit5
+#------------------------------------------------------------
+
+programmer # pickit5
+    id                     = "pickit5";
+    desc                   = "MPLAB(R) PICkit 5";
+    type                   = "pickit5";
+    prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbpid                 = 0x9035, 0x9036;
+;
+
+
 #------------------------------------------------------------
 # snap /snap_jtag
 #------------------------------------------------------------

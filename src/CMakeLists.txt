@@ -218,10 +218,14 @@ add_library(libavrdude
     pgm_type.c
     pickit2.c
     pickit2.h
+    pickit5.c
+    pickit5.h
     pindefs.c
     ppi.c
     ppi.h
     ppiwin.c
+    scripts_lut.c
+    scripts_lut.h
     serbb.h
     serbb_posix.c
     serbb_win32.c
