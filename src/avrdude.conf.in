@@ -3029,6 +3029,7 @@ programmer # pickit5
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     usbpid                 = 0x9035, 0x9036;
+    baudrate               = 250000;   # UPDI default clock
 ;
 
 
