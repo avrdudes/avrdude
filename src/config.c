@@ -28,6 +28,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <ctype.h>
+#include <wchar.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -84,6 +85,7 @@ Component avr_comp[] = {
   part_comp_desc(family_id, COMP_STRING),
   part_comp_desc(prog_modes, COMP_INT),
   part_comp_desc(mcuid, COMP_INT),
+  part_comp_desc(archnum, COMP_INT),
   part_comp_desc(n_interrupts, COMP_INT),
   part_comp_desc(n_page_erase, COMP_INT),
   part_comp_desc(n_boot_sections, COMP_INT),
@@ -294,7 +296,6 @@ void free_tokens(int n, ...)
   }
   va_end(ap);
 }
-
 
 
 TOKEN *new_number(const char *text) {
@@ -773,12 +774,94 @@ char *cfg_unescape(char *d, const char *s) {
   return (char *) cfg_unescapeu((unsigned char *) d, (const unsigned char *) s);
 }
 
+// Returns the number of characters that a unicode character would need (0-6)
+static int utf8width(wint_t wc) {
+  if(!(wc & ~0x7fu))
+    return 1;
+  if(!(wc & ~0x7ffu))
+    return 2;
+  if(!(wc & ~0xffffu))
+    return 3;
+  if(!(wc & ~0x1fffffu))
+    return 4;
+  if(!(wc & ~0x3ffffffu))
+    return 5;
+  if(!(wc & ~0x7fffffffu))
+    return 6;
+  return 0;
+}
+
+
+// Given the first byte c of a character sequence, how long is the sequence going to be?
+static int utf8headlen(int c) {
+  return (c & 0xe0) == 0xc0? 2:
+    (c & 0xf0) == 0xe0? 3:
+    (c & 0xf8) == 0xf0? 4: (c & 0xfc) == 0xf8? 5: (c & 0xfe) == 0xfc? 6: 1 /* not a utf8 header byte */ ;
+}
+
+/*
+ * Return the next unicode character from a utf-8 string str with at least
+ * n characters and record the length of the utf-8 string eaten in *lenp
+ * Returns U+FFFD (illegal char) if parsing does not go well
+*/
+
+static wint_t nextutf8char(const char *str, int n, int *lenp) {
+  int j, utf8, len;
+  wint_t c, wc = 0;
+
+  c = str[0] & 0xff;
+  if(!(c & 0x80)) {             // Simple ASCII - all done
+    if(lenp)
+      *lenp = 1;
+    return c;
+  }
+
+  utf8 = 0;                     // Possible UTF-8 character, convert to wint_t
+  len = utf8headlen((int) c);
+  if(len > 1 && len <= n) {
+    switch (len) {
+    case 2:
+      wc = c & 0x1f;
+      break;
+    case 3:
+      wc = c & 0xf;
+      break;
+    case 4:
+      wc = c & 0x7;
+      break;
+    case 5:
+      wc = c & 0x3;
+      break;
+    case 6:
+      wc = c & 0x1;
+      break;
+    }
+    for(utf8 = 1, j = 1; j < len; j++) {
+      if((str[j] & 0xc0) != 0x80) {
+        utf8 = 0;
+        break;
+      }
+      wc = (wc << 6) + (str[j] & 0x3f);
+    }
+  }
+  if(utf8 && utf8width(wc) != len)  // Sequence code was longer than needed be, make invalid
+    utf8 = 0;
+
+  if(!utf8)
+    len = 1, wc = 0xFFFD;       // Illegal character
+
+  if(lenp)
+    *lenp = len;
+
+  return wc;
+}
+
 // Return an mmt_malloc'd escaped string that looks like a C-style input string incl quotes
 char *cfg_escape(const char *s) {
   char buf[50*1024], *d = buf;
 
   *d++ = '"';
-  for(; *s && d-buf < (long) sizeof buf-7; s++) {
+  for(; *s && d-buf < (long) sizeof buf - 10; s++) {
     switch(*s) {
     case '\n':
       *d++ = '\\'; *d++ = 'n';
@@ -807,7 +890,17 @@ char *cfg_escape(const char *s) {
       *d++ = '\\'; *d++ = '\"';
       break;
     default:
-      if(*s == 0x7f || (unsigned char) *s < 32) {
+      if(*s & 0x80) {           // Check for utf8-sequences
+        int chrlen;
+        if(0xFFFD == nextutf8char(s, strlen(s), &chrlen)) { // Invalid UTF-8
+          sprintf(d, "\\%03o", *s & 0xff);
+          d += strlen(d);
+        } else {                // Copy over valid UTF-8 character
+          memcpy(d, s, chrlen);
+          d += chrlen;
+          s += chrlen - 1;
+        }
+      } else if(*s == 0x7f || (unsigned char) *s < 32) {
         sprintf(d, "\\%03o", *s);
         d += strlen(d);
       } else
@@ -833,7 +926,6 @@ Component *cfg_comp_search(const char *name, int strct) {
 
   if(!cx->cfg_init_search++)
     qsort(avr_comp, sizeof avr_comp/sizeof*avr_comp, sizeof(Component), cmp_comp);
-
 
   key.name = name;
   key.strct = strct;

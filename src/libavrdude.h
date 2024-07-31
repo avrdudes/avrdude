@@ -272,6 +272,7 @@ typedef struct avrpart {
   const char  * family_id;          /* family id in the SIB (avr8x) */
   int           prog_modes;         /* Programming interfaces, see #define PM_... */
   int           mcuid;              /* Unique id in 0..2039 for urclock programmer */
+  int           archnum;            /* avr-gcc architecture number for the part */
   int           n_interrupts;       /* Number of interrupts, used for vector bootloaders */
   int           n_page_erase;       /* If set, number of pages erased during NVM erase */
   int           n_boot_sections;    /* Number of boot sections */
@@ -1103,6 +1104,7 @@ int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm);
 int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p);
 int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned char guard_time);
 int avr_sigrow_offset(const AVRPART *p, const AVRMEM *mem, int addr);
+int avr_flash_offset(const AVRPART *p, const AVRMEM *mem, int addr);
 int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			  unsigned long addr, unsigned char * value);
 
@@ -1445,6 +1447,173 @@ typedef struct {
 #define STR_XINT32  STR_4
 #define STR_XINT64  STR_8
 
+typedef enum {
+  OP_AVRe,
+  OP_AVRxm,
+  OP_AVRxt,
+  OP_AVRrc,
+  OP_AVR_cycle_N
+} AVR_cycle_index;
+
+typedef struct {
+  // Flags how to display lines
+  int gcc_source, addresses, opcode_bytes, comments, sreg_flags, cycles;
+  int op_names, op_explanations, avrgcc_style, labels;
+  int avrlevel;                 // Eg, PART_AVR_XM or PART_AVR_51 (describes opcodes for the part)
+  char *tagfile;                // Maps addresses to labels, PGM data, memory and I/O variables
+} Dis_options;
+
+typedef struct {
+  int from, to, mnemo, labelno, is_func;
+} Dis_jumpcall;
+
+typedef struct {
+  char *name, *comment;
+  int address;
+  int type;                     // I: I/O vars, M: mem vars, L: labels, P: PGM vars
+  int subtype;                  // B: byte, W: word, A: autoterminated string, S: string
+  int count;                    // array length for tag file variables
+  int used;                     // Whether symbol was referenced by disassembly process
+  int printed;                  // Whether this L/P label will be printed in pass 2
+} Dis_symbol;
+
+// Order of enums must align with avr_opcodes[] table order
+typedef enum {
+  MNEMO_NONE = -1,
+  MNEMO_lsl,      MNEMO_add,      MNEMO_rol,      MNEMO_adc,
+  MNEMO_ror,      MNEMO_asr,      MNEMO_adiw,     MNEMO_sub,
+  MNEMO_subi,     MNEMO_sbc,      MNEMO_sbci,     MNEMO_sbiw,
+  MNEMO_tst,      MNEMO_and,      MNEMO_andi,     MNEMO_cbr,
+  MNEMO_or,       MNEMO_ori,      MNEMO_sbr,      MNEMO_clr,
+  MNEMO_eor,      MNEMO_com,      MNEMO_neg,      MNEMO_inc,
+  MNEMO_dec,      MNEMO_mul,      MNEMO_muls,     MNEMO_mulsu,
+  MNEMO_fmul,     MNEMO_fmuls,    MNEMO_fmulsu,   MNEMO_des,
+  MNEMO_rjmp,     MNEMO_ijmp,     MNEMO_eijmp,    MNEMO_jmp,
+  MNEMO_rcall,    MNEMO_icall,    MNEMO_eicall,   MNEMO_call,
+  MNEMO_ret,      MNEMO_reti,     MNEMO_cpse,     MNEMO_cp,
+  MNEMO_cpc,      MNEMO_cpi,      MNEMO_sbrc,     MNEMO_sbrs,
+  MNEMO_sbic,     MNEMO_sbis,     MNEMO_brcs,     MNEMO_brlo,
+  MNEMO_breq,     MNEMO_brmi,     MNEMO_brvs,     MNEMO_brlt,
+  MNEMO_brhs,     MNEMO_brts,     MNEMO_brie,     MNEMO_brbs,
+  MNEMO_brcc,     MNEMO_brsh,     MNEMO_brne,     MNEMO_brpl,
+  MNEMO_brvc,     MNEMO_brge,     MNEMO_brhc,     MNEMO_brtc,
+  MNEMO_brid,     MNEMO_brbc,     MNEMO_mov,      MNEMO_movw,
+  MNEMO_ser,      MNEMO_ldi,      MNEMO_lds,      MNEMO_ld_x,
+  MNEMO_ld_xp,    MNEMO_ld_mx,    MNEMO_ld_y,     MNEMO_ld_yp,
+  MNEMO_ld_my,    MNEMO_ldd_y,    MNEMO_ld_z,     MNEMO_ld_zp,
+  MNEMO_ld_mz,    MNEMO_ldd_z,    MNEMO_sts,      MNEMO_st_x,
+  MNEMO_st_xp,    MNEMO_st_mx,    MNEMO_st_y,     MNEMO_st_yp,
+  MNEMO_st_my,    MNEMO_std_y,    MNEMO_st_z,     MNEMO_st_zp,
+  MNEMO_st_mz,    MNEMO_std_z,    MNEMO_lpm_0,    MNEMO_lpm_z,
+  MNEMO_lpm_zp,   MNEMO_elpm_0,   MNEMO_elpm_z,   MNEMO_elpm_zp,
+  MNEMO_spm,      MNEMO_spm_zp,   MNEMO_in,       MNEMO_out,
+  MNEMO_push,     MNEMO_pop,      MNEMO_xch,      MNEMO_las,
+  MNEMO_lac,      MNEMO_lat,      MNEMO_lsr,      MNEMO_swap,
+  MNEMO_sbi,      MNEMO_cbi,      MNEMO_bst,      MNEMO_bld,
+  MNEMO_sec,      MNEMO_clc,      MNEMO_sen,      MNEMO_cln,
+  MNEMO_sez,      MNEMO_clz,      MNEMO_sei,      MNEMO_cli,
+  MNEMO_ses,      MNEMO_cls,      MNEMO_sev,      MNEMO_clv,
+  MNEMO_set,      MNEMO_clt,      MNEMO_seh,      MNEMO_clh,
+  MNEMO_bset,     MNEMO_bclr,     MNEMO_break,    MNEMO_nop,
+  MNEMO_sleep,    MNEMO_wdr,      MNEMO_lds_rc,   MNEMO_sts_rc,
+  MNEMO_u_nop_1,  MNEMO_u_nop_2,  MNEMO_u_nop_3,  MNEMO_u_nop_4,
+  MNEMO_u_nop_5,  MNEMO_u_nop_6,  MNEMO_u_nop_7,  MNEMO_u_icall,
+  MNEMO_u_eicall, MNEMO_u_ret,    MNEMO_u_reti,   MNEMO_u_nop_8,
+  MNEMO_u_nop_9,  MNEMO_u_nop_a,  MNEMO_u_ijmp,   MNEMO_u_eijmp,
+  MNEMO_u_bld,    MNEMO_u_bst,    MNEMO_u_sbrc,   MNEMO_u_sbrs,
+  MNEMO_N
+} AVR_mnemo;
+
+typedef enum {
+  OP_AVR_RC                = 1, // Reduced-core Tiny only (128 byte STS/LDS)
+  OP_AVR1                  = 2, // All AVR can run this OPCODE
+  OP_AVR1nRC               = 4, // All except reduced-core Tiny (TPI) and AT90S1200
+  OP_AVR2                  = 8, // AVR with archnum 2 and above
+  OP_AVR2nRC              = 16, // AVR with archnum 2+ but not reduced-core Tiny
+  OP_AVR25                = 32, // AVR with archnum 25 and above
+  OP_AVR_M                = 64, // AVR with flash > 8 kB or archnum 3+ (JMP, CALL)
+  OP_AVR4                = 128, // AVR with archnum 4 and above
+  OP_AVR_L               = 256, // AVR with flash > 64 kB (ELMP)
+  OP_AVR_XL              = 512, // AVR with flash > 128 kB (EIJMP, EICALL)
+  OP_AVR_XM             = 1024, // XMEGA only (DES, XCH, LAC, LAS, LAT)
+  OP_AVR_XTM            = 2048, // XMEGA and UPDI only (SPM Z+)
+  OP_AVR_ILL            = 4096, // Undocumented (illegal) opcodes
+} AVR_archlevel;
+
+/*
+ * Approximation(!) of which opcodes a part may have given its archnum
+ *   - Take with a pinch of salt
+ *   - For OP_AVR_XT and OP_AVR_XM one needs to add in OP_AVR_L/ OP_AVR_XL
+ *     depending on flash size
+ */
+#define PART_AVR1   OP_AVR1
+#define PART_AVR_RC (OP_AVR1|OP_AVR2|OP_AVR_RC)
+#define PART_AVR2   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC)
+#define PART_AVR25  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25)
+#define PART_AVR3   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
+#define PART_AVR31  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR_M)
+#define PART_AVR4   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
+#define PART_AVR5   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M)
+#define PART_AVR51  (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L)
+#define PART_AVR6   (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_L|OP_AVR_XL)
+#define PART_AVR_XT (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XTM)
+#define PART_AVR_XM (OP_AVR1|OP_AVR1nRC|OP_AVR2|OP_AVR2nRC|OP_AVR25|OP_AVR4|OP_AVR_M|OP_AVR_XM|OP_AVR_XTM)
+#define PART_ALL    (PART_AVR_XM|OP_AVR_L|OP_AVR_XL) // All but RC (the latter conflicts)
+
+// Opcode types
+#define OTY_REG_MASK          7 // Register formula mask
+#define OTY_RNONE             0 // No registers addressed in this opcode
+#define OTY_RALL              1 // Opcode can use all 32 registers (both Rd, Rr)
+#define OTY_REVN              2 // Opcode only uses even registers (Rd *= 2, Rr *= 2)
+#define OTY_RUPP              3 // Opcode only uses upper registers (Rd += 16, Rr += 16)
+#define OTY_RW24              4 // Opcode only uses r24, r26, r28, r30 (Rd = Rd *2 + 24)
+
+#define OTY_EXTERNAL      0x008 // Opcode might r/w either I/O region or memory
+
+#define OTY_TYPE_MASK      0x78 // OPCODE type mask
+#define OTY_ITYPE_MASK     0x70 // OPCODE type mask matching OTY_xxxI types
+#define OTY_MCUI           0x00 // nop and wdr
+#define OTY_MCUX           0x08 // sleep and break
+#define OTY_ALBI           0x10 // Arithmetic, logic or bitwise operation
+#define OTY_ALBX           0x18 // Arithmetic, logic or bitwise operation (external)
+#define OTY_XFRI           0x20 // Data transfer (only affecting registers)
+#define OTY_XFRX           0x28 // Data transfer (between external I/O or memory and regs)
+#define OTY_JMPI           0x30 // Jump to potentially anywhere in flash (jmp, ijmp, eijmp)
+#define OTY_JMPX           0x38 // Jump to potentially anywhere in flash (calls and ret/i)
+#define OTY_RJMI           0x40 // Relative jump rjmp, range [.-4096, .+4094] bytes
+#define OTY_RJMX           0x48 // Relative call rcall, range [.-4096, .+4094] bytes
+#define OTY_BRAI           0x50 // Conditional branch, range [.-128, .+126] bytes
+#define OTY_SKPI           0x60 // Conditional skip, range [.+0, .+4] (cpse, sbrc, sbrs)
+#define OTY_SKPX           0x68 // Conditional skip, range [.+0, .+4] (sbic, sbis)
+
+#define OTY_ZWORD         0x080 // Opcode uses Z register for word address (ijmp, ical etc)
+#define OTY_ALIAS         0x100 // Opcode is a strict alias for another one, eg, sbr == ori
+#define OTY_CONSTRAINT    0x200 // Opcode has constraints: Rr == Rd (tst, clr, lsl, rol)
+
+#define OTY_WARN_MASK     0xc00 // OPCODE warning mask
+#define OTY_XWRN          0x400 // Operand register must not be r27/r28
+#define OTY_YWRN          0x800 // Operand register must not be r29/r30
+#define OTY_ZWRN          0xc00 // Operand register must not be r29/r30
+
+typedef struct {
+  AVR_mnemo mnemo;              // Eg, MNEMO_add
+  const char *idname;           // Unique id, eg, "ldx_1" (for error msgs or debugging)
+  int mask, value, nwords;
+  AVR_archlevel avrlevel;       // OP_AVR1
+  const char *bits;             // "0000 11rd  dddd rrrr"
+  int type;                     // OTY_ALBI|OTY_RALL
+  const char
+    *opcode,                    // "add"
+    *operands,                  // "Rd, Rr"
+    *description,               // "add without carry"
+    *operation,                 // "Rd <-- Rd + Rr"
+    *flags,                     // "--HSVNZC"
+    *clock[OP_AVR_cycle_N],     // Timings for AVRe, AVRxm, AVRxt and AVRrc
+    *remarks;
+} AVR_opcode;
+
+extern const AVR_opcode avr_opcodes[164];
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -1517,6 +1686,7 @@ bool is_bigendian(void);
 void change_endian(void *p, int size);
 int is_memset(const void *p, char c, size_t n);
 unsigned long long int str_ull(const char *str, char **endptr, int base);
+int looks_like_number(const char *str);
 Str2data *str_todata(const char *str, int type, const AVRPART *part, const char *memstr);
 void str_freedata(Str2data *sd);
 unsigned long long int str_int(const char *str, int type, const char **errpp);
@@ -1545,9 +1715,26 @@ void terminal_setup_update_progress(void);
 
 char *avr_cc_buffer(size_t n);
 
+int op16_is_mnemo(int op16, AVR_mnemo mnemo);
+int is_opcode32(int op16);
+int op_width(int op16);
+int ldi_Rd(int op16);
+int ldi_K(int op16);
+AVR_mnemo opcode_mnemo(int op16, int avrlevel);
+int avr_get_archlevel(const AVRPART *p);
+AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
+const char *mnemo_str(int op16);
+int z_width(int op16, AVR_mnemo *mnenop);
+
+int disasm(const char *buf, int len, int addr, int leadin, int leadout);
+int disasm_init(const AVRPART *p);
+int disasm_init_tagfile(const AVRPART *p, const char *file);
+void disasm_zap_jumpcalls();
+
 #ifdef __cplusplus
 }
 #endif
+
 
 /*
  * Context structure
@@ -1634,6 +1821,14 @@ typedef struct {
 
   // Static variable from fileio.c
   int reccount;
+
+  // Static variables from disasm.c
+  int dis_initopts, dis_flashsz, dis_flashsz2, dis_addrwidth, dis_sramwidth;
+  int dis_pass, dis_para, dis_cycle_index, dis_io_offset, dis_codewidth;
+  Dis_options dis_opts;
+  int dis_jumpcallN, dis_symbolN, *dis_jumpable, dis_start, dis_end;
+  Dis_jumpcall *dis_jumpcalls;
+  Dis_symbol *dis_symbols;
 
   // Static variables from usb_libusb.c
 #include "usbdevs.h"

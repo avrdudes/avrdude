@@ -594,6 +594,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   } else {
     _if_partout(intcmp, "%d", mcuid);
   }
+  _if_partout(intcmp, "%d", archnum);
   _if_partout(intcmp, "%d", n_interrupts);
   _if_partout(intcmp, "%d", n_page_erase);
   _if_partout(intcmp, "%d", n_boot_sections);

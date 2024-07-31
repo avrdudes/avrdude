@@ -1137,10 +1137,10 @@ The
 .Ar addr
 and
 .Ar len
-parameters of the dump, read, write, save and erase commands can be
+parameters of the dump, read, disasm, write, save and erase commands can be
 negative with the same syntax as substring computations in perl or python.
 The table below details their meaning with respect to an example memory of size
-sz=0x800.
+sz=0x800 (2048 bytes).
 .Pp
 .nf
 addr    len  Memory interval     Comment
@@ -1187,6 +1187,103 @@ and display them (deprecated: use dump memory addr -1).
 Read all bytes from the specified memory, and display them (deprecated: use dump memory 0 -1).
 .It Ar read
 Can be used as an alias for dump.
+.It Ar disasm [opts] [arguments]
+Like dump, the disasm command displays a part of the specified memory,
+albeit by interpreting the memory contents as AVR opcodes and showing it
+as assembler source code. Unlike dump, the disasm command has options;
+these control how disasm displays its result (see below). Other than that,
+the syntax of specifying the memory and its to be processed interval is
+virtually the same as that of dump: the default disasm length is 32 bytes,
+though, and sometimes the length can be slightly shorter or longer than
+requested, so that the memory section for disasm aligns with opcodes.
+Disasm options, once set, stay in force until switched off, typically by
+changing the case of the option. This way, a simple disasm without further
+options can be used to step through memory keeping the appearance. Disasm
+knows the following options:
+.Bl -tag -offset indent -width indent
+.It -g
+Generate avr-gcc source: this sets -sOFQ and outputs a .text preamble and
+a main symbol unless the disassembly emits one itself; -G (the default)
+switches off -g and stops outputting a preamble
+.It -A
+Do not show addresses; -a (the default) shows addresses
+.It -O
+Do not show opcode bytes; -o (the default) show opcode bytes
+.It -C
+Do not show comments; -c (the default) show comments
+.It -f
+Show affected flags in SREG, eg, ---SVNZC for the sbiw opcode; -F (the
+default) do not show SREG flags
+.It -q
+Show the number of machine cycles that an opcode takes; -Q (the default)
+do not show the cycles
+.It -n
+Put the opcode full name into comment, eg, subtract immediate from word
+for the sbiw opcode; -N (the default) do not show the full opcode names
+.It -e
+Put a technical explanation of the opcode into the comment, eg, Rd+1:Rd
+<-- Rd+1:Rd - K for the sbiw opcode; -E (the default) do not show
+technical explanations
+.It -S
+Use AVR instruction set style: this means that register pairs are shown
+as, eg, in r31:30 instead of r30; -s (the default) use avr-gcc code style
+.It -L
+Do not preprocess labels; -l (the default) preprocess jump/call labels
+.It -d
+Decode all opcodes including those that are undocumented; -D (the default)
+decode only opcodes that are valid for the part
+.It -z
+Zap the list of jumps and calls before disassembly
+.It -t=<file>
+Delete symbols from a previously read tagfile, if any, and read the tagfile
+<file> for assigning addresses to symbol names
+.El
+The tagfile is an ASCII file where each line describes a symbol for code
+label addresses (L), variable addresses in flash (P) and variables
+addresses in memory or I/O space (M). Hashmarks start a tagfile comment
+that extends to the end of the line and is ignored by disasm. Here is a
+defining example of how a tagfile looks like
+.nf
+---------------------------------------------------------------
+0x7f54 L        putch     Outputs a char # L are code labels
+0x7ffe P W 1    version16 A word integer # P are PGM data
+0x7f80 P A 4    headings  Column headers # Auto-aligned strings
+0x0100 M B 2048 sram      2 kB SRAM      # Memory address
+---------------------------------------------------------------
+.fi
+Code labels L can be, eg, function names in program space or goto labels.
+They use up to four columns separated by white space: the address, the
+letter L, the symbolic name of the label and an optional comment column
+for the symbol, which is copied by disasm into the disassembly comment
+column, should this label be referenced or used by the code. Variable
+symbols have a P or M in the second column; they can be bytes or words as
+determined by the letter B or W in the third column and either single
+variables or arrays as specified by the multiplicity count in the forth
+column. P symbols, but not M symbols, can also be the base location of
+nul-terminated strings as encoded by A or S in the third column. Out of
+necessity, the space occupied by A/S strings varies. The difference
+between A and S symbols is that the array of A strings might have an
+additional nul character to auto-align the space occupied by them to an
+even address. The fifth column is the symbolic name for the P or M address
+that can be used by disasm to output relevant addresses symbolically. P
+areas described in the tagfile also tell disasm that the corresponding
+area is not code and should not be disassembled as such; instead the
+.byte, .word, .asciz and sometimes at the end of the memory section .ascii
+directives are used for disassembly of that area. As with L labels, P and
+M variables may have an optional final comment column pertaining to the
+symbol that may be output in the disassembly column as and when the
+corresponding variables are used.
+.Pp
+Tagfiles are useful for disassembly to make the output of disasm more
+readable. They can be built manually and incrementally as one's
+understanding of the code grows. Alternatively, the bash shell script
+elf2tag can automatically generate a tag file from the .elf file that
+produced the flash contents:
+.Pp
+$ elf2tag file.elf >file.tag
+.Pp
+elf2tag uses the avr-objdump -d disassembly to create L labels and avr-nm
+to generate M symbols.
 .It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,

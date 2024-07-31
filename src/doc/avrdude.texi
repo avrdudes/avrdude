@@ -2269,10 +2269,10 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides a
 command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
-The @var{addr} and @var{len} parameters of the dump, read, write, save and erase
-commands can be negative with the same syntax as substring computations in
-perl or python. The table below details their meaning with respect to an
-example memory of size @code{sz=0x800}.
+The @var{addr} and @var{len} parameters of the dump, read, disasm, write,
+save and erase commands can be negative with the same syntax as substring
+computations in perl or python. The table below details their meaning with
+respect to an example memory of size @code{sz=0x800} (2048 bytes).
 
 @multitable {0/negativ}{negativ}{@code{[addr, addr+len-1]}}{End is @code{|len|} bytes below memory size @code{sz}}
 @headitem @code{addr}
@@ -2348,27 +2348,168 @@ The following commands are implemented for all programmers:
 @table @code
 
 @item dump @var{memory} @var{addr} @var{len}
-Read from the specified memory interval (see above), and display in the usual hexadecimal and
-ASCII form.
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Read from the specified memory interval (see above), and display in the
+usual hexadecimal and ASCII form.
 
 @item dump @var{memory} @var{addr}
-Read from memory addr as many bytes as the most recent dump memory addr len command with this
-very memory had specified (default 256 bytes), and display them.
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Read from memory addr as many bytes as the most recent dump memory addr
+len command with this very memory had specified (default 256 bytes), and
+display them.
 
 @item dump @var{memory}
-Continue dumping from the memory and location where the most recent dump command left off; if no
-previous dump command has addressed a memory an error message will be shown.
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Continue dumping from the memory and location where the most recent dump
+command left off; if no previous dump command has addressed a memory an
+error message will be shown.
+
+@item dump
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Continue dumping from the memory and location where the most recent dump
+command left off; if no previous dump command has addressed a memory an
+error message will be shown.
 
 @item dump @var{memory} @var{addr} @dots{}
-Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memory} @var{addr} -1}).
+@cindex @code{dump} @var{memory} @var{[addr]} @dots{} @w{ } @w{ } @w{ }
+Start reading from @var{addr}, all the way to the last memory address
+(deprecated: use @code{dump @var{memory} @var{addr} -1}).
 
 @item dump @var{memory} @dots{}
-Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memory} 0 -1}).
+@cindex @code{dump} @var{memory} @var{[addr]} @dots{} @w{ } @w{ } @w{ }
+Read all bytes from the specified memory, and display them (deprecated:
+use @code{dump @var{memory} 0 -1}).
 
 @item read
+@cindex @code{read} @var{[memory [addr [len]]]}
+@cindex @code{read} @var{memory} @var{[addr]} @dots{} @w{ } @w{ } @w{ }
 Can be used as an alias for dump.
 
+@item disasm @var{[options]} @var{dump-arguments}
+@cindex @code{disasm} @var{[memory [addr [len]]]}
+Like dump, the disasm command displays a part of the specified memory,
+albeit by interpreting the memory contents as AVR opcodes and showing it
+as assembler source code. Unlike dump, the disasm command has options;
+these control how disasm displays its result (see below). Other than that,
+the syntax of specifying the memory and its to be processed interval is
+virtually the same as that of dump: the default disasm length is 32 bytes,
+though, and sometimes the length can be slightly shorter or longer than
+requested, so that the memory section for disasm aligns with opcodes.
+Disasm options, once set, stay in force until switched off, typically by
+changing the case of the option. This way, a simple disasm without further
+options can be used to step through memory keeping the appearance. Disasm
+knows the following options:
+@table @code
+
+@item -g
+Generate avr-gcc source: this sets @code{-sOFQ} and outputs a .text preamble and
+a main symbol unless the disassembly emits one itself; @code{-G} (default)
+switches off @code{-g} and stops outputting a preamble
+
+@item -A
+Do not show addresses; @code{-a} (the default) shows addresses
+
+@item -O
+Do not show opcode bytes; @code{-o} (the default) show opcode bytes
+
+@item -C
+Do not show comments; @code{-c} (the default) show comments
+
+@item -f
+Show affected flags in SREG, eg, @code{---SVNZC} for the @code{sbiw}
+opcode; @code{-F} (the default) do not show SREG flags
+
+@item -q
+Show the number of machine cycles that an opcode takes; @code{-Q}
+(the default) do not show the cycles
+
+@item -n
+Put the opcode full name into comment (eg, subtract immediate from word);
+@code{-N} (the default) do not show the full opcode names
+
+@item -e
+Put a technical explanation of the opcode into the comment, eg,
+@code{Rd+1:Rd <-- Rd+1:Rd - K} for the @code{sbiw} opcode; -E (the
+default) do not show technical explanations
+
+@item -S
+Use AVR instruction set style: this means that register pairs are shown
+as, eg, in r31:30 instead of r30; @code{-s} (the default) use avr-gcc code
+style
+
+@item -L
+Do not preprocess labels; @code{-l} (the default) preprocess jump/call
+labels
+
+@item -d
+Decode all opcodes including those that are undocumented; @code{-D} (the
+default) decode only opcodes that are valid for the part
+
+@item -z
+Zap the list of jumps and calls before disassembly
+
+@item -t=@var{file}
+@cindex tagfile
+Delete symbols from a previously read tagfile, if any, and read the
+tagfile @var{file} for assigning addresses to symbol names.
+@end table
+
+The tagfile is an ASCII file where each line describes a symbol for code
+label addresses (@code{L}), variable addresses in flash (@code{P}) and
+variables addresses in memory or I/O space (@code{M}). Hashmarks start a
+tagfile comment that extends to the end of the line and is ignored by
+disasm. Here is a defining example of how a tagfile looks like
+
+@smallexample
+@cartouche
+0x7f54 L        putch     Outputs a char # L are code labels
+0x7ffe P W 1    version16 A word integer # P are PGM data
+0x7f80 P A 4    headings  Column headers # Auto-aligned strings
+0x0100 M B 2048 sram      2 kB SRAM      # Memory address
+@end cartouche
+@end smallexample
+
+Code labels @code{L} can be, eg, function names in program space or goto
+labels.  They use up to four columns separated by white space: the
+address, the letter @code{L}, the symbolic name of the label and an
+optional comment column for the symbol, which is copied by disasm into the
+disassembly comment column, should this label be referenced or used by the
+code. Variable symbols have a @code{P} or @code{M} in the second column;
+they can be bytes or words as determined by the letter @code{B} or
+@code{W} in the third column and either single variables or arrays as
+specified by the multiplicity count in the forth column. @code{P} symbols,
+but not @code{M} symbols, can also be the base location of nul-terminated
+strings as encoded by @code{A} or @code{S} in the third column. Out of
+necessity, the space occupied by @code{A}/@code{S} strings varies. The
+difference between @code{A} and @code{S} symbols is that the array of
+@code{A} strings might have an additional nul character to auto-align the
+space occupied by them to an even address. The fifth column is the
+symbolic name for the @code{P} or @code{M} address that can be used by
+disasm to output relevant addresses symbolically. @code{P} areas described
+in the tagfile also tell disasm that the corresponding area is not code
+and should not be disassembled as such; instead the directives are used
+for disassembly of that area. As with @code{L} labels, @code{P} and
+@code{M} variables may have an optional final comment column pertaining to
+the symbol that may be output in the disassembly column as and when the
+corresponding variables are used.
+
+Tagfiles are useful for disassembly to make the output of disasm more
+readable. They can be built manually and incrementally as one's under‐
+standing of the code grows. Alternatively, the bash shell script
+@code{elf2tag} can automatically generate a tag file from the .elf file
+that produced the flash contents:
+
+@smallexample
+@cartouche
+$ elf2tag application.elf >application.tag
+@end cartouche
+@end smallexample
+
+@code{elf2tag} uses the @code{avr-objdump -d} disassembly to create
+@code{L} labels and @code{avr-nm} to generate @code{M} symbols.
+
 @item write @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
+@cindex @code{write} @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
 Manually program the respective memory cells, starting at address
 @var{addr}, using the data items provided. The terminal implements reading
 from and writing to flash, EEPROM, bootrow and usersig type memories normally
@@ -2490,16 +2631,19 @@ One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
 @item write @var{memory} @var{addr} @var{data}
+@cindex @code{write} @var{memory} @var{addr} @var{data}
 The start address @code{addr} may be omitted if the size of the memory
 being written to is one byte.
 
 @item write @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
+@cindex @code{write} @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{} @w{ }
 The ellipsis @dots{} form writes the data to the entire memory intervall
 addressed by @var{addr len} and, if necessary, pads the remaining space by
 repeating the last data item. The fill write command does not write beyond
 the specified memory area even if more data than needed were given.
 
 @item save @var{memory} @var{@{addr len@}} @var{file[:format]}
+@cindex @code{save} @var{memory} @var{@{addr len@}} @var{file[:format]}
 Save one or more memory segments to a file in a format specified by the
 @code{:}format letter. The default is @code{:r} for raw binary. Each
 memory segment is described by an address and length pair. In absence of
@@ -2511,6 +2655,7 @@ and concatenate the chosen memory segments into the output file. If the
 file name is - then avrdude writes to stdout.
 
 @item backup @var{memlist} @var{file[:format]}
+@cindex @code{backup} @var{memlist} @var{file[:format]}
 Backup one or more memories to the specified file using the selected
 format. The default format for a single-memory backup is @code{:r} (raw
 binary); for multi-memory backups it is @code{:I} (Intel Hex with
@@ -2519,6 +2664,7 @@ in the @code{-U} command line argument. @code{backup} flushes the cache
 before reading memories.
 
 @item restore @var{memlist} @var{file[:format]}
+@cindex @code{restore} @var{memlist} @var{file[:format]}
 Restore one or more memories from the specified file. It is the user's
 responsibility to erase memories as needed beforehand: some paged memories
 look like NOR-memory when using certain programmers, meaning programming
@@ -2533,22 +2679,27 @@ memories verifies file contents with the corresponding microprocessor's
 memories.
 
 @item verify @var{memlist} @var{file[:format]}
+@cindex @code{verify} @var{memlist} @var{file[:format]}
 Compare one or more memories with the specified file. Memlist can be a
 comma separated list of memories just as in the @code{-U} command line
 argument. @code{verify} flushes the cache before verifying memories.
 
 @item erase
+@cindex @code{erase}
 Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
 Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
 a corresponding value at the last reset prior to the operation.
 
 @item erase @var{memory}
+@cindex @code{erase} @var{memory} @var{[addr len]}
 Erase the entire specified memory.
 
 @item erase @var{memory} @var{addr} @var{len}
+@cindex @code{erase} @var{memory} @var{[addr len]}
 Erase a section of the specified memory.
 
 @item flush
+@cindex @code{flush}
 Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
@@ -2563,13 +2714,15 @@ a single previously cleared bit is set and, therefore, this routine should
 be called sparingly.
 
 @item abort
+@cindex @code{abort}
 Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
 cache discarding all previous writes to the flash, EEPROM, bootrow and
 usersig cache.
 
-@item config [@var{opts}]
+@item config @var{[opts]}
+@cindex @code{config} @var{[opts]}
 Show all configuration properties of the part; these are usually bitfields
 in fuses or lock bits bytes that can take on values, which typically have
 a mnemonic name. Each part has their own set of configurable items.  The
@@ -2581,17 +2734,20 @@ assigned mnemonic values are the ones that are not commented out. The
 option @code{-v} increases the verbosity of the output of the config
 command.
 
-@item config [@var{opts}] @var{property} [@var{opts}]
+@item config @var{[opts]} @var{property} @var{[opts]}
+@cindex @code{config} @var{[opts]} @var{property} @var{[opts]}
 Show the current value of the named configuration property. Wildcards or
 initial strings are permitted (but not both), in which case the current
 values of all matching properties are displayed.
 
-@item config [@var{opts}] @var{property=} [@var{opts}]
+@item config @var{[opts]} @var{property=} @var{[opts]}
+@cindex @code{config} @var{[opts]} @var{property=} @var{[opts]}
 Show all possible values of the named configuration property (notice the
 trailing @code{=}). The one that is currently set is the only one not
 commented out. As before, wildcards or initial strings are permitted.
 
-@item config [@var{opts}] @var{property=value} [@var{opts}]
+@item config @var{[opts]} @var{property=value} @var{[opts]}
+@cindex @code{config} @var{[opts]} @var{property=value} @var{[opts]}
 Modify the named configuration property to the given value. The
 corresponding fuse or lock bits will be changed immediately but the change
 will normally only take effect the next time the part is reset, at which
@@ -2606,6 +2762,7 @@ and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
 @item factory reset
+@cindex @code{factory reset}
 Resets the connected part to factory state as far as possible
 (bootloaders, for example, cannot write fuses and may not have a means to
 erase EEPROM). This command may change the clock frequency F_CPU of the
@@ -2615,7 +2772,8 @@ different bit clock rate up to F_CPU/4 for the programmer next time. Note
 that the command @code{factory} can be abbreviated but the required
 argument @code{reset} needs to be spelled out in full.
 
-@item regfile [@var{opts}]
+@item regfile @var{[opts]}
+@cindex @code{regfile} @var{[opts]}
 @code{regfile} with no further argument displays the register file of a
 part, i.e., all register names and their contents in  @code{io} memory, if
 possible: note that external programming cannot read the registers of
@@ -2627,8 +2785,8 @@ Option @code{-a} displays the register I/O addresses in addition;
 @code{-s} also shows the size of the register in bytes whilst @code{-v}
 shows a slightly expanded register explanation alongside each register.
 
-@item regfile [@var{opts}] @var{reg} [@var{opts}]
-
+@item regfile @var{[opts]} @var{reg} @var{[opts]}
+@cindex @code{regfile} @var{[opts]} @var{reg} @var{[opts]}
 @code{regfile} together with a register name @var{reg} shows all those
 registers that are matched by @var{reg}. Wildcards or partial strings are
 permitted but not both. Register names have the form @var{module.name} or
@@ -2641,13 +2799,15 @@ utilised and all module registers with that exact @var{instance.name} or
 @var{name} are shown. Partial matching can be forced through use of
 wildcards, e.g., using @code{porta.out*}
 
-@item regfile [@var{opts}] @var{reg}=@var{value} [@var{opts}]
+@item regfile @var{[opts]} @var{reg}=@var{value} @var{[opts]}
+@cindex @code{regfile} @var{[opts]} @var{reg}=@var{value} @var{[opts]}
 This sets a single register addressed by @var{reg} to the given
 @var{value}. Only external programming of modern parts (those with UPDI
 interface) can read from and write to register io memory, but as that
 memory is volatile, the contents will be lost after reset.
 
-@item include [@var{opts}] @var{file}
+@item include @var{[opts]} @var{file}
+@cindex @code{include} @var{[opts]} @var{file}
 Include contents of the named file @var{file} as if it was typed. This is
 useful for batch scripts, e.g., recurring initialisation code for fuses. The
 include option @code{-e} prints the lines of the file as comments before
@@ -2655,20 +2815,24 @@ processing them; on a non-zero verbosity level the line numbers are
 printed, too.
 
 @item signature
+@cindex @code{signature}
 Display the device signature bytes.
 
-@item part
+@item part @var{[opts]}
+@cindex @code{part} @var{[opts]}
 Display the current part information, including supported programming modes,
 memory and variants tables. Use @var{-m} to only print the memory table,
 and @var{-v} to only print the variants table.
 
-@item verbose [@var{level}]
+@item verbose @var{]level]}
+@cindex @code{verbose} @var{]level]}
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
 given on the command line.
 
-@item quell [@var{level}]
+@item quell @var{[level]}
+@cindex @code{quell} @var{[level]}
 Change (when @var{level} is provided), or display the quell
 level. 1 is used to suppress progress reports. 2 or higher yields
 progressively quieter operations. The initial quell level is controlled
@@ -2679,12 +2843,14 @@ by the number of @code{-q} options given on the command line.
 Give a short on-line summary of the available commands.
 
 @item quit
+@cindex @code{quit}
 Leave terminal mode and thus AVRDUDE.
 
 @item q
 Can be used as an alias for @code{quit}.
 
 @item !@var{line}
+@cindex @code{!} (subshell)
 Run the shell @var{line} in a subshell, e.g., @code{!ls *.hex}. Subshell
 commands take the rest of the line as their command. For security reasons,
 they must  be enabled explictly by putting @code{allow_subshells = yes;}
@@ -2702,9 +2868,11 @@ In addition, the following commands are supported on some programmers:
 @table @code
 
 @item pgerase @var{memory} @var{addr}
+@cindex @code{pgerase} @var{memory} @var{addr}
 Erase one page of the memory specified.
 
 @item send @var{b1} @var{b2} @var{b3} @var{b4}
+@cindex @code{send} @var{b1} @var{b2} @var{b3} @var{b4}
 Send raw instruction codes to the AVR device. If you need access to a
 feature of an AVR part that is not directly supported by AVRDUDE, this
 command allows you to use it, even though AVRDUDE does not implement the
@@ -2712,18 +2880,22 @@ command. When using direct SPI mode, up to 3 bytes
 can be omitted.
 
 @item spi
+@cindex @code{spi}
 Enter direct SPI mode.  The @emph{pgmled} pin acts as chip select.
 @emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
 Chip Select must be externally held low for direct SPI when
 using USBtinyISP, and send must be a multiple of four bytes.
 
 @item pgm
+@cindex @code{pgm}
 Return to programming mode (from direct SPI mode).
 
 @item vtarg @var{voltage}
+@cindex @code{vtarg} @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
 
-@item varef [@var{channel}] @var{voltage}
+@item varef @var{[channel]} @var{voltage}
+@cindex @code{varef} @var{[channel]} @var{voltage}
 Set the adjustable voltage source to @var{voltage} Volts.
 This voltage is normally used to drive the target's
 @emph{Aref} input on the STK500 and STK600.
@@ -2732,20 +2904,24 @@ selected by the optional parameter @var{channel} (either
 0 or 1).
 
 @item fosc @var{freq}[@code{M}|@code{k}]
+@cindex @code{fosc} @var{freq}[@code{M}|@code{k}]
 Set the programming oscillator to @var{freq} Hz.
 An optional trailing letter @code{M}
 multiplies by 1E6, a trailing letter @code{k} by 1E3.
 
 @item fosc off
+@cindex @code{fosc off}
 Turn the programming oscillator off.
 
 @item sck @var{period}
+@cindex @code{sck} @var{period}
 Set the SCK clock period to @var{period} microseconds.
 Note that some official Microchip programmers store the bitclock setting and
 will continue to use it until a diferent value is provided. See
 @code{-B bitclock} for more information.
 
 @item parms
+@cindex @code{parms}
 Display programmer specific parameters.
 
 @end table
@@ -3051,6 +3227,65 @@ Writing | ################################################## | 100% 0.05 s
 avrdude> quit
 
 avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@page
+
+@cindex @code{disasm} example
+
+@noindent @strong{Disassembe the flash contents of an ATtiny13A,} write
+the output to file @code{blink.S}, compile to `blink.elf` and verify that
+the flash contents of the ATtiny13A is the same as the one given by the
+compiled @code{blink.elf}. Then @code{cat} the disassembled @code{blink.S}
+to stdout.
+
+@smallexample
+@cartouche
+
+$ avrdude -qq -p t13a -c avrisp2 -T "disasm -g flash 0 -1" >blink.S
+$ avr-gcc -mmcu=attiny13a -nostdlib -Wl,--section-start=.text=0x0000 blink.S -o bl.elf
+$ avrdude -qq -p t13a -c avrisp2 -U flash:v:bl.elf && echo OK
+OK
+
+$ cat blink.S
+
+       .equ    io.pinb, 0x16
+       .equ    io.ddrb, 0x17
+
+       .text
+main:
+L000:  rjmp    Label1               ; L016
+L002:  rjmp    Label0               ; L014
+L004:  rjmp    Label0               ; L014
+L006:  rjmp    Label0               ; L014
+L008:  rjmp    Label0               ; L014
+L00a:  rjmp    Label0               ; L014
+L00c:  rjmp    Label0               ; L014
+L00e:  rjmp    Label0               ; L014
+L010:  rjmp    Label0               ; L014
+L012:  rjmp    .+0                  ; L014
+
+; Rjmp from L002, L004, L006, L008, L00a, L00c, L00e, L010
+Label0:
+L014:  reti
+
+Label1:                             ; Rjmp from L000
+L016:  sbi     io.ddrb, 2           ; Bit 2 = 0x04
+
+Label2:                             ; Rjmp from L024
+L018:  ldi     r29, 0x1e            ; 30
+
+Label3:                             ; Brne from L01c, L020
+L01a:  sbiw    r30, 0x01            ; 1
+L01c:  brne    Label3               ; L01a
+L01e:  dec     r29
+L020:  brne    Label3               ; L01a
+L022:  sbi     io.pinb, 2           ; Bit 2 = 0x04
+L024:  rjmp    Label2               ; L018
+
+L026:  .fill   493, 2, 0xffff
 
 @end cartouche
 @end smallexample
@@ -3399,6 +3634,7 @@ part
     family_id        = <id> ;                 # quoted string, e.g., "megaAVR" or "tinyAVR"
     prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
+    archnum          = <num>;                 # avr-gcc architecture number for the part
     n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
     n_boot_sections  = <num>;                 # Number of boot sections

@@ -166,6 +166,7 @@ add_library(libavrdude
     avrftdi_tpi.h
     avrintel.c
     libavrdude-avrintel.h
+    avr_opcodes.c
     avrpart.c
     bitbang.c
     bitbang.h
@@ -180,6 +181,7 @@ add_library(libavrdude
     confwin.c
     crc16.c
     crc16.h
+    disasm.c
     dfu.c
     dfu.h
     dryrun.c
@@ -342,6 +344,7 @@ endif()
 # =====================================
 
 install(TARGETS avrdude DESTINATION bin)
+install(PROGRAMS "elf2tag" DESTINATION bin)
 install(TARGETS libavrdude
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
