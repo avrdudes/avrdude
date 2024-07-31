@@ -1669,7 +1669,7 @@ skipopen:
           goto sig_again;
         }
         msg_info("\n");
-        pmsg_error("invalid device signature%s\n", verbose<1? str_cchex(sig->buf, 3, 1): "");
+        pmsg_error("invalid device signature\n");
         if (!ovsigck) {
           imsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
           imsg_error("double check connections and try again, or use -F to override this check\n");
