@@ -57,19 +57,16 @@ AM_YFLAGS    = -d
 
 avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
-libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
-libavrdude_la_CPPFLAGS = $(libavrdude_a_CPPFLAGS)
+libavrdude_la_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
-libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@ $(LIBGPIOD_CFLAGS)
-libavrdude_la_CFLAGS  = $(libavrdude_a_CFLAGS)
+libavrdude_la_CFLAGS   = @ENABLE_WARNINGS@ $(LIBGPIOD_CFLAGS)
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ $(LIBGPIOD_LIBS) -lm
+avrdude_LDADD  = libavrdude.la @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ $(LIBGPIOD_LIBS) -lm
 
 bin_PROGRAMS = avrdude
 
-noinst_LIBRARIES = libavrdude.a
 lib_LTLIBRARIES = libavrdude.la
 
 # automake thinks these generated files should be in the distribution,
@@ -88,7 +85,7 @@ dist-hook: dist-hook-no-dist-built-sources-workaround
 dist-hook-no-dist-built-sources-workaround:
 	cd "$(distdir)" && rm -f $(built_sources)
 
-libavrdude_a_SOURCES = \
+libavrdude_la_SOURCES = \
 	config_gram.y \
 	lexer.l \
 	arduino.h \
@@ -223,7 +220,6 @@ libavrdude_a_SOURCES = \
 	wiring.c \
 	xbee.h \
 	xbee.c
-libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
 libavrdude_la_LDFLAGS = -version-info 2:0
 
 include_HEADERS = libavrdude.h
