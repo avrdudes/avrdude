@@ -64,10 +64,13 @@ AM_INIT_AUTOMAKE([
 
 AM_SILENT_RULES([yes])
 
-
 dnl Set up the macro definitions for versioninfo_* which we hand to AC_INIT.
-dnl Yes, it does work to expand the VERSIONINFO_SETUP macro *after* AC_INIT.
+dnl
+dnl Yes, it does work to expand the VERSIONINFO_SETUP macro *after* AC_INIT:
+dnl The presence of VERSIONINFO_SETUP pulls in the definitions at the top.
+dnl
 dnl For details, see the build-helpers/versioninfo.{md,m4,mk,sh} files.
+m4_pattern_forbid([VERSIONINFO_SETUP])dnl
 VERSIONINFO_SETUP()
 
 dnl Inform about the derived PACKAGE_VERSION
@@ -97,13 +100,17 @@ AC_PROG_SED
 AC_PROG_YACC
 AC_PROG_LEX([noyywrap])
 AM_PROG_AR
+
+m4_pattern_forbid([LT_INIT])dnl
 LT_INIT()
 
-# If macro PKG_PROG_PKG_CONFIG is not available, Autoconf generates a misleading error message,
-# so check for existence first, and otherwise provide helpful advice.
+dnl If macro PKG_PROG_PKG_CONFIG is not available, Autoconf generates
+dnl a misleading error message, so check for existence first, and
+dnl otherwise provide helpful advice.
 m4_ifndef([PKG_PROG_PKG_CONFIG], [m4_fatal(m4_normalize([
   Macro PKG_PROG_PKG_CONFIG is not available.
   It is usually defined in file pkg.m4 provided by package pkg-config.]))])
+m4_pattern_forbid([PKG_PROG_PKG_CONFIG])dnl
 PKG_PROG_PKG_CONFIG([0.23])
 
 AH_TEMPLATE([HAVE_YYLEX_DESTROY],
