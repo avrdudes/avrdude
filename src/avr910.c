@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
  * protocol described in application note avr910.

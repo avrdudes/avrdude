@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * The dryrun programmer emulates a physical programmer by allocating a copy of the part and
  * pretending all operations work well.

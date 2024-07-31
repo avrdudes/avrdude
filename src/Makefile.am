@@ -26,10 +26,6 @@
 #
 # make V=1
 
-#
-# $Id$
-#
-
 EXTRA_DIST   = \
 	avrdude.1 \
 	avrdude.spec \

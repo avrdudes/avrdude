@@ -1,6 +1,4 @@
-# $Id$ -*- text -*-
-#
-# AVRDUDE Configuration File
+# AVRDUDE Configuration File                               -*- text -*-
 #
 
 avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";

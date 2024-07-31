@@ -1,8 +1,6 @@
 %% -*-texinfo-*-
 \input texinfo
 
-@c $Id$
-
 @setfilename avrdude.info
 @settitle AVRDUDE
 @finalout
