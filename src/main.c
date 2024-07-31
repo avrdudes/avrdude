@@ -1331,6 +1331,7 @@ int main(int argc, char * argv [])
     // Use libserialport to find the actual serial port
     ser = locate_programmer(programmers, port_tok[0]);
     if (is_serialadapter(ser)) {
+#ifdef HAVE_LIBSERIALPORT
       int rv = setport_from_serialadapter(&port, ser, port_tok[1]);
       if (rv == -1) {
         pmsg_warning("serial adapter %s", port_tok[0]);
@@ -1344,6 +1345,7 @@ int main(int argc, char * argv [])
         print_ports = false;
       if(rv)
         ser = NULL;
+#endif
     } else if(str_eq(port_tok[0], DEFAULT_USB)) {
       // Port or usb:[vid]:[pid]
       int vid, pid;
@@ -1413,9 +1415,11 @@ int main(int argc, char * argv [])
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
 skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
+#ifdef HAVE_LIBSERIALPORT
       list_available_serialports(programmers);
       if(touch_1200bps == 1)
         pmsg_info("alternatively, try -rr or -rrr for longer delays\n");
+#endif
     }
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
