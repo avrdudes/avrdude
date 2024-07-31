@@ -32,9 +32,10 @@ dnl 2018-02-25 automake 1.16
 dnl 2018-03-11 automake 1.16.1  install-sh symlink fix
 
 
-dnl Change this definition if you want to change the dist tarball name
-dnl pattern from avrdude-7.3 for releases and avrdude-7.3-${COMMIT_DATE}
-dnl for snapshots.
+dnl Define the dist tarball name as
+dnl   * avrdude-7.3 for releases
+dnl   * avrdude-7.3-${COMMIT_DATE} for snapshots
+dnl just like CMakeLists.txt does.
 m4_define([versioninfo_AVRDUDE_PACKAGE_VERSION],
           m4_case(m4_defn([versioninfo_GIT_COMMIT_HASH]),
 	          m4_defn([versioninfo_GIT_TAG_HASH]),
@@ -64,6 +65,9 @@ AM_INIT_AUTOMAKE([
 AM_SILENT_RULES([yes])
 
 
+dnl Set up the macro definitions for versioninfo_* which we hand to AC_INIT.
+dnl Yes, it does work to expand the VERSIONINFO_SETUP macro *after* AC_INIT.
+dnl For details, see the build-helpers/versioninfo.{md,m4,mk,sh} files.
 VERSIONINFO_SETUP()
 
 dnl Inform about the derived PACKAGE_VERSION
