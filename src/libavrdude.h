@@ -1523,6 +1523,7 @@ unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
 const char *str_ccfrq(double f, int n);
+const char *str_cchex(const void *buf, size_t len, int add_space);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n);

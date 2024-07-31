@@ -3006,11 +3006,9 @@ static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
     resp[3] != p->signature[1] ||
     resp[4] != p->signature[2]) {
       if (ovsigck) {
-        pmsg_warning("expected signature for %s is %02X %02X %02X\n", p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
+        pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
       } else {
-        pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
+        pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
         imsg_error("double check chip or use -F to override this check\n");
         return -1;
       }

@@ -924,7 +924,7 @@ programmer # dryrun
 
 programmer # dryboot
     id                     = "dryboot";
-    desc                   = "Emulates bootloader programming without a programmer";
+    desc                   = "Emulates bootloader programming without the part";
     type                   = "dryrun";
     prog_modes             = PM_SPM;
 ;

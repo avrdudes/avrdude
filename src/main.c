@@ -1299,7 +1299,7 @@ int main(int argc, char * argv [])
     }
   }
 
-  int is_dryrun = str_eq(pgmid, "dryrun") || (dry && pgm->initpgm == dry->initpgm);
+  int is_dryrun = str_eq(pgm->type, "dryrun") || (dry && pgm->initpgm == dry->initpgm);
   if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
     pmsg_error("no port has been specified on the command line or in the config file\n");
@@ -1500,7 +1500,7 @@ skipopen:
       pmsg_error("programmer does not support RC oscillator calibration\n");
       exitrc = 1;
     } else {
-      pmsg_info("performing RC oscillator calibration\n");
+      pmsg_notice("performing RC oscillator calibration\n");
       exitrc = pgm->perform_osccal(pgm);
     }
     if (exitrc == 0)
@@ -1557,7 +1557,7 @@ skipopen:
   // Indicate programmer is ready
   led_set(pgm, LED_RDY);
 
-  pmsg_info("AVR device initialized and ready to accept instructions\n");
+  pmsg_notice("AVR device initialized and ready to accept instructions\n");
 
   /*
    * Let's read the signature bytes to make sure there is at least a
@@ -1585,16 +1585,18 @@ skipopen:
             char sib[AVR_SIBLEN + 1];
             pgm->read_sib(pgm, p, sib);
             pmsg_notice("System Information Block: %s\n", sib);
-            pmsg_info("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
-            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN))
-              pmsg_error("expected FamilyID: \"%s\"\n", p->family_id);
+            if (strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
+              pmsg_warning("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
+              imsg_warning("expected FamilyID: \"%s\"\n", p->family_id);
+            } else
+              pmsg_notice("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
           }
           if(erase) {
             erase = 0;
             if (uflags & UF_NOWRITE) {
               pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
             } else {
-              pmsg_info("trying to unlock the chip\n");
+              pmsg_notice("trying to unlock the chip\n");
               exitrc = avr_unlock(pgm, p);
               if(exitrc)
                 goto main_exit;
@@ -1621,9 +1623,9 @@ skipopen:
       pmsg_warning("signature memory not defined for device %s\n", p->desc);
     else {
       const char *mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes);
-      if(!*mculist) {
+      if(!*mculist) {           // No matching signatures?
         if(p->prog_modes & PM_UPDI) { // UPDI parts have different(!) offsets for signature
-          int k, n = 0;               // Gather list of known different signature offsets
+          int k, n = 0;         // Gather list of known different signature offsets
           unsigned myoff = sig->offset, offlist[10];
           for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
             AVRMEM *m = avr_locate_signature(ldata(ln1));
@@ -1646,19 +1648,19 @@ skipopen:
         }
       }
 
-      pmsg_info("device signature =");
       int ff = 1, zz = 1;
       for (i=0; i<sig->size; i++) {
-        msg_info(" %02X", sig->buf[i]);
         if (sig->buf[i] != 0xff)
           ff = 0;
         if (sig->buf[i] != 0x00)
           zz = 0;
       }
-      if(*mculist)
-        msg_info(" (%s)", mculist);
-
       bool signature_matches = sig->size >= 3 && !memcmp(sig->buf, p->signature, 3);
+      int showsig = !signature_matches || ff || zz || verbose > 0;
+      if(showsig)
+        pmsg_info("device signature =%s", str_cchex(sig->buf, sig->size, 1));
+      if(*mculist && showsig)
+        msg_info(" (%s)", is_dryrun? p->desc: mculist);
 
       if (ff || zz) {           // All three bytes are 0xff or all three bytes are 0x00
         if (++attempt < 3) {
@@ -1667,26 +1669,22 @@ skipopen:
           goto sig_again;
         }
         msg_info("\n");
-        pmsg_error("Yikes!  Invalid device signature.\n");
+        pmsg_error("invalid device signature%s\n", verbose<1? str_cchex(sig->buf, 3, 1): "");
         if (!ovsigck) {
-          pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
-            p->signature[0], p->signature[1], p->signature[2]);
-          imsg_error("Double check connections and try again, or use -F to override\n");
-          imsg_error("this check.\n\n");
+          imsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("double check connections and try again, or use -F to override this check\n");
           exitrc = 1;
           goto main_exit;
         }
-      } else {
+      } else if(showsig) {
         msg_info("\n");
       }
 
       if (!signature_matches) {
         if (ovsigck) {
-          pmsg_warning("expected signature for %s is %02X %02X %02X\n", p->desc,
-            p->signature[0], p->signature[1], p->signature[2]);
+          pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
         } else {
-          pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
-            p->signature[0], p->signature[1], p->signature[2]);
+          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
           imsg_error("double check chip or use -F to override this check\n");
           exitrc = 1;
           goto main_exit;
@@ -1701,7 +1699,7 @@ skipopen:
         upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           cx->avr_disableffopt = 1; // Must write full flash file including trailing 0xff
-          pmsg_info("NOT erasing chip as page erase will be used for new flash%s contents\n",
+          pmsg_notice("NOT erasing chip as page erase will be used for new flash%s contents\n",
             avr_locate_bootrow(p)? "/bootrow": "");
           imsg_notice("unprogrammed flash contents remains: use -e for an explicit chip-erase\n");
           break;
@@ -1713,8 +1711,8 @@ skipopen:
         upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           erase = 1;
-          pmsg_info("Performing a chip erase as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
-          imsg_notice("specify the -D option to disable this feature\n");
+          pmsg_notice("Performing a chip erase as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
+          imsg_notice2("specify the -D option to disable this feature\n");
         }
       }
     }
@@ -1726,9 +1724,12 @@ skipopen:
      * before the chip can accept new programming
      */
     if (uflags & UF_NOWRITE) {
-      pmsg_warning("%s-n specified, NOT erasing chip\n", explicit_e? "conflicting -e and ": "");
+      if(explicit_e)
+        pmsg_warning("conflicting -e and -n specified, NOT erasing chip\n");
+      else
+        pmsg_notice("-n specified, NOT erasing chip\n");
     } else {
-      pmsg_info("erasing chip\n");
+      pmsg_notice("erasing chip\n");
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc == LIBAVRDUDE_SOFTFAIL) {
         imsg_info("delaying chip erase until first -U upload to flash\n");

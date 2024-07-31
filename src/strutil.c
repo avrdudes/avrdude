@@ -1141,6 +1141,17 @@ const char *str_ccfrq(double f, int n) {
   return str_ccprintf("%.*g Hz", n, f);
 }
 
+// Return an uppercase hex string of max 64 len bytes from binary buffer buf
+const char *str_cchex(const void *buf, size_t len, int add_space) {
+  if(len > 64)                  // Sanity
+    len = 64;
+  int wd = 2 + !!add_space;
+  char *ret = avr_cc_buffer(wd*len + 1);
+  for(size_t i=0; i<len; i++)
+    sprintf(ret + i*wd, "%s%02X", " "+(3-wd), ((unsigned char *) buf)[i]);
+  return ret;
+}
+
 /*
  * From https://github.com/git/git/blob/master/levenshtein.c
  *
