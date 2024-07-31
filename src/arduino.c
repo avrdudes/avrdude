@@ -37,6 +37,43 @@
 #include "stk500.h"
 #include "arduino.h"
 
+static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  int attempts;
+  int rv = 0;
+  bool help = 0;
+
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
+
+    if (sscanf(extended_param, "attempts=%i", &attempts) == 1) {
+      PDATA(pgm)->retry_attempts = attempts;
+      pmsg_info("setting number of retry attempts to %d\n", attempts);
+      continue;
+    }
+
+    if(str_eq(extended_param, "noautoreset")) {
+      PDATA(pgm)->autoreset = false;
+      continue;
+    }
+
+    if (str_eq(extended_param, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x attempts=<n> Specify the number <n> of connection retry attempts\n");
+    msg_error("  -x noautoreset  Don't toggle RTS/DTR lines on port open to prevent a hardware reset\n");
+    msg_error("  -x help         Show this help menu and exit\n");
+    return rv;
+  }
+  return rv;
+}
+
 /* read signature bytes - arduino version */
 static int arduino_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   unsigned char buf[32];
@@ -85,28 +122,28 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  // This code assumes a negative-logic USB to TTL serial adapter
-  // Set RTS/DTR high to discharge the series-capacitor, if present
-  serial_set_dtr_rts(&pgm->fd, 0);
-  /*
-   * Long wait needed for optiboot: otherwise the second of two bootloader
-   * calls in quick succession fails:
-   *
-   * avrdude -c arduino -qqp m328p -U x.hex; avrdude -c arduino -qqp m328p -U x.hex
-   */
-  usleep(250 * 1000);
-  // Pull the RTS/DTR line low to reset AVR
-  serial_set_dtr_rts(&pgm->fd, 1);
-  // Max 100 us: charging a cap longer creates a high reset spike above Vcc
-  usleep(100);
-  // Set the RTS/DTR line back to high, so direct connection to reset works
-  serial_set_dtr_rts(&pgm->fd, 0);
+  if(PDATA(pgm)->autoreset) {
+    // This code assumes a negative-logic USB to TTL serial adapter
+    // Set RTS/DTR high to discharge the series-capacitor, if present
+    serial_set_dtr_rts(&pgm->fd, 0);
+    /*
+    * Long wait needed for optiboot: otherwise the second of two bootloader
+    * calls in quick succession fails:
+    *
+    * avrdude -c arduino -qqp m328p -U x.hex; avrdude -c arduino -qqp m328p -U x.hex
+    */
+    usleep(250 * 1000);
+    // Pull the RTS/DTR line low to reset AVR
+    serial_set_dtr_rts(&pgm->fd, 1);
+    // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+    usleep(100);
+    // Set the RTS/DTR line back to high, so direct connection to reset works
+    serial_set_dtr_rts(&pgm->fd, 0);
 
-  usleep(100 * 1000);
+    usleep(100 * 1000);
+  }
 
-  /*
-   * drain any extraneous input
-   */
+  // Drain any extraneous input
   stk500_drain(pgm, 0);
 
   if (stk500_getsync(pgm) < 0)
@@ -115,8 +152,7 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
   return 0;
 }
 
-static void arduino_close(PROGRAMMER * pgm)
-{
+static void arduino_close(PROGRAMMER *pgm) {
   serial_close(&pgm->fd);
   pgm->fd.ifd = -1;
 }
@@ -129,11 +165,11 @@ void arduino_initpgm(PROGRAMMER *pgm) {
      and the DTR signal is set when opening the serial port
      for the Auto-Reset feature */
   stk500_initpgm(pgm);
-
   strcpy(pgm->type, "Arduino");
   pgm->read_sig_bytes = arduino_read_sig_bytes;
   pgm->open = arduino_open;
   pgm->close = arduino_close;
+  pgm->parseextparams = arduino_parseextparms;
 
   cx->avr_disableffopt = 1;     // Disable trailing 0xff removal
 }

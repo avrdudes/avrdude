@@ -60,6 +60,7 @@ struct pdata
   int ctype;                    // Cache one byte for flash
   unsigned char cvalue;
   unsigned long caddr;
+  bool autoreset;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))
@@ -361,9 +362,8 @@ static void butterfly_enable(PROGRAMMER *pgm, const AVRPART *p) {
 static int butterfly_open(PROGRAMMER *pgm, const char *port) {
   union pinfo pinfo;
   pgm->port = port;
-  /*
-   *  If baudrate was not specified use 19200 Baud
-   */
+
+  // If baudrate was not specified use 19200 Baud
   if(pgm->baudrate == 0) {
     pgm->baudrate = 19200;
   }
@@ -373,9 +373,22 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  /*
-   * drain any extraneous input
-   */
+  if(PDATA(pgm)->autoreset) {
+    // This code assumes a negative-logic USB to TTL serial adapter
+    // Set RTS/DTR high to discharge the series-capacitor, if present
+    imsg_notice2("Toggling the DTR/RTS lines to trigger a hardware reset\n");
+    serial_set_dtr_rts(&pgm->fd, 0);
+    usleep(250 * 1000);
+    // Pull the RTS/DTR line low to reset AVR
+    serial_set_dtr_rts(&pgm->fd, 1);
+    // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+    usleep(100);
+    // Set the RTS/DTR line back to high, so direct connection to reset works
+    serial_set_dtr_rts(&pgm->fd, 0);
+    usleep(100 * 1000);
+  }
+
+  // Drain any extraneous input
   (void) butterfly_drain(pgm, 0);
 
   return 0;
@@ -681,6 +694,37 @@ static int butterfly_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, con
   return 3;
 }
 
+static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  const char *extended_param;
+  int rv = 0;
+  bool help = 0;
+
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    extended_param = ldata(ln);
+
+    if(str_eq(extended_param, "autoreset")) {
+      PDATA(pgm)->autoreset = true;
+      continue;
+    }
+
+    if (str_eq(extended_param, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x autoreset  Toggle RTS/DTR lines on port open to issue a hardware reset\n");
+    msg_error("  -x help       Show this help menu and exit\n");
+    return rv;
+  }
+
+  return rv;
+}
+
 const char butterfly_desc[] = "Atmel Butterfly evaluation board; Atmel AppNotes AVR109, AVR911";
 
 void butterfly_initpgm(PROGRAMMER *pgm) {
@@ -714,7 +758,7 @@ void butterfly_initpgm(PROGRAMMER *pgm) {
   pgm->paged_load = butterfly_paged_load;
 
   pgm->read_sig_bytes = butterfly_read_sig_bytes;
-
+  pgm->parseextparams = butterfly_parseextparms;
   pgm->setup          = butterfly_setup;
   pgm->teardown       = butterfly_teardown;
   pgm->flag = 0;

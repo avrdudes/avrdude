@@ -288,17 +288,18 @@ static void buspirate_dummy_6(const PROGRAMMER *pgm, const char *p) {
 
 /* ====== Config / parameters handling functions ====== */
 static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-	LNODEID ln;
-	const char *extended_param;
+	int rv = 0;
 	char reset[10];
 	char *preset = reset; /* for strtok() */
 	unsigned int spifreq;
 	unsigned int rawfreq;
 	unsigned int cpufreq;
 	int serial_recv_timeout;
+	bool help = false;
 
-	for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-		extended_param = ldata(ln);
+	for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+		const char *extended_param = ldata(ln);
+
 		if (str_eq(extended_param, "ascii")) {
 			PDATA(pgm)->flag |= BP_FLAG_XPARM_FORCE_ASCII;
 			continue;
@@ -318,11 +319,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 			if (spifreq & (~0x07)) {
 				pmsg_error("spifreq must be between 0 and 7\n");
 				imsg_error("see BusPirate manual for details\n");
-				return -1;
+				rv = -1;
+				break;
 			}
 			if (PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ) {
 				pmsg_error("set either spifreq or rawfreq\n");
-				return -1;
+				rv = -1;
+				break;
 			}
 			PDATA(pgm)->flag |=  BP_FLAG_XPARM_SPIFREQ;
 			PDATA(pgm)->spifreq = spifreq;
@@ -332,11 +335,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 		if (sscanf(extended_param, "rawfreq=%u", &rawfreq) == 1) {
 			if (rawfreq >= 4) {
 				pmsg_error("rawfreq must be between 0 and 3\n");
-				return -1;
+				rv = -1;
+				break;
 			}
 			if (PDATA(pgm)->flag & BP_FLAG_XPARM_SPIFREQ) {
 				pmsg_error("set either spifreq or rawfreq\n");
-				return -1;
+				rv = -1;
+				break;
 			}
 			PDATA(pgm)->flag |=  BP_FLAG_XPARM_RAWFREQ;
 			PDATA(pgm)->spifreq = rawfreq;
@@ -348,7 +353,8 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 			if (cpufreq < 125 || cpufreq > 4000) {
 				pmsg_error("cpufreq must be between 125 and 4000 kHz\n");
 				imsg_error("see BusPirate manual for details\n");
-				return -1;
+				rv = -1;
+				break;
 			}
 			PDATA(pgm)->cpufreq = cpufreq;
 			PDATA(pgm)->flag |= BP_FLAG_XPARM_CPUFREQ;
@@ -366,8 +372,9 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 				else if (str_caseeq(resetpin, "aux2"))
 					PDATA(pgm)->reset |= BP_RESET_AUX2;
 				else {
-					pmsg_error("reset must be either CS or AUX\n");
-					return -1;
+					pmsg_error("-x reset= value must be either CS, AUX or AUX2\n");
+					rv = -1;
+					break;
 				}
 			}
 			PDATA(pgm)->flag |= BP_FLAG_XPARM_RESET;
@@ -387,33 +394,38 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 		if (sscanf(extended_param, "serial_recv_timeout=%d", &serial_recv_timeout) == 1) {
 			if (serial_recv_timeout < 1) {
 				pmsg_error("serial_recv_timeout must be greater 0\n");
-				return -1;
+				rv = -1;
+				break;
 			}
 			PDATA(pgm)->serial_recv_timeout = serial_recv_timeout;
 			continue;
 		}
 
 		if (str_eq(extended_param, "help")) {
-			msg_error("%s -c %s extended options:\n", progname, pgmid);
-			msg_error("  -xreset=cs,aux,aux2         Override default reset pin\n");
-			msg_error("  -xspifreq=<0..7>            Set binary SPI mode speed\n");
-			msg_error("  -xrawfreq=<0..3>            Set \"raw-wire\" SPI mode speed\n");
-			msg_error("  -xascii                     Use ASCII protocol between BP and Avrdude\n");
-			msg_error("  -xnopagedwrite              Disable page write functionality\n");
-			msg_error("  -xnopagedread               Disable page read functionality\n");
-			msg_error("  -xcpufreq=<125..4000>       Set the AUX pin to output a frequency to n [kHz]\n");
-			msg_error("  -xserial_recv_timeout=<arg> Set serial receive timeout to <arg> [ms]\n");
-			msg_error("  -xpullups                   Enable internal pull-ups\n");
-			msg_error("  -xhiz                       SPI HiZ mode (open collector)\n");
-			msg_error("  -xhelp                      Show this help menu and exit\n");
-			return LIBAVRDUDE_EXIT;;
+			help = true;
+			rv = LIBAVRDUDE_EXIT;
 		}
 
-		pmsg_error("do not understand extended param '%s'\n", extended_param);
-		return -1;
+		if (!help) {
+			pmsg_error("invalid extended parameter -x %s\n", extended_param);
+			rv = -1;
+		}
+		msg_error("%s -c %s extended options:\n", progname, pgmid);
+		msg_error("  -x reset=[cs|aux|aux2]     Override default reset pin\n");
+		msg_error("  -x spifreq=<0..7>          Set binary SPI mode speed\n");
+		msg_error("  -x rawfreq=<0..3>          Set \"raw-wire\" SPI mode speed\n");
+		msg_error("  -x ascii                   Use ASCII protocol between BP and Avrdude\n");
+		msg_error("  -x nopagedwrite            Disable page write functionality\n");
+		msg_error("  -x nopagedread             Disable page read functionality\n");
+		msg_error("  -x cpufreq=<125..4000>     Set the AUX pin to output a frequency to <n> kHz\n");
+		msg_error("  -x serial_recv_timeout=<n> Set serial receive timeout to <n> ms\n");
+		msg_error("  -x pullups                 Enable internal pull-ups\n");
+		msg_error("  -x hiz                     SPI HiZ mode (open collector)\n");
+		msg_error("  -x help                    Show this help menu and exit\n");
+		return rv;
 	}
 
-	return 0;
+	return rv;
 }
 
 static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
@@ -548,7 +560,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 5);
 	if (sscanf((const char*)buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
-		pmsg_error("binary mode not confirmed: '%s'\n", buf);
+		pmsg_error("binary mode not confirmed: %s\n", buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
@@ -586,7 +598,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 4);
 	if (sscanf((const char*)buf, submode.entered_format, &PDATA(pgm)->submode_version) != 1) {
-		pmsg_error("%s mode not confirmed: '%s'\n", submode.name, buf);
+		pmsg_error("%s mode not confirmed: %s\n", submode.name, buf);
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
@@ -1181,7 +1193,7 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
 	memset(buf, 0, sizeof(buf));
 	buspirate_recv_bin(pgm, buf, 5);
 	if (sscanf((char*)buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
-		pmsg_error("binary mode not confirmed: '%s'\n", buf);
+		pmsg_error("binary mode not confirmed: %s\n", buf);
 		buspirate_reset_from_binmode(pgm);
 		return;
 	}

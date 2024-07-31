@@ -1742,12 +1742,11 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_starts(extended_param, "vtarg")) {
       if (pgm->extra_features & HAS_VTARG_ADJ) {
@@ -1757,7 +1756,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1772,7 +1771,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_starts(extended_param, "varef")) {
+    if (str_starts(extended_param, "varef")) {
       if (pgm->extra_features & HAS_VAREF_ADJ) {
         int sscanf_success = 0;
         double varef_set_val = -1;
@@ -1810,7 +1809,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         if (PDATA(pgm)->varef_set) {
           PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || varef_set_val < 0) {
-            pmsg_error("invalid varef value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             PDATA(pgm)->varef_set = false;
             rv = -1;
             break;
@@ -1820,14 +1819,14 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_starts(extended_param, "fosc")) {
+    if (str_starts(extended_param, "fosc")) {
       if (pgm->extra_features & HAS_FOSC_ADJ) {
         // Set clock generator frequency
         if (str_starts(extended_param, "fosc=")) {
           char fosc_str[16] = {0};
           int sscanf_success = sscanf(extended_param, "fosc=%15[0-9.eE MmKkHhZzof]", fosc_str);
           if (sscanf_success < 1) {
-            pmsg_error("invalid fosc value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1863,13 +1862,13 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_starts(extended_param, "xtal")) {
+    if (str_starts(extended_param, "xtal")) {
       // Set clock generator frequency
       if (str_starts(extended_param, "xtal=")) {
         char xtal_str[16] = {0};
         int sscanf_success = sscanf(extended_param, "xtal=%15[0-9.eE MmKkHhZz]", xtal_str);
         if (sscanf_success < 1) {
-          pmsg_error("invalid xtal value %s\n", extended_param);
+          pmsg_error("invalid value in -x %s\n", extended_param);
           rv = -1;
           break;
         }
@@ -1892,48 +1891,52 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg               Read target supply voltage\n");
-        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
-      }
-      if (pgm->extra_features & HAS_VAREF_ADJ) {
-        if (str_contains(pgm->type, "STK500")) {
-          msg_error("  -xvaref               Read analog reference voltage\n");
-          msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
-        }
-        else if (str_contains(pgm->type, "STK600")) {
-          msg_error("  -xvaref               Read channel 0 analog reference voltage\n");
-          msg_error("  -xvaref0              Alias for -xvaref\n");
-          msg_error("  -xvaref1              Read channel 1 analog reference voltage\n");
-          msg_error("  -xvaref=<arg>         Set channel 0 analog reference voltage\n");
-          msg_error("  -xvaref0=<arg>        Alias for -xvaref=<arg>\n");
-          msg_error("  -xvaref1=<arg>        Set channel 1 analog reference voltage\n");
-        }
-      }
-      if (pgm->extra_features & HAS_FOSC_ADJ) {
-        msg_error("  -xfosc                Read oscillator clock frequency\n");
-        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
-      }
-      msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
-      msg_error("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+    if (str_eq(extended_param, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if (pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg          Read target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>    Set target supply voltage to <dbl> V\n");
+    }
+    if (pgm->extra_features & HAS_VAREF_ADJ) {
+      if (str_contains(pgm->type, "STK500")) {
+        msg_error("  -x varef          Read analog reference voltage\n");
+        msg_error("  -x varef=<dbl>    Set analog reference voltage to <dbl> V\n");
+      }
+      else if (str_contains(pgm->type, "STK600")) {
+        msg_error("  -x varef          Read channel 0 analog reference voltage\n");
+        msg_error("  -x varef0         Alias for -x varef\n");
+        msg_error("  -x varef1         Read channel 1 analog reference voltage\n");
+        msg_error("  -x varef=<dbl>    Set channel 0 analog reference voltage to <dbl> V\n");
+        msg_error("  -x varef0=<dbl>   Alias for -x varef=<dbl>\n");
+        msg_error("  -x varef1=<dbl>   Set channel 1 analog reference voltage to <dbl> V\n");
+      }
+    }
+    if (pgm->extra_features & HAS_FOSC_ADJ) {
+      msg_error("  -x fosc           Read oscillator clock frequency\n");
+      msg_error("  -x fosc=<n>[unit] Set oscillator clock frequency to <n> Hz (or kHz/MHz)\n");
+      msg_error("  -x fosc=off       Switch the oscillator clock off\n");
+    }
+    msg_error("  -x xtal=<n>[unit] Set programmer xtal frequency to <n> Hz (or kHz/MHz)\n");
+    msg_error("  -x help           Show this help menu and exit\n");
+    return rv;
   }
   return rv;
 }
 
 static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     // SUFFER bits
     // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
@@ -1946,13 +1949,13 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         // Set SUFFER value
         if(str_starts(extended_param, "suffer=")) {
           if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
           if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
             PDATA(pgm)->suffer_data[1] |= 0x78;
-            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+            pmsg_info("setting -x suffer=0x%02x so that reserved bits 3..6 are set\n",
               PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
@@ -1963,7 +1966,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->suffer_get = true;
           continue;
         }
-        pmsg_error("invalid suffer setting %s. Use -xsuffer or -xsuffer=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x suffer or -x suffer=<n>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1975,7 +1978,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         if(str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1987,7 +1990,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->vtarg_switch_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg_switch setting %s. Use -xvtarg_switch or -xvtarg_switch=<0..1>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg_switch or -x vtarg_switch=<0..1>\n", extended_param);
         rv = -1;
         break;
       }
@@ -2001,7 +2004,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -2013,7 +2016,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->vtarg_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg setting %s. Use -xvtarg or -xvtarg=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -2031,33 +2034,37 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      pmsg_error("invalid mode setting %s. Use -xmode=avr or -xmode=pic\n", extended_param);
+      pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=pic\n", extended_param);
       rv = -1;
       break;
     }
 
     if(str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if(pgm->extra_features & HAS_SUFFER) {
-        msg_error("  -xsuffer              Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_SWITCH) {
-        msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<0..1> Set on-board target voltage switch state\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg               Read on-board target supply voltage\n");
-        msg_error("  -xvtarg=<arg>         Set on-board target supply voltage\n");
-      }
-      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-        msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
-      msg_error  ("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if(!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if(pgm->extra_features & HAS_SUFFER) {
+      msg_error("  -x suffer              Read SUFFER register value\n");
+      msg_error("  -x suffer=<n>          Set SUFFER register value to <n>=0x.., 0... or decimal\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_SWITCH) {
+      msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch=<0..1> Set on-board target voltage switch state\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg               Read on-board target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
+    }
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+      msg_error("  -x mode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
+    msg_error  ("  -x help                Show this help menu and exit\n");
+    return rv;
   }
   return rv;
 }

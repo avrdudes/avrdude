@@ -1036,42 +1036,53 @@ static void dryrun_teardown(PROGRAMMER *pgm) {
 
 
 static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
+  int rc = 0;
+  bool help = false;
+
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *xpara = ldata(ln);
 
     if(str_starts(xpara, "init")) {
       dry.init = 1;
       continue;
-    } else if(str_starts(xpara, "random")) {
+    }
+    if(str_starts(xpara, "random")) {
       dry.random = 1;
       continue;
-    } else if(str_starts(xpara, "seed=")) {
+    }
+    if(str_starts(xpara, "seed=")) {
       const char *errptr;
       int seed = str_int(strchr(xpara, '=')+1, STR_INT32, &errptr);
       if(errptr) {
         pmsg_error("cannot parse %s seed value: %s\n", xpara, errptr);
-        return -1;
+        rc = -1;
+        break;
       }
       dry.seed = seed;
       continue;
-    } else if(str_eq(xpara, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xinit     Initialise memories with human-readable patterns (1, 2, 3)\n");
-      msg_error("  -xrandom   Initialise memories with random code/values (1, 3)\n");
-      msg_error("  -xseed=<n> Seed random number generator with <n>, default time(NULL)\n");
-      msg_error("  -xhelp     Show this help menu and exit\n");
-      msg_error("Notes:\n");
-      msg_error("  (1) -xinit and -xrandom randomly configure flash wrt boot/data/code length\n");
-      msg_error("  (2) Patterns can best be seen with fixed-width font on -U flash:r:-:I\n");
-      msg_error("  (3) Choose, eg, -xseed=1 for reproducible flash configuration and output\n");
-      return LIBAVRDUDE_EXIT;
+    }
+    if(str_eq(xpara, "help")) {
+      help = true;
+      rc = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", xpara);
-    return -1;
+    if(!help) {
+      pmsg_error("invalid extended parameter -x %s\n", xpara);
+      rc = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x init     Initialise memories with human-readable patterns (1, 2, 3)\n");
+    msg_error("  -x random   Initialise memories with random code/values (1, 3)\n");
+    msg_error("  -x seed=<n> Seed random number generator with <n>, n>0, default time(NULL)\n");
+    msg_error("  -x help     Show this help menu and exit\n");
+    msg_error("Notes:\n");
+    msg_error("  (1) -x init and -x random randomly configure flash wrt boot/data/code length\n");
+    msg_error("  (2) Patterns can best be seen with fixed-width font on -U flash:r:-:I\n");
+    msg_error("  (3) Choose, eg, -x seed=1 for reproducible flash configuration and output\n");
+    return rc;
   }
 
-  return 0;
+  return rc;
 }
 
 const char dryrun_desc[] = "Dryrun programmer for testing avrdude";

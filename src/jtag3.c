@@ -1456,17 +1456,16 @@ static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if(str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
       if(sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-        pmsg_error("invalid JTAG chain %s\n", extended_param);
+        pmsg_error("invalid JTAG chain in -x %s\n", extended_param);
         rv = -1;
         break;
       }
@@ -1492,7 +1491,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       if(!str_eq(extended_param, "hvupdi")) {
-        pmsg_error("invalid -xhvupdi value %s. Use -xhvupdi\n", extended_param);
+        pmsg_error("invalid assignment in -x %s; use -x hvupdi\n", extended_param);
         rv = -1;
         break;
       }
@@ -1511,13 +1510,13 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         // Set SUFFER value
         if(str_starts(extended_param, "suffer=")) {
           if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
           if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
             PDATA(pgm)->suffer_data[1] |= 0x78;
-            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+            pmsg_info("setting -x suffer=0x%02x so that reserved bits 3..6 are set\n",
               PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
@@ -1528,7 +1527,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->suffer_get = true;
           continue;
         }
-        pmsg_error("invalid suffer setting %s. Use -xsuffer or -xsuffer=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x suffer or -x suffer=<n>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1540,7 +1539,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         if(str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1552,7 +1551,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->vtarg_switch_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg_switch setting %s. Use -xvtarg_switch or -xvtarg_switch=<0..1>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg_switch or -x vtarg_switch=<0..1>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1566,7 +1565,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1578,7 +1577,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->vtarg_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg setting %s. Use -xvtarg or -xvtarg=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1596,37 +1595,43 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      pmsg_error("invalid mode setting %s. Use -xmode=avr or -xmode=pic\n", extended_param);
+      pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=pic\n", extended_param);
       rv = -1;
       break;
     }
 
     if(str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if(str_eq(pgm->type, "JTAGICE3"))
-        msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if(lsize(pgm->hvupdi_support) > 1)
-        msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if(pgm->extra_features & HAS_SUFFER) {
-        msg_error("  -xsuffer                Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_SWITCH) {
-        msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg                 Read on-board target supply voltage\n");
-        msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
-      }
-      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
-      msg_error  ("  -xhelp                  Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if(str_eq(pgm->type, "JTAGICE3")) {
+      msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+      msg_error("                           UB/UA = units before/after, BB/BA = bits before/after\n");
+    }
+    if(lsize(pgm->hvupdi_support) > 1)
+      msg_error("  -x hvupdi                Enable high-voltage UPDI initialization\n");
+    if(pgm->extra_features & HAS_SUFFER) {
+      msg_error("  -x suffer                Read SUFFER register value\n");
+      msg_error("  -x suffer=<n>            Set SUFFER register to <n> (0x.. hex, 0.. oct or dec)\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_SWITCH) {
+      msg_error("  -x vtarg_switch          Read on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch=<0..1>   Set on-board target voltage switch state\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg                 Read on-board target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>           Set on-board target supply voltage to <dbl> V\n");
+    }
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+      msg_error("  -x mode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
+    msg_error  ("  -x help                  Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;
@@ -1722,7 +1727,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             imsg_error("please run Avrdude again to continue the session\n\n");
           } else {
             imsg_error("to switch into AVR mode try\n");
-            imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n", pgmid, partdesc, port);
+            imsg_error("avrdude -c%s -p%s -P%s -x mode=avr\n", pgmid, partdesc, port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;
@@ -1748,7 +1753,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   }
 
   if (mode_switch == PK4_SNAP_MODE_AVR)
-    pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
+    pmsg_warning("programmer is already in AVR mode, ignoring -x mode");
 
   // The event EP has been deleted by usb_open(), so we are
   // running on a CMSIS-DAP device, using EDBG protocol

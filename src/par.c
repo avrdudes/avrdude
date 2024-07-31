@@ -335,36 +335,59 @@ static void par_close(PROGRAMMER *pgm) {
  */
 static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   char *cp, *s, *str = mmt_strdup(sp);
+  int rv = 0;
+  bool help = false;
 
   s = str;
   while((cp = strtok(s, ","))) {
-    if(str_eq(cp, "reset"))
+    s = NULL;
+    if(str_eq(cp, "reset")) {
       pgm->exit_reset = EXIT_RESET_ENABLED;
-
-    else if(str_eq(cp, "noreset"))
-      pgm->exit_reset = EXIT_RESET_DISABLED;
-
-    else if(str_eq(cp, "vcc"))
-      pgm->exit_vcc = EXIT_VCC_ENABLED;
-
-    else if(str_eq(cp, "novcc"))
-      pgm->exit_vcc = EXIT_VCC_DISABLED;
-
-    else if(str_eq(cp, "d_high"))
-      pgm->exit_datahigh = EXIT_DATAHIGH_ENABLED;
-
-    else if(str_eq(cp, "d_low"))
-      pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
-
-    else {
-      mmt_free(str);
-      return -1;
+      continue;
     }
-    s = NULL; // Only call strtok() once with the actual string
+    if(str_eq(cp, "noreset")) {
+      pgm->exit_reset = EXIT_RESET_DISABLED;
+      continue;
+    }
+    if(str_eq(cp, "vcc")) {
+      pgm->exit_vcc = EXIT_VCC_ENABLED;
+      continue;
+    }
+    if(str_eq(cp, "novcc")) {
+      pgm->exit_vcc = EXIT_VCC_DISABLED;
+      continue;
+    }
+    if(str_eq(cp, "d_high")) {
+      pgm->exit_datahigh = EXIT_DATAHIGH_ENABLED;
+      continue;
+    }
+    if(str_eq(cp, "d_low")) {
+      pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
+      continue;
+    }
+    if (str_eq(cp, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if (!help) {
+      pmsg_error("invalid exitspec parameter -E %s\n", cp);
+      rv = -1;
+    }
+    msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+    msg_error("  -E reset   Programmer will keep the reset line low after programming session\n");
+    msg_error("  -E noreset Programmer will not keep the reset line low after programming session\n");
+    msg_error("  -E vcc     Programmer VCC pin(s) remain active after programming session\n");
+    msg_error("  -E novcc   Programmer VCC pin(s) turned off after programming session\n");
+    msg_error("  -E d_high  Set all 8 programmer data pins high after programming session\n");
+    msg_error("  -E d_low   Set all 8 programmer data pins low after programming session\n");
+    msg_error("  -E help    Show this help menu and exit\n");
+    mmt_free(str);
+    return rv;
   }
 
   mmt_free(str);
-  return 0;
+  return rv;
 }
 
 void par_initpgm(PROGRAMMER *pgm) {
