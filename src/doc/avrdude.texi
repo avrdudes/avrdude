@@ -1320,10 +1320,10 @@ The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
 The current reference voltage can be read by @samp{-x varef0} or
 @samp{-x varef1} alone.
-@item @samp{attemps[=<1..99>]}
+@item @samp{attempts[=<1..99>]}
 @var{STK500V1 only}
 @*
-Specify how many connection retry attemps to perform before exiting.
+Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
 @item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
 Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
@@ -1360,7 +1360,7 @@ Show help menu and exit.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item @samp{attemps=VALUE}
+@item @samp{attempts=VALUE}
 Overide the default number of connection retry attempt by using @var{VALUE}.
 @item @samp{help}
 Show help menu and exit.
