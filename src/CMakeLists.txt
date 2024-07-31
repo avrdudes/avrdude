@@ -344,6 +344,7 @@ endif()
 # =====================================
 
 install(TARGETS avrdude DESTINATION bin)
+install(PROGRAMS "elf2tag" DESTINATION bin)
 install(TARGETS libavrdude
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

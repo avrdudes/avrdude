@@ -2496,13 +2496,12 @@ corresponding variables are used.
 Tagfiles are useful for disassembly to make the output of disasm more
 readable. They can be built manually and incrementally as one's under‐
 standing of the code grows. Alternatively, the bash shell script
-@code{tools/elf2tag} that resides in the AVRDUDE repository can
-automatically gen‐ erate a tag file from the .elf file that produced the
-flash contents:
+@code{elf2tag} can automatically generate a tag file from the .elf file
+that produced the flash contents:
 
 @smallexample
 @cartouche
-$ tools/elf2tag application.elf >application.tag
+$ elf2tag application.elf >application.tag
 @end cartouche
 @end smallexample
 

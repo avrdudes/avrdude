@@ -236,6 +236,8 @@ avrdude_SOURCES = \
 	developer_opts.h \
 	developer_opts_private.h
 
+dist_bin_SCRIPTS = elf2tag
+
 man_MANS = avrdude.1
 
 sysconf_DATA = avrdude.conf

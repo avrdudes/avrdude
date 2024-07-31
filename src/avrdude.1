@@ -1277,10 +1277,10 @@ corresponding variables are used.
 Tagfiles are useful for disassembly to make the output of disasm more
 readable. They can be built manually and incrementally as one's
 understanding of the code grows. Alternatively, the bash shell script
-tools/elf2tag that resides in the AVRDUDE repository can automatically
-generate a tag file from the .elf file that produced the flash contents:
+elf2tag can automatically generate a tag file from the .elf file that
+produced the flash contents:
 .Pp
-$ tools/elftag file.elf >file.tag
+$ elf2tag file.elf >file.tag
 .Pp
 elf2tag uses the avr-objdump -d disassembly to create L labels and avr-nm
 to generate M symbols.
