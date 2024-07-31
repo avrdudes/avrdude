@@ -667,6 +667,33 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
   return ret;
 }
 
+// Returns whether or not the string str looks like a number
+int looks_like_number(const char *str) {
+  int base = 0;
+  char *endptr;
+
+  while(isspace(*str & 0xff))
+    str++;
+
+  // Skip sign but don't allow double sign
+  if(*str == '-' || *str == '+') {
+    str++;
+    if(*str == '-' || *str == '+')
+      return 0;
+  }
+
+  if(*str == '0' && (str[1] == 'b' || str[1] == 'B'))
+    base = 2, str+=2;
+  else if(*str == '0' && (str[1] == 'x' || str[1] == 'X'))
+    base = 16, str+=2;
+
+
+  errno = 0;
+  (void) strtoull(str, &endptr, base);
+
+  return endptr != str && !*endptr && !errno;
+}
+
 
 /*
  * str_todata() is the workhorse for generic string to data conversion for the terminal write

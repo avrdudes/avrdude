@@ -1,5 +1,3 @@
-$Id$
-
 Approximate change log for AVRDUDE by version.
 
 (For detailed changes, see the version control system logs.)
@@ -9,7 +7,8 @@ Changes since version 7.3:
 
   * Major changes compared to the previous version:
 
-    - Support of multi-memory .hex and .srec files and memory lists
+    - Support of multi-memory .hex/.srec files and memory lists #1828
+    - New terminal disasm command #1842
 
   * New devices supported:
 
@@ -46,6 +45,7 @@ Changes since version 7.3:
     - Terminal erase command #1833
     - Bootrow r/w does not work for -c serialupdi #1832
     - Wrong error message when specifying wrong AVR-Ex part #1813
+    - AVR109 auto reset functionality #1697
 
   * Pull requests:
 
@@ -108,6 +108,10 @@ Changes since version 7.3:
     - Add fuses, calibration, sernum and tempsense memories #1829
     - Fix bootrow access for -c serialupdi #1835
     - Improve signature check for UPDI parts #1840
+    - Improve error handling for avrdude without libserialport #1843
+    - Provide terminal disasm command #1842
+    - Improve auto-reset handling and -x/-E parsing #1844
+    - Remove obsolete SVN $Id$ tags from source files #1850
 
   * Internals:
 

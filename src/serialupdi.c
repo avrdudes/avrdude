@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id$ */
-
 /*
  * Interface to the SerialUPDI programmer.
  *
@@ -1014,13 +1012,12 @@ static int serialupdi_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *si
 }
 
 static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   char rts_mode[5];
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
       if (str_caseeq(rts_mode, "low")) {
@@ -1028,20 +1025,26 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       } else if (str_caseeq(rts_mode, "high")) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
-        pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
-        return -1;
+        pmsg_error("-x rtsdtr=<mode>: RTS/DTR mode must be LOW or HIGH\n");
+        rv = -1;
+        break;
       }
       continue;
     }
+
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xrtsdtr=low,high Force RTS/DTR lines low or high state during programming\n");
-      msg_error("  -xhelp            Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x rtsdtr=[low|high] Set RTS/DTR lines low/high during programming\n");
+    msg_error("  -x help              Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

@@ -16,10 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-#
-# $Id$
-#
-
 GENERATED_TEXINFOS = \
 	$(builddir)/programmers.texi \
 	$(builddir)/parts.texi \

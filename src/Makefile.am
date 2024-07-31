@@ -26,10 +26,6 @@
 #
 # make V=1
 
-#
-# $Id$
-#
-
 EXTRA_DIST   = \
 	avrdude.1 \
 	avrdude.spec \
@@ -105,6 +101,7 @@ libavrdude_a_SOURCES = \
 	avrintel.c \
 	libavrdude-avrintel.h \
 	avrpart.c \
+	avr_opcodes.c \
 	bitbang.c \
 	bitbang.h \
 	buspirate.c \
@@ -118,6 +115,7 @@ libavrdude_a_SOURCES = \
 	confwin.c \
 	crc16.c \
 	crc16.h \
+	disasm.c \
 	dfu.c \
 	dfu.h \
 	dryrun.c \
@@ -233,6 +231,8 @@ avrdude_SOURCES = \
 	developer_opts.c \
 	developer_opts.h \
 	developer_opts_private.h
+
+dist_bin_SCRIPTS = elf2tag
 
 man_MANS = avrdude.1
 

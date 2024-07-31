@@ -17,8 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * Interface to the USBasp programmer.
  *
@@ -282,27 +280,31 @@ static void usbasp_teardown(PROGRAMMER *pgm) {
 }
 
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_eq(extended_param, "section_config")) {
       pmsg_notice2("usbasp_parseextparms(): set section_e to 1 (config section)\n");
       PDATA(pgm)->section_e = 1;
       continue;
     }
+
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
-      msg_error("  -xhelp           Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x section_config  Erase configuration section only with -e (TPI only)\n");
+    msg_error("  -x help            Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

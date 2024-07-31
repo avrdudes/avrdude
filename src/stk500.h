@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 #ifndef stk500_h
 #define stk500_h
 
@@ -60,6 +58,9 @@ struct pdata {
   double fosc_data;
 
   unsigned xtal;                // Set STK500 XTAL frequency
+
+  // Flag to enable/disable autoreset for the arduino programmer
+  bool autoreset;
 };
 
 #define PDATA(pgm) ((struct pdata *)(pgm->cookie))

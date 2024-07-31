@@ -17,8 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * Code to program an Atmel AVR device through one of the supported
  * programmers.
@@ -252,7 +250,7 @@ static void usage(void)
     "  -n                     Do not write to the device whilst processing -U\n"
     "  -V                     Do not automatically verify during -U\n"
     "  -E <exitsp>[,<exitsp>] List programmer exit specifications\n"
-    "  -x <extended_param>    Pass <extended_param> to programmer, see -xhelp\n"
+    "  -x <extended_param>    Pass <extended_param> to programmer, see -x help\n"
     "  -v                     Verbose output; -v -v for more\n"
     "  -q                     Quell progress output; -q -q for less\n"
     "  -l logfile             Use logfile rather than stderr for diagnostics\n"
@@ -900,7 +898,7 @@ int main(int argc, char * argv [])
       case 'U':
         upd = parse_op(optarg);
         if (upd == NULL) {
-          pmsg_error("unable to parse update operation '%s'\n", optarg);
+          pmsg_error("unable to parse update operation %s\n", optarg);
           exit(1);
         }
         ladd(updates, upd);
@@ -1248,7 +1246,7 @@ int main(int argc, char * argv [])
         const char *extended_param = ldata(ln);
         if (str_eq(extended_param, "help")) {
           msg_error("%s -c %s extended options:\n", progname, pgmid);
-          msg_error("  -xhelp    Show this help menu and exit\n");
+          msg_error("  -x help  Show this help menu and exit\n");
           exit(0);
         }
         else
@@ -1259,7 +1257,7 @@ int main(int argc, char * argv [])
       if(rc == LIBAVRDUDE_EXIT)
         exit(0);
       if(rc < 0) {
-        pmsg_error("unable to parse extended parameter list\n");
+        pmsg_error("unable to parse list of -x parameters\n");
         exit(1);
       }
     }
@@ -1331,6 +1329,7 @@ int main(int argc, char * argv [])
     // Use libserialport to find the actual serial port
     ser = locate_programmer(programmers, port_tok[0]);
     if (is_serialadapter(ser)) {
+#ifdef HAVE_LIBSERIALPORT
       int rv = setport_from_serialadapter(&port, ser, port_tok[1]);
       if (rv == -1) {
         pmsg_warning("serial adapter %s", port_tok[0]);
@@ -1344,6 +1343,7 @@ int main(int argc, char * argv [])
         print_ports = false;
       if(rv)
         ser = NULL;
+#endif
     } else if(str_eq(port_tok[0], DEFAULT_USB)) {
       // Port or usb:[vid]:[pid]
       int vid, pid;
@@ -1413,9 +1413,11 @@ int main(int argc, char * argv [])
     pmsg_error("unable to open port %s for programmer %s\n", port, pgmid);
 skipopen:
     if (print_ports && pgm->conntype == CONNTYPE_SERIAL) {
+#ifdef HAVE_LIBSERIALPORT
       list_available_serialports(programmers);
       if(touch_1200bps == 1)
         pmsg_info("alternatively, try -rr or -rrr for longer delays\n");
+#endif
     }
     exitrc = 1;
     pgm->ppidata = 0; /* clear all bits at exit */
@@ -1440,11 +1442,14 @@ skipopen:
     if (pgm->parseexitspecs == NULL) {
       pmsg_warning("-E option not supported by this programmer type\n");
       exitspecs = NULL;
-    }
-    else if (pgm->parseexitspecs(pgm, exitspecs) < 0) {
-      usage();
-      exitrc = 1;
-      goto main_exit;
+    } else {
+      int rc = pgm->parseexitspecs(pgm, exitspecs);
+      if(rc == LIBAVRDUDE_EXIT)
+        exit(0);
+      if(rc < 0) {
+        pmsg_error("unable to parse list of -E parameters\n");
+        exit(1);
+      }
     }
   }
 

@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * avrdude interface for AVR devices Over-The-Air programmable via an
  * XBee Series 2 device.
@@ -1622,34 +1620,38 @@ static void xbee_close(PROGRAMMER *pgm)
 }
 
 static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rc = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_starts(extended_param, "xbeeresetpin=")) {
       int resetpin;
       if (sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 ||
           resetpin <= 0 || resetpin > 7) {
-        pmsg_error("invalid xbeeresetpin '%s'\n", extended_param);
+        pmsg_error("invalid value in -x %s\n", extended_param);
         rc = -1;
-        continue;
+        break;
       }
 
       PDATA(pgm)->xbeeResetPin = resetpin;
       continue;
     }
+
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xxbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
-      msg_error("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rc = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rc = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rc = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x xbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
+    msg_error("  -x help                Show this help menu and exit\n");
+    return rc;
   }
 
   return rc;

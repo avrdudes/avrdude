@@ -19,8 +19,6 @@
  */
 
 
-/* $Id$ */
-
 /* ft245r -- FT245R/FT232R Synchronous BitBangMode Programmer
   default pin assign
                FT232R / FT245R
@@ -378,7 +376,7 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
 
     r = ftdi_set_baudrate(my.handle, ftdi_rate);
     if (r) {
-        msg_error("set baudrate %d failed with error '%s'\n", rate, ftdi_get_error_string (my.handle));
+        msg_error("setting baudrate %d failed with error %s\n", rate, ftdi_get_error_string (my.handle));
         return -1;
     }
     return 0;
@@ -854,7 +852,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // if something went wrong before abort with helpful message
     if (devnum < 0) {
-      pmsg_error("invalid portname '%s': use^ 'ft[0-9]+' or serial number\n", port);
+      pmsg_error("invalid port name %s: use ft[0-9]+ or serial number\n", port);
       return -1;
     }
 

@@ -343,7 +343,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        pmsg_error("invalid -P value: '%s'\n", port);
+        pmsg_error("invalid -P value: %s\n", port);
         imsg_error("Use -P usb:bus:device\n");
         return -1;
     }
@@ -530,39 +530,48 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 }
 
 static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
+    int rv = 0;
+    bool help = false;
     pmsg_debug("teensy_parseextparams()\n");
 
     struct pdata *pdata = PDATA(pgm);
-    for (LNODEID node = lfirst(xparams); node != NULL; node = lnext(node))
+    for (LNODEID node = lfirst(xparams); node; node = lnext(node))
     {
-        const char* param = ldata(node);
+        const char* extended_param = ldata(node);
 
-        if (str_eq(param, "wait"))
+        if (str_eq(extended_param, "wait"))
         {
             pdata->wait_until_device_present = true;
             pdata->wait_timout = -1;
+            continue;
         }
-        else if (str_starts(param, "wait="))
+
+        if (str_starts(extended_param, "wait="))
         {
             pdata->wait_until_device_present = true;
-            pdata->wait_timout = atoi(param + 5);
+            pdata->wait_timout = atoi(extended_param + 5);
+            continue;
         }
-        else if (str_eq(param, "help"))
+
+        if (str_eq(extended_param, "help"))
         {
-            msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
-            msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
-            msg_error("  -xhelp       Show this help menu and exit\n");
-            return LIBAVRDUDE_EXIT;;
+            help = true;
+            rv = LIBAVRDUDE_EXIT;
         }
-        else
+
+        if (!help)
         {
-            pmsg_error("invalid extended parameter '%s'\n", param);
-            return -1;
+            pmsg_error("invalid extended parameter -x %s\n", extended_param);
+            rv =  -1;
         }
+        msg_error("%s -c %s extended options:\n", progname, pgmid);
+        msg_error("  -x wait     Wait for the device to be plugged in if not connected\n");
+        msg_error("  -x wait=<n> Wait <n> s for the device to be plugged in if not connected\n");
+        msg_error("  -x help     Show this help menu and exit\n");
+        return rv;
     }
 
-    return 0;
+    return rv;
 }
 
 void teensy_initpgm(PROGRAMMER *pgm) {

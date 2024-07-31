@@ -17,7 +17,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
 /*
  * Interface to the MPSSE Engine of FTDI Chips using libftdi.
  */
@@ -689,7 +688,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 	else if (pgm->usbdev[0] == 'b' || pgm->usbdev[0] == 'B')
 		interface = INTERFACE_B;
 	else {
-		pmsg_warning("invalid interface '%s'. Setting to Interface A\n", pgm->usbdev);
+		pmsg_warning("invalid interface %s; setting to Interface A\n", pgm->usbdev);
 		interface = INTERFACE_A;
 	}
 

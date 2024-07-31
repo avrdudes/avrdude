@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 #include <ac_cfg.h>
 
 #include <stdio.h>
@@ -187,6 +185,22 @@ int avr_sigrow_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
 
   if(mem_is_in_sigrow(mem)) {
     AVRMEM *m = avr_locate_sigrow(p);
+    if(m) {
+      int off = mem->offset - m->offset;
+      if(off >= 0 && off + addr < m->size)
+        offset = off;
+    }
+  }
+
+  return offset;
+}
+
+// If mem is a sub-memory of flash return its offset within flash, 0 otherwise
+int avr_flash_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
+  int offset = 0;
+
+  if(mem_is_in_flash(mem)) {
+    AVRMEM *m = avr_locate_flash(p);
     if(m) {
       int off = mem->offset - m->offset;
       if(off >= 0 && off + addr < m->size)

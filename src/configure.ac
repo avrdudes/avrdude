@@ -16,10 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 #
 
-#
-# $Id$
-#
-
 # Process this file with autoreconf to produce a configure script.
 
 dnl A few tool releases with release dates for orientation which tool

@@ -1144,30 +1144,28 @@ static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) 
 #endif  // WIN32
 
 static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
-    LNODEID ln;
-    const char *extended_param;
     int rv = 0;
+    bool help = false;
 
-    for (ln = lfirst(extparms); ln; ln = lnext(ln))
+    for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln))
     {
-        extended_param = ldata(ln);
+        const char *extended_param = ldata(ln);
 
         if (str_starts(extended_param, "clockrate="))
         {
             int clock_rate;
             if (sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0)
             {
-                pmsg_error("invalid clockrate '%s'\n", extended_param);
+                pmsg_error("invalid clock rate in -x %s\n", extended_param);
                 rv = -1;
-                continue;
+                break;
             }
 
             int clock_period = MIN(1000000 / clock_rate, 255);    // max period is 255
             clock_rate = (int)(1000000 / (clock_period + 5e-7));    // assume highest speed is 2MHz - should probably check this
 
-            pmsg_notice2("pickit2_parseextparms(): clockrate set to 0x%02x\n", clock_rate);
+            pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
             PDATA(pgm)->clock_period = clock_period;
-
             continue;
         }
 
@@ -1176,26 +1174,32 @@ static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms)
             int timeout;
             if (sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0)
             {
-                pmsg_error("invalid timeout '%s'\n", extended_param);
+                pmsg_error("invalid timeout in -x %s\n", extended_param);
                 rv = -1;
-                continue;
+                break;
             }
 
-            pmsg_notice2("pickit2_parseextparms(): usb timeout set to 0x%02x\n", timeout);
+            pmsg_notice2("%s(): usb timeout set to 0x%02x\n", __func__, timeout);
             PDATA(pgm)->transaction_timeout = timeout;
-
             continue;
         }
-        if (str_eq(extended_param, "help")) {
-            msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xclockrate=<arg> Set the SPI clocking rate in <arg> [Hz]\n");
-            msg_error("  -xtimeout=<arg>   Set the timeout for USB read/write to <arg> [ms]\n");
-            msg_error("  -xhelp            Show this help menu and exit\n");
-            return LIBAVRDUDE_EXIT;;
+
+        if (str_eq(extended_param, "help"))
+        {
+            help = true;
+            rv = LIBAVRDUDE_EXIT;
         }
 
-        pmsg_error("invalid extended parameter '%s'\n", extended_param);
-        rv = -1;
+        if (!help)
+        {
+            pmsg_error("invalid extended parameter -x %s\n", extended_param);
+            rv = -1;
+        }
+        msg_error("%s -c %s extended options:\n", progname, pgmid);
+        msg_error("  -x clockrate=<n> Set the SPI clock rate to <n> Hz\n");
+        msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms\n");
+        msg_error("  -x help          Show this help menu and exit\n");
+        return rv;
     }
 
     return rv;

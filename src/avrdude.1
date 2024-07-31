@@ -17,8 +17,6 @@
 .\" along with this program. If not, see <http://www.gnu.org/licenses/>.
 .\"
 .\"
-.\" $Id$
-.\"
 .Dd January 15, 2023
 .Os
 .Dt AVRDUDE 1
@@ -1137,10 +1135,10 @@ The
 .Ar addr
 and
 .Ar len
-parameters of the dump, read, write, save and erase commands can be
+parameters of the dump, read, disasm, write, save and erase commands can be
 negative with the same syntax as substring computations in perl or python.
 The table below details their meaning with respect to an example memory of size
-sz=0x800.
+sz=0x800 (2048 bytes).
 .Pp
 .nf
 addr    len  Memory interval     Comment
@@ -1187,6 +1185,103 @@ and display them (deprecated: use dump memory addr -1).
 Read all bytes from the specified memory, and display them (deprecated: use dump memory 0 -1).
 .It Ar read
 Can be used as an alias for dump.
+.It Ar disasm [opts] [arguments]
+Like dump, the disasm command displays a part of the specified memory,
+albeit by interpreting the memory contents as AVR opcodes and showing it
+as assembler source code. Unlike dump, the disasm command has options;
+these control how disasm displays its result (see below). Other than that,
+the syntax of specifying the memory and its to be processed interval is
+virtually the same as that of dump: the default disasm length is 32 bytes,
+though, and sometimes the length can be slightly shorter or longer than
+requested, so that the memory section for disasm aligns with opcodes.
+Disasm options, once set, stay in force until switched off, typically by
+changing the case of the option. This way, a simple disasm without further
+options can be used to step through memory keeping the appearance. Disasm
+knows the following options:
+.Bl -tag -offset indent -width indent
+.It -g
+Generate avr-gcc source: this sets -sOFQ and outputs a .text preamble and
+a main symbol unless the disassembly emits one itself; -G (the default)
+switches off -g and stops outputting a preamble
+.It -A
+Do not show addresses; -a (the default) shows addresses
+.It -O
+Do not show opcode bytes; -o (the default) show opcode bytes
+.It -C
+Do not show comments; -c (the default) show comments
+.It -f
+Show affected flags in SREG, eg, ---SVNZC for the sbiw opcode; -F (the
+default) do not show SREG flags
+.It -q
+Show the number of machine cycles that an opcode takes; -Q (the default)
+do not show the cycles
+.It -n
+Put the opcode full name into comment, eg, subtract immediate from word
+for the sbiw opcode; -N (the default) do not show the full opcode names
+.It -e
+Put a technical explanation of the opcode into the comment, eg, Rd+1:Rd
+<-- Rd+1:Rd - K for the sbiw opcode; -E (the default) do not show
+technical explanations
+.It -S
+Use AVR instruction set style: this means that register pairs are shown
+as, eg, in r31:30 instead of r30; -s (the default) use avr-gcc code style
+.It -L
+Do not preprocess labels; -l (the default) preprocess jump/call labels
+.It -d
+Decode all opcodes including those that are undocumented; -D (the default)
+decode only opcodes that are valid for the part
+.It -z
+Zap the list of jumps and calls before disassembly
+.It -t=<file>
+Delete symbols from a previously read tagfile, if any, and read the tagfile
+<file> for assigning addresses to symbol names
+.El
+The tagfile is an ASCII file where each line describes a symbol for code
+label addresses (L), variable addresses in flash (P) and variables
+addresses in memory or I/O space (M). Hashmarks start a tagfile comment
+that extends to the end of the line and is ignored by disasm. Here is a
+defining example of how a tagfile looks like
+.nf
+---------------------------------------------------------------
+0x7f54 L        putch     Outputs a char # L are code labels
+0x7ffe P W 1    version16 A word integer # P are PGM data
+0x7f80 P A 4    headings  Column headers # Auto-aligned strings
+0x0100 M B 2048 sram      2 kB SRAM      # Memory address
+---------------------------------------------------------------
+.fi
+Code labels L can be, eg, function names in program space or goto labels.
+They use up to four columns separated by white space: the address, the
+letter L, the symbolic name of the label and an optional comment column
+for the symbol, which is copied by disasm into the disassembly comment
+column, should this label be referenced or used by the code. Variable
+symbols have a P or M in the second column; they can be bytes or words as
+determined by the letter B or W in the third column and either single
+variables or arrays as specified by the multiplicity count in the forth
+column. P symbols, but not M symbols, can also be the base location of
+nul-terminated strings as encoded by A or S in the third column. Out of
+necessity, the space occupied by A/S strings varies. The difference
+between A and S symbols is that the array of A strings might have an
+additional nul character to auto-align the space occupied by them to an
+even address. The fifth column is the symbolic name for the P or M address
+that can be used by disasm to output relevant addresses symbolically. P
+areas described in the tagfile also tell disasm that the corresponding
+area is not code and should not be disassembled as such; instead the
+.byte, .word, .asciz and sometimes at the end of the memory section .ascii
+directives are used for disassembly of that area. As with L labels, P and
+M variables may have an optional final comment column pertaining to the
+symbol that may be output in the disassembly column as and when the
+corresponding variables are used.
+.Pp
+Tagfiles are useful for disassembly to make the output of disasm more
+readable. They can be built manually and incrementally as one's
+understanding of the code grows. Alternatively, the bash shell script
+elf2tag can automatically generate a tag file from the .elf file that
+produced the flash contents:
+.Pp
+$ elf2tag file.elf >file.tag
+.Pp
+elf2tag uses the avr-objdump -d disassembly to create L labels and avr-nm
+to generate M symbols.
 .It Ar write memory addr data[,] {data[,]}
 Manually program the respective memory cells, starting at address
 .Ar addr ,
@@ -1652,14 +1747,14 @@ Other JTAG units might require a different bit shift count.
 .sp 0.5
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use
-.Ar -xhvupdi
+.Ar -x hvupdi
 to enable high-voltage UPDI initialization for targets that supports this.
 .It Ar vtarg=VALUE, vtarg
 .Nm Power Debugger only
 .sp 0.5
 The voltage generator can be enabled by setting a target voltage.
 The current set-voltage can be read by
-.Ar -xvtarg
+.Ar -x vtarg
 alone.
 .It Ar help
 Show help menu and exit.
@@ -1672,9 +1767,9 @@ Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
 programmer can only be utilised by
 .Nm
 when in AVR mode. Use
-.Ar -xmode=avr
+.Ar -x mode=avr
 for switching to AVR mode, or
-.Ar -xmode=pic
+.Ar -x mode=pic
 for switching to PIC mode.
 .It Ar help
 Show help menu and exit.
@@ -1684,7 +1779,7 @@ Show help menu and exit.
 .It Ar suffer=VALUE, suffer
 The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
 The current state can be read by
-.Ar -xsuffer
+.Ar -x suffer
 alone.
 .Bl -tag -offset indent -width indent
 .It Bit 7 ARDUINO:
@@ -1704,7 +1799,7 @@ Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 .It Ar vtarg_switch=VALUE, vtarg_switch
 The on-board target voltage switch can be turned on or off by writing a 1 or
 a 0. The current state can be read by
-.Ar -xvtarg_switch
+.Ar -x vtarg_switch
 alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
@@ -1716,7 +1811,7 @@ Show help menu and exit.
 .It Ar vtarg=VALUE, vtarg
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by
-.Ar -xvtarg
+.Ar -x vtarg
 alone.
 .It Ar help
 Show help menu and exit.
@@ -1727,16 +1822,16 @@ Show help menu and exit.
 .It Ar vtarg=VALUE, vtarg
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by
-.Ar -xvtarg
+.Ar -x vtarg
 alone.
 .It Ar fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc
 Set the programmable oscillator frequency. The current frequency can be read by
-.Ar -xfosc
+.Ar -x fosc
 alone.
 .It Ar varef=VALUE, varef
 The generated on-board analog reference voltage can be changed by specifying
 a new reference voltage. The current reference voltage can be read by
-.Ar -xvaref
+.Ar -x varef
 alone.
 .It Ar varef[0,1]=VALUE, varef[0,1]
 .Nm STK600 only
@@ -1744,9 +1839,9 @@ alone.
 The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
 The current reference voltage can be read by
-.Ar -xvaref0
+.Ar -x varef0
 or
-.Ar -xvaref1
+.Ar -x varef1
 alone.
 .It Ar attemps[=<1..99>]
 .Nm STK500V1 only
@@ -1797,7 +1892,7 @@ Show help menu and exit.
 .It Ar Urclock
 .Bl -tag -offset indent -width indent
 .It Ar showall
-Show all info for the connected part, then exit. The -xshow... options
+Show all info for the connected part, then exit. The -x show... options
 below can be used to assemble a bespoke response consisting of a subset
 (or only one item) of all available relevant information about the
 connected part and bootloader.
@@ -1806,7 +1901,7 @@ Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
 .It Ar id=<E|F>.<addr>.<len>
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
-number can be set by the -xid=<E|F>.<addr>.<len> extended parameter. E
+number can be set by the -x id=<E|F>.<addr>.<len> extended parameter. E
 stands for EEPROM and F stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
@@ -1815,7 +1910,7 @@ Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
 programming.  Date and filename are part of the metadata that the urclock
 programmer stores by default in high flash just under the bootloader; see also
--xnometadata.
+-x nometadata.
 .It Ar showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
 .It Ar title=<string>
@@ -1847,7 +1942,7 @@ i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
-.It Ar vectornum=<arg>
+.It Ar vectornum=<n>
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1872,7 +1967,7 @@ Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
-However, for vector bootloaders, even under the option -xrestore an
+However, for vector bootloaders, even under the option -x restore an
 input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
@@ -1894,15 +1989,15 @@ Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
 available space then a metadata code byte 0xff is stored nevertheless to
 indicate there are no further metadata available. In absence of
--xnometadata, the default for the urclock programmer is to write as much
+-x nometadata, the default for the urclock programmer is to write as much
 metadata (filename, data and store information) as the size of the
 uploaded application and the other extended options allow. The subtle
-difference between -xnometadata and -xnostore is that the latter always
+difference between -x nometadata and -x nostore is that the latter always
 explicitly stores in flash that no further metadata are available, so that
 a such prepared flash can always be queried with
 .Nm
--xshowall. In contrast to this, it cannot be guaranteed that a -xshowall
-query on flash prepared with -xnometadata yields useful results.
+-x showall. In contrast to this, it cannot be guaranteed that a -x showall
+query on flash prepared with -x nometadata yields useful results.
 .It Ar delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
@@ -1911,7 +2006,7 @@ shortened accordingly.
 .It Ar strict
 Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
-with this, and they need the -xstrict option.
+with this, and they need the -x strict option.
 .It Ar help
 Show help menu and exit.
 .El
