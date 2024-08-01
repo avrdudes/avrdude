@@ -238,7 +238,7 @@ static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, 
   if (rv != tx_size + 1)
     pmsg_error("short write to USB: %d bytes out of %d written\n", rv, tx_size + 1);
 
-  if(verbose > 4)
+  if(verbose >= MSG_TRACE2)
     trace_buffer(__func__, bp, tx_size);
 
   return 0;
@@ -258,7 +258,7 @@ static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_
   else if ((size_t) i != nbytes)
     pmsg_error("short read, read only %d out of %lu bytes\n", i, (unsigned long) nbytes);
 
-  if (verbose > 4 && i > 0)
+  if (verbose >= MSG_TRACE2 && i > 0)
     trace_buffer(__func__, p, i);
 
   return rv;

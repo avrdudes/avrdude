@@ -1381,7 +1381,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
           imsg_warning("suppressing further verification errors\n");
         }
         verror++;
-        if(verbose < 1)
+        if(verbose < MSG_NOTICE)
           return -1;
       } else {
         // Mismatch is only in unused bits

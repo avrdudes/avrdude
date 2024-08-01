@@ -347,7 +347,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 {
   int nbytes;
 
-  if (verbose > 3) {
+  if (verbose >= MSG_TRACE) {
     pmsg_trace("usbasp_transmit(\"%s\", 0x%02x, 0x%02x, 0x%02x, 0x%02x)\n",
       usbasp_get_funcname(functionid), send[0], send[1], send[2], send[3]);
     if (!receive && buffersize > 0) {
@@ -386,7 +386,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
   }
 #endif
 
-  if (verbose > 3 && receive && nbytes > 0) {
+  if (verbose >= MSG_TRACE && receive && nbytes > 0) {
     int i;
     imsg_trace("<= ");
     for (i = 0; i < nbytes; i++)
@@ -741,7 +741,7 @@ static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                    unsigned char *res)
 {
   pmsg_debug("usbasp_spi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
-    cmd[0], cmd[1], cmd[2], cmd[3], verbose > 3? " ...\n": "");
+    cmd[0], cmd[1], cmd[2], cmd[3], verbose >= MSG_TRACE? " ...\n": "");
 
   int nbytes =
     usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);

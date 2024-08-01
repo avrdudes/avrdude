@@ -332,7 +332,7 @@ static int net_send(const union filedescriptor *fd, const unsigned char *buf, si
 	if (!len)
 		return 0;
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, len);
 
 	while (len) {
@@ -376,7 +376,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 	if (!len)
 		return 0;
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, len);
 	
 	serial_w32SetTimeOut(hComPort,500);
@@ -420,9 +420,7 @@ reselect:
 
 		nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
 		if (nfds == 0) {
-			if (verbose > 1) {
-				pmsg_notice("%s(): programmer is not responding\n", __func__);
-			}
+			pmsg_notice2("%s(): programmer is not responding\n", __func__);
 			return -1;
 		} else if (nfds == -1) {
 			if (WSAGetLastError() == WSAEINTR || WSAGetLastError() == WSAEINPROGRESS) {
@@ -465,7 +463,7 @@ reselect:
 		len += rc;
 	}
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, len);
 
 	return 0;
@@ -509,7 +507,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 		return -1;
 	}
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, read);
 
 	return 0;

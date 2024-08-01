@@ -385,7 +385,7 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
     p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
-      if(verbose < 2 && p->id[0] == '.') // hide ids starting with '.'
+      if(verbose < MSG_NOTICE2 && p->id[0] == '.') // hide ids starting with '.'
         continue;
       if((len = strlen(p->id)) > maxlen)
         maxlen = len;
@@ -396,7 +396,7 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
     p = ldata(ln1);
     // List part if pm or prog_modes uninitialised or if they are compatible otherwise
     if(!pm || !p->prog_modes || (pm & p->prog_modes)) {
-      if(verbose < 2 && p->id[0] == '.') // hide ids starting with '.'
+      if(verbose < MSG_NOTICE2 && p->id[0] == '.') // hide ids starting with '.'
         continue;
       if(verbose > 0)
         fprintf(f, "%s%-*s = %-18s [%s:%d]", prefix, maxlen, p->id, p->desc, p->config_file, p->lineno);
@@ -1518,8 +1518,7 @@ skipopen:
 
   if (verbose > 0 && quell_progress < 2) {
     avr_display(stderr, p, progbuf, verbose);
-    if (verbose > 1)
-      msg_notice("\n");
+    msg_notice2("\n");
     programmer_display(pgm, progbuf);
   }
 

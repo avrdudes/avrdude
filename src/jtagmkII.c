@@ -260,7 +260,7 @@ static void jtagmkII_print_memory(unsigned char *b, size_t s) {
 static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, size_t len) {
   size_t i;
 
-  if (verbose >= 4) {
+  if (verbose >= MSG_TRACE) {
     msg_trace("Raw message:\n");
 
     for (i = 0; i < len; i++) {
@@ -592,7 +592,7 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
        */
       memmove(*msg, *msg + 8, rv);
 
-      if(verbose > 3)
+      if(verbose >= MSG_TRACE)
         trace_buffer(__func__, *msg, rv);
 
       return rv;
@@ -638,7 +638,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
     if (status <= 0) {
 	    pmsg_warning("attempt %d of %d: sign-on command: status %d\n",
               tries + 1, MAXTRIES, status);
-    } else if (verbose >= 3) {
+    } else if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -777,7 +777,7 @@ retry:
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -818,7 +818,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -902,7 +902,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -972,7 +972,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1013,7 +1013,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1051,7 +1051,7 @@ static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
       pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
       return -1;
     }
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -1096,7 +1096,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1730,7 +1730,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
       msg_notice2("\n");
       pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     } else {
-      if (verbose >= 3) {
+      if (verbose >= MSG_DEBUG) {
 	msg_debug("\n");
 	jtagmkII_prmsg(pgm, resp, status);
       } else
@@ -1753,7 +1753,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1847,7 +1847,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
     serial_recv_timeout = otimeout;
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1961,7 +1961,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -2053,7 +2053,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -2243,7 +2243,7 @@ retry:
       resp = 0;
     goto fail;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2360,7 +2360,7 @@ retry:
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     goto fail;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2448,7 +2448,7 @@ int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm,
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2513,7 +2513,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -3250,7 +3250,7 @@ static void jtagmkII_close32(PROGRAMMER * pgm) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -3317,7 +3317,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
     status = jtagmkII_recv(pgm, &resp);
     if(status<0) {lineno = __LINE__; goto eRR;}
 
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -3413,7 +3413,7 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
       status = jtagmkII_recv(pgm, &resp);
       if (status<0) {lineno = __LINE__; goto eRR;}
 
-      if (verbose >= 3) {
+      if (verbose >= MSG_DEBUG) {
         msg_debug("\n");
         jtagmkII_prmsg(pgm, resp, status);
       } else

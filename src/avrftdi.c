@@ -586,9 +586,9 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	Avrftdi_data *pdata = to_pdata(pgm);
 
 
-	bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verbose>3));
+	bool pin_check_mpsse = (0 == avrftdi_check_pins_mpsse(pgm, verbose >= MSG_TRACE));
 
-	bool pin_check_bitbanging = (0 == avrftdi_check_pins_bb(pgm, verbose>3));
+	bool pin_check_bitbanging = (0 == avrftdi_check_pins_bb(pgm, verbose >= MSG_TRACE));
 
 	if (!pin_check_mpsse && !pin_check_bitbanging) {
 		pmsg_error("no valid pin configuration found\n");
