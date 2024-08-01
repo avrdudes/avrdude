@@ -51,9 +51,6 @@
 #include "developer_opts.h"
 
 char * progname = "avrdude";
-char   progbuf[PATH_MAX]; /* temporary buffer of spaces the same
-                             length as progname; used for lining up
-                             multiline messages */
 
 static const char *avrdude_message_type(int msglvl) {
   switch(msglvl) {
@@ -120,9 +117,20 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           }
         }
 
-        if(msgmode & MSG2_PROGNAME) {
-          fprintf(fp, "%s", progname);
-          if(verbose >= MSG_NOTICE && (msgmode & MSG2_FUNCTION))
+        if(msgmode & (MSG2_PROGNAME | MSG2_TYPE)) {
+          if(msgmode & MSG2_PROGNAME) {
+            fprintf(fp, "%s", progname);
+            bols[bi].bol = 0;
+          }
+          if(msgmode & MSG2_TYPE) {
+            const char *mt = avrdude_message_type(msglvl);
+            if(bols[bi].bol)
+              fprintf(fp, "%c%s", msgmode & (MSG2_UCFIRST)? toupper(*mt & 0xff): *mt, mt+1);
+            else
+              fprintf(fp, " %s", mt);
+            bols[bi].bol = 0;
+          }
+          if(verbose >= MSG_NOTICE2 && (msgmode & MSG2_FUNCTION))
             fprintf(fp, " %s()", func);
           if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
             const char *pr = strrchr(file, '/'); // Only print basename
@@ -133,15 +141,15 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
             pr = pr? pr+1: file;
             fprintf(fp, " [%s:%d]", pr, lno);
           }
-          if(msgmode & MSG2_TYPE)
-            fprintf(fp, " %s", avrdude_message_type(msglvl));
           fprintf(fp, ": ");
-          bols[bi].bol = 0;
         } else if(msgmode & MSG2_INDENT1) {
           fprintf(fp, "%*s", (int) strlen(progname)+1, "");
           bols[bi].bol = 0;
         } else if(msgmode & MSG2_INDENT2) {
           fprintf(fp, "%*s", (int) strlen(progname)+2, "");
+          bols[bi].bol = 0;
+        } else if(msgmode & MSG2_INDENT) {
+          fprintf(fp, "  ");
           bols[bi].bol = 0;
         }
 
@@ -166,8 +174,11 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
           return 0;
         }
 
-        if(*p) {
-          fprintf(fp, "%s", p); // Finally: print!
+        if(*p) {                // Finally: print!
+          if(bols[bi].bol && (msgmode & MSG2_UCFIRST))
+            fprintf(fp, "%c%s", toupper(*p & 0xff), p+1);
+          else
+            fprintf(fp, "%s", p);
           bols[bi].bol = p[strlen(p)-1] == '\n';
         }
         mmt_free(p);
@@ -619,7 +630,6 @@ int main(int argc, char * argv [])
   int              exitrc;      /* exit code for main() */
   int              i;           /* general loop counter */
   int              ch;          /* options flag */
-  int              len;         /* length for various strings */
   struct avrpart * p;           /* which avr part we are programming */
   AVRMEM         * sig;         /* signature data */
   struct stat      sb;
@@ -741,15 +751,7 @@ int main(int argc, char * argv [])
   ce_delayed    = 0;
   logfile       = NULL;
 
-  len = strlen(progname) + 2;
-  for (i=0; i<len; i++)
-    progbuf[i] = ' ';
-  progbuf[i] = 0;
-
-  /*
-   * check for no arguments
-   */
-  if (argc == 1) {
+  if(argc == 1) {               // No arguments?
     usage();
     return 0;
   }
@@ -769,7 +771,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc,argv,"?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY:")) != -1) {
+  while ((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -866,7 +868,7 @@ int main(int argc, char * argv [])
         calibrate = 1;
         break;
 
-      case 'p' : /* specify AVR part */
+      case 'p': /* specify AVR part */
         partdesc = optarg;
         break;
 
@@ -874,7 +876,7 @@ int main(int argc, char * argv [])
         port = mmt_strdup(optarg);
         break;
 
-      case 'q' : /* Quell progress output */
+      case 'q': /* Quell progress output */
         quell_progress++ ;
         break;
 
@@ -917,9 +919,6 @@ int main(int argc, char * argv [])
         break;
 
       case 'y':
-        pmsg_error("erase cycle counter no longer supported\n");
-        break;
-
       case 'Y':
         pmsg_error("erase cycle counter no longer supported\n");
         break;
@@ -937,6 +936,9 @@ int main(int argc, char * argv [])
     }
 
   }
+
+
+
 
   if (logfile != NULL) {
     FILE *newstderr = freopen(logfile, "w", stderr);
@@ -1055,10 +1057,8 @@ int main(int argc, char * argv [])
    * Print out an identifying string so folks can tell what version
    * they are running
    */
-  msg_notice("\n");
-  pmsg_notice("Version %s\n", AVRDUDE_FULL_VERSION);
-  imsg_notice("Copyright the AVRDUDE authors;\n");
-  imsg_notice("see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
+  pmsg_notice("%s version %s\n", progname, AVRDUDE_FULL_VERSION);
+  imsg_notice("Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
   if(*sys_config) {
     char *real_sys_config = realpath(sys_config, NULL);
@@ -1076,12 +1076,11 @@ int main(int argc, char * argv [])
   }
 
   if (usr_config[0] != 0 && !no_avrduderc) {
-    imsg_notice("User configuration file is %s\n", usr_config);
+    int ok = (rc = stat(usr_config, &sb)) >= 0 && (sb.st_mode & S_IFREG);
+    imsg_notice("User configuration file %s%s%s\n", ok? "is ": "", usr_config,
+      rc<0? " does not exist": !(sb.st_mode & S_IFREG)? " is not a regular file, skipping": "");
 
-    rc = stat(usr_config, &sb);
-    if ((rc < 0) || ((sb.st_mode & S_IFREG) == 0))
-      imsg_notice("User configuration file does not exist or is not a regular file, skipping\n");
-    else {
+    if(ok) {
       rc = read_config(usr_config);
       if (rc) {
         pmsg_error("unable to process user configuration file %s\n", usr_config);
@@ -1101,7 +1100,7 @@ int main(int argc, char * argv [])
 
     for (ln1=lfirst(additional_config_files); ln1; ln1=lnext(ln1)) {
       p = ldata(ln1);
-      imsg_notice("additional configuration file is %s\n", p);
+      pmsg_notice("additional configuration file is %s\n", p);
 
       rc = read_config(p);
       if (rc) {
@@ -1369,39 +1368,40 @@ int main(int argc, char * argv [])
   // Open the programmer
   if (verbose > 0) {
     if(!is_dryrun)
-      imsg_notice("Using port            : %s\n", port);
-    imsg_notice("Using programmer      : %s\n", pgmid);
+      pmsg_notice("using port            : %s\n", port);
+    pmsg_notice("using programmer      : %s\n", pgmid);
   }
 
   if (baudrate && !pgm->baudrate && !default_baudrate) { // none set
-      imsg_notice("Setting baud rate     : %d\n", baudrate);
+      pmsg_notice("setting baud rate     : %d\n", baudrate);
       pgm->baudrate = baudrate;
   }
   else if (baudrate && ((pgm->baudrate && pgm->baudrate != baudrate)
           || (!pgm->baudrate && default_baudrate != baudrate))) {
-    imsg_notice("Overriding baud rate  : %d\n", baudrate);
+    pmsg_notice("overriding baud rate  : %d\n", baudrate);
     pgm->baudrate = baudrate;
   }
   else if (!pgm->baudrate && default_baudrate) {
-    imsg_notice("Default baud rate     : %d\n", default_baudrate);
+    pmsg_notice("default baud rate     : %d\n", default_baudrate);
     pgm->baudrate = default_baudrate;
   }
   else if (ser && ser->baudrate) {
-    imsg_notice("Serial baud rate      : %d\n", ser->baudrate);
+    pmsg_notice("serial baud rate      : %d\n", ser->baudrate);
     pgm->baudrate = ser->baudrate;
   }
   else if (pgm->baudrate != 0)
-    imsg_notice("Programmer baud rate  : %d\n", pgm->baudrate);
+    pmsg_notice("programmer baud rate  : %d\n", pgm->baudrate);
 
   if (bitclock != 0.0) {
-    imsg_notice("Setting bit clk period: %.1f us\n", bitclock);
+    pmsg_notice("setting bit clk period: %.1f us\n", bitclock);
     pgm->bitclock = bitclock * 1e-6;
   }
 
   if (ispdelay != 0) {
-    imsg_notice("Setting ISP clk delay : %3i us\n", ispdelay);
+    pmsg_notice("setting ISP clk delay : %3i us\n", ispdelay);
     pgm->ispdelay = ispdelay;
   }
+  msg_notice("\n");
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
@@ -1505,11 +1505,14 @@ skipopen:
       pmsg_error("programmer does not support RC oscillator calibration\n");
       exitrc = 1;
     } else {
-      pmsg_notice("performing RC oscillator calibration\n");
+      pmsg_notice2("performing RC oscillator calibration\n");
       exitrc = pgm->perform_osccal(pgm);
     }
-    if (exitrc == 0)
-      pmsg_info("calibration value is now stored in EEPROM at address 0\n");
+    if (exitrc)
+      pmsg_error("RC calibration unsuccesful\n");
+    else
+      pmsg_notice("calibration value is now stored in EEPROM at address 0\n");
+
     goto main_exit;
   }
 
@@ -1545,15 +1548,15 @@ skipopen:
     if (rc == -2)
       imsg_error("the programmer ISP clock is too fast for the target\n");
     else
-      imsg_error("- double check the connections and try again\n");
+      imsg_error(" - double check the connections and try again\n");
 
     if(str_eq(pgm->type, "serialupdi") || str_eq(pgm->type, "SERBB"))
-      imsg_error("- use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
+      imsg_error(" - use -b to set lower baud rate, e.g. -b %d\n", baudrate? baudrate/2: 57600);
     else
-      imsg_error("- use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
+      imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 
     if (!ovsigck) {
-      imsg_error("- use -F to override this check\n");
+      imsg_error(" - use -F to override this check\n");
       exitrc = 1;
       goto main_exit;
     }
@@ -1790,7 +1793,8 @@ main_exit:
     pgm->close(pgm);
   }
 
-  msg_info("\n%s done.  Thank you.\n\n", progname);
+  msg_info("\n");
+  pmsg_info("%s done.  Thank you.\n", progname);
 
   return ce_delayed? 1: exitrc;
 }

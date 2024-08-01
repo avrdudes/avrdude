@@ -1162,7 +1162,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   unsigned char cmd[4];
   unsigned char* dptr;
-  int readed, clen, n;
+  int read, clen, n;
   uint16_t pr;
 
 
@@ -1170,11 +1170,11 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   dptr = addr + m->buf;
   pr = addr + m->offset;
-  readed = 0;
+  read = 0;
 
-  while(readed < (int) n_bytes)
+  while(read < (int) n_bytes)
   {
-    clen = n_bytes - readed;
+    clen = n_bytes - read;
     if(clen > 32)
       clen = 32;
 
@@ -1190,7 +1190,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
       return -3;
     }
     
-    readed += clen;
+    read += clen;
     pr += clen;
     dptr += clen;
   }

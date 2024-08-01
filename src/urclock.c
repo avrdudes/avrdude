@@ -803,13 +803,12 @@ nopatch_nometa:
 
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
         Return("input would overwrite the reset vector bricking the bootloader\n"
-          "%*susing -F will try to patch the input but this may not be what is needed",
-          (int) strlen(progname)+1, "");
+          "  using -F will try to patch the input but this may not be what is needed");
 
       if(resetdest != ur.blstart)
         Return("input points reset to 0x%04x, not to bootloader at 0x%04x\n"
-          "%*susing -F will try to patch the input but this may not be what is needed",
-          resetdest, ur.blstart, (int) strlen(progname)+1, "");
+          "  using -F will try to patch the input but this may not be what is needed",
+          resetdest, ur.blstart);
     }
   }
 
@@ -2395,14 +2394,8 @@ static int urclock_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unuse
 }
 
 
-// Display what we know so far (too early in the process to say much)
 static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
-  if(ur.urprotocol) {
-    imsg_info("Urboot protocol for %s\n", ur.uP.name);
-  } else {
-    imsg_info("Bootloader using STK500v1 communication protocol\n");
-  }
-
+  imsg_info("Protocol              : %s\n", ur.urprotocol? "Urprotocol": "STK500v1 skeleton");
   return;
 }
 

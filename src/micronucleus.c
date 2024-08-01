@@ -555,7 +555,7 @@ static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void micronucleus_display(const PROGRAMMER *pgm, const char *prefix) {
-    pmsg_debug("micronucleus_display()\n");
+  // pmsg_debug("micronucleus_display()\n");
 }
 
 static void micronucleus_powerup(const PROGRAMMER *pgm) {

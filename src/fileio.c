@@ -1231,7 +1231,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
           if(idx >= 0 && idx < mem->size && end >= 0 && end <= mem->size && end-idx >= 0) {
             if (end > size)
               size = end;
-            imsg_debug("writing %d bytes to mem offset 0x%x\n", end-idx, idx);
+            pmsg_debug("writing %d bytes to mem offset 0x%x\n", end-idx, idx);
             memcpy(mem->buf + idx, d->d_buf, end-idx);
             memset(mem->tags + idx, TAG_ALLOCATED, end-idx);
           } else {

@@ -250,7 +250,7 @@ static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void teensy_display(const PROGRAMMER *pgm, const char *prefix) {
-    pmsg_debug("teensy_display()\n");
+ //    pmsg_debug("teensy_display()\n");
 }
 
 static void teensy_powerup(const PROGRAMMER *pgm) {

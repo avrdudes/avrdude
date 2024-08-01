@@ -3573,8 +3573,7 @@ static int stk500v2_setparm_real(const PROGRAMMER *pgm, unsigned char parm, unsi
   buf[2] = value;
 
   if (stk500v2_command(pgm, buf, 3, sizeof(buf)) < 0) {
-    pmsg_error("\n%s stk500v2_setparm(): unable to set parameter 0x%02x\n",
-      progname, parm);
+    pmsg_error("unable to set parameter 0x%02x\n", parm);
     return -1;
   }
 
@@ -3625,8 +3624,7 @@ static int stk500v2_setparm2(const PROGRAMMER *pgm, unsigned char parm, unsigned
   buf[3] = value;
 
   if (stk500v2_command(pgm, buf, 4, sizeof(buf)) < 0) {
-    pmsg_error("\n%s stk500v2_setparm2(): unable to set parameter 0x%02x\n",
-      progname, parm);
+    pmsg_error("unable to set parameter 0x%02x\n", parm);
     return -1;
   }
 
