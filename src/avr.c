@@ -479,7 +479,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         nread++;
         report_progress(nread, npages, NULL);
       } else {
-        pmsg_debug("avr_read_mem(): skipping page %u: no interesting data\n", pageaddr / mem->page_size);
+        pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr / mem->page_size);
       }
     }
     if (!failure) {

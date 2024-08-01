@@ -469,7 +469,7 @@ static int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 }
 
 static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
-  pmsg_debug("flip1_read_sig_bytes(): ");
+  pmsg_debug("%s(): ", __func__);
 
   if (FLIP1(pgm)->dfu == NULL)
     return -1;

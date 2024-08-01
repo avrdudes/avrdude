@@ -202,7 +202,7 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
 		serial_recv_timeout = PDATA(pgm)->serial_recv_timeout;
 	}
 	serial_recv_timeout = orig_serial_recv_timeout;
-	pmsg_debug("buspirate_readline(): %s%s", buf, *buf && buf[strlen(buf)-1] == '\n'? "": "\n");
+	pmsg_debug("%s(): %s%s", __func__, buf, *buf && buf[strlen(buf)-1] == '\n'? "": "\n");
 	if (! buf[0])
 		return NULL;
 
@@ -224,7 +224,7 @@ static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	int rc;
 	const char * readline;
 
-	pmsg_debug("buspirate_send(): %s", str);
+	pmsg_debug("%s(): %s", __func__, str);
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
 		pmsg_error("called from binmode\n");

@@ -96,12 +96,12 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     walk = list;
     while (walk) {
       if(walk->serial_number) {
-        pmsg_debug("usbhid_open(): found %ls, serno: %ls\n", walk->product_string, walk->serial_number);
+        pmsg_debug("%s(): found %ls, serno: %ls\n", __func__, walk->product_string, walk->serial_number);
         size_t slen = wcslen(walk->serial_number);
         // Found matching serial number?
         if (slen >= serlen && wcscmp(walk->serial_number + slen - serlen, wserno) == 0)
           break;
-        pmsg_debug("usbhid_open(): serial number does not match\n");
+        pmsg_debug("%s(): serial number does not match\n", __func__);
       }
       walk = walk->next;
     }
@@ -110,7 +110,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       hid_free_enumeration(list);
       return -1;
     }
-    pmsg_debug("usbhid_open(): opening path %s\n", walk->path);
+    pmsg_debug("%s(): opening path %s\n", __func__, walk->path);
     dev = hid_open_path(walk->path);
     hid_free_enumeration(list);
     if (dev == NULL) {
@@ -169,7 +169,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
    * hidapi library.
    */
   if (pinfo.usbinfo.vid == USB_VENDOR_ATMEL) {
-    pmsg_debug("usbhid_open(): probing for max packet size\n");
+    pmsg_debug("%s(): probing for max packet size\n", __func__);
     memset(usbbuf, 0, sizeof usbbuf);
     usbbuf[0] = 0;         /* no HID reports used */
     usbbuf[1] = 0;         /* DAP_Info */
@@ -196,7 +196,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
         usbbuf[0], usbbuf[1]);
     } else {
       fd->usb.max_xfer = usbbuf[2] + (usbbuf[3] << 8);
-      pmsg_debug("usbhid_open(): setting max_xfer from DAP_Info response to %d\n",
+      pmsg_debug("%s(): setting max_xfer from DAP_Info response to %d\n", __func__,
         fd->usb.max_xfer);
     }
   }

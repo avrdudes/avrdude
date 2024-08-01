@@ -173,7 +173,7 @@ static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
   unsigned char *buf;
 
   msg_debug("\n");
-  pmsg_debug("jtagmkI_send(): sending %u bytes\n", (unsigned int) len);
+  pmsg_debug("%s(): sending %u bytes\n", __func__, (unsigned int) len);
 
   buf = mmt_malloc(len + 2);
   memcpy(buf, data, len);
@@ -225,7 +225,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
 
     /* Get the sign-on information. */
     buf[0] = CMD_GET_SYNC;
-    pmsg_notice2("jtagmkI_resync(): sending sync command: ");
+    pmsg_notice2("%s(): sending sync command: ", __func__);
 
     if (serial_send(&pgm->fd, buf, 1) != 0) {
       msg_error("\n");
@@ -253,7 +253,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
       buf[1] = 'E';
       buf[2] = ' ';
       buf[3] = ' ';
-      pmsg_notice2("jtagmkI_resync(): sending sign-on command: ");
+      pmsg_notice2("%s(): sending sign-on command: ", __func__);
 
       if (serial_send(&pgm->fd, buf, 4) != 0) {
 	msg_error("\n");
@@ -268,8 +268,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
     }
   }
   if (tries >= maxtries) {
-    pmsg_notice2("jtagmkI_resync(): "
-      "timeout/error communicating with programmer\n");
+    pmsg_notice2("%s(): timeout/error communicating with programmer\n", __func__);
     serial_recv_timeout = otimeout;
     return -1;
   }
@@ -288,7 +287,7 @@ static int jtagmkI_getsync(const PROGRAMMER *pgm) {
 
   jtagmkI_drain(pgm, 0);
 
-  pmsg_notice2("jtagmkI_getsync(): sending sign-on command; ");
+  pmsg_notice2("%s(): sending sign-on command; ", __func__);
 
   buf[0] = CMD_GET_SIGNON;
   jtagmkI_send(pgm, buf, 1);
@@ -307,7 +306,7 @@ static int jtagmkI_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_CHIP_ERASE;
-  pmsg_notice2("jtagmkI_chip_erase(): sending chip erase command: ");
+  pmsg_notice2("%s(): sending chip erase command: ", __func__);
   jtagmkI_send(pgm, buf, 1);
   if (jtagmkI_recv(pgm, resp, 2) < 0)
     return -1;
@@ -348,8 +347,7 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
 
-  pmsg_notice2("jtagmkI_set_devdescr(): "
-    "Sending set device descriptor command: ");
+  pmsg_notice2("%s(): sending set device descriptor command: ", __func__);
   jtagmkI_send(pgm, (unsigned char *)&sendbuf, sizeof(sendbuf));
 
   if (jtagmkI_recv(pgm, resp, 2) < 0)
@@ -369,7 +367,7 @@ static int jtagmkI_reset(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_RESET;
-  pmsg_notice2("jtagmkI_reset(): sending reset command: ");
+  pmsg_notice2("%s(): sending reset command: ", __func__);
   jtagmkI_send(pgm, buf, 1);
 
   if (jtagmkI_recv(pgm, resp, 2) < 0)
@@ -396,8 +394,7 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
     return 0;
 
   buf[0] = CMD_ENTER_PROGMODE;
-  pmsg_notice2("jtagmkI_program_enable(): "
-    "Sending enter progmode command: ");
+  pmsg_notice2("%s(): sending enter progmode command: ", __func__);
   jtagmkI_send(pgm, buf, 1);
 
   if (jtagmkI_recv(pgm, resp, 2) < 0)
@@ -423,7 +420,7 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
 
   if (pgm->fd.ifd != -1) {
     buf[0] = CMD_LEAVE_PROGMODE;
-    pmsg_notice2("jtagmkI_program_disable(): sending leave progmode command: ");
+    pmsg_notice2("%s(): sending leave progmode command: ", __func__);
     jtagmkI_send(pgm, buf, 1);
 
     if (jtagmkI_recv(pgm, resp, 2) < 0)
@@ -469,8 +466,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if ((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
       pmsg_error("unsupported baudrate %d\n", pgm->baudrate);
     } else {
-      pmsg_notice2("jtagmkI_initialize(): "
-	      "trying to set baudrate to %d\n", pgm->baudrate);
+      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, pgm->baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         PDATA(pgm)->initial_baudrate = pgm->baudrate; /* don't adjust again later */
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
@@ -479,8 +475,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (pgm->bitclock != 0.0) {
-    pmsg_notice2("jtagmkI_initialize(): "
-      "trying to set JTAG clock period to %.1f us\n", pgm->bitclock);
+    pmsg_notice2("%s(): trying to set JTAG clock period to %.1f us\n", __func__, pgm->bitclock);
     if (jtagmkI_set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -548,7 +543,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
     union pinfo pinfo;
     pinfo.serialinfo.baud = baudtab[i].baud;
     pinfo.serialinfo.cflags = SERIAL_8N1;
-    pmsg_notice2("jtagmkI_open(): trying to sync at baud rate %ld:\n", pinfo.serialinfo.baud);
+    pmsg_notice2("%s(): trying to sync at baud rate %ld:\n", __func__, pinfo.serialinfo.baud);
     if (serial_open(port, pinfo, &pgm->fd)==-1) {
       return -1;
     }
@@ -560,7 +555,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
 
     if (jtagmkI_getsync(pgm) == 0) {
       PDATA(pgm)->initial_baudrate = baudtab[i].baud;
-      pmsg_notice2("jtagmkI_open(): succeeded\n");
+      pmsg_notice2("%s(): succeeded\n", __func__);
       return 0;
     }
 
@@ -588,8 +583,7 @@ static void jtagmkI_close(PROGRAMMER *pgm) {
     if ((b = jtagmkI_get_baud(PDATA(pgm)->initial_baudrate)) == 0) {
       pmsg_error("unsupported baudrate %d\n", PDATA(pgm)->initial_baudrate);
     } else {
-      pmsg_notice2("jtagmkI_close(): "
-        "trying to set baudrate to %d\n", PDATA(pgm)->initial_baudrate);
+      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, PDATA(pgm)->initial_baudrate);
       if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
@@ -658,8 +652,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       block_size = n_bytes;
     else
       block_size = page_size;
-    pmsg_debug("jtagmkI_paged_write(): "
-      "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     /* We always write full pages. */
     send_size = page_size;
@@ -671,8 +664,7 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
       u32_to_b3(cmd + 3, addr);
     }
 
-    pmsg_notice2("jtagmkI_paged_write(): "
-      "sending write memory command: ");
+    pmsg_notice2("%s(): sending write memory command: ", __func__);
 
     /* First part, send the write command. */
     jtagmkI_send(pgm, cmd, 6);
@@ -771,8 +763,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       block_size = n_bytes;
     else
       block_size = page_size;
-    pmsg_debug("jtagmkI_paged_load(): "
-      "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (is_flash) {
       read_size = 2 * ((block_size + 1) / 2); /* round up */
@@ -784,7 +775,7 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       u32_to_b3(cmd + 3, addr);
     }
 
-    pmsg_notice2("jtagmkI_paged_load(): sending read memory command: ");
+    pmsg_notice2("%s(): sending read memory command: ", __func__);
 
     jtagmkI_send(pgm, cmd, 6);
     if (jtagmkI_recv(pgm, resp, read_size + 3) < 0)
@@ -1096,8 +1087,7 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
 
   buf[0] = CMD_GET_PARAM;
   buf[1] = parm;
-  pmsg_notice2("jtagmkI_getparm(): "
-    "Sending get parameter command (parm 0x%02x): ", parm);
+  pmsg_notice2("%s(): sending get parameter command (parm 0x%02x): ", __func__, parm);
   jtagmkI_send(pgm, buf, 2);
 
   if (jtagmkI_recv(pgm, resp, 3) < 0)
@@ -1132,8 +1122,7 @@ static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
   buf[0] = CMD_SET_PARAM;
   buf[1] = parm;
   buf[2] = value;
-  pmsg_notice2("jtagmkI_setparm(): "
-    "Sending set parameter command (parm 0x%02x): ", parm);
+  pmsg_notice2("%s(): sending set parameter command (parm 0x%02x): ", __func__, parm);
   jtagmkI_send(pgm, buf, 3);
   if (jtagmkI_recv(pgm, resp, 2) < 0)
     return -1;

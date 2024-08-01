@@ -448,7 +448,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
 #if 0
-  pmsg_info("stk500_initialize(): n_extparms = %d\n", n_extparms);
+  pmsg_info("%s(): n_extparms = %d\n", __func__, n_extparms);
 #endif
     
   buf[5] = 1; /* polling supported - XXX need this in config file */

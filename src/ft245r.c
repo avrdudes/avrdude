@@ -828,12 +828,12 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {
-      pmsg_notice("ft245r_open(): no device identifier in portname, using default\n");
+      pmsg_notice("%s(): no device identifier in portname, using default\n", __func__);
       pgm->usbsn = cache_string("");
       devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
-        pmsg_notice2("ft245r_open(): serial number parsed as: %s\n", device);
+        pmsg_notice2("%s(): serial number parsed as: %s\n", __func__, device);
         // copy serial number to pgm struct
         pgm->usbsn = cache_string(device);
         // and use first device with matching serial (should be unique)
@@ -846,7 +846,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
         if ((startptr==endptr) || (*endptr != '\0')) {
           devnum = -1;
         }
-        pmsg_notice2("ft245r_open(): device number parsed as: %d\n", devnum);
+        pmsg_notice2("%s(): device number parsed as: %d\n", __func__, devnum);
       }
     }
 

@@ -108,7 +108,7 @@ static int updi_physical_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t 
 
   rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
-    pmsg_debug("serialupdi_recv(): programmer is not responding\n");
+    pmsg_debug("%s(): programmer is not responding\n", __func__);
     return -1;
   }
 

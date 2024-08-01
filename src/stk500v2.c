@@ -592,7 +592,7 @@ static int stk500v2_jtag3_recv(const PROGRAMMER *pgm, unsigned char *msg,
      octets from the ICE.  Thus, only complain at high verbose
      levels. */
   if ((size_t) rv - 1 > maxsize) {
-    pmsg_debug("stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n", (unsigned) rv - 1, (unsigned) maxsize);
+    pmsg_debug("%s(): got %u bytes, have only room for %u bytes\n", __func__, (unsigned) rv - 1, (unsigned) maxsize);
     rv = maxsize;
   }
   if (jtagmsg[0] != SCOPE_AVR_ISP) {
@@ -764,7 +764,7 @@ retry:
         pmsg_notice("%s(): unknown programmer %s, assuming STK500\n", __func__, name);
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
-      pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname(pgm));
+      pmsg_debug("%s(): found %s programmer\n", __func__, pgmname(pgm));
       serial_recv_timeout = bak_serial_recv_timeout;
       return 0;
     } else {
@@ -2350,7 +2350,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[1] = addr;
   }
 
-  pmsg_notice2("stk500hv_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
@@ -2468,7 +2468,7 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   buf[1] = pollidx + 1;
   avr_set_addr(op, buf + 2, addr + offset);
 
-  pmsg_notice2("stk500isp_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, 6, sizeof(buf));
 
@@ -2597,7 +2597,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
   }
 
-  pmsg_notice2("stk500hv_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
@@ -2711,7 +2711,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   avr_set_addr(op, buf + 1, addr);
   avr_set_input(op, buf + 1, data);
 
-  pmsg_notice2("stk500isp_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, 5, sizeof(buf));
 

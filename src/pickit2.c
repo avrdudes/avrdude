@@ -408,7 +408,7 @@ static int  pickit2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
     {
         int i;
-        msg_debug("program_enable(): sending command. Resp = ");
+        msg_debug("%s(): sending command. Resp = ", __func__);
 
         for (i = 0; i < 4; i++)
         {

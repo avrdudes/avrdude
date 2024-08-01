@@ -314,7 +314,7 @@ int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
 
     if(verbose >= MSG_DEBUG)
 	{
-        msg_debug("bitbang_cmd(): [ ");
+        msg_debug("%s(): [ ", __func__);
         for(i = 0; i < 4; i++)
             msg_debug("%02X ", cmd[i]);
         msg_debug("] [ ");
@@ -347,7 +347,7 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
 
   if(verbose >= MSG_DEBUG)
   {
-    msg_debug("bitbang_cmd_tpi(): [ ");
+    msg_debug("%s(): [ ", __func__);
     for(i = 0; i < cmd_len; i++)
       msg_debug("%02X ", cmd[i]);
     msg_debug("] [ ");
@@ -382,7 +382,7 @@ int bitbang_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
 
   if(verbose >= MSG_DEBUG)
 	{
-        msg_debug("bitbang_cmd(): [ ");
+        msg_debug("%s(): [ ", __func__);
         for(i = 0; i < count; i++)
             msg_debug("%02X ", cmd[i]);
         msg_debug("] [ ");
