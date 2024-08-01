@@ -1332,6 +1332,17 @@ original STK500. Used by avrdude for the correct calculation of fosc and sck.
 Show help menu and exit.
 @end table
 
+@cindex Option @code{-x} AVR109
+@item AVR109
+
+The AVR109 programmer type accepts the following extended parameter:
+@table @code
+@item @samp{autoreset}
+Toggle RTS/DTR lines on port open to issue a hardware reset.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
 @cindex Option @code{-x} AVR910
 @item AVR910
 
@@ -1360,8 +1371,11 @@ Show help menu and exit.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item @samp{attempts=VALUE}
-Overide the default number of connection retry attempt by using @var{VALUE}.
+@item @samp{attempts[=<1..99>]}
+Specify how many connection retry attempts to perform before exiting.
+Defaults to 10 if not specified.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1478,6 +1492,8 @@ available, so that a such prepared flash can always be queried with
 @code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
 that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
