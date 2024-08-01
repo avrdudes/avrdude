@@ -271,7 +271,7 @@ int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist
       if(output) {
         pmsg_error("%s: these pins are not valid pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        pmsg_notice("%s: valid pins for this function are: %s\n",
+        imsg_error("%s: valid pins for this function are: %s\n",
           avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
@@ -280,7 +280,7 @@ int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist
       if(output) {
         pmsg_error("%s: these pins are not usable as inverse pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        pmsg_notice("%s: valid inverse pins for this function are: %s\n",
+        imsg_error("%s: valid inverse pins for this function are: %s\n",
           avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;

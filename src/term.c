@@ -1941,7 +1941,7 @@ static int fusel_factory(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
         return -1;
       }
     }
-    pmsg_notice("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
+    pmsg_notice2("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
       mem->desc, value[i]);
   }
 

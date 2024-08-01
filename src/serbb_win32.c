@@ -104,7 +104,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
                 break;
 
         default:
-                pmsg_notice("serbb_setpin(): unknown pin %d\n", pin + 1);
+                pmsg_warning("serbb_setpin(): unknown pin %d\n", pin + 1);
                 return -1;
         }
         pmsg_trace2("serbb_setpin(): EscapeCommFunction(%s)\n", name);
@@ -207,7 +207,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
                 name = "RTS";
                 break;
         default:
-                pmsg_notice("serbb_getpin(): unknown pin %d\n", pin + 1);
+                pmsg_warning("serbb_getpin(): unknown pin %d\n", pin + 1);
                 return -1;
         }
         pmsg_trace2("serbb_getpin(): return cached state for %s\n", name);

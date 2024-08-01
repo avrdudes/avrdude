@@ -192,7 +192,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
     return -1;
   }
 
-  pmsg_notice("found VID=0x%04x PID=0x%04x at %s:%s\n",
+  pmsg_notice2("found VID=0x%04x PID=0x%04x at %s:%s\n",
     found->descriptor.idVendor, found->descriptor.idProduct,
     found->bus->dirname, found->filename);
 

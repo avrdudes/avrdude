@@ -399,7 +399,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 
 static int check_for_port_argument_match(const char *port, char *bus, char *device, char *serial_num) {
 
-  pmsg_notice("usbOpenDevice(): found USBasp, bus:device: %s:%s, serial_number: %s\n", bus, device, serial_num);
+  pmsg_debug("usbOpenDevice(): found USBasp, bus:device: %s:%s, serial_number: %s\n", bus, device, serial_num);
   const size_t usb_len = strlen("usb");
   if(str_starts(port, "usb") && ':' == port[usb_len]) {
     port += usb_len + 1;
@@ -972,7 +972,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   if (sckperiod == 0) {
     /* auto sck set */
 
-    pmsg_notice("auto set sck period (because given equals null)\n");
+    pmsg_notice2("auto set sck period\n");
 
   } else {
 

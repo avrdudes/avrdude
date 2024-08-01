@@ -423,7 +423,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       // Set format now (but might be wrong in edge cases, where user needs to specify explicity)
       upd->format = format_detect;
       if(quell_progress < 2)
-        pmsg_notice("%s file %s auto detected as %s\n",
+        pmsg_notice2("%s file %s auto detected as %s\n",
           upd->op == DEVICE_READ? "output": "input", upd->filename,
           fileio_fmtstr(upd->format));
     }

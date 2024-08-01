@@ -341,7 +341,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
     if((sp2 = get_libserialport_data(&n2))) {
       diff = sa_spa_not_spb(sp2, n2, sp1, n1);
       if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
-        pmsg_notice("new port %s discovered\n", (*diff)->port);
+        pmsg_notice2("new port %s discovered\n", (*diff)->port);
         if(*portp)
           mmt_free(*portp);
         *portp = mmt_strdup((*diff)->port);
