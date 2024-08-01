@@ -280,6 +280,18 @@ if(HAVE_LINUXGPIO)
     endif()
 endif()
 
+# -------------------------------------
+# Find SWIG
+find_package(SWIG 4.0 COMPONENTS python)
+if(SWIG_FOUND)
+  find_package(Python3 COMPONENTS Interpreter Development)
+  if(PYTHON3_FOUND)
+    set(HAVE_SWIG 1)
+  else()
+    message(STATUS "Found SWIG but no Python3 header/library; cannot use SWIG")
+  endif()
+endif()
+
 # =====================================
 # Use external libraries if requested
 # =====================================
@@ -462,6 +474,12 @@ if(HAVE_LINUXSPI)
     message(STATUS "ENABLED    linuxspi")
 else()
     message(STATUS "DISABLED   linuxspi")
+endif()
+
+if(HAVE_SWIG)
+    message(STATUS "DO HAVE    swig+Python3")
+else()
+    message(STATUS "DON'T HAVE swig+Python3")
 endif()
 
 message(STATUS "----------------------")
