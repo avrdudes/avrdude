@@ -334,7 +334,7 @@ static int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   int cmd_result = 0;
   int aux_result;
 
-  pmsg_notice2("flip_chip_erase()\n");
+  pmsg_debug("flip_chip_erase()\n");
 
   struct flip2_cmd cmd = {
     FLIP2_CMD_GROUP_EXEC, FLIP2_CMD_CHIP_ERASE, { 0xFF, 0, 0, 0 }
@@ -585,7 +585,7 @@ static int flip2_read_memory(struct dfu_dev *dfu,
   int read_size;
   int result;
 
-  pmsg_notice2("flip_read_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_read_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
 
   result = flip2_set_mem_unit(dfu, mem_unit);
 
@@ -642,7 +642,7 @@ static int flip2_write_memory(struct dfu_dev *dfu,
   int write_size;
   int result;
 
-  pmsg_notice2("flip_write_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
 
   result = flip2_set_mem_unit(dfu, mem_unit);
 

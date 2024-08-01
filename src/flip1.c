@@ -334,7 +334,7 @@ static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   int aux_result;
   unsigned int default_timeout = FLIP1(pgm)->dfu->timeout;
 
-  pmsg_notice2("flip_chip_erase()\n");
+  pmsg_debug("flip_chip_erase()\n");
 
   struct flip1_cmd cmd = {
     FLIP1_CMD_WRITE_COMMAND, { 0, 0xff }
@@ -469,7 +469,7 @@ static int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 }
 
 static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
-  pmsg_notice2("flip1_read_sig_bytes(): ");
+  pmsg_debug("flip1_read_sig_bytes(): ");
 
   if (FLIP1(pgm)->dfu == NULL)
     return -1;
@@ -492,7 +492,7 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
       FLIP1_CMD_READ_COMMAND, FLIP1_READ_FAMILY_CODE
     };
 
-    msg_notice2("from device\n");
+    msg_debug("from device\n");
 
     for (i = 0; i < 3; i++)
     {
@@ -532,7 +532,7 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
   }
   else
   {
-    msg_notice2("cached\n");
+    msg_debug("cached\n");
   }
 
   memcpy(mem->buf, FLIP1(pgm)->part_sig, sizeof(FLIP1(pgm)->part_sig));
@@ -571,7 +571,7 @@ static int flip1_read_memory(const PROGRAMMER *pgm,
   unsigned int default_timeout = dfu->timeout;
 
 
-  pmsg_notice2("flip_read_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_read_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
 
   /*
    * As this function is called once per page, no need to handle 64
@@ -662,7 +662,7 @@ static int flip1_write_memory(struct dfu_dev *dfu,
   unsigned int default_timeout = dfu->timeout;
   unsigned char *buf;
 
-  pmsg_notice2("flip_write_memory(%s, 0x%04x, %d)\n",
+  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n",
     flip1_mem_unit_str(mem_unit), addr, size);
 
   if (size < 32) {

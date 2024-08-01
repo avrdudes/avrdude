@@ -312,17 +312,17 @@ int bitbang_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
     res[i] = bitbang_txrx(pgm, cmd[i]);
   }
 
-    if(verbose >= 2)
+    if(verbose >= MSG_DEBUG)
 	{
-        msg_notice2("bitbang_cmd(): [ ");
+        msg_debug("bitbang_cmd(): [ ");
         for(i = 0; i < 4; i++)
-            msg_notice2("%02X ", cmd[i]);
-        msg_notice2("] [ ");
+            msg_debug("%02X ", cmd[i]);
+        msg_debug("] [ ");
         for(i = 0; i < 4; i++)
 		{
-            msg_notice2("%02X ", res[i]);
+            msg_debug("%02X ", res[i]);
 		}
-        msg_notice2("]\n");
+        msg_debug("]\n");
 	}
 
   return 0;
@@ -345,17 +345,17 @@ int bitbang_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
     res[i] = r;
   }
 
-  if(verbose >= 2)
+  if(verbose >= MSG_DEBUG)
   {
-    msg_notice2("bitbang_cmd_tpi(): [ ");
+    msg_debug("bitbang_cmd_tpi(): [ ");
     for(i = 0; i < cmd_len; i++)
-      msg_notice2("%02X ", cmd[i]);
-    msg_notice2("] [ ");
+      msg_debug("%02X ", cmd[i]);
+    msg_debug("] [ ");
     for(i = 0; i < res_len; i++)
     {
-      msg_notice2("%02X ", res[i]);
+      msg_debug("%02X ", res[i]);
     }
-    msg_notice2("]\n");
+    msg_debug("]\n");
   }
 
   if (r == -1)
@@ -380,17 +380,17 @@ int bitbang_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
 
   pgm->setpin(pgm, PIN_LED_PGM, 1);
 
-  if(verbose >= 2)
+  if(verbose >= MSG_DEBUG)
 	{
-        msg_notice2("bitbang_cmd(): [ ");
+        msg_debug("bitbang_cmd(): [ ");
         for(i = 0; i < count; i++)
-            msg_notice2("%02X ", cmd[i]);
-        msg_notice2("] [ ");
+            msg_debug("%02X ", cmd[i]);
+        msg_debug("] [ ");
         for(i = 0; i < count; i++)
 		{
-            msg_notice2("%02X ", res[i]);
+            msg_debug("%02X ", res[i]);
 		}
-        msg_notice2("]\n");
+        msg_debug("]\n");
 	}
 
   return 0;

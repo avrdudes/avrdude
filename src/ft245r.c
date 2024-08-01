@@ -788,14 +788,14 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
     for (i = 0; i < res_len; ++i)
 	if ((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
 	    break;
-    if (verbose >= 2) {
-	msg_notice2("%s: [ ", __func__);
+    if (verbose >= MSG_DEBUG) {
+	msg_debug("%s: [ ", __func__);
 	for (i = 0; i < cmd_len; i++)
-	    msg_notice2("%02X ", cmd[i]);
-	msg_notice2("] [ ");
+	    msg_debug("%02X ", cmd[i]);
+	msg_debug("] [ ");
 	for(i = 0; i < res_len; i++)
-	    msg_notice2("%02X ", res[i]);
-	msg_notice2("]\n");
+	    msg_debug("%02X ", res[i]);
+	msg_debug("]\n");
     }
 
     return ret;

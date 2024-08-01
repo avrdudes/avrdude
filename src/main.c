@@ -1719,7 +1719,7 @@ skipopen:
         upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           erase = 1;
-          pmsg_notice("Performing a chip erase as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
+          pmsg_notice("performing a chip erase as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
           imsg_notice2("specify the -D option to disable this feature\n");
         }
       }

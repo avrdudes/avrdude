@@ -315,7 +315,7 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (c == 0)
       break;
-    msg_notice2("    Device code: 0x%02x\n", (unsigned int) (unsigned char) c);
+    msg_notice2("    Device code: 0x%02x\n", (unsigned char) c);
   };
   msg_notice2("\n");
 
