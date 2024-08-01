@@ -3408,9 +3408,9 @@ serialadapter # ch344
 # Multipurpose interface chip
 # https://www.wch-ic.com/products/CH347.html
 
-serialadapter # ch344
+serialadapter # ch347
     id                     = "ch347";
-    desc                   = "WCH CH344 USB to serial adapter";
+    desc                   = "WCH CH347 USB to serial adapter";
     usbvid                 = 0x1a86;
     usbpid                 = 0x55da, 0x55db, 0x55dd, 0x55de;
 ;
