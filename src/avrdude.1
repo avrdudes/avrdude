@@ -502,18 +502,18 @@ case before programming the cell.
 .Xc
 Pass
 .Ar exitspec
-to the chosen programmer. The interpretation of the exitspec arguments
+to the chosen programmer. The interpretation of the exitspec parameter
 depends on the programmer itself. See below for a list of programmers
-accepting extended parameters or issue
+accepting exitspec parameter options or issue
 .Nm
--E help ... to see the extended options of the chosen programmer.
+-E help ... to see the options of the chosen programmer.
 .It Fl F
 Normally,
 .Nm
 tries to verify that the device signature read from the part is
 reasonable before continuing.  Since it can happen from time to time
 that a device has a broken (erased or overwritten) device signature
-but is otherwise operating normally, this options is provided to
+but is otherwise operating normally, this option is provided to
 override the check.
 Also, for programmers like the Atmel STK500 and STK600 which can
 adjust parameters local to the programming tool (independent of an
@@ -557,7 +557,7 @@ No-write: disables writing data to the MCU whilst processing -U
 .Nm avrdude
 ). The terminal mode continues to write to the device.
 .It Fl O
-Perform a RC oscillator run-time calibration according to Atmel
+Perform an RC oscillator run-time calibration according to Atmel
 application note AVR053.
 This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
 hardware.
@@ -2173,11 +2173,11 @@ This option allows to choose these additional CSes (1, 2, ...) for programming t
 Show help menu and exit.
 .El
 .El
-.Ss Programmers accepting exitspec arguments
+.Ss Programmers accepting exitspec parameter
 Currently, only the flip2, linuxspi and old school parallel port programmers
-such as stk200 and dapa support exitspec arguments. These lets the user
+such as stk200 and dapa support exitspec parameter. These lets the user
 decide in which state the programmer pins after ended programming session.
-Multiple exitspec arguments can be separated with commas.
+Multiple exitspec options can be separated with commas.
 .Bl -tag -offset indent -width indent
 .It Ar flip2
 .It Ar linuxspi
