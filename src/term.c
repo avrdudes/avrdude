@@ -415,17 +415,28 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   }
 
   report_progress(0, 1, "Reading");
-  for(int j = 0; j < toread; j++) {
-    int addr = (whence + j) % maxsize;
-    int rc = pgm->read_byte_cached(pgm, p, mem, addr, &buf[j]);
-    if (rc != 0) {
+  if (pgm->read_array != NULL) {  // if the programmer can read multiple bytes
+    int rc = pgm->read_array(pgm, p, mem, whence, toread, buf);
+    if (rc < 0) {
       report_progress(1, -1, NULL);
       pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc,
-        (long) whence + j, p->desc);
+        (long) whence + rc, p->desc);
       mmt_free(buf);
       return NULL;
     }
-    report_progress(j, toread, NULL);
+  } else {
+    for(int j = 0; j < toread; j++) { // otherwise do byte-by-byte
+      int addr = (whence + j) % maxsize;
+      int rc = pgm->read_byte_cached(pgm, p, mem, addr, &buf[j]);
+      if (rc < 0) {
+        report_progress(1, -1, NULL);
+        pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc,
+          (long) whence + j, p->desc);
+        mmt_free(buf);
+        return NULL;
+      }
+      report_progress(j, toread, NULL);
+    }
   }
   report_progress(1, 1, NULL);
 
@@ -845,7 +856,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     int rc = pgm->write_byte_cached(pgm, p, mem, addr+i, buf[i]);
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
-    } else if(rc) {
+    } else if(rc < 0) {
       pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
       if (rc == -1)
         imsg_error("%*swrite operation not supported on memory %s\n", 8, "", mem->desc);

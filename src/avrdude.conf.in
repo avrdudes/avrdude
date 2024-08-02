@@ -2993,6 +2993,46 @@ programmer # pickit4_tpi
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
+
+# Microchip PICkit 5. See
+# https://www.microchip.com/en-us/development-tool/PG164150
+# for details.
+#
+# Currently, avrdude only supports UPDI Programming
+# with the PICkit 5
+#
+# Interface:   Programmer name:
+# UPDI         pickit5
+#
+#
+# PIN  UPDI  
+# > 1  HVRST
+#   2  VCC
+#   3  GND
+#   4  UPDI
+#   5
+#   6
+#   7
+#   8                       
+#
+
+#------------------------------------------------------------
+# pickit5
+#------------------------------------------------------------
+
+programmer # pickit5
+    id                     = "pickit5";
+    desc                   = "MPLAB(R) PICkit 5";
+    type                   = "pickit5";
+    prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbpid                 = 0x9035, 0x9036;
+    baudrate               = 200000;   # UPDI default clock
+;
+
+
+
 #------------------------------------------------------------
 # snap /snap_jtag
 #------------------------------------------------------------

@@ -1004,6 +1004,8 @@ typedef struct programmer {
   int  (*read_sig_bytes) (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
   int  (*read_sib)       (const PROGRAMMER *pgm, const AVRPART *p, char *sib);
   int  (*read_chip_rev)  (const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev);
+  int  (*write_array)    (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, int len, unsigned char *value);
+  int  (*read_array)     (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, int len, unsigned char *value);
   int  (*term_keep_alive)(const PROGRAMMER *pgm, const AVRPART *p);
   int  (*end_programming)(const PROGRAMMER *pgm, const AVRPART *p);
 

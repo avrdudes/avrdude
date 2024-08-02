@@ -499,6 +499,15 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     }
   }
 
+  if (pgm->read_array != NULL) {  // if possible, try to read all bytes at once
+    rc = pgm->read_array(pgm, p, mem, 0, mem->size, mem->buf);
+    if (rc < 0)
+      report_progress(1, -1, NULL);
+    else
+      report_progress(mem->size, mem->size, NULL);
+    return rc;
+  }
+
   for (i=0; i < (unsigned long) mem->size; i++) {
     if (vmem == NULL || (vmem->tags[i] & TAG_ALLOCATED) != 0) {
       rc = pgm->read_byte(pgm, p, mem, i, mem->buf + i);
