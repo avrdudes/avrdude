@@ -89,7 +89,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     struct hid_device_info *list, *walk;
     list = hid_enumerate(pinfo.usbinfo.vid, pinfo.usbinfo.pid);
     if (list == NULL) {
-      pmsg_error("No USB HID devices found\n");
+      pmsg_error("no USB HID devices found\n");
       return -1;
     }
 

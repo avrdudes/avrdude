@@ -675,11 +675,11 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (serialupdi_enter_progmode(pgm) == 0) {
     /* If successful, you can run silicon check */
     if (updi_read_data(pgm, p->syscfg_base+1, &value, 1) < 0) {
-      pmsg_error("Reading chip silicon revision failed\n");
+      pmsg_error("reading chip silicon revision failed\n");
       return -1;
     } else {
-      pmsg_debug("Received chip silicon revision 0x%02x\n", value);
-      pmsg_notice("Chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
+      pmsg_debug("received chip silicon revision 0x%02x\n", value);
+      pmsg_notice("chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
     }
   }
 

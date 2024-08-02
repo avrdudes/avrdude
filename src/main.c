@@ -951,7 +951,7 @@ int main(int argc, char * argv [])
 
   size_t ztest;
   if(1 != sscanf("42", "%zi", &ztest) || ztest != 42)
-    pmsg_warning("Linked C library does not conform to C99; %s may not work as expected\n", progname);
+    pmsg_warning("linked C library does not conform to C99; %s may not work as expected\n", progname);
 
   /* search for system configuration file unless -C conffile was given */
   if (strlen(sys_config) == 0) {
@@ -1090,7 +1090,7 @@ int main(int argc, char * argv [])
   }
 
   if(!str_eq(avrdude_conf_version, AVRDUDE_FULL_VERSION)) {
-    pmsg_warning("System wide configuration file version (%s)\n", avrdude_conf_version);
+    pmsg_warning("system wide configuration file version (%s)\n", avrdude_conf_version);
     imsg_warning("does not match Avrdude build version (%s)\n", AVRDUDE_FULL_VERSION);
   }
 
@@ -1401,7 +1401,6 @@ int main(int argc, char * argv [])
     pmsg_notice("setting ISP clk delay : %3i us\n", ispdelay);
     pgm->ispdelay = ispdelay;
   }
-  msg_notice("\n");
 
   rc = pgm->open(pgm, port);
   if (rc < 0) {
@@ -1564,6 +1563,7 @@ skipopen:
   // Indicate programmer is ready
   led_set(pgm, LED_RDY);
 
+  msg_notice("\n");
   pmsg_notice("AVR device initialized and ready to accept instructions\n");
 
   /*

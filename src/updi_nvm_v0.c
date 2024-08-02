@@ -97,7 +97,7 @@ int updi_nvm_chip_erase_V0(const PROGRAMMER *pgm, const AVRPART *p) {
 
         return True
 */
-  pmsg_debug("Chip erase using NVM CTRL\n");
+  pmsg_debug("chip erase using NVM CTRL\n");
   if (updi_nvm_wait_ready_V0(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V0() failed\n");
     return -1;

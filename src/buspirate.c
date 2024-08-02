@@ -964,7 +964,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	buspirate_recv_bin(pgm, buf, 1);
 
 	if (buf[0] != 0x01) {
-		pmsg_error("Paged Read command returned zero\n");
+		pmsg_error("paged read command returned zero\n");
 		return -1;
 	}
 
