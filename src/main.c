@@ -234,7 +234,7 @@ static void usage(void)
     "  -c <wildcard>/<flags>  Run developer options for matched programmers,\n"
     "                         e.g., -c 'ur*'/s for programmer info/definition\n"
     "  -A                     Disable trailing-0xff removal for file/AVR read\n"
-    "  -D                     Disable auto erase for flash memory; implies -A\n"
+    "  -D                     Disable auto-erase for flash memory; implies -A\n"
     "  -i <delay>             ISP Clock Delay [in microseconds]\n"
     "  -P <port>              Connection; -P ?s or -P ?sa lists serial ones\n"
     "  -r                     Reconnect to -P port after \"touching\" it; wait\n"
@@ -628,6 +628,7 @@ int main(int argc, char * argv [])
 
   /* options / operating mode variables */
   int     erase;       /* 1=erase chip, 0=don't */
+  int     flashread;   /* 1=flash is going to be read, 0=no flash reads */
   int     calibrate;   /* 1=calibrate RC oscillator, 0=don't */
   int     no_avrduderc; /* 1=don't load personal conf file */
   char  * port;        /* device port (/dev/xxx) */
@@ -722,6 +723,7 @@ int main(int argc, char * argv [])
   partdesc      = NULL;
   port          = NULL;
   erase         = 0;
+  flashread     = 0;
   calibrate     = 0;
   no_avrduderc  = 0;
   p             = NULL;
@@ -828,7 +830,7 @@ int main(int argc, char * argv [])
         }
         break;
 
-      case 'D': /* disable auto erase */
+      case 'D': /* disable auto-erase */
         uflags &= ~UF_AUTO_ERASE;
         /* fall through */
 
@@ -1714,12 +1716,25 @@ skipopen:
       }
     } else {
       uflags &= ~UF_AUTO_ERASE;
-      for(ln=lfirst(updates); !erase && ln; ln=lnext(ln)) {
+      for(ln=lfirst(updates); ln; ln=lnext(ln)) {
         upd = ldata(ln);
+        if(upd->cmdline && *str_ltrim(upd->cmdline) && str_starts("erase", str_ltrim(upd->cmdline)))
+          break;                // -T erase already erases the chip: no auto-erase needed
+
+        if(upd->cmdline || (upd->memstr &&  // Might be reading flash?
+            (upd->op == DEVICE_READ || upd->op == DEVICE_VERIFY) &&
+            memlist_contains_flash(upd->memstr, p)))
+          flashread = 1;
+
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
-          erase = 1;
-          pmsg_info("Performing a chip erase as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
-          imsg_notice("specify the -D option to disable this feature\n");
+          if(flashread) {
+            pmsg_info("NOT auto-erasing chip as flash might need reading before writing to it\n");
+          } else {
+            erase = 1;
+            pmsg_info("auto-erasing chip as flash memory needs programming (-U %s:w:...)\n", upd->memstr);
+            imsg_notice("specify the -D option to disable this feature\n");
+          }
+          break;
         }
       }
     }
