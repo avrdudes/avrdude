@@ -3038,10 +3038,12 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
     return -1;
   }
 
-  status = jtag3_erase_tpi(pgm, p, mem, addr);
-  if (status < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", status);
-    return -1;
+  if (mem_is_a_fuse(mem) || mem_is_flash(mem)) {
+    status = jtag3_erase_tpi(pgm, p, mem, addr);
+    if (status < 0) {
+      pmsg_error("error in communication, received status 0x%02x\n", status);
+      return -1;
+    }
   }
 
   paddr = mem->offset + addr;
