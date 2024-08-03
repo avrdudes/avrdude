@@ -131,8 +131,6 @@ void pgm_init_functions(PROGRAMMER *pgm) {
   pgm->teardown       = NULL;
   pgm->readonly       = NULL;
   pgm->flash_readhook = NULL;
-  pgm->write_array    = NULL;
-  pgm->read_array     = NULL;
 }
 
 

@@ -92,7 +92,7 @@ struct pdata {
   unsigned char pk_op_mode;     // 0 - init, 1: pk found, 2: pk operating, 3: pk programming
   unsigned char power_source;   // external / from PICkit / ignore check
   unsigned int  target_voltage; // voltage to supply to target
-  unsigned char target_revision;  // we get this together with the device ID, so just buffer it
+  unsigned char signature[4];   // as we get DeviceID and Chip revision in one go, buffer them
   unsigned char txBuf[1024];
   unsigned char rxBuf[1024];
   struct avr_script_lut *scripts;
@@ -394,7 +394,13 @@ static void pickit5_disable(const PROGRAMMER *pgm) {
 }
 
 static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  return;
+  // Overwrite page sizes so that avrdude uses pages read/writes
+  // This will reduce overhead and increase speed
+  AVRMEM *mem;
+  if((mem = avr_locate_sram(p)))
+    mem->page_size = mem->size < 256? mem->size: 256;
+  if((mem = avr_locate_eeprom(p)))
+    mem->page_size = mem->size < 32? mem->size: 32;
 }
 
 static void pickit5_display(const PROGRAMMER *pgm, const char *p) {
@@ -417,6 +423,8 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
 
   pickit5_set_ptg_mode(pgm);
+  pickit5_set_vtarget(pgm, 0.0);  // avoid the edge case when avrdude was CTRL+C'd but still provides power
+
   double v_target;
   pickit5_get_vtarget(pgm, &v_target);  // see if we have to supply power, or we get it externally
   if (v_target < 1800.0) {
@@ -565,15 +573,22 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
 
 static int pickit5_write_byte (const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char value) {
-    return pickit5_write_array(pgm, p, mem, addr, 1, &value);
+    int rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
+    if (rc < 0)
+      return rc;
+    return 0; 
 }
 
 static int pickit5_read_byte (const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char *value) {
-    return pickit5_read_array(pgm, p, mem, addr, 1, value);
+    int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
+    if (rc < 0)
+      return rc;
+    return 0;
 }
 
 
+// return numbers of byte written 
 static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
   pmsg_debug("pickit5_write_array(%s, 0x%04x, %i)", mem->desc, (unsigned int)addr, len);
@@ -636,9 +651,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   return len;
 }
 
-/*
- * return numbers of byte read 
-*/
+// return numbers of byte read 
 static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
   const AVRMEM *mem, unsigned long addr, int len, unsigned char *value) {
   pmsg_debug("pickit5_read_array(%i)\n", len);
@@ -670,6 +683,16 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
     read_bytes_len = PDATA(pgm)->scripts->ReadMem8_len;
   } else if (mem_is_sib(mem)) {
     return pickit5_read_sib(pgm, p, (char *)value); // silence pointer sign warning
+  } else if (mem_is_signature(mem)) {
+    if (addr == 0) {                        // Buffer signature bytes on first read
+      pickit5_read_sig_bytes(pgm, p, NULL);
+    }
+    if (addr < 4) {
+      *value =  PDATA(pgm)->signature[addr];
+      return 0;
+    } else {
+      return -1;
+    }
   } else {
     pmsg_error("Unsupported memory type: %s\n", mem->desc);
     return -2;
@@ -699,18 +722,22 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
   return len;
 }
 
-static int pickit5_read_sig_bytes (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
+static int pickit5_read_sig_bytes (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   pmsg_debug("pickit5_read_sig_bytes()\n");
   const unsigned char *read_id = PDATA(pgm)->scripts->GetDeviceID;
   unsigned int read_id_len = PDATA(pgm)->scripts->GetDeviceID_len;
+
   if(pickit5_send_script(pgm, SCR_CMD, read_id, read_id_len, NULL, 0, 0) < 0)
     return -1;
   if (pickit5_read_response(pgm, "Read Device ID") < 0)
     return -1;
-  m->buf[0] = PDATA(pgm)->rxBuf[24];
-  m->buf[1] = PDATA(pgm)->rxBuf[25];
-  m->buf[2] = PDATA(pgm)->rxBuf[26];
-  PDATA(pgm)->target_revision = PDATA(pgm)->rxBuf[27];  // Chip revision
+
+  memcpy(PDATA(pgm)->signature, &PDATA(pgm)->rxBuf[24], 4);
+  if (mem != NULL) {
+    mem->buf[0] = PDATA(pgm)->rxBuf[24];
+    mem->buf[1] = PDATA(pgm)->rxBuf[25];
+    mem->buf[2] = PDATA(pgm)->rxBuf[26];
+  }
   return 3;
 }
 
@@ -734,7 +761,7 @@ static int pickit5_read_sib (const PROGRAMMER *pgm, const AVRPART *p, char *sib)
 
 static int pickit5_read_chip_rev (const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev) {
   pmsg_debug("pickit5_read_chip_rev()\n");
-  *chip_rev = PDATA(pgm)->target_revision;
+  *chip_rev = PDATA(pgm)->signature[3];
   return 0;
 }
 
@@ -989,8 +1016,6 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   /*
    * optional functions
    */
-  pgm->write_array    = pickit5_write_array;
-  pgm->read_array     = pickit5_read_array;
   pgm->paged_write    = pickit5_paged_write;
   pgm->paged_load     = pickit5_paged_load;
   pgm->setup          = pickit5_setup;
