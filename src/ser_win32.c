@@ -68,7 +68,7 @@ static DWORD serial_baud_lookup(long baud) {
       return map->speed;
 
   // Return the raw rate when asked for non-standard baud rate
-  pmsg_notice2("serial_baud_lookup(): using non-standard baud rate: %ld", baud);
+  pmsg_notice2("%s(): using non-standard baud rate: %ld", __func__, baud);
 
   return baud;
 }
@@ -325,14 +325,14 @@ static int net_send(const union filedescriptor *fd, const unsigned char *buf, si
 	int rc;
 
 	if (fd->ifd < 0) {
-		pmsg_notice("net_send(): connection not open\n");
+		pmsg_notice("%s(): connection not open\n", __func__);
 		return -1;
 	}
 
 	if (!len)
 		return 0;
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, len);
 
 	while (len) {
@@ -376,7 +376,7 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
 	if (!len)
 		return 0;
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, len);
 	
 	serial_w32SetTimeOut(hComPort,500);
@@ -420,13 +420,11 @@ reselect:
 
 		nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
 		if (nfds == 0) {
-			if (verbose > 1) {
-				pmsg_notice("net_recv(): programmer is not responding\n");
-			}
+			pmsg_notice2("%s(): programmer is not responding\n", __func__);
 			return -1;
 		} else if (nfds == -1) {
 			if (WSAGetLastError() == WSAEINTR || WSAGetLastError() == WSAEINPROGRESS) {
-				pmsg_notice("net_recv(): programmer is not responding, reselecting\n");
+				pmsg_notice("%s(): programmer is not responding, reselecting\n", __func__);
 				goto reselect;
 			} else {
 				FormatMessage(
@@ -439,7 +437,7 @@ reselect:
 					(LPTSTR)&lpMsgBuf,
 					0,
 					NULL);
-				pmsg_error("select(): %s\n", (char *) lpMsgBuf);
+				pmsg_error("%s(): %s\n", __func__, (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				return -1;
 			}
@@ -465,7 +463,7 @@ reselect:
 		len += rc;
 	}
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, len);
 
 	return 0;
@@ -505,11 +503,11 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 
 	/* time out detected */
 	if (read < buflen) {
-		pmsg_notice2("ser_recv(): programmer is not responding\n");
+		pmsg_notice2("%s(): programmer is not responding\n", __func__);
 		return -1;
 	}
 
-	if (verbose > 3)
+	if (verbose >= MSG_TRACE)
 		trace_buffer(__func__, buf, read);
 
 	return 0;
@@ -549,7 +547,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 		}
 		else if (nfds == -1) {
 			if (WSAGetLastError() == WSAEINTR || WSAGetLastError() == WSAEINPROGRESS) {
-				pmsg_notice("ser_drain(): programmer is not responding, reselecting\n");
+				pmsg_notice("%s(): programmer is not responding, reselecting\n", __func__);
 				goto reselect;
 			} else {
 				FormatMessage(
@@ -562,7 +560,7 @@ static int net_drain(const union filedescriptor *fd, int display) {
 					(LPTSTR)&lpMsgBuf,
 					0,
 					NULL);
-				pmsg_error("select(): %s\n", (char *) lpMsgBuf);
+				pmsg_error("%s(): %s\n", __func__, (char *) lpMsgBuf);
 				LocalFree(lpMsgBuf);
 				return -1;
 			}

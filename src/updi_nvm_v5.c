@@ -107,7 +107,7 @@ int updi_nvm_chip_erase_V5(const PROGRAMMER *pgm, const AVRPART *p) {
             raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready after chip erase")
 */
   int status;
-  pmsg_debug("Chip erase using NVM CTRL\n");
+  pmsg_debug("chip erase using NVM CTRL\n");
   if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;

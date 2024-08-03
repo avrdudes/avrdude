@@ -125,7 +125,7 @@ static speed_t serial_baud_lookup(long baud, bool *nonstandard) {
       return map->speed;
 
   // Return the raw rate when asked for non-standard baud rate
-  pmsg_notice2("serial_baud_lookup(): using non-standard baud rate: %ld\n", baud);
+  pmsg_notice2("%s(): using non-standard baud rate: %ld\n", __func__, baud);
 
   *nonstandard = true;
   return baud;
@@ -417,7 +417,7 @@ static void ser_rawclose(union filedescriptor *fd) {
 static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
   int rc;
 
-  if(verbose > 3)
+  if(verbose >= MSG_TRACE)
     trace_buffer(__func__, buf, len);
 
   while(len) {
@@ -453,7 +453,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 
     nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
     if (nfds == 0) {
-      pmsg_notice2("ser_recv(): programmer is not responding\n");
+      pmsg_notice2("%s(): programmer is not responding\n", __func__);
       return -1;
     }
     else if (nfds == -1) {
@@ -476,7 +476,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     len += rc;
   }
 
-  if(verbose > 3)
+  if(verbose >= MSG_TRACE)
     trace_buffer(__func__, buf, len);
 
   return 0;

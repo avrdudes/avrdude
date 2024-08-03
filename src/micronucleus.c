@@ -555,7 +555,7 @@ static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void micronucleus_display(const PROGRAMMER *pgm, const char *prefix) {
-    pmsg_debug("micronucleus_display()\n");
+  // pmsg_debug("micronucleus_display()\n");
 }
 
 static void micronucleus_powerup(const PROGRAMMER *pgm) {
@@ -649,8 +649,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        pmsg_error("invalid -P value %s\n", port);
-        imsg_error("use -P usb:bus:device\n");
+        pmsg_error("invalid -P %s; use -P usb:bus:device\n", port);
         return -1;
     }
 

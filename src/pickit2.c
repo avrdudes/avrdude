@@ -249,7 +249,7 @@ static int pickit2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         //memset(report, 0, sizeof(report));
         if ((errorCode = pickit2_read_report(pgm, report)) >= 4)
         {
-            pmsg_notice("%s firmware version %d.%d.%d\n", pgm->desc, (int)report[1], (int)report[2], (int)report[3]);
+            pmsg_notice2("%s firmware version %d.%d.%d\n", pgm->desc, report[1], report[2], report[3]);
 
             // set the pins, apply reset,
             // TO DO: apply vtarget (if requested though -x option)
@@ -408,7 +408,7 @@ static int  pickit2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
     {
         int i;
-        msg_debug("program_enable(): sending command. Resp = ");
+        msg_debug("%s(): sending command. Resp = ", __func__);
 
         for (i = 0; i < 4; i++)
         {
@@ -1105,7 +1105,7 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int 
                 // return with opened device handle
                 else
                 {
-                    msg_notice("device %p seemed to open OK\n", handle);
+                    msg_notice2("device %p seemed to open OK\n", handle);
 
                     if ((errorCode = usb_set_configuration(handle, 1)) < 0)
                     {

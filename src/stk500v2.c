@@ -592,7 +592,7 @@ static int stk500v2_jtag3_recv(const PROGRAMMER *pgm, unsigned char *msg,
      octets from the ICE.  Thus, only complain at high verbose
      levels. */
   if ((size_t) rv - 1 > maxsize) {
-    pmsg_debug("stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n", (unsigned) rv - 1, (unsigned) maxsize);
+    pmsg_debug("%s(): got %u bytes, have only room for %u bytes\n", __func__, (unsigned) rv - 1, (unsigned) maxsize);
     rv = maxsize;
   }
   if (jtagmsg[0] != SCOPE_AVR_ISP) {
@@ -764,7 +764,7 @@ retry:
         pmsg_notice("%s(): unknown programmer %s, assuming STK500\n", __func__, name);
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
-      pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname(pgm));
+      pmsg_debug("%s(): found %s programmer\n", __func__, pgmname(pgm));
       serial_recv_timeout = bak_serial_recv_timeout;
       return 0;
     } else {
@@ -1132,8 +1132,8 @@ retry:
                 pmsg_error("unable to return from debugWIRE to ISP\n");
                 break;
             }
-            pmsg_warning("target prepared for ISP, signed off\n");
-            imsg_warning("now retrying without power-cycling the target\n");
+            pmsg_warning("target prepared for ISP, signed off; now\n");
+            imsg_warning("retrying without power-cycling the target\n");
             goto retry;
         }
         break;
@@ -1395,15 +1395,15 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (jtag3_getparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0)
       return -1;
     if (!PDATA(pgm)->vtarg_switch_set)
-      imsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+      pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
     // Write Vtarg switch value
     else {
       if (jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
         return -1;
-      imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      pmsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
       // Exit early is the target power switch is off and print sensible info message
       if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
-        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        pmsg_info("turn on the Vtarg switch to establish connection with the target\n\n");
         return -1;
       }
     }
@@ -2350,7 +2350,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[1] = addr;
   }
 
-  pmsg_notice2("stk500hv_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
@@ -2468,7 +2468,7 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   buf[1] = pollidx + 1;
   avr_set_addr(op, buf + 2, addr + offset);
 
-  pmsg_notice2("stk500isp_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, 6, sizeof(buf));
 
@@ -2597,7 +2597,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
   }
 
-  pmsg_notice2("stk500hv_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
@@ -2711,7 +2711,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   avr_set_addr(op, buf + 1, addr);
   avr_set_input(op, buf + 1, data);
 
-  pmsg_notice2("stk500isp_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, 5, sizeof(buf));
 
@@ -3059,9 +3059,9 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 #if 0
     for (i=0; i<page_size; i++) {
-      msg_info("%02X", buf[2+i]);
+      msg_notice("%02X", buf[2+i]);
       if (i%16 == 15)
-        msg_info("\n");
+        msg_notice("\n");
     }
 #endif
 
@@ -3139,9 +3139,9 @@ static int stk500hv_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 #if 0
     for (i = 0; i < page_size; i++) {
-      msg_info("%02X", buf[2 + i]);
+      msg_notice("%02X", buf[2 + i]);
       if (i % 16 == 15)
-        msg_info("\n");
+        msg_notice("\n");
     }
 #endif
 
@@ -3573,8 +3573,7 @@ static int stk500v2_setparm_real(const PROGRAMMER *pgm, unsigned char parm, unsi
   buf[2] = value;
 
   if (stk500v2_command(pgm, buf, 3, sizeof(buf)) < 0) {
-    pmsg_error("\n%s stk500v2_setparm(): unable to set parameter 0x%02x\n",
-      progname, parm);
+    pmsg_error("unable to set parameter 0x%02x\n", parm);
     return -1;
   }
 
@@ -3625,8 +3624,7 @@ static int stk500v2_setparm2(const PROGRAMMER *pgm, unsigned char parm, unsigned
   buf[3] = value;
 
   if (stk500v2_command(pgm, buf, 4, sizeof(buf)) < 0) {
-    pmsg_error("\n%s stk500v2_setparm2(): unable to set parameter 0x%02x\n",
-      progname, parm);
+    pmsg_error("unable to set parameter 0x%02x\n", parm);
     return -1;
   }
 

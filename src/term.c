@@ -846,11 +846,11 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
     } else if(rc) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
-      if (rc == -1)
-        imsg_error("%*swrite operation not supported on memory %s\n", 8, "", mem->desc);
+      pmsg_error("(write) error writing 0x%02x at 0x%05x (rc = %d)\n", buf[i], addr+i, (int) rc);
+      // if (rc == -1)
+      //  imsg_error("write operation not supported on memory %s\n", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
-      imsg_error("%*sreadback from %s failed\n", 8, "", mem->desc);
+      pmsg_error("(write) readback from %s failed\n", mem->desc);
     } else {                    // Read back byte b is now set
       int bitmask = avr_mem_bitmask(p, mem, addr+i);
       if((b & bitmask) != (buf[i] & bitmask)) {
@@ -1941,7 +1941,7 @@ static int fusel_factory(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
         return -1;
       }
     }
-    pmsg_notice("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
+    pmsg_notice2("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
       mem->desc, value[i]);
   }
 
@@ -2115,7 +2115,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     }
 
     if(!*rlist) {
-      pmsg_error("(regfile) register %s not found in register file\n", *reg? reg: "''");
+      pmsg_error("(regfile) register %s not found in register file;\n", *reg? reg: "''");
       imsg_error("type regfile for all possible values\n");
       goto error;
     }
@@ -2276,7 +2276,7 @@ static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char
 
   rc = avr_signature(pgm, p);
   if(rc != 0)
-    pmsg_error("(sig) error reading signature data, rc=%d\n", rc);
+    pmsg_error("(sig) error reading signature data (rc = %d)\n", rc);
 
   m = avr_locate_signature(p);
   if(m == NULL) {
