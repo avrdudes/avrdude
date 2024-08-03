@@ -846,7 +846,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
     } else if(rc) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
+      pmsg_error("(write) error writing 0x%02x at 0x%05x (rc = %d)\n", buf[i], addr+i, (int) rc);
       // if (rc == -1)
       //  imsg_error("write operation not supported on memory %s\n", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
@@ -2276,7 +2276,7 @@ static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char
 
   rc = avr_signature(pgm, p);
   if(rc != 0)
-    pmsg_error("(sig) error reading signature data, rc=%d\n", rc);
+    pmsg_error("(sig) error reading signature data (rc = %d)\n", rc);
 
   m = avr_locate_signature(p);
   if(m == NULL) {

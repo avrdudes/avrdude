@@ -1539,7 +1539,7 @@ skipopen:
       exitrc = 0;
       goto main_exit;
     }
-    pmsg_error("initialization failed, rc=%d\n", rc);
+    pmsg_error("initialization failed  (rc = %d)\n", rc);
     if (rc == -2)
       imsg_error(" - the programmer ISP clock is too fast for the target\n");
     else
@@ -1613,7 +1613,7 @@ skipopen:
             goto main_exit;
           }
         }
-        pmsg_error("unable to read signature data, rc=%d\n", rc);
+        pmsg_error("unable to read signature data (rc = %d)\n", rc);
         if(!ovsigck) {
           imsg_error("use -F to override this check\n");
           exitrc = 1;

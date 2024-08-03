@@ -556,7 +556,7 @@ static int update_avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   int rc = avr_read_mem(pgm, p, mem, v);
   report_progress (1, 1, NULL);
   if(rc < 0) {
-    pmsg_error("unable to read all of %s, rc = %d\n", m_name, rc);
+    pmsg_error("unable to read all of %s (rc = %d)\n", m_name, rc);
     led_set(pgm, LED_ERR);
     goto error;
   }

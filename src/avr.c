@@ -872,7 +872,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         usleep(250000);
         rc = pgm->initialize(pgm, p);
         if (rc < 0) {
-          pmsg_error("initialization failed, rc=%d:\n", rc);
+          pmsg_error("initialization failed (rc = %d):\n", rc);
           imsg_error("cannot re-initialize device after programming the %s bits; you\n", mem->desc);
           imsg_error("must manually power-down the device and restart %s to continue\n", progname);
           rc = -3;
@@ -1251,7 +1251,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
     report_progress(0, 1, "Reading");
   rc = avr_read(pgm, p, "signature", 0);
   if (rc < LIBAVRDUDE_SUCCESS && rc != LIBAVRDUDE_EXIT) {
-    pmsg_error("unable to read signature data for part %s, rc=%d\n", p->desc, rc);
+    pmsg_error("unable to read signature data for part %s (rc = %d)\n", p->desc, rc);
     return rc;
   }
   report_progress(1, 1, NULL);
@@ -1415,7 +1415,7 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   for (i=4; i>0; i--) {
     rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
     if (rc < 0) {
-      pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
+      pmsg_warning("cannot read memory for cycle count (rc = %d)\n", rc);
       return -1;
     }
     cycle_count = (cycle_count << 8) | v1;
@@ -1453,7 +1453,7 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 
     rc = avr_write_byte(pgm, p, a, a->size-i, v1);
     if (rc < 0) {
-      pmsg_warning("cannot write memory for cycle count, rc=%d\n", rc);
+      pmsg_warning("cannot write memory for cycle count (rc = %d)\n", rc);
       return -1;
     }
   }
