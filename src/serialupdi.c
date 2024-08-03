@@ -184,7 +184,7 @@ static void serialupdi_close(PROGRAMMER * pgm)
     pmsg_error("unable to leave NVM programming mode\n");
   }
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    pmsg_info("releasing DTR/RTS handshake lines\n");
+    pmsg_notice("releasing DTR/RTS handshake lines\n");
   }
 
   updi_link_close(pgm);
@@ -602,7 +602,7 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_notice2("UPDI link initialization OK\n");
 
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    pmsg_info("forcing serial DTR/RTS handshake lines %s\n", updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
+    pmsg_notice("forcing serial DTR/RTS handshake lines %s\n", updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
@@ -675,11 +675,11 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (serialupdi_enter_progmode(pgm) == 0) {
     /* If successful, you can run silicon check */
     if (updi_read_data(pgm, p->syscfg_base+1, &value, 1) < 0) {
-      pmsg_error("Reading chip silicon revision failed\n");
+      pmsg_error("reading chip silicon revision failed\n");
       return -1;
     } else {
-      pmsg_debug("Received chip silicon revision 0x%02x\n", value);
-      pmsg_notice("Chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
+      pmsg_debug("received chip silicon revision 0x%02x\n", value);
+      pmsg_notice("chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
     }
   }
 

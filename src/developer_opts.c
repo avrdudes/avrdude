@@ -883,7 +883,7 @@ void dev_output_part_defs(char *partdesc) {
     flags = "s";
 
   if(!*flags || !strchr("dsASRvcreow*tiBCUPTIJWHQ", *flags)) {
-    dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
+    dev_info("Error: flags for developer option -p <wildcard>/<flags> not recognised\n");
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
       "          * all known parts\n"
@@ -1427,7 +1427,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
     flags = "s";
 
   if(!*flags || !strchr("dASsrtiBUPTIJWHQ", *flags)) {
-    dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
+    dev_info("Error: flags for developer option -c <wildcard>/<flags> not recognised\n");
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
       "         * all known programmers\n"

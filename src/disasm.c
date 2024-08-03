@@ -473,18 +473,16 @@ static void lineout(const char *code, const char *comment,
     if(cx->dis_pass == 2 && match) {
       cx->dis_para++;
       char *reflist = mmt_malloc(match*(3+64)), *r = reflist; // Worst case length
-      int mne = jc[first].mnemo, one_mne = 1, nnmne = 0;
+      int mne = jc[first].mnemo, one_mne = 1;
       for(int i = first; i < cx->dis_jumpcallN && jc[i].to == here; i++) {
         if(mne != jc[i].mnemo) { // More than one mnemonic reference this line
           one_mne = 0;
           output_references(avr_opcodes[mne].opcode, reflist);
           mne = jc[i].mnemo;
           r = reflist; *r = 0;
-          nnmne = 0;
         }
-        strcpy(r, str_ccprintf(", L%0*x" + 2*(r==reflist), cx->dis_addrwidth, jc[i].from));
+        strcpy(r, str_ccprintf(&", L%0*x"[2*(r==reflist)], cx->dis_addrwidth, jc[i].from));
         r += strlen(r);
-        nnmne++;
       }
       name = get_label_name(here, &comment);
       if(!comment && strlen(reflist) + commentcol() < 70 && one_mne) { // Refs line with label

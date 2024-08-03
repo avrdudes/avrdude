@@ -468,13 +468,13 @@ is engaged by default when specifying
 . Fl c
 arduino.
 .It Fl D
-Disable auto erase for flash.  When the
+Disable auto-erase for flash. When the
 .Fl U
 option for writing to any flash memory is specified,
 .Nm
 will perform a chip erase before starting any of the programming
 operations, since it generally is a mistake to program the flash without
-performing an erase first.  This option disables that. Auto erase is not
+performing an erase first.  This option disables that. Auto-erase is not
 used for ATxmega parts nor for the UPDI (AVR8X family) parts as these can
 use page erase before writing each page so no explicit chip erase is
 required. Note, however, that any flash page not affected by the current
@@ -483,7 +483,7 @@ operation will retain its previous contents. Setting
 implies
 .Fl A.
 .It Fl e
-Causes a chip erase to be executed.  This will reset the contents of the
+Causes a chip erase to be executed. This will reset the contents of the
 flash ROM and EEPROM to the value
 .Ql 0xff ,
 and clear all lock bits.
@@ -494,78 +494,57 @@ contents would exclusively cause bits to be programmed from the value
 .Ql 1
 to
 .Ql 0 .
-Note that in order to reprogram EEPROM cells, no explicit prior chip
+This option carries out the chip erase at the beginning, before any of the
+.Fl U,
+.Fl T
+or
+.Fl t
+options are processed. If a chip erase is required in at a certain
+position within the sequence of
+.Fl U,
+.Fl T
+or
+.Fl t
+options it is recommended to use -T erase instead which is processed in
+the given command line order.
+.Pp
+In absence of an explicit
+.Fl e
+or
+.Fl D
+option
+.Nm
+tries to augur from the command line whether or not the chip should be
+auto-erased at the beginning. If
+.Nm
+detects a
+.Fl U
+command that writes to flash then auto-erase will be carried out before
+any other programming unless a -T erase commad has been detected
+beforehand and unless flash is read before writing to it. For the purpose
+of this analysis any terminal command is considered to possibly read
+flash.
+.Pp
+Note that for reprogramming EEPROM cells, no explicit prior chip
 erase is required since the MCU provides an auto-erase cycle in that
 case before programming the cell.
 .It Xo Fl E Ar exitspec Ns
 .Op \&, Ns Ar exitspec
 .Xc
-By default,
-.Nm
-leaves the parallel port in the same state at exit as it has been
-found at startup.  This option modifies the state of the
-.Ql /RESET
-and
-.Ql Vcc
-lines the parallel port is left at, according to the
+Pass
 .Ar exitspec
-arguments provided, as follows:
-.Bl -tag -width noreset
-.It Ar reset
-The
-.Ql /RESET
-signal will be left activated at program exit, that is it will be held
-.Em low ,
-in order to keep the MCU in reset state afterwards.  Note in particular
-that the programming algorithm for the AT90S1200 device mandates that
-the
-.Ql /RESET
-signal is active
-.Em before
-powering up the MCU, so in case an external power supply is used for this
-MCU type, a previous invocation of
+to the chosen programmer. The interpretation of the exitspec parameter
+depends on the programmer itself. See below for a list of programmers
+accepting exitspec parameter options or issue
 .Nm
-with this option specified is one of the possible ways to guarantee this
-condition.
-.Em reset
-is supported by the linuxspi and flip2 programmer options, as well as all
-parallel port based programmers.
-.It Ar noreset
-The
-.Ql /RESET
-line will be deactivated at program exit, thus allowing the MCU target
-program to run while the programming hardware remains connected.
-.Em noreset
-is supported by the linuxspi and flip2 programmer options, as well as all
-parallel port based programmers.
-.It Ar vcc
-This option will leave those parallel port pins active
-.Pq \&i. \&e. Em high
-that can be used to supply
-.Ql Vcc
-power to the MCU.
-.It Ar novcc
-This option will pull the
-.Ql Vcc
-pins of the parallel port down at program exit.
-.It Ar d_high
-This option will leave the 8 data pins on the parallel port active.
-.Pq \&i. \&e. Em high
-.It Ar d_low
-This option will leave the 8 data pins on the parallel port inactive.
-.Pq \&i. \&e. Em low
-.El
-.Pp
-Multiple
-.Ar exitspec
-arguments can be separated with commas.
+-E help ... to see the options of the chosen programmer.
 .It Fl F
 Normally,
 .Nm
 tries to verify that the device signature read from the part is
 reasonable before continuing.  Since it can happen from time to time
 that a device has a broken (erased or overwritten) device signature
-but is otherwise operating normally, this options is provided to
+but is otherwise operating normally, this option is provided to
 override the check.
 Also, for programmers like the Atmel STK500 and STK600 which can
 adjust parameters local to the programming tool (independent of an
@@ -609,7 +588,7 @@ No-write: disables writing data to the MCU whilst processing -U
 .Nm avrdude
 ). The terminal mode continues to write to the device.
 .It Fl O
-Perform a RC oscillator run-time calibration according to Atmel
+Perform an RC oscillator run-time calibration according to Atmel
 application note AVR053.
 This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
 hardware.
@@ -828,7 +807,6 @@ of that by erasing pages before programming them unless -e (chip erase) or
 -D (do not erase before writing) was requested. It should be noted that in
 absence of the -e chip erase option any ATxmega or UPDI flash pages not
 affected by the programming will retain their previous content.
-
 .Pp
 Classic devices may have the following memories in addition to eeprom, flash, signature and lock:
 .Bl -tag -width "  calibration" -compact
@@ -1854,6 +1832,13 @@ original STK500. Used by avrdude for the correct calculation of fosc and sck.
 .It Ar help
 Show help menu and exit.
 .El
+.It Ar AVR109
+.Bl -tag -offset indent -width indent
+.It Ar autoreset
+Toggle RTS/DTR lines on port open to issue a hardware reset.
+.It Ar help
+Show help menu and exit.
+.El
 .It Ar AVR910
 .Bl -tag -offset indent -width indent
 .It Ar devcode=VALUE
@@ -1886,6 +1871,8 @@ Show help menu and exit.
 .It Ar attemps[=<1..99>]
 Specify how many connection retry attemps to perform before exiting.
 Defaults to 10 if not specified.
+.It Ar noautoreset
+Don't toggle RTS/DTR lines on port open to prevent a hardware reset.
 .It Ar help
 Show help menu and exit.
 .El
@@ -1984,6 +1971,8 @@ title) and no date either.
 On writing to flash do not store metadata except the metadata code byte
 0xff saying there are no metadata.  In particular, no data store frame is
 programmed.
+.It Ar noautoreset
+Don't toggle RTS/DTR lines on port open to prevent a hardware reset.
 .It Ar nometadata
 Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
@@ -2131,6 +2120,8 @@ Add a <n> milliseconds delay after resetting the part through toggling the
 DTR/RTS lines. This can be useful if a board takes a particularly long
 time to exit from external reset. <n> can be negative, in which case the
 default 100 ms delay after issuing reset will be shortened accordingly.
+.It Ar noautoreset
+Don't toggle RTS/DTR lines on port open to prevent a hardware reset.
 .It Ar help
 Show help menu and exit.
 .El
@@ -2212,6 +2203,59 @@ This option allows to choose these additional CSes (1, 2, ...) for programming t
 .It Ar help
 Show help menu and exit.
 .El
+.El
+.Ss Programmers accepting exitspec parameter
+Currently, only the flip2, linuxspi and old school parallel port programmers
+such as stk200 and dapa support exitspec parameter. These lets the user
+decide in which state the programmer pins after ended programming session.
+Multiple exitspec options can be separated with commas.
+.Bl -tag -offset indent -width indent
+.It Ar flip2
+.It Ar linuxspi
+.It Parallel port programmers
+.Bl -tag -offset indent -width indent
+.It Ar help
+Show help menu and exit.
+.It Ar reset
+The
+.Ql /RESET
+signal will be left activated at program exit, that is it will be held
+.Em low ,
+in order to keep the MCU in reset state afterwards.  Note in particular
+that the programming algorithm for the AT90S1200 device mandates that
+the
+.Ql /RESET
+signal is active
+.Em before
+powering up the MCU, so in case an external power supply is used for this
+MCU type, a previous invocation of
+.Nm
+with this option specified is one of the possible ways to guarantee this
+condition.
+.It Ar noreset
+The
+.Ql /RESET
+line will be deactivated at program exit, thus allowing the MCU target
+program to run while the programming hardware remains connected.
+.El
+.It Parallel port programmers
+.Bl -tag -offset indent -width indent
+.It Ar vcc
+This option will leave those parallel port pins active
+.Pq \&i. \&e. Em high
+that can be used to supply
+.Ql Vcc
+power to the MCU.
+.It Ar novcc
+This option will pull the
+.Ql Vcc
+pins of the parallel port down at program exit.
+.It Ar d_high
+This option will leave the 8 data pins on the parallel port active.
+.Pq \&i. \&e. Em high
+.It Ar d_low
+This option will leave the 8 data pins on the parallel port inactive.
+.Pq \&i. \&e. Em low
 .El
 .Sh FILES
 .Bl -tag -offset indent -width /dev/ppi0XXX

@@ -277,7 +277,7 @@ has a firmware version of at least 6.11 (decimal).
 Wiring boards (e.g. Arduino Mega 2560 Rev3) are supported, utilizing
 STK500 V2.x protocol, but a simple DTR/RTS toggle to set the boards
 into programming mode.  The programmer type is ``wiring''. Note that
-the -D option will likely be required in this case, because the
+the @code{-D} option will likely be required in this case, because the
 bootloader will rewrite the program memory, but no true chip erase can
 be performed.
 
@@ -340,11 +340,11 @@ Jtag2updi is just a firmware that can be uploaded to an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
-The Micronucleus bootloader is supported for both protocol version V1
-and V2. As the bootloader does not support reading from flash memory,
-use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
-See the section on @emph{extended parameters}
-below for Micronucleus specific options.
+The Micronucleus bootloader is supported for both protocol version V1 and
+V2. As the bootloader does not support reading from flash memory, use the
+@code{-V} option to prevent AVRDUDE from verifying the flash memory. See
+the section on @emph{extended parameters} below for Micronucleus specific
+options.
 
 The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
@@ -396,6 +396,7 @@ Roth.
 
 @menu
 * Option Descriptions::
+* Programmers Accepting Exitspec Parameter::
 * Programmers Accepting Extended Parameters::
 * Example Command Line Invocations::
 @end menu
@@ -403,7 +404,7 @@ Roth.
 @c
 @c Node
 @c
-@node Option Descriptions, Programmers Accepting Extended Parameters, Command Line Options, Command Line Options
+@node Option Descriptions, Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Command Line Options
 @cindex Options (command-line)
 @section Option Descriptions
 @cindex Option Descriptions
@@ -422,22 +423,24 @@ following options are recognized:
 @table @code
 @item -p @var{partno}
 @cindex Option @code{-p} @var{partno}
-This option tells AVRDUDE what part (MCU) is connected to the programmer. The
-@var{partno} parameter is the part's id listed in the configuration file. To
-see a list of currently supported MCUs use ? as partno, which will print the
-part ids and official part names. In connection with -v, this will also print a
-list of variant part names followed by an optional colon, the package code and
-some absolute maximum ratings. The part id, their official part name, any of
-the full variant part names or their initial part up to a dash can be used to
-specify a part with the -p option. If a part is unknown to AVRDUDE, it means
-that there is no config file entry for that part, but it can be added to the
-configuration file if you have the Atmel datasheet so that you can enter the
-programming specifications. If @code{-p ?} is specified with a specific
-programmer, see @code{-c} below, then only those parts are output that the
-programmer expects to be able to handle, together with the programming
-interface(s) that can be used in that combination. In reality there can be
-deviations from this list, particularly if programming is directly via a
-bootloader. Currently, the following MCU types are understood:
+This option tells AVRDUDE what part (MCU) is connected to the programmer.
+The @var{partno} parameter is the part's id listed in the configuration
+file. To see a list of currently supported MCUs use @code{?} as partno,
+which will print the part ids and official part names. In connection with
+@code{-v}, this will also print a list of variant part names followed by
+an optional colon, the package code and some absolute maximum ratings. The
+part id, their official part name, any of the full variant part names or
+their initial part up to a dash can be used to specify a part with the
+@code{-p} option. If a part is unknown to AVRDUDE, it means that there is
+no config file entry for that part, but it can be added to the
+configuration file if you have the Atmel datasheet so that you can enter
+the programming specifications. If @code{-p ?} is specified with a
+specific programmer, see @code{-c} below, then only those parts are output
+that the programmer expects to be able to handle, together with the
+programming interface(s) that can be used in that combination. In reality
+there can be deviations from this list, particularly if programming is
+directly via a bootloader. Currently, the following MCU types are
+understood:
 
 @cindex Device Support
 
@@ -506,18 +509,18 @@ until the programmer is disconnected from the computer.
 Specify the programmer to be used.  AVRDUDE knows about several common
 programmers.  Use this option to specify which one to use.  The
 @var{programmer-id} parameter is the programmer's id listed in the
-configuration file.  Specify -c ? to list all programmers in the
-configuration file.  If you have a programmer that is unknown to
-AVRDUDE, and the programmer is controlled via the PC parallel port,
-there's a good chance that it can be easily added to the configuration
-file without any code changes to AVRDUDE.  Simply copy an existing entry
-and change the pin definitions to match that of the unknown programmer.
-If @code{-c ?} is specified with a specific part, see @code{-p} above, then
-only those programmers are output that expect to be able to handle this part,
+configuration file.  Specify @code{-c ?} to list all programmers in the
+configuration file.  If you have a programmer that is unknown to AVRDUDE,
+and the programmer is controlled via the PC parallel port, there's a good
+chance that it can be easily added to the configuration file without any
+code changes to AVRDUDE.  Simply copy an existing entry and change the pin
+definitions to match that of the unknown programmer. If @code{-c ?} is
+specified with a specific part, see @code{-p} above, then only those
+programmers are output that expect to be able to handle this part,
 together with the programming interface(s) that can be used in that
-combination. In reality there can be deviations from this list, particularly
-if programming is directly via a bootloader. Currently, the following
-programmer ids are understood and supported:
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. Currently, the
+following programmer ids are understood and supported:
 
 @cindex Programmer Support
 
@@ -570,86 +573,63 @@ directory as the avrdude executable.
 
 @item -A
 @cindex Option @code{-A}
-Disable the automatic removal of trailing-0xFF sequences in file
-input that is to be programmed to flash and in AVR reads from
-flash memory. Normally, trailing 0xFFs can be discarded, as flash
-programming requires the memory be erased to 0xFF beforehand. -A
-should be used when the programmer hardware, or bootloader
-software for that matter, does not carry out chip erase and
-instead handles the memory erase on a page level. The popular
-Arduino bootloader exhibits this behaviour; for this reason -A is
-engaged by default when specifying -c arduino.
+Disable the automatic removal of trailing-0xFF sequences in file input
+that is to be programmed to flash and in AVR reads from flash memory.
+Normally, trailing 0xFFs can be discarded, as flash programming requires
+the memory be erased to 0xFF beforehand. @code{-A} should be used when the
+programmer hardware, or bootloader software for that matter, does not
+carry out chip erase and instead handles the memory erase on a page level.
+The popular Arduino bootloader exhibits this behaviour; for this reason
+@code{-A} is engaged by default when specifying @code{-c} arduino.
 
 @item -D
 @cindex Option @code{-D}
-Disable auto erase for flash.  When the -U  option for writing to any
-flash memory is specified, AVRDUDE will perform a chip erase before
-starting any of the  programming  operations, since it generally is a
+Disable auto-erase for flash. When the @code{-U} option for writing to any
+flash memory is specified, avrdude will perform a chip erase before
+starting any of the programming operations, since it generally is a
 mistake to program the flash without performing an erase first.  This
-option disables that. Auto erase is not used for ATxmega parts nor for the
+option disables that. Auto-erase is not used for ATxmega parts nor for the
 UPDI (AVR8X family) parts as these can use page erase before writing each
 page so no explicit chip erase is required. Note, however, that any flash
 page not affected by the current operation will retain its previous
-contents. Setting -D implies -A.
+contents. Setting @code{-D} implies @code{-A}.
 
 @item -e
 @cindex Option @code{-e}
-Causes a chip erase to be executed.  This will reset the contents of the
-flash and EEPROM to the value `0xff', and clear all lock bits. Except for
-ATxmega and UPDI (AVR8X family) devices, all of which can use page erase,
-it is basically a prerequisite command before the flash ROM can be
-reprogrammed again.  The only exception would be if the new contents would
-exclusively cause bits to be programmed from the value `1' to `0'. Note
-that in order to reprogram EERPOM cells, no explicit prior chip erase is
+Causes a chip erase to be executed. This will reset the contents of the
+flash ROM and EEPROM to the value @code{0xff}, and clear all lock bits.
+Except for ATxmega and UPDI (AVR8X family) devices, all of which can use
+page erase, it is basically a prerequisite command before the flash ROM
+can be reprogrammed again.  The only exception would be if the new
+contents would exclusively cause bits to be programmed from the value
+@code{1} to @code{0}.  This option carries out the chip erase at the
+beginning, before any of the @code{-U}, @code{-T} or @code{-t} options are
+processed. If a chip erase is required in at a certain position within the
+sequence of @code{-U}, @code{-T} or @code{-t} options it is recommended to
+use @code{-T} erase instead which is processed in the given command line
+order.
+
+@cindex auto-erase
+In absence of an explicit @code{-e} or @code{-D} option avrdude tries to
+augur from the command line whether or not the chip should be auto-erased
+at the  beginning. If avrdude detects a @code{-U} command that writes to
+flash then auto-erase will be carried out before any other programming
+unless a @code{-T} erase commad has been detected beforehand and unless
+flash is read before writing to it. For the purpose of this analysis any
+terminal command is considered to possibly read flash.
+
+Note that for reprogramming EEPROM cells, no explicit prior chip erase is
 required since the MCU provides an auto-erase cycle in that case before
 programming the cell.
 
 @item -E @var{exitspec}[,@dots{}]
 @cindex Option @code{-E} @var{exitspec}[,@dots{}]
-By default, AVRDUDE leaves the parallel port in the same state at exit
-as it has been found at startup.  This option modifies the state of the
-`/RESET' and `Vcc' lines the parallel port is left at, according to
-the exitspec arguments provided, as follows:
+Pass @var{exitspec} to the programmer. The interpretation of the exitspec
+parameter depends on the programmer itself. See below for a list of
+programmers accepting exitspec parameter options or issue
+@code{avrdude -E help ...} to see the  options for the programmer.
 
-@table @code
-@item reset
-The `/RESET' signal will be left activated at program exit, that is it
-will be held low, in order to keep the MCU in reset state afterwards.
-Note in particular that the programming algorithm for the AT90S1200
-device mandates that the `/RESET' signal is active before powering up
-the MCU, so in case an external power supply is used for this MCU type,
-a previous invocation of AVRDUDE with this option specified is one of
-the possible ways to guarantee this condition. @code{reset} is supported
-by the @code{linuxspi} and @code{flip2} programmer options, as well as
-all parallel port based programmers.
-
-@item noreset
-The `/RESET' line will be deactivated at program exit, thus allowing the
-MCU target program to run while the programming hardware remains
-connected. @code{noreset} is supported by the @code{linuxspi} and
-@code{flip2} programmer options, as well as all parallel port based
-programmers.
-
-@item vcc
-This option will leave those parallel port pins active (i. e. high) that
-can be used to supply `Vcc' power to the MCU.
-
-@item novcc
-This option will pull the `Vcc' pins of the parallel port down at
-program exit.
-
-@item d_high
-This option will leave the 8 data pins on the parallel port active
-(i. e. high).
-
-@item d_low
-This option will leave the 8 data pins on the parallel port inactive
-(i. e. low).
-
-@end table
-
-Multiple @var{exitspec} arguments can be separated with commas.
-
+Multiple @var{exitspec} options can be separated with commas.
 
 @item -F
 @cindex Option @code{-F}
@@ -691,8 +671,9 @@ written to @var{stderr} anyway.
 
 @item -n
 @cindex Option @code{-n}
-No-write: disables writing data to the MCU whilst processing -U (useful for
-debugging AVRDUDE). The terminal mode continues to write to the device.
+No-write: disables writing data to the MCU whilst processing @code{-U}
+(useful for debugging AVRDUDE). The terminal mode continues to write to
+the device.
 
 @item -O
 @cindex Option @code{-O}
@@ -866,13 +847,15 @@ in the sense that it is normally only possible to program bits to change
 from 1 to 0. Before reprogramming takes place normally flash memory has to
 be erased. Older parts would only offer a chip erase to do so, which also
 erases EEPROM unless a fuse configuration preserves its contents. If
-AVRDUDE detects a -U option that writes to a flash memory it will
-automatically trigger a chip erase for these older parts.  ATxmegas or
+AVRDUDE detects a @code{-U} option that writes to a flash memory it might
+automatically trigger a chip erase for these older parts. See the
+description of auto-erase under the @code{-e} option above. ATxmegas or
 UPDI parts (AVR8X family) offer a page erase, and AVRDUDE takes advantage
-of that by erasing pages before programming them unless -e (chip erase) or
--D (do not erase before writing) was requested. It should be noted that in
-absence of the -e chip erase option any ATxmega or UPDI flash pages not
-affected by the programming will retain their previous content.
+of that by erasing pages before programming them unless @code{-e} (chip
+erase) or @code{-D} (do not erase before writing) was requested. It should
+be noted that in absence of the @code{-e} chip erase option any ATxmega or
+UPDI flash pages not affected by the programming will retain their
+previous content.
 
 Classic devices may have the following memories in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
@@ -1152,10 +1135,77 @@ see the extended options of the chosen programmer.
 @c
 @c Node
 @c
-@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
+@node Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Option Descriptions, Command Line Options
+@section Programmers Accepting Exitspec Parameter
+@cindex Programmers Accepting Exitspec parameter
+@table @code
+
+@cindex Option @code{-x} flip2
+@cindex Option @code{-x} linuxspi
+@cindex Option @code{-x} Parallel port programmers
+@item flip2
+@itemx linuxspi
+@itemx Parallel port programmers
+
+Currently, only the @code{flip2}, @code{linuxspi} and old school parallel port programmers
+such as @code{stk200} and @code{dapa} support exitspec parameter options. These lets the user
+decide in which state the programmer pins after ended programming session.
+Multiple exitspec options can be separated with commas.
+
+@table @code
+@item @samp{help}
+Show help menu and exit.
+
+@item @samp{reset}
+The `/RESET' signal will be left activated at program exit, that is it
+will be held low, in order to keep the MCU in reset state afterwards.
+Note in particular that the programming algorithm for the AT90S1200
+device mandates that the `/RESET' signal is active before powering up
+the MCU, so in case an external power supply is used for this MCU type,
+a previous invocation of AVRDUDE with this option specified is one of
+the possible ways to guarantee this condition. @code{flip2} will not
+exit bootloader mode at program exit if @samp{reset} is used.
+
+@item @samp{noreset}
+The `/RESET' line will be deactivated at program exit, thus allowing the
+MCU target program to run while the programming hardware remains
+connected. @code{flip2} will exit bootloader mode at program exit and
+start the application if @samp{noreset} is used, and this is the default
+behaviour for this bootloader.
+@end table
+
+@cindex Option @code{-x} Parallel port programmers
+@item Parallel port programmers
+
+Parallel port based programmers have a few more options.
+
+@table @code
+@item @samp{vcc}
+This option will leave those parallel port pins active (i. e. high) that
+can be used to supply `Vcc' power to the MCU.
+
+@item @samp{novcc}
+This option will pull the `Vcc' pins of the parallel port down at
+program exit.
+
+@item @samp{d_high}
+This option will leave the 8 data pins on the parallel port active
+(i. e. high).
+
+@item @samp{d_low}
+This option will leave the 8 data pins on the parallel port inactive
+(i. e. low).
+@end table
+
+@end table
+
+@page
+@c
+@c Node
+@c
+@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Programmers Accepting Exitspec Parameter, Command Line Options
 @section Programmers Accepting Extended Parameters
 @cindex Programmers Accepting Extended Parameters
-@cindex Option @code{-x} AVR Dragon
 @table @code
 
 @cindex Option @code{-x} dryboot
@@ -1320,14 +1370,25 @@ The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
 The current reference voltage can be read by @samp{-x varef0} or
 @samp{-x varef1} alone.
-@item @samp{attemps[=<1..99>]}
+@item @samp{attempts[=<1..99>]}
 @var{STK500V1 only}
 @*
-Specify how many connection retry attemps to perform before exiting.
+Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
 @item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
 Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
 original STK500. Used by avrdude for the correct calculation of fosc and sck.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex Option @code{-x} AVR109
+@item AVR109
+
+The AVR109 programmer type accepts the following extended parameter:
+@table @code
+@item @samp{autoreset}
+Toggle RTS/DTR lines on port open to issue a hardware reset.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1360,8 +1421,11 @@ Show help menu and exit.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item @samp{attemps=VALUE}
-Overide the default number of connection retry attempt by using @var{VALUE}.
+@item @samp{attempts[=<1..99>]}
+Specify how many connection retry attempts to perform before exiting.
+Defaults to 10 if not specified.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1478,6 +1542,8 @@ available, so that a such prepared flash can always be queried with
 @code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
 that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
@@ -1686,15 +1752,15 @@ The xbee programmer type accepts the following extended parameter:
 @table @code
 @item @samp{xbeeresetpin=@var{1..7}}
 Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
-‘/RESET’ line.  The programmer needs to know which DIO pin to use to
+@code{/RESET} line.  The programmer needs to know which DIO pin to use to
 reset into the bootloader.  The default (3) is the @code{DIO3} pin
 (XBee pin 17), but some commercial products use a different XBee
 pin.
 
 The remaining two necessary XBee-to-MCU connections are not selectable
 - the XBee @code{DOUT} pin (pin 2) must be connected to the MCU's
-‘RXD’ line, and the XBee @code{DIN} pin (pin 3) must be connected to
-the MCU's ‘TXD’ line.
+RXD line, and the XBee @code{DIN} pin (pin 3) must be connected to
+the MCU's TXD line.
 
 @item @samp{help}
 Show help menu and exit.

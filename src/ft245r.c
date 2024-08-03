@@ -234,7 +234,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	    avail = len;
 
 #if FT245R_DEBUG
-	msg_info("%s: writing %d bytes\n", __func__, avail);
+	msg_notice("%s: writing %d bytes\n", __func__, avail);
 #endif
 	rv = ftdi_write_data(my.handle, src, avail);
 	if (rv != avail) {
@@ -277,7 +277,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    msg_info("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
+    msg_notice("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
 #endif
     while (my.rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
@@ -390,7 +390,7 @@ static int get_pin(const PROGRAMMER *pgm, int pinname) {
   if (ftdi_read_pins(my.handle, &byte) != 0)
     return -1;
   if (FT245R_DEBUG)
-    msg_info("%s: in 0x%02x\n", __func__, byte);
+    msg_notice("%s: in 0x%02x\n", __func__, byte);
   return GET_BITS_0(byte, pgm, pinname) != 0;
 }
 
@@ -788,14 +788,14 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
     for (i = 0; i < res_len; ++i)
 	if ((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
 	    break;
-    if (verbose >= 2) {
-	msg_notice2("%s: [ ", __func__);
+    if (verbose >= MSG_DEBUG) {
+	msg_debug("%s: [ ", __func__);
 	for (i = 0; i < cmd_len; i++)
-	    msg_notice2("%02X ", cmd[i]);
-	msg_notice2("] [ ");
+	    msg_debug("%02X ", cmd[i]);
+	msg_debug("] [ ");
 	for(i = 0; i < res_len; i++)
-	    msg_notice2("%02X ", res[i]);
-	msg_notice2("]\n");
+	    msg_debug("%02X ", res[i]);
+	msg_debug("]\n");
     }
 
     return ret;
@@ -828,12 +828,12 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {
-      pmsg_notice("ft245r_open(): no device identifier in portname, using default\n");
+      pmsg_notice("%s(): no device identifier in portname, using default\n", __func__);
       pgm->usbsn = cache_string("");
       devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
-        pmsg_notice2("ft245r_open(): serial number parsed as: %s\n", device);
+        pmsg_notice2("%s(): serial number parsed as: %s\n", __func__, device);
         // copy serial number to pgm struct
         pgm->usbsn = cache_string(device);
         // and use first device with matching serial (should be unique)
@@ -846,7 +846,7 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
         if ((startptr==endptr) || (*endptr != '\0')) {
           devnum = -1;
         }
-        pmsg_notice2("ft245r_open(): device number parsed as: %d\n", devnum);
+        pmsg_notice2("%s(): device number parsed as: %d\n", __func__, devnum);
       }
     }
 

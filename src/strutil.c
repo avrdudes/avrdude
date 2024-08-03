@@ -493,6 +493,13 @@ const char *str_plural(int x) {
   return x==1? "": "s";
 }
 
+static const char *str_filename(const char *fn, const char *stdname) {
+  if(!fn)
+    fn = "???";
+  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  return str_eq(fn, "-")? stdname: str_starts(fn, "/dev/")? fn: p1? p1+1: p2? p2+1: fn;
+}
+
 // Path name fn or <stdin> if fn is -
 const char *str_inname(const char *fn) {
   return !fn? "???": str_eq(fn, "-")? "<stdin>": fn;
@@ -500,10 +507,7 @@ const char *str_inname(const char *fn) {
 
 // File name of fn or <stdin> if fn is -
 const char *str_infilename(const char *fn) {
-  if(!fn)
-    fn = "???";
-  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
-  return str_eq(fn, "-")? "<stdin>": p1? p1+1: p2? p2+1: fn;
+  return str_filename(fn, "<stdin>");
 }
 
 // Path name fn or <stdout> if fn is -
@@ -513,10 +517,7 @@ const char *str_outname(const char *fn) {
 
 // File name of fn or <stdout> if fn is -
 const char *str_outfilename(const char *fn) {
-  if(!fn)
-    fn = "???";
-  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
-  return str_eq(fn, "-")? "<stdout>": p1? p1+1: p2? p2+1: fn;
+  return str_filename(fn, "<stdin>");
 }
 
 // Return sth like "[0, 0x1ff]" in closed-circuit space
@@ -1166,6 +1167,17 @@ const char *str_ccfrq(double f, int n) {
     if(f >= prefix[i].fq)
       return str_ccprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
   return str_ccprintf("%.*g Hz", n, f);
+}
+
+// Return an uppercase hex string of max 64 len bytes from binary buffer buf
+const char *str_cchex(const void *buf, size_t len, int add_space) {
+  if(len > 64)                  // Sanity
+    len = 64;
+  int wd = 2 + !!add_space;
+  char *ret = avr_cc_buffer(wd*len + 1);
+  for(size_t i=0; i<len; i++)
+    sprintf(ret + i*wd, "%s%02X", &" "[3-wd], ((unsigned char *) buf)[i]);
+  return ret;
 }
 
 /*

@@ -727,9 +727,9 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm);
  * @li any pins are used by more than one function
  * @li any mandatory pin is not set all.
  *
- * In case of any error it report the wrong function and the pin numbers.
- * For verbose >= 2 it also reports the possible correct values.
- * For verbose >=3 it shows also which pins were ok.
+ * In case of any error it report the wrong function and the pin numbers
+ * For verbose >= MSG_NOTICE2 it also reports the possible correct value
+ * For verbose >= MSG_DEBUG it shows also which pins were ok
  *
  * @param[in] pgm the programmer to check
  * @param[in] checklist the constraint for the pins
@@ -1693,6 +1693,7 @@ unsigned long long int str_int(const char *str, int type, const char **errpp);
 int str_membuf(const char *str, int type, unsigned char *buf, int size, const char **errpp);
 char *str_nexttok(char *buf, const char *delim, char **next);
 const char *str_ccfrq(double f, int n);
+const char *str_cchex(const void *buf, size_t len, int add_space);
 int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int add, int del);
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n);

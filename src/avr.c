@@ -221,8 +221,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   OPCODE * readop, * lext;
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses avr_read_byte_default() but does not\n", pgm->type);
-    imsg_error("provide a cmd() method\n");
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
     return -1;
   }
 
@@ -479,7 +478,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
         nread++;
         report_progress(nread, npages, NULL);
       } else {
-        pmsg_debug("avr_read_mem(): skipping page %u: no interesting data\n", pageaddr / mem->page_size);
+        pmsg_debug("%s(): skipping page %u: no interesting data\n", __func__, pageaddr / mem->page_size);
       }
     }
     if (!failure) {
@@ -549,8 +548,7 @@ int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM 
   led_set(pgm, LED_PGM);
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses avr_write_page() but does not\n", pgm->type);
-    imsg_error("provide a cmd() method\n");
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
     goto error;
   }
 
@@ -679,8 +677,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   led_set(pgm, LED_PGM);
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses avr_write_byte_default() but does not\n", pgm->type);
-    imsg_error("provide a cmd() method\n");
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
     goto error;
   }
 
@@ -884,9 +881,9 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         usleep(250000);
         rc = pgm->initialize(pgm, p);
         if (rc < 0) {
-          pmsg_error("initialization failed, rc=%d\n", rc);
-          imsg_error("cannot re-initialize device after programming the %s bits\n", mem->desc);
-          imsg_error("you must manually power-down the device and restart %s to continue\n", progname);
+          pmsg_error("initialization failed (rc = %d):\n", rc);
+          imsg_error("cannot re-initialize device after programming the %s bits; you\n", mem->desc);
+          imsg_error("must manually power-down the device and restart %s to continue\n", progname);
           rc = -3;
           goto rcerror;
         }
@@ -977,8 +974,8 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
   if (size < wsize) {
     wsize = size;
   } else if (size > wsize) {
-    pmsg_warning("%d bytes requested, but memory region is only %d bytes\n", size, wsize);
-    imsg_warning("Only %d bytes will actually be written\n", wsize);
+    pmsg_warning("%d bytes requested, but memory region is only %d bytes;\n", size, wsize);
+    imsg_warning("only %d bytes will actually be written\n", wsize);
   }
 
   if(wsize <= 0) {
@@ -1263,7 +1260,7 @@ int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
     report_progress(0, 1, "Reading");
   rc = avr_read(pgm, p, "signature", 0);
   if (rc < LIBAVRDUDE_SUCCESS && rc != LIBAVRDUDE_EXIT) {
-    pmsg_error("unable to read signature data for part %s, rc=%d\n", p->desc, rc);
+    pmsg_error("unable to read signature data for part %s (rc = %d)\n", p->desc, rc);
     return rc;
   }
   report_progress(1, 1, NULL);
@@ -1357,8 +1354,8 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
   vsize = a->size;
 
   if (vsize < size) {
-    pmsg_warning("requested verification for %d bytes\n", size);
-    imsg_warning("%s memory region only contains %d bytes\n", a->desc, vsize);
+    pmsg_warning("requested verification for %d bytes but\n", size);
+    imsg_warning("%s memory region only contains %d bytes;\n", a->desc, vsize);
     imsg_warning("only %d bytes will be verified\n", vsize);
     size = vsize;
   }
@@ -1374,10 +1371,10 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
             if(!(verror + vroerror))
               pmsg_warning("%s verification mismatch%s\n", a->desc,
                 mem_is_in_flash(a)? " in r/o areas, expected for vectors and/or bootloader": "");
-            imsg_warning("device 0x%02x != input 0x%02x at addr 0x%04x (read only location: ignored)\n",
+            imsg_warning("  device 0x%02x != input 0x%02x at addr 0x%04x (read only location: ignored)\n",
               buf1[i], buf2[i], i);
           } else if(vroerror == 10)
-            imsg_warning("suppressing further mismatches in read-only areas\n");
+            imsg_warning("  suppressing further mismatches in read-only areas\n");
         }
         vroerror++;
       } else if((buf1[i] & bitmask) != (buf2[i] & bitmask)) {
@@ -1385,12 +1382,12 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         if(verror < maxerrs) {
           if(!(verror + vroerror))
             pmsg_warning("%s verification mismatch\n", a->desc);
-          imsg_error("device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
+          imsg_error("  device 0x%02x != input 0x%02x at addr 0x%04x (error)\n", buf1[i], buf2[i], i);
         } else if(verror == maxerrs) {
-          imsg_warning("suppressing further verification errors\n");
+          imsg_warning("  suppressing further verification errors\n");
         }
         verror++;
-        if(verbose < 1)
+        if(verbose < MSG_NOTICE)
           return -1;
       } else {
         // Mismatch is only in unused bits
@@ -1427,7 +1424,7 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles) {
   for (i=4; i>0; i--) {
     rc = pgm->read_byte(pgm, p, a, a->size-i, &v1);
     if (rc < 0) {
-      pmsg_warning("cannot read memory for cycle count, rc=%d\n", rc);
+      pmsg_warning("cannot read memory for cycle count (rc = %d)\n", rc);
       return -1;
     }
     cycle_count = (cycle_count << 8) | v1;
@@ -1465,7 +1462,7 @@ int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles) {
 
     rc = avr_write_byte(pgm, p, a, a->size-i, v1);
     if (rc < 0) {
-      pmsg_warning("cannot write memory for cycle count, rc=%d\n", rc);
+      pmsg_warning("cannot write memory for cycle count (rc = %d)\n", rc);
       return -1;
     }
   }

@@ -591,7 +591,7 @@ const AVR_opcode avr_opcodes[MNEMO_N] = {
 };
 
 // Return whether or not the given 16-bit opcode is the mnemonic
-int op16_is_mnemo(int op, int mnemo) {
+int op16_is_mnemo(int op, AVR_mnemo mnemo) {
   return mnemo < 0 || mnemo >= MNEMO_N? 0:
     (op & avr_opcodes[mnemo].mask) != avr_opcodes[mnemo].value? 0:
     !(avr_opcodes[mnemo].type & OTY_CONSTRAINT)? 1:

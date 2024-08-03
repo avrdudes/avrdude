@@ -202,7 +202,7 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
 		serial_recv_timeout = PDATA(pgm)->serial_recv_timeout;
 	}
 	serial_recv_timeout = orig_serial_recv_timeout;
-	pmsg_debug("buspirate_readline(): %s%s", buf, *buf && buf[strlen(buf)-1] == '\n'? "": "\n");
+	pmsg_debug("%s(): %s%s", __func__, buf, *buf && buf[strlen(buf)-1] == '\n'? "": "\n");
 	if (! buf[0])
 		return NULL;
 
@@ -224,7 +224,7 @@ static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 	int rc;
 	const char * readline;
 
-	pmsg_debug("buspirate_send(): %s", str);
+	pmsg_debug("%s(): %s", __func__, str);
 
 	if (PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
 		pmsg_error("called from binmode\n");
@@ -315,8 +315,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 
 		if (sscanf(extended_param, "spifreq=%u", &spifreq) == 1) {
 			if (spifreq & (~0x07)) {
-				pmsg_error("spifreq must be between 0 and 7\n");
-				imsg_error("see BusPirate manual for details\n");
+				pmsg_error("spifreq must be between 0 and 7; see BusPirate manual for details\n");
 				rv = -1;
 				break;
 			}
@@ -349,8 +348,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 		if (sscanf(extended_param, "cpufreq=%u", &cpufreq) == 1) {
 			/* lower limit comes from 'cpufreq > 4 * spifreq', spifreq in ascii mode is 30kHz. */
 			if (cpufreq < 125 || cpufreq > 4000) {
-				pmsg_error("cpufreq must be between 125 and 4000 kHz\n");
-				imsg_error("see BusPirate manual for details\n");
+				pmsg_error("cpufreq must be between 125 and 4000 kHz; see BusPirate manual for details\n");
 				rv = -1;
 				break;
 			}
@@ -513,7 +511,7 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
 		return;
 	}
 
-	msg_notice("BusPirate is back in text mode\n");
+	msg_notice2("BusPirate is back in text mode\n");
 }
 
 static int buspirate_start_mode_bin(PROGRAMMER *pgm)
@@ -562,7 +560,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
-	msg_notice("BusPirate binmode version: %d\n",
+	msg_notice2("BusPirate binmode version: %d\n",
                 PDATA(pgm)->binmode_version);
 
 	PDATA(pgm)->flag |= BP_FLAG_IN_BINMODE;
@@ -574,7 +572,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		pwm_period = 16000/(PDATA(pgm)->cpufreq) - 1; // oscillator runs at 32MHz, we don't use a prescaler
 		pwm_duty = pwm_period/2; // 50% duty cycle
 
-		msg_notice("setting up PWM for cpufreq\n");
+		msg_notice2("setting up PWM for cpufreq\n");
 		msg_debug("PWM settings: Prescaler=1, Duty Cycle=%hd, Period=%hd\n", pwm_duty, pwm_period);
 
 		buf[0] = 0x12; // pwm setup
@@ -600,10 +598,10 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 		buspirate_reset_from_binmode(pgm);
 		return -1;
 	}
-	msg_notice("BusPirate %s version: %d\n",
+	msg_notice2("BusPirate %s version: %d\n",
 		submode.name, PDATA(pgm)->submode_version);
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDWRITE) {
-                pmsg_notice("paged flash write disabled\n");
+                pmsg_notice2("paged flash write disabled\n");
 		pgm->paged_write = NULL;
 	} else {
 		/* Check for write-then-read without !CS/CS and disable paged_write if absent: */
@@ -619,7 +617,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			buf[0] = 0x1;
 			buspirate_send_bin(pgm, buf, 1);
 
-			pmsg_notice("disabling paged flash write (need BusPirate firmware >= v5.10)\n");
+			pmsg_notice2("disabling paged flash write (need BusPirate firmware >= v5.10)\n");
 
 			/* Flush serial buffer: */
 			serial_drain(&pgm->fd, 0);
@@ -650,7 +648,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 
 	/* AVR Extended Commands - test for existence */
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
-                pmsg_notice("paged flash read disabled\n");
+                pmsg_notice2("paged flash read disabled\n");
 		pgm->paged_load = NULL;
 	} else {
 		int rv = buspirate_expect_bin_byte(pgm, 0x06, 0x01);
@@ -662,9 +660,9 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm)
 			buspirate_send_bin(pgm, buf2, sizeof(buf2));
 			buspirate_recv_bin(pgm, buf, 3);
 			ver = buf[1] << 8 | buf[2];
-			msg_notice("AVR Extended Commands version %d\n", ver);
+			msg_notice2("AVR Extended Commands version %d\n", ver);
 		} else {
-			msg_notice("AVR Extended Commands not found\n");
+			msg_notice2("AVR Extended Commands not found\n");
 			PDATA(pgm)->flag |= BP_FLAG_NOPAGEDREAD;
 			pgm->paged_load = NULL;
 		}
@@ -695,7 +693,7 @@ static int buspirate_start_spi_mode_ascii(const PROGRAMMER *pgm) {
 	}
 	if (spi_cmd == -1) {
 		pmsg_error("SPI mode number not found; does your BusPirate support SPI?\n");
-		imsg_error("try powercycling your BusPirate and try again\n");
+		pmsg_error("try powercycling your BusPirate and try again\n");
 		return -1;
 	}
 	snprintf(buf, sizeof(buf), "%d\n", spi_cmd);
@@ -836,8 +834,7 @@ static void buspirate_powerup(const PROGRAMMER *pgm) {
 		}
 	}
 
-	pmsg_warning("did not get a response to PowerUp command\n");
-	imsg_warning("trying to continue anyway ...\n");
+	pmsg_warning("did not get a response to PowerUp command; trying to continue anyway ...\n");
 }
 
 static void buspirate_powerdown(const PROGRAMMER *pgm) {
@@ -930,7 +927,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	unsigned char buf[275];
 	unsigned int addr = 0;
 
-	msg_notice("buspirate_paged_load(..,%s,%d,%d,%d)\n",m->desc,m->page_size,address,n_bytes);
+	msg_debug("buspirate_paged_load(..,%s,%d,%d,%d)\n",m->desc,m->page_size,address,n_bytes);
 
 	// This should never happen, but still ...
 	if (PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
@@ -964,7 +961,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
 	buspirate_recv_bin(pgm, buf, 1);
 
 	if (buf[0] != 0x01) {
-		pmsg_error("Paged Read command returned zero\n");
+		pmsg_error("paged read command returned zero\n");
 		return -1;
 	}
 

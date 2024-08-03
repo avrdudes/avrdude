@@ -30,8 +30,7 @@
 #endif
 
 extern char *progname;       // Name of program, for messages
-extern char progbuf[];       // Spaces same length as progname
-
+#define progbuf           "" // Used to be for indenting continuation below "avrdude: msg"
 extern int ovsigck;          // Override signature check (-F)
 extern int verbose;          // Verbosity level (-v, -vv, ...)
 extern int quell_progress;   // Quell progress report -q, reduce effective verbosity level (-qq, -qqq)
@@ -64,11 +63,12 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define MSG2_PROGNAME      1 // Start by printing progname
 #define MSG2_FUNCTION      2 // Print calling function (1st arg) after progname if >= notice
 #define MSG2_FILELINE      4 // Print source file and line number after function if >= debug
-#define MSG2_TYPE          8 // Print message type after function or progname
+#define MSG2_TYPE          8 // Print message type after progname
 #define MSG2_INDENT1      16 // Start by printing indentation of progname+1 blanks
 #define MSG2_INDENT2      32 // Start by printing indentation of progname+2 blanks
 #define MSG2_FLUSH        64 // Flush before and after printing
 #define MSG2_LEFT_MARGIN 128 // Print \n unless last character printed was \n
+#define MSG2_UCFIRST     256 // Uppercase first character of output
 
 // Shortcuts
 #define msg_ext_error(...)  avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_EXT_ERROR, __VA_ARGS__)
@@ -81,25 +81,25 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define msg_trace(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_TRACE, __VA_ARGS__)
 #define msg_trace2(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_TRACE2, __VA_ARGS__)
 
-#define pmsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FUNCTION|MSG2_FILELINE|MSG2_TYPE|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
-#define pmsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FUNCTION|MSG2_FILELINE|MSG2_TYPE|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)
-#define pmsg_warning(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FUNCTION|MSG2_FILELINE|MSG2_TYPE|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_WARNING, __VA_ARGS__)
-#define pmsg_info(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_INFO, __VA_ARGS__)
-#define pmsg_notice(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE, __VA_ARGS__)
-#define pmsg_notice2(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE2, __VA_ARGS__)
-#define pmsg_debug(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_DEBUG, __VA_ARGS__)
-#define pmsg_trace(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE, __VA_ARGS__)
-#define pmsg_trace2(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_PROGNAME|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE2, __VA_ARGS__)
+#define pmsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FUNCTION|MSG2_FILELINE|MSG2_TYPE|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
+#define pmsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FUNCTION|MSG2_FILELINE|MSG2_TYPE|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)
+#define pmsg_warning(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FUNCTION|MSG2_FILELINE|MSG2_TYPE|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_WARNING, __VA_ARGS__)
+#define pmsg_info(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_INFO, __VA_ARGS__)
+#define pmsg_notice(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE, __VA_ARGS__)
+#define pmsg_notice2(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE2, __VA_ARGS__)
+#define pmsg_debug(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_DEBUG, __VA_ARGS__)
+#define pmsg_trace(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE, __VA_ARGS__)
+#define pmsg_trace2(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE2, __VA_ARGS__)
 
-#define imsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT1|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
-#define imsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT1|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)
-#define imsg_warning(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT1|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_WARNING, __VA_ARGS__)
-#define imsg_info(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_INFO, __VA_ARGS__)
-#define imsg_notice(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE, __VA_ARGS__)
-#define imsg_notice2(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE2, __VA_ARGS__)
-#define imsg_debug(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_DEBUG, __VA_ARGS__)
-#define imsg_trace(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE, __VA_ARGS__)
-#define imsg_trace2(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT2|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE2, __VA_ARGS__)
+#define imsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
+#define imsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)
+#define imsg_warning(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_WARNING, __VA_ARGS__)
+#define imsg_info(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_INFO, __VA_ARGS__)
+#define imsg_notice(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE, __VA_ARGS__)
+#define imsg_notice2(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE2, __VA_ARGS__)
+#define imsg_debug(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_DEBUG, __VA_ARGS__)
+#define imsg_trace(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE, __VA_ARGS__)
+#define imsg_trace2(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE2, __VA_ARGS__)
 
 #define lmsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
 #define lmsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)

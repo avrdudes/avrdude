@@ -200,8 +200,7 @@ static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses stk500_chip_erase() but does not\n", pgm->type);
-    imsg_error("provide a cmd() method\n");
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
     return -1;
   }
 
@@ -448,7 +447,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
 #if 0
-  pmsg_info("stk500_initialize(): n_extparms = %d\n", n_extparms);
+  pmsg_notice("%s(): n_extparms = %d\n", __func__, n_extparms);
 #endif
     
   buf[5] = 1; /* polling supported - XXX need this in config file */

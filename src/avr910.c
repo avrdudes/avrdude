@@ -320,7 +320,7 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         rv = -1;
         break;
       }
-      pmsg_notice2("avr910_parseextparms(): devcode overwritten as 0x%02x\n", devcode);
+      pmsg_notice2("%s(): devcode overwritten as 0x%02x\n", __func__, devcode);
       PDATA(pgm)->devcode = devcode;
 
       continue;

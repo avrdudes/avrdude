@@ -19,6 +19,10 @@ Changes since version 7.3:
 
     - serprog
 
+  * New serial adapters supported:
+
+    -  ch342, ch344, ch347, ch9103
+
   * Issues fixed:
 
     - Avrintel.h missing from installation #1683
@@ -46,6 +50,11 @@ Changes since version 7.3:
     - Bootrow r/w does not work for -c serialupdi #1832
     - Wrong error message when specifying wrong AVR-Ex part #1813
     - AVR109 auto reset functionality #1697
+    - Unable to write LOCK bit byte to JTAG3_TPI #1858
+    - Unexpected auto-erase consequences #1861
+    - JTAGICE3 EDBG communication mode relies on hardcoded USBVID #1838
+    - avrdude documentation typo(s) attemps #1852
+    - Conflicting types for op16_is_mnemo: enum/integer #1851
 
   * Pull requests:
 
@@ -112,6 +121,14 @@ Changes since version 7.3:
     - Provide terminal disasm command #1842
     - Improve auto-reset handling and -x/-E parsing #1844
     - Remove obsolete SVN $Id$ tags from source files #1850
+    - Update look and feel #1849
+    - Update documentation for -E and -x #1853
+    - Add more WCH USB to serial chips #1855
+    - cmake: LIB_NCURSES also accept pdcurses #1856
+    - Fix byte writes to TPI lockbits for jpag3.c #1859
+    - Refine auto-erase strategy #1862
+    - Provide -P usb:vid:pid for USB hid i/f and allow
+      long -P usb:serno for usblib and hidapi #186
 
   * Internals:
 
