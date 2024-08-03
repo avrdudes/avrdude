@@ -396,6 +396,7 @@ Roth.
 
 @menu
 * Option Descriptions::
+* Programmers Accepting Exitspec Parameter::
 * Programmers Accepting Extended Parameters::
 * Example Command Line Invocations::
 @end menu
@@ -403,7 +404,7 @@ Roth.
 @c
 @c Node
 @c
-@node Option Descriptions, Programmers Accepting Extended Parameters, Command Line Options, Command Line Options
+@node Option Descriptions, Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Command Line Options
 @cindex Options (command-line)
 @section Option Descriptions
 @cindex Option Descriptions
@@ -606,50 +607,12 @@ programming the cell.
 
 @item -E @var{exitspec}[,@dots{}]
 @cindex Option @code{-E} @var{exitspec}[,@dots{}]
-By default, AVRDUDE leaves the parallel port in the same state at exit
-as it has been found at startup.  This option modifies the state of the
-`/RESET' and `Vcc' lines the parallel port is left at, according to
-the exitspec arguments provided, as follows:
+Pass @var{exitspec} to the programmer. The interpretation of the exitspec
+parameter depends on the programmer itself. See below for a list of
+programmers accepting exitspec parameter options or issue
+@code{avrdude -E help ...} to see the  options for the programmer.
 
-@table @code
-@item reset
-The `/RESET' signal will be left activated at program exit, that is it
-will be held low, in order to keep the MCU in reset state afterwards.
-Note in particular that the programming algorithm for the AT90S1200
-device mandates that the `/RESET' signal is active before powering up
-the MCU, so in case an external power supply is used for this MCU type,
-a previous invocation of AVRDUDE with this option specified is one of
-the possible ways to guarantee this condition. @code{reset} is supported
-by the @code{linuxspi} and @code{flip2} programmer options, as well as
-all parallel port based programmers.
-
-@item noreset
-The `/RESET' line will be deactivated at program exit, thus allowing the
-MCU target program to run while the programming hardware remains
-connected. @code{noreset} is supported by the @code{linuxspi} and
-@code{flip2} programmer options, as well as all parallel port based
-programmers.
-
-@item vcc
-This option will leave those parallel port pins active (i. e. high) that
-can be used to supply `Vcc' power to the MCU.
-
-@item novcc
-This option will pull the `Vcc' pins of the parallel port down at
-program exit.
-
-@item d_high
-This option will leave the 8 data pins on the parallel port active
-(i. e. high).
-
-@item d_low
-This option will leave the 8 data pins on the parallel port inactive
-(i. e. low).
-
-@end table
-
-Multiple @var{exitspec} arguments can be separated with commas.
-
+Multiple @var{exitspec} options can be separated with commas.
 
 @item -F
 @cindex Option @code{-F}
@@ -1152,10 +1115,77 @@ see the extended options of the chosen programmer.
 @c
 @c Node
 @c
-@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
+@node Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Option Descriptions, Command Line Options
+@section Programmers Accepting Exitspec Parameter
+@cindex Programmers Accepting Exitspec parameter
+@table @code
+
+@cindex Option @code{-x} flip2
+@cindex Option @code{-x} linuxspi
+@cindex Option @code{-x} Parallel port programmers
+@item flip2
+@itemx linuxspi
+@itemx Parallel port programmers
+
+Currently, only the @code{flip2}, @code{linuxspi} and old school parallel port programmers
+such as @code{stk200} and @code{dapa} support exitspec parameter options. These lets the user
+decide in which state the programmer pins after ended programming session.
+Multiple exitspec options can be separated with commas.
+
+@table @code
+@item @samp{help}
+Show help menu and exit.
+
+@item @samp{reset}
+The `/RESET' signal will be left activated at program exit, that is it
+will be held low, in order to keep the MCU in reset state afterwards.
+Note in particular that the programming algorithm for the AT90S1200
+device mandates that the `/RESET' signal is active before powering up
+the MCU, so in case an external power supply is used for this MCU type,
+a previous invocation of AVRDUDE with this option specified is one of
+the possible ways to guarantee this condition. @code{flip2} will not
+exit bootloader mode at program exit if @samp{reset} is used.
+
+@item @samp{noreset}
+The `/RESET' line will be deactivated at program exit, thus allowing the
+MCU target program to run while the programming hardware remains
+connected. @code{flip2} will exit bootloader mode at program exit and
+start the application if @samp{noreset} is used, and this is the default
+behaviour for this bootloader.
+@end table
+
+@cindex Option @code{-x} Parallel port programmers
+@item Parallel port programmers
+
+Parallel port based programmers have a few more options.
+
+@table @code
+@item @samp{vcc}
+This option will leave those parallel port pins active (i. e. high) that
+can be used to supply `Vcc' power to the MCU.
+
+@item @samp{novcc}
+This option will pull the `Vcc' pins of the parallel port down at
+program exit.
+
+@item @samp{d_high}
+This option will leave the 8 data pins on the parallel port active
+(i. e. high).
+
+@item @samp{d_low}
+This option will leave the 8 data pins on the parallel port inactive
+(i. e. low).
+@end table
+
+@end table
+
+@page
+@c
+@c Node
+@c
+@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Programmers Accepting Exitspec Parameter, Command Line Options
 @section Programmers Accepting Extended Parameters
 @cindex Programmers Accepting Extended Parameters
-@cindex Option @code{-x} AVR Dragon
 @table @code
 
 @cindex Option @code{-x} dryboot
@@ -1332,6 +1362,17 @@ original STK500. Used by avrdude for the correct calculation of fosc and sck.
 Show help menu and exit.
 @end table
 
+@cindex Option @code{-x} AVR109
+@item AVR109
+
+The AVR109 programmer type accepts the following extended parameter:
+@table @code
+@item @samp{autoreset}
+Toggle RTS/DTR lines on port open to issue a hardware reset.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
 @cindex Option @code{-x} AVR910
 @item AVR910
 
@@ -1360,8 +1401,11 @@ Show help menu and exit.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item @samp{attempts=VALUE}
-Overide the default number of connection retry attempt by using @var{VALUE}.
+@item @samp{attempts[=<1..99>]}
+Specify how many connection retry attempts to perform before exiting.
+Defaults to 10 if not specified.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1478,6 +1522,8 @@ available, so that a such prepared flash can always be queried with
 @code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
 that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
