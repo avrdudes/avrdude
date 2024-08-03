@@ -803,13 +803,12 @@ nopatch_nometa:
 
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
         Return("input would overwrite the reset vector bricking the bootloader\n"
-          "%*susing -F will try to patch the input but this may not be what is needed",
-          (int) strlen(progname)+1, "");
+          "  using -F will try to patch the input but this may not be what is needed");
 
       if(resetdest != ur.blstart)
         Return("input points reset to 0x%04x, not to bootloader at 0x%04x\n"
-          "%*susing -F will try to patch the input but this may not be what is needed",
-          resetdest, ur.blstart, (int) strlen(progname)+1, "");
+          "  using -F will try to patch the input but this may not be what is needed",
+          resetdest, ur.blstart);
     }
   }
 
@@ -1380,9 +1379,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
             if(ur.xvectornum != -1) {
               if(ur.vblvectornum != vectnum) {
-                pmsg_warning("urboot vector number %d overwritten by -x vectornum=%d\n",
+                pmsg_warning("urboot vector number %d overwritten by -x vectornum=%d; the\n",
                   vectnum, ur.xvectornum);
-                imsg_warning("the application might not start correctly\n");
+                imsg_warning("application might not start correctly\n");
               }
             } else {
               ur.vblvectornum = vectnum;
@@ -2395,14 +2394,8 @@ static int urclock_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unuse
 }
 
 
-// Display what we know so far (too early in the process to say much)
 static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
-  if(ur.urprotocol) {
-    imsg_info("Urboot protocol for %s\n", ur.uP.name);
-  } else {
-    imsg_info("Bootloader using STK500v1 communication protocol\n");
-  }
-
+  imsg_info("Protocol              : %s\n", ur.urprotocol? "Urprotocol": "STK500v1 skeleton");
   return;
 }
 
@@ -2593,7 +2586,8 @@ void urclock_initpgm(PROGRAMMER *pgm) {
 #if defined(HAVE_LIBREADLINE)
   pmsg_notice2("libreadline is used; avrdude -t -c urclock should work interactively\n");
 #else
-  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock interactively\n");
-  imsg_notice2("but it is still possible to pipe: echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -curclock\n");
+  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock\n");
+  imsg_notice2("interactively but it is still possible to pipe:\n");
+  imsg_notice2("$ echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -c urclock\n");
 #endif
 }

@@ -992,7 +992,7 @@ static int dryrun_vfy_led(const PROGRAMMER *pgm, int value) {
 
 
 static void dryrun_display(const PROGRAMMER *pgm, const char *p_unused) {
-  imsg_info("%c%s programmer for %s\n", toupper(*pgmid), pgmid+1, dry.dp? dry.dp->desc: partdesc? partdesc: "???");
+  // imsg_info("%c%s programmer for %s\n", toupper(*pgmid), pgmid+1, dry.dp? dry.dp->desc: partdesc? partdesc: "???");
   return;
 }
 

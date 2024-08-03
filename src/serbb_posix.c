@@ -94,7 +94,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
     return -1;
 
 #ifdef DEBUG
-  msg_info("%s to %d\n", serpins[pin], value);
+  msg_notice("%s to %d\n", serpins[pin], value);
 #endif
 
   switch ( pin )
@@ -172,14 +172,14 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
       if ( !invert )
       {
 #ifdef DEBUG
-        msg_info("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
+        msg_notice("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
 #endif
         return ctl & serregbits[pin]? 1: 0;
       }
       else
       {
 #ifdef DEBUG
-        msg_info("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
+        msg_notice("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
 #endif
         return ctl & serregbits[pin]? 0: 1;
       }

@@ -208,9 +208,9 @@ const char *pinmask_to_str(const Pinmask * const pinmask) {
  * @li any pins are used by more than one function
  * @li any mandatory pin is not set all.
  *
- * In case of any error it report the wrong function and the pin numbers.
- * For verbose >= 2 it also reports the possible correct values.
- * For verbose >=3 it shows also which pins were ok.
+ * In case of any error it report the wrong function and the pin numbers
+ * For verbose >= MSG_NOTICE2 it also reports the possible correct values
+ * For verbose >= MSG_DEBUG it shows also which pins were ok
  *
  * @param[in] pgm the programmer to check
  * @param[in] checklist the constraint for the pins
@@ -271,7 +271,7 @@ int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist
       if(output) {
         pmsg_error("%s: these pins are not valid pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        pmsg_notice("%s: valid pins for this function are: %s\n",
+        imsg_error("%s: valid pins for this function are: %s\n",
           avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
@@ -280,7 +280,7 @@ int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist
       if(output) {
         pmsg_error("%s: these pins are not usable as inverse pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        pmsg_notice("%s: valid inverse pins for this function are: %s\n",
+        imsg_error("%s: valid inverse pins for this function are: %s\n",
           avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
