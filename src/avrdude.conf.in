@@ -3361,6 +3361,20 @@ serialadapter # ch340
 ;
 
 #------------------------------------------------------------
+# ch342
+#------------------------------------------------------------
+
+# Dual serial port chip
+# https://www.wch-ic.com/products/CH342.html
+
+serialadapter # ch342
+    id                     = "ch342";
+    desc                   = "WCH CH342 USB to serial adapter";
+    usbvid                 = 0x1a86;
+    usbpid                 = 0x55d2;
+;
+
+#------------------------------------------------------------
 # ch343
 #------------------------------------------------------------
 
@@ -3374,6 +3388,34 @@ serialadapter # ch343
 ;
 
 #------------------------------------------------------------
+# ch344
+#------------------------------------------------------------
+
+# Quad serial port chip
+# https://www.wch-ic.com/products/CH344.html
+
+serialadapter # ch344
+    id                     = "ch344";
+    desc                   = "WCH CH344 USB to serial adapter";
+    usbvid                 = 0x1a86;
+    usbpid                 = 0x55d5;
+;
+
+#------------------------------------------------------------
+# ch347
+#------------------------------------------------------------
+
+# Multipurpose interface chip
+# https://www.wch-ic.com/products/CH347.html
+
+serialadapter # ch347
+    id                     = "ch347";
+    desc                   = "WCH CH347 USB to serial adapter";
+    usbvid                 = 0x1a86;
+    usbpid                 = 0x55da, 0x55db, 0x55dd, 0x55de;
+;
+
+#------------------------------------------------------------
 # ch9102
 #------------------------------------------------------------
 
@@ -3382,6 +3424,20 @@ serialadapter # ch9102
     desc                   = "WCH CH9102 USB to serial adapter";
     usbvid                 = 0x1a86;
     usbpid                 = 0x55d4;
+;
+
+#------------------------------------------------------------
+# ch9103
+#------------------------------------------------------------
+
+# Dual serial port chip
+# https://www.wch-ic.com/products/CH9103.html
+
+serialadapter # ch9103
+    id                     = "ch9103";
+    desc                   = "WCH CH9103 USB to serial adapter";
+    usbvid                 = 0x1a86;
+    usbpid                 = 0x55d7;
 ;
 
 #------------------------------------------------------------
