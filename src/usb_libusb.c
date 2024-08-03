@@ -61,10 +61,10 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   struct usb_bus *bus;
   struct usb_device *dev;
   usb_dev_handle *udev;
-  char *serno, *cp2;
+  char *s, serno[64] = {0};
+  const char *serp;
   int i;
   int iface;
-  size_t x;
 
   /*
    * The syntax for usb devices is defined as:
@@ -76,24 +76,13 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
    * right-to-left, so only the least significant nibbles need to be
    * specified.
    */
-  if ((serno = strchr(port, ':')) != NULL)
-    {
-      /* first, drop all colons there if any */
-      cp2 = ++serno;
-
-      while ((cp2 = strchr(cp2, ':')) != NULL)
-	{
-	  x = strlen(cp2) - 1;
-	  memmove(cp2, cp2 + 1, x);
-	  cp2[x] = '\0';
-	}
-
-      if (strlen(serno) > 12)
-	{
-	  pmsg_error("invalid serial number %s\n", serno);
-	  return -1;
-	}
-    }
+  if((serp = strchr(port, ':')) && *++serp) {
+    // First, get a copy of the serial number w/out colons
+    for(s = serno; *serp && s < serno + sizeof serno - 1; serp++)
+      if(*serp != ':')
+        *s++ = *serp;
+    *s = 0;
+  }
 
   if (fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
@@ -126,10 +115,9 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		       * particular serial number, so we could
 		       * continue anyway.
 		       */
-		      if (serno != NULL)
+		      if(*serno)
 			return -1; /* no chance */
-		      else
-			strcpy(string, "[unknown]");
+		      strcpy(string, "[unknown]");
 		    }
 		  if(serdev)
 		    serdev->usbsn = cache_string(string);
@@ -173,20 +161,20 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      fd->usb.wep = 0x02;
 		  }
 
-                  pmsg_notice2("%s(): found %s, serno: %s\n", __func__, product, string);
-		  if (serno != NULL)
+		  pmsg_notice2("%s(): found %s, serno: %s\n", __func__, product, string);
+		  if (*serno)
 		    {
 		      /*
 		       * See if the serial number requested by the
 		       * user matches what we found, matching
 		       * right-to-left.
 		       */
-		      x = strlen(string) - strlen(serno);
-		      if (!str_caseeq(string + x, serno))
+		      int x = strlen(string) - strlen(serno);
+		      if (x < 0 || !str_caseeq(string + x, serno))
 			{
-                          pmsg_debug("%s(): serial number does not match\n", __func__);
+			  pmsg_debug("%s(): serial number does not match\n", __func__);
 			  usb_close(udev);
-			      continue;
+			  continue;
 			}
 		    }
 
@@ -292,8 +280,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
     }
 
   if ((pinfo.usbinfo.flags & PINFO_FL_SILENT) == 0)
-      pmsg_notice("%s(): did not find any%s USB device %s (0x%04x:0x%04x)\n", __func__,
-        serno? " (matching)": "", port, (unsigned)pinfo.usbinfo.vid, (unsigned)pinfo.usbinfo.pid);
+    pmsg_notice("%s(): did not find any%s USB device %s (0x%04x:0x%04x)\n", __func__,
+      *serno? " (matching)": "", port, (unsigned) pinfo.usbinfo.vid, (unsigned)pinfo.usbinfo.pid);
   return -1;
 }
 

@@ -17,7 +17,7 @@
  */
 
 /*
- * USB interface via libhidapi for avrdude.
+ * USB interface via libhidapi for avrdude; it's used for jtag3 programmers
  */
 
 #include <ac_cfg.h>
@@ -45,9 +45,9 @@
  * to pass the desired USB device ID.
  */
 static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor *fd) {
-  hid_device *dev;
-  char *serno, *cp2;
-  size_t x;
+  hid_device *dev = NULL;
+  char serno[64], *s;
+  const char *serp, *vidp, *pidp;
   unsigned char usbbuf[USBDEV_MAX_XFER_3 + 1];
 
   if (fd->usb.max_xfer == 0)
@@ -56,31 +56,38 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
   /*
    * The syntax for usb devices is defined as:
    *
-   * -P usb[:serialnumber]
+   * -P usb:vid:pid
+   * -P usb:serialnumber
+   * -P usb
    *
-   * See if we've got a serial number passed here.  The serial number
-   * might contain colons which we remove below, and we compare it
-   * right-to-left, so only the least significant nibbles need to be
-   * specified.
+   * First check for a valid vid:pid pair, then see if there is a serial number
+   * passed here. The serial number might contain colons which are removed;
+   * comparison is right-to-left, so only the least significant nibbles need to
+   * be specified.
    */
-  if ((serno = strchr(port, ':')) != NULL) {
-    /* First, drop all colons there if any */
-    cp2 = ++serno;
 
-    while ((cp2 = strchr(cp2, ':')) != NULL) {
-      x = strlen(cp2) - 1;
-      memmove(cp2, cp2 + 1, x);
-      cp2[x] = '\0';
+  if((vidp = strchr(port, ':')) && (pidp = strchr(vidp+1, ':'))) {
+    int vid, pid;
+
+    if(sscanf(vidp+1, "%x", &vid) == 1 && sscanf(pidp+1, "%x", &pid) == 1) {
+      if((dev = hid_open(vid, pid, NULL))) {
+        pmsg_notice2("USB device with VID: 0x%04x and PID: 0x%04x\n", vid, pid);
+        pinfo.usbinfo.vid = vid;
+        pinfo.usbinfo.pid = pid;
+      }
     }
+  }
 
-    if (strlen(serno) > 12) {
-      pmsg_error("invalid serial number %s\n", serno);
-      return -1;
-    }
+  if(!dev && (serp = vidp) && *++serp) {
+    // First, get a copy of the serial number w/out colons
+    for(s = serno; *serp && s < serno + sizeof serno - 1; serp++)
+      if(*serp != ':')
+        *s++ = *serp;
+    *s = 0;
 
-    wchar_t wserno[15];
-    mbstowcs(wserno, serno, 15);
-    size_t serlen = strlen(serno);
+    wchar_t wserno[sizeof serno] = {0};
+    mbstowcs(wserno, serno, sizeof serno);
+    size_t serlen = s - serno;
 
     /*
      * Now, try finding all devices matching VID:PID, and compare
@@ -117,7 +124,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       pmsg_error("found device, but hid_open_path() failed\n");
       return -1;
     }
-  } else {
+  } else if(!dev) {
     dev = hid_open(pinfo.usbinfo.vid, pinfo.usbinfo.pid, NULL);
     if (dev == NULL)
     {
@@ -141,6 +148,26 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
   }
 
   fd->usb.handle = dev;
+
+  /*
+   * If a device contains the string "CMSIS-DAP" anywhere in its product name
+   * string, it claims to be a CMSIS-DAP spec HID device. HID interrupt packets
+   * can only be 64 byte (Full-Speed) or 512 byte (High-Speed) in length and
+   * cannot be any other value. Standard-Speed (8 bytes) will not work.
+   */
+  wchar_t ps[256];
+  if (hid_get_product_string(dev, ps, 255) == 0) {
+    size_t n = wcstombs(NULL, ps, 0) + 1;
+    if (n) {
+      char cn[255];
+      if (wcstombs(cn, ps, n) != (size_t) -1 && str_contains(cn, "CMSIS-DAP")) {
+        // The JTAGICE3 running CMSIS-DAP doesn't use a separate endpoint for event reception
+        fd->usb.eep = 0;
+        fd->usb.max_xfer = 64;
+        pmsg_debug("usbhid_open(): product string: %s\n", cn);
+      }
+    }
+  }
 
   /*
    * Try finding out the endpoint size.  Alas, libhidapi doesn't
@@ -168,7 +195,8 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
    * be incremented by one, as the report ID will be omitted by the
    * hidapi library.
    */
-  if (pinfo.usbinfo.vid == USB_VENDOR_ATMEL) {
+
+  if(pinfo.usbinfo.vid == USB_VENDOR_ATMEL || pinfo.usbinfo.vid == USB_VENDOR_MICROCHIP) {
     pmsg_debug("%s(): probing for max packet size\n", __func__);
     memset(usbbuf, 0, sizeof usbbuf);
     usbbuf[0] = 0;         /* no HID reports used */
