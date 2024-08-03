@@ -357,8 +357,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   }
 
   if(NULL != name && NULL == dev_name) {
-    pmsg_error("invalid -P value: %s\n", name);
-    imsg_error("use -P usb:bus:device\n");
+    pmsg_error("invalid -P %s; use -P usb:bus:device\n", name);
     return -1;
   }
   if (!PDATA(pgm)->usb_handle) {

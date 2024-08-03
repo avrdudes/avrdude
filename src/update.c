@@ -493,7 +493,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     if(memstats_mem(p, mem, size, &fs_patched) < 0)
       return -1;
     if(memcmp(&fs_patched, &fs, sizeof fs)) {
-      imsg_notice("preparing flash input for device%s\n",
+      pmsg_notice("preparing flash input for device%s\n",
         pgm->prog_modes & PM_SPM? " bootloader": "");
         imsg_notice("%d byte%s in %d section%s %s%s",
           fs_patched.nbytes, str_plural(fs_patched.nbytes),
@@ -532,7 +532,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     return -1;
   // @@@ has there has been output in the meantime to make the ", x bytes written" look out of place?
   if(pbar && !(flags & UF_VERIFY))
-    imsg_info("%d byte%s of %s written", fs.nbytes, str_plural(fs.nbytes), m_name);
+    pmsg_info("%d byte%s of %s written", fs.nbytes, str_plural(fs.nbytes), m_name);
   else if(!pbar)
     msg_info(", %d byte%s written", fs.nbytes, str_plural(fs.nbytes));
 
@@ -571,7 +571,7 @@ static int update_avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   // @@@ has there has been output in the meantime to make the ", x bytes verified" look out of place?
   int verified = fs.nbytes + fs.ntrailing;
   if(pbar || upd->op == DEVICE_VERIFY)
-    imsg_info("%d byte%s of %s verified\n", verified, str_plural(verified), m_name);
+    pmsg_info("%d byte%s of %s verified\n", verified, str_plural(verified), m_name);
   else
     msg_info(", %d verified\n", verified);
 

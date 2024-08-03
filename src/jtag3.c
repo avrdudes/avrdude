@@ -1005,7 +1005,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (pgm->fd.usb.max_xfer < USBDEV_MAX_XFER_3 && (pgm->flag & PGM_FL_IS_EDBG) == 0) {
     if (ovsigck) {
       pmsg_warning("JTAGICE3's firmware %d.%d is broken on USB 1.1 connections\n", parm[0], parm[1]);
-      imsg_warning("forced to continue by option -F; THIS PUTS THE DEVICE'S DATA INTEGRITY AT RISK!\n");
+      imsg_warning("forced to continue by option -F; this puts the device's data integrity at risk!\n");
     } else {
       pmsg_error("JTAGICE3's firmware %d.%d is broken on USB 1.1 connections\n", parm[0], parm[1]);
       return -1;
@@ -1111,7 +1111,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
       // Exit early is the target power switch is off and print sensible info message
       if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
-        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        pmsg_info("turn on the Vtarg switch to establish connection with the target\n\n");
         return -1;
       }
     }
@@ -1708,7 +1708,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
           pmsg_error("%s in %s mode detected\n",
             pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
           if(mode_switch == PK4_SNAP_MODE_AVR) {
-            imsg_error("switching to AVR mode\n");
+            imsg_error("switching to AVR mode; ");
             if(pinfo.usbinfo.pid == bl_pid)
               serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
             else {
@@ -1716,10 +1716,10 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
               usleep(250*1000);
               serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
             }
-            imsg_error("please run Avrdude again to continue the session\n\n");
+            imsg_error("run %s again to continue the session\n\n", progname);
           } else {
-            imsg_error("to switch into AVR mode try\n");
-            imsg_error("avrdude -c%s -p%s -P%s -x mode=avr\n", pgmid, partdesc, port);
+            pmsg_error("to switch into AVR mode try\n");
+            imsg_error("$ %s -c%s -p%s -P%s -x mode=avr\n", progname, pgmid, partdesc, port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;
@@ -1763,13 +1763,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
   // Switch from AVR to PIC mode
   if (mode_switch == PK4_SNAP_MODE_PIC) {
-    imsg_error("switching to PIC mode\n");
+    imsg_error("switching to PIC mode: ");
     unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
     if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0) {
-      imsg_error("entering PIC mode failed\n");
+      msg_error("entering PIC mode failed\n");
       return -1;
     }
-    imsg_error("PIC mode switch successful\n");
+    msg_error("PIC mode switch successful\n");
     serial_close(&pgm->fd);
     return LIBAVRDUDE_EXIT;;
   }

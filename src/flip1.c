@@ -238,7 +238,7 @@ static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   }
   if (!ovsigck && (part->prog_modes & PM_PDI)) {
     pmsg_error("flip1 (FLIP protocol version 1) is for AT90USB* and ATmega*U* devices\n");
-    imsg_error("for Xmega devices, use flip2 (or use -F to bypass this check)\n");
+    imsg_error("for Xmega devices, use flip2 or use -F to bypass this check\n");
     return -1;
   }
 
@@ -613,14 +613,8 @@ static int flip1_read_memory(const PROGRAMMER *pgm,
 
   if (cmd_result < 0 && aux_result == 0 &&
       status.bStatus == DFU_STATUS_ERR_WRITE) {
-    if (FLIP1(pgm)->security_mode_flag == 0) {
-      msg_error("\n");
-      pmsg_error("\n");
-      imsg_error("***********************************************************************\n");
-      imsg_error("Maybe the device is in ``security mode´´, and needs a chip erase first?\n");
-      imsg_error("***********************************************************************\n");
-      msg_error("\n");
-    }
+    if (FLIP1(pgm)->security_mode_flag == 0)
+      pmsg_error("maybe the device is in security mode and needs a chip erase first?\n");
     FLIP1(pgm)->security_mode_flag = 1;
   }
 

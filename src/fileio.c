@@ -536,7 +536,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
       case 0: /* data record */
         if(ihex.loadofs + baseaddr < fileoffset) {
           if(!ovsigck) {
-            pmsg_error("address 0x%06x below memory offset 0x%x at line %d of %s\n",
+            pmsg_error("address 0x%06x below memory offset 0x%x at line %d of %s;\n",
               ihex.loadofs + baseaddr, fileoffset, lineno, infile);
             imsg_error("use -F to skip this check\n");
             mmt_free(buffer);
@@ -576,7 +576,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
         }
         if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && ihex.reclen >= 3)
           if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
-            pmsg_error("signature of %s incompatible with file's (%s)\n", p->desc,
+            pmsg_error("signature of %s incompatible with file's (%s);\n", p->desc,
               str_ccmcunames_signature(any->buf+nextaddr, PM_ALL));
             imsg_error("use -F to override this check\n");
             mmt_free(buffer);
@@ -931,7 +931,7 @@ static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
       }
       if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && srec.reclen >= 3)
         if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
-          pmsg_error("signature of %s incompatible with file's (%s)\n", p->desc,
+          pmsg_error("signature of %s incompatible with file's (%s);\n", p->desc,
             str_ccmcunames_signature(any->buf+nextaddr, PM_ALL));
           imsg_error("use -F to override this check\n");
           mmt_free(buffer);
@@ -1189,7 +1189,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
       pmsg_debug("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
 
       if(!(lma >= low && lma + sh->sh_size < high)) {
-        imsg_debug("skipping %s (inappropriate for %s)\n", sname, mem->desc);
+        pmsg_debug("skipping %s (inappropriate for %s)\n", sname, mem->desc);
         continue;
       }
       /*
@@ -1209,7 +1209,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
 
       Elf_Data *d = NULL;
       while ((d = elf_getdata(scn, d)) != NULL) {
-        imsg_debug("data block: d_buf %p, d_off 0x%x, d_size %ld\n",
+        pmsg_debug("data block: d_buf %p, d_off 0x%x, d_size %ld\n",
           d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
           if (d->d_off != 0) {
@@ -1219,7 +1219,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
             pmsg_error("ELF file section does not contain byte at offset %d\n", foff);
             rv = -1;
           } else {
-            imsg_debug("extracting one byte from file offset %d\n", foff);
+            pmsg_debug("extracting one byte from file offset %d\n", foff);
             mem->buf[0] = ((unsigned char *)d->d_buf)[foff];
             mem->tags[0] = TAG_ALLOCATED;
             size = 1;
@@ -1734,7 +1734,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     int format_detect;
 
     if (using_stdio) {
-      pmsg_error("cannot auto detect file format when using stdin/out\n");
+      pmsg_error("cannot auto detect file format when using stdin/out;\n");
       imsg_error("please specify a file format and try again\n");
       return -1;
     }

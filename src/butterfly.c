@@ -374,7 +374,7 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
   if(PDATA(pgm)->autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
-    imsg_notice2("Toggling the DTR/RTS lines to trigger a hardware reset\n");
+    pmsg_notice2("toggling the DTR/RTS lines to trigger a hardware reset\n");
     serial_set_dtr_rts(&pgm->fd, 0);
     usleep(250 * 1000);
     // Pull the RTS/DTR line low to reset AVR

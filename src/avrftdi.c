@@ -51,8 +51,8 @@
 #ifdef DO_NOT_BUILD_AVRFTDI
 
 static int avrftdi_noftdi_open(PROGRAMMER *pgm, const char *name) {
-	pmsg_error("no libftdi or libusb support\n");
-	imsg_error("install libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
+	pmsg_error("no libftdi or libusb support; install\n");
+	imsg_error("libftdi1/libusb-1.0 or libftdi/libusb and run configure/make again\n");
 	return -1;
 }
 
@@ -593,9 +593,9 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 	if (!pin_check_mpsse && !pin_check_bitbanging) {
 		pmsg_error("no valid pin configuration found\n");
 		avrftdi_check_pins_bb(pgm, true);
-		imsg_error("pin configuration for FTDI MPSSE must be:\n");
+		pmsg_error("pin configuration for FTDI MPSSE must be:\n");
 		if (pgm->flag == PGM_FL_IS_JTAG) {
-			imsg_error("%s: 0; %s: 1; %s: 2; %s: 3 (is: %s; %s; %s; %s)\n",
+			imsg_error("  %s: 0; %s: 1; %s: 2; %s: 3 (is: %s; %s; %s; %s)\n",
 				avr_pin_name(PIN_JTAG_TCK), avr_pin_name(PIN_JTAG_TDI),
 				avr_pin_name(PIN_JTAG_TDO), avr_pin_name(PIN_JTAG_TMS),
 				pins_to_str(&pgm->pin[PIN_JTAG_TCK]),
@@ -603,7 +603,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				pins_to_str(&pgm->pin[PIN_JTAG_TDO]),
 				pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
 		} else {
-			imsg_error("%s: 0; %s: 1; %s: 2 (is: %s; %s; %s)\n",
+			imsg_error("  %s: 0; %s: 1; %s: 2 (is: %s; %s; %s)\n",
 				avr_pin_name(PIN_AVR_SCK),
 				avr_pin_name(PIN_AVR_SDO),
 				avr_pin_name(PIN_AVR_SDI),
@@ -611,14 +611,14 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 				pins_to_str(&pgm->pin[PIN_AVR_SDO]),
 				pins_to_str(&pgm->pin[PIN_AVR_SDI]));
 		}
-		imsg_error("if other pin configuration is used, fallback to slower bitbanging mode is used\n");
+		pmsg_error("if other pin configuration is used, fallback to slower bitbanging mode is used\n");
 
 		return -1;
 	}
 
 	pdata->use_bitbanging = !pin_check_mpsse;
 	if (pdata->use_bitbanging)
-		imsg_info("because of pin configuration fallback to bitbanging mode\n");
+		pmsg_info("fallback to bitbanging mode because of pin configuration\n");
 
 	/*
 	 * TODO: No need to fail for a wrongly configured led or something.
@@ -740,7 +740,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 		case TYPE_BM:
 		case TYPE_R:
 			pmsg_error("found unsupported device type AM, BM or R\n");
-			imsg_error("avrftdi cannot work with your chip; try the 'synbb' programmer type\n");
+			imsg_error("avrftdi cannot work with your chip; try the synbb programmer type\n");
 			return -1;
 		case TYPE_2232C:
 			pdata->pin_limit = 12;
@@ -771,8 +771,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 			pdata->tx_buffer_size = 2048;
 			break;
 		default:
-			pmsg_warning("unknown device type 0x%02x\n", pdata->ftdic->type);
-			imsg_warning("continuing but no guarantees...\n");
+			pmsg_warning("unknown device type 0x%02x, continuing but no guarantees...\n", pdata->ftdic->type);
 			pdata->pin_limit = 8;
 			pdata->rx_buffer_size = pdata->ftdic->max_packet_size;
 			pdata->tx_buffer_size = pdata->ftdic->max_packet_size;
@@ -1393,7 +1392,7 @@ static int avrftdi_jtag_initialize(const PROGRAMMER *pgm, const AVRPART *p)
 		   str_eq(p->id, "m16a") || str_eq(p->id, "m16") ||
 		   str_eq(p->id, "m162")) {
 			pmsg_error("programmer type %s is known not to work for %s\n", pgm->type, p->desc);
-			imsg_error("exiting; use -F to carry on regardless\n");
+			pmsg_error("exiting, use -F to carry on regardless\n");
 			return LIBAVRDUDE_EXIT;
 		}
 	}

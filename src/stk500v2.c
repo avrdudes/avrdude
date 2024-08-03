@@ -1132,8 +1132,8 @@ retry:
                 pmsg_error("unable to return from debugWIRE to ISP\n");
                 break;
             }
-            pmsg_warning("target prepared for ISP, signed off\n");
-            imsg_warning("now retrying without power-cycling the target\n");
+            pmsg_warning("target prepared for ISP, signed off; now\n");
+            imsg_warning("retrying without power-cycling the target\n");
             goto retry;
         }
         break;
@@ -1395,15 +1395,15 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (jtag3_getparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0)
       return -1;
     if (!PDATA(pgm)->vtarg_switch_set)
-      imsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+      pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
     // Write Vtarg switch value
     else {
       if (jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
         return -1;
-      imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      pmsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
       // Exit early is the target power switch is off and print sensible info message
       if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
-        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        pmsg_info("turn on the Vtarg switch to establish connection with the target\n\n");
         return -1;
       }
     }

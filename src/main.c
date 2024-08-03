@@ -148,9 +148,6 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
         } else if(msgmode & MSG2_INDENT2) {
           fprintf(fp, "%*s", (int) strlen(progname)+2, "");
           bols[bi].bol = 0;
-        } else if(msgmode & MSG2_INDENT) {
-          fprintf(fp, "  ");
-          bols[bi].bol = 0;
         }
 
         // Figure out whether this print will leave us at beginning of line
@@ -1058,12 +1055,12 @@ int main(int argc, char * argv [])
    * they are running
    */
   pmsg_notice("%s version %s\n", progname, AVRDUDE_FULL_VERSION);
-  imsg_notice("Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
+  pmsg_notice("Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS\n\n");
 
   if(*sys_config) {
     char *real_sys_config = realpath(sys_config, NULL);
     if(real_sys_config) {
-     imsg_notice("System wide configuration file is %s\n", real_sys_config);
+     pmsg_notice("system wide configuration file is %s\n", real_sys_config);
     } else
       pmsg_warning("cannot determine realpath() of config file %s: %s\n", sys_config, strerror(errno));
 
@@ -1077,7 +1074,7 @@ int main(int argc, char * argv [])
 
   if (usr_config[0] != 0 && !no_avrduderc) {
     int ok = (rc = stat(usr_config, &sb)) >= 0 && (sb.st_mode & S_IFREG);
-    imsg_notice("User configuration file %s%s%s\n", ok? "is ": "", usr_config,
+    pmsg_notice("user configuration file %s%s%s\n", ok? "is ": "", usr_config,
       rc<0? " does not exist": !(sb.st_mode & S_IFREG)? " is not a regular file, skipping": "");
 
     if(ok) {
@@ -1299,8 +1296,8 @@ int main(int argc, char * argv [])
   int is_dryrun = str_eq(pgm->type, "dryrun") || (dry && pgm->initpgm == dry->initpgm);
   if((port[0] == 0 || str_eq(port, "unknown")) && !is_dryrun) {
     msg_error("\n");
-    pmsg_error("no port has been specified on the command line or in the config file\n");
-    imsg_error("specify a port using the -P option and try again\n\n");
+    pmsg_error("no port has been specified on the command line or in the config file;\n");
+    imsg_error("specify a port using the -P option and try again\n");
     exit(1);
   }
 
@@ -1544,7 +1541,7 @@ skipopen:
     }
     pmsg_error("initialization failed, rc=%d\n", rc);
     if (rc == -2)
-      imsg_error("the programmer ISP clock is too fast for the target\n");
+      imsg_error(" - the programmer ISP clock is too fast for the target\n");
     else
       imsg_error(" - double check the connections and try again\n");
 
@@ -1611,7 +1608,7 @@ skipopen:
             }
           }
           if (!ovsigck) {
-            imsg_error("double check chip or use -F to override this check\n");
+            pmsg_error("double check chip or use -F to override this check\n");
             exitrc = 1;
             goto main_exit;
           }
@@ -1678,8 +1675,8 @@ skipopen:
         msg_info("\n");
         pmsg_error("invalid device signature\n");
         if (!ovsigck) {
-          imsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
-          imsg_error("double check connections and try again, or use -F to override this check\n");
+          pmsg_error("expected signature for %s is%s; double\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("check connections and try again, or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1691,8 +1688,8 @@ skipopen:
         if (ovsigck) {
           pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
         } else {
-          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
-          imsg_error("double check chip or use -F to override this check\n");
+          pmsg_error("expected signature for %s is%s; double\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("check chip or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1706,7 +1703,7 @@ skipopen:
         upd = ldata(ln);
         if(upd->memstr && upd->op == DEVICE_WRITE && memlist_contains_flash(upd->memstr, p)) {
           cx->avr_disableffopt = 1; // Must write full flash file including trailing 0xff
-          pmsg_notice("NOT erasing chip as page erase will be used for new flash%s contents\n",
+          pmsg_notice("NOT erasing chip as page erase will be used for new flash%s contents;\n",
             avr_locate_bootrow(p)? "/bootrow": "");
           imsg_notice("unprogrammed flash contents remains: use -e for an explicit chip-erase\n");
           break;
@@ -1736,14 +1733,16 @@ skipopen:
       else
         pmsg_notice("-n specified, NOT erasing chip\n");
     } else {
-      pmsg_notice("erasing chip\n");
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc == LIBAVRDUDE_SOFTFAIL) {
-        imsg_info("delaying chip erase until first -U upload to flash\n");
+        pmsg_info("delaying chip erase until first -U upload to flash\n");
         ce_delayed = 1;
         exitrc = 0;
-      } else if(exitrc)
+      } else if(exitrc) {
+        pmsg_error("chip erase failed\n");
         goto main_exit;
+      }
+      pmsg_notice("erased chip\n");
     }
   }
 

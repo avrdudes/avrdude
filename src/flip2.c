@@ -230,9 +230,8 @@ static int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   }
 
   if (!ovsigck && !(part->prog_modes & PM_PDI)) {
-    pmsg_error("flip2 (FLIP protocol version 2) is for Xmega devices\n");
-    imsg_error("for AT90USB* or ATmega*U* devices, use flip1\n");
-    imsg_error("(or use -F to bypass this check)\n");
+    pmsg_error("flip2 (FLIP protocol version 2) is for Xmega devices;\n");
+    imsg_error("for AT90USB* or ATmega*U* devices use flip1 or use -F to bypass this check\n");
     return -1;
   }
 

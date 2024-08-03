@@ -68,8 +68,7 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define MSG2_INDENT2      32 // Start by printing indentation of progname+2 blanks
 #define MSG2_FLUSH        64 // Flush before and after printing
 #define MSG2_LEFT_MARGIN 128 // Print \n unless last character printed was \n
-#define MSG2_INDENT      256 // Intent by two spaces
-#define MSG2_UCFIRST     512 // Uppercase first character of output
+#define MSG2_UCFIRST     256 // Uppercase first character of output
 
 // Shortcuts
 #define msg_ext_error(...)  avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_EXT_ERROR, __VA_ARGS__)
@@ -92,9 +91,9 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define pmsg_trace(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE, __VA_ARGS__)
 #define pmsg_trace2(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_UCFIRST|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_TRACE2, __VA_ARGS__)
 
-#define imsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
-#define imsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)
-#define imsg_warning(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_INDENT|MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_WARNING, __VA_ARGS__)
+#define imsg_ext_error(...) avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_EXT_ERROR, __VA_ARGS__)
+#define imsg_error(...)     avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_ERROR, __VA_ARGS__)
+#define imsg_warning(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_WARNING, __VA_ARGS__)
 #define imsg_info(...)      avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_INFO, __VA_ARGS__)
 #define imsg_notice(...)    avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE, __VA_ARGS__)
 #define imsg_notice2(...)   avrdude_message2(stderr, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_NOTICE2, __VA_ARGS__)

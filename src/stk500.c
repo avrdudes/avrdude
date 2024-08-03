@@ -200,8 +200,7 @@ static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses stk500_chip_erase() but does not\n", pgm->type);
-    imsg_error("provide a cmd() method\n");
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
     return -1;
   }
 

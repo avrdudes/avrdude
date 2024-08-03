@@ -1379,9 +1379,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
             if(ur.xvectornum != -1) {
               if(ur.vblvectornum != vectnum) {
-                pmsg_warning("urboot vector number %d overwritten by -x vectornum=%d\n",
+                pmsg_warning("urboot vector number %d overwritten by -x vectornum=%d; the\n",
                   vectnum, ur.xvectornum);
-                imsg_warning("the application might not start correctly\n");
+                imsg_warning("application might not start correctly\n");
               }
             } else {
               ur.vblvectornum = vectnum;
@@ -2586,7 +2586,8 @@ void urclock_initpgm(PROGRAMMER *pgm) {
 #if defined(HAVE_LIBREADLINE)
   pmsg_notice2("libreadline is used; avrdude -t -c urclock should work interactively\n");
 #else
-  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock interactively\n");
-  imsg_notice2("but it is still possible to pipe: echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -curclock\n");
+  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock\n");
+  imsg_notice2("interactively but it is still possible to pipe:\n");
+  imsg_notice2("$ echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -c urclock\n");
 #endif
 }
