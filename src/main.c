@@ -1735,14 +1735,14 @@ skipopen:
     } else {
       exitrc = avr_chip_erase(pgm, p);
       if(exitrc == LIBAVRDUDE_SOFTFAIL) {
-        pmsg_info("delaying chip erase until first -U upload to flash\n");
+        pmsg_notice("delaying chip erase until first -U upload to flash\n");
         ce_delayed = 1;
         exitrc = 0;
       } else if(exitrc) {
         pmsg_error("chip erase failed\n");
         goto main_exit;
-      }
-      pmsg_notice("erased chip\n");
+      } else
+        pmsg_notice("erased chip\n");
     }
   }
 

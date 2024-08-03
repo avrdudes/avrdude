@@ -308,7 +308,7 @@ TOKEN *new_number(const char *text) {
   }
 
 #if DEBUG
-  msg_info("NUMBER(%d)\n", tkn->value.number);
+  msg_notice("NUMBER(%d)\n", tkn->value.number);
 #endif
 
   return tkn;
@@ -326,7 +326,7 @@ TOKEN *new_number_real(const char *text) {
   }
 
 #if DEBUG
-  msg_info("NUMBER(%g)\n", tkn->value.number_real);
+  msg_notice("NUMBER(%g)\n", tkn->value.number_real);
 #endif
 
   return tkn;
@@ -369,7 +369,7 @@ TOKEN *new_constant(const char *con) {
   }
 
 #if DEBUG
-  msg_info("CONSTANT(%s=%d)\n", con, tkn->value.number);
+  msg_notice("CONSTANT(%s=%d)\n", con, tkn->value.number);
 #endif
 
   return tkn;
@@ -381,7 +381,7 @@ TOKEN *new_string(const char *text) {
   tkn->value.string = mmt_strdup(text);
 
 #if DEBUG
-  msg_info("STRING(%s)\n", tkn->value.string);
+  msg_notice("STRING(%s)\n", tkn->value.string);
 #endif
 
   return tkn;
@@ -423,7 +423,7 @@ void print_token(TOKEN *tkn) {
 void pyytext(void)
 {
 #if DEBUG
-  msg_info("TOKEN: %s\n", yytext);
+  msg_notice("TOKEN: %s\n", yytext);
 #endif
 }
 

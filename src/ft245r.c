@@ -234,7 +234,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	    avail = len;
 
 #if FT245R_DEBUG
-	msg_info("%s: writing %d bytes\n", __func__, avail);
+	msg_notice("%s: writing %d bytes\n", __func__, avail);
 #endif
 	rv = ftdi_write_data(my.handle, src, avail);
 	if (rv != avail) {
@@ -277,7 +277,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    msg_info("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
+    msg_notice("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
 #endif
     while (my.rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
@@ -390,7 +390,7 @@ static int get_pin(const PROGRAMMER *pgm, int pinname) {
   if (ftdi_read_pins(my.handle, &byte) != 0)
     return -1;
   if (FT245R_DEBUG)
-    msg_info("%s: in 0x%02x\n", __func__, byte);
+    msg_notice("%s: in 0x%02x\n", __func__, byte);
   return GET_BITS_0(byte, pgm, pinname) != 0;
 }
 

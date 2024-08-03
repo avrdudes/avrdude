@@ -315,7 +315,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
   if(!sp1 || n1 <= 0 || !portp)
     return -1;
 
-  pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
+  pmsg_notice("touching serial port %s at %d baud\n", *portp, baudrate);
 
   union pinfo pinfo;
   union filedescriptor fd;
@@ -334,7 +334,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
 #if (defined(__arm__) || defined(__aarch64__)) && !defined(__APPLE__)
   nwaits += 2;
 #endif
-  pmsg_info("waiting for new port...");
+  pmsg_notice("waiting for new port...");
   usleep(400*1000*nwaits);
   for(i = nloops; i > 0; i--) {
     usleep(nap*1000);
@@ -345,7 +345,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
         if(*portp)
           mmt_free(*portp);
         *portp = mmt_strdup((*diff)->port);
-        msg_info(" %d ms:", (nloops-i+1)*nap + nwaits*400);
+        msg_notice(" %d ms:", (nloops-i+1)*nap + nwaits*400);
         i = -1;                 // Leave loop
       }
       mmt_free(diff); 
@@ -353,7 +353,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
     }
   }
   free_libserialport_data(sp1, n1);
-  msg_info(" using %s port %s\n", i<0? "new": "same", *portp);
+  msg_notice(" using %s port %s\n", i<0? "new": "same", *portp);
 
   return 0;
 }

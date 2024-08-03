@@ -329,7 +329,7 @@ static int avrftdi_transmit_bb(const PROGRAMMER *pgm, unsigned char mode, const 
 	size_t max_size = MIN(pdata->ftdic->max_packet_size, (unsigned int) pdata->tx_buffer_size);
 	// select block size so that resulting commands does not exceed max_size if possible
 	blocksize = MAX(1,(max_size-7)/((8*2*6)+(8*1*2)));
-	// msg_info("blocksize %d \n", blocksize);
+	// msg_notice("blocksize %d \n", blocksize);
 
 	unsigned char* send_buffer = alloca((8 * 2 * 6) * blocksize + (8 * 1 * 2) * blocksize + 7);
 	unsigned char* recv_buffer = alloca(2 * 16 * blocksize);
@@ -618,7 +618,7 @@ static int avrftdi_pin_setup(const PROGRAMMER *pgm) {
 
 	pdata->use_bitbanging = !pin_check_mpsse;
 	if (pdata->use_bitbanging)
-		pmsg_info("fallback to bitbanging mode because of pin configuration\n");
+		pmsg_notice("fallback to bitbanging mode because of pin configuration\n");
 
 	/*
 	 * TODO: No need to fail for a wrongly configured led or something.
@@ -707,7 +707,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
 		pdata->ftdic->usb_dev = NULL;
 		return err;
 	} else {
-		pmsg_info("using device VID:PID %04x:%04x and SN %s on interface %c\n",
+		pmsg_notice("using device VID:PID %04x:%04x and SN %s on interface %c\n",
 		         vid, pid, serial? serial: "(none)", INTERFACE_A == interface? 'A': 'B');
 	}
 	
@@ -1053,22 +1053,22 @@ static int avrftdi_flash_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 		if(verbose >= MSG_TRACE2)
 			buf_dump(buf, buf_size, "command buffer", 0, 16*2);
 
-		pmsg_info("transmitting buffer of size: %d\n", buf_size);
+		pmsg_notice("transmitting buffer of size: %d\n", buf_size);
 		if (0 > avrftdi_transmit(pgm, MPSSE_DO_WRITE, buf, buf, buf_size))
 			return -1;
 
 		bufptr = buf;
 
-		pmsg_info("using m->buf[%d] = 0x%02x as polling value ", poll_index,
+		pmsg_notice("using m->buf[%d] = 0x%02x as polling value ", poll_index,
 		         m->buf[poll_index]);
 		/* poll page write ready */
 		do {
-			msg_info(".");
+			msg_notice(".");
 
 			pgm->read_byte(pgm, p, m, poll_index, &poll_byte);
 		} while (m->buf[poll_index] != poll_byte);
 
-		msg_info("\n");
+		msg_notice("\n");
 	}
 	else
 	{

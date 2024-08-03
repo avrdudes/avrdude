@@ -3059,9 +3059,9 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 #if 0
     for (i=0; i<page_size; i++) {
-      msg_info("%02X", buf[2+i]);
+      msg_notice("%02X", buf[2+i]);
       if (i%16 == 15)
-        msg_info("\n");
+        msg_notice("\n");
     }
 #endif
 
@@ -3139,9 +3139,9 @@ static int stk500hv_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 #if 0
     for (i = 0; i < page_size; i++) {
-      msg_info("%02X", buf[2 + i]);
+      msg_notice("%02X", buf[2 + i]);
       if (i % 16 == 15)
-        msg_info("\n");
+        msg_notice("\n");
     }
 #endif
 
