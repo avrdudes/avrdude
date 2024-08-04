@@ -40,12 +40,17 @@
 
 
 #if defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0)
+
 #if defined(HAVE_USB_H)
   #  include <usb.h>
+#elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)
+  #  include <libusb-1.0/libusb.h>
+#elif defined(HAVE_LIBUSB_H)
+  #  include <libusb.h>
 #elif defined(HAVE_LUSB0_USB_H)
   #  include <lusb0_usb.h>
 #else
-  #  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+  #  error "libusb needs either <usb.h>, <lusb0_usb.h> or <libusb-1.0/libusb.h>"
 #endif
 #define USE_LIBUSB_1_0
 
@@ -311,10 +316,9 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_MICROCHIP;
 
-#if defined(HAVE_LIBHIDAPI)
-  // Try HIDAPI first. LibUSB is more generic, but might
-  // cause trouble for HID-class devices in some OSes
-  serdev = &usbhid_serdev;
+  // PICkit 5 doesn't have support for HID, so no need to support it
+#if defined(HAVE_LIBUSB_1_0)
+  serdev = &usb_serdev_frame;
   for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
     pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
@@ -326,25 +330,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
   }
-  if (rv < 0) {
-#endif    /* HAVE_LIBHIDAPI */
-#if defined(HAVE_LIBUSB)
-    serdev = &usb_serdev_frame;
-    for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
-      pinfo.usbinfo.flags = PINFO_FL_SILENT;
-      pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
-      pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
-      pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;   // command read
-      pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP;  // command write
-      pgm->fd.usb.eep = 0x00;
-
-      pgm->port = port;
-      rv = serial_open(port, pinfo, &pgm->fd);
-    }
 #endif    /* HAVE_LIBUSB */
-#if defined(HAVE_LIBHIDAPI)
-  }
-#endif
 
   // Make USB serial number available to programmer
   if (serdev && serdev->usbsn) {
