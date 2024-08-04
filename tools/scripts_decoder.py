@@ -503,7 +503,7 @@ def convert_xml(xml_path, c_dict):
         c_file.write(struct_init_len)
         c_file.write("};\n\n\n")
 
-        chip_lut_str = "const char *chip_lut[] = {\n  "
+        chip_lut_str = "const char *pickit5_chip_lut[] = {\n  "
         chip_name_iterator = 0
         for chip_name in mcu_dict:
             chip_lut_str += "\""
@@ -519,7 +519,7 @@ def convert_xml(xml_path, c_dict):
         c_func_str += "  int namepos = -1;\n"
         c_func_str += "  for (int i = 0; i < {0}; i++)".format(chip_name_iterator)
         c_func_str += " {\n"
-        c_func_str += "    if (strncmp(chip_lut[i], partdesc, 10) == 0) {\n"
+        c_func_str += "    if (strncmp(pickit5_chip_lut[i], partdesc, 10) == 0) {\n"
         c_func_str += "      namepos = i;\n      break;\n    }\n  }\n"
         c_func_str += "  if (namepos == -1) {\n    return NULL;\n  }\n"
         c_file.write(c_func_str)

@@ -574,7 +574,7 @@ struct avr_script_lut avr_scripts = {
 };
 
 
-const char *chip_lut[] = {
+const char *pickit5_chip_lut[] = {
   "ATtiny416auto", "ATmega1608", "ATmega1609", "ATmega3208", "ATmega3209", "ATmega4808", "ATmega4809", "ATmega808", 
   "ATmega809", "ATtiny1604", "ATtiny1606", "ATtiny1607", "ATtiny1614", "ATtiny1616", "ATtiny1617", "ATtiny1624", 
   "ATtiny1626", "ATtiny1627", "ATtiny202", "ATtiny204", "ATtiny212", "ATtiny214", "ATtiny3216", "ATtiny3217", 
@@ -596,7 +596,7 @@ const char *chip_lut[] = {
 struct avr_script_lut* get_pickit_script(const char* partdesc) { 
   int namepos = -1;
   for (int i = 0; i < 118; i++) {
-    if (strncmp(chip_lut[i], partdesc, 10) == 0) {
+    if (strncmp(pickit5_chip_lut[i], partdesc, 10) == 0) {
       namepos = i;
       break;
     }
