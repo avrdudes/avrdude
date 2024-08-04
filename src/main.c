@@ -1123,7 +1123,7 @@ int main(int argc, char * argv [])
     pgmid = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
-  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[dASsrtiBUPTIJWHQ]
+  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[duASsrtiBUPTIJWHQ]
   int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[cdoASsrw*tiBUPTIJWHQ]
 
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
