@@ -29,46 +29,25 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-#if defined(HAVE_USB_H)
-#  include <usb.h>
-#elif defined(HAVE_LUSB0_USB_H)
-#  include <lusb0_usb.h>
-#else
-#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
-#endif
-
 #include "avrdude.h"
 #include "libavrdude.h"
 
 #include "pickit5.h"
-#include "scripts_lut.h"
+#include "pickit5_lut.h"
 #include "updi_constants.h"
 #include "usbdevs.h"
 
 
 
 #if defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0)
-
-#ifdef HAVE_LIBUSB_1_0
-# define USE_LIBUSB_1_0
-#endif
-
-#if defined(USE_LIBUSB_1_0)
-# if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
-#  include <libusb-1.0/libusb.h>
-# else
-#  include <libusb.h>
-# endif
+#if defined(HAVE_USB_H)
+  #  include <usb.h>
+#elif defined(HAVE_LUSB0_USB_H)
+  #  include <lusb0_usb.h>
 #else
-# if defined(HAVE_USB_H)
-#  include <usb.h>
-# elif defined(HAVE_LUSB0_USB_H)
-#  include <lusb0_usb.h>
-# else
-#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
-# endif
+  #  error "libusb needs either <usb.h> or <lusb0_usb.h>"
 #endif
-
+#define USE_LIBUSB_1_0
 
 #define USB_PK5_CMD_READ_EP   0x81
 #define USB_PK5_CMD_WRITE_EP  0x02
@@ -84,13 +63,9 @@
 
 // Private data for this programmer
 struct pdata {
-#ifdef USE_LIBUSB_1_0
-  libusb_device_handle *usbhandle;
-#else
-  usb_dev_handle *usbhandle;
-#endif
-  unsigned char pk_op_mode;     // 0 - init, 1: pk found, 2: pk operating, 3: pk programming
+  unsigned char pk_op_mode;     // 0: init / 1: pk found / 2: pk operating / 3: pk programming
   unsigned char power_source;   // external / from PICkit / ignore check
+  unsigned char hvupdi_enabled; // 0: no HV / 1: HV generation enabled
   unsigned int  target_voltage; // voltage to supply to target
   unsigned char signature[4];   // as we get DeviceID and Chip revision in one go, buffer them
   unsigned char txBuf[1024];
@@ -236,10 +211,15 @@ static int pickit5_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       PDATA(pgm)->target_voltage = voltage;
       continue;
     }
+    if (str_starts(extended_param, "hvupdi")) {
+      PDATA(pgm)->hvupdi_enabled = 1;
+      continue;
+    }
 
     if (str_eq(extended_param, "help")) {
       msg_error("%s -c %s extended options:\n", progname, pgmid);
       msg_error("  -xvoltage=<arg> Enables power output. <arg> must be in range 1800~5500[mV]\n");
+      msg_error("  -xhvupdi        Enable high-voltage UPDI initialization\n");
       msg_error("  -xhelp            Show this help menu and exit\n");
       return LIBAVRDUDE_EXIT;
     }
@@ -339,8 +319,8 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
     pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
     pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
-    pgm->fd.usb.rep = 0x81;   // command read
-    pgm->fd.usb.wep = 0x02;   // command write
+    pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;   // command read
+    pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP;  // command write
     pgm->fd.usb.eep = 0x00;
 
     pgm->port = port;
@@ -354,8 +334,8 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       pinfo.usbinfo.flags = PINFO_FL_SILENT;
       pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
       pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
-      pgm->fd.usb.rep = 0x81;   // command read
-      pgm->fd.usb.wep = 0x02;   // command write
+      pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;   // command read
+      pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP;  // command write
       pgm->fd.usb.eep = 0x00;
 
       pgm->port = port;
@@ -382,11 +362,7 @@ static void pickit5_close(PROGRAMMER *pgm) {
   
   pickit5_set_vtarget(pgm, 0.0);  // Switches off PICkit Voltage regulator, if enabled
 
-  if (PDATA(pgm)->usbhandle!=NULL) {
-    unsigned char temp[4];
-    memset(temp, 0, sizeof(temp));
-    serial_close(&pgm->fd);
-  }
+  serial_close(&pgm->fd);
 }
 
 static void pickit5_disable(const PROGRAMMER *pgm) {
@@ -418,6 +394,13 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
   pmsg_info("Scripts for %s found and loaded\n", p->desc);
+
+  if (PDATA(pgm)->hvupdi_enabled > 0) {
+    if (p->hvupdi_variant == 0)
+      pmsg_info("High Voltage SYSCFG0 override on UPDI Pin enabled\n");
+    if (p->hvupdi_variant == 2)
+      pmsg_info("High Voltage SYSCFG0 override on RST Pin enabled\n");
+  }
 
   if (pickit5_get_fw_info(pgm) < 0) // PK responds, we can try to enable voltage
     return -1;
@@ -495,6 +478,15 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("pickit5_enter_prog_mode()\n");
   const unsigned char *enter_prog = PDATA(pgm)->scripts->EnterProgMode;
   unsigned int enter_prog_len = PDATA(pgm)->scripts->EnterProgMode_len;
+  if (PDATA(pgm)->hvupdi_enabled) {
+    if (p->hvupdi_variant == HV_UPDI_VARIANT_0) { // High Voltage Generation on UPDI line
+      enter_prog = PDATA(pgm)->scripts->EnterProgModeHvSp;
+      enter_prog_len = PDATA(pgm)->scripts->EnterProgModeHvSp_len;
+    } else if (p->hvupdi_variant == HV_UPDI_VARIANT_2) {  // High Voltage Generation on RST line
+      enter_prog = PDATA(pgm)->scripts->EnterProgModeHvSpRst;
+      enter_prog_len = PDATA(pgm)->scripts->EnterProgModeHvSpRst_len;
+    }
+  }
   if (PDATA(pgm)->pk_op_mode != 3) {
     if (pickit5_send_script(pgm, SCR_CMD, enter_prog, enter_prog_len, NULL, 0, 0) < 0)
       return -1;
@@ -573,14 +565,100 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
 
 static int pickit5_write_byte (const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char value) {
-    int rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
-    if (rc < 0)
-      return rc;
-    return 0; 
+    if (mem_is_sram(mem) || mem_is_io(mem)) {
+      if (mem->size < 1 || addr > (unsigned long)mem->size) {
+        pmsg_error("address %i out of range for %s [0, %i]\n", (unsigned int) addr, mem->desc, mem->size);
+        return -1;
+      }
+      addr += mem->offset;
+      pmsg_debug("pickit5_write_byte(0x%4X, %i)\n", (unsigned int)addr, value);
+      // This script is based on WriteCSreg. Reduces overhead by avoiding writing data EP
+      const unsigned char h_len = 24; // 16 + 8
+      const unsigned char p_len = 8;
+      const unsigned char s_len = 8;
+      const unsigned char m_len = h_len + p_len + s_len; 
+      unsigned char write8_fast [] = {
+        0x00, 0x01, 0x00, 0x00,   // [0]  SCR_CMD
+        0x00, 0x00, 0x00, 0x00,   // [4]  always 0
+        m_len, 0x00, 0x00, 0x00,  // [8]  message length = 16 + 8 + param (8) + script (8) = 40
+        0x00, 0x00, 0x00, 0x00,   // [12] keep at 0 to receive the data in the "response"
+        
+        p_len, 0x00, 0x00, 0x00,  // [16] param length: 8 bytes
+        s_len, 0x00, 0x00, 0x00,  // [20] length of script: 8 bytes
+
+        0x00, 0x00, 0x00, 0x00,   // [24] param: address to write to, will be overwritten
+        0x00, 0x00, 0x00, 0x00,   // [28] param: byte to write, will be overwritten
+        
+        // Script itself:
+        0x91, 0x00,               // copy first 4 bytes of param to reg 0
+        0x91, 0x01,               // copy second 4 bytes of param to reg 1
+        0x1E, 0x06, 0x00, 0x01,   // store to address in reg 0 the byte in reg 1
+      };
+      write8_fast[24] = (((unsigned char *)&addr)[0]);
+      write8_fast[25] = (((unsigned char *)&addr)[1]);
+      write8_fast[28] = value;
+
+      serial_send(&pgm->fd, write8_fast, m_len);
+      unsigned char *buf = PDATA(pgm)->rxBuf;
+      if (serial_recv(&pgm->fd, buf, 1024) >= 0) {  // read response
+        if (buf[0] == 0x0D) {
+          return 0;
+        }
+      }
+      return -1;
+    }
+  int rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
+  if (rc < 0)
+    return rc;
+  return 0; 
 }
 
 static int pickit5_read_byte (const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char *value) {
+    if (mem_is_sram(mem) || mem_is_io(mem) 
+     || mem_is_lock(mem) || mem_is_in_fuses(mem)) {
+      if (mem->size < 1 || addr > (unsigned long)mem->size) {
+        pmsg_error("address %i out of range for %s [0, %i]\n", (unsigned int) addr, mem->desc, mem->size);
+        return -1;
+      }
+      addr += mem->offset;
+      pmsg_debug("pickit5_read_byte(0x%4X)\n", (unsigned int)addr);
+      // This script is based on ReadSIB. Reduces overhead by avoiding readind data EP
+      const unsigned char h_len = 24; // 16 + 8
+      const unsigned char p_len = 4;
+      const unsigned char s_len = 6;
+      const unsigned char m_len = h_len + p_len + s_len; 
+      unsigned char read8_fast [] = {
+        0x00, 0x01, 0x00, 0x00,   // [0]  SCR_CMD
+        0x00, 0x00, 0x00, 0x00,   // [4]  always 0
+        m_len, 0x00, 0x00, 0x00,  // [8]  message length = 16 + 8 + param (4) + script (6) = 34
+        0x00, 0x00, 0x00, 0x00,   // [12] keep at 0 to receive the data in the "response"
+        
+        p_len, 0x00, 0x00, 0x00,  // [16] param length: 4 bytes
+        s_len, 0x00, 0x00, 0x00,  // [20] length of script: 6 bytes
+
+        0x00, 0x00, 0x00, 0x00,   // [24] param: address to read from, will be overwritten
+        
+        // Script itself:
+        0x91, 0x00,               // copy first 4 bytes of param to reg 0
+        0x1E, 0x03, 0x00,         // load byte from address in reg 0
+        0x9F                      // send data from 0x1E to "response"
+      };
+      read8_fast[24] = (((unsigned char *)&addr)[0]);
+      read8_fast[25] = (((unsigned char *)&addr)[1]);
+
+      serial_send(&pgm->fd, read8_fast, m_len);
+      unsigned char *buf = PDATA(pgm)->rxBuf;
+      if (serial_recv(&pgm->fd, buf, 1024) >= 0) {  // read response
+        if (buf[0] == 0x0D) {
+          if (buf[20] == 0x01) {
+            *value = buf[24];
+            return 0;
+          }
+        }
+      }
+      return -1;
+    }
     int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
     if (rc < 0)
       return rc;
@@ -729,16 +807,25 @@ static int pickit5_read_sig_bytes (const PROGRAMMER *pgm, const AVRPART *p, cons
 
   if(pickit5_send_script(pgm, SCR_CMD, read_id, read_id_len, NULL, 0, 0) < 0)
     return -1;
-  if (pickit5_read_response(pgm, "Read Device ID") < 0)
-    return -1;
-
-  memcpy(PDATA(pgm)->signature, &PDATA(pgm)->rxBuf[24], 4);
-  if (mem != NULL) {
-    mem->buf[0] = PDATA(pgm)->rxBuf[24];
-    mem->buf[1] = PDATA(pgm)->rxBuf[25];
-    mem->buf[2] = PDATA(pgm)->rxBuf[26];
+  if (pickit5_read_response(pgm, "Read Device ID") >= 0) {
+    if (PDATA(pgm)->rxBuf[0] == 0x0D) {
+      if (PDATA(pgm)->rxBuf[20] == 0x04) {
+        memcpy(PDATA(pgm)->signature, &PDATA(pgm)->rxBuf[24], 4);
+        if (mem != NULL) {
+          mem->buf[0] = PDATA(pgm)->rxBuf[24];
+          mem->buf[1] = PDATA(pgm)->rxBuf[25];
+          mem->buf[2] = PDATA(pgm)->rxBuf[26];
+        }
+        return 3;
+      } else {
+        if (PDATA(pgm)->hvupdi_enabled && p->hvupdi_variant == HV_UPDI_VARIANT_2) {
+          pmsg_info("Failed to get DeviceID with activated HV Pulse on RST.\n");
+          pmsg_info("If your wiring is correct, try connecting a 16V 1u cap between RST and GND.\n");
+        }
+      }
+    }
   }
-  return 3;
+  return -1;
 }
 
 static int pickit5_read_sib (const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
@@ -913,7 +1000,7 @@ static int pickit5_get_vtarget (const PROGRAMMER *pgm, double *v) {
   
   // 24 - internal Vdd [mV]
   // 28 - target Vdd [mV]
-  // 32 - Target Vpp [mV]
+  // 32 - Target Vpp [mV] (Reset Pin Voltage)
   // 36 - Internal Vpp [mV]
   // 48 - Vdd Current Sense [mA] 
   int vtarget = pickit5_array_to_uint32(&buf[28]);
@@ -1032,14 +1119,14 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
 
 
 #if defined(USE_LIBUSB_1_0)
-static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer);
-static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer) {
+static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer);
+static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer) {
   int rv;
 
   if (use_interrupt_xfer)
-    rv = usb_interrupt_read(udev, ep, cx->usb_buf, maxsize, 10000);
+    rv = usb_interrupt_read(fd->usb.handle, ep, cx->usb_buf, maxsize, 10000);
   else
-    rv = usb_bulk_read(udev, ep, cx->usb_buf, maxsize, 10000);
+    rv = usb_bulk_read(fd->usb.handle, ep, cx->usb_buf, maxsize, 10000);
   if (rv < 0)
     {
       pmsg_notice2("usb_fill_buf(): usb_%s_read() error: %s\n",
@@ -1054,18 +1141,17 @@ static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_inter
 }
 
 static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int i, amnt;
   unsigned char  *p = buf;
 
-  if (udev == NULL)
+  if (fd->usb.handle == NULL)
     return -1;
 
   for (i = 0; nbytes > 0;)
     {
       if (cx->usb_buflen <= cx->usb_bufptr)
 	{
-	  if (usb_fill_buf(udev, fd->usb.max_xfer, USB_PK5_DATA_READ_EP, fd->usb.use_interrupt_xfer) < 0)
+	  if (usb_fill_buf(fd, fd->usb.max_xfer, USB_PK5_DATA_READ_EP, fd->usb.use_interrupt_xfer) < 0)
 	    return -1;
 	}
       amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
@@ -1082,13 +1168,12 @@ static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, 
 }
 
 static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
-  usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
   int i = mlen;
   const unsigned char  *p = bp;
   int tx_size;
 
-  if (udev == NULL)
+  if (fd->usb.handle == NULL)
     return -1;
 
   /*
@@ -1101,9 +1186,9 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
   do {
     tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
     if (fd->usb.use_interrupt_xfer)
-      rv = usb_interrupt_write(udev, USB_PK5_DATA_WRITE_EP, (char *)bp, tx_size, 10000);
+      rv = usb_interrupt_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *)bp, tx_size, 10000);
     else
-      rv = usb_bulk_write(udev, USB_PK5_DATA_WRITE_EP, (char *)bp, tx_size, 10000);
+      rv = usb_bulk_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *)bp, tx_size, 10000);
     if (rv != tx_size)
     {
         pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
@@ -1117,7 +1202,7 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
     trace_buffer(__func__, p, i);
   return 0;
 }
-#else
+#else 
  
 // Allow compiling without throwing dozen errors
 // We need libusb so we can access specific Endpoints.
@@ -1134,7 +1219,7 @@ static int usbdev_data_send(const union filedescriptor *fd, const unsigned char 
 #endif
 
 
-#else /* HAVE_LIBUSB */
+#else /* defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0) */
 static int pickit5_nousb_open(PROGRAMMER *pgm, const char *name);
 
 static int pickit5_nousb_open(PROGRAMMER *pgm, const char *name) {
@@ -1149,6 +1234,6 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   pgm->open           = pickit5_nousb_open;
 }
 
-#endif  /* HAVE_LIBUSB */
+#endif /* defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0) */
 
 const char pickit5_desc[] = "Microchip's PICkit 5 Programmer/Debugger";
