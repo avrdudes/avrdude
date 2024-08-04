@@ -1586,7 +1586,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
   }
 
   if(udev && ui) {
-    dev_info("# 1. Put Linux udev rules into /etc/udev/rules.d/80-avrdude.rules (or similar)\n");
+    dev_info("# 1. Put Linux udev rules into /etc/udev/rules.d/55-avrdude.rules (or similar)\n");
     dev_info("# 2. sudo udevadm control --reload-rules && sudo udevadm trigger (or similar)\n");
     dev_info("# 3. Unplug the device and plug it in again\n");
     qsort(udr, ui, sizeof *udr, udev_cmp);
@@ -1609,10 +1609,10 @@ void dev_output_pgm_defs(char *pgmidcp) {
         prev_head = mmt_strdup(head);
       }
       dev_info("SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"%04x\", ATTRS{idProduct}==\"%04x\", "
-        "GROUP=\"plugdev\", MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
+        "MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
       if(u->ishid)
         dev_info("KERNEL==\"hidraw*\", SUBSYSTEM==\"hidraw\", ATTRS{idVendor}==\"%04x\", "
-        "ATTRS{idProduct}==\"%04x\", GROUP=\"plugdev\", MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
+          "ATTRS{idProduct}==\"%04x\", MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
     }
     mmt_free(prev_head);
   }
