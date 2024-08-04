@@ -4468,18 +4468,24 @@ access.
 @cindex udev rules
 
 Linux has a special userspace @code{/dev} device manager called udev that
-deals with, amongst other things, plug-and-play USB devices. So called
-udev rules describe who has the right to access these devices. They
-typically reside in a file with the name pattern
-@var{nn}@code{-}@var{descriptive-name}@code{.rules} in typically the
-directory @code{/etc/udev/rules.d}. Here, @var{nn} is a two-digit number
-that determines the lexical order in which the udev rule files are
-processed. Rules processed later can overwrite earlier rules. One frequent
-way of assigning an ordinary user access to a plugged in USB AVR
-programmer is to identify the programmer by a two-byte hexadecimal vendor
-ID and a two-byte hexadecimal product id in the @code{.rules} file. Here
-is an example for the popular AVRISP mkII programmer (product ID 0x2104)
-by Atmel (vendor ID 0x0eb)
+deals with, amongst other things, plug-and-play USB devices. In most cases
+the kernel driver initializes a plug-and-play device to be owned by user
+@code{root} and group @code{root} with only r/w permission for the user
+@code{root} rendering the device inaccessible to regular users. Whilst
+users can run AVRDUDE sessions as root this is definitely @emph{not} good
+practice.
+
+It is recommended to specify so-called udev rules to define access
+permissions for these devices instead. These rules typically reside in a
+file with the name @var{nn}@code{-}@var{descriptive-name}@code{.rules} in
+the directory @code{/etc/udev/rules.d}. Here, @var{nn} is a two-digit
+number that determines the lexical order in which the udev rule files are
+processed. Rules processed later can overwrite earlier rules.
+
+USB AVR programmers are normally identified by a two-byte hexadecimal
+vendor ID and a two-byte hexadecimal product id. Here a typical udev rule
+for allowing an ordinary user access to the plugged-in AVRISP mkII
+programmer (product ID 0x2104) by Atmel (vendor ID 0x0eb):
 
 @smallexample
 @cartouche
@@ -4490,26 +4496,27 @@ SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2104", \
 @end cartouche
 @end smallexample
 
-When used in anger, udev rules must appear on one line. Above example was
-broken into two lines so it fits into the example box.
+This furnishes the corresponding device node with @code{0660} access
+permissions: this means r/w for the user @code{root} and any user
+belonging to the group of the device, which the device driver might assign
+to a different group than the default @code{root}. The key of the rule is
+the attached @code{TAG} named @code{uaccess}, which makes udev apply a
+dynamic user access control list to the device node, which makes the
+device usable for logged-in users. When used in anger, udev rules must
+appear on one line; above example was broken into two lines so it fits
+into the example box.
 
-This creates a device with @code{0660} access permissions (r/w for the
-user and any user belonging to the group of the device). The attached TAG
-named uaccess makes udev apply a dynamic user ACL to the device node,
-which coordinates with the system login daemon to make the device also
-usable to logged-in users.
-
-AVRDUDE's developer option @code{-c }@var{programmer}@code{/u} shows above
-suggested udev rule for the named programmer. Wildcards are allowed:
+AVRDUDE's developer option @code{-c }@var{programmer}@code{/u} will show
+above suggested udev rule for the named programmer. Wildcards are allowed:
 
 @smallexample
 @cartouche
 
 $ avrdude -c jtag\*/u
 
-# 1. Put Linux udev rules into /etc/udev/rules.d/80-avrdude.rules (or similar)
-# 2. sudo udevadm control --reload-rules && sudo udevadm trigger (or similar)
-# 3. Unplug the device and plug it in again
+# 1. Put Linux udev rules into, eg, /etc/udev/rules.d/55-avrdude.rules
+# 2. Unplug the device and plug it in again
+# 3. Enjoy user access to the USB programmer
 
 # jtag2dw, jtag2fast, jtag2, jtag2isp, jtag2pdi, jtag2slow, jtagmkII, jtag2avr32
 SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2103", \
@@ -4533,12 +4540,11 @@ SUBSYSTEM=="usb", ATTRS@{idVendor@}=="0403", ATTRS@{idProduct@}=="cff8", \
 @end cartouche
 @end smallexample
 
-Again, each rule must be written as one line (and AVRDUDE outputs them
-correctly): breaking them up as above into two lines with the continuation
-character @code{\} was only done to fit the output to the boxed display.
+Again, each rule must be written as one line: breaking up rules into two
+lines was only done to fit AVRDUDE's output to the boxed display.
 
 USB devices in HID mode require a second rule dealing with the
-@code{hidraw} subsystem.
+@code{hidraw} subsystem as seen above.
 
 @c
 @c Node
