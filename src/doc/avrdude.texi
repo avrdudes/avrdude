@@ -137,7 +137,7 @@ entire memory of the chip from the contents of a file, while interactive mode
 is useful for exploring memory contents, modifying individual bytes of
 eeprom, programming fuse/lock bits, etc.
 
-@cindex Programmers Supported
+@cindex Programmers supported
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
@@ -361,7 +361,7 @@ below for Teensy specific options.
 @c
 @node History,  , Introduction, Introduction
 @section History and Credits
-@cindex History and Credits
+@cindex History and credits
 
 AVRDUDE was written by Brian S. Dean under the name of AVRPROG to run on
 the FreeBSD Operating System.  Brian renamed the software to be called
@@ -392,7 +392,7 @@ Roth.
 @c
 @node Command Line Options, Terminal Mode Operation, Introduction, Top
 @chapter Command Line Options
-@cindex Command Line Options
+@cindex Command line options
 
 @menu
 * Option Descriptions::
@@ -407,7 +407,7 @@ Roth.
 @node Option Descriptions, Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Command Line Options
 @cindex Options (command-line)
 @section Option Descriptions
-@cindex Option Descriptions
+@cindex Option descriptions
 
 @noindent
 AVRDUDE is a command line tool, used as follows:
@@ -442,7 +442,7 @@ there can be deviations from this list, particularly if programming is
 directly via a bootloader. Currently, the following MCU types are
 understood:
 
-@cindex Device Support
+@cindex Device support
 
 @multitable @columnfractions .15 .45
 @include parts.texi
@@ -522,7 +522,7 @@ combination. In reality there can be deviations from this list,
 particularly if programming is directly via a bootloader. Currently, the
 following programmer ids are understood and supported:
 
-@cindex Programmer Support
+@cindex Programmer support
 
 @multitable @columnfractions .3 .68
 @include programmers.texi
@@ -1136,13 +1136,13 @@ see the extended options of the chosen programmer.
 @c Node
 @c
 @node Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Option Descriptions, Command Line Options
-@section Programmers Accepting Exitspec Parameter
-@cindex Programmers Accepting Exitspec parameter
+@section Programmers Accepting Exitspec Parameters
+@cindex Programmers accepting exitspec parameters
 @table @code
 
 @cindex Option @code{-x} flip2
 @cindex Option @code{-x} linuxspi
-@cindex Option @code{-x} Parallel port programmers
+@cindex Option @code{-x} parallel port programmers
 @item flip2
 @itemx linuxspi
 @itemx Parallel port programmers
@@ -1174,7 +1174,7 @@ start the application if @samp{noreset} is used, and this is the default
 behaviour for this bootloader.
 @end table
 
-@cindex Option @code{-x} Parallel port programmers
+@cindex Option @code{-x} parallel port programmers
 @item Parallel port programmers
 
 Parallel port based programmers have a few more options.
@@ -1205,7 +1205,7 @@ This option will leave the 8 data pins on the parallel port inactive
 @c
 @node Programmers Accepting Extended Parameters, Example Command Line Invocations, Programmers Accepting Exitspec Parameter, Command Line Options
 @section Programmers Accepting Extended Parameters
-@cindex Programmers Accepting Extended Parameters
+@cindex Programmers accepting extended parameters
 @table @code
 
 @cindex Option @code{-x} dryboot
@@ -1819,7 +1819,7 @@ Show help menu and exit.
 @c
 @node Example Command Line Invocations,  , Programmers Accepting Extended Parameters, Command Line Options
 @section Example Command Line Invocations
-@cindex Example Command Line Invocations
+@cindex Example Command line invocations
 
 AVRDUDE error messages, warnings and progress reports are generally
 written to stderr which can, in bash, be turned off by @code{2>/dev/null}
@@ -2307,7 +2307,7 @@ avrdude done.  Thank you.
 @c
 @node Terminal Mode Operation, Configuration Files, Command Line Options, Top
 @chapter Terminal Mode Operation
-@cindex Terminal Mode Operation
+@cindex Terminal mode operation
 
 AVRDUDE has an interactive mode called @var{terminal mode} that is
 enabled by the @option{-t} option.  This mode allows one to enter
@@ -2325,7 +2325,7 @@ commands can be recalled and edited.
 
 @node Terminal Mode Commands, Terminal Mode Examples, Terminal Mode Operation, Terminal Mode Operation
 @section Terminal Mode Commands
-@cindex Terminal Mode Commands
+@cindex Terminal mode commands
 
 In this mode, AVRDUDE only initializes communication with the MCU, and then
 awaits user commands on standard input.  Commands and parameters may be
@@ -3420,7 +3420,7 @@ avrdude done.  Thank you.
 @c Node
 @c
 @node Configuration Files, Programmer Specific Information, Terminal Mode Operation, Top
-@cindex Configuration Files
+@cindex Configuration files
 @cindex @code{avrdude.conf}
 @chapter Configuration Files
 
@@ -3462,7 +3462,7 @@ the executable.
 @c
 @node AVRDUDE Defaults, Programmer Definitions, Configuration Files, Configuration Files
 @section AVRDUDE Defaults
-@cindex AVRDUDE Defaults
+@cindex AVRDUDE defaults
 
 @table @code
 
@@ -3519,7 +3519,7 @@ configuration file with @var{yes}.
 @node Programmer Definitions, Serial Adapter Definitions, AVRDUDE Defaults, Configuration Files
 @cindex @code{programmer}
 @section Programmer Definitions
-@cindex Programmer Definitions
+@cindex Programmer definitions
 
 @noindent
 The format of the programmer definition is as follows:
@@ -3642,7 +3642,7 @@ The following programmer types are currently implemented:
 @node Serial Adapter Definitions, Part Definitions, Programmer Definitions, Configuration Files
 @cindex @code{serialadapter}
 @section Serial Adapter Definitions
-@cindex Serial Adapter Definitions
+@cindex Serial adapter definitions
 
 @noindent
 The format of a serial adapter definition is as follows:
@@ -3688,7 +3688,7 @@ utilised as a serialadapter.
 @node Part Definitions, Other Notes, Serial Adapter Definitions, Configuration Files
 @cindex @code{part}
 @section Part Definitions
-@cindex Part Definitions
+@cindex Part definitions
 
 @smallexample
 part
@@ -3830,7 +3830,7 @@ arithemtic and bitwise operators.
 @c
 @node Parent Part, Instruction Format, Part Definitions, Part Definitions
 @subsection Parent Part
-@cindex Parent Part
+@cindex Parent part
 
 @noindent
 Parts can also inherit parameters from previously defined parts using
@@ -3862,7 +3862,7 @@ Example format for part inheritance:
 @c
 @node Instruction Format,  , Parent Part, Part Definitions
 @subsection Instruction Format
-@cindex Instruction Format
+@cindex Instruction format
 
 @noindent
 Instruction formats are specified as a comma separated list of string
@@ -3939,7 +3939,7 @@ Examples:
 @c
 @node Other Notes,  , Part Definitions, Configuration Files
 @section Other Notes
-@cindex Other Notes
+@cindex Other notes
 
 
 @itemize @bullet
@@ -3995,8 +3995,8 @@ Reading fuse and lock bits is fully supported.
 @c Node
 @c
 @node Programmer Specific Information, Platform Dependent Information, Configuration Files, Top
-@chapter Programmer Specific Information
-@cindex Programmer Specific Information
+@chapter Programmer-Specific Information
+@cindex Programmer-specific information
 
 @menu
 * Atmel STK600::
@@ -4108,7 +4108,7 @@ least 4.5 V in order to work.  This can be done using
 @c
 @node DFU Bootloader Using FLIP Version 1, SerialUPDI Programmer , Atmel STK600, Programmer Specific Information
 @section DFU Bootloader Using FLIP Version 1
-@cindex DFU Bootloader Using FLIP Version 1
+@cindex DFU Bootloader using FLIP version 1
 
 Bootloaders using the FLIP protocol version 1 experience some very
 specific behaviour.
@@ -4138,7 +4138,7 @@ versions of the bootloader.
 @node SerialUPDI Programmer, Programmer LED Management, DFU Bootloader Using FLIP Version 1, Programmer Specific Information
 @cindex SerialUPDI
 @section SerialUPDI Programmer
-@cindex SerialUPDI Programmer
+@cindex SerialUPDI programmer
 
 SerialUPDI programmer can be used for programming UPDI-only devices
 using very simple serial connection.
@@ -4231,7 +4231,8 @@ analysis of UPDI protocol quirks easier.
 @c
 @node Programmer LED Management, , SerialUPDI Programmer, Programmer Specific Information
 @section Programmer LED Management
-@cindex Programmer LED Management
+@cindex Programmer LED management
+@cindex LED management
 
 Some hardware programmers have LEDs, and the firmware controls them fully
 without AVRDUDE having a way to influence their LED states. Other
@@ -4286,6 +4287,7 @@ Other combinations should not show after exit.
 * Unix Installation::           
 * Unix Configuration Files::    
 * Unix Port Names::             
+* Linux Udev Rules::
 * Unix Documentation::          
 @end menu
 
@@ -4294,7 +4296,7 @@ Other combinations should not show after exit.
 @c
 @node Unix Installation, Unix Configuration Files, Unix, Unix
 @subsection Unix Installation
-@cindex Unix Installation
+@cindex Unix installation
 
 @noindent
 To build and install from the source tarball on Unix like systems:
@@ -4332,7 +4334,7 @@ $ make install
 @c
 @node FreeBSD Installation, Linux Installation, Unix Installation, Unix Installation
 @subsubsection FreeBSD Installation
-@cindex FreeBSD Installation
+@cindex FreeBSD installation
 
 @noindent
 AVRDUDE is installed via the FreeBSD Ports Tree as follows:
@@ -4360,7 +4362,7 @@ obtained.
 @c
 @node Linux Installation,  , FreeBSD Installation, Unix Installation
 @subsubsection Linux Installation
-@cindex Linux Installation
+@cindex Linux installation
 
 @noindent
 On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
@@ -4380,7 +4382,7 @@ to system. The above example is specific to RedHat.
 @c
 @node Unix Configuration Files, Unix Port Names, Unix Installation, Unix
 @subsection Unix Configuration Files
-@cindex Unix Configuration Files
+@cindex Unix configuration files
 
 @noindent
 When AVRDUDE is build using the default @option{--prefix} configure
@@ -4400,7 +4402,7 @@ augment the system default configuration file.
 @c
 @node FreeBSD Configuration Files, Linux Configuration Files, Unix Configuration Files, Unix Configuration Files
 @subsubsection FreeBSD Configuration Files
-@cindex FreeBSD Configuration Files
+@cindex FreeBSD configuration files
 
 @noindent
 When AVRDUDE is installed using the FreeBSD ports system, the system
@@ -4411,7 +4413,7 @@ configuration file is always @code{/usr/local/etc/avrdude.conf}.
 @c
 @node Linux Configuration Files,  , FreeBSD Configuration Files, Unix Configuration Files
 @subsubsection Linux Configuration Files
-@cindex Linux Configuration Files
+@cindex Linux configuration files
 
 @noindent
 When AVRDUDE is installed using from an rpm package, the system
@@ -4420,9 +4422,9 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 @c
 @c Node
 @c
-@node Unix Port Names, Unix Documentation, Unix Configuration Files, Unix
+@node Unix Port Names, Linux Udev Rules, Unix Configuration Files, Unix
 @subsection Unix Port Names
-@cindex Unix Port Names
+@cindex Unix port names
 
 @noindent
 The parallel and serial port device file names are system specific.
@@ -4460,9 +4462,90 @@ access.
 @c
 @c Node
 @c
+@node Linux Udev Rules, Unix Port Names, Unix Documentation, Unix
+@subsection Linux Udev Rules
+@cindex Linux udev rules
+@cindex udev rules
+
+Linux has a special userspace @code{/dev} device manager called udev that
+deals with, amongst other things, plug-and-play USB devices. So called
+udev rules describe who has the right to access these devices. They
+typically reside in a file with the name pattern
+@var{nn}@code{-}@var{descriptive-name}@code{.rules} in typically the
+directory @code{/etc/udev/rules.d}. Here, @var{nn} is a two-digit number
+that determines the lexical order in which the udev rule files are
+processed. Rules processed later can overwrite earlier rules. One frequent
+way of assigning an ordinary user access to a plugged in USB AVR
+programmer is to identify the programmer by a two-byte hexadecimal vendor
+ID and a two-byte hexadecimal product id in the @code{.rules} file. Here
+is an example for the popular AVRISP mkII programmer (product ID 0x2104)
+by Atmel (vendor ID 0x0eb)
+
+@smallexample
+@cartouche
+
+SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2104", \
+  MODE="0660", TAG+="uaccess"
+
+@end cartouche
+@end smallexample
+
+When used in anger, udev rules must appear on one line. Above example was
+broken into two lines so it fits into the example box.
+
+This creates a device with @code{0660} access permissions (r/w for the
+user and any user belonging to the group of the device). The attached TAG
+named uaccess makes udev apply a dynamic user ACL to the device node,
+which coordinates with the system login daemon to make the device also
+usable to logged-in users.
+
+AVRDUDE's developer option @code{-c }@var{programmer}@code{/u} shows above
+suggested udev rule for the named programmer. Wildcards are allowed:
+
+@smallexample
+@cartouche
+
+$ avrdude -c jtag\*/u
+
+# 1. Put Linux udev rules into /etc/udev/rules.d/80-avrdude.rules (or similar)
+# 2. sudo udevadm control --reload-rules && sudo udevadm trigger (or similar)
+# 3. Unplug the device and plug it in again
+
+# jtag2dw, jtag2fast, jtag2, jtag2isp, jtag2pdi, jtag2slow, jtagmkII, jtag2avr32
+SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2103", \
+  MODE="0660", TAG+="uaccess"
+
+# jtag3, jtag3dw, jtag3isp, jtag3pdi, jtag3updi
+SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2110", \
+  MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS@{idVendor@}=="03eb", \
+  ATTRS@{idProduct@}=="2110", MODE="0660", TAG+="uaccess"
+
+SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2140", \
+  MODE="0660", TAG+="uaccess"
+KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS@{idVendor@}=="03eb", \
+  ATTRS@{idProduct@}=="2140", MODE="0660", TAG+="uaccess"
+
+# jtagkey
+SUBSYSTEM=="usb", ATTRS@{idVendor@}=="0403", ATTRS@{idProduct@}=="cff8", \
+  MODE="0660", TAG+="uaccess"
+
+@end cartouche
+@end smallexample
+
+Again, each rule must be written as one line (and AVRDUDE outputs them
+correctly): breaking them up as above into two lines with the continuation
+character @code{\} was only done to fit the output to the boxed display.
+
+USB devices in HID mode require a second rule dealing with the
+@code{hidraw} subsystem.
+
+@c
+@c Node
+@c
 @node Unix Documentation,  , Unix Port Names, Unix
 @subsection Unix Documentation
-@cindex Unix Documentation
+@cindex Unix documentation
 
 @noindent
 AVRDUDE installs a manual page as well as info, HTML and PDF
@@ -4533,7 +4616,7 @@ compiler version that still supports MinGW builds, or use MinGW
 @c
 @node Windows Configuration Files, Windows Port Names, Windows Installation, Windows
 @subsection Windows Configuration Files
-@cindex Windows Configuration Files
+@cindex Windows configuration files
 
 @menu
 * Configuration file names::    
@@ -4545,7 +4628,7 @@ compiler version that still supports MinGW builds, or use MinGW
 @c
 @node Configuration file names, Windows Configuration File Location, Windows Configuration Files, Windows Configuration Files
 @subsubsection Windows Configuration File Names
-@cindex Windows Configuration File Names
+@cindex Windows configuration file names
 
 @noindent
 AVRDUDE on Windows looks for a system configuration file name of
@@ -4557,7 +4640,7 @@ AVRDUDE on Windows looks for a system configuration file name of
 @c
 @node Windows Configuration File Location,  , Configuration file names, Windows Configuration Files
 @subsubsection Windows Configuration File Location
-@cindex Windows Configuration File Location
+@cindex Windows configuration file location
  
 @noindent
 AVRDUDE on Windows has a different way of searching for the system and
@@ -4598,7 +4681,7 @@ The directories that are listed in the PATH environment variable.
 @c
 @node Windows Port Names, Windows Configuration Files, Windows
 @subsection Windows Port Names
-@cindex Windows Port Names
+@cindex Windows port names
 
 @menu
 * Serial Ports::                
@@ -4610,7 +4693,7 @@ The directories that are listed in the PATH environment variable.
 @c
 @node Serial Ports, Parallel Ports, Windows Port Names, Windows Port Names
 @subsubsection Windows Serial Ports
-@cindex Windows Serial Ports
+@cindex Windows serial ports
  
 @noindent
 When you select a serial port (i.e. when using an STK500) use the
@@ -4621,7 +4704,7 @@ Windows serial port device names such as: com1, com2, etc.
 @c
 @node Parallel Ports,  , Serial Ports, Windows Port Names
 @subsubsection Windows Parallel Ports
-@cindex Windows Parallel Ports
+@cindex Windows parallel ports
 
 @noindent
 AVRDUDE will accept 3 Windows parallel port names: lpt1, lpt2, or
