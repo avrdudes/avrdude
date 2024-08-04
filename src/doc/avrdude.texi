@@ -4480,7 +4480,9 @@ permissions for these devices instead. These rules typically reside in a
 file with the name @var{nn}@code{-}@var{descriptive-name}@code{.rules} in
 the directory @code{/etc/udev/rules.d}. Here, @var{nn} is a two-digit
 number that determines the lexical order in which the udev rule files are
-processed. Rules processed later can overwrite earlier rules.
+processed. Rules processed later can overwrite earlier rules, but it not
+recommended to put user-generated rules higher than 60, as some of the
+actions they require are processed by higher-level system rules.
 
 USB AVR programmers are normally identified by a two-byte hexadecimal
 vendor ID and a two-byte hexadecimal product id. Here a typical udev rule
@@ -4500,11 +4502,11 @@ This furnishes the corresponding device node with @code{0660} access
 permissions: this means r/w for the user @code{root} and any user
 belonging to the group of the device, which the device driver might assign
 to a different group than the default @code{root}. The key of the rule is
-the attached @code{TAG} named @code{uaccess}, which makes udev apply a
-dynamic user access control list to the device node, which makes the
-device usable for logged-in users. When used in anger, udev rules must
-appear on one line; above example was broken into two lines so it fits
-into the example box.
+the attached @code{TAG} named @code{uaccess}, which has the effect that
+the login daemon applies a dynamic user access control list to the device
+node making the device usable for the currently logged-in user. When used
+in anger, udev rules must appear on one line; above example was broken
+into two lines so it fits into the example box.
 
 AVRDUDE's developer option @code{-c }@var{programmer}@code{/u} will show
 above suggested udev rule for the named programmer. Wildcards are allowed:
