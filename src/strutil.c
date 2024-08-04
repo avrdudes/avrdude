@@ -1422,3 +1422,18 @@ const char *str_ccmcunames_signature(const unsigned char *sigs, int pm) {
 
   return str_ccprintf("%s", names);
 }
+
+// Returns a comma-separated list of pgm->id names
+const char *str_ccpgmids(LISTID pgm_id) {
+  char ids[1024], *idp = ids;
+
+  for(LNODEID idn=lfirst(pgm_id); idn; idn=lnext(idn)) {
+    char *id = ldata(idn);
+    if((idp - ids) + 3 + strlen(id) <= sizeof ids) {
+      if(idp > ids)
+        strcpy(idp, ", "), idp += 2;
+      strcpy(idp, id), idp += strlen(id);
+    }
+  }
+  return str_ccprintf("%s", ids);
+}

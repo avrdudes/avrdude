@@ -1696,6 +1696,7 @@ int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n);
 const char *str_ccmcunames_signature(const unsigned char *sigs, int pm);
+const char *str_ccpgmids(LISTID pgm_id);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);
