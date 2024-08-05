@@ -269,17 +269,23 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
   msg_ext_error("\n");
 }
 
+// Whether a memory is an exception that shouldn't be included
+static int exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  return // Classic part usersig memories cannot be read/written using ISP
+    mem_is_usersig(mem) && (p->prog_modes&PM_Classic) && (pgm->prog_modes&p->prog_modes&PM_ISP);
+}
+
 // Whether a memory should be returned for ALL: exclude IO/SRAM
-static int is_interesting_mem(const AVRPART *p, const AVRMEM *mem) {
+static int is_interesting_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   return !(mem_is_io(mem) || mem_is_sram(mem));
 }
 
 // Whether a memory should be backup-ed: exclude sub-memories
-static int is_backup_mem(const AVRPART *p, const AVRMEM *mem) {
+static int is_backup_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   return mem_is_in_flash(mem)? mem_is_flash(mem):
     mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
     mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
-    is_interesting_mem(p, mem);
+    is_interesting_mem(pgm, p, mem) && !(pgm && exclude(pgm, p, mem));
 }
 
 // Add (not == 0) or subtract (not == 1) a memory from list
@@ -296,13 +302,17 @@ static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
 }
 
 /*
- * Generate a memory list from string mstr and put number of memories into *np.
+ * Generate a memory list from string mstr, part p and intended programming
+ * modes pm; then put number of memories into *np.
+ *
  * Memory list can be sth like ee,fl,all,-cal,efuse. -mem or /mem removes it
  * from the list. Normal use is to pass NULL for dry and let the function write
  * to *np and *rwvsoftfail indicating unknown memories for this part. If dry is
  * set then -1 will be written to *dry when a generally unknown memory is used.
  */
-AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
+AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p,
+  int *np, int *rwvsoftp, int *dry) {
+
   int not, nm = (lsize(p->mem) + 1) * ((int) str_numc(mstr, ',') + 1); // Upper limit
   AVRMEM *m, **umemlist = mmt_malloc(nm*sizeof*umemlist);
   char *dstr = mmt_strdup(mstr), *s = dstr, *e;
@@ -317,11 +327,11 @@ AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp,
       s++;
     if(str_eq(s, "ALL")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
-        if(is_interesting_mem(p, (m = ldata(lm))))
+        if(is_interesting_mem(pgm, p, (m = ldata(lm))))
           nm = memadd(umemlist, nm, not,  m);
     } else if(str_eq(s, "all") || str_eq(s, "etc")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
-        if(is_backup_mem(p, (m = ldata(lm))))
+        if(is_backup_mem(pgm, p, (m = ldata(lm))))
           nm = memadd(umemlist, nm, not,  m);
     } else if(!*s) {            // Ignore empty list elements
     } else {
@@ -365,7 +375,7 @@ done:
 // Returns whether or not the memory list contains a flash memory
 int memlist_contains_flash(const char *mstr, const AVRPART *p) {
   int ret = 0, nm = 0;
-  AVRMEM **mlist = memory_list(mstr, p, &nm, NULL, NULL);
+  AVRMEM **mlist = memory_list(mstr, NULL, p, &nm, NULL, NULL);
   for(int i=0; i<nm; i++)
     if(mem_is_in_flash(mlist[i]))
       ret = 1;
@@ -384,7 +394,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
     return 0;
   }
 
-  mmt_free(memory_list(upd->memstr, p, NULL, NULL, &ret));
+  mmt_free(memory_list(upd->memstr, NULL, p, NULL, NULL, &ret));
 
   known = 0;
   // Necessary to check whether the file is readable?
@@ -652,7 +662,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   int allsize, len, maxrlen = 0, ns = 0;
 
   if(is_multimem(umstr)) {
-    umemlist = memory_list(umstr, p, &ns, &rwvsoftfail, NULL);
+    umemlist = memory_list(umstr, pgm, p, &ns, &rwvsoftfail, NULL);
 
     if(!ns) {                   // ns is number of memories listed
       pmsg_warning("skipping -U %s:... as no memory in part %s available\n", umstr, p->desc);
