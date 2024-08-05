@@ -42,16 +42,15 @@
 #if defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0)
 
 #if defined(HAVE_USB_H)
-  #  include <usb.h>
+  #include <usb.h>
 #elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)
   #  include <libusb-1.0/libusb.h>
 #elif defined(HAVE_LIBUSB_H)
   #  include <libusb.h>
-#elif defined(HAVE_LUSB0_USB_H)
-  #  include <lusb0_usb.h>
 #else
   #  error "libusb needs either <usb.h>, <lusb0_usb.h> or <libusb-1.0/libusb.h>"
 #endif
+
 #define USE_LIBUSB_1_0
 
 #define USB_PK5_CMD_READ_EP   0x81
@@ -1104,7 +1103,7 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
 }
 
 
-#if defined(USE_LIBUSB_1_0)
+#if defined(HAVE_USB_H)
 static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer);
 static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer) {
   int rv;
