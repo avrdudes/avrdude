@@ -504,7 +504,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
       if (rc != LIBAVRDUDE_SUCCESS) {
         pmsg_error("unable to read byte at address 0x%04lx\n", i);
         if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
-          pmsg_error("read operation not supported for memory %s\n", mem->desc);
+          // pmsg_error("read operation not supported for memory %s\n", mem->desc);
           report_progress(1, -1, NULL);
           led_set(pgm, LED_ERR);
           led_clr(pgm, LED_PGM);
