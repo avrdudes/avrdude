@@ -74,8 +74,8 @@ struct pdata {
   unsigned char hvupdi_enabled; // 0: no HV / 1: HV generation enabled
   unsigned int  target_voltage; // voltage to supply to target
   unsigned char signature[4];   // as we get DeviceID and Chip revision in one go, buffer them
-  unsigned char txBuf[512];
-  unsigned char rxBuf[512];
+  unsigned char txBuf[1024];
+  unsigned char rxBuf[1024];
   struct avr_script_lut *scripts;
 };
 
@@ -143,6 +143,11 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
   const unsigned char *param,  unsigned int param_len, unsigned int payload_len);
 static int pickit5_send_script_done(const PROGRAMMER *pgm, char *func);
 static int pickit5_read_response(const PROGRAMMER *pgm, char *fn_name);
+
+
+// Extra USB related Functions, because we need more then 2 Endpoints
+static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes);
+static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen);
 
 
 inline static void pickit5_uint32_to_array(unsigned char *buf, uint32_t num) {
@@ -269,7 +274,7 @@ static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
 
 static int pickit5_read_response(const PROGRAMMER *pgm, char *fn_name) {
   unsigned char *buf = PDATA(pgm)->rxBuf;
-  if (serial_recv(&pgm->fd, buf, 512) < 0) {
+  if (serial_recv(&pgm->fd, buf, 1024) < 0) {
     pmsg_error("Reading from PICkit failed");
     return -1;
   }
@@ -314,7 +319,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   // PICkit 5 doesn't have support for HID, so no need to support it
 #if defined(USE_LIBUSB_1_0)
-  serdev = &usb_serdev;
+  serdev = &usb_serdev_frame;
   for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
     pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
@@ -582,7 +587,7 @@ static int pickit5_write_byte (const PROGRAMMER *pgm, const AVRPART *p,
 
       serial_send(&pgm->fd, write8_fast, m_len);
       unsigned char *buf = PDATA(pgm)->rxBuf;
-      if (serial_recv(&pgm->fd, buf, 512) >= 0) {  // read response
+      if (serial_recv(&pgm->fd, buf, 1024) >= 0) {  // read response
         if (buf[0] == 0x0D) {
           return 0;
         }
@@ -631,7 +636,7 @@ static int pickit5_read_byte (const PROGRAMMER *pgm, const AVRPART *p,
 
       serial_send(&pgm->fd, read8_fast, m_len);
       unsigned char *buf = PDATA(pgm)->rxBuf;
-      if (serial_recv(&pgm->fd, buf, 512) >= 0) {  // read response
+      if (serial_recv(&pgm->fd, buf, 1024) >= 0) {  // read response
         if (buf[0] == 0x0D) {
           if (buf[20] == 0x01) {
             *value = buf[24];
@@ -696,7 +701,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
     pmsg_error("Reading Script Response\n");
     return -1;
   }
-  if (serial_send_ep(&pgm->fd, USB_PK5_DATA_WRITE_EP, value, len) < 0) {
+  if (usbdev_data_send(&pgm->fd, value, len) < 0) {
     pmsg_error("Failed to send data\n");
     return -1;
   }
@@ -771,7 +776,7 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
     pmsg_error("Read Response Failed\n");
     return -1;
   }
-  if (serial_recv_ep(&pgm->fd, USB_PK5_DATA_READ_EP, value, len) < 0) {
+  if (usbdev_data_recv(&pgm->fd, value, len) < 0) {
     pmsg_error("Reading Data Memory failed\n");
     return -1;
   }
@@ -881,7 +886,7 @@ static int pickit5_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigne
     pmsg_error("Read Response Failed\n");
     return -1;
   }
-  if (serial_recv_ep(&pgm->fd, USB_PK5_DATA_READ_EP, value, 1) < 0) {
+  if (usbdev_data_recv(&pgm->fd, value, 1) < 0) {
     pmsg_error("Reading CS Memory failed\n");
     return -1;
   }
@@ -903,7 +908,8 @@ static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
     return -1;
   }
 
-  if (serial_recv(&pgm->fd, buf, 512) < 0) {
+  // PICkit didn't like receive transfers smaller 1024
+  if (serial_recv(&pgm->fd, buf, 1024) < 0) {
     pmsg_error("Failed to receive FW response\n");
     return -1;
   }
@@ -1004,7 +1010,7 @@ static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
   if (pickit5_read_response(pgm, "Set PTG mode") < 0)
     return -1;
   
-  if (serial_recv_ep(&pgm->fd, USB_PK5_DATA_READ_EP, buf, 4) < 0)
+  if (usbdev_data_recv(&pgm->fd, buf, 4) < 0)
     return -1;
   if (pickit5_send_script_done(pgm, "Set PTG Mode") < 0)
     return -1;
@@ -1033,7 +1039,7 @@ static int pickit5_get_Status(const PROGRAMMER *pgm, unsigned char status) {
   unsigned int msg_len = 16 + key_len;
   pickit5_create_payload_header(&buf[0], type, msg_len, 0);
   serial_send(&pgm->fd, buf, msg_len);
-  serial_recv(&pgm->fd, PDATA(pgm)->rxBuf, 512);
+  serial_recv(&pgm->fd, PDATA(pgm)->rxBuf, 1024);
   if (pickit5_check_ret_status(pgm) < 0) {
     return -1;
   }
@@ -1097,6 +1103,107 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   pgm->get_vtarget    = pickit5_get_vtarget;
 
 }
+
+
+#if defined(HAVE_USB_H)
+static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer);
+static int usb_fill_buf(const union filedescriptor *fd, int maxsize, int ep, int use_interrupt_xfer) {
+  int rv;
+
+  if (use_interrupt_xfer)
+    rv = usb_interrupt_read(fd->usb.handle, ep, cx->usb_buf, maxsize, 10000);
+  else
+    rv = usb_bulk_read(fd->usb.handle, ep, cx->usb_buf, maxsize, 10000);
+  if (rv < 0)
+    {
+      pmsg_notice2("usb_fill_buf(): usb_%s_read() error: %s\n",
+        use_interrupt_xfer? "interrupt": "bulk", usb_strerror());
+      return -1;
+    }
+
+  cx->usb_buflen = rv;
+  cx->usb_bufptr = 0;
+
+  return 0;
+}
+
+static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
+  int i, amnt;
+  unsigned char  *p = buf;
+
+  if (fd->usb.handle == NULL)
+    return -1;
+
+  for (i = 0; nbytes > 0;)
+    {
+      if (cx->usb_buflen <= cx->usb_bufptr)
+	{
+	  if (usb_fill_buf(fd, fd->usb.max_xfer, USB_PK5_DATA_READ_EP, fd->usb.use_interrupt_xfer) < 0)
+	    return -1;
+	}
+      amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
+      memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
+      cx->usb_bufptr += amnt;
+      nbytes -= amnt;
+      i += amnt;
+    }
+
+  if(verbose > 4)
+    trace_buffer(__func__, p, i);
+
+  return 0;
+}
+
+static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
+  int rv;
+  int i = mlen;
+  const unsigned char  *p = bp;
+  int tx_size;
+
+  if (fd->usb.handle == NULL)
+    return -1;
+
+  /*
+   * Split the frame into multiple packets.  It's important to make
+   * sure we finish with a short packet, or else the device won't know
+   * the frame is finished.  For example, if we need to send 64 bytes,
+   * we must send a packet of length 64 followed by a packet of length
+   * 0.
+   */
+  do {
+    tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
+    if (fd->usb.use_interrupt_xfer)
+      rv = usb_interrupt_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *)bp, tx_size, 10000);
+    else
+      rv = usb_bulk_write(fd->usb.handle, USB_PK5_DATA_WRITE_EP, (char *)bp, tx_size, 10000);
+    if (rv != tx_size)
+    {
+        pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
+        return -1;
+    }
+    bp += tx_size;
+    mlen -= tx_size;
+  } while (mlen > 0);
+
+  if(verbose > 3)
+    trace_buffer(__func__, p, i);
+  return 0;
+}
+#else 
+ 
+// Allow compiling without throwing dozen errors
+// We need libusb so we can access specific Endpoints.
+// This does not seem to be possible with usbhid
+
+static int usbdev_data_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
+  return -1;
+}
+
+static int usbdev_data_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen) {
+  return -1;
+}
+
+#endif
 
 
 #else /* defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0) */

@@ -848,8 +848,6 @@ struct serial_device {
 
   int (*send)(const union filedescriptor *fd, const unsigned char * buf, size_t buflen);
   int (*recv)(const union filedescriptor *fd, unsigned char * buf, size_t buflen);
-  int (*send_ep)(const union filedescriptor *fd, unsigned char ep, const unsigned char * buf, size_t buflen);
-  int (*recv_ep)(const union filedescriptor *fd, unsigned char ep, unsigned char * buf, size_t buflen);
   int (*drain)(const union filedescriptor *fd, int display);
 
   int (*set_dtr_rts)(const union filedescriptor *fd, int is_on);
@@ -873,8 +871,6 @@ extern struct serial_device usbhid_serdev;
 #define serial_rawclose (serdev->rawclose)
 #define serial_send (serdev->send)
 #define serial_recv (serdev->recv)
-#define serial_send_ep (serdev->send_ep)
-#define serial_recv_ep (serdev->recv_ep)
 #define serial_drain (serdev->drain)
 #define serial_set_dtr_rts (serdev->set_dtr_rts)
 

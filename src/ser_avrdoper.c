@@ -263,11 +263,6 @@ static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *b
     return 0;
 }
 
-static int avrdoper_send_ep(const union filedescriptor *fdp, unsigned char ep, const unsigned char *buf, size_t buflen)
-{
-  return avrdoper_send(fdp, buf, buflen);
-}
-
 /* ------------------------------------------------------------------------- */
 
 static int avrdoperFillBuffer(const union filedescriptor *fdp) {
@@ -325,12 +320,6 @@ static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, si
     return 0;
 }
 
-static int avrdoper_recv_ep(const union filedescriptor *fdp, unsigned char ep, unsigned char *buf, size_t buflen)
-{
-  return avrdoper_recv(fdp, buf, buflen);
-}
-
-
 /* ------------------------------------------------------------------------- */
 
 static int avrdoper_drain(const union filedescriptor *fdp, int display)
@@ -359,8 +348,6 @@ struct serial_device avrdoper_serdev =
   .rawclose = avrdoper_close,
   .send = avrdoper_send,
   .recv = avrdoper_recv,
-  .send_ep = avrdoper_send_ep,
-  .recv_ep = avrdoper_recv_ep,
   .drain = avrdoper_drain,
   .set_dtr_rts = avrdoper_set_dtr_rts,
   .flags = SERDEV_FL_NONE,

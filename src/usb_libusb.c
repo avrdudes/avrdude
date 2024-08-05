@@ -306,7 +306,8 @@ static void usbdev_close(union filedescriptor *fd)
   usb_close(udev);
 }
 
-static int usbdev_send_ep(const union filedescriptor *fd, unsigned char wep, const unsigned char *bp, size_t mlen)
+
+static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv;
@@ -327,9 +328,9 @@ static int usbdev_send_ep(const union filedescriptor *fd, unsigned char wep, con
   do {
     tx_size = ((int) mlen < fd->usb.max_xfer)? (int) mlen: fd->usb.max_xfer;
     if (fd->usb.use_interrupt_xfer)
-      rv = usb_interrupt_write(udev, wep, (char *)bp, tx_size, 10000);
+      rv = usb_interrupt_write(udev, fd->usb.wep, (char *)bp, tx_size, 10000);
     else
-      rv = usb_bulk_write(udev, wep, (char *)bp, tx_size, 10000);
+      rv = usb_bulk_write(udev, fd->usb.wep, (char *)bp, tx_size, 10000);
     if (rv != tx_size)
     {
         pmsg_error("wrote %d out of %d bytes, err = %s\n", rv, tx_size, usb_strerror());
@@ -343,12 +344,6 @@ static int usbdev_send_ep(const union filedescriptor *fd, unsigned char wep, con
     trace_buffer(__func__, p, i);
   return 0;
 }
-
-static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, size_t mlen)
-{
-  return usbdev_send_ep(fd, fd->usb.wep, bp, mlen);
-}
-
 
 /*
  * As calls to usb_bulk_read() result in exactly one USB request, we
@@ -379,7 +374,7 @@ static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_inter
   return 0;
 }
 
-static int usbdev_recv_ep(const union filedescriptor *fd, unsigned char rep, unsigned char *buf, size_t nbytes)
+static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int i, amnt;
@@ -392,7 +387,7 @@ static int usbdev_recv_ep(const union filedescriptor *fd, unsigned char rep, uns
     {
       if (cx->usb_buflen <= cx->usb_bufptr)
 	{
-	  if (usb_fill_buf(udev, fd->usb.max_xfer, rep, fd->usb.use_interrupt_xfer) < 0)
+	  if (usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep, fd->usb.use_interrupt_xfer) < 0)
 	    return -1;
 	}
       amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
@@ -408,12 +403,6 @@ static int usbdev_recv_ep(const union filedescriptor *fd, unsigned char rep, uns
   return 0;
 }
 
-static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
-{
-  return usbdev_recv_ep(fd, fd->usb.rep, buf, nbytes);
-}
-
-
 /*
  * This version of recv keeps reading packets until we receive a short
  * packet.  Then, the entire frame is assembled and returned to the
@@ -423,7 +412,7 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
  *
  * This is used for the AVRISP mkII device.
  */
-static int usbdev_recv_frame_ep(const union filedescriptor *fd, unsigned char rep, unsigned char *buf, size_t nbytes)
+static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
 {
   usb_dev_handle *udev = (usb_dev_handle *)fd->usb.handle;
   int rv, n;
@@ -455,10 +444,10 @@ static int usbdev_recv_frame_ep(const union filedescriptor *fd, unsigned char re
   do
     {
       if (fd->usb.use_interrupt_xfer)
-	rv = usb_interrupt_read(udev, rep, cx->usb_buf,
+	rv = usb_interrupt_read(udev, fd->usb.rep, cx->usb_buf,
 				fd->usb.max_xfer, 10000);
       else
-	rv = usb_bulk_read(udev, rep, cx->usb_buf,
+	rv = usb_bulk_read(udev, fd->usb.rep, cx->usb_buf,
 			   fd->usb.max_xfer, 10000);
       if (rv < 0)
 	{
@@ -504,11 +493,6 @@ static int usbdev_recv_frame_ep(const union filedescriptor *fd, unsigned char re
   return n;
 }
 
-static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf, size_t nbytes)
-{
-  return usbdev_recv_frame_ep(fd, fd->usb.rep, buf, nbytes);
-}
-
 static int usbdev_drain(const union filedescriptor *fd, int display)
 {
   /*
@@ -535,8 +519,6 @@ struct serial_device usb_serdev =
   .rawclose = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv,
-  .send_ep = usbdev_send_ep,
-  .recv_ep = usbdev_recv_ep,
   .drain = usbdev_drain,
   .flags = SERDEV_FL_NONE,
 };
@@ -551,8 +533,6 @@ struct serial_device usb_serdev_frame =
   .rawclose = usbdev_close,
   .send = usbdev_send,
   .recv = usbdev_recv_frame,
-  .send_ep = usbdev_send_ep,
-  .recv_ep = usbdev_recv_frame_ep,
   .drain = usbdev_drain,
   .flags = SERDEV_FL_NONE,
 };

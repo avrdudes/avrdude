@@ -272,11 +272,6 @@ static int usbhid_send(const union filedescriptor *fd, const unsigned char *bp, 
   return 0;
 }
 
-static int usbhid_send_ep(const union filedescriptor *fd, unsigned char ep, const unsigned char *buf, size_t nbytes)
-{
-  return usbhid_send(fd, buf, nbytes);
-}
-
 static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_t nbytes) {
   hid_device *udev = (hid_device *)fd->usb.handle;
   int i, rv;
@@ -295,11 +290,6 @@ static int usbhid_recv(const union filedescriptor *fd, unsigned char *buf, size_
     trace_buffer(__func__, p, i);
 
   return rv;
-}
-
-static int usbhid_recv_ep(const union filedescriptor *fd, unsigned char ep, unsigned char *buf, size_t nbytes)
-{
-  return usbhid_recv(fd, buf, nbytes);
 }
 
 static int usbhid_drain(const union filedescriptor *fd, int display) {
@@ -326,8 +316,6 @@ struct serial_device usbhid_serdev = {
   .rawclose = usbhid_close,
   .send = usbhid_send,
   .recv = usbhid_recv,
-  .send_ep = usbhid_send_ep,
-  .recv_ep = usbhid_recv_ep,
   .drain = usbhid_drain,
   .flags = SERDEV_FL_NONE,
 };
