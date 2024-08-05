@@ -433,6 +433,10 @@ static int ser_send(const union filedescriptor *fd, const unsigned char *buf, si
   return 0;
 }
 
+static int ser_send_ep(const union filedescriptor *fd, unsigned char ep, const unsigned char *buf, size_t buflen)
+{
+  return ser_send(fd, buf, buflen);
+}
 
 static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t buflen) {
   struct timeval timeout, to2;
@@ -480,6 +484,11 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     trace_buffer(__func__, buf, len);
 
   return 0;
+}
+
+static int ser_recv_ep(const union filedescriptor *fd, unsigned char ep, unsigned char *buf, size_t buflen)
+{
+  return ser_recv(fd, buf, buflen);
 }
 
 
@@ -541,6 +550,8 @@ struct serial_device serial_serdev =
   .rawclose = ser_rawclose,
   .send = ser_send,
   .recv = ser_recv,
+  .send_ep = ser_send_ep,
+  .recv_ep = ser_recv_ep,
   .drain = ser_drain,
   .set_dtr_rts = ser_set_dtr_rts,
   .flags = SERDEV_FL_CANSETSPEED,
