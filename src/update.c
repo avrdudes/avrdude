@@ -269,15 +269,9 @@ static void ioerror(const char *iotype, const UPDATE *upd) {
   msg_ext_error("\n");
 }
 
-// Whether a memory is an exception that shouldn't be included
-static int exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-  return // Classic part usersig memories cannot be read/written using ISP
-    mem_is_usersig(mem) && (p->prog_modes&PM_Classic) && (pgm->prog_modes&p->prog_modes&PM_ISP);
-}
-
 // Whether a memory should be returned for ALL: exclude IO/SRAM
 static int is_interesting_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-  return !mem_is_io(mem) && !mem_is_sram(mem) && !(pgm && exclude(pgm, p, mem));
+  return !mem_is_io(mem) && !mem_is_sram(mem) && !(pgm && avr_mem_exclude(pgm, p, mem));
 }
 
 // Whether a memory should be backup-ed: exclude sub-memories

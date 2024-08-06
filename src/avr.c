@@ -1599,6 +1599,12 @@ Memtable avr_mem_order[100] = {
   {"sib",         MEM_SIB | MEM_READONLY},
 };
 
+// Whether a memory is an exception that shouldn't be there for this particular i/face
+int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  return // Classic part usersig memories cannot be read/written using ISP
+    mem_is_usersig(mem) && (p->prog_modes&PM_Classic) && (pgm->prog_modes&p->prog_modes&PM_ISP);
+}
+
 int avr_get_mem_type(const char *str) {
   for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {
     if(avr_mem_order[i].str && str_eq(avr_mem_order[i].str, str))
