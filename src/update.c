@@ -277,7 +277,7 @@ static int exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
 
 // Whether a memory should be returned for ALL: exclude IO/SRAM
 static int is_interesting_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-  return !(mem_is_io(mem) || mem_is_sram(mem));
+  return !mem_is_io(mem) && !mem_is_sram(mem) && !(pgm && exclude(pgm, p, mem));
 }
 
 // Whether a memory should be backup-ed: exclude sub-memories
@@ -285,7 +285,7 @@ static int is_backup_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
   return mem_is_in_flash(mem)? mem_is_flash(mem):
     mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
     mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
-    is_interesting_mem(pgm, p, mem) && !(pgm && exclude(pgm, p, mem));
+    is_interesting_mem(pgm, p, mem);
 }
 
 // Add (not == 0) or subtract (not == 1) a memory from list
