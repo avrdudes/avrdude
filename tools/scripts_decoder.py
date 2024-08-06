@@ -54,6 +54,13 @@ c_dict = {
     "ReadSIB" : [],
 }
 
+# List of MCUs that should not end up in the lookup-table,
+# preferably only those that are known not be released
+# in the future
+mcu_blacklist = [
+    "AVR16DV14", "AVR16DV20"
+]
+
 # A complete list of Functions defined in the scripts.xml
 # This string was used to generate an intermediate python file
 dict_header = \
@@ -429,6 +436,8 @@ def convert_xml(xml_path, c_dict):
             function_name = function_name[0:-5]     # remove "_UPDI" from function name
             if (function_name in c_dict):           # filter out unneded functions
                 chip_name = script[1].text          # get chip name
+                if (chip_name in mcu_blacklist):    # filter out chips in blacklist
+                    continue
                 if (chip_name not in mcu_dict):
                     mcu_dict[chip_name] = dict()
                 if (function_name not in mcu_dict[chip_name]):

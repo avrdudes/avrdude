@@ -586,16 +586,16 @@ const char *pickit5_chip_lut[] = {
   "AVR32DD14", "AVR32DD20", "AVR32DD28", "AVR32DD32", "AVR64DA28", "AVR64DA32", "AVR64DA48", "AVR64DA64", 
   "AVR64DB28", "AVR64DB32", "AVR64DB48", "AVR64DB64", "AVR64DD14", "AVR64DD20", "AVR64DD28", "AVR64DD32", 
   "AVR64EA28", "AVR64EA32", "AVR64EA48", "AVR16DA28", "AVR16DA32", "AVR16DA48", "AVR16DB28", "AVR16DB32", 
-  "AVR16DB48", "AVR16DU14", "AVR16DU20", "AVR16DU28", "AVR16DU32", "AVR16DV14", "AVR16DV20", "AVR32DU14", 
-  "AVR32DU20", "AVR32DU28", "AVR32DU32", "AVR64DU28", "AVR64DU32", "AVR16EA28", "AVR16EA32", "AVR16EA48", 
-  "AVR32EA28", "AVR32EA32", "AVR32EA48", "AVR8EA28", "AVR8EA32", "AVR16EB14", "AVR16EB20", "AVR16EB28", 
-  "AVR16EB32", "AVR32EB28", "AVR32EB32", "AVR64EC48", "AVR32SD32", "AVR64SD48", 
+  "AVR16DB48", "AVR16DU14", "AVR16DU20", "AVR16DU28", "AVR16DU32", "AVR32DU14", "AVR32DU20", "AVR32DU28", 
+  "AVR32DU32", "AVR64DU28", "AVR64DU32", "AVR16EA28", "AVR16EA32", "AVR16EA48", "AVR32EA28", "AVR32EA32", 
+  "AVR32EA48", "AVR8EA28", "AVR8EA32", "AVR16EB14", "AVR16EB20", "AVR16EB28", "AVR16EB32", "AVR32EB28", 
+  "AVR32EB32", "AVR64EC48", "AVR32SD32", "AVR64SD48", 
 };
 
 
 struct avr_script_lut* get_pickit_script(const char* partdesc) { 
   int namepos = -1;
-  for (int i = 0; i < 118; i++) {
+  for (int i = 0; i < 116; i++) {
     if (strncmp(pickit5_chip_lut[i], partdesc, 10) == 0) {
       namepos = i;
       break;
@@ -750,14 +750,12 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 90:  /* AVR16DU20 */
     case 91:  /* AVR16DU28 */
     case 92:  /* AVR16DU32 */
-    case 93:  /* AVR16DV14 */
-    case 94:  /* AVR16DV20 */
-    case 95:  /* AVR32DU14 */
-    case 96:  /* AVR32DU20 */
-    case 97:  /* AVR32DU28 */
-    case 98:  /* AVR32DU32 */
-    case 99:  /* AVR64DU28 */
-    case 100:  /* AVR64DU32 */
+    case 93:  /* AVR32DU14 */
+    case 94:  /* AVR32DU20 */
+    case 95:  /* AVR32DU28 */
+    case 96:  /* AVR32DU32 */
+    case 97:  /* AVR64DU28 */
+    case 98:  /* AVR64DU32 */
       avr_scripts.GetDeviceID = GetDeviceID_1;
       avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
       avr_scripts.WriteProgmem = WriteProgmem_4;
@@ -771,14 +769,14 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
       avr_scripts.WriteConfigmem = WriteConfigmem_3;
       avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_3);
       break;
-    case 101:  /* AVR16EA28 */
-    case 102:  /* AVR16EA32 */
-    case 103:  /* AVR16EA48 */
-    case 104:  /* AVR32EA28 */
-    case 105:  /* AVR32EA32 */
-    case 106:  /* AVR32EA48 */
-    case 107:  /* AVR8EA28 */
-    case 108:  /* AVR8EA32 */
+    case 99:  /* AVR16EA28 */
+    case 100:  /* AVR16EA32 */
+    case 101:  /* AVR16EA48 */
+    case 102:  /* AVR32EA28 */
+    case 103:  /* AVR32EA32 */
+    case 104:  /* AVR32EA48 */
+    case 105:  /* AVR8EA28 */
+    case 106:  /* AVR8EA32 */
       avr_scripts.GetDeviceID = GetDeviceID_0;
       avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_0);
       avr_scripts.WriteProgmem = WriteProgmem_5;
@@ -792,12 +790,12 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
       avr_scripts.WriteConfigmem = WriteConfigmem_2;
       avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
-    case 109:  /* AVR16EB14 */
-    case 110:  /* AVR16EB20 */
-    case 111:  /* AVR16EB28 */
-    case 112:  /* AVR16EB32 */
-    case 113:  /* AVR32EB28 */
-    case 114:  /* AVR32EB32 */
+    case 107:  /* AVR16EB14 */
+    case 108:  /* AVR16EB20 */
+    case 109:  /* AVR16EB28 */
+    case 110:  /* AVR16EB32 */
+    case 111:  /* AVR32EB28 */
+    case 112:  /* AVR32EB32 */
       avr_scripts.GetDeviceID = GetDeviceID_1;
       avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
       avr_scripts.WriteProgmem = WriteProgmem_5;
@@ -811,7 +809,7 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
       avr_scripts.WriteConfigmem = WriteConfigmem_2;
       avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
-    case 115:  /* AVR64EC48 */
+    case 113:  /* AVR64EC48 */
       avr_scripts.GetDeviceID = GetDeviceID_1;
       avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
       avr_scripts.WriteProgmem = WriteProgmem_3;
@@ -825,8 +823,8 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
       avr_scripts.WriteConfigmem = WriteConfigmem_2;
       avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
-    case 116:  /* AVR32SD32 */
-    case 117:  /* AVR64SD48 */
+    case 114:  /* AVR32SD32 */
+    case 115:  /* AVR64SD48 */
       avr_scripts.GetDeviceID = GetDeviceID_1;
       avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
       avr_scripts.WriteProgmem = WriteProgmem_6;
