@@ -3017,13 +3017,13 @@ programmer # pickit4_tpi
 #
 
 #------------------------------------------------------------
-# pickit5
+# pickit5 /pickit5_updi
 #------------------------------------------------------------
 
 programmer # pickit5
-    id                     = "pickit5";
-    desc                   = "MPLAB(R) PICkit 5";
-    type                   = "pickit5";
+    id                     = "pickit5_updi";
+    desc                   = "MPLAB(R) PICkit 5 in UPDI Mode";
+    type                   = "pickit5_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;

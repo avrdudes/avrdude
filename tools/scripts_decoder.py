@@ -289,7 +289,8 @@ struct avr_script_lut {
 '''
 };
 
-struct avr_script_lut* get_pickit_script(const char *partdesc);
+typedef struct avr_script_lut SCRIPT;
+int get_pickit_script(SCRIPT *scr, const char *partdesc);
 
 #ifdef __cplusplus
 }
@@ -482,6 +483,8 @@ def convert_xml(xml_path, c_dict):
         c_file.write("#include <stddef.h>\n")
         c_file.write("#include <string.h>\n")
         c_file.write("#include \"pickit5_lut.h\"\n\n\n")
+
+        # Generate the arrays for the functions
         struct_init_func = ""
         struct_init_len = ""
         for func_name in func_dict:                                 # for each function in our database
@@ -499,20 +502,22 @@ def convert_xml(xml_path, c_dict):
                 c_file.write(array_str)
 
             if array_iterator == 1:
-                struct_init_func += "  .{0} = {0}_0,\n".format(func_name)
-                struct_init_len  += "  .{0}_len = sizeof({0}_0),\n".format(func_name)
+                struct_init_func += "  scr->{0} = {0}_0;\n".format(func_name)
+                struct_init_len  += "  scr->{0}_len = sizeof({0}_0);\n".format(func_name)
             else:
-                struct_init_func += "  .{0} = NULL,\n".format(func_name)
-                struct_init_len  += "  .{0}_len = 0,\n".format(func_name)
+                struct_init_func += "  scr->{0} = NULL;\n".format(func_name)
+                struct_init_len  += "  scr->{0}_len = 0;\n".format(func_name)
                 non_unique_func.append(func_name)
 
 
-        c_file.write("\n\n\nstruct avr_script_lut avr_scripts = {\n")
+        c_file.write("\n\n\nstatic void pickit_script_init(SCRIPT *scr);\n")   # declaration
+        c_file.write("static void pickit_script_init(SCRIPT *scr) {\n")        # definition
         c_file.write(struct_init_func)
+        c_file.write("\n")              # improve readability
         c_file.write(struct_init_len)
-        c_file.write("};\n\n\n")
+        c_file.write("}\n\n\n")
 
-        chip_lut_str = "const char *pickit5_chip_lut[] = {\n  "
+        chip_lut_str = "const char * const pickit5_chip_lut[] = {\n  "
         chip_name_iterator = 0
         for chip_name in mcu_dict:
             chip_lut_str += "\""
@@ -524,13 +529,15 @@ def convert_xml(xml_path, c_dict):
         chip_lut_str += "\n};\n\n\n"
         c_file.write(chip_lut_str)
 
-        c_func_str = "struct avr_script_lut* get_pickit_script(const char* partdesc) { \n"
+        c_func_str = "int get_pickit_script(SCRIPT *scr, const char* partdesc) { \n"
+        c_func_str += "  if ((scr == NULL) || (partdesc == NULL))\n    return -1;\n\n"
         c_func_str += "  int namepos = -1;\n"
         c_func_str += "  for (int i = 0; i < {0}; i++)".format(chip_name_iterator)
         c_func_str += " {\n"
         c_func_str += "    if (strncmp(pickit5_chip_lut[i], partdesc, 10) == 0) {\n"
         c_func_str += "      namepos = i;\n      break;\n    }\n  }\n"
-        c_func_str += "  if (namepos == -1) {\n    return NULL;\n  }\n"
+        c_func_str += "  if (namepos == -1) {\n    return -2;\n  }\n\n"
+        c_func_str += "  pickit_script_init(scr);   // load common functions\n\n"
         c_file.write(c_func_str)
 
 
@@ -545,8 +552,8 @@ def convert_xml(xml_path, c_dict):
             chip_func = mcu_dict[chip_name]
             for func_lut in chip_func:
                 if func_lut in non_unique_func:
-                    break_str_list[switch_iterator] += "      avr_scripts.{0} = {0}_{1};\n".format(func_lut, chip_func[func_lut])
-                    break_str_list[switch_iterator] += "      avr_scripts.{0}_len = sizeof({0}_{1});\n".format(func_lut, chip_func[func_lut])
+                    break_str_list[switch_iterator] += "      scr->{0} = {0}_{1};\n".format(func_lut, chip_func[func_lut])
+                    break_str_list[switch_iterator] += "      scr->{0}_len = sizeof({0}_{1});\n".format(func_lut, chip_func[func_lut])
             break_str_list[switch_iterator] += "      break;\n"
             switch_iterator += 1
         
@@ -564,7 +571,7 @@ def convert_xml(xml_path, c_dict):
                 c_file.write(file_str)
 
 
-        c_file.write("    }\n    return &avr_scripts;\n  }")
+        c_file.write("    }\n    return 0;\n  }")
     print("c-File generated")
     pass
 

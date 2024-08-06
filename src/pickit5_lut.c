@@ -532,49 +532,51 @@ const unsigned char ReadSIB_0[7] = {
 
 
 
-struct avr_script_lut avr_scripts = {
-  .EnterProgMode = EnterProgMode_0,
-  .EnterProgModeHvSp = EnterProgModeHvSp_0,
-  .EnterProgModeHvSpRst = EnterProgModeHvSpRst_0,
-  .EnterProgModeHvUpt = EnterProgModeHvUpt_0,
-  .ExitProgMode = ExitProgMode_0,
-  .SetSpeed = SetSpeed_0,
-  .GetDeviceID = NULL,
-  .EraseChip = EraseChip_0,
-  .WriteProgmem = NULL,
-  .ReadProgmem = NULL,
-  .WriteDataEEmem = NULL,
-  .ReadDataEEmem = NULL,
-  .WriteConfigmem = NULL,
-  .ReadConfigmem = ReadConfigmem_0,
-  .WriteCSreg = WriteCSreg_0,
-  .ReadCSreg = ReadCSreg_0,
-  .WriteMem8 = WriteMem8_0,
-  .ReadMem8 = ReadMem8_0,
-  .ReadSIB = ReadSIB_0,
-  .EnterProgMode_len = sizeof(EnterProgMode_0),
-  .EnterProgModeHvSp_len = sizeof(EnterProgModeHvSp_0),
-  .EnterProgModeHvSpRst_len = sizeof(EnterProgModeHvSpRst_0),
-  .EnterProgModeHvUpt_len = sizeof(EnterProgModeHvUpt_0),
-  .ExitProgMode_len = sizeof(ExitProgMode_0),
-  .SetSpeed_len = sizeof(SetSpeed_0),
-  .GetDeviceID_len = 0,
-  .EraseChip_len = sizeof(EraseChip_0),
-  .WriteProgmem_len = 0,
-  .ReadProgmem_len = 0,
-  .WriteDataEEmem_len = 0,
-  .ReadDataEEmem_len = 0,
-  .WriteConfigmem_len = 0,
-  .ReadConfigmem_len = sizeof(ReadConfigmem_0),
-  .WriteCSreg_len = sizeof(WriteCSreg_0),
-  .ReadCSreg_len = sizeof(ReadCSreg_0),
-  .WriteMem8_len = sizeof(WriteMem8_0),
-  .ReadMem8_len = sizeof(ReadMem8_0),
-  .ReadSIB_len = sizeof(ReadSIB_0),
-};
+static void pickit_script_init(SCRIPT *scr);
+static void pickit_script_init(SCRIPT *scr) {
+  scr->EnterProgMode = EnterProgMode_0;
+  scr->EnterProgModeHvSp = EnterProgModeHvSp_0;
+  scr->EnterProgModeHvSpRst = EnterProgModeHvSpRst_0;
+  scr->EnterProgModeHvUpt = EnterProgModeHvUpt_0;
+  scr->ExitProgMode = ExitProgMode_0;
+  scr->SetSpeed = SetSpeed_0;
+  scr->GetDeviceID = NULL;
+  scr->EraseChip = EraseChip_0;
+  scr->WriteProgmem = NULL;
+  scr->ReadProgmem = NULL;
+  scr->WriteDataEEmem = NULL;
+  scr->ReadDataEEmem = NULL;
+  scr->WriteConfigmem = NULL;
+  scr->ReadConfigmem = ReadConfigmem_0;
+  scr->WriteCSreg = WriteCSreg_0;
+  scr->ReadCSreg = ReadCSreg_0;
+  scr->WriteMem8 = WriteMem8_0;
+  scr->ReadMem8 = ReadMem8_0;
+  scr->ReadSIB = ReadSIB_0;
+
+  scr->EnterProgMode_len = sizeof(EnterProgMode_0);
+  scr->EnterProgModeHvSp_len = sizeof(EnterProgModeHvSp_0);
+  scr->EnterProgModeHvSpRst_len = sizeof(EnterProgModeHvSpRst_0);
+  scr->EnterProgModeHvUpt_len = sizeof(EnterProgModeHvUpt_0);
+  scr->ExitProgMode_len = sizeof(ExitProgMode_0);
+  scr->SetSpeed_len = sizeof(SetSpeed_0);
+  scr->GetDeviceID_len = 0;
+  scr->EraseChip_len = sizeof(EraseChip_0);
+  scr->WriteProgmem_len = 0;
+  scr->ReadProgmem_len = 0;
+  scr->WriteDataEEmem_len = 0;
+  scr->ReadDataEEmem_len = 0;
+  scr->WriteConfigmem_len = 0;
+  scr->ReadConfigmem_len = sizeof(ReadConfigmem_0);
+  scr->WriteCSreg_len = sizeof(WriteCSreg_0);
+  scr->ReadCSreg_len = sizeof(ReadCSreg_0);
+  scr->WriteMem8_len = sizeof(WriteMem8_0);
+  scr->ReadMem8_len = sizeof(ReadMem8_0);
+  scr->ReadSIB_len = sizeof(ReadSIB_0);
+}
 
 
-const char *pickit5_chip_lut[] = {
+const char * const pickit5_chip_lut[] = {
   "ATtiny416auto", "ATmega1608", "ATmega1609", "ATmega3208", "ATmega3209", "ATmega4808", "ATmega4809", "ATmega808", 
   "ATmega809", "ATtiny1604", "ATtiny1606", "ATtiny1607", "ATtiny1614", "ATtiny1616", "ATtiny1617", "ATtiny1624", 
   "ATtiny1626", "ATtiny1627", "ATtiny202", "ATtiny204", "ATtiny212", "ATtiny214", "ATtiny3216", "ATtiny3217", 
@@ -593,7 +595,10 @@ const char *pickit5_chip_lut[] = {
 };
 
 
-struct avr_script_lut* get_pickit_script(const char* partdesc) { 
+int get_pickit_script(SCRIPT *scr, const char* partdesc) { 
+  if ((scr == NULL) || (partdesc == NULL))
+    return -1;
+
   int namepos = -1;
   for (int i = 0; i < 116; i++) {
     if (strncmp(pickit5_chip_lut[i], partdesc, 10) == 0) {
@@ -602,8 +607,11 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     }
   }
   if (namepos == -1) {
-    return NULL;
+    return -2;
   }
+
+  pickit_script_init(scr);   // load common functions
+
   switch (namepos) {
     case 0:  /* ATtiny416auto */
     case 1:  /* ATmega1608 */
@@ -642,18 +650,18 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 43:  /* ATtiny824 */
     case 44:  /* ATtiny826 */
     case 45:  /* ATtiny827 */
-      avr_scripts.GetDeviceID = GetDeviceID_0;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_0);
-      avr_scripts.WriteProgmem = WriteProgmem_0;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_0);
-      avr_scripts.ReadProgmem = ReadProgmem_0;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_0);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_0;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_0);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_0;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_0);
-      avr_scripts.WriteConfigmem = WriteConfigmem_0;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_0);
+      scr->GetDeviceID = GetDeviceID_0;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_0);
+      scr->WriteProgmem = WriteProgmem_0;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_0);
+      scr->ReadProgmem = ReadProgmem_0;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_0);
+      scr->WriteDataEEmem = WriteDataEEmem_0;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_0);
+      scr->ReadDataEEmem = ReadDataEEmem_0;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_0);
+      scr->WriteConfigmem = WriteConfigmem_0;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_0);
       break;
     case 3:  /* ATmega3208 */
     case 4:  /* ATmega3209 */
@@ -664,18 +672,18 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 24:  /* ATtiny3224 */
     case 25:  /* ATtiny3226 */
     case 26:  /* ATtiny3227 */
-      avr_scripts.GetDeviceID = GetDeviceID_0;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_0);
-      avr_scripts.WriteProgmem = WriteProgmem_1;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_1);
-      avr_scripts.ReadProgmem = ReadProgmem_1;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_1);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_1;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_1);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_1;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_1);
-      avr_scripts.WriteConfigmem = WriteConfigmem_0;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_0);
+      scr->GetDeviceID = GetDeviceID_0;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_0);
+      scr->WriteProgmem = WriteProgmem_1;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_1);
+      scr->ReadProgmem = ReadProgmem_1;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_1);
+      scr->WriteDataEEmem = WriteDataEEmem_1;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_1);
+      scr->ReadDataEEmem = ReadDataEEmem_1;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_1);
+      scr->WriteConfigmem = WriteConfigmem_0;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_0);
       break;
     case 46:  /* AVR128DA28 */
     case 47:  /* AVR128DA32 */
@@ -717,34 +725,34 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 86:  /* AVR16DB28 */
     case 87:  /* AVR16DB32 */
     case 88:  /* AVR16DB48 */
-      avr_scripts.GetDeviceID = GetDeviceID_0;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_0);
-      avr_scripts.WriteProgmem = WriteProgmem_2;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_2);
-      avr_scripts.ReadProgmem = ReadProgmem_2;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_2);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_2;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_2);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_2;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_2);
-      avr_scripts.WriteConfigmem = WriteConfigmem_1;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_1);
+      scr->GetDeviceID = GetDeviceID_0;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_0);
+      scr->WriteProgmem = WriteProgmem_2;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_2);
+      scr->ReadProgmem = ReadProgmem_2;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_2);
+      scr->WriteDataEEmem = WriteDataEEmem_2;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_2);
+      scr->ReadDataEEmem = ReadDataEEmem_2;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_2);
+      scr->WriteConfigmem = WriteConfigmem_1;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_1);
       break;
     case 80:  /* AVR64EA28 */
     case 81:  /* AVR64EA32 */
     case 82:  /* AVR64EA48 */
-      avr_scripts.GetDeviceID = GetDeviceID_0;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_0);
-      avr_scripts.WriteProgmem = WriteProgmem_3;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_3);
-      avr_scripts.ReadProgmem = ReadProgmem_1;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_1);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_3;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_3;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
-      avr_scripts.WriteConfigmem = WriteConfigmem_2;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
+      scr->GetDeviceID = GetDeviceID_0;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_0);
+      scr->WriteProgmem = WriteProgmem_3;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_3);
+      scr->ReadProgmem = ReadProgmem_1;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_1);
+      scr->WriteDataEEmem = WriteDataEEmem_3;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
+      scr->ReadDataEEmem = ReadDataEEmem_3;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
+      scr->WriteConfigmem = WriteConfigmem_2;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
     case 89:  /* AVR16DU14 */
     case 90:  /* AVR16DU20 */
@@ -756,18 +764,18 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 96:  /* AVR32DU32 */
     case 97:  /* AVR64DU28 */
     case 98:  /* AVR64DU32 */
-      avr_scripts.GetDeviceID = GetDeviceID_1;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
-      avr_scripts.WriteProgmem = WriteProgmem_4;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_4);
-      avr_scripts.ReadProgmem = ReadProgmem_2;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_2);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_4;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_4);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_2;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_2);
-      avr_scripts.WriteConfigmem = WriteConfigmem_3;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_3);
+      scr->GetDeviceID = GetDeviceID_1;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_1);
+      scr->WriteProgmem = WriteProgmem_4;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_4);
+      scr->ReadProgmem = ReadProgmem_2;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_2);
+      scr->WriteDataEEmem = WriteDataEEmem_4;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_4);
+      scr->ReadDataEEmem = ReadDataEEmem_2;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_2);
+      scr->WriteConfigmem = WriteConfigmem_3;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_3);
       break;
     case 99:  /* AVR16EA28 */
     case 100:  /* AVR16EA32 */
@@ -777,18 +785,18 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 104:  /* AVR32EA48 */
     case 105:  /* AVR8EA28 */
     case 106:  /* AVR8EA32 */
-      avr_scripts.GetDeviceID = GetDeviceID_0;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_0);
-      avr_scripts.WriteProgmem = WriteProgmem_5;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_5);
-      avr_scripts.ReadProgmem = ReadProgmem_0;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_0);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_3;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_3;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
-      avr_scripts.WriteConfigmem = WriteConfigmem_2;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
+      scr->GetDeviceID = GetDeviceID_0;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_0);
+      scr->WriteProgmem = WriteProgmem_5;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_5);
+      scr->ReadProgmem = ReadProgmem_0;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_0);
+      scr->WriteDataEEmem = WriteDataEEmem_3;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
+      scr->ReadDataEEmem = ReadDataEEmem_3;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
+      scr->WriteConfigmem = WriteConfigmem_2;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
     case 107:  /* AVR16EB14 */
     case 108:  /* AVR16EB20 */
@@ -796,48 +804,48 @@ struct avr_script_lut* get_pickit_script(const char* partdesc) {
     case 110:  /* AVR16EB32 */
     case 111:  /* AVR32EB28 */
     case 112:  /* AVR32EB32 */
-      avr_scripts.GetDeviceID = GetDeviceID_1;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
-      avr_scripts.WriteProgmem = WriteProgmem_5;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_5);
-      avr_scripts.ReadProgmem = ReadProgmem_0;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_0);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_3;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_3;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
-      avr_scripts.WriteConfigmem = WriteConfigmem_2;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
+      scr->GetDeviceID = GetDeviceID_1;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_1);
+      scr->WriteProgmem = WriteProgmem_5;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_5);
+      scr->ReadProgmem = ReadProgmem_0;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_0);
+      scr->WriteDataEEmem = WriteDataEEmem_3;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
+      scr->ReadDataEEmem = ReadDataEEmem_3;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
+      scr->WriteConfigmem = WriteConfigmem_2;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
     case 113:  /* AVR64EC48 */
-      avr_scripts.GetDeviceID = GetDeviceID_1;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
-      avr_scripts.WriteProgmem = WriteProgmem_3;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_3);
-      avr_scripts.ReadProgmem = ReadProgmem_1;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_1);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_3;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_3;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
-      avr_scripts.WriteConfigmem = WriteConfigmem_2;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_2);
+      scr->GetDeviceID = GetDeviceID_1;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_1);
+      scr->WriteProgmem = WriteProgmem_3;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_3);
+      scr->ReadProgmem = ReadProgmem_1;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_1);
+      scr->WriteDataEEmem = WriteDataEEmem_3;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_3);
+      scr->ReadDataEEmem = ReadDataEEmem_3;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_3);
+      scr->WriteConfigmem = WriteConfigmem_2;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_2);
       break;
     case 114:  /* AVR32SD32 */
     case 115:  /* AVR64SD48 */
-      avr_scripts.GetDeviceID = GetDeviceID_1;
-      avr_scripts.GetDeviceID_len = sizeof(GetDeviceID_1);
-      avr_scripts.WriteProgmem = WriteProgmem_6;
-      avr_scripts.WriteProgmem_len = sizeof(WriteProgmem_6);
-      avr_scripts.ReadProgmem = ReadProgmem_2;
-      avr_scripts.ReadProgmem_len = sizeof(ReadProgmem_2);
-      avr_scripts.WriteDataEEmem = WriteDataEEmem_5;
-      avr_scripts.WriteDataEEmem_len = sizeof(WriteDataEEmem_5);
-      avr_scripts.ReadDataEEmem = ReadDataEEmem_2;
-      avr_scripts.ReadDataEEmem_len = sizeof(ReadDataEEmem_2);
-      avr_scripts.WriteConfigmem = WriteConfigmem_4;
-      avr_scripts.WriteConfigmem_len = sizeof(WriteConfigmem_4);
+      scr->GetDeviceID = GetDeviceID_1;
+      scr->GetDeviceID_len = sizeof(GetDeviceID_1);
+      scr->WriteProgmem = WriteProgmem_6;
+      scr->WriteProgmem_len = sizeof(WriteProgmem_6);
+      scr->ReadProgmem = ReadProgmem_2;
+      scr->ReadProgmem_len = sizeof(ReadProgmem_2);
+      scr->WriteDataEEmem = WriteDataEEmem_5;
+      scr->WriteDataEEmem_len = sizeof(WriteDataEEmem_5);
+      scr->ReadDataEEmem = ReadDataEEmem_2;
+      scr->ReadDataEEmem_len = sizeof(ReadDataEEmem_2);
+      scr->WriteConfigmem = WriteConfigmem_4;
+      scr->WriteConfigmem_len = sizeof(WriteConfigmem_4);
       break;
     }
-    return &avr_scripts;
+    return 0;
   }

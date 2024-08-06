@@ -49,7 +49,8 @@ struct avr_script_lut {
 
 };
 
-struct avr_script_lut* get_pickit_script(const char *partdesc);
+typedef struct avr_script_lut SCRIPT;
+int get_pickit_script(SCRIPT *scr, const char *partdesc);
 
 #ifdef __cplusplus
 }
