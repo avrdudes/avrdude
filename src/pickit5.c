@@ -39,21 +39,15 @@
 
 
 #if defined(HAVE_USB_H)
-  #include <usb.h>            //  Linux
-  #define USE_LIBUSB_1_0
-#elif defined(HAVE_LIBUSB_1_0_LIBUSB_H)
-  #include <libusb-1.0/libusb.h>  // MacOS, but we're missing usb drivers
+  #include <usb.h>            //  Linux/Mac
 #elif defined(HAVE_LUSB0_USB_H)
   #include <lusb0_usb.h>      // Windows 
-  #define USE_LIBUSB_1_0
-#else
-  #error "libusb needs either <usb.h>, <lusb0_usb.h> or <libusb-1.0/libusb.h>"
 #endif
 
 
 // A usb driver is needed to talk with MacOS USB, and I don't know where to find it
 // so remove the support under MacOS
-#if defined(USE_LIBUSB_1_0) && (defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0))
+#if defined(HAVE_USB_H) || defined(HAVE_LUSB0_USB_H)
 
 #define USB_PK5_CMD_READ_EP   0x81
 #define USB_PK5_CMD_WRITE_EP  0x02
@@ -318,7 +312,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_MICROCHIP;
 
   // PICkit 5 doesn't have support for HID, so no need to support it
-#if defined(USE_LIBUSB_1_0)
   serdev = &usb_serdev_frame;
   for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
@@ -331,7 +324,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
   }
-#endif    /* HAVE_LIBUSB */
 
   // Make USB serial number available to programmer
   if (serdev && serdev->usbsn) {
@@ -1221,6 +1213,6 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   pgm->open           = pickit5_nousb_open;
 }
 
-#endif /* defined(HAVE_LIBUSB) || defined(HAVE_LIBUSB_1_0) */
+#endif /* defined(HAVE_USB_H) || defined(HAVE_LUSB0_USB_H) */
 
 const char pickit5_desc[] = "Microchip's PICkit 5 Programmer/Debugger";
