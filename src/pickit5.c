@@ -373,6 +373,8 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
     mem->page_size = mem->size < 256? mem->size: 256;
   if((mem = avr_locate_eeprom(p)))
     mem->page_size = mem->size < 32? mem->size: 32;
+  if((mem = avr_locate_sib(p))) // This is mandatory, as PICkit is reading all 32 bytes at once
+    mem->page_size = mem->size < 32? mem->size: 32;
 }
 
 static void pickit5_display(const PROGRAMMER *pgm, const char *p) {
