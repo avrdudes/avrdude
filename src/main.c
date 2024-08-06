@@ -130,16 +130,17 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
               fprintf(fp, " %s", mt);
             bols[bi].bol = 0;
           }
-          if(verbose >= MSG_NOTICE2 && (msgmode & MSG2_FUNCTION))
-            fprintf(fp, " %s()", func);
-          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
-            const char *pr = strrchr(file, '/'); // Only print basename
+          if(verbose >= MSG_NOTICE2) {
+            const char *bfname = strrchr(file, '/'); // Only print basename
 #if defined (WIN32)
-            if(!pr)
-              pr =  strrchr(file, '\\');
+            if(!bfname)
+              bfname =  strrchr(file, '\\');
 #endif
-            pr = pr? pr+1: file;
-            fprintf(fp, " [%s:%d]", pr, lno);
+            bfname = bfname? bfname+1: file;
+            if(msgmode & MSG2_FUNCTION)
+              fprintf(fp, " %s()", func);
+            if(msgmode & MSG2_FILELINE)
+              fprintf(fp, " %s %d", bfname, lno);
           }
           fprintf(fp, ": ");
         } else if(msgmode & MSG2_INDENT1) {
