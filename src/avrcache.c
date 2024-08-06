@@ -99,7 +99,7 @@
  * This file also holds the following utility functions
  *
  * // Does the programmer/memory combo have paged memory access?
- * int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem);
+ * int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
  *
  * // Read the page containing addr from the device into buf
  * int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);
@@ -123,11 +123,12 @@
  * Note that in this definition the page size can be 1
  */
 
-int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
+int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   return pgm->paged_load && pgm->paged_write &&
     mem->page_size > 0 && (mem->page_size & (mem->page_size-1)) == 0 &&
     mem->size > 0 && mem->size % mem->page_size == 0 &&
-    mem_is_paged_type(mem);
+    mem_is_paged_type(mem) &&
+    !(p && avr_mem_exclude(pgm, p, mem));
 }
 
 
@@ -145,7 +146,7 @@ int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *mem) {
  *       + LIBAVRDUDE_SUCCESS (0) if the fallback of bytewise read succeeded
  */
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf) {
-  if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
+  if(!avr_has_paged_access(pgm, p, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   int rc, pgsize = mem->page_size, base = addr & ~(pgsize-1);
@@ -190,7 +191,7 @@ int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
  *   - Uses write_byte() if memory page size is one, otherwise paged_write()
  */
 int avr_write_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *data) {
-  if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
+  if(!avr_has_paged_access(pgm, p, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   int rc, pgsize = mem->page_size, base = addr & ~(pgsize-1);
@@ -263,7 +264,7 @@ static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *basemem = cp == pgm->cp_flash? avr_locate_flash(p): cp == pgm->cp_eeprom? avr_locate_eeprom(p):
     cp == pgm->cp_bootrow? avr_locate_bootrow(p): avr_locate_usersig(p);
 
-  if(!basemem || !avr_has_paged_access(pgm, basemem))
+  if(!basemem || !avr_has_paged_access(pgm, p, basemem))
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   cp->size = basemem->size;
@@ -377,6 +378,9 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
   bool chiperase = 0;
   // Count page changes and find a page that needs a clear bit set
   for(size_t i = 0; i < sizeof mems/sizeof*mems; i++) {
+    if(mems[i].mem && avr_mem_exclude(pgm, p, mems[i].mem)) // Zap mem if excluded combo
+      memset(mems+i, 0, sizeof *mems);
+
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
     if(!mem || !cp->cont)
@@ -607,7 +611,7 @@ int avr_read_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
   unsigned long addr, unsigned char *value) {
 
   // Use pgm->read_byte() if not flash/EEPROM/bootrow/usersig or no paged access
-  if(!avr_has_paged_access(pgm, mem))
+  if(!avr_has_paged_access(pgm, p, mem))
     return fallback_read_byte(pgm, p, mem, addr, value);
 
   // If address is out of range synchronise cache and, if successful, pretend reading a zero
@@ -651,7 +655,7 @@ int avr_write_byte_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   unsigned long addr, unsigned char data) {
 
   // Use pgm->write_byte() if not flash/EEPROM/bootrow/usersig or no paged access
-  if(!avr_has_paged_access(pgm, mem))
+  if(!avr_has_paged_access(pgm, p, mem))
     return fallback_write_byte(pgm, p, mem, addr, data);
 
   // If address is out of range synchronise caches with device and return whether successful
@@ -702,7 +706,7 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
     AVRMEM *mem = mems[i].mem;
     AVR_Cache *cp = mems[i].cp;
 
-    if(!mem || !avr_has_paged_access(pgm, mem))
+    if(!mem || !avr_has_paged_access(pgm, p, mem))
       continue;
 
     if(!cp->cont)               // Init cache if needed
@@ -751,7 +755,7 @@ int avr_page_erase_cached(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
 
   int addr = uaddr;
 
-  if(!avr_has_paged_access(pgm, mem) || addr < 0 || addr >= mem->size)
+  if(!avr_has_paged_access(pgm, p, mem) || addr < 0 || addr >= mem->size)
     return LIBAVRDUDE_GENERAL_FAILURE;
 
   if(mem->page_size == 1) {

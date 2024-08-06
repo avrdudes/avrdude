@@ -836,7 +836,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
   msg_notice2("\n");
 
-  report_progress(0, 1, avr_has_paged_access(pgm, mem)? "Caching": "Writing");
+  report_progress(0, 1, avr_has_paged_access(pgm, p, mem)? "Caching": "Writing");
   for (i = 0; i < len + bytes_grown; i++) {
     report_progress(i, len + bytes_grown, NULL);
     if(!tags[i])
@@ -1270,7 +1270,7 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     pmsg_error("(pgerase) memory %s not defined for part %s\n", memstr, p->desc);
     return -1;
   }
-  if(!avr_has_paged_access(pgm, mem)) {
+  if(!avr_has_paged_access(pgm, p, mem)) {
     pmsg_error("(pgerase) %s memory cannot be paged addressed by %s\n", memstr, pgmid);
     return -1;
   }
@@ -1974,12 +1974,12 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     }
 
     for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-      m = ldata(ln);
-      if(mem_is_eeprom(m) || mem_is_user_type(m)) {
-        args[1] = m->desc;
-        if(cmd_erase(pgm, p, 2, args) < 0)
-          ret = -1;
-      }
+      if(!avr_mem_exclude(pgm, p, (m = ldata(ln))))
+        if(mem_is_eeprom(m) || mem_is_user_type(m)) {
+          args[1] = m->desc;
+          if(cmd_erase(pgm, p, 2, args) < 0)
+            ret = -1;
+        }
     }
 
     if(pgm->flush_cache(pgm, p) < 0)
@@ -1990,9 +1990,10 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
   // Reset fuses to factory values
   for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
-    if(mem_is_a_fuse(m = ldata(ln)))
-      if(fusel_factory(pgm, p, m) < 0)
-        ret = -1;
+    if(!avr_mem_exclude(pgm, p, (m = ldata(ln))))
+      if(mem_is_a_fuse(m))
+        if(fusel_factory(pgm, p, m) < 0)
+          ret = -1;
 
   int fuseok = ret == 0;
 
@@ -2001,12 +2002,12 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       ret = -1;
 
   for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    m = ldata(ln);
-    if(mem_is_flash(m) || mem_is_eeprom(m) || mem_is_user_type(m)) {
-      args[1] = m->desc;
-      if(cmd_erase(pgm, p, 2, args) < 0)
-        ret = -1;
-    }
+    if(!avr_mem_exclude(pgm, p, (m = ldata(ln))))
+      if(mem_is_flash(m) || mem_is_eeprom(m) || mem_is_user_type(m)) {
+        args[1] = m->desc;
+        if(cmd_erase(pgm, p, 2, args) < 0)
+          ret = -1;
+      }
   }
 
   if(pgm->flush_cache(pgm, p) < 0)
@@ -2014,9 +2015,10 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
   // Reset lock to factory value
   for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
-    if(mem_is_lock(m = ldata(ln)))
-      if(fusel_factory(pgm, p, m) < 0)
-        ret = -1;
+    if(!avr_mem_exclude(pgm, p, (m = ldata(ln))))
+      if(mem_is_lock(m))
+        if(fusel_factory(pgm, p, m) < 0)
+          ret = -1;
 
   if(p->factory_fcpu)
     term_out("after the next reset the part %s have F_CPU = %.3f MHz\n", fuseok? "will": "should",
@@ -2247,13 +2249,13 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   }
 
   if(onlymem)
-    avr_mem_display(stdout, p, "");
+    avr_mem_display(stdout, pgm, p, "");
   else if(onlyvariants)
     avr_variants_display(stdout, p, "");
   else {
     char *q = str_prog_modes(p->prog_modes);
     term_out("%s with programming mode%s %s\n", p->desc, strchr(q, ',')? "s": "", q);
-    avr_mem_display(stdout, p, "");
+    avr_mem_display(stdout, pgm, p, "");
     avr_variants_display(stdout, p, "");
   }
   lterm_out("");
