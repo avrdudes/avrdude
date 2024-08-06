@@ -213,6 +213,7 @@ jobs:
           bison
           libelf
           libusb
+          libusb-compat
           hidapi
           libftdi
           readline
