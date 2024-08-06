@@ -1384,14 +1384,14 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
-          imsg_warning("the part or programmer definition in the config file\n");
+          pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
+          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
+          imsg_debug("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
-          imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
+          pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
+          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
+          imsg_debug("unused bits to 1 when writing (double check with datasheet)\n");
         }
       }
     }
