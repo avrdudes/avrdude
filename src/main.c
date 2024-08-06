@@ -1677,8 +1677,8 @@ skipopen:
         msg_info("\n");
         pmsg_error("invalid device signature\n");
         if (!ovsigck) {
-          pmsg_error("expected signature for %s is%s; double\n", p->desc, str_cchex(p->signature, 3, 1));
-          imsg_error("check connections and try again, or use -F to carry on regardless\n");
+          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("  - double check connections and try again, or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1690,8 +1690,8 @@ skipopen:
         if (ovsigck) {
           pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
         } else {
-          pmsg_error("expected signature for %s is%s; double\n", p->desc, str_cchex(p->signature, 3, 1));
-          imsg_error("check chip or use -F to carry on regardless\n");
+          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("  - double check chip or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
         }

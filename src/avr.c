@@ -873,8 +873,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         rc = pgm->initialize(pgm, p);
         if (rc < 0) {
           pmsg_error("initialization failed (rc = %d):\n", rc);
-          imsg_error("cannot re-initialize device after programming the %s bits; you\n", mem->desc);
-          imsg_error("must manually power-down the device and restart %s to continue\n", progname);
+          imsg_error("cannot re-initialize device after programming the %s bits;\n", mem->desc);
+          imsg_error("manually power-down the device and restart %s to continue\n", progname);
           rc = -3;
           goto rcerror;
         }
