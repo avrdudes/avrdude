@@ -394,7 +394,10 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  int rc = get_pickit_script(&(PDATA(pgm)->scripts), p->desc);
+  int rc = -1;
+  if (pgm->prog_modes == PM_UPDI)
+    rc = get_pickit_updi_script(&(PDATA(pgm)->scripts), p->desc);
+
   if (rc == -1)
     return -1;
   if (rc == -2) {

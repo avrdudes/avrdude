@@ -154,7 +154,7 @@ libavrdude_a_SOURCES = \
 	pgm_type.c \
 	pickit2.c \
 	pickit2.h \
-	pickit5_lut.c \
+	pickit5_updi_lut.c \
 	pickit5_lut.h \
 	pickit5.c \
 	pickit5.h \
