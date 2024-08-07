@@ -220,17 +220,25 @@ static char usr_config[PATH_MAX]; // Per-user config file
 
 
 static
-const char *const avrdude_buildinfo[] = {
-  AVRDUDE_FULL_VERSION,
-  "buildsystem: " AVRDUDE_BUILDSYSTEM,
-  NULL
+const avr_buildinfo avrdude_buildinfo = {
+  "avrdude", AVRDUDE_FULL_VERSION,
+  {
+    {"buildsystem", AVRDUDE_BUILDSYSTEM},
+    {NULL, NULL},
+  }
 };
 
 
-static void print_buildinfos(const char *const *buildinfo)
+static void print_buildinfo(const avr_buildinfo *const buildinfo)
 {
-  for (unsigned int i=1; buildinfo[i]; ++i) {
-    msg_info("%3u. %s\n", i, buildinfo[i]);
+  msg_info("  * %s %s\n",
+	   buildinfo->name, buildinfo->version);
+
+  for (unsigned int i=0; buildinfo->items[i].key; ++i) {
+    if (buildinfo->items[i].value) {
+      msg_info("    %3u. %s: %s\n", i,
+               buildinfo->items[i].key, buildinfo->items[i].value);
+    }
   }
 }
 
@@ -242,12 +250,15 @@ static void print_version_message(void)
   msg_info("License GPL...\n");
   msg_info("This is free software...\n");
 
-  msg_info("avrdude %s\n", avrdude_buildinfo[0]);
-  print_buildinfos(avrdude_buildinfo);
+  const avr_buildinfo *const all_buildinfos[] = {
+    &avrdude_buildinfo,
+    &libavrdude_buildinfo,
+    NULL,
+  };
 
-  const char *const *libavrdude_buildinfo = avr_get_buildinfo();
-  msg_info("libavrdude %s\n", libavrdude_buildinfo[0]);
-  print_buildinfos(libavrdude_buildinfo);
+  for (unsigned int i=0; all_buildinfos[i]; ++i) {
+    print_buildinfo(all_buildinfos[i]);
+  }
 }
 
 

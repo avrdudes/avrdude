@@ -2,50 +2,107 @@
 
 #include "ac_cfg.h"
 
-static
-const char *const libavrdude_buildinfo[] = {
-  AVRDUDE_FULL_VERSION,
-  "buildsystem: " AVRDUDE_BUILDSYSTEM,
-#ifdef HAVE_LIBELF
-  "libelf",
-#endif
-#ifdef HAVE_LIBUSB
-  "libusb",
-#endif
-#ifdef HAVE_LIBUSB_1_0
-  "libusb_1_0",
-#endif
-#ifdef HAVE_LIBHIDAPI
-  "libhidapi",
-#endif
-#ifdef HAVE_LIBHID
-  "libhid",
-#endif
-#ifdef HAVE_LIBFTDI
-  "libftdi",
-#endif
-#ifdef HAVE_LIBFTDI1
-  "libftdi1",
-#endif
-#ifdef HAVE_LIBREADLINE
-  "libreadline",
-#endif
-#ifdef HAVE_LIBSERIALPORT
-  "libserialport",
-#endif
-#ifdef HAVE_PARPORT
-  "parport",
-#endif
-#ifdef HAVE_LINUXGPIO
-  "linuxgpio",
-#endif
-#ifdef HAVE_LINUXSPI
-  "linuxspi",
-#endif
-  NULL
-};
 
-const char *const *avr_get_buildinfo(void)
-{
-  return libavrdude_buildinfo;
-}
+const avr_buildinfo libavrdude_buildinfo = {
+  "libavrdude", AVRDUDE_FULL_VERSION,
+  {
+    {"buildsystem", AVRDUDE_BUILDSYSTEM},
+
+    {"libelf",
+#ifdef HAVE_LIBELF
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libusb",
+#ifdef HAVE_LIBUSB
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libusb_1_0",
+#ifdef HAVE_LIBUSB_1_0
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libhidapi",
+#ifdef HAVE_LIBHIDAPI
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libhid",
+#ifdef HAVE_LIBHID
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libftdi",
+#ifdef HAVE_LIBFTDI
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libftdi1",
+#ifdef HAVE_LIBFTDI1
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libreadline",
+#ifdef HAVE_LIBREADLINE
+     "yes"
+#else
+     NULL
+#endif
+    },
+
+    {"libserialport",
+#ifdef HAVE_LIBSERIALPORT
+    "yes"
+#else
+    NULL
+#endif
+    },
+
+    {"parport",
+#ifdef HAVE_PARPORT
+     "yes"
+#else
+    NULL
+#endif
+    },
+
+    {"linuxgpio",
+#ifdef HAVE_LINUXGPIO
+     "yes"
+#else
+    NULL
+#endif
+    },
+
+    {"linuxspi",
+#ifdef HAVE_LINUXSPI
+     "yes"
+#else
+    NULL
+#endif
+    },
+    {NULL, NULL},
+  },
+};
