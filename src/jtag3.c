@@ -25,7 +25,7 @@
  * Scope
  *
  * Code in this file serves the following programmers
- * $ avrdude -c*/At | grep type..jtagice3 | cut -f2
+ * $ avrdude -c "*"/At | grep type..jtagice3 | cut -f2
  *
  * These are
  *  - jtag3, jtag3pdi, jtag3updi, jtag3dw, jtag3isp
