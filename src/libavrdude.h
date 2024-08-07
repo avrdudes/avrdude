@@ -1839,6 +1839,9 @@ typedef struct {
 
   // Variable connecting lexer.l and config_gram.y
   int lex_kw_is_programmer;     // Was the K_PROGRAMMER keyword "programmer"?
+
+  // Global variable indicating usb access problems
+  int usb_access_error;
 } libavrdude_context;
 
 extern libavrdude_context *cx;

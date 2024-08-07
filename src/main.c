@@ -44,6 +44,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#if !defined(WIN32)
+#include <dirent.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -1805,6 +1808,22 @@ main_exit:
     pgm->powerdown(pgm);
     pgm->disable(pgm);
     pgm->close(pgm);
+  }
+
+  if(cx->usb_access_error) {
+    pmsg_info(
+      "\nUSB access errors detected; this could have many reasons; if it is\n"
+      "USB permission problems, avrdude is likely to work when run as root\n"
+      "but this is not good practice; instead you might want to\n");
+#if 0 && !defined(WIN32)
+    DIR *dir;
+    if((dir = opendir("/etc/udev/rules.d"))) { // Linux udev land
+      closedir(dir);
+      imsg_info("run the command below to show udev rules recitifying USB access\n"
+        "$ %s -c %s/u\n", progname, pgmid);
+    } else
+#endif
+    imsg_info("check out USB port permissions on your OS and set them correctly\n");
   }
 
   msg_info("\n");

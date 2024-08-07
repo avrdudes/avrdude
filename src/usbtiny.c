@@ -97,6 +97,7 @@ static int usb_control(const PROGRAMMER *pgm,
 			    NULL, 0,              // no data buffer in control message
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
+    cx->usb_access_error = 1;
     if(!silent) {
       msg_error("\n");
       pmsg_error("%s\n", usb_strerror());
