@@ -439,7 +439,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       }
     }
 
-    if(!mem_is_user_type(mems[i].mem)) // Only force CE if unable to write to flash/EEPROM
+    if(!mem_is_usersig(mems[i].mem)) // CE does not erase usersig
       chiperase = 1;
   }
 
@@ -461,7 +461,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       AVR_Cache *cp = mems[i].cp;
       if(!mem)
         continue;
-      if(mem_is_user_type(mem)) // CE does not affect bootrow/userrow
+      if(mem_is_usersig(mem)) // CE does not affect usersig/userrow
         continue;
 
       for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size)
@@ -477,7 +477,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
         AVR_Cache *cp = mems[i].cp;
         if(!mem)
           continue;
-        if(mem_is_user_type(mem)) // CE does not affect bootrow/userrow
+        if(mem_is_usersig(mem)) // CE does not affect usersig/userrow
           continue;
 
         for(int ird = 0, pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
@@ -506,7 +506,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       AVR_Cache *cp = mems[i].cp;
       if(!mem)
         continue;
-      if(mem_is_user_type(mem)) // CE does not affect bootrow/userrow
+      if(mem_is_usersig(mem))   // CE does not affect usersig/userrow
         continue;
 
       if(mems[i].isflash) {
