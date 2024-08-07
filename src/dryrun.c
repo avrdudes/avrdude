@@ -1040,15 +1040,15 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *xpara = ldata(ln);
 
-    if(str_starts(xpara, "init")) {
+    if(str_eq(xpara, "init")) {
       dry.init = 1;
       continue;
     }
-    if(str_starts(xpara, "random")) {
+    if(str_eq(xpara, "random")) {
       dry.random = 1;
       continue;
     }
-    if(str_starts(xpara, "seed=")) {
+    if(str_starts(xpara, "seed=") || str_starts(xpara, "init=") || str_starts(xpara, "random=")) {
       const char *errptr;
       int seed = str_int(strchr(xpara, '=')+1, STR_INT32, &errptr);
       if(errptr) {
@@ -1057,6 +1057,10 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       dry.seed = seed;
+      if(str_starts(xpara, "init"))
+        dry.init = 1;
+      else if(str_starts(xpara, "random"))
+        dry.random = 1;
       continue;
     }
     if(str_eq(xpara, "help")) {
@@ -1069,10 +1073,12 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
       rc = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -x init     Initialise memories with human-readable patterns (1, 2, 3)\n");
-    msg_error("  -x random   Initialise memories with random code/values (1, 3)\n");
-    msg_error("  -x seed=<n> Seed random number generator with <n>, n>0, default time(NULL)\n");
-    msg_error("  -x help     Show this help menu and exit\n");
+    msg_error("  -x init       Initialise memories with human-readable patterns (1, 2, 3)\n");
+    msg_error("  -x init=<n>   Shortcut for -x init -x seed=<n>\n");
+    msg_error("  -x random     Initialise memories with random code/values (1, 3)\n");
+    msg_error("  -x random=<n> Shortcut for -x random -x seed=<n>\n");
+    msg_error("  -x seed=<n>   Seed random number generator with <n>, n>0, default time(NULL)\n");
+    msg_error("  -x help       Show this help menu and exit\n");
     msg_error("Notes:\n");
     msg_error("  (1) -x init and -x random randomly configure flash wrt boot/data/code length\n");
     msg_error("  (2) Patterns can best be seen with fixed-width font on -U flash:r:-:I\n");
