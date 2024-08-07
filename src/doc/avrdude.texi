@@ -539,6 +539,7 @@ usbtiny's properties; for more information run @code{avrdude -c x/h}.
 
 @item -C @var{config-file}
 @cindex Option @code{-C} @var{config-file}
+@cindex Configuration files
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
 If not specified, AVRDUDE looks for the configuration file in the following
@@ -4297,6 +4298,7 @@ Other combinations should not show after exit.
 @node Unix Installation, Unix Configuration Files, Unix, Unix
 @subsection Unix Installation
 @cindex Unix installation
+@cindex Installation
 
 @noindent
 To build and install from the source tarball on Unix like systems:
@@ -4335,6 +4337,7 @@ $ make install
 @node FreeBSD Installation, Linux Installation, Unix Installation, Unix Installation
 @subsubsection FreeBSD Installation
 @cindex FreeBSD installation
+@cindex Installation
 
 @noindent
 AVRDUDE is installed via the FreeBSD Ports Tree as follows:
@@ -4363,6 +4366,7 @@ obtained.
 @node Linux Installation,  , FreeBSD Installation, Unix Installation
 @subsubsection Linux Installation
 @cindex Linux installation
+@cindex Installation
 
 @noindent
 On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
@@ -4383,6 +4387,7 @@ to system. The above example is specific to RedHat.
 @node Unix Configuration Files, Unix Port Names, Unix Installation, Unix
 @subsection Unix Configuration Files
 @cindex Unix configuration files
+@cindex Configuration files
 
 @noindent
 When AVRDUDE is built using the default @option{--prefix} configure
@@ -4403,6 +4408,7 @@ augment the system default configuration file.
 @node FreeBSD Configuration Files, Linux Configuration Files, Unix Configuration Files, Unix Configuration Files
 @subsubsection FreeBSD Configuration Files
 @cindex FreeBSD configuration files
+@cindex Configuration files
 
 @noindent
 When AVRDUDE is installed using the FreeBSD ports system, the system
@@ -4414,6 +4420,7 @@ configuration file is always @code{/usr/local/etc/avrdude.conf}.
 @node Linux Configuration Files,  , FreeBSD Configuration Files, Unix Configuration Files
 @subsubsection Linux Configuration Files
 @cindex Linux configuration files
+@cindex Configuration files
 
 @noindent
 When AVRDUDE is installed using from an rpm package, the system
@@ -4465,7 +4472,7 @@ access.
 @node Unix USB Permissions, Unix Port Names, Unix Documentation, Unix
 @subsection Unix USB Permissions
 @cindex Unix USB permissions
-@cindex udev rules
+@cindex USB permissions
 
 In most cases the kernel driver initializes a plug-and-play device to be
 owned by user @code{root} and group @code{root} with only r/w permission
@@ -4486,7 +4493,8 @@ Both are typically used to identify the device that needs new permissions.
 @c
 @node FreeBSD USB Permissions, Linux USB Permissions, Unix USB Permissions, Unix USB Permissions
 @subsubsection FreeBSD USB Permissions
-@cindex FreeBSD configuration files
+@cindex FreeBSD USB permissions
+@cindex USB permissions
 
 In FreeBSD a so-called @code{devd} config files in
 @code{/usr/local/etc/devd} serve to modify permissions of plugged-in USB
@@ -4518,7 +4526,8 @@ member of who wish to have access to the programmer.
 @c
 @node Linux USB Permissions,  , FreeBSD USB Permissions, Unix USB Permissions
 @subsubsection Linux USB Permissions
-@cindex Linux configuration files
+@cindex Linux USB permissions
+@cindex USB permissions
 
 Linux has a special userspace @code{/dev} device manager called udev that
 deals with, amongst other things, plug-and-play USB devices. It is
@@ -4597,6 +4606,7 @@ SUBSYSTEM=="usb", ATTRS@{idVendor@}=="0403", ATTRS@{idProduct@}=="cff8", \
 @end cartouche
 @end smallexample
 
+@cindex USB permissions
 @noindent Again, each rule must be written as one line: breaking up rules
 into two lines was only done to fit AVRDUDE's output to the boxed display.
 USB devices in HID mode require a second rule dealing with the
