@@ -44,6 +44,10 @@ struct avr_script_lut {
          unsigned int  WriteConfigmem_len;
   const unsigned char *ReadConfigmem;
          unsigned int  ReadConfigmem_len;
+  const unsigned char *WriteIDmem;
+         unsigned int  WriteIDmem_len;
+  const unsigned char *ReadIDmem;
+         unsigned int  ReadIDmem_len;
   const unsigned char *ReadSIB;
          unsigned int  ReadSIB_len;
 

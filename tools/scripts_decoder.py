@@ -51,6 +51,8 @@ c_dict = {
     "ReadMem8" : [],
     "WriteConfigmem" : [],
     "ReadConfigmem" : [],
+    "WriteIDmem" : [],
+    "ReadIDmem" : [],
     "ReadSIB" : [],
 }
 

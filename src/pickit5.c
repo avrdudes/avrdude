@@ -77,6 +77,7 @@ struct pdata {
   double        target_voltage; // voltage to supply to target
 
   unsigned char signature[4];   // as we get DeviceID and Chip revision in one go, buffer them
+           char sib[32];
   unsigned char txBuf[512];
   unsigned char rxBuf[512];
   SCRIPT scripts;
@@ -146,9 +147,9 @@ inline static void pickit5_create_payload_header(unsigned char *buf, unsigned in
 inline static void pickit5_create_script_header(unsigned char *buf, unsigned int arg_len,
   unsigned int script_len);
 inline static int pickit5_check_ret_status(const PROGRAMMER *pgm);
-inline static int pickit5_init_phy(const PROGRAMMER *pgm, const AVRPART *p, double vtarg);
+inline static int pickit5_init_clock(const PROGRAMMER *pgm, const AVRPART *p, double vtarg);
 
-static int pickit5_get_Status(const PROGRAMMER *pgm, unsigned char status);
+static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status);
 static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
   const unsigned char *script, unsigned int script_len,
   const unsigned char *param,  unsigned int param_len, unsigned int payload_len);
@@ -373,8 +374,10 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
     mem->page_size = mem->size < 256? mem->size: 256;
   if((mem = avr_locate_eeprom(p)))
     mem->page_size = mem->size < 32? mem->size: 32;
-  if((mem = avr_locate_sib(p))) // This is mandatory, as PICkit is reading all 32 bytes at once
-    mem->page_size = mem->size < 32? mem->size: 32;
+  if((mem = avr_locate_sib(p))) { // This is mandatory, as PICkit is reading all 32 bytes at once
+    mem->page_size = 32;
+    mem->readsize = 32;
+  }
 }
 
 static void pickit5_display(const PROGRAMMER *pgm, const char *p) {
@@ -443,15 +446,28 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   PDATA(pgm)->pk_op_mode = PK_OP_READY;
-  return pickit5_init_phy(pgm, p, v_target);
+  return pickit5_init_clock(pgm, p, v_target);
 }
 
 
-inline static int pickit5_init_phy(const PROGRAMMER *pgm, const AVRPART *p, double vtarg) {
+inline static int pickit5_init_clock(const PROGRAMMER *pgm, const AVRPART *p, double vtarg) {
   if (pickit5_program_enable(pgm, p) < 0)
     return -1;
-  
+
+  double bitclock = pgm->bitclock;
   unsigned int baud = pgm->baudrate;
+  
+  if (baud == 200000) { // if baud unchanged
+    if (bitclock > 0.0) {
+      baud = (unsigned int)(1.0/pgm->bitclock); // bitclock in us
+    }
+  } else {
+    if (bitclock > 0.0) {
+      pmsg_error("Specified baudrate (-b) and bitclock (-B). Please use only one option. Aborting.");
+      return -1;
+    }
+  }
+
   if (baud < 300) {   // Better be safe than sorry
     pmsg_warning("UPDI needs a higher clock for operation, increasing UPDI to 300 Hz\n");
     baud = 300;
@@ -465,7 +481,7 @@ inline static int pickit5_init_phy(const PROGRAMMER *pgm, const AVRPART *p, doub
       // 0x00A0 or 0x0080. So best would be to figure out a way to deduct the correct address
       
       if (baud > 900000) {
-        pmsg_warning("Requested clock too high. Limiting UPDI to 900 kHz\n");
+        pmsg_warning("Requested clock (%u Hz) too high. Limiting UPDI to 900 kHz\n", baud);
         baud = 900000;
       }
       pickit5_set_sck_period(pgm, 1.0/100000);  // Start with 200kHz
@@ -485,6 +501,7 @@ inline static int pickit5_init_phy(const PROGRAMMER *pgm, const AVRPART *p, doub
   }
   return 0;
 }
+
 
 static int pickit5_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                    unsigned char *res) {
@@ -583,9 +600,6 @@ static int pickit5_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
 
 static int pickit5_write_byte (const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char value) {
-  if (pgm->prog_modes == PM_UPDI) {
-    return pickit5_updi_write_byte(pgm, p, mem, addr, value);
-  }
   int rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
   if (rc < 0)
     return rc;
@@ -594,9 +608,6 @@ static int pickit5_write_byte (const PROGRAMMER *pgm, const AVRPART *p,
 
 static int pickit5_read_byte (const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char *value) {
-  if (pgm->prog_modes == PM_UPDI) {
-    return pickit5_updi_read_byte(pgm, p, mem, addr, value);
-  }
   int rc = pickit5_read_array(pgm, p, mem, addr, 1, value);
   if (rc < 0)
     return rc;
@@ -607,54 +618,47 @@ static int pickit5_read_byte (const PROGRAMMER *pgm, const AVRPART *p,
 // UPDI Specific function providing a reduced overhead when writing a single byte
 static int pickit5_updi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, 
   const AVRMEM *mem, unsigned long addr, unsigned char value) {
-  // this will only work sram and io due to memory range
-  if (mem_is_sram(mem) || mem_is_io(mem)) {
-    if (mem->size < 1 || addr > (unsigned long)mem->size) {
-      pmsg_error("address %i out of range for %s [0, %i]\n", (unsigned int) addr, mem->desc, mem->size);
-      return -1;
-    }
-    addr += mem->offset;
-    pmsg_debug("pickit5_updi_write_byte(0x%4X, %i)\n", (unsigned int)addr, value);
-    // This script is based on WriteCSreg. Reduces overhead by avoiding writing data EP
-    const unsigned char h_len = 24; // 16 + 8
-    const unsigned char p_len = 8;
-    const unsigned char s_len = 8;
-    const unsigned char m_len = h_len + p_len + s_len; 
-    unsigned char write8_fast [] = {
-      0x00, 0x01, 0x00, 0x00,   // [0]  SCR_CMD
-      0x00, 0x00, 0x00, 0x00,   // [4]  always 0
-      m_len, 0x00, 0x00, 0x00,  // [8]  message length = 16 + 8 + param (8) + script (8) = 40
-      0x00, 0x00, 0x00, 0x00,   // [12] keep at 0 to receive the data in the "response"
-      
-      p_len, 0x00, 0x00, 0x00,  // [16] param length: 8 bytes
-      s_len, 0x00, 0x00, 0x00,  // [20] length of script: 8 bytes
 
-      0x00, 0x00, 0x00, 0x00,   // [24] param: address to write to, will be overwritten
-      0x00, 0x00, 0x00, 0x00,   // [28] param: byte to write, will be overwritten
-      
-      // Script itself:
-      0x91, 0x00,               // copy first 4 bytes of param to reg 0
-      0x91, 0x01,               // copy second 4 bytes of param to reg 1
-      0x1E, 0x06, 0x00, 0x01,   // store to address in reg 0 the byte in reg 1
-    };
-    write8_fast[24] = (((unsigned char *)&addr)[0]);
-    write8_fast[25] = (((unsigned char *)&addr)[1]);
-    write8_fast[28] = value;
-
-    serial_send(&pgm->fd, write8_fast, m_len);
-    unsigned char *buf = PDATA(pgm)->rxBuf;
-    if (serial_recv(&pgm->fd, buf, 512) >= 0) {  // read response
-      if (buf[0] == 0x0D) {
-        return 0;
-      }
-    }
+  if (mem->size < 1 || addr > (unsigned long)mem->size) {
+    pmsg_error("address %i out of range for %s [0, %i]\n", (unsigned int) addr, mem->desc, mem->size);
     return -1;
-  } else {    // Fall back to standard function
-    int rc = pickit5_write_array(pgm, p, mem, addr, 1, &value);
-    if (rc < 0)
-      return rc;
-    return 0; 
   }
+  addr += mem->offset;
+  pmsg_debug("pickit5_updi_write_byte(0x%4X, %i)\n", (unsigned int)addr, value);
+  // This script is based on WriteCSreg. Reduces overhead by avoiding writing data EP
+  const unsigned char h_len = 24; // 16 + 8
+  const unsigned char p_len = 8;
+  const unsigned char s_len = 8;
+  const unsigned char m_len = h_len + p_len + s_len; 
+  unsigned char write8_fast [] = {
+    0x00, 0x01, 0x00, 0x00,   // [0]  SCR_CMD
+    0x00, 0x00, 0x00, 0x00,   // [4]  always 0
+    m_len, 0x00, 0x00, 0x00,  // [8]  message length = 16 + 8 + param (8) + script (8) = 40
+    0x00, 0x00, 0x00, 0x00,   // [12] keep at 0 to receive the data in the "response"
+    
+    p_len, 0x00, 0x00, 0x00,  // [16] param length: 8 bytes
+    s_len, 0x00, 0x00, 0x00,  // [20] length of script: 8 bytes
+
+    0x00, 0x00, 0x00, 0x00,   // [24] param: address to write to, will be overwritten
+    0x00, 0x00, 0x00, 0x00,   // [28] param: byte to write, will be overwritten
+    
+    // Script itself:
+    0x91, 0x00,               // copy first 4 bytes of param to reg 0
+    0x91, 0x01,               // copy second 4 bytes of param to reg 1
+    0x1E, 0x06, 0x00, 0x01,   // store to address in reg 0 the byte in reg 1
+  };
+  write8_fast[24] = (((unsigned char *)&addr)[0]);
+  write8_fast[25] = (((unsigned char *)&addr)[1]);
+  write8_fast[28] = value;
+
+  serial_send(&pgm->fd, write8_fast, m_len);
+  unsigned char *buf = PDATA(pgm)->rxBuf;
+  if (serial_recv(&pgm->fd, buf, 512) >= 0) {  // read response
+    if (buf[0] == 0x0D) {
+      return 0;
+    }
+  }
+  return -1;
 }
 
 // UPDI Specific function providing a reduced overhead when reading a single byte
@@ -729,16 +733,22 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
   
   const unsigned char *write_bytes = NULL;
   unsigned int write_bytes_len = 0;
-  if ((mem_is_flash(mem) && (len == mem->page_size)) || mem_is_userrow(mem)) {
+  if ((mem_is_in_flash(mem) && (len == mem->page_size))) {
     write_bytes = PDATA(pgm)->scripts.WriteProgmem;
     write_bytes_len = PDATA(pgm)->scripts.WriteProgmem_len;
   } else if (mem_is_eeprom(mem)) {
     write_bytes = PDATA(pgm)->scripts.WriteDataEEmem;
     write_bytes_len = PDATA(pgm)->scripts.WriteDataEEmem_len;
+  } else if (mem_is_user_type(mem)) {
+    write_bytes = PDATA(pgm)->scripts.WriteIDmem;
+    write_bytes_len = PDATA(pgm)->scripts.WriteIDmem_len;
   } else if (mem_is_in_fuses(mem)) {
     write_bytes = PDATA(pgm)->scripts.WriteConfigmem;
     write_bytes_len = PDATA(pgm)->scripts.WriteConfigmem_len;
-  } else if (mem_is_io(mem) || mem_is_sram(mem) || mem_is_lock(mem)) {
+  } else if (!mem_is_readonly(mem)) { /* SRAM, IO, LOCK */
+    if ((len == 1) && (pgm->prog_modes == PM_UPDI)) {
+      return pickit5_updi_write_byte(pgm, p, mem, addr, value[0]);
+    }
     write_bytes = PDATA(pgm)->scripts.WriteMem8;
     write_bytes_len = PDATA(pgm)->scripts.WriteMem8_len;
   } else {
@@ -764,7 +774,7 @@ static int pickit5_write_array(const PROGRAMMER *pgm, const AVRPART *p,
     pmsg_error("Failed to send data\n");
     return -1;
   }
-  if (pickit5_get_Status(pgm, CHECK_ERROR) < 0) {
+  if (pickit5_get_status(pgm, CHECK_ERROR) < 0) {
     pmsg_error("Error Check failed\n");
     return -1;
   }
@@ -792,14 +802,27 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
 
   const unsigned char *read_bytes = NULL;
   unsigned int read_bytes_len = 0;
-  if (mem_is_flash(mem) || mem_is_userrow(mem)) {
+  if (mem_is_in_flash(mem)) {
     read_bytes = PDATA(pgm)->scripts.ReadProgmem;
     read_bytes_len = PDATA(pgm)->scripts.ReadProgmem_len;
   } else if (mem_is_eeprom(mem)) {
     read_bytes = PDATA(pgm)->scripts.ReadDataEEmem;
     read_bytes_len = PDATA(pgm)->scripts.ReadDataEEmem_len;
-  }else if (mem_is_sib(mem)) {
-    return pickit5_read_sib(pgm, p, (char *)value); // silence pointer sign warning
+  } else if (mem_is_user_type(mem)) {
+    read_bytes = PDATA(pgm)->scripts.ReadIDmem;
+    read_bytes_len = PDATA(pgm)->scripts.ReadIDmem_len;
+  } else if (mem_is_sib(mem)) {
+    if (addr == 0) {
+      pickit5_read_sib(pgm, p, PDATA(pgm)->sib);
+    }
+    if (len == 32) {
+      memcpy(value, PDATA(pgm)->sib, 32);
+      return 32;
+    } else if (len == 1) {
+      *value = PDATA(pgm)->sib[addr];
+      return 1;
+    }
+    return -1;
   } else if (mem_is_signature(mem)) {
     if (addr == 0) {                        // Buffer signature bytes on first read
       pickit5_read_sig_bytes(pgm, p, NULL);
@@ -807,13 +830,15 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
     if (addr < 4) {
       *value =  PDATA(pgm)->signature[addr];
       return 0;
-    } else {
-      return -1;
     }
-  } else if (mem_is_in_sigrow(mem)) {
+    return -1;
+  } else if (mem_is_in_sigrow(mem) || mem_is_user_type(mem)) {
     read_bytes = PDATA(pgm)->scripts.ReadConfigmem;
     read_bytes_len = PDATA(pgm)->scripts.ReadConfigmem_len;
-  } else if (!mem_is_readonly(mem)) {  /* SRAM, IO, LOCK*/
+  } else if (!mem_is_readonly(mem)) {  /* SRAM, IO, LOCK || USERROW */
+    if ((len == 1) && (pgm->prog_modes == PM_UPDI)) {
+      return pickit5_updi_read_byte(pgm, p, mem, addr, value);
+    }
     read_bytes = PDATA(pgm)->scripts.ReadMem8;
     read_bytes_len = PDATA(pgm)->scripts.ReadMem8_len;
   } else {
@@ -898,7 +923,7 @@ static int pickit5_read_chip_rev (const PROGRAMMER *pgm, const AVRPART *p, unsig
 }
 
 static int pickit5_write_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigned char value)  {
-  pmsg_debug("pickit5_write_cs_reg(*%u = %i)", addr, value);
+  pmsg_debug("pickit5_write_cs_reg(%u, %i)", addr, value);
   const unsigned char *write_cs = PDATA(pgm)->scripts.WriteCSreg;
   unsigned int write_cs_len = PDATA(pgm)->scripts.WriteCSreg_len;
 
@@ -1076,7 +1101,7 @@ static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
   return 0;
 }
 
-static int pickit5_get_Status(const PROGRAMMER *pgm, unsigned char status) {
+static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status) {
   unsigned char* buf = PDATA(pgm)->txBuf;
   const unsigned int type = 0x0105;
   unsigned int key_len = 0;
