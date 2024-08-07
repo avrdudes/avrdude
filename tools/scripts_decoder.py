@@ -660,13 +660,3 @@ while user_input:
         convert_xml(xml_path, c_dict)   
         quit()
         pass
-
-
-
-
-
-
-
-
-
-

@@ -3006,15 +3006,19 @@ programmer # pickit4_tpi
 #
 #
 # PIN  UPDI  
-# > 1  HVRST
+# > 1  !RST(*)
 #   2  VCC
 #   3  GND
-#   4  UPDI
+#   4  UPDI(*)
 #   5
 #   6
 #   7
 #   8                       
 #
+# (*): The PICkit5 can generate a High-Voltage (12V) Pulse on this pins
+#      to restore the UPDI Pin functionality, if it was changed through fuses.
+#      AVRDUDE automatically selects the correct pin, if the HV pulse is
+#      enabled through the '-x hvupdi' flag.
 
 #------------------------------------------------------------
 # pickit5 /pickit5_updi
