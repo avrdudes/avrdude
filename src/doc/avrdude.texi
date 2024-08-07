@@ -4287,7 +4287,7 @@ Other combinations should not show after exit.
 * Unix Installation::           
 * Unix Configuration Files::    
 * Unix Port Names::             
-* Linux Udev Rules::
+* Unix USB Permissions::
 * Unix Documentation::          
 @end menu
 
@@ -4385,7 +4385,7 @@ to system. The above example is specific to RedHat.
 @cindex Unix configuration files
 
 @noindent
-When AVRDUDE is build using the default @option{--prefix} configure
+When AVRDUDE is built using the default @option{--prefix} configure
 option, the default configuration file for a Unix system is located at
 @code{/usr/local/etc/avrdude.conf}.  This can be overridden by using the
 @option{-C} command line option.  Additionally, the user's home directory
@@ -4422,7 +4422,7 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 @c
 @c Node
 @c
-@node Unix Port Names, Linux Udev Rules, Unix Configuration Files, Unix
+@node Unix Port Names, Unix USB Permissions, Unix Configuration Files, Unix
 @subsection Unix Port Names
 @cindex Unix port names
 
@@ -4462,32 +4462,78 @@ access.
 @c
 @c Node
 @c
-@node Linux Udev Rules, Unix Port Names, Unix Documentation, Unix
-@subsection Linux Udev Rules
-@cindex Linux udev rules
+@node Unix USB Permissions, Unix Port Names, Unix Documentation, Unix
+@subsection Unix USB Permissions
+@cindex Unix USB permissions
 @cindex udev rules
 
+In most cases the kernel driver initializes a plug-and-play device to be
+owned by user @code{root} and group @code{root} with only r/w permission
+for the user @code{root} rendering the device inaccessible to regular
+users. Whilst users can run AVRDUDE sessions as root this is definitely
+@emph{not good practice}. Giving USB plug-and-play devices the correct
+permissions is much better. USB AVR programmers are normally identified by
+a two-byte hexadecimal vendor ID and a two-byte hexadecimal product id.
+Both are typically used to identify the device that needs new permissions.
+
+@menu
+* FreeBSD USB Permissions::
+* Linux USB Permissions::
+@end menu
+
+@c
+@c Node
+@c
+@node FreeBSD USB Permissions, Linux USB Permissions, Unix USB Permissions, Unix USB Permissions
+@subsubsection FreeBSD USB Permissions
+@cindex FreeBSD configuration files
+
+In FreeBSD a so-called @code{devd} config files in
+@code{/usr/local/etc/devd} serve to modify permissions of plugged-in USB
+devices. Here is an example how Atmel's JTAGICE3 programmer (product ID
+0x2110 or 0x2140) by Atmel (vendor ID 0x0eb) can be given appropriate
+permissions using a file @code{jtagice3.conf}:
+
+@smallexample
+@cartouche
+
+notify 100 @{
+  match "system" "USB";
+  match "subsystem" "DEVICE";
+  match "type" "ATTACH";
+  match "vendor" "0x03eb";
+  match "product" "(0x2110|0x2140)";
+  action "chmod 660 /dev/$cdev";
+  action "chgrp yourgroup /dev/$cdev";
+@};
+
+@end cartouche
+@end smallexample
+
+@noindent @code{yourgroup} would be a group that the user(s) should be
+member of who wish to have access to the programmer.
+
+@c
+@c Node
+@c
+@node Linux USB Permissions,  , FreeBSD USB Permissions, Unix USB Permissions
+@subsubsection Linux USB Permissions
+@cindex Linux configuration files
+
 Linux has a special userspace @code{/dev} device manager called udev that
-deals with, amongst other things, plug-and-play USB devices. In most cases
-the kernel driver initializes a plug-and-play device to be owned by user
-@code{root} and group @code{root} with only r/w permission for the user
-@code{root} rendering the device inaccessible to regular users. Whilst
-users can run AVRDUDE sessions as root this is definitely @emph{not} good
-practice.
+deals with, amongst other things, plug-and-play USB devices. It is
+recommended to specify so-called udev rules to define access permissions
+for these devices instead. These rules typically reside in a file with the
+name @var{nn}@code{-}@var{descriptive-name}@code{.rules} in the directory
+@code{/etc/udev/rules.d}. Here, @var{nn} is a two-digit number that
+determines the lexical order in which the udev rule files are processed.
+Rules processed later can overwrite earlier rules, but it not recommended
+to put user-generated rules higher than 60, as some of the actions they
+require are processed by higher-level system rules.
 
-It is recommended to specify so-called udev rules to define access
-permissions for these devices instead. These rules typically reside in a
-file with the name @var{nn}@code{-}@var{descriptive-name}@code{.rules} in
-the directory @code{/etc/udev/rules.d}. Here, @var{nn} is a two-digit
-number that determines the lexical order in which the udev rule files are
-processed. Rules processed later can overwrite earlier rules, but it not
-recommended to put user-generated rules higher than 60, as some of the
-actions they require are processed by higher-level system rules.
-
-USB AVR programmers are normally identified by a two-byte hexadecimal
-vendor ID and a two-byte hexadecimal product id. Here a typical udev rule
-for allowing an ordinary user access to the plugged-in AVRISP mkII
-programmer (product ID 0x2104) by Atmel (vendor ID 0x0eb):
+Here a typical udev rule for allowing an ordinary user access to the
+plugged-in AVRISP mkII programmer (product ID 0x2104) by Atmel (vendor ID
+0x0eb):
 
 @smallexample
 @cartouche
@@ -4498,8 +4544,8 @@ SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2104", \
 @end cartouche
 @end smallexample
 
-This furnishes the corresponding device node with @code{0660} access
-permissions: this means r/w for the user @code{root} and any user
+@noindent This furnishes the corresponding device node with @code{0660}
+access permissions: this means r/w for the user @code{root} and any user
 belonging to the group of the device, which the device driver might assign
 to a different group than the default @code{root}. The key of the rule is
 the attached @code{TAG} named @code{uaccess}, which has the effect that
@@ -4516,9 +4562,19 @@ above suggested udev rule for the named programmer. Wildcards are allowed:
 
 $ avrdude -c jtag\*/u
 
-# 1. Put Linux udev rules into, eg, /etc/udev/rules.d/55-avrdude.rules
-# 2. Unplug the device and plug it in again
-# 3. Enjoy user access to the USB programmer
+1. Examine the suggested udev rules below; to install run:
+
+avrdude -c "jtag*/u" | tail -n +11 | sudo tee /etc/udev/rules.d/55-avrdude-jtagX.rules
+sudo chmod 0644 /etc/udev/rules.d/55-avrdude-jtagX.rules
+
+2. Unplug any AVRDUDE USB programmers and plug them in again
+3. Enjoy user access to the USB programmer(s)
+
+Note: To install all udev rules known to AVRDUDE follow: avrdude -c "*/u" | more
+
+# Generated from avrdude -c "jtag*/u"
+
+ACTION!="add|change", GOTO="avrdude_end"
 
 # jtag2dw, jtag2fast, jtag2, jtag2isp, jtag2pdi, jtag2slow, jtagmkII, jtag2avr32
 SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2103", \
@@ -4529,7 +4585,6 @@ SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2110", \
   MODE="0660", TAG+="uaccess"
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS@{idVendor@}=="03eb", \
   ATTRS@{idProduct@}=="2110", MODE="0660", TAG+="uaccess"
-
 SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2140", \
   MODE="0660", TAG+="uaccess"
 KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS@{idVendor@}=="03eb", \
@@ -4542,9 +4597,8 @@ SUBSYSTEM=="usb", ATTRS@{idVendor@}=="0403", ATTRS@{idProduct@}=="cff8", \
 @end cartouche
 @end smallexample
 
-Again, each rule must be written as one line: breaking up rules into two
-lines was only done to fit AVRDUDE's output to the boxed display.
-
+@noindent Again, each rule must be written as one line: breaking up rules
+into two lines was only done to fit AVRDUDE's output to the boxed display.
 USB devices in HID mode require a second rule dealing with the
 @code{hidraw} subsystem as seen above.
 

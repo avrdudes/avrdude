@@ -1586,9 +1586,20 @@ void dev_output_pgm_defs(char *pgmidcp) {
   }
 
   if(udev && ui) {
-    dev_info("# 1. Put Linux udev rules into, eg, /etc/udev/rules.d/55-avrdude.rules\n");
-    dev_info("# 2. Unplug the device and plug it in again\n");
-    dev_info("# 3. Enjoy user access to the USB programmer\n");
+    int all = str_eq(pgmidcp, "*");
+    const char *var = all? "": str_asciiname((char *) str_ccprintf("-%s", pgmidcp));
+    dev_info("1. Examine the suggested udev rule%s below; to install run:\n\n", str_plural(ui + udr[0].ishid));
+    dev_info("%s -c \"%s/u\" | tail -n +%d | sudo tee /etc/udev/rules.d/55-%s%s.rules\n",
+      progname, pgmidcp, all? 9: 11, progname, var);
+    dev_info("sudo chmod 0644 /etc/udev/rules.d/55-%s%s.rules\n\n", progname, var);
+    dev_info("2. Unplug any AVRDUDE USB programmers and plug them in again\n");
+    dev_info("3. Enjoy user access to the USB programmer(s)\n\n");
+    if(!all)
+      dev_info("Note: To install all udev rules known to AVRDUDE follow: %s -c \"*/u\" | more\n\n",
+        progname);
+    dev_info("# Generated from avrdude -c \"%s/u\"\n", pgmidcp);
+    if(ui > 3)
+      dev_info("\nACTION!=\"add|change\", GOTO=\"avrdude_end\"\n");
     qsort(udr, ui, sizeof *udr, udev_cmp);
     char *prev_head = mmt_strdup("<none>");
     for(Dev_udev *u = udr; u-udr < ui; u++) {
@@ -1615,5 +1626,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
           "ATTRS{idProduct}==\"%04x\", MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
     }
     mmt_free(prev_head);
+    if(ui > 3)
+      dev_info("\nLABEL=\"avrdude_end\"\n");
   }
 }
