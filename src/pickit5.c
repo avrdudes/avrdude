@@ -76,8 +76,8 @@ struct pdata {
   unsigned char hvupdi_enabled; // 0: no HV / 1: HV generation enabled
   double        target_voltage; // voltage to supply to target
 
-  unsigned char signature[4];   // as we get DeviceID and Chip revision in one go, buffer them
-           char sib[32];
+  unsigned char devID[4];       // last Byte has the Chip Revision of the Target
+           char sib_string[32];
   unsigned char txBuf[512];
   unsigned char rxBuf[512];
   SCRIPT scripts;
@@ -115,7 +115,7 @@ static int pickit5_write_byte     (const PROGRAMMER *pgm, const AVRPART *p, cons
   unsigned long addr, unsigned char value);
 static int pickit5_read_byte (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, 
   unsigned long addr, unsigned char *value);
-static int pickit5_read_sig_bytes (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
+static int pickit5_read_dev_id (const PROGRAMMER *pgm, const AVRPART *p);
 static int pickit5_read_sib (const PROGRAMMER *pgm, const AVRPART *p, char *sib);
 static int pickit5_read_chip_rev  (const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev);
 static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
@@ -147,7 +147,6 @@ inline static void pickit5_create_payload_header(unsigned char *buf, unsigned in
 inline static void pickit5_create_script_header(unsigned char *buf, unsigned int arg_len,
   unsigned int script_len);
 inline static int pickit5_check_ret_status(const PROGRAMMER *pgm);
-inline static int pickit5_init_clock(const PROGRAMMER *pgm, const AVRPART *p, double vtarg);
 
 static int pickit5_get_status(const PROGRAMMER *pgm, unsigned char status);
 static int pickit5_send_script(const PROGRAMMER *pgm, unsigned int script_type,
@@ -297,6 +296,7 @@ static int pickit5_read_response(const PROGRAMMER *pgm, char *fn_name) {
     pmsg_error("Error on response in function \"%s\"", fn_name);
     return -1;
   }
+
   return 0;
 }
 
@@ -420,8 +420,9 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pickit5_set_ptg_mode(pgm);
   pickit5_set_vtarget(pgm, 0.0);  // avoid the edge case when avrdude was CTRL+C'd but still provides power
 
+  // Now we try to figure out if we have to supply power from PICkit
   double v_target;
-  pickit5_get_vtarget(pgm, &v_target);  // see if we have to supply power, or we get it externally
+  pickit5_get_vtarget(pgm, &v_target);
   if (v_target < 1.8) {
     if (PDATA(pgm)->power_source == POWER_SOURCE_NONE) {
       pmsg_warning("No external Voltage detected, but continuing anyway\n");
@@ -449,11 +450,9 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   PDATA(pgm)->pk_op_mode = PK_OP_READY;
-  return pickit5_init_clock(pgm, p, v_target);
-}
 
 
-inline static int pickit5_init_clock(const PROGRAMMER *pgm, const AVRPART *p, double vtarg) {
+  // Target is powered, set the UPDI baudrate. Adjust UPDICLKSEL if possible and neccessary
   if (pickit5_program_enable(pgm, p) < 0)
     return -1;
 
@@ -476,7 +475,7 @@ inline static int pickit5_init_clock(const PROGRAMMER *pgm, const AVRPART *p, do
     baud = 300;
   }
   if (baud > 225000) {
-    if (vtarg < 2.9) {
+    if (v_target < 2.9) {
       pmsg_warning("UPDI needs a higher Voltage (>2.9V) for a faster Baudrate, limiting UPDI to 225 kHz\n");
       baud = 225000;
     } else {
@@ -501,6 +500,17 @@ inline static int pickit5_init_clock(const PROGRAMMER *pgm, const AVRPART *p, do
     pmsg_info("UPDI Speed set to %i kHz\n", baud / 1000);
   } else {
     pmsg_warning("Failed to set UPDI speed, continuing...\n");
+  }
+
+
+  // Now that the clock is operating at the desired frequency, cache chip identifiers
+  if (pickit5_read_dev_id(pgm, p) < 0) {
+    pmsg_error("Failed to obtain device ID\n");
+    return -1;
+  }
+  if (pickit5_read_sib(pgm, p, PDATA(pgm)->sib_string) < 0) {
+    pmsg_error("Failed to obtain System Info Block\n");
+    return -1;
   }
   return 0;
 }
@@ -815,23 +825,17 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
     read_bytes = PDATA(pgm)->scripts.ReadIDmem;
     read_bytes_len = PDATA(pgm)->scripts.ReadIDmem_len;
   } else if (mem_is_sib(mem)) {
-    if (addr == 0) {
-      pickit5_read_sib(pgm, p, PDATA(pgm)->sib);
-    }
-    if (len == 32) {
-      memcpy(value, PDATA(pgm)->sib, 32);
+    if (len == 1) {
+      *value = PDATA(pgm)->sib_string[addr];
+      return 0;
+    } else if (len == 32) {
+      memcpy(value, PDATA(pgm)->sib_string, 32);
       return 32;
-    } else if (len == 1) {
-      *value = PDATA(pgm)->sib[addr];
-      return 1;
     }
     return -1;
   } else if (mem_is_signature(mem)) {
-    if (addr == 0) {                        // Buffer signature bytes on first read
-      pickit5_read_sig_bytes(pgm, p, NULL);
-    }
-    if (addr < 4) {
-      *value =  PDATA(pgm)->signature[addr];
+    if (len == 1) {
+      *value = PDATA(pgm)->devID[addr];
       return 0;
     }
     return -1;
@@ -873,7 +877,7 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
   return len;
 }
 
-static int pickit5_read_sig_bytes (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+static int pickit5_read_dev_id (const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("pickit5_read_sig_bytes()\n");
   const unsigned char *read_id = PDATA(pgm)->scripts.GetDeviceID;
   unsigned int read_id_len = PDATA(pgm)->scripts.GetDeviceID_len;
@@ -883,13 +887,8 @@ static int pickit5_read_sig_bytes (const PROGRAMMER *pgm, const AVRPART *p, cons
   if (pickit5_read_response(pgm, "Read Device ID") >= 0) {
     if (PDATA(pgm)->rxBuf[0] == 0x0D) {
       if (PDATA(pgm)->rxBuf[20] == 0x04) {
-        memcpy(PDATA(pgm)->signature, &PDATA(pgm)->rxBuf[24], 4);
-        if (mem != NULL) {
-          mem->buf[0] = PDATA(pgm)->rxBuf[24];
-          mem->buf[1] = PDATA(pgm)->rxBuf[25];
-          mem->buf[2] = PDATA(pgm)->rxBuf[26];
-        }
-        return 3;
+        memcpy(PDATA(pgm)->devID, &PDATA(pgm)->rxBuf[24], 4);
+        return 0;
       } else {
         if (PDATA(pgm)->hvupdi_enabled && p->hvupdi_variant == HV_UPDI_VARIANT_2) {
           pmsg_info("Failed to get DeviceID with activated HV Pulse on RST.\n");
@@ -913,15 +912,15 @@ static int pickit5_read_sib (const PROGRAMMER *pgm, const AVRPART *p, char *sib)
   unsigned int ret_len = pickit5_array_to_uint32(&(PDATA(pgm)->rxBuf[20]));
   if (ret_len == 0x20) {  // 0x20 bytes == 32 bytes
     memcpy(sib, &PDATA(pgm)->rxBuf[24], 32);
-  } else {
-    return -1;
+    sib[31] = 0x00; // Known Zero-terminator
+    return 0;
   }
-  return 0;
+  return -1;
 }
 
 static int pickit5_read_chip_rev (const PROGRAMMER *pgm, const AVRPART *p, unsigned char *chip_rev) {
   pmsg_debug("pickit5_read_chip_rev()\n");
-  *chip_rev = PDATA(pgm)->signature[3];
+  *chip_rev = PDATA(pgm)->devID[3];
   return 0;
 }
 
@@ -1183,7 +1182,6 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   pgm->teardown       = pickit5_teardown;
   pgm->set_sck_period = pickit5_set_sck_period;
   pgm->end_programming = pickit5_program_disable;
-  pgm->read_sig_bytes = pickit5_read_sig_bytes;
   pgm->read_sib       = pickit5_read_sib;
   pgm->read_chip_rev  = pickit5_read_chip_rev;
   pgm->set_vtarget    = pickit5_set_vtarget;
