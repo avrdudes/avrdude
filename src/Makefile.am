@@ -31,14 +31,18 @@ EXTRA_DIST   = \
 	avrdude.spec \
 	bootstrap
 
-CLEANFILES = \
-	config_gram.c \
-	config_gram.h \
-	lexer.c
+BUILT_SOURCES  =
+CLEANFILES     =
+
+built_sources  =
+built_sources += config_gram.c
+built_sources += config_gram.h
+built_sources += lexer.c
+
+BUILT_SOURCES += $(built_sources)
+CLEANFILES    += $(built_sources)
 
 include build-helpers/versioninfo.mk
-
-BUILT_SOURCES = $(CLEANFILES)
 
 #SUBDIRS      = doc
 #DIST_SUBDIRS = doc
@@ -53,19 +57,16 @@ AM_YFLAGS    = -d
 
 avrdude_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
-libavrdude_a_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
-libavrdude_la_CPPFLAGS = $(libavrdude_a_CPPFLAGS)
+libavrdude_la_CPPFLAGS = -DCONFIG_DIR=\"$(sysconfdir)\"
 
 avrdude_CFLAGS   = @ENABLE_WARNINGS@
 
-libavrdude_a_CFLAGS   = @ENABLE_WARNINGS@ $(LIBGPIOD_CFLAGS)
-libavrdude_la_CFLAGS  = $(libavrdude_a_CFLAGS)
+libavrdude_la_CFLAGS   = @ENABLE_WARNINGS@ $(LIBGPIOD_CFLAGS)
 
-avrdude_LDADD  = $(top_builddir)/$(noinst_LIBRARIES) @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ $(LIBGPIOD_LIBS) -lm
+avrdude_LDADD  = libavrdude.la @LIBUSB_1_0@ @LIBHIDAPI@ @LIBUSB@ @LIBFTDI1@ @LIBFTDI@ @LIBHID@ @LIBELF@ @LIBPTHREAD@ @LIBSERIALPORT@ $(LIBGPIOD_LIBS) -lm
 
 bin_PROGRAMS = avrdude
 
-noinst_LIBRARIES = libavrdude.a
 lib_LTLIBRARIES = libavrdude.la
 
 # automake thinks these generated files should be in the distribution,
@@ -77,13 +78,14 @@ lib_LTLIBRARIES = libavrdude.la
 # https://savannah.nongnu.org/bugs/index.php?func=detailitem&item_id=15536
 #
 # for why we don't want to have them.
-dist-hook:
-	rm -f \
-	$(distdir)/lexer.c \
-	$(distdir)/config_gram.c \
-	$(distdir)/config_gram.h
+#
+# We could avoid this dist-hook altogether if we could require
+# Automake >= 1.16.4 and just use its no-dist-built-sources flag.
+dist-hook: dist-hook-no-dist-built-sources-workaround
+dist-hook-no-dist-built-sources-workaround:
+	cd "$(distdir)" && rm -f $(built_sources)
 
-libavrdude_a_SOURCES = \
+libavrdude_la_SOURCES = \
 	config_gram.y \
 	lexer.l \
 	arduino.h \
@@ -218,8 +220,7 @@ libavrdude_a_SOURCES = \
 	wiring.c \
 	xbee.h \
 	xbee.c
-libavrdude_la_SOURCES = $(libavrdude_a_SOURCES)
-libavrdude_la_LDFLAGS = -version-info 2:0
+libavrdude_la_LDFLAGS = -version-info @LIBAVRDUDE_VERSION_INFO@
 
 include_HEADERS = libavrdude.h
 include_HEADERS += libavrdude-avrintel.h

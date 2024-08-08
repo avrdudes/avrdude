@@ -89,6 +89,36 @@ test -n "$PROJECT_VERSION" || \
     ret_error "Cannot find project(...) in top-level avrdude 'CMakeLists.txt'"
 
 
+# Parse libavrdude library version from CMakeLists.txt
+tmp="$(${AWK-awk} '
+BEGIN                                            { v=0; }
+($1 == "set_target_properties(libavrdude")       { v=1; }
+(v == 1) && /^[[:space:]]+\)/                    { v=0; }
+(v == 1) && /^[[:space:]]+VERSION[[:space:]]+/   { version=$2; }
+(v == 1) && /^[[:space:]]+SOVERSION[[:space:]]+/ { soversion=$2; }
+END                                              { print version;
+                                                   print soversion; }
+' < "$top_srcdir/CMakeLists.txt")"
+
+
+# Extract the libavrdude VERSION
+CMAKE_LIBAVRDUDE_VERSION="$(printf "%s\n" "$tmp" | { \
+  read LIB_VERSION; read LIB_SOVERSION; \
+  printf "%s\n" "$LIB_VERSION"; })"
+
+test -n "$CMAKE_LIBAVRDUDE_VERSION" || \
+    ret_error "Cannot find library VERSION in library 'CMakeLists.txt'"
+
+
+# Extract the libavrdude SOVERSION
+CMAKE_LIBAVRDUDE_SOVERSION="$(printf "%s\n" "$tmp" | { \
+  read LIB_VERSION; read LIB_SOVERSION; \
+  printf "%s\n" "$LIB_SOVERSION"; })"
+
+test -n "$CMAKE_LIBAVRDUDE_SOVERSION" || \
+    ret_error "Cannot find library SOVERSION in library 'CMakeLists.txt'"
+
+
 # If GIT_DIR is set, use it. If not, try "$top_srcdir/../.git".
 test -n "$GIT_DIR" || { \
     GIT_DIR="$top_srcdir/../.git"; \
@@ -106,11 +136,13 @@ if test -d "$GIT_DIR" && ${GIT-git} --version > /dev/null 2>&1; then
 	ret_error "$prog: Cannot run 'git log' for tag hash"
     # This must be the same sequence as versioninfo_items in configure.ac
     ret_ok "${PROJECT_VERSION}" \
+	   "${CMAKE_LIBAVRDUDE_VERSION}" "${CMAKE_LIBAVRDUDE_SOVERSION}" \
 	   "${GIT_COMMIT_DATE}" "${GIT_COMMIT_HASH}" "${GIT_TAG_HASH}"
 else # This is a github release tarball or github snapshot tarball
     # Presume this is a release version, because who would build a
     # non-release version from a snapshot tarball?
-    ret_ok "${PROJECT_VERSION}"
+    ret_ok "${PROJECT_VERSION}" \
+	   "${CMAKE_LIBAVRDUDE_VERSION}" "${CMAKE_LIBAVRDUDE_SOVERSION}"
 fi
 
 
