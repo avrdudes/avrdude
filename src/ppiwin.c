@@ -63,7 +63,7 @@ static const winpp winports[DEVICE_MAX] = {
 };
 
 static int winnt_pp_open(void);
-static unsigned short port_get(union filedescriptor *fdp, int reg);
+static unsigned short port_get(const union filedescriptor *fdp, int reg);
 static unsigned char reg2offset(int reg);
 static unsigned char inb(unsigned short port);
 static void outb(unsigned char value, unsigned short port);
