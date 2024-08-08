@@ -86,7 +86,6 @@ static int parse_cmdbits(OPCODE * op, int opnum);
 %token K_DEFAULT_SPI
 %token K_DEFAULT_LINUXGPIO
 %token K_HVUPDI_SUPPORT
-%token K_DEVICECODE
 %token K_EEPROM
 %token K_ERRLED
 %token K_FLASH
@@ -137,13 +136,7 @@ static int parse_cmdbits(OPCODE * op, int opnum);
 				 * MCUs.
 				 */
 %token K_ENABLEPAGEPROGRAMMING	/* ? yes for mega256*, mega406 */
-%token K_HAS_JTAG		/* MCU has JTAG i/f. */
-%token K_HAS_DW			/* MCU has debugWire i/f. */
-%token K_HAS_PDI                /* MCU has PDI i/f rather than ISP (ATxmega). */
-%token K_HAS_UPDI               /* MCU has UPDI i/f (AVR8X). */
-%token K_HAS_TPI                /* MCU has TPI i/f rather than ISP (ATtiny4/5/9/10). */
 %token K_IS_AT90S1200		/* chip is an AT90S1200 (needs special treatment) */
-%token K_IS_AVR32               /* chip is in the avr32 family */
 %token K_FLASH_INSTR		/* flash instructions */
 %token K_EEPROM_INSTR		/* EEPROM instructions */
 
@@ -681,13 +674,6 @@ part_parm :
     }
   } |
 
-  K_DEVICECODE TKN_EQUAL numexpr {
-    {
-      yyerror("devicecode is deprecated, will be removed in v8.0, use stk500_devcode instead");
-      YYABORT;
-    }
-  } |
-
   K_SIGNATURE TKN_EQUAL TKN_NUMBER TKN_NUMBER TKN_NUMBER {
     {
       current_part->signature[0] = $3->value.number;
@@ -864,56 +850,6 @@ part_parm :
       free_tokens(2, $1, $3);
     } |
 
-  K_HAS_JTAG TKN_EQUAL numexpr
-    {
-      yywarning("has_jtag is deprecated, will be removed in v8.0, use prog_modes");
-      if ($3->value.number == 1)
-        current_part->prog_modes |= PM_JTAG;
-      else if ($3->value.number == 0)
-        current_part->prog_modes &= ~(PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG | PM_AVR32JTAG);
-      free_token($3);
-    } |
-
-  K_HAS_DW TKN_EQUAL numexpr
-    {
-      yywarning("has_debugwire is deprecated, will be removed in v8.0, use prog_modes");
-      if ($3->value.number == 1)
-        current_part->prog_modes |= PM_debugWIRE;
-      else if ($3->value.number == 0)
-        current_part->prog_modes &= ~PM_debugWIRE;
-      free_token($3);
-    } |
-
-  K_HAS_PDI TKN_EQUAL numexpr
-    {
-      yywarning("has_pdi is deprecated, will be removed in v8.0, use prog_modes");
-      if ($3->value.number == 1)
-        current_part->prog_modes |= PM_PDI;
-      else if ($3->value.number == 0)
-        current_part->prog_modes &= ~PM_PDI;
-      free_token($3);
-    } |
-
-  K_HAS_UPDI TKN_EQUAL numexpr
-    {
-      yywarning("has_updi is deprecated, will be removed in v8.0, use prog_modes");
-      if ($3->value.number == 1)
-        current_part->prog_modes |= PM_UPDI;
-      else if ($3->value.number == 0)
-        current_part->prog_modes &= ~PM_UPDI;
-      free_token($3);
-    } |
-
-  K_HAS_TPI TKN_EQUAL numexpr
-    {
-      yywarning("has_tpi is deprecated, will be removed in v8.0, use prog_modes");
-      if ($3->value.number == 1)
-        current_part->prog_modes |= PM_TPI;
-      else if ($3->value.number == 0)
-        current_part->prog_modes &= ~PM_TPI;
-      free_token($3);
-    } |
-
   K_IS_AT90S1200 TKN_EQUAL numexpr
     {
       if ($3->value.number == 1)
@@ -926,16 +862,6 @@ part_parm :
         YYABORT;
       }
 
-      free_token($3);
-    } |
-
-  K_IS_AVR32 TKN_EQUAL numexpr
-    {
-      yywarning("is_avr32 is deprecated, will be removed in v8.0, use prog_modes");
-      if ($3->value.number == 1)
-        current_part->prog_modes |= PM_aWire;
-      else if ($3->value.number == 0)
-        current_part->prog_modes &= ~PM_aWire;
       free_token($3);
     } |
 

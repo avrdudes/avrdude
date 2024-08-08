@@ -3532,36 +3532,37 @@ The format of the programmer definition is as follows:
 
 @smallexample
 programmer
-    parent <id>                               # optional parent
-    id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
-    desc     = <description> ;                # quoted string
-    type     = <type>;                        # programmer type, quoted string
-                                              # list known types with -c ?type
-    prog_modes = PM_<i/f> @{| PM_<i/f>@}        # interfaces, e.g., PM_SPM|PM_PDI (1)
+    parent <id>                              # optional parent
+    id       = <id1> [, <id2> ... ];         # <idN> are quoted strings
+    desc     = <description>;                # quoted string
+    type     = <type>;                       # programmer type, quoted string
+                                             # list known types with -c ?type
+    prog_modes = PM_<i/f> @{| PM_<i/f>@}       # interfaces, e.g., PM_SPM|PM_PDI (1)
+    is_serialadapter = <yes|no>              # programmer is also a serialadapter
     extra_features = HAS_<fea> @{| HAS_<fea>@}  # extra features, e.g., HAS_SUFFER (2)
     connection_type = parallel | serial | usb | spi
-    baudrate = <num> ;                        # baudrate for avr910-programmer
-    vcc      = <pin1> [, <pin2> ... ] ;       # pin number(s) (3)
-    buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
-    reset    = <pin> ;                        # pin number
-    sck      = <pin> ;                        # pin number
-    sdo      = <pin> ;                        # pin number
-    sdi      = <pin> ;                        # pin number
-    tck      = <pin> ;                        # pin number
-    tdi      = <pin> ;                        # pin number
-    tdo      = <pin> ;                        # pin number
-    tms      = <pin> ;                        # pin number
-    errled   = <pin> ;                        # pin number
-    rdyled   = <pin> ;                        # pin number
-    pgmled   = <pin> ;                        # pin number
-    vfyled   = <pin> ;                        # pin number
-    usbvid   = <hexnum> ;                     # USB vendor ID
-    usbpid   = <hexnum> [, <hexnum> ...] ;    # USB product ID (4)
-    usbdev   = <interface> ;                  # USB interface or other device info
-    usbvendor = <vendorname> ;                # USB Vendor Name
-    usbproduct = <productname> ;              # USB Product Name
-    usbsn    = <serialno> ;                   # USB Serial Number
-    hvupdi_support = <num> [, <num>, ... ] ;  # UPDI HV Variants Support
+    baudrate = <num>;                        # baudrate for avr910-programmer
+    vcc      = <pin1> [, <pin2> ... ];       # pin number(s) (3)
+    buff     = <pin1> [, <pin2> ... ];       # pin number(s)
+    reset    = <pin>;                        # pin number
+    sck      = <pin>;                        # pin number
+    sdo|pico = <pin>;                        # pin number
+    sdi|poci = <pin>;                        # pin number
+    tck      = <pin>;                        # pin number
+    tdi      = <pin>;                        # pin number
+    tdo      = <pin>;                        # pin number
+    tms      = <pin>;                        # pin number
+    errled   = <pin>;                        # pin number
+    rdyled   = <pin>;                        # pin number
+    pgmled   = <pin>;                        # pin number
+    vfyled   = <pin>;                        # pin number
+    usbvid   = <hexnum>;                     # USB vendor ID
+    usbpid   = <hexnum> [, <hexnum> ...];    # USB product ID (4)
+    usbdev   = <interface>;                  # USB interface or other device info
+    usbvendor = <vendorname>;                # USB Vendor Name
+    usbproduct = <productname>;              # USB Product Name
+    usbsn    = <serialno>;                   # USB Serial Number
+    hvupdi_support = <num> [, <num>, ... ];  # UPDI HV Variants Support
 ;
 @end smallexample
 
@@ -3656,12 +3657,12 @@ The format of a serial adapter definition is as follows:
 @smallexample
 serialadapter
     parent <id>                               # optional serialadapter or programmer parent
-    id       = <id1> [, <id2> ... ] ;         # <idN> are quoted strings
-    desc     = <description> ;                # quoted string
-    baudrate = <num> ;                        # optional default baudrate, eg, in .avrduderc
-    usbvid   = <hexnum> ;                     # USB vendor ID
-    usbpid   = <hexnum> [, <hexnum> ...] ;    # list of USB product IDs
-    usbsn    = <serialno> ;                   # USB Serial Number in per-user .avrduderc
+    id       = <id1> [, <id2> ... ];          # <idN> are quoted strings
+    desc     = <description>;                 # quoted string
+    baudrate = <num>;                         # optional default baudrate, eg, in .avrduderc
+    usbvid   = <hexnum>;                      # USB vendor ID
+    usbpid   = <hexnum> [, <hexnum> ...];     # list of USB product IDs
+    usbsn    = <serialno>;                    # USB Serial Number in per-user .avrduderc
 ;
 @end smallexample
 
@@ -3698,10 +3699,10 @@ utilised as a serialadapter.
 
 @smallexample
 part
-    desc             = <description> ;        # quoted string, the long part name, eg, "ATmega328p"
-    id               = <id> ;                 # quoted string, normally an abbreviated part name
+    desc             = <description>;         # quoted string, the long part name, eg, "ATmega328p"
+    id               = <id>;                  # quoted string, normally an abbreviated part name
     variants         = <str1> [, <str2> ...]; # quoted strings, each starts so "<alt-name>: ..."
-    family_id        = <id> ;                 # quoted string, e.g., "megaAVR" or "tinyAVR"
+    family_id        = <id>;                  # quoted string, e.g., "megaAVR" or "tinyAVR"
     prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
     archnum          = <num>;                 # avr-gcc architecture number for the part
@@ -3709,108 +3710,101 @@ part
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
     n_boot_sections  = <num>;                 # Number of boot sections
     boot_section_size = <num>;                # Size of (smallest) boot section, if any
-    hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
-    devicecode       = <num> ;                # deprecated, use stk500_devcode
-    stk500_devcode   = <num> ;                # numeric
-    avr910_devcode   = <num> ;                # numeric
-    has_jtag         = <yes/no> ;             # part has JTAG i/f (deprecated, use prog_modes)
-    has_debugwire    = <yes/no> ;             # part has debugWire i/f (deprecated, use prog_modes)
-    has_pdi          = <yes/no> ;             # part has PDI i/f (deprecated, use prog_modes)
-    has_updi         = <yes/no> ;             # part has UPDI i/f (deprecated, use prog_modes)
-    has_tpi          = <yes/no> ;             # part has TPI i/f (deprecated, use prog_modes)
-    is_avr32         = <yes/no> ;             # AVR32 part (deprecated, use prog_modes)
-    is_at90s1200     = <yes/no> ;             # AT90S1200 part
-    signature        = <num> <num> <num> ;    # signature bytes
-    usbpid           = <num> ;                # DFU USB PID
-    chip_erase_delay = <num> ;                # microseconds
-    reset            = dedicated | io ;
-    retry_pulse      = reset | sck ;
+    hvupdi_variant   = <num>;                 # numeric -1 (n/a) or 0..2
+    stk500_devcode   = <num>;                 # numeric
+    avr910_devcode   = <num>;                 # numeric
+    is_at90s1200     = <yes/no>;              # AT90S1200 part
+    signature        = <num> <num> <num>;     # signature bytes
+    usbpid           = <num>;                 # DFU USB PID
+    chip_erase_delay = <num>;                 # microseconds
+    reset            = dedicated | io;
+    retry_pulse      = reset | sck;
     # STK500 parameters (parallel programming IO lines)
-    pagel            = <num> ;                # page load pin name in hex, e.g., 0xD7
-    bs2              = <num> ;                # byte select 2 pin name in hex, e.g., 0xA0
-    serial           = <yes/no> ;             # can use serial downloading
-    parallel         = <yes/no/pseudo> ;      # can use parallel programming
+    pagel            = <num>;                 # page load pin name in hex, e.g., 0xD7
+    bs2              = <num>;                 # byte select 2 pin name in hex, e.g., 0xA0
+    serial           = <yes/no>;              # can use serial downloading
+    parallel         = <yes/no/pseudo>;       # can use parallel programming
     # STK500v2 parameters, to be taken from Atmel's ATDF files
-    timeout          = <num> ;
-    stabdelay        = <num> ;
-    cmdexedelay      = <num> ;
-    synchloops       = <num> ;
-    bytedelay        = <num> ;
-    pollvalue        = <num> ;
-    pollindex        = <num> ;
-    predelay         = <num> ;
-    postdelay        = <num> ;
-    pollmethod       = <num> ;
-    hvspcmdexedelay  = <num> ;
+    timeout          = <num>;
+    stabdelay        = <num>;
+    cmdexedelay      = <num>;
+    synchloops       = <num>;
+    bytedelay        = <num>;
+    pollvalue        = <num>;
+    pollindex        = <num>;
+    predelay         = <num>;
+    postdelay        = <num>;
+    pollmethod       = <num>;
+    hvspcmdexedelay  = <num>;
     # STK500v2 HV programming parameters, from ATDFs
-    pp_controlstack  = <num>, <num>, ... ;    # PP only
-    hvsp_controlstack = <num>, <num>, ... ;   # HVSP only
-    flash_instr      = <num>, <num>, <num> ;
-    eeprom_instr     = <num>, <num>, ... ;
-    hventerstabdelay = <num> ;
-    progmodedelay    = <num> ;                # PP only
-    latchcycles      = <num> ;
-    togglevtg        = <num> ;
-    poweroffdelay    = <num> ;
-    resetdelayms     = <num> ;
-    resetdelayus     = <num> ;
-    hvleavestabdelay = <num> ;
-    resetdelay       = <num> ;
-    synchcycles      = <num> ;                # HVSP only
-    chiperasepulsewidth = <num> ;             # PP only
-    chiperasepolltimeout = <num> ;
-    chiperasetime    = <num> ;                # HVSP only
-    programfusepulsewidth = <num> ;           # PP only
-    programfusepolltimeout = <num> ;
-    programlockpulsewidth = <num> ;           # PP only
-    programlockpolltimeout = <num> ;
+    pp_controlstack  = <num>, <num>, ...;     # PP only
+    hvsp_controlstack = <num>, <num>, ...;    # HVSP only
+    flash_instr      = <num>, <num>, <num>;
+    eeprom_instr     = <num>, <num>, ...;
+    hventerstabdelay = <num>;
+    progmodedelay    = <num>;                 # PP only
+    latchcycles      = <num>;
+    togglevtg        = <num>;
+    poweroffdelay    = <num>;
+    resetdelayms     = <num>;
+    resetdelayus     = <num>;
+    hvleavestabdelay = <num>;
+    resetdelay       = <num>;
+    synchcycles      = <num>;                 # HVSP only
+    chiperasepulsewidth = <num>;              # PP only
+    chiperasepolltimeout = <num>;
+    chiperasetime    = <num>;                 # HVSP only
+    programfusepulsewidth = <num>;            # PP only
+    programfusepolltimeout = <num>;
+    programlockpulsewidth = <num>;            # PP only
+    programlockpolltimeout = <num>;
     # debugWIRE and/or JTAG ICE mkII parameters, also from ATDF files
-    allowfullpagebitstream = <yes/no> ;
-    enablepageprogramming = <yes/no> ;
-    idr              = <num> ;                # IO addr of IDR (OCD) reg
-    rampz            = <num> ;                # IO addr of RAMPZ reg
-    spmcr            = <num> ;                # mem addr of SPMC[S]R reg
-    eecr             = <num> ;                # mem addr of EECR reg
-    eind             = <num> ;                # mem addr of EIND reg
-    mcu_base         = <num> ;                # MCU control block in ATxmega devices
-    nvm_base         = <num> ;                # NVM controller in ATxmega devices
-    ocd_base         = <num> ;                # OCD module in AVR8X/UPDI devices
-    syscfg_base      = <num> ;                # Chip revision ID in AVR8X/UPDI devices
-    ocdrev           = <num> ;                # JTAGICE3 parameter from ATDF files
-    pgm_enable       = <instruction format> ;
-    chip_erase       = <instruction format> ;
+    allowfullpagebitstream = <yes/no>;
+    enablepageprogramming = <yes/no>;
+    idr              = <num>;                 # IO addr of IDR (OCD) reg
+    rampz            = <num>;                 # IO addr of RAMPZ reg
+    spmcr            = <num>;                 # mem addr of SPMC[S]R reg
+    eecr             = <num>;                 # mem addr of EECR reg
+    eind             = <num>;                 # mem addr of EIND reg
+    mcu_base         = <num>;                 # MCU control block in ATxmega devices
+    nvm_base         = <num>;                 # NVM controller in ATxmega devices
+    ocd_base         = <num>;                 # OCD module in AVR8X/UPDI devices
+    syscfg_base      = <num>;                 # Chip revision ID in AVR8X/UPDI devices
+    ocdrev           = <num>;                 # JTAGICE3 parameter from ATDF files
+    pgm_enable       = <instruction format>;
+    chip_erase       = <instruction format>;
     # parameters for bootloaders
-    autobaud_sync    = <num> ;                # autobaud detection byte, default 0x30
-    factory_fcpu     = <num> ;                # F_CPU in Hz on reset and factory-set fuses
+    autobaud_sync    = <num>;                 # autobaud detection byte, default 0x30
+    factory_fcpu     = <num>;                 # F_CPU in Hz on reset and factory-set fuses
 
     memory <memstr>
-        paged           = <yes/no> ;          # yes/no (flash of classic parts only)
-        offset          = <num> ;             # memory offset
-        size            = <num> ;             # bytes
-        page_size       = <num> ;             # bytes
-        num_pages       = <num> ;             # numeric
-        initval         = <num> ;             # factory setting of fuses and lockbits
-        bitmask         = <num> ;             # bits used (only in fuses and lockbits)
-        n_word_writes   = <num> ;             # TPI only: if set, number of words to write
-        min_write_delay = <num> ;             # micro-seconds
-        max_write_delay = <num> ;             # micro-seconds
-        readback        = <num> <num> ;       # pair of byte values
-        readback_p1     = <num> ;             # byte value (first component)
-        readback_p2     = <num> ;             # byte value (second component)
-        pwroff_after_write = <yes/no> ;       # yes/no
-        mode            = <num> ;             # STK500 v2 file parameter from ATDF files
-        delay           = <num> ;             #   "
-        blocksize       = <num> ;             #   "
-        readsize        = <num> ;             #   "
-        read            = <instruction format> ;
-        write           = <instruction format> ;
-        read_lo         = <instruction format> ;
-        read_hi         = <instruction format> ;
-        write_lo        = <instruction format> ;
-        write_hi        = <instruction format> ;
-        loadpage_lo     = <instruction format> ;
-        loadpage_hi     = <instruction format> ;
-        writepage       = <instruction format> ;
+        paged           = <yes/no>;           # yes/no (flash of classic parts only)
+        offset          = <num>;              # memory offset
+        size            = <num>;              # bytes
+        page_size       = <num>;              # bytes
+        num_pages       = <num>;              # numeric
+        initval         = <num>;              # factory setting of fuses and lockbits
+        bitmask         = <num>;              # bits used (only in fuses and lockbits)
+        n_word_writes   = <num>;              # TPI only: if set, number of words to write
+        min_write_delay = <num>;              # micro-seconds
+        max_write_delay = <num>;              # micro-seconds
+        readback        = <num> <num>;        # pair of byte values
+        readback_p1     = <num>;              # byte value (first component)
+        readback_p2     = <num>;              # byte value (second component)
+        pwroff_after_write = <yes/no>;        # yes/no
+        mode            = <num>;              # STK500 v2 file parameter from ATDF files
+        delay           = <num>;              #   "
+        blocksize       = <num>;              #   "
+        readsize        = <num>;              #   "
+        read            = <instruction format>;
+        write           = <instruction format>;
+        read_lo         = <instruction format>;
+        read_hi         = <instruction format>;
+        write_lo        = <instruction format>;
+        write_hi        = <instruction format>;
+        loadpage_lo     = <instruction format>;
+        loadpage_hi     = <instruction format>;
+        writepage       = <instruction format>;
     ;
 ;
 @end smallexample
@@ -3858,7 +3852,7 @@ Example format for part inheritance:
 
 @smallexample
    part parent <id>                              # String identifying parent
-       id               = <id> ;                 # Id string for new part
+       id               = <id>;                  # Id string for new part
        <any set of other parameters from the list above>
    ;
 @end smallexample
@@ -3950,7 +3944,7 @@ Examples:
 
 @itemize @bullet
 @item
-The @code{devicecode} parameter is the device code used by the STK500
+The @code{stk500_devcode} parameter is the device code used by the STK500
 and is obtained from the software section (@code{avr061.zip}) of
 Atmel's AVR061 application note available from
 @url{http://www.atmel.com/dyn/resources/prod_documents/doc2525.pdf}.
