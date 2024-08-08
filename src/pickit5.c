@@ -60,10 +60,11 @@
 #define BIST_TEST             0x02
 #define BIST_RESULT           0x03
 
-#define PK_OP_NONE            0x00
-#define PK_OP_FOUND           0x01
-#define PK_OP_READY           0x02
-#define PK_OP_PROG            0x03
+#define PK_OP_NONE            0x00  // init
+#define PK_OP_FOUND           0x01  // PK is connected to USB
+#define PK_OP_RESPONDS        0x02  // responds to get_fw() requests
+#define PK_OP_READY           0x03  // Voltage Set, Clock Set
+#define PK_OP_PROG            0x04  // UPDI Enabled
 
 #define POWER_SOURCE_EXT      0x00
 #define POWER_SOURCE_INT      0x01
@@ -71,12 +72,19 @@
 
 // Private data for this programmer
 struct pdata {
-  unsigned char pk_op_mode;     // 0: init / 1: pk found / 2: pk ready / 3: pk programming
+  unsigned char pk_op_mode;     // see PK_OP_ defines
   unsigned char power_source;   // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled; // 0: no HV / 1: HV generation enabled
   double        target_voltage; // voltage to supply to target
+  
+  double        measured_vcc;     // for print_params()
+  unsigned int  measured_current; // for print_params()
+  unsigned int  actual_updi_clk;  // for print_params()
 
   unsigned char devID[4];       // last Byte has the Chip Revision of the Target
+  unsigned char app_version[3]; // Buffer for display() sent by get_fw()
+  unsigned char fw_info[16];    // Buffer for display() sent by get_fw()
+  unsigned char sernum_string[20];  // Buffer for display() sent by get_fw()
            char sib_string[32];
   unsigned char txBuf[512];
   unsigned char rxBuf[512];
@@ -320,10 +328,88 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
   LNODEID usbpid;
   int rv = -1;
 
-#if !defined(HAVE_LIBUSB) && !defined(HAVE_LIBHIDAPI)
+#if !defined(HAVE_LIBUSB)
   pmsg_error("was compiled without USB or HIDAPI support\n");
   return -1;
 #endif
+
+  if (!str_starts(port, "usb")) {
+    pmsg_error("Port names must start with usb\n");
+    return -1;
+  }
+  unsigned int new_vid = 0, new_pid = 0;
+  char vid_string[5], pid_string[5];
+  char *vidp, *pidp;
+
+  /*
+   * The syntax for usb devices is defined as:
+   *
+   * -P usb:vid:pid
+   * -P usb::pid
+   * -P usb:serialnumber
+   * -P usb
+   *
+   * First we check if we have two colons.
+   * Then check the filed between the two colons is empty
+   * If not, try to see if we find a Vendor name (Microchip - MC, Atmel, AT)
+   * If no name can be found, try to parse it as HEX value.
+   * If it is empty, assume Microchip VID
+   * The PID is handled similary, but can not be empty.
+   * The name aliases are shortend, e.g. PK5, PK4
+   * All names are case insensitive.
+   * 
+   * If there are less then two colons, nothing is changed 
+   */
+
+  vidp = strchr(port, ':');
+  if (vidp != NULL) {
+    vidp += 1;
+    pidp = strchr(vidp, ':');
+    if (pidp != NULL) {
+      if (vidp != pidp) {   // if user specified an VID
+        // First: Handle VID input
+        unsigned int len = pidp-vidp; // get length
+        if (len > 4) len = 4;         // limit length
+        strncpy(vid_string, vidp, 4);
+        str_lc(vid_string);
+        if (str_starts(vid_string, "mc"))  // first: probe string for aliases 
+          new_vid = USB_VENDOR_MICROCHIP;
+        else if (str_starts(vid_string, "at"))
+          new_vid = USB_VENDOR_ATMEL;
+        else {                              // no matching alias found, try to read hex
+          if (sscanf(vidp, "%x", &new_vid) != 1) {
+            pmsg_error("Failed to parse -P VID input, unexpected format");
+            return -1;
+          }
+        }
+      } else {  // VID space empty, default to Microchip
+        new_vid = USB_VENDOR_MICROCHIP;
+      }
+
+      // Now Handle PID input
+      strncpy(pid_string, pidp+1, 4);
+      str_lc(pid_string);
+      if(str_starts(pid_string, "snap"))  // first: probe string for aliases
+        new_pid = USB_DEVICE_SNAP_PIC_MODE;
+      else if (str_starts(pid_string, "pk4"))
+        new_pid = USB_DEVICE_PICKIT4_PIC_MODE;
+      else if (str_starts(pid_string, "pk5"))
+        new_pid = USB_DEVICE_PICKIT5;
+      else if (str_starts(pid_string, "pkob"))
+        new_pid = USB_DEVICE_PKOBN;
+      else {                            // no matching alias found, try to read hex
+        if (sscanf(pidp+1, "%x", &new_pid) != 1) {
+          pmsg_error("Failed to parse -P PID input, unexpected format");
+          return -1;
+        }
+      }
+
+      if ((new_vid != 0) && (new_pid != 0)) {
+        pmsg_notice("Overwriting VID and PID to %04x:%04x\n", new_vid, new_pid);
+        port = "usb"; // overwrite the string to avoid confusing libusb
+      }
+    } /* (pidp == NULL) means no second ':' means we have a serial number */
+  } /* vidp == NULL means just 'usb' */
 
   // If the config entry did not specify a USB PID, insert the default one.
   if (lfirst(pgm->usbpid) == NULL)
@@ -333,18 +419,29 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
   // PICkit 5 doesn't have support for HID, so no need to support it
   serdev = &usb_serdev;
-  for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
+  if (new_pid != 0 && new_vid != 0) { // in case a specific VID/PID was specified
+    pinfo.usbinfo.vid = new_vid;
+    pinfo.usbinfo.pid = new_pid;
     pinfo.usbinfo.flags = PINFO_FL_SILENT;
-    pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
     pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
     pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;   // command read
     pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP;  // command write
     pgm->fd.usb.eep = 0x00;
-
     pgm->port = port;
     rv = serial_open(port, pinfo, &pgm->fd);
-  }
+  } else {                            // otherwise walk the list of config file PIDs
+    for (usbpid = lfirst(pgm->usbpid); rv < 0 && usbpid != NULL; usbpid = lnext(usbpid)) {
+      pinfo.usbinfo.flags = PINFO_FL_SILENT;
+      pinfo.usbinfo.pid = *(int *)(ldata(usbpid));
+      pgm->fd.usb.max_xfer = USB_PK5_MAX_XFER;
+      pgm->fd.usb.rep = USB_PK5_CMD_READ_EP;   // command read
+      pgm->fd.usb.wep = USB_PK5_CMD_WRITE_EP;  // command write
+      pgm->fd.usb.eep = 0x00;
 
+      pgm->port = port;
+      rv = serial_open(port, pinfo, &pgm->fd);
+    }
+  }
   // Make USB serial number available to programmer
   if (serdev && serdev->usbsn) {
     pgm->usbsn = serdev->usbsn;
@@ -381,16 +478,33 @@ static void pickit5_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void pickit5_display(const PROGRAMMER *pgm, const char *p) {
-  return;
+  unsigned char *app = PDATA(pgm)->app_version;
+  unsigned char *sn = PDATA(pgm)->sernum_string;
+
+  if (pickit5_get_fw_info(pgm) < 0) {
+    msg_error("Failed to get Firmware Info\n");
+    return;
+  }
+
+  msg_info("PICkit Application Version: %02x.%02x.%02x\n", app[0], app[1], app[2]);
+  msg_info("PICkit Serial Number      : %s\n", sn);
+  PDATA(pgm)->pk_op_mode = PK_OP_RESPONDS;
+}
+
+static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
+  pickit5_get_vtarget(pgm, NULL);
+  fmsg_out(fp, "UPDI Clock    :  %u kHz\n", PDATA(pgm)->actual_updi_clk/1000);
+  fmsg_out(fp, "Target VCC    : %1.2f V\n", PDATA(pgm)->measured_vcc);
+  fmsg_out(fp, "Target Current:  %3u mA\n", PDATA(pgm)->measured_current);
 }
 
 static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-  pmsg_debug("pickit5_initialize()");
+  pmsg_debug("pickit5_initialize()\n");
   if (PDATA(pgm) == NULL)
     return -1;
   
-  if (PDATA(pgm)->pk_op_mode != PK_OP_FOUND) {
-    pmsg_error("Failed to find connected PICkit");
+  if (PDATA(pgm)->pk_op_mode < PK_OP_FOUND) {
+    pmsg_error("Failed to find connected PICkit\n");
     return -1;
   }
 
@@ -405,17 +519,20 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  pmsg_info("Scripts for %s found and loaded\n", p->desc);
+  pmsg_notice("Scripts for %s found and loaded\n", p->desc);
 
   if (PDATA(pgm)->hvupdi_enabled > 0) {
     if (p->hvupdi_variant == 0)
-      pmsg_info("High Voltage SYSCFG0 override on UPDI Pin enabled\n");
+      pmsg_notice("High Voltage SYSCFG0 override on UPDI Pin enabled\n");
     if (p->hvupdi_variant == 2)
-      pmsg_info("High Voltage SYSCFG0 override on RST Pin enabled\n");
+      pmsg_notice("High Voltage SYSCFG0 override on RST Pin enabled\n");
   }
 
-  if (pickit5_get_fw_info(pgm) < 0) // PK responds, we can try to enable voltage
-    return -1;
+  if (PDATA(pgm)->pk_op_mode < PK_OP_RESPONDS) {
+    if (pickit5_get_fw_info(pgm) < 0) // PK responds, we can try to enable voltage
+      return -1;
+    PDATA(pgm)->pk_op_mode = PK_OP_RESPONDS;
+  }
 
   pickit5_set_ptg_mode(pgm);
   pickit5_set_vtarget(pgm, 0.0);  // avoid the edge case when avrdude was CTRL+C'd but still provides power
@@ -427,7 +544,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (PDATA(pgm)->power_source == POWER_SOURCE_NONE) {
       pmsg_warning("No external Voltage detected, but continuing anyway\n");
     } else if (PDATA(pgm)->power_source == POWER_SOURCE_INT) { 
-      pmsg_info("No extenal Voltage detected, will try to supply from PICkit\n");
+      pmsg_notice("No extenal Voltage detected, will try to supply from PICkit\n");
 
       if (pickit5_set_vtarget(pgm, (double)PDATA(pgm)->target_voltage) < 0)
         return -1;    // Set requested voltage
@@ -446,7 +563,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   } else {
     PDATA(pgm)->power_source = POWER_SOURCE_EXT;  // Overwrite user input
-    pmsg_info("External Voltage detected, won't supply power\n");
+    pmsg_notice("External Voltage detected, won't supply power\n");
   }
 
   PDATA(pgm)->pk_op_mode = PK_OP_READY;
@@ -491,15 +608,17 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       unsigned char ret_val = 0;
       pickit5_read_cs_reg(pgm, UPDI_ASI_CTRLA, &ret_val);
       if (ret_val != 0x01) {
-        pmsg_warning("Failed to change UPDI Clock, falling back to 225 kHz");
+        pmsg_warning("Failed to change UPDI Clock, falling back to 225 kHz\n");
         baud = 225000;
       }
     }
   }
   if (pickit5_set_sck_period(pgm, 1.0/baud) >= 0) {
-    pmsg_info("UPDI Speed set to %i kHz\n", baud / 1000);
+    pmsg_notice("UPDI Speed set to %i kHz\n", baud / 1000);
+    PDATA(pgm)->actual_updi_clk = baud;
   } else {
     pmsg_warning("Failed to set UPDI speed, continuing...\n");
+    PDATA(pgm)->actual_updi_clk = 100000; // TBH, I have no Idea what the default clock is
   }
 
 
@@ -984,7 +1103,7 @@ static int pickit5_read_cs_reg(const PROGRAMMER *pgm, unsigned int addr, unsigne
 
 
 static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
-  pmsg_debug("pickit5_get_fw_info()");
+  pmsg_debug("pickit5_get_fw_info()\n");
   unsigned char *buf = PDATA(pgm)->rxBuf;
   const unsigned char get_fw [] = {0xE1};
 
@@ -993,7 +1112,6 @@ static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
     return -1;
   }
 
-  // PICkit didn't like receive transfers smaller 512
   if (serial_recv(&pgm->fd, buf, 512) < 0) {
     pmsg_error("Failed to receive FW response\n");
     return -1;
@@ -1004,10 +1122,10 @@ static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
     return -1;
   }
 
-  unsigned char str_num [32];
-  memcpy(str_num, &buf[32], 18);
-  str_num[18] = 0;  // Known Zero terminator
-  pmsg_info("PICkit5, FW Ver: %02x.%02x.%02x, SerialNumber: %s\n", buf[3], buf[4], buf[5], str_num);
+  memcpy(PDATA(pgm)->app_version, &(PDATA(pgm)->rxBuf[3]), 3);
+  memcpy(PDATA(pgm)->fw_info, &(PDATA(pgm)->rxBuf[7]), 16);
+  memcpy(PDATA(pgm)->sernum_string, &(PDATA(pgm)->rxBuf[32]), 20);
+  PDATA(pgm)->sernum_string[19] = 0;  // Known Zero terminator
   return 0;
 }
 
@@ -1073,13 +1191,15 @@ static int pickit5_get_vtarget (const PROGRAMMER *pgm, double *v) {
   
   // 24 - internal Vdd [mV]
   // 28 - target Vdd [mV]
-  // 32 - Target Vpp [mV] (Reset Pin Voltage)
-  // 36 - Internal Vpp [mV]
   // 48 - Vdd Current Sense [mA] 
-  int vtarget = pickit5_array_to_uint32(&buf[28]);
-  int itarget = pickit5_array_to_uint32(&buf[48]);
-  pmsg_info("Target Vdd: %umV, Target current: %umA\n", vtarget, itarget);
-  *v = ((double)vtarget / 1000.0);
+  PDATA(pgm)->measured_vcc = pickit5_array_to_uint32(&buf[28]) / 1000.0;
+  PDATA(pgm)->measured_current = pickit5_array_to_uint32(&buf[48]);
+
+  pmsg_notice("Target Vdd: %1.2fV, Target current: %umA\n", 
+    PDATA(pgm)->measured_vcc, PDATA(pgm)->measured_current);
+
+  if (v != NULL)
+    *v = PDATA(pgm)->measured_vcc;
   return 0;
 }
 
@@ -1186,6 +1306,7 @@ void pickit5_initpgm(PROGRAMMER *pgm) {
   pgm->read_chip_rev  = pickit5_read_chip_rev;
   pgm->set_vtarget    = pickit5_set_vtarget;
   pgm->get_vtarget    = pickit5_get_vtarget;
+  pgm->print_parms    = pickit5_print_parms;
 
 }
 
