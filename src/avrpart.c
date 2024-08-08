@@ -805,36 +805,33 @@ int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
 }
 
 
-static char *print_num(const char *fmt, int n) {
-  return mmt_sprintf(n<10? "%d": fmt, n);
+static const char *print_num(const char *fmt, int n) {
+  return str_ccprintf(n<10? "%d": fmt, n);
 }
 
 static int num_len(const char *fmt, int n) {
-  char *p = print_num(fmt, n);
-  int ret = strlen(p);
-  mmt_free(p);
-
-  return ret;
+  return strlen(print_num(fmt, n));
 }
 
-void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
+void avr_mem_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *prefix) {
   const char *table_colum[] = {"Memory", "Size", "Pg size", "Offset"};
   const char *table_padding = "-------------------------------";
   const int memory_col = 0, offset_col = 3;
   int m_char_max[4];
+  AVRMEM *m;
 
   for(int i = 0; i < 4; i++)
     m_char_max[i] = strlen(table_colum[i]);
 
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    AVRMEM *m = ldata(ln);
+    if(avr_mem_exclude(pgm, p, (m = ldata(ln))))
+      continue;
+
     int m_size[] = {0, m->size, m->page_size, m->offset};
 
-    // Mem desc/size/pgsize/offset string length
-    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
+    // Max column widths
     for(int i = 0; i < 4; i++) {
-      int len = i == memory_col?
-        (int) (strlen(m->desc) + strlen(a? "/": "") + strlen(a? a->desc: "")): // desc
+      int len = i == memory_col? (int) strlen(avr_mem_name(p, m)):
         num_len(i == offset_col? "0x%04x": "%d", m_size[i]); // size/pgsize/offset
       if(m_char_max[i] < len)
         m_char_max[i] = len;
@@ -871,30 +868,24 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
   }
 
   for (LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln)) {
-    AVRMEM *m = ldata(ln);
-
-    // Create mem desc string including alias if present
-    AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    char *m_desc_str = mmt_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
+    if(avr_mem_exclude(pgm, p, (m = ldata(ln))))
+      continue;
 
     // Print memory table content
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-      char *m_offset = print_num("0x%04x", m->offset);
       fprintf(f, "%s%-*s  %*d  %*d  %*s \n",
         prefix,
-        m_char_max[0], m_desc_str,
+        m_char_max[0], avr_mem_name(p, m),
         m_char_max[1], m->size,
         m_char_max[2], m->page_size,
-        m_char_max[3], m_offset);
-      mmt_free(m_offset);
+        m_char_max[3], print_num("0x%04x", m->offset));
     } else {
       fprintf(f, "%s%-*s  %*d  %*d\n",
         prefix,
-        m_char_max[0], m_desc_str,
+        m_char_max[0], avr_mem_name(p, m),
         m_char_max[1], m->size,
         m_char_max[2], m->page_size);
     }
-    mmt_free(m_desc_str);
   }
 }
 
@@ -1170,12 +1161,12 @@ void sort_avrparts(LISTID avrparts)
 }
 
 
-void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
+void avr_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *prefix, int verbose) {
   fprintf(f, "%sAVR part              : %s\n", prefix, p->desc);
   fprintf(f, "%sProgramming modes     : %s\n", prefix, str_prog_modes(p->prog_modes));
 
   if(verbose > 1) {
-    avr_mem_display(f, p, prefix);
+    avr_mem_display(f, pgm, p, prefix);
     avr_variants_display(f, p, prefix);
   }
 }

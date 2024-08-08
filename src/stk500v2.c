@@ -2820,7 +2820,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
 
   // the read command is common to both methods
   if (rop == NULL) {
-    pmsg_error("read instruction not defined for part %s\n", p->desc);
+    pmsg_error("read instruction not defined for memory %s of part %s\n", m->desc, p->desc);
     return -1;
   }
   memset(cmds, 0, sizeof cmds);
@@ -3025,7 +3025,7 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   // the read command is common to both methods
   if (rop == NULL) {
-    pmsg_error("read instruction not defined for part %s\n", p->desc);
+    pmsg_error("read instruction not defined for memory %s of part %s\n", m->desc, p->desc);
     return -1;
   }
   memset(cmds, 0, sizeof cmds);

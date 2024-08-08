@@ -535,6 +535,8 @@ typedef struct avrmem_alias {
   AVRMEM *aliased_mem;
 } AVRMEM_ALIAS;
 
+typedef struct programmer PROGRAMMER; // Forward declaration
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -572,7 +574,7 @@ AVRMEM * avr_locate_mem_by_type(const AVRPART *p, Memtype type);
 unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
-void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix);
+void avr_mem_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *prefix);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
@@ -585,7 +587,7 @@ AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, in
 int avr_sig_compatible(const unsigned char *sig1, const unsigned char *sig2);
 
 char *avr_prog_modes(int pm), *str_prog_modes(int pm), *dev_prog_modes(int pm);
-void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
+void avr_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *prefix, int verbose);
 int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
@@ -709,8 +711,6 @@ void pin_set_value(struct pindef * const pindef, const int pin, const bool inver
  * @param[out] pindef pin definition to clear
  */
 void pin_clear_all(struct pindef * const pindef);
-
-typedef struct programmer PROGRAMMER; // Forward declaration
 
 /**
  * Convert for given programmer new pin definitions to old pin definitions.
@@ -1144,6 +1144,8 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
 int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
+int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
+
 int avr_get_mem_type(const char *str);
 
 int avr_mem_is_flash_type(const AVRMEM *mem);
@@ -1168,7 +1170,7 @@ void report_progress(int completed, int total, const char *hdr);
 
 void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
 
-int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
+int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
 
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);
 
@@ -1320,7 +1322,7 @@ int update_is_readable(const char *fn);
 
 int update_dryrun(const AVRPART *p, UPDATE *upd);
 
-AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry);
+AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p, int *np, int *rwvsoftp, int *dry);
 int memlist_contains_flash(const char *mstr, const AVRPART *p);
 
 #ifdef __cplusplus

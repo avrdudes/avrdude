@@ -4114,12 +4114,20 @@ part parent "t11" # t12
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
     ;
 
+    memory "prodsig"
+        read               = "0 0 1 1 a0 0 0 0  0 0 0 0 0 0 0 0  0 0 0 0 a4 a3 a2 a1  o o o o o o o o";
+    ;
+
     memory "signature"
         read               = "0011.0000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
 
     memory "calibration"
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "sernum"
+        read               = "0 0 1 1 a0 0 0 0  0 0 0 0 0 0 0 0  0 0 0 0 a4 a3 a2 a1  o o o o o o o o";
     ;
 ;
 
@@ -4200,12 +4208,20 @@ part parent "t11" # t15
         write              = "1010.1100--1111.1ii1--xxxx.xxxx--xxxx.xxxx";
     ;
 
+    memory "prodsig"
+        read               = "0 0 1 1 a0 0 0 0  0 0 0 0 0 0 0 0  0 0 0 0 a4 a3 a2 a1  o o o o o o o o";
+    ;
+
     memory "signature"
         read               = "0011.0000--xxxx.xxxx--0000.00aa--oooo.oooo";
     ;
 
     memory "calibration"
         read               = "0011.1000--xxxx.xxxx--0000.0000--oooo.oooo";
+    ;
+
+    memory "sernum"
+        read               = "0 0 1 1 a0 0 0 0  0 0 0 0 0 0 0 0  0 0 0 0 a4 a3 a2 a1  o o o o o o o o";
     ;
 ;
 
