@@ -1724,10 +1724,14 @@ int op_width(int op16);
 int ldi_Rd(int op16);
 int ldi_K(int op16);
 AVR_mnemo opcode_mnemo(int op16, int avrlevel);
+int op16_is_valid(int op16, int avrlevel);
+int op16_is_benign(int op16, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
 const char *mnemo_str(int op16);
 int z_width(int op16, AVR_mnemo *mnenop);
+int op16_target(int here, int op16);
+int dist2rjmp(int dist);
 
 int disasm(const char *buf, int len, int addr, int leadin, int leadout);
 int disasm_init(const AVRPART *p);

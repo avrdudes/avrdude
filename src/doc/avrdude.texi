@@ -1217,8 +1217,7 @@ This option will leave the 8 data pins on the parallel port inactive
 Both dryrun and dryboot programmers emulate programming and accept the following parameters:
 
 @table @code
-@item @samp{xinit}
-
+@item @samp{init}
 Initialise memories with human-readable patterns. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
 Patterns can best be seen with fixed-width font and the @code{:I} format
@@ -1227,11 +1226,17 @@ flash:r:-:I}. Patterns in flash memory are executable and represent benign
 AVR code, ie, no I/O memory access. Choose a fixed seed for reproducible
 results.
 
+@item @samp{init=<n>}
+Shortcut for @code{-x init -x seed=<n>} (see below)
+
 @item @samp{random}
 Initialise memories with random code and values. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
 Random code in flash will be benign, that is, not accessing I/O memories,
 SRAM or flash. Choose a fixed seed for reproducible results.
+
+@item @samp{random=<n>}
+Shortcut for @code{-x random -x seed=<n>}
 
 @item @samp{seed=<n>}
 Seed random number generator with @var{n}; the default is
