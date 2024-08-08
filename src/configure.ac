@@ -93,6 +93,9 @@ AC_DEFINE_UNQUOTED([AVRDUDE_FULL_VERSION], ["$AVRDUDE_FULL_VERSION"],
                    [The full avrdude version as displayed in -? and avrdude.conf])
 AC_SUBST([AVRDUDE_FULL_VERSION])
 
+AC_DEFINE_UNQUOTED([AVRDUDE_BUILDSYSTEM], ["autotools"],
+                   [The buildsystem used to build avrdude])
+
 
 # Define libavrdude libtool version from cmake libavrdude information
 dnl

@@ -49,6 +49,7 @@ include(FindPackageMessage)
 include(GNUInstallDirs)
 
 set(CONFIG_DIR "${CMAKE_INSTALL_FULL_SYSCONFDIR}")
+set(AVRDUDE_BUILDSYSTEM "cmake")
 set(AVRDUDE_FULL_VERSION "${CMAKE_PROJECT_VERSION}${EXTRA_VERSION_SUFFIX}")
 
 # =====================================

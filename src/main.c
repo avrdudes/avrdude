@@ -49,6 +49,8 @@
 #include <dirent.h>
 #endif
 
+#include <getopt.h>
+
 #include "avrdude.h"
 #include "libavrdude.h"
 #include "config.h"
@@ -229,6 +231,52 @@ const char *pgmid;              // Programmer -c string
 
 static char usr_config[PATH_MAX];       // Per-user config file
 
+
+static
+const avr_buildinfo avrdude_buildinfo = {
+  "avrdude", AVRDUDE_FULL_VERSION,
+  {
+    {"buildsystem", AVRDUDE_BUILDSYSTEM},
+    {NULL, NULL},
+  }
+};
+
+
+static void print_buildinfo(const avr_buildinfo *const buildinfo)
+{
+  msg_info("  * %s %s\n",
+           buildinfo->name, buildinfo->version);
+
+  for (unsigned int i=0; buildinfo->items[i].key; ++i) {
+    if (buildinfo->items[i].value) {
+      msg_info("    %3u. %s: %s\n",
+               i+1,
+               buildinfo->items[i].key,
+               buildinfo->items[i].value);
+    }
+  }
+}
+
+
+static void print_version_message(void)
+{
+  msg_info("avrdude %s\n", AVRDUDE_FULL_VERSION);
+  msg_info("Copyright (C) ...2024...\n");
+  msg_info("License GPL...\n");
+  msg_info("This is free software...\n");
+
+  const avr_buildinfo *const all_buildinfos[] = {
+    &avrdude_buildinfo,
+    &libavrdude_buildinfo,
+    NULL,
+  };
+
+  for (unsigned int i=0; all_buildinfos[i]; ++i) {
+    print_buildinfo(all_buildinfos[i]);
+  }
+}
+
+
 // Usage message
 static void usage(void) {
   char *home = getenv("HOME");
@@ -273,6 +321,7 @@ static void usage(void) {
     "  -q                        Quell progress output; -q -q for less\n"
     "  -l, --logfile logfile     Use logfile rather than stderr for diagnostics\n"
     "  -?, --help                Display this usage\n"
+    "  --version                 Display build and version information\n"
     "\navrdude version %s, https://github.com/avrdudes/avrdude\n",
     progname, strlen(cfg) < 24? "config file ": "", cfg, AVRDUDE_FULL_VERSION);
 
@@ -817,6 +866,7 @@ int main(int argc, char *argv[]) {
 #endif
 
   // Process command line arguments
+#define LONGOPT_VERSION 0x2342
   struct option longopts[] = {
     {"help",       no_argument,       NULL, '?'},
     {"baud",       required_argument, NULL, 'b'},
@@ -838,6 +888,7 @@ int main(int argc, char *argv[]) {
     {"memory",     required_argument, NULL, 'U'},
     {"verbose",    no_argument,       NULL, 'v'},
     {"noverify",   no_argument,       NULL, 'V'},
+    {"version",    no_argument,       NULL, LONGOPT_VERSION},
     {NULL,         0,                 NULL, 0}
   };
   while((ch = getopt_long(argc, argv,
@@ -985,6 +1036,11 @@ int main(int argc, char *argv[]) {
 
     case '?':                  // Help
       usage();
+      exit(0);
+      break;
+
+    case LONGOPT_VERSION:
+      print_version_message();
       exit(0);
       break;
 

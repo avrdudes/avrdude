@@ -1202,6 +1202,21 @@ extern "C" {
   int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p);
   int avr_reset_cache(const PROGRAMMER *pgm, const AVRPART *p);
 
+
+typedef struct avr_buildinfo_item {
+  const char *const key;
+  const char *const value;
+} avr_buildinfo_item;
+
+typedef struct avr_buildinfo {
+  const char *const name;
+  const char *const version;
+  avr_buildinfo_item items[];
+} avr_buildinfo;
+
+extern const avr_buildinfo libavrdude_buildinfo;
+
+
 #ifdef __cplusplus
 }
 #endif
