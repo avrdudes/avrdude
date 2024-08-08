@@ -223,7 +223,6 @@ add_library(libavrdude
     pindefs.c
     ppi.c
     ppi.h
-    ppiwin.c
     serbb.h
     serbb_posix.c
     serbb_win32.c

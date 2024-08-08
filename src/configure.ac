@@ -449,6 +449,17 @@ AC_ARG_ENABLE(
 		esac],
 	[enabled_parport=no])
 
+AS_IF([test "x$enabled_parport" = xyes], [dnl
+  case $target in
+        *-*-mingw32* | *-*-cygwin* | *-*-windows*)
+	  AC_MSG_ERROR([avrdude does not support parallel port on Windows])
+	;;
+        *-*-darwin*)
+	  AC_MSG_ERROR([avrdude does not support parallel port on MacOS])
+	;;
+  esac
+])
+
 AC_ARG_ENABLE(
 	[linuxgpio],
 	AS_HELP_STRING([--enable-linuxgpio],
