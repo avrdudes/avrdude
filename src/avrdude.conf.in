@@ -3031,7 +3031,7 @@ programmer # pickit5
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    usbpid                 = 0x9036;
+    usbpid                 = 0x9036, 0x9012;    # PK5, PK4_PIC_MODE;
     baudrate               = 200000;   # UPDI default clock
     hvupdi_support         = 0, 1, 2;
 ;
