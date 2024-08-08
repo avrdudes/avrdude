@@ -44,6 +44,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#if !defined(WIN32)
+#include <dirent.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -130,16 +133,17 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
               fprintf(fp, " %s", mt);
             bols[bi].bol = 0;
           }
-          if(verbose >= MSG_NOTICE2 && (msgmode & MSG2_FUNCTION))
-            fprintf(fp, " %s()", func);
-          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
-            const char *pr = strrchr(file, '/'); // Only print basename
+          if(verbose >= MSG_NOTICE2) {
+            const char *bfname = strrchr(file, '/'); // Only print basename
 #if defined (WIN32)
-            if(!pr)
-              pr =  strrchr(file, '\\');
+            if(!bfname)
+              bfname =  strrchr(file, '\\');
 #endif
-            pr = pr? pr+1: file;
-            fprintf(fp, " [%s:%d]", pr, lno);
+            bfname = bfname? bfname+1: file;
+            if(msgmode & MSG2_FUNCTION)
+              fprintf(fp, " %s()", func);
+            if(msgmode & MSG2_FILELINE)
+              fprintf(fp, " %s %d", bfname, lno);
           }
           fprintf(fp, ": ");
         } else if(msgmode & MSG2_INDENT1) {
@@ -1123,7 +1127,7 @@ int main(int argc, char * argv [])
     pgmid = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
-  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[dASsrtiBUPTIJWHQ]
+  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[duASsrtiBUPTIJWHQ]
   int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[cdoASsrw*tiBUPTIJWHQ]
 
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
@@ -1804,6 +1808,22 @@ main_exit:
     pgm->powerdown(pgm);
     pgm->disable(pgm);
     pgm->close(pgm);
+  }
+
+  if(cx->usb_access_error) {
+    pmsg_info(
+      "\nUSB access errors detected; this could have many reasons; if it is\n"
+      "USB permission problems, avrdude is likely to work when run as root\n"
+      "but this is not good practice; instead you might want to\n");
+#if 0 && !defined(WIN32)
+    DIR *dir;
+    if((dir = opendir("/etc/udev/rules.d"))) { // Linux udev land
+      closedir(dir);
+      imsg_info("run the command below to show udev rules recitifying USB access\n"
+        "$ %s -c %s/u\n", progname, pgmid);
+    } else
+#endif
+    imsg_info("check out USB port permissions on your OS and set them correctly\n");
   }
 
   msg_info("\n");

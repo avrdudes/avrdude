@@ -63,8 +63,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   usb_dev_handle *udev;
   char *s, serno[64] = {0};
   const char *serp;
-  int i;
-  int iface;
+  int i, iface;
 
   /*
    * The syntax for usb devices is defined as:
@@ -107,7 +106,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 					    dev->descriptor.iSerialNumber,
 					    string, sizeof(string)) < 0)
 		    {
-		      pmsg_error("cannot read serial number: %s\n", usb_strerror());
+		      pmsg_warning("reading serial number, %s\n", usb_strerror());
 		      /*
 		       * On some systems, libusb appears to have
 		       * problems sending control messages.  Catch the
@@ -115,8 +114,9 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		       * particular serial number, so we could
 		       * continue anyway.
 		       */
+		      cx->usb_access_error = 1;
 		      if(*serno)
-			return -1; /* no chance */
+			goto none_matching; // No chance of serno matches
 		      strcpy(string, "[unknown]");
 		    }
 		  if(serdev)
@@ -125,7 +125,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 					    dev->descriptor.iProduct,
 					    product, sizeof(product)) < 0)
 		    {
-		      pmsg_error("cannot read product name: %s\n", usb_strerror());
+		      pmsg_warning("reading product name, %s\n", usb_strerror());
 		      strcpy(product, "[unnamed product]");
 		    }
 
@@ -186,8 +186,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 
 		  if (usb_set_configuration(udev, dev->config[0].bConfigurationValue))
 		    {
-		      pmsg_warning("unable to set configuration %d: %s\n",
-                        dev->config[0].bConfigurationValue, usb_strerror());
+		      pmsg_warning("(config %d) %s\n",
+			dev->config[0].bConfigurationValue, usb_strerror());
 		      /* let's hope it has already been configured */
 		      // goto trynext;
 		    }
@@ -206,8 +206,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 #endif
 		      if (usb_claim_interface(udev, cx->usb_interface))
 			{
-			  pmsg_error("unable to claim interface %d: %s\n",
-                            cx->usb_interface, usb_strerror());
+			  pmsg_warning("(i/face %d) %s\n", cx->usb_interface, usb_strerror());
+			  cx->usb_access_error = 1;
 			}
 		      else
 			{
@@ -246,7 +246,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 			}
 		      if (fd->usb.rep == 0)
 			{
-			  pmsg_error("cannot find a read endpoint, using 0x%02x\n",
+			  pmsg_warning("cannot find a read endpoint, using 0x%02x\n",
                             USBDEV_BULK_EP_READ_MKII);
 			  fd->usb.rep = USBDEV_BULK_EP_READ_MKII;
 			}
@@ -267,21 +267,26 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		  if (pinfo.usbinfo.flags & PINFO_FL_USEHID)
 		    {
 		      if (usb_control_msg(udev, 0x21, 0x0a /* SET_IDLE */, 0, 0, NULL, 0, 100) < 0)
-			pmsg_error("SET_IDLE failed\n");
+			pmsg_warning("SET_IDLE failed\n");
 		    }
 		  return 0;
-		  trynext:
+
+		trynext:
 		  usb_close(udev);
 		}
 	      else
-		pmsg_error("cannot open device: %s\n", usb_strerror());
+		pmsg_warning("cannot open device: %s\n", usb_strerror());
 	    }
 	}
     }
 
+none_matching:
   if ((pinfo.usbinfo.flags & PINFO_FL_SILENT) == 0)
-    pmsg_notice("%s(): did not find any%s USB device %s (0x%04x:0x%04x)\n", __func__,
-      *serno? " (matching)": "", port, (unsigned) pinfo.usbinfo.vid, (unsigned)pinfo.usbinfo.pid);
+    pmsg_error("%s%s USB device %s (%04x:%04x)\n",
+      cx->usb_access_error? "found but could not access": "did not find any",
+      *serno && !cx->usb_access_error? " (matching)": "",
+      port, pinfo.usbinfo.vid, pinfo.usbinfo.pid);
+
   return -1;
 }
 

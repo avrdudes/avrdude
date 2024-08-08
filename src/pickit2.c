@@ -1109,15 +1109,15 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int 
 
                     if ((errorCode = usb_set_configuration(handle, 1)) < 0)
                     {
-                        pmsg_ext_error("cannot set configuration, error code %d, %s\n"
-                          "you may need to run avrdude as root or set up correct usb port permissions",
+                        cx->usb_access_error = 1;
+                        pmsg_ext_error("cannot set configuration, error code %d, %s\n",
                           errorCode, usb_strerror());
                     }
 
                     if ((errorCode = usb_claim_interface(handle, 0)) < 0)
                     {
-                        pmsg_ext_error("cannot claim interface, error code %d, %s\n"
-                           "You may need to run avrdude as root or set up correct usb port permissions.",
+                        cx->usb_access_error = 1;
+                        pmsg_ext_error("cannot claim interface, error code %d, %s\n",
                            errorCode, usb_strerror());
                     }
 

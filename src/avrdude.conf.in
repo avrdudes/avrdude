@@ -1537,6 +1537,8 @@ programmer # avrispmkII
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2104;
 ;
 
 #------------------------------------------------------------
@@ -1714,6 +1716,8 @@ programmer # stk600
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2106;
 ;
 
 #------------------------------------------------------------
@@ -1727,6 +1731,8 @@ programmer # stk600pp
     prog_modes             = PM_HVPP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2106;
 ;
 
 #------------------------------------------------------------
@@ -1740,6 +1746,8 @@ programmer # stk600hvsp
     prog_modes             = PM_HVSP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2106;
 ;
 
 #------------------------------------------------------------
@@ -1773,6 +1781,8 @@ programmer # ft245r
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6001;
     reset                  = 4; # D4
     sck                    = 0; # D0
     sdo                    = 2; # D2
@@ -1810,6 +1820,8 @@ programmer # bwmega
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6001;
     reset                  = 7;  # RI
     sck                    = 6;  # DCD
     sdo                    = 3;  # CTS
@@ -1833,6 +1845,8 @@ programmer # arduino-ft232r
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6001;
     reset                  = 7;  # RI  X3(4)
     sck                    = 5;  # DSR X3(2)
     sdo                    = 6;  # DCD X3(3)
@@ -1852,6 +1866,8 @@ programmer # tc2030
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6001;
   #                      FOR TPI devices:
     reset                  = 3;  # CTS = D3 (wire to ~RESET)
     sck                    = 2;  # RTS = D2 (wire to SCK)
@@ -1876,6 +1892,8 @@ programmer # uncompatino
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6001;
     reset                  = 7; # ri
     sck                    = 5; # dsr
     sdo                    = 6; # dcd
@@ -1908,6 +1926,8 @@ programmer # ttl232r
     type                   = "ftdi_syncbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x0403;
+    usbpid                 = 0x6001;
     reset                  = 0; # txd
     sck                    = 1; # rxd
     sdo                    = 3; # cts
@@ -2280,6 +2300,8 @@ programmer # jtagmkII
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 19200;    # default is 19200
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2103;
 ;
 
 #------------------------------------------------------------
@@ -2315,6 +2337,8 @@ programmer # jtag2isp
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2103;
 ;
 
 #------------------------------------------------------------
@@ -2331,6 +2355,8 @@ programmer # jtag2dw
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2103;
 ;
 
 #------------------------------------------------------------
@@ -2347,6 +2373,8 @@ programmer # jtagmkII_avr32
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2103;
 ;
 
 #------------------------------------------------------------
@@ -2363,6 +2391,8 @@ programmer # jtag2pdi
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2103;
 ;
 
 #------------------------------------------------------------
@@ -2381,6 +2411,8 @@ programmer # dragon_jtag
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2107;
 ;
 
 #------------------------------------------------------------
@@ -2397,6 +2429,8 @@ programmer # dragon_isp
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2107;
 ;
 
 #------------------------------------------------------------
@@ -2413,6 +2447,8 @@ programmer # dragon_pp
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2107;
 ;
 
 #------------------------------------------------------------
@@ -2429,6 +2465,8 @@ programmer # dragon_hvsp
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2107;
 ;
 
 #------------------------------------------------------------
@@ -2445,6 +2483,8 @@ programmer # dragon_dw
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2107;
 ;
 
 #------------------------------------------------------------
@@ -2461,6 +2501,8 @@ programmer # dragon_pdi
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
     baudrate               = 115200;
+    usbvid                 = 0x03eb;
+    usbpid                 = 0x2107;
 ;
 
 #------------------------------------------------------------
@@ -2488,6 +2530,7 @@ programmer # jtag3
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
 ;
 
@@ -2502,6 +2545,7 @@ programmer # jtag3pdi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
 ;
 
@@ -2516,6 +2560,7 @@ programmer # jtag3updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
     hvupdi_support         = 1;
 ;
@@ -2531,6 +2576,7 @@ programmer # jtag3dw
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
 ;
 
@@ -2545,6 +2591,7 @@ programmer # jtag3isp
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2110, 0x2140;
 ;
 
@@ -2570,6 +2617,7 @@ programmer # xplainedpro
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2111;
 ;
 
@@ -2584,6 +2632,7 @@ programmer # xplainedpro_pdi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;
 ;
@@ -2599,6 +2648,7 @@ programmer # xplainedpro_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2111;
     hvupdi_support         = 1;
 ;
@@ -2631,6 +2681,7 @@ programmer # xplainedmini
     prog_modes             = PM_ISP;
     extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2145;
 ;
 
@@ -2650,6 +2701,7 @@ programmer # xplainedmini_dw
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2145;
 ;
 
@@ -2667,6 +2719,7 @@ programmer # xplainedmini_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2145;
     hvupdi_support         = 1;
 ;
@@ -2681,6 +2734,7 @@ programmer # xplainedmini_tpi
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2145;
 ;
 
@@ -2709,6 +2763,7 @@ programmer # atmelice
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
 ;
 
@@ -2723,6 +2778,7 @@ programmer # atmelice_pdi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
 ;
 
@@ -2737,6 +2793,7 @@ programmer # atmelice_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
     hvupdi_support         = 1;
 ;
@@ -2752,6 +2809,7 @@ programmer # atmelice_dw
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
 ;
 
@@ -2766,6 +2824,7 @@ programmer # atmelice_isp
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
 ;
 
@@ -2780,6 +2839,7 @@ programmer # atmelice_tpi
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2141;
 ;
 
@@ -2813,6 +2873,7 @@ programmer # powerdebugger
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
 ;
 
@@ -2827,6 +2888,7 @@ programmer # powerdebugger_pdi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
 ;
 
@@ -2841,6 +2903,7 @@ programmer # powerdebugger_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
     hvupdi_support         = 0, 1;
 ;
@@ -2856,6 +2919,7 @@ programmer # powerdebugger_dw
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
 ;
 
@@ -2870,6 +2934,7 @@ programmer # powerdebugger_isp
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
 ;
 
@@ -2884,6 +2949,7 @@ programmer # powerdebugger_tpi
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2144;
 ;
 
@@ -2930,6 +2996,7 @@ programmer # pickit4
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
@@ -2944,6 +3011,7 @@ programmer # pickit4_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
     hvupdi_support         = 0, 1, 2;
 ;
@@ -2959,6 +3027,7 @@ programmer # pickit4_pdi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
@@ -2976,6 +3045,7 @@ programmer # pickit4_isp
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
@@ -2990,6 +3060,7 @@ programmer # pickit4_tpi
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
@@ -3036,6 +3107,7 @@ programmer # snap
     prog_modes             = PM_JTAG | PM_XMEGAJTAG;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
@@ -3054,6 +3126,7 @@ programmer # snap_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
     hvupdi_support         = 1;
 ;
@@ -3069,6 +3142,7 @@ programmer # snap_pdi
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
@@ -3086,6 +3160,7 @@ programmer # snap_isp
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
@@ -3100,6 +3175,7 @@ programmer # snap_tpi
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2180, 0x217f, 0x2181;
 ;
 
@@ -3121,6 +3197,7 @@ programmer # pkobn_updi
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
     usbpid                 = 0x2175;
     hvupdi_support         = 1;
 ;
@@ -3163,6 +3240,8 @@ programmer # pickit2
     type                   = "pickit2";
     prog_modes             = PM_ISP;
     connection_type        = usb;
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x0033;
 ;
 
 #------------------------------------------------------------
@@ -3180,6 +3259,7 @@ programmer # flip1
     type                   = "flip1";
     prog_modes             = PM_SPM;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
 ;
 
 #------------------------------------------------------------
@@ -3196,6 +3276,7 @@ programmer # flip2
     type                   = "flip2";
     prog_modes             = PM_SPM;
     connection_type        = usb;
+    usbvid                 = 0x03eb;
 ;
 
 #------------------------------------------------------------

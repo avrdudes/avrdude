@@ -706,6 +706,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       // Documentation says:
       // "FragmentInfo 0x00 indicates that no response data is
       // available, and the rest of the packet is ignored."
+      cx->usb_access_error = 1; // Also end up here on wrong USB permissions
       pmsg_notice("%s(): no response available\n", __func__);
       mmt_free(*msg);
       mmt_free(request);

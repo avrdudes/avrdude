@@ -412,6 +412,35 @@ char *str_ucfirst(char *s) {
   return s;
 }
 
+// Convert to ASCII name leaving only letters, numbers, underscore, period and dash
+char *str_asciiname(char *s) {
+  for(char *t = s; *t; t++)
+    switch(*t) {
+    case '?':  *t = 'Q'; break;
+    case '*':  *t = 'X'; break;
+    case '|':  *t = 'I'; break;
+    case '{':  *t = 'l'; break;
+    case '}':  *t = 'j'; break;
+    case '[':  *t = 'L'; break;
+    case ']':  *t = 'J'; break;
+    case '(':  *t = 'L'; break;
+    case ')':  *t = 'J'; break;
+    case '<':  *t = 'l'; break;
+    case '>':  *t = 'j'; break;
+    case '&':  *t = '+'; break;
+    case '!':  *t = 'I'; break;
+    case '"':  *t = 'q'; break;
+    case '\'': *t = 'q'; break;
+    case '`':  *t = 'q'; break;
+    case '.': case '-': break;
+    default:
+      if(!isascii(*t & 0xff) || !isalnum(*t & 0xff))
+        *t = '_';
+    }
+
+  return s;
+}
+
 
 // Convert unsigned to ASCII string; caller needs to allocate enough space for buf
 char *str_utoa(unsigned n, char *buf, int base) {
@@ -1421,4 +1450,19 @@ const char *str_ccmcunames_signature(const unsigned char *sigs, int pm) {
     (void) str_mcunames_signature(sigs, 0, names, sizeof names);
 
   return str_ccprintf("%s", names);
+}
+
+// Returns a comma-separated list of pgm->id names
+const char *str_ccpgmids(LISTID pgm_id) {
+  char ids[1024], *idp = ids;
+
+  for(LNODEID idn=lfirst(pgm_id); idn; idn=lnext(idn)) {
+    char *id = ldata(idn);
+    if((idp - ids) + 3 + strlen(id) <= sizeof ids) {
+      if(idp > ids)
+        strcpy(idp, ", "), idp += 2;
+      strcpy(idp, id), idp += strlen(id);
+    }
+  }
+  return str_ccprintf("%s", ids);
 }
