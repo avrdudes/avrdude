@@ -18,7 +18,7 @@ The latest version of AVRDUDE is always available here:\
 
 ## Documentation
 
-Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/). [avrdude.pdf](https://github.com/avrdudes/avrdude/avrdude.pdf) documents the current git main version.
+Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/). Git main is documented only with the most recent [avrdude.pdf](https://github.com/avrdudes/avrdude/blob/main/avrdude.pdf).
 
 ## Getting AVRDUDE for Windows
 
