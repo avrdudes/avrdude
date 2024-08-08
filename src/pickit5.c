@@ -1027,7 +1027,7 @@ static int pickit5_set_vtarget (const PROGRAMMER *pgm, double v) {
     0x44
   };
 
-  pmsg_debug("pickit5_set_vtarget(%4.1fmV)\n", v);
+  pmsg_debug("pickit5_set_vtarget(%1.2fV)\n", v);
 
   if (v < 1.0) {  // make sure not to trip on float's "inaccuracy"
     if (pickit5_send_script(pgm, SCR_CMD, power_source, 5, NULL, 0, 0) < 0)
