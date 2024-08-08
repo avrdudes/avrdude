@@ -1577,13 +1577,33 @@ void dev_output_pgm_defs(char *pgmidcp) {
         }
       }
 
-      for(LNODEID pidn=lfirst(pgm->usbpid); pidn; pidn=lnext(pidn))
-        udr = add_udev(udr, &ui, usbvid, *(int *) ldata(pidn), ishid, ids);
+      for(LNODEID pidn=lfirst(pgm->usbpid); pidn; pidn=lnext(pidn)) {
+        int pid = *(int *) ldata(pidn);
+        udr = add_udev(udr, &ui, usbvid, pid, ishid, ids);
+
+        // Piggy back PIC Snap devices that can be switched to AVR mode
+        if(usbvid == USB_VENDOR_ATMEL && pid >= 0x217f && pid <= 0x2181) {
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_SNAP_PIC_MODE, ishid, ids);
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_SNAP_PIC_MODE_BL, ishid, ids);
+        }
+        // Piggy back PIC pickit4 devices that can be switched to AVR ones
+        if(usbvid == USB_VENDOR_ATMEL && pid >= 0x2177 && pid <= 0x2179) {
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT4_PIC_MODE, ishid, ids);
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT4_PIC_MODE_BL, ishid, ids);
+        }
+        // Piggy back old usbasp when new one is seen
+        if(usbvid == USBASP_SHARED_VID && pid == USBASP_SHARED_PID)
+          udr = add_udev(udr, &ui, USBASP_OLD_VID, USBASP_OLD_PID, ishid, ids);
+      }
     }
 
     if(raw)
       dev_pgm_raw(pgm);
   }
+
+  int reboot = 0;
+  for(Dev_udev *u = udr; !reboot && u-udr < ui; u++)
+    reboot |= u->ishid;
 
   if(udev && ui) {
     int all = str_eq(pgmidcp, "*");
@@ -1592,7 +1612,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
     dev_info("%s -c \"%s/u\" | tail -n +%d | sudo tee /etc/udev/rules.d/55-%s%s.rules\n",
       progname, pgmidcp, all? 9: 11, progname, var);
     dev_info("sudo chmod 0644 /etc/udev/rules.d/55-%s%s.rules\n\n", progname, var);
-    dev_info("2. Unplug any AVRDUDE USB programmers and plug them in again\n");
+    dev_info("2. %s\n", reboot? "Reboot your computer": "Unplug any AVRDUDE USB programmers and plug them in again");
     dev_info("3. Enjoy user access to the USB programmer(s)\n\n");
     if(!all)
       dev_info("Note: To install all udev rules known to AVRDUDE follow: %s -c \"*/u\" | more\n\n",
