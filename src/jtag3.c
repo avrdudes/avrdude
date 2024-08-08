@@ -19,7 +19,44 @@
  */
 
 /*
- * avrdude interface for Atmel JTAGICE3 programmer
+ * Avrdude interface for Atmel JTAGICE3 programmer
+ *
+ *
+ * Scope
+ *
+ * Code in this file serves the following programmers
+ * $ avrdude -c "*"/At | grep type..jtagice3 | cut -f2
+ *
+ * These are
+ *  - jtag3, jtag3pdi, jtag3updi, jtag3dw, jtag3isp
+ *  - xplainedpro, xplainedpro_pdi, xplainedpro_updi
+ *  - xplainedmini, xplainedmini_dw, xplainedmini_updi, xplainedmini_tpi
+ *  - atmelice, atmelice_pdi, atmelice_updi, atmelice_dw, atmelice_isp, atmelice_tpi
+ *  - powerdebugger, powerdebugger_pdi, powerdebugger_updi, powerdebugger_dw, powerdebugger_isp, powerdebugger_tpi
+ *  - pickit4, pickit4_updi, pickit4_pdi, pickit4_isp, pickit4_tpi
+ *  - snap, snap_updi, snap_pdi, snap_isp, snap_tpi
+ *  - pkobn_updi
+ *
+ *
+ * Issues
+ *
+ *  - ATMELICE3 is only recognised correctly in USB High-Speed mode this
+ *    also relates to the hidapi and libusb backends, see
+ *    https://github.com/avrdudes/avrdude/issues/1221
+ *
+ *
+ * Limitations
+ * 
+ *  - jtag3_page_erase() does not work in the bootrow section of the
+ *    AVR-DU series, ie, can only be written correctly once unless the
+ *    chip-erase command is performed. Confirmed: bootrow page-erase fails
+ *    for Curiosity Nano AVR32DU32 ICE-FW(nEDBG) <= 1.31 (rel 39)
+ *
+ *  - Trace output -vvvv is not complete and would benefit from enhancing
+ * 
+ *  - High-Voltage Programming on TPI parts not implemented
+ *
+ *  - Procedures to change the behaviour of the "Target-RESET pin" are unknown or not implemented
  */
 
 #include <ac_cfg.h>
@@ -1884,6 +1921,10 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
   } else if (mem_is_userrow(m)) {
     cmd[3] = XMEGA_ERASE_USERSIG;
+  } else if (mem_is_bootrow(m)) {
+    // Currently, AVR-DU BOOTROW cannot be erased with CMD3_ERASE_MEMORY
+    // Note ATDF: <memory-segment name="BOOTROW", ... type="user_signatures"/>
+    cmd[3] = XMEGA_ERASE_USERSIG; // Tentative for AVR-DU and AVR-EB series
   } else {
     cmd[3] = XMEGA_ERASE_APP_PAGE;
   }
@@ -1953,7 +1994,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     }
     cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (mem_is_userrow(m)) {
+  } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
@@ -2041,7 +2082,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       return -1;
   } else if (mem_is_sigrow(m)) {
     cmd[3] = MTYPE_PRODSIG;
-  } else if (mem_is_userrow(m)) {
+  } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
@@ -2150,7 +2191,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_userrow(mem)) {
+  } else if (mem_is_userrow(mem) || mem_is_bootrow(mem)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_sigrow(mem)) {
     if (p->prog_modes & (PM_PDI | PM_UPDI)) {
@@ -2323,7 +2364,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_userrow(mem)) {
+  } else if (mem_is_userrow(mem) || mem_is_bootrow(mem)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_io(mem) || mem_is_sram(mem))
     cmd[3] = MTYPE_SRAM;
