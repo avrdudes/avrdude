@@ -68,7 +68,6 @@
 #define PK_OP_FOUND           0x01  // PK is connected to USB
 #define PK_OP_RESPONDS        0x02  // responds to get_fw() requests
 #define PK_OP_READY           0x03  // Voltage Set, Clock Set
-#define PK_OP_PROG            0x04  // UPDI Enabled
 
 #define POWER_SOURCE_EXT      0x00
 #define POWER_SOURCE_INT      0x01
@@ -466,7 +465,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
 static void pickit5_close(PROGRAMMER *pgm) {
   pmsg_debug("pickit5_close()\n");
-  pickit5_program_disable(pgm, NULL); // Disable Programming mode if still enabled
   pickit5_set_vtarget(pgm, 0.0);  // Switches off PICkit Voltage regulator, if enabled
 
   serial_close(&pgm->fd);
@@ -571,7 +569,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         return -1;
       }
     } else {
-      pmsg_error("No external Voltage detected, aborting. Overwrite this check with -xvoltage=0\n");
+      pmsg_error("No external Voltage detected, aborting. Overwrite this check with -x vtarg=0\n");
       return -1;
     }
   } else {
@@ -672,7 +670,6 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if (pickit5_read_response(pgm, "Enter Programming Mode") < 0)
       return -1;
-     PDATA(pgm)->pk_op_mode = PK_OP_PROG;
   }
   return 0;
 }
@@ -681,33 +678,34 @@ static int pickit5_program_disable(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("pickit5_exit_prog_mode()\n");
   const unsigned char *enter_prog = PDATA(pgm)->scripts.ExitProgMode;
   unsigned int enter_prog_len = PDATA(pgm)->scripts.ExitProgMode_len;
-    if (PDATA(pgm)->pk_op_mode == PK_OP_PROG) {
+  if (PDATA(pgm)->pk_op_mode == PK_OP_READY) {
     if (pickit5_send_script(pgm, SCR_CMD, enter_prog, enter_prog_len, NULL, 0, 0) < 0)
       return -1;
 
     if (pickit5_read_response(pgm, "Exit Programming Mode") < 0)
       return -1;
-    PDATA(pgm)->pk_op_mode = PK_OP_READY;
   }
   return 0;
 }
 
 static int pickit5_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("pickit5_chip_erase()\n");
-  if (PDATA(pgm)->pk_op_mode == 3) {  // we have to be in Prog-Mode
-    const unsigned char *chip_erase = PDATA(pgm)->scripts.EraseChip;
-    unsigned int chip_erase_len = PDATA(pgm)->scripts.EraseChip_len;
 
-    if (pickit5_send_script(pgm, SCR_CMD, chip_erase, chip_erase_len, NULL, 0, 0) >= 0){
-      if (pickit5_read_response(pgm, "Erase Chip") >= 0) {
-        if (pickit5_array_to_uint32(&(PDATA(pgm)->rxBuf[16])) == 0x00) {
-          pmsg_info("Target successfully erased");
-          PDATA(pgm)->pk_op_mode = PK_OP_READY;
-          return 0;
-        }
+  pickit5_program_enable(pgm, p);
+  const unsigned char *chip_erase = PDATA(pgm)->scripts.EraseChip;
+  unsigned int chip_erase_len = PDATA(pgm)->scripts.EraseChip_len;
+
+  if (pickit5_send_script(pgm, SCR_CMD, chip_erase, chip_erase_len, NULL, 0, 0) >= 0){
+    if (pickit5_read_response(pgm, "Erase Chip") >= 0) {
+      if (pickit5_array_to_uint32(&(PDATA(pgm)->rxBuf[16])) == 0x00) {
+        pmsg_info("Target successfully erased");
+        PDATA(pgm)->pk_op_mode = PK_OP_READY;
+        pickit5_program_enable(pgm, p);
+        return 0;
       }
     }
   }
+
   pmsg_error("Chip Erase failed\n");
   return -1;
 }
@@ -971,7 +969,7 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
       return 0;
     }
     return -1;
-  } else if (mem_is_in_sigrow(mem) || mem_is_user_type(mem)) {
+  } else if (mem_is_in_sigrow(mem) || mem_is_user_type(mem) || mem_is_a_fuse(mem)) {
     read_bytes = PDATA(pgm)->scripts.ReadConfigmem;
     read_bytes_len = PDATA(pgm)->scripts.ReadConfigmem_len;
   } else if (!mem_is_readonly(mem)) {  /* SRAM, IO, LOCK || USERROW */
