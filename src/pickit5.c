@@ -60,6 +60,10 @@
 #define BIST_TEST             0x02
 #define BIST_RESULT           0x03
 
+#define PGM_TYPE_PK5          0x00  // Default
+#define PGM_TYPE_PK4          0x01  // PICkit4
+#define PGM_TYPE_SNAP         0x02  // SNAP
+
 #define PK_OP_NONE            0x00  // init
 #define PK_OP_FOUND           0x01  // PK is connected to USB
 #define PK_OP_RESPONDS        0x02  // responds to get_fw() requests
@@ -72,6 +76,7 @@
 
 // Private data for this programmer
 struct pdata {
+  unsigned char pgm_type;       // Used to skip unsupported functions
   unsigned char pk_op_mode;     // see PK_OP_ defines
   unsigned char power_source;   // 0: external / 1: from PICkit / 2: ignore check
   unsigned char hvupdi_enabled; // 0: no HV / 1: HV generation enabled
@@ -85,7 +90,7 @@ struct pdata {
   unsigned char app_version[3]; // Buffer for display() sent by get_fw()
   unsigned char fw_info[16];    // Buffer for display() sent by get_fw()
   unsigned char sernum_string[20];  // Buffer for display() sent by get_fw()
-           char sib_string[32];
+           char sib_string[64];
   unsigned char txBuf[512];
   unsigned char rxBuf[512];
   SCRIPT scripts;
@@ -442,10 +447,18 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       rv = serial_open(port, pinfo, &pgm->fd);
     }
   }
+
   // Make USB serial number available to programmer
   if (serdev && serdev->usbsn) {
     pgm->usbsn = serdev->usbsn;
     PDATA(pgm)->pk_op_mode = PK_OP_FOUND;
+
+    if (pinfo.usbinfo.pid == USB_DEVICE_PICKIT5)
+      PDATA(pgm)->pgm_type = PGM_TYPE_PK5;
+    else if (pinfo.usbinfo.pid == USB_DEVICE_PICKIT4_PIC_MODE)
+      PDATA(pgm)->pgm_type = PGM_TYPE_PK4;
+    else if (pinfo.usbinfo.pid == USB_DEVICE_SNAP_PIC_MODE)
+      PDATA(pgm)->pgm_type = PGM_TYPE_SNAP;
   }
 
   return rv;
@@ -486,16 +499,16 @@ static void pickit5_display(const PROGRAMMER *pgm, const char *p) {
     return;
   }
 
-  msg_info("PICkit Application Version: %02x.%02x.%02x\n", app[0], app[1], app[2]);
-  msg_info("PICkit Serial Number      : %s\n", sn);
+  msg_info("Application version   : %02x.%02x.%02x\n", app[0], app[1], app[2]);
+  msg_info("Serial number         : %s\n", sn);
   PDATA(pgm)->pk_op_mode = PK_OP_RESPONDS;
 }
 
 static void pickit5_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   pickit5_get_vtarget(pgm, NULL);
-  fmsg_out(fp, "UPDI Clock    :  %u kHz\n", PDATA(pgm)->actual_updi_clk/1000);
-  fmsg_out(fp, "Target VCC    : %1.2f V\n", PDATA(pgm)->measured_vcc);
-  fmsg_out(fp, "Target Current:  %3u mA\n", PDATA(pgm)->measured_current);
+  fmsg_out(fp, "UPDI clock            : %u kHz\n", PDATA(pgm)->actual_updi_clk/1000);
+  fmsg_out(fp, "Target Vcc            : %1.2f V\n", PDATA(pgm)->measured_vcc);
+  fmsg_out(fp, "Target current        : %3u mA\n", PDATA(pgm)->measured_current);
 }
 
 static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
@@ -546,7 +559,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     } else if (PDATA(pgm)->power_source == POWER_SOURCE_INT) { 
       pmsg_notice("No extenal Voltage detected, will try to supply from PICkit\n");
 
-      if (pickit5_set_vtarget(pgm, (double)PDATA(pgm)->target_voltage) < 0)
+      if (pickit5_set_vtarget(pgm, PDATA(pgm)->target_voltage) < 0)
         return -1;    // Set requested voltage
 
       if (pickit5_get_vtarget(pgm, &v_target) < 0)
@@ -1145,9 +1158,8 @@ static int pickit5_set_vtarget (const PROGRAMMER *pgm, double v) {
     0x44
   };
 
-  pmsg_debug("pickit5_set_vtarget(%1.2fV)\n", v);
-
-  if (v < 1.0) {  // make sure not to trip on float's "inaccuracy"
+  if (v < 1.0) {   // anything below 1 V equals disabling Power
+    pmsg_debug("pickit5_set_vtarget(disable)\n");
     if (pickit5_send_script(pgm, SCR_CMD, power_source, 5, NULL, 0, 0) < 0)
       return -1;
     if (pickit5_read_response(pgm, "Select external power source") < 0)
@@ -1157,14 +1169,16 @@ static int pickit5_set_vtarget (const PROGRAMMER *pgm, double v) {
       return -1;
     if (pickit5_read_response(pgm, "Disabling Power") < 0)
       return -1;
+    usleep(50000);  // there might be some caps, let them discharge
   } else {
+    pmsg_debug("pickit5_set_vtarget(%1.2fV)\n", v);
     power_source[1] = 0x01;
     if (pickit5_send_script(pgm, SCR_CMD, power_source, 5, NULL, 0, 0) < 0)
       return -1;
     if (pickit5_read_response(pgm, "Select internal power source") < 0)
       return -1;
 
-    int vtarg = (PDATA(pgm)->target_voltage * 1000);
+    int vtarg = (int)(v * 1000.0);
     pickit5_uint32_to_array(&set_vtarget[1], vtarg);
     pickit5_uint32_to_array(&set_vtarget[5], vtarg);
     pickit5_uint32_to_array(&set_vtarget[9], vtarg);
@@ -1195,7 +1209,7 @@ static int pickit5_get_vtarget (const PROGRAMMER *pgm, double *v) {
   PDATA(pgm)->measured_vcc = pickit5_array_to_uint32(&buf[28]) / 1000.0;
   PDATA(pgm)->measured_current = pickit5_array_to_uint32(&buf[48]);
 
-  pmsg_notice("Target Vdd: %1.2fV, Target current: %umA\n", 
+  pmsg_notice("Target Vdd: %1.2f V, Target current: %u mA\n", 
     PDATA(pgm)->measured_vcc, PDATA(pgm)->measured_current);
 
   if (v != NULL)
@@ -1205,6 +1219,9 @@ static int pickit5_get_vtarget (const PROGRAMMER *pgm, double *v) {
 
 
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
+  if (PDATA(pgm)->pgm_type >= PGM_TYPE_SNAP)  // Don't bother if Programmer doesn't support PTG
+    return 0;                                 // Side note: Bitmask would be probably better in the future
+
   unsigned char ptg_mode [] = {
     0x5E, 0x00, 0x00, 0x00, 0x00,
   };
