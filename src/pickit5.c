@@ -642,6 +642,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("Failed to obtain System Info Block\n");
     return -1;
   }
+  pickit5_program_enable(pgm, p);
   return 0;
 }
 
@@ -713,14 +714,12 @@ static int pickit5_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int pickit5_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int address, unsigned int n_bytes) {
 
-  pickit5_program_enable(pgm, p);
   return pickit5_read_array(pgm, p, mem, address, n_bytes, &mem->buf[address]);
 }
 
 static int pickit5_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int address, unsigned int n_bytes) {
   
-  pickit5_program_enable(pgm, p);
   return pickit5_write_array(pgm, p, mem, address, n_bytes, &mem->buf[address]);
 }
 
