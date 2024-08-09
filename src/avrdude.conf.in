@@ -2983,7 +2983,7 @@ programmer # powerdebugger_tpi
 #   4  TDO  DATA  UPDI       SDI
 #   5  TCK                   SCK
 #   6  RST  SCK         dW   RST
-#   7  TDI                   SDI  TX (target)
+#   7  TDI                   SDO  TX (target)
 #   8  TMS                        RX (target)
 #
 # * The PICkit4 can also be used as a USB to UART
@@ -3094,7 +3094,7 @@ programmer # pickit4_tpi
 #     4  TDO  DATA  UPDI       SDI
 #     5  TCK                   SCK
 #     6  RST  SCK         dW   RST
-#     7  TDI                   SDI  TX (target)
+#     7  TDI                   SDO  TX (target)
 #     8  TMS                        RX (target)
 #
 # * The MPLAB SNAP can also be used as a USB to UART
