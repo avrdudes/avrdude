@@ -3055,6 +3055,51 @@ programmer # pickit4_tpi
     usbpid                 = 0x2177, 0x2178, 0x2179;
 ;
 
+
+# Microchip PICkit 5. See
+# https://www.microchip.com/en-us/development-tool/PG164150
+# for details.
+#
+# Currently, avrdude only supports UPDI Programming
+# with the PICkit 5
+#
+# Interface:   Programmer name:
+# UPDI         pickit5
+#
+#
+# PIN  UPDI  
+# > 1  !RST(*)
+#   2  VCC
+#   3  GND
+#   4  UPDI(*)
+#   5
+#   6
+#   7
+#   8                       
+#
+# (*): The PICkit5 can generate a High-Voltage (12V) Pulse on this pins
+#      to restore the UPDI Pin functionality, if it was changed through fuses.
+#      AVRDUDE automatically selects the correct pin, if the HV pulse is
+#      enabled through the '-x hvupdi' flag.
+
+#------------------------------------------------------------
+# pickit5 /pickit5_updi
+#------------------------------------------------------------
+
+programmer # pickit5
+    id                     = "pickit5_updi";
+    desc                   = "MPLAB(R) PICkit 5 in UPDI Mode";
+    type                   = "pickit5_updi";
+    prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    usbpid                 = 0x9036, 0x9012;    # PK5, PK4_PIC_MODE;
+    baudrate               = 200000;   # UPDI default clock
+    hvupdi_support         = 0, 1, 2;
+;
+
+
+
 #------------------------------------------------------------
 # snap /snap_jtag
 #------------------------------------------------------------
