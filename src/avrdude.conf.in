@@ -33,8 +33,8 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       buff     = <pin1> [, <pin2> ... ] ;       # pin number(s)
 #       reset    = <pin> ;                        # pin number
 #       sck      = <pin> ;                        # pin number
-#       sdo      = <pin> ;                        # pin number
-#       sdi      = <pin> ;                        # pin number
+#       sdo|pico = <pin> ;                        # pin number
+#       sdi|poci = <pin> ;                        # pin number
 #       tck      = <pin> ;                        # pin number
 #       tdi      = <pin> ;                        # pin number
 #       tdo      = <pin> ;                        # pin number
@@ -111,15 +111,8 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       n_boot_sections  = <num>;                 # Number of boot sections
 #       boot_section_size = <num>;                # Size of (smallest) boot section, if any
 #       hvupdi_variant   = <num> ;                # numeric -1 (n/a) or 0..2
-#       devicecode       = <num> ;                # deprecated, use stk500_devcode
 #       stk500_devcode   = <num> ;                # numeric
 #       avr910_devcode   = <num> ;                # numeric
-#       has_jtag         = <yes/no> ;             # part has JTAG i/f (deprecated, use prog_modes)
-#       has_debugwire    = <yes/no> ;             # part has debugWire i/f (deprecated, use prog_modes)
-#       has_pdi          = <yes/no> ;             # part has PDI i/f (deprecated, use prog_modes)
-#       has_updi         = <yes/no> ;             # part has UPDI i/f (deprecated, use prog_modes)
-#       has_tpi          = <yes/no> ;             # part has TPI i/f (deprecated, use prog_modes)
-#       is_avr32         = <yes/no> ;             # AVR32 part (deprecated, use prog_modes)
 #       is_at90s1200     = <yes/no> ;             # AT90S1200 part
 #       signature        = <num> <num> <num> ;    # signature bytes
 #       usbpid           = <num> ;                # DFU USB PID
@@ -242,8 +235,6 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #     ;
 #
 # NOTES:
-#   * 'devicecode' is the device code used by the STK500 (see codes
-#       listed below)
 #   * Not all memories will implement all instructions
 #   * AVR Fuse bits and Lock bits are implemented as a type of memory
 #   * Example memories are:
@@ -313,7 +304,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #
 #
 # The following are STK500 part device codes to use for the
-# "devicecode" field of the part.  These came from Atmel's software
+# stk500_devcode field of the part.  These came from Atmel's software
 # section avr061.zip which accompanies the application note
 # AVR061 available from:
 #

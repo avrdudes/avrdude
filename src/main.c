@@ -774,7 +774,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY")) != -1) {
+  while ((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -891,11 +891,6 @@ int main(int argc, char * argv [])
         ladd(updates, cmd_update("interactive terminal"));
         break;
 
-      case 's':
-      case 'u':
-        pmsg_error("\"safemode\" feature no longer supported\n");
-        break;
-
       case 'T':
         ladd(updates, cmd_update(optarg));
         break;
@@ -919,11 +914,6 @@ int main(int argc, char * argv [])
 
       case 'x':
         ladd(extended_params, optarg);
-        break;
-
-      case 'y':
-      case 'Y':
-        pmsg_error("erase cycle counter no longer supported\n");
         break;
 
       case '?': /* help */
