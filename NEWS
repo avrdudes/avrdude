@@ -142,6 +142,7 @@ Changes since version 7.3:
     - Use correct file locations in the documentation #1637
     - Deprecate obsolete features and options #1875
     - Add more hard-coded usbvid/pid to udev rules #1876
+    - Fixes for jtag3 programmers and prep for jtagmkII #1877
 
   * Internals:
 
