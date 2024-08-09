@@ -46,14 +46,14 @@
  *
  *
  * Limitations
- * 
+ *
  *  - jtag3_page_erase() does not work in the bootrow section of the
  *    AVR-DU series, ie, can only be written correctly once unless the
  *    chip-erase command is performed. Confirmed: bootrow page-erase fails
  *    for Curiosity Nano AVR32DU32 ICE-FW(nEDBG) <= 1.31 (rel 39)
  *
  *  - Trace output -vvvv is not complete and would benefit from enhancing
- * 
+ *
  *  - High-Voltage Programming on TPI parts not implemented
  *
  *  - Procedures to change the behaviour of the "Target-RESET pin" are unknown or not implemented
@@ -1683,8 +1683,11 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   }
 
   // If the config entry did not specify a USB PID, insert the default one.
-  if (lfirst(pgm->usbpid) == NULL)
-    ladd(pgm->usbpid, (void *)USB_DEVICE_JTAGICE3);
+  if (lfirst(pgm->usbpid) == NULL) {
+    int *pidp = mmt_malloc(sizeof*pidp);
+    *pidp = USB_DEVICE_JTAGICE3;
+    ladd(pgm->usbpid, pidp);
+  }
 
   pinfo.usbinfo.vid = pgm->usbvid? pgm->usbvid: USB_VENDOR_ATMEL;
 
@@ -2250,10 +2253,14 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       return -1;
     }
   } else if(mem_is_in_sigrow(mem)) { // sigrow sub-memories but not signature nor sigrow itself
-    cmd[3] = (p->prog_modes & PM_UPDI)? MTYPE_SIGN_JTAG: MTYPE_PRODSIG;
-    AVRMEM *sigrow = avr_locate_sigrow(p);
-    if(sigrow)
-      addr += mem->offset - sigrow->offset; // Adjust offset for parent memory
+    if (p->prog_modes & (PM_PDI | PM_UPDI)) {
+      cmd[3] = MTYPE_PRODSIG;
+    } else {
+      cmd[3] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+      addr /= 2;
+      if (pgm->flag & PGM_FL_IS_DW)
+        unsupp = 1;
+    }
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
@@ -2827,22 +2834,31 @@ static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsign
 }
 
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
-  if (p->prog_modes & PM_PDI) {
+  if(is_pdi(p)) {       // Xmega
     /*
      * All memories but "flash" are smaller than boot_start anyway, so
      * no need for an extra check we are operating on "flash"
      */
     if(addr >= PDATA(pgm)->boot_start)
       addr -= PDATA(pgm)->boot_start;
-  } else if(p->prog_modes & PM_UPDI) { // Modern AVR8X part
+    if(mem_is_in_sigrow(m)) {
+      AVRMEM *sigrow = avr_locate_sigrow(p);
+      if(sigrow)
+        addr += m->offset - sigrow->offset;
+    }
+  } else if(is_updi(p)) {       // Modern AVR8X part
     if(!mem_is_flash(m))
       if(m->size >= 1)
         addr += m->offset;
   } else {                      // Classic part
     if(mem_is_userrow(m))
       addr += m->offset;
+    else if(mem_is_in_sigrow(m)) {
+      AVRMEM *sigrow = avr_locate_sigrow(p);
+      if(sigrow)
+        addr += m->offset - sigrow->offset;
+    }
   }
-
   return addr;
 }
 
