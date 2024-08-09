@@ -1812,7 +1812,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
       cmd[1] = XMEGA_ERASE_BOOT_PAGE;
   } else if (mem_is_eeprom(m)) {
     cmd[1] = XMEGA_ERASE_EEPROM_PAGE;
-  } else if (mem_is_userrow(m)) {
+  } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = XMEGA_ERASE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[1] = XMEGA_ERASE_BOOT_PAGE;
@@ -1909,7 +1909,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     }
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
-  } else if (mem_is_userrow(m)) {
+  } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[1] = MTYPE_BOOT_FLASH;
@@ -2012,7 +2012,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
       return -1;
   } else if (mem_is_sigrow(m)) {
     cmd[1] = MTYPE_PRODSIG;
-  } else if (mem_is_userrow(m)) {
+  } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
     cmd[1] = MTYPE_BOOT_FLASH;
@@ -2139,7 +2139,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     cmd[1] = MTYPE_LOCK_BITS;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_userrow(mem)) {
+  } else if (mem_is_userrow(mem) || mem_is_bootrow(mem)) {
     cmd[1] = MTYPE_USERSIG;
   } else if (mem_is_sigrow(mem)) {
     if (p->prog_modes & (PM_PDI | PM_UPDI)) {
@@ -2148,8 +2148,10 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     } else {
       cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
       addr /= 2;
+      if (pgm->flag & PGM_FL_IS_DW)
+        unsupp = 1;
     }
-  } else if (mem_is_calibration(mem)) {
+  } else if(is_classic(p) && mem_is_calibration(mem)) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2182,12 +2184,16 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         }
       return 0;
     }
-  } else if ((p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_in_sigrow(mem)) {
-    cmd[1] = MTYPE_PRODSIG;
+  } else if (mem_is_in_sigrow(mem)) {
     pmsg_notice2("in_sigrow addr 0x%05lx\n", addr);
-  } else if (mem_is_in_sigrow(mem)) { // Classic part
-    cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
-    addr /= 2;
+    if (p->prog_modes & (PM_PDI | PM_UPDI)) {
+      cmd[1] = MTYPE_PRODSIG;
+    } else {
+      cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+      addr /= 2;
+      if (pgm->flag & PGM_FL_IS_DW)
+        unsupp = 1;
+    }
   } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH;
     addr += avr_data_offset(p);
@@ -2307,7 +2313,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
-  } else if (mem_is_userrow(mem)) {
+  } else if (mem_is_userrow(mem) || mem_is_bootrow(mem)) {
     cmd[1] = MTYPE_USERSIG;
   } else if (mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
