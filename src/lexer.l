@@ -191,31 +191,22 @@ default_programmer { yylval=NULL; return K_DEFAULT_PROGRAMMER; }
 default_serial   { yylval=NULL; return K_DEFAULT_SERIAL; }
 default_spi      { yylval=NULL; return K_DEFAULT_SPI; }
 default_linuxgpio { yylval=NULL; return K_DEFAULT_LINUXGPIO; }
-devicecode       { yylval=NULL; ccap(); return K_DEVICECODE; }
 eeprom           { yylval=NULL; return K_EEPROM; }
 eeprom_instr     { yylval=NULL; ccap(); return K_EEPROM_INSTR; }
 enablepageprogramming { yylval=NULL; ccap(); return K_ENABLEPAGEPROGRAMMING; }
 errled           { yylval=NULL; ccap(); return K_ERRLED; }
 flash            { yylval=NULL; return K_FLASH; }
 flash_instr      { yylval=NULL; ccap(); return K_FLASH_INSTR; }
-has_debugwire    { yylval=NULL; ccap(); return K_HAS_DW; }
-has_jtag         { yylval=NULL; ccap(); return K_HAS_JTAG; }
-has_pdi          { yylval=NULL; ccap(); return K_HAS_PDI; }
-has_tpi          { yylval=NULL; ccap(); return K_HAS_TPI; }
-has_updi         { yylval=NULL; ccap(); return K_HAS_UPDI; }
 hvsp_controlstack  { yylval=NULL; ccap(); return K_HVSP_CONTROLSTACK; }
 hvupdi_support   { yylval=NULL; ccap(); return K_HVUPDI_SUPPORT; }
 id               { yylval=NULL; ccap(); return K_ID; }
 io               { yylval=new_token(K_IO); return K_IO; }
 is_at90s1200     { yylval=NULL; ccap(); return K_IS_AT90S1200; }
-is_avr32         { yylval=NULL; ccap(); return K_IS_AVR32; }
 linuxgpio        { yylval=NULL; ccap(); return K_LINUXGPIO; }
 load_ext_addr    { yylval=new_token(K_LOAD_EXT_ADDR); ccap(); return K_LOAD_EXT_ADDR; }
 loadpage_hi      { yylval=new_token(K_LOADPAGE_HI); ccap(); return K_LOADPAGE_HI; }
 loadpage_lo      { yylval=new_token(K_LOADPAGE_LO); ccap(); return K_LOADPAGE_LO; }
 memory           { yylval=NULL; ccap(); current_strct = COMP_AVRMEM; return K_MEMORY; }
-miso             { yylval=NULL; ccap(); yywarning("miso is deprecated, will be removed in v8.0, use sdi"); return K_SDI; }
-mosi             { yylval=NULL; ccap(); yywarning("mosi is deprecated, will be removed in v8.0, use sdo"); return K_SDO; }
 NULL             { yylval=NULL; return K_NULL; }
 page_size        { yylval=NULL; ccap(); return K_PAGE_SIZE; }
 parallel         { yylval=NULL; ccap(); return K_PARALLEL; }
@@ -223,6 +214,8 @@ parent           { yylval=NULL; return K_PARENT; }
 part             { yylval=NULL; ccap(); current_strct = COMP_AVRPART; return K_PART; }
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); ccap(); return K_PGM_ENABLE; }
 pgmled           { yylval=NULL; ccap(); return K_PGMLED; }
+pico             { yylval=NULL; ccap(); return K_SDO; }
+poci             { yylval=NULL; ccap(); return K_SDI; }
 pp_controlstack  { yylval=NULL; ccap(); return K_PP_CONTROLSTACK; }
 (programmer|serialadapter) { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER;
                    cx->lex_kw_is_programmer = *yytext == 'p'; return K_PROGRAMMER; }

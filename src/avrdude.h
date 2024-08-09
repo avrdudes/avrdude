@@ -61,8 +61,8 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define MSG_TRACE2         5 // Displayed with -vvvvv
 
 #define MSG2_PROGNAME      1 // Start by printing progname
-#define MSG2_FUNCTION      2 // Print calling function (1st arg) after progname if >= notice
-#define MSG2_FILELINE      4 // Print source file and line number after function if >= debug
+#define MSG2_FUNCTION      2 // Print calling function (1st arg) after progname if >= notice2
+#define MSG2_FILELINE      4 // Print source file and line number after function if >= notice2
 #define MSG2_TYPE          8 // Print message type after progname
 #define MSG2_INDENT1      16 // Start by printing indentation of progname+1 blanks
 #define MSG2_INDENT2      32 // Start by printing indentation of progname+2 blanks

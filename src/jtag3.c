@@ -1746,6 +1746,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
         }
         if(pic_mode >= 0) {
           msg_error("\n");
+          cx->usb_access_error = 0;
           pmsg_error("%s in %s mode detected\n",
             pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
           if(mode_switch == PK4_SNAP_MODE_AVR) {
@@ -1760,7 +1761,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
             imsg_error("run %s again to continue the session\n\n", progname);
           } else {
             pmsg_error("to switch into AVR mode try\n");
-            imsg_error("$ %s -c%s -p%s -P%s -x mode=avr\n", progname, pgmid, partdesc, port);
+            imsg_error("$ %s -c %s -p %s -P %s -x mode=avr\n", progname, pgmid, partdesc, port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;

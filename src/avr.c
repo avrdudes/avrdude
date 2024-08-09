@@ -322,12 +322,6 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 {
   int i, n;
 
-  // Deprecated: calling with NULL disables trailing 0xff optimisation (remove in v8.0)
-  if(!mem) {
-    cx->avr_disableffopt = 1;
-    return 0;
-  }
-
   if(cx->avr_disableffopt)
     return mem->size;
 

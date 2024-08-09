@@ -610,22 +610,11 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
   if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
-    /* try alternatives */
     if(str_eq(pgmid, "usbasp")) {
-    /* for id usbasp autodetect some variants */
-      if(str_caseeq(port, "nibobee")) {
-        pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
-        if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
-                          USBASP_NIBOBEE_PID, "NIBObee", port) != 0) {
-          pmsg_error("cannot find USB device NIBObee with vid=0x%x pid=0x%x\n",
-            USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
-          return -1;
-        }
-        return 0;
-      }
       /* check if device with old VID/PID is available */
       if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
                         USBASP_OLD_PID, "USBasp", port) == 0) {
+        cx->usb_access_error = 0;
         /* found USBasp with old IDs */
         pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
 	return 0;
