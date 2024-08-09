@@ -614,6 +614,7 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
       /* check if device with old VID/PID is available */
       if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
                         USBASP_OLD_PID, "USBasp", port) == 0) {
+        cx->usb_access_error = 0;
         /* found USBasp with old IDs */
         pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
 	return 0;
