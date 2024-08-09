@@ -140,6 +140,8 @@ Changes since version 7.3:
     - doc: Stop building and installing .ps and .dvi #1857
     - Improve autotools build (part 2/n) #1695
     - Use correct file locations in the documentation #1637
+    - Deprecate obsolete features and options #1875
+    - Add more hard-coded usbvid/pid to udev rules #1876
 
   * Internals:
 
