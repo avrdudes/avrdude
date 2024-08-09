@@ -233,6 +233,42 @@ typedef struct opcode {
 #define PM_Classic (PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI)
 #define PM_ALL           0x1fff // All programming interfaces
 
+// Shortcut test for programmers and parts
+#define is_spm(x)       (!!((x)->prog_modes & PM_SPM))
+#define is_tpi(x)       (!!((x)->prog_modes & PM_TPI))
+#define is_isp(x)       (!!((x)->prog_modes & PM_ISP))
+#define is_pdi(x)       (!!((x)->prog_modes & PM_PDI))
+#define is_updi(x)      (!!((x)->prog_modes & PM_UPDI))
+#define is_hvsp(x)      (!!((x)->prog_modes & PM_HVSP))
+#define is_hvpp(x)      (!!((x)->prog_modes & PM_HVPP))
+#define is_debugwire(x) (!!((x)->prog_modes & PM_debugWIRE))
+#define is_jtag(x)      (!!((x)->prog_modes & PM_JTAG))
+#define is_jtagmki(x)   (!!((x)->prog_modes & PM_JTAGmkI))
+#define is_xmegajtag(x) (!!((x)->prog_modes & PM_XMEGAJTAG))
+#define is_avr32jtag(x) (!!((x)->prog_modes & PM_AVR32JTAG))
+#define is_awire(x)     (!!((x)->prog_modes & PM_aWire))
+#define is_classic(x)   (!!((x)->prog_modes & PM_Classic))
+
+// Set of overlapping programming modes of programmer and part
+#define joint_pm(pgm, p) ((pgm)->prog_modes & (p)->prog_modes)
+
+// Shortcut test whether both programmer and part have that programming mode
+#define both_spm(pgm, p)       (!!(joint_pm(pgm, p) & PM_SPM))
+#define both_tpi(pgm, p)       (!!(joint_pm(pgm, p) & PM_TPI))
+#define both_isp(pgm, p)       (!!(joint_pm(pgm, p) & PM_ISP))
+#define both_pdi(pgm, p)       (!!(joint_pm(pgm, p) & PM_PDI))
+#define both_updi(pgm, p)      (!!(joint_pm(pgm, p) & PM_UPDI))
+#define both_hvsp(pgm, p)      (!!(joint_pm(pgm, p) & PM_HVSP))
+#define both_hvpp(pgm, p)      (!!(joint_pm(pgm, p) & PM_HVPP))
+#define both_debugwire(pgm, p) (!!(joint_pm(pgm, p) & PM_debugWIRE))
+#define both_jtag(pgm, p)      (!!(joint_pm(pgm, p) & PM_JTAG))
+#define both_jtagmki(pgm, p)   (!!(joint_pm(pgm, p) & PM_JTAGmkI))
+#define both_xmegajtag(pgm, p) (!!(joint_pm(pgm, p) & PM_XMEGAJTAG))
+#define both_avr32jtag(pgm, p) (!!(joint_pm(pgm, p) & PM_AVR32JTAG))
+#define both_awire(pgm, p)     (!!(joint_pm(pgm, p) & PM_aWire))
+#define both_classic(pgm, p)   (!!(joint_pm(pgm, p) & PM_Classic))
+
+
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
 #define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-DD/AVR-Ex) */

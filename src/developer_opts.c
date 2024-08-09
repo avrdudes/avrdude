@@ -1551,9 +1551,10 @@ void dev_output_pgm_defs(char *pgmidcp) {
       for(LNODEID idn=lfirst(pgm->id); idn; idn=lnext(idn)) {
         char *id = ldata(idn);
         int len = 19-strlen(id);
-        dev_info("%s '%s' =>%*s ['%s', '%s'], # %s %d\n",
+        dev_info("%s '%s' =>%*s ['%s', '%s', '%s'], # %s %d\n",
           tsv? ".desc": "   ",
           id, len > 0? len: 0, "",
+          locate_programmer_type_id(pgm->initpgm),
           dev_prog_modes(pgm->prog_modes),
           pgm->desc,
           pgm->config_file, pgm->lineno
