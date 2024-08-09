@@ -1593,10 +1593,20 @@ Memtable avr_mem_order[100] = {
   {"sib",         MEM_SIB | MEM_READONLY},
 };
 
+#include "dryrun.h"
+#include "jtag3.h"
+#include "jtagmkII.h"
+#define is_type(pgm, what) ((pgm)->initpgm == what ## _initpgm)
+
 // Whether a memory is an exception that shouldn't be there for this particular i/face
 int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
-  return // Classic part usersig memories cannot be read/written using ISP
-    mem_is_usersig(mem) && (p->prog_modes&PM_Classic) && (pgm->prog_modes&p->prog_modes&PM_ISP);
+  return
+    is_type(pgm, dryrun)? 0:    // Never exclude dryrun memories
+    (mem_is_sib(mem) && is_type(pgm, jtagmkII_updi)) || // jtag2updi cannot deal with sib
+    // jtag3 cannot read beyond addr 6 on classic prodsig, so exclude memories in prodsig/sigrow
+    (is_type(pgm, jtag3) && mem_is_in_sigrow(mem) && is_classic(p) && both_jtag(pgm, p)) ||
+    // Classic part usersig memories cannot be read/written using ISP
+    (mem_is_usersig(mem) && is_classic(p) && both_isp(pgm, p));
 }
 
 int avr_get_mem_type(const char *str) {
