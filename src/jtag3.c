@@ -25,16 +25,16 @@
  * Scope
  *
  * Code in this file serves the following programmers
- * $ avrdude -c "*"/At | grep type..jtagice3 | cut -f2
+ * $ avrdude -c "*"/d | grep "'jtagice3" | cut -f2 -d\'
  *
  * These are
  *  - jtag3, jtag3pdi, jtag3updi, jtag3dw, jtag3isp
- *  - xplainedpro, xplainedpro_pdi, xplainedpro_updi
- *  - xplainedmini, xplainedmini_dw, xplainedmini_updi, xplainedmini_tpi
- *  - atmelice, atmelice_pdi, atmelice_updi, atmelice_dw, atmelice_isp, atmelice_tpi
- *  - powerdebugger, powerdebugger_pdi, powerdebugger_updi, powerdebugger_dw, powerdebugger_isp, powerdebugger_tpi
- *  - pickit4, pickit4_updi, pickit4_pdi, pickit4_isp, pickit4_tpi
- *  - snap, snap_updi, snap_pdi, snap_isp, snap_tpi
+ *  - xplainedpro = xplainedpro_jtag, xplainedpro_pdi, xplainedpro_updi
+ *  - xplainedmini = xplainedmini_isp, xplainedmini_dw, xplainedmini_updi, xplainedmini_tpi
+ *  - atmelice = atmelice_jtag, atmelice_pdi, atmelice_updi, atmelice_dw, atmelice_isp, atmelice_tpi
+ *  - powerdebugger = powerdebugger_jtag, powerdebugger_pdi, powerdebugger_updi, powerdebugger_dw, powerdebugger_isp, powerdebugger_tpi
+ *  - pickit4 = pickit4_jtag, pickit4_updi, pickit4_pdi, pickit4_isp, pickit4_tpi
+ *  - snap = snap_jtag, snap_updi, snap_pdi, snap_isp, snap_tpi
  *  - pkobn_updi
  *
  *
