@@ -25,7 +25,17 @@
  * avrdude interface for Atmel JTAG ICE mkII programmer
  *
  * The AVR Dragon also uses the same protocol, so it is handled here
- * as well.
+ *
+ *
+ * Scope
+ *
+ * Code in this file serves the following programmers
+ * $ avrdude -c "*"/d | grep -P "'(jtagmkii|dragon)" | cut -f2 -d\'
+ *
+ *  - jtagmkII = jtag2slow, jtag2fast = jtag2, jtag2isp, jtag2dw, jtag2pdi, jtag2updi = nanoevery
+ *  - jtagmkII_avr32 = jtag2avr32
+ *  - dragon_jtag, dragon_isp, dragon_pp, dragon_hvsp, dragon_dw, dragon_pdi
+ *
  */
 
 #include <ac_cfg.h>
