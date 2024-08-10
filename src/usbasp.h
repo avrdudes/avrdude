@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2006  Thomas Fischl
+ * Copyright (C) 2006 Thomas Fischl
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 #ifndef usbasp_h
 #define usbasp_h
@@ -115,7 +113,7 @@
 #define NVMCMD_WORD_WRITE    0x1D
 
 
-typedef struct sckoptions_t {
+typedef struct sckoptions {
   int id;
   double frequency;
 } CLOCKOPTIONS;

@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 #include <ac_cfg.h>
 
 #include <stdio.h>
@@ -87,8 +85,6 @@ int dfu_upload(struct dfu_dev *dfu, void * ptr, int size) {
 /* Block counter global variable. Incremented each time a DFU_DNLOAD command
  * is sent to the device.
  */
-
-static uint16_t wIndex = 0;
 
 /* INTERNAL FUNCTION PROTOTYPES
  */
@@ -196,7 +192,7 @@ int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid)
     return -1;
   }
 
-  pmsg_notice("found VID=0x%04x PID=0x%04x at %s:%s\n",
+  pmsg_notice2("found VID=0x%04x PID=0x%04x at %s:%s\n",
     found->descriptor.idVendor, found->descriptor.idProduct,
     found->bus->dirname, found->filename);
 
@@ -253,7 +249,7 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
 {
   int result;
 
-  pmsg_trace("dfu_getstatus(): issuing control IN message\n");
+  pmsg_trace("%s(): issuing control IN message\n", __func__);
 
   result = usb_control_msg(dfu->dev_handle,
     0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_GETSTATUS, 0, 0,
@@ -274,7 +270,7 @@ int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status)
     return -1;
   }
 
-  pmsg_trace("dfu_getstatus(): bStatus 0x%02x, bwPollTimeout %d, bState 0x%02x, iString %d\n",
+  pmsg_trace("%s(): bStatus 0x%02x, bwPollTimeout %d, bState 0x%02x, iString %d\n", __func__,
     status->bStatus,
     status->bwPollTimeout[0] | (status->bwPollTimeout[1] << 8) | (status->bwPollTimeout[2] << 16),
     status->bState,
@@ -287,7 +283,7 @@ int dfu_clrstatus(struct dfu_dev *dfu)
 {
   int result;
 
-  pmsg_trace("dfu_clrstatus(): issuing control OUT message\n");
+  pmsg_trace("%s(): issuing control OUT message\n", __func__);
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_CLRSTATUS, 0, 0,
@@ -305,7 +301,7 @@ int dfu_abort(struct dfu_dev *dfu)
 {
   int result;
 
-  pmsg_trace("dfu_abort(): issuing control OUT message\n");
+  pmsg_trace("%s(): issuing control OUT message\n", __func__);
 
   result = usb_control_msg(dfu->dev_handle,
     USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_ABORT, 0, 0,
@@ -324,11 +320,11 @@ int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size)
 {
   int result;
 
-  pmsg_trace("dfu_dnload(): issuing control OUT message, wIndex = %d, ptr = %p, size = %d\n",
-    wIndex, ptr, size);
+  pmsg_trace("%s(): issuing control OUT message, wIndex = %d, ptr = %p, size = %d\n", __func__,
+    cx->dfu_wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
-    USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, wIndex++, 0,
+    USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_DNLOAD, cx->dfu_wIndex++, 0,
     ptr, size, dfu->timeout);
 
   if (result < 0) {
@@ -353,11 +349,11 @@ int dfu_upload(struct dfu_dev *dfu, void *ptr, int size)
 {
   int result;
 
-  pmsg_trace("dfu_upload(): issuing control IN message, wIndex = %d, ptr = %p, size = %d\n",
-    wIndex, ptr, size);
+  pmsg_trace("%s(): issuing control IN message, wIndex = %d, ptr = %p, size = %d\n", __func__,
+    cx->dfu_wIndex, ptr, size);
 
   result = usb_control_msg(dfu->dev_handle,
-    0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, wIndex++, 0,
+    0x80 | USB_TYPE_CLASS | USB_RECIP_INTERFACE, DFU_UPLOAD, cx->dfu_wIndex++, 0,
     ptr, size, dfu->timeout);
 
   if (result < 0) {
@@ -394,10 +390,10 @@ void dfu_show_info(struct dfu_dev *dfu)
     msg_info("    USB Product         : 0x%04hX\n",
       (unsigned short) dfu->dev_desc.idProduct);
 
-  msg_info("    USB Release         : %hu.%hu.%hu\n",
-    ((unsigned short) dfu->dev_desc.bcdDevice >> 8) & 0xFF,
-    ((unsigned short) dfu->dev_desc.bcdDevice >> 4) & 0xF,
-    ((unsigned short) dfu->dev_desc.bcdDevice >> 0) & 0xF);
+  msg_info("    USB Release         : %u.%u.%u\n",
+    (dfu->dev_desc.bcdDevice >> 8) & 0xFF,
+    (dfu->dev_desc.bcdDevice >> 4) & 0xF,
+    (dfu->dev_desc.bcdDevice >> 0) & 0xF);
 
   if (dfu->serno_str != NULL)
     msg_info("    USB Serial No       : %s\n", dfu->serno_str);

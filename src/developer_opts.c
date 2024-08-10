@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * Code to program an Atmel AVR device through one of the supported
  * programmers.
@@ -59,14 +57,14 @@
 //  - Output again with -p*/s or -c*/s (no /i) and use that for final avrdude.conf
 //  - Remove entries from below tables
 
-static struct {
+static const struct {
   const char *pgmid, *var, *value;
 } pgminj[] = {
   // Add triples here, eg, {"stk500v2", "prog_modes", "PM_TPI|PM_ISP"},
   {NULL, NULL, NULL},
 };
 
-static struct {
+static const struct {
   const char *mcu, *var, *value;
 } ptinj[] = {
   // Add triples here, eg, {"ATmega328P", "mcuid", "999"},
@@ -132,43 +130,6 @@ static void printallopcodes(const AVRPART *p, const char *d, OPCODE * const *opa
     printopcode(p, d, opa[i], i);
 }
 
-
-
-// Programming modes
-
-static char *prog_modes_str(int pm) {
-  static char type[1024];
-
-  strcpy(type, "0");
-  if(pm & PM_SPM)
-    strcat(type, " | PM_SPM");
-  if(pm & PM_TPI)
-    strcat(type, " | PM_TPI");
-  if(pm & PM_ISP)
-    strcat(type, " | PM_ISP");
-  if(pm & PM_PDI)
-    strcat(type, " | PM_PDI");
-  if(pm & PM_UPDI)
-    strcat(type, " | PM_UPDI");
-  if(pm & PM_HVSP)
-    strcat(type, " | PM_HVSP");
-  if(pm & PM_HVPP)
-    strcat(type, " | PM_HVPP");
-  if(pm & PM_debugWIRE)
-    strcat(type, " | PM_debugWIRE");
-  if(pm & PM_JTAG)
-    strcat(type, " | PM_JTAG");
-  if(pm & PM_JTAGmkI)
-    strcat(type, " | PM_JTAGmkI");
-  if(pm & PM_XMEGAJTAG)
-    strcat(type, " | PM_XMEGAJTAG");
-  if(pm & PM_AVR32JTAG)
-    strcat(type, " | PM_AVR32JTAG");
-  if(pm & PM_aWire)
-    strcat(type, " | PM_aWire");
-
-  return type + (type[1] == 0? 0: 4);
-}
 
 static char *extra_features_str(int m) {
   static char mode[1024];
@@ -251,6 +212,9 @@ static char *dev_sprintf(const char *fmt, ...) {
 
 static int dev_nprinted;
 
+#if defined(__GNUC__)
+   __attribute__ ((format (printf, 2, 3)))
+#endif
 int dev_message(int msglvl, const char *fmt, ...) {
   va_list ap;
   int rc = 0;
@@ -406,8 +370,15 @@ static int avrmem_deep_copy(AVRMEMdeep *d, const AVRMEM *m) {
   // Copy over the SPI operations themselves
   memset(d->ops, 0, sizeof d->ops);
   for(size_t i=0; i<AVR_OP_MAX; i++)
-    if(m->op[i])
+    if(m->op[i]) {
       d->ops[i] = *m->op[i];
+      for(int b=0; b<32; b++) { // Replace x with 0 as they are treated the same
+        if(d->ops[i].bit[b].type == AVR_CMDBIT_IGNORE) {
+          d->ops[i].bit[b].type = AVR_CMDBIT_VALUE;
+          d->ops[i].bit[b].value = 0;
+        }
+      }
+    }
 
   return 0;
 }
@@ -529,11 +500,6 @@ static void dev_raw_dump(const void *v, int nbytes, const char *name, const char
   }
 }
 
-static int _is_all_zero(const void *p, size_t n) {
-  const char *q = (const char *) p;
-  return n <= 0 || (*q == 0 && memcmp(q, q+1, n-1) == 0);
-}
-
 static char *opsnm(const char *pre, int opnum) {
   static char ret[128];
   sprintf(ret, "%.31s.%.95s", pre, opcodename(opnum));
@@ -547,7 +513,7 @@ static void dev_part_raw(const AVRPART *part) {
   dev_raw_dump(&dp, (char *)&dp.base-(char *)&dp, part->desc, "part.intro", 0);
   dev_raw_dump(&dp.base, sizeof dp.base, part->desc, "part", 0);
   for(int i=0; i<AVR_OP_MAX; i++)
-    if(!_is_all_zero(dp.ops+i, sizeof*dp.ops))
+    if(!is_memset(dp.ops+i, 0, sizeof*dp.ops))
       dev_raw_dump(dp.ops+i, sizeof*dp.ops, part->desc, opsnm("part", i), 1);
 
   for(int i=0; i<di; i++) {
@@ -556,7 +522,7 @@ static void dev_part_raw(const AVRPART *part) {
     dev_raw_dump(nm, sizeof dp.mems[i].descbuf, part->desc, nm, i+2);
     dev_raw_dump(&dp.mems[i].base, sizeof dp.mems[i].base, part->desc, nm, i+2);
     for(int j=0; j<AVR_OP_MAX; j++)
-      if(!_is_all_zero(dp.mems[i].ops+j, sizeof(OPCODE)))
+      if(!is_memset(dp.mems[i].ops+j, 0, sizeof(OPCODE)))
         dev_raw_dump(dp.mems[i].ops+j, sizeof(OPCODE), part->desc, opsnm(nm, j), i+2);
   }
 }
@@ -572,7 +538,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
 
     if(!cp || !dev_has_subsstr_comms(cp->comms, del)) {
       dev_info("%s\n", del);
-      dev_info("# %.*s\n", strlen(descstr)-2, descstr+1); // Remove double quotes
+      dev_info("# %.*s\n", (int) strlen(descstr)-2, descstr+1); // Remove double quotes
       dev_info("%s\n\n", del);
     }
     if(cp)
@@ -620,12 +586,13 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
   }
 
   _if_partout_str(strcmp, cfg_escape(p->family_id), family_id);
-  _if_partout_str(intcmp, mmt_strdup(prog_modes_str(p->prog_modes)), prog_modes);
+  _if_partout_str(intcmp, mmt_strdup(dev_prog_modes(p->prog_modes)), prog_modes);
   if(p->mcuid == 21) {
     _if_partout_str(intcmp, mmt_strdup("XVII + IV"), mcuid);
   } else {
     _if_partout(intcmp, "%d", mcuid);
   }
+  _if_partout(intcmp, "%d", archnum);
   _if_partout(intcmp, "%d", n_interrupts);
   _if_partout(intcmp, "%d", n_page_erase);
   _if_partout(intcmp, "%d", n_boot_sections);
@@ -731,7 +698,7 @@ static void dev_part_strct(const AVRPART *p, bool tsv, const AVRPART *base, bool
     bm = base? dev_locate_mem(base, avr_mem_order[mi].str): NULL;
 
     if(!m && bm && !tsv)
-      dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13-strlen(bm->desc): 0, "");
+      dev_info("\n    memory \"%s\" %*s= NULL;\n", bm->desc, 13 > strlen(bm->desc)? 13 - (int) strlen(bm->desc): 0, "");
 
     if(!m)
       continue;
@@ -869,9 +836,42 @@ void dev_output_pgm_part(int dev_opt_c, const char *programmer, int dev_opt_p, c
 }
 
 
-// -p */[dASsrcow*ti]
+// Which programming modes should be considered, given the flags?
+static int prog_modes_in_flags(int prog_modes, const char *flags) {
+  int pm = 0,  quirky = 0;
+
+  for(const char *p = flags; *p; p++)
+    switch(*p) {
+    case 'B': pm |= PM_SPM; break;
+    case 'C': pm |= PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI; break;
+    case 'U': pm |= PM_UPDI; break;
+    case 'P': pm |= PM_PDI; break;
+    case 'T': pm |= PM_TPI; break;
+    case 'I': pm |= PM_ISP; break;
+    case 'J': pm |= PM_JTAG | PM_JTAGmkI | PM_XMEGAJTAG; break;
+    case 'W': pm |= PM_debugWIRE; break;
+    case 'H': pm |= PM_HVPP | PM_HVSP; break;
+    case 'Q': pm |= PM_ALL & ~(PM_SPM | PM_UPDI | PM_PDI | PM_TPI | PM_ISP | PM_JTAG | PM_JTAGmkI |
+                    PM_XMEGAJTAG | PM_debugWIRE | PM_HVPP | PM_HVSP);
+              quirky = 1;
+    }
+
+  return (prog_modes == 0 && quirky) || !pm || (prog_modes & pm);
+}
+
+// Return pointer to uP_table entry for part p
+static const Avrintel *silent_locate_uP(const AVRPART *p) {
+  int bakverb = verbose, idx;
+  verbose = -123;
+  idx = avr_locate_upidx(p);
+  verbose = bakverb;
+
+  return idx < 0? NULL: uP_table + idx;
+}
+
+// -p <wildcard>/[dsASRvcreow*tiBCUPTIJWHQ]
 void dev_output_part_defs(char *partdesc) {
-  bool cmdok, waits, opspi, descs, astrc, strct, cmpst, injct, raw, all, tsv;
+  bool cmdok, waits, opspi, descs, vtabs, confs, regis, astrc, strct, cmpst, injct, raw, all, tsv;
   char *flags;
   int nprinted;
   AVRPART *nullpart = avr_new_part();
@@ -882,29 +882,34 @@ void dev_output_part_defs(char *partdesc) {
   if(!flags && str_eq(partdesc, "*")) // Treat -p * as if it was -p */s
     flags = "s";
 
-  if(!*flags || !strchr("cdoASsrw*ti", *flags)) {
-    dev_info("%s: flags for developer option -p <wildcard>/<flags> not recognised\n", progname);
+  if(!*flags || !strchr("dsASRvcreow*tiBCUPTIJWHQ", *flags)) {
+    dev_info("Error: flags for developer option -p <wildcard>/<flags> not recognised\n");
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
-      "         * all known parts\n"
-      "  ATtiny10 just this part\n"
-      "  *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
-      "      *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
+      "          * all known parts\n"
+      "   ATtiny10 just this part\n"
+      "   *32[0-9] matches ATmega329, ATmega325 and ATmega328\n"
+      "       *32? matches ATmega329, ATmega32A, ATmega325 and ATmega328\n"
       "Flags (one or more of the characters below):\n"
-      "       d  description of core part features\n"
-      "       A  show entries of avrdude.conf parts with all values\n"
-      "       S  show entries of avrdude.conf parts with necessary values\n"
-      "       s  show short entries of avrdude.conf parts using parent\n"
-      "       r  show entries of avrdude.conf parts as raw dump\n"
-      "       c  check and report errors in address bits of SPI commands\n"
-      "       o  opcodes for SPI programming parts and memories\n"
-      "       w  wd_... constants for ISP parts\n"
-      "       *  all of the above except s and S\n"
-      "       t  use tab separated values as much as possible\n"
-      "       i  inject assignments from source code table\n"
+      "          d  description of core part features\n"
+      "          s  show short entries of avrdude.conf parts using parent\n"
+      "          A  show entries of avrdude.conf parts with all values\n"
+      "          S  show entries of avrdude.conf parts with necessary values\n"
+      "          R  show entries of avrdude.conf parts as raw dump\n"
+      "          v  list interrupt vector names\n"
+      "          c  list configuration options in fuses\n"
+      "          r  list registers with I/O address and size\n"
+      "          e  check and report errors in address bits of SPI commands\n"
+      "          o  opcodes for SPI programming parts and memories\n"
+      "          w  wd_... constants for ISP parts\n"
+      "          *  as first character: all of the above except s and S\n"
+      " BCUPTIJWHQ  only Boot/Classic/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
+      "          t  use tab separated values as much as possible\n"
+      "          i  inject assignments from source code table\n"
       "Examples:\n"
       "  $ avrdude -p ATmega328P/s\n"
       "  $ avrdude -p m328*/st | grep chip_erase_delay\n"
+      "  $ avrdude -p ATmega*/Ud | wc -l\n"
       "  avrdude -p*/r | sort\n"
       "Notes:\n"
       "  -p * is the same as -p */s\n"
@@ -912,24 +917,26 @@ void dev_output_part_defs(char *partdesc) {
       "  Leaving no space after -p can be an OK substitute for quoting in shells\n"
       "  /s, /S and /A outputs are designed to be used as input in avrdude.conf\n"
       "  Sorted /r output should stay invariant when rearranging avrdude.conf\n"
-      "  The /c, /o and /w flags are less generic and may be removed sometime\n"
+      "  The /e, /o and /w flags are less generic and may be removed sometime\n"
       "  These options are just to help development, so not further documented\n"
     );
     return;
   }
 
   all = *flags == '*';
-  cmdok = all || !!strchr(flags, 'c');
   descs = all || !!strchr(flags, 'd');
+  vtabs = all || !!strchr(flags, 'v');
+  confs = all || !!strchr(flags, 'c');
+  regis = all || !!strchr(flags, 'r');
+  cmdok = all || !!strchr(flags, 'e');
   opspi = all || !!strchr(flags, 'o');
   waits = all || !!strchr(flags, 'w');
   astrc = all || !!strchr(flags, 'A');
-  raw   = all || !!strchr(flags, 'r');
+  raw   = all || !!strchr(flags, 'R');
   strct = !!strchr(flags, 'S');
   cmpst = !!strchr(flags, 's');
   tsv   = !!strchr(flags, 't');
   injct = !!strchr(flags, 'i');
-
 
   // Go through all memories and add them to the memory order list
   for(LNODEID ln1 = lfirst(part_list); ln1; ln1 = lnext(ln1)) {
@@ -959,6 +966,8 @@ void dev_output_part_defs(char *partdesc) {
       }
 
     if(!part_eq(p, partdesc, str_casematch))
+      continue;
+    if(!prog_modes_in_flags(p->prog_modes, flags))
       continue;
 
     if(astrc || strct || cmpst)
@@ -995,6 +1004,7 @@ void dev_output_part_defs(char *partdesc) {
       int ok, nfuses;
       AVRMEM *m;
       OPCODE *oc;
+      const Avrintel *up;
 
       ok = 2047;
       nfuses = 0;
@@ -1124,10 +1134,33 @@ void dev_output_part_defs(char *partdesc) {
           nfuses,
           ok,
           p->flags,
-          prog_modes_str(p->prog_modes),
+          dev_prog_modes(p->prog_modes),
           p->config_file, p->lineno
         );
       }
+
+      if(vtabs && (up = silent_locate_uP(p)) && up->isrtable)
+        for(int i=0; i < up->ninterrupts; i++)
+          dev_info(".vtab\t%s\t%d\t%s\n", p->desc, i, up->isrtable[i]);
+
+      if(confs && (up = silent_locate_uP(p)) && up->cfgtable)
+        for(int i=0; i < up->nconfigs; i++) {
+          const Configitem *cp = up->cfgtable+i;
+          unsigned c, n = cp->nvalues;
+          if(!n || !cp->vlist) { // Count bits set in mask
+            for(n = cp->mask, c=0; n; c++)
+              n &= n-1;
+            n = 1<<c;
+          }
+          dev_info(".cfgt\t%s\t%d\t%s\n", p->desc, n, cp->name);
+          if(cp->vlist && verbose)
+            for(int k=0; k < cp->nvalues; k++)
+              dev_info(".cfgv\t%s\t\tvalue\t%d\t%s\n", p->desc, cp->vlist[k].value, cp->vlist[k].label);
+        }
+
+      if(regis && (up = silent_locate_uP(p)) && up->regf)
+        for(int i=0; i < up->nregisters; i++)
+          dev_info(".regf\t%s\t0x%02x\t%d\t%s\n", p->desc, up->regf[i].addr, up->regf[i].size, up->regf[i].reg);
     }
 
     if(opspi) {
@@ -1217,7 +1250,7 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
 }
 
 
-static const char *connstr(conntype_t conntype) {
+static const char *connstr(Conntype conntype) {
   switch(conntype) {
   case CONNTYPE_LINUXGPIO: return "linuxgpio";
   case CONNTYPE_PARALLEL: return "parallel";
@@ -1280,7 +1313,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
         if(!firstid)
           dev_info("/");
         firstid = 0;
-        dev_info("%s", ldata(ln));
+        dev_info("%s", (char *) ldata(ln));
       }
       dev_info("\n%s\n\n", del);
     }
@@ -1289,9 +1322,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 
     const char *prog_sea = is_programmer(pgm)? "programmer": is_serialadapter(pgm)? "serialadapter": "programmer";
     if(pgm->parent_id && *pgm->parent_id)
-      dev_info("%s parent \"%s\" # %s\n", prog_sea, pgm->parent_id, ldata(lfirst(pgm->id)));
+      dev_info("%s parent \"%s\" # %s\n", prog_sea, pgm->parent_id, (char *) ldata(lfirst(pgm->id)));
     else
-      dev_info("%s # %s\n", prog_sea, ldata(lfirst(pgm->id)));
+      dev_info("%s # %s\n", prog_sea, (char *) ldata(lfirst(pgm->id)));
   }
 
   if(tsv)
@@ -1318,7 +1351,7 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->desc), desc);
   if(!base || base->initpgm != pgm->initpgm)
     _pgmout_fmt("type", "\"%s\"", locate_programmer_type_id(pgm->initpgm));
-  _if_pgmout_str(intcmp, mmt_strdup(prog_modes_str(pgm->prog_modes)), prog_modes);
+  _if_pgmout_str(intcmp, mmt_strdup(dev_prog_modes(pgm->prog_modes)), prog_modes);
   _if_pgmout_str(boolcmp, mmt_strdup(pgm->is_serialadapter? "yes": "no"), is_serialadapter);
   _if_pgmout_str(intcmp, mmt_strdup(extra_features_str(pgm->extra_features)), extra_features);
   if(!base || base->conntype != pgm->conntype)
@@ -1346,13 +1379,10 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   _if_pgmout_str(strcmp, cfg_escape(pgm->usbproduct), usbproduct);
 
   for(int i=0; i<N_PINS; i++) {
-    char *str = pins_to_strdup(pgm->pin+i);
-    char *bstr = base? pins_to_strdup(base->pin+i): NULL;
+    const char *str = pins_to_str(pgm->pin+i);
+    const char *bstr = base? pins_to_str(base->pin+i): NULL;
     if(!base || !str_eq(bstr, str))
       _pgmout_fmt(avr_pin_lcname(i), "%s", str);
-
-    mmt_free(str);
-    mmt_free(bstr);
   }
 
   pgmstr = dev_hvupdi_support_liststr(pgm);
@@ -1383,9 +1413,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 }
 
 
-// -c */[ASsrti]
+// -c <wildcard>/[dASsrtiBUPTIJWHQ]
 void dev_output_pgm_defs(char *pgmidcp) {
-  bool astrc, strct, cmpst, raw, tsv, injct;
+  bool descs, astrc, strct, cmpst, raw, tsv, injct;
   char *flags;
   int nprinted;
   PROGRAMMER *nullpgm = pgm_new();
@@ -1396,8 +1426,8 @@ void dev_output_pgm_defs(char *pgmidcp) {
   if(!flags && str_eq(pgmidcp, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
-  if(!*flags || !strchr("ASsrti", *flags)) {
-    dev_info("%s: flags for developer option -c <wildcard>/<flags> not recognised\n", progname);
+  if(!*flags || !strchr("dASsrtiBUPTIJWHQ", *flags)) {
+    dev_info("Error: flags for developer option -c <wildcard>/<flags> not recognised\n");
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
       "         * all known programmers\n"
@@ -1405,12 +1435,14 @@ void dev_output_pgm_defs(char *pgmidcp) {
       "  jtag*pdi matches jtag2pdi, jtag3pdi, jtag3updi and jtag2updi\n"
       "  jtag?pdi matches jtag2pdi and jtag3pdi\n"
       "Flags (one or more of the characters below):\n"
-      "       A  show entries of avrdude.conf programmers with all values\n"
-      "       S  show entries of avrdude.conf programmers with necessary values\n"
-      "       s  show short entries of avrdude.conf programmers using parent\n"
-      "       r  show entries of avrdude.conf programmers as raw dump\n"
-      "       t  use tab separated values as much as possible\n"
-      "       i  inject assignments from source code table\n"
+      "         d  description of core programmer features\n"
+      "         A  show entries of avrdude.conf programmers with all values\n"
+      "         S  show entries of avrdude.conf programmers with necessary values\n"
+      "         s  show short entries of avrdude.conf programmers using parent\n"
+      "         r  show entries of avrdude.conf programmers as raw dump\n"
+      "         t  use tab separated values as much as possible\n"
+      "         i  inject assignments from source code table\n"
+      " BUPTIJWHQ  only Bootloader/UPDI/PDI/TPI/ISP/JTAG/debugWire/HV/quirky MUCs\n"
       "Examples:\n"
       "  $ avrdude -c usbasp/s\n"
       "  $ avrdude -c */st | grep baudrate\n"
@@ -1429,6 +1461,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
   astrc = !!strchr(flags, 'A');
   strct = !!strchr(flags, 'S');
   cmpst = !!strchr(flags, 's');
+  descs = !!strchr(flags, 'd');
   raw   = !!strchr(flags, 'r');
   tsv   = !!strchr(flags, 't');
   injct = !!strchr(flags, 'i');
@@ -1447,8 +1480,10 @@ void dev_output_pgm_defs(char *pgmidcp) {
     }
     if(!matched)
       continue;
+    if(!prog_modes_in_flags(pgm->prog_modes, flags))
+      continue;
 
-    if(dev_nprinted > nprinted) {
+    if(!descs && dev_nprinted > nprinted) {
       dev_info("\n");
       nprinted = dev_nprinted;
     }
@@ -1459,6 +1494,19 @@ void dev_output_pgm_defs(char *pgmidcp) {
         strct? nullpgm:
         pgm->parent_id && *pgm->parent_id? locate_programmer(programmers, pgm->parent_id): nullpgm,
         injct);
+
+    if(descs)
+      for(LNODEID idn=lfirst(pgm->id); idn; idn=lnext(idn)) {
+        char *id = ldata(idn);
+        int len = 19-strlen(id);
+        dev_info("%s '%s' =>%*s ['%s', '%s'], # %s %d\n",
+          tsv? ".desc": "   ",
+          id, len > 0? len: 0, "",
+          dev_prog_modes(pgm->prog_modes),
+          pgm->desc,
+          pgm->config_file, pgm->lineno
+        );
+      }
 
     if(raw)
       dev_pgm_raw(pgm);

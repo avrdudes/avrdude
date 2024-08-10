@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
  * @param[in] pin number of pin [0..PIN_MAX]
  * @param[in] inverse inverse (true) or normal (false) pin
  */
-void pin_set_value(struct pindef_t * const pindef, const int pin, const bool inverse) {
+void pin_set_value(struct pindef * const pindef, const int pin, const bool inverse) {
 
   pindef->mask[pin / PIN_FIELD_ELEMENT_SIZE] |= 1 << (pin % PIN_FIELD_ELEMENT_SIZE);
   if(inverse) {
@@ -49,8 +49,8 @@ void pin_set_value(struct pindef_t * const pindef, const int pin, const bool inv
  *
  * @param[out] pindef pin definition to clear
  */
-void pin_clear_all(struct pindef_t * const pindef) {
-  memset(pindef, 0, sizeof(struct pindef_t));
+void pin_clear_all(struct pindef * const pindef) {
+  memset(pindef, 0, sizeof(struct pindef));
 }
 
 /**
@@ -59,7 +59,7 @@ void pin_clear_all(struct pindef_t * const pindef) {
  * @param[in] pindef new pin definition structure
  * @param[out] pinno old pin definition integer
  */
-static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int * const pinno) {
+static int pin_fill_old_pinno(const struct pindef * const pindef, unsigned int * const pinno) {
   bool found = false;
   int i;
   for(i = 0; i <= PIN_MAX; i++) {
@@ -84,7 +84,7 @@ static int pin_fill_old_pinno(const struct pindef_t * const pindef, unsigned int
  * @param[in] pindef new pin definition structure
  * @param[out] pinno old pin definition integer
  */
-static int pin_fill_old_pinlist(const struct pindef_t * const pindef, unsigned int * const pinno) {
+static int pin_fill_old_pinlist(const struct pindef * const pindef, unsigned int * const pinno) {
   for(size_t i = 0; i < PIN_FIELD_SIZE; i++) {
     if(i == 0) {
       if((pindef->mask[i] & ~PIN_MASK) != 0) {
@@ -152,19 +152,17 @@ int pgm_fill_old_pins(PROGRAMMER * const pgm) {
 }
 
 /**
- * This function returns a string representation of pins in the mask eg. 1,3,5-7,9,12
- * Another execution of this function will overwrite the previous result in the static buffer.
- * Consecutive pin number are represented as start-end.
+ * This function returns a string representation of pins in the mask eg. 1, 3, 5-7, 9, 12
+ * Consecutive pin numbers are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
- * @returns pointer to a static string.
+ * @returns a temporary string that lives in closed-circuit space
  */
-const char * pinmask_to_str(const pinmask_t * const pinmask) {
-  static char buf[(PIN_MAX + 1) * 5]; // should be enough for PIN_MAX=255
+const char *pinmask_to_str(const Pinmask * const pinmask) {
+  char buf[6 * (PIN_MAX + 1)];
   char *p = buf;
   int n;
   int pin;
-  const char * fmt;
   int start = -1;
   int end = -1;
 
@@ -189,11 +187,8 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
         start = pin;
         end = start;
       }
-      if(output) {
-        fmt = (buf[0] == 0) ? "%d" : ",%d";
-        n = sprintf(p, fmt, pin);
-        p += n;
-      }
+      if(output)
+        p += n = sprintf(p, *buf? ", %d": "%d", pin);
     }
   }
   if(start != end) {
@@ -201,10 +196,7 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
     p += n;
   }
 
-  if(buf[0] == 0)
-    return  "(no pins)";
-
-  return buf;
+  return str_ccstrdup(*buf? buf: "(no pins)");
 }
 
 
@@ -216,20 +208,20 @@ const char * pinmask_to_str(const pinmask_t * const pinmask) {
  * @li any pins are used by more than one function
  * @li any mandatory pin is not set all.
  *
- * In case of any error it report the wrong function and the pin numbers.
- * For verbose >= 2 it also reports the possible correct values.
- * For verbose >=3 it shows also which pins were ok.
+ * In case of any error it report the wrong function and the pin numbers
+ * For verbose >= MSG_NOTICE2 it also reports the possible correct values
+ * For verbose >= MSG_DEBUG it shows also which pins were ok
  *
  * @param[in] pgm the programmer to check
  * @param[in] checklist the constraint for the pins
  * @param[in] size the number of entries in checklist
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
-int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const checklist, const int size, const bool output) {
-  static const struct pindef_t no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
+int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist, const int size, const bool output) {
+  static const struct pindef no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
   int rv = 0; // return value
   int pinname; // loop counter through pinnames
-  pinmask_t already_used_all[PIN_FIELD_SIZE] = {0}; // collect pin definitions of all pin names for check of double use
+  Pinmask already_used_all[PIN_FIELD_SIZE] = {0}; // collect pin definitions of all pin names for check of double use
   // loop over all possible pinnames
   for(pinname = 0; pinname < N_PINS; pinname++) {
     bool used = false;
@@ -237,10 +229,10 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
     bool inverse = false;
     int index;
     bool mandatory_used = false;
-    pinmask_t invalid_used[PIN_FIELD_SIZE] = {0};
-    pinmask_t inverse_used[PIN_FIELD_SIZE] = {0};
-    pinmask_t already_used[PIN_FIELD_SIZE] = {0};
-    const struct pindef_t * valid_pins = &no_valid_pins;
+    Pinmask invalid_used[PIN_FIELD_SIZE] = {0};
+    Pinmask inverse_used[PIN_FIELD_SIZE] = {0};
+    Pinmask already_used[PIN_FIELD_SIZE] = {0};
+    const struct pindef * valid_pins = &no_valid_pins;
     bool is_mandatory = false;
     bool is_ok = true;
     //find corresponding check pattern
@@ -279,7 +271,7 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
       if(output) {
         pmsg_error("%s: these pins are not valid pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        pmsg_notice("%s: valid pins for this function are: %s\n",
+        imsg_error("%s: valid pins for this function are: %s\n",
           avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
@@ -288,7 +280,7 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
       if(output) {
         pmsg_error("%s: these pins are not usable as inverse pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(inverse_used));
-        pmsg_notice("%s: valid inverse pins for this function are: %s\n",
+        imsg_error("%s: valid inverse pins for this function are: %s\n",
           avr_pin_name(pinname), pinmask_to_str(valid_pins->inverse));
       }
       is_ok = false;
@@ -315,48 +307,14 @@ int pins_check(const PROGRAMMER *const pgm, const struct pin_checklist_t *const 
   return rv;
 }
 
-/**
- * This function returns a string of defined pins, eg, ~1,2,~4,~5,7 or " (not used)"
- * Another execution of this function will overwrite the previous result in the static buffer.
- *
- * @param[in] pindef the pin definition for which we want the string representation
- * @returns pointer to a static string.
- */
-const char * pins_to_str(const struct pindef_t * const pindef) {
-  static char buf[(PIN_MAX + 1) * 5]; // should be enough for PIN_MAX=255
-  char *p = buf;
-  int n;
-  int pin;
-  const char * fmt;
-
-  buf[0] = 0;
-  for(pin = PIN_MIN; pin <= PIN_MAX; pin++) {
-    int index = pin / PIN_FIELD_ELEMENT_SIZE;
-    int bit = pin % PIN_FIELD_ELEMENT_SIZE;
-    if(pindef->mask[index] & (1 << bit)) {
-      if(pindef->inverse[index] & (1 << bit)) {
-        fmt = (buf[0] == 0) ? "~%d" : ",~%d";
-      } else {
-        fmt = (buf[0] == 0) ? " %d" : ",%d";
-      }
-      n = sprintf(p, fmt, pin);
-      p += n;
-    }
-  }
-
-  if(buf[0] == 0)
-    return " (not used)";
-
-  return buf;
-}
 
 /**
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
- * @returns a pointer to a string, which was created by mmt_strdup()
+ * @returns a temporary string that lives in closed-circuit space
  */
-char *pins_to_strdup(const struct pindef_t * const pindef) {
+const char *pins_to_str(const struct pindef * const pindef) {
   char buf[6*(PIN_MAX+1)], *p = buf;
 
   *buf = 0;
@@ -369,7 +327,7 @@ char *pins_to_strdup(const struct pindef_t * const pindef) {
     }
   }
 
-  return mmt_strdup(buf);
+  return str_ccstrdup(buf);
 }
 
 /**

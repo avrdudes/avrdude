@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2021  Dawid Buchwald
+ * Copyright (C) 2021 Dawid Buchwald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-/* $Id$ */
 
 /*
  * Interface to the SerialUPDI programmer.
@@ -186,7 +184,7 @@ static void serialupdi_close(PROGRAMMER * pgm)
     pmsg_error("unable to leave NVM programming mode\n");
   }
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    pmsg_info("releasing DTR/RTS handshake lines\n");
+    pmsg_notice("releasing DTR/RTS handshake lines\n");
   }
 
   updi_link_close(pgm);
@@ -604,7 +602,7 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_notice2("UPDI link initialization OK\n");
 
   if (updi_get_rts_mode(pgm) != RTS_MODE_DEFAULT) {
-    pmsg_info("forcing serial DTR/RTS handshake lines %s\n", updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
+    pmsg_notice("forcing serial DTR/RTS handshake lines %s\n", updi_get_rts_mode(pgm) == RTS_MODE_LOW ? "LOW" : "HIGH");
   }
 
   if (updi_read_cs(pgm, UPDI_ASI_SYS_STATUS, &value)<0) {
@@ -677,11 +675,11 @@ static int serialupdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (serialupdi_enter_progmode(pgm) == 0) {
     /* If successful, you can run silicon check */
     if (updi_read_data(pgm, p->syscfg_base+1, &value, 1) < 0) {
-      pmsg_error("Reading chip silicon revision failed\n");
+      pmsg_error("reading chip silicon revision failed\n");
       return -1;
     } else {
-      pmsg_debug("Received chip silicon revision 0x%02x\n", value);
-      pmsg_notice("Chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
+      pmsg_debug("received chip silicon revision 0x%02x\n", value);
+      pmsg_notice("chip silicon revision: %x.%x\n", value >> 4, value & 0x0f);
     }
   }
 
@@ -769,6 +767,11 @@ static int serialupdi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
     buffer[0]=value;
     return updi_nvm_write_flash(pgm, p, mem->offset + addr, buffer, 1);
   }
+  if (mem_is_bootrow(mem)) {
+    unsigned char buffer[1];
+    buffer[0]=value;
+    return updi_nvm_write_boot_row(pgm, p, mem->offset + addr, buffer, 1);
+  }
   // Read-only memories
   if(mem_is_readonly(mem)) {
     unsigned char is;
@@ -841,6 +844,9 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       } else if (mem_is_userrow(m)) {
         rc = serialupdi_write_userrow(pgm, p, m, page_size, write_offset, 
                                       remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
+      } else if (mem_is_bootrow(m)) {
+        rc = updi_nvm_write_boot_row(pgm, p, m->offset + write_offset, m->buf + write_offset, 
+                                     remaining_bytes > m->page_size ? m->page_size : remaining_bytes);
       } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         return -1;
@@ -866,6 +872,8 @@ static int serialupdi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
       rc = updi_nvm_write_flash(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
     } else if (mem_is_userrow(m)) {
       rc = serialupdi_write_userrow(pgm, p, m, page_size, addr, n_bytes);
+    } else if (mem_is_bootrow(m)) {
+      rc = updi_nvm_write_boot_row(pgm, p, m->offset+addr, m->buf+addr, n_bytes);
     } else if (mem_is_fuses(m)) {
         pmsg_debug("page write operation requested for fuses, falling back to byte-level write\n");
         rc = -1;
@@ -1004,13 +1012,12 @@ static int serialupdi_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *si
 }
 
 static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   char rts_mode[5];
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
       if (str_caseeq(rts_mode, "low")) {
@@ -1018,20 +1025,26 @@ static int serialupdi_parseextparms(const PROGRAMMER *pgm, const LISTID extparms
       } else if (str_caseeq(rts_mode, "high")) {
         updi_set_rts_mode(pgm, RTS_MODE_HIGH);
       } else {
-        pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
-        return -1;
+        pmsg_error("-x rtsdtr=<mode>: RTS/DTR mode must be LOW or HIGH\n");
+        rv = -1;
+        break;
       }
       continue;
     }
+
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xrtsdtr=low,high Force RTS/DTR lines low or high state during programming\n");
-      msg_error("  -xhelp            Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x rtsdtr=[low|high] Set RTS/DTR lines low/high during programming\n");
+    msg_error("  -x help              Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

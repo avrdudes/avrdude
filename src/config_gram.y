@@ -1,7 +1,8 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
 %{
 
 #include "ac_cfg.h"
@@ -50,7 +50,7 @@ static int assign_pin_list(int invert);
 static int which_opcode(TOKEN * opcode);
 static int parse_cmdbits(OPCODE * op, int opnum);
 
-static int pin_name;
+#define pin_name (cx->cfgy_pin_name)
 %}
 
 %token K_NULL;
@@ -274,6 +274,9 @@ prog_def :
         yyerror("programmer type not specified");
         YYABORT;
       }
+      if(!current_prog->prog_modes && cx->lex_kw_is_programmer)
+        yywarning("programmer %s fails to specify prog_modes = PM_...;",
+          (char *) ldata(lfirst(current_prog->id)));
       for(LNODEID ln = lfirst(current_prog->id); ln; ln = lnext(ln)) {
         char *id = ldata(ln);
         if((existing_prog = locate_programmer(programmers, id))) {
@@ -335,6 +338,10 @@ part_def :
 
       cfg_update_mcuid(current_part);
 
+      Memtype and_mask = ~ (    // Remove in-flash/in-sigrow attributes if no respective memories
+        (!avr_locate_flash(current_part)? MEM_IN_FLASH: 0) |
+        (!avr_locate_sigrow(current_part)? MEM_IN_SIGROW: 0));
+
       // Sanity checks for memory sizes and compute/override num_pages entry
       for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);
@@ -363,6 +370,20 @@ part_def :
 
           m->num_pages = m->size / m->page_size;
         }
+
+        m->type &= and_mask;
+        // Remove MEM_IN_SIGROW attribute from classic calibration and classic/XMEGA signature mem
+        if(current_part->prog_modes & PM_Classic) {
+          if(mem_is_signature(m))
+            m->type &= ~MEM_IN_SIGROW;
+          if(mem_is_calibration(m))
+            m->type &= ~MEM_IN_SIGROW;
+        } else if(current_part->prog_modes & PM_PDI) {
+          if(mem_is_signature(m))
+            m->type &= ~MEM_IN_SIGROW;
+        }
+        if(fileio_mem_offset(current_part, m) == ~0U)
+          yywarning("revise fileio_mem_offset(), avrdude.conf entry or memory type assignment");
       }
 
       existing_part = locate_part(part_list, current_part->id);
@@ -458,7 +479,7 @@ prog_parm_type:
 
 prog_parm_type_id:
   TKN_STRING        {
-  const struct programmer_type_t * pgm_type = locate_programmer_type($1->value.string);
+  const PROGRAMMER_TYPE *pgm_type = locate_programmer_type($1->value.string);
     if (pgm_type == NULL) {
         yyerror("programmer type %s not found", $1->value.string);
         free_token($1); 
@@ -549,7 +570,10 @@ pin_number_non_empty:
 pin_number:
   pin_number_non_empty
   |
-  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+  /* empty */ {
+    if(pin_name >= 0 && pin_name < N_PINS)
+      pin_clear_all(&(current_prog->pin[pin_name]));
+  }
 ;
 
 pin_list_element:
@@ -568,7 +592,10 @@ pin_list_non_empty:
 pin_list:
   pin_list_non_empty
   |
-  /* empty */ { pin_clear_all(&(current_prog->pin[pin_name])); }
+  /* empty */ {
+    if(pin_name >= 0 && pin_name < N_PINS)
+      pin_clear_all(&(current_prog->pin[pin_name]));
+  }
 ;
 
 prog_parm_pins:
@@ -1368,11 +1395,11 @@ static int parse_cmdbits(OPCODE * op, int opnum)
         case 'a':
           sb = opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; // should be this number
           if(bitno < 8 || bitno > 23) {
-            if(!current_mem || !mem_is_sigrow(current_mem)) // Known exemption
+            if(!current_mem || !mem_is_in_sigrow(current_mem)) // Known exemptions
               yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
           } else if((bn & 31) != sb) {
             if(!current_part || !str_casestarts(current_part->desc, "AT89S5")) // Exempt AT89S5x
-              if(!current_mem || !mem_is_sigrow(current_mem)) // and prodsig
+              if(!current_mem || !mem_is_in_sigrow(current_mem)) // ... and prodsig/sernum
                 yywarning("a%d would normally be expected to be a%d", bn, sb);
           } else if(bn < 0 || bn > 31)
             yywarning("invalid address bit a%d, using a%d", bn, bn & 31);

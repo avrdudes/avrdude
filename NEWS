@@ -1,5 +1,3 @@
-$Id$
-
 Approximate change log for AVRDUDE by version.
 
 (For detailed changes, see the version control system logs.)
@@ -9,26 +7,57 @@ Changes since version 7.3:
 
   * Major changes compared to the previous version:
 
+    - Support of multi-memory .hex/.srec files and memory lists #1828
+    - New terminal disasm command #1842
+
   * New devices supported:
+
+    - AVR16DU14, AVR16DU20, AVR16DU28, AVR16DU32
+    - AVR32DU14, AVR32DU20, AVR32DU28, AVR32DU32
 
   * New programmers supported:
 
+    - serprog
+
+  * New serial adapters supported:
+
+    -  ch342, ch344, ch347, ch9103
+
   * Issues fixed:
+
     - Avrintel.h missing from installation #1683
     - Use of undeclared identifier 'AVRDUDE_FULL_VERSION' #1706
     - Wrong message level in jtag3_prmsg() #1726
     - Old avrdude_message() can go away #1719
     - avr_{read,write}_mem fail to initialize progress reporting #1718
     - avr*timestamp() oddities #1722
-    - -F option not honored bug #1740
+    - -F option not honoured #1740
     - "jtag2 is not a unique start of a programmer name" #1739
     - Regression: EEPROM issue with official STK500 V1 FW #1713
     - usbasp_write_byte in TPI mode not implemented #1755
     - Remove calls to exit() from libavrdude library #774
     - cmake enabling LINUXGPIO on ubuntu 20.04 fails #1782
     - macOS github action failed. #1793
+    - Format mismatch warnings #1799
+    - 0xff optimization when reading #1732
+    - Add support for more AVR-DU parts #1742
+    - Misleading error message: cannot find programmer id #1805
+    - Custom programmer broken in v7.3 #1807
+    - ATtiny11 does not have EEPROM #1812
+    - AVRDUDE fails to return -1 on some write errors #1821
+    - Multi-memory files #1817
+    - Terminal erase command #1833
+    - Bootrow r/w does not work for -c serialupdi #1832
+    - Wrong error message when specifying wrong AVR-Ex part #1813
+    - AVR109 auto reset functionality #1697
+    - Unable to write LOCK bit byte to JTAG3_TPI #1858
+    - Unexpected auto-erase consequences #1861
+    - JTAGICE3 EDBG communication mode relies on hardcoded USBVID #1838
+    - avrdude documentation typo(s) attemps #1852
+    - Conflicting types for op16_is_mnemo: enum/integer #1851
 
   * Pull requests:
+
     - Remove 32bit MSYS2 mingw32 and clang32 build #1687
     - Make avrintel.h an internal header file for libavrdude #1686
     - Fix -Wcalloc-transposed-args warning #1680
@@ -65,9 +94,48 @@ Changes since version 7.3:
     - Use magic memory tree interface throughout #1795
     - Silence MacOS compiler warning #1794
     - Add macOS autotools to github action #1798
+    - Silence compiler warnings #1800
+    - Fix 7 typos in 4 files #1802
+    - Put static variables into context structure #1803
+    - Add new AVRnnDUnn parts #1804
+    - Differentiate cause when programmer isn't found #1806
+    - Prepare for next urboot version #1808
+    - Rename AVRDUDE symbol names ending in _t #1809
+    - Warn when programmer failes to define prog_modes #1810
+    - Add serprog programmer #1801
+    - Remove EEPROM from ATtiny11 avrdude.conf entry #1814
+    - Guard serial_number access in usbhid_open() to avoid segfault #1815
+    - Allow selection of program modes for developer options #1816
+    - Return -1 on write error #1822
+    - Extend elf format for bootrow #1820
+    - Update AUTHORS list #1819
+    - Downgrade out-of-range file input errors on -F #1818
+    - Multi-memory file handling #1828
+    - Add developer options -p*/vcr to explore SW compatibility #1830
+    - Improve chip erase emulation for dryboot/dryrun #1836
+    - Use page erase for UPDI programming #1837
+    - Add fuses, calibration, sernum and tempsense memories #1829
+    - Fix bootrow access for -c serialupdi #1835
+    - Improve signature check for UPDI parts #1840
+    - Improve error handling for avrdude without libserialport #1843
+    - Provide terminal disasm command #1842
+    - Improve auto-reset handling and -x/-E parsing #1844
+    - Remove obsolete SVN $Id$ tags from source files #1850
+    - Update look and feel #1849
+    - Update documentation for -E and -x #1853
+    - Add more WCH USB to serial chips #1855
+    - cmake: LIB_NCURSES also accept pdcurses #1856
+    - Fix byte writes to TPI lockbits for jpag3.c #1859
+    - Refine auto-erase strategy #1862
+    - Provide -P usb:vid:pid for USB hid i/f and allow
+      long -P usb:serno for usblib and hidapi #186
 
   * Internals:
 
+    - Created a context structure pointed to by cx, which harbours global
+      and static variables
+    - Made programmers libavrdude ready: remove exit() calls and moved
+      static variables into local struct pdata
 
 Changes in version 7.3:
 

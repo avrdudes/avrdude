@@ -175,6 +175,7 @@ set(SOURCES
     avrftdi_tpi.h
     avrintel.c
     libavrdude-avrintel.h
+    avr_opcodes.c
     avrpart.c
     bitbang.c
     bitbang.h
@@ -189,6 +190,7 @@ set(SOURCES
     confwin.c
     crc16.c
     crc16.h
+    disasm.c
     dfu.c
     dfu.h
     dryrun.c
@@ -240,6 +242,8 @@ set(SOURCES
     serialadapter.c
     serialupdi.c
     serialupdi.h
+    serprog.c
+    serprog.h
     solaris_ecpp.h
     stk500.c
     stk500.h
@@ -384,6 +388,7 @@ endif()
 # =====================================
 
 install(TARGETS avrdude DESTINATION bin)
+install(PROGRAMS "elf2tag" DESTINATION bin)
 install(TARGETS libavrdude
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

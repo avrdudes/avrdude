@@ -1,6 +1,6 @@
 /*
  * AVRDUDE - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004 Theodore A. Roth <troth@openavr.org>
  * some code:
  * Copyright (C) 2011-2012 Roger E. Wolff <R.E.Wolff@BitWizard.nl>
  *
@@ -18,8 +18,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-/* $Id$ */
 
 /* ft245r -- FT245R/FT232R Synchronous BitBangMode Programmer
   default pin assign
@@ -236,7 +234,7 @@ static int ft245r_flush(const PROGRAMMER *pgm) {
 	    avail = len;
 
 #if FT245R_DEBUG
-	msg_info("%s: writing %d bytes\n", __func__, avail);
+	msg_notice("%s: writing %d bytes\n", __func__, avail);
 #endif
 	rv = ftdi_write_data(my.handle, src, avail);
 	if (rv != avail) {
@@ -279,7 +277,7 @@ static int ft245r_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
     ft245r_fill(pgm);
 
 #if FT245R_DEBUG
-    msg_info("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
+    msg_notice("%s: discarding %d, consuming %lu bytes\n", __func__, my.rx.discard, (unsigned long) len);
 #endif
     while (my.rx.discard > 0) {
         int result = ft245r_rx_buf_fill_and_get(pgm);
@@ -378,7 +376,7 @@ static int ft245r_set_bitclock(const PROGRAMMER *pgm) {
 
     r = ftdi_set_baudrate(my.handle, ftdi_rate);
     if (r) {
-        msg_error("set baudrate %d failed with error '%s'\n", rate, ftdi_get_error_string (my.handle));
+        msg_error("setting baudrate %d failed with error %s\n", rate, ftdi_get_error_string (my.handle));
         return -1;
     }
     return 0;
@@ -392,7 +390,7 @@ static int get_pin(const PROGRAMMER *pgm, int pinname) {
   if (ftdi_read_pins(my.handle, &byte) != 0)
     return -1;
   if (FT245R_DEBUG)
-    msg_info("%s: in 0x%02x\n", __func__, byte);
+    msg_notice("%s: in 0x%02x\n", __func__, byte);
   return GET_BITS_0(byte, pgm, pinname) != 0;
 }
 
@@ -790,23 +788,23 @@ static int ft245r_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd,
     for (i = 0; i < res_len; ++i)
 	if ((ret = ft245r_tpi_rx(pgm, &res[i])) < 0)
 	    break;
-    if (verbose >= 2) {
-	msg_notice2("%s: [ ", __func__);
+    if (verbose >= MSG_DEBUG) {
+	msg_debug("%s: [ ", __func__);
 	for (i = 0; i < cmd_len; i++)
-	    msg_notice2("%02X ", cmd[i]);
-	msg_notice2("] [ ");
+	    msg_debug("%02X ", cmd[i]);
+	msg_debug("] [ ");
 	for(i = 0; i < res_len; i++)
-	    msg_notice2("%02X ", res[i]);
-	msg_notice2("]\n");
+	    msg_debug("%02X ", res[i]);
+	msg_debug("]\n");
     }
 
     return ret;
 }
 
 /* lower 8 pins are accepted, they might be also inverted */
-static const struct pindef_t valid_pins = {{0xff}, {0xff}} ;
+static const struct pindef valid_pins = {{0xff}, {0xff}};
 
-static const struct pin_checklist_t pin_checklist[] = {
+static const Pin_checklist pin_checklist[] = {
     { PIN_AVR_SCK, 1, &valid_pins},
     { PIN_AVR_SDO, 1, &valid_pins},
     { PIN_AVR_SDI, 1, &valid_pins},
@@ -830,12 +828,12 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
 
     // read device string cut after 8 chars (max. length of serial number)
     if ((sscanf(port, "usb:%8s", device) != 1)) {
-      pmsg_notice("ft245r_open(): no device identifier in portname, using default\n");
+      pmsg_notice("%s(): no device identifier in portname, using default\n", __func__);
       pgm->usbsn = cache_string("");
       devnum = 0;
     } else {
       if (strlen(device) == 8 ){ // serial number
-        pmsg_notice2("ft245r_open(): serial number parsed as: %s\n", device);
+        pmsg_notice2("%s(): serial number parsed as: %s\n", __func__, device);
         // copy serial number to pgm struct
         pgm->usbsn = cache_string(device);
         // and use first device with matching serial (should be unique)
@@ -848,13 +846,13 @@ static int ft245r_open(PROGRAMMER *pgm, const char *port) {
         if ((startptr==endptr) || (*endptr != '\0')) {
           devnum = -1;
         }
-        pmsg_notice2("ft245r_open(): device number parsed as: %d\n", devnum);
+        pmsg_notice2("%s(): device number parsed as: %d\n", __func__, devnum);
       }
     }
 
     // if something went wrong before abort with helpful message
     if (devnum < 0) {
-      pmsg_error("invalid portname '%s': use^ 'ft[0-9]+' or serial number\n", port);
+      pmsg_error("invalid port name %s: use ft[0-9]+ or serial number\n", port);
       return -1;
     }
 

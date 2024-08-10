@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003, 2004  Martin J. Thomas  <mthomas@rhrk.uni-kl.de>
+ * Copyright (C) 2003, 2004 Martin J. Thomas <mthomas@rhrk.uni-kl.de>
  * Copyright (C) 2005 Juliane Holzt <avrdude@juliane.holzt.de>
  * Copyright (C) 2005, 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id$ */
 
 /*
  * Win32 serial bitbanging interface for avrdude.
@@ -40,8 +39,12 @@
 #include "bitbang.h"
 #include "serbb.h"
 
-/* cached status lines */
-static int dtr, rts, txd;
+struct pdata {
+  int dtr, rts, txd;            // Cached status lines
+};
+
+// Use private programmer data as if they were a global structure my
+#define my (*(struct pdata *)(pgm->cookie))
 
 #define W32SERBUFSIZE 1024
 
@@ -85,25 +88,26 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
         case 3:  /* txd */
                 dwFunc = value? SETBREAK: CLRBREAK;
                 name = value? "SETBREAK": "CLRBREAK";
-                txd = value;
+                my.txd = value;
                 break;
 
         case 4:  /* dtr */
                 dwFunc = value? SETDTR: CLRDTR;
                 name = value? "SETDTR": "CLRDTR";
-                dtr = value;
+                my.dtr = value;
                 break;
 
         case 7:  /* rts */
                 dwFunc = value? SETRTS: CLRRTS;
                 name = value? "SETRTS": "CLRRTS";
+                my.rts = value;
                 break;
 
         default:
-                pmsg_notice("serbb_setpin(): unknown pin %d\n", pin + 1);
+                pmsg_warning("%s(): unknown pin %d\n", __func__, pin + 1);
                 return -1;
         }
-        pmsg_trace2("serbb_setpin(): EscapeCommFunction(%s)\n", name);
+        pmsg_trace2("%s(): EscapeCommFunction(%s)\n", __func__, name);
         if (!EscapeCommFunction(hComPort, dwFunc))
         {
                 FormatMessage(
@@ -168,7 +172,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
                         LocalFree(lpMsgBuf);
                         return -1;
                 }
-                pmsg_trace2("serbb_getpin(): GetCommState() => 0x%lx\n", modemstate);
+                pmsg_trace2("%s(): GetCommState() => 0x%lx\n", __func__, modemstate);
                 switch (pin)
                 {
                 case 1:
@@ -191,22 +195,22 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
         switch (pin)
         {
         case 3: /* txd */
-                rv = txd;
+                rv = my.txd;
                 name = "TXD";
                 break;
         case 4: /* dtr */
-                rv = dtr;
+                rv = my.dtr;
                 name = "DTR";
                 break;
         case 7: /* rts */
-                rv = rts;
+                rv = my.rts;
                 name = "RTS";
                 break;
         default:
-                pmsg_notice("serbb_getpin(): unknown pin %d\n", pin + 1);
+                pmsg_warning("%s(): unknown pin %d\n", __func__, pin + 1);
                 return -1;
         }
-        pmsg_trace2("serbb_getpin(): return cached state for %s\n", name);
+        pmsg_trace2("%s(): return cached state for %s\n", __func__, name);
         if (invert)
                 rv = !rv;
 
@@ -299,11 +303,11 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 		pmsg_error("cannot set com-state for %s\n", port);
                 return -1;
 	}
-        pmsg_debug("ser_open(): opened comm port %s, handle 0x%lx\n", port, (long) (INT_PTR) hComPort);
+        pmsg_debug("%s(): opened comm port %s, handle 0x%lx\n", __func__, port, (long) (INT_PTR) hComPort);
 
         pgm->fd.pfd = (void *)hComPort;
 
-        dtr = rts = txd = 0;
+        my.dtr = my.rts = my.txd = 0;
 
         return 0;
 }
@@ -315,9 +319,18 @@ static void serbb_close(PROGRAMMER *pgm) {
 		pgm->setpin(pgm, PIN_AVR_RESET, 1);
 		CloseHandle (hComPort);
 	}
-        pmsg_debug("ser_close(): closed comm port handle 0x%lx\n", (long) (INT_PTR) hComPort);
+        pmsg_debug("%s(): closed comm port handle 0x%lx\n", __func__, (long) (INT_PTR) hComPort);
 
 	hComPort = INVALID_HANDLE_VALUE;
+}
+
+static void serbb_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
+}
+
+static void serbb_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 const char serbb_desc[] = "Serial port bitbanging";
@@ -327,6 +340,8 @@ void serbb_initpgm(PROGRAMMER *pgm) {
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
+  pgm->setup          = serbb_setup;
+  pgm->teardown       = serbb_teardown;
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
   pgm->pgm_led        = bitbang_pgm_led;

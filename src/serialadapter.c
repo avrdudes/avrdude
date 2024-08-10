@@ -217,7 +217,7 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
       if(sa_unique_by_sea(sea, "", sp, n, i))
         Plist[Pi++] = mmt_strdup(id);
       else if(*sn && sa_unique_by_sea(sea, sn, sp, n, i))
-        Plist[Pi++] = str_sprintf("%s:%s", id, sn);
+        Plist[Pi++] = mmt_sprintf("%s:%s", id, sn);
       else if(!via && sa_num_matches_by_sea(sea, "", sp+i, 1))
         via = id;
 
@@ -232,11 +232,11 @@ static char **sa_list_specs(const SERPORT *sp, int n, int i) {
 
   if(Pi == 0 && sp[i].vid) {    // No unique serial adapter, so maybe vid:pid[:sn] works?
     if(sa_unique_by_ids(sp[i].vid, sp[i].pid, "", sp, n, i))
-      Plist[Pi++] = str_sprintf("usb:%04x:%04x", sp[i].vid, sp[i].pid);
+      Plist[Pi++] = mmt_sprintf("usb:%04x:%04x", sp[i].vid, sp[i].pid);
     else if(*sn && sa_unique_by_ids(sp[i].vid, sp[i].pid, sn, sp, n, i))
-      Plist[Pi++] = str_sprintf("usb:%04x:%04x:%s", sp[i].vid, sp[i].pid, sn);
+      Plist[Pi++] = mmt_sprintf("usb:%04x:%04x:%s", sp[i].vid, sp[i].pid, sn);
     else if(via && Pi == 0)
-      Plist[Pi++] = str_sprintf("(via %s serial adapter)", via);
+      Plist[Pi++] = mmt_sprintf("(via %s serial adapter)", via);
   }
 
   Plist[Pi] = NULL;
@@ -315,7 +315,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
   if(!sp1 || n1 <= 0 || !portp)
     return -1;
 
-  pmsg_info("touching serial port %s at %d baud\n", *portp, baudrate);
+  pmsg_notice("touching serial port %s at %d baud\n", *portp, baudrate);
 
   union pinfo pinfo;
   union filedescriptor fd;
@@ -334,18 +334,18 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
 #if (defined(__arm__) || defined(__aarch64__)) && !defined(__APPLE__)
   nwaits += 2;
 #endif
-  pmsg_info("waiting for new port...");
+  pmsg_notice("waiting for new port...");
   usleep(400*1000*nwaits);
   for(i = nloops; i > 0; i--) {
     usleep(nap*1000);
     if((sp2 = get_libserialport_data(&n2))) {
       diff = sa_spa_not_spb(sp2, n2, sp1, n1);
       if(*diff && diff[0]->port && !diff[1]) { // Exactly one new port sprung up
-        pmsg_notice("new port %s discovered\n", (*diff)->port);
+        pmsg_notice2("new port %s discovered\n", (*diff)->port);
         if(*portp)
           mmt_free(*portp);
         *portp = mmt_strdup((*diff)->port);
-        msg_info(" %d ms:", (nloops-i+1)*nap + nwaits*400);
+        msg_notice(" %d ms:", (nloops-i+1)*nap + nwaits*400);
         i = -1;                 // Leave loop
       }
       mmt_free(diff); 
@@ -353,7 +353,7 @@ int touch_serialport(char **portp, int baudrate, int nwaits) {
     }
   }
   free_libserialport_data(sp1, n1);
-  msg_info(" using %s port %s\n", i<0? "new": "same", *portp);
+  msg_notice(" using %s port %s\n", i<0? "new": "same", *portp);
 
   return 0;
 }

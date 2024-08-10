@@ -75,12 +75,11 @@
 #define MICRONUCLEUS_DEFAULT_TIMEOUT 500
 #define MICRONUCLEUS_MAX_MAJOR_VERSION 2
 
-#define PDATA(pgm) ((pdata_t*)(pgm->cookie))
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 //-----------------------------------------------------------------------------
 
-typedef struct pdata
-{
+struct pdata {
     usb_dev_handle* usb_handle;
     // Extended parameters
     bool wait_until_device_present;
@@ -102,7 +101,7 @@ typedef struct pdata
     uint16_t user_reset_vector; // reset vector of user program
     bool write_last_page;       // last page already programmed
     bool start_program;         // require start after flash
-} pdata_t;
+};
 
 //-----------------------------------------------------------------------------
 
@@ -111,8 +110,7 @@ static void delay_ms(uint32_t duration)
     usleep(duration * 1000);
 }
 
-static int micronucleus_check_connection(pdata_t* pdata)
-{
+static int micronucleus_check_connection(struct pdata *pdata) {
     if (pdata->major_version >= 2)
     {
         uint8_t buffer[6] = { 0 };
@@ -139,8 +137,7 @@ static int micronucleus_check_connection(pdata_t* pdata)
     }
 }
 
-static bool micronucleus_is_device_responsive(pdata_t* pdata, struct usb_device* device)
-{
+static bool micronucleus_is_device_responsive(struct pdata *pdata, struct usb_device *device) {
     pdata->usb_handle = usb_open(device);
     if (pdata->usb_handle == NULL)
     {
@@ -155,8 +152,7 @@ static bool micronucleus_is_device_responsive(pdata_t* pdata, struct usb_device*
     return result >= 0;
 }
 
-static int micronucleus_reconnect(pdata_t* pdata)
-{
+static int micronucleus_reconnect(struct pdata *pdata) {
     struct usb_device* device = usb_device(pdata->usb_handle);
 
     usb_close(pdata->usb_handle);
@@ -176,8 +172,7 @@ static int micronucleus_reconnect(pdata_t* pdata)
     return -1;
 }
 
-static int micronucleus_get_bootloader_info_v1(pdata_t* pdata)
-{
+static int micronucleus_get_bootloader_info_v1(struct pdata *pdata) {
     uint8_t buffer[4] = { 0 };
     int result = usb_control_msg(
         pdata->usb_handle,
@@ -243,8 +238,7 @@ static int micronucleus_get_bootloader_info_v1(pdata_t* pdata)
     return 0;
 }
 
-static int micronucleus_get_bootloader_info_v2(pdata_t* pdata)
-{
+static int micronucleus_get_bootloader_info_v2(struct pdata *pdata) {
     uint8_t buffer[6] = { 0 };
     int result = usb_control_msg(
         pdata->usb_handle,
@@ -284,8 +278,7 @@ static int micronucleus_get_bootloader_info_v2(pdata_t* pdata)
     return 0;
 }
 
-static int micronucleus_get_bootloader_info(pdata_t* pdata)
-{
+static int micronucleus_get_bootloader_info(struct pdata *pdata) {
     if (pdata->major_version >= 2)
     {
         return micronucleus_get_bootloader_info_v2(pdata);
@@ -296,8 +289,7 @@ static int micronucleus_get_bootloader_info(pdata_t* pdata)
     }
 }
 
-static void micronucleus_dump_device_info(pdata_t* pdata)
-{
+static void micronucleus_dump_device_info(struct pdata *pdata) {
     pmsg_notice("Bootloader version: %d.%d\n", pdata->major_version, pdata->minor_version);
     imsg_notice("Available flash size: %u\n", pdata->flash_size);
     imsg_notice("Page size: %u\n", pdata->page_size);
@@ -308,8 +300,7 @@ static void micronucleus_dump_device_info(pdata_t* pdata)
     imsg_notice("Signature2: 0x%02X\n", pdata->signature2);
 }
 
-static int micronucleus_erase_device(pdata_t* pdata)
-{
+static int micronucleus_erase_device(struct pdata *pdata) {
     pmsg_debug("micronucleus_erase_device()\n");
 
     int result = usb_control_msg(
@@ -351,8 +342,7 @@ static int micronucleus_erase_device(pdata_t* pdata)
     return 0;
 }
 
-static int micronucleus_patch_reset_vector(pdata_t* pdata, uint8_t* buffer)
-{
+static int micronucleus_patch_reset_vector(struct pdata *pdata, uint8_t *buffer) {
     // Save user reset vector.
     uint16_t word0 = (buffer[1] << 8) | buffer[0];
     uint16_t word1 = (buffer[3] << 8) | buffer[2];
@@ -394,8 +384,7 @@ static int micronucleus_patch_reset_vector(pdata_t* pdata, uint8_t* buffer)
     return 0;
 }
 
-static void micronucleus_patch_user_vector(pdata_t* pdata, uint8_t* buffer)
-{
+static void micronucleus_patch_user_vector(struct pdata *pdata, uint8_t *buffer) {
     uint16_t user_reset_addr = pdata->bootloader_start - 4;
     uint16_t address = pdata->bootloader_start - pdata->page_size;
     if (user_reset_addr > 0x2000)
@@ -416,8 +405,7 @@ static void micronucleus_patch_user_vector(pdata_t* pdata, uint8_t* buffer)
     }
 }
 
-static int micronucleus_write_page_v1(pdata_t* pdata, uint32_t address, uint8_t* buffer, uint32_t size)
-{
+static int micronucleus_write_page_v1(struct pdata *pdata, uint32_t address, uint8_t *buffer, uint32_t size) {
     int result = usb_control_msg(
         pdata->usb_handle,
         USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -434,8 +422,7 @@ static int micronucleus_write_page_v1(pdata_t* pdata, uint32_t address, uint8_t*
     return 0;
 }
 
-static int micronucleus_write_page_v2(pdata_t* pdata, uint32_t address, uint8_t* buffer, uint32_t size)
-{
+static int micronucleus_write_page_v2(struct pdata *pdata, uint32_t address, uint8_t *buffer, uint32_t size) {
     int result = usb_control_msg(
         pdata->usb_handle,
         USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -470,8 +457,7 @@ static int micronucleus_write_page_v2(pdata_t* pdata, uint32_t address, uint8_t*
     return 0;
 }
 
-static int micronucleus_write_page(pdata_t* pdata, uint32_t address, uint8_t* buffer, uint32_t size)
-{
+static int micronucleus_write_page(struct pdata *pdata, uint32_t address, uint8_t *buffer, uint32_t size) {
     pmsg_debug("micronucleus_write_page(address=0x%04X, size=%d)\n", address, size);
 
     if (address == 0)
@@ -522,8 +508,7 @@ static int micronucleus_write_page(pdata_t* pdata, uint32_t address, uint8_t* bu
     return 0;
 }
 
-static int micronucleus_start(pdata_t* pdata)
-{
+static int micronucleus_start(struct pdata *pdata) {
     pmsg_debug("micronucleus_start()\n");
 
     int result = usb_control_msg(
@@ -546,7 +531,7 @@ static int micronucleus_start(pdata_t* pdata)
 
 static void micronucleus_setup(PROGRAMMER *pgm) {
     pmsg_debug("micronucleus_setup()\n");
-    pgm->cookie = mmt_malloc(sizeof(pdata_t));
+    pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void micronucleus_teardown(PROGRAMMER* pgm) {
@@ -558,7 +543,7 @@ static void micronucleus_teardown(PROGRAMMER* pgm) {
 static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_debug("micronucleus_initialize()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
 
     int result = micronucleus_get_bootloader_info(pdata);
     if (result < 0)
@@ -570,7 +555,7 @@ static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void micronucleus_display(const PROGRAMMER *pgm, const char *prefix) {
-    pmsg_debug("micronucleus_display()\n");
+  // pmsg_debug("micronucleus_display()\n");
 }
 
 static void micronucleus_powerup(const PROGRAMMER *pgm) {
@@ -580,7 +565,7 @@ static void micronucleus_powerup(const PROGRAMMER *pgm) {
 static void micronucleus_powerdown(const PROGRAMMER *pgm) {
     pmsg_debug("micronucleus_powerdown()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     if (pdata->write_last_page)
     {
         pdata->write_last_page = false;
@@ -621,7 +606,7 @@ static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, 
         return -1;
     }
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     mem->buf[0] = 0x1E;
     mem->buf[1] = pdata->signature1;
     mem->buf[2] = pdata->signature2;
@@ -631,14 +616,14 @@ static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, 
 static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_debug("micronucleus_chip_erase()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     return micronucleus_erase_device(pdata);
 }
 
 static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
     pmsg_debug("micronucleus_open(\"%s\")\n", port);
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     const char *bus_name = NULL;
     char* dev_name = NULL;
 
@@ -664,8 +649,7 @@ static int micronucleus_open(PROGRAMMER* pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        pmsg_error("invalid -P value %s\n", port);
-        imsg_error("use -P usb:bus:device\n");
+        pmsg_error("invalid -P %s; use -P usb:bus:device\n", port);
         return -1;
     }
 
@@ -790,7 +774,7 @@ static void micronucleus_close(PROGRAMMER* pgm)
 {
     pmsg_debug("micronucleus_close()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     if (pdata->usb_handle != NULL)
     {
         usb_close(pdata->usb_handle);
@@ -838,7 +822,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 
     if (mem_is_flash(mem))
     {
-        pdata_t* pdata = PDATA(pgm);
+        struct pdata *pdata = PDATA(pgm);
 
         if (n_bytes > page_size)
         {
@@ -884,39 +868,48 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
 }
 
 static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
+    int rv = 0;
+    bool help = false;
     pmsg_debug("micronucleus_parseextparams()\n");
 
-    pdata_t* pdata = PDATA(pgm);
-    for (LNODEID node = lfirst(xparams); node != NULL; node = lnext(node))
+    struct pdata *pdata = PDATA(pgm);
+    for (LNODEID node = lfirst(xparams); node; node = lnext(node))
     {
-        const char* param = ldata(node);
+        const char* extended_param = ldata(node);
 
-        if (str_eq(param, "wait"))
+        if (str_eq(extended_param, "wait"))
         {
             pdata->wait_until_device_present = true;
             pdata->wait_timout = -1;
+            continue;
         }
-        else if (str_starts(param, "wait="))
+
+        if (str_starts(extended_param, "wait="))
         {
             pdata->wait_until_device_present = true;
-            pdata->wait_timout = atoi(param + 5);
+            pdata->wait_timout = atoi(extended_param + 5);
+            continue;
         }
-        else if (str_eq(param, "help"))
+
+        if (str_eq(extended_param, "help"))
         {
-            msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
-            msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
-            msg_error("  -xhelp       Show this help menu and exit\n");
-            return LIBAVRDUDE_EXIT;
+            help = true;
+            rv = LIBAVRDUDE_EXIT;
         }
-        else
+
+        if (!help)
         {
-            pmsg_error("invalid extended parameter '%s'\n", param);
-            return -1;
+            pmsg_error("invalid extended parameter -x %s\n", extended_param);
+            rv = -1;
         }
+        msg_error("%s -c %s extended options:\n", progname, pgmid);
+        msg_error("  -x wait     Wait for the device to be plugged in if not connected\n");
+        msg_error("  -x wait=<n> Wait <n> s for the device to be plugged in if not connected\n");
+        msg_error("  -x help     Show this help menu and exit\n");
+        return rv;
     }
 
-    return 0;
+    return rv;
 }
 
 void micronucleus_initpgm(PROGRAMMER *pgm) {

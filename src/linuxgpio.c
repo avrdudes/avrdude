@@ -733,7 +733,7 @@ void linuxgpio_initpgm(PROGRAMMER *pgm) {
 
 #ifdef HAVE_LIBGPIOD
   if (libgpiod_is_working()) {
-    msg_info("using libgpiod for linuxgpio\n");
+    msg_notice("using libgpiod for linuxgpio\n");
     pgm->display        = linuxgpio_libgpiod_display;
     pgm->open           = linuxgpio_libgpiod_open;
     pgm->close          = linuxgpio_libgpiod_close;
@@ -741,7 +741,7 @@ void linuxgpio_initpgm(PROGRAMMER *pgm) {
     pgm->getpin         = linuxgpio_libgpiod_getpin;
     pgm->highpulsepin   = linuxgpio_libgpiod_highpulsepin;
   } else {
-    msg_info("falling back to sysfs for linuxgpio\n");
+    msg_notice("falling back to sysfs for linuxgpio\n");
   }
 #endif
 }

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2021-2023 Hans Eirik Bull
  * Copyright (C) 2022-2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
@@ -17,8 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 #include <ac_cfg.h>
 
@@ -65,8 +63,12 @@ struct command {
 
 
 static int cmd_dump   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_disasm (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_write  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_save   (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_backup (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
+static int cmd_verify (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_flush  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_abort  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
 static int cmd_erase  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]);
@@ -92,11 +94,16 @@ static int cmd_quell  (const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
 #define _fo(x) offsetof(PROGRAMMER, x)
 
+// List of commands; don't add a command starting with e: main.c relies on e expanding to erase
 struct command cmd[] = {
   { "dump",  cmd_dump,  _fo(read_byte_cached),  "display a memory section as hex dump" },
   { "read",  cmd_dump,  _fo(read_byte_cached),  "alias for dump" },
+  { "disasm", cmd_disasm, _fo(read_byte_cached), "disassemble a memory section" },
   { "write", cmd_write, _fo(write_byte_cached), "write data to memory; flash and EEPROM are cached" },
-  { "save",  cmd_save,  _fo(write_byte_cached), "save memory data to file" },
+  { "save",  cmd_save,  _fo(write_byte_cached), "save memory segments to file" },
+  { "backup", cmd_backup,  _fo(write_byte_cached), "backup memories to file" },
+  { "restore", cmd_restore,  _fo(write_byte_cached), "restore memories from file" },
+  { "verify", cmd_verify,  _fo(write_byte_cached), "compare memories with file" },
   { "flush", cmd_flush, _fo(flush_cache),       "synchronise flash and EEPROM cache with the device" },
   { "abort", cmd_abort, _fo(reset_cache),       "abort flash and EEPROM writes, ie, reset the r/w cache" },
   { "erase", cmd_erase, _fo(chip_erase_cached), "perform a chip or memory erase" },
@@ -126,7 +133,7 @@ struct command cmd[] = {
 #define NCMDS ((int)(sizeof(cmd)/sizeof(struct command)))
 
 
-static int spi_mode = 0;
+#define spi_mode (cx->term_spi_mode)
 
 static int hexdump_line(char *buffer, unsigned char *p, int n, int pad) {
   char *hexdata = "0123456789abcdef";
@@ -204,68 +211,132 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
   return 0;
 }
 
+static int disasm_ison(char c) {
+  switch(c) {
+  case 'g': return !!cx->dis_opts.gcc_source;
+  case 'a': return !!cx->dis_opts.addresses;
+  case 'o': return !!cx->dis_opts.opcode_bytes;
+  case 'c': return !!cx->dis_opts.comments;
+  case 'f': return !!cx->dis_opts.sreg_flags;
+  case 'q': return !!cx->dis_opts.cycles;
+  case 'n': return !!cx->dis_opts.op_names;
+  case 'e': return !!cx->dis_opts.op_explanations;
+  case 's': return !!cx->dis_opts.avrgcc_style;
+  case 'l': return !!cx->dis_opts.labels;
+  case 'd': return cx->dis_opts.avrlevel == (PART_ALL | OP_AVR_ILL);
+  }
+  return 0;
+}
 
-static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  static struct mem_addr_len {
-    int addr;
-    int len;
-    const AVRMEM *mem;
-  } read_mem[32];
-  static int i;
-  const char *cmd = tolower(**argv) == 'd'? "dump": "read";
+/*
+ * Read in memory spec'd by disasm or read/dump's (argc, argv) syntax
+ *
+ * Return a buffer with three sections
+ *   - up to two lead-in bytes (*prequel)
+ *   - *blen bytes (buf + *prequel corresponds to address *baddr)
+ *   - up to 7 lead-out bytes (*sequel)
+ *
+ * Also tell the caller which memory (*memp) was read from.
+ *
+ * dump/read needs *memp, *baddr and *blen (*prequel and *sequel are set to 0)
+ * disasm needs *baddr, *blen, *prequel and *sequel
+ */
 
-  if ((argc < 2 && read_mem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
+static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[],
+  const AVRMEM **memp, int *baddr, int *blen, int *prequel, int *sequel) {
+
+  const int Nmems = sizeof cx->term_rmem/sizeof*cx->term_rmem;
+  int mi = cx->term_mi;
+  if(mi < 0 || mi >= Nmems)
+    mi = 0;
+
+  const char *cmd = tolower(**argv) == 'r'? "read": str_casestarts(*argv, "di")? "disasm": "dump";
+  int is_disasm = cmd[1] == 'i';
+  int default_len = is_disasm? 32: 256;
+
+  if((argc < 2 && cx->term_rmem[0].mem == NULL) || argc > 4 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    const char *hcmd = is_disasm? "disasm [<opts>]": cmd;
+
     msg_error(
-      "Syntax: %s <mem> <addr> <len> # display entire region\n"
-      "        %s <mem> <addr>       # start at <addr>\n"
-      "        %s <mem>              # Continue displaying memory where left off\n"
-      "        %s                    # Continue displaying most recently shown <mem>\n"
-      "Function: display memory section as hex dump\n"
-      "\n"
+      "Syntax: %s <mem> <addr> <len> # Entire region\n"
+      "        %s <mem> <addr>       # Start at <addr>\n"
+      "        %s <mem>              # Continue with memory where left off\n"
+      "        %s                    # Continue with most recently shown <mem>\n"
+      "Function: %s\n",
+      hcmd, hcmd, hcmd, hcmd,
+      is_disasm? "disassemble memory section": "display memory section as hex dump"
+    );
+    if(is_disasm) {
+      struct { char ochr[2]; const char *info[2]; } opts[] = {
+        {{'g', 'G'}, {"generate avr-gcc source: sets -sOFQ", "do not create gcc source"}},
+        {{'a', 'A'}, {"show addresses", "do not show addresses"}},
+        {{'o', 'O'}, {"show opcode bytes", "do not show opcode bytes"}},
+        {{'c', 'C'}, {"show comments", "do not show comments"}},
+        {{'f', 'F'}, {"show affected flags in SREG", "do not show SREG flags"}},
+        {{'q', 'Q'}, {"show cycles", "do not show cycles"}},
+        {{'n', 'N'}, {"put opcode full name into comment", "do not show full names"}},
+        {{'e', 'E'}, {"put explanation into comment", "do not show explanation"}},
+        {{'s', 'S'}, {"use avr-gcc code style", "use AVR instruction set style"}},
+        {{'l', 'L'}, {"preprocess jump/call labels", "do not preprocess labels"}},
+        {{'d', 'D'}, {"decode all opcodes", "decode only opcodes for the part"}},
+      };
+
+      msg_error("Options:\n");
+      for(size_t i = 0; i < sizeof opts/sizeof*opts; i++) {
+        int on = disasm_ison(opts[i].ochr[0]);
+        msg_error("    -%c        %s, -%c %s\n", opts[i].ochr[on], opts[i].info[on], opts[i].ochr[!on], opts[i].info[!on]);
+      }
+      msg_error(
+        "    -z        zap the list of jumps and calls before disassembly\n"
+        "    -t=<file> drop symbols from a previous tagfile and initialise them anew\n"
+      );
+    }
+    msg_error("\n"
       "Both the <addr> and <len> can be negative numbers; a negative <addr> starts\n"
       "an interval from that many bytes below the memory size; a negative <len> ends\n"
       "the interval at that many bytes below the memory size.\n"
       "\n"
       "The latter two versions of the command page through the memory with a page\n"
-      "size of the last used effective length (256 bytes default)\n",
-      cmd, cmd, cmd, cmd
+      "size of the last used effective length (%d bytes default)\n", default_len
     );
-    return -1;
+    return NULL;
   }
 
-  enum { read_size = 256 };
-  const char *memstr;
-  if(argc > 1)
-    memstr = argv[1];
-  else
-    memstr = read_mem[i].mem->desc;
-  const AVRMEM *mem = avr_locate_mem(p, memstr);
+  const char *memstr =
+     argc > 1? argv[1]:
+     cx->term_rmem[mi].mem? cx->term_rmem[mi].mem->desc: NULL;
+
+  const AVRMEM *mem = memstr && *memstr? avr_locate_mem(p, memstr): NULL;
   if (mem == NULL) {
-    pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr, p->desc);
-    return -1;
+    pmsg_error("(%s) memory %s not defined for part %s\n", cmd, memstr? memstr: "???", p->desc);
+    return NULL;
   }
 
   int maxsize = mem->size;
-  if(maxsize <= 0) { // Sanity check
+  if(maxsize <= 0) {            // Sanity check
     pmsg_error("(%s) cannot read memory %s of size %d\n", cmd, mem->desc, maxsize);
-    return -1;
+    return NULL;
   }
 
-  // Iterate through the read_mem structs to find relevant address and length info
-  for(i = 0; i < 32; i++) {
-    if(read_mem[i].mem == NULL)
-      read_mem[i].mem = mem;
-    if(read_mem[i].mem == mem) {
-      if(read_mem[i].len == 0)
-        read_mem[i].len = maxsize > read_size? read_size: maxsize;
+  // Iterate through the cx->term_rmem structs to find relevant address and length info
+  for(mi = 0; mi < Nmems; mi++) {
+    if(cx->term_rmem[mi].mem == NULL)
+      cx->term_rmem[mi].mem = mem;
+    if(cx->term_rmem[mi].mem == mem) {
+      if(cx->term_rmem[mi].len <= 0)
+        cx->term_rmem[mi].len = maxsize > default_len? default_len: maxsize;
+      else if(cx->term_rmem[mi].len > maxsize)
+        cx->term_rmem[mi].len = maxsize;
+      if(cx->term_rmem[mi].addr < 0 || cx->term_rmem[mi].addr >= maxsize)
+        cx->term_rmem[mi].addr = 0;
       break;
     }
   }
-
-  if(i >= 32) { // Catch highly unlikely case
-    pmsg_error("(%s) read_mem[] under-dimensioned; increase and recompile\n", cmd);
-    return -1;
+  if(mi >= Nmems) {
+    pmsg_error("(%s) cx->term_rmem[] under-dimensioned; increase and recompile\n", cmd);
+    return NULL;;
   }
+  cx->term_mi = mi;
 
   // Get start address if present
   const char *errptr;
@@ -273,7 +344,7 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
     int addr = str_int(argv[2], STR_INT32, &errptr);
     if(errptr) {
       pmsg_error("(%s) address %s: %s\n", cmd, argv[2], errptr);
-      return -1;
+      return NULL;
     }
 
     // Turn negative addr value (counting from top and down) into an actual memory address
@@ -281,74 +352,249 @@ static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
       addr = maxsize + addr;
 
     if (addr < 0 || addr >= maxsize) {
-      int digits = mem->size > 0x10000? 5: 4;
+      int digits = maxsize > 0x10000? 5: 4;
       pmsg_error("(%s) %s address %s is out of range [-0x%0*x, 0x%0*x]\n",
         cmd, mem->desc, argv[2], digits, maxsize, digits, maxsize-1);
-      return -1;
+      return NULL;
     }
-    read_mem[i].addr = addr;
+    cx->term_rmem[mi].addr = addr;
   }
 
   // Get number of bytes to read if present
   if (argc >= 3) {
     if(str_eq(argv[argc - 1], "...")) {
       if (argc == 3)
-        read_mem[i].addr = 0;
-      read_mem[i].len = maxsize - read_mem[i].addr;
+        cx->term_rmem[mi].addr = 0;
+      cx->term_rmem[mi].len = maxsize - cx->term_rmem[mi].addr;
     } else if (argc == 4) {
       int len = str_int(argv[3], STR_INT32, &errptr);
       if(errptr) {
         pmsg_error("(%s) length %s: %s\n", cmd, argv[3], errptr);
-        return -1;
+        return NULL;
       }
 
-      // Turn negative len value (number of bytes from top of memory) into an actual length
+      // Turn negative len (ends at number of bytes from top of memory) into an actual length
       if (len < 0)
-        len = maxsize + len + 1 - read_mem[i].addr;
+        len = maxsize + len + 1 - cx->term_rmem[mi].addr;
 
       if (len == 0)
-        return 0;
+        goto nocontent;
+
       if (len < 0) {
         pmsg_error("(%s) invalid effective length %d\n", cmd, len);
-        return -1;
+        return NULL;
       }
-      read_mem[i].len = len;
+      cx->term_rmem[mi].len = len;
     }
   }
   // Wrap around if the memory address is greater than the maximum size
-  if(read_mem[i].addr >= maxsize)
-    read_mem[i].addr = 0; // Wrap around
+  if(cx->term_rmem[mi].addr >= maxsize)
+    cx->term_rmem[mi].addr = 0;
 
   // Trim len if nessary to prevent reading from the same memory address twice
-  if (read_mem[i].len > maxsize)
-    read_mem[i].len = maxsize;
+  if (cx->term_rmem[mi].len > maxsize)
+    cx->term_rmem[mi].len = maxsize;
 
-  uint8_t *buf = mmt_malloc(read_mem[i].len);
+  uint8_t *buf = mmt_malloc(cx->term_rmem[mi].len + 32); // Add margin for disasm
   if(argc < 4 && verbose)
-    term_out(">>> %s %s 0x%x 0x%x\n", cmd, read_mem[i].mem->desc, read_mem[i].addr, read_mem[i].len);
+    term_out(">>> %s %s 0x%x 0x%x\n", cmd, cx->term_rmem[mi].mem->desc,
+      cx->term_rmem[mi].addr, cx->term_rmem[mi].len);
+
+  int toread = cx->term_rmem[mi].len;
+  int whence = cx->term_rmem[mi].addr;
+  int before = 0, after = 0, flash_offset = 0;
+  if(is_disasm) {               // Read a few bytes before/after & don't wrap round
+    if(whence >= 2)
+      before = 2, whence -= 2, toread += 2;
+    if(whence + toread > maxsize) // Clip to end of memory
+      toread = maxsize - whence;
+    int gap = maxsize - whence - toread;
+    after = gap >= 16? 16: gap < 0? 0: gap;
+    toread += after;
+    if(toread-before < 2)       // Cannot disassemble just one byte
+      goto nocontent;
+  }
 
   report_progress(0, 1, "Reading");
-  for (int j = 0; j < read_mem[i].len; j++) {
-    int addr = (read_mem[i].addr + j) % mem->size;
-    int rc = pgm->read_byte_cached(pgm, p, read_mem[i].mem, addr, &buf[j]);
+  for(int j = 0; j < toread; j++) {
+    int addr = (whence + j) % maxsize;
+    int rc = pgm->read_byte_cached(pgm, p, mem, addr, &buf[j]);
     if (rc != 0) {
       report_progress(1, -1, NULL);
-      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc, (long) read_mem[i].addr + j, p->desc);
-      if (rc == -1)
-        imsg_error("%*sread operation not supported on memory %s\n", 7, "", mem->desc);
+      pmsg_error("(%s) error reading %s address 0x%05lx of part %s\n", cmd, mem->desc,
+        (long) whence + j, p->desc);
       mmt_free(buf);
-      return -1;
+      return NULL;
     }
-    report_progress(j, read_mem[i].len, NULL);
+    report_progress(j, toread, NULL);
   }
   report_progress(1, 1, NULL);
 
-  hexdump_buf(stdout, mem, read_mem[i].addr, buf, read_mem[i].len);
-  lterm_out("");
+  if(is_disasm) {               // Adjust length so buffer does not split opcodes
+    int j = before, end = toread-after, wend = after? end: end-1;
+    while(j < wend)
+      j += op_width(buf[j] | buf[j+1]<<8);
+    if(j < end)                 // Odd length: shorten by one byte
+      after += end-j;
+    else if(j > end && after >= j-end) // Increase length to accommodate last 32-bit opcode
+      after -= j-end;
+    else if(j > end)            // Reduce length
+      after += j-end;
+    // Disassembly of XMEGA's boot/apptable memory needs to know absolute addr in flash
+    flash_offset = avr_flash_offset(p, mem, whence + before);
+  }
 
+  if(memp)    *memp = mem;
+  if(baddr)   *baddr = whence + before + flash_offset;
+  if(blen)    *blen = toread - before - after;
+  if(prequel) *prequel = before;
+  if(sequel)  *sequel = after;
+
+  // Memorise where to start next time
+  cx->term_rmem[mi].addr = (whence + toread - after) % maxsize;
+
+  return buf;
+
+nocontent:
+  if(memp)    *memp = mem;
+  if(baddr)   *baddr = 0;
+  if(blen)    *blen = 0;
+  if(prequel) *prequel = 0;
+  if(sequel)  *sequel = 0;
+
+  return mmt_malloc(16);
+}
+
+static int cmd_dump(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  int addr, len;
+  const AVRMEM *mem = NULL;
+  uint8_t *buf = readbuf(pgm, p, argc, argv, &mem, &addr, &len, NULL, NULL);
+
+  if(!buf)
+    return -1;
+
+  hexdump_buf(stdout, mem, addr, buf, len);
+  lterm_out("");
   mmt_free(buf);
 
-  read_mem[i].addr = (read_mem[i].addr + read_mem[i].len) % maxsize;
+  return 0;
+}
+
+static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  int addr, len, leadin, leadout;
+  uint8_t *buf;
+
+  int help = 0, invalid = 0, itemac = 1, chr;
+
+  if(!cx->dis_initopts) {
+    cx->dis_opts.gcc_source = 0;
+    cx->dis_opts.addresses = 1;
+    cx->dis_opts.opcode_bytes = 1;
+    cx->dis_opts.comments = 1;
+    cx->dis_opts.sreg_flags = 0;
+    cx->dis_opts.cycles = 0;
+    cx->dis_opts.op_names = 0;
+    cx->dis_opts.op_explanations = 0;
+    cx->dis_opts.avrgcc_style = 1;
+    cx->dis_opts.labels = 1;
+    cx->dis_opts.tagfile = NULL;
+    cx->dis_opts.avrlevel = avr_get_archlevel(p);
+    disasm_init(p);
+    cx->dis_initopts++;
+  }
+
+  for(int ai = 0; --argc > 0; ) { // Simple option parsing
+    const char *q;
+    if(*(q = argv[++ai]) != '-' || !q[1] || looks_like_number(q))
+      argv[itemac++] = argv[ai];
+    else {
+      while(*++q) {
+        switch((chr = *q & 0x7f)) {
+        case '?':
+        case 'h':
+          help++;
+          break;
+        case 'g': case 'G':
+          cx->dis_opts.gcc_source = !!islower(chr);
+          if(cx->dis_opts.gcc_source) {
+            cx->dis_opts.opcode_bytes = 0;
+            cx->dis_opts.sreg_flags = 0;
+            cx->dis_opts.cycles = 0;
+            cx->dis_opts.avrgcc_style = 1;
+          }
+          break;
+        case 'a': case 'A':
+          cx->dis_opts.addresses = !!islower(chr);
+          break;
+        case 'o': case 'O':
+          cx->dis_opts.opcode_bytes = !!islower(chr);
+          break;
+        case 'c': case 'C':
+          cx->dis_opts.comments = !!islower(chr);
+          break;
+        case 'f': case 'F':
+          cx->dis_opts.sreg_flags = !!islower(chr);
+          break;
+        case 'q': case 'Q':
+          cx->dis_opts.cycles = !!islower(chr);
+          break;
+        case 'n': case 'N':
+          cx->dis_opts.op_names = !!islower(chr);
+          break;
+        case 'e': case 'E':
+          cx->dis_opts.op_explanations = !!islower(chr);
+          break;
+        case 's': case 'S':
+          cx->dis_opts.avrgcc_style = !!islower(chr);
+          break;
+        case 'l': case 'L':
+          cx->dis_opts.labels = !!islower(chr);
+          break;
+        case 'z':
+          disasm_zap_jumpcalls();
+          break;
+        case 'd':
+          cx->dis_opts.avrlevel = PART_ALL | OP_AVR_ILL;
+          break;
+        case 'D':
+          cx->dis_opts.avrlevel = avr_get_archlevel(p);
+          break;
+        case 't':
+          if(*++q == '=')
+            q++;
+          mmt_free(cx->dis_opts.tagfile);
+          cx->dis_opts.tagfile = mmt_strdup(q);
+          q = "x";
+          break;
+        default:
+          if(!invalid++)
+            pmsg_error("(disasm) invalid option %c, see usage:\n", chr);
+          q = "x";
+        }
+      }
+    }
+  }
+  argc = itemac;                // (arg,c argv) still valid but options have been removed
+
+  if(help || invalid) {
+    const char *help[] = { "disasm", "-?", NULL, };
+    readbuf(pgm, p, 2, help, NULL, NULL, NULL, NULL, NULL);
+    return invalid? -1: 0;
+  }
+
+  if(cx->dis_opts.tagfile)
+    if(disasm_init_tagfile(p, cx->dis_opts.tagfile) < 0)
+      return -1;
+
+  buf = readbuf(pgm, p, argc, argv, NULL, &addr, &len, &leadin, &leadout);
+
+  if(!buf)
+    return -1;
+
+  if(len > 1)
+    disasm((char *) buf+leadin, len, addr, leadin, leadout);
+  lterm_out("");
+  mmt_free(buf);
 
   return 0;
 }
@@ -367,7 +613,7 @@ static size_t maxstrlen(int argc, const char **argv) {
 typedef enum {
   WRITE_MODE_STANDARD = 0,
   WRITE_MODE_FILL     = 1,
-} Write_mode_t;
+} Write_mode;
 
 static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if (argc < 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
@@ -420,7 +666,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   int i;
-  int write_mode;               // Operation mode, standard or fill
+  Write_mode write_mode;        // Operation mode, standard or fill
   int start_offset;             // Which argc argument
   int len;                      // Number of bytes to write to memory
   const char *memstr = argv[1]; // Memory name string
@@ -491,7 +737,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     if (len == 0)
       return 0;
     if (len < 0 || len > maxsize - addr) {
-      pmsg_error("(write ...) effective %s start address 0x%0*x and effective length %d not compatible with memory size %d\n",
+      pmsg_error("(write ...) effective %s start address 0x%0*x and effective length %d incompatible with memory size %d\n",
         mem->desc, maxsize > 0x10000? 5: 4, addr, len, maxsize);
       return -1;
     }
@@ -522,7 +768,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       }
       if(sd->warnstr)
         pmsg_warning("(write) %s\n", sd->warnstr);
-      // Always write little endian (assume double and int have same endianess)
+      // Always write little endian (assume double and int have same endianness)
       if(is_bigendian() && sd->size > 0 && (sd->type & STR_NUMBER))
         change_endian(sd->a, sd->size);
     } else {
@@ -584,7 +830,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     pmsg_warning("(write) clipping data to fit into %s %s memory\n", p->desc, mem->desc);
   }
 
-  pmsg_notice2("(write) writing %d byte%s starting from address 0x%02x",
+  pmsg_notice2("(write) writing %d byte%s starting from address 0x%04x",
     len + bytes_grown, str_plural(len + bytes_grown), addr);
   if (write_mode == WRITE_MODE_FILL && filling)
     msg_notice2("; remaining space filled with %s", argv[argc - 2]);
@@ -601,11 +847,11 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     if (rc == LIBAVRDUDE_SOFTFAIL) {
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr+i);
     } else if(rc) {
-      pmsg_error("(write) error writing 0x%02x at 0x%05x, rc=%d\n", buf[i], addr+i, (int) rc);
-      if (rc == -1)
-        imsg_error("%*swrite operation not supported on memory %s\n", 8, "", mem->desc);
+      pmsg_error("(write) error writing 0x%02x at 0x%05x (rc = %d)\n", buf[i], addr+i, (int) rc);
+      // if (rc == -1)
+      //  imsg_error("write operation not supported on memory %s\n", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr+i, &b) < 0) {
-      imsg_error("%*sreadback from %s failed\n", 8, "", mem->desc);
+      pmsg_error("(write) readback from %s failed\n", mem->desc);
     } else {                    // Read back byte b is now set
       int bitmask = avr_mem_bitmask(p, mem, addr+i);
       if((b & bitmask) != (buf[i] & bitmask)) {
@@ -648,24 +894,15 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   const char *fn = argv[argc-1];
   size_t len = strlen(fn);
   if(len > 2 && fn[len-2] == ':') { // Assume format specified
-    format = fileio_format(fn[len-1]);
-    if(format == FMT_ERROR) {
-      pmsg_error("(save) invalid file format :%c; known formats are\n", fn[len-1]);
-      for(int f, c, i=0; i<62; i++) {
-        c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
-        f = fileio_format(c);
-        if(f != FMT_ERROR)
-          msg_error("  :%c %s\n", c, fileio_fmtstr(f));
-      }
+    if((format = fileio_format_with_errmsg(fn[len-1], "(save) ")) == FMT_ERROR)
       return -1;
-    }
     len -= 2;
   }
   char *filename = memcpy(mmt_malloc(len+1), fn, len);
 
   mem = avr_dup_mem(omem);
   int n = argc > 3? (argc-3)/2: 1;
-  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
+  Segment *seglist = mmt_malloc(n*sizeof*seglist);
 
   int ret = -1;
 
@@ -729,6 +966,132 @@ static int cmd_save(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
 
   return ret < 0? ret: 0;
 }
+
+static int cmd_backup(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: backup <memlist> <file>[:<format>]\n"
+      "Function: backup memories to file; default format :I Intel Hex + comments\n"
+      "Notes:\n"
+      "  - Backup flushes the cache before reading memories\n"
+      "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
+      "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
+    );
+    return -1;
+  }
+
+  FILEFMT format = FMT_IHXC;
+  const char *fn = argv[2];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // :format
+    if((format = fileio_format_with_errmsg(fn[len-1], "(backup) ")) == FMT_ERROR)
+      return -1;
+    len -= 2;
+  }
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
+
+  UPDATE upd = {
+    .cmdline = NULL,
+    .memstr = mmt_strdup(argv[1]),
+    .op = DEVICE_READ,
+    .filename = filename,
+    .format = format,
+  };
+
+  pgm->flush_cache(pgm, p); // Flush cache before any device memory access
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_NOHEADING); // -U argv[1]:r:file
+  mmt_free(upd.filename);
+  mmt_free(upd.memstr);
+
+  return ret <= 0? ret: 0;
+}
+
+static int cmd_restore(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: restore <memlist> <file>[:<format>]\n"
+      "Function: restore memories from file\n"
+      "Notes:\n"
+      "  - User should erase flash before using restore involving flash\n"
+      "  - Restore flushes the cache before writing memories\n"
+      "  - After writing memories restore resets the cache\n"
+      "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
+      "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
+      "  - Skips read-only memories in a list and, for bootloaders, also fuses and lock\n"
+      "  - Writing to single read-only memories only fails if the contents differs\n"
+    );
+    return -1;
+  }
+
+  FILEFMT format = FMT_AUTO;
+  const char *fn = argv[2];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // :format
+    if((format = fileio_format_with_errmsg(fn[len-1], "(restore) ")) == FMT_ERROR)
+      return -1;
+    len -= 2;
+  }
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
+
+  UPDATE upd = {
+    .cmdline = NULL,
+    .memstr = mmt_strdup(argv[1]),
+    .op = DEVICE_WRITE,
+    .filename = filename,
+    .format = format,
+  };
+
+  pgm->flush_cache(pgm, p); // Flush cache before any device memory access
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_VERIFY|UF_NOHEADING); // -U argv[1]:w:file (no -V)
+  mmt_free(upd.filename);
+  mmt_free(upd.memstr);
+  pgm->reset_cache(pgm, p); // Reset cache after writing to memories
+
+  return ret <= 0? ret: 0;
+}
+
+static int cmd_verify(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
+  if(argc != 3 || (argc > 1 && str_eq(argv[1], "-?"))) {
+    msg_error(
+      "Syntax: verify <memlist> <file>[:<format>]\n"
+      "Function: compare memories with file\n"
+      "Notes:\n"
+      "  - Verify flushes the cache before verifying memories\n"
+      "  - <memlist> can be a comma separated list of known memories, all, etc or ALL\n"
+      "  - ALL also includes sub-memories, eg, boot; all doesn't; etc is same as all\n"
+      "  - A leading - or \\ removes that memory from the list so far, eg, all,-bootrow\n"
+    );
+    return -1;
+  }
+
+  FILEFMT format = FMT_AUTO;
+  const char *fn = argv[2];
+  size_t len = strlen(fn);
+  if(len > 2 && fn[len-2] == ':') { // :format
+    if((format = fileio_format_with_errmsg(fn[len-1], "(verify) ")) == FMT_ERROR)
+      return -1;
+    len -= 2;
+  }
+  char *filename = memcpy(mmt_malloc(len+1), fn, len);
+
+  UPDATE upd = {
+    .cmdline = NULL,
+    .memstr = mmt_strdup(argv[1]),
+    .op = DEVICE_VERIFY,
+    .filename = filename,
+    .format = format,
+  };
+
+  pgm->flush_cache(pgm, p); // Flush cache before any device memory access
+  int ret = do_op(pgm, p, &upd, UF_AUTO_ERASE|UF_NOHEADING); // -V -U argv[1]:v:file
+  mmt_free(upd.filename);
+  mmt_free(upd.memstr);
+
+  return ret <= 0? ret: 0;
+}
+
 
 static int cmd_flush(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
   if(argc > 1) {
@@ -843,7 +1206,9 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     return cmd_write(pgm, p, 6, args);
   }
 
-  term_out("erasing chip ...\n");
+  term_out("%s chip erase; discarded pending writes to flash%s\n",
+    (pgm->prog_modes & PM_SPM)? "asking bootloader to perform": "performing",
+    avr_locate_bootrow(p)? ", EEPROM and bootrow": avr_locate_eeprom(p)? " and EEPROM": "");
 
   // Erase chip and clear cache
   int rc = pgm->chip_erase_cached(pgm, p);
@@ -935,12 +1300,12 @@ static int cmd_pgerase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
 // Config command
 
-static const int MAX_PAD = 10;  // Align value labels if difference between their lengths is less than this
+static const int MAX_PAD = 10;  // Align value labels if their length difference is less than this
 
 typedef union {                 // Lock memory can be 1 or 4 bytes
   uint8_t b[4];
   uint32_t i;
-} fl_t;
+} Intbytes;
 
 typedef struct {                // Fuses and lock bits
   uint16_t fuses[16];           // pdicfg fuse has two bytes
@@ -948,32 +1313,30 @@ typedef struct {                // Fuses and lock bits
   int fread[16], lread;
   int islock;
   uint32_t current;
-} Fusel_t;
+} Part_FL;
 
 typedef struct {
-  const Configitem_t *t;        // Configuration bitfield table
+  const Configitem *t;        // Configuration bitfield table
   const char *memstr;           // Memory name but could also be "lockbits"
   const char *alt;              // Set when memstr is an alias
   int match;                    // Matched by user request
   int ok, val, initval;         // Has value val been read OK? Initval == -1 if not known
-} Cfg_t;
+} Cnfg;
 
 typedef struct {                // Context parameters to be passed to functions
   int verb, allscript, flheaders, allv, vmax, printfactory;
-} Cfg_opts_t;
+} Cfg_opts;
 
 // Cache the contents of the fuse and lock bits memories that a particular Configitem is involved in
-static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const Cfg_t *cci, const char **errpp) {
+static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Part_FL *fl, const Cnfg *cci, const char **errpp) {
   const char *err = NULL;
-  char *tofree;
   int islock;
 
   islock = str_starts(cci->memstr, "lock");
   if((islock && cci->t->memoffset != 0) ||
     (!islock && (cci->t->memoffset < 0 || cci->t->memoffset >= (int) (sizeof fl->fuses/sizeof*fl->fuses)))) {
 
-    err = cache_string(tofree = str_sprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
-    mmt_free(tofree);
+    err = cache_string(str_ccprintf("%s's %s has invalid memoffset %d", p->desc, cci->memstr, cci->t->memoffset));
     goto back;
   }
 
@@ -991,22 +1354,19 @@ static int getfusel(const PROGRAMMER *pgm, const AVRPART *p, Fusel_t *fl, const 
 
   const AVRMEM *mem = avr_locate_mem(p, cci->memstr);
   if(!mem) {
-    err = cache_string(tofree = str_sprintf("memory %s not defined for part %s", cci->memstr, p->desc));
-    mmt_free(tofree);
+    err = cache_string(str_ccprintf("memory %s not defined for part %s", cci->memstr, p->desc));
     goto back;
   }
 
   if((islock && mem->size != 4 && mem->size != 1) || (!islock && mem->size != 2 && mem->size != 1)) {
-    err = cache_string(tofree = str_sprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
-    mmt_free(tofree);
+    err = cache_string(str_ccprintf("%s's %s memory has unexpected size %d", p->desc, mem->desc, mem->size));
     goto back;
   }
 
-  fl_t m = {.i = 0};
+  Intbytes m = {.i = 0};
   for(int i=0; i<mem->size; i++)
     if(led_read_byte(pgm, p, mem, i, m.b+i) < 0) {
-      err = cache_string(tofree = str_sprintf("cannot read %s's %s memory", p->desc, mem->desc));
-      mmt_free(tofree);
+      err = cache_string(str_ccprintf("cannot read %s's %s memory", p->desc, mem->desc));
       goto back;
     }
 
@@ -1029,7 +1389,7 @@ back:
   return err? -1: 0;
 }
 
-static int setmatches(const char *str, int n, Cfg_t *cc) {
+static int setmatches(const char *str, int n, Cnfg *cc) {
   int matches = 0;
 
   if(!*str)
@@ -1054,7 +1414,7 @@ static int setmatches(const char *str, int n, Cfg_t *cc) {
   return matches;
 }
 
-static int getvalidx(const char *str, int n, const Valueitem_t *vt) {
+static int getvalidx(const char *str, int n, const Configvalue *vt) {
   int hold, matches = 0;
 
   if(!*str)
@@ -1078,12 +1438,12 @@ typedef struct {                // Fuse/lock properties of the part
   const char *memstr;
   int mask;
   int value;
-} Flock_t;
+} FL_item;
 
 
 // Fill in cc record with the actual value of the relevant fuse
-static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
-  Fusel_t *fuselp, Flock_t *fc, int nf) {
+static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cnfg *cc, int i,
+  Part_FL *fuselp, FL_item *fc, int nf) {
 
   // Load current value of this config item
   const char *errstr = NULL;
@@ -1105,8 +1465,8 @@ static int gatherval(const PROGRAMMER *pgm, const AVRPART *p, Cfg_t *cc, int i,
 }
 
 // Comment printed next to symbolic value
-static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int value, Cfg_opts_t o) {
-  static char buf[512], bin[129];
+static const char *valuecomment(const Configitem *cti, const Configvalue *vp, int value, Cfg_opts o) {
+  char buf[512], bin[129];
   unsigned u = value, m = cti->mask >> cti->lsh;
   int lsh = cti->lsh;
 
@@ -1140,19 +1500,19 @@ static char *valuecomment(const Configitem_t *cti, const Valueitem_t *vp, int va
       strcat(buf+strlen(buf), "factory");
     strcat(buf+strlen(buf), ")");
   }
-  return buf;
+  return str_ccstrdup(buf);
 }
 
 // How a single property is printed
-static void printoneproperty(Cfg_t *cc, int ii, const Valueitem_t *vp, int llen, const char *vstr, Cfg_opts_t o) {
+static void printoneproperty(Cnfg *cc, int ii, const Configvalue *vp, int llen, const char *vstr, Cfg_opts o) {
   int value = vp? vp->value: cc[ii].val;
   term_out("%s %s=%-*s # %s\n", vp && cc[ii].val != vp->value? "# conf": "config",
     cc[ii].t->name, llen, vstr, valuecomment(cc[ii].t, vp, value, o));
 }
 
 // Prints a list of all possible values (o.allv) or just the one proporty cc[ii]
-static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
-  const Valueitem_t *vt = cc[ii].t->vlist, *vp;
+static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
+  const Configvalue *vt = cc[ii].t->vlist, *vp;
   int nv = cc[ii].t->nvalues;
   const char *ccom = cc->t[ii].ccomment, *col = strchr(ccom, ':');
   char buf[32];
@@ -1216,7 +1576,7 @@ static void printproperty(Cfg_t *cc, int ii, Cfg_opts_t o) {
 }
 
 // Print the fuse/lock bits header (-f, o.flheaders)
-static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_opts_t o) {
+static void printfuse(Cnfg *cc, int ii, FL_item *fc, int nf, int printed, Cfg_opts o) {
   char buf[512];
   int fj;
   for(fj=0; fj<nf; fj++)
@@ -1245,8 +1605,8 @@ static void printfuse(Cfg_t *cc, int ii, Flock_t *fc, int nf, int printed, Cfg_o
 
 // Show or change configuration properties of the part
 static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  Cfg_opts_t o = { 0 };
-  int help = 0, invalid = 0, itemac=1;
+  Cfg_opts o = { 0 };
+  int help = 0, invalid = 0, itemac = 1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;
@@ -1319,13 +1679,13 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   int idx = -1;                 // Index in uP_table[]
-  const Configitem_t *ct;       // Configuration bitfield table
+  const Configitem *ct;       // Configuration bitfield table
   int nc;                       // Number of config properties, some may not be available
-  Fusel_t fusel;                // Copy of fuses and lock bits
-  const Valueitem_t *vt;        // Pointer to symbolic labels and associated values
+  Part_FL fusel;                // Copy of fuses and lock bits
+  const Configvalue *vt;        // Pointer to symbolic labels and associated values
   int nv;                       // Number of symbolic labels
-  Cfg_t *cc;                    // Current configuration; cc[] and ct[] are parallel arrays
-  Flock_t *fc;                  // Current fuse and lock bits memories
+  Cnfg *cc;                     // Current configuration; cc[] and ct[] are parallel arrays
+  FL_item *fc;                  // Current fuse and lock bits memories
   int nf = 0;                   // Number of involved fuse and lock bits memories
 
   memset(&fusel, 0, sizeof fusel);
@@ -1367,7 +1727,8 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     if(!nf || !str_eq(fc[nf-1].memstr, mt))
       fc[nf++].memstr = mt;
     if(fc[nf-1].mask & ct[i].mask) { // This should not happen
-      pmsg_error("(config) overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name, ct[i].mask, p->desc, cc[i].memstr);
+      pmsg_error("(config) overlapping bit values of %s mask 0x%02x in %s's %s\n", cc[i].t->name,
+        ct[i].mask, p->desc, cc[i].memstr);
       ret = -1;
       goto finished;
     }
@@ -1440,7 +1801,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   // ci is fixed now: save what we have for sanity check
-  Cfg_t safecc = cc[ci];
+  Cnfg safecc = cc[ci];
 
   nv = ct[ci].nvalues;
   vt = ct[ci].vlist;
@@ -1483,7 +1844,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
   }
 
   if((toassign<<ct[ci].lsh) & ~ct[ci].mask) {
-    pmsg_error("(config) attempt to assign bits in 0x%02x outside mask 0x%02x; max value is 0x%02x; not assigned\n",
+    pmsg_error("(config) attempt to assign bits in 0x%02x outside mask 0x%02x (max value is 0x%02x); not assigned\n",
       toassign<<ct[ci].lsh, ct[ci].mask, ct[ci].mask>>ct[ci].lsh);
     ret = -1;
     goto finished;
@@ -1516,7 +1877,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
     goto finished;
   }
 
-  fl_t towrite;
+  Intbytes towrite;
   towrite.i = (fusel.current & ~ct[ci].mask) | (toassign<<ct[ci].lsh);
   const AVRMEM *mem = avr_locate_mem(p, cc[ci].memstr);
   if(!mem) {
@@ -1581,7 +1942,7 @@ static int fusel_factory(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
         return -1;
       }
     }
-    pmsg_notice("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
+    pmsg_notice2("(factory) %s %s 0x%02x\n", value[i] == current[i]? " unchanged": "writing to",
       mem->desc, value[i]);
   }
 
@@ -1733,7 +2094,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
   int do_read = p->prog_modes & (PM_UPDI | PM_PDI);
   int nr;
-  const Register_file_t *rf = avr_locate_register_file(p, &nr);
+  const Register_file *rf = avr_locate_register_file(p, &nr);
 
   if(!rf || nr <= 0) {
     pmsg_error("(regfile) .atdf file not published for %s: unknown register file\n", p->desc);
@@ -1745,7 +2106,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     *rhs++ = 0;                 // Terminate lhs
 
   // Create mmt_malloc'd NULL-terminated list of register pointers
-  const Register_file_t *r, **rl, **rlist;
+  const Register_file *r, **rl, **rlist;
   rlist = avr_locate_registerlist(rf, nr, reg, str_is_pattern(reg)? str_matched_by: str_contains);
 
   if(rhs) {                     // Write to single register
@@ -1755,7 +2116,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     }
 
     if(!*rlist) {
-      pmsg_error("(regfile) register %s not found in register file\n", *reg? reg: "''");
+      pmsg_error("(regfile) register %s not found in register file;\n", *reg? reg: "''");
       imsg_error("type regfile for all possible values\n");
       goto error;
     }
@@ -1890,7 +2251,8 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
   else if(onlyvariants)
     avr_variants_display(stdout, p, "");
   else {
-    term_out("%s with programming modes %s\n", p->desc, avr_prog_modes_str(p->prog_modes));
+    char *q = str_prog_modes(p->prog_modes);
+    term_out("%s with programming mode%s %s\n", p->desc, strchr(q, ',')? "s": "", q);
     avr_mem_display(stdout, p, "");
     avr_variants_display(stdout, p, "");
   }
@@ -1915,7 +2277,7 @@ static int cmd_sig(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char
 
   rc = avr_signature(pgm, p);
   if(rc != 0)
-    pmsg_error("(sig) error reading signature data, rc=%d\n", rc);
+    pmsg_error("(sig) error reading signature data (rc = %d)\n", rc);
 
   m = avr_locate_signature(p);
   if(m == NULL) {
@@ -2466,11 +2828,6 @@ int terminal_line(const PROGRAMMER *pgm, const AVRPART *p, const char *line) {
 
 #if defined(HAVE_LIBREADLINE)
 
-static const PROGRAMMER *term_pgm;
-static const AVRPART *term_p;
-
-static int term_running;
-
 // Any character in standard input available (without sleeping)?
 static int readytoread() {
 #ifdef _MSC_VER
@@ -2522,8 +2879,8 @@ static void term_gotline(char *cmdstr) {
     if(*cmdstr) {
       add_history(cmdstr);
       // Only quit returns a value > 0
-      if(process_line(cmdstr, term_pgm, term_p) > 0)
-        term_running = 0;
+      if(process_line(cmdstr, cx->term_pgm, cx->term_p) > 0)
+        cx->term_running = 0;
     }
     mmt_free(cmdstr);
     /*
@@ -2533,36 +2890,36 @@ static void term_gotline(char *cmdstr) {
      *
      * see https://github.com/avrdudes/avrdude/issues/1173
      */
-    if(term_running) {
+    if(cx->term_running) {
       rl_callback_handler_remove();
       rl_callback_handler_install("avrdude> ", term_gotline);
     }
   } else {
     // End of file or terminal ^D
     lterm_out("");
-    cmd_quit(term_pgm, term_p, 0, NULL);
-    term_running = 0;
+    cmd_quit(cx->term_pgm, cx->term_p, 0, NULL);
+    cx->term_running = 0;
   }
-  if(!term_running)
+  if(!cx->term_running)
     rl_callback_handler_remove();
 }
 
 
 static int terminal_mode_interactive(const PROGRAMMER *pgm, const AVRPART *p) {
-  term_pgm = pgm;               // For callback routine
-  term_p = p;
+  cx->term_pgm = pgm;           // For callback routine
+  cx->term_p = p;
 
   rl_callback_handler_install("avrdude> ", term_gotline);
 
-  term_running = 1;
-  for(int n=1; term_running; n++) {
+  cx->term_running = 1;
+  for(int n=1; cx->term_running; n++) {
     if(n%16 == 0) {             // Every 100 ms (16*6.25 us) reset bootloader watchdog timer
       if(pgm->term_keep_alive)
         pgm->term_keep_alive(pgm, NULL);
       led_set(pgm, LED_NOP);
     }
     usleep(6250);
-    if(readytoread() > 0 && term_running)
+    if(readytoread() > 0 && cx->term_running)
       rl_callback_read_char();
   }
 
@@ -2604,7 +2961,7 @@ int terminal_mode(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const char *argv[]) {
-  int help = 0, invalid = 0, echo = 0, itemac=1;
+  int help = 0, invalid = 0, echo = 0, itemac = 1;
 
   for(int ai = 0; --argc > 0; ) { // Simple option parsing
     const char *q;
@@ -2690,27 +3047,26 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
  *    1 terminate progress bar with \n when finishing at 100 percent
  */
 static void update_progress_tty(int percent, double etime, const char *hdr, int finish) {
-  static char *header;
-  static int last, done = 1;
   int i;
 
-  setvbuf(stderr, (char *) NULL, _IONBF, 0);  // Set stderr to be ubuffered
+  setvbuf(stderr, (char *) NULL, _IONBF, 0); // Set stderr to be ubuffered
 
   if(hdr) {
     lmsg_info("");              // Print new line unless already done before
-    last = done = 0;            // OK, we have a header, start reporting
-    if(header)
-      mmt_free(header);
-    header = mmt_strdup(hdr);
+    cx->term_tty_last = 0;
+    cx->term_tty_todo = 1;      // OK, we have a header, start reporting
+    if(cx->term_header)
+      mmt_free(cx->term_header);
+    cx->term_header = mmt_strdup(hdr);
   }
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
-  if(!done) {
-    if(!header)
-      header = mmt_strdup("report");
+  if(cx->term_tty_todo) {
+    if(!cx->term_header)
+      cx->term_header = mmt_strdup("report");
 
-    int showperc = finish >= 0? percent: last;
+    int showperc = finish >= 0? percent: cx->term_tty_last;
 
     char hashes[51];
     memset(hashes, finish >= 0? ' ': '-', 50);
@@ -2719,42 +3075,41 @@ static void update_progress_tty(int percent, double etime, const char *hdr, int 
     hashes[50] = 0;
 
     // Overwrite line using \r
-    msg_info("\r%s | %s | %d%% %0.2f s ", header, hashes, showperc, etime);
+    msg_info("\r%s | %s | %d%% %0.2f s ", cx->term_header, hashes, showperc, etime);
     if(percent == 100) {
       if(finish)
         lmsg_info("");
-      done = 1;                 // Stop future reporting
+      cx->term_tty_todo = 0;    // Stop future reporting
     }
   }
-  last = percent;
+  cx->term_tty_last = percent;
 
   setvbuf(stderr, (char *) NULL, _IOLBF, 0); // Set stderr to be line buffered
 }
 
 static void update_progress_no_tty(int percent, double etime, const char *hdr, int finish) {
-  static int last, done = 1;
-
   setvbuf(stderr, (char *) NULL, _IONBF, 0);
 
   percent = percent > 100? 100: percent < 0? 0: percent;
 
   if(hdr) {
     lmsg_info("%s | ", hdr);
-    last = done = 0;
+    cx->term_notty_last = 0;
+    cx->term_notty_todo = 1;
   }
 
-  if(!done) {
-    for(int cnt = percent/2; cnt > last/2; cnt--)
+  if(cx->term_notty_todo) {
+    for(int cnt = percent/2; cnt > cx->term_notty_last/2; cnt--)
       msg_info(finish >= 0? "#": "-");
 
     if(percent == 100) {
-      msg_info(" | %d%% %0.2fs", finish >= 0? 100: last, etime);
+      msg_info(" | %d%% %0.2fs", finish >= 0? 100: cx->term_notty_last, etime);
       if(finish)
         lmsg_info("");
-      done = 1;
+      cx->term_notty_todo = 0;
     }
   }
-  last = percent;
+  cx->term_notty_last = percent;
 
   setvbuf(stderr, (char *) NULL, _IOLBF, 0);
 }

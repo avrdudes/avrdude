@@ -1,8 +1,6 @@
 %% -*-texinfo-*-
 \input texinfo
 
-@c $Id$
-
 @setfilename avrdude.info
 @settitle AVRDUDE
 @finalout
@@ -233,7 +231,7 @@ usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
 device.
 The avr109 bootloader implements a protocol similar to avr910, but is
-actually implemented in the boot area of the target's flash ROM, as
+actually implemented in the boot area of the target's flash, as
 opposed to being an external device.
 The fundamental difference between the two types lies in the
 protocol used to control the programmer. The avr910 protocol is very
@@ -279,7 +277,7 @@ has a firmware version of at least 6.11 (decimal).
 Wiring boards (e.g. Arduino Mega 2560 Rev3) are supported, utilizing
 STK500 V2.x protocol, but a simple DTR/RTS toggle to set the boards
 into programming mode.  The programmer type is ``wiring''. Note that
-the -D option will likely be required in this case, because the
+the @code{-D} option will likely be required in this case, because the
 bootloader will rewrite the program memory, but no true chip erase can
 be performed.
 
@@ -342,11 +340,11 @@ Jtag2updi is just a firmware that can be uploaded to an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
-The Micronucleus bootloader is supported for both protocol version V1
-and V2. As the bootloader does not support reading from flash memory,
-use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
-See the section on @emph{extended parameters}
-below for Micronucleus specific options.
+The Micronucleus bootloader is supported for both protocol version V1 and
+V2. As the bootloader does not support reading from flash memory, use the
+@code{-V} option to prevent AVRDUDE from verifying the flash memory. See
+the section on @emph{extended parameters} below for Micronucleus specific
+options.
 
 The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
@@ -398,6 +396,7 @@ Roth.
 
 @menu
 * Option Descriptions::
+* Programmers Accepting Exitspec Parameter::
 * Programmers Accepting Extended Parameters::
 * Example Command Line Invocations::
 @end menu
@@ -405,7 +404,7 @@ Roth.
 @c
 @c Node
 @c
-@node Option Descriptions, Programmers Accepting Extended Parameters, Command Line Options, Command Line Options
+@node Option Descriptions, Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Command Line Options
 @cindex Options (command-line)
 @section Option Descriptions
 @cindex Option Descriptions
@@ -424,22 +423,24 @@ following options are recognized:
 @table @code
 @item -p @var{partno}
 @cindex Option @code{-p} @var{partno}
-This option tells AVRDUDE what part (MCU) is connected to the programmer. The
-@var{partno} parameter is the part's id listed in the configuration file. To
-see a list of currently supported MCUs use ? as partno, which will print the
-part ids and official part names. In connection with -v, this will also print a
-list of variant part names followed by an optional colon, the package code and
-some absolute maximum ratings. The part id, their official part name, any of
-the full variant part names or their initial part up to a dash can be used to
-specify a part with the -p option. If a part is unknown to AVRDUDE, it means
-that there is no config file entry for that part, but it can be added to the
-configuration file if you have the Atmel datasheet so that you can enter the
-programming specifications. If @code{-p ?} is specified with a specific
-programmer, see @code{-c} below, then only those parts are output that the
-programmer expects to be able to handle, together with the programming
-interface(s) that can be used in that combination. In reality there can be
-deviations from this list, particularly if programming is directly via a
-bootloader. Currently, the following MCU types are understood:
+This option tells AVRDUDE what part (MCU) is connected to the programmer.
+The @var{partno} parameter is the part's id listed in the configuration
+file. To see a list of currently supported MCUs use @code{?} as partno,
+which will print the part ids and official part names. In connection with
+@code{-v}, this will also print a list of variant part names followed by
+an optional colon, the package code and some absolute maximum ratings. The
+part id, their official part name, any of the full variant part names or
+their initial part up to a dash can be used to specify a part with the
+@code{-p} option. If a part is unknown to AVRDUDE, it means that there is
+no config file entry for that part, but it can be added to the
+configuration file if you have the Atmel datasheet so that you can enter
+the programming specifications. If @code{-p ?} is specified with a
+specific programmer, see @code{-c} below, then only those parts are output
+that the programmer expects to be able to handle, together with the
+programming interface(s) that can be used in that combination. In reality
+there can be deviations from this list, particularly if programming is
+directly via a bootloader. Currently, the following MCU types are
+understood:
 
 @cindex Device Support
 
@@ -508,18 +509,18 @@ until the programmer is disconnected from the computer.
 Specify the programmer to be used.  AVRDUDE knows about several common
 programmers.  Use this option to specify which one to use.  The
 @var{programmer-id} parameter is the programmer's id listed in the
-configuration file.  Specify -c ? to list all programmers in the
-configuration file.  If you have a programmer that is unknown to
-AVRDUDE, and the programmer is controlled via the PC parallel port,
-there's a good chance that it can be easily added to the configuration
-file without any code changes to AVRDUDE.  Simply copy an existing entry
-and change the pin definitions to match that of the unknown programmer.
-If @code{-c ?} is specified with a specific part, see @code{-p} above, then
-only those programmers are output that expect to be able to handle this part,
+configuration file.  Specify @code{-c ?} to list all programmers in the
+configuration file.  If you have a programmer that is unknown to AVRDUDE,
+and the programmer is controlled via the PC parallel port, there's a good
+chance that it can be easily added to the configuration file without any
+code changes to AVRDUDE.  Simply copy an existing entry and change the pin
+definitions to match that of the unknown programmer. If @code{-c ?} is
+specified with a specific part, see @code{-p} above, then only those
+programmers are output that expect to be able to handle this part,
 together with the programming interface(s) that can be used in that
-combination. In reality there can be deviations from this list, particularly
-if programming is directly via a bootloader. Currently, the following
-programmer ids are understood and supported:
+combination. In reality there can be deviations from this list,
+particularly if programming is directly via a bootloader. Currently, the
+following programmer ids are understood and supported:
 
 @cindex Programmer Support
 
@@ -572,89 +573,63 @@ directory as the avrdude executable.
 
 @item -A
 @cindex Option @code{-A}
-Disable the automatic removal of trailing-0xFF sequences in file
-input that is to be programmed to flash and in AVR reads from
-flash memory. Normally, trailing 0xFFs can be discarded, as flash
-programming requires the memory be erased to 0xFF beforehand. -A
-should be used when the programmer hardware, or bootloader
-software for that matter, does not carry out chip erase and
-instead handles the memory erase on a page level. The popular
-Arduino bootloader exhibits this behaviour; for this reason -A is
-engaged by default when specifying -c arduino.
+Disable the automatic removal of trailing-0xFF sequences in file input
+that is to be programmed to flash and in AVR reads from flash memory.
+Normally, trailing 0xFFs can be discarded, as flash programming requires
+the memory be erased to 0xFF beforehand. @code{-A} should be used when the
+programmer hardware, or bootloader software for that matter, does not
+carry out chip erase and instead handles the memory erase on a page level.
+The popular Arduino bootloader exhibits this behaviour; for this reason
+@code{-A} is engaged by default when specifying @code{-c} arduino.
 
 @item -D
 @cindex Option @code{-D}
-Disable auto erase for flash.  When the -U option with flash memory is 
-specified, avrdude will perform a chip erase before starting any of the 
-programming operations, since it generally is a mistake to program the flash
-without performing an erase first.  This option disables that.
-Auto erase is not used for ATxmega devices as these devices can
-use page erase before writing each page so no explicit chip erase
-is required.
-Note however that any page not affected by the current operation
-will retain its previous contents.
-Setting -D implies -A.
+Disable auto-erase for flash. When the @code{-U} option for writing to any
+flash memory is specified, avrdude will perform a chip erase before
+starting any of the programming operations, since it generally is a
+mistake to program the flash without performing an erase first.  This
+option disables that. Auto-erase is not used for ATxmega parts nor for the
+UPDI (AVR8X family) parts as these can use page erase before writing each
+page so no explicit chip erase is required. Note, however, that any flash
+page not affected by the current operation will retain its previous
+contents. Setting @code{-D} implies @code{-A}.
 
 @item -e
 @cindex Option @code{-e}
-Causes a chip erase to be executed.  This will reset the contents of the
-flash ROM and EEPROM to the value `0xff', and clear all lock bits.
-Except for ATxmega devices which can use page erase,
-it is basically a
-prerequisite command before the flash ROM can be reprogrammed again.
-The only exception would be if the new contents would exclusively cause
-bits to be programmed from the value `1' to `0'.  Note that in order
-to reprogram EERPOM cells, no explicit prior chip erase is required
-since the MCU provides an auto-erase cycle in that case before
-programming the cell.
+Causes a chip erase to be executed. This will reset the contents of the
+flash ROM and EEPROM to the value @code{0xff}, and clear all lock bits.
+Except for ATxmega and UPDI (AVR8X family) devices, all of which can use
+page erase, it is basically a prerequisite command before the flash ROM
+can be reprogrammed again.  The only exception would be if the new
+contents would exclusively cause bits to be programmed from the value
+@code{1} to @code{0}.  This option carries out the chip erase at the
+beginning, before any of the @code{-U}, @code{-T} or @code{-t} options are
+processed. If a chip erase is required in at a certain position within the
+sequence of @code{-U}, @code{-T} or @code{-t} options it is recommended to
+use @code{-T} erase instead which is processed in the given command line
+order.
 
+@cindex auto-erase
+In absence of an explicit @code{-e} or @code{-D} option avrdude tries to
+augur from the command line whether or not the chip should be auto-erased
+at the  beginning. If avrdude detects a @code{-U} command that writes to
+flash then auto-erase will be carried out before any other programming
+unless a @code{-T} erase commad has been detected beforehand and unless
+flash is read before writing to it. For the purpose of this analysis any
+terminal command is considered to possibly read flash.
+
+Note that for reprogramming EEPROM cells, no explicit prior chip erase is
+required since the MCU provides an auto-erase cycle in that case before
+programming the cell.
 
 @item -E @var{exitspec}[,@dots{}]
 @cindex Option @code{-E} @var{exitspec}[,@dots{}]
-By default, AVRDUDE leaves the parallel port in the same state at exit
-as it has been found at startup.  This option modifies the state of the
-`/RESET' and `Vcc' lines the parallel port is left at, according to
-the exitspec arguments provided, as follows:
+Pass @var{exitspec} to the programmer. The interpretation of the exitspec
+parameter depends on the programmer itself. See below for a list of
+programmers accepting exitspec parameter options or issue
+@code{avrdude -E help ...} to see the  options for the programmer.
 
-@table @code
-@item reset
-The `/RESET' signal will be left activated at program exit, that is it
-will be held low, in order to keep the MCU in reset state afterwards.
-Note in particular that the programming algorithm for the AT90S1200
-device mandates that the `/RESET' signal is active before powering up
-the MCU, so in case an external power supply is used for this MCU type,
-a previous invocation of AVRDUDE with this option specified is one of
-the possible ways to guarantee this condition. @code{reset} is supported
-by the @code{linuxspi} and @code{flip2} programmer options, as well as
-all parallel port based programmers.
-
-@item noreset
-The `/RESET' line will be deactivated at program exit, thus allowing the
-MCU target program to run while the programming hardware remains
-connected. @code{noreset} is supported by the @code{linuxspi} and
-@code{flip2} programmer options, as well as all parallel port based
-programmers.
-
-@item vcc
-This option will leave those parallel port pins active (i. e. high) that
-can be used to supply `Vcc' power to the MCU.
-
-@item novcc
-This option will pull the `Vcc' pins of the parallel port down at
-program exit.
-
-@item d_high
-This option will leave the 8 data pins on the parallel port active
-(i. e. high).
-
-@item d_low
-This option will leave the 8 data pins on the parallel port inactive
-(i. e. low).
-
-@end table
-
-Multiple @var{exitspec} arguments can be separated with commas.
-
+Multiple @var{exitspec} options can be separated with commas.
 
 @item -F
 @cindex Option @code{-F}
@@ -696,8 +671,9 @@ written to @var{stderr} anyway.
 
 @item -n
 @cindex Option @code{-n}
-No-write: disables writing data to the MCU whilst processing -U (useful for
-debugging AVRDUDE). The terminal mode continues to write to the device.
+No-write: disables writing data to the MCU whilst processing @code{-U}
+(useful for debugging AVRDUDE). The terminal mode continues to write to
+the device.
 
 @item -O
 @cindex Option @code{-O}
@@ -836,12 +812,23 @@ terminal commands and @code{-U} memory operations.
 
 @item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
 @cindex Option @code{-U} @var{memory}:@var{op}:@var{filename}[:@var{format}]
+
 Perform a memory operation when it is its turn in relation to other
-@code{-t} interactive terminals, @code{-T} terminal commands and
-@code{-U} memory operations. The @var{memory} field specifies the memory
-type to operate on. Use the @option{-T part} option on the command line or
-the @code{part} command in the interactive terminal to display all the
-memories supported by a particular device.
+@code{-t} interactive terminals, @code{-T} terminal commands and @code{-U}
+memory operations. The @var{memory} field specifies the memory type to
+operate on. From version 8.0 the memory field can also be a
+comma-separated list of memories, eg, @code{flash,eeprom}; also, Intel Hex
+or Motorola S-Record files generated by AVRDUDE can store multiple
+memories. The special memory @code{ALL} expands to all memories that a
+part has while @code{all} expands to all memories with exception of
+sub-memories. @code{etc} is the same as @code{all}; this can be used to
+change the order in which memories are written to or read from file, eg,
+@code{signature,etc} is a list of all memories such that the
+@code{signature} memory comes first. It is possible to remove a memory
+from the list so far by preceding a minus or backslash, eg,
+@code{all,-calibration}. Use the @option{-T part} option on the command
+line or the @code{part} command in the interactive terminal to display all
+the memories supported by a particular device.
 
 Typically, a device's memory configuration at least contains the memory
 types @code{flash}, @code{eeprom}, @code{signature} and @code{lock}, which
@@ -849,9 +836,26 @@ is sometimes known as @code{lockbits}. The signature memory contains the
 three device signature bytes, which should be, but not always are, unique
 for the part. The @code{lock} memory of one or four bytes typically
 details whether or not external reading/writing of the flash memory, or
-parts of it, is allowed. Parts will also typically have fuse bytes, which
-are read/write memories for configuration of the device and calibration
-memories that typically contain read-only factory calibration values.
+parts of it, is allowed. After restricting access via the lock memory,
+often the only way to unlock memory is via a chip erase.  Parts will also
+typically have fuse bytes, which are read/write memories for configuration
+of the device and calibration memories that typically contain read-only
+factory calibration values.
+
+The flash memory, being physically implemented as NOR-memory, is special
+in the sense that it is normally only possible to program bits to change
+from 1 to 0. Before reprogramming takes place normally flash memory has to
+be erased. Older parts would only offer a chip erase to do so, which also
+erases EEPROM unless a fuse configuration preserves its contents. If
+AVRDUDE detects a @code{-U} option that writes to a flash memory it might
+automatically trigger a chip erase for these older parts. See the
+description of auto-erase under the @code{-e} option above. ATxmegas or
+UPDI parts (AVR8X family) offer a page erase, and AVRDUDE takes advantage
+of that by erasing pages before programming them unless @code{-e} (chip
+erase) or @code{-D} (do not erase before writing) was requested. It should
+be noted that in absence of the @code{-e} chip erase option any ATxmega or
+UPDI flash pages not affected by the programming will retain their
+previous content.
 
 Classic devices may have the following memories in addition to
 @code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
@@ -869,9 +873,14 @@ Low fuse byte
 @item prodsig
 Signature, calibration byte and serial number in a small read-only memory,
 which is only documented to be available for ATmega324PB, ATmega328PB,
-ATtiny102 and ATtiny104; programmers may or may not be able to read this memory
+ATtiny102 and ATtiny104; AVRDUDE generally tries to make this memory
+available, also for parts where it is not documented, but not all
+programmers may be able to read this memory
 @item sigrow
 Memory alias for prodsig
+@item sernum
+The serial number part of prodsig; owing to scarce documentation this may not
+actually turn out to be a serial number or be readable by some programmers
 @item usersig
 Three extra flash pages for firmware settings; this memory is not erased
 during a chip erase. Only some classic parts,
@@ -901,6 +910,13 @@ Application flash area
 Application table flash area
 @item boot
 Boot flash area
+@item calibration
+An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
+oscillator calibration values; this is a sub-memory of @code{prodsig}
+@item fuses
+A logical memory of 7 bytes containing all @code{fuse}X of a part, which
+can be used to program all fuses at the same time; note that some of the
+fuse bytes will be reserved, though
 @item fuse0
 A.k.a. jtaguid: JTAG user ID for some devices
 @item fuse1
@@ -911,12 +927,17 @@ Fault detection action configuration TC4/5 for ATxmega E series parts
 Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system configuration
 @item prodsig
 The production signature row is a read-only memory section for factory
-programmed data such as the signature and calibration values for
-oscillators or analogue modules; it also contains a serial number that
-consists of the production lot number, wafer number and wafer coordinates
-for the part
+programmed data such as calibration values for oscillators or analogue
+modules; it also contains a serial number that consists of the production
+lot number, wafer number and wafer coordinates for the part
+@item sernum
+Serial number with a unique ID for the part consisting of 10 bytes; these
+are part of the @code{prodsig} memory above
 @item sigrow
 Memory alias for prodsig
+@item tempsense
+A two-byte memory, which is located within @code{prodsig}; it contains a 12-bit
+temperature sensor calibration value
 @item usersig
 Additional flash memory page that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -949,7 +970,7 @@ A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks o
 @item fusea
 A.k.a. pdicfg: configures/locks updi access; it is the only fuse that consists of two bytes
 @item fuses
-A "logical" memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
+A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
 @item osc16err
 Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
 @item osc20err
@@ -970,7 +991,7 @@ Temperature sensor calibration values
 @item bootrow
 Extra page of memory that is only accessible by the MCU in bootloader
 code; UDPI can read and write this memory only when the device is
-unlocked; bootrow is not erased during chip erase
+unlocked
 @item userrow
 Extra page of EEPROM memory that can be used for firmware settings; this
 memory is not erased during a chip erase
@@ -989,13 +1010,16 @@ The @var{op} field specifies what operation to perform:
 
 @table @code
 @item r
-read the specified device memory and write to the specified file
+read device memories and write to the specified file
 
 @item w
-read the specified file and write it to the specified device memory
+read data from the specified file and write to the device memories in the
+list; read-only memories in a memory list are skipped, as are fuses and
+lock bits when the programmer is a bootloader; writing to single read-only
+memories fails only if the contents differs between the file and memory
 
 @item v
-read the specified device memory and the specified file and perform a verify operation
+read data from both the device and the specified file and perform a verify
 
 @end table
 
@@ -1011,10 +1035,10 @@ Intel Hex
 Intel Hex with comments on download and tolerance of checksum errors on upload
 
 @item s
-Motorola S-record
+Motorola S-Record
 
 @item r
-raw binary; little-endian byte order, in the case of the flash ROM data
+raw binary; little-endian byte order, in the case of the flash data
 
 @item e
 ELF (Executable and Linkable Format), the final output file from the
@@ -1063,11 +1087,17 @@ bytes and write a @code{0x2a} to memory followed by @code{0x00}, while
 @code{0x01234} will occupy 4 bytes. See the description of the terminal
 write command for more details.
 
-In absence of an explicit file format, the default is to use auto detection
-for input files, and raw binary format for output files. Note that if
-@var{filename} contains a colon as penultimate character the @var{format}
-field is no longer optional since the last character would otherwise be
-misinterpreted as @var{format}.
+In absence of an explicit file format, the default is to use auto
+detection for input files, raw binary format for output files from a
+single memory read and Intel Hex with comments when an output file is
+generated from a list of memories. Note that while AVRDUDE will generate a
+single output file from a memory list for all formats with the exception
+of elf (@code{:e}) it only recognises Intel hex (@code{:I} or @code{:i}),
+Motorola S-Record (@code{:s}) or elf files (@code{:e}, generated by the
+compiler) as valid multi-memory files when reading a file for verifying or
+writing memories. Note also that if a @var{filename} contains a colon as
+penultimate character the @var{format} field is no longer optional since
+the last character would otherwise be misinterpreted as @var{format}.
 
 When reading any kind of flash memory area (including the various sub-areas
 in Xmega devices), the resulting output file will be truncated to not contain
@@ -1105,12 +1135,119 @@ see the extended options of the chosen programmer.
 @c
 @c Node
 @c
-@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Option Descriptions, Command Line Options
-@section Programmers Accepting Extended Parameters
-@cindex Programmers Accepting Extended Parameters
-@cindex Option @code{-x} AVR Dragon
+@node Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Option Descriptions, Command Line Options
+@section Programmers Accepting Exitspec Parameter
+@cindex Programmers Accepting Exitspec parameter
 @table @code
 
+@cindex Option @code{-x} flip2
+@cindex Option @code{-x} linuxspi
+@cindex Option @code{-x} Parallel port programmers
+@item flip2
+@itemx linuxspi
+@itemx Parallel port programmers
+
+Currently, only the @code{flip2}, @code{linuxspi} and old school parallel port programmers
+such as @code{stk200} and @code{dapa} support exitspec parameter options. These lets the user
+decide in which state the programmer pins after ended programming session.
+Multiple exitspec options can be separated with commas.
+
+@table @code
+@item @samp{help}
+Show help menu and exit.
+
+@item @samp{reset}
+The `/RESET' signal will be left activated at program exit, that is it
+will be held low, in order to keep the MCU in reset state afterwards.
+Note in particular that the programming algorithm for the AT90S1200
+device mandates that the `/RESET' signal is active before powering up
+the MCU, so in case an external power supply is used for this MCU type,
+a previous invocation of AVRDUDE with this option specified is one of
+the possible ways to guarantee this condition. @code{flip2} will not
+exit bootloader mode at program exit if @samp{reset} is used.
+
+@item @samp{noreset}
+The `/RESET' line will be deactivated at program exit, thus allowing the
+MCU target program to run while the programming hardware remains
+connected. @code{flip2} will exit bootloader mode at program exit and
+start the application if @samp{noreset} is used, and this is the default
+behaviour for this bootloader.
+@end table
+
+@cindex Option @code{-x} Parallel port programmers
+@item Parallel port programmers
+
+Parallel port based programmers have a few more options.
+
+@table @code
+@item @samp{vcc}
+This option will leave those parallel port pins active (i. e. high) that
+can be used to supply `Vcc' power to the MCU.
+
+@item @samp{novcc}
+This option will pull the `Vcc' pins of the parallel port down at
+program exit.
+
+@item @samp{d_high}
+This option will leave the 8 data pins on the parallel port active
+(i. e. high).
+
+@item @samp{d_low}
+This option will leave the 8 data pins on the parallel port inactive
+(i. e. low).
+@end table
+
+@end table
+
+@page
+@c
+@c Node
+@c
+@node Programmers Accepting Extended Parameters, Example Command Line Invocations, Programmers Accepting Exitspec Parameter, Command Line Options
+@section Programmers Accepting Extended Parameters
+@cindex Programmers Accepting Extended Parameters
+@table @code
+
+@cindex Option @code{-x} dryboot
+@cindex Option @code{-x} dryrun
+@item dryrun
+@itemx dryboot
+
+Both dryrun and dryboot programmers emulate programming and accept the following parameters:
+
+@table @code
+@item @samp{xinit}
+
+Initialise memories with human-readable patterns. Flash memory will be
+randomly configured with respect to bootloader, data and code length.
+Patterns can best be seen with fixed-width font and the @code{:I} format
+by inspecting the generated hex file or by using, eg, @code{-U
+flash:r:-:I}. Patterns in flash memory are executable and represent benign
+AVR code, ie, no I/O memory access. Choose a fixed seed for reproducible
+results.
+
+@item @samp{random}
+Initialise memories with random code and values. Flash memory will be
+randomly configured with respect to bootloader, data and code length.
+Random code in flash will be benign, that is, not accessing I/O memories,
+SRAM or flash. Choose a fixed seed for reproducible results.
+
+@item @samp{seed=<n>}
+Seed random number generator with @var{n}; the default is
+@code{time(NULL)}. Setting this option with a fixed positive @var{n} will
+make the random choices reproducible, ie, they will stay the same between
+different avrdude runs.
+
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex Option @code{-x} JTAG ICE mkII/3
+@cindex Option @code{-x} Atmel-ICE
+@cindex Option @code{-x} PICkit 4
+@cindex Option @code{-x} MPLAB SNAP
+@cindex Option @code{-x} Power Debugger
+@cindex Option @code{-x} AVR Dragon
 @item JTAG ICE mkII/3
 @itemx Atmel-ICE
 @itemx PICkit 4
@@ -1133,14 +1270,14 @@ Other JTAG units might require a different bit shift count.
 @var{Power Debugger and Pickit 4 only}
 @*
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
-been set to RESET or GPIO mode. Use @samp{-xhvupdi} to enable high-voltage UPDI
+been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets.
 
 @item @samp{vtarg=VALUE, vtarg}
 @var{Power Debugger only}
 @*
 The voltage generator can be enabled by setting a target voltage.
-The current set-voltage can be read by @samp{-xvtarg} alone.
+The current set-voltage can be read by @samp{-x vtarg} alone.
 
 @item @samp{help}
 Show help menu and exit.
@@ -1156,7 +1293,7 @@ The PICkit 4 and MPLAB SNAP programmers accept the following extended parameters
 @item @samp{mode=avr,pic}
 Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
 programmer can only be utilised by Avrdude when in AVR mode.
-Use @samp{-xmode=avr} for switching to AVR mode, or @samp{-xmode=pic}
+Use @samp{-x mode=avr} for switching to AVR mode, or @samp{-x mode=pic}
 for switching to PIC mode.
 @item @samp{help}
 Show help menu and exit.
@@ -1171,7 +1308,7 @@ following extended parameters:
 @table @code
 @item @samp{suffer=VALUE}, @samp{suffer}
 The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
-The current state can be read by @samp{-xsuffer} alone.
+The current state can be read by @samp{-x suffer} alone.
 @table @code
 @item Bit 7 ARDUINO:
 Adds control of extra LEDs when set to 0
@@ -1189,7 +1326,7 @@ Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 @table @code
 @item @samp{vtarg_switch=VALUE}, @samp{vtarg_switch}
 The on-board target voltage switch can be turned on or off by writing a 1 or
-a 0. The current state can be read by @samp{-xvtarg_switch} alone.
+a 0. The current state can be read by @samp{-x vtarg_switch} alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
 
@@ -1204,7 +1341,7 @@ The Curiosity Nano board accepts the following extended parameter:
 @table @code
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
-The current set-voltage can be read by @samp{-xvtarg} alone.
+The current set-voltage can be read by @samp{-x vtarg} alone.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1218,29 +1355,40 @@ The STK500 and STK600 boards accept the following extended parameters:
 @table @code
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
-The current set-voltage can be read by @samp{-xvtarg} alone.
+The current set-voltage can be read by @samp{-x vtarg} alone.
 @item @samp{fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc}
 Set the programmable oscillator frequency in MHz, kHz or Hz.
-The current frequency can be read by @samp{-xfosc} alone.
+The current frequency can be read by @samp{-x fosc} alone.
 @item @samp{varef=VALUE, varef}
 The generated on-board analog reference voltage can be changed by specifying
 a new reference voltage. The current reference voltage can be read by
-@samp{-xvaref} alone.
+@samp{-x varef} alone.
 @item @samp{varef[0,1]=VALUE, varef[0,1]}
 @var{STK600 only}
 @*
 The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
-The current reference voltage can be read by @samp{-xvaref0} or
-@samp{-xvaref1} alone.
-@item @samp{attemps[=<1..99>]}
+The current reference voltage can be read by @samp{-x varef0} or
+@samp{-x varef1} alone.
+@item @samp{attempts[=<1..99>]}
 @var{STK500V1 only}
 @*
-Specify how many connection retry attemps to perform before exiting.
+Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
 @item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
 Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
 original STK500. Used by avrdude for the correct calculation of fosc and sck.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex Option @code{-x} AVR109
+@item AVR109
+
+The AVR109 programmer type accepts the following extended parameter:
+@table @code
+@item @samp{autoreset}
+Toggle RTS/DTR lines on port open to issue a hardware reset.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1273,8 +1421,11 @@ Show help menu and exit.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item @samp{attemps=VALUE}
-Overide the default number of connection retry attempt by using @var{VALUE}.
+@item @samp{attempts[=<1..99>]}
+Specify how many connection retry attempts to perform before exiting.
+Defaults to 10 if not specified.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1285,7 +1436,7 @@ Show help menu and exit.
 The urclock programmer type accepts the following extended parameters:
 @table @code
 @item @samp{showall}
-Show all info for the connected part, then exit. The @code{-xshow...} options
+Show all info for the connected part, then exit. The @code{-x show...} options
 below can be used to assemble a bespoke response consisting of a subset
 (or only one item) of all available relevant information about the
 connected part and bootloader.
@@ -1294,7 +1445,7 @@ Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
 @item @samp{id=<E|F>.<addr>.<len>}
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
-number can be set by the @code{-xid=<E|F>.<addr>.<len>} extended parameter. @code{E}
+number can be set by the @code{-x id=<E|F>.<addr>.<len>} extended parameter. @code{E}
 stands for EEPROM and @code{F} stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
@@ -1303,7 +1454,7 @@ Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
 programming. Date and filename are part of the metadata that the urclock
 programmer stores by default in high flash just under the bootloader; see also
-@code{-xnometadata}.
+@code{-x nometadata}.
 @item @samp{showfilename}
 Show the input filename (or title) of the last flash writing session, then exit.
 @item @samp{title=<string>}
@@ -1335,7 +1486,7 @@ i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
-@item @samp{vectornum=<arg>}
+@item @samp{vectornum=<n>}
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1360,7 +1511,7 @@ Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
-However, for vector bootloaders, even under the option @code{-xrestore} an
+However, for vector bootloaders, even under the option @code{-x restore} an
 input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
@@ -1382,15 +1533,17 @@ Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
 available space then a metadata code byte @code{0xff} is stored
 nevertheless to indicate there are no further metadata available. In
-absence of @code{-xnometadata}, the default for the urclock programmer is
+absence of @code{-x nometadata}, the default for the urclock programmer is
 to write as much metadata (filename, data and store information) as the
 size of the uploaded application and the other extended options allow. The
-subtle difference between @code{-xnometadata} and @code{-xnostore} is that
+subtle difference between @code{-x nometadata} and @code{-x nostore} is that
 the latter always explicitly stores in flash that no further metadata are
 available, so that a such prepared flash can always be queried with
-@code{avrdude -xshowall}. In contrast to this, it cannot be guaranteed
-that a @code{-xshowall} query on flash prepared with @code{-xnometadata}
+@code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
+that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
+@item @samp{noautoreset}
+Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @item @samp{delay=<n>}
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
@@ -1399,7 +1552,7 @@ shortened accordingly.
 @item @samp{strict}
 Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
-with this, and they need the @code{-xstrict} option.
+with this, and they need the @code{-x strict} option.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -1599,15 +1752,15 @@ The xbee programmer type accepts the following extended parameter:
 @table @code
 @item @samp{xbeeresetpin=@var{1..7}}
 Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
-‘/RESET’ line.  The programmer needs to know which DIO pin to use to
+@code{/RESET} line.  The programmer needs to know which DIO pin to use to
 reset into the bootloader.  The default (3) is the @code{DIO3} pin
 (XBee pin 17), but some commercial products use a different XBee
 pin.
 
 The remaining two necessary XBee-to-MCU connections are not selectable
 - the XBee @code{DOUT} pin (pin 2) must be connected to the MCU's
-‘RXD’ line, and the XBee @code{DIN} pin (pin 3) must be connected to
-the MCU's ‘TXD’ line.
+RXD line, and the XBee @code{DIN} pin (pin 3) must be connected to
+the MCU's TXD line.
 
 @item @samp{help}
 Show help menu and exit.
@@ -1641,6 +1794,19 @@ The linuxspi programmer type accepts the following extended parameter:
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
 driver. This parameter is useful for kernels that do not support
 the CS line being managed outside the application.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
+@cindex Option @code{-x} serprog
+@item serprog
+
+The serprog programmer type accepts the following extended parameter:
+@table @code
+@item @samp{cs}
+Sets the chip select (CS) to use on supported programmers.
+Programmers supporting the 0x16 serprog command can have more than the default CS (0).
+This option allows to choose these additional CSes (1, 2, ...) for programming the AVR.
 @item @samp{help}
 Show help menu and exit.
 @end table
@@ -2063,7 +2229,7 @@ Valid programmers for part AVR32EA32 are:
 @smallexample
 @cartouche
 
-$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -xshowdate -xshowfilename
+$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -x showdate -x showfilename
 
 2023-05-19 11.13 blink.hex
 
@@ -2167,10 +2333,10 @@ abbreviated to the shortest unambiguous form.  Terminal mode provides a
 command history using readline(3), so previously entered command lines can be
 recalled and edited.
 
-The @var{addr} and @var{len} parameters of the dump, read, write, save and erase
-commands can be negative with the same syntax as substring computations in
-perl or python. The table below details their meaning with respect to an
-example memory of size @code{sz=0x800}.
+The @var{addr} and @var{len} parameters of the dump, read, disasm, write,
+save and erase commands can be negative with the same syntax as substring
+computations in perl or python. The table below details their meaning with
+respect to an example memory of size @code{sz=0x800} (2048 bytes).
 
 @multitable {0/negativ}{negativ}{@code{[addr, addr+len-1]}}{End is @code{|len|} bytes below memory size @code{sz}}
 @headitem @code{addr}
@@ -2246,27 +2412,168 @@ The following commands are implemented for all programmers:
 @table @code
 
 @item dump @var{memory} @var{addr} @var{len}
-Read from the specified memory interval (see above), and display in the usual hexadecimal and
-ASCII form.
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Read from the specified memory interval (see above), and display in the
+usual hexadecimal and ASCII form.
 
 @item dump @var{memory} @var{addr}
-Read from memory addr as many bytes as the most recent dump memory addr len command with this
-very memory had specified (default 256 bytes), and display them.
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Read from memory addr as many bytes as the most recent dump memory addr
+len command with this very memory had specified (default 256 bytes), and
+display them.
 
 @item dump @var{memory}
-Continue dumping from the memory and location where the most recent dump command left off; if no
-previous dump command has addressed a memory an error message will be shown.
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Continue dumping from the memory and location where the most recent dump
+command left off; if no previous dump command has addressed a memory an
+error message will be shown.
+
+@item dump
+@cindex @code{dump} @var{[memory [addr [len]]]}
+Continue dumping from the memory and location where the most recent dump
+command left off; if no previous dump command has addressed a memory an
+error message will be shown.
 
 @item dump @var{memory} @var{addr} @dots{}
-Start reading from @var{addr}, all the way to the last memory address (deprecated: use @code{dump @var{memory} @var{addr} -1}).
+@cindex @code{dump} @var{memory} @var{[addr]} @dots{} @w{ } @w{ } @w{ }
+Start reading from @var{addr}, all the way to the last memory address
+(deprecated: use @code{dump @var{memory} @var{addr} -1}).
 
 @item dump @var{memory} @dots{}
-Read all bytes from the specified memory, and display them (deprecated: use @code{dump @var{memory} 0 -1}).
+@cindex @code{dump} @var{memory} @var{[addr]} @dots{} @w{ } @w{ } @w{ }
+Read all bytes from the specified memory, and display them (deprecated:
+use @code{dump @var{memory} 0 -1}).
 
 @item read
+@cindex @code{read} @var{[memory [addr [len]]]}
+@cindex @code{read} @var{memory} @var{[addr]} @dots{} @w{ } @w{ } @w{ }
 Can be used as an alias for dump.
 
+@item disasm @var{[options]} @var{dump-arguments}
+@cindex @code{disasm} @var{[memory [addr [len]]]}
+Like dump, the disasm command displays a part of the specified memory,
+albeit by interpreting the memory contents as AVR opcodes and showing it
+as assembler source code. Unlike dump, the disasm command has options;
+these control how disasm displays its result (see below). Other than that,
+the syntax of specifying the memory and its to be processed interval is
+virtually the same as that of dump: the default disasm length is 32 bytes,
+though, and sometimes the length can be slightly shorter or longer than
+requested, so that the memory section for disasm aligns with opcodes.
+Disasm options, once set, stay in force until switched off, typically by
+changing the case of the option. This way, a simple disasm without further
+options can be used to step through memory keeping the appearance. Disasm
+knows the following options:
+@table @code
+
+@item -g
+Generate avr-gcc source: this sets @code{-sOFQ} and outputs a .text preamble and
+a main symbol unless the disassembly emits one itself; @code{-G} (default)
+switches off @code{-g} and stops outputting a preamble
+
+@item -A
+Do not show addresses; @code{-a} (the default) shows addresses
+
+@item -O
+Do not show opcode bytes; @code{-o} (the default) show opcode bytes
+
+@item -C
+Do not show comments; @code{-c} (the default) show comments
+
+@item -f
+Show affected flags in SREG, eg, @code{---SVNZC} for the @code{sbiw}
+opcode; @code{-F} (the default) do not show SREG flags
+
+@item -q
+Show the number of machine cycles that an opcode takes; @code{-Q}
+(the default) do not show the cycles
+
+@item -n
+Put the opcode full name into comment (eg, subtract immediate from word);
+@code{-N} (the default) do not show the full opcode names
+
+@item -e
+Put a technical explanation of the opcode into the comment, eg,
+@code{Rd+1:Rd <-- Rd+1:Rd - K} for the @code{sbiw} opcode; -E (the
+default) do not show technical explanations
+
+@item -S
+Use AVR instruction set style: this means that register pairs are shown
+as, eg, in r31:30 instead of r30; @code{-s} (the default) use avr-gcc code
+style
+
+@item -L
+Do not preprocess labels; @code{-l} (the default) preprocess jump/call
+labels
+
+@item -d
+Decode all opcodes including those that are undocumented; @code{-D} (the
+default) decode only opcodes that are valid for the part
+
+@item -z
+Zap the list of jumps and calls before disassembly
+
+@item -t=@var{file}
+@cindex tagfile
+Delete symbols from a previously read tagfile, if any, and read the
+tagfile @var{file} for assigning addresses to symbol names.
+@end table
+
+The tagfile is an ASCII file where each line describes a symbol for code
+label addresses (@code{L}), variable addresses in flash (@code{P}) and
+variables addresses in memory or I/O space (@code{M}). Hashmarks start a
+tagfile comment that extends to the end of the line and is ignored by
+disasm. Here is a defining example of how a tagfile looks like
+
+@smallexample
+@cartouche
+0x7f54 L        putch     Outputs a char # L are code labels
+0x7ffe P W 1    version16 A word integer # P are PGM data
+0x7f80 P A 4    headings  Column headers # Auto-aligned strings
+0x0100 M B 2048 sram      2 kB SRAM      # Memory address
+@end cartouche
+@end smallexample
+
+Code labels @code{L} can be, eg, function names in program space or goto
+labels.  They use up to four columns separated by white space: the
+address, the letter @code{L}, the symbolic name of the label and an
+optional comment column for the symbol, which is copied by disasm into the
+disassembly comment column, should this label be referenced or used by the
+code. Variable symbols have a @code{P} or @code{M} in the second column;
+they can be bytes or words as determined by the letter @code{B} or
+@code{W} in the third column and either single variables or arrays as
+specified by the multiplicity count in the forth column. @code{P} symbols,
+but not @code{M} symbols, can also be the base location of nul-terminated
+strings as encoded by @code{A} or @code{S} in the third column. Out of
+necessity, the space occupied by @code{A}/@code{S} strings varies. The
+difference between @code{A} and @code{S} symbols is that the array of
+@code{A} strings might have an additional nul character to auto-align the
+space occupied by them to an even address. The fifth column is the
+symbolic name for the @code{P} or @code{M} address that can be used by
+disasm to output relevant addresses symbolically. @code{P} areas described
+in the tagfile also tell disasm that the corresponding area is not code
+and should not be disassembled as such; instead the directives are used
+for disassembly of that area. As with @code{L} labels, @code{P} and
+@code{M} variables may have an optional final comment column pertaining to
+the symbol that may be output in the disassembly column as and when the
+corresponding variables are used.
+
+Tagfiles are useful for disassembly to make the output of disasm more
+readable. They can be built manually and incrementally as one's under‐
+standing of the code grows. Alternatively, the bash shell script
+@code{elf2tag} can automatically generate a tag file from the .elf file
+that produced the flash contents:
+
+@smallexample
+@cartouche
+$ elf2tag application.elf >application.tag
+@end cartouche
+@end smallexample
+
+@code{elf2tag} uses the @code{avr-objdump -d} disassembly to create
+@code{L} labels and @code{avr-nm} to generate @code{M} symbols.
+
 @item write @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
+@cindex @code{write} @var{memory} @var{addr} @var{data[,]} @var{@{data[,]@}}
 Manually program the respective memory cells, starting at address
 @var{addr}, using the data items provided. The terminal implements reading
 from and writing to flash, EEPROM, bootrow and usersig type memories normally
@@ -2388,16 +2695,19 @@ One trailing comma at the end of data items is ignored to facilitate copy
 and paste of lists.
 
 @item write @var{memory} @var{addr} @var{data}
+@cindex @code{write} @var{memory} @var{addr} @var{data}
 The start address @code{addr} may be omitted if the size of the memory
 being written to is one byte.
 
 @item write @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{}
+@cindex @code{write} @var{memory} @var{addr} @var{len} @var{data[,]} @var{@{data[,]@}} @dots{} @w{ }
 The ellipsis @dots{} form writes the data to the entire memory intervall
 addressed by @var{addr len} and, if necessary, pads the remaining space by
 repeating the last data item. The fill write command does not write beyond
 the specified memory area even if more data than needed were given.
 
 @item save @var{memory} @var{@{addr len@}} @var{file[:format]}
+@cindex @code{save} @var{memory} @var{@{addr len@}} @var{file[:format]}
 Save one or more memory segments to a file in a format specified by the
 @code{:}format letter. The default is @code{:r} for raw binary. Each
 memory segment is described by an address and length pair. In absence of
@@ -2408,23 +2718,58 @@ ELF file formats. All the other file formats lose the address information
 and concatenate the chosen memory segments into the output file. If the
 file name is - then avrdude writes to stdout.
 
+@item backup @var{memlist} @var{file[:format]}
+@cindex @code{backup} @var{memlist} @var{file[:format]}
+Backup one or more memories to the specified file using the selected
+format. The default format for a single-memory backup is @code{:r} (raw
+binary); for multi-memory backups it is @code{:I} (Intel Hex with
+comments). @var{Memlist} can be a comma separated list of memories just as
+in the @code{-U} command line argument. @code{backup} flushes the cache
+before reading memories.
+
+@item restore @var{memlist} @var{file[:format]}
+@cindex @code{restore} @var{memlist} @var{file[:format]}
+Restore one or more memories from the specified file. It is the user's
+responsibility to erase memories as needed beforehand: some paged memories
+look like NOR-memory when using certain programmers, meaning programming
+cannot set bits to 1 (eg, flash under most programmers). These memories
+need to be erased beforehand using the erase command (see below). The
+format only needs to be specified if it cannot be automatically detected,
+eg, when the file is @code{-} for standard input. @var{Memlist} can be a
+comma separated list of memories just as in the @code{-U} command line
+argument. @code{restore} flushes the cache before writing memories and
+resets the cache after writing memories. Note that restoring read-only
+memories verifies file contents with the corresponding microprocessor's
+memories.
+
+@item verify @var{memlist} @var{file[:format]}
+@cindex @code{verify} @var{memlist} @var{file[:format]}
+Compare one or more memories with the specified file. Memlist can be a
+comma separated list of memories just as in the @code{-U} command line
+argument. @code{verify} flushes the cache before verifying memories.
+
 @item erase
-Perform a chip erase and discard all pending writes to EEPROM and flash.
-Note that EEPROM will be preserved if the EESAVE fuse bit is set.
+@cindex @code{erase}
+Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
+Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
+a corresponding value at the last reset prior to the operation.
 
 @item erase @var{memory}
+@cindex @code{erase} @var{memory} @var{[addr len]}
 Erase the entire specified memory.
 
 @item erase @var{memory} @var{addr} @var{len}
+@cindex @code{erase} @var{memory} @var{[addr len]}
 Erase a section of the specified memory.
 
 @item flush
+@cindex @code{flush}
 Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
 never set them. For NOR memories a page erase or, if not available, a chip
-erase needs to be issued before writing arbitrary data. Bootrow and usersig are
-generally unaffected by a chip erase. When a memory looks like a NOR
+erase needs to be issued before writing arbitrary data. Usersig is
+unaffected by a chip erase. When a memory looks like a NOR
 memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
 interfaces), or if that is not available, both EEPROM and flash caches are
 fully read in, a chip erase command is issued and both EEPROM and flash
@@ -2433,13 +2778,15 @@ a single previously cleared bit is set and, therefore, this routine should
 be called sparingly.
 
 @item abort
+@cindex @code{abort}
 Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
 cache discarding all previous writes to the flash, EEPROM, bootrow and
 usersig cache.
 
-@item config [@var{opts}]
+@item config @var{[opts]}
+@cindex @code{config} @var{[opts]}
 Show all configuration properties of the part; these are usually bitfields
 in fuses or lock bits bytes that can take on values, which typically have
 a mnemonic name. Each part has their own set of configurable items.  The
@@ -2451,17 +2798,20 @@ assigned mnemonic values are the ones that are not commented out. The
 option @code{-v} increases the verbosity of the output of the config
 command.
 
-@item config [@var{opts}] @var{property} [@var{opts}]
+@item config @var{[opts]} @var{property} @var{[opts]}
+@cindex @code{config} @var{[opts]} @var{property} @var{[opts]}
 Show the current value of the named configuration property. Wildcards or
 initial strings are permitted (but not both), in which case the current
 values of all matching properties are displayed.
 
-@item config [@var{opts}] @var{property=} [@var{opts}]
+@item config @var{[opts]} @var{property=} @var{[opts]}
+@cindex @code{config} @var{[opts]} @var{property=} @var{[opts]}
 Show all possible values of the named configuration property (notice the
 trailing @code{=}). The one that is currently set is the only one not
 commented out. As before, wildcards or initial strings are permitted.
 
-@item config [@var{opts}] @var{property=value} [@var{opts}]
+@item config @var{[opts]} @var{property=value} @var{[opts]}
+@cindex @code{config} @var{[opts]} @var{property=value} @var{[opts]}
 Modify the named configuration property to the given value. The
 corresponding fuse or lock bits will be changed immediately but the change
 will normally only take effect the next time the part is reset, at which
@@ -2476,6 +2826,7 @@ and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
 @item factory reset
+@cindex @code{factory reset}
 Resets the connected part to factory state as far as possible
 (bootloaders, for example, cannot write fuses and may not have a means to
 erase EEPROM). This command may change the clock frequency F_CPU of the
@@ -2485,7 +2836,8 @@ different bit clock rate up to F_CPU/4 for the programmer next time. Note
 that the command @code{factory} can be abbreviated but the required
 argument @code{reset} needs to be spelled out in full.
 
-@item regfile [@var{opts}]
+@item regfile @var{[opts]}
+@cindex @code{regfile} @var{[opts]}
 @code{regfile} with no further argument displays the register file of a
 part, i.e., all register names and their contents in  @code{io} memory, if
 possible: note that external programming cannot read the registers of
@@ -2497,8 +2849,8 @@ Option @code{-a} displays the register I/O addresses in addition;
 @code{-s} also shows the size of the register in bytes whilst @code{-v}
 shows a slightly expanded register explanation alongside each register.
 
-@item regfile [@var{opts}] @var{reg} [@var{opts}]
-
+@item regfile @var{[opts]} @var{reg} @var{[opts]}
+@cindex @code{regfile} @var{[opts]} @var{reg} @var{[opts]}
 @code{regfile} together with a register name @var{reg} shows all those
 registers that are matched by @var{reg}. Wildcards or partial strings are
 permitted but not both. Register names have the form @var{module.name} or
@@ -2511,13 +2863,15 @@ utilised and all module registers with that exact @var{instance.name} or
 @var{name} are shown. Partial matching can be forced through use of
 wildcards, e.g., using @code{porta.out*}
 
-@item regfile [@var{opts}] @var{reg}=@var{value} [@var{opts}]
+@item regfile @var{[opts]} @var{reg}=@var{value} @var{[opts]}
+@cindex @code{regfile} @var{[opts]} @var{reg}=@var{value} @var{[opts]}
 This sets a single register addressed by @var{reg} to the given
 @var{value}. Only external programming of modern parts (those with UPDI
 interface) can read from and write to register io memory, but as that
 memory is volatile, the contents will be lost after reset.
 
-@item include [@var{opts}] @var{file}
+@item include @var{[opts]} @var{file}
+@cindex @code{include} @var{[opts]} @var{file}
 Include contents of the named file @var{file} as if it was typed. This is
 useful for batch scripts, e.g., recurring initialisation code for fuses. The
 include option @code{-e} prints the lines of the file as comments before
@@ -2525,20 +2879,24 @@ processing them; on a non-zero verbosity level the line numbers are
 printed, too.
 
 @item signature
+@cindex @code{signature}
 Display the device signature bytes.
 
-@item part
+@item part @var{[opts]}
+@cindex @code{part} @var{[opts]}
 Display the current part information, including supported programming modes,
 memory and variants tables. Use @var{-m} to only print the memory table,
 and @var{-v} to only print the variants table.
 
-@item verbose [@var{level}]
+@item verbose @var{]level]}
+@cindex @code{verbose} @var{]level]}
 Change (when @var{level} is provided), or display the verbosity
 level.
 The initial verbosity level is controlled by the number of @code{-v} options
 given on the command line.
 
-@item quell [@var{level}]
+@item quell @var{[level]}
+@cindex @code{quell} @var{[level]}
 Change (when @var{level} is provided), or display the quell
 level. 1 is used to suppress progress reports. 2 or higher yields
 progressively quieter operations. The initial quell level is controlled
@@ -2549,12 +2907,14 @@ by the number of @code{-q} options given on the command line.
 Give a short on-line summary of the available commands.
 
 @item quit
+@cindex @code{quit}
 Leave terminal mode and thus AVRDUDE.
 
 @item q
 Can be used as an alias for @code{quit}.
 
 @item !@var{line}
+@cindex @code{!} (subshell)
 Run the shell @var{line} in a subshell, e.g., @code{!ls *.hex}. Subshell
 commands take the rest of the line as their command. For security reasons,
 they must  be enabled explictly by putting @code{allow_subshells = yes;}
@@ -2572,9 +2932,11 @@ In addition, the following commands are supported on some programmers:
 @table @code
 
 @item pgerase @var{memory} @var{addr}
+@cindex @code{pgerase} @var{memory} @var{addr}
 Erase one page of the memory specified.
 
 @item send @var{b1} @var{b2} @var{b3} @var{b4}
+@cindex @code{send} @var{b1} @var{b2} @var{b3} @var{b4}
 Send raw instruction codes to the AVR device. If you need access to a
 feature of an AVR part that is not directly supported by AVRDUDE, this
 command allows you to use it, even though AVRDUDE does not implement the
@@ -2582,18 +2944,22 @@ command. When using direct SPI mode, up to 3 bytes
 can be omitted.
 
 @item spi
+@cindex @code{spi}
 Enter direct SPI mode.  The @emph{pgmled} pin acts as chip select.
 @emph{Only supported on parallel bitbang programmers, and partially by USBtiny.}
 Chip Select must be externally held low for direct SPI when
 using USBtinyISP, and send must be a multiple of four bytes.
 
 @item pgm
+@cindex @code{pgm}
 Return to programming mode (from direct SPI mode).
 
 @item vtarg @var{voltage}
+@cindex @code{vtarg} @var{voltage}
 Set the target's supply voltage to @var{voltage} Volts.
 
-@item varef [@var{channel}] @var{voltage}
+@item varef @var{[channel]} @var{voltage}
+@cindex @code{varef} @var{[channel]} @var{voltage}
 Set the adjustable voltage source to @var{voltage} Volts.
 This voltage is normally used to drive the target's
 @emph{Aref} input on the STK500 and STK600.
@@ -2602,20 +2968,24 @@ selected by the optional parameter @var{channel} (either
 0 or 1).
 
 @item fosc @var{freq}[@code{M}|@code{k}]
+@cindex @code{fosc} @var{freq}[@code{M}|@code{k}]
 Set the programming oscillator to @var{freq} Hz.
 An optional trailing letter @code{M}
 multiplies by 1E6, a trailing letter @code{k} by 1E3.
 
 @item fosc off
+@cindex @code{fosc off}
 Turn the programming oscillator off.
 
 @item sck @var{period}
+@cindex @code{sck} @var{period}
 Set the SCK clock period to @var{period} microseconds.
 Note that some official Microchip programmers store the bitclock setting and
 will continue to use it until a diferent value is provided. See
 @code{-B bitclock} for more information.
 
 @item parms
+@cindex @code{parms}
 Display programmer specific parameters.
 
 @end table
@@ -2921,6 +3291,65 @@ Writing | ################################################## | 100% 0.05 s
 avrdude> quit
 
 avrdude done.  Thank you.
+
+@end cartouche
+@end smallexample
+
+@page
+
+@cindex @code{disasm} example
+
+@noindent @strong{Disassembe the flash contents of an ATtiny13A,} write
+the output to file @code{blink.S}, compile to `blink.elf` and verify that
+the flash contents of the ATtiny13A is the same as the one given by the
+compiled @code{blink.elf}. Then @code{cat} the disassembled @code{blink.S}
+to stdout.
+
+@smallexample
+@cartouche
+
+$ avrdude -qq -p t13a -c avrisp2 -T "disasm -g flash 0 -1" >blink.S
+$ avr-gcc -mmcu=attiny13a -nostdlib -Wl,--section-start=.text=0x0000 blink.S -o bl.elf
+$ avrdude -qq -p t13a -c avrisp2 -U flash:v:bl.elf && echo OK
+OK
+
+$ cat blink.S
+
+       .equ    io.pinb, 0x16
+       .equ    io.ddrb, 0x17
+
+       .text
+main:
+L000:  rjmp    Label1               ; L016
+L002:  rjmp    Label0               ; L014
+L004:  rjmp    Label0               ; L014
+L006:  rjmp    Label0               ; L014
+L008:  rjmp    Label0               ; L014
+L00a:  rjmp    Label0               ; L014
+L00c:  rjmp    Label0               ; L014
+L00e:  rjmp    Label0               ; L014
+L010:  rjmp    Label0               ; L014
+L012:  rjmp    .+0                  ; L014
+
+; Rjmp from L002, L004, L006, L008, L00a, L00c, L00e, L010
+Label0:
+L014:  reti
+
+Label1:                             ; Rjmp from L000
+L016:  sbi     io.ddrb, 2           ; Bit 2 = 0x04
+
+Label2:                             ; Rjmp from L024
+L018:  ldi     r29, 0x1e            ; 30
+
+Label3:                             ; Brne from L01c, L020
+L01a:  sbiw    r30, 0x01            ; 1
+L01c:  brne    Label3               ; L01a
+L01e:  dec     r29
+L020:  brne    Label3               ; L01a
+L022:  sbi     io.pinb, 2           ; Bit 2 = 0x04
+L024:  rjmp    Label2               ; L018
+
+L026:  .fill   493, 2, 0xffff
 
 @end cartouche
 @end smallexample
@@ -3269,6 +3698,7 @@ part
     family_id        = <id> ;                 # quoted string, e.g., "megaAVR" or "tinyAVR"
     prog_modes       = PM_<i/f> @{| PM_<i/f>@}  # interfaces, e.g., PM_SPM|PM_ISP|PM_HVPP|PM_debugWIRE
     mcuid            = <num>;                 # unique id in 0..2039 for 8-bit AVRs
+    archnum          = <num>;                 # avr-gcc architecture number for the part
     n_interrupts     = <num>;                 # number of interrupts, used for vector bootloaders
     n_page_erase     = <num>;                 # if set, number of pages erased during SPM erase
     n_boot_sections  = <num>;                 # Number of boot sections
@@ -4391,13 +4821,13 @@ fuse, and then power-cycling the target.
 While this mode is mainly intended for debugging/emulation, it
 also offers limited programming capabilities.
 Effectively, the only memory areas that can be read or programmed
-in this mode are flash ROM and EEPROM.
+in this mode are flash and EEPROM.
 It is also possible to read out the signature.
 All other memory areas cannot be accessed.
 There is no
 @emph{chip erase}
 functionality in debugWire mode; instead, while reprogramming the
-flash ROM, each flash ROM page is erased right before updating it.
+flash, each flash page is erased right before updating it.
 This is done transparently by the JTAG ICE mkII (or AVR Dragon).
 The only way back from debugWire mode is to initiate a special
 sequence of commands to the JTAG ICE mkII (or AVR Dragon), so the

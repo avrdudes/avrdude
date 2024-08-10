@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * avrdude interface for Atmel STK500 programmer
  *
@@ -47,8 +45,8 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->setup)
     pgm->setup(pgm);
   if(pgm->open(pgm, port) >= 0) {
-    pmsg_info("successfully opened stk500v2 device\n");
-    imsg_info("in future, please use -c stk500v2, so -x parameters are available\n");
+    pmsg_info("successfully opened stk500v2 device; in future\n");
+    imsg_info("please use -c stk500v2, so -x parameters are available\n");
     return 0;
   }
   if(pgm->teardown)
@@ -59,8 +57,8 @@ static int stk500generic_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->setup)
     pgm->setup(pgm);
   if(pgm->open(pgm, port) >= 0) {
-    pmsg_info("successfully opened stk500v1 device\n");
-    imsg_info("in future, please use -c stk500v1, so -x parameters are available\n");
+    pmsg_info("successfully opened stk500v1 device; in future\n");
+    imsg_info("please use -c stk500v1, so -x parameters are available\n");
     return 0;
   }
 

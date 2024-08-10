@@ -59,7 +59,7 @@
 #define CHECK               15 // Check LED needs changing
 
 // Keep track of LED status and set LED 0 .. LED_N-1 physically on or off
-static void led_direct(const PROGRAMMER *pgm, leds_t *ls, int led, int what) {
+static void led_direct(const PROGRAMMER *pgm, Leds *ls, int led, int what) {
   if(what ^ !!(ls->phy & (1<<led))) {
     switch(led) {
     case LED_RDY:
@@ -82,7 +82,7 @@ static void led_direct(const PROGRAMMER *pgm, leds_t *ls, int led, int what) {
 }
 
 // Physical level of LED setting, deal with max blinking frequency LED_FMAX
-static void led_physical(const PROGRAMMER *pgm, leds_t *ls, int led, int what) {
+static void led_physical(const PROGRAMMER *pgm, Leds *ls, int led, int what) {
   if(led < 0 || led >= LED_N) // Sanity
     return;
 
@@ -125,7 +125,7 @@ static void led_physical(const PROGRAMMER *pgm, leds_t *ls, int led, int what) {
 // Logical level of setting LEDs, passes on to physical level
 int led_set(const PROGRAMMER *pgm, int led) {
   // leds should always be allocated, but if not use dummy
-  leds_t sanity = { 0, 0, 0, 0, 0, {0, } }, *ls = pgm->leds? pgm->leds: &sanity;
+  Leds sanity = { 0, 0, 0, 0, 0, {0, } }, *ls = pgm->leds? pgm->leds: &sanity;
   int what = led >= 0 && led < LED_N && !(ls->now & (1<<led))? TON: CHECK;
 
   switch(led) {
@@ -174,7 +174,7 @@ int led_clr(const PROGRAMMER *pgm, int led) {
   }
 
   // pgm->leds should always be allocated, but if not use dummy
-  leds_t sanity = { 0, 0, 0, 0, 0, {0, } }, *ls = pgm->leds? pgm->leds: &sanity;
+  Leds sanity = { 0, 0, 0, 0, 0, {0, } }, *ls = pgm->leds? pgm->leds: &sanity;
   int what = ls->now & (1<<led)? TOFF: CHECK;
 
   // Record logical level

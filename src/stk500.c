@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
- * Copyright (C) 2008,2014 Joerg Wunsch
+ * Copyright (C) 2008, 2014 Joerg Wunsch
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 /*
  * avrdude interface for Atmel STK500 programmer
@@ -116,7 +114,7 @@ int stk500_getsync(const PROGRAMMER *pgm) {
 
   for (attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if (str_eq(pgm->type, "Arduino") && attempt > 0) {
+    if(str_eq(pgm->type, "Arduino") && PDATA(pgm)->autoreset && attempt > 0) {
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
@@ -202,8 +200,7 @@ static int stk500_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
 
   if (pgm->cmd == NULL) {
-    pmsg_error("%s programmer uses stk500_chip_erase() but does not\n", pgm->type);
-    imsg_error("provide a cmd() method\n");
+    pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
     return -1;
   }
 
@@ -450,7 +447,7 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
 #if 0
-  pmsg_info("stk500_initialize(): n_extparms = %d\n", n_extparms);
+  pmsg_notice("%s(): n_extparms = %d\n", __func__, n_extparms);
 #endif
     
   buf[5] = 1; /* polling supported - XXX need this in config file */
@@ -640,30 +637,28 @@ static int stk500_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   return pgm->program_enable(pgm, p);
 }
 
-static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
- {
-   LNODEID ln;
-   const char *extended_param;
-   int attempts;
-   int rv = 0;
+static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
+  int attempts;
+  int rv = 0;
+  bool help = false;
 
-   for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-     extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
-    if (sscanf(extended_param, "attempts=%2d", &attempts) == 1) {
+    if (sscanf(extended_param, "attempts=%i", &attempts) == 1) {
       PDATA(pgm)->retry_attempts = attempts;
       pmsg_info("setting number of retry attempts to %d\n", attempts);
       continue;
     }
 
-    else if (str_starts(extended_param, "vtarg")) {
+    if (str_starts(extended_param, "vtarg")) {
       if ((pgm->extra_features & HAS_VTARG_ADJ) && (str_starts(extended_param, "vtarg=")))  {
         // Set target voltage
         double vtarg_set_val = -1; // default = invlid value
         int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
         PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
         if (sscanf_success < 1 || vtarg_set_val < 0) {
-          pmsg_error("invalid vtarg value %s\n", extended_param);
+          pmsg_error("invalid target voltage in -x %s\n", extended_param);
           rv = -1;
           break;
         }
@@ -699,7 +694,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         if (PDATA(pgm)->varef_set) {
           PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || varef_set_val < 0) {
-            pmsg_error("invalid varef value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             PDATA(pgm)->varef_set = false;
             rv = -1;
             break;
@@ -717,7 +712,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           // allow spaces in fosc_str
           int sscanf_success = sscanf(extended_param, "fosc=%15[0-9.eE MmKkHhZzof]", fosc_str);
           if (sscanf_success < 1) {
-            pmsg_error("invalid fosc value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -726,13 +721,12 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
           if (endp == fosc_str){ // no number
             while ( *endp == ' ' ) // remove leading spaces
               ++endp;
-            if (str_starts(endp, "off"))
-              PDATA(pgm)->fosc_data = 0.0;
-            else {
-              pmsg_error("invalid fosc value %s\n", fosc_str);
+            if (!str_eq(endp, "off")) {
+              pmsg_error("invalid -x fosc=%s value\n", fosc_str);
               rv = -1;
               break;
             }
+            PDATA(pgm)->fosc_data = 0.0;
           }
           while ( *endp == ' ' ) // remove leading spaces before unit
             ++endp;
@@ -759,14 +753,14 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         char xtal_str[16] = {0};
         int sscanf_success = sscanf(extended_param, "xtal=%15[0-9.eE MmKkHhZz]", xtal_str);
         if (sscanf_success < 1) {
-          pmsg_error("invalid xtal value %s\n", extended_param);
+          pmsg_error("invalid value in -x %s\n", extended_param);
           rv = -1;
           break;
         }
         char *endp;
         double v = strtod(xtal_str, &endp);
         if (endp == xtal_str){
-          pmsg_error("invalid xtal value %s\n", xtal_str);
+          pmsg_error("invalid -x xtal=%s value\n", xtal_str);
           rv = -1;
           break;
         }
@@ -783,33 +777,38 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     }
 
     else if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xattempts=<arg>      Specify no. connection retry attempts\n");
-      if (pgm->extra_features & HAS_VTARG_READ) {
-        msg_error("  -xvtarg               Read target supply voltage\n");
-      }
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
-      }
-      if (pgm->extra_features & HAS_VAREF_ADJ) {
-        msg_error("  -xvaref               Read analog reference voltage\n");
-        msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
-      }
-      if (pgm->extra_features & HAS_FOSC_ADJ) {
-        msg_error("  -xfosc                Read oscillator clock frequency\n");
-        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
-      }
-      msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
-      msg_error("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv =  LIBAVRDUDE_EXIT;
     }
 
-     pmsg_error("invalid extended parameter %s\n", extended_param);
-     rv = -1;
-   }
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x attempts=<n>   Specify the number <n> of connection retry attempts\n");
+    if (pgm->extra_features & HAS_VTARG_READ) {
+      msg_error("  -x vtarg          Read target supply voltage\n");
+    }
+    if (pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg=<dbl>    Set target supply voltage to <dbl> V\n");
+    }
+    if (pgm->extra_features & HAS_VAREF_ADJ) {
+      msg_error("  -x varef          Read analog reference voltage\n");
+      msg_error("  -x varef=<dbl>    Set analog reference voltage to <dbl> V\n");
+    }
+    if (pgm->extra_features & HAS_FOSC_ADJ) {
+      msg_error("  -x fosc           Read oscillator clock frequency\n");
+      msg_error("  -x fosc=<n>[unit] Set oscillator clock frequency to <n> Hz (or kHz/MHz)\n");
+      msg_error("  -x fosc=off       Switch the oscillator clock off\n");
+    }
+    msg_error("  -x xtal=<n>[unit] Set programmer xtal frequency to <n> Hz (or kHz/MHz)\n");
+    msg_error("  -x help           Show this help menu and exit\n");
+    return rv;
+  }
 
-   return rv;
- }
+  return rv;
+}
 
 static void stk500_disable(const PROGRAMMER *pgm) {
   unsigned char buf[16];
@@ -894,8 +893,7 @@ static int stk500_open(PROGRAMMER *pgm, const char *port) {
 }
 
 
-static void stk500_close(PROGRAMMER * pgm)
-{
+static void stk500_close(PROGRAMMER *pgm) {
   // MIB510 close
   if (str_eq(pgmid, "mib510"))
     (void)mib510_isp(pgm, 0);
@@ -1006,9 +1004,9 @@ static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if(mem_is_eeprom(m)) {
     *memchrp = 'E';
-    // Word addr for bootloaders or Arduino as ISP if part is a "classic" part, byte addr otherwise
+    // Word addr for bootloaders or Arduino as ISP if part is a classic part; byte addr otherwise
     *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp")) \
-       && !(p->prog_modes & (PM_UPDI | PM_PDI))? 2: 1;
+       && (p->prog_modes & PM_Classic)? 2: 1;
     return 0;
   }
 
@@ -1569,7 +1567,7 @@ static void stk500_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   stk500_print_parms1(pgm, "", fp);
 }
 
-static void stk500_setup(PROGRAMMER * pgm) {
+static void stk500_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
   PDATA(pgm)->ext_addr_byte = 0xff;
   PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
@@ -1578,9 +1576,12 @@ static void stk500_setup(PROGRAMMER * pgm) {
     PDATA(pgm)->xtal = 16000000U;
   else
     PDATA(pgm)->xtal = STK500_XTAL;
+  // The -c arduino programmer has auto-reset enabled be default
+  if (str_eq(pgm->type, "Arduino"))
+    PDATA(pgm)->autoreset = true;
 }
 
-static void stk500_teardown(PROGRAMMER * pgm) {
+static void stk500_teardown(PROGRAMMER *pgm) {
   mmt_free(pgm->cookie);
   pgm->cookie = NULL;
 }

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2024  Dawid Buchwald
+ * Copyright (C) 2024 Dawid Buchwald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-/* $Id$ */
 
 /*
  * Based on pymcuprog
@@ -99,7 +97,7 @@ int updi_nvm_chip_erase_V0(const PROGRAMMER *pgm, const AVRPART *p) {
 
         return True
 */
-  pmsg_debug("Chip erase using NVM CTRL\n");
+  pmsg_debug("chip erase using NVM CTRL\n");
   if (updi_nvm_wait_ready_V0(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V0() failed\n");
     return -1;
@@ -280,6 +278,13 @@ int updi_nvm_write_user_row_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
         return self.write_eeprom(address, data)
 */
   return updi_nvm_write_eeprom_V0(pgm, p, address, buffer, size);
+}
+
+int updi_nvm_write_boot_row_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+/*
+  Perform write operation as if it was regular flash memory
+*/  
+  return nvm_write_V0(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
 int updi_nvm_write_eeprom_V0(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {

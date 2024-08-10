@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 #include <ac_cfg.h>
 
@@ -150,10 +148,130 @@ FILEFMT fileio_format(char c) {
   }
 }
 
+
+// Same as fileio_format(ch) but show error message with originator who and list possible formats
+FILEFMT fileio_format_with_errmsg(char ch, const char *who) {
+  FILEFMT format = fileio_format(ch);
+  if(format == FMT_ERROR) {
+    pmsg_error("%sinvalid file format :%c; known formats are\n", who? who: "", ch);
+    for(int f, c, i=0; i<62; i++) {
+      c = i<10? '0'+i: (i&1? 'A': 'a') + (i-10)/2;
+      f = fileio_format(c);
+      if(f != FMT_ERROR)
+        msg_error("  :%c %s\n", c, fileio_fmtstr(f));
+    }
+  }
+
+  return format;
+}
+
+
+// Multi-memory file flat address space layout (also used by avr-gcc's elf)
+
+enum {
+  MULTI_FLASH, MULTI_DATA, MULTI_EEPROM,
+  MULTI_FUSES, MULTI_LOCK,
+  MULTI_SIGROW, MULTI_USERROW, MULTI_BOOTROW,
+  MULTI_N,
+};
+
+static const struct {
+  unsigned base, size;
+  const char *name;
+} mulmem[] = {
+  {      0, 0x800000, "flash"}, // rjmp/call can only address 8 MiB in AVR8 architectures
+  {0x800000, 0x10000, "data"},  // IO/SRAM
+  {0x810000, 0x10000, "EEPROM"},
+  {0x820000, 0x10000, "fuses"},
+  {0x830000, 0x10000, "lock"},
+  {0x840000, 0x10000, "sigrow"},
+  {0x850000, 0x10000, "userrow"},
+  {0x860000, 0x10000, "bootrow"},
+};
+
+#define ANY_MEM_SIZE (mulmem[MULTI_N-1].base + mulmem[MULTI_N-1].size)
+
+#define MBASE(n) (mulmem[MULTI_ ## n].base)
+#define MSIZE(n) (mulmem[MULTI_ ## n].size)
+#define MEND(n) (MBASE(n) + MSIZE(n) - 1)
+
+// Memory that holds all possible multi-memories as laid out above
+AVRMEM *fileio_any_memory(const char *name) {
+  return avr_new_memory(name, ANY_MEM_SIZE);
+}
+
+#define boffset(p, basemem) baseoffset((p), avr_locate_ ## basemem(p), # basemem)
+
+static int baseoffset(const AVRPART *p, const AVRMEM *base, const char *memname) {
+  if(!base)
+    pmsg_error("failed to locate %s memory in %s\n", memname, p->desc);
+  return base? base->offset: 0;
+}
+
+// Extends where memory is put in flat address space of .elf files
+unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
+  if(mem->type == 0 && mem->size == (int) ANY_MEM_SIZE)
+    return 0;
+
+  unsigned location =
+    mem_is_in_flash(mem)? MBASE(FLASH) + mem->offset - boffset(p, flash):
+    mem_is_io(mem) || mem_is_sram(mem)? MBASE(DATA) + mem->offset:
+    mem_is_eeprom(mem)? MBASE(EEPROM):
+    mem_is_in_fuses(mem)? MBASE(FUSES) + mem_fuse_offset(mem):
+    mem_is_lock(mem)? MBASE(LOCK):
+    // Classic parts intersperse signature and calibration bytes, this code places them together
+    (p->prog_modes & PM_Classic) && mem_is_signature(mem)? MBASE(SIGROW):
+    (p->prog_modes & PM_Classic) && mem_is_calibration(mem)? MBASE(SIGROW)+3:
+    (p->prog_modes & PM_Classic) && mem_is_in_sigrow(mem)? MBASE(SIGROW)+0x10+mem->offset-boffset(p, sigrow):
+    // XMEGA parts have signature separate from prodsig, place prodsig at +0x10 as above
+    (p->prog_modes & PM_PDI) && mem_is_signature(mem)? MBASE(SIGROW):
+    (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW)+0x10 + mem->offset - boffset(p, sigrow):
+    (p->prog_modes & PM_UPDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + mem->offset - boffset(p, sigrow):
+    mem_is_sib(mem)? MBASE(SIGROW) + 0x1000: // Arbitrary 0x1000 offset in signature section for sib
+    mem_is_userrow(mem)? MBASE(USERROW):
+    mem_is_bootrow(mem)? MBASE(BOOTROW):
+    ~0U;
+
+  if(location == ~0U)
+    pmsg_error("unable to locate %s's %s in multi-memory address space\n", p->desc, mem->desc);
+  else if(location >= ANY_MEM_SIZE || location + mem->size > ANY_MEM_SIZE) { // Overflow
+    pmsg_error("%s's %s location [0x%06x, 0x%06x] outside flat address space [0, 0x%06x]\n",
+      p->desc, mem->desc, location, location + mem->size-1, ANY_MEM_SIZE-1);
+    location = ~0U;
+  } else if(location <= MEND(FLASH) && location + mem->size > MEND(FLASH)+1) {
+    pmsg_error("%s's %s location [0x%06x, 0x%06x] straddles flash section boundary 0x%06x\n",
+      p->desc, mem->desc, location, location + mem->size-1, MEND(FLASH)+1);
+    location = ~0U;
+  } else if(location > MEND(FLASH) && location/0x10000 != (location + mem->size-1)/0x10000) {
+    pmsg_error("%s's %s memory location [0x%06x, 0x%06x] straddles memory section boundary 0x%02x0000\n",
+      p->desc, mem->desc, location, location + mem->size-1, 1+location/0x10000);
+    location = ~0U;
+  }
+
+  return location;
+}
+
+static const char *memlabel(const AVRPART *p, const AVRMEM *m, unsigned addr, int n) {
+  if(m->size < (int) ANY_MEM_SIZE) // Ordinary (single) memory
+    return addr? NULL: m->desc;
+
+  // Inverse lookup of which memory could have been mapped to this address
+  for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
+    if(fileio_mem_offset(p, (m = ldata(lm))) == addr && n == m->size)
+      return avr_mem_name(p, m);
+
+  for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
+    if(fileio_mem_offset(p, (m = ldata(lm))) == addr)
+      return avr_mem_name(p, m);
+
+  return NULL;
+}
+
+// Tells lower level .hex/.srec routines whether to write intros/outros
 typedef enum {
   FIRST_SEG = 1,
   LAST_SEG  = 2,
-} Segorder_t;
+} Segorder;
 
 
 static void print_ihex_extended_addr(int n_64k, FILE *outf) {
@@ -162,6 +280,8 @@ static void print_ihex_extended_addr(int n_64k, FILE *outf) {
   unsigned char cksum = -(2 + 0 + 4 + hi + lo);
   fprintf(outf, ":02000004%02X%02X%02X\n", hi, lo, cksum);
 }
+
+
 
 /*
  * Binary buffer to Intel Hex, see https://en.wikipedia.org/wiki/Intel_HEX
@@ -176,10 +296,10 @@ static void print_ihex_extended_addr(int n_64k, FILE *outf) {
  * Return the maximum memory address within mem->buf that was read from
  * plus one. If an error occurs, return -1.
  */
-static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder_t where,
-  int recsize, int startaddr, const char *outfile_unused, FILE *outf,
-  FILEFMT ffmt) {
+static int b2ihex(const AVRPART *p, const AVRMEM *mem, const Segment *segp, Segorder where,
+  int recsize, int startaddr, const char *outfile_unused, FILE *outf, FILEFMT ffmt) {
 
+  const unsigned char *buf = mem->buf;
   int bufsize = segp->len;
   unsigned int nextaddr;
   int n, hiaddr, n_64k;
@@ -208,7 +328,7 @@ static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder_t wh
 
     if (n) {
       fprintf(outf, ":%02X%04X00", n, nextaddr);
-      unsigned char cksum = n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
+      unsigned char c, cksum = n + ((nextaddr >> 8) & 0x0ff) + (nextaddr & 0x0ff);
       for(int i=0; i<n; i++) {
         fprintf(outf, "%02X", buf[i]);
         cksum += buf[i];
@@ -217,13 +337,23 @@ static int b2ihex(const unsigned char *buf, const Segment_t *segp, Segorder_t wh
       fprintf(outf, "%02X", cksum);
 
       if(ffmt == FMT_IHXC) { /* Print comment with address and ASCII dump */
+        const char *name = memlabel(p, mem, n_64k*0x10000 + nextaddr, n);
+
         for(int i=n; i<recsize; i++)
           fprintf(outf, "  ");
         fprintf(outf, " // %05x> ", n_64k*0x10000 + nextaddr);
-        for(int i=0; i<n; i++) {
-          unsigned char c = buf[i] & 0x7f;
-          /* Print space as _ so that line is one word */
-          putc(c == ' '? '_': c < ' ' || c == 0x7f? '.': c, outf);
+        for(int i=0; i<n; i++)
+          if(n < 9 && name)
+            fprintf(outf, "%s0x%02x", i? " ": "", buf[i]);
+          else
+            putc((c = buf[i] & 0x7f) < ' ' || c == 0x7f? '.': c, outf);
+        if(name) {
+          fprintf(outf, " %s", name);
+          if((str_eq(name, "sigrow") || str_eq(name, "signature")) && !nextaddr) {
+            const char *mculist = str_ccmcunames_signature(buf, PM_ALL);
+            if(*mculist)
+              fprintf(outf, " (%s)", mculist);
+          }
         }
       }
       putc('\n', outf);
@@ -258,7 +388,6 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
   int offset, len;
   char * e;
   unsigned char cksum;
-  int rc;
 
   len    = strlen(rec);
   offset = 1;
@@ -320,37 +449,62 @@ static int ihex_readrec(struct ihexsrec *ihex, char * rec) {
   if (e == buf || *e != 0)
     return -1;
 
-  rc = -cksum & 0x000000ff;
+  pmsg_debug("read ihex record type 0x%02x at 0x%04x with %2d bytes and chksum 0x%02x (0x%02x)\n",
+    ihex->rectyp, ihex->loadofs, ihex->reclen, ihex->cksum, -cksum & 0xff);
 
-  return rc;
+  return -cksum & 0xff;
 }
 
 
+// Extract correct memory from large any memory assuming multi-memory model
+static int any2mem(const AVRPART *p, const AVRMEM *mem, const Segment *segp,
+  const AVRMEM *any, unsigned maxsize) {
+
+  // Compute location for multi-memory file input
+  unsigned location = maxsize > MEND(FLASH)+1? fileio_mem_offset(p, mem): 0;
+
+  if(location == ~0U)
+    return -1;
+
+  unsigned ret = 0;
+  // Copy over memory to right place and return highest written address plus one
+  for(unsigned i = segp->addr, end = segp->addr + segp->len; i < end; i++)
+    if(any->tags[location + i]) {
+      mem->buf[i] = any->buf[location + i];
+      mem->tags[i] = any->tags[location + i];
+      ret = i+1;
+    }
+
+  return ret;
+}
 
 /*
  * Intel Hex to binary buffer
  *
- * Given an open file 'inf' which contains Intel Hex formatted data,
- * parse the file and lay it out within the memory buffer pointed to
- * by mem->buf. The segment within buf, segp, is honoured; if data
- * were to fall outside of the memory segment, an error is generated.
+ * Given an open file 'inf' which contains Intel Hex formatted data, parse
+ * the file, which potentially contains many AVR memories, and lay it out
+ * in a temporary AVR "any memory". This also determines whether inf
+ * contains the AVR memory mem to write to. Only the segment within
+ * mem->buf, segp, is written to.
  *
- * Return the maximum memory address within mem->buf that was written
- * plus one. If an error occurs, return -1.
+ * Return 0 if nothing was written, otherwise the maximum memory address
+ * within mem->buf that was written plus one. On error, return -1.
  */
-static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
-  const Segment_t *segp, unsigned int fileoffset, FILEFMT ffmt) {
+static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM *mem,
+  const Segment *segp, unsigned int fileoffset, FILEFMT ffmt) {
 
   const char *errstr;
   unsigned int nextaddr, baseaddr, maxaddr;
-  int lineno, rc, digits;
+  int lineno, rc;
   struct ihexsrec ihex;
 
   lineno   = 0;
   baseaddr = 0;
   maxaddr  = 0;
   nextaddr = 0;
-  digits = mem->size > 0x10000? 5: 4;
+  rewind(inf);
+
+  AVRMEM *any = fileio_any_memory("any");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -363,48 +517,78 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
     if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
       mmt_free(buffer);
-      return -1;
+      goto error;
     }
     if(rc != ihex.cksum) {
       if(ffmt == FMT_IHEX) {
         pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
         imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
         mmt_free(buffer);
-        return -1;
+        goto error;
       }
       // Just warn with more permissive format FMT_IHXC
       pmsg_notice("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_notice("checksum=0x%02x, computed checksum=0x%02x\n", ihex.cksum, rc);
     }
 
+    unsigned below = 0, anysize = any->size;
     switch (ihex.rectyp) {
       case 0: /* data record */
-        if (fileoffset != 0 && ihex.loadofs + baseaddr < fileoffset) {
-          pmsg_error("address 0x%04x out of range (below fileoffset 0x%x) at line %d of %s\n",
+        if(ihex.loadofs + baseaddr < fileoffset) {
+          if(!ovsigck) {
+            pmsg_error("address 0x%06x below memory offset 0x%x at line %d of %s;\n",
+              ihex.loadofs + baseaddr, fileoffset, lineno, infile);
+            imsg_error("use -F to skip this check\n");
+            mmt_free(buffer);
+            goto error;
+          }
+          pmsg_warning("address 0x%06x below memory offset 0x%x at line %d of %s: ",
             ihex.loadofs + baseaddr, fileoffset, lineno, infile);
-          mmt_free(buffer);
-          return -1;
+          below = fileoffset - baseaddr - ihex.loadofs;
+          if(below < ihex.reclen) { // Clip record
+            ihex.reclen -= below;
+            ihex.loadofs += below;
+          } else {              // Nothing to write
+            ihex.reclen = 0;
+          }
+          msg_warning("%s record\n", ihex.reclen? "clipping": "ignoring");
         }
         nextaddr = ihex.loadofs + baseaddr - fileoffset;
-        unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
-        if(nextaddr < beg || nextaddr + ihex.reclen-1 > end) {
-          pmsg_error("Intel Hex record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
-            digits, nextaddr, digits, nextaddr+ihex.reclen-1, digits, beg, digits, end);
-          imsg_error("at line %d of %s\n", lineno, infile);
-          mmt_free(buffer);
-          return -1;
+        if(ihex.reclen && nextaddr + ihex.reclen > anysize) {
+          if(!ovsigck) {
+            pmsg_error("Intel Hex record [0x%06x, 0x%06x] out of range [0, 0x%06x]\n",
+              nextaddr, nextaddr+ihex.reclen-1, anysize-1);
+            imsg_error("at line %d of %s; use -F to skip this check\n", lineno, infile);
+            mmt_free(buffer);
+            goto error;
+          }
+          pmsg_warning("Intel Hex record [0x%06x, 0x%06x] out of range [0, 0x%06x]: ",
+            nextaddr, nextaddr+ihex.reclen-1, anysize-1);
+          if(ihex.reclen && nextaddr + ihex.reclen > anysize) {
+            unsigned above = nextaddr + ihex.reclen - anysize;
+            ihex.reclen = above < ihex.reclen? ihex.reclen - above: 0; // Clip or zap
+          }
+          msg_warning("%s it\n", ihex.reclen? "clipping": "ignoring");
         }
         for(int i=0; i<ihex.reclen; i++) {
-          mem->buf[nextaddr+i] = ihex.data[i];
-          mem->tags[nextaddr+i] = TAG_ALLOCATED;
+          any->buf[nextaddr+i] = ihex.data[below + i];
+          any->tags[nextaddr+i] = TAG_ALLOCATED;
         }
-        if (nextaddr+ihex.reclen > maxaddr)
+        if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && ihex.reclen >= 3)
+          if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
+            pmsg_error("signature of %s incompatible with file's (%s);\n", p->desc,
+              str_ccmcunames_signature(any->buf+nextaddr, PM_ALL));
+            imsg_error("use -F to override this check\n");
+            mmt_free(buffer);
+            goto error;
+          }
+        if(ihex.reclen && nextaddr+ihex.reclen > maxaddr)
           maxaddr = nextaddr+ihex.reclen;
         break;
 
       case 1: /* end of file record */
         mmt_free(buffer);
-        return maxaddr;
+        goto done;
 
       case 2: /* extended segment address record */
         baseaddr = (ihex.data[0] << 8 | ihex.data[1]) << 4;
@@ -426,22 +610,32 @@ static int ihex2b(const char *infile, FILE *inf, const AVRMEM *mem,
         pmsg_error("do not know how to deal with rectype=%d "
           "at line %d of %s\n", ihex.rectyp, lineno, infile);
         mmt_free(buffer);
-        return -1;
+        goto error;
     }
   }
 
   if(errstr) {
     pmsg_error("read error in Intel Hex file %s: %s\n", infile, errstr);
-    return -1;
+    goto error;
   }
 
   if (maxaddr == 0) {
     pmsg_error("no valid record found in Intel Hex file %s\n", infile);
-    return -1;
+    goto error;
   }
 
   pmsg_warning("no end of file record found for Intel Hex file %s\n", infile);
-  return maxaddr;
+
+done:
+  rc = any2mem(p, mem, segp, any, maxaddr);
+  avr_free_mem(any);
+  if(!rc)
+    pmsg_warning("no %s data found in Intel Hex file %s\n", mem->desc, infile);
+  return rc;
+
+error:
+  avr_free_mem(any);
+  return -1;
 }
 
 static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, int addr_width) {
@@ -458,12 +652,12 @@ static unsigned int cksum_srec(const unsigned char *buf, int n, unsigned addr, i
 
 
 // Binary to Motorola S-Record, see https://en.wikipedia.org/wiki/SREC_(file_format)
-static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
+static int b2srec(const AVRMEM *mem, const Segment *segp, Segorder where,
   int recsize, int startaddr, const char *outfile_unused, FILE *outf) {
 
   const unsigned char *buf;
   unsigned int nextaddr;
-  int n, hiaddr, addr_width, reccount;
+  int n, hiaddr, addr_width;
 
   buf = mem->buf + segp->addr;
   nextaddr = startaddr + segp->addr;
@@ -500,9 +694,9 @@ static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
     for(int i = 0; i < len; i++)
       fprintf(outf, "%02X", s[i]);
     fprintf(outf, "%02X\n", cksum_srec((unsigned char *) s, len, 0, 2));
+    cx->reccount = 0;
   }
 
-  reccount = 0;
   for(int bufsize = segp->len; bufsize; bufsize -= n) {
     n = recsize;
     if(n > bufsize)
@@ -516,15 +710,15 @@ static int b2srec(const AVRMEM *mem, const Segment_t *segp, Segorder_t where,
     buf += n;
     nextaddr += n;
     hiaddr +=n;
-    reccount++;
+    cx->reccount++;
   }
 
   // Add S5/6 record count record and S7/8/9 end of data record
   if(where & LAST_SEG) {
-    if(reccount >= 0 && reccount <= 0xffffff) {
-      int wd = reccount <= 0xffff? 2: 3;
-      fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, reccount,
-        cksum_srec(NULL, 0, reccount, wd));
+    if(cx->reccount >= 0 && cx->reccount <= 0xffffff) {
+      int wd = cx->reccount <= 0xffff? 2: 3;
+      fprintf(outf, "S%c%02X%0*X%02X\n", '5' + (wd == 3), wd + 1, 2*wd, cx->reccount,
+        cksum_srec(NULL, 0, cx->reccount, wd));
     }
     fprintf(outf, "S%c%02X%0*X", endrec, addr_width + 1, 2*addr_width, startaddr);
     fprintf(outf, "%02X\n", cksum_srec(NULL, 0, startaddr, addr_width));
@@ -608,20 +802,22 @@ static int srec_readrec(struct ihexsrec *srec, char *rec) {
 }
 
 // Motorola S-Record to binary
-static int srec2b(const char *infile, FILE * inf,
-  const AVRMEM *mem, const Segment_t *segp, unsigned int fileoffset) {
+static int srec2b(const char *infile, FILE * inf, const AVRPART *p,
+  const AVRMEM *mem, const Segment *segp, unsigned int fileoffset) {
 
   const char *errstr;
   unsigned int nextaddr, maxaddr;
   struct ihexsrec srec;
-  int lineno, rc, digits, hexdigs;
+  int lineno, rc, hexdigs;
   unsigned int reccount;
   unsigned char datarec;
 
   lineno   = 0;
   maxaddr  = 0;
   reccount = 0;
-  digits = mem->size > 0x10000? 5: 4;
+  rewind(inf);
+
+  AVRMEM *any = fileio_any_memory("any");
 
   for(char *buffer; (buffer = str_fgets(inf, &errstr)); mmt_free(buffer)) {
     lineno++;
@@ -634,13 +830,13 @@ static int srec2b(const char *infile, FILE * inf,
     if(rc < 0) {
       pmsg_error("invalid record at line %d of %s\n", lineno, infile);
       mmt_free(buffer);
-      return -1;
+      goto error;
     }
     if(rc != srec.cksum) {
       pmsg_error("checksum mismatch at line %d of %s\n", lineno, infile);
       imsg_error("checksum=0x%02x, computed checksum=0x%02x\n", srec.cksum, rc);
       mmt_free(buffer);
-      return -1;
+      goto error;
     }
 
     datarec=0; 
@@ -666,14 +862,14 @@ static int srec2b(const char *infile, FILE * inf,
       case '4':                 // S4: symbol record (LSI extension)
         pmsg_error("not supported record at line %d of %s\n", lineno, infile);
         mmt_free(buffer);
-        return -1;
+        goto error;
 
       case '5':                 // S5: count of S1, S2 and S3 records previously tx'd
         if (srec.loadofs != reccount){
           pmsg_error("count of transmitted data records mismatch at line %d of %s\n", lineno, infile);
           imsg_error("transmitted data records= %d, expected value= %d\n", reccount, srec.loadofs);
           mmt_free(buffer);
-          return -1;
+          goto error;
         }
         break;
 
@@ -681,37 +877,68 @@ static int srec2b(const char *infile, FILE * inf,
       case '8':                 // S8: end record for 24 bit addresses
       case '9':                 // S9: end record for 16 bit addresses
         mmt_free(buffer);
-        return maxaddr;
+        goto done;
 
       default:
         pmsg_error("do not know how to deal with rectype S%d at line %d of %s\n",
           srec.rectyp, lineno, infile);
         mmt_free(buffer);
-        return -1;
+        goto error;
     }
 
     if (datarec == 1) {
       nextaddr = srec.loadofs;
+      unsigned below = 0, anysize = any->size;
       if (nextaddr < fileoffset) {
-        pmsg_error("address 0x%0*x below memory offset at line %d of %s\n",
-          hexdigs, nextaddr, lineno, infile);
-        mmt_free(buffer);
-        return -1;
+        if(!ovsigck) {
+          pmsg_error("address 0x%0*x below memory offset 0x%x at line %d of %s\n",
+            hexdigs, nextaddr, fileoffset, lineno, infile);
+          imsg_error("use -F to skip this check\n");
+          mmt_free(buffer);
+          goto error;
+        }
+        pmsg_warning("address 0x%0*x below memory offset 0x%x at line %d of %s: ",
+          hexdigs, nextaddr, fileoffset, lineno, infile);
+        below = fileoffset - nextaddr;
+        if(below < srec.reclen) { // Clip record
+          nextaddr += below;
+          srec.reclen -= below;
+        } else {                // Ignore record
+          srec.reclen = 0;
+        }
+        msg_warning("%s record\n", srec.reclen? "clipping": "ignoring");
       }
       nextaddr -= fileoffset;
-      unsigned int beg = segp->addr, end = segp->addr + segp->len-1;
-      if(nextaddr < beg || nextaddr + srec.reclen-1 > end) {
-        pmsg_error("Motorola S-Record [0x%0*x, 0x%0*x] out of range [0x%0*x, 0x%0*x]\n",
-          digits, nextaddr, digits, nextaddr+srec.reclen-1, digits, beg, digits, end);
-        imsg_error("at line %d of %s\n", lineno, infile);
-        mmt_free(buffer);
-        return -1;
+      if(srec.reclen && nextaddr + srec.reclen > anysize) {
+        if(!ovsigck) {
+          pmsg_error("Motorola S-Record [0x%06x, 0x%06x] out of range [0, 0x%06x]\n",
+            nextaddr, nextaddr+srec.reclen-1, anysize-1);
+          imsg_error("at line %d of %s; use -F to skip this check\n", lineno, infile);
+          mmt_free(buffer);
+          goto error;
+        }
+        pmsg_warning("Motorola S-Record [0x%06x, 0x%06x] out of range [0, 0x%06x]: ",
+          nextaddr, nextaddr+srec.reclen-1, anysize-1);
+        if(srec.reclen && nextaddr + srec.reclen > anysize) {
+          unsigned above = nextaddr + srec.reclen - anysize;
+          srec.reclen = above < srec.reclen? srec.reclen - above: 0; // Clip or zap
+        }
+        msg_warning("%s it\n", srec.reclen? "clipping": "ignoring");
       }
       for(int i=0; i<srec.reclen; i++) {
-        mem->buf[nextaddr+i] = srec.data[i];
-        mem->tags[nextaddr+i] = TAG_ALLOCATED;
+        any->buf[nextaddr+i] = srec.data[below + i];
+        any->tags[nextaddr+i] = TAG_ALLOCATED;
       }
-      if (nextaddr+srec.reclen > maxaddr)
+      if(!ovsigck && nextaddr == mulmem[MULTI_SIGROW].base && srec.reclen >= 3)
+        if(!avr_sig_compatible(p->signature, any->buf+nextaddr)) {
+          pmsg_error("signature of %s incompatible with file's (%s);\n", p->desc,
+            str_ccmcunames_signature(any->buf+nextaddr, PM_ALL));
+          imsg_error("use -F to override this check\n");
+          mmt_free(buffer);
+          goto error;
+        }
+
+      if(srec.reclen && nextaddr+srec.reclen > maxaddr)
         maxaddr = nextaddr+srec.reclen;
       reccount++;      
     }
@@ -719,11 +946,20 @@ static int srec2b(const char *infile, FILE * inf,
 
   if(errstr) {
     pmsg_error("read error in Motorola S-Record file %s: %s\n", infile, errstr);
-    return -1;
+    goto error;
   }
 
   pmsg_warning("no end of file record found for Motorola S-Records file %s\n", infile);
-  return maxaddr;
+done:
+  rc = any2mem(p, mem, segp, any, maxaddr);
+  avr_free_mem(any);
+  if(!rc)
+    pmsg_warning("no %s data found in Motorola S-Record file %s\n", mem->desc, infile);
+  return rc;
+
+error:
+  avr_free_mem(any);
+  return -1;
 }
 
 
@@ -740,8 +976,7 @@ static int srec2b(const char *infile, FILE * inf,
  * the entire ELF file "as is" (including things like the program
  * header table itself).
  */
-static inline
-int is_section_in_segment(Elf32_Shdr *sh, Elf32_Phdr *ph)
+static inline int is_section_in_segment(Elf32_Shdr *sh, Elf32_Phdr *ph)
 {
     if (sh->sh_offset < ph->p_offset)
         return 0;
@@ -768,32 +1003,36 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
     }
   } else {
     if (mem_is_in_flash(mem)) {
-      *lowbound = 0;
-      *highbound = 0x7Fffff;    // Max 8 MiB
+      *lowbound = MBASE(FLASH);
+      *highbound = MEND(FLASH); // Max 8 MiB
       *fileoff = 0;
     } else if (mem_is_io(mem) || mem_is_sram(mem)) { // IO & SRAM in data space
-      *lowbound = 0x800000 + mem->offset;
-      *highbound = 0x80ffff;
+      *lowbound = MBASE(DATA) + mem->offset;
+      *highbound = MEND(DATA);
       *fileoff = 0;
     } else if (mem_is_eeprom(mem)) {
-      *lowbound = 0x810000;
-      *highbound = 0x81ffff;    // Max 64 KiB
+      *lowbound = MBASE(EEPROM);
+      *highbound = MEND(EEPROM); // Max 64 KiB
       *fileoff = 0;
     } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
-      *lowbound = 0x820000;
-      *highbound = 0x82ffff;
+      *lowbound = MBASE(FUSES);
+      *highbound = MEND(FUSES);
       *fileoff = mem_is_a_fuse(mem)? mem_fuse_offset(mem): 0;
     } else if (mem_is_lock(mem)) { // Lock or lockbits
-      *lowbound = 0x830000;
-      *highbound = 0x83ffff;
+      *lowbound = MBASE(LOCK);
+      *highbound = MEND(LOCK);
       *fileoff = 0;
     } else if (mem_is_signature(mem)) { // Read only
-      *lowbound = 0x840000;
-      *highbound = 0x84ffff;
+      *lowbound = MBASE(SIGROW);
+      *highbound = MEND(SIGROW);
       *fileoff = 0;
     } else if (mem_is_userrow(mem)) { // usersig or userrow
-      *lowbound = 0x850000;
-      *highbound = 0x85ffff;
+      *lowbound = MBASE(USERROW);
+      *highbound = MEND(USERROW);
+      *fileoff = 0;
+    } else if (mem_is_bootrow(mem)) {
+      *lowbound = MBASE(BOOTROW);
+      *highbound = MEND(BOOTROW);
       *fileoff = 0;
     } else {
       rv = -1;
@@ -806,7 +1045,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
 
 // ELF format to binary (the memory segment to read into is ignored)
 static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
-  const AVRPART *p, const Segment_t *segp_unused, unsigned int fileoffset_unused) {
+  const AVRPART *p, const Segment *segp_unused, unsigned int fileoffset_unused) {
 
   Elf *e;
   int rv = 0, size = 0;
@@ -857,16 +1096,16 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
   }
 
   const char *endianname;
-  unsigned char endianess;
+  unsigned char endianness;
   if (p->prog_modes & PM_aWire) { // AVR32
-    endianess = ELFDATA2MSB;
+    endianness = ELFDATA2MSB;
     endianname = "little";
   } else {
-    endianess = ELFDATA2LSB;
+    endianness = ELFDATA2LSB;
     endianname = "big";
   }
   if (id[EI_CLASS] != ELFCLASS32 ||
-      id[EI_DATA] != endianess) {
+      id[EI_DATA] != endianness) {
     pmsg_error("ELF file %s is not a 32-bit, %s-endian file that was expected\n",
       infile, endianname);
     goto done;
@@ -921,8 +1160,8 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
     if (ph[i].p_type != PT_LOAD || ph[i].p_filesz == 0)
       continue;
 
-    pmsg_notice2("considering PT_LOAD program header entry #%d\n", (int) i);
-    imsg_notice2("p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
+    pmsg_debug("considering PT_LOAD program header entry #%d\n", (int) i);
+    imsg_debug("p_vaddr 0x%x, p_paddr 0x%x, p_filesz %d\n", ph[i].p_vaddr, ph[i].p_paddr, ph[i].p_filesz);
 
     Elf_Scn *scn = NULL;
     while ((scn = elf_nextscn(e, scn)) != NULL) {
@@ -947,10 +1186,10 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
       const char *sname = sndx? elf_strptr(e, sndx, sh->sh_name): "*unknown*";
       unsigned int lma = ph[i].p_paddr + sh->sh_offset - ph[i].p_offset;
 
-      pmsg_notice2("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
+      pmsg_debug("found section %s, LMA 0x%x, sh_size %u\n", sname, lma, sh->sh_size);
 
       if(!(lma >= low && lma + sh->sh_size < high)) {
-        imsg_notice2("skipping %s (inappropriate for %s)\n", sname, mem->desc);
+        pmsg_debug("skipping %s (inappropriate for %s)\n", sname, mem->desc);
         continue;
       }
       /*
@@ -970,7 +1209,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
 
       Elf_Data *d = NULL;
       while ((d = elf_getdata(scn, d)) != NULL) {
-        imsg_notice2("data block: d_buf %p, d_off 0x%x, d_size %ld\n",
+        pmsg_debug("data block: d_buf %p, d_off 0x%x, d_size %ld\n",
           d->d_buf, (unsigned int)d->d_off, (long) d->d_size);
         if (mem->size == 1) {
           if (d->d_off != 0) {
@@ -980,7 +1219,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
             pmsg_error("ELF file section does not contain byte at offset %d\n", foff);
             rv = -1;
           } else {
-            imsg_notice2("extracting one byte from file offset %d\n", foff);
+            pmsg_debug("extracting one byte from file offset %d\n", foff);
             mem->buf[0] = ((unsigned char *)d->d_buf)[foff];
             mem->tags[0] = TAG_ALLOCATED;
             size = 1;
@@ -992,7 +1231,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
           if(idx >= 0 && idx < mem->size && end >= 0 && end <= mem->size && end-idx >= 0) {
             if (end > size)
               size = end;
-            imsg_debug("writing %d bytes to mem offset 0x%x\n", end-idx, idx);
+            pmsg_debug("writing %d bytes to mem offset 0x%x\n", end-idx, idx);
             memcpy(mem->buf + idx, d->d_buf, end-idx);
             memset(mem->tags + idx, TAG_ALLOCATED, end-idx);
           } else {
@@ -1013,7 +1252,7 @@ done:
 
 // Read/write binary files and return highest memory addr set + 1
 static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp) {
+  const AVRMEM *mem, const Segment *segp) {
 
   int rc;
   switch (fio->op) {
@@ -1041,7 +1280,7 @@ static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
- const AVRMEM *mem, const Segment_t *segp) {
+ const AVRMEM *mem, const Segment *segp) {
 
   char *tok, *p, *line;
   const char *errstr;
@@ -1080,17 +1319,17 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 
 
 static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, FILEFMT ffmt, Segorder_t where) {
+  const AVRPART *p, const AVRMEM *mem, const Segment *segp, FILEFMT ffmt, Segorder where) {
 
   int rc;
 
   switch (fio->op) {
     case FIO_WRITE:
-      rc = b2ihex(mem->buf, segp, where, 32, fio->fileoffset, filename, f, ffmt);
+      rc = b2ihex(p, mem, segp, where, 32, fio->fileoffset, filename, f, ffmt);
       break;
 
     case FIO_READ:
-      rc = ihex2b(filename, f, mem, segp, fio->fileoffset, ffmt);
+      rc = ihex2b(filename, f, p, mem, segp, fio->fileoffset, ffmt);
       break;
 
     default:
@@ -1103,7 +1342,7 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
 
 
 static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, Segorder_t where) {
+  const AVRPART* p, const AVRMEM *mem, const Segment *segp, Segorder where) {
 
   int rc;
 
@@ -1113,7 +1352,7 @@ static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
       break;
 
     case FIO_READ:
-      rc = srec2b(filename, f, mem, segp, fio->fileoffset);
+      rc = srec2b(filename, f, p, mem, segp, fio->fileoffset);
       break;
 
     default:
@@ -1127,7 +1366,7 @@ static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
 
 #ifdef HAVE_LIBELF
 static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const AVRPART *p, const Segment_t *segp) {
+  const AVRMEM *mem, const AVRPART *p, const Segment *segp) {
 
   int rc;
 
@@ -1151,7 +1390,7 @@ static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
 #endif
 
 
-static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment_t *segp, FILEFMT fmt) {
+static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment *segp, FILEFMT fmt) {
   const char *prefix;
   int base;
 
@@ -1215,7 +1454,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
 }
 
 
-static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment_t *segp) {
+static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment *segp) {
   const char *geterr = NULL;
   char *line;
   int n = segp->addr, end = segp->addr + segp->len;
@@ -1251,7 +1490,7 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment
 
 
 static int fileio_num(struct fioparms *fio, const char *filename, FILE *f,
-  const AVRMEM *mem, const Segment_t *segp, FILEFMT fmt) {
+  const AVRMEM *mem, const Segment *segp, FILEFMT fmt) {
 
   switch (fio->op) {
     case FIO_WRITE:
@@ -1410,6 +1649,16 @@ int fileio_fmt_autodetect(const char *fname) {
 }
 
 
+int fileio_mem(int op, const char *filename, FILEFMT format,
+  const AVRPART *p, const AVRMEM *mem, int size) {
+
+  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
+    size = mem->size;
+
+  const Segment seg = {0, size};
+  return fileio_segments(op, filename, format, p, mem, 1, &seg);
+}
+
 
 int fileio(int op, const char *filename, FILEFMT format,
   const AVRPART *p, const char *memstr, int size) {
@@ -1420,16 +1669,12 @@ int fileio(int op, const char *filename, FILEFMT format,
     return -1;
   }
 
-  if(size < 0 || op == FIO_READ || op == FIO_READ_FOR_VERIFY)
-    size = mem->size;
-
-  const Segment_t seg = {0, size};
-  return fileio_segments(op, filename, format, p, mem, 1, &seg);
+  return fileio_mem(op, filename, format, p, mem, size);
 }
 
 
 // Normalise segment address and length to be non-negative
-int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
+int segment_normalise(const AVRMEM *mem, Segment *segp) {
   int addr = segp->addr, len = segp->len, maxsize = mem->size;
   int digits = maxsize > 0x10000? 5: 4;
 
@@ -1459,7 +1704,7 @@ int segment_normalise(const AVRMEM *mem, Segment_t *segp) {
 
 
 static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, const AVRMEM *mem, int n, Segment_t *seglist) {
+  const AVRPART *p, const AVRMEM *mem, int n, Segment *seglist) {
 
   int op, rc;
   FILE * f;
@@ -1489,7 +1734,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     int format_detect;
 
     if (using_stdio) {
-      pmsg_error("cannot auto detect file format when using stdin/out\n");
+      pmsg_error("cannot auto detect file format when using stdin/out;\n");
       imsg_error("please specify a file format and try again\n");
       return -1;
     }
@@ -1541,10 +1786,8 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     if(fio.op == FIO_READ) // Fill unspecified memory in segment
       memset(mem->buf+addr, 0xff, len);
     memset(mem->tags+addr, 0, len);
-    Segorder_t where = 0;
 
-    if(i == 0)
-      where |= FIRST_SEG;
+    Segorder where = i == 0? FIRST_SEG: 0;
     if(i+1 == n)
       where |= LAST_SEG;
 
@@ -1552,11 +1795,11 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
     switch(format) {
     case FMT_IHEX:
     case FMT_IHXC:
-      thisrc = fileio_ihex(&fio, fname, f, mem, seglist+i, format, where);
+      thisrc = fileio_ihex(&fio, fname, f, p, mem, seglist+i, format, where);
       break;
 
     case FMT_SREC:
-      thisrc = fileio_srec(&fio, fname, f, mem, seglist+i, where);
+      thisrc = fileio_srec(&fio, fname, f, p, mem, seglist+i, where);
       break;
 
     case FMT_RBIN:
@@ -1610,9 +1853,9 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
 }
 
 int fileio_segments(int oprwv, const char *filename, FILEFMT format,
-  const AVRPART *p, const AVRMEM *mem, int n, const Segment_t *list) {
+  const AVRPART *p, const AVRMEM *mem, int n, const Segment *list) {
 
-  Segment_t *seglist = mmt_malloc(n*sizeof*seglist);
+  Segment *seglist = mmt_malloc(n*sizeof*seglist);
   memcpy(seglist, list, n*sizeof*seglist);
   int ret = fileio_segments_normalise(oprwv, filename, format, p, mem, n, seglist);
   mmt_free(seglist);

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 %{
 #include <math.h>
@@ -149,7 +147,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
 
 
 (?x: desc | prog_modes | is_serialadapter | extra_features | baudrate | usbvid | usbdev | usbsn | usbvendor | usbproduct |
-  family_id | mcuid | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
+  family_id | mcuid | archnum | n_interrupts | n_page_erase | n_boot_sections | boot_section_size |
   hvupdi_variant | stk500_devcode | avr910_devcode | chip_erase_delay | pagel | bs2 |
   timeout | stabdelay | cmdexedelay | synchloops | bytedelay | pollindex | pollvalue | predelay | postdelay | pollmethod |
   hventerstabdelay | progmodedelay | latchcycles | togglevtg | poweroffdelay | resetdelayms | resetdelayus | resetdelay | hvleavestabdelay |
@@ -159,7 +157,7 @@ INF  [Ii][Nn][Ff]([Ii][Nn][Ii][Tt][Yy])?
   paged | size | num_pages | initval | bitmask | n_word_writes | offset | min_write_delay | max_write_delay | pwroff_after_write |
   readback_p1 | readback_p2 | mode | delay | blocksize | readsize ) {
   /* struct components for PROGRAMMER, AVRPART and AVRMEM */
-  Component_t *cp = cfg_comp_search(yytext, current_strct);
+  Component *cp = cfg_comp_search(yytext, current_strct);
   if(!cp) {
     yyerror("unknown component %s in %s", yytext, cfg_strct_name(current_strct));
     return YYERRCODE;
@@ -226,7 +224,8 @@ part             { yylval=NULL; ccap(); current_strct = COMP_AVRPART; return K_P
 pgm_enable       { yylval=new_token(K_PGM_ENABLE); ccap(); return K_PGM_ENABLE; }
 pgmled           { yylval=NULL; ccap(); return K_PGMLED; }
 pp_controlstack  { yylval=NULL; ccap(); return K_PP_CONTROLSTACK; }
-(programmer|serialadapter) { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER; return K_PROGRAMMER; }
+(programmer|serialadapter) { yylval=NULL; ccap(); current_strct = COMP_PROGRAMMER;
+                   cx->lex_kw_is_programmer = *yytext == 'p'; return K_PROGRAMMER; }
 rdyled           { yylval=NULL; ccap(); return K_RDYLED; }
 read             { yylval=new_token(K_READ); ccap(); return K_READ; }
 read_hi          { yylval=new_token(K_READ_HI); ccap(); return K_READ_HI; }

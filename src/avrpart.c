@@ -1,7 +1,9 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2022- Stefan Rueger <stefan.rueger@urclocks.com>
+ * Copyright (C) 2023- Hans Eirik Bull
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 #include <stdlib.h>
 #include <string.h>
@@ -304,12 +304,43 @@ AVRMEM *avr_new_mem(void) {
   return m;
 }
 
+// Create memory from name and size
+AVRMEM *avr_new_memory(const char *name, int size) {
+  AVRMEM *m = (AVRMEM *) mmt_malloc(sizeof(*m));
+  m->desc = cache_string(name);
+  m->page_size = 1;             // Ensure not 0
+  m->size = size;
+  m->buf = mmt_malloc(size);
+  m->tags = mmt_malloc(size);
+  m->initval = -1;              // Unknown value represented as -1
+  m->bitmask = -1;              // Default to -1
+
+  return m;
+}
+
 AVRMEM_ALIAS *avr_new_memalias(void) {
   AVRMEM_ALIAS *m = (AVRMEM_ALIAS *) mmt_malloc(sizeof *m);
   m->desc = cache_string("");
   return m;
 }
 
+// Return longer name of memory including alias if any, eg, fuse7/codesize
+const char *avr_mem_name(const AVRPART *p, const AVRMEM *mem) {
+  char ret[1024];
+  const int n = sizeof ret - 1;
+
+  strncpy(ret, mem->desc, n/2);
+  ret[n/2] = 0;
+
+  AVRMEM_ALIAS *alias = avr_find_memalias(p, mem);
+  if(alias && alias->desc && *alias->desc) {
+    int l = strlen(ret);
+    ret[l] = '/';
+    strncpy(ret+l+1, alias->desc, n-l-1);
+    ret[n] = 0;
+  }
+  return cache_string(ret);
+}
 
 /*
  * Allocate and initialize memory buffers for each of the device's
@@ -462,10 +493,10 @@ AVRMEM *avr_locate_fuse_by_offset(const AVRPART *p, unsigned int off) {
 }
 
 // Return the first memory that shares the type incl any fuse identified by offset in fuses
-AVRMEM *avr_locate_mem_by_type(const AVRPART *p, memtype_t type) {
+AVRMEM *avr_locate_mem_by_type(const AVRPART *p, Memtype type) {
   AVRMEM *m;
-  memtype_t off = type & MEM_FUSEOFF_MASK;
-  type &= ~(memtype_t) MEM_FUSEOFF_MASK;
+  Memtype off = type & MEM_FUSEOFF_MASK;
+  type &= ~(Memtype) MEM_FUSEOFF_MASK;
 
   if(p && p->mem)
     for(LNODEID ln=lfirst(p->mem); ln; ln=lnext(ln))
@@ -510,8 +541,16 @@ int avr_locate_upidx(const AVRPART *p) {
   return idx;
 }
 
+// Return pointer to uP_table entry for part p
+const Avrintel *avr_locate_uP(const AVRPART *p) {
+  int idx = avr_locate_upidx(p);
+
+  return idx < 0? NULL: uP_table + idx;
+}
+
+
 // Return pointer to config table for the part and set number of config bitfields
-const Configitem_t *avr_locate_configitems(const AVRPART *p, int *ncp) {
+const Configitem *avr_locate_configitems(const AVRPART *p, int *ncp) {
   int idx = avr_locate_upidx(p);
   if(idx < 0)
     return NULL;
@@ -531,7 +570,7 @@ const char * const *avr_locate_isrtable(const AVRPART *p, int *nip) {
 }
 
 // Return pointer to register file for the part and set number of registers
-const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp) {
+const Register_file *avr_locate_register_file(const AVRPART *p, int *nrp) {
   int idx = avr_locate_upidx(p);
   if(idx < 0)
     return NULL;
@@ -556,13 +595,13 @@ const Register_file_t *avr_locate_register_file(const AVRPART *p, int *nrp) {
  * though there are other registers that start with adc, eg, adc.adcsra.
  */
 
-const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, const char *reg,
+const Register_file *avr_locate_register(const Register_file *rgf, int nr, const char *reg,
   int (*match)(const char *, const char*)) {
 
   if(!rgf || nr < 1 || !reg || !match)
     return NULL;
 
-  const Register_file_t *ret = NULL;
+  const Register_file *ret = NULL;
   int nmatches = 0, eqmatch = match == str_eq;
 
   for(int i = 0; i < nr; i++) {
@@ -597,10 +636,10 @@ const Register_file_t *avr_locate_register(const Register_file_t *rgf, int nr, c
  * behaviour can be suppressed by specifying a pattern for reg, eg, adc*
  * together with the matching function str_matched_by.
  */
-const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int nr, const char *reg,
+const Register_file **avr_locate_registerlist(const Register_file *rgf, int nr, const char *reg,
   int (*match)(const char *, const char*)) {
 
-  const Register_file_t **ret = mmt_malloc(sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
+  const Register_file **ret = mmt_malloc(sizeof rgf*(nr>0? nr+1: 1)), **r = ret;
   int eqmatch = match == str_eq;
 
   if(rgf && reg && match)
@@ -635,13 +674,13 @@ const Register_file_t **avr_locate_registerlist(const Register_file_t *rgf, int 
  * str_matched_by etc. If name is the full name of a configuration bitfield
  * then a pointer to that is returned irrespective of the matching function.
  */
-const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const char *name,
+const Configitem *avr_locate_config(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char*)) {
 
   if(!cfg || nc < 1 || !name || !match)
     return NULL;
 
-  const Configitem_t *ret = NULL;
+  const Configitem *ret = NULL;
   int nmatches = 0;
 
   for(int i = 0; i < nc; i++) {
@@ -663,10 +702,10 @@ const Configitem_t *avr_locate_config(const Configitem_t *cfg, int nc, const cha
  * returned list is confined to this specific entry irrespective of the
  * matching function.
  */
-const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, const char *name,
+const Configitem **avr_locate_configlist(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char*)) {
 
-  const Configitem_t **ret = mmt_malloc(sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
+  const Configitem **ret = mmt_malloc(sizeof cfg*(nc>0? nc+1: 1)), **r = ret;
 
   if(cfg && name && match) {
     for(int i = 0; i < nc; i++)
@@ -684,19 +723,19 @@ const Configitem_t **avr_locate_configlist(const Configitem_t *cfg, int nc, cons
   return ret;
 }
 
-// Return memory associated with config item and fill in pointer to Configitem_t record
+// Return memory associated with config item and fill in pointer to Configitem record
 static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPART *p,
-  const char *cname, const Configitem_t **cp, int *valp) {
+  const char *cname, const Configitem **cp, int *valp) {
 
   int nc = 0;
-  const Configitem_t *cfg = avr_locate_configitems(p, &nc);
+  const Configitem *cfg = avr_locate_configitems(p, &nc);
 
   if(!cfg || nc < 1) {
     pmsg_error("avrintel.c does not hold configuration information for %s\n", p->desc);
     return NULL;
   }
 
-  const Configitem_t *c = avr_locate_config(cfg, nc, cname, str_contains);
+  const Configitem *c = avr_locate_config(cfg, nc, cname, str_contains);
   if(!c) {
     pmsg_error("%s does not have a unique config item matched by %s\n", p->desc, cname);
     return NULL;
@@ -729,20 +768,21 @@ static AVRMEM *avr_locate_config_mem_c_value(const PROGRAMMER *pgm, const AVRPAR
 
 // Initialise *valuep with configuration value of named configuration bitfield
 int avr_get_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int *valuep) {
-  const Configitem_t *c;
+  const Configitem *c;
   int fusel;
 
   if(!avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel))
     return -1;
 
-  *valuep = (fusel & c->mask) >> c->lsh;
+  if(valuep)
+    *valuep = (fusel & c->mask) >> c->lsh;
   return 0;
 }
 
 // Set configuration value of named configuration bitfield to value
 int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cname, int value) {
   AVRMEM *mem;
-  const Configitem_t *c;
+  const Configitem *c;
   int fusel;
 
   if(!(mem=avr_locate_config_mem_c_value(pgm, p, cname, &c, &fusel)))
@@ -766,7 +806,7 @@ int avr_set_config_value(const PROGRAMMER *pgm, const AVRPART *p, const char *cn
 
 
 static char *print_num(const char *fmt, int n) {
-  return str_sprintf(n<10? "%d": fmt, n);
+  return mmt_sprintf(n<10? "%d": fmt, n);
 }
 
 static int num_len(const char *fmt, int n) {
@@ -835,7 +875,7 @@ void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix) {
 
     // Create mem desc string including alias if present
     AVRMEM_ALIAS *a = avr_find_memalias(p, m);
-    char *m_desc_str = str_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
+    char *m_desc_str = mmt_sprintf("%s%s%s", m->desc, a? "/": "", a? a->desc: "");
 
     // Print memory table content
     if(p->prog_modes & (PM_PDI | PM_UPDI)) {
@@ -1029,12 +1069,16 @@ AVRPART *locate_part_by_avr910_devcode(const LISTID parts, int devcode) {
   return NULL;
 }
 
+// Return pointer to first part that has signature sig (unless all 0xff or all 0x00); NULL if no match
 AVRPART *locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes) {
   if(parts && sigsize == 3) {
     for(LNODEID ln=lfirst(parts); ln; ln=lnext(ln)) {
       AVRPART *p = ldata(ln);
-      if(memcmp(p->signature, sig, 3) == 0 && p->prog_modes & prog_modes)
-        return p;
+      if(!*p->id || *p->id == '.') // Skip stump entries
+        continue;
+      if(!is_memset(p->signature, 0xff, 3) && !is_memset(p->signature, 0, 3))
+        if(!memcmp(p->signature, sig, 3) && p->prog_modes & prog_modes)
+          return p;
     }
   }
   return NULL;
@@ -1042,6 +1086,48 @@ AVRPART *locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int
 
 AVRPART *locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize) {
   return locate_part_by_signature_pm(parts, sig, sigsize, PM_ALL);
+}
+
+// Return whether two signatures represent SW-compatible parts
+int avr_sig_compatible(const unsigned char *sig1, const unsigned char *sig2) {
+  // SW-compatible parts (same memories, interrupts and regfiles) despite different signatures
+  static const struct { unsigned char sig[3], equ[3]; } compat[] = {
+    {{0x1e, 0x97, 0x06}, {0x1e, 0x97, 0x05}}, // ATmega1284 vs ATmega1284P
+    {{0x1e, 0xa7, 0x03}, {0x1e, 0xa7, 0x02}}, // ATmega1284RFR2 vs ATmega128RFR2
+    {{0x1e, 0x94, 0x0f}, {0x1e, 0x94, 0x0a}}, // ATmega164A vs ATmega164P=ATmega164PA
+    {{0x1e, 0x94, 0x10}, {0x1e, 0x94, 0x07}}, // ATmega165A vs ATmega165=ATmega165=ATmega165PA
+    {{0x1e, 0x94, 0x06}, {0x1e, 0x94, 0x0b}}, // ATmega168=ATmega168A vs ATmega168P=ATmega168PA
+    {{0x1e, 0x94, 0x11}, {0x1e, 0x94, 0x05}}, // ATmega169A vs ATmega169=ATmega169P=ATmega169PA
+    {{0x1e, 0xa8, 0x03}, {0x1e, 0xa8, 0x02}}, // ATmega2564RFR2 vs ATmega256RFR2
+    {{0x1e, 0x95, 0x15}, {0x1e, 0x95, 0x08}}, // ATmega324A vs ATmega324P
+    {{0x1e, 0x95, 0x15}, {0x1e, 0x95, 0x11}}, // ATmega324A vs ATmega324PA
+    {{0x1e, 0x95, 0x08}, {0x1e, 0x95, 0x11}}, // ATmega324P vs ATmega324PA
+    {{0x1e, 0x95, 0x06}, {0x1e, 0x95, 0x0e}}, // ATmega3250=ATmega3250A vs ATmega3250P=ATmega3250PA
+    {{0x1e, 0x95, 0x05}, {0x1e, 0x95, 0x0d}}, // ATmega325=ATmega325A vs ATmega325P=ATmega325PA
+    {{0x1e, 0x95, 0x04}, {0x1e, 0x95, 0x0c}}, // ATmega3290=ATmega3290A vs ATmega3290P=ATmega3290PA
+    {{0x1e, 0x95, 0x03}, {0x1e, 0x95, 0x0b}}, // ATmega329=ATmega329A vs ATmega329P=ATmega329PA
+    {{0x1e, 0x92, 0x05}, {0x1e, 0x92, 0x0a}}, // ATmega48=ATmega48A vs ATmega48P=ATmega48PA
+    {{0x1e, 0x92, 0x05}, {0x1e, 0x92, 0x0a}}, // ATmega48=ATmega48A vs ATmega48P=ATmega48PA
+    {{0x1e, 0x96, 0x09}, {0x1e, 0x96, 0x0a}}, // ATmega644=ATmega644A vs ATmega644P=ATmega644PA
+    {{0x1e, 0xa6, 0x03}, {0x1e, 0xa6, 0x02}}, // ATmega644RFR2 vs ATmega64RFR2
+    {{0x1e, 0x96, 0x06}, {0x1e, 0x96, 0x0e}}, // ATmega6450=ATmega6450A vs ATmega6450P
+    {{0x1e, 0x96, 0x05}, {0x1e, 0x96, 0x0d}}, // ATmega645=ATmega645A vs ATmega645P
+    {{0x1e, 0x96, 0x04}, {0x1e, 0x96, 0x0c}}, // ATmega6490=ATmega6490A vs ATmega6490P
+    {{0x1e, 0x96, 0x03}, {0x1e, 0x96, 0x0b}}, // ATmega649=ATmega649A vs ATmega649P
+    {{0x1e, 0x93, 0x0a}, {0x1e, 0x93, 0x0f}}, // ATmega88=ATmega88A=ATA6612C vs ATmega88P=ATmega88PA
+  };
+
+  if(!memcmp(sig1, sig2, 3))
+    return 1;
+
+  for(size_t i = 0; i < sizeof compat/sizeof *compat; i++) {
+    if(!memcmp(sig1, compat[i].sig, 3) && !memcmp(sig2, compat[i].equ, 3))
+      return 1;
+    if(!memcmp(sig2, compat[i].sig, 3) && !memcmp(sig1, compat[i].equ, 3))
+      return 1;
+  }
+
+  return 0;
 }
 
 /*
@@ -1066,7 +1152,7 @@ void walk_avrparts(LISTID avrparts, walk_avrparts_cb cb, void *cookie)
 }
 
 /*
- * Compare function to sort the list of programmers
+ * Compare function to sort a list of parts
  */
 static int sort_avrparts_compare(const AVRPART *p1, const AVRPART *p2) {
   if(p1 == NULL || p1->desc == NULL || p2 == NULL || p2->desc == NULL)
@@ -1076,51 +1162,17 @@ static int sort_avrparts_compare(const AVRPART *p1, const AVRPART *p2) {
 }
 
 /*
- * Sort the list of programmers given as "programmers"
+ * Sort the list avrparts of parts
  */
 void sort_avrparts(LISTID avrparts)
 {
   lsort(avrparts,(int (*)(void*, void*)) sort_avrparts_compare);
 }
 
-const char *avr_prog_modes_str(int pm) {
-  static char type[1024];
-
-  strcpy(type, "0");
-  if(pm & PM_TPI)
-    strcat(type, ", TPI");
-  if(pm & PM_ISP)
-    strcat(type, ", ISP");
-  if(pm & PM_PDI)
-    strcat(type, ", PDI");
-  if(pm & PM_UPDI)
-    strcat(type, ", UPDI");
-  if(pm & PM_HVSP)
-    strcat(type, ", HVSP");
-  if(pm & PM_HVPP)
-    strcat(type, ", HVPP");
-  if(pm & PM_debugWIRE)
-    strcat(type, ", debugWIRE");
-  if(pm & PM_JTAG)
-    strcat(type, ", JTAG");
-  if(pm & PM_JTAGmkI)
-    strcat(type, ", JTAGmkI");
-  if(pm & PM_XMEGAJTAG)
-    strcat(type, ", XMEGAJTAG");
-  if(pm & PM_AVR32JTAG)
-    strcat(type, ", AVR32JTAG");
-  if(pm & PM_aWire)
-    strcat(type, ", aWire");
-  if(pm & PM_SPM)
-    strcat(type, ", SPM");
-
-  return type + (type[1] == 0? 0: 3);
-}
-
 
 void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose) {
-  fprintf(f, "%sAVR Part              : %s\n", prefix, p->desc);
-  fprintf(f, "%sProgramming modes     : %s\n", prefix, avr_prog_modes_str(p->prog_modes));
+  fprintf(f, "%sAVR part              : %s\n", prefix, p->desc);
+  fprintf(f, "%sProgramming modes     : %s\n", prefix, str_prog_modes(p->prog_modes));
 
   if(verbose > 1) {
     avr_mem_display(f, p, prefix);

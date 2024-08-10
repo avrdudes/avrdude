@@ -1,8 +1,8 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
- * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
- * Copyright 2008 Klaus Leidinger <klaus@mikrocontroller-projekte.de>
+ * Copyright (C) 2003-2004 Theodore A. Roth <troth@openavr.org>
+ * Copyright (C) 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2008 Klaus Leidinger <klaus@mikrocontroller-projekte.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 /*
  * avrdude interface for Atmel Low Cost Serial programmers which adher to the
@@ -308,22 +306,21 @@ static int avr910_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
 
 
 static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_starts(extended_param, "devcode=")) {
       int devcode;
       if (sscanf(extended_param, "devcode=%i", &devcode) != 1 ||
 	  devcode <= 0 || devcode > 255) {
-        pmsg_error("invalid devcode '%s'\n", extended_param);
+        pmsg_error("invalid device code in -x %s\n", extended_param);
         rv = -1;
-        continue;
+        break;
       }
-      pmsg_notice2("avr910_parseextparms(): devcode overwritten as 0x%02x\n", devcode);
+      pmsg_notice2("%s(): devcode overwritten as 0x%02x\n", __func__, devcode);
       PDATA(pgm)->devcode = devcode;
 
       continue;
@@ -335,15 +332,19 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
       continue;
     }
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xdevcode=<arg> Override device code\n");
-      msg_error("  -xno_blockmode  Disable default checking for block transfer capability\n");
-      msg_error("  -xhelp          Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x devcode=<n>   Set device code to <n> (0x.. hex, 0... oct or dec)\n");
+    msg_error("  -x no_blockmode  Disable default checking for block transfer capability\n");
+    msg_error("  -x help          Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;

@@ -254,7 +254,7 @@ typedef void * LNODEID;
 typedef void * LISTID;
 typedef struct avrmem AVRMEM;
 typedef struct avrmem_alias AVRMEM_ALIAS;
-typedef struct programmer_t PROGRAMMER;
+typedef struct programmer PROGRAMMER;
 typedef void pgm_initpgm(PROGRAMMER*);
 
 enum msglvl {
@@ -405,9 +405,9 @@ typedef enum {
 
 // https://stackoverflow.com/questions/11023940/how-do-i-get-swig-to-automatically-wrap-an-emulated-this-pointer-to-a-c-struct/11029809#11029809
 // Make sure the wrapped function doesn't expect an input for this:
-%typemap(in, numinputs=0) struct programmer_t *pgm "$1=NULL;"
+%typemap(in, numinputs=0) struct programmer *pgm "$1=NULL;"
 // Slightly abuse check typemap, but it needs to happen after the rest of the arguments have been set:
-%typemap(check) struct programmer_t *pgm {
+%typemap(check) struct programmer *pgm {
   $1 = arg1;
 }
 
@@ -518,19 +518,19 @@ typedef enum {
     SWIG_exception_fail(SWIG_RuntimeError, "pgm->get_sck_period is NULL");
   }
 }
-%typemap(check) (struct programmer_t *pgm_setup) {
+%typemap(check) (struct programmer *pgm_setup) {
   if ((arg1)->setup == NULL) {
     SWIG_exception_fail(SWIG_RuntimeError, "pgm->setup is NULL");
   }
 }
-%typemap(check) (struct programmer_t *pgm_teardown) {
+%typemap(check) (struct programmer *pgm_teardown) {
   if ((arg1)->teardown == NULL) {
     SWIG_exception_fail(SWIG_RuntimeError, "pgm->teardown is NULL");
   }
 }
 
 %immutable;
-typedef struct programmer_t {
+typedef struct programmer {
   LISTID id;
   const char *desc;
   int prog_modes;               // Programming interfaces, see #define PM_...
@@ -543,49 +543,49 @@ typedef struct programmer_t {
   char type[PGM_TYPELEN];
 
   // methods; they must *not* be declares as pointers
-  void initpgm        (struct programmer_t *pgm); // Sets up the AVRDUDE programmer
-  int  initialize     (const struct programmer_t *pgm, const AVRPART *p); // Sets up the physical programmer
-  void setup          (struct programmer_t *pgm);
-  void teardown       (struct programmer_t *pgm);
-  int  parseextparams (const struct programmer_t *pgm, const LISTID xparams);
-  int  parseexitspecs (struct programmer_t *pgm, const char *s);
-  int  open           (struct programmer_t *pgm, const char *port);
-  void close          (struct programmer_t *pgm);
-  void enable         (struct programmer_t *pgm, const AVRPART *p);
-  void disable        (const struct programmer_t *pgm);
-  int  read_sib       (const struct programmer_t *pgm, const AVRPART *p, char *sib);
-  void powerup        (const struct programmer_t *pgm);
-  void powerdown      (const struct programmer_t *pgm);
+  void initpgm        (struct programmer *pgm); // Sets up the AVRDUDE programmer
+  int  initialize     (const struct programmer *pgm, const AVRPART *p); // Sets up the physical programmer
+  void setup          (struct programmer *pgm);
+  void teardown       (struct programmer *pgm);
+  int  parseextparams (const struct programmer *pgm, const LISTID xparams);
+  int  parseexitspecs (struct programmer *pgm, const char *s);
+  int  open           (struct programmer *pgm, const char *port);
+  void close          (struct programmer *pgm);
+  void enable         (struct programmer *pgm, const AVRPART *p);
+  void disable        (const struct programmer *pgm);
+  int  read_sib       (const struct programmer *pgm, const AVRPART *p, char *sib);
+  void powerup        (const struct programmer *pgm);
+  void powerdown      (const struct programmer *pgm);
 
-  int  chip_erase     (const struct programmer_t *pgm, const AVRPART *p);
-  int  term_keep_alive(const struct programmer_t *pgm, const AVRPART *p);
-  int  end_programming(const struct programmer_t *pgm, const AVRPART *p);
+  int  chip_erase     (const struct programmer *pgm, const AVRPART *p);
+  int  term_keep_alive(const struct programmer *pgm, const AVRPART *p);
+  int  end_programming(const struct programmer *pgm, const AVRPART *p);
 
-  void print_parms    (const struct programmer_t *pgm, FILE *f_parms);
-  int  set_vtarget    (const struct programmer_t *pgm, double vtarg_in);
-  int  get_vtarget    (const struct programmer_t *pgm, double *vtarg_out);
-  int  set_varef      (const struct programmer_t *pgm, unsigned int chan, double varef_in);
-  int  get_varef      (const struct programmer_t *pgm, unsigned int chan, double *varef_out);
-  int  set_fosc       (const struct programmer_t *pgm, double fosc_in);
-  int  get_fosc       (const struct programmer_t *pgm, double *fosc_out);
-  int  set_sck_period (const struct programmer_t *pgm, double sck_in);
-  int  get_sck_period (const struct programmer_t *pgm, double *sck_out);
+  void print_parms    (const struct programmer *pgm, FILE *f_parms);
+  int  set_vtarget    (const struct programmer *pgm, double vtarg_in);
+  int  get_vtarget    (const struct programmer *pgm, double *vtarg_out);
+  int  set_varef      (const struct programmer *pgm, unsigned int chan, double varef_in);
+  int  get_varef      (const struct programmer *pgm, unsigned int chan, double *varef_out);
+  int  set_fosc       (const struct programmer *pgm, double fosc_in);
+  int  get_fosc       (const struct programmer *pgm, double *fosc_out);
+  int  set_sck_period (const struct programmer *pgm, double sck_in);
+  int  get_sck_period (const struct programmer *pgm, double *sck_out);
   // Cached r/w API for terminal reads/writes
-  int write_byte_cached(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+  int write_byte_cached(const struct programmer *pgm, const AVRPART *p, const AVRMEM *m,
                         unsigned long addr, unsigned char value);
-  int read_byte_cached(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+  int read_byte_cached(const struct programmer *pgm, const AVRPART *p, const AVRMEM *m,
                         unsigned long addr, unsigned char *value);
-  int chip_erase_cached(const struct programmer_t *pgm, const AVRPART *p);
-  int page_erase_cached(const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+  int chip_erase_cached(const struct programmer *pgm, const AVRPART *p);
+  int page_erase_cached(const struct programmer *pgm, const AVRPART *p, const AVRMEM *m,
                         unsigned int baseaddr);
-  int readonly        (const struct programmer_t *pgm, const AVRPART *p, const AVRMEM *m,
+  int readonly        (const struct programmer *pgm, const AVRPART *p, const AVRMEM *m,
                         unsigned int addr);
-  int flush_cache     (const struct programmer_t *pgm, const AVRPART *p);
-  int reset_cache     (const struct programmer_t *pgm, const AVRPART *p);
+  int flush_cache     (const struct programmer *pgm, const AVRPART *p);
+  int reset_cache     (const struct programmer *pgm, const AVRPART *p);
 
 } PROGRAMMER;
 %mutable;
-%clear struct programmer_t *pgm;
+%clear struct programmer *pgm;
 
 // Config file handling
 int init_config(void);

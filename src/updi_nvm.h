@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2021  Dawid Buchwald
+ * Copyright (C) 2021 Dawid Buchwald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-/* $Id$ */
 
 /*
  * Based on pymcuprog
@@ -39,6 +37,7 @@ int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p);
 int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size);
 int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
+int updi_nvm_write_boot_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
 int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value);
 int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p);

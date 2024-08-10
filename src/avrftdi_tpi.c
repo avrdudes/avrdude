@@ -20,7 +20,7 @@ static int avrftdi_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef notyet
 static void avrftdi_debug_frame(uint16_t frame) {
-	static char bit_name[] = "IDLES01234567PSS";
+	static const char bit_name[] = "IDLES01234567PSS";
 	//static char bit_name[] = "SSP76543210SELDI";
 	char line0[34], line1[34], line2[34];
 	int bit, pos;
@@ -64,10 +64,10 @@ int
 avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	int ret;
 
-	avrftdi_t* pdata = to_pdata(pgm);
+	Avrftdi_data *pdata = to_pdata(pgm);
 	unsigned char buf[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 0x01, 0x00, 0xff, 0xff };
 
-	pmsg_info("Setting /Reset pin low\n");
+	pmsg_info("setting /Reset pin low\n");
 	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
 	pgm->setpin(pgm, PIN_AVR_SCK, OFF);
 	pgm->setpin(pgm, PIN_AVR_SDO, ON);
@@ -82,7 +82,7 @@ avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 	/*wait at least 20ms bevor issuing spi commands to avr */
 	usleep(20 * 1000);
 	
-	pmsg_info("Sending 16 init clock cycles ...\n");
+	pmsg_info("sending 16 init clock cycles ...\n");
 	ret = ftdi_write_data(pdata->ftdic, buf, sizeof(buf));
 
 	return ret;
@@ -90,7 +90,7 @@ avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
 
 void avrftdi_tpi_initpgm(PROGRAMMER *pgm) {
-	  pmsg_info("Using TPI interface\n");
+	  pmsg_info("using TPI interface\n");
 
 	  pgm->program_enable = avrftdi_tpi_program_enable;
 	  pgm->cmd_tpi = avrftdi_cmd_tpi;
@@ -132,7 +132,7 @@ static uint16_t tpi_byte2frame(uint8_t byte) {
 	return frame;
 }
 
-static int tpi_frame2byte(uint16_t frame, uint8_t * byte) {
+static int tpi_frame2byte(uint16_t frame, uint8_t *byte) {
 	/* drop idle and start bit(s) */
 	*byte = (frame >> 5) & 0xff;
 
@@ -212,7 +212,7 @@ static int avrftdi_tpi_read_byte(const PROGRAMMER *pgm, unsigned char *byte) {
 	frame = buffer[0] | (buffer[1] << 8);
 	
 	err = tpi_frame2byte(frame, byte);
-	pmsg_trace("Frame: 0x%04x, byte: 0x%02x\n", frame, *byte);
+	pmsg_trace("frame: 0x%04x, byte: 0x%02x\n", frame, *byte);
 	
 	//avrftdi_debug_frame(frame);
 
@@ -250,7 +250,7 @@ static void avrftdi_tpi_disable(const PROGRAMMER *pgm) {
 	unsigned char cmd[] = {TPI_OP_SSTCS(TPIPCR), 0};
 	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
 
-	pmsg_info("Leaving Programming mode.\n");
+	pmsg_info("leaving Programming mode\n");
 }
 
 #endif /* DO_NOT_BUILD_AVRFTDI */

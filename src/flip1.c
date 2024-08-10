@@ -19,8 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 #include <ac_cfg.h>
 
 #include <stdint.h>
@@ -240,7 +238,7 @@ static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   }
   if (!ovsigck && (part->prog_modes & PM_PDI)) {
     pmsg_error("flip1 (FLIP protocol version 1) is for AT90USB* and ATmega*U* devices\n");
-    imsg_error("for Xmega devices, use flip2 (or use -F to bypass this check)\n");
+    imsg_error("for Xmega devices, use flip2 or use -F to bypass this check\n");
     return -1;
   }
 
@@ -336,7 +334,7 @@ static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   int aux_result;
   unsigned int default_timeout = FLIP1(pgm)->dfu->timeout;
 
-  pmsg_notice2("flip_chip_erase()\n");
+  pmsg_debug("flip_chip_erase()\n");
 
   struct flip1_cmd cmd = {
     FLIP1_CMD_WRITE_COMMAND, { 0, 0xff }
@@ -471,7 +469,7 @@ static int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 }
 
 static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
-  pmsg_notice2("flip1_read_sig_bytes(): ");
+  pmsg_debug("%s(): ", __func__);
 
   if (FLIP1(pgm)->dfu == NULL)
     return -1;
@@ -494,7 +492,7 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
       FLIP1_CMD_READ_COMMAND, FLIP1_READ_FAMILY_CODE
     };
 
-    msg_notice2("from device\n");
+    msg_debug("from device\n");
 
     for (i = 0; i < 3; i++)
     {
@@ -534,7 +532,7 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
   }
   else
   {
-    msg_notice2("cached\n");
+    msg_debug("cached\n");
   }
 
   memcpy(mem->buf, FLIP1(pgm)->part_sig, sizeof(FLIP1(pgm)->part_sig));
@@ -573,7 +571,7 @@ static int flip1_read_memory(const PROGRAMMER *pgm,
   unsigned int default_timeout = dfu->timeout;
 
 
-  pmsg_notice2("flip_read_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_read_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
 
   /*
    * As this function is called once per page, no need to handle 64
@@ -615,14 +613,8 @@ static int flip1_read_memory(const PROGRAMMER *pgm,
 
   if (cmd_result < 0 && aux_result == 0 &&
       status.bStatus == DFU_STATUS_ERR_WRITE) {
-    if (FLIP1(pgm)->security_mode_flag == 0) {
-      msg_error("\n");
-      pmsg_error("\n");
-      imsg_error("***********************************************************************\n");
-      imsg_error("Maybe the device is in ``security mode´´, and needs a chip erase first?\n");
-      imsg_error("***********************************************************************\n");
-      msg_error("\n");
-    }
+    if (FLIP1(pgm)->security_mode_flag == 0)
+      pmsg_error("maybe the device is in security mode and needs a chip erase first?\n");
     FLIP1(pgm)->security_mode_flag = 1;
   }
 
@@ -664,7 +656,7 @@ static int flip1_write_memory(struct dfu_dev *dfu,
   unsigned int default_timeout = dfu->timeout;
   unsigned char *buf;
 
-  pmsg_notice2("flip_write_memory(%s, 0x%04x, %d)\n",
+  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n",
     flip1_mem_unit_str(mem_unit), addr, size);
 
   if (size < 32) {
@@ -764,7 +756,7 @@ static int flip1_set_mem_page(struct dfu_dev *dfu, unsigned short page_addr) {
 }
 
 static const char *flip1_status_str(const struct dfu_status *status) {
-  static const char *msg[] = {
+  static const char * const msg[] = {
     "No error condition is present",
     "File is not targeted for use by this device",
     "File is for this device but fails some vendor-specific verification test",

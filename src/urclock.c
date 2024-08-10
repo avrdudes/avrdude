@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * The Urclock programmer
  *
@@ -251,7 +249,7 @@ typedef struct {
 
   unsigned char ext_addr_byte;  // Ext-addr byte for STK500v1 protocol and MCUs with > 128k
 
-  uPcore_t uP;                  // Info about the connected processor (copied from uP_table)
+  Avrintel uP;                  // Info about the connected processor (copied from uP_table)
 
   bool initialised;             // Is this structure initialised?
   bool bleepromrw;              // Bootloader has EEPROM r/w support
@@ -319,15 +317,16 @@ typedef struct {
       nodate,                   // Don't store application filename and no date either
       nostore,                  // Don't store metadata except a flag saying so
       nometadata,               // Don't support metadata at all
+      noautoreset,              // Don't reset the board after opening the serial port
       delay,                    // Additional delay [ms] after resetting the board, can be negative
       strict;                   // Use strict synchronisation protocol
 
   char title[254];              // Use instead of filename for metadata - same size as filename
   char iddesc[64];              // Location of Urclock ID, eg F.12324.6 or E.-4.4 (default E.257.6)
-} Urclock_t;
+} Urclock_data;
 
 // Use private programmer data as if they were a global structure ur
-#define ur (*(Urclock_t *)(pgm->cookie))
+#define ur (*(Urclock_data *)(pgm->cookie))
 
 #define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
 
@@ -349,7 +348,7 @@ static int nmeta(int mcode, int flashsize) {
 #define ret_opcode 0x9508
 
 
-// Is the opcode an rjmp, ie, a relative jump [-4094, 4096] bytes from opcode address?
+// Is the opcode an rjmp, ie, a relative jump [.-4096, .+4094]
 static int isRjmp(uint16_t opcode) {
   return (opcode & 0xf000) == 0xc000;
 }
@@ -416,16 +415,6 @@ static int addr_jmp(uint32_t jmp) {
 }
 
 
-// Is the instruction word the lower 16 bit part of a 32-bit instruction?
-static int isop32(uint16_t opcode) {
-  return
-    (opcode & 0xfe0f) == 0x9200 || // sts
-    (opcode & 0xfe0f) == 0x9000 || // lds
-    (opcode & 0xfe0e) == 0x940c || // jmp
-    (opcode & 0xfe0e) == 0x940e;   // call
-}
-
-
 // Is the instruction word the lower 16 bit part of a jmp instruction?
 static int isJmp(uint16_t opcode) {
   return (opcode & 0xfe0e) == 0x940c;
@@ -445,7 +434,7 @@ static uint16_t buf2uint16(const unsigned char *buf) {
 
 
 // Write little endian 32-bit word into buffer
-void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
+static void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
   buf[0] = opcode32;
   buf[1] = opcode32>>8;
   buf[2] = opcode32>>16;
@@ -454,7 +443,7 @@ void uint32tobuf(unsigned char *buf, uint32_t opcode32) {
 
 
 // Write little endian 16-bit word into buffer
-void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
+static void uint16tobuf(unsigned char *buf, uint16_t opcode16) {
   buf[0] = opcode16;
   buf[1] = opcode16>>8;
 }
@@ -544,7 +533,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   const char *fname, int size) { // size is max memory address + 1
 
   int nmdata, maxsize, firstbeg, firstlen;
-  int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large parts need 4-byte jmp
+  const int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large a 4-byte jmp
 
   set_date_filename(pgm, fname);
 
@@ -585,7 +574,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   // Check size of uploded application and protect bootloader from being overwritten
   if((ur.boothigh && size > maxsize) || (!ur.boothigh && firstbeg <= ur.blend))
-    Return("input [0x%04x, 0x%04x] overlaps bootloader [0x%04x, 0x%04x]; consider -xrestore",
+    Return("input [0x%04x, 0x%04x] overlaps b/loader [0x%04x, 0x%04x]; consider -x restore",
       firstbeg, size-1, ur.blstart, ur.blend);
 
   if(size > maxsize)
@@ -594,11 +583,11 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
 
   if(!ur.nometadata) {
     if(size == maxsize)
-      Return("input [0x%04x, 0x%04x] overlaps metadata code byte at 0x%04x, consider -xnometadata",
+      Return("input [0x%04x, 0x%04x] overlaps metadata byte at 0x%04x, consider -x nometadata",
         firstbeg, size-1, ur.pfend);
 
     if(nmdata >= nmeta(0, ur.uP.flashsize) && size > maxsize - nmeta(0, ur.uP.flashsize)) {
-      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -xnostore\n",
+      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -x nostore\n",
        firstbeg, size-1, maxsize-nmdata, ur.pfend);
       ur.mcode = 0xff;
       ur.nostore = 1;
@@ -606,7 +595,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
     }
 
     if(nmdata >= nmeta(1, ur.uP.flashsize) && size > maxsize - nmeta(1, ur.uP.flashsize)) {
-      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -xnodate\n",
+      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -x nodate\n",
         firstbeg, size-1, maxsize-nmdata, ur.pfend);
       ur.mcode = 0;
       ur.nodate = 1;
@@ -614,7 +603,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
     }
 
     if(size > maxsize - nmdata) {
-      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -xnofilename\n",
+      pmsg_warning("input [0x%04x, 0x%04x] overlaps metadata [0x%04x, 0x%04x], selecting -x nofilename\n",
         firstbeg, size-1, maxsize-nmdata, ur.pfend);
       ur.mcode = 1;
       ur.nofilename = 1;
@@ -814,13 +803,12 @@ nopatch_nometa:
 
       if(reset2addr(flm->buf, vecsz, flm->size, &resetdest) < 0)
         Return("input would overwrite the reset vector bricking the bootloader\n"
-          "%*susing -F will try to patch the input but this may not be what is needed",
-          (int) strlen(progname)+1, "");
+          "  using -F will try to patch the input but this may not be what is needed");
 
       if(resetdest != ur.blstart)
         Return("input points reset to 0x%04x, not to bootloader at 0x%04x\n"
-          "%*susing -F will try to patch the input but this may not be what is needed",
-          resetdest, ur.blstart, (int) strlen(progname)+1, "");
+          "  using -F will try to patch the input but this may not be what is needed",
+          resetdest, ur.blstart);
     }
   }
 
@@ -922,8 +910,11 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
     buf += strlen(buf);
     *buf++ = (hi < 077 && (type & UR_PGMWRITEPAGE)) || (hi >= 077 && rjmpwp != ret_opcode)? 'w': '-';
     *buf++ = type & UR_EEPROM? 'e': '-';
-    if(hi >= 076) {             // From urboot version 7.6 URPROTOCOL has its own bit
-      *buf++ = type & UR_URPROTOCOL? 'u': 's';
+    if(hi >= 076) {
+      if(hi > 077)              // From version 8.0 it's always urprotocol
+        *buf++ = type & UR_EXPEDITE? 'U': 'u';
+      else
+        *buf++ = type & UR_URPROTOCOL? 'u': 's';
       *buf++ = type & UR_DUAL? 'd': '-';
     } else {
       *buf++ = '-';             // Dummy bit
@@ -931,7 +922,7 @@ static void urbootPutVersion(const PROGRAMMER *pgm, char *buf, uint16_t ver, uin
       // D = Dual boot with SE & SPI restoration, d = dual boot with SE, f = dual boot only
       *buf++ = flags==3? 'D': flags==2? 'd': flags? 'f': '-';
     }
-    flags = (type/UR_VBL) & 3;
+    flags = (type/(UR_VBLMASK & -UR_VBLMASK)) & (hi > 077? 1: 3); // Only use 1 bit for v8.0+
     // V = VBL, patch & verify, v = VBL, patch only, j = VBL, jump only
     *buf++ = flags==3? 'V': flags==2? 'v': flags? 'j': 'h';
     *buf++ = hi < 077? (type & UR_PROTECTME? 'p': '-'): (type & UR_PROTECTME? 'P': 'p');
@@ -1089,10 +1080,10 @@ static uint32_t jenkins_hash(const uint8_t* key, size_t length) {
 typedef struct {
   uint16_t sz, ee;
   uint32_t h256, hash;
-} Blhash_t;
+} Bl_hash;
 
 static int cmpblhash(const void *va, const void *vb) {
-  const Blhash_t *a = va, *b = vb;
+  const Bl_hash *a = va, *b = vb;
   return a->sz > b->sz? 1: a->sz < b->sz? -1: a->hash > b->hash? 1: a->hash < b->hash? -1: 0;
 }
 
@@ -1100,7 +1091,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
   if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Cannot read flash
     return;
 
-  Blhash_t blist[] = {
+  Bl_hash blist[] = {
     // From https://github.com/arduino/ArduinoCore-avr/tree/master/bootloaders
     { 1024, 0, 0x35445c45, 0x9ef77953 }, // ATmegaBOOT-prod-firmware-2009-11-07.hex
     { 1024, 0, 0x32b1376c, 0xceba80bb }, // ATmegaBOOT.hex
@@ -1307,10 +1298,10 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   // Manual provision of above bootloader parameters
   if(ur.xbootsize) {
     if(ur.boothigh && ur.xbootsize % ur.uP.pagesize)
-      Return("-xbootsize=%d size not a multiple of flash page size %d",
+      Return("-x bootsize=%d size not a multiple of flash page size %d",
         ur.xbootsize, ur.uP.pagesize);
     if(ur.xbootsize < 64 || ur.xbootsize > urmin(8192, ur.uP.flashsize/4))
-      Return("implausible -xbootsize=%d, should be in [64, %d]",
+      Return("implausible -x bootsize=%d, should be in [64, %d]",
         ur.xbootsize, urmin(8192, ur.uP.flashsize/4));
     if(ur.boothigh) {
       ur.blstart = flm->size - ur.xbootsize;
@@ -1338,8 +1329,8 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(ur.urprotocol && !(ur.urfeatures & UB_READ_FLASH)) // Bootloader that cannot read flash?
     if(ur.blend <= ur.blstart)
-      Return("please specify -xbootsize=<num> and, if needed, %s-xeepromrw",
-        ur.boothigh? "-xvectornum=<num> or ": "");
+      Return("please specify -x bootsize=<num> and, if needed, %s-x eepromrw",
+        ur.boothigh? "-x vectornum=<num> or ": "");
 
   uint16_t v16 = 0xffff, rjmpwp = ret_opcode;
 
@@ -1349,9 +1340,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     if((rc = ur_readEF(pgm, p, spc, flm->size-6, 6, 'F')))
       return rc;
 
-    // In a urboot bootloader (v7.2 onwards) these six are as follows
-    uint8_t numpags = spc[0];   // Actually, these two only exist from v7.5 onwards
-    uint8_t vectnum = spc[1];
+    // In a urboot bootloader these six (v7.5 onwards) are as follows
+    uint8_t numpags = spc[0] & 0x7f; // Number of bootloader pages (undefined before v7.5)
+    uint8_t vectnum = spc[1] & 0x7f; // Vector number for application start (undefined before v7.5)
     rjmpwp = buf2uint16(spc+2); // rjmp to bootloader pgm_write_page() or ret opcode
     uint8_t cap = spc[4];       // Capability byte
     uint8_t urver = spc[5];     // Urboot version (low three bits are minor version: 076 is v7.6)
@@ -1359,12 +1350,12 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
     // Extensively check this is an urboot bootloader v7.2 .. v12.7 == 0147 and extract properties
     if(urver >= 072 && urver <= 0147 && (isRjmp(rjmpwp) || rjmpwp == ret_opcode)) { // Prob urboot
-      ur.blurversion = urver;
-      ur.bleepromrw = iseeprom_cap(cap);
-      // Vector bootloader: 0 = none, 1 = external patching, 2 = bl patches, 3 = patches + verifies
-      if(!ur.vbllevel)          // Unless manually overwritten
-        ur.vbllevel = vectorbl_level_cap(cap);
-      if(urver >= 075) {        // Urboot v7.5+ encodes # of bootloader pages and vbl vector number
+      if(urver < 075) {         // Early urboot versions don't offer many sanity checks
+        ur.blurversion = urver;
+        ur.bleepromrw = iseeprom_cap(cap);
+        if(!ur.vbllevel)        // Unless manually overwritten
+          ur.vbllevel = vectorbl_level077_cap(cap);
+      } else {                  // Urboot v7.5+ encodes bootloader size and vector number
         int blsize = numpags*flm->page_size;
         // Size of urboot bootloader should be in [64, 2048] (in v7.6 these are 224-512 bytes)
         if(blsize >= 64 && blsize <= 2048 && vectnum <= ur.uP.ninterrupts) { // Within range
@@ -1373,9 +1364,9 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
           if(rjmpwp == ret_opcode || (dfromend >= -blsize && dfromend < -6)) { // Due diligence
             if(ur.xbootsize) {
               if(flm->size - blsize != ur.blstart) {
-                pmsg_warning("urboot bootloader size %d explicitly overwritten by -xbootsize=%d\n",
+                pmsg_warning("urboot bootloader size %d explicitly overwritten by -x bootsize=%d\n",
                   blsize, ur.xbootsize);
-                if(!ovsigck && ur.vbllevel) {
+                if(!ovsigck && vectnum) {
                   imsg_warning("this can lead to bricking the vector bootloader\n");
                   return -1;
                 }
@@ -1388,12 +1379,22 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
 
             if(ur.xvectornum != -1) {
               if(ur.vblvectornum != vectnum) {
-                pmsg_warning("urboot vector number %d overwritten by -xvectornum=%d\n",
+                pmsg_warning("urboot vector number %d overwritten by -x vectornum=%d; the\n",
                   vectnum, ur.xvectornum);
-                imsg_warning("the application might not start correctly\n");
+                imsg_warning("application might not start correctly\n");
               }
-            } else
+            } else {
               ur.vblvectornum = vectnum;
+              /*
+               * Urboot v8.0 (urver == 0100) onwards no longer supports self-patching
+               * bootloaders. The vbllevel is either 0 (vectnum == 0) or 1 (vectnum > 0).
+               * No longer refer to the capability byte from v8.0 thus freeing 2 bits.
+               */
+              ur.vbllevel = urver <= 077? vectorbl_level077_cap(cap): vectnum > 0;
+            }
+
+            ur.blurversion = urver;
+            ur.bleepromrw = iseeprom_cap(cap);
           }
         }
       }
@@ -1470,7 +1471,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
             } else if(isJmp(opcode) && toend > 6) { // 4 top bytes are data + 2 the jmp addr
               op16 = opcode;
               wasjmp = 1;       // Look at destination address in next loop iteration
-            } else if(isop32(opcode)) { // Skip next opcode, too
+            } else if(is_opcode32(opcode)) { // Skip next opcode, too
               wasop32 = 1;
             }
           }
@@ -1485,11 +1486,11 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
     // Still no bootloader start address?
     if(ur.blend <= ur.blstart) {
       if(ur. bloptiversion)
-        Return("bootloader might be optiboot %d.%d? Please use -xbootsize=<num>\n",
+        Return("bootloader might be optiboot %d.%d? Please use -x bootsize=<num>\n",
           ur.bloptiversion>>8, ur.bloptiversion & 255);
-      Return("unknown bootloader ... please specify -xbootsize=<num>\n");
+      Return("unknown bootloader ... please specify -x bootsize=<num>\n");
     }
-  } else if(!ur.boothigh) { // Fixme: guess bootloader size from low flash
+  } else if(!ur.boothigh) { // @@@ Fixme: guess bootloader size from low flash
   }
 
 vblvecfound:
@@ -1684,7 +1685,7 @@ static int urclock_paged_rdwr(const PROGRAMMER *pgm, const AVRPART *part, char r
     if(len != ur.uP.pagesize)
       Return("len %d must be page size %d for paged flash writes", len, ur.uP.pagesize);
 
-    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel==1) {
+    if(badd < 4U && ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       unsigned char jmptoboot[4];
       int resetsize = set_reset(pgm, jmptoboot, vecsz);
@@ -1780,7 +1781,7 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
 
   if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
     Return("bootloader %s not have EEPROM access%s", ur.blurversion? "does": "might",
-      ur.blurversion? " capability": "; try -xeepromrw if it has");
+      ur.blurversion? " capability": "; try -x eepromrw if it has");
 
   if(len < 1 || len > urmax(ur.uP.pagesize, 256))
     Return("len %d exceeds range [1, %d]", len, urmax(ur.uP.pagesize, 256));
@@ -1802,38 +1803,38 @@ static int ur_readEF(const PROGRAMMER *pgm, const AVRPART *p, uint8_t *buf, uint
 
 
 static int parseUrclockID(const PROGRAMMER *pgm) {
-  if(*ur.iddesc) {              // User override of ID, eg, -xid=F.-4.2 for penultimate flash word
+  if(*ur.iddesc) {              // User override of ID, eg, -x id=F.-4.2 for penultimate flash word
     char *idstr = mmt_strdup(ur.iddesc), *idlenp;
     const char *errstr;
     int ad, lg;
 
     if(!(strchr("EF", *idstr) && idstr[1] == '.')) {
-      pmsg_warning("-xid=%s string must start with E. or F.\n", ur.iddesc);
+      pmsg_warning("-x id=%s string must start with E. or F.\n", ur.iddesc);
       mmt_free(idstr);
       return -1;
     }
 
     if(!(idlenp = strchr(idstr+2, '.'))) {
-      pmsg_warning("-xid=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
+      pmsg_warning("-x id=%s string must look like [E|F].<addr>.<len>\n", ur.iddesc);
       mmt_free(idstr);
       return -1;
     }
     *idlenp++ = 0;
     ad = str_int(idstr+2, STR_INT32, &errstr);
     if(errstr) {
-      pmsg_warning("address %s of -xid=%s: %s\n", idstr+2, ur.iddesc, errstr);
+      pmsg_warning("address %s of -x id=%s: %s\n", idstr+2, ur.iddesc, errstr);
       mmt_free(idstr);
       return -1;
     }
 
     lg = str_int(idlenp, STR_INT32, &errstr);
     if(errstr) {
-      pmsg_warning("length %s of -xid=%s string: %s\n", idlenp, ur.iddesc, errstr);
+      pmsg_warning("length %s of -x id=%s string: %s\n", idlenp, ur.iddesc, errstr);
       mmt_free(idstr);
       return -1;
     }
     if(!lg || lg > 8) {
-      pmsg_warning("length %s of -xid=%s string must be between 1 and 8\n", idlenp, ur.iddesc);
+      pmsg_warning("length %s of -x id=%s string must be between 1 and 8\n", idlenp, ur.iddesc);
       mmt_free(idstr);
       return -1;
     }
@@ -1860,7 +1861,7 @@ static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urcl
 
   *urclockIDp = 0;
 
-  // Sanity for small boards in absence of user -xid=... option
+  // Sanity for small boards in absence of user -x id=... option
   if(!ur.idlen && (addr >= ur.uP.eepromsize || addr+len > ur.uP.eepromsize)) {
     addr = 0;
     if(ur.uP.eepromsize < 8)
@@ -1876,11 +1877,11 @@ static int readUrclockID(const PROGRAMMER *pgm, const AVRPART *p, uint64_t *urcl
       addr += size;
 
     if(addr < 0 || addr >= size)
-      Return("effective address %d of -xids=%s string out of %s range [0, 0x%04x]\n",
+      Return("effective address %d of -x ids=%s string out of %s range [0, 0x%04x]\n",
         addr, ur.iddesc, memstr, size-1);
 
     if(addr+len > size)
-      Return("memory range [0x%04x, 0x%04x] of -xid=%s out of %s range [0, 0x%04x]\n",
+      Return("memory range [0x%04x, 0x%04x] of -x id=%s out of %s range [0, 0x%04x]\n",
         addr, addr+len-1, ur.iddesc, memstr, size-1);
   }
 
@@ -1912,7 +1913,7 @@ static int urclock_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
   if(rv < 0) {
     if(ur.sync_silence < 2)
       pmsg_warning("programmer is not responding%s\n",
-        ur.sync_silence? "; try -xstrict and/or vary -xdelay=100": "");
+        ur.sync_silence? "; try -x strict and/or vary -x delay=100": "");
     return -1;
   }
 
@@ -1968,7 +1969,7 @@ static int urclock_getsync(const PROGRAMMER *pgm) {
      * of step through a missing byte. If AVRDUDE then sends the next request starting with a
      * Cmnd_STK_GET_SYNC command then optiboot v4.4 will bail as ist's not Sync_CRC_EOP. Hence, the
      * strategy here is to send Sync_CRC_EOP/Sync_CRC_EOP for getting a sync. For those bootloaders
-     * that are strict about the protocol, eg, picoboot, the presence of -xstrict implies that
+     * that are strict about the protocol, eg, picoboot, the presence of -x strict implies that
      * comms should use Cmnd_STK_GET_SYNC for getting in sync.
      */
     iob[0] = attempt == 0? autobaud_sync: ur.strict? Cmnd_STK_GET_SYNC: Sync_CRC_EOP;
@@ -2151,7 +2152,7 @@ static int urclock_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   ur.done_ce = 1;
 
   if(!emulated) {               // Write jump to boot section to reset vector
-    if(ur.boothigh && ur.blstart && ur.vbllevel==1) {
+    if(ur.boothigh && ur.blstart && ur.vbllevel == 1) {
       AVRMEM *flm = avr_locate_flash(p);
       int vecsz = ur.uP.flashsize <= 8192? 2: 4;
       if(flm && flm->page_size >= vecsz) {
@@ -2234,16 +2235,18 @@ static int urclock_open(PROGRAMMER *pgm, const char *port) {
   if(serial_open(port, pinfo, &pgm->fd) == -1)
     return -1;
 
-  // This code assumes a negative-logic USB to TTL serial adapter
-  // Set RTS/DTR high to discharge the series-capacitor, if present
-  serial_set_dtr_rts(&pgm->fd, 0);
-  usleep(20*1000);
-  // Pull the RTS/DTR line low to reset AVR
-  serial_set_dtr_rts(&pgm->fd, 1);
-  // Max 100 us: charging a cap longer creates a high reset spike above Vcc
-  usleep(100);
-  // Set the RTS/DTR line back to high, so direct connection to reset works
-  serial_set_dtr_rts(&pgm->fd, 0);
+  if(!ur.noautoreset) {
+    // This code assumes a negative-logic USB to TTL serial adapter
+    // Set RTS/DTR high to discharge the series-capacitor, if present
+    serial_set_dtr_rts(&pgm->fd, 0);
+    usleep(20*1000);
+    // Pull the RTS/DTR line low to reset AVR
+    serial_set_dtr_rts(&pgm->fd, 1);
+    // Max 100 us: charging a cap longer creates a high reset spike above Vcc
+    usleep(100);
+    // Set the RTS/DTR line back to high, so direct connection to reset works
+    serial_set_dtr_rts(&pgm->fd, 0);
+  }
 
   if((120+ur.delay) > 0)
     usleep((120+ur.delay)*1000); // Wait until board comes out of reset
@@ -2279,7 +2282,7 @@ static int urclock_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
       Return("bootloader %s not have paged EEPROM write%s", ur.blurversion? "does": "might",
-        ur.blurversion? " capability": ", try -xeepromrw if it has");
+        ur.blurversion? " capability": ", try -x eepromrw if it has");
 
     n = addr + n_bytes;
 
@@ -2314,7 +2317,7 @@ static int urclock_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     if(mchr == 'E' && !ur.bleepromrw && !ur.xeepromrw)
       Return("bootloader %s not have paged EEPROM read%s", ur.blurversion? "does": "might",
-        ur.blurversion? " capability": "; try -xeepromrw if it has");
+        ur.blurversion? " capability": "; try -x eepromrw if it has");
 
     n = addr + n_bytes;
     for(; addr < n; addr += chunk) {
@@ -2391,14 +2394,8 @@ static int urclock_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p_unuse
 }
 
 
-// Display what we know so far (too early in the process to say much)
 static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
-  if(ur.urprotocol) {
-    imsg_info("Urboot protocol for %s\n", ur.uP.name);
-  } else {
-    imsg_info("Bootloader using STK500v1 communication protocol\n");
-  }
-
+  imsg_info("Protocol              : %s\n", ur.urprotocol? "Urprotocol": "STK500v1 skeleton");
   return;
 }
 
@@ -2406,9 +2403,7 @@ static void urclock_display(const PROGRAMMER *pgm, const char *p_unused) {
 
 
 // Return whether an address is write protected
-static int urclock_readonly(const struct programmer_t *pgm, const AVRPART *p_unused,
-  const AVRMEM *mem, unsigned int addr) {
-
+static int urclock_readonly(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *mem, unsigned int addr) {
   if(mem_is_in_flash(mem)) {
     if(addr > (unsigned int) ur.pfend)
       return 1;
@@ -2456,7 +2451,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"id", NULL, sizeof ur.iddesc, ur.iddesc, 1, "Location of Urclock ID, eg, F.12345.6"},
     {"title", NULL, sizeof ur.title, ur.title, 1, "Title stored and shown in lieu of a filename"},
     {"bootsize", &ur.xbootsize, ARG,      "Override/set bootloader size"},
-    {"vectornum", &ur.xvectornum, ARG,    "Treat bootloader as vector b/loader using this vector"},
+    {"vectornum", &ur.xvectornum, ARG,    "Treat bootloader as vector b/loader using vector <n>"},
     {"eepromrw", &ur.xeepromrw, NA,       "Assert bootloader EEPROM read/write capability"},
     {"emulate_ce", &ur.xemulate_ce, NA,   "Emulate chip erase"},
     {"restore", &ur.restore, NA,          "Restore a flash backup and trim the bootloader"},
@@ -2466,7 +2461,8 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"nodate", &ur.nodate, NA,            "Do not store application filename and no date either"},
     {"nostore", &ur.nostore, NA,          "Do not store metadata except a flag saying so"},
     {"nometadata", &ur.nometadata, NA,    "Do not support metadata at all"},
-    {"delay", &ur.delay, ARG,             "Add delay [ms] after reset, can be negative"},
+    {"noautoreset", &ur.nometadata, NA,   "Do not reset the board after opening the serial port"},
+    {"delay", &ur.delay, ARG,             "Additional <n> ms delay after reset, can be negative"},
     {"strict", &ur.strict, NA,            "Use strict synchronisation protocol"},
     {"help", &help, NA,                   "Show this help menu and exit"},
   };
@@ -2493,8 +2489,9 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
             const char *errstr;
             int val = str_int(arg, STR_INT32, &errstr);
             if(errstr) {
-             pmsg_error("-x%s: %s\n", extended_param, errstr);
-             return -1;
+              pmsg_error("-x %s: %s\n", extended_param,
+                str_eq(errstr, "no data to convert")? "missing argument": errstr);
+              return -1;
             }
             *options[i].optionp = val;
             pmsg_notice2("%s=%d set\n", options[i].name, (int) val);
@@ -2502,7 +2499,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
           }
         } else if(options[i].nstrbuf > 0) {
           if(plen <= olen || extended_param[olen] != '=') {
-            pmsg_error("missing argument for option %s=...\n", extended_param);
+            pmsg_error("missing argument for -x %s=...\n", extended_param);
             rc = -1;
           } else {
             if(options[i].strbuf) {
@@ -2515,7 +2512,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
       }
     }
     if(i >= sizeof options/sizeof*options) {
-      pmsg_error("invalid extended parameter %s\n", extended_param);
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
       rc = -1;
     }
   }
@@ -2523,7 +2520,8 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
   if(help || rc < 0) {
     msg_error("%s -c %s extended options:\n", progname, pgmid);
     for(size_t i=0; i<sizeof options/sizeof*options; i++) {
-      msg_error("  -x%s%s%*s%s\n", options[i].name, options[i].assign? "=<arg>": "",
+      msg_error("  -x %s%s%*s%s\n", options[i].name,
+        options[i].assign && options[i].strbuf? "=<str>": options[i].assign? "=<n>  ": "",
         urmax(0, 16-(int) strlen(options[i].name)-(options[i].assign? 6: 0)), "", options[i].help);
     }
     if(rc == 0)
@@ -2539,7 +2537,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
 
 static void urclock_setup(PROGRAMMER *pgm) {
   // Allocate ur
-  pgm->cookie = mmt_malloc(sizeof(Urclock_t));
+  pgm->cookie = mmt_malloc(sizeof(Urclock_data));
 
   ur.xvectornum    = -1;        // Initialise, to ascertain whether user had set to 0
   ur.ext_addr_byte = 0xff;      // So first memory address will load extended address
@@ -2584,11 +2582,12 @@ void urclock_initpgm(PROGRAMMER *pgm) {
   pgm->readonly = urclock_readonly;
   pgm->flash_readhook = urclock_flash_readhook;
 
-  disable_trailing_ff_removal();
+  cx->avr_disableffopt = 1;     // Disable trailing 0xff removal
 #if defined(HAVE_LIBREADLINE)
   pmsg_notice2("libreadline is used; avrdude -t -c urclock should work interactively\n");
 #else
-  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock interactively\n");
-  imsg_notice2("but it is still possible to pipe: echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -curclock\n");
+  pmsg_notice2("compiled without readline library, cannot use avrdude -t -c urclock\n");
+  imsg_notice2("interactively but it is still possible to pipe:\n");
+  imsg_notice2("$ echo \"d fl 0 32; quit\" | tr \\; \\\\n | avrdude -t -c urclock\n");
 #endif
 }

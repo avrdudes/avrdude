@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000, 2001, 2002, 2003 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2005 Juliane Holzt <avrdude@juliane.holzt.de>
  * Copyright (C) 2011 Darell Tan <darell.tan@gmail.com>
  *
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id$ */
 
 #ifndef bitbang_h
 #define bitbang_h

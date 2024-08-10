@@ -21,8 +21,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * avrdude interface for Atmel JTAG ICE mkII programmer
  *
@@ -262,7 +260,7 @@ static void jtagmkII_print_memory(unsigned char *b, size_t s) {
 static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, size_t len) {
   size_t i;
 
-  if (verbose >= 4) {
+  if (verbose >= MSG_TRACE) {
     msg_trace("Raw message:\n");
 
     for (i = 0; i < len; i++) {
@@ -403,7 +401,7 @@ int jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char *buf;
 
   msg_debug("\n");
-  pmsg_debug("jtagmkII_send(): sending %lu bytes\n", (unsigned long) len);
+  pmsg_debug("%s(): sending %lu bytes\n", __func__, (unsigned long) len);
 
   buf = mmt_malloc(len + 10);
   buf[0] = MESSAGE_START;
@@ -480,7 +478,7 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg,
       if (rv != 0) {
 	timedout:
 	/* timeout in receive */
-        pmsg_notice2("jtagmkII_recv(): timeout receiving packet\n");
+        pmsg_notice2("%s(): timeout receiving packet\n", __func__);
 	mmt_free(buf);
 	return -1;
       }
@@ -543,7 +541,7 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg,
 	if (state == sCSUM2 && buf) {
 	  if (crcverify(buf, msglen + 10)) {
 	    if (verbose >= 9)
-	      pmsg_trace2("jtagmkII_recv(): CRC OK");
+	      pmsg_trace2("%s(): CRC OK", __func__);
 	    state = sDONE;
 	  } else {
 	    pmsg_error("wrong checksum\n");
@@ -582,7 +580,7 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
   for (;;) {
     if ((rv = jtagmkII_recv_frame(pgm, msg, &r_seqno)) <= 0)
       return rv;
-    pmsg_debug("jtagmkII_recv(): got message seqno %d (command_sequence == %d)\n",
+    pmsg_debug("%s(): got message seqno %d (command_sequence == %d)\n", __func__,
       r_seqno, PDATA(pgm)->command_sequence);
     if (r_seqno == PDATA(pgm)->command_sequence) {
       if (++(PDATA(pgm)->command_sequence) == 0xffff)
@@ -594,15 +592,15 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
        */
       memmove(*msg, *msg + 8, rv);
 
-      if(verbose > 3)
+      if(verbose >= MSG_TRACE)
         trace_buffer(__func__, *msg, rv);
 
       return rv;
     }
     if (r_seqno == 0xffff) {
-      pmsg_debug("jtagmkII_recv(): got asynchronous event\n");
+      pmsg_debug("%s(): got asynchronous event\n", __func__);
     } else {
-      pmsg_notice2("jtagmkII_recv(): got wrong sequence number, %u != %u\n",
+      pmsg_notice2("%s(): got wrong sequence number, %u != %u\n", __func__,
         r_seqno, PDATA(pgm)->command_sequence);
     }
     mmt_free(*msg);
@@ -640,7 +638,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
     if (status <= 0) {
 	    pmsg_warning("attempt %d of %d: sign-on command: status %d\n",
               tries + 1, MAXTRIES, status);
-    } else if (verbose >= 3) {
+    } else if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -705,7 +703,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
     PDATA(pgm)->device_descriptor_length -= 2;
   }
   if (mode != EMULATOR_MODE_SPI)
-    pmsg_notice2("jtagmkII_getsync(): using a %u-byte device descriptor\n",
+    pmsg_notice2("%s(): using a %u-byte device descriptor\n", __func__,
       (unsigned) PDATA(pgm)->device_descriptor_length);
   if (mode == EMULATOR_MODE_SPI) {
     PDATA(pgm)->device_descriptor_length = 0;
@@ -770,7 +768,7 @@ retry:
 
   /* GET SYNC forces the target into STOPPED mode */
   buf[0] = CMND_GET_SYNC;
-  pmsg_notice2("jtagmkII_getsync(): sending get sync command: ");
+  pmsg_notice2("%s(): sending get sync command: ", __func__);
   jtagmkII_send(pgm, buf, 1);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -779,7 +777,7 @@ retry:
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -810,7 +808,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[0] = CMND_CHIP_ERASE;
     len = 1;
   }
-  pmsg_notice2("jtagmkII_chip_erase(): sending %schip erase command: ",
+  pmsg_notice2("%s(): sending %schip erase command: ", __func__,
     p->prog_modes & (PM_PDI | PM_UPDI)? "Xmega ": "");
   jtagmkII_send(pgm, buf, len);
 
@@ -820,7 +818,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -832,7 +830,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if (p->prog_modes & PM_Classic)
       pgm->initialize(pgm, p);
 
   PDATA(pgm)->recently_written = 1;
@@ -892,10 +890,9 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     }
   }
   sendbuf.dd.ucCacheType =
-    p->prog_modes & (PM_PDI | PM_UPDI)? 0x02 /* ATxmega */: 0x00;
+    p->prog_modes & (PM_PDI | PM_UPDI)? 0x02: 0x00;
 
-  pmsg_notice2("jtagmkII_set_devdescr(): "
-    "Sending set device descriptor command: ");
+  pmsg_notice2("%s(): sending set device descriptor command: ", __func__);
   jtagmkII_send(pgm, (unsigned char *)&sendbuf,
 		PDATA(pgm)->device_descriptor_length + sizeof(unsigned char));
 
@@ -905,7 +902,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -975,7 +972,7 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1006,7 +1003,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
 
   buf[0] = (pgm->flag & PGM_FL_IS_DW)? CMND_FORCED_STOP: CMND_RESET;
   buf[1] = (pgm->flag & PGM_FL_IS_DW)? 1: flags;
-  pmsg_notice2("jtagmkII_reset(): sending %s command: ",
+  pmsg_notice2("%s(): sending %s command: ", __func__,
     (pgm->flag & PGM_FL_IS_DW)? "stop": "reset");
   jtagmkII_send(pgm, buf, 2);
 
@@ -1016,7 +1013,7 @@ static int jtagmkII_reset(const PROGRAMMER *pgm, unsigned char flags) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1045,8 +1042,7 @@ static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
 
   for (use_ext_reset = 0; use_ext_reset <= 1; use_ext_reset++) {
     buf[0] = CMND_ENTER_PROGMODE;
-    pmsg_notice2("jtagmkII_program_enable(): "
-      "Sending enter progmode command: ");
+    pmsg_notice2("%s(): sending enter progmode command: ", __func__);
     jtagmkII_send(pgm, buf, 1);
 
     status = jtagmkII_recv(pgm, &resp);
@@ -1055,7 +1051,7 @@ static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
       pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
       return -1;
     }
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -1091,8 +1087,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
     return 0;
 
   buf[0] = CMND_LEAVE_PROGMODE;
-  pmsg_notice2("jtagmkII_program_disable(): "
-    "Sending leave progmode command: ");
+  pmsg_notice2("%s(): sending leave progmode command: ", __func__);
   jtagmkII_send(pgm, buf, 1);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -1101,7 +1096,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1175,7 +1170,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   const char *ifname;
 
   if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-    pmsg_info("forcing serial DTR/RTS handshake lines %s\n",
+    pmsg_notice("forcing serial DTR/RTS handshake lines %s\n",
       PDATA(pgm)->rts_mode == RTS_MODE_LOW ? "LOW" : "HIGH");
   }
 
@@ -1210,15 +1205,13 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if ((b = jtagmkII_get_baud(pgm->baudrate)) == 0) {
       pmsg_error("unsupported baudrate %d\n", pgm->baudrate);
     } else {
-      pmsg_notice2("jtagmkII_initialize(): "
-	"trying to set baudrate to %d\n", pgm->baudrate);
+      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, pgm->baudrate);
       if (jtagmkII_setparm(pgm, PAR_BAUD_RATE, &b) == 0)
 	serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
     }
   }
   if ((pgm->flag & PGM_FL_IS_JTAG) && pgm->bitclock != 0.0) {
-    pmsg_notice2("jtagmkII_initialize(): "
-      "trying to set JTAG clock period to %.1f us\n", pgm->bitclock);
+    pmsg_notice2("%s(): trying to set JTAG clock period to %.1f us\n", __func__, pgm->bitclock);
     if (jtagmkII_set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
@@ -1292,7 +1285,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
-  if ((pgm->flag & PGM_FL_IS_JTAG) && !(p->prog_modes & (PM_PDI | PM_UPDI))) {
+  if ((pgm->flag & PGM_FL_IS_JTAG) && (p->prog_modes & PM_Classic)) {
     int ocden = 0;
     if(avr_get_config_value(pgm, p, "ocden", &ocden) == 0 && ocden) // ocden == 1 means disabled
       pmsg_warning("OCDEN fuse not programmed, single-byte EEPROM updates not possible\n");
@@ -1323,7 +1316,7 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
 
 static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if(p->prog_modes & PM_Classic)
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 
@@ -1334,29 +1327,27 @@ static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (pgm->flag & PGM_FL_IS_JTAG) {
-      if (str_eq(extended_param, "jtagchain=")) {
+      if (str_starts(extended_param, "jtagchain=")) {
         unsigned int ub, ua, bb, ba;
         if (sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-          pmsg_error("invalid JTAG chain '%s'\n", extended_param);
+          pmsg_error("invalid JTAG chain in -x %s\n", extended_param);
           rv = -1;
           continue;
         }
-        pmsg_notice2("jtagmkII_parseextparms(): JTAG chain parsed as:\n");
+        pmsg_notice2("%s(): JTAG chain parsed as:\n", __func__);
         imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
           ub, ua, bb, ba);
         PDATA(pgm)->jtagchain[0] = ub;
         PDATA(pgm)->jtagchain[1] = ua;
         PDATA(pgm)->jtagchain[2] = bb;
         PDATA(pgm)->jtagchain[3] = ba;
-
         continue;
       }
     }
@@ -1370,24 +1361,29 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           PDATA(pgm)->rts_mode = RTS_MODE_HIGH;
         } else {
           pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
-          return -1;
+          rv = -1;
+          break;
         }
         continue;
       }
     }
 
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (pgm->flag & PGM_FL_IS_JTAG)
-        msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if (pgm->flag & PGM_FL_IS_PDI)
-        msg_error("  -xrtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
-      msg_error(  "  -xhelp                  Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if (pgm->flag & PGM_FL_IS_JTAG)
+      msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+    if (pgm->flag & PGM_FL_IS_PDI)
+      msg_error("  -x rtsdtr=low,high       Force RTS/DTR lines low or high state during programming\n");
+    msg_error(  "  -x help                  Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;
@@ -1726,7 +1722,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
   if (pgm->flag & (PGM_FL_IS_PDI | PGM_FL_IS_JTAG)) {
     /* When in PDI or JTAG mode, restart target. */
     buf[0] = CMND_GO;
-    pmsg_notice2("jtagmkII_close(): sending GO command: ");
+    pmsg_notice2("%s(): sending GO command: ", __func__);
     jtagmkII_send(pgm, buf, 1);
 
     status = jtagmkII_recv(pgm, &resp);
@@ -1734,7 +1730,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
       msg_notice2("\n");
       pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     } else {
-      if (verbose >= 3) {
+      if (verbose >= MSG_DEBUG) {
 	msg_debug("\n");
 	jtagmkII_prmsg(pgm, resp, status);
       } else
@@ -1748,7 +1744,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
   }
 
   buf[0] = CMND_SIGN_OFF;
-  pmsg_notice2("jtagmkII_close(): sending sign-off command: ");
+  pmsg_notice2("%s(): sending sign-off command: ", __func__);
   jtagmkII_send(pgm, buf, 1);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -1757,7 +1753,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1769,7 +1765,7 @@ void jtagmkII_close(PROGRAMMER * pgm)
   }
 
   if (PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-    pmsg_info("releasing DTR/RTS handshake lines\n");
+    pmsg_notice("releasing DTR/RTS handshake lines\n");
     serial_set_dtr_rts(&pgm->fd, 0);
   }
 
@@ -1796,7 +1792,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if (!(p->prog_modes & (PM_PDI | PM_UPDI)) && !mem_is_userrow(m)) {
+  if ((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -1836,8 +1832,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
   tries = 0;
 
   retry:
-    pmsg_notice2("jtagmkII_page_erase(): "
-      "Sending Xmega erase command: ");
+    pmsg_notice2("%s(): sending Xmega erase command: ", __func__);
   jtagmkII_send(pgm, cmd, sizeof cmd);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -1852,7 +1847,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
     serial_recv_timeout = otimeout;
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -1929,8 +1924,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       block_size = maxaddr - addr;
     else
       block_size = page_size;
-    pmsg_debug("jtagmkII_paged_write(): "
-      "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (dynamic_mtype)
       cmd[1] = jtagmkII_mtype(pgm, p, addr);
@@ -1951,8 +1945,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     tries = 0;
 
     retry:
-      pmsg_notice2("jtagmkII_paged_write(): "
-        "Sending write memory command: ");
+      pmsg_notice2("%s(): sending write memory command: ", __func__);
     jtagmkII_send(pgm, cmd, page_size + 10);
 
     status = jtagmkII_recv(pgm, &resp);
@@ -1968,7 +1961,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -2034,8 +2027,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
       block_size = maxaddr - addr;
     else
       block_size = page_size;
-    pmsg_debug("jtagmkII_paged_load(): "
-      "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (dynamic_mtype)
       cmd[1] = jtagmkII_mtype(pgm, p, addr);
@@ -2046,7 +2038,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     tries = 0;
 
   retry:
-    pmsg_notice2("jtagmkII_paged_load(): sending read memory command: ");
+    pmsg_notice2("%s(): sending read memory command: ", __func__);
     jtagmkII_send(pgm, cmd, 10);
 
     status = jtagmkII_recv(pgm, &resp);
@@ -2061,7 +2053,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -2098,7 +2090,7 @@ static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsig
     return -1;
   }
 
-  pmsg_debug("jtagmkII_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
+  pmsg_debug("%s(): received chip silicon revision: 0x%02x\n", __func__, *chip_rev);
   return 0;
 }
 
@@ -2139,7 +2131,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_a_fuse(mem))
+    if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2193,6 +2185,9 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   } else if ((p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_in_sigrow(mem)) {
     cmd[1] = MTYPE_PRODSIG;
     pmsg_notice2("in_sigrow addr 0x%05lx\n", addr);
+  } else if (mem_is_in_sigrow(mem)) { // Classic part
+    cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+    addr /= 2;
   } else if (mem_is_io(mem) || mem_is_sram(mem)) {
     cmd[1] = MTYPE_FLASH;
     addr += avr_data_offset(p);
@@ -2234,7 +2229,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   tries = 0;
 retry:
-  pmsg_notice2("jtagmkII_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
   jtagmkII_send(pgm, cmd, 10);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -2248,7 +2243,7 @@ retry:
       resp = 0;
     goto fail;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2308,7 +2303,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && mem_is_a_fuse(mem))
+    if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2353,20 +2348,19 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   tries = 0;
 retry:
-  pmsg_notice2("jtagmkII_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
   jtagmkII_send(pgm, cmd, 10 + writesize);
 
   status = jtagmkII_recv(pgm, &resp);
   if (status <= 0) {
     msg_notice2("\n");
-    pmsg_notice2("jtagmkII_write_byte(): "
-      "timeout/error communicating with programmer (status %d)\n", status);
+    pmsg_notice2("%s(): timeout/error communicating with programmer (status %d)\n", __func__, status);
     if (tries++ < 3)
       goto retry;
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     goto fail;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2445,8 +2439,7 @@ int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm,
 
   buf[0] = CMND_GET_PARAMETER;
   buf[1] = parm;
-  pmsg_notice2("jtagmkII_getparm(): "
-    "Sending get parameter command (parm 0x%02x): ", parm);
+  pmsg_notice2("%s(): sending get parameter command (parm 0x%02x): ", __func__, parm);
   jtagmkII_send(pgm, buf, 2);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -2455,7 +2448,7 @@ int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm,
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2520,7 +2513,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm,
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return -1;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -2649,8 +2642,7 @@ static int jtagmkII_avr32_reset(const PROGRAMMER *pgm, unsigned char val,
 
   status = jtagmkII_recv(pgm, &resp);
   if (status != 2 || resp[0] != 0x87 || resp[1] != ret1) {
-    pmsg_notice("jtagmkII_avr32_reset(): "
-      "Get_IR, expecting %2.2x but got %2.2x\n", ret1, resp[1]);
+    pmsg_notice("%s(): Get_IR, expecting %2.2x but got %2.2x\n", __func__, ret1, resp[1]);
 
     //return -1;
   }
@@ -2663,8 +2655,7 @@ static int jtagmkII_avr32_reset(const PROGRAMMER *pgm, unsigned char val,
 
   status = jtagmkII_recv(pgm, &resp);
   if (status != 2 || resp[0] != 0x87 || resp[1] != ret2) {
-    pmsg_notice("jtagmkII_avr32_reset(): "
-      "Get_XXX, expecting %2.2x but got %2.2x\n", ret2, resp[1]);
+    pmsg_notice("%s(): Get_XXX, expecting %2.2x but got %2.2x\n", __func__, ret2, resp[1]);
     //return -1;
   }
 
@@ -3003,12 +2994,10 @@ static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
     resp[3] != p->signature[1] ||
     resp[4] != p->signature[2]) {
       if (ovsigck) {
-        pmsg_warning("expected signature for %s is %02X %02X %02X\n", p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
+        pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
       } else {
-        pmsg_error("expected signature for %s is %02X %02X %02X\n", p->desc,
-          p->signature[0], p->signature[1], p->signature[2]);
-        imsg_error("double check chip or use -F to override this check\n");
+        pmsg_error("expected signature for %s is%s;\n", p->desc, str_cchex(p->signature, 3, 1));
+        imsg_error("double check chip or use -F to carry on regardless\n");
         return -1;
       }
     }
@@ -3123,7 +3112,7 @@ static unsigned long jtagmkII_read_SABaddr(const PROGRAMMER *pgm, unsigned long 
   mmt_free(resp);
 
   msg_notice2("\n");
-  pmsg_notice("jtagmkII_read_SABaddr(): OCD Register %lx -> %4.4lx\n", addr, val);
+  pmsg_notice("%s(): OCD Register %lx -> %4.4lx\n", __func__, addr, val);
   serial_recv_timeout = otimeout;
   return val;
 }
@@ -3150,7 +3139,7 @@ static int jtagmkII_write_SABaddr(const PROGRAMMER *pgm, unsigned long addr,
   }
 
   msg_notice2("\n");
-  pmsg_notice("jtagmkII_write_SABaddr(): OCD Register %lx -> %4.4lx\n", addr, val);
+  pmsg_notice("%s(): OCD Register %lx -> %4.4lx\n", __func__, addr, val);
 
   return 0;
 }
@@ -3252,7 +3241,7 @@ static void jtagmkII_close32(PROGRAMMER * pgm) {
   mmt_free(resp);
 
   buf[0] = CMND_SIGN_OFF;
-  pmsg_notice2("jtagmkII_close(): sending sign-off command: ");
+  pmsg_notice2("%s(): sending sign-off command: ", __func__);
   jtagmkII_send(pgm, buf, 1);
 
   status = jtagmkII_recv(pgm, &resp);
@@ -3261,7 +3250,7 @@ static void jtagmkII_close32(PROGRAMMER * pgm) {
     pmsg_error("timeout/error communicating with programmer (status %d)\n", status);
     return;
   }
-  if (verbose >= 3) {
+  if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkII_prmsg(pgm, resp, status);
   } else
@@ -3319,8 +3308,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
   for (; addr < maxaddr; addr += block_size) {
     block_size = maxaddr - addr < (unsigned int) pgm->page_size?
       maxaddr - addr: (unsigned int) pgm->page_size;
-    pmsg_debug("jtagmkII_paged_load32(): "
-      "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     u32_to_b4r(cmd + 3, m->offset + addr);
 
@@ -3329,7 +3317,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
     status = jtagmkII_recv(pgm, &resp);
     if(status<0) {lineno = __LINE__; goto eRR;}
 
-    if (verbose >= 3) {
+    if (verbose >= MSG_DEBUG) {
       msg_debug("\n");
       jtagmkII_prmsg(pgm, resp, status);
     } else
@@ -3414,8 +3402,7 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
     for(blocks=0; blocks<2; ++blocks) {
       block_size = maxaddr - addr < (unsigned int) pgm->page_size?
         maxaddr - addr: (unsigned int) pgm->page_size;
-      pmsg_debug("jtagmkII_paged_write32(): "
-        "block_size at addr %d is %d\n", addr, block_size);
+      pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
       u32_to_b4r(cmd + 6, m->offset + addr);
       memset(cmd + 10, 0xff, pgm->page_size);
@@ -3426,7 +3413,7 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
       status = jtagmkII_recv(pgm, &resp);
       if (status<0) {lineno = __LINE__; goto eRR;}
 
-      if (verbose >= 3) {
+      if (verbose >= MSG_DEBUG) {
         msg_debug("\n");
         jtagmkII_prmsg(pgm, resp, status);
       } else

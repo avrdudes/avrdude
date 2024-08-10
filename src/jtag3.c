@@ -1,6 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2012 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2017 Jan Egil Ruud <janegil.ruud@microchip.com>
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,8 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 /*
  * avrdude interface for Atmel JTAGICE3 programmer
@@ -206,7 +205,7 @@ static void jtag3_print_data(unsigned char *b, size_t s) {
 }
 
 static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if (verbose >= 4) {
+  if (verbose >= MSG_TRACE) {
     size_t i;
 
     msg_trace("Raw message:\n");
@@ -336,7 +335,7 @@ static int jtag3_errcode(int reason) {
 }
 
 static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if (verbose >= 4) {
+  if (verbose >= MSG_TRACE) {
     size_t i;
 
     msg_trace("Raw event:\n");
@@ -430,7 +429,7 @@ int jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
     return jtag3_edbg_send(pgm, data, len);
 
   msg_debug("\n");
-  pmsg_debug("jtag3_send(): sending %lu bytes\n", (unsigned long) len);
+  pmsg_debug("%s(): sending %lu bytes\n", __func__, (unsigned long) len);
 
   buf = mmt_malloc(len + 4);
   buf[0] = TOKEN;
@@ -454,20 +453,20 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
   unsigned char status[USBDEV_MAX_XFER_3];
   int rv;
 
-  if (verbose >= 4) {
+  if (verbose >= MSG_TRACE) {
     memset(buf, 0, USBDEV_MAX_XFER_3);
     memset(status, 0, USBDEV_MAX_XFER_3);
   }
 
   msg_debug("\n");
-  pmsg_debug("jtag3_edbg_send(): sending %lu bytes\n", (unsigned long) len);
+  pmsg_debug("%s(): sending %lu bytes\n", __func__, (unsigned long) len);
 
   /* 4 bytes overhead for CMD, fragment #, and length info */
   int max_xfer = pgm->fd.usb.max_xfer;
 
   int nfragments = (len + max_xfer - 1) / max_xfer;
   if (nfragments > 1) {
-    pmsg_debug("jtag3_edbg_send(): fragmenting into %d packets\n", nfragments);
+    pmsg_debug("%s(): fragmenting into %d packets\n", __func__, nfragments);
   }
   int frag;
   for (frag = 0; frag < nfragments; frag++) {
@@ -505,20 +504,20 @@ static int jtag3_edbg_send(const PROGRAMMER *pgm, unsigned char *data, size_t le
     }
 
     if (serial_send(&pgm->fd, buf, max_xfer) != 0) {
-      pmsg_notice("jtag3_edbg_send(): unable to send command to serial port\n");
+      pmsg_notice("%s(): unable to send command to serial port\n", __func__);
       return -1;
     }
     rv = serial_recv(&pgm->fd, status, max_xfer);
 
     if (rv < 0) {
       /* timeout in receive */
-      pmsg_notice2("jtag3_edbg_send(): timeout receiving packet\n");
+      pmsg_notice2("%s(): timeout receiving packet\n", __func__);
       return -1;
     }
     if (status[0] != EDBG_VENDOR_AVR_CMD ||
         (frag == nfragments - 1 && status[1] != 0x01)) {
       /* what to do in this case? */
-      pmsg_notice("jtag3_edbg_send(): unexpected response 0x%02x, 0x%02x\n", status[0], status[1]);
+      pmsg_notice("%s(): unexpected response 0x%02x, 0x%02x\n", __func__, status[0], status[1]);
     }
     data += this_len;
     len -= this_len;
@@ -538,7 +537,7 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_prepare()\n");
 
-  if (verbose >= 4)
+  if (verbose >= MSG_TRACE)
     memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_CONNECT;
@@ -555,7 +554,7 @@ static int jtag3_edbg_prepare(const PROGRAMMER *pgm) {
   if (status[0] != CMSISDAP_CMD_CONNECT ||
       status[1] == 0)
     pmsg_error("unexpected response 0x%02x, 0x%02x\n", status[0], status[1]);
-  pmsg_notice2("jtag3_edbg_prepare(): connection status 0x%02x\n", status[1]);
+  pmsg_notice2("%s(): connection status 0x%02x\n", __func__, status[1]);
 
   buf[0] = CMSISDAP_CMD_LED;
   buf[1] = CMSISDAP_LED_CONNECT;
@@ -588,38 +587,38 @@ static int jtag3_edbg_signoff(const PROGRAMMER *pgm) {
   msg_debug("\n");
   pmsg_debug("jtag3_edbg_signoff()\n");
 
-  if (verbose >= 4)
+  if (verbose >= MSG_TRACE)
     memset(buf, 0, USBDEV_MAX_XFER_3);
 
   buf[0] = CMSISDAP_CMD_LED;
   buf[1] = CMSISDAP_LED_CONNECT;
   buf[2] = 0;
   if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
-    pmsg_notice("jtag3_edbg_signoff(): unable to send command to serial port\n");
+    pmsg_notice("%s(): unable to send command to serial port\n", __func__);
     return -1;
   }
   rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
   if (rv != pgm->fd.usb.max_xfer) {
-    pmsg_notice("jtag3_edbg_signoff(): unable to read from serial port (%d)\n", rv);
+    pmsg_notice("%s(): unable to read from serial port (%d)\n", __func__, rv);
     return -1;
   }
   if (status[0] != CMSISDAP_CMD_LED ||
       status[1] != 0)
-    pmsg_notice("jtag3_edbg_signoff(): unexpected response 0x%02x, 0x%02x\n", status[0], status[1]);
+    pmsg_notice("%s(): unexpected response 0x%02x, 0x%02x\n", __func__, status[0], status[1]);
 
   buf[0] = CMSISDAP_CMD_DISCONNECT;
   if (serial_send(&pgm->fd, buf, pgm->fd.usb.max_xfer) != 0) {
-    pmsg_notice("jtag3_edbg_signoff(): unable to send command to serial port\n");
+    pmsg_notice("%s(): unable to send command to serial port\n", __func__);
     return -1;
   }
   rv = serial_recv(&pgm->fd, status, pgm->fd.usb.max_xfer);
   if (rv != pgm->fd.usb.max_xfer) {
-    pmsg_notice("jtag3_edbg_signoff(): unable to read from serial port (%d)\n", rv);
+    pmsg_notice("%s(): unable to read from serial port (%d)\n", __func__, rv);
     return -1;
   }
   if (status[0] != CMSISDAP_CMD_DISCONNECT ||
       status[1] != 0)
-    pmsg_notice("jtag3_edbg_signoff(): unexpected response 0x%02x, 0x%02x\n", status[0], status[1]);
+    pmsg_notice("%s(): unexpected response 0x%02x, 0x%02x\n", __func__, status[0], status[1]);
 
   return 0;
 }
@@ -651,7 +650,7 @@ static int jtag3_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
   rv = serial_recv(&pgm->fd, buf, pgm->fd.usb.max_xfer);
 
   if (rv < 0) {
-    pmsg_notice2("jtag3_recv_frame(): timeout receiving packet\n");
+    pmsg_notice2("%s(): timeout receiving packet\n", __func__);
     mmt_free(buf);
     return -1;
   }
@@ -680,7 +679,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
     request[0] = EDBG_VENDOR_AVR_RSP;
 
     if (serial_send(&pgm->fd, request, pgm->fd.usb.max_xfer) != 0) {
-      pmsg_notice("jtag3_edbg_recv(): unable to send CMSIS-DAP vendor command\n");
+      pmsg_notice("%s(): unable to send CMSIS-DAP vendor command\n", __func__);
       mmt_free(request);
       mmt_free(*msg);
       return -1;
@@ -690,14 +689,14 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 
     if (rv < 0) {
       /* timeout in receive */
-      pmsg_notice2("jtag3_edbg_recv(): timeout receiving packet\n");
+      pmsg_notice2("%s(): timeout receiving packet\n", __func__);
       mmt_free(*msg);
       mmt_free(request);
       return -1;
     }
 
     if (buf[0] != EDBG_VENDOR_AVR_RSP) {
-      pmsg_notice("jtag3_edbg_recv(): unexpected response 0x%02x\n", buf[0]);
+      pmsg_notice("%s(): unexpected response 0x%02x\n", __func__, buf[0]);
       mmt_free(*msg);
       mmt_free(request);
       return -1;
@@ -707,7 +706,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       // Documentation says:
       // "FragmentInfo 0x00 indicates that no response data is
       // available, and the rest of the packet is ignored."
-      pmsg_notice("jtag3_edbg_recv(): no response available\n");
+      pmsg_notice("%s(): no response available\n", __func__);
       mmt_free(*msg);
       mmt_free(request);
       return -1;
@@ -720,8 +719,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       thisfrag = 1;
     } else {
       if (nfrags != (buf[1] & 0x0F)) {
-        pmsg_notice("jtag3_edbg_recv(): "
-          "Inconsistent # of fragments; had %d, now %d\n",
+        pmsg_notice("%s(): inconsistent # of fragments; had %d, now %d\n", __func__,
           nfrags, (buf[1] & 0x0F));
         mmt_free(*msg);
         mmt_free(request);
@@ -729,8 +727,7 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
       }
     }
     if (thisfrag != ((buf[1] >> 4) & 0x0F)) {
-      pmsg_notice("jtag3_edbg_recv(): "
-        "inconsistent fragment number; expect %d, got %d\n",
+      pmsg_notice("%s(): inconsistent fragment number; expect %d, got %d\n", __func__,
         thisfrag, ((buf[1] >> 4) & 0x0F));
       mmt_free(*msg);
       mmt_free(request);
@@ -739,11 +736,11 @@ static int jtag3_edbg_recv_frame(const PROGRAMMER *pgm, unsigned char **msg) {
 
     int thislen = (buf[2] << 8) | buf[3];
     if (thislen > rv + 4) {
-      pmsg_notice("jtag3_edbg_recv(): unexpected length value (%d > %d)\n", thislen, rv + 4);
+      pmsg_notice("%s(): unexpected length value (%d > %d)\n", __func__, thislen, rv + 4);
       thislen = rv + 4;
     }
     if (len + thislen > USBDEV_MAX_XFER_3) {
-      pmsg_notice("jtag3_edbg_recv(): length exceeds max size (%d > %d)\n", len + thislen, USBDEV_MAX_XFER_3);
+      pmsg_notice("%s(): length exceeds max size (%d > %d)\n", __func__, len + thislen, USBDEV_MAX_XFER_3);
       thislen = USBDEV_MAX_XFER_3 - len;
     }
     memmove(buf, buf + 4, thislen);
@@ -765,7 +762,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
       return rv;
 
     if ((rv & USB_RECV_FLAG_EVENT) != 0) {
-      if (verbose >= 3)
+      if (verbose >= MSG_DEBUG)
         jtag3_prevent(pgm, *msg, rv & USB_RECV_LENGTH_MASK);
 
       mmt_free(*msg);
@@ -774,8 +771,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
 
     rv &= USB_RECV_LENGTH_MASK;
     r_seqno = ((*msg)[2] << 8) | (*msg)[1];
-    pmsg_debug("jtag3_recv(): "
-      "Got message seqno %d (command_sequence == %d)\n", r_seqno, PDATA(pgm)->command_sequence);
+    pmsg_debug("%s(): got message seqno %d (command_sequence == %d)\n", __func__, r_seqno, PDATA(pgm)->command_sequence);
     if (r_seqno == PDATA(pgm)->command_sequence) {
       if (++(PDATA(pgm)->command_sequence) == 0xffff)
         PDATA(pgm)->command_sequence = 0;
@@ -794,8 +790,7 @@ int jtag3_recv(const PROGRAMMER *pgm, unsigned char **msg) {
 
       return rv;
     }
-    pmsg_notice2("jtag3_recv(): "
-      "got wrong sequence number, %u != %u\n", r_seqno, PDATA(pgm)->command_sequence);
+    pmsg_notice2("%s(): got wrong sequence number, %u != %u\n", __func__, r_seqno, PDATA(pgm)->command_sequence);
 
     mmt_free(*msg);
   }
@@ -816,7 +811,7 @@ int jtag3_command(const PROGRAMMER *pgm, unsigned char *cmd, unsigned int cmdlen
     if (status == 0)
       mmt_free(*resp);
     return LIBAVRDUDE_GENERAL_FAILURE;
-  } else if (verbose >= 3) {
+  } else if (verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtag3_prmsg(pgm, *resp, status);
   } else {
@@ -1010,7 +1005,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if (pgm->fd.usb.max_xfer < USBDEV_MAX_XFER_3 && (pgm->flag & PGM_FL_IS_EDBG) == 0) {
     if (ovsigck) {
       pmsg_warning("JTAGICE3's firmware %d.%d is broken on USB 1.1 connections\n", parm[0], parm[1]);
-      imsg_warning("forced to continue by option -F; THIS PUTS THE DEVICE'S DATA INTEGRITY AT RISK!\n");
+      imsg_warning("forced to continue by option -F; this puts the device's data integrity at risk!\n");
     } else {
       pmsg_error("JTAGICE3's firmware %d.%d is broken on USB 1.1 connections\n", parm[0], parm[1]);
       return -1;
@@ -1069,8 +1064,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
   if (pgm->bitclock != 0.0 && PDATA(pgm)->set_sck != NULL) {
     unsigned int clock = 1E-3 / pgm->bitclock; /* kHz */
-    pmsg_notice2("jtag3_initialize(): "
-      "trying to set JTAG clock to %u kHz\n", clock);
+    pmsg_notice2("%s(): trying to set JTAG clock to %u kHz\n", __func__, clock);
     parm[0] = clock & 0xff;
     parm[1] = (clock >> 8) & 0xff;
     if (PDATA(pgm)->set_sck(pgm, parm) < 0)
@@ -1078,8 +1072,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if (conn == PARM3_CONN_JTAG) {
-    pmsg_notice2("jtag3_initialize(): "
-      "trying to set JTAG daisy-chain info to %d,%d,%d,%d\n",
+    pmsg_notice2("%s(): trying to set JTAG daisy-chain info to %d,%d,%d,%d\n", __func__,
       PDATA(pgm)->jtagchain[0], PDATA(pgm)->jtagchain[1],
       PDATA(pgm)->jtagchain[2], PDATA(pgm)->jtagchain[3]);
     if (jtag3_setparm(pgm, SCOPE_AVR, 1, PARM3_JTAGCHAIN, PDATA(pgm)->jtagchain, 4) < 0)
@@ -1118,7 +1111,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
       // Exit early is the target power switch is off and print sensible info message
       if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
-        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        pmsg_info("turn on the Vtarg switch to establish connection with the target\n\n");
         return -1;
       }
     }
@@ -1183,8 +1176,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         u32_to_b4(xd.nvm_prod_sig_offset, m->offset);
       }
     }
-    if(p->prog_modes & (PM_PDI | PM_UPDI))
-      u32_to_b4(xd.nvm_data_offset, DATA_OFFSET);
+    u32_to_b4(xd.nvm_data_offset, DATA_OFFSET);
 
     if (jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *)&xd, sizeof xd) < 0)
       return -1;
@@ -1244,8 +1236,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Generate UPDI high-voltage pulse if user asks for it and hardware supports it
-    if (p->prog_modes & PM_UPDI &&
-        PDATA(pgm)->use_hvupdi == true &&
+    if (PDATA(pgm)->use_hvupdi == true &&
         p->hvupdi_variant != HV_UPDI_VARIANT_1) {
       parm[0] = PARM3_UPDI_HV_NONE;
       for (LNODEID ln = lfirst(pgm->hvupdi_support); ln; ln = lnext(ln)) {
@@ -1451,27 +1442,26 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)))
+  if(p->prog_modes & PM_Classic)
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 }
 
 static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if(str_starts(extended_param, "jtagchain=") && (pgm->prog_modes & (PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG))) {
       unsigned int ub, ua, bb, ba;
       if(sscanf(extended_param, "jtagchain=%u,%u,%u,%u", &ub, &ua, &bb, &ba) != 4) {
-        pmsg_error("invalid JTAG chain %s\n", extended_param);
+        pmsg_error("invalid JTAG chain in -x %s\n", extended_param);
         rv = -1;
         break;
       }
-      pmsg_notice2("jtag3_parseextparms(): JTAG chain parsed as:\n");
+      pmsg_notice2("%s(): JTAG chain parsed as:\n", __func__);
       imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n",
                    ub, ua, bb, ba);
       PDATA(pgm)->jtagchain[0] = ub;
@@ -1493,7 +1483,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       if(!str_eq(extended_param, "hvupdi")) {
-        pmsg_error("invalid -xhvupdi value %s. Use -xhvupdi\n", extended_param);
+        pmsg_error("invalid assignment in -x %s; use -x hvupdi\n", extended_param);
         rv = -1;
         break;
       }
@@ -1512,13 +1502,13 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         // Set SUFFER value
         if(str_starts(extended_param, "suffer=")) {
           if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
           if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
             PDATA(pgm)->suffer_data[1] |= 0x78;
-            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+            pmsg_info("setting -x suffer=0x%02x so that reserved bits 3..6 are set\n",
               PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
@@ -1529,7 +1519,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->suffer_get = true;
           continue;
         }
-        pmsg_error("invalid suffer setting %s. Use -xsuffer or -xsuffer=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x suffer or -x suffer=<n>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1541,7 +1531,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         if(str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1553,7 +1543,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->vtarg_switch_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg_switch setting %s. Use -xvtarg_switch or -xvtarg_switch=<0..1>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg_switch or -x vtarg_switch=<0..1>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1567,7 +1557,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1579,7 +1569,7 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
           PDATA(pgm)->vtarg_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg setting %s. Use -xvtarg or -xvtarg=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1597,37 +1587,43 @@ static int jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      pmsg_error("invalid mode setting %s. Use -xmode=avr or -xmode=pic\n", extended_param);
+      pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=pic\n", extended_param);
       rv = -1;
       break;
     }
 
     if(str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if(str_eq(pgm->type, "JTAGICE3"))
-        msg_error("  -xjtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
-      if(lsize(pgm->hvupdi_support) > 1)
-        msg_error("  -xhvupdi                Enable high-voltage UPDI initialization\n");
-      if(pgm->extra_features & HAS_SUFFER) {
-        msg_error("  -xsuffer                Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>          Set SUFFER register value\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_SWITCH) {
-        msg_error("  -xvtarg_switch          Read on-board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<0..1>   Set on-board target voltage switch state\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg                 Read on-board target supply voltage\n");
-        msg_error("  -xvtarg=<arg>           Set on-board target supply voltage\n");
-      }
-      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-        msg_error("  -xmode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
-      msg_error  ("  -xhelp                  Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if(str_eq(pgm->type, "JTAGICE3")) {
+      msg_error("  -x jtagchain=UB,UA,BB,BA Setup the JTAG scan chain order\n");
+      msg_error("                           UB/UA = units before/after, BB/BA = bits before/after\n");
+    }
+    if(lsize(pgm->hvupdi_support) > 1)
+      msg_error("  -x hvupdi                Enable high-voltage UPDI initialization\n");
+    if(pgm->extra_features & HAS_SUFFER) {
+      msg_error("  -x suffer                Read SUFFER register value\n");
+      msg_error("  -x suffer=<n>            Set SUFFER register to <n> (0x.. hex, 0.. oct or dec)\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_SWITCH) {
+      msg_error("  -x vtarg_switch          Read on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch=<0..1>   Set on-board target voltage switch state\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg                 Read on-board target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>           Set on-board target supply voltage to <dbl> V\n");
+    }
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+      msg_error("  -x mode=avr|pic          Set programmer to AVR or PIC mode, then exit\n");
+    msg_error  ("  -x help                  Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;
@@ -1712,7 +1708,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
           pmsg_error("%s in %s mode detected\n",
             pgmstr, pinfo.usbinfo.pid == bl_pid? "bootloader": "PIC");
           if(mode_switch == PK4_SNAP_MODE_AVR) {
-            imsg_error("switching to AVR mode\n");
+            imsg_error("switching to AVR mode; ");
             if(pinfo.usbinfo.pid == bl_pid)
               serial_send(&pgm->fd, exit_bl_cmd, sizeof(exit_bl_cmd));
             else {
@@ -1720,10 +1716,10 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
               usleep(250*1000);
               serial_send(&pgm->fd, reset_cmd, sizeof(reset_cmd));
             }
-            imsg_error("please run Avrdude again to continue the session\n\n");
+            imsg_error("run %s again to continue the session\n\n", progname);
           } else {
-            imsg_error("to switch into AVR mode try\n");
-            imsg_error("avrdude -c%s -p%s -P%s -xmode=avr\n", pgmid, partdesc, port);
+            pmsg_error("to switch into AVR mode try\n");
+            imsg_error("$ %s -c%s -p%s -P%s -x mode=avr\n", progname, pgmid, partdesc, port);
           }
           serial_close(&pgm->fd);
           return LIBAVRDUDE_EXIT;;
@@ -1749,7 +1745,7 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
   }
 
   if (mode_switch == PK4_SNAP_MODE_AVR)
-    pmsg_warning("programmer is already in AVR mode. Ignoring -xmode");
+    pmsg_warning("programmer is already in AVR mode, ignoring -x mode");
 
   // The event EP has been deleted by usb_open(), so we are
   // running on a CMSIS-DAP device, using EDBG protocol
@@ -1767,13 +1763,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
 
   // Switch from AVR to PIC mode
   if (mode_switch == PK4_SNAP_MODE_PIC) {
-    imsg_error("switching to PIC mode\n");
+    imsg_error("switching to PIC mode: ");
     unsigned char *resp, buf[] = {SCOPE_GENERAL, CMD3_FW_UPGRADE, 0x00, 0x00, 0x70, 0x6d, 0x6a};
     if (jtag3_command(pgm, buf, sizeof(buf), &resp, "enter PIC mode") < 0) {
-      imsg_error("entering PIC mode failed\n");
+      msg_error("entering PIC mode failed\n");
       return -1;
     }
-    imsg_error("PIC mode switch successful\n");
+    msg_error("PIC mode switch successful\n");
     serial_close(&pgm->fd);
     return LIBAVRDUDE_EXIT;;
   }
@@ -1866,7 +1862,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if(!(p->prog_modes & (PM_PDI | PM_UPDI)) && !mem_is_userrow(m)) {
+  if((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -1971,8 +1967,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
       block_size = maxaddr - addr;
     else
       block_size = page_size;
-    pmsg_debug("jtag3_paged_write(): "
-      "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (dynamic_mtype)
       cmd[3] = jtag3_mtype(pgm, p, addr);
@@ -2062,8 +2057,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       block_size = maxaddr - addr;
     else
       block_size = page_size;
-    pmsg_debug("jtag3_paged_load(): "
-               "block_size at addr %d is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (dynamic_mtype)
       cmd[3] = jtag3_mtype(pgm, p, addr);
@@ -2107,7 +2101,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   paddr = jtag3_memaddr(pgm, p, mem, addr);
   if (paddr != addr)
-    imsg_notice2("mapped to address: 0x%lx\n", paddr);
+    imsg_debug("addr 0x%lx mapped to address 0x%lx\n", addr, paddr);
   paddr = 0;
 
   if (mem->size < 1) {
@@ -2130,13 +2124,13 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_FLASH_PAGE;
   if (mem_is_in_flash(mem)) {
-    addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash */
+    addr += mem->offset & (512 * 1024 - 1); /* max 512 KiB flash @@@ could be max 8M */
     pagesize = PDATA(pgm)->flash_pagesize;
     paddr = addr & ~(pagesize - 1);
     paddr_ptr = &PDATA(pgm)->flash_pageaddr;
     cache_ptr = PDATA(pgm)->flash_pagecache;
   } else if (mem_is_eeprom(mem)) {
-    if ( (pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & PM_PDI) || (p->prog_modes & PM_UPDI) ) {
+    if ((pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & (PM_PDI | PM_UPDI))) {
       cmd[3] = MTYPE_EEPROM;
     } else {
       cmd[3] = MTYPE_EEPROM_PAGE;
@@ -2166,19 +2160,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if (pgm->flag & PGM_FL_IS_DW)
         unsupp = 1;
     }
-  } else if (mem_is_sernum(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osccal16(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osccal20(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_tempsense(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osc16err(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_osc20err(mem)) {
-    cmd[3] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_calibration(mem)) {
+  } else if ((p->prog_modes & PM_Classic) && mem_is_calibration(mem)) { // Classic part calibration
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if (pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2225,6 +2207,11 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       msg_error("address out of range for signature memory: %lu\n", addr);
       return -1;
     }
+  } else if(mem_is_in_sigrow(mem)) { // sigrow sub-memories but not signature nor sigrow itself
+    cmd[3] = (p->prog_modes & PM_UPDI)? MTYPE_SIGN_JTAG: MTYPE_PRODSIG;
+    AVRMEM *sigrow = avr_locate_sigrow(p);
+    if(sigrow)
+      addr += mem->offset - sigrow->offset; // Adjust offset for parent memory
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
     return -1;
@@ -2484,7 +2471,7 @@ int jtag3_getparm(const PROGRAMMER *pgm, unsigned char scope,
 
   c = resp[1];
   if (c != RSP3_DATA || status < 3) {
-    pmsg_notice("jtag3_getparm(): bad response to %s\n", descr);
+    pmsg_notice("%s(): bad response to %s\n", __func__, descr);
     mmt_free(resp);
     return -1;
   }
@@ -2551,7 +2538,7 @@ int jtag3_read_sib(const PROGRAMMER *pgm, const AVRPART *p, char *sib) {
 
   memcpy(sib, resp+3, AVR_SIBLEN);
   sib[AVR_SIBLEN-1] = 0; // Zero terminate string
-  pmsg_debug("jtag3_read_sib(): received SIB: %s\n", sib);
+  pmsg_debug("%s(): received SIB: %s\n", __func__, sib);
   mmt_free(resp);
   return 0;
 }
@@ -2573,7 +2560,7 @@ int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *
     return -1;
   }
 
-  pmsg_debug("jtag3_read_chip_rev(): received chip silicon revision: 0x%02x\n", *chip_rev);
+  pmsg_debug("%s(): received chip silicon revision: 0x%02x\n", __func__, *chip_rev);
   return 0;
 }
 
@@ -2590,7 +2577,7 @@ int jtag3_set_vtarget(const PROGRAMMER *pgm, double v) {
   uaref = b2_to_u16(buf);
   u16_to_b2(buf, utarg);
 
-  pmsg_notice2("jtag3_set_vtarget(): changing V[target] from %.1f to %.1f\n", uaref / 1000.0, v);
+  pmsg_notice2("%s(): changing V[target] from %.1f to %.1f\n", __func__, uaref / 1000.0, v);
 
   if (jtag3_setparm(pgm, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
     pmsg_error("cannot confirm new V[target] value\n");
@@ -2823,7 +2810,7 @@ static unsigned char tpi_get_mtype(const AVRMEM *m) {
     mem_is_lock(m)? XPRG_MEM_TYPE_LOCKBITS:
     mem_is_calibration(m)? XPRG_MEM_TYPE_LOCKBITS: // Sic, uses offset to distingish memories
     mem_is_signature(m)? XPRG_MEM_TYPE_LOCKBITS:
-    mem_is_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
+    mem_is_in_sigrow(m)? XPRG_MEM_TYPE_LOCKBITS:
     XPRG_MEM_TYPE_APPL;         // Sic, TPI parts do not have eeprom
 }
 
@@ -2860,7 +2847,7 @@ int jtag3_recv_tpi(const PROGRAMMER *pgm, unsigned char **msg) {
   rv = jtag3_recv(pgm, msg);
 
   if (rv <= 0) {
-    pmsg_error("jtag3_recv_tpi(): unable to receive\n");
+    pmsg_error("%s(): unable to receive\n", __func__);
     return -1;
   }
   rv = rv - 1;
@@ -3043,10 +3030,12 @@ static int jtag3_write_byte_tpi(const PROGRAMMER *pgm, const AVRPART *p, const A
     return -1;
   }
 
-  status = jtag3_erase_tpi(pgm, p, mem, addr);
-  if (status < 0) {
-    pmsg_error("error in communication, received status 0x%02x\n", status);
-    return -1;
+  if (mem_is_a_fuse(mem) || mem_is_flash(mem)) {
+    status = jtag3_erase_tpi(pgm, p, mem, addr);
+    if (status < 0) {
+      pmsg_error("error in communication, received status 0x%02x\n", status);
+      return -1;
+    }
   }
 
   paddr = mem->offset + addr;
@@ -3147,8 +3136,7 @@ static int jtag3_paged_load_tpi(const PROGRAMMER *pgm, const AVRPART *p,
       block_size = maxaddr - addr;
     else
       block_size = page_size;
-    pmsg_debug("jtag3_paged_load_tpi(): "
-               "block_size at addr 0x%x is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr 0x%x is %d\n", __func__, addr, block_size);
 
     u32_to_b4_big_endian((cmd+2), addr + m->offset);  // Address
     u16_to_b2_big_endian((cmd+6), block_size);        // Size
@@ -3207,8 +3195,7 @@ static int jtag3_paged_write_tpi(const PROGRAMMER *pgm, const AVRPART *p,
       block_size = maxaddr - addr;
     else
       block_size = page_size;
-    pmsg_debug("jtag3_paged_write(): "
-      "block_size at addr 0x%x is %d\n", addr, block_size);
+    pmsg_debug("%s(): block_size at addr 0x%x is %d\n", __func__, addr, block_size);
 
     u32_to_b4_big_endian((cmd+3), addr + m->offset);  // Address
     u16_to_b2_big_endian((cmd+7), page_size);        // Size

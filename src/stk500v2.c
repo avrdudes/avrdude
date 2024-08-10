@@ -3,7 +3,7 @@
  * Copyright (C) 2005 Erik Walthinsen
  * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2006 David Moore
- * Copyright (C) 2006,2007,2010 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2006, 2007, 2010 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
 /* Based on Id: stk500.c,v 1.46 2004/12/22 01:52:45 bdean Exp */
 
 /*
@@ -593,7 +592,7 @@ static int stk500v2_jtag3_recv(const PROGRAMMER *pgm, unsigned char *msg,
      octets from the ICE.  Thus, only complain at high verbose
      levels. */
   if ((size_t) rv - 1 > maxsize) {
-    pmsg_debug("stk500v2_jtag3_recv(): got %u bytes, have only room for %u bytes\n", (unsigned) rv - 1, (unsigned) maxsize);
+    pmsg_debug("%s(): got %u bytes, have only room for %u bytes\n", __func__, (unsigned) rv - 1, (unsigned) maxsize);
     rv = maxsize;
   }
   if (jtagmsg[0] != SCOPE_AVR_ISP) {
@@ -765,7 +764,7 @@ retry:
         pmsg_notice("%s(): unknown programmer %s, assuming STK500\n", __func__, name);
 	PDATA(pgm)->pgmtype = PGMTYPE_STK500;
       }
-      pmsg_debug("stk500v2_getsync(): found %s programmer\n", pgmname(pgm));
+      pmsg_debug("%s(): found %s programmer\n", __func__, pgmname(pgm));
       serial_recv_timeout = bak_serial_recv_timeout;
       return 0;
     } else {
@@ -1133,8 +1132,8 @@ retry:
                 pmsg_error("unable to return from debugWIRE to ISP\n");
                 break;
             }
-            pmsg_warning("target prepared for ISP, signed off\n");
-            imsg_warning("now retrying without power-cycling the target\n");
+            pmsg_warning("target prepared for ISP, signed off; now\n");
+            imsg_warning("retrying without power-cycling the target\n");
             goto retry;
         }
         break;
@@ -1396,15 +1395,15 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if (jtag3_getparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0)
       return -1;
     if (!PDATA(pgm)->vtarg_switch_set)
-      imsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
+      pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0] ? "on" : "off");
     // Write Vtarg switch value
     else {
       if (jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL, EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data+1, 1) < 0)
         return -1;
-      imsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
+      pmsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[1]);
       // Exit early is the target power switch is off and print sensible info message
       if (PDATA(pgm)->vtarg_switch_data[1] == 0) {
-        imsg_info("Turn on the Vtarg switch to establish connection with the target\n\n");
+        pmsg_info("turn on the Vtarg switch to establish connection with the target\n\n");
         return -1;
       }
     }
@@ -1742,12 +1741,11 @@ static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_starts(extended_param, "vtarg")) {
       if (pgm->extra_features & HAS_VTARG_ADJ) {
@@ -1757,7 +1755,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1772,7 +1770,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_starts(extended_param, "varef")) {
+    if (str_starts(extended_param, "varef")) {
       if (pgm->extra_features & HAS_VAREF_ADJ) {
         int sscanf_success = 0;
         double varef_set_val = -1;
@@ -1810,7 +1808,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         if (PDATA(pgm)->varef_set) {
           PDATA(pgm)->varef_data = (double)((int)(varef_set_val * 100 + .5)) / 100;
           if (sscanf_success < 1 || varef_set_val < 0) {
-            pmsg_error("invalid varef value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             PDATA(pgm)->varef_set = false;
             rv = -1;
             break;
@@ -1820,14 +1818,14 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_starts(extended_param, "fosc")) {
+    if (str_starts(extended_param, "fosc")) {
       if (pgm->extra_features & HAS_FOSC_ADJ) {
         // Set clock generator frequency
         if (str_starts(extended_param, "fosc=")) {
           char fosc_str[16] = {0};
           int sscanf_success = sscanf(extended_param, "fosc=%15[0-9.eE MmKkHhZzof]", fosc_str);
           if (sscanf_success < 1) {
-            pmsg_error("invalid fosc value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1863,13 +1861,13 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_starts(extended_param, "xtal")) {
+    if (str_starts(extended_param, "xtal")) {
       // Set clock generator frequency
       if (str_starts(extended_param, "xtal=")) {
         char xtal_str[16] = {0};
         int sscanf_success = sscanf(extended_param, "xtal=%15[0-9.eE MmKkHhZz]", xtal_str);
         if (sscanf_success < 1) {
-          pmsg_error("invalid xtal value %s\n", extended_param);
+          pmsg_error("invalid value in -x %s\n", extended_param);
           rv = -1;
           break;
         }
@@ -1892,48 +1890,52 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
       }
     }
 
-    else if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if (pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg               Read target supply voltage\n");
-        msg_error("  -xvtarg=<arg>         Set target supply voltage\n");
-      }
-      if (pgm->extra_features & HAS_VAREF_ADJ) {
-        if (str_contains(pgm->type, "STK500")) {
-          msg_error("  -xvaref               Read analog reference voltage\n");
-          msg_error("  -xvaref=<arg>         Set analog reference voltage\n");
-        }
-        else if (str_contains(pgm->type, "STK600")) {
-          msg_error("  -xvaref               Read channel 0 analog reference voltage\n");
-          msg_error("  -xvaref0              Alias for -xvaref\n");
-          msg_error("  -xvaref1              Read channel 1 analog reference voltage\n");
-          msg_error("  -xvaref=<arg>         Set channel 0 analog reference voltage\n");
-          msg_error("  -xvaref0=<arg>        Alias for -xvaref=<arg>\n");
-          msg_error("  -xvaref1=<arg>        Set channel 1 analog reference voltage\n");
-        }
-      }
-      if (pgm->extra_features & HAS_FOSC_ADJ) {
-        msg_error("  -xfosc                Read oscillator clock frequency\n");
-        msg_error("  -xfosc=<arg>[M|k]|off Set oscillator clock frequency\n");
-      }
-      msg_error("  -xxtal=<arg>[M|k]     Set programmer xtal frequency\n");
-      msg_error("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+    if (str_eq(extended_param, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if (pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg          Read target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>    Set target supply voltage to <dbl> V\n");
+    }
+    if (pgm->extra_features & HAS_VAREF_ADJ) {
+      if (str_contains(pgm->type, "STK500")) {
+        msg_error("  -x varef          Read analog reference voltage\n");
+        msg_error("  -x varef=<dbl>    Set analog reference voltage to <dbl> V\n");
+      }
+      else if (str_contains(pgm->type, "STK600")) {
+        msg_error("  -x varef          Read channel 0 analog reference voltage\n");
+        msg_error("  -x varef0         Alias for -x varef\n");
+        msg_error("  -x varef1         Read channel 1 analog reference voltage\n");
+        msg_error("  -x varef=<dbl>    Set channel 0 analog reference voltage to <dbl> V\n");
+        msg_error("  -x varef0=<dbl>   Alias for -x varef=<dbl>\n");
+        msg_error("  -x varef1=<dbl>   Set channel 1 analog reference voltage to <dbl> V\n");
+      }
+    }
+    if (pgm->extra_features & HAS_FOSC_ADJ) {
+      msg_error("  -x fosc           Read oscillator clock frequency\n");
+      msg_error("  -x fosc=<n>[unit] Set oscillator clock frequency to <n> Hz (or kHz/MHz)\n");
+      msg_error("  -x fosc=off       Switch the oscillator clock off\n");
+    }
+    msg_error("  -x xtal=<n>[unit] Set programmer xtal frequency to <n> Hz (or kHz/MHz)\n");
+    msg_error("  -x help           Show this help menu and exit\n");
+    return rv;
   }
   return rv;
 }
 
 static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for(ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     // SUFFER bits
     // Bit 7 ARDUINO: Adds control of extra LEDs when set to 0
@@ -1946,13 +1948,13 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         // Set SUFFER value
         if(str_starts(extended_param, "suffer=")) {
           if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data+1) < 1) {
-            pmsg_error("invalid -xsuffer=<value> %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
           if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
             PDATA(pgm)->suffer_data[1] |= 0x78;
-            pmsg_info("setting -xsuffer=0x%02x so that reserved bits 3..6 are set\n",
+            pmsg_info("setting -x suffer=0x%02x so that reserved bits 3..6 are set\n",
               PDATA(pgm)->suffer_data[1]);
           }
           PDATA(pgm)->suffer_set = true;
@@ -1963,7 +1965,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->suffer_get = true;
           continue;
         }
-        pmsg_error("invalid suffer setting %s. Use -xsuffer or -xsuffer=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x suffer or -x suffer=<n>\n", extended_param);
         rv = -1;
         break;
       }
@@ -1975,7 +1977,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         if(str_starts(extended_param, "vtarg_switch=")) {
           int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data+1);
           if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
-            pmsg_error("invalid vtarg_switch value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -1987,7 +1989,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->vtarg_switch_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg_switch setting %s. Use -xvtarg_switch or -xvtarg_switch=<0..1>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg_switch or -x vtarg_switch=<0..1>\n", extended_param);
         rv = -1;
         break;
       }
@@ -2001,7 +2003,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
           PDATA(pgm)->vtarg_data = (double)((int)(vtarg_set_val * 100 + .5)) / 100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
-            pmsg_error("invalid vtarg value %s\n", extended_param);
+            pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
@@ -2013,7 +2015,7 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           PDATA(pgm)->vtarg_get = true;
           continue;
         }
-        pmsg_error("invalid vtarg setting %s. Use -xvtarg or -xvtarg=<arg>\n", extended_param);
+        pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
         rv = -1;
         break;
       }
@@ -2031,33 +2033,37 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
         PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
-      pmsg_error("invalid mode setting %s. Use -xmode=avr or -xmode=pic\n", extended_param);
+      pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=pic\n", extended_param);
       rv = -1;
       break;
     }
 
     if(str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      if(pgm->extra_features & HAS_SUFFER) {
-        msg_error("  -xsuffer              Read SUFFER register value\n");
-        msg_error("  -xsuffer=<arg>        Set SUFFER register value\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_SWITCH) {
-        msg_error("  -xvtarg_switch        Read on-board target voltage switch state\n");
-        msg_error("  -xvtarg_switch=<0..1> Set on-board target voltage switch state\n");
-      }
-      if(pgm->extra_features & HAS_VTARG_ADJ) {
-        msg_error("  -xvtarg               Read on-board target supply voltage\n");
-        msg_error("  -xvtarg=<arg>         Set on-board target supply voltage\n");
-      }
-      if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
-        msg_error("  -xmode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
-      msg_error  ("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter %s\n", extended_param);
-    rv = -1;
+    if(!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    if(pgm->extra_features & HAS_SUFFER) {
+      msg_error("  -x suffer              Read SUFFER register value\n");
+      msg_error("  -x suffer=<n>          Set SUFFER register value to <n>=0x.., 0... or decimal\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_SWITCH) {
+      msg_error("  -x vtarg_switch        Read on-board target voltage switch state\n");
+      msg_error("  -x vtarg_switch=<0..1> Set on-board target voltage switch state\n");
+    }
+    if(pgm->extra_features & HAS_VTARG_ADJ) {
+      msg_error("  -x vtarg               Read on-board target supply voltage\n");
+      msg_error("  -x vtarg=<dbl>         Set on-board target supply voltage to <dbl> V\n");
+    }
+    if(str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))
+      msg_error("  -x mode=avr|pic        Set programmer to AVR or PIC mode, then exit\n");
+    msg_error  ("  -x help                Show this help menu and exit\n");
+    return rv;
   }
   return rv;
 }
@@ -2081,22 +2087,22 @@ static void scratchmonkey_led_state(const PROGRAMMER *pgm, int flag, int value) 
   stk500v2_setparm_real(pgm, PARAM_SCRATCHMONKEY_STATUS_LEDS, PDATA(pgm)->scratchmonkey_leds);
 }
 
-static int scratchmonkey_rdy_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_rdy_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_RDY_LED, value);
   return 0;
 }
 
-static int scratchmonkey_err_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_err_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_ERR_LED, value);
   return 0;
 }
 
-static int scratchmonkey_pgm_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_pgm_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_PGM_LED, value);
   return 0;
 }
 
-static int scratchmonkey_vfy_led(const struct programmer_t *pgm, int value) {
+static int scratchmonkey_vfy_led(const PROGRAMMER *pgm, int value) {
   scratchmonkey_led_state(pgm, SCRATCHMONKEY_VFY_LED, value);
   return 0;
 }
@@ -2308,11 +2314,11 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[0] = mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP;
   } else if (mem_is_signature(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP;
-  } else if (mem_is_sigrow(mem)) {
+  } else if (mem_is_in_sigrow(mem)) {
     buf[0] = addr&1?
       (mode == PPMODE? CMD_READ_OSCCAL_PP: CMD_READ_OSCCAL_HVSP):
       (mode == PPMODE? CMD_READ_SIGNATURE_PP: CMD_READ_SIGNATURE_HVSP);
-    addr /= 2;
+    addr = (addr + avr_sigrow_offset(p, mem, addr))/2;
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
@@ -2344,7 +2350,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     buf[1] = addr;
   }
 
-  pmsg_notice2("stk500hv_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
@@ -2391,7 +2397,7 @@ static int stk500hvsp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
 static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 			       unsigned long addr, unsigned char * value)
 {
-  int result, pollidx;
+  int result, pollidx, offset = 0;
   unsigned char buf[6];
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0;
@@ -2441,8 +2447,9 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     buf[0] = CMD_READ_OSCCAL_ISP;
   } else if (mem_is_signature(mem)) {
     buf[0] = CMD_READ_SIGNATURE_ISP;
-  } else if (mem_is_sigrow(mem)) {
+  } else if (mem_is_in_sigrow(mem)) { // Sernum and prodsig/sigrow (m324pb/m328pb)
     buf[0] = addr&1? CMD_READ_OSCCAL_ISP: CMD_READ_SIGNATURE_ISP;
+    offset = avr_sigrow_offset(p, mem, addr);
   } else {
     pmsg_error("unsupported memory %s\n", mem->desc);
     return -1;
@@ -2459,9 +2466,9 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     pollidx = 3;
   }
   buf[1] = pollidx + 1;
-  avr_set_addr(op, buf + 2, addr);
+  avr_set_addr(op, buf + 2, addr + offset);
 
-  pmsg_notice2("stk500isp_read_byte(): sending read memory command: ");
+  pmsg_notice2("%s(): sending read memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, 6, sizeof(buf));
 
@@ -2590,7 +2597,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
   }
 
-  pmsg_notice2("stk500hv_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, cmdlen, sizeof(buf));
 
@@ -2704,7 +2711,7 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   avr_set_addr(op, buf + 1, addr);
   avr_set_input(op, buf + 1, data);
 
-  pmsg_notice2("stk500isp_write_byte(): sending write memory command: ");
+  pmsg_notice2("%s(): sending write memory command: ", __func__);
 
   result = stk500v2_command(pgm, buf, 5, sizeof(buf));
 
@@ -3052,9 +3059,9 @@ static int stk500v2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 #if 0
     for (i=0; i<page_size; i++) {
-      msg_info("%02X", buf[2+i]);
+      msg_notice("%02X", buf[2+i]);
       if (i%16 == 15)
-        msg_info("\n");
+        msg_notice("\n");
     }
 #endif
 
@@ -3132,9 +3139,9 @@ static int stk500hv_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 #if 0
     for (i = 0; i < page_size; i++) {
-      msg_info("%02X", buf[2 + i]);
+      msg_notice("%02X", buf[2 + i]);
       if (i % 16 == 15)
-        msg_info("\n");
+        msg_notice("\n");
     }
 #endif
 
@@ -3566,8 +3573,7 @@ static int stk500v2_setparm_real(const PROGRAMMER *pgm, unsigned char parm, unsi
   buf[2] = value;
 
   if (stk500v2_command(pgm, buf, 3, sizeof(buf)) < 0) {
-    pmsg_error("\n%s stk500v2_setparm(): unable to set parameter 0x%02x\n",
-      progname, parm);
+    pmsg_error("unable to set parameter 0x%02x\n", parm);
     return -1;
   }
 
@@ -3618,8 +3624,7 @@ static int stk500v2_setparm2(const PROGRAMMER *pgm, unsigned char parm, unsigned
   buf[3] = value;
 
   if (stk500v2_command(pgm, buf, 4, sizeof(buf)) < 0) {
-    pmsg_error("\n%s stk500v2_setparm2(): unable to set parameter 0x%02x\n",
-      progname, parm);
+    pmsg_error("unable to set parameter 0x%02x\n", parm);
     return -1;
   }
 
@@ -4496,7 +4501,7 @@ static int stk600_xprog_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const
         b[1] = XPRG_MEM_TYPE_FUSE;
     } else if (mem_is_lock(mem)) {
         b[1] = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
+    } else if (mem_is_calibration(mem) || mem_is_in_sigrow(mem)) {
         b[1] = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (mem_is_userrow(mem)) {
         b[1] = XPRG_MEM_TYPE_USERSIG;
@@ -4570,7 +4575,7 @@ static int stk600_xprog_paged_load(const PROGRAMMER *pgm, const AVRPART *p, cons
         mtype = XPRG_MEM_TYPE_FUSE;
     } else if (mem_is_lock(mem)) {
         mtype = XPRG_MEM_TYPE_LOCKBITS;
-    } else if (mem_is_calibration(mem) || mem_is_sigrow(mem)) {
+    } else if (mem_is_calibration(mem) || mem_is_in_sigrow(mem)) {
         mtype = XPRG_MEM_TYPE_FACTORY_CALIBRATION;
     } else if (mem_is_userrow(mem)) {
         mtype = XPRG_MEM_TYPE_USERSIG;

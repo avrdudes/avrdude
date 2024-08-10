@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004  Brian S. Dean <bsd@bdmicro.com>
- * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 #include <ac_cfg.h>
 
@@ -169,7 +167,7 @@ PROGRAMMER *pgm_new(void) {
     pin_clear_all(&(pgm->pin[i]));
   }
 
-  pgm->leds = mmt_malloc(sizeof(leds_t));
+  pgm->leds = mmt_malloc(sizeof(Leds));
 
   pgm_init_functions(pgm);
 
@@ -218,7 +216,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     if(pgm->cp_usersig)
       mmt_free(pgm->cp_usersig);
 
-    leds_t *ls = pgm->leds;
+    Leds *ls = pgm->leds;
     memcpy(pgm, src, sizeof(*pgm));
     if(ls && src->leds)
       memcpy(ls, src->leds, sizeof *ls);
@@ -284,7 +282,7 @@ static void pgm_default_setup_teardown(PROGRAMMER *pgm) {
 
 
 void programmer_display(PROGRAMMER *pgm, const char * p) {
-  msg_info("%sProgrammer Type       : %s\n", p, pgm->type);
+  msg_info("%sProgrammer type       : %s\n", p, pgm->type);
   msg_info("%sDescription           : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
@@ -292,34 +290,11 @@ void programmer_display(PROGRAMMER *pgm, const char * p) {
 
 
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show) {
-  if(show & (1<<PPI_AVR_VCC)) 
-    msg_info("%s  VCC     = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_VCC]));
-  if(show & (1<<PPI_AVR_BUFF))
-    msg_info("%s  BUFF    = %s\n", p, pins_to_str(&pgm->pin[PPI_AVR_BUFF]));
-  if(show & (1<<PIN_AVR_RESET))
-    msg_info("%s  RESET   = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_RESET]));
-  if(show & (1<<PIN_AVR_SCK))
-    msg_info("%s  SCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SCK]));
-  if(show & (1<<PIN_AVR_SDO))
-    msg_info("%s  SDO     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SDO]));
-  if(show & (1<<PIN_AVR_SDI))
-    msg_info("%s  SDI     = %s\n", p, pins_to_str(&pgm->pin[PIN_AVR_SDI]));
-  if(show & (1<<PIN_JTAG_TCK))
-    msg_info("%s  TCK     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TCK]));
-  if(show & (1<<PIN_JTAG_TDI))
-    msg_info("%s  TDI     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TDI]));
-  if(show & (1<<PIN_JTAG_TDO))
-    msg_info("%s  TDO     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TDO]));
-  if(show & (1<<PIN_JTAG_TMS))
-    msg_info("%s  TMS     = %s\n", p, pins_to_str(&pgm->pin[PIN_JTAG_TMS]));
-  if(show & (1<<PIN_LED_ERR))
-    msg_info("%s  ERR LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_ERR]));
-  if(show & (1<<PIN_LED_RDY))
-    msg_info("%s  RDY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_RDY]));
-  if(show & (1<<PIN_LED_PGM))
-    msg_info("%s  PGM LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_PGM]));
-  if(show & (1<<PIN_LED_VFY))
-    msg_info("%s  VFY LED = %s\n", p, pins_to_str(&pgm->pin[PIN_LED_VFY]));
+  for(int pbit = 1; pbit < N_PINS; pbit++)
+    if(show & (1<<pbit)) {
+      const char *pinstr = pins_to_str(pgm->pin + pbit);
+      msg_info("%s  %-6s = %s\n", p, avr_pin_name(pbit), *pinstr? pinstr: "(not used)");
+    }
 }
 
 void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
@@ -435,7 +410,7 @@ void sort_programmers(LISTID programmers)
 }
 
 
-// Soft assignment: some struct programmer_t entries can be both programmers and serial adapters
+// Soft assignment: some PROGRAMMER entries can be both programmers and serial adapters
 int is_programmer(const PROGRAMMER *p) {
  return p && p->id && lsize(p->id) && p->prog_modes && p->initpgm;
 }

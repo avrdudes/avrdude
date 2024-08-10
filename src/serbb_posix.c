@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000, 2001, 2002, 2003  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000, 2001, 2002, 2003 Brian S. Dean <bsd@bdmicro.com>
  * Copyright (C) 2005 Juliane Holzt <avrdude@juliane.holzt.de>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
@@ -17,7 +17,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-/* $Id$ */
 
 /*
  * Posix serial bitbanging interface for avrdude.
@@ -44,7 +43,13 @@
 
 #undef DEBUG
 
-static struct termios oldmode;
+struct pdata {
+  struct termios oldmode;
+};
+
+// Use private programmer data as if they were a global structure my
+#define my (*(struct pdata *)(pgm->cookie))
+
 
 /*
   serial port/pin mapping
@@ -62,11 +67,11 @@ static struct termios oldmode;
 
 #define DB9PINS 9
 
-static int serregbits[DB9PINS + 1] =
+static const int serregbits[DB9PINS + 1] =
 { 0, TIOCM_CD, 0, 0, TIOCM_DTR, 0, TIOCM_DSR, TIOCM_RTS, TIOCM_CTS, TIOCM_RI };
 
 #ifdef DEBUG
-static char *serpins[DB9PINS + 1] =
+static const char * const serpins[DB9PINS + 1] =
   { "NONE", "CD", "RXD", "TXD", "DTR", "GND", "DSR", "RTS", "CTS", "RI" };
 #endif
 
@@ -89,7 +94,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
     return -1;
 
 #ifdef DEBUG
-  msg_info("%s to %d\n", serpins[pin], value);
+  msg_notice("%s to %d\n", serpins[pin], value);
 #endif
 
   switch ( pin )
@@ -167,14 +172,14 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
       if ( !invert )
       {
 #ifdef DEBUG
-        msg_info("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
+        msg_notice("%s is %d\n", serpins[pin], ctl & serregbits[pin]? 1: 0);
 #endif
         return ctl & serregbits[pin]? 1: 0;
       }
       else
       {
 #ifdef DEBUG
-        msg_info("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
+        msg_notice("%s is %d (~)\n", serpins[pin], ctl & serregbits[pin]? 0: 1);
 #endif
         return ctl & serregbits[pin]? 0: 1;
       }
@@ -243,7 +248,7 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
     pmsg_ext_error("%s, tcgetattr(): %s\n", port, strerror(errno));
     return(-1);
   }
-  oldmode = mode;
+  my.oldmode = mode;
 
   mode.c_iflag = IGNBRK | IGNPAR;
   mode.c_oflag = 0;
@@ -277,11 +282,20 @@ static int serbb_open(PROGRAMMER *pgm, const char *port) {
 static void serbb_close(PROGRAMMER *pgm) {
   if (pgm->fd.ifd != -1)
   {
-	  (void)tcsetattr(pgm->fd.ifd, TCSANOW, &oldmode);
+	  (void) tcsetattr(pgm->fd.ifd, TCSANOW, &my.oldmode);
 	  pgm->setpin(pgm, PIN_AVR_RESET, 1);
 	  close(pgm->fd.ifd);
   }
   return;
+}
+
+static void serbb_setup(PROGRAMMER *pgm) {
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
+}
+
+static void serbb_teardown(PROGRAMMER *pgm) {
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 const char serbb_desc[] = "Serial port bitbanging";
@@ -291,6 +305,8 @@ void serbb_initpgm(PROGRAMMER *pgm) {
 
   pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
 
+  pgm->setup          = serbb_setup;
+  pgm->teardown       = serbb_teardown;
   pgm->rdy_led        = bitbang_rdy_led;
   pgm->err_led        = bitbang_err_led;
   pgm->pgm_led        = bitbang_pgm_led;

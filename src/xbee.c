@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 /*
  * avrdude interface for AVR devices Over-The-Air programmable via an
  * XBee Series 2 device.
@@ -311,7 +309,7 @@ static void xbeedev_stats_send(struct XBeeBootSession *xbs,
     stats->sendTime = *sendTime;
 
   if (detailSequence >= 0) {
-    pmsg_notice2("stats: send Group %s Sequence %u : "
+    pmsg_debug("stats: send Group %s Sequence %u : "
       "Send %lu.%06lu %s Sequence %d\n",
       groupNames[group],
       (unsigned int) sequence,
@@ -319,7 +317,7 @@ static void xbeedev_stats_send(struct XBeeBootSession *xbs,
       (unsigned long) sendTime->tv_usec,
       detail, detailSequence);
   } else {
-    pmsg_notice2("stats: send Group %s Sequence %u : "
+    pmsg_debug("stats: send Group %s Sequence %u : "
       "Send %lu.%06lu %s\n",
       groupNames[group],
       (unsigned int) sequence,
@@ -351,7 +349,7 @@ static void xbeedev_stats_receive(struct XBeeBootSession *xbs,
   delay.tv_sec = secs;
   delay.tv_usec = usecs;
 
-  pmsg_notice2("stats: receive Group %s Sequence %u : "
+  pmsg_debug("stats: receive Group %s Sequence %u : "
     "Send %lu.%06lu Receive %lu.%06lu Delay %lu.%06lu %s\n",
     groupNames[group],
     (unsigned int) sequence,
@@ -392,7 +390,7 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
 
   gettimeofday(&time, NULL);
 
-  pmsg_notice2("sendAPIRequest(): %lu.%06lu %d, %d, %d, %d %s\n",
+  pmsg_debug("%s(): %lu.%06lu %d, %d, %d, %d %s\n", __func__,
     (unsigned long) time.tv_sec,
     (unsigned long) time.tv_usec,
     (int) packetType, (int)sequence, appType,
@@ -441,7 +439,7 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
      * instructions.
      */
     if (apiType != 0x21 && xbs->sourceRouteChanged) {
-      pmsg_notice2("sendAPIRequest(): issuing Create Source Route request with %d hops\n", xbs->sourceRouteHops);
+      pmsg_debug("%s(): issuing Create Source Route request with %d hops\n", __func__, xbs->sourceRouteHops);
 
       int rc = sendAPIRequest(xbs, 0x21, /* Create Source Route */
                               0, -1, 0, xbs->sourceRouteHops,
@@ -569,7 +567,7 @@ static void xbeedev_record16Bit(struct XBeeBootSession *xbs,
   unsigned char * const tx16Bit =
     &xbs->xbee_address[XBEE_ADDRESS_64BIT_LEN];
   if (memcmp(rx16Bit, tx16Bit, XBEE_ADDRESS_16BIT_LEN) != 0) {
-    pmsg_notice2("xbeedev_record16Bit(): new 16-bit address: %02x%02x\n",
+    pmsg_debug("%s(): new 16-bit address: %02x%02x\n", __func__,
                     (unsigned int)rx16Bit[0],
                     (unsigned int)rx16Bit[1]);
     memcpy(tx16Bit, rx16Bit, XBEE_ADDRESS_16BIT_LEN);
@@ -650,7 +648,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
 
       if (checksum) {
         /* Checksum didn't match */
-        pmsg_notice2("xbeedev_poll(): bad checksum %d\n", (int) checksum);
+        pmsg_debug("%s(): bad checksum %d\n", __func__, (int) checksum);
         continue;
       }
     }
@@ -660,7 +658,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
     struct timeval receiveTime;
     gettimeofday(&receiveTime, NULL);
 
-    pmsg_notice2("xbeedev_poll(): %lu.%06lu Received frame type %x\n",
+    pmsg_debug("%s(): %lu.%06lu Received frame type %x\n", __func__,
       (unsigned long) receiveTime.tv_sec,
       (unsigned long) receiveTime.tv_usec,
       (unsigned int) frameType);
@@ -673,7 +671,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Remote AT command response",
                             XBEE_STATS_FRAME_REMOTE, txSequence, &receiveTime);
 
-      pmsg_notice("xbeedev_poll(): remote command %d result code %d\n",
+      pmsg_notice("%s(): remote command %d result code %d\n", __func__,
         (int) txSequence, (int) resultCode);
 
       if (waitForSequence >= 0 && waitForSequence == frame[3])
@@ -686,7 +684,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Local AT command response",
                             XBEE_STATS_FRAME_LOCAL, txSequence, &receiveTime);
 
-      pmsg_notice("xbeedev_poll(): local command %c%c result code %d\n",
+      pmsg_notice("%s(): local command %c%c result code %d\n", __func__,
         frame[4], frame[5], (int)frame[6]);
 
       if (waitForSequence >= 0 && waitForSequence == txSequence)
@@ -699,7 +697,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       xbeedev_stats_receive(xbs, "Transmit status", XBEE_STATS_FRAME_REMOTE,
                             txSequence, &receiveTime);
 
-      pmsg_notice2("xbeedev_poll(): transmit status %d result code %d\n",
+      pmsg_debug("%s(): transmit status %d result code %d\n", __func__,
         (int) frame[3], (int) frame[7]);
     } else if (frameType == 0xa1 &&
                frameSize >= XBEE_LENGTH_LEN + XBEE_APITYPE_LEN +
@@ -709,7 +707,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       if (memcmp(&frame[XBEE_LENGTH_LEN + XBEE_APITYPE_LEN],
                  xbs->xbee_address, XBEE_ADDRESS_64BIT_LEN) != 0) {
         /* Not from our target device */
-        pmsg_notice2("xbeedev_poll(): route Record Indicator from other XBee\n");
+        pmsg_debug("%s(): route Record Indicator from other XBee\n", __func__);
         continue;
       }
 
@@ -732,9 +730,8 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
       const unsigned char receiveOptions = frame[header];
       const unsigned char hops = frame[header + 1];
 
-      pmsg_notice2("xbeedev_poll(): "
-        "Route Record Indicator from target XBee: "
-        "hops=%d options=%d\n", (int)hops, (int)receiveOptions);
+      pmsg_debug("%s(): Route Record Indicator from target XBee: "
+        "hops=%d options=%d\n", __func__, (int)hops, (int)receiveOptions);
 
       if (frameSize < header + 2 + hops * 2 + XBEE_CHECKSUM_LEN)
         /* Bounds check: Frame is too small */
@@ -744,8 +741,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
 
       unsigned char index;
       for (index = 0; index < hops; index++) {
-        pmsg_notice2("xbeedev_poll(): "
-          "Route Intermediate Hop %d : %02x%02x\n", (int)index,
+        pmsg_debug("%s(): Route Intermediate Hop %d : %02x%02x\n", __func__, (int)index,
           (int)frame[tableOffset + index * 2],
           (int)frame[tableOffset + index * 2 + 1]);
       }
@@ -757,7 +753,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
           xbs->sourceRouteHops = hops;
           xbs->sourceRouteChanged = 1;
 
-          pmsg_notice2("xbeedev_poll(): route has changed\n");
+          pmsg_debug("%s(): route has changed\n", __func__);
         }
       }
     } else if (frameType == 0x10 || frameType == 0x90) {
@@ -817,8 +813,7 @@ static int xbeedev_poll(struct XBeeBootSession *xbs,
         const unsigned char protocolType = dataStart[0];
         const unsigned char sequence = dataStart[1];
 
-        pmsg_notice2("xbeedev_poll(): "
-          "%lu.%06lu Packet %d #%d\n", (unsigned long)receiveTime.tv_sec,
+        pmsg_debug("%s(): %lu.%06lu Packet %d #%d\n", __func__, (unsigned long)receiveTime.tv_sec,
           (unsigned long)receiveTime.tv_usec,
           (int)protocolType, (int)sequence);
 
@@ -1622,34 +1617,38 @@ static void xbee_close(PROGRAMMER *pgm)
 }
 
 static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rc = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_starts(extended_param, "xbeeresetpin=")) {
       int resetpin;
       if (sscanf(extended_param, "xbeeresetpin=%i", &resetpin) != 1 ||
           resetpin <= 0 || resetpin > 7) {
-        pmsg_error("invalid xbeeresetpin '%s'\n", extended_param);
+        pmsg_error("invalid value in -x %s\n", extended_param);
         rc = -1;
-        continue;
+        break;
       }
 
       PDATA(pgm)->xbeeResetPin = resetpin;
       continue;
     }
+
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xxbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
-      msg_error("  -xhelp                Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rc = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rc = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rc = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x xbeeresetpin=<1..7> Set XBee pin DIO<1..7> as reset pin\n");
+    msg_error("  -x help                Show this help menu and exit\n");
+    return rc;
   }
 
   return rc;

@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004  Brian S. Dean <bsd@bdmicro.com>
- * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2002-2004 Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@
 #include "ppi.h"
 #include "serbb.h"
 #include "serialupdi.h"
+#include "serprog.h"
 #include "stk500.h"
 #include "stk500generic.h"
 #include "stk500v2.h"
@@ -100,6 +101,7 @@ const PROGRAMMER_TYPE programmers_types[] = { // Name(s) the programmers call th
   {"pickit2", pickit2_initpgm, pickit2_desc}, // "pickit2"
   {"serbb", serbb_initpgm, serbb_desc}, // "SERBB"
   {"serialupdi", serialupdi_initpgm, serialupdi_desc}, // "serialupdi"
+  {"serprog", serprog_initpgm, serprog_desc}, // "serprog"
   {"stk500", stk500_initpgm, stk500_desc}, // "STK500"
   {"stk500generic", stk500generic_initpgm, stk500generic_desc}, // "STK500GENERIC"
   {"stk500v2", stk500v2_initpgm, stk500v2_desc}, // "STK500V2"

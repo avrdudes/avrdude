@@ -59,12 +59,11 @@
 
 #define TEENSY_CONNECT_WAIT 100
 
-#define PDATA(pgm) ((pdata_t*)(pgm->cookie))
+#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
 
 //-----------------------------------------------------------------------------
 
-typedef struct pdata
-{
+struct pdata {
     hid_device* hid_handle;
     uint16_t hid_usage;
     // Extended parameters
@@ -78,7 +77,7 @@ typedef struct pdata
     // State
     bool erase_flash;
     bool reboot;
-} pdata_t;
+};
 
 //-----------------------------------------------------------------------------
 
@@ -87,7 +86,7 @@ static void delay_ms(uint32_t duration)
     usleep(duration * 1000);
 }
 
-static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
+static int teensy_get_bootloader_info(struct pdata *pdata, const AVRPART *p) {
     switch (pdata->hid_usage)
     {
     case 0x19:
@@ -156,8 +155,7 @@ static int teensy_get_bootloader_info(pdata_t* pdata, const AVRPART* p) {
     return 0;
 }
 
-static void teensy_dump_device_info(pdata_t* pdata)
-{
+static void teensy_dump_device_info(struct pdata *pdata) {
     pmsg_notice("HID usage: 0x%02X\n", pdata->hid_usage);
     pmsg_notice("Board: %s\n", pdata->board);
     pmsg_notice("Available flash size: %u\n", pdata->flash_size);
@@ -166,8 +164,7 @@ static void teensy_dump_device_info(pdata_t* pdata)
       pdata->sig_bytes[0], pdata->sig_bytes[1], pdata->sig_bytes[2]);
 }
 
-static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* buffer, uint32_t size, bool suppress_warning)
-{
+static int teensy_write_page(struct pdata *pdata, uint32_t address, const uint8_t *buffer, uint32_t size, bool suppress_warning) {
     pmsg_debug("teensy_write_page(address=0x%06X, size=%d)\n", address, size);
 
     if (size > pdata->page_size)
@@ -211,16 +208,14 @@ static int teensy_write_page(pdata_t* pdata, uint32_t address, const uint8_t* bu
     return 0;
 }
 
-static int teensy_erase_flash(pdata_t* pdata)
-{
+static int teensy_erase_flash(struct pdata *pdata) {
     pmsg_debug("teensy_erase_flash()\n");
 
     // Write a dummy page at address 0 to explicitly erase the flash.
     return teensy_write_page(pdata, 0, NULL, 0, false);
 }
 
-static int teensy_reboot(pdata_t* pdata)
-{
+static int teensy_reboot(struct pdata *pdata) {
     pmsg_debug("teensy_reboot()\n");
 
     // Write a dummy page at address -1 to reboot the Teensy.
@@ -231,7 +226,7 @@ static int teensy_reboot(pdata_t* pdata)
 
 static void teensy_setup(PROGRAMMER *pgm) {
     pmsg_debug("teensy_setup()\n");
-    pgm->cookie = mmt_malloc(sizeof(pdata_t));
+    pgm->cookie = mmt_malloc(sizeof(struct pdata));
 }
 
 static void teensy_teardown(PROGRAMMER *pgm) {
@@ -243,7 +238,7 @@ static void teensy_teardown(PROGRAMMER *pgm) {
 static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_debug("teensy_initialize()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
 
     int result = teensy_get_bootloader_info(pdata, p);
     if (result < 0)
@@ -255,7 +250,7 @@ static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void teensy_display(const PROGRAMMER *pgm, const char *prefix) {
-    pmsg_debug("teensy_display()\n");
+ //    pmsg_debug("teensy_display()\n");
 }
 
 static void teensy_powerup(const PROGRAMMER *pgm) {
@@ -265,7 +260,7 @@ static void teensy_powerup(const PROGRAMMER *pgm) {
 static void teensy_powerdown(const PROGRAMMER *pgm) {
     pmsg_debug("teensy_powerdown()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
 
     if (pdata->erase_flash)
     {
@@ -302,7 +297,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
         return -1;
     }
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     memcpy(mem->buf, pdata->sig_bytes, sizeof(pdata->sig_bytes));
 
     return 0;
@@ -311,7 +306,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_debug("teensy_chip_erase()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
 
     // Schedule a chip erase, either at first write or on powerdown.
     pdata->erase_flash = true;
@@ -322,7 +317,7 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
     pmsg_debug("teensy_open(\"%s\")\n", port);
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     const char *bus_name = NULL;
     char* dev_name = NULL;
 
@@ -348,8 +343,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 
     if (port != NULL && dev_name == NULL)
     {
-        pmsg_error("invalid -P value: '%s'\n", port);
-        imsg_error("Use -P usb:bus:device\n");
+        pmsg_error("invalid -P %s; use -P usb:bus:device\n", port);
         return -1;
     }
 
@@ -438,7 +432,7 @@ static void teensy_close(PROGRAMMER* pgm)
 {
     pmsg_debug("teensy_close()\n");
 
-    pdata_t* pdata = PDATA(pgm);
+    struct pdata *pdata = PDATA(pgm);
     if (pdata->hid_handle != NULL)
     {
         hid_close(pdata->hid_handle);
@@ -486,7 +480,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
     if (mem_is_flash(mem))
     {
-        pdata_t* pdata = PDATA(pgm);
+        struct pdata *pdata = PDATA(pgm);
 
         if (n_bytes > page_size)
         {
@@ -535,39 +529,48 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 }
 
 static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
+    int rv = 0;
+    bool help = false;
     pmsg_debug("teensy_parseextparams()\n");
 
-    pdata_t* pdata = PDATA(pgm);
-    for (LNODEID node = lfirst(xparams); node != NULL; node = lnext(node))
+    struct pdata *pdata = PDATA(pgm);
+    for (LNODEID node = lfirst(xparams); node; node = lnext(node))
     {
-        const char* param = ldata(node);
+        const char* extended_param = ldata(node);
 
-        if (str_eq(param, "wait"))
+        if (str_eq(extended_param, "wait"))
         {
             pdata->wait_until_device_present = true;
             pdata->wait_timout = -1;
+            continue;
         }
-        else if (str_starts(param, "wait="))
+
+        if (str_starts(extended_param, "wait="))
         {
             pdata->wait_until_device_present = true;
-            pdata->wait_timout = atoi(param + 5);
+            pdata->wait_timout = atoi(extended_param + 5);
+            continue;
         }
-        else if (str_eq(param, "help"))
+
+        if (str_eq(extended_param, "help"))
         {
-            msg_error("%s -c %s extended options:\n", progname, pgmid);
-            msg_error("  -xwait       Wait for the device to be plugged in if not connected\n");
-            msg_error("  -xwait=<arg> Wait <arg> [s] for the device to be plugged in if not connected\n");
-            msg_error("  -xhelp       Show this help menu and exit\n");
-            return LIBAVRDUDE_EXIT;;
+            help = true;
+            rv = LIBAVRDUDE_EXIT;
         }
-        else
+
+        if (!help)
         {
-            pmsg_error("invalid extended parameter '%s'\n", param);
-            return -1;
+            pmsg_error("invalid extended parameter -x %s\n", extended_param);
+            rv =  -1;
         }
+        msg_error("%s -c %s extended options:\n", progname, pgmid);
+        msg_error("  -x wait     Wait for the device to be plugged in if not connected\n");
+        msg_error("  -x wait=<n> Wait <n> s for the device to be plugged in if not connected\n");
+        msg_error("  -x help     Show this help menu and exit\n");
+        return rv;
     }
 
-    return 0;
+    return rv;
 }
 
 void teensy_initpgm(PROGRAMMER *pgm) {

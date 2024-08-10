@@ -1,7 +1,7 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2006  Thomas Fischl
- * Copyright 2007 Joerg Wunsch <j@uriah.heep.sax.de>
+ * Copyright (C) 2006 Thomas Fischl
+ * Copyright (C) 2007 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 /*
  * Interface to the USBasp programmer.
@@ -282,27 +280,31 @@ static void usbasp_teardown(PROGRAMMER *pgm) {
 }
 
 static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
-  LNODEID ln;
-  const char *extended_param;
   int rv = 0;
+  bool help = false;
 
-  for (ln = lfirst(extparms); ln; ln = lnext(ln)) {
-    extended_param = ldata(ln);
+  for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
 
     if (str_eq(extended_param, "section_config")) {
-      pmsg_notice2("usbasp_parseextparms(): set section_e to 1 (config section)\n");
+      pmsg_notice2("%s(): set section_e to 1 (config section)\n", __func__);
       PDATA(pgm)->section_e = 1;
       continue;
     }
+
     if (str_eq(extended_param, "help")) {
-      msg_error("%s -c %s extended options:\n", progname, pgmid);
-      msg_error("  -xsection_config Erase configuration section only with -e (TPI only)\n");
-      msg_error("  -xhelp           Show this help menu and exit\n");
-      return LIBAVRDUDE_EXIT;;
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
     }
 
-    pmsg_error("invalid extended parameter '%s'\n", extended_param);
-    rv = -1;
+    if (!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x section_config  Erase configuration section only with -e (TPI only)\n");
+    msg_error("  -x help            Show this help menu and exit\n");
+    return rv;
   }
 
   return rv;
@@ -345,7 +347,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 {
   int nbytes;
 
-  if (verbose > 3) {
+  if (verbose >= MSG_TRACE) {
     pmsg_trace("usbasp_transmit(\"%s\", 0x%02x, 0x%02x, 0x%02x, 0x%02x)\n",
       usbasp_get_funcname(functionid), send[0], send[1], send[2], send[3]);
     if (!receive && buffersize > 0) {
@@ -384,7 +386,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
   }
 #endif
 
-  if (verbose > 3 && receive && nbytes > 0) {
+  if (verbose >= MSG_TRACE && receive && nbytes > 0) {
     int i;
     imsg_trace("<= ");
     for (i = 0; i < nbytes; i++)
@@ -397,7 +399,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
 
 static int check_for_port_argument_match(const char *port, char *bus, char *device, char *serial_num) {
 
-  pmsg_notice("usbOpenDevice(): found USBasp, bus:device: %s:%s, serial_number: %s\n", bus, device, serial_num);
+  pmsg_debug("%s(): found USBasp, bus:device: %s:%s, serial_number: %s\n", __func__, bus, device, serial_num);
   const size_t usb_len = strlen("usb");
   if(str_starts(port, "usb") && ':' == port[usb_len]) {
     port += usb_len + 1;
@@ -739,7 +741,7 @@ static int usbasp_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
                    unsigned char *res)
 {
   pmsg_debug("usbasp_spi_cmd(0x%02x, 0x%02x, 0x%02x, 0x%02x)%s",
-    cmd[0], cmd[1], cmd[2], cmd[3], verbose > 3? " ...\n": "");
+    cmd[0], cmd[1], cmd[2], cmd[3], verbose >= MSG_TRACE? " ...\n": "");
 
   int nbytes =
     usbasp_transmit(pgm, 1, USBASP_FUNC_TRANSMIT, cmd, res, 4);
@@ -934,7 +936,7 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
 }
 
 /* The list of SCK frequencies in Hz supported by USBasp */
-static const struct sckoptions_t usbaspSCKoptions[] = {
+static const struct sckoptions usbaspSCKoptions[] = {
   { USBASP_ISP_SCK_3000, 3000000 },
   { USBASP_ISP_SCK_1500, 1500000 },
   { USBASP_ISP_SCK_750, 750000 },
@@ -970,7 +972,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   if (sckperiod == 0) {
     /* auto sck set */
 
-    pmsg_notice("auto set sck period (because given equals null)\n");
+    pmsg_notice2("auto set sck period\n");
 
   } else {
 
@@ -1160,7 +1162,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   unsigned char cmd[4];
   unsigned char* dptr;
-  int readed, clen, n;
+  int read, clen, n;
   uint16_t pr;
 
 
@@ -1168,11 +1170,11 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   dptr = addr + m->buf;
   pr = addr + m->offset;
-  readed = 0;
+  read = 0;
 
-  while(readed < (int) n_bytes)
+  while(read < (int) n_bytes)
   {
-    clen = n_bytes - readed;
+    clen = n_bytes - read;
     if(clen > 32)
       clen = 32;
 
@@ -1188,7 +1190,7 @@ static int usbasp_tpi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
       return -3;
     }
     
-    readed += clen;
+    read += clen;
     pr += clen;
     dptr += clen;
   }

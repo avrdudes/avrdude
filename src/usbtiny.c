@@ -216,7 +216,7 @@ static int usbtiny_tpi_tx(const PROGRAMMER *pgm, unsigned char b0) {
   if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff,
 	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
     return -1;
-  msg_notice2("CMD_TPI_TX: [0x%02x]\n", b0);
+  msg_debug("CMD_TPI_TX: [0x%02x]\n", b0);
   return 1;
 }
 
@@ -230,7 +230,7 @@ static int usbtiny_tpi_txtx(const PROGRAMMER *pgm,
   if (usb_in(pgm, USBTINY_SPI, tpi_frame(b0), tpi_frame(b1),
 	     res, sizeof(res), 8 * sizeof(res) * PDATA(pgm)->sck_period) < 0)
     return -1;
-  msg_notice2("CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
+  msg_debug("CMD_TPI_TX_TX: [0x%02x 0x%02x]\n", b0, b1);
   return 1;
 }
 
@@ -263,7 +263,7 @@ static int usbtiny_tpi_txrx(const PROGRAMMER *pgm, unsigned char b0) {
     return -1;
   }
 
-  msg_notice2("CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
+  msg_debug("CMD_TPI_TX_RX: [0x%02x -> 0x%02x]\n", b0, r);
   return r;
 }
 
@@ -338,7 +338,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     for	( dev = bus->devices; dev; dev = dev->next ) {
       if (dev->descriptor.idVendor == vid
 	  && dev->descriptor.idProduct == pid ) {   // found match?
-    pmsg_notice("usbdev_open(): found USBtinyISP, bus:device: %s:%s\n", bus->dirname, dev->filename);
+    pmsg_debug("%s(): found USBtinyISP, bus:device: %s:%s\n", __func__, bus->dirname, dev->filename);
     // if -P was given, match device by device name and bus name
     if(name != NULL &&
       (NULL == dev_name ||
@@ -357,8 +357,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   }
 
   if(NULL != name && NULL == dev_name) {
-    pmsg_error("invalid -P value: '%s'\n", name);
-    imsg_error("use -P usb:bus:device\n");
+    pmsg_error("invalid -P %s; use -P usb:bus:device\n", name);
     return -1;
   }
   if (!PDATA(pgm)->usb_handle) {
@@ -443,7 +442,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
     /* Since there is a single TPIDATA line, SDO and SDI must be
        linked together through a 1kOhm resistor.  Verify that
        everything we send on SDO gets mirrored back on SDI.  */
-    msg_notice2("doing SDO-SDI link check\n");
+    msg_debug("doing SDO-SDI link check\n");
 
     memset(res, 0xaa, sizeof(res));
     if (usb_in(pgm, USBTINY_SPI, LITTLE_TO_BIG_16(0x1234), LITTLE_TO_BIG_16(0x5678),
@@ -521,7 +520,7 @@ static int usbtiny_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
     return -1;
   check_retries(pgm, "SPI command");
   // print out the data we sent and received
-  msg_notice2("CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
+  msg_debug("CMD: [%02x %02x %02x %02x] [%02x %02x %02x %02x]\n",
 	    cmd[0], cmd[1], cmd[2], cmd[3],
 	    res[0], res[1], res[2], res[3] );
 

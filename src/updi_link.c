@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2021  Dawid Buchwald
+ * Copyright (C) 2021 Dawid Buchwald
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
-
-/* $Id$ */
 
 /*
  * Based on pymcuprog
@@ -90,7 +88,7 @@ static int updi_physical_send(const PROGRAMMER *pgm, unsigned char *buf, size_t 
   size_t i;
   int rv;
 
-  pmsg_debug("sending %lu bytes [", len);
+  pmsg_debug("sending %lu bytes [", (unsigned long) len);
   for (i=0; i<len; i++) {
     msg_debug("0x%02x", buf[i]);
     if (i<len-1) {
@@ -110,11 +108,11 @@ static int updi_physical_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t 
 
   rv = serial_recv(&pgm->fd, buf, len);
   if (rv < 0) {
-    pmsg_debug("serialupdi_recv(): programmer is not responding\n");
+    pmsg_debug("%s(): programmer is not responding\n", __func__);
     return -1;
   }
 
-  pmsg_debug("received %lu bytes [", len);
+  pmsg_debug("received %lu bytes [", (unsigned long) len);
   for (i=0; i<len; i++) {
     msg_debug("0x%02x", buf[i]);
     if (i<len-1) {

@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2002-2004, 2006  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2002-2004, 2006 Brian S. Dean <bsd@bdmicro.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 #ifndef jtagmkII_h
 #define jtagmkII_h

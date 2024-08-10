@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2000-2004  Brian S. Dean <bsd@bdmicro.com>
+ * Copyright (C) 2000-2004 Brian S. Dean <bsd@bdmicro.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 
 #if !defined(WIN32)
@@ -54,7 +52,6 @@ enum {
 static int ppi_shadow_access(const union filedescriptor *fdp, int reg,
 			     unsigned char *v, unsigned char action)
 {
-  static unsigned char shadow[3];
   int shadow_num;
 
   switch (reg) {
@@ -75,14 +72,14 @@ static int ppi_shadow_access(const union filedescriptor *fdp, int reg,
 
   switch (action) {
     case PPI_SHADOWREAD:
-      *v = shadow[shadow_num];
+      *v = cx->ppi_shadow[shadow_num];
       break;
     case PPI_READ:
       DO_PPI_READ(fdp->ifd, reg, v);
-      shadow[shadow_num]=*v;
+      cx->ppi_shadow[shadow_num]=*v;
       break;
     case PPI_WRITE:
-      shadow[shadow_num]=*v;
+      cx->ppi_shadow[shadow_num]=*v;
       DO_PPI_WRITE(fdp->ifd, reg, v);
       break;
   }

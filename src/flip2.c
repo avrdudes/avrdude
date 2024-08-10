@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id$ */
-
 #include <ac_cfg.h>
 
 #include <stdint.h>
@@ -232,9 +230,8 @@ static int flip2_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   }
 
   if (!ovsigck && !(part->prog_modes & PM_PDI)) {
-    pmsg_error("flip2 (FLIP protocol version 2) is for Xmega devices\n");
-    imsg_error("for AT90USB* or ATmega*U* devices, use flip1\n");
-    imsg_error("(or use -F to bypass this check)\n");
+    pmsg_error("flip2 (FLIP protocol version 2) is for Xmega devices;\n");
+    imsg_error("for AT90USB* or ATmega*U* devices use flip1 or use -F to bypass this check\n");
     return -1;
   }
 
@@ -336,7 +333,7 @@ static int flip2_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   int cmd_result = 0;
   int aux_result;
 
-  pmsg_notice2("flip_chip_erase()\n");
+  pmsg_debug("flip_chip_erase()\n");
 
   struct flip2_cmd cmd = {
     FLIP2_CMD_GROUP_EXEC, FLIP2_CMD_CHIP_ERASE, { 0xFF, 0, 0, 0 }
@@ -494,6 +491,8 @@ static int flip2_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 // Parse the -E option flag
 static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   char *cp, *s, *str = mmt_strdup(sp);
+  int rv = 0;
+  bool help = false;
 
   s = str;
   while ((cp = strtok(s, ","))) {
@@ -506,12 +505,25 @@ static int flip2_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
       pgm->exit_reset = EXIT_RESET_DISABLED;
       continue;
     }
+    if (str_eq(cp, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if (!help) {
+      pmsg_error("invalid exitspec parameter -E %s\n", cp);
+      rv = -1;
+    }
+    msg_error("%s -c %s exitspec parameter options:\n", progname, pgmid);
+    msg_error("  -E reset   Application will not start automatically after programming session\n");
+    msg_error("  -E noreset Application will start automatically after programming session\n");
+    msg_error("  -E help    Show this help menu and exit\n");
     mmt_free(str);
-    return -1;
+    return rv;
   }
 
   mmt_free(str);
-  return 0;
+  return rv;
 }
 
 static int flip2_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
@@ -555,9 +567,9 @@ static void flip2_show_info(struct flip2 *flip2) {
       (char) (flip2->part_rev / 26 - 1 + 'A'),
       (char) (flip2->part_rev % 26 + 'A'));
 
-  msg_info("    Bootloader version  : 2.%hu.%hu\n",
-    ((unsigned short) flip2->boot_ver >> 4) & 0xF,
-    ((unsigned short) flip2->boot_ver >> 0) & 0xF);
+  msg_info("    Bootloader version  : 2.%u.%u\n",
+    (flip2->boot_ver >> 4) & 0xF,
+    (flip2->boot_ver >> 0) & 0xF);
 
   msg_info("    USB max packet size : %hu\n",
     (unsigned short) flip2->dfu->dev_desc.bMaxPacketSize0);
@@ -572,7 +584,7 @@ static int flip2_read_memory(struct dfu_dev *dfu,
   int read_size;
   int result;
 
-  pmsg_notice2("flip_read_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_read_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
 
   result = flip2_set_mem_unit(dfu, mem_unit);
 
@@ -629,7 +641,7 @@ static int flip2_write_memory(struct dfu_dev *dfu,
   int write_size;
   int result;
 
-  pmsg_notice2("flip_write_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n", flip2_mem_unit_str(mem_unit), addr, size);
 
   result = flip2_set_mem_unit(dfu, mem_unit);
 
@@ -778,7 +790,7 @@ flip2_read_max1k_status:
     if (status.bStatus == ((FLIP2_STATUS_OUTOFRANGE >> 8) & 0xFF) &&
         status.bState == ((FLIP2_STATUS_OUTOFRANGE >> 0) & 0xFF))
     {
-      pmsg_error("address out of range [0x%04hX,0x%04hX]\n", offset, offset+size-1);
+      pmsg_error("address out of range [0x%04X,0x%04X]\n", offset, (offset+size-1) & 0xffff);
     } else
       pmsg_error("DFU status %s\n", flip2_status_str(&status));
     dfu_clrstatus(dfu);
@@ -836,7 +848,7 @@ static int flip2_write_max1k(struct dfu_dev *dfu,
     if (status.bStatus == ((FLIP2_STATUS_OUTOFRANGE >> 8) & 0xFF) &&
         status.bState == ((FLIP2_STATUS_OUTOFRANGE >> 0) & 0xFF))
     {
-      pmsg_error("address out of range [0x%04hX,0x%04hX]\n", offset, offset+size-1);
+      pmsg_error("address out of range [0x%04X,0x%04X]\n", offset, (offset+size-1) & 0xffff);
     } else
       pmsg_error("DFU status %s\n", flip2_status_str(&status));
     dfu_clrstatus(dfu);

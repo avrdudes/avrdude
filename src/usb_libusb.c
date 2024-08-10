@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2005,2006 Joerg Wunsch
+ * Copyright (C) 2005, 2006 Joerg Wunsch
  * Copyright (C) 2006 David Moore
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 /*
  * USB interface via libusb for avrdude.
@@ -53,11 +51,6 @@
 #  undef interface
 #endif
 
-static char usbbuf[USBDEV_MAX_XFER_3];
-static int buflen = -1, bufptr;
-
-static int usb_interface;
-
 /*
  * The "baud" parameter is meaningless for USB devices, so we reuse it
  * to pass the desired USB device ID.
@@ -68,10 +61,10 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
   struct usb_bus *bus;
   struct usb_device *dev;
   usb_dev_handle *udev;
-  char *serno, *cp2;
+  char *s, serno[64] = {0};
+  const char *serp;
   int i;
   int iface;
-  size_t x;
 
   /*
    * The syntax for usb devices is defined as:
@@ -83,24 +76,13 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
    * right-to-left, so only the least significant nibbles need to be
    * specified.
    */
-  if ((serno = strchr(port, ':')) != NULL)
-    {
-      /* first, drop all colons there if any */
-      cp2 = ++serno;
-
-      while ((cp2 = strchr(cp2, ':')) != NULL)
-	{
-	  x = strlen(cp2) - 1;
-	  memmove(cp2, cp2 + 1, x);
-	  cp2[x] = '\0';
-	}
-
-      if (strlen(serno) > 12)
-	{
-	  pmsg_error("invalid serial number %s\n", serno);
-	  return -1;
-	}
-    }
+  if((serp = strchr(port, ':')) && *++serp) {
+    // First, get a copy of the serial number w/out colons
+    for(s = serno; *serp && s < serno + sizeof serno - 1; serp++)
+      if(*serp != ':')
+        *s++ = *serp;
+    *s = 0;
+  }
 
   if (fd->usb.max_xfer == 0)
     fd->usb.max_xfer = USBDEV_MAX_XFER_MKII;
@@ -133,10 +115,9 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		       * particular serial number, so we could
 		       * continue anyway.
 		       */
-		      if (serno != NULL)
+		      if(*serno)
 			return -1; /* no chance */
-		      else
-			strcpy(string, "[unknown]");
+		      strcpy(string, "[unknown]");
 		    }
 		  if(serdev)
 		    serdev->usbsn = cache_string(string);
@@ -180,20 +161,20 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		      fd->usb.wep = 0x02;
 		  }
 
-                  pmsg_notice2("usbdev_open(): found %s, serno: %s\n", product, string);
-		  if (serno != NULL)
+		  pmsg_notice2("%s(): found %s, serno: %s\n", __func__, product, string);
+		  if (*serno)
 		    {
 		      /*
 		       * See if the serial number requested by the
 		       * user matches what we found, matching
 		       * right-to-left.
 		       */
-		      x = strlen(string) - strlen(serno);
-		      if (!str_caseeq(string + x, serno))
+		      int x = strlen(string) - strlen(serno);
+		      if (x < 0 || !str_caseeq(string + x, serno))
 			{
-                          pmsg_debug("usbdev_open(): serial number does not match\n");
+			  pmsg_debug("%s(): serial number does not match\n", __func__);
 			  usb_close(udev);
-			      continue;
+			  continue;
 			}
 		    }
 
@@ -213,7 +194,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 
 		  for (iface = 0; iface < dev->config[0].bNumInterfaces; iface++)
 		    {
-		      usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
+		      cx->usb_interface = dev->config[0].interface[iface].altsetting[0].bInterfaceNumber;
 #ifdef LIBUSB_HAS_GET_DRIVER_NP
 		      /*
 		       * Many Linux systems attach the usbhid driver
@@ -221,12 +202,12 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 		       * those, the driver needs to be detached before
 		       * we can claim the interface.
 		       */
-		      (void)usb_detach_kernel_driver_np(udev, usb_interface);
+		      (void) usb_detach_kernel_driver_np(udev, cx->usb_interface);
 #endif
-		      if (usb_claim_interface(udev, usb_interface))
+		      if (usb_claim_interface(udev, cx->usb_interface))
 			{
 			  pmsg_error("unable to claim interface %d: %s\n",
-                            usb_interface, usb_strerror());
+                            cx->usb_interface, usb_strerror());
 			}
 		      else
 			{
@@ -258,7 +239,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 
 			  if ((possible_ep & USB_ENDPOINT_DIR_MASK) != 0)
 			    {
-                              pmsg_notice2("usbdev_open(): using read endpoint 0x%02x\n", possible_ep);
+                              pmsg_notice2("%s(): using read endpoint 0x%02x\n", __func__, possible_ep);
 			      fd->usb.rep = possible_ep;
 			      break;
 			    }
@@ -299,8 +280,8 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
     }
 
   if ((pinfo.usbinfo.flags & PINFO_FL_SILENT) == 0)
-      pmsg_notice("usbdev_open(): did not find any%s USB device \"%s\" (0x%04x:0x%04x)\n",
-        serno? " (matching)": "", port, (unsigned)pinfo.usbinfo.vid, (unsigned)pinfo.usbinfo.pid);
+    pmsg_notice("%s(): did not find any%s USB device %s (0x%04x:0x%04x)\n", __func__,
+      *serno? " (matching)": "", port, (unsigned) pinfo.usbinfo.vid, (unsigned)pinfo.usbinfo.pid);
   return -1;
 }
 
@@ -311,7 +292,7 @@ static void usbdev_close(union filedescriptor *fd)
   if (udev == NULL)
     return;
 
-  (void)usb_release_interface(udev, usb_interface);
+  (void) usb_release_interface(udev, cx->usb_interface);
 
 #if defined(__linux__)
   /*
@@ -359,7 +340,7 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
     mlen -= tx_size;
   } while (mlen > 0);
 
-  if(verbose > 3)
+  if(verbose >= MSG_TRACE)
     trace_buffer(__func__, p, i);
   return 0;
 }
@@ -372,24 +353,23 @@ static int usbdev_send(const union filedescriptor *fd, const unsigned char *bp, 
  * and transparently issue another USB read request if the buffer is
  * empty and more data are requested.
  */
-static int
-usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
+static int usb_fill_buf(usb_dev_handle *udev, int maxsize, int ep, int use_interrupt_xfer)
 {
   int rv;
 
   if (use_interrupt_xfer)
-    rv = usb_interrupt_read(udev, ep, usbbuf, maxsize, 10000);
+    rv = usb_interrupt_read(udev, ep, cx->usb_buf, maxsize, 10000);
   else
-    rv = usb_bulk_read(udev, ep, usbbuf, maxsize, 10000);
+    rv = usb_bulk_read(udev, ep, cx->usb_buf, maxsize, 10000);
   if (rv < 0)
     {
-      pmsg_notice2("usb_fill_buf(): usb_%s_read() error: %s\n",
+      pmsg_notice2("%s(): usb_%s_read() error: %s\n", __func__,
         use_interrupt_xfer? "interrupt": "bulk", usb_strerror());
       return -1;
     }
 
-  buflen = rv;
-  bufptr = 0;
+  cx->usb_buflen = rv;
+  cx->usb_bufptr = 0;
 
   return 0;
 }
@@ -405,19 +385,19 @@ static int usbdev_recv(const union filedescriptor *fd, unsigned char *buf, size_
 
   for (i = 0; nbytes > 0;)
     {
-      if (buflen <= bufptr)
+      if (cx->usb_buflen <= cx->usb_bufptr)
 	{
 	  if (usb_fill_buf(udev, fd->usb.max_xfer, fd->usb.rep, fd->usb.use_interrupt_xfer) < 0)
 	    return -1;
 	}
-      amnt = buflen - bufptr > (int) nbytes? (int) nbytes: buflen - bufptr;
-      memcpy(buf + i, usbbuf + bufptr, amnt);
-      bufptr += amnt;
+      amnt = cx->usb_buflen - cx->usb_bufptr > (int) nbytes? (int) nbytes: cx->usb_buflen - cx->usb_bufptr;
+      memcpy(buf + i, cx->usb_buf + cx->usb_bufptr, amnt);
+      cx->usb_bufptr += amnt;
       nbytes -= amnt;
       i += amnt;
     }
 
-  if(verbose > 4)
+  if(verbose >= MSG_TRACE2)
     trace_buffer(__func__, p, i);
 
   return 0;
@@ -444,11 +424,11 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
   /* If there's an event EP, and it has data pending, return it first. */
   if (fd->usb.eep != 0)
   {
-      rv = usb_bulk_read(udev, fd->usb.eep, usbbuf,
+      rv = usb_bulk_read(udev, fd->usb.eep, cx->usb_buf,
                          fd->usb.max_xfer, 1);
       if (rv > 4)
       {
-	  memcpy(buf, usbbuf, rv);
+	  memcpy(buf, cx->usb_buf, rv);
 	  n = rv;
 	  n |= USB_RECV_FLAG_EVENT;
 	  goto printout;
@@ -464,21 +444,21 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
   do
     {
       if (fd->usb.use_interrupt_xfer)
-	rv = usb_interrupt_read(udev, fd->usb.rep, usbbuf,
+	rv = usb_interrupt_read(udev, fd->usb.rep, cx->usb_buf,
 				fd->usb.max_xfer, 10000);
       else
-	rv = usb_bulk_read(udev, fd->usb.rep, usbbuf,
+	rv = usb_bulk_read(udev, fd->usb.rep, cx->usb_buf,
 			   fd->usb.max_xfer, 10000);
       if (rv < 0)
 	{
-          pmsg_notice2("usbdev_recv_frame(): usb_%s_read(): %s\n",
+          pmsg_notice2("%s(): usb_%s_read(): %s\n", __func__,
             fd->usb.use_interrupt_xfer? "interrupt": "bulk", usb_strerror());
 	  return -1;
 	}
 
       if (rv <= (int) nbytes)
 	{
-	  memcpy (buf, usbbuf, rv);
+	  memcpy (buf, cx->usb_buf, rv);
 	  buf += rv;
 	}
       else
@@ -507,7 +487,7 @@ static int usbdev_recv_frame(const union filedescriptor *fd, unsigned char *buf,
 */
 
   printout:
-  if(verbose > 3)
+  if(verbose >= MSG_TRACE)
     trace_buffer(__func__, p, n & USB_RECV_LENGTH_MASK);
 
   return n;

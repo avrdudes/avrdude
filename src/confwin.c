@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Eric B. Weddington <eric@ecentral.com>
+ * Copyright (C) 2024 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,24 +27,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-static char *filename;
-
-void win_sys_config_set(char sys_config[PATH_MAX])
-{
-    sys_config[0] = 0;
-
-    /* Use Windows API call to search for the Windows default system config file.*/
-    SearchPath(NULL, SYSTEM_CONF_FILE, NULL, PATH_MAX, sys_config, &filename);
-    return;
-}
-
-void win_usr_config_set(char usr_config[PATH_MAX])
-{
-    usr_config[0] = 0;
-
-    /* Use Windows API call to search for the Windows default user config file. */
-	SearchPath(NULL, USER_CONF_FILE, NULL, PATH_MAX, usr_config, &filename);
-    return;
+// Store the full path of a file using a registry-dependent system search path
+int win_set_path(char *path, int n, const char *file) {
+  *path = 0;
+  return SearchPath(NULL, file, NULL, n, path, NULL);
 }
 
 #endif

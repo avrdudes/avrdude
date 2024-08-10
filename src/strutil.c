@@ -77,7 +77,6 @@ int str_caseends(const char *str, const char *ends) {
   return str_caseeq(str + str_len - ends_len, ends);
 }
 
-
 /*
  * Match string against the partname pattern, returning 1 if it matches, 0 if
  * not. Note: str_match_core() is a modified old copy of !fnmatch() from the
@@ -229,6 +228,14 @@ int str_is_pattern(const char *str) {
     }
 }
 
+// Is the string s in the list l of strings as matched by f(s, l[i])?
+int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char*)) {
+  for(size_t i=0; i<nl; i++)
+    if(f(s, l[i]))
+      return 1;
+  return 0;
+}
+
 // Return a mmt_malloc'd string with the sprintf() result
 char *str_sprintf(const char *fmt, ...) {
   int size = 0;
@@ -253,6 +260,46 @@ char *str_sprintf(const char *fmt, ...) {
     *p = 0;
 
   return p;
+}
+
+// Return a string in closed-circuit space with the sprintf() result
+const char *str_ccprintf(const char *fmt, ...) {
+  int size = 0, avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  va_list ap;
+
+  // Compute size
+  va_start(ap, fmt);
+  size = vsnprintf(NULL, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    return "";
+
+  size++;                       // For terminating '\0'
+  if(size > avail)
+    size = avail;
+  char *p = avr_cc_buffer(size);
+
+  va_start(ap, fmt);
+  size = vsnprintf(p, size, fmt, ap);
+  va_end(ap);
+
+  if(size < 0)
+    *p = 0;
+
+  return p;
+}
+
+// Returns a temporary, possibly abbreviated copy of str in closed-circuit space
+const char *str_ccstrdup(const char *str) {
+  size_t size = strlen(str) + 1, avail = sizeof cx->avr_space - AVR_SAFETY_MARGIN;
+  if(size > avail)
+    size = avail;
+  char *ret = avr_cc_buffer(size);
+  strncpy(ret, str, size);
+  ret[size-1] = 0;
+
+  return ret;
 }
 
 
@@ -296,6 +343,48 @@ char *str_fgets(FILE *fp, const char **errpp) {
   return ret;
 }
 
+
+// Return the number of times a character c occurs in str
+size_t str_numc(const char *str, char c) {
+  size_t ret = 0;
+  char is;
+
+  while((is = *str++))
+    if(is == c)
+      ret++;
+  return ret;
+}
+
+// Return a pointer to the first non-white-space character in a string (or the end)
+const char *str_ltrim(const char *s) {
+  while(*s && isascii(*s & 0xff) && isspace(*s & 0xff))
+    s++;
+  return s;
+}
+
+// Terminate at position n and remove white space before that
+char *str_nrtrim(char *s, size_t n) {
+  s[n] = 0;
+  if(n)
+    for(char *z = s+n-1; z >= s && isascii(*z & 0xff) && isspace(*z & 0xff); z--)
+      *z = 0;
+  return s;
+}
+
+// Remove trailing white space
+char *str_rtrim(char *s) {
+  return str_nrtrim(s, strlen(s));
+}
+
+// Terminate at position n and remove leading and trailing white space
+char *str_ntrim(char *s, size_t n) {
+  return (char *) str_ltrim(str_nrtrim(s, n));
+}
+
+// Remove leading and trailing white space
+char *str_trim(char *s) {
+  return (char *) str_ltrim(str_nrtrim(s, strlen(s)));
+}
 
 // Changes string to be all lowercase and returns original pointer
 char *str_lc(char *s) {
@@ -404,29 +493,39 @@ const char *str_plural(int x) {
   return x==1? "": "s";
 }
 
+static const char *str_filename(const char *fn, const char *stdname) {
+  if(!fn)
+    fn = "???";
+  char *p1 = strrchr(fn, '/'), *p2 = strrchr(fn, '\\');
+  return str_eq(fn, "-")? stdname: str_starts(fn, "/dev/")? fn: p1? p1+1: p2? p2+1: fn;
+}
+
+// Path name fn or <stdin> if fn is -
 const char *str_inname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdin>";
+  return !fn? "???": str_eq(fn, "-")? "<stdin>": fn;
 }
 
+// File name of fn or <stdin> if fn is -
+const char *str_infilename(const char *fn) {
+  return str_filename(fn, "<stdin>");
+}
+
+// Path name fn or <stdout> if fn is -
 const char *str_outname(const char *fn) {
-  return !fn? "???": strcmp(fn, "-")? fn: "<stdout>";
+  return !fn? "???": str_eq(fn, "-")? "<stdout>": fn;
 }
 
-// Return sth like "[0, 0x1ff]"
-const char *str_interval(int a, int b) {
-  // Cyclic buffer for 20+ temporary interval strings each max 41 bytes at 64-bit int
-  static char space[20*41 + 80], *sp;
-  if(!sp || sp-space > (int) sizeof space - 80)
-    sp = space;
+// File name of fn or <stdout> if fn is -
+const char *str_outfilename(const char *fn) {
+  return str_filename(fn, "<stdin>");
+}
 
-  char *ret = sp;
+// Return sth like "[0, 0x1ff]" in closed-circuit space
+const char *str_ccinterval(int a, int b) {
+  char *ret = avr_cc_buffer(45); // Interval strings each max 45 bytes at 64-bit int
 
-  sprintf(sp, a<16? "[%d": "[0x%x", a);
-  sp += strlen(sp);
-  sprintf(sp, b<16? ", %d]": ", 0x%x]", b);
-
-  // Advance beyond return string in temporary ring buffer
-  sp += strlen(sp)+1;
+  sprintf(ret, a<16? "[%d": "[0x%x", a);
+  sprintf(ret+strlen(ret), b<16? ", %d]": ", 0x%x]", b);
 
   return ret;
 }
@@ -470,7 +569,7 @@ static int is_mantissa_only(char *p) {
 }
 
 // Return 1 if all n bytes in memory pointed to by p are c, 0 otherwise
-int memall(const void *p, char c, size_t n) {
+int is_memset(const void *p, char c, size_t n) {
   const char *q = (const char *) p;
   return n <= 0 || (*q == c && memcmp(q, q+1, n-1) == 0);
 }
@@ -569,6 +668,33 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
   return ret;
 }
 
+// Returns whether or not the string str looks like a number
+int looks_like_number(const char *str) {
+  int base = 0;
+  char *endptr;
+
+  while(isspace(*str & 0xff))
+    str++;
+
+  // Skip sign but don't allow double sign
+  if(*str == '-' || *str == '+') {
+    str++;
+    if(*str == '-' || *str == '+')
+      return 0;
+  }
+
+  if(*str == '0' && (str[1] == 'b' || str[1] == 'B'))
+    base = 2, str+=2;
+  else if(*str == '0' && (str[1] == 'x' || str[1] == 'X'))
+    base = 16, str+=2;
+
+
+  errno = 0;
+  (void) strtoull(str, &endptr, base);
+
+  return endptr != str && !*endptr && !errno;
+}
+
 
 /*
  * str_todata() is the workhorse for generic string to data conversion for the terminal write
@@ -579,7 +705,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
  */
 
 #define Return(...) do { \
-  sd->errstr = str_sprintf(__VA_ARGS__); \
+  sd->errstr = mmt_sprintf(__VA_ARGS__); \
   sd->type = 0; \
   mmt_free(str); \
   return sd; \
@@ -588,7 +714,7 @@ unsigned long long int str_ull(const char *str, char **endptr, int base) {
 #define Warning(...) do { \
   if(sd->warnstr) \
     mmt_free(sd->warnstr); \
-   sd->warnstr = str_sprintf(__VA_ARGS__); \
+   sd->warnstr = mmt_sprintf(__VA_ARGS__); \
 } while (0)
 
 #define sizeforsigned(ll) ( \
@@ -611,7 +737,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
   // Try integers and assign data size
   if(type & STR_INTEGER) {
-    bool is_big_endian, is_signed = 0, is_outside_int64_t = 0, is_out_of_range = 0;
+    bool is_big_endian, is_signed = 0, is_outside_int64 = 0, is_out_of_range = 0;
     char *stri = str;
 
     while(isspace(*stri & 0xff))
@@ -653,9 +779,9 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
           if(is_signed) {       // Is input in range for int64_t?
             if(*stri == '-' && (sd->ull == ~(~0ULL>>1) || sd->ll > 0))
-              is_outside_int64_t = 1;
+              is_outside_int64 = 1;
             if(*stri != '-' && sd->ll < 0)
-              is_outside_int64_t = 1;
+              is_outside_int64 = 1;
           }
 
           // Set size
@@ -668,7 +794,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
             } else if(is_signed) {
               // Smallest size that fits signed or unsigned (asymmetric to meet user expectation)
               sd->size =
-                is_outside_int64_t? 8:
+                is_outside_int64? 8:
                 sd->ll < INT32_MIN || sd->ll > (long long) UINT32_MAX? 8:
                 sd->ll < INT16_MIN || sd->ll > (long long) UINT16_MAX? 4:
                 sd->ll < INT8_MIN  || sd->ll > (long long) UINT8_MAX? 2: 1;
@@ -724,11 +850,12 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
       if(is_signed && is_out_of_range)
         Warning("%s out of int%d range, interpreted as %d-byte %lld%sU",
-          stri, sd->size*8, sd->size, sd->ll, sd->size == 4? "L": sd->size==2? "H": "HH");
+          stri, sd->size*8, sd->size, (long long int) sd->ll,
+          sd->size == 4? "L": sd->size==2? "H": "HH");
       else if(is_out_of_range)
         Warning("%s out of uint%d range, interpreted as %d-byte %llu",
-          stri, sd->size*8, sd->size, sd->ull);
-      else if(is_outside_int64_t)
+          stri, sd->size*8, sd->size, (long long unsigned int) sd->ull);
+      else if(is_outside_int64)
         Warning("%s out of int64 range (consider U suffix)", stri);
 
       sd->type = STR_INTEGER;
@@ -885,7 +1012,6 @@ void str_freedata(Str2data *sd) {
  */
 
 unsigned long long int str_int(const char *str, int type, const char **errpp) {
-  char *tofree;
   const char *err = NULL;
   Str2data *sd = NULL;
   unsigned long long int ret = 0ULL;
@@ -927,20 +1053,17 @@ unsigned long long int str_int(const char *str, int type, const char **errpp) {
 
     if(signd == STR_SIGNED) {   // Strictly signed
       if(sd->ll < smin[lds] || sd->ll > smax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of int%d range", 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of int%d range", 1<<(3+lds)));
         goto finished;
       }
     } else if(signd == STR_UNSIGNED) { // Strictly unsigned are out of range if u and -u are
       if(sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of uint%d range", 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of uint%d range", 1<<(3+lds)));
         goto finished;
       }
     } else {                    // Neither strictly signed or unsigned
       if((sd->ll < smin[lds] || sd->ll > smax[lds]) && sd->ull > umax[lds] && ~sd->ull+1 > umax[lds]) {
-        err = cache_string(tofree=str_sprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
-        mmt_free(tofree);
+        err = cache_string(str_ccprintf("out of int%d and uint%d range", 1<<(3+lds), 1<<(3+lds)));
         goto finished;
       }
     }
@@ -1036,14 +1159,25 @@ char *str_nexttok(char *buf, const char *delim, char **next) {
   return (char *) q;
 }
 
-// Return mmt_malloc'd string for frequency with n significant digits and xHz unit
-char *str_frq(double f, int n) {
+// Return string for frequency with n significant digits and xHz unit in closed-circuit space
+const char *str_ccfrq(double f, int n) {
   struct { double fq; const char *pre; } prefix[] = {{1e9, "G"},  {1e6, "M"},  {1e3, "k"},};
 
   for(size_t i = 0; i < sizeof prefix/sizeof*prefix; i++)
     if(f >= prefix[i].fq)
-      return str_sprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
-  return str_sprintf("%.*g Hz", n, f);
+      return str_ccprintf("%.*g %sHz", n, f/prefix[i].fq, prefix[i].pre);
+  return str_ccprintf("%.*g Hz", n, f);
+}
+
+// Return an uppercase hex string of max 64 len bytes from binary buffer buf
+const char *str_cchex(const void *buf, size_t len, int add_space) {
+  if(len > 64)                  // Sanity
+    len = 64;
+  int wd = 2 + !!add_space;
+  char *ret = avr_cc_buffer(wd*len + 1);
+  for(size_t i=0; i<len; i++)
+    sprintf(ret + i*wd, "%s%02X", &" "[3-wd], ((unsigned char *) buf)[i]);
+  return ret;
 }
 
 /*
@@ -1175,7 +1309,7 @@ static size_t csubs(size_t w, unsigned char c1, unsigned char c2) {
   if(w < 8)
     w = 8;
 
-  static size_t wmat[128][128];
+  static size_t wmat[128][128]; // Compute once, read-only cache
   if(!wmat[0][1])               // Initialize weight matrix
     for(size_t k1 = 0; k1 < 128; k1++)
       for(size_t k2 = 0; k2 < 128; k2++)
@@ -1231,4 +1365,60 @@ size_t str_weighted_damerau_levenshtein(const char *s1, const char *s2) {
   mmt_free(row1);
   mmt_free(row2);
   return i;
+}
+
+
+// Puts a comma-separated list of matching MCU names into array p with n chars space
+int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n) {
+  const char *matches[100];
+  int matching = 0, k, N = sizeof matches/sizeof*matches;
+
+  if(!pm || (pm & PM_ALL) == PM_ALL) // Look up uP table when unrestricted by prog modes
+    for(size_t i=0; i < sizeof uP_table/sizeof *uP_table; i++)
+      if(!is_memset(uP_table[i].sigs, 0xff, 3) && !is_memset(uP_table[i].sigs, 0, 3))
+        if(0 == memcmp(sigs, uP_table[i].sigs, sizeof uP_table->sigs) && matching < N)
+          matches[matching++] = uP_table[i].name;
+
+  for(LNODEID lp = lfirst(part_list); lp; lp = lnext(lp)) {
+    AVRPART *pp = ldata(lp);
+    if(!*pp->id || *pp->id == '.') // Skip invalid entries
+      continue;
+    if(is_memset(pp->signature, 0xff, 3) || is_memset(pp->signature, 0, 3))
+      continue;
+    if(!memcmp(sigs, pp->signature, 3) && (!pm || (pp->prog_modes & pm))) {
+      for(k = 0; k < matching; k++)
+        if(str_eq(matches[k], pp->desc))
+          break;
+      if(k == matching && matching < N)
+        matches[matching++] = pp->desc;
+    }
+  }
+
+  if(n && p) {
+    *p = 0;
+
+    for(int i = 0; i < matching; i++) {
+      size_t len = strlen(matches[i]);
+      if(n > len + 2) {
+        if(i) {
+          strcpy(p, ", ");
+          n -= 2, p += 2;
+        }
+        strcpy(p, matches[i]);
+        n -= len, p += len;
+      }
+    }
+  }
+
+  return matching;
+}
+
+// Returns a comma-separated list of matching MCU names in closed-circuit space
+const char *str_ccmcunames_signature(const unsigned char *sigs, int pm) {
+  char names[1024];
+  // If no match is found, given required prog_modes, relax the match to any prog mode
+  if(!str_mcunames_signature(sigs, pm, names, sizeof names) && pm && (pm & PM_ALL) != PM_ALL)
+    (void) str_mcunames_signature(sigs, 0, names, sizeof names);
+
+  return str_ccprintf("%s", names);
 }

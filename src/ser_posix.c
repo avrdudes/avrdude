@@ -1,6 +1,6 @@
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
- * Copyright (C) 2003-2004  Theodore A. Roth  <troth@openavr.org>
+ * Copyright (C) 2003-2004 Theodore A. Roth <troth@openavr.org>
  * Copyright (C) 2006 Joerg Wunsch <j@uriah.heep.sax.de>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-/* $Id$ */
 
 /*
  * Posix serial interface for avrdude.
@@ -59,9 +57,7 @@ struct baud_mapping {
   speed_t speed;
 };
 
-/* There are a lot more baud rates we could handle, but what's the point? */
-
-static struct baud_mapping baud_lookup_table [] = {
+static const struct baud_mapping baud_lookup_table [] = {
   { 300,    B300 },
   { 600,    B600 },
   { 1200,   B1200 },
@@ -121,28 +117,17 @@ static struct baud_mapping baud_lookup_table [] = {
   { 0,      0 }                 /* Terminator. */
 };
 
-static struct termios original_termios;
-static int saved_original_termios;
-
 static speed_t serial_baud_lookup(long baud, bool *nonstandard) {
-  struct baud_mapping *map = baud_lookup_table;
-
   *nonstandard = false;
 
-  while (map->baud) {
+  for(const struct baud_mapping *map = baud_lookup_table; map->baud; map++)
     if (map->baud == baud)
       return map->speed;
-    map++;
-  }
 
-  /*
-   * If a non-standard BAUD rate is used, issue
-   * a warning (if we are verbose) and return the raw rate
-   */
-  pmsg_notice2("serial_baud_lookup(): using non-standard baud rate: %ld\n", baud);
+  // Return the raw rate when asked for non-standard baud rate
+  pmsg_notice2("%s(): using non-standard baud rate: %ld\n", __func__, baud);
 
   *nonstandard = true;
-
   return baud;
 }
 
@@ -168,9 +153,8 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
   /*
    * copy termios for ser_close if we haven't already
    */
-  if (! saved_original_termios++) {
-    original_termios = termios;
-  }
+  if(!cx->ser_saved_original_termios++)
+    cx->ser_original_termios = termios;
 
   if (cflags & SERIAL_CREAD) {
     termios.c_cflag |= CREAD; 
@@ -413,15 +397,12 @@ static int ser_open(const char *port, union pinfo pinfo, union filedescriptor *f
 }
 
 static void ser_close(union filedescriptor *fd) {
-  /*
-   * restore original termios settings from ser_open
-   */
-  if (saved_original_termios) {
-    int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &original_termios);
-    if (rc) {
+  // Restore original termios settings from ser_open
+  if(cx->ser_saved_original_termios) {
+    int rc = tcsetattr(fd->ifd, TCSANOW | TCSADRAIN, &cx->ser_original_termios);
+    if(rc)
       pmsg_ext_error("cannot reset attributes for device: %s\n", strerror(errno));
-    }
-    saved_original_termios = 0;
+    cx->ser_saved_original_termios = 0;
   }
 
   close(fd->ifd);
@@ -429,14 +410,14 @@ static void ser_close(union filedescriptor *fd) {
 
 // Close but don't restore attributes
 static void ser_rawclose(union filedescriptor *fd) {
-  saved_original_termios = 0;
+  cx->ser_saved_original_termios = 0;
   close(fd->ifd);
 }
 
 static int ser_send(const union filedescriptor *fd, const unsigned char *buf, size_t len) {
   int rc;
 
-  if(verbose > 3)
+  if(verbose >= MSG_TRACE)
     trace_buffer(__func__, buf, len);
 
   while(len) {
@@ -472,7 +453,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
 
     nfds = select(fd->ifd + 1, &rfds, NULL, NULL, &to2);
     if (nfds == 0) {
-      pmsg_notice2("ser_recv(): programmer is not responding\n");
+      pmsg_notice2("%s(): programmer is not responding\n", __func__);
       return -1;
     }
     else if (nfds == -1) {
@@ -495,7 +476,7 @@ static int ser_recv(const union filedescriptor *fd, unsigned char *buf, size_t b
     len += rc;
   }
 
-  if(verbose > 3)
+  if(verbose >= MSG_TRACE)
     trace_buffer(__func__, buf, len);
 
   return 0;

@@ -1,7 +1,7 @@
 
 #
 # avrdude - A Downloader/Uploader for AVR device programmers
-# Copyright (C) 2003, 2004  Theodore A. Roth  <troth@openavr.org>
+# Copyright (C) 2003, 2004 Theodore A. Roth <troth@openavr.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,10 +25,6 @@
 # or run make like
 #
 # make V=1
-
-#
-# $Id$
-#
 
 EXTRA_DIST   = \
 	avrdude.1 \
@@ -105,6 +101,7 @@ libavrdude_a_SOURCES = \
 	avrintel.c \
 	libavrdude-avrintel.h \
 	avrpart.c \
+	avr_opcodes.c \
 	bitbang.c \
 	bitbang.h \
 	buspirate.c \
@@ -118,6 +115,7 @@ libavrdude_a_SOURCES = \
 	confwin.c \
 	crc16.c \
 	crc16.h \
+	disasm.c \
 	dfu.c \
 	dfu.h \
 	dryrun.c \
@@ -185,6 +183,8 @@ libavrdude_a_SOURCES = \
 	usbasp.h \
 	serialupdi.c \
 	serialupdi.h \
+	serprog.c \
+	serprog.h \
 	updi_constants.h \
 	updi_link.c \
 	updi_link.h \
@@ -231,6 +231,8 @@ avrdude_SOURCES = \
 	developer_opts.c \
 	developer_opts.h \
 	developer_opts_private.h
+
+dist_bin_SCRIPTS = elf2tag
 
 man_MANS = avrdude.1
 

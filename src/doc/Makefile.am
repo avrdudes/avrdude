@@ -1,6 +1,6 @@
 #
 # avrdude - A Downloader/Uploader for AVR device programmers
-# Copyright (C) 2003  Theodore A. Roth  <troth@openavr.org>
+# Copyright (C) 2003 Theodore A. Roth <troth@openavr.org>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,10 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-
-#
-# $Id$
 #
 
 GENERATED_TEXINFOS = \
