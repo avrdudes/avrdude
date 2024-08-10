@@ -47,10 +47,18 @@ int quell_progress;
 int ovsigck;
 const char *partdesc = "";
 const char *pgmid = "";
+libavrdude_context *cx;
 
 static PyObject *msg_cb = NULL;
 static PyObject *progress_cb = NULL;
 static void swig_progress(int percent, double etime, const char *hdr, int finish);
+
+#define mmt_malloc(n) cfg_malloc(__func__, n)
+
+void init_cx(void) {
+  cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
+  (void) avr_ustimestamp();     // Base timestamps from program start
+}
 
 void set_msg_callback(PyObject *PyFunc) {
   if (PyFunc == Py_None) {
@@ -256,6 +264,8 @@ typedef struct avrmem AVRMEM;
 typedef struct avrmem_alias AVRMEM_ALIAS;
 typedef struct programmer PROGRAMMER;
 typedef void pgm_initpgm(PROGRAMMER*);
+
+void init_cx(void);
 
 enum msglvl {
   MSG_EXT_ERROR = (-3),         // OS-type error, no -v option, can be suppressed with -qqqqq
@@ -652,7 +662,6 @@ AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 }
 AVRPART * locate_part_by_signature(const LISTID parts, unsigned char *sig, int sigsize);
 AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, int sigsize, int prog_modes);
-const char *avr_prog_modes_str(int pm);
 
 PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *id, const char **setid);
 PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *id, const char **setid, AVRPART *prt);

@@ -51,6 +51,7 @@ else:
 import swig_avrdude as ad
 
 def avrdude_init():
+    ad.init_cx()
     ad.init_config()
 
     found = False
