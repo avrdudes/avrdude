@@ -530,7 +530,8 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  pmsg_notice("Scripts for %s found and loaded\n", p->desc);
+  msg_info("Scripts loaded for    : %s\n", p->desc);
+
 
   if (PDATA(pgm)->hvupdi_enabled > 0) {
     if (p->hvupdi_variant == 0)
@@ -569,7 +570,7 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         return -1;
       }
     } else {
-      pmsg_error("No external Voltage detected, aborting. Overwrite this check with -x vtarg=0\n");
+      pmsg_error("No external Voltage detected, aborting. Overwrite this check with \"-x vtarg=0\"\n");
       return -1;
     }
   } else {
