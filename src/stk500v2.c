@@ -2156,9 +2156,13 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  // Make USB serial number available to programmer
-  if (serdev && serdev->usbsn)
-    pgm->usbsn = serdev->usbsn;
+  // Make USB serial number and USB product name available to programmer
+  if (serdev) {
+    if (serdev->usbsn)
+      pgm->usbsn = serdev->usbsn;
+    if (serdev->usbproduct)
+      pgm->usbproduct = serdev->usbproduct;
+  }
 
   // Drain any extraneous input, synchronise and drain again
   if(stk500v2_drain(pgm, 0) < 0 || stk500v2_getsync(pgm) < 0 || stk500v2_drain(pgm, 0) < 0)

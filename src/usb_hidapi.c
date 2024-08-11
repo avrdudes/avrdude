@@ -148,7 +148,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
       char *cn = mmt_malloc(n);
       if (wcstombs(cn, prodstr, n) != (size_t) -1)
         if(serdev)
-          serdev->usbprodstr = cache_string(cn);
+          serdev->usbproduct = cache_string(cn);
       mmt_free(cn);
     }
   }

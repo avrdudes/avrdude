@@ -1760,9 +1760,13 @@ int jtag3_open_common(PROGRAMMER *pgm, const char *port, int mode_switch) {
     pmsg_notice2("found CMSIS-DAP compliant device, using EDBG protocol\n");
   }
 
-  // Make USB serial number available to programmer
-  if (serdev && serdev->usbsn)
-    pgm->usbsn = serdev->usbsn;
+  // Make USB serial number and USB product name available to programmer
+  if (serdev) {
+    if (serdev->usbsn)
+      pgm->usbsn = serdev->usbsn;
+    if (serdev->usbproduct)
+      pgm->usbproduct = serdev->usbproduct;
+  }
 
   // Drain any extraneous input
   jtag3_drain(pgm, 0);

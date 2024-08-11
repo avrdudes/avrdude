@@ -125,7 +125,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
             strcpy(product, "[unnamed product]");
           }
           if(serdev)
-            serdev->usbprodstr = cache_string(product);
+            serdev->usbproduct = cache_string(product);
 
           // We need to write to endpoint 2 to switch the PICkit4 and SNAP
           // from PIC to AVR mode
