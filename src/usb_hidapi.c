@@ -140,6 +140,19 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     }
   }
 
+  // Store USB product string to prod_str
+  wchar_t prodstr[256];
+  if (hid_get_product_string(dev, prodstr, sizeof(prodstr)/sizeof(*prodstr)) == 0) {
+    size_t n = wcstombs(NULL, prodstr, 0) + 1;
+    if (n) {
+      char *cn = mmt_malloc(n);
+      if (wcstombs(cn, prodstr, n) != (size_t) -1)
+        if(serdev)
+          serdev->usbprodstr = cache_string(cn);
+      mmt_free(cn);
+    }
+  }
+
   fd->usb.handle = dev;
 
   /*
