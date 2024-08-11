@@ -85,11 +85,13 @@ struct pdata {
   unsigned int  measured_current; // for print_params()
   unsigned int  actual_updi_clk;  // for print_params()
 
+  unsigned char nvm_version;      // used to determine the offset for SIGROW/DevID
+
   unsigned char devID[4];       // last Byte has the Chip Revision of the Target
   unsigned char app_version[3]; // Buffer for display() sent by get_fw()
   unsigned char fw_info[16];    // Buffer for display() sent by get_fw()
   unsigned char sernum_string[20];  // Buffer for display() sent by get_fw()
-           char sib_string[64];
+           char sib_string[32];
   unsigned char txBuf[512];
   unsigned char rxBuf[512];
   SCRIPT scripts;
@@ -530,9 +532,6 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  msg_info("Scripts loaded for    : %s\n", p->desc);
-
-
   if (PDATA(pgm)->hvupdi_enabled > 0) {
     if (p->hvupdi_variant == 0)
       pmsg_notice("High Voltage SYSCFG0 override on UPDI Pin enabled\n");
@@ -580,10 +579,20 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   PDATA(pgm)->pk_op_mode = PK_OP_READY;
 
-
   // Target is powered, set the UPDI baudrate. Adjust UPDICLKSEL if possible and neccessary
   if (pickit5_program_enable(pgm, p) < 0)
     return -1;
+  
+  // Get SIB so we can get the NVM Version
+  if (pickit5_read_sib(pgm, p, PDATA(pgm)->sib_string) < 0) {
+    pmsg_error("Failed to obtain System Info Block\n");
+    return -1;
+  }
+
+  if (pickit5_read_dev_id(pgm, p) < 0) {
+    pmsg_error("Failed to obtain device ID\n");
+    return -1;
+  }
 
   double bitclock = pgm->bitclock;
   unsigned int baud = pgm->baudrate;
@@ -633,16 +642,6 @@ static int pickit5_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     PDATA(pgm)->actual_updi_clk = 100000; // TBH, I have no Idea what the default clock is
   }
 
-
-  // Now that the clock is operating at the desired frequency, cache chip identifiers
-  if (pickit5_read_dev_id(pgm, p) < 0) {
-    pmsg_error("Failed to obtain device ID\n");
-    return -1;
-  }
-  if (pickit5_read_sib(pgm, p, PDATA(pgm)->sib_string) < 0) {
-    pmsg_error("Failed to obtain System Info Block\n");
-    return -1;
-  }
   pickit5_program_enable(pgm, p);
   return 0;
 }
@@ -1009,8 +1008,12 @@ static int pickit5_read_array (const PROGRAMMER *pgm, const AVRPART *p,
 
 static int pickit5_read_dev_id (const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("pickit5_read_sig_bytes()\n");
-  const unsigned char *read_id = PDATA(pgm)->scripts.GetDeviceID;
+  const unsigned char *read_id = PDATA(pgm)->scripts.GetDeviceID; // defaults
   unsigned int read_id_len = PDATA(pgm)->scripts.GetDeviceID_len;
+
+  if (PDATA(pgm)->nvm_version >= '0' && PDATA(pgm)->nvm_version <= '9') {
+    read_id = get_devid_script_by_nvm_ver(PDATA(pgm)->nvm_version); // only address changes, not length
+  }
 
   if(pickit5_send_script(pgm, SCR_CMD, read_id, read_id_len, NULL, 0, 0) < 0)
     return -1;
@@ -1043,8 +1046,10 @@ static int pickit5_read_sib (const PROGRAMMER *pgm, const AVRPART *p, char *sib)
   if (ret_len == 0x20) {  // 0x20 bytes == 32 bytes
     memcpy(sib, &PDATA(pgm)->rxBuf[24], 32);
     sib[31] = 0x00; // Known Zero-terminator
+    PDATA(pgm)->nvm_version = sib[10];
     return 0;
   }
+  PDATA(pgm)->nvm_version = 0xFF;
   return -1;
 }
 

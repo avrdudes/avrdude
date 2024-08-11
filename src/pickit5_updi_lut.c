@@ -792,6 +792,15 @@ const char * const pickit5_updi_chip_lut[] = {
 };
 
 
+const unsigned char * get_devid_script_by_nvm_ver(unsigned char version) {
+  if (version >= '0') version -= '0'; // allow chars
+  if (version > 9) return NULL;       // Not a valid number
+  if (version <= 3)                   // tiny, mega, DA, DB, DD, EA
+    return GetDeviceID_0;
+  else                                // DU, EB
+    return GetDeviceID_1;
+}
+
 int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) { 
   if ((scr == NULL) || (partdesc == NULL))
     return -1;

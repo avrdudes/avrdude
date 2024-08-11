@@ -330,6 +330,7 @@ struct avr_script_lut {
 };
 
 typedef struct avr_script_lut SCRIPT;
+const unsigned char * get_devid_script_by_nvm_ver(unsigned char version);
 int get_pickit_updi_script(SCRIPT *scr, const char *partdesc);
 
 #ifdef __cplusplus
@@ -487,7 +488,7 @@ def convert_xml(xml_path, c_dict):
                 for bytes in scrbytes:
                     mcu_dict[chip_name][function_name].append(int(bytes.text, 16))
     # the mcu dict has following layout "mcu_name" : "function1" : [], "function2" : []
-    print("XML File proceesed")
+    print("XML File processed")
 
     # reorder mcu_dict to a func_dict
     func_dict = dict()
@@ -558,6 +559,7 @@ def convert_xml(xml_path, c_dict):
         c_file.write(struct_init_len)
         c_file.write("}\n\n\n")
 
+        # Lookup Table for Chip Names
         chip_lut_str = "const char * const pickit5_updi_chip_lut[] = {\n  "
         chip_name_iterator = 0
         for chip_name in mcu_dict:
@@ -570,6 +572,17 @@ def convert_xml(xml_path, c_dict):
         chip_lut_str += "\n};\n\n\n"
         c_file.write(chip_lut_str)
 
+        # Provide a way to get the DevID Script by NVM Version stored in SIB
+        devid_str = "const unsigned char * get_devid_script_by_nvm_ver(unsigned char version) {\n"
+        devid_str += "  if (version >= '0') version -= '0'; // allow chars\n"
+        devid_str += "  if (version > 9) return NULL;       // Not a valid number\n"
+        devid_str += "  if (version <= 3)                   // tiny, mega, DA, DB, DD, EA\n"
+        devid_str += "    return GetDeviceID_0;\n"
+        devid_str += "  else                                // DU, EB\n"
+        devid_str += "    return GetDeviceID_1;\n}\n\n"
+        c_file.write(devid_str)
+
+        # Main Function to load the data into the structure
         c_func_str = "int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) { \n"
         c_func_str += "  if ((scr == NULL) || (partdesc == NULL))\n    return -1;\n\n"
         c_func_str += "  int namepos = -1;\n"

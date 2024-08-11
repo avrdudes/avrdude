@@ -73,6 +73,7 @@ struct avr_script_lut {
 };
 
 typedef struct avr_script_lut SCRIPT;
+const unsigned char * get_devid_script_by_nvm_ver(unsigned char version);
 int get_pickit_updi_script(SCRIPT *scr, const char *partdesc);
 
 #ifdef __cplusplus
