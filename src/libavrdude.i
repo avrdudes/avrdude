@@ -54,8 +54,10 @@ static PyObject *progress_cb = NULL;
 static void swig_progress(int percent, double etime, const char *hdr, int finish);
 
 #define mmt_malloc(n) cfg_malloc(__func__, n)
+#define mmt_free(p) free(p)
 
 void init_cx(void) {
+  mmt_free(cx);
   cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
   (void) avr_ustimestamp();     // Base timestamps from program start
 }
