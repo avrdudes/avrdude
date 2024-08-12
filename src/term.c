@@ -1193,16 +1193,47 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       return -1;
     }
     const char *args[] = {"write", memstr, "", "", "0xff", "...", NULL};
-    // erase <mem>
-    if (argc == 2) {
+    // Erase <mem>
+    if (argc == 2 && pgm->readonly) { // Process intervals that are writable
+      int addr, start = 0, end, memend = mem->size - 1;
+      do {
+        for(addr = start; addr <= memend; addr++)
+          if(!pgm->readonly(pgm, p, mem, addr)) {
+            start = addr;
+            break;
+          }
+        if(addr > memend)
+          break;
+        end = memend;
+        for(addr = start+1; addr <= memend; addr++)
+          if(pgm->readonly(pgm, p, mem, addr)) {
+            end = addr-1;
+            break;
+          }
+        if(start <= end) {
+          char nums[2][128];
+          sprintf(nums[0], "0x%04x", start);
+          sprintf(nums[1], "0x%04x", end-start+1);
+          args[2] = nums[0];
+          args[3] = nums[1];
+          if(cmd_write(pgm, p, 6, args) < 0)
+            return -1;
+        }
+        start = end+1;
+      } while (start <= memend);
+
+      return 0;
+    }
+
+    if(argc == 2) {
       args[2] = "0";
       args[3] = "-1";
+      return cmd_write(pgm, p, 6, args);
     }
-    // erase <mem> <addr> <len>
-    else {
-      args[2] = argv[2];
-      args[3] = argv[3];
-    }
+
+    // Erase <mem> <addr> <len>
+    args[2] = argv[2];
+    args[3] = argv[3];
     return cmd_write(pgm, p, 6, args);
   }
 
