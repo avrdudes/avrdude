@@ -62,3 +62,11 @@ avrdude -c arduino -P COM1 -b 115200 -p atmega328p -D -U flash:w:objs/blink.hex:
 There are many different programmers and options that may be required for the programming to succeed.
 
 For more information, refer to the [AVRDUDE documentation](https://avrdudes.github.io/avrdude/).
+
+## Using the AVRDUDE GUI demonstrator
+
+Starting with version 8, a GUI implementation has been added, to demonstrate the functionality of `libavrdude` is suitable to implement a native GUI (as opposed to CLI wrapper).
+
+The GUI is based on the Qt toolkit and its Python bindings, called _PySide_.
+
+A script named `avrdude-gui` is installed into the same location as the AVRDUDE CLI program. It can be used to start the GUI. There is a builtin help describing the usage.
