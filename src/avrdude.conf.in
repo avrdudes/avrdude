@@ -2948,9 +2948,8 @@ programmer # powerdebugger_tpi
 # pickit4 / pickit4_jtag
 #------------------------------------------------------------
 
-# Microchip PICkit 4. See
+# Microchip PICkit 4. For details see
 # https://www.microchip.com/en-us/development-tool/pg164140
-# for details.
 #
 # The PICkit 4 supports the following programming modes
 # using different programmer names:
@@ -3056,16 +3055,10 @@ programmer # pickit4_tpi
 ;
 
 
-# Microchip PICkit 5. See
+# Microchip PICkit 5. For details, see
 # https://www.microchip.com/en-us/development-tool/PG164150
-# for details.
 #
-# Currently, avrdude only supports UPDI Programming
-# with the PICkit 5
-#
-# Interface:   Programmer name:
-# UPDI         pickit5
-#
+# Currently -c pickit5 only supports UPDI programming
 #
 # PIN  UPDI  
 # > 1  !RST(*)
@@ -3086,19 +3079,18 @@ programmer # pickit4_tpi
 # pickit5 /pickit5_updi
 #------------------------------------------------------------
 
-programmer # pickit5
+programmer # pickit5_updi
     id                     = "pickit5_updi";
     desc                   = "MPLAB(R) PICkit 5 in UPDI Mode";
     type                   = "pickit5_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
     connection_type        = usb;
-    usbpid                 = 0x9036, 0x9012;    # PK5, PK4_PIC_MODE;
     baudrate               = 200000;   # UPDI default clock
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
     hvupdi_support         = 0, 1, 2;
 ;
-
-
 
 #------------------------------------------------------------
 # snap /snap_jtag
