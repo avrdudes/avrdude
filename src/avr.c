@@ -1596,17 +1596,28 @@ Memtable avr_mem_order[100] = {
 #include "dryrun.h"
 #include "jtag3.h"
 #include "jtagmkII.h"
+#include "urclock.h"
 #define is_type(pgm, what) ((pgm)->initpgm == what ## _initpgm)
 
 // Whether a memory is an exception that shouldn't be there for this particular i/face
-int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
   return
     is_type(pgm, dryrun)? 0:    // Never exclude dryrun memories
-    (mem_is_sib(mem) && is_type(pgm, jtagmkII_updi)) || // jtag2updi cannot deal with sib
-    // jtag3 cannot read beyond addr 6 on classic prodsig, so exclude memories in prodsig/sigrow
-    (is_type(pgm, jtag3) && mem_is_in_sigrow(mem) && is_classic(p) && both_jtag(pgm, p)) ||
+
+    // debugWIRE only allows eeprom/flash/signature
+    (both_debugwire(pgm, p) && !(mem_is_in_flash(m) || mem_is_eeprom(m) || mem_is_signature(m))) ||
+
+    // urclock type only allows eeprom/flash/signature
+    (both_spm(pgm, p) && is_type(pgm, urclock) && !(mem_is_in_flash(m) || mem_is_eeprom(m) || mem_is_signature(m))) ||
+
+    // jtag2updi cannot deal with sib
+    (mem_is_sib(m) && is_type(pgm, jtagmkII_updi)) ||
+
+    // jtag3 JTAG i/fce cannot read beyond addr 6 on classic prodsig, so exclude this
+    (is_type(pgm, jtag3) && mem_is_in_sigrow(m) && is_classic(p) && both_jtag(pgm, p)) ||
+
     // Classic part usersig memories cannot be read/written using ISP
-    (mem_is_usersig(mem) && is_classic(p) && both_isp(pgm, p));
+    (mem_is_usersig(m) && is_classic(p) && both_isp(pgm, p));
 }
 
 int avr_get_mem_type(const char *str) {
