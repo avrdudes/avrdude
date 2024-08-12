@@ -10856,7 +10856,6 @@ part parent "m164p" # m1284
         size               = 0x20000;
         page_size          = 256;
         num_pages          = 512;
-        readsize           = 128;
         read_lo            = "0010.0000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
         read_hi            = "0010.1000--aaaa.aaaa--aaaa.aaaa--oooo.oooo";
         loadpage_lo        = "0100.0000--00xx.xxxx--xaaa.aaaa--iiii.iiii";
