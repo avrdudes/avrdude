@@ -413,6 +413,7 @@ char * get_usb_string(usb_dev_handle * dev_handle, int index) {
   result = usb_get_string_simple(dev_handle, index, buffer, sizeof(buffer)-1);
 
   if (result < 0) {
+    cx->usb_access_error = 1;
     pmsg_error("unable to read USB device string %d: %s\n", index, usb_strerror());
     return NULL;
   }

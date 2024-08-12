@@ -322,12 +322,6 @@ int avr_mem_hiaddr(const AVRMEM * mem)
 {
   int i, n;
 
-  // Deprecated: calling with NULL disables trailing 0xff optimisation (remove in v8.0)
-  if(!mem) {
-    cx->avr_disableffopt = 1;
-    return 0;
-  }
-
   if(cx->avr_disableffopt)
     return mem->size;
 
@@ -428,7 +422,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if ((pgm->paged_load && mem->page_size > 1 && mem->size % mem->page_size == 0) ||
-     ((pgm->prog_modes & PM_SPM) && avr_has_paged_access(pgm, mem))) {
+     ((pgm->prog_modes & PM_SPM) && avr_has_paged_access(pgm, p, mem))) {
     /*
      * the programmer supports a paged mode read
      */
@@ -504,7 +498,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
       if (rc != LIBAVRDUDE_SUCCESS) {
         pmsg_error("unable to read byte at address 0x%04lx\n", i);
         if (rc == LIBAVRDUDE_GENERAL_FAILURE) {
-          pmsg_error("read operation not supported for memory %s\n", mem->desc);
+          // pmsg_error("read operation not supported for memory %s\n", mem->desc);
           report_progress(1, -1, NULL);
           led_set(pgm, LED_ERR);
           led_clr(pgm, LED_PGM);
@@ -873,8 +867,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         rc = pgm->initialize(pgm, p);
         if (rc < 0) {
           pmsg_error("initialization failed (rc = %d):\n", rc);
-          imsg_error("cannot re-initialize device after programming the %s bits; you\n", mem->desc);
-          imsg_error("must manually power-down the device and restart %s to continue\n", progname);
+          imsg_error("cannot re-initialize device after programming the %s bits;\n", mem->desc);
+          imsg_error("manually power-down the device and restart %s to continue\n", progname);
           rc = -3;
           goto rcerror;
         }
@@ -1054,7 +1048,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
 
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if ((pgm->paged_load && m->page_size > 1 && m->size % m->page_size == 0) ||
-     ((pgm->prog_modes & PM_SPM) && avr_has_paged_access(pgm, m))) {
+     ((pgm->prog_modes & PM_SPM) && avr_has_paged_access(pgm, p, m))) {
     /*
      * the programmer supports a paged mode write
      */
@@ -1384,14 +1378,14 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
         // Mismatch is only in unused bits
         if ((buf1[i] | bitmask) != 0xff) {
           // Programmer returned unused bits as 0, must be the part/programmer
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
-          imsg_warning("the part or programmer definition in the config file\n");
+          pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
+          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning fix\n", buf1[i], buf2[i]);
+          imsg_debug("the part or programmer definition in the config file\n");
         } else {
           // Programmer returned unused bits as 1, must be the user
-          pmsg_warning("ignoring mismatch in unused bits of %s\n", a->desc);
-          imsg_warning("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
-          imsg_warning("unused bits to 1 when writing (double check with datasheet)\n");
+          pmsg_debug("ignoring mismatch in unused bits of %s\n", a->desc);
+          imsg_debug("(device 0x%02x != input 0x%02x); to prevent this warning set\n", buf1[i], buf2[i]);
+          imsg_debug("unused bits to 1 when writing (double check with datasheet)\n");
         }
       }
     }
@@ -1598,6 +1592,22 @@ Memtable avr_mem_order[100] = {
   {"sram",        MEM_SRAM},
   {"sib",         MEM_SIB | MEM_READONLY},
 };
+
+#include "dryrun.h"
+#include "jtag3.h"
+#include "jtagmkII.h"
+#define is_type(pgm, what) ((pgm)->initpgm == what ## _initpgm)
+
+// Whether a memory is an exception that shouldn't be there for this particular i/face
+int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
+  return
+    is_type(pgm, dryrun)? 0:    // Never exclude dryrun memories
+    (mem_is_sib(mem) && is_type(pgm, jtagmkII_updi)) || // jtag2updi cannot deal with sib
+    // jtag3 cannot read beyond addr 6 on classic prodsig, so exclude memories in prodsig/sigrow
+    (is_type(pgm, jtag3) && mem_is_in_sigrow(mem) && is_classic(p) && both_jtag(pgm, p)) ||
+    // Classic part usersig memories cannot be read/written using ISP
+    (mem_is_usersig(mem) && is_classic(p) && both_isp(pgm, p));
+}
 
 int avr_get_mem_type(const char *str) {
   for(size_t i=0; i < sizeof avr_mem_order/sizeof *avr_mem_order; i++) {

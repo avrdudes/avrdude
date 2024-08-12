@@ -9,6 +9,8 @@ dnl This must be the same sequence as the versioninfo script writes.
 m4_pattern_forbid([versioninfo_items])
 m4_define([versioninfo_items], [
   [CMAKE_PROJECT_VERSION],
+  [CMAKE_LIBAVRDUDE_VERSION],
+  [CMAKE_LIBAVRDUDE_SOVERSION],
   [GIT_COMMIT_DATE],
   [GIT_COMMIT_HASH],
   [GIT_TAG_HASH]

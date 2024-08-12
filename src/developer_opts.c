@@ -1381,8 +1381,9 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
   for(int i=0; i<N_PINS; i++) {
     const char *str = pins_to_str(pgm->pin+i);
     const char *bstr = base? pins_to_str(base->pin+i): NULL;
-    if(!base || !str_eq(bstr, str))
-      _pgmout_fmt(avr_pin_lcname(i), "%s", str);
+    const char *pinname = avr_pin_lcname(i);
+    if((!base || !str_eq(bstr, str)) && !str_eq(pinname, "<unknown>"))
+      _pgmout_fmt(pinname, "%s", str);
   }
 
   pgmstr = dev_hvupdi_support_liststr(pgm);
@@ -1413,9 +1414,54 @@ static void dev_pgm_strct(const PROGRAMMER *pgm, bool tsv, const PROGRAMMER *bas
 }
 
 
-// -c <wildcard>/[dASsrtiBUPTIJWHQ]
+typedef struct {
+  int vid, pid, ishid;
+  const char *ids;
+} Dev_udev;
+
+
+static Dev_udev *add_udev(Dev_udev *ud, int *uip, int vid, int pid, int ishid, const char *ids) {
+  for(int i = 0; i < *uip; i++)  // Already entered?
+    if(ud[i].vid == vid && ud[i].pid == pid && ud[i].ishid == ishid && ud[i].ids == ids)
+      return ud;
+  if(*uip % 128 == 0)
+    ud = (Dev_udev *) mmt_realloc(ud, sizeof*ud*(*uip+128));
+
+  ud[*uip].vid = vid;
+  ud[*uip].pid = pid;
+  ud[*uip].ishid = ishid;
+  ud[*uip].ids = ids;
+  (*uip)++;
+
+  return ud;
+}
+
+static int udev_cmp_wout_ids(const Dev_udev *p1, const Dev_udev *p2) {
+  int diff;
+  if((diff = p1->vid - p2->vid))
+    return diff;
+  if((diff = p1->pid - p2->pid))
+    return diff;
+  return p1->ishid - p2->ishid;
+}
+
+static int udev_cmp(const void *v1, const void *v2) {
+  const Dev_udev *p1 = v1, *p2 = v2;
+  int diff;
+
+  if((diff = udev_cmp_wout_ids(p1, p2)))
+    return diff;
+  return strcmp(p1->ids, p2->ids);
+}
+
+#include "flip1.h"
+#include "flip2.h"
+#include "jtag3.h"
+#include "stk500v2.h"
+
+// -c <wildcard>/[duASsrtiBUPTIJWHQ]
 void dev_output_pgm_defs(char *pgmidcp) {
-  bool descs, astrc, strct, cmpst, raw, tsv, injct;
+  bool descs, astrc, strct, cmpst, raw, tsv, injct, udev;
   char *flags;
   int nprinted;
   PROGRAMMER *nullpgm = pgm_new();
@@ -1426,7 +1472,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
   if(!flags && str_eq(pgmidcp, "*")) // Treat -c * as if it was -c */s
     flags = "s";
 
-  if(!*flags || !strchr("dASsrtiBUPTIJWHQ", *flags)) {
+  if(!*flags || !strchr("duASsrtiBUPTIJWHQ", *flags)) {
     dev_info("Error: flags for developer option -c <wildcard>/<flags> not recognised\n");
     dev_info(
       "Wildcard examples (these need protecting in the shell through quoting):\n"
@@ -1436,6 +1482,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
       "  jtag?pdi matches jtag2pdi and jtag3pdi\n"
       "Flags (one or more of the characters below):\n"
       "         d  description of core programmer features\n"
+      "         u  show udev entry for programmer\n"
       "         A  show entries of avrdude.conf programmers with all values\n"
       "         S  show entries of avrdude.conf programmers with necessary values\n"
       "         s  show short entries of avrdude.conf programmers using parent\n"
@@ -1465,8 +1512,12 @@ void dev_output_pgm_defs(char *pgmidcp) {
   raw   = !!strchr(flags, 'r');
   tsv   = !!strchr(flags, 't');
   injct = !!strchr(flags, 'i');
+  udev  = !!strchr(flags, 'u');
 
   nprinted = dev_nprinted;
+
+  int ui = 0;
+  Dev_udev *udr = NULL;
 
   LNODEID ln1, ln2;
   for(ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
@@ -1480,6 +1531,7 @@ void dev_output_pgm_defs(char *pgmidcp) {
     }
     if(!matched)
       continue;
+
     if(!prog_modes_in_flags(pgm->prog_modes, flags))
       continue;
 
@@ -1499,16 +1551,103 @@ void dev_output_pgm_defs(char *pgmidcp) {
       for(LNODEID idn=lfirst(pgm->id); idn; idn=lnext(idn)) {
         char *id = ldata(idn);
         int len = 19-strlen(id);
-        dev_info("%s '%s' =>%*s ['%s', '%s'], # %s %d\n",
+        dev_info("%s '%s' =>%*s ['%s', '%s', '%s'], # %s %d\n",
           tsv? ".desc": "   ",
           id, len > 0? len: 0, "",
+          locate_programmer_type_id(pgm->initpgm),
           dev_prog_modes(pgm->prog_modes),
           pgm->desc,
           pgm->config_file, pgm->lineno
         );
       }
 
+    if(udev && pgm->usbpid && (pgm->conntype == CONNTYPE_USB || is_serialadapter(pgm))) {
+      void (* pi)(PROGRAMMER *) = pgm->initpgm;
+      const char *ids = cache_string(str_ccpgmids(pgm->id));
+      int usbvid = pgm->usbvid, ishid =
+        pi == jtag3_initpgm || pi == jtag3_pdi_initpgm || pi == jtag3_updi_initpgm ||
+        pi == jtag3_dw_initpgm || pi == stk500v2_jtag3_initpgm || pi == jtag3_tpi_initpgm;
+
+      if(!lfirst(pgm->usbpid)) {
+        if(pi == flip1_initpgm || pi == flip2_initpgm) { // Bootloaders, add possible part pids
+          for(LNODEID lp = lfirst(part_list); lp; lp = lnext(lp)) {
+            AVRPART *pt = ldata(lp);
+            if(pt->usbpid)
+              udr = add_udev(udr, &ui, usbvid, pt->usbpid, 0, ids);
+          }
+        }
+      }
+
+      for(LNODEID pidn=lfirst(pgm->usbpid); pidn; pidn=lnext(pidn)) {
+        int pid = *(int *) ldata(pidn);
+        udr = add_udev(udr, &ui, usbvid, pid, ishid, ids);
+
+        // Piggy back PIC Snap devices that can be switched to AVR mode
+        if(usbvid == USB_VENDOR_ATMEL && pid >= 0x217f && pid <= 0x2181) {
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_SNAP_PIC_MODE, ishid, ids);
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_SNAP_PIC_MODE_BL, ishid, ids);
+        }
+        // Piggy back PIC pickit4 devices that can be switched to AVR ones
+        if(usbvid == USB_VENDOR_ATMEL && pid >= 0x2177 && pid <= 0x2179) {
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT4_PIC_MODE, ishid, ids);
+          udr = add_udev(udr, &ui, USB_VENDOR_MICROCHIP, USB_DEVICE_PICKIT4_PIC_MODE_BL, ishid, ids);
+        }
+        // Piggy back old usbasp when new one is seen
+        if(usbvid == USBASP_SHARED_VID && pid == USBASP_SHARED_PID)
+          udr = add_udev(udr, &ui, USBASP_OLD_VID, USBASP_OLD_PID, ishid, ids);
+      }
+    }
+
     if(raw)
       dev_pgm_raw(pgm);
+  }
+
+  int reboot = 0;
+  for(Dev_udev *u = udr; !reboot && u-udr < ui; u++)
+    reboot |= u->ishid;
+
+  if(udev && ui) {
+    int all = str_eq(pgmidcp, "*");
+    const char *var = all? "": str_asciiname((char *) str_ccprintf("-%s", pgmidcp));
+    dev_info("1. Examine the suggested udev rule%s below; to install run:\n\n", str_plural(ui + udr[0].ishid));
+    dev_info("%s -c \"%s/u\" | tail -n +%d | sudo tee /etc/udev/rules.d/55-%s%s.rules\n",
+      progname, pgmidcp, all? 9: 11, progname, var);
+    dev_info("sudo chmod 0644 /etc/udev/rules.d/55-%s%s.rules\n\n", progname, var);
+    dev_info("2. %s\n", reboot? "Reboot your computer": "Unplug any AVRDUDE USB programmers and plug them in again");
+    dev_info("3. Enjoy user access to the USB programmer(s)\n\n");
+    if(!all)
+      dev_info("Note: To install all udev rules known to AVRDUDE follow: %s -c \"*/u\" | more\n\n",
+        progname);
+    dev_info("# Generated from avrdude -c \"%s/u\"\n", pgmidcp);
+    if(ui > 3)
+      dev_info("\nACTION!=\"add|change\", GOTO=\"avrdude_end\"\n");
+    qsort(udr, ui, sizeof *udr, udev_cmp);
+    char *prev_head = mmt_strdup("<none>");
+    for(Dev_udev *u = udr; u-udr < ui; u++) {
+      char head[1024] = {0}, *h = head;
+      strncpy(h, u->ids, sizeof head - 1), h += strlen(h);
+      for(Dev_udev *v = u+1; v-udr < ui; v++) {
+        if(udev_cmp_wout_ids(u, v))
+          break;
+        if((int) (strlen(v->ids) + 3 + h-head) <= (int) sizeof head) {
+          strcpy(h, ", "), h += 2;
+          strcpy(h, v->ids), h += strlen(v->ids);
+        }
+        u = v;
+      }
+      if(!str_eq(prev_head, head)) {
+        dev_info("\n# %s\n", head);
+        mmt_free(prev_head);
+        prev_head = mmt_strdup(head);
+      }
+      dev_info("SUBSYSTEM==\"usb\", ATTRS{idVendor}==\"%04x\", ATTRS{idProduct}==\"%04x\", "
+        "MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
+      if(u->ishid)
+        dev_info("KERNEL==\"hidraw*\", SUBSYSTEM==\"hidraw\", ATTRS{idVendor}==\"%04x\", "
+          "ATTRS{idProduct}==\"%04x\", MODE=\"0660\", TAG+=\"uaccess\"\n", u->vid, u->pid);
+    }
+    mmt_free(prev_head);
+    if(ui > 3)
+      dev_info("\nLABEL=\"avrdude_end\"\n");
   }
 }

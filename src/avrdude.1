@@ -1677,18 +1677,22 @@ versions of the bootloader.
 .It Ar dryboot
 These two programmers emulate programming and accept the following parameters:
 .Bl -tag -offset indent -width indent
-.It Ar xinit
+.It Ar init
 Initialise memories with human-readable patterns. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
 Patterns can best be seen with fixed-width font and the :I format
 by inspecting the generated hex file or by using, eg, -U flash:r:-:I.
 Patterns in flash memory are executable and represent benign AVR code, ie,
 no I/O memory access. Choose a fixed seed for reproducible results.
+.It Ar init=<n>
+Shortcut for -x init -x seed=<n> (see below)
 .It Ar random
 Initialise memories with random code and values. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
 Random code in flash will be benign, that is, not accessing I/O memories,
 SRAM or flash. Choose a fixed seed for reproducible results.
+.It Ar random=<n>
+Shortcut for -x random -x seed=<n>
 .It Ar seed=<n>
 Seed random number generator with <n>; the default is time(NULL).
 Setting this option with a fixed n > 0 will make the random choices
@@ -2286,7 +2290,7 @@ Alternative location of the per-user configuration file if above file does not e
 Initialization file for the
 .Xr readline 3
 library
-.It Pa <prefix>/doc/avrdude/avrdude.pdf
+.It Pa <prefix>/share/doc/avrdude/avrdude.pdf
 User manual
 .El
 .\" .Sh EXAMPLES

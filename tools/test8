@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+
+# Published under GNU General Public License, version 3 (GPL-3.0)
+# Author Stefan Rueger, 2024
+
+progname=$(basename "$0")
+adopts=()
+mem=ALL
+init=-1
+rand=-1
+
+Usage() {
+cat <<END
+Syntax: $progname [<opts>] <programmer> <part>
+Function: test AVRDUDE for v 8.0 release with -c programmer -p part;
+  also leaves a file bak-<programmer>-<part.hex for inspection
+Options:
+  -i <n>     use avrdude -c dryrun -xinit=<n> to initialiase part and exit
+  -r <n>     use avrdude -c dryrun -xrandom=<n> to initialiase part and exit
+  -a <opt>   pass avrdude option <opt> through to avrdude test commands
+  -m <mlist> use memory list <mlist> instead of ALL
+
+Examples:
+  - Prepare a part with non-trivial random content
+    $ test8 -r1 usbasp t13a
+
+  - Then test ...
+    $ test8 avrisp2 t13a
+    $ test8 snap_isp t13a
+END
+}
+
+while getopts ":i:r:a:m:" opt; do
+  case ${opt} in
+     i) init=0; [[ ! -z "$OPTARG" ]] && init="$OPTARG"
+        ;;
+     r) rand=0; [[ ! -z "$OPTARG" ]] && rand="$OPTARG"
+        ;;
+     a) if [[ ! -z "$OPTARG" ]]; then adopts+=("$OPTARG"); fi
+        ;;
+     m) if [[ ! -z "$OPTARG" ]]; then mem="$OPTARG"; fi
+        ;;
+    --) shift;
+        break
+        ;;
+   \?) echo "$progname: invalid option -$OPTARG" 1>&2
+       Usage; exit 1
+       ;;
+   : ) echo "$progname: invalid option -$OPTARG requires an argument" 1>&2
+       Usage; exit 1
+       ;;
+  esac
+done
+shift $((OPTIND -1))
+
+
+if [ $# -ne 2 ]; then
+  why=missing; [ $# -gt 2 ] && why="too many"
+  echo $progname: $why arguments
+  Usage
+  exit 1
+fi
+
+######
+# Generated backup file
+
+f="bak-$1-$2.hex:I"
+
+######
+# Initialise and exit if requested by -i<n> or -r<n>
+
+if [[ $init -gt -1 || $rand -gt -1 ]]; then
+  how="init=$init"; [ $rand -gt -1 ] && how="random=$rand"
+  avrdude -qqc dryrun -p $2 -U $mem:r:$f -x $how
+  avrdude   -c $1     -p $2 -U $mem:w:$f
+  echo $progname: $2 initialsed
+  exit 0
+fi
+
+######
+# Actual test
+
+if ! avrdude "${adopts[@]}" -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f -U$mem:v:$f; then
+  echo -------------------------------
+  echo Re-running to create error logs
+  avrdude "${adopts[@]}" -vvv -c $1 -p $2 -D -U$mem:r:$f -T "fact reset" -U$mem:w:$f -U$mem:v:$f -llog-$1-$2.txt
+fi

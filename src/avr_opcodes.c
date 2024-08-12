@@ -647,6 +647,18 @@ AVR_mnemo opcode_mnemo(int op, int avrlevel) {
   return MNEMO_NONE;
 }
 
+// Is 16-bit opcode valid for AVR part with avrlevel architecture?
+int op16_is_valid(int op16, int avrlevel) {
+  int mnemo = opcode_mnemo(op16, avrlevel);
+  return mnemo >= 0 && mnemo <=  MNEMO_N;
+}
+
+// Is 16-bit opcode valid and benign for AVR part with avrlevel architecture?
+int op16_is_benign(int op16, int avrlevel) { // Benign means no I/O or SRAM is being read/written
+  int mnemo = opcode_mnemo(op16, avrlevel);
+  return mnemo >= 0 && mnemo <=  MNEMO_N && !(avr_opcodes[mnemo].type & OTY_EXTERNAL);
+}
+
 // Opcodes in avr_opcodes[] that a part ought to be able to run
 int avr_get_archlevel(const AVRPART *p) {
   int ret =
@@ -736,4 +748,35 @@ int z_width(int op16, AVR_mnemo *mnemop) {
     }
 
   return 0;
+}
+
+// Where else could the PC of the 16-bit opcode op16 at address here move to other than here + 2?
+int op16_target(int here, int op16) {
+  AVR_mnemo mnemo = opcode_mnemo(op16, PART_ALL | OP_AVR_ILL);
+
+  if(mnemo >= 0 && mnemo < MNEMO_N) {
+    switch(avr_opcodes[mnemo].type & OTY_TYPE_MASK) {
+    case OTY_RJMX:                // Relative call rcall, range [.-4096, .+4094] bytes
+    case OTY_RJMI:                // Relative jump rjmp, range [.-4096, .+4094] bytes
+      return here + 2 + ((int16_t) (op16<<4) >> 3);
+
+    case OTY_JMPI:                // Jump to potentially anywhere in flash (jmp, ijmp, eijmp)
+    case OTY_JMPX:                // Jump to potentially anywhere in flash (calls and ret/i)
+      return INT_MIN;
+
+    case OTY_BRAI:                // Conditional branch, range [.-128, .+126] bytes
+      return here + 2 + (int8_t) ((op16 & 0x3f8)>>2);
+
+    case OTY_SKPI:                // Conditional skip, range [.+0, .+4] (cpse, sbrc, sbrs)
+    case OTY_SKPX:                // Conditional skip, range [.+0, .+4] (sbic, sbis)
+      return here + 2 + 4;
+    }
+  }
+
+  return here + 2;
+}
+
+// Rjmp opcode from byte distance; 0xcfff is an endless loop, 0xc000 is a nop
+int dist2rjmp(int dist) {
+  return 0xc000 | (((dist >> 1) - 1) & 0x0fff);
 }

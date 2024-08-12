@@ -450,15 +450,17 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
 	    /* we need to open the device in order to query strings */
             r = libusb_open(dev, &handle);
             if (!handle) {
-                 errorCode = USB_ERROR_ACCESS;
-                 pmsg_warning("cannot open USB device: %s\n", errstr(pgm, r));
-                 continue;
+                cx->usb_access_error = 1;
+                errorCode = USB_ERROR_ACCESS;
+                pmsg_warning("cannot open USB device: %s\n", errstr(pgm, r));
+                continue;
             }
             errorCode = 0;
             /* now check whether the names match: */
             /* if vendorName not given ignore it (any vendor matches) */
 	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iManufacturer & 0xff, (unsigned char*)string, sizeof(string));
             if (r < 0) {
+                cx->usb_access_error = 1;
                 if ((vendorName != NULL) && (vendorName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
                     pmsg_warning("cannot query manufacturer for device: %s\n", errstr(pgm, r));
@@ -471,6 +473,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle **device, i
             /* if productName not given ignore it (any product matches) */
 	    r = libusb_get_string_descriptor_ascii(handle, descriptor.iProduct & 0xff, (unsigned char*)string, sizeof(string));
             if (r < 0) {
+                cx->usb_access_error = 1;
                 if ((productName != NULL) && (productName[0] != 0)) {
                     errorCode = USB_ERROR_IO;
                     pmsg_warning("cannot query product for device: %s\n", errstr(pgm, r));
@@ -529,6 +532,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int ven
 		/* we need to open the device in order to query strings */
                 handle = usb_open(dev);
                 if(!handle){
+                    cx->usb_access_error = 1;
                     errorCode = USB_ERROR_ACCESS;
                     pmsg_warning("cannot open USB device: %s\n", usb_strerror());
                     continue;
@@ -539,9 +543,10 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int ven
                 len = usb_get_string_simple(handle, dev->descriptor.iManufacturer,
 					    string, sizeof(string));
                 if(len < 0){
+                    cx->usb_access_error = 1;
                     if ((vendorName != NULL) && (vendorName[0] != 0)) {
-                    errorCode = USB_ERROR_IO;
-                    pmsg_warning("cannot query manufacturer for device: %s\n", usb_strerror());
+                        errorCode = USB_ERROR_IO;
+                        pmsg_warning("cannot query manufacturer for device: %s\n", usb_strerror());
 		    }
                 } else {
                     pmsg_notice2("seen device from vendor >%s<\n", string);
@@ -552,6 +557,7 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle **device, int ven
                 len = usb_get_string_simple(handle, dev->descriptor.iProduct,
 					    string, sizeof(string));
                 if(len < 0){
+                    cx->usb_access_error = 1;
                     if ((productName != NULL) && (productName[0] != 0)) {
                         errorCode = USB_ERROR_IO;
                         pmsg_warning("cannot query product for device: %s\n", usb_strerror());
@@ -604,22 +610,11 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
   if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
-    /* try alternatives */
     if(str_eq(pgmid, "usbasp")) {
-    /* for id usbasp autodetect some variants */
-      if(str_caseeq(port, "nibobee")) {
-        pmsg_error("using -C usbasp -P nibobee is deprecated, use -C nibobee instead\n");
-        if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_NIBOBEE_VID, "www.nicai-systems.com",
-                          USBASP_NIBOBEE_PID, "NIBObee", port) != 0) {
-          pmsg_error("cannot find USB device NIBObee with vid=0x%x pid=0x%x\n",
-            USBASP_NIBOBEE_VID, USBASP_NIBOBEE_PID);
-          return -1;
-        }
-        return 0;
-      }
       /* check if device with old VID/PID is available */
       if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
                         USBASP_OLD_PID, "USBasp", port) == 0) {
+        cx->usb_access_error = 0;
         /* found USBasp with old IDs */
         pmsg_error("found USB device USBasp with old VID/PID; please update firmware of USBasp\n");
 	return 0;
