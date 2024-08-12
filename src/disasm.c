@@ -256,9 +256,9 @@ static int tagfile_readline(char *line, int lineno, const char * const *isrnames
 // Allocate, copy, append a suffix (H, L, 0...8 or nothing), cleanup name and return
 static char *regname(const char *pre, const char *reg, int suf) {
   char *ret =
-    suf <= -1? str_sprintf("%s%s", pre, reg):
-    suf == 'h' || suf == 'l'? str_sprintf("%s%s%c", pre, reg, suf):
-    str_sprintf("%s%s%d", pre, reg, suf);
+    suf <= -1? mmt_sprintf("%s%s", pre, reg):
+    suf == 'h' || suf == 'l'? mmt_sprintf("%s%s%c", pre, reg, suf):
+    mmt_sprintf("%s%s%d", pre, reg, suf);
 
   return cleanup(ret);
 }
@@ -556,10 +556,10 @@ static int process_string(const char *buf, int buflen, int pos, int offset) {
     str[i-pos] = 0;
     out = cfg_escape(str);
     mmt_free(str);
-    code = str_sprintf(".ascii  %s", out);
+    code = mmt_sprintf(".ascii  %s", out);
   } else {                      // Nul terminated string
     out = cfg_escape(buf + pos);
-    code = str_sprintf(".asciz  %s", out);
+    code = mmt_sprintf(".asciz  %s", out);
     i++;
   }
 

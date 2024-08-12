@@ -121,6 +121,8 @@ static int micronucleus_check_connection(struct pdata *pdata) {
             0, 0,
             (char*)buffer, sizeof(buffer),
             MICRONUCLEUS_DEFAULT_TIMEOUT);
+	if(result < 0)
+		cx->usb_access_error = 1;
         return result == sizeof(buffer) ? 0 : -1;
     }
     else
@@ -133,6 +135,8 @@ static int micronucleus_check_connection(struct pdata *pdata) {
             0, 0,
             (char*)buffer, sizeof(buffer),
             MICRONUCLEUS_DEFAULT_TIMEOUT);
+	if(result < 0)
+		cx->usb_access_error = 1;
         return result == sizeof(buffer) ? 0 : -1;
     }
 }

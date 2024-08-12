@@ -31,7 +31,7 @@ info_TEXINFOS = avrdude.texi
 EXTRA_DIST = \
 	parts_comments.txt
 
-all-local: info html ps pdf
+all-local: info html pdf
 
 html: avrdude-html/avrdude.html
 
@@ -76,9 +76,8 @@ clean-local:
 
 install-data-local: install-docs
 
-install-docs: html ps pdf
+install-docs: html pdf
 	$(mkinstalldirs) $(DOC_INST_DIR)
-	$(INSTALL_DATA) avrdude.ps $(DOC_INST_DIR)/avrdude.ps
 	$(INSTALL_DATA) avrdude.pdf $(DOC_INST_DIR)/avrdude.pdf
 	$(mkinstalldirs) $(DOC_INST_DIR)/avrdude-html
 	@list=`echo avrdude-html/*.html`; \

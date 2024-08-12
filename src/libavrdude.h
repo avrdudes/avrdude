@@ -262,6 +262,42 @@ typedef struct opcode {
 #define PM_Classic (PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI)
 #define PM_ALL           0x1fff // All programming interfaces
 
+// Shortcut test for programmers and parts
+#define is_spm(x)       (!!((x)->prog_modes & PM_SPM))
+#define is_tpi(x)       (!!((x)->prog_modes & PM_TPI))
+#define is_isp(x)       (!!((x)->prog_modes & PM_ISP))
+#define is_pdi(x)       (!!((x)->prog_modes & PM_PDI))
+#define is_updi(x)      (!!((x)->prog_modes & PM_UPDI))
+#define is_hvsp(x)      (!!((x)->prog_modes & PM_HVSP))
+#define is_hvpp(x)      (!!((x)->prog_modes & PM_HVPP))
+#define is_debugwire(x) (!!((x)->prog_modes & PM_debugWIRE))
+#define is_jtag(x)      (!!((x)->prog_modes & PM_JTAG))
+#define is_jtagmki(x)   (!!((x)->prog_modes & PM_JTAGmkI))
+#define is_xmegajtag(x) (!!((x)->prog_modes & PM_XMEGAJTAG))
+#define is_avr32jtag(x) (!!((x)->prog_modes & PM_AVR32JTAG))
+#define is_awire(x)     (!!((x)->prog_modes & PM_aWire))
+#define is_classic(x)   (!!((x)->prog_modes & PM_Classic))
+
+// Set of overlapping programming modes of programmer and part
+#define joint_pm(pgm, p) ((pgm)->prog_modes & (p)->prog_modes)
+
+// Shortcut test whether both programmer and part have that programming mode
+#define both_spm(pgm, p)       (!!(joint_pm(pgm, p) & PM_SPM))
+#define both_tpi(pgm, p)       (!!(joint_pm(pgm, p) & PM_TPI))
+#define both_isp(pgm, p)       (!!(joint_pm(pgm, p) & PM_ISP))
+#define both_pdi(pgm, p)       (!!(joint_pm(pgm, p) & PM_PDI))
+#define both_updi(pgm, p)      (!!(joint_pm(pgm, p) & PM_UPDI))
+#define both_hvsp(pgm, p)      (!!(joint_pm(pgm, p) & PM_HVSP))
+#define both_hvpp(pgm, p)      (!!(joint_pm(pgm, p) & PM_HVPP))
+#define both_debugwire(pgm, p) (!!(joint_pm(pgm, p) & PM_debugWIRE))
+#define both_jtag(pgm, p)      (!!(joint_pm(pgm, p) & PM_JTAG))
+#define both_jtagmki(pgm, p)   (!!(joint_pm(pgm, p) & PM_JTAGmkI))
+#define both_xmegajtag(pgm, p) (!!(joint_pm(pgm, p) & PM_XMEGAJTAG))
+#define both_avr32jtag(pgm, p) (!!(joint_pm(pgm, p) & PM_AVR32JTAG))
+#define both_awire(pgm, p)     (!!(joint_pm(pgm, p) & PM_aWire))
+#define both_classic(pgm, p)   (!!(joint_pm(pgm, p) & PM_Classic))
+
+
 #define HV_UPDI_VARIANT_0      0 /* Shared UPDI/GPIO/RESET pin, HV on UPDI pin (tinyAVR0/1/2)*/
 #define HV_UPDI_VARIANT_1      1 /* Dedicated UPDI pin, no HV (megaAVR0/AVR-Dx) */
 #define HV_UPDI_VARIANT_2      2 /* Shared UPDI pin, HV on _RESET (AVR-DD/AVR-Ex) */
@@ -564,6 +600,8 @@ typedef struct avrmem_alias {
   AVRMEM *aliased_mem;
 } AVRMEM_ALIAS;
 
+typedef struct programmer PROGRAMMER; // Forward declaration
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -601,7 +639,7 @@ AVRMEM * avr_locate_mem_by_type(const AVRPART *p, Memtype type);
 unsigned int avr_data_offset(const AVRPART *p);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
-void avr_mem_display(FILE *f, const AVRPART *p, const char *prefix);
+void avr_mem_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *prefix);
 
 /* Functions for AVRPART structures */
 AVRPART * avr_new_part(void);
@@ -614,7 +652,7 @@ AVRPART * locate_part_by_signature_pm(const LISTID parts, unsigned char *sig, in
 int avr_sig_compatible(const unsigned char *sig1, const unsigned char *sig2);
 
 char *avr_prog_modes(int pm), *str_prog_modes(int pm), *dev_prog_modes(int pm);
-void avr_display(FILE *f, const AVRPART *p, const char *prefix, int verbose);
+void avr_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *prefix, int verbose);
 int avr_variants_display(FILE *f, const AVRPART *p, const char *prefix);
 
 typedef void (*walk_avrparts_cb)(const char *name, const char *desc,
@@ -738,8 +776,6 @@ void pin_set_value(struct pindef * const pindef, const int pin, const bool inver
  * @param[out] pindef pin definition to clear
  */
 void pin_clear_all(struct pindef * const pindef);
-
-typedef struct programmer PROGRAMMER; // Forward declaration
 
 /**
  * Convert for given programmer new pin definitions to old pin definitions.
@@ -1173,6 +1209,8 @@ int avr_get_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int *cycles);
 
 int avr_put_cycle_count(const PROGRAMMER *pgm, const AVRPART *p, int cycles);
 
+int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
+
 int avr_get_mem_type(const char *str);
 
 int avr_mem_is_flash_type(const AVRMEM *mem);
@@ -1197,7 +1235,7 @@ void report_progress(int completed, int total, const char *hdr);
 
 void trace_buffer(const char *funstr, const unsigned char *buf, size_t buflen);
 
-int avr_has_paged_access(const PROGRAMMER *pgm, const AVRMEM *m);
+int avr_has_paged_access(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m);
 
 int avr_read_page_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, int addr, unsigned char *buf);
 
@@ -1349,7 +1387,7 @@ int update_is_readable(const char *fn);
 
 int update_dryrun(const AVRPART *p, UPDATE *upd);
 
-AVRMEM **memory_list(const char *mstr, const AVRPART *p, int *np, int *rwvsoftp, int *dry);
+AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p, int *np, int *rwvsoftp, int *dry);
 int memlist_contains_flash(const char *mstr, const AVRPART *p);
 
 #ifdef __cplusplus
@@ -1701,6 +1739,7 @@ char *str_lc(char *s);
 char *str_uc(char *s);
 char *str_lcfirst(char *s);
 char *str_ucfirst(char *s);
+char *str_asciiname(char *s);
 char *str_utoa(unsigned n, char *buf, int base);
 char *str_endnumber(const char *str);
 const char *str_plural(int x);
@@ -1725,6 +1764,7 @@ int str_levenshtein(const char *str1, const char *str2, int swap, int subst, int
 size_t str_weighted_damerau_levenshtein(const char *str1, const char *str2);
 int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n);
 const char *str_ccmcunames_signature(const unsigned char *sigs, int pm);
+const char *str_ccpgmids(LISTID pgm_id);
 
 int led_set(const PROGRAMMER *pgm, int led);
 int led_clr(const PROGRAMMER *pgm, int led);
@@ -1749,10 +1789,14 @@ int op_width(int op16);
 int ldi_Rd(int op16);
 int ldi_K(int op16);
 AVR_mnemo opcode_mnemo(int op16, int avrlevel);
+int op16_is_valid(int op16, int avrlevel);
+int op16_is_benign(int op16, int avrlevel);
 int avr_get_archlevel(const AVRPART *p);
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p);
 const char *mnemo_str(int op16);
 int z_width(int op16, AVR_mnemo *mnenop);
+int op16_target(int here, int op16);
+int dist2rjmp(int dist);
 
 int disasm(const char *buf, int len, int addr, int leadin, int leadout);
 int disasm_init(const AVRPART *p);
@@ -1866,6 +1910,9 @@ typedef struct {
 
   // Variable connecting lexer.l and config_gram.y
   int lex_kw_is_programmer;     // Was the K_PROGRAMMER keyword "programmer"?
+
+  // Global variable indicating usb access problems
+  int usb_access_error;
 } libavrdude_context;
 
 extern libavrdude_context *cx;

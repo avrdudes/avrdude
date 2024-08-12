@@ -155,7 +155,7 @@ static int dryrun_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   if(!(dmem = avr_locate_mem(dry.dp, m->desc)))
     Return("cannot locate %s %s memory for paged write", dry.dp->desc, m->desc);
 
-  if(!avr_has_paged_access(pgm, dmem) || addr >= (unsigned) dmem->size)
+  if(!avr_has_paged_access(pgm, dry.dp, dmem) || addr >= (unsigned) dmem->size)
     Return("%s does not support paged access", dmem->desc);
   addr &= ~(dmem->page_size-1);
   if(addr + dmem->page_size > (unsigned) dmem->size)
@@ -294,24 +294,28 @@ static int flashlayout(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *fl
 }
 
 // Write a vector table to flash addr and return number of bytes written
-static int putvectortable(const AVRPART *p, const AVRMEM *flm, int addr) {
+static int putvectortable(const AVRPART *p, const AVRMEM *flm, int addr, int round32) {
   int vecsz = flm->size <= 8192? 2: 4, ret = p->n_interrupts * vecsz;
   int app = (ret + vecsz - 2)/2; // Distance to application in words
 
   for(int i = 0; i < ret; i += vecsz) { // First store rjmps to after table
     flm->buf[addr + i]     = app;
     flm->buf[addr + i + 1] = 0xc0 + (app>>8); // rjmp app, rjmp app, ...
+    if(vecsz == 4)              // Put nop behind rjmp
+      flm->buf[addr+i+2] = 0, flm->buf[addr+i+3] = 0;
     app -= vecsz/2;
   }
   for(int i=0; i < vecsz; i++)  // Leave one vector gap
-    flm->buf[addr + ret++] = ' ';
+    flm->buf[addr + ret++] = round32? ' ': 0;
 
-  flm->buf[addr + ret++] = 0xff; // Put endless lopp as application
-  flm->buf[addr + ret++] = 0xcf;
+  if(round32) {
+    flm->buf[addr + ret++] = 0xff; // Put endless loop rjmp .-2 as application
+    flm->buf[addr + ret++] = 0xcf;
 
-  // Then round up to multiples of 32
-  while(ret%32)
-    flm->buf[addr + ret++] = ' ';
+    // Then round up to multiples of 32
+    while(ret%32)
+      flm->buf[addr + ret++] = ' ';
+  }
 
   return ret;
 }
@@ -404,102 +408,32 @@ static void putbanner(const AVRMEM *flm, int addr, int n, int bi) {
   }
 }
 
-// Is the opcode of benign nature, ie, not touching SRAM, I/O regs or flash?
-static int is_benign_opcode(int op) {
-  static const struct { int mask, result; } benign[] = {
-    {0xfc00, 0x0c00}, // 0000 11rd dddd rrrr: add    Rd, Rr
-    {0xfc00, 0x1c00}, // 0001 11rd dddd rrrr: adc    Rd, Rr
-    {0xff00, 0x9600}, // 1001 0110 KKdd KKKK: adiw   Rd, K
-    {0xfc00, 0x1800}, // 0001 10rd dddd rrrr: sub    Rd, Rr
-    {0xf000, 0x5000}, // 0101 KKKK dddd KKKK: subi   Rd, K
-    {0xfc00, 0x0800}, // 0000 10rd dddd rrrr: sbc    Rd, Rr
-    {0xf000, 0x4000}, // 0100 KKKK dddd KKKK: sbci   Rd, K
-    {0xff00, 0x9700}, // 1001 0111 KKdd KKKK: sbiw   Rd, K
-    {0xfc00, 0x2000}, // 0010 00rd dddd rrrr: and    Rd, Rr
-    {0xf000, 0x7000}, // 0111 KKKK dddd KKKK: andi   Rd, K
-    {0xfc00, 0x2800}, // 0010 10rd dddd rrrr: or     Rd, Rr
-    {0xf000, 0x6000}, // 0110 KKKK dddd KKKK: ori    Rd, K
-    {0xfc00, 0x2400}, // 0010 01rd dddd rrrr: eor    Rd, Rr
-    {0xfe0f, 0x9400}, // 1001 010d dddd 0000: com    Rd
-    {0xfe0f, 0x9401}, // 1001 010d dddd 0001: neg    Rd
-    {0xfe0f, 0x9403}, // 1001 010d dddd 0011: inc    Rd
-    {0xfe0f, 0x940a}, // 1001 010d dddd 1010: dec    Rd
-    {0xfc00, 0x9c00}, // 1001 11rd dddd rrrr: mul    Rd, Rr
-    {0xff00, 0x0200}, // 0000 0010 dddd rrrr: muls   Rd, Rr
-    {0xff88, 0x0300}, // 0000 0011 0ddd 0rrr: mulsu  Rd, Rr
-    {0xff88, 0x0308}, // 0000 0011 0ddd 1rrr: fmul   Rd, Rr
-    {0xff88, 0x0380}, // 0000 0011 1ddd 0rrr: fmuls  Rd, Rr
-    {0xff88, 0x0388}, // 0000 0011 1ddd 1rrr: fmulsu Rd, Rr
-    // {0xff0f, 0x940b}, // 1001 0100 KKKK 1011: des    K
-    {0xfc00, 0x1000}, // 0001 00rd dddd rrrr: cpse   Rd, Rr
-    {0xfc00, 0x1400}, // 0001 01rd dddd rrrr: cp     Rd, Rr
-    {0xfc00, 0x0400}, // 0000 01rd dddd rrrr: cpc    Rd, Rr
-    {0xf000, 0x3000}, // 0011 KKKK dddd KKKK: cpi    Rd, K
-    {0xfe08, 0xfc00}, // 1111 110r rrrr 0bbb: sbrc   Rr, b
-    {0xfe08, 0xfe00}, // 1111 111r rrrr 0bbb: sbrs   Rr, b
-    {0xfc00, 0x2c00}, // 0010 11rd dddd rrrr: mov    Rd, Rr
-    {0xff00, 0x0100}, // 0000 0001 dddd rrrr: movw   Rd, Rr
-    {0xf000, 0xe000}, // 1110 KKKK dddd KKKK: ldi    Rd, K
-    {0xfe0f, 0x9406}, // 1001 010d dddd 0110: lsr    Rd
-    {0xfe0f, 0x9407}, // 1001 010d dddd 0111: ror    Rd
-    {0xfe0f, 0x9405}, // 1001 010d dddd 0101: asr    Rd
-    {0xfe0f, 0x9402}, // 1001 010d dddd 0010: swap   Rd
-    {0xfe08, 0xfa00}, // 1111 101d dddd 0bbb: bst    Rr, b
-    {0xfe08, 0xf800}, // 1111 100d dddd 0bbb: bld    Rd, b
-    {0xffff, 0x9408}, // 1001 0100 0000 1000: sec
-    {0xffff, 0x9488}, // 1001 0100 1000 1000: clc
-    {0xffff, 0x9428}, // 1001 0100 0010 1000: sen
-    {0xffff, 0x94a8}, // 1001 0100 1010 1000: cln
-    {0xffff, 0x9418}, // 1001 0100 0001 1000: sez
-    {0xffff, 0x9498}, // 1001 0100 1001 1000: clz
-    {0xffff, 0x94f8}, // 1001 0100 1111 1000: cli
-    {0xffff, 0x9448}, // 1001 0100 0100 1000: ses
-    {0xffff, 0x94c8}, // 1001 0100 1100 1000: cls
-    {0xffff, 0x9438}, // 1001 0100 0011 1000: sev
-    {0xffff, 0x94b8}, // 1001 0100 1011 1000: clv
-    {0xffff, 0x9468}, // 1001 0100 0110 1000: set
-    {0xffff, 0x94e8}, // 1001 0100 1110 1000: clt
-    {0xffff, 0x9458}, // 1001 0100 0101 1000: seh
-    {0xffff, 0x94d8}, // 1001 0100 1101 1000: clh
-    {0xffff, 0x95a8}, // 1001 0101 1010 1000: wdr
-    {0xffff, 0x0000}, // 0000 0000 0000 0000: nop
-  };
-
-  for(size_t i = 0; i < sizeof benign/sizeof*benign; i++)
-    if((op & benign[i].mask) == benign[i].result)
-      return 1;
-  return 0;
+// Put single 16-bit opcode into memory
+static void putop16(unsigned char *addr, int op) {
+  addr[0] = op, addr[1] = op>>8;
 }
 
-// Put n/2 random benign opcodes into memory at addr
-static void putcode(const AVRMEM *flm, int addr, int n) {
-  int i = 0, op;
+// Put n/2 random benign opcodes compatible with part into memory at addr
+static void putcode(const AVRPART *p, const AVRMEM *flm, int addr, int n) {
+  int i, op, inrange, pc, end = addr + n/2*2, avrlevel = avr_get_archlevel(p);
 
-  if(n < 2)
-    return;
-  if(n < 4)
-    goto endless;
-
-  for(; i < n/2 - 2; i++) {
+  for(i = 0; i < n/2; i++) {
     do {
-      op = random() & 0xffff;
-    } while(!is_benign_opcode(op));
-    flm->buf[addr + 2*i] = op;  // FIXME: relying on little endian here (and below)
-    flm->buf[addr + 2*i + 1] = op>>8;
+      inrange = 0;
+      // Last opcode is a long backward jump; the others are random
+      op = i == n/2-1? dist2rjmp(-2*(i<2048? i: 2047)): random() & 0xffff;
+      if(op16_is_benign(op, avrlevel))
+        inrange = (pc = op16_target(addr+2*i, op)) >= addr && pc < end;
+    } while(!inrange);
+    putop16(flm->buf + addr + 2*i, op);
   }
-
-  flm->buf[addr+2*i] = 0;
-  flm->buf[addr+2*i+1] = 0;     // nop (in case last opcode was of skip-next-instruction type
-  i++;
-
-endless:
-  flm->buf[addr+2*i] = 255;
-  flm->buf[addr+2*i+1] = 0xcf;  // rjmp .-2 (endless loop)
 }
 
 
 // Write valid opcodes to flash (banners for -xinit, random code for -xrandom)
-static void putflash(const PROGRAMMER *pgm, const AVRMEM *flm, int addr, int n, int bi) {
+static void putflash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm, int addr, int n, int bi) {
+  unsigned char *top = flm->buf+addr+n-4;
+
   if(dry.random) {
     switch(bi) {
     case U384: case U512: case BDATA: // Bootloader stuff, reduce code length a little
@@ -509,12 +443,17 @@ static void putflash(const PROGRAMMER *pgm, const AVRMEM *flm, int addr, int n, 
       n -= random()%(3*n/4);
     }
     if(bi != ADATA) {
-      putcode(flm, addr, n);
-      return;
+      putcode(p, flm, addr, n);
+      goto seal;
     }
     bi = RND;                   // Make apptable data random @/space sequences
   }
   putbanner(flm, addr, n, bi);
+
+seal:                           // Put 1-2 endless loops in top memory section
+  if(*top == 0xff)
+    putop16(top, 0xcfff);
+  putop16(top+2, 0xcfff);
 }
 
 // Initialise a user writable memory other than flash or fuses
@@ -695,7 +634,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   if(flashlayout(pgm, q, flm, up, cp, nc) < 0)
     return;
 
-  int vtb = putvectortable(q, flm, dry.appstart), urbtsz = 0;
+  int vtb = putvectortable(q, flm, dry.appstart, dry.init), urbtsz = 0;
 
   int urboot = random()%3 && dry.bootsize <= 512 && flm->size >= 1024 &&
     flm->size >= 4*dry.bootsize && (q->prog_modes & PM_Classic) && (q->prog_modes & PM_SPM);
@@ -709,21 +648,18 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       dry.bootstart = dry.appsize;
     }
     int ubaddr = dry.bootstart;
-    putflash(pgm, flm, ubaddr, urbtsz, urbtsz==384? U384: U512);
-    flm->buf[ubaddr] = 0xff; flm->buf[ubaddr+1] = 0xcf; // rjmp .-2
+    putflash(pgm, dry.dp, flm, ubaddr, urbtsz, urbtsz==384? U384: U512);
   } else if(dry.bootsize) {
     int btb = 0;
     if(dry.bootsize >= 2048)
-      btb = putvectortable(q, flm, dry.bootstart);
-    putflash(pgm, flm, dry.bootstart + btb, dry.bootsize - btb, BDATA);
-    flm->buf[dry.bootstart] = 0xff; flm->buf[dry.bootstart+1] = 0xcf; // rjmp .-2
+      btb = putvectortable(q, flm, dry.bootstart, dry.init);
+    putflash(pgm, dry.dp, flm, dry.bootstart + btb, dry.bootsize - btb, BDATA);
   }
 
-  if(dry.datasize) {
-    putflash(pgm, flm, dry.datastart, dry.datasize, ADATA);
-  }
+  if(dry.datasize)
+    putflash(pgm, dry.dp, flm, dry.datastart, dry.datasize, ADATA);
 
-  putflash(pgm, flm, dry.appstart+vtb, dry.appsize-vtb-urbtsz, ROCKS);
+  putflash(pgm, dry.dp, flm, dry.appstart+vtb, dry.appsize-vtb-urbtsz, ROCKS);
 
   for(int i = 0; i < flm->size; i += flm->page_size)
     sharedflash(pgm, flm, i, flm->page_size);
@@ -1040,15 +976,15 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
   for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
     const char *xpara = ldata(ln);
 
-    if(str_starts(xpara, "init")) {
+    if(str_eq(xpara, "init")) {
       dry.init = 1;
       continue;
     }
-    if(str_starts(xpara, "random")) {
+    if(str_eq(xpara, "random")) {
       dry.random = 1;
       continue;
     }
-    if(str_starts(xpara, "seed=")) {
+    if(str_starts(xpara, "seed=") || str_starts(xpara, "init=") || str_starts(xpara, "random=")) {
       const char *errptr;
       int seed = str_int(strchr(xpara, '=')+1, STR_INT32, &errptr);
       if(errptr) {
@@ -1057,6 +993,10 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       dry.seed = seed;
+      if(str_starts(xpara, "init"))
+        dry.init = 1;
+      else if(str_starts(xpara, "random"))
+        dry.random = 1;
       continue;
     }
     if(str_eq(xpara, "help")) {
@@ -1069,10 +1009,12 @@ static int dryrun_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
       rc = -1;
     }
     msg_error("%s -c %s extended options:\n", progname, pgmid);
-    msg_error("  -x init     Initialise memories with human-readable patterns (1, 2, 3)\n");
-    msg_error("  -x random   Initialise memories with random code/values (1, 3)\n");
-    msg_error("  -x seed=<n> Seed random number generator with <n>, n>0, default time(NULL)\n");
-    msg_error("  -x help     Show this help menu and exit\n");
+    msg_error("  -x init       Initialise memories with human-readable patterns (1, 2, 3)\n");
+    msg_error("  -x init=<n>   Shortcut for -x init -x seed=<n>\n");
+    msg_error("  -x random     Initialise memories with random code/values (1, 3)\n");
+    msg_error("  -x random=<n> Shortcut for -x random -x seed=<n>\n");
+    msg_error("  -x seed=<n>   Seed random number generator with <n>, n>0, default time(NULL)\n");
+    msg_error("  -x help       Show this help menu and exit\n");
     msg_error("Notes:\n");
     msg_error("  (1) -x init and -x random randomly configure flash wrt boot/data/code length\n");
     msg_error("  (2) Patterns can best be seen with fixed-width font on -U flash:r:-:I\n");

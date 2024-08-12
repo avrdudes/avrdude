@@ -86,9 +86,9 @@ static void usbtiny_teardown(PROGRAMMER *pgm) {
 }
 
 // Wrapper for simple usb_control_msg messages
-static int usb_control (const PROGRAMMER *pgm,
-			unsigned int requestid, unsigned int val, unsigned int index )
-{
+static int usb_control(const PROGRAMMER *pgm,
+  unsigned int requestid, unsigned int val, unsigned int index, int silent) {
+
   int nbytes;
   nbytes = usb_control_msg( PDATA(pgm)->usb_handle,
 			    USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE,
@@ -97,8 +97,11 @@ static int usb_control (const PROGRAMMER *pgm,
 			    NULL, 0,              // no data buffer in control message
 			    USB_TIMEOUT );        // default timeout
   if(nbytes < 0){
-    msg_error("\n");
-    pmsg_error("%s\n", usb_strerror());
+    cx->usb_access_error = 1;
+    if(!silent) {
+      msg_error("\n");
+      pmsg_error("%s\n", usb_strerror());
+    }
     return -1;
   }
 
@@ -408,7 +411,7 @@ static int usbtiny_set_sck_period (const PROGRAMMER *pgm, double v) {
 
   // send the command to the usbtiny device.
   // MEME: for at90's fix resetstate?
-  if (usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW) < 0)
+  if (usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW, 0) < 0)
     return -1;
 
   // with the new speed, we'll have to update how much data we send per usb transfer
@@ -430,7 +433,7 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
     PDATA(pgm)->sck_period = SCK_DEFAULT;
     pmsg_notice("using SCK period of %d usec\n", PDATA(pgm)->sck_period );
     if (usb_control(pgm,  USBTINY_POWERUP,
-		    PDATA(pgm)->sck_period, RESET_LOW ) < 0)
+		    PDATA(pgm)->sck_period, RESET_LOW, 0) < 0)
       return -1;
     usbtiny_set_chunk_size(pgm, PDATA(pgm)->sck_period);
   }
@@ -471,10 +474,8 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
     if (pgm->program_enable(pgm, p) >= 0)
       break;
     // no response, RESET and try again
-    if (usb_control(pgm, USBTINY_POWERUP,
-		    PDATA(pgm)->sck_period, RESET_HIGH) < 0 ||
-	usb_control(pgm, USBTINY_POWERUP,
-		    PDATA(pgm)->sck_period, RESET_LOW) < 0)
+    if(usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_HIGH, 0) < 0 ||
+       usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW, 0) < 0)
       return -1;
     usleep(50000);
   }
@@ -486,10 +487,8 @@ static int usbtiny_initialize (const PROGRAMMER *pgm, const AVRPART *p ) {
 static int usbtiny_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   /* USBtiny is not a bit bang device, but it can set RESET */
   if(pinfunc == PIN_AVR_RESET) {
-    if (usb_control(pgm, USBTINY_POWERUP,
-                    PDATA(pgm)->sck_period, value ? RESET_HIGH : RESET_LOW) < 0) {
+    if(usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, value? RESET_HIGH: RESET_LOW, 0) < 0)
       return -1;
-    }
     usleep(50000);
     return 0;
   }
@@ -498,10 +497,9 @@ static int usbtiny_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
 
 /* Tell the USBtiny to release the output pins, etc */
 static void usbtiny_powerdown(const PROGRAMMER *pgm) {
-  if (!PDATA(pgm)->usb_handle) {
+  if (!PDATA(pgm)->usb_handle)
     return;                 // wasn't connected in the first place
-  }
-  usb_control(pgm, USBTINY_POWERDOWN, 0, 0);      // Send USB control command to device
+  usb_control(pgm, USBTINY_POWERDOWN, 0, 0, 1);
 }
 
 /* Send a 4-byte SPI command to the USBtinyISP for execution
@@ -718,7 +716,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     unsigned int poll_value = (m->readback[1] << 8) | m->readback[0];
     if(!poll_value)
       poll_value = 0xffff;
-    if (usb_control(pgm, USBTINY_POLL_BYTES, poll_value, 0 ) < 0)
+    if(usb_control(pgm, USBTINY_POLL_BYTES, poll_value, 0, 0) < 0)
       return -1;
     delay = m->max_write_delay;
   }

@@ -55,6 +55,9 @@ Changes since version 7.3:
     - JTAGICE3 EDBG communication mode relies on hardcoded USBVID #1838
     - avrdude documentation typo(s) attemps #1852
     - Conflicting types for op16_is_mnemo: enum/integer #1851
+    - Writing BOOTROW for Curiosity Nano #1868
+    - Should AVRDUDE be run as root? #1860
+    - Auto-build avrdude.pdf from texinfo sources #1847
 
   * Pull requests:
 
@@ -129,6 +132,17 @@ Changes since version 7.3:
     - Refine auto-erase strategy #1862
     - Provide -P usb:vid:pid for USB hid i/f and allow
       long -P usb:serno for usblib and hidapi #186
+    - Initialise dryrun flash with realistic random code #1873
+    - Writing BOOTROW for Curiosity Nano #1870
+    - Refine programmer/part/memory compatibility modelling #1869
+    - Provide dev option -c \*/u that shows udev rules #1867
+    - Provide current avrdude.pdf documentation in repo root #1865
+    - doc: Stop building and installing .ps and .dvi #1857
+    - Improve autotools build (part 2/n) #1695
+    - Use correct file locations in the documentation #1637
+    - Deprecate obsolete features and options #1875
+    - Add more hard-coded usbvid/pid to udev rules #1876
+    - Fixes for jtag3 programmers and prep for jtagmkII #1877
 
   * Internals:
 

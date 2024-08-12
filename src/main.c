@@ -44,6 +44,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/time.h>
+#if !defined(WIN32)
+#include <dirent.h>
+#endif
 
 #include "avrdude.h"
 #include "libavrdude.h"
@@ -130,16 +133,17 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
               fprintf(fp, " %s", mt);
             bols[bi].bol = 0;
           }
-          if(verbose >= MSG_NOTICE2 && (msgmode & MSG2_FUNCTION))
-            fprintf(fp, " %s()", func);
-          if(verbose >= MSG_DEBUG && (msgmode & MSG2_FILELINE)) {
-            const char *pr = strrchr(file, '/'); // Only print basename
+          if(verbose >= MSG_NOTICE2) {
+            const char *bfname = strrchr(file, '/'); // Only print basename
 #if defined (WIN32)
-            if(!pr)
-              pr =  strrchr(file, '\\');
+            if(!bfname)
+              bfname =  strrchr(file, '\\');
 #endif
-            pr = pr? pr+1: file;
-            fprintf(fp, " [%s:%d]", pr, lno);
+            bfname = bfname? bfname+1: file;
+            if(msgmode & MSG2_FUNCTION)
+              fprintf(fp, " %s()", func);
+            if(msgmode & MSG2_FILELINE)
+              fprintf(fp, " %s %d", bfname, lno);
           }
           fprintf(fp, ": ");
         } else if(msgmode & MSG2_INDENT1) {
@@ -770,7 +774,7 @@ int main(int argc, char * argv [])
   /*
    * process command line arguments
    */
-  while ((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrstT:U:uvVx:yY")) != -1) {
+  while ((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:")) != -1) {
 
     switch (ch) {
       case 'b': /* override default programmer baud rate */
@@ -887,11 +891,6 @@ int main(int argc, char * argv [])
         ladd(updates, cmd_update("interactive terminal"));
         break;
 
-      case 's':
-      case 'u':
-        pmsg_error("\"safemode\" feature no longer supported\n");
-        break;
-
       case 'T':
         ladd(updates, cmd_update(optarg));
         break;
@@ -915,11 +914,6 @@ int main(int argc, char * argv [])
 
       case 'x':
         ladd(extended_params, optarg);
-        break;
-
-      case 'y':
-      case 'Y':
-        pmsg_error("erase cycle counter no longer supported\n");
         break;
 
       case '?': /* help */
@@ -1123,7 +1117,7 @@ int main(int argc, char * argv [])
     pgmid = cache_string(default_programmer);
 
   // Developer options to print parts and/or programmer entries of avrdude.conf
-  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[dASsrtiBUPTIJWHQ]
+  int dev_opt_c = dev_opt(pgmid);    // -c <wildcard>/[duASsrtiBUPTIJWHQ]
   int dev_opt_p = dev_opt(partdesc); // -p <wildcard>/[cdoASsrw*tiBUPTIJWHQ]
 
   if(dev_opt_c || dev_opt_p) {  // See -c/h and or -p/h
@@ -1515,7 +1509,7 @@ skipopen:
   }
 
   if (verbose > 0 && quell_progress < 2) {
-    avr_display(stderr, p, progbuf, verbose);
+    avr_display(stderr, pgm, p, progbuf, verbose);
     msg_notice2("\n");
     programmer_display(pgm, progbuf);
   }
@@ -1677,8 +1671,8 @@ skipopen:
         msg_info("\n");
         pmsg_error("invalid device signature\n");
         if (!ovsigck) {
-          pmsg_error("expected signature for %s is%s; double\n", p->desc, str_cchex(p->signature, 3, 1));
-          imsg_error("check connections and try again, or use -F to carry on regardless\n");
+          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("  - double check connections and try again, or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1690,8 +1684,8 @@ skipopen:
         if (ovsigck) {
           pmsg_warning("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
         } else {
-          pmsg_error("expected signature for %s is%s; double\n", p->desc, str_cchex(p->signature, 3, 1));
-          imsg_error("check chip or use -F to carry on regardless\n");
+          pmsg_error("expected signature for %s is%s\n", p->desc, str_cchex(p->signature, 3, 1));
+          imsg_error("  - double check chip or use -F to carry on regardless\n");
           exitrc = 1;
           goto main_exit;
         }
@@ -1804,6 +1798,22 @@ main_exit:
     pgm->powerdown(pgm);
     pgm->disable(pgm);
     pgm->close(pgm);
+  }
+
+  if(cx->usb_access_error) {
+    pmsg_info(
+      "\nUSB access errors detected; this could have many reasons; if it is\n"
+      "USB permission problems, avrdude is likely to work when run as root\n"
+      "but this is not good practice; instead you might want to\n");
+#if 0 && !defined(WIN32)
+    DIR *dir;
+    if((dir = opendir("/etc/udev/rules.d"))) { // Linux udev land
+      closedir(dir);
+      imsg_info("run the command below to show udev rules recitifying USB access\n"
+        "$ %s -c %s/u\n", progname, pgmid);
+    } else
+#endif
+    imsg_info("check out USB port permissions on your OS and set them correctly\n");
   }
 
   msg_info("\n");
