@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 #ifndef pickit5_h
 #define pickit5_h
 
@@ -31,5 +29,4 @@ void pickit5_initpgm(PROGRAMMER *pgm);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // pickit5_h
+#endif
