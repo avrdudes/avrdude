@@ -1305,6 +1305,31 @@ for switching to PIC mode.
 Show help menu and exit.
 @end table
 
+@cindex Option @code{-x} PICkit 5
+@item PICkit 5
+@item MPLAB SNAP
+
+The PICkit 5 programmer can accept following extended parameters
+@table @code
+@item @samp{vtarg=VALUE}
+@var{PICkit 5 and Pickit 4 (PIC Mode) only}
+@*
+Specify a Voltage between 1.8 and 5.5V that the programmer should supply
+to the target. If there is already a valid voltage applied to the VTG Pin,
+this setting will be ignored. AVRDUDE will also try to verify, that the externally
+supplied voltage is inside the valid range, this check can be skipped with a
+setting of 0V
+@item @samp{hvupdi}
+@var{PICkit 5 and Pickit 4 (PIC Mode) only}
+@*
+High-voltage UPDI programming is used to enable a UPDI pin that has previously
+been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
+initialization for supported targets. Depending on the target, the HV pulse will
+be applied either on the RST pin, or the UPDI pin.
+@item @samp{help}
+Show help menu and exit.
+@end table
+
 @cindex Option @code{-x} Xplained Mini
 @item Xplained Mini
 
@@ -2220,6 +2245,7 @@ Valid programmers for part AVR32EA32 are:
   jtag2updi          = JTAGv2 to UPDI bridge via UPDI
   jtag3updi          = Atmel AVR JTAGICE3 via UPDI
   pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
+  pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 (PIC mode), SNAP (PIC mode) via UPDI, 
   pkobn_updi         = Curiosity nano (nEDBG) via UPDI
   powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
   serialupdi         = SerialUPDI via UPDI

@@ -1105,6 +1105,6 @@ int get_pickit_updi_script(SCRIPT *scr, const char* partdesc) {
       scr->ReadIDmem = ReadIDmem_0;
       scr->ReadIDmem_len = sizeof(ReadIDmem_0);
       break;
-    }
-    return 0;
   }
+  return 0;
+}

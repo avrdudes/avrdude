@@ -645,7 +645,7 @@ static int pickit5_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   const unsigned char *enter_prog = my.scripts.EnterProgMode;
   unsigned int enter_prog_len = my.scripts.EnterProgMode_len;
 
-  if(my.hvupdi_enabled) {
+  if(my.hvupdi_enabled && (my.pgm_type != PGM_TYPE_SNAP)) {   // SNAP has no HV generation
     if(p->hvupdi_variant == HV_UPDI_VARIANT_0) {        // High voltage generation on UPDI line
       enter_prog = my.scripts.EnterProgModeHvSp;
       enter_prog_len = my.scripts.EnterProgModeHvSp_len;
@@ -1146,6 +1146,9 @@ static int pickit5_get_fw_info(const PROGRAMMER *pgm) {
 }
 
 static int pickit5_set_vtarget(const PROGRAMMER *pgm, double v) {
+  if(my.pgm_type >= PGM_TYPE_SNAP)  // SNAP can't supply power, ignore
+    return 0;
+
   unsigned char set_vtarget[] = {
     0x40,
     0x00, 0x00, 0x00, 0x00,     // Vdd
@@ -1221,8 +1224,8 @@ static int pickit5_get_vtarget(const PROGRAMMER *pgm, double *v) {
 }
 
 static int pickit5_set_ptg_mode(const PROGRAMMER *pgm) {
-  if(my.pgm_type >= PGM_TYPE_SNAP) // Don't bother if Programmer doesn't support PTG
-    return 0;                   // Side note: Bitmask would be probably better in the future
+  if(my.pgm_type >= PGM_TYPE_SNAP)  // Don't bother if Programmer doesn't support PTG
+    return 0;                       // Side note: Bitmask would be probably better in the future
 
   unsigned char ptg_mode[] = {
     0x5E, 0x00, 0x00, 0x00, 0x00,

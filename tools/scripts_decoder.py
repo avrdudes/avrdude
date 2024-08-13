@@ -625,7 +625,7 @@ def convert_xml(xml_path, c_dict):
                 c_file.write(file_str)
 
 
-        c_file.write("    }\n    return 0;\n  }")
+        c_file.write("  }\n  return 0;\n}")
     print("c-File generated")
     pass
 
