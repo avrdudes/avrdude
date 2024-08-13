@@ -53,15 +53,6 @@ static PyObject *msg_cb = NULL;
 static PyObject *progress_cb = NULL;
 static void swig_progress(int percent, double etime, const char *hdr, int finish);
 
-#define mmt_malloc(n) cfg_malloc(__func__, n)
-#define mmt_free(p) free(p)
-
-void init_cx(void) {
-  mmt_free(cx);
-  cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
-  (void) avr_ustimestamp();     // Base timestamps from program start
-}
-
 void set_msg_callback(PyObject *PyFunc) {
   if (PyFunc == Py_None) {
     if (msg_cb)
@@ -266,8 +257,6 @@ typedef struct avrmem AVRMEM;
 typedef struct avrmem_alias AVRMEM_ALIAS;
 typedef struct programmer PROGRAMMER;
 typedef void pgm_initpgm(PROGRAMMER*);
-
-void init_cx(void);
 
 enum msglvl {
   MSG_EXT_ERROR = (-3),         // OS-type error, no -v option, can be suppressed with -qqqqq
@@ -598,6 +587,8 @@ typedef struct programmer {
 } PROGRAMMER;
 %mutable;
 %clear struct programmer *pgm;
+
+void init_cx(PROGRAMMER *pgm = NULL);
 
 // Config file handling
 int init_config(void);

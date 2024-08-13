@@ -614,6 +614,20 @@ double avr_timestamp() {
   return avr_ustimestamp()/1e6;
 }
 
+/*
+ * Initialize the global context pointer cx.
+ *
+ * This must be called once at program startup (with a NULL argument),
+ * and at each (re-)initialization of a programmer (with the
+ * respective programmer as argument).
+ */
+void init_cx(PROGRAMMER *pgm) {
+  if (pgm)
+    pgm->flag = 0;              // Clear out remnants of previous session(s)
+  mmt_free(cx);
+  cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
+  (void) avr_ustimestamp();     // Base timestamps from program start
+}
 
 int avr_read_byte_silent(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *datap) {

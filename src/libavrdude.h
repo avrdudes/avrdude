@@ -1183,6 +1183,8 @@ uint64_t avr_mstimestamp(void);
 
 double avr_timestamp(void);
 
+void init_cx(PROGRAMMER *pgm);
+
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);
 

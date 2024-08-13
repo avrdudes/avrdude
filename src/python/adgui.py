@@ -935,7 +935,7 @@ class adgui(QObject):
     def start_programmer(self):
         if self.connected:
             return
-        ad.init_cx()
+        ad.init_cx(self.pgm)
         self.pgm.initpgm()
         self.pgm.setup()
         rv = self.pgm.open(self.port)
