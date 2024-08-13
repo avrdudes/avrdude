@@ -1,4 +1,10 @@
 #!/bin/sh
+#
+# Wrapper around the AVRDUDE Qt / PySide GUI
+#
+# Prerequisites:
+# * python3
+# * Qt5 / PySide2, or Qt6 / PySide6
 
 if [ ! -d "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude" ] ; then
     echo "Installation directory @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude missing" >&2

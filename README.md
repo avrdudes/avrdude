@@ -68,5 +68,6 @@ For more information, refer to the [AVRDUDE documentation](https://avrdudes.gith
 Starting with version 8, a GUI implementation has been added, to demonstrate the functionality of `libavrdude` is suitable to implement a native GUI (as opposed to CLI wrapper).
 
 The GUI is based on the Qt toolkit and its Python bindings, called _PySide_.
+Either Qt5 with PySide2, or Qt6 with PySide6 are supported.
 
 A script named `avrdude-gui` is installed into the same location as the AVRDUDE CLI program. It can be used to start the GUI. There is a builtin help describing the usage.
