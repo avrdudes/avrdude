@@ -9,6 +9,7 @@ Changes since version 7.3:
 
     - Support of multi-memory .hex/.srec files and memory lists #1828
     - New terminal disasm command #1842
+    - GUI implementation of avrdude to demonstrate libavrdude #1714
 
   * New devices supported:
 
@@ -18,6 +19,7 @@ Changes since version 7.3:
   * New programmers supported:
 
     - serprog
+    - pickit5_updi
 
   * New serial adapters supported:
 
@@ -143,6 +145,12 @@ Changes since version 7.3:
     - Deprecate obsolete features and options #1875
     - Add more hard-coded usbvid/pid to udev rules #1876
     - Fixes for jtag3 programmers and prep for jtagmkII #1877
+    - SWIG Python wrapper for libavrdude #1714
+    - PICkit 5 support #1863
+    - Make usbproduct available to programmers #1880
+    - Silently skip erasing read-only parts of a memory #1883
+    - Fix ATmega1284/P readsize #1886
+    - Fix addresses for jtag3_pdi boot and apptable #1887
 
   * Internals:
 
