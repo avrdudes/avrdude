@@ -149,8 +149,8 @@ fi
 
 arraylength=${#pgm_and_target[@]}
 type "$avrdude_bin" >/dev/null 2>&1 || { echo "$progname: cannot execute $avrdude_bin"; exit 1; }
-echo -n "Testing $avrdude_bin"
-$avrdude_bin -v 2>&1 | grep Version | cut -f2- -d: | sed s/Version/version/
+echo -n "Testing $avrdude_bin "
+$avrdude_bin -v 2>&1 | grep '[vV]ersion' | sed 's/^.* [Vv]ersion/version/' | head -n1
 
 [[ -d $tmp && -w $tmp ]] || tmp=/tmp # Fall back to /tmp if tmp directory unusable
 status=$(mktemp "$tmp/$progname.status.XXXXXX")
