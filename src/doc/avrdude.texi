@@ -1308,21 +1308,17 @@ Show help menu and exit.
 
 @cindex Option @code{-x} PICkit 5
 @item PICkit 5
-@item MPLAB SNAP
+@item PICkit 4 (PIC Mode)
 
-The PICkit 5 programmer can accept following extended parameters
+The PICkit 5 and PICkit 4 (PIC Mode) programmer can accept following extended parameters
 @table @code
 @item @samp{vtarg=VALUE}
-@var{PICkit 5 and Pickit 4 (PIC Mode) only}
-@*
 Specify a voltage between 1.8 and 5.5@w{ }V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,
-this setting will be ignored. AVRDUDE will also try to verify, that the externally
-supplied voltage is inside the valid range, this check can be skipped with a
-setting of 0@w{ }V.
+this setting will be ignored. When AVRDUDE detects an external voltage outside
+of this range, it will terminate the operation. You can disable this by
+setting the voltage to 0@w{ }V.
 @item @samp{hvupdi}
-@var{PICkit 5 and Pickit 4 (PIC Mode) only}
-@*
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets. Depending on the target, the HV pulse will
