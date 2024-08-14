@@ -62,6 +62,35 @@ typedef uint32_t Pinmask;
                                  // might proceed with chip erase
 #define LIBAVRDUDE_EXIT (-4)     // End all operations in this session
 
+/* Message system */
+/* This functions is supposed to be supplied by the application */
+
+int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...);
+
+enum msglvl {
+  MSG_EXT_ERROR = (-3),         // OS-type error, no -v option, can be suppressed with -qqqqq
+  MSG_ERROR = (-2),             // Avrdude error, no -v option, can be suppressed with -qqqq
+  MSG_WARNING = (-1),           // Warning, no -v option, can be suppressed with -qqq
+  MSG_INFO = 0,                 // Commentary, no -v option, can be suppressed with -qq
+  MSG_NOTICE = 1,               // Displayed with -v
+  MSG_NOTICE2 = 2,              // Displayed with -vv
+  MSG_DEBUG = 3,                // Displayed with -vvv
+  MSG_TRACE = 4,                // Displayed with -vvvv, show trace communication
+  MSG_TRACE2 = 5,               // Displayed with -vvvvv
+};
+
+enum msgmode {
+  MSG2_PROGNAME = 1,            // Start by printing progname
+  MSG2_FUNCTION = 2,            // Print calling function (1st arg) after progname if >= notice
+  MSG2_FILELINE = 4,            // Print source file and line number after function if >= debug
+  MSG2_TYPE = 8,                // Print message type after function or progname
+  MSG2_INDENT1 = 16,            // Start by printing indentation of progname+1 blanks
+  MSG2_INDENT2 = 32,            // Start by printing indentation of progname+2 blanks
+  MSG2_FLUSH = 64,              // Flush before and after printing
+  MSG2_LEFT_MARGIN = 128,       // Print \n unless last character printed was \n
+  MSG2_UCFIRST = 256            // Uppercase first character of output
+};
+
 /* formerly lists.h */
 
 /*----------------------------------------------------------------------
@@ -1153,6 +1182,8 @@ uint64_t avr_ustimestamp(void);
 uint64_t avr_mstimestamp(void);
 
 double avr_timestamp(void);
+
+void init_cx(PROGRAMMER *pgm);
 
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
                    unsigned long addr, unsigned char data);

@@ -663,8 +663,7 @@ int main(int argc, char * argv [])
   char  * logfile;     /* Use logfile rather than stderr for diagnostics */
   enum updateflags uflags = UF_AUTO_ERASE | UF_VERIFY; /* Flags for do_op() */
 
-  cx = mmt_malloc(sizeof *cx);  // Allocate and initialise context structure
-  (void) avr_ustimestamp();     // Base timestamps from program start
+  init_cx(NULL);
 
 #ifdef _MSC_VER
   _set_printf_count_output(1);

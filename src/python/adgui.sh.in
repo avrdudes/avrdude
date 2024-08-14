@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# Wrapper around the AVRDUDE Qt / PySide GUI
+#
+# Prerequisites:
+# * python3
+# * Qt5 / PySide2, or Qt6 / PySide6
+
+if [ ! -d "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude" ] ; then
+    echo "Installation directory @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude missing" >&2
+    exit 1
+fi
+
+if [ ! -f "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude/adgui.py" ] ; then
+    echo "Program file @CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude/adgui.py missing" >&2
+    exit 1
+fi
+
+if [ ! -x "@Python3_EXECUTABLE@" ] ; then
+    echo "Python interpreter @Python3_EXECUTABLE@ missing" >&2
+    exit 1
+fi
+
+exec "@Python3_EXECUTABLE@" "@CMAKE_INSTALL_PREFIX@/@CMAKE_INSTALL_DATADIR@/avrdude/adgui.py"

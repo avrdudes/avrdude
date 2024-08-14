@@ -31,6 +31,7 @@ usage()
 	echo "Syntax: build.sh -h -f <flags> -j <num>"
 	echo "Options"
 	echo "-h          Display this usage information and exit"
+	echo "-v          Verbose build"
 	echo "-f <flags>  Extra build flags to pass to cmake"
 	echo "-j <num>    Run num build jobs in parallel"
 	echo
@@ -40,14 +41,19 @@ ostype=$(uname | tr '[A-Z]' '[a-z]')
 
 build_flags=""
 cmake_build="cmake --build ."
+verbose=""
+jopt=""
 
-while getopts :hf:j: OPT; do
+while getopts :hf:j:v OPT; do
   case "$OPT" in
-    f)    
-	   build_flags="$OPTARG" 
+    f)
+	   build_flags="$OPTARG"
 	   ;;
     j)
-	   cmake_build="cmake --build . -- -j$OPTARG";
+	   jopt="-- -j$OPTARG"
+	   ;;
+    v)
+	   verbose="-v"
 	   ;;
     h | *)
 	   usage
@@ -57,6 +63,7 @@ while getopts :hf:j: OPT; do
 done
 shift $((OPTIND-1)) # remove parsed options and args from $@ list
 
+cmake_build="$cmake_build $verbose $jopt"
 
 build_type=RelWithDebInfo
 # build_type=Release # no debug info

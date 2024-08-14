@@ -1,0 +1,6 @@
+rem Wrapper around the AVRDUDE Qt / PySide GUI
+rem
+rem Prerequisites:
+rem * python3
+rem * Qt5 / PySide2, or Qt6 / PySide6
+"@Python3_EXECUTABLE@" "@CMAKE_INSTALL_PREFIX@\@CMAKE_INSTALL_DATADIR@\avrdude\adgui.py"

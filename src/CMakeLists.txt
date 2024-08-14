@@ -126,6 +126,15 @@ if(WIN32 OR MINGW)
     "${CMAKE_CURRENT_SOURCE_DIR}/windows.rc.in"
     "${CMAKE_CURRENT_BINARY_DIR}/windows.rc"
   )
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.bat.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui.bat"
+  )
+else()
+  configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/python/adgui.sh.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/avrdude-gui"
+  )
 endif()
 
 add_custom_command(
@@ -150,7 +159,7 @@ add_custom_target(conf ALL DEPENDS avrdude.conf)
 # Project
 # =====================================
 
-add_library(libavrdude
+set(SOURCES
     ${CMAKE_CURRENT_BINARY_DIR}/ac_cfg.h
     arduino.h
     arduino.c
@@ -289,6 +298,10 @@ add_library(libavrdude
     ${EXTRA_WINDOWS_SOURCES}
     )
 
+add_library(libavrdude
+    ${SOURCES}
+    )
+
 set_target_properties(libavrdude PROPERTIES
     PREFIX ""
     PUBLIC_HEADER "libavrdude.h;libavrdude-avrintel.h"
@@ -339,6 +352,37 @@ if(MINGW)
     target_link_options(avrdude PRIVATE -static)
 endif()
 
+if(HAVE_SWIG)
+  include (UseSWIG)
+  swig_add_library(swig_avrdude LANGUAGE Python SOURCES libavrdude.i ${SOURCES})
+  target_include_directories(swig_avrdude
+    PUBLIC
+    "${Python3_INCLUDE_DIRS}"
+    "${PROJECT_SOURCE_DIR}"
+    "${PROJECT_BINARY_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${LIBUSB_COMPAT_DIR}"
+    ${EXTRA_WINDOWS_INCLUDES}
+  )
+  target_link_libraries(swig_avrdude
+    PRIVATE
+    ${LIB_MATH}
+    ${LIB_LIBELF}
+    ${LIB_LIBUSB}
+    ${LIB_LIBUSB_1_0}
+    ${LIB_LIBHID}
+    ${LIB_LIBHIDAPI}
+    ${LIB_LIBFTDI}
+    ${LIB_LIBFTDI1}
+    ${LIB_LIBREADLINE}
+    ${LIB_LIBSERIALPORT}
+    ${LIB_NCURSES}
+    ${LIB_LIBGPIOD}
+    ${Python3_LIBRARIES}
+    ${EXTRA_WINDOWS_LIBRARIES}
+    )
+endif()
+
 # =====================================
 # Install
 # =====================================
@@ -354,3 +398,17 @@ install(FILES "${CMAKE_CURRENT_BINARY_DIR}/avrdude.conf" TYPE SYSCONF)
 install(FILES "avrdude.1"
 	DESTINATION "${CMAKE_INSTALL_MANDIR}/man1"
 	)
+
+if(HAVE_SWIG)
+    execute_process(COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])"
+                    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
+    install(TARGETS swig_avrdude DESTINATION ${PYTHON_SITE_PACKAGES})
+    install(FILES ${CMAKE_BINARY_DIR}/src/swig_avrdude.py DESTINATION ${PYTHON_SITE_PACKAGES})
+    install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.ui")
+    install(DIRECTORY python/ DESTINATION ${CMAKE_INSTALL_DATADIR}/avrdude FILES_MATCHING PATTERN "*.py")
+  if(WIN32 OR MINGW)
+    install(PROGRAMS ${CMAKE_BINARY_DIR}/src/avrdude-gui.bat TYPE BIN)
+  else()
+    install(PROGRAMS ${CMAKE_BINARY_DIR}/src/avrdude-gui TYPE BIN)
+  endif()
+endif()
