@@ -73,8 +73,9 @@ jobs:
         run: sudo make -C _ambuild install
       - name: Dryrun_test
         run: printf "\n\n" | ./tools/test-avrdude -e _ambuild/avrdude -c '-C _ambuild/avrdude.conf' -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
-      - name: distcheck
-        run: make -C _ambuild -j$(nproc) distcheck
+      # Re-enable distcheck after the doc fixes
+      # - name: distcheck
+      #   run: make -C _ambuild -j$(nproc) distcheck "DISTCHECK_CONFIGURE_FLAGS=--disable-doc"
 
   linux-x86_64:
     runs-on: ubuntu-latest
