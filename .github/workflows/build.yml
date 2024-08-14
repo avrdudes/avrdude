@@ -245,7 +245,7 @@ jobs:
             build/src/avrdude
             build/src/avrdude.conf
 
-  macos-x86_64_autotools:
+  macos-x86_64-autotools:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v3
