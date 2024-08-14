@@ -1459,7 +1459,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   return 0;
 }
@@ -1920,10 +1920,10 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   if (mem_is_in_flash(m)) {
     cmd[3] = is_updi(p) || jtag3_mtype(pgm, p, m, addr) == MTYPE_FLASH?
       XMEGA_ERASE_APP_PAGE: XMEGA_ERASE_BOOT_PAGE;
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = ~0UL;
   } else if (mem_is_eeprom(m)) {
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
   } else if (mem_is_userrow(m)) {
     cmd[3] = XMEGA_ERASE_USERSIG;
   } else if (mem_is_bootrow(m)) {
@@ -1971,7 +1971,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   cmd[1] = CMD3_WRITE_MEMORY;
   cmd[2] = 0;
   if (mem_is_flash(m)) {
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = ~0UL;
     cmd[3] = jtag3_mtype(pgm, p, m, addr);
     if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot mtype */
@@ -1993,7 +1993,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
       return n_bytes;
     }
     cmd[3] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
   } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[3] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
@@ -2278,7 +2278,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
    *
    * Page cache validation is based on "{flash,eeprom}_pageaddr"
    * (holding the base address of the most recent cache fill
-   * operation).  This variable is set to (unsigned long)-1L when the
+   * operation).  This variable is set to ~0UL when the
    * cache needs to be invalidated.
    */
   if (pagesize && paddr == *paddr_ptr) {
@@ -2347,7 +2347,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   if (mem_is_flash(mem)) {
      cache_ptr = PDATA(pgm)->flash_pagecache;
      pagesize = PDATA(pgm)->flash_pagesize;
-     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+     PDATA(pgm)->flash_pageaddr = ~0UL;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (mem_is_eeprom(mem)) {
@@ -2357,7 +2357,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
       cache_ptr = PDATA(pgm)->eeprom_pagecache;
       pagesize = PDATA(pgm)->eeprom_pagesize;
     }
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
     if(!(p->prog_modes & PM_UPDI) && mem_is_a_fuse(mem))

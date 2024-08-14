@@ -1276,7 +1276,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   if (PDATA(pgm)->fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
     /*
@@ -1897,7 +1897,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   cmd = mmt_malloc(page_size + 10);
   cmd[0] = CMND_WRITE_MEMORY;
   if (mem_is_flash(m)) {
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = ~0UL;
     cmd[1] = jtagmkII_mtype(pgm, p, addr);
     if (p->prog_modes & (PM_PDI | PM_UPDI)) // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
@@ -1918,7 +1918,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       return n_bytes;
     }
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
   } else if (mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
   } else if (mem_is_boot(m)) {
@@ -2227,7 +2227,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
    *
    * Page cache validation is based on "{flash,eeprom}_pageaddr"
    * (holding the base address of the most recent cache fill
-   * operation).  This variable is set to (unsigned long)-1L when the
+   * operation).  This variable is set to ~0UL when the
    * cache needs to be invalidated.
    */
   if (pagesize && paddr == *paddr_ptr) {
@@ -2309,14 +2309,14 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
      writesize = 2;
      if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
        need_progmode = 0;
-     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+     PDATA(pgm)->flash_pageaddr = ~0UL;
      if (pgm->flag & PGM_FL_IS_DW)
        unsupp = 1;
   } else if (mem_is_eeprom(mem)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR")) // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
@@ -2978,7 +2978,7 @@ static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   for(j=0; j<2; ++j) {
     buf[0] = CMND_GET_IR;
