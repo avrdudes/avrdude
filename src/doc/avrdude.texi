@@ -325,6 +325,7 @@ See below for some hints about FLIP version 1 protocol behaviour.
 The MPLAB(R) PICkit 4 and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
 The Curiosity Nano board is supported in UPDI mode. It is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
+The MPLAB(R) PICkit 5 is currently only supported in UPDI mode.
 
 SerialUPDI programmer implementation is based on Microchip's 
 @emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog}) 
@@ -1314,11 +1315,11 @@ The PICkit 5 programmer can accept following extended parameters
 @item @samp{vtarg=VALUE}
 @var{PICkit 5 and Pickit 4 (PIC Mode) only}
 @*
-Specify a Voltage between 1.8 and 5.5V that the programmer should supply
+Specify a voltage between 1.8 and 5.5@w{ }V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,
 this setting will be ignored. AVRDUDE will also try to verify, that the externally
 supplied voltage is inside the valid range, this check can be skipped with a
-setting of 0V
+setting of 0@w{ }V.
 @item @samp{hvupdi}
 @var{PICkit 5 and Pickit 4 (PIC Mode) only}
 @*
@@ -2245,7 +2246,7 @@ Valid programmers for part AVR32EA32 are:
   jtag2updi          = JTAGv2 to UPDI bridge via UPDI
   jtag3updi          = Atmel AVR JTAGICE3 via UPDI
   pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
-  pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 (PIC mode), SNAP (PIC mode) via UPDI, 
+  pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode) via UPDI
   pkobn_updi         = Curiosity nano (nEDBG) via UPDI
   powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
   serialupdi         = SerialUPDI via UPDI

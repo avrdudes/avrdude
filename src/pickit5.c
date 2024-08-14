@@ -401,7 +401,7 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
 
       if((new_vid != 0) && (new_pid != 0)) {
         pmsg_notice("overwriting VID:PID to %04x:%04x\n", new_vid, new_pid);
-        port = "usb";           // Overwrite the string to avoid libusb
+        port = "usb";           // Overwrite the string to avoid confusing the libusb
       }
     }                           // pidp == NULL means vidp could point to serial number
   }                             // vidp == NULL means just 'usb'

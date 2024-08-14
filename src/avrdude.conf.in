@@ -3081,7 +3081,7 @@ programmer # pickit4_tpi
 
 programmer # pickit5_updi
     id                     = "pickit5_updi";
-    desc                   = "MPLAB(R) PICkit 5 in UPDI Mode";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode)";
     type                   = "pickit5_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
