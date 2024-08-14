@@ -168,7 +168,7 @@ void jtag3_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
                                 unsigned int page_size,
                                 unsigned int addr, unsigned int n_bytes);
-static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
+static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 
 
@@ -1899,7 +1899,8 @@ void jtag3_close(PROGRAMMER * pgm) {
 }
 
 static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-                            unsigned int addr) {
+  unsigned int addr) {
+
   unsigned char cmd[8], *resp;
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
@@ -1917,12 +1918,12 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[2] = 0;
 
   if (mem_is_in_flash(m)) {
-    if (p->prog_modes & PM_UPDI || jtag3_mtype(pgm, p, addr) == MTYPE_FLASH)
-      cmd[3] = XMEGA_ERASE_APP_PAGE;
-    else
-      cmd[3] = XMEGA_ERASE_BOOT_PAGE;
+    cmd[3] = is_updi(p) || jtag3_mtype(pgm, p, m, addr) == MTYPE_FLASH?
+      XMEGA_ERASE_APP_PAGE: XMEGA_ERASE_BOOT_PAGE;
+    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
   } else if (mem_is_eeprom(m)) {
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
+    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
   } else if (mem_is_userrow(m)) {
     cmd[3] = XMEGA_ERASE_USERSIG;
   } else if (mem_is_bootrow(m)) {
@@ -1933,13 +1934,8 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = XMEGA_ERASE_APP_PAGE;
   }
 
-  unsigned int addr_adj = addr;
-  if(p->prog_modes & PM_PDI)
-    addr_adj += m->offset;
-  else // PM_UPDI
-    addr_adj = jtag3_memaddr(pgm, p, m, addr);
-
-  u32_to_b4(cmd + 4, addr_adj);
+  addr = is_pdi(p) && !mem_is_in_flash(m)? addr + m->offset: jtag3_memaddr(pgm, p, m, addr);
+  u32_to_b4(cmd + 4, addr);
   if (jtag3_command(pgm, cmd, 8, &resp, "page erase") < 0)
     return -1;
 
@@ -1976,7 +1972,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   cmd[2] = 0;
   if (mem_is_flash(m)) {
     PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
-    cmd[3] = jtag3_mtype(pgm, p, addr);
+    cmd[3] = jtag3_mtype(pgm, p, m, addr);
     if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot mtype */
       dynamic_mtype = 1;
@@ -2016,7 +2012,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (dynamic_mtype)
-      cmd[3] = jtag3_mtype(pgm, p, addr);
+      cmd[3] = jtag3_mtype(pgm, p, m, addr);
 
     u32_to_b4(cmd + 8, page_size);
     u32_to_b4(cmd + 4, jtag3_memaddr(pgm, p, m, addr));
@@ -2076,7 +2072,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[2] = 0;
 
   if (mem_is_flash(m)) {
-    cmd[3] = jtag3_mtype(pgm, p, addr);
+    cmd[3] = jtag3_mtype(pgm, p, m, addr);
     if (p->prog_modes & PM_PDI)
       /* dynamically decide between flash/boot mtype */
       dynamic_mtype = 1;
@@ -2106,7 +2102,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if (dynamic_mtype)
-      cmd[3] = jtag3_mtype(pgm, p, addr);
+      cmd[3] = jtag3_mtype(pgm, p, m, addr);
 
     u32_to_b4(cmd + 8, block_size);
     u32_to_b4(cmd + 4, jtag3_memaddr(pgm, p, m, addr));
@@ -2823,25 +2819,22 @@ static void jtag3_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   jtag3_print_parms1(pgm, "", fp);
 }
 
-static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
-  if (p->prog_modes & PM_PDI) {
-    if (addr >= PDATA(pgm)->boot_start)
-      return MTYPE_BOOT_FLASH;
-    else
-      return MTYPE_FLASH;
-  } else {
-    return MTYPE_FLASH_PAGE;
-  }
+static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
+   unsigned long addr) {
+
+  return
+    !is_pdi(p)? MTYPE_FLASH_PAGE:
+    mem_is_boot(m)? MTYPE_BOOT_FLASH:
+    mem_is_flash(m) && is_pdi(p) && addr >= PDATA(pgm)->boot_start? MTYPE_BOOT_FLASH:
+    MTYPE_FLASH;
 }
 
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
   if(is_pdi(p)) {       // Xmega
-    /*
-     * All memories but "flash" are smaller than boot_start anyway, so
-     * no need for an extra check we are operating on "flash"
-     */
-    if(addr >= PDATA(pgm)->boot_start)
+    if(mem_is_flash(m) && addr >= PDATA(pgm)->boot_start) // Boot is special and gets its own region
       addr -= PDATA(pgm)->boot_start;
+    if(mem_is_in_flash(m) && !mem_is_boot(m)) // Apptable, application and flash
+      addr += avr_flash_offset(p, m, addr);
     if(mem_is_in_sigrow(m)) {
       AVRMEM *sigrow = avr_locate_sigrow(p);
       if(sigrow)
