@@ -188,8 +188,7 @@ static int usbdev_open(const char *port, union pinfo pinfo, union filedescriptor
 
 		  if (usb_set_configuration(udev, dev->config[0].bConfigurationValue))
 		    {
-		      pmsg_warning("(config %d) %s\n",
-			dev->config[0].bConfigurationValue, usb_strerror());
+		      pmsg_notice("(config %d) %s\n", dev->config[0].bConfigurationValue, usb_strerror());
 		      /* let's hope it has already been configured */
 		      // goto trynext;
 		    }
