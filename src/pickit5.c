@@ -331,7 +331,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
   unsigned int new_vid = 0, new_pid = 0;
-  char vid_string[5], pid_string[5];
   char *vidp, *pidp;
 
   /*
@@ -358,12 +357,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
     if(pidp != NULL) {
       if(vidp != pidp) {        // User specified an VID
         // First: Handle VID input
-        unsigned int len = pidp - vidp;
-
-        if(len > 4)
-          len = 4;
-        strncpy(vid_string, vidp, 4);
-        str_lc(vid_string);
         if(sscanf(vidp, "%x", &new_vid) != 1) {
           pmsg_error("failed to parse -P VID input %s: unexpected format", vidp);
           return -1;
@@ -373,8 +366,6 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       }
 
       // Now handle PID input
-      strncpy(pid_string, pidp + 1, 4);
-      str_lc(pid_string);
       if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
         pmsg_error("failed to parse -P PID input %s: unexpected format", pidp+1);
         return -1;
