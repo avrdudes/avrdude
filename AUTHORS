@@ -7,7 +7,6 @@ AVRDUDE is currently maintained by:
 	Hans Eirik Bull
 	Stefan Rueger
 	Xiaofan Chen
-	Marius Greuel
 	Joerg Wunsch
 
 Contributors:
@@ -55,6 +54,7 @@ Contributors:
 	Jeff Kent
 	Sebastian Kuzminsky <seb@highlab.com>
 	Sydney Louisa Wilke <git@funkeleinhorn.com>
+	MX682X
 
 Contributors to code no longer present:
 
