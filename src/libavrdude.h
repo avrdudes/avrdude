@@ -918,6 +918,7 @@ struct serial_device {
   int (*set_dtr_rts)(const union filedescriptor *fd, int is_on);
 
   const char *usbsn;
+  const char *usbproduct;
   int flags;
 #define SERDEV_FL_NONE         0x0000 /* no flags */
 #define SERDEV_FL_CANSETSPEED  0x0001 /* device can change speed */
