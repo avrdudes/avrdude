@@ -2948,9 +2948,8 @@ programmer # powerdebugger_tpi
 # pickit4 / pickit4_jtag
 #------------------------------------------------------------
 
-# Microchip PICkit 4. See
+# Microchip PICkit 4. For details see
 # https://www.microchip.com/en-us/development-tool/pg164140
-# for details.
 #
 # The PICkit 4 supports the following programming modes
 # using different programmer names:
@@ -3053,6 +3052,44 @@ programmer # pickit4_tpi
     connection_type        = usb;
     usbvid                 = 0x03eb;
     usbpid                 = 0x2177, 0x2178, 0x2179;
+;
+
+
+# Microchip PICkit 5. For details, see
+# https://www.microchip.com/en-us/development-tool/PG164150
+#
+# Currently -c pickit5 only supports UPDI programming
+#
+# PIN  UPDI  
+# > 1  !RST(*)
+#   2  VCC
+#   3  GND
+#   4  UPDI(*)
+#   5
+#   6
+#   7
+#   8                       
+#
+# (*): The PICkit5 can generate a High-Voltage (12V) Pulse on this pins
+#      to restore the UPDI Pin functionality, if it was changed through fuses.
+#      AVRDUDE automatically selects the correct pin, if the HV pulse is
+#      enabled through the '-x hvupdi' flag.
+
+#------------------------------------------------------------
+# pickit5 /pickit5_updi
+#------------------------------------------------------------
+
+programmer # pickit5_updi
+    id                     = "pickit5_updi";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode)";
+    type                   = "pickit5_updi";
+    prog_modes             = PM_UPDI;
+    extra_features         = HAS_VTARG_READ;
+    connection_type        = usb;
+    baudrate               = 200000;   # UPDI default clock
+    usbvid                 = 0x04d8;
+    usbpid                 = 0x9036, 0x9012, 0x9018; # PK5, PK4 (pic mode), snap (pic mode)
+    hvupdi_support         = 0, 1, 2;
 ;
 
 #------------------------------------------------------------

@@ -1545,6 +1545,9 @@ skipopen:
     else
       imsg_error(" - use -B to set lower the bit clock frequency, e.g. -B 125kHz\n");
 
+    if (str_starts(pgm->type, "pickit5"))
+      imsg_error(" - reset the programmer by unplugging it");
+
     if (!ovsigck) {
       imsg_error(" - use -F to override this check\n");
       exitrc = 1;
