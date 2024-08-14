@@ -344,12 +344,9 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
    *
    * First we check if we have two colons.
    * Then check the filed between the two colons is empty
-   * If not, try to see if we find a Vendor name (Microchip - MC, Atmel, AT)
-   * If no name can be found, try to parse it as HEX value
+   * Parse VID as hex number
    * If it is empty, assume Microchip VID
-   * The PID is handled similary, but can not be empty
-   * The name aliases are shortend, e.g. PK5, PK4
-   * All names are case insensitive
+   * The PID is handled similary but can not be empty
    *
    * If there are fewer than two colons nothing is changed
    */
@@ -367,15 +364,9 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
           len = 4;
         strncpy(vid_string, vidp, 4);
         str_lc(vid_string);
-        if(str_starts(vid_string, "mc"))        // Probe string for aliases
-          new_vid = USB_VENDOR_MICROCHIP;
-        else if(str_starts(vid_string, "at"))
-          new_vid = USB_VENDOR_ATMEL;
-        else {                  // No matching alias found, try to read hex
-          if(sscanf(vidp, "%x", &new_vid) != 1) {
-            pmsg_error("failed to parse -P VID input %s: unexpected format", vidp);
-            return -1;
-          }
+        if(sscanf(vidp, "%x", &new_vid) != 1) {
+          pmsg_error("failed to parse -P VID input %s: unexpected format", vidp);
+          return -1;
         }
       } else {                  // VID space empty: default to Microchip
         new_vid = USB_VENDOR_MICROCHIP;
@@ -384,19 +375,9 @@ static int pickit5_open(PROGRAMMER *pgm, const char *port) {
       // Now handle PID input
       strncpy(pid_string, pidp + 1, 4);
       str_lc(pid_string);
-      if(str_starts(pid_string, "snap"))        // Probe string for aliases
-        new_pid = USB_DEVICE_SNAP_PIC_MODE;
-      else if(str_starts(pid_string, "pk4"))
-        new_pid = USB_DEVICE_PICKIT4_PIC_MODE;
-      else if(str_starts(pid_string, "pk5"))
-        new_pid = USB_DEVICE_PICKIT5;
-      else if(str_starts(pid_string, "pkob"))
-        new_pid = USB_DEVICE_PKOBN;
-      else {                    // No matching alias found, try to read hex
-        if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
-          pmsg_error("failed to parse -P PID input %s: unexpected format", pidp+1);
-          return -1;
-        }
+      if(sscanf(pidp + 1, "%x", &new_pid) != 1) {
+        pmsg_error("failed to parse -P PID input %s: unexpected format", pidp+1);
+        return -1;
       }
 
       if((new_vid != 0) && (new_pid != 0)) {
