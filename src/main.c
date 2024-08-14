@@ -712,6 +712,10 @@ int main(int argc, char * argv [])
 
   atexit(cleanup_main);
 
+  msg_debug("$ ");              // Record command line when debugging
+  for(int i=0; i<argc; i++)
+    msg_debug("%s%c", argv[i], i == argc-1? '\n': ' ');
+
   updates = lcreat(NULL, 0);
   if (updates == NULL) {
     pmsg_error("cannot initialize updater list\n");
