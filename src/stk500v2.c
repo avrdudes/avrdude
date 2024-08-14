@@ -1315,7 +1315,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   if (p->flags & AVRPART_IS_AT90S1200) {
     /*
@@ -1456,7 +1456,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   return pgm->program_enable(pgm, p);
 }
@@ -1620,7 +1620,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   return pgm->program_enable(pgm, p);
 }
@@ -2334,7 +2334,7 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
    *
    * Page cache validation is based on "{flash,eeprom}_pageaddr"
    * (holding the base address of the most recent cache fill
-   * operation).  This variable is set to (unsigned long)-1L when the
+   * operation).  This variable is set to ~0UL when the
    * cache needs to be invalidated.
    */
   if (pagesize && paddr == *paddr_ptr) {
@@ -2612,7 +2612,7 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   if (pagesize) {
     /* Invalidate the page cache. */
-    *paddr_ptr = (unsigned long)-1L;
+    *paddr_ptr = ~0UL;
   }
 
   return 0;
@@ -2893,7 +2893,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   // determine which command is to be used
   if (mem_is_flash(m)) {
     addrshift = 1;
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = ~0UL;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
     /*
      * If bit 31 is set, this indicates that the following read/write
@@ -2905,7 +2905,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       use_ext_addr = (1U << 31);
     }
   } else if (mem_is_eeprom(m)) {
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
   }
   /*

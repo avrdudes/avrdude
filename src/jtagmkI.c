@@ -504,7 +504,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   mmt_free(PDATA(pgm)->eeprom_pagecache);
   PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
   PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = (unsigned long) -1L;
+  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
 
   if (jtagmkI_reset(pgm) < 0)
     return -1;
@@ -627,12 +627,12 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   cmd[0] = CMD_WRITE_MEM;
   if (mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = ~0UL;
     page_size = PDATA(pgm)->flash_pagesize;
     is_flash = 1;
   } else if (mem_is_eeprom(m)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
     page_size = PDATA(pgm)->eeprom_pagesize;
   }
   datacmd[0] = CMD_DATA;
@@ -856,7 +856,7 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
    *
    * Page cache validation is based on "{flash,eeprom}_pageaddr"
    * (holding the base address of the most recent cache fill
-   * operation).  This variable is set to (unsigned long)-1L when the
+   * operation).  This variable is set to ~0UL when the
    * cache needs to be invalidated.
    */
   if (pagesize && paddr == *paddr_ptr) {
@@ -928,12 +928,12 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if (mem_is_flash(mem)) {
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
-    PDATA(pgm)->flash_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->flash_pageaddr = ~0UL;
   } else if (mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
     need_dummy_read = 1;
-    PDATA(pgm)->eeprom_pageaddr = (unsigned long)-1L;
+    PDATA(pgm)->eeprom_pageaddr = ~0UL;
   } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;

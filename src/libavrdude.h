@@ -277,6 +277,7 @@ typedef struct opcode {
 #define is_avr32jtag(x) (!!((x)->prog_modes & PM_AVR32JTAG))
 #define is_awire(x)     (!!((x)->prog_modes & PM_aWire))
 #define is_classic(x)   (!!((x)->prog_modes & PM_Classic))
+#define is_avr32(x)     (!!((x)->prog_modes & (PM_AVR32JTAG | PM_aWire)))
 
 // Set of overlapping programming modes of programmer and part
 #define joint_pm(pgm, p) ((pgm)->prog_modes & (p)->prog_modes)
