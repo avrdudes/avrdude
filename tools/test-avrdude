@@ -148,7 +148,16 @@ if [[ ${#pgm_and_target[@]} -eq 0 ]]; then
 fi
 
 arraylength=${#pgm_and_target[@]}
-type "$avrdude_bin" >/dev/null 2>&1 || { echo "$progname: cannot execute $avrdude_bin"; exit 1; }
+
+echo -n "Testing executable type for '$avrdude_bin'..."
+if type "$avrdude_bin" >/dev/null 2>&1; then
+    echo -n " "
+    type "$avrdude_bin"
+else
+    echo
+    echo "$progname: cannot execute $avrdude_bin"
+    exit 1
+fi
 
 [[ -d $tmp && -w $tmp ]] || tmp=/tmp # Fall back to /tmp if tmp directory unusable
 status=$(mktemp "$tmp/$progname.status.XXXXXX")
