@@ -103,7 +103,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     walk = list;
     while (walk) {
       if(walk->serial_number) {
-        pmsg_debug("%s(): found %ls, serno: %ls\n", __func__, walk->product_string, walk->serial_number);
+        pmsg_notice("%s(): found %ls, serno: %ls\n", __func__, walk->product_string, walk->serial_number);
         size_t slen = wcslen(walk->serial_number);
         // Found matching serial number?
         if (slen >= serlen && wcscmp(walk->serial_number + slen - serlen, wserno) == 0)
