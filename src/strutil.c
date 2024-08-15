@@ -546,7 +546,7 @@ const char *str_outname(const char *fn) {
 
 // File name of fn or <stdout> if fn is -
 const char *str_outfilename(const char *fn) {
-  return str_filename(fn, "<stdin>");
+  return str_filename(fn, "<stdout>");
 }
 
 // Return sth like "[0, 0x1ff]" in closed-circuit space
