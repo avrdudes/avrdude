@@ -617,7 +617,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *ee = avr_locate_eeprom(q);
   int incons = flm && up && (
     up->flashsize != flm->size || flm->size <= 0 ||
-    (ee && (up->eeprompagesize != ee->page_size || ee->page_size <= 0)) ||
+    (ee && (up->eepromsize != ee->size || ee->size <= 0)) ||
     up->nboots != q->n_boot_sections || up->nboots < 0 ||
     up->bootsize != q->boot_section_size || up->bootsize < 0 ||
     memcmp(up->sigs, q->signature, 3)
@@ -626,7 +626,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Ensure can use up and cp with impunity
   if(!flm || !up || incons || !cp) {
     pmsg_warning("%s for %s; not initialising memories beyond factory settings\n", !flm? "no flash":
-      !up? "no uP_table[] entry": incons? "inconsistent upP_table[] entry": "no config table", q->desc);
+      !up? "no uP_table[] entry": incons? "inconsistent uP_table[] entry": "no config table", q->desc);
     return;
   }
 
