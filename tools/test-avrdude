@@ -320,9 +320,19 @@ for (( p=0; p<$arraylength; p++ )); do
       result [ $? == 0 ]
 
       # Test binary, octal, decimal, hexadecimal and R number lists for I/O
-      declare -A numsys=([b]=binary [o]=octal [d]=decimal [h]=hexadecimal [R]=R)
+      numsys() {
+	  # this function replaces constant associative array, as
+	  # macos bash does not support associative arrays.
+	  case "$1" in
+	      b) echo "binary" ;;
+	      o) echo "octal" ;;
+	      d) echo "decimal" ;;
+	      h) echo "hexadecimal" ;;
+	      R) echo "R" ;;
+	  esac
+      }
       for fmt in b o d h R; do
-        specify="flash writing ${numsys[$fmt]} numbers"
+        specify="flash writing $(numsys "$fmt") numbers"
         command=(${avrdude[@]}
           -U $tfiles/urboot_m2560_1s_x16m0_115k2_uart0_rxe0_txe1_led+b7_pr_ee_ce.hex
           -T '"write flash 0x3fd00 0xc0cac01a 0xcafe \"secret Coca Cola recipe\""'
@@ -331,7 +341,7 @@ for (( p=0; p<$arraylength; p++ )); do
         execute "${command[@]}"
         result [ $? == 0 ]
 
-        specify="flash reading and verifying ${numsys[$fmt]} numbers"
+        specify="flash reading and verifying $(numsys "$fmt") numbers"
         command=(${avrdude[@]}
           -U flash:w:$tmpfile:$fmt
           -U flash:r:$resfile:r)
