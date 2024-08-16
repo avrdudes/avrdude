@@ -1683,7 +1683,7 @@ This sets the serial receive timeout to the given value.
 The timeout happens every time avrdude waits for the BusPirate prompt. 
 Especially in ascii mode this happens very often, so setting a smaller value 
 can speed up programming a lot. 
-The default value is 100ms. Using 10ms might work in most cases.  
+The default value is 100 ms. Using 10 ms might work in most cases.
 
 @item @samp{help}
 Show help menu and exit.
@@ -1862,23 +1862,15 @@ STK500 programmer connected to the default serial port:
 
 @smallexample
 @cartouche
-
 $ avrdude -p m128 -c stk500 -e -U flash:w:diag.hex
 
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e9702 (probably m128)
-avrdude: erasing chip
-avrdude: reading input file diag.hex for flash
-         with 19278 bytes in 74 section within [0, 0x4b4e]
-avrdude: writing 19278 bytes flash ...
+Reading 19278 bytes for flash from input file diag.hex
+Writing 19278 bytes to flash
 Writing | ################################################## | 100% 7.60 s
-avrdude: 19278 bytes of flash written
-avrdude: verifying flash memory against diag.hex
 Reading | ################################################## | 100% 6.83 s
-avrdude: 19278 bytes of flash verified
+19278 bytes of flash verified
 
-avrdude done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -1887,9 +1879,7 @@ Same but in @strong{quell-progress-reporting (silent) mode @code{-qq}:}
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex
-
 @end cartouche
 @end smallexample
 
@@ -1898,10 +1888,8 @@ $ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex && echo OK
 OK
-
 @end cartouche
 @end smallexample
 
@@ -1910,53 +1898,13 @@ OK
 
 @smallexample
 @cartouche
-
 $ avrdude -p m128 -c stk500 -U flash:r:"c:/diag flash.bin":r
 
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e9702 (probably m128)
-avrdude: reading flash memory ...
-Reading | ################################################## | 100% 46.10s
-avrdude: writing output file c:/diag flash.bin
+Reading flash memory ...
+Reading | ################################################## | 100% 6.90 s
+Writing 19278 bytes to output file diag flash.bin
 
-avrdude done.  Thank you.
-
-@end cartouche
-@end smallexample
-
-@page
-@noindent
-Using the default programmer, download the file @code{diag.hex} to
-flash, @code{eeprom.hex} to EEPROM, and @strong{set the extended, high, and low
-fuse bytes} to 0xff, 0x89, and 0x2e respectively:
-
-@smallexample
-@cartouche
-
-$ avrdude -p m128 -U flash:w:diag.hex    \
-                  -U eeprom:w:eeprom.hex \
-                  -U efuse:w:0xff:m      \
-                  -U hfuse:w:0x89:m      \
-                  -U lfuse:w:0x2e:m
-
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e9702 (probably m128)
-avrdude: Note: flash memory has been specified, an erase cycle will be performed.
-         To disable this feature, specify the -D option.
-avrdude: erasing chip
-avrdude: reading input file diag.hex for flash
-         with 19278 bytes in 74 section within [0, 0x4b4e]
-avrdude: writing 19278 bytes flash ...
-Writing | ################################################## | 100% 7.60 s
-avrdude: 19278 bytes of flash written
-avrdude: verifying flash memory against diag.hex
-Reading | ################################################## | 100% 6.83 s
-avrdude: 19278 bytes of flash verified
-
-[ ... other memory status output skipped for brevity ... ]
-
-avrdude done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -1965,7 +1913,6 @@ avrdude done.  Thank you.
 
 @smallexample
 @cartouche
-
 $ avrdude -cusbasp -patmega128 -qq -Ulfuse:r:-:h -Uhfuse:r:-:b -Uefuse:r:-:o
 
 0xbf
@@ -1974,46 +1921,48 @@ $ avrdude -cusbasp -patmega128 -qq -Ulfuse:r:-:h -Uhfuse:r:-:b -Uefuse:r:-:o
 @end cartouche
 @end smallexample
 
-@noindent
-
-@noindent
-Connect to the JTAG ICE mkII with a @strong{serial number ending in 1C37} via
-USB, and @strong{enter terminal mode}:
-
-@smallexample
-@cartouche
-
-$ avrdude -c jtag2 -p m649 -P usb:1c:37 -t
-
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: Device signature = 0x1e9603
-
-[ ... terminal mode output skipped for brevity ... ]
-
-avrdude done.  Thank you.
-
-@end cartouche
-@end smallexample
-
 @page
+
 @noindent
-@strong{List the serial numbers of all JTAG ICEs attached to USB;} this is
-done by specifying an invalid serial number, and increasing the
-verbosity level:
+Using the default programmer, download the file @code{diag.hex} to
+flash, @code{eeprom.hex} to EEPROM, and @strong{set the extended, high, and low
+fuse bytes} to 0xff, 0x89, and 0x2e respectively:
 
 @smallexample
 @cartouche
+$ avrdude -p m128 -U flash:w:diag.hex    \
+                  -U eeprom:w:eeprom.hex \
+                  -U efuse:w:0xff:m      \
+                  -U hfuse:w:0x89:m      \
+                  -U lfuse:w:0x2e:m
 
-$ avrdude -c jtag2 -p m128 -P usb:xx -v
+Processing -U flash:w:diag.hex:i
+Reading 19278 bytes for flash from input file diag.hex
+Writing 19278 bytes to flash
+Writing | ################################################## | 100% 7.60 s
+Reading | ################################################## | 100% 6.81 s
+19278 bytes of flash verified
 
-[...]
-         Using Port            : usb:xxx
-         Using Programmer      : jtag2
-avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
-avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
-avrdude: usbdev_open(): Found JTAG ICE, serno: 00A000001C30
-avrdude: usbdev_open(): did not find any (matching) USB device "usb:xxx"
+Processing -U eeprom:w:eeprom.hex:i
+Reading 3328 bytes for eeprom from input file eeprom.hex
+Writing 3328 bytes to eeprom
+Writing | ################################################## | 100% 1.20 s
+Reading | ################################################## | 100% 0.70 s
+3328 bytes of eeprom verified
 
+Processing -U efuse:w:0xff:m
+Reading 1 byte for efuse from input file 0xff
+Writing 1 byte (0xFF) to efuse, 1 byte written, 1 verified
+
+Processing -U hfuse:w:0x89:m
+Reading 1 byte for hfuse from input file 0x89
+Writing 1 byte (0x89) to hfuse, 1 byte written, 1 verified
+
+Processing -U lfuse:w:0x2e:m
+Reading 1 byte for lfuse from input file 0x2e
+Writing 1 byte (0x2E) to lfuse, 1 byte written, 1 verified
+
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -2022,33 +1971,30 @@ avrdude: usbdev_open(): did not find any (matching) USB device "usb:xxx"
 
 @smallexample
 @cartouche
-
 $ echo 'The quick brown fox' | avrdude -c usbasp -p attiny13 -qq -U eeprom:w:-:r
-
 @end cartouche
 @end smallexample
+
 
 @noindent
 @strong{Execute multiple terminal mode commands separated by semicolons:}
 
 @smallexample
 @cartouche
-
 $ echo 'write eeprom 0 "Bonjour"; write ee 0x18 0x12345678; dump eeprom 0 0x20' | \
   avrdude -qqcdryrun -patmega328p -t
 
 0000  42 6f 6e 6a 6f 75 72 00  ff ff ff ff ff ff ff ff  |Bonjour.........|
 0010  ff ff ff ff ff ff ff ff  78 56 34 12 ff ff ff ff  |........xV4.....|
-
 @end cartouche
 @end smallexample
 
+@page
 @noindent
 @strong{Read EEPROM and write content to stdout (standard output):}
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -cusbasp -pattiny13 -Ueeprom:r:-:i
 
 :20000000E2809954686520717569636B2062726F776E20666F78E280990AFFFFFFFFFFFFD3
@@ -2062,45 +2008,121 @@ $ avrdude -qq -cusbasp -pattiny13 -Ueeprom:r:-:i
 
 @smallexample
 @cartouche
-
 $ avrdude -cusbasp -pattiny13 -Ueeprom:r:-:i 2>/dev/null
 
 :20000000E2809954686520717569636B2062726F776E20666F78E280990AFFFFFFFFFFFFD3
 :20002000FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE0
 :00000001FF
-
 @end cartouche
 @end smallexample
 
-@page
 @noindent
 @strong{Using the Avrdude output to print strings present in flash memory:}
 
 @smallexample
 @cartouche
-
 $ avrdude -pattiny13 -qq -U flash:r:-:r | strings
 
 Main menu
 Distance: %d cm
 Exit
-
 @end cartouche
 @end smallexample
 
+@noindent
+@strong{List the serial numbers of all JTAG ICEs attached to USB;} this is
+done by specifying an invalid serial number, and increasing the
+verbosity level:
+
+@smallexample
+@cartouche
+$ avrdude -c jtag2 -p m128 -P usb:xxx -v
+
+Avrdude version 7.3-20240815 (e230d889)
+Copyright see https://github.com/avrdudes/avrdude/blob/main/AUTHORS
+
+System wide configuration file is /usr/local/etc/avrdude.conf
+User configuration file is /home/srueger/.avrduderc
+
+Using port            : usb:xxx
+Using programmer      : jtag2fast
+Programmer baud rate  : 115200
+Usbdev_open(): Found JTAG ICE, serno: 00A000001C6B
+Usbdev_open(): Found JTAG ICE, serno: 00A000001C3A
+Usbdev_open(): Found JTAG ICE, serno: 00A000001C30
+Error: did not find any (matching) USB device usb:xxx (03eb:2103)
+Error: unable to open port usb:xxx for programmer jtag2fast
+
+Avrdude done.  Thank you.
+@end cartouche
+@end smallexample
+
+@page
+@noindent
+Connect to the JTAG ICE mkII with a @strong{serial number ending in 1C37}
+via USB, @strong{enter interactive terminal mode}, list all @strong{commands for
+the connected part} and quit:
+
+@smallexample
+@cartouche
+$ avrdude -c jtag2 -p m649 -P usb:1c:37 -t
+
+avrdude> help
+Valid commands:
+  dump    : display a memory section as hex dump
+  read    : alias for dump
+  disasm  : disassemble a memory section
+  write   : write data to memory; flash and EEPROM are cached
+  save    : save memory segments to file
+  backup  : backup memories to file
+  restore : restore memories from file
+  verify  : compare memories with file
+  flush   : synchronise flash and EEPROM cache with the device
+  abort   : abort flash and EEPROM writes, ie, reset the r/w cache
+  erase   : perform a chip or memory erase
+  config  : change or show configuration properties of the part
+  factory : reset part to factory state
+  regfile : I/O register addresses and contents
+  include : include contents of named file as if it was typed
+  sig     : display device signature bytes
+  part    : display the current part information
+  send    : send a raw command to the programmer
+  verbose : display or set -v verbosity level
+  quell   : display or set -q quell level for progress bars
+  help    : show help message
+  ?       : same as help
+  quit    : synchronise flash/EEPROM cache with device and quit
+  q       : abbreviation for quit
+
+For more details about a terminal command cmd type cmd -?
+
+Other:
+  !<line> : run the shell <line> in a subshell, eg, !ls *.hex
+  # ...   : ignore rest of line (eg, used as comments in scripts)
+
+Note that not all programmer derivatives support all commands. Flash and
+EEPROM type memories are normally read and written using a cache via paged
+read and write access; the cache is synchronised on quit or flush commands.
+The part command displays valid memories for use with dump and write.
+
+avrdude> quit
+
+Avrdude done.  Thank you.
+@end cartouche
+@end smallexample
+
+@page
 @noindent
 @strong{Factory fuse setting of a device:}
 
 @smallexample
 @cartouche
-
 $ avrdude -patmega328p/St | grep initval
 
 .ptmm	ATmega328P	lfuse	initval	0x62
 .ptmm	ATmega328P	hfuse	initval	0xd9
 .ptmm	ATmega328P	efuse	initval	0xff
 .ptmm	ATmega328P	lock	initval	0xff
-
 @end cartouche
 @end smallexample
 
@@ -2109,8 +2131,7 @@ $ avrdude -patmega328p/St | grep initval
 
 @smallexample
 @cartouche
-
-$ avrdude -p*/d | grep = | cut -f2 -d"'"
+$ avrdude -p*/d | cut -f2 -d"'"
 
 ATtiny11
 ATtiny12
@@ -2123,7 +2144,6 @@ AVR64EA48
 LGT8F88P
 LGT8F168P
 LGT8F328P
-
 @end cartouche
 @end smallexample
 
@@ -2132,8 +2152,7 @@ LGT8F328P
 
 @smallexample
 @cartouche
-
-$ avrdude -p*/d | grep PM_UPDI | cut -f2 -d"'"
+$ avrdude -p*/Ud | cut -f2 -d"'"
 
 ATtiny202
 ATtiny204
@@ -2142,18 +2161,14 @@ ATtiny402
 AVR64EA28
 AVR64EA32
 AVR64EA48
-
 @end cartouche
 @end smallexample
-
-@page
 
 @noindent
 @strong{List of all curently plugged-in serial devices known to the libserialport library:}
 
 @smallexample
 @cartouche
-
 $ avrdude -P ?s
 Possible candidate serial ports are:
   -P /dev/ttyUSB0 or -P ft232r:A600K203
@@ -2161,43 +2176,77 @@ Possible candidate serial ports are:
   -P /dev/ttyUSB3, -P ch340 or -P ch340-115k
 Note that above ports might not be connected to a target board or an AVR programmer.
 Also note there may be other direct serial ports not listed above.
-
 @end cartouche
 @end smallexample
 
-
+@page
 @noindent
 @strong{List of all serial adapters known to AVRDUDE, i.e., defined in avrdude.conf:}
 
 @smallexample
 @cartouche
-
 $ avrdude -P ?sa
-Valid serial adapters are:
-  ch340      = [usbvid 0x1a86, usbpid 0x7523]
-  ch340-115k = [usbvid 0x1a86, usbpid 0x7523]
-  ch341a     = [usbvid 0x1a86, usbpid 0x5512]
-  ch9102     = [usbvid 0x1a86, usbpid 0x55d4]
-  cp210x     = [usbvid 0x10c4, usbpid 0xea60 0xea70 0xea71]
-  ft2232h    = [usbvid 0x0403, usbpid 0x6010]
-  ft231x     = [usbvid 0x0403, usbpid 0x6015]
-  ft234x     = [usbvid 0x0403, usbpid 0x6015]
-  ft230x     = [usbvid 0x0403, usbpid 0x6015]
-  ft232h     = [usbvid 0x0403, usbpid 0x6014]
-  ft232r     = [usbvid 0x0403, usbpid 0x6001]
-  ft4232h    = [usbvid 0x0403, usbpid 0x6011]
-  pl2303     = [usbvid 0x067b, usbpid 0x2303]
 
+Valid serial adapters are:
+  ch340   = [usbvid 0x1a86, usbpid 0x7523]
+  ch341a  = [usbvid 0x1a86, usbpid 0x5512]
+  ch342   = [usbvid 0x1a86, usbpid 0x55d2]
+  ch343   = [usbvid 0x1a86, usbpid 0x55d3]
+  ch344   = [usbvid 0x1a86, usbpid 0x55d5]
+  ch347   = [usbvid 0x1a86, usbpid 0x55da 0x55db 0x55dd 0x55de]
+  ch9102  = [usbvid 0x1a86, usbpid 0x55d4]
+  ch9103  = [usbvid 0x1a86, usbpid 0x55d7]
+  cp210x  = [usbvid 0x10c4, usbpid 0xea60 0xea70 0xea71]
+  ft2232h = [usbvid 0x0403, usbpid 0x6010]
+  ft231x  = [usbvid 0x0403, usbpid 0x6015]
+  ft234x  = [usbvid 0x0403, usbpid 0x6015]
+  ft230x  = [usbvid 0x0403, usbpid 0x6015]
+  ft232h  = [usbvid 0x0403, usbpid 0x6014]
+  ft232r  = [usbvid 0x0403, usbpid 0x6001]
+  ft4232h = [usbvid 0x0403, usbpid 0x6011]
+  pl2303  = [usbvid 0x067b, usbpid 0x2303 0x2304 0x23a3 0x23b3 0x23c3 0x23d3 0x23e3]
+@end cartouche
+@end smallexample
+
+@noindent
+@strong{Output a list of non-bootloader programmers that can be used for a part.}
+Note that 2>&1 folds stderr into stdout in a bash shell:
+@smallexample
+@cartouche
+$ avrdude -c"?" -pavr32ea32 2>&1 | grep -v bootloader
+
+Valid programmers for part AVR32EA32 are:
+  atmelice_updi      = Atmel-ICE (ARM/AVR) via UPDI
+  dryrun             = Emulates programming without a programmer via UPDI
+  jtag2updi          = JTAGv2 to UPDI bridge via UPDI
+  nanoevery          = JTAGv2 to UPDI bridge via UPDI
+  jtag3updi          = Atmel AVR JTAGICE3 via UPDI
+  pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
+  pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode) via UPDI
+  pkobn_updi         = Curiosity nano (nEDBG) via UPDI
+  powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
+  serialupdi         = SerialUPDI via UPDI
+  snap_updi          = MPLAB(R) SNAP via UPDI
+  xplainedmini_updi  = Atmel AVR XplainedMini via UPDI
+  xplainedpro_updi   = Atmel AVR XplainedPro via UPDI
+@end cartouche
+@end smallexample
+
+@noindent
+@strong{Print filename of last stored sketch with its date stamp} (only with urclock programmer):
+@smallexample
+@cartouche
+$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -x showdate -x showfilename
+
+2023-05-19 11.13 blink.hex
 @end cartouche
 @end smallexample
 
 @page
-
 @noindent
 @strong{AVRDUDE in a bash script creating terminal scripts that reset a part to factory settings:}
 @smallexample
 @cartouche
-
 $ cat make-init-scripts
 
 #!/bin/bash
@@ -2214,7 +2263,6 @@ done
 @strong{Run above script and use one of the created terminal scripts:}
 @smallexample
 @cartouche
-
 $ ./make-init-scripts
 
 $ cat /tmp/factory/ATmega328P.ini
@@ -2224,44 +2272,6 @@ write efuse	0xff
 write lock	0xff
 
 $ avrdude -qq -cusbasp -pATmega328P -t < /tmp/factory/ATmega328P.ini
-
-@end cartouche
-@end smallexample
-
-@noindent
-@strong{Output a list of non-bootloader programmers that can be used for a part.}
-Note that |& folds stderr into stdout in a bash shell:
-@smallexample
-@cartouche
-
-$ avrdude -c? -pavr32ea32 |& grep -v bootloader
-
-Valid programmers for part AVR32EA32 are:
-  atmelice_updi      = Atmel-ICE (ARM/AVR) via UPDI
-  dryrun             = Emulates programming without a programmer via UPDI
-  jtag2updi          = JTAGv2 to UPDI bridge via UPDI
-  jtag3updi          = Atmel AVR JTAGICE3 via UPDI
-  pickit4_updi       = MPLAB(R) PICkit 4 via UPDI
-  pickit5_updi       = MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode) via UPDI
-  pkobn_updi         = Curiosity nano (nEDBG) via UPDI
-  powerdebugger_updi = Atmel PowerDebugger (ARM/AVR) via UPDI
-  serialupdi         = SerialUPDI via UPDI
-  snap_updi          = MPLAB(R) SNAP via UPDI
-  xplainedmini_updi  = Atmel AVR XplainedMini via UPDI
-  xplainedpro_updi   = Atmel AVR XplainedPro via UPDI
-
-@end cartouche
-@end smallexample
-
-@noindent
-@strong{Print filename of last stored sketch with its date stamp} (only with urclock programmer):
-@smallexample
-@cartouche
-
-$avrdude -qq -curclock -P/dev/ttyUSB0 -pattiny13 -x showdate -x showfilename
-
-2023-05-19 11.13 blink.hex
-
 @end cartouche
 @end smallexample
 
@@ -2273,7 +2283,6 @@ specified in the elf file.} In this example, the elf file did not contain any
 EEPROM data:
 @smallexample
 @cartouche
-
 # Show all writable memories present for the ATtiny13
 $ echo $(avrdude -pattiny13/ot | grep write | cut -f3 | uniq)
 
@@ -2287,46 +2296,35 @@ avrdude-elf() {
 @end verbatim
 
 # Run function where -B8 and -V is appended to the Avrdude command
-$ avrdude-elf program.elf -B8 -V
+$ avrdude-elf blink.elf -B8 -V
 
-avrdude: set SCK frequency to 93750 Hz
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e9007 (probably t13)
-avrdude: Note: flash memory has been specified, an erase cycle will be performed.
-         To disable this feature, specify the -D option.
-avrdude: erasing chip
+Set SCK frequency to 93750 Hz
 
-avrdude: reading input file Blink.elf for eeprom
-         with 0 bytes in 0 sections within [0, -1]
-         using 0 pages and 0 pad bytes
-avrdude: writing 0 bytes eeprom ...
-Writing | ################################################## | 100% 0.00 s
-avrdude: 0 bytes of eeprom written
+Processing -U eeprom:w:blink.elf:e
+Reading 64 bytes for eeprom from input file blink.elf
+Writing 64 bytes to eeprom
+Writing | ################################################## | 100% 0.08 s
+64 bytes of eeprom written
 
-avrdude: reading input file Blink.elf for flash
-         with 78 bytes in 1 section within [0, 0x4d]
-         using 3 pages and 18 pad bytes
-avrdude: writing 78 bytes flash ...
-Writing | ################################################## | 100% 0.09 s
-avrdude: 78 bytes of flash written
+Processing -U flash:w:blink.elf:e
+Reading 1024 bytes for flash from input file blink.elf
+Writing 1024 bytes to flash
+Writing | ################################################## | 100% 0.12 s
+1024 bytes of flash written
 
-avrdude: reading input file Blink.elf for lfuse
-         with 1 byte in 1 section within [0, 0]
-avrdude: writing 1 byte lfuse ...
-avrdude: 1 byte of lfuse written
+Processing -U lfuse:w:blink.elf:e
+Reading 1 byte for lfuse from input file blink.elf
+Writing 1 byte (0x6A) to lfuse, 1 byte written
 
-avrdude: reading input file Blink.elf for hfuse
-         with 1 byte in 1 section within [0, 0]
-avrdude: writing 1 byte hfuse ...
-avrdude: 1 byte of hfuse written
+Processing -U hfuse:w:blink.elf:e
+Reading 1 byte for hfuse from input file blink.elf
+Writing 1 byte (0xFF) to hfuse, 1 byte written
 
-avrdude: reading input file Blink.elf for lock
-         with 1 byte in 1 section within [0, 0]
-avrdude: writing 1 byte lock ...
-avrdude: 1 byte of lock written
+Processing -U lock:w:blink.elf:e
+Reading 1 byte for lock from input file blink.elf
+Writing 1 byte (0xFF) to lock, 1 byte written
 
-avrdude done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -3033,7 +3031,6 @@ Display programmer specific parameters.
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -c usbasp -p atmega328p -t
 
 avrdude> part
@@ -3107,11 +3104,7 @@ ensuinig new values for the three fuses and reprogram:
 
 @smallexample
 @cartouche
-
 $ avrdude -c usbasp -p atmega328p -t
-
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e950f (probably m328p)
 
 avrdude> dump efuse
 Reading | ################################################## | 100% 0.00 s
@@ -3141,8 +3134,7 @@ Writing | ################################################## | 100% 0.01 s
 
 avrdude> quit
 
-avrdude done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -3152,7 +3144,6 @@ avrdude done.  Thank you.
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -c usbasp -p atmega328p -t
 
 avrdude> # Show all configurations
@@ -3210,23 +3201,19 @@ avrdude> quit
 
 @smallexample
 @cartouche
-
-$ avrdude -c xplainedpro_updi -p ATtiny817 \
+$ avrdude -c xplainedmini_updi -p ATtiny817 \
   -T "reg ctrlc" -T "reg usart0.baud=0x1234" -T "reg -asv usart0"
 
-avrdude_pr1580: AVR device initialized and ready to accept instructions
-avrdude_pr1580: device signature = 0x1e9320 (probably t817)
-
-avrdude_pr1580: processing -T reg ctrlc
+Processing -T reg ctrlc
 0x00 portmux.ctrlc
 0x00 adc0.ctrlc
 0x03 usart0.ctrlc
 0x00 tca0.ctrlc
 0x00 tcd0.ctrlc
 
-avrdude_pr1580: processing -T reg usart0.baud=0x1234
+Processing -T reg usart0.baud=0x1234
 
-avrdude_pr1580: processing -T reg -asv usart0
+Processing -T reg -asv usart0
 I/O 0x800: (1)   0x00 usart0.rxdatal  # Receive data low byte
 I/O 0x801: (1)   0x00 usart0.rxdatah  # Receive data high byte
 I/O 0x802: (1)   0x00 usart0.txdatal  # Transmit data low byte
@@ -3241,8 +3228,7 @@ I/O 0x80c: (1)   0x00 usart0.evctrl   # Event control register
 I/O 0x80d: (1)   0x00 usart0.txplctrl # IRCOM transmitter pulse length control register
 I/O 0x80e: (1)   0x00 usart0.rxplctrl # IRCOM receiver pulse length control register
 
-avrdude_pr1580 done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -3250,7 +3236,6 @@ avrdude_pr1580 done.  Thank you.
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -p ATtiny11 -c dryrun -T "regfile -av"
 
 I/O 0x08: ac.acsr     # Analog comparator control and status register
@@ -3267,7 +3252,6 @@ I/O 0x39: tc0.timsk   # T/C interrupt mask register
 I/O 0x3a: exint.gifr  # General interrupt flag register
 I/O 0x3b: exint.gimsk # General interrupt mask register
 I/O 0x3f: cpu.sreg    # Status register
-
 @end cartouche
 @end smallexample
 
@@ -3281,11 +3265,7 @@ indicated memory range.
 
 @smallexample
 @cartouche
-
 $ avrdude -c usbasp -p atmega328p -t
-
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e950f (probably m328p)
 
 avrdude> dump flash -64 -33
 Reading | ################################################## | 100% 0.02 s
@@ -3314,13 +3294,12 @@ Reading | ################################################## | 100% 0.00 s
 7ff0  05 05 05 05 05 05 05 05  05 05 05 05 05 05 05 05  |................|
 
 avrdude> flush
-avrdude: synching cache to device ...
+Synching cache to device ...
 Writing | ################################################## | 100% 0.05 s
 
 avrdude> quit
 
-avrdude done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -3336,7 +3315,6 @@ to stdout.
 
 @smallexample
 @cartouche
-
 $ avrdude -qq -p t13a -c avrisp2 -T "disasm -g flash 0 -1" >blink.S
 $ avr-gcc -mmcu=attiny13a -nostdlib -Wl,--section-start=.text=0x0000 blink.S -o bl.elf
 $ avrdude -qq -p t13a -c avrisp2 -U flash:v:bl.elf && echo OK
@@ -3379,7 +3357,6 @@ L022:  sbi     io.pinb, 2           ; Bit 2 = 0x04
 L024:  rjmp    Label2               ; L018
 
 L026:  .fill   493, 2, 0xffff
-
 @end cartouche
 @end smallexample
 
@@ -3395,7 +3372,6 @@ terminal command lines as single entity to AVRDUDE.
 
 @smallexample
 @cartouche
-
 $ avrdude -qc dryrun -p m328p \
           -U urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex \
           -T 'write flash 0x7D00 0xc0cac01a 0xcafe "secret Coca Cola recipe"' \
@@ -3403,42 +3379,25 @@ $ avrdude -qc dryrun -p m328p \
           -T "config -v bod=*2v7" \
           -U flash:r:app+data.hex:I
 
-avrdude: AVR device initialized and ready to accept instructions
-avrdude: device signature = 0x1e950f (probably m328p)
-avrdude: Note: flash memory has been specified, an erase cycle will be performed.
-         To disable this feature, specify the -D option.
-avrdude: erasing chip
+Processing -U flash:w:urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex:i
+Reading 368 bytes for flash from input file urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex
+Writing 368 bytes to flash, 368 bytes written, 368 verified
 
-avrdude: processing -U flash:w:urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex:i
-avrdude: reading input file urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex for flash
-         with 368 bytes in 2 sections within [0x7e80, 0x7fff]
-         using 3 pages and 16 pad bytes
-avrdude: writing 368 bytes flash ...
-avrdude: 368 bytes of flash written
-avrdude: verifying flash memory against urboot_m328p_1s_autobaud_uart0_pr_ee_ce.hex
-avrdude: 368 bytes of flash verified
+Processing -T write flash 0x7D00 0xc0cac01a 0xcafe "secret Coca Cola recipe"
+Synching cache to device ... done
 
-avrdude: processing -T write flash 0x7D00 0xc0cac01a 0xcafe "secret Coca Cola recipe"
-avrdude: synching cache to device ... done
+Processing -U flash:w:cola-vending-machine.hex:i
+Reading 736 bytes for flash from input file cola-vending-machine.hex
+Writing 736 bytes to flash, 736 bytes written, 736 verified
 
-avrdude: processing -U flash:w:cola-vending-machine.hex:i
-avrdude: reading input file cola-vending-machine.hex for flash
-         with 736 bytes in 1 section within [0, 0x2df]
-         using 6 pages and 32 pad bytes
-avrdude: writing 736 bytes flash ...
-avrdude: 736 bytes of flash written
-avrdude: verifying flash memory against cola-vending-machine.hex
-avrdude: 736 bytes of flash verified
-
-avrdude: processing -T config -v bod=*2v7
+Processing -T config -v bod=*2v7
 config bodlevel=bod_2v7 # 5
 
-avrdude: processing -U flash:r:app+data.hex:I
-avrdude: reading flash memory ...
-avrdude: writing output file app+data.hex
+Processing -U flash:r:app+data.hex:I
+Reading flash memory ...
+Writing 32768 bytes to output file app+data.hex
 
-avrdude done.  Thank you.
-
+Avrdude done.  Thank you.
 @end cartouche
 @end smallexample
 
@@ -4322,86 +4281,8 @@ Other combinations should not show after exit.
 @cindex Unix installation
 @cindex Installation
 
-@noindent
-To build and install from the source tarball on Unix like systems:
-
-@example
-$ gunzip -c avrdude-@value{VERSION}.tar.gz | tar xf -
-$ cd avrdude-@value{VERSION}
-$ ./configure
-$ make
-$ su root -c 'make install'
-@end example
-
-The default location of the install is into @code{/usr/local} so you
-will need to be sure that @code{/usr/local/bin} is in your @code{PATH}
-environment variable.
-
-If you do not have root access to your system, you can do the
-following instead:
-
-@example
-$ gunzip -c avrdude-@value{VERSION}.tar.gz | tar xf -
-$ cd avrdude-@value{VERSION}
-$ ./configure --prefix=$HOME/local
-$ make
-$ make install
-@end example
-
-@menu
-* FreeBSD Installation::        
-* Linux Installation::          
-@end menu
-
-@c
-@c Node
-@c
-@node FreeBSD Installation, Linux Installation, Unix Installation, Unix Installation
-@subsubsection FreeBSD Installation
-@cindex FreeBSD installation
-@cindex Installation
-
-@noindent
-AVRDUDE is installed via the FreeBSD Ports Tree as follows:
-
-@example
-$ su - root
-# cd /usr/ports/devel/avrdude
-# make install
-@end example
-
-If you wish to install from a pre-built package instead of the source,
-you can use the following instead:
-
-@example
-$ su - root
-# pkg_add -r avrdude
-@end example
-
-Of course, you must be connected to the Internet for these methods to
-work, since that is where the source as well as the pre-built package is
-obtained.
-
-@c
-@c Node
-@c
-@node Linux Installation,  , FreeBSD Installation, Unix Installation
-@subsubsection Linux Installation
-@cindex Linux installation
-@cindex Installation
-
-@noindent
-On rpm based Linux systems (such as RedHat, SUSE, Mandrake, etc.), you
-can build and install the rpm binaries directly from the tarball:
-
-@example
-$ su - root
-# rpmbuild -tb avrdude-@value{VERSION}.tar.gz
-# rpm -Uvh /usr/src/redhat/RPMS/i386/avrdude-@value{VERSION}-1.i386.rpm
-@end example
-
-Note that the path to the resulting rpm package, differs from system
-to system. The above example is specific to RedHat.
+Refer to @uref{https://github.com/avrdudes/avrdude/wiki}
+for the latest installation tips.
 
 @c
 @c Node
@@ -4526,7 +4407,6 @@ permissions using a file @code{jtagice3.conf}:
 
 @smallexample
 @cartouche
-
 notify 100 @{
   match "system" "USB";
   match "subsystem" "DEVICE";
@@ -4536,7 +4416,6 @@ notify 100 @{
   action "chmod 660 /dev/$cdev";
   action "chgrp yourgroup /dev/$cdev";
 @};
-
 @end cartouche
 @end smallexample
 
@@ -4568,10 +4447,8 @@ plugged-in AVRISP mkII programmer (product ID 0x2104) by Atmel (vendor ID
 
 @smallexample
 @cartouche
-
 SUBSYSTEM=="usb", ATTRS@{idVendor@}=="03eb", ATTRS@{idProduct@}=="2104", \
   MODE="0660", TAG+="uaccess"
-
 @end cartouche
 @end smallexample
 
@@ -4590,7 +4467,6 @@ above suggested udev rule for the named programmer. Wildcards are allowed:
 
 @smallexample
 @cartouche
-
 $ avrdude -c jtag\*/u
 
 1. Examine the suggested udev rules below; to install run:
@@ -4624,7 +4500,6 @@ KERNEL=="hidraw*", SUBSYSTEM=="hidraw", ATTRS@{idVendor@}=="03eb", \
 # jtagkey
 SUBSYSTEM=="usb", ATTRS@{idVendor@}=="0403", ATTRS@{idProduct@}=="cff8", \
   MODE="0660", TAG+="uaccess"
-
 @end cartouche
 @end smallexample
 
@@ -4673,37 +4548,8 @@ such as @option{--prefix}.
 @cindex Installation
 
 @noindent
-A Windows executable of avrdude is included in WinAVR which can be found at
-@url{http://sourceforge.net/projects/winavr}. WinAVR is a suite of executable, 
-open source software development tools for the AVR for the Windows platform.
-
-There are two options to build avrdude from source under Windows.
-The first one is to use Cygwin (@url{http://www.cygwin.com/}).
-
-To build and install from the source tarball for Windows (using Cygwin):
-
-@example
-$ set PREFIX=<your install directory path>
-$ export PREFIX
-$ gunzip -c avrdude-@value{VERSION}.tar.gz | tar xf -
-$ cd avrdude-@value{VERSION}
-$ ./configure LDFLAGS="-static" --prefix=$PREFIX --datadir=$PREFIX 
---sysconfdir=$PREFIX/bin --enable-versioned-doc=no
-$ make
-$ make install
-@end example
-
-Note that recent versions of Cygwin (starting with 1.7) removed the
-MinGW support from the compiler that is needed in order to build a
-native Win32 API binary that does not require to install the Cygwin
-library @code{cygwin1.dll} at run-time.  Either try using an older
-compiler version that still supports MinGW builds, or use MinGW
-(@url{http://www.mingw.org/}) directly.
-
-@c
-@c XXX Please add more detailed instructions here.
-@c
-
+Refer to @uref{https://github.com/avrdudes/avrdude/wiki}
+for the latest installation tips.
 
 @c
 @c Node
@@ -5170,4 +5016,3 @@ erase cycle.
 @printindex cp
 
 @bye
-
