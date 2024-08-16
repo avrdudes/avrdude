@@ -245,6 +245,7 @@ The Curiosity Nano board is supported in UPDI mode. It is dubbed
 .Dq PICkit on Board ,
 thus the name
 .Pa pkobn_updi .
+The MPLAB(R) PICkit 5 is currently only supported in UPDI mode.
 .Pp
 SerialUPDI programmer implementation is based on Microchip's
 .Em pymcuprog Li https://github.com/microchip-pic-avr-tools/pymcuprog
@@ -1753,6 +1754,23 @@ when in AVR mode. Use
 for switching to AVR mode, or
 .Ar -x mode=pic
 for switching to PIC mode.
+.It Ar help
+Show help menu and exit.
+.El
+.It Ar PICkit 5
+.It Ar PICkit 4 (PIC mode)
+.Bl -tag -offset indent -width indent
+.It Ar vtarg=<voltage>
+Specify a voltage between 1.8 and 5.5 V that the programmer should supply
+to the target. If there is already a valid voltage applied to the VTG Pin,
+this setting will be ignored. When AVRDUDE detects an external voltage outside
+of this range, it will terminate the operation. You can disable this by
+setting the voltage to 0 V.
+.It Ar hvupdi
+High-voltage UPDI programming is used to enable a UPDI pin that has previously
+been set to RESET or GPIO mode. Use -x hvupdi to enable high-voltage UPDI
+initialization for supported targets. Depending on the target, the HV pulse will
+be applied either on the RST pin, or the UPDI pin.
 .It Ar help
 Show help menu and exit.
 .El
