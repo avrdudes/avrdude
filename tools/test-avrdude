@@ -149,13 +149,9 @@ fi
 
 arraylength=${#pgm_and_target[@]}
 
-echo -n "Testing executable type for '$avrdude_bin'..."
-if type "$avrdude_bin" >/dev/null 2>&1; then
-    echo -n " "
-    type "$avrdude_bin"
-else
-    echo
+if ! type "$avrdude_bin" >/dev/null 2>&1; then
     echo "$progname: cannot execute $avrdude_bin"
+    type "$avrdude_bin"
     exit 1
 fi
 
@@ -167,13 +163,12 @@ tmpfile=$(mktemp "$tmp/$progname.tmp.XXXXXX")
 resfile=$(mktemp "$tmp/$progname.res.XXXXXX")
 trap "rm -f $status $logfile $outfile $tmpfile $resfile" EXIT
 
-echo -n "Testing $avrdude_bin version..."
-$avrdude_bin -v 2>&1 | grep '[vV]ersion' | sed 's/^.* [Vv]ersion //' | head -n1 > "$outfile"
+echo -n "Testing $(type -p "$avrdude_bin")"
+$avrdude_bin -v 2>&1 | grep '[vV]ersion' | sed 's/^.* [Vv]ersion//' | head -n1 > "$outfile"
 if test -s "$outfile"; then
-    echo -n " "
     cat "$outfile"
 else
-    echo " error"
+    echo ": error obtaining version from '$avrdude_bin -v'"
     $avrdude_bin -v
     exit 1
 fi
