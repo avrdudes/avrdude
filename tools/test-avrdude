@@ -268,9 +268,9 @@ for (( p=0; p<$arraylength; p++ )); do
     avrdude=($avrdude_bin -l $logfile $avrdude_conf -qq ${pgm_and_target[$p]})
 
     # Get flash and EEPROM size in bytes and make sure the numbers are in dec form
-    flash_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep flash | awk '{print $2}')
+    flash_size=$($avrdude_bin $avrdude_conf -c dryrun -p $part -T 'part -m' 2>/dev/null | grep flash | awk '{print $2}')
     bench_flwr_size=$((flash_size/6)) # Approximate(!) size of file holes_rjmp_loops_${flash_size}B.hex
-    ee_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
+    ee_size=$($avrdude_bin $avrdude_conf -c dryrun -p $part -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
     bench_eewr_size=$((ee_size/6)) # Approximate(!) size of file holes_pack_my_box_${ee_size}B.hex
 
     if [[ -z "$flash_size" ]]; then
