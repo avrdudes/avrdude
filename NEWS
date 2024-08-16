@@ -151,6 +151,7 @@ Changes since version 7.3:
     - Silently skip erasing read-only parts of a memory #1883
     - Fix ATmega1284/P readsize #1886
     - Fix addresses for jtag3_pdi boot and apptable #1887
+    - Adapt documentation to new Look and Feel #1892
 
   * Internals:
 
