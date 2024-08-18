@@ -20,8 +20,5 @@
 #define dryrun_h__
 
 extern const char dryrun_desc[];
-void dryrun_initpgm (PROGRAMMER *pgm);
-
+void dryrun_initpgm(PROGRAMMER *pgm);
 #endif
-
-
