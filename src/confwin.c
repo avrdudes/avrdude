@@ -16,14 +16,12 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <ac_cfg.h>
 
 #include "avrdude.h"
 #include "libavrdude.h"
 
 #if defined(WIN32)
-
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -32,5 +30,4 @@ int win_set_path(char *path, int n, const char *file) {
   *path = 0;
   return SearchPath(NULL, file, NULL, n, path, NULL);
 }
-
 #endif
