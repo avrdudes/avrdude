@@ -103,7 +103,7 @@ Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org
 @end ifinfo
 
 @menu
-* Introduction::                
+* Introduction::
 * Command Line Options::
 * Terminal Mode Operation::
 * Configuration Files::
@@ -162,14 +162,14 @@ attached to a physical serial port.  Connecting to a serial port
 emulated on top of USB is likely to not work at all, or to work
 abysmally slow.
 
-If you happen to have a Linux system with at least 4 hardware GPIOs 
+If you happen to have a Linux system with at least 4 hardware GPIOs
 available (like almost all embedded Linux boards) you can do without any
 additional hardware - just connect them to the SDO, SDI, RESET and SCK
 pins of the AVR's SPI interface and use the linuxgpio programmer
 type. Older boards might use the labels MOSI for SDO and MISO for SDI. It bitbangs
 the lines using the Linux sysfs GPIO interface. Of course, care should
-be taken about voltage level compatibility. Also, although not strictly 
-required, it is strongly advisable to protect the GPIO pins from 
+be taken about voltage level compatibility. Also, although not strictly
+required, it is strongly advisable to protect the GPIO pins from
 overcurrent situations in some way. The simplest would be to just put
 some resistors in series or better yet use a 3-state buffer driver like
 the 74HC244. Have a look at
@@ -223,7 +223,7 @@ The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to commun
 The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivatives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
-The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use 
+The avrftdi adds support for the FT2232C/D, FT2232H, and FT4232H devices. These all use
 the MPSSE mode, which has a specific pin mapping. Bit 0 (the lsb of the byte in the config
 file) is SCK. Bit 1 is SDO, and Bit 2 is SDI. Bit 3 usually reset. The 2232C/D parts
 are only supported on interface A, but the H parts can be either A or B (specified by the
@@ -327,12 +327,12 @@ The Curiosity Nano board is supported in UPDI mode. It is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
 The MPLAB(R) PICkit 5 is currently only supported in UPDI mode.
 
-SerialUPDI programmer implementation is based on Microchip's 
-@emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog}) 
+SerialUPDI programmer implementation is based on Microchip's
+@emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog})
 utility, but it also contains some performance improvements included in
 Spence Konde's @emph{DxCore} Arduino core (@url{https://github.com/SpenceKonde/DxCore}).
-In a nutshell, this programmer consists of simple USB->UART adapter, diode 
-and couple of resistors. It uses serial connection to provide UPDI interface. 
+In a nutshell, this programmer consists of simple USB->UART adapter, diode
+and couple of resistors. It uses serial connection to provide UPDI interface.
 @xref{SerialUPDI Programmer} for more details and known issues.
 
 The jtag2updi programmer is supported,
@@ -354,7 +354,7 @@ See the section on @emph{extended parameters}
 below for Teensy specific options.
 
 @menu
-* History::                     
+* History::
 @end menu
 
 @c
@@ -563,8 +563,8 @@ for the method of searching on Windows.
 If @var{config-file} is written as @var{+filename}
 then this file is read after the system wide and user configuration
 files. This can be used to add entries to the configuration
-without patching your system wide configuration file. It can be used 
-several times, the files are read in same order as given on the command 
+without patching your system wide configuration file. It can be used
+several times, the files are read in same order as given on the command
 line.
 
 @item -N
@@ -1437,8 +1437,8 @@ is not verified but used directly within the
 C programming language.
 @item @samp{no_blockmode}
 Disables the default checking for block transfer capability.
-Use 
-@samp{no_blockmode} only if your @samp{AVR910} 
+Use
+@samp{no_blockmode} only if your @samp{AVR910}
 programmer creates errors during initial sequence.
 @item @samp{help}
 Show help menu and exit.
@@ -1636,16 +1636,16 @@ The only advantage of the ``raw-wire'' mode is that different SPI frequencies
 are available. Paged writing is not implemented in this mode.
 
 @item @samp{pullups}
-Enable the Bus Pirate's built-in pull-up resistors. These resistors are 
-useful when working with different voltage levels. VPU pin of the Bus Pirate 
-must be connected to an external voltage. 
-For example: connect VPU pin to the +5V pin or an external power supply. 
+Enable the Bus Pirate's built-in pull-up resistors. These resistors are
+useful when working with different voltage levels. VPU pin of the Bus Pirate
+must be connected to an external voltage.
+For example: connect VPU pin to the +5V pin or an external power supply.
 
 @item @samp{hiz}
-Enable the Bus Pirate's HiZ mode on SPI, allowing it to work as an 
-open-collector and interface with external pull-up circuits. 
-If the external target circuit does not have pull-ups, the Bus Pirate 
-will not be able to send data. 
+Enable the Bus Pirate's HiZ mode on SPI, allowing it to work as an
+open-collector and interface with external pull-up circuits.
+If the external target circuit does not have pull-ups, the Bus Pirate
+will not be able to send data.
 
 @item @samp{ascii}
 Attempt to use ASCII mode even when the firmware supports BinMode (binary
@@ -1667,22 +1667,22 @@ significant write speed increase. If use of this mode is not desirable for some
 reason, this option disables it.
 
 @item @samp{nopagedread}
-Newer firmware versions support in binary mode SPI command some AVR Extended 
+Newer firmware versions support in binary mode SPI command some AVR Extended
 Commands. Using the ``Bulk Memory Read from Flash'' results in a
 significant read speed increase. If use of this mode is not desirable for some
 reason, this option disables it.
 
 @item @samp{cpufreq=@var{125..4000}}
 This sets the @emph{AUX}  pin to output a frequency of @var{n} kHz. Connecting
-the @emph{AUX} pin to the XTAL1 pin of your MCU, you can provide it a clock, 
+the @emph{AUX} pin to the XTAL1 pin of your MCU, you can provide it a clock,
 for example when it needs an external clock because of wrong fuses settings.
-Make sure the CPU frequency is at least four times the SPI frequency.  
+Make sure the CPU frequency is at least four times the SPI frequency.
 
 @item @samp{serial_recv_timeout=@var{1...}}
-This sets the serial receive timeout to the given value. 
-The timeout happens every time avrdude waits for the BusPirate prompt. 
-Especially in ascii mode this happens very often, so setting a smaller value 
-can speed up programming a lot. 
+This sets the serial receive timeout to the given value.
+The timeout happens every time avrdude waits for the BusPirate prompt.
+Especially in ascii mode this happens very often, so setting a smaller value
+can speed up programming a lot.
 The default value is 100 ms. Using 10 ms might work in most cases.
 
 @item @samp{help}
@@ -2346,8 +2346,8 @@ Terminal mode also supports a command history so that previously entered
 commands can be recalled and edited.
 
 @menu
-* Terminal Mode Commands::      
-* Terminal Mode Examples::      
+* Terminal Mode Commands::
+* Terminal Mode Examples::
 @end menu
 
 @node Terminal Mode Commands, Terminal Mode Examples, Terminal Mode Operation, Terminal Mode Operation
@@ -3438,11 +3438,11 @@ this file is the @code{avrdude.rc} file located in the same directory as
 the executable.
 
 @menu
-* AVRDUDE Defaults::            
-* Programmer Definitions::      
+* AVRDUDE Defaults::
+* Programmer Definitions::
 * Serial Adapter Definitions::
-* Part Definitions::            
-* Other Notes::                 
+* Part Definitions::
+* Other Notes::
 @end menu
 
 @c
@@ -3549,7 +3549,7 @@ programmer
 @end smallexample
 
 @noindent
-If a parent is specified, all settings of it (except its ids) are used for the new 
+If a parent is specified, all settings of it (except its ids) are used for the new
 programmer. These values can be changed by new setting them for the new programmer.
 
 @noindent
@@ -4029,7 +4029,7 @@ and socket card:
 @item @code{STK600-RC100M-11} @tab @code{STK600-TQFP100} @tab ATmega640 ATmega1280 ATmega2560
 @item @code{} @tab @code{STK600-ATMEGA2560} @tab ATmega2560
 @item @code{STK600-RC100M-18} @tab @code{STK600-TQFP100} @tab ATmega3250 ATmega3250P ATmega3290 ATmega3290P ATmega6450 ATmega6490
-@item @code{STK600-RC032U-20} @tab @code{STK600-TQFP32} @tab AT90USB82 AT90USB162 ATmega8U2 ATmega16U2 ATmega32U2 
+@item @code{STK600-RC032U-20} @tab @code{STK600-TQFP32} @tab AT90USB82 AT90USB162 ATmega8U2 ATmega16U2 ATmega32U2
 @item @code{STK600-RC044U-25} @tab @code{STK600-TQFP44} @tab ATmega16U4 ATmega32U4
 @item @code{STK600-RC064U-17} @tab @code{STK600-TQFP64} @tab ATmega32U6 AT90USB646 AT90USB1286 AT90USB647 AT90USB1287
 @item @code{STK600-RCPWM-22} @tab @code{STK600-TQFP32} @tab ATmega32C1 ATmega64C1 ATmega16M1 ATmega32M1 ATmega64M1
@@ -4124,7 +4124,7 @@ versions of the bootloader.
 
 SerialUPDI programmer can be used for programming UPDI-only devices
 using very simple serial connection.
-You can read more about the details here 
+You can read more about the details here
 @url{https://github.com/SpenceKonde/AVR-Guidance/blob/master/UPDI/jtag2updi.md}
 
 SerialUPDI programmer has been tested using FT232RL USB->UART interface
@@ -4147,23 +4147,23 @@ There are several limitations in current SerialUPDI/AVRDUDE integration,
 listed below.
 
 Currently available devices support only UPDI NVM programming model 0, 2
-3 and 5, but there is also experimental implementation of model 4 - it 
+3 and 5, but there is also experimental implementation of model 4 - it
 has been tested only on a single device, so issues with other devices are
 expected. Full NVM v4 mode support will be provided once the hardware is
 widely available.
 
 One of the core AVRDUDE features is verification of the connection by
 reading device signature prior to any operation, but this operation
-is not possible on UPDI locked devices. Therefore, to be able to 
+is not possible on UPDI locked devices. Therefore, to be able to
 connect to such a device, you have to provide @option{-F} to override
 this check.
 
-Please note: using @option{-F} during write operation to locked device 
+Please note: using @option{-F} during write operation to locked device
 will force chip erase. Use carefully.
 
 Another issue you might notice is slow performance of EEPROM writing
 using SerialUPDI for AVR Dx devices. This can be addressed by changing
-@emph{avrdude.conf} section for this device - changing EEPROM page 
+@emph{avrdude.conf} section for this device - changing EEPROM page
 size to 0x20 (instead of default 1), like so:
 
 @example
@@ -4266,11 +4266,11 @@ Other combinations should not show after exit.
 @cindex Unix
 
 @menu
-* Unix Installation::           
-* Unix Configuration Files::    
-* Unix Port Names::             
+* Unix Installation::
+* Unix Configuration Files::
+* Unix Port Names::
 * Unix USB Permissions::
-* Unix Documentation::          
+* Unix Documentation::
 @end menu
 
 @c
@@ -4301,8 +4301,8 @@ is searched for a file named @code{.avrduderc}, and if found, is used to
 augment the system default configuration file.
 
 @menu
-* FreeBSD Configuration Files::  
-* Linux Configuration Files::   
+* FreeBSD Configuration Files::
+* Linux Configuration Files::
 @end menu
 
 @c
@@ -4338,7 +4338,7 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 
 @noindent
 The parallel and serial port device file names are system specific.
-MacOS has no default serial or parallel port names, but available 
+MacOS has no default serial or parallel port names, but available
 ports can be found under @code{/dev/cu.*}.
 The following table lists the default names for a given system.
 
@@ -4534,9 +4534,9 @@ such as @option{--prefix}.
 @cindex Windows
 
 @menu
-* Windows Installation::        
-* Windows Configuration Files::  
-* Windows Port Names::          
+* Windows Installation::
+* Windows Configuration Files::
+* Windows Port Names::
 @c * Documentation::
 @end menu
 
@@ -4559,7 +4559,7 @@ for the latest installation tips.
 @cindex Windows configuration files
 
 @menu
-* Configuration file names::    
+* Configuration file names::
 * Windows Configuration File Location::
 @end menu
 
@@ -4581,7 +4581,7 @@ AVRDUDE on Windows looks for a system configuration file name of
 @node Windows Configuration File Location,  , Configuration file names, Windows Configuration Files
 @subsubsection Windows Configuration File Location
 @cindex Windows configuration file location
- 
+
 @noindent
 AVRDUDE on Windows has a different way of searching for the system and
 user configuration files. Below is the search method for locating the
@@ -4624,8 +4624,8 @@ The directories that are listed in the PATH environment variable.
 @cindex Windows port names
 
 @menu
-* Serial Ports::                
-* Parallel Ports::              
+* Serial Ports::
+* Parallel Ports::
 @end menu
 
 @c
@@ -4634,11 +4634,11 @@ The directories that are listed in the PATH environment variable.
 @node Serial Ports, Parallel Ports, Windows Port Names, Windows Port Names
 @subsubsection Windows Serial Ports
 @cindex Windows serial ports
- 
+
 @noindent
 When you select a serial port (i.e. when using an STK500) use the
 Windows serial port device names such as: com1, com2, etc.
- 
+
 @c
 @c Node
 @c
@@ -4885,7 +4885,7 @@ Solution: Use the following pin mapping:
 
 @item
 Problem: I want to use my AVR Dragon to program an
-Xmega device through PDI.  
+Xmega device through PDI.
 
 Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
 
@@ -4894,7 +4894,7 @@ Solution: Use the 6 pin ISP header on the Dragon and the following pin mapping:
 @item @strong{ISP Header} @tab @strong{pins}
 @item 1 (SDI)   @tab PDI_DATA
 @item 2 (VCC)   @tab VCC
-@item 3 (SCK)   @tab 
+@item 3 (SCK)   @tab
 @item 4 (SDO)   @tab
 @item 5 (RESET) @tab PDI_CLK / RST
 @item 6 (GND)   @tab GND
@@ -4918,26 +4918,26 @@ Solution: Use the following pin mapping:
 @end multitable
 
 @item
-Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel 
+Problem: I want to program an ATtiny4/5/9/10 device using a serial/parallel
 bitbang programmer.  How to connect the pins?
 
-Solution: Since TPI has only 1 pin for bi-directional data transfer, both 
+Solution: Since TPI has only 1 pin for bi-directional data transfer, both
 @var{SDI} and @var{SDO} pins should be connected to the @var{TPIDATA} pin
 on the ATtiny device.
 However, a 1K resistor should be placed between the @var{SDO} and @var{TPIDATA}.
 The @var{SDI} pin connects to @var{TPIDATA} directly.
 The @var{SCK} pin is connected to @var{TPICLK}.
 
-In addition, the @var{Vcc}, @var{/RESET} and @var{GND} pins should 
+In addition, the @var{Vcc}, @var{/RESET} and @var{GND} pins should
 be connected to their respective ports on the ATtiny device.
 
 @item
 Problem: How can I use a FTDI FT232R USB-to-Serial device for bitbang programming?
 
-Solution: When connecting the FT232 directly to the pins of the target Atmel device, 
-the polarity of the pins defined in the @code{programmer} definition should be 
-inverted by prefixing a tilde. For example, the @var{dasa} programmer would 
-look like this when connected via a FT232R device (notice the tildes in 
+Solution: When connecting the FT232 directly to the pins of the target Atmel device,
+the polarity of the pins defined in the @code{programmer} definition should be
+inverted by prefixing a tilde. For example, the @var{dasa} programmer would
+look like this when connected via a FT232R device (notice the tildes in
 front of pins 7, 4, 3 and 8):
 
 @example
@@ -4952,7 +4952,7 @@ programmer
 ;
 @end example
 
-Note that this uses the FT232 device as a normal serial port, not using the 
+Note that this uses the FT232 device as a normal serial port, not using the
 FTDI drivers in the special bitbang mode.
 
 @item
