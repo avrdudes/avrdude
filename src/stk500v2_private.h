@@ -1,11 +1,11 @@
 //**** ATMEL AVR - A P P L I C A T I O N   N O T E  ************************
 //*
-//* Title:		AVR068 - STK500 Communication Protocol
-//* Filename:		command.h
-//* Version:		1.0
-//* Last updated:	10.01.2005
+//* Title:              AVR068 - STK500 Communication Protocol
+//* Filename:           command.h
+//* Version:            1.0
+//* Last updated:       10.01.2005
 //*
-//* Support E-mail:	avr@atmel.com
+//* Support E-mail:     avr@atmel.com
 //*
 //**************************************************************************
 
@@ -27,7 +27,6 @@
 #define CMD_LOAD_RC_ID_TABLE                0x0E
 #define CMD_LOAD_EC_ID_TABLE                0x0F
 
-
 // *****************[ STK ISP command constants ]******************************
 
 #define CMD_ENTER_PROGMODE_ISP              0x10
@@ -43,10 +42,9 @@
 #define CMD_READ_LOCK_ISP                   0x1A
 #define CMD_READ_SIGNATURE_ISP              0x1B
 #define CMD_READ_OSCCAL_ISP                 0x1C
-#define CMD_SPI_MULTI                       0x1D /* STK500v2, AVRISPmkII,
-						  * JTAGICEmkII */
-#define CMD_SET_SCK                         0x1D /* JTAGICE3 */
-#define CMD_GET_SCK                         0x1E /* JTAGICE3 */
+#define CMD_SPI_MULTI                       0x1D        // STK500v2, AVRISPmkII, JTAGICEmkII
+#define CMD_SET_SCK                         0x1D        // JTAGICE3
+#define CMD_GET_SCK                         0x1E        // JTAGICE3
 
 // *****************[ STK PP command constants ]*******************************
 
@@ -81,8 +79,7 @@
 #define CMD_READ_LOCK_HVSP                  0x3A
 #define CMD_READ_SIGNATURE_HVSP             0x3B
 #define CMD_READ_OSCCAL_HVSP                0x3C
-// These two are redefined since 0x30/0x31 collide
-// with the STK600 bootloader.
+// These two are redefined since 0x30/0x31 collide with the STK600 bootloader
 #define CMD_ENTER_PROGMODE_HVSP_STK600      0x3D
 #define CMD_LEAVE_PROGMODE_HVSP_STK600      0x3E
 
@@ -91,13 +88,11 @@
 #define CMD_XPROG                           0x50
 #define CMD_XPROG_SETMODE                   0x51
 
-
 // *** AVR32 JTAG Programming command ***
 
 #define CMD_JTAG_AVR32                      0x80
 #define CMD_ENTER_PROGMODE_JTAG_AVR32       0x81
 #define CMD_LEAVE_PROGMODE_JTAG_AVR32       0x82
-
 
 // *** AVR JTAG Programming command ***
 
@@ -171,24 +166,23 @@
 // Set to '1' if board draws excessive current
 
 // *****************[ STK parameter constants ]***************************
-#define PARAM_BUILD_NUMBER_LOW              0x80 /* ??? */
-#define PARAM_BUILD_NUMBER_HIGH             0x81 /* ??? */
+#define PARAM_BUILD_NUMBER_LOW              0x80        // ???
+#define PARAM_BUILD_NUMBER_HIGH             0x81        // ???
 #define PARAM_HW_VER                        0x90
 #define PARAM_SW_MAJOR                      0x91
 #define PARAM_SW_MINOR                      0x92
 #define PARAM_VTARGET                       0x94
-#define PARAM_VADJUST                       0x95 /* STK500 only */
-#define PARAM_OSC_PSCALE                    0x96 /* STK500 only */
-#define PARAM_OSC_CMATCH                    0x97 /* STK500 only */
-#define PARAM_SCK_DURATION                  0x98 /* STK500 only */
-#define PARAM_TOPCARD_DETECT                0x9A /* STK500 only */
-#define PARAM_STATUS                        0x9C /* STK500 only */
-#define PARAM_DATA                          0x9D /* STK500 only */
-#define PARAM_RESET_POLARITY                0x9E /* STK500 only, and STK600 FW
-                                                  * version <= 2.0.3 */
+#define PARAM_VADJUST                       0x95        // STK500 only
+#define PARAM_OSC_PSCALE                    0x96        // STK500 only
+#define PARAM_OSC_CMATCH                    0x97        // STK500 only
+#define PARAM_SCK_DURATION                  0x98        // STK500 only
+#define PARAM_TOPCARD_DETECT                0x9A        // STK500 only
+#define PARAM_STATUS                        0x9C        // STK500 only
+#define PARAM_DATA                          0x9D        // STK500 only
+#define PARAM_RESET_POLARITY                0x9E        // STK500 only, and STK600 FW version <= 2.0.3
 #define PARAM_CONTROLLER_INIT               0x9F
 
-/* STK600 parameters */
+// STK600 parameters
 #define PARAM_STATUS_TGT_CONN               0xA1
 #define PARAM_DISCHARGEDELAY                0xA4
 #define PARAM_SOCKETCARD_ID                 0xA5
@@ -220,34 +214,28 @@
 #define PARAM2_RC_ID_TABLE_REV              0xC8
 #define PARAM2_EC_ID_TABLE_REV              0xC9
 
-/* STK600 XPROG section */
+// STK600 XPROG section
+
 // XPROG modes
 #define XPRG_MODE_PDI                       0
 #define XPRG_MODE_JTAG                      1
 #define XPRG_MODE_TPI                       2
 
 // Write mode flags
-#define XPRG_MEM_WRITE_ERASE                 0
-#define XPRG_MEM_WRITE_WRITE                 1
+#define XPRG_MEM_WRITE_ERASE                0
+#define XPRG_MEM_WRITE_WRITE                1
 
 // CRC types
-#define XPRG_CRC_APP                         1
-#define XPRG_CRC_BOOT                        2
-#define XPRG_CRC_FLASH                       3
+#define XPRG_CRC_APP                        1
+#define XPRG_CRC_BOOT                       2
+#define XPRG_CRC_FLASH                      3
 
 // *****************[ STK answer constants ]***************************
 
 #define ANSWER_CKSUM_ERROR                  0xB0
 
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
-  /*
-   * See stk500pp_read_byte() for an explanation of the flash and
-   * EEPROM page caches.
-   */
+struct pdata {
+  // See stk500pp_read_byte() for an explanation of the flash and EEPROM page caches
   unsigned char *flash_pagecache;
   unsigned long flash_pageaddr;
   unsigned int flash_pagesize;
@@ -258,62 +246,59 @@ struct pdata
 
   unsigned char command_sequence;
 
-    enum
-    {
-        PGMTYPE_UNKNOWN,
-        PGMTYPE_STK500,
-        PGMTYPE_AVRISP,
-        PGMTYPE_AVRISP_MKII,
-        PGMTYPE_JTAGICE_MKII,
-        PGMTYPE_STK600,
-        PGMTYPE_JTAGICE3
-    }
-        pgmtype;
+  enum {
+    PGMTYPE_UNKNOWN,
+    PGMTYPE_STK500,
+    PGMTYPE_AVRISP,
+    PGMTYPE_AVRISP_MKII,
+    PGMTYPE_JTAGICE_MKII,
+    PGMTYPE_STK600,
+    PGMTYPE_JTAGICE3
+  } pgmtype;
 
   int is_scratchmonkey, scratchmonkey_leds;
 
-  /* Get/set flags for Xplained Mini SUFFER register */
+  // Get/set flags for Xplained Mini SUFFER register
   bool suffer_get;
   bool suffer_set;
   unsigned char suffer_data[2];
 
-  /* Get/set flags for target power switch */
+  // Get/set flags for target power switch
   bool vtarg_switch_get;
   bool vtarg_switch_set;
   unsigned char vtarg_switch_data[2];
 
-  /* Get/set flags for adjustable target voltage */
+  // Get/set flags for adjustable target voltage
   bool vtarg_get;
   bool vtarg_set;
   double vtarg_data;
 
-  /* Get/set flags for adjustable analog reference voltage */
+  // Get/set flags for adjustable analog reference voltage
   bool varef_get;
   bool varef_set;
   int varef_channel;
   double varef_data;
 
-  /* Get/set flags for programmable clock generator */
+  // Get/set flags for programmable clock generator
   bool fosc_get;
   bool fosc_set;
   double fosc_data;
 
-  /* Set STK500 XTAL frequency */
+  // Set STK500 XTAL frequency
   unsigned xtal;
 
-  /* Flag for PICkit4/SNAP mode switching */
+  // Flag for PICkit4/SNAP mode switching
   int pk4_snap_mode;
 
   const AVRPART *lastpart;
 
-  /* Start address of Xmega boot area */
+  // Start address of Xmega boot area
   unsigned long boot_start;
 
   /*
-   * Chained pdata for the JTAG ICE mkII backend.  This is used when
-   * calling the backend functions for ISP/HVSP/PP programming
-   * functionality of the JTAG ICE mkII and AVR Dragon.
+   * Chained pdata for the JTAG ICE mkII backend.  This is used when calling
+   * the backend functions for ISP/HVSP/PP programming functionality of the
+   * JTAG ICE mkII and AVR Dragon.
    */
   void *chained_pdata;
 };
-
