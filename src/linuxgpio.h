@@ -17,8 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* $Id: par.h 722 2007-01-24 22:43:46Z joerg_wunsch $ */
-
 #ifndef linuxgpio_h
 #define linuxgpio_h
 
@@ -26,11 +24,10 @@
 extern "C" {
 #endif
 
-extern const char linuxgpio_desc[];
-void linuxgpio_initpgm(PROGRAMMER *pgm);
+  extern const char linuxgpio_desc[];
+  void linuxgpio_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
