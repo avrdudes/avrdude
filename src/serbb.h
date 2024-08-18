@@ -24,13 +24,10 @@
 extern "C" {
 #endif
 
-extern const char serbb_desc[];
-void serbb_initpgm(PROGRAMMER *pgm);
+  extern const char serbb_desc[];
+  void serbb_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
-
