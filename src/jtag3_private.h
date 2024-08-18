@@ -18,13 +18,13 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 /*
  * JTAGICE3 definitions
  * Reverse-engineered from various USB traces.
  */
 
 #if !defined(JTAG3_PRIVATE_EXPORTED)
+
 /*
  * Communication with the JTAGICE3 uses three data endpoints:
  *
@@ -88,8 +88,7 @@
  *  +----------------------------------------
  */
 #define TOKEN 0x0e
-
-#endif /* JTAG3_PRIVATE_EXPORTED */
+#endif                          // JTAG3_PRIVATE_EXPORTED
 
 #define SCOPE_INFO                 0x00
 #define SCOPE_GENERAL              0x01
@@ -99,30 +98,30 @@
 #define SCOPE_AVR_TPI              0x14
 #define SCOPE_EDBG                 0x20
 
-/* Info scope */
+// Info scope
 #define CMD3_GET_INFO              0x00
 
-/* byte after GET_INFO is always 0, next is: */
-#  define CMD3_INFO_NAME           0x80 /* JTAGICE3 */
-#  define CMD3_INFO_SERIAL         0x81 /* J3xxxxxxxxxx */
+// Byte after GET_INFO is always 0, next is
+#define CMD3_INFO_NAME           0x80   // JTAGICE3
+#define CMD3_INFO_SERIAL         0x81   // J3xxxxxxxxxx
 
-/* Generic scope */
+// Generic scope
 #define CMD3_SET_PARAMETER         0x01
 #define CMD3_GET_PARAMETER         0x02
 #define CMD3_SIGN_ON               0x10
-#define CMD3_SIGN_OFF              0x11 /* takes one parameter? */
+#define CMD3_SIGN_OFF              0x11 // Takes one parameter?
 #define CMD3_GET_ID                0x12
 #define CMD3_START_DW_DEBUG        0x13
 #define CMD3_MONCON_DISABLE        0x17
 #define CMD3_FW_UPGRADE            0x50
 
-/* AVR ISP scope: no commands of its own */
+// AVR ISP scope: no commands of its own
 
-/* AVR scope */
-//#define CMD3_SET_PARAMETER       0x01
-//#define CMD3_GET_PARAMETER       0x02
-//#define CMD3_SIGN_ON             0x10 /* an additional signon/-off pair */
-//#define CMD3_SIGN_OFF            0x11
+// AVR scope
+// #define CMD3_SET_PARAMETER      0x01
+// #define CMD3_GET_PARAMETER      0x02
+// #define CMD3_SIGN_ON            0x10 // An additional signon/-off pair
+// #define CMD3_SIGN_OFF           0x11
 #define CMD3_ENTER_PROGMODE        0x15
 #define CMD3_LEAVE_PROGMODE        0x16
 #define CMD3_ERASE_MEMORY          0x20
@@ -130,7 +129,7 @@
 #define CMD3_WRITE_MEMORY          0x23
 #define CMD3_READ_PC               0x35
 
-/* ICE responses */
+// ICE responses
 #define RSP3_OK                    0x80
 #define RSP3_INFO                  0x81
 #define RSP3_PC                    0x83
@@ -139,128 +138,116 @@
 
 #define RSP3_STATUS_MASK           0xE0
 
-/* possible failure codes that could be appended to RSP3_FAILED: */
-#  define RSP3_FAIL_DEBUGWIRE           0x10
-#  define RSP3_FAIL_PDI                 0x1B
-#  define RSP3_FAIL_NO_ANSWER           0x20
-#  define RSP3_FAIL_NO_TARGET_POWER     0x22
-#  define RSP3_FAIL_WRONG_MODE          0x32 /* progmode vs. non-prog */
-#  define RSP3_FAIL_UNSUPP_MEMORY       0x34 /* unsupported memory type */
-#  define RSP3_FAIL_WRONG_LENGTH        0x35 /* wrong lenth for mem access */
-#  define RSP3_FAIL_CRC_FAILURE         0x43 /* CRC failure in device */
-#  define RSP3_FAIL_OCD_LOCKED          0x44 /* device is locked */
-#  define RSP3_FAIL_NOT_UNDERSTOOD      0x91
+// Possible failure codes that could be appended to RSP3_FAILED
+#define RSP3_FAIL_DEBUGWIRE           0x10
+#define RSP3_FAIL_PDI                 0x1B
+#define RSP3_FAIL_NO_ANSWER           0x20
+#define RSP3_FAIL_NO_TARGET_POWER     0x22
+#define RSP3_FAIL_WRONG_MODE          0x32      // Progmode vs non-prog
+#define RSP3_FAIL_UNSUPP_MEMORY       0x34      // Unsupported memory type
+#define RSP3_FAIL_WRONG_LENGTH        0x35      // Wrong lenth for mem access
+#define RSP3_FAIL_CRC_FAILURE         0x43      // CRC failure in device
+#define RSP3_FAIL_OCD_LOCKED          0x44      // Device is locked
+#define RSP3_FAIL_NOT_UNDERSTOOD      0x91
 
-/* ICE events */
-#define EVT3_BREAK                 0x40 /* AVR scope */
-#define EVT3_SLEEP                 0x11 /* General scope, also wakeup */
-#define EVT3_POWER                 0x10 /* General scope */
+// ICE events
+#define EVT3_BREAK                 0x40 // Avr scope */
+#define EVT3_SLEEP                 0x11 // General scope, also wakeup
+#define EVT3_POWER                 0x10 // General scope
 
-/* memories */
-#define MTYPE_SRAM        0x20	/* target's SRAM or [ext.] IO registers */
-#define MTYPE_EEPROM      0x22	/* EEPROM, what way? */
-#define MTYPE_SPM         0xA0	/* flash through LPM/SPM */
-#define MTYPE_FLASH_PAGE  0xB0	/* flash in programming mode */
-#define MTYPE_EEPROM_PAGE 0xB1	/* EEPROM in programming mode */
-#define MTYPE_FUSE_BITS   0xB2	/* fuse bits in programming mode */
-#define MTYPE_LOCK_BITS   0xB3	/* lock bits in programming mode */
-#define MTYPE_SIGN_JTAG   0xB4	/* signature in programming mode */
-#define MTYPE_OSCCAL_BYTE 0xB5	/* osccal cells in programming mode */
-#define MTYPE_FLASH       0xc0	/* xmega (app.) flash - undocumented in AVR067 */
-#define MTYPE_BOOT_FLASH  0xc1	/* xmega boot flash - undocumented in AVR067 */
-#define MTYPE_EEPROM_XMEGA 0xc4	/* xmega EEPROM in debug mode - undocumented in AVR067 */
-#define MTYPE_USERSIG     0xc5	/* xmega user signature - undocumented in AVR067 */
-#define MTYPE_PRODSIG     0xc6	/* xmega production signature - undocumented in AVR067 */
-#define MTYPE_SIB         0xD3  /* AVR8X System Information Block */
+// Memories
+#define MTYPE_SRAM         0x20 // Target's SRAM or [ext.] IO registers
+#define MTYPE_EEPROM       0x22 // EEPROM, what way?
+#define MTYPE_SPM          0xA0 // Flash through LPM/SPM
+#define MTYPE_FLASH_PAGE   0xB0 // Flash in programming mode
+#define MTYPE_EEPROM_PAGE  0xB1 // EEPROM in programming mode
+#define MTYPE_FUSE_BITS    0xB2 // Fuse bits in programming mode
+#define MTYPE_LOCK_BITS    0xB3 // Lock bits in programming mode
+#define MTYPE_SIGN_JTAG    0xB4 // Signature in programming mode
+#define MTYPE_OSCCAL_BYTE  0xB5 // Osccal cells in programming mode
+#define MTYPE_FLASH        0xc0 // Xmega (app.) flash - undocumented in AVR067
+#define MTYPE_BOOT_FLASH   0xc1 // Xmega boot flash - undocumented in AVR067
+#define MTYPE_EEPROM_XMEGA 0xc4 // Xmega EEPROM in debug mode - undocumented in AVR067
+#define MTYPE_USERSIG      0xc5 // Xmega user signature - undocumented in AVR067
+#define MTYPE_PRODSIG      0xc6 // Xmega production signature - undocumented in AVR067
+#define MTYPE_SIB          0xD3 // AVR8X System Information Block
 
-/*
- * SET and GET context definitions
- */
-#define SET_GET_CTXT_CONFIG    0x00 /* Configuration */
-#define SET_GET_CTXT_PHYSICAL  0x01 /* Physical interface related */
-#define SET_GET_CTXT_DEVICE    0x02 /* Device specific settings */
-#define SET_GET_CTXT_OPTIONS   0x03 /* Option-related settings */
-#define SET_GET_CTXT_SESSION   0x04 /* Session-related settings */
+// SET and GET context definitions
+#define SET_GET_CTXT_CONFIG    0x00 // Configuration
+#define SET_GET_CTXT_PHYSICAL  0x01 // Physical interface related
+#define SET_GET_CTXT_DEVICE    0x02 // Device specific settings
+#define SET_GET_CTXT_OPTIONS   0x03 // Option-related settings
+#define SET_GET_CTXT_SESSION   0x04 // Session-related settings
 
 /*
  * Parameters are divided into sections, where the section number
  * precedes each parameter address.  There are distinct parameter
  * sets for generic and AVR scope.
  */
-#define PARM3_HW_VER            0x00  /* section 0, generic scope, 1 byte */
-#define PARM3_FW_MAJOR          0x01  /* section 0, generic scope, 1 byte */
-#define PARM3_FW_MINOR          0x02  /* section 0, generic scope, 1 byte */
-#define PARM3_FW_RELEASE        0x03  /* section 0, generic scope, 1 byte;
-                                       * always asked for by Atmel Studio,
-                                       * but never displayed there */
+#define PARM3_HW_VER            0x00 // Section 0, generic scope, 1 byte
+#define PARM3_FW_MAJOR          0x01 // Section 0, generic scope, 1 byte
+#define PARM3_FW_MINOR          0x02 // Section 0, generic scope, 1 byte
+#define PARM3_FW_RELEASE        0x03 // Section 0, generic scope, 1 byte; always asked for by Atmel Studio but never displayed there
 
-#define PARM3_VTARGET           0x00  /* section 1, generic scope, 2 bytes, in millivolts */
-#define PARM3_VBUF              0x01  /* section 1, generic scope, 2 bytes, bufferred target voltage reference */
-#define PARM3_VUSB              0x02  /* section 1, generic scope, 2 bytes, USB voltage */
-#define PARM3_ANALOG_A_CURRENT  0x10  /* section 1, generic scope, 2 bytes, Ch A current in milliamps,  Powerdebugger only */
-#define PARM3_ANALOG_A_VOLTAGE  0x11  /* section 1, generic scope, 2 bytes, Ch A voltage in millivolts, Powerdebugger only */
-#define PARM3_ANALOG_B_CURRENT  0x12  /* section 1, generic scope, 2 bytes, Ch B current in milliamps,  Powerdebugger only */
-#define PARM3_ANALOG_B_VOLTAGE  0x13  /* section 1, generic scope, 2 bytes, Ch V voltage in millivolts, Powerdebugger only */
-#define PARM3_TSUP_VOLTAGE_MEAS 0x14  /* section 1, generic scope, 2 bytes, target voltage measurement in millivolts */
-#define PARM3_USB_VOLTAGE_MEAS  0x15  /* section 1, generic scope, 2 bytes, USB voltage measurement in millivolts */
-#define PARM3_VADJUST           0x20  /* section 1, generic scope, 2 bytes, set voltage in millivolts */
-#define PARM3_ANALOG_STATUS     0x30  /* section 1, generic scope, 2 bytes, analog status */
+#define PARM3_VTARGET           0x00 // Section 1, generic scope, 2 bytes, in millivolts
+#define PARM3_VBUF              0x01 // Section 1, generic scope, 2 bytes, bufferred target voltage reference
+#define PARM3_VUSB              0x02 // Section 1, generic scope, 2 bytes, USB voltage
+#define PARM3_ANALOG_A_CURRENT  0x10 // Section 1, generic scope, 2 bytes, Ch A current in milliamps,  Powerdebugger only
+#define PARM3_ANALOG_A_VOLTAGE  0x11 // Section 1, generic scope, 2 bytes, Ch A voltage in millivolts, Powerdebugger only
+#define PARM3_ANALOG_B_CURRENT  0x12 // Section 1, generic scope, 2 bytes, Ch B current in milliamps,  Powerdebugger only
+#define PARM3_ANALOG_B_VOLTAGE  0x13 // Section 1, generic scope, 2 bytes, Ch V voltage in millivolts, Powerdebugger only
+#define PARM3_TSUP_VOLTAGE_MEAS 0x14 // Section 1, generic scope, 2 bytes, target voltage measurement in millivolts
+#define PARM3_USB_VOLTAGE_MEAS  0x15 // Section 1, generic scope, 2 bytes, USB voltage measurement in millivolts
+#define PARM3_VADJUST           0x20 // Section 1, generic scope, 2 bytes, set voltage in millivolts
+#define PARM3_ANALOG_STATUS     0x30 // Section 1, generic scope, 2 bytes, analog status
 
-/* mEDBG Xplained Mini / Nano constants */
+// mEDBG Xplained Mini/Nano constants
 #define MEDBG_REG_SUFFER_BANK   0x01
-#define MEDBG_REG_SUFFER_OFFSET 0x20 /* section 17, EDBG scope, 1 byte, SUFFER register value */
-
-#define PARM3_DEVICEDESC  0x00  /* section 2, memory etc. configuration,
-                                 * 31 bytes for tiny/mega AVR, 47 bytes
-                                 * for Xmega; is also used in command
-                                 * 0x36 in JTAGICEmkII, starting with
-                                 * firmware 7.x */
-
-#define PARM3_ARCH        0x00  /* section 0, AVR scope, 1 byte */
-#  define PARM3_ARCH_TINY   1   /* also small megaAVR with ISP/DW only */
-#  define PARM3_ARCH_MEGA   2
-#  define PARM3_ARCH_XMEGA  3
-#  define PARM3_ARCH_UPDI   5   /* AVR devices with UPDI i/f */
-
-#define PARM3_SESS_PURPOSE 0x01 /* section 0, AVR scope, 1 byte */
-#  define PARM3_SESS_PROGRAMMING 1
-#  define PARM3_SESS_DEBUGGING   2
-
-#define PARM3_CONNECTION  0x00  /* section 1, AVR scope, 1 byte */
-#  define PARM3_CONN_ISP    1
-#  define PARM3_CONN_JTAG   4
-#  define PARM3_CONN_DW     5
-#  define PARM3_CONN_PDI    6
-#  define PARM3_CONN_UPDI   8
-
-
-#define PARM3_JTAGCHAIN   0x01  /* JTAG chain info, AVR scope (units
-                                 * before/after, bits before/after), 4
-                                 * bytes */
+#define MEDBG_REG_SUFFER_OFFSET 0x20 // Section 17, EDBG scope, 1 byte, SUFFER register value
 
 /*
- * Physical context parameters
+ * Section 2, memory etc. configuration, 31 bytes for tiny/mega AVR, 47 bytes
+ * for Xmega; is also used in command 0x36 in JTAGICEmkII, starting with FW 7.x
  */
-#define PARM3_CLK_MEGA_PROG  0x20 /* section 1, AVR scope, 2 bytes (kHz) */
-#define PARM3_CLK_MEGA_DEBUG 0x21 /* section 1, AVR scope, 2 bytes (kHz) */
-#define PARM3_CLK_XMEGA_JTAG 0x30 /* section 1, AVR scope, 2 bytes (kHz) */
-#define PARM3_CLK_XMEGA_PDI  0x31 /* section 1, AVR scope, 2 bytes (kHz) */
+#define PARM3_DEVICEDESC  0x00
 
-/*
- * Options context parameters
- */
-#define PARM3_OPT_12V_UPDI_ENABLE      0x06
-#define PARM3_OPT_CHIP_ERASE_TO_ENTER  0x07
+#define PARM3_ARCH         0x00 // Section 0, AVR scope, 1 byte
+#define PARM3_ARCH_TINY       1 // Also small megaAVR with ISP/DW only
+#define PARM3_ARCH_MEGA       2
+#define PARM3_ARCH_XMEGA      3
+#define PARM3_ARCH_UPDI       5 // AVR devices with UPDI i/f
 
-/*
- * UPDI high-voltage enable modes
- */
-#define PARM3_UPDI_HV_NONE              0x00  /* Do not use high-voltage */
-#define PARM3_UPDI_HV_SIMPLE_PULSE      0x01  /* Issue a single high-voltage pulse immediately*/
-#define PARM3_UPDI_HV_AUTO_POWER_TOGGLE 0x02  /* Toggle power automatically and then apply a high-voltage pulse */
-#define PARM3_UPDI_HV_USER_POWER_TOGGLE 0x03  /* The user toggles power, and the tool applies a high-voltage pulse on power-up */
+#define PARM3_SESS_PURPOSE 0x01 // Section 0, AVR scope, 1 byte
+#define PARM3_SESS_PROGRAMMING 1
+#define PARM3_SESS_DEBUGGING   2
 
-/* Xmega erase memories for CMND_XMEGA_ERASE */
+#define PARM3_CONNECTION   0x00 // Section 1, AVR scope, 1 byte
+#define PARM3_CONN_ISP        1
+#define PARM3_CONN_JTAG       4
+#define PARM3_CONN_DW         5
+#define PARM3_CONN_PDI        6
+#define PARM3_CONN_UPDI       8
+
+// JTAG chain info, AVR scope (units before/after, bits before/after), 4 bytes
+#define PARM3_JTAGCHAIN   0x01
+
+// Physical context parameters
+#define PARM3_CLK_MEGA_PROG  0x20 // Section 1, AVR scope, 2 bytes (kHz)
+#define PARM3_CLK_MEGA_DEBUG 0x21 // Section 1, AVR scope, 2 bytes (kHz)
+#define PARM3_CLK_XMEGA_JTAG 0x30 // Section 1, AVR scope, 2 bytes (kHz)
+#define PARM3_CLK_XMEGA_PDI  0x31 // Section 1, AVR scope, 2 bytes (kHz)
+
+// Options context parameters
+#define PARM3_OPT_12V_UPDI_ENABLE       0x06
+#define PARM3_OPT_CHIP_ERASE_TO_ENTER   0x07
+
+// UPDI high-voltage enable modes
+#define PARM3_UPDI_HV_NONE              0x00 // Do not use high-voltage
+#define PARM3_UPDI_HV_SIMPLE_PULSE      0x01 // Issue a single high-voltage pulse immediately
+#define PARM3_UPDI_HV_AUTO_POWER_TOGGLE 0x02 // Toggle power automatically and then apply a high-voltage pulse
+#define PARM3_UPDI_HV_USER_POWER_TOGGLE 0x03 // The user toggles power, and the tool applies a high-voltage pulse on power-up
+
+// Xmega erase memories for CMND_XMEGA_ERASE
 #define XMEGA_ERASE_CHIP        0x00
 #define XMEGA_ERASE_APP         0x01
 #define XMEGA_ERASE_BOOT        0x02
@@ -270,7 +257,7 @@
 #define XMEGA_ERASE_EEPROM_PAGE 0x06
 #define XMEGA_ERASE_USERSIG     0x07
 
-/* EDBG vendor commands */
+// EDBG vendor commands
 #define EDBG_VENDOR_AVR_CMD       0x80
 #define EDBG_VENDOR_AVR_RSP       0x81
 #define EDBG_VENDOR_AVR_EVT       0x82
@@ -280,46 +267,45 @@
 #define EDBG_CONTROL_EXT_PROG     0x01
 #define EDBG_CONTROL_TARGET_POWER 0x10
 
-/* CMSIS-DAP commands */
-#define CMSISDAP_CMD_INFO       0x00 /* get info, followed by INFO byte */
-#  define CMSISDAP_INFO_VID         0x01 /* vendor ID (string) */
-#  define CMSISDAP_INFO_PID         0x02 /* product ID (string) */
-#  define CMSISDAP_INFO_SERIAL      0x03 /* serial number (string) */
-#  define CMSISDAP_INFO_FIRMWARE    0x04 /* firmware version (string) */
-#  define CMSISDAP_INFO_TARGET_VENDOR 0x05 /* target device vendor (string) */
-#  define CMSISDAP_INFO_TARGET_NAME   0x06 /* target device name (string) */
-#  define CMSISDAP_INFO_CAPABILITIES  0xF0 /* debug unit capabilities (byte) */
-#  define CMSISDAP_INFO_PACKET_COUNT  0xFE /* packet count (byte) (which packets, anyway?) */
-#  define CMSISDAP_INFO_PACKET_SIZE   0xFF /* packet size (short) */
+// CMSIS-DAP commands
+#define CMSISDAP_CMD_INFO           0x00 // Get info, followed by INFO byte
+#define CMSISDAP_INFO_VID           0x01 // Vendor ID (string)
+#define CMSISDAP_INFO_PID           0x02 // Product ID (string)
+#define CMSISDAP_INFO_SERIAL        0x03 // Serial number (string)
+#define CMSISDAP_INFO_FIRMWARE      0x04 // Firmware version (string)
+#define CMSISDAP_INFO_TARGET_VENDOR 0x05 // Target device vendor (string)
+#define CMSISDAP_INFO_TARGET_NAME   0x06 // Target device name (string)
+#define CMSISDAP_INFO_CAPABILITIES  0xF0 // Debug unit capabilities (byte)
+#define CMSISDAP_INFO_PACKET_COUNT  0xFE // Packet count (byte) (which packets, anyway?)
+#define CMSISDAP_INFO_PACKET_SIZE   0xFF // Packet size (short)
 
-#define CMSISDAP_CMD_LED        0x01 /* LED control, followed by LED number and on/off byte */
-#  define CMSISDAP_LED_CONNECT      0x00 /* connect LED */
-#  define CMSISDAP_LED_RUNNING      0x01 /* running LED */
+#define CMSISDAP_CMD_LED            0x01 // LED control, followed by LED number and on/off byte
+#define CMSISDAP_LED_CONNECT        0x00 // Connect LED
+#define CMSISDAP_LED_RUNNING        0x01 // Running LED
 
-#define CMSISDAP_CMD_CONNECT    0x02 /* connect to target, followed by DAP mode */
-#  define CMSISDAP_CONN_DEFAULT     0x00
-#  define CMSISDAP_CONN_SWD         0x01 /* serial wire debug */
-#  define CMSISDAP_CONN_JTAG        0x02 /* JTAG mode */
+#define CMSISDAP_CMD_CONNECT        0x02 // Connect to target, followed by DAP mode
+#define CMSISDAP_CONN_DEFAULT       0x00
+#define CMSISDAP_CONN_SWD           0x01 // Serial wire debug
+#define CMSISDAP_CONN_JTAG          0x02 // JTAG mode
 
-#define CMSISDAP_CMD_DISCONNECT 0x03 /* disconnect from target */
+#define CMSISDAP_CMD_DISCONNECT     0x03 // Disconnect from target
 
-#define CMSISDAP_XFR_CONFIGURE  0x04 /* configure transfers; idle cycles (byte);
-                                        wait retry (short); match retry (short) */
+#define CMSISDAP_XFR_CONFIGURE      0x04 // Configure transfers; idle cycles (byte); wait retry (short); match retry (short)
 
-#define CMSISDAP_CMD_WRITEAPBORT 0x08 /* write to CoreSight ABORT register of target */
+#define CMSISDAP_CMD_WRITEAPBORT    0x08 // Write to CoreSight ABORT register of target
 
-#define CMSISDAP_CMD_DELAY      0x09 /* delay for number of microseconds (short) */
+#define CMSISDAP_CMD_DELAY          0x09 // Delay for number of microseconds (short)
 
-#define CMSISDAP_CMD_RESET      0x0A /* reset target */
+#define CMSISDAP_CMD_RESET          0x0A // Reset target
 
-#define CMSISDAP_CMD_SWJ_CLOCK  0x11 /* SWD/JTAG clock, (word) */
+#define CMSISDAP_CMD_SWJ_CLOCK      0x11 // SWD/JTAG clock, (word)
 
-#define CMSISDAP_CMD_SWD_CONFIGURE 0x13 /* configure SWD protocol; (byte) */
+#define CMSISDAP_CMD_SWD_CONFIGURE  0x13 // Configure SWD protocol; (byte)
 
-#define DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV  4500   // Default minimum voltage for 32M => 4.5V
-#define DEFAULT_MINIMUM_CHARACTERISED_DIV2_VOLTAGE_MV  2700   // Default minimum voltage for 16M => 2.7V
-#define DEFAULT_MINIMUM_CHARACTERISED_DIV4_VOLTAGE_MV  2200   // Default minimum voltage for 8M  => 2.2V
-#define DEFAULT_MINIMUM_CHARACTERISED_DIV8_VOLTAGE_MV  1500   // Default minimum voltage for 4M  => 1.5V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV1_VOLTAGE_MV  4500     // Default minimum voltage for 32M => 4.5V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV2_VOLTAGE_MV  2700     // Default minimum voltage for 16M => 2.7V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV4_VOLTAGE_MV  2200     // Default minimum voltage for 8M  => 2.2V
+#define DEFAULT_MINIMUM_CHARACTERISED_DIV8_VOLTAGE_MV  1500     // Default minimum voltage for 4M  => 1.5V
 #define MAX_FREQUENCY_DEDICATED_UPDI_PIN  1500
 #define MAX_FREQUENCY_SHARED_UPDI_PIN     750
 #define UPDI_ADDRESS_MODE_16BIT 0
@@ -372,7 +358,7 @@
 #define XPRG_PARAM_NVMBASE                  0x01
 // 2-byte page size
 #define XPRG_PARAM_EEPPAGESIZE              0x02
-// tiny TPI, 1-byte address
+// Tiny TPI, 1-byte address
 #define XPRG_PARAM_NVMCMD_ADDR              0x03
 #define XPRG_PARAM_NVMCSR_ADDR              0x04
 
@@ -387,101 +373,103 @@
 #define PK4_SNAP_MODE_PIC     2 // Switch to PIC mode
 
 #if !defined(JTAG3_PRIVATE_EXPORTED)
-
 struct mega_device_desc {
-    unsigned char flash_page_size[2];   // in bytes
-    unsigned char flash_size[4];        // in bytes
-    unsigned char dummy1[4];            // always 0
-    unsigned char boot_address[4];      // maximal (BOOTSZ = 3) bootloader
-                                        // address, in 16-bit words (!)
-    unsigned char sram_offset[2];       // pointing behind IO registers
-    unsigned char eeprom_size[2];
-    unsigned char eeprom_page_size;
-    unsigned char ocd_revision;         // see XML; basically:
-                                        // t13*, t2313*, t4313:        0
-                                        // all other DW devices:       1
-                                        // ATmega128(A):               1 (!)
-                                        // ATmega16*,162,169*,32*,64*: 2
-                                        // ATmega2560/2561:            4
-                                        // all other megaAVR devices:  3
-    unsigned char always_one;           // always = 1
-    unsigned char allow_full_page_bitstream; // old AVRs, see XML
-    unsigned char dummy2[2];            // always 0
-                                        // all IO addresses below are given
-                                        // in IO number space (without
-                                        // offset 0x20), even though e.g.
-                                        // OSCCAL always resides outside
-    unsigned char idr_address;          // IDR, aka. OCDR
-    unsigned char eearh_address;        // EEPROM access
-    unsigned char eearl_address;
-    unsigned char eecr_address;
-    unsigned char eedr_address;
-    unsigned char spmcr_address;
-    unsigned char osccal_address;
+  unsigned char flash_page_size[2]; // In bytes
+  unsigned char flash_size[4];  // In bytes
+  unsigned char dummy1[4];      // Always 0
+  unsigned char boot_address[4]; // At most (BOOTSZ = 3) bootloaders
+  // address, in 16-bit words (!)
+  unsigned char sram_offset[2]; // Pointing behind IO registers
+  unsigned char eeprom_size[2];
+  unsigned char eeprom_page_size;
+  unsigned char ocd_revision;   // See ATDF; basically as below
+  /*
+   * t13*, t2313*, t4313:            0
+   * all other DW devices:           1
+   * ATmega128(A):                   1 (!)
+   * ATmega16*, 162, 169*, 32*, 64*: 2
+   * ATmega2560/2561:                4
+   * all other megaAVR devices:      3
+   */
+  unsigned char always_one;     // Always = 1
+  unsigned char allow_full_page_bitstream;      // Old AVRs, see XML
+  unsigned char dummy2[2];      // Always 0
+  /*
+   * All registers below are given in I/O space (without offset 0x20), even
+   * though e.g. OSCCAL always resides outside
+   */
+  unsigned char idr_address;    // IDR, aka. OCDR
+  unsigned char eearh_address;  // EEPROM access
+  unsigned char eearl_address;
+  unsigned char eecr_address;
+  unsigned char eedr_address;
+  unsigned char spmcr_address;
+  unsigned char osccal_address;
 };
 
-
-/* Xmega device descriptor */
+// Xmega device descriptor
 struct xmega_device_desc {
-    unsigned char nvm_app_offset[4];	// NVM offset for application flash
-    unsigned char nvm_boot_offset[4];	// NVM offset for boot flash
-    unsigned char nvm_eeprom_offset[4]; // NVM offset for EEPROM
-    unsigned char nvm_fuse_offset[4];	// NVM offset for fuses
-    unsigned char nvm_lock_offset[4];	// NVM offset for lock bits
-    unsigned char nvm_user_sig_offset[4]; // NVM offset for user signature row
-    unsigned char nvm_prod_sig_offset[4]; // NVM offset for production sign. row
-    unsigned char nvm_data_offset[4];	// NVM offset for data memory (SRAM + IO)
-    unsigned char app_size[4];		// size of application flash
-    unsigned char boot_size[2];		// size of boot flash
-    unsigned char flash_page_size[2];	// flash page size
-    unsigned char eeprom_size[2];	// size of EEPROM
-    unsigned char eeprom_page_size;	// EEPROM page size
-    unsigned char nvm_base_addr[2];	// IO space base address of NVM controller
-    unsigned char mcu_base_addr[2];	// IO space base address of MCU control
+  unsigned char nvm_app_offset[4];      // NVM offset for application flash
+  unsigned char nvm_boot_offset[4];     // NVM offset for boot flash
+  unsigned char nvm_eeprom_offset[4];   // NVM offset for EEPROM
+  unsigned char nvm_fuse_offset[4];     // NVM offset for fuses
+  unsigned char nvm_lock_offset[4];     // NVM offset for lock bits
+  unsigned char nvm_user_sig_offset[4]; // NVM offset for user signature row
+  unsigned char nvm_prod_sig_offset[4]; // NVM offset for production sign. row
+  unsigned char nvm_data_offset[4];     // NVM offset for data memory (SRAM + IO)
+  unsigned char app_size[4];            // Size of application flash
+  unsigned char boot_size[2];           // Size of boot flash
+  unsigned char flash_page_size[2];     // Flash page size
+  unsigned char eeprom_size[2];         // Size of EEPROM
+  unsigned char eeprom_page_size;       // EEPROM page size
+  unsigned char nvm_base_addr[2];       // IO space base address of NVM controller
+  unsigned char mcu_base_addr[2];       // IO space base address of MCU control
 };
 
-/* UPDI device descriptor */
+// UPDI device descriptor
 struct updi_device_desc {
-    unsigned char prog_base[2];
-    unsigned char flash_page_size;
-    unsigned char eeprom_page_size;
-    unsigned char nvm_base_addr[2];
-    unsigned char ocd_base_addr[2];
+  unsigned char prog_base[2];
+  unsigned char flash_page_size;
+  unsigned char eeprom_page_size;
+  unsigned char nvm_base_addr[2];
+  unsigned char ocd_base_addr[2];
 
-    // Configuration below, except for "Extended memory support", is only used by kits with
-    // embedded debuggers (XPlained, Curiosity, ...).
-    unsigned char default_min_div1_voltage[2];  // Default minimum voltage for 32M => 4.5V -> 4500
-    unsigned char default_min_div2_voltage[2];  // Default minimum voltage for 16M => 2.7V -> 2700
-    unsigned char default_min_div4_voltage[2];  // Default minimum voltage for 8M  => 2.2V -> 2200
-    unsigned char default_min_div8_voltage[2];  // Default minimum voltage for 4M  => 1.5V -> 1500
+  /*
+   * Configuration below, except for "Extended memory support", is only used by
+   * kits with embedded debuggers (XPlained, Curiosity, ...).
+   */
+  unsigned char default_min_div1_voltage[2];    // Default minimum voltage for 32M => 4.5V -> 4500
+  unsigned char default_min_div2_voltage[2];    // Default minimum voltage for 16M => 2.7V -> 2700
+  unsigned char default_min_div4_voltage[2];    // Default minimum voltage for 8M  => 2.2V -> 2200
+  unsigned char default_min_div8_voltage[2];    // Default minimum voltage for 4M  => 1.5V -> 1500
 
-    unsigned char pdi_pad_fmax[2];  // 750
+  unsigned char pdi_pad_fmax[2];        // 750
 
-    unsigned char flash_bytes[4];     // Flash size in bytes
-    unsigned char eeprom_bytes[2];    // EEPROM size in bytes
-    unsigned char user_sig_bytes[2];  // UserSignture size in bytes
-    unsigned char fuses_bytes;        // Fuses size in bytes
+  unsigned char flash_bytes[4]; // Flash size in bytes
+  unsigned char eeprom_bytes[2];        // EEPROM size in bytes
+  unsigned char user_sig_bytes[2];      // UserSignture size in bytes
+  unsigned char fuses_bytes;    // Fuses size in bytes
 
-    unsigned char syscfg_offset;          // Offset of SYSCFG0 within FUSE space
-    unsigned char syscfg_write_mask_and;  // AND mask to apply to SYSCFG0 when writing
-    unsigned char syscfg_write_mask_or;   // OR mask to apply to SYSCFG0 when writing
-    unsigned char syscfg_erase_mask_and;  // AND mask to apply to SYSCFG0 after erase
-    unsigned char syscfg_erase_mask_or;   // OR mask to apply to SYSCFG0 after erase
+  unsigned char syscfg_offset;  // Offset of SYSCFG0 within FUSE space
+  unsigned char syscfg_write_mask_and;  // AND mask to apply to SYSCFG0 when writing
+  unsigned char syscfg_write_mask_or;   // OR mask to apply to SYSCFG0 when writing
+  unsigned char syscfg_erase_mask_and;  // AND mask to apply to SYSCFG0 after erase
+  unsigned char syscfg_erase_mask_or;   // OR mask to apply to SYSCFG0 after erase
 
-    unsigned char eeprom_base[2];          // Base address for EEPROM memory
-    unsigned char user_sig_base[2];  // Base address for UserSignature memory
-    unsigned char signature_base[2];       // Base address for Signature memory
-    unsigned char fuses_base[2];           // Base address for Fuses memory
-    unsigned char lockbits_base[2];        // Base address for Lockbits memory
+  unsigned char eeprom_base[2]; // Base address for EEPROM memory
+  unsigned char user_sig_base[2];       // Base address for UserSignature memory
+  unsigned char signature_base[2];      // Base address for Signature memory
+  unsigned char fuses_base[2];  // Base address for Fuses memory
+  unsigned char lockbits_base[2];       // Base address for Lockbits memory
 
-    unsigned char device_id[2];  // Two last bytes of the device ID
+  unsigned char device_id[2];   // Two last bytes of the device ID
 
-    // Extended memory support. Needed for flash >= 64kb
-    unsigned char prog_base_msb;        // Extends prog_base, used in 24-bit mode
-    unsigned char flash_page_size_msb;  // Extends flash_page_size, used in 24-bit mode
+  // Extended memory support. Needed for flash >= 64kb
+  unsigned char prog_base_msb;  // Extends prog_base, used in 24-bit mode
+  unsigned char flash_page_size_msb;    // Extends flash_page_size, used in 24-bit mode
 
-    unsigned char address_mode;  // 0x00 = 16-bit mode, 0x01 = 24-bit mode
+  unsigned char address_mode;   // 0x00 = 16-bit mode, 0x01 = 24-bit mode
 
-    unsigned char hvupdi_variant; // Indicates the target UPDI HV implementation
+  unsigned char hvupdi_variant; // Indicates the target UPDI HV implementation
 };
-#endif /* JTAG3_PRIVATE_EXPORTED */
+#endif                          // JTAG3_PRIVATE_EXPORTED
