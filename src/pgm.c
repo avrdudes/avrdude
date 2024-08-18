@@ -28,11 +28,11 @@
 #include "libavrdude.h"
 
 static void pgm_default(void);
-static int  pgm_default_2(const PROGRAMMER *, const AVRPART *);
-static int  pgm_default_3(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-  unsigned long addr, unsigned char * value);
+static int pgm_default_2(const PROGRAMMER *, const AVRPART *);
+static int pgm_default_3(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char *value);
 static void pgm_default_4(const PROGRAMMER *);
-static int  pgm_default_5(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+static int pgm_default_5(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data);
 static void pgm_default_6(const PROGRAMMER *, const char *);
 static void pgm_default_setup_teardown(PROGRAMMER *pgm);
@@ -51,88 +51,75 @@ static void pgm_default_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static int pgm_default_led(const PROGRAMMER *pgm, int value) {
-   // If programmer has no LEDs, just do nothing
+  // If programmer has no LEDs, just do nothing
   return 0;
 }
 
-
 static void pgm_default_powerup_powerdown(const PROGRAMMER *pgm) {
-   // If programmer does not support powerup/down, just do nothing
+  // If programmer does not support powerup/down, just do nothing
 }
 
-
 void pgm_init_functions(PROGRAMMER *pgm) {
-  /*
-   * mandatory functions - these are called without checking to see
-   * whether they are assigned or not
-   */
-  pgm->initialize     = pgm_default_2;
-  pgm->display        = pgm_default_6;
-  pgm->enable         = pgm_default_enable;
-  pgm->disable        = pgm_default_4;
-  pgm->powerup        = pgm_default_powerup_powerdown;
-  pgm->powerdown      = pgm_default_powerup_powerdown;
+  // Mandatory functions - these are called without checking whether they are assigned
+  pgm->initialize = pgm_default_2;
+  pgm->display = pgm_default_6;
+  pgm->enable = pgm_default_enable;
+  pgm->disable = pgm_default_4;
+  pgm->powerup = pgm_default_powerup_powerdown;
+  pgm->powerdown = pgm_default_powerup_powerdown;
   pgm->program_enable = pgm_default_2;
-  pgm->chip_erase     = pgm_default_2;
-  pgm->open           = pgm_default_open;
-  pgm->close          = pgm_default_close;
-  pgm->read_byte      = pgm_default_3;
-  pgm->write_byte     = pgm_default_5;
+  pgm->chip_erase = pgm_default_2;
+  pgm->open = pgm_default_open;
+  pgm->close = pgm_default_close;
+  pgm->read_byte = pgm_default_3;
+  pgm->write_byte = pgm_default_5;
 
-  /*
-   * predefined functions - these functions have a valid default
-   * implementation. Hence, they don't need to be defined in
-   * the programmer.
-   */
-  pgm->rdy_led        = pgm_default_led;
-  pgm->err_led        = pgm_default_led;
-  pgm->pgm_led        = pgm_default_led;
-  pgm->vfy_led        = pgm_default_led;
-  pgm->read_byte_cached  = avr_read_byte_cached;
+  // Predefined functions - these functions have a valid default implementation
+  pgm->rdy_led = pgm_default_led;
+  pgm->err_led = pgm_default_led;
+  pgm->pgm_led = pgm_default_led;
+  pgm->vfy_led = pgm_default_led;
+  pgm->read_byte_cached = avr_read_byte_cached;
   pgm->write_byte_cached = avr_write_byte_cached;
   pgm->chip_erase_cached = avr_chip_erase_cached;
   pgm->page_erase_cached = avr_page_erase_cached;
-  pgm->flush_cache    = avr_flush_cache;
-  pgm->reset_cache    = avr_reset_cache;
-  pgm->setup          = pgm_default_setup_teardown;
-  pgm->teardown       = pgm_default_setup_teardown;
+  pgm->flush_cache = avr_flush_cache;
+  pgm->reset_cache = avr_reset_cache;
+  pgm->setup = pgm_default_setup_teardown;
+  pgm->teardown = pgm_default_setup_teardown;
 
-  /*
-   * optional functions - these are checked to make sure they are
-   * assigned before they are called
-   */
-  pgm->unlock         = NULL;
-  pgm->cmd            = NULL;
-  pgm->cmd_tpi        = NULL;
-  pgm->spi            = NULL;
-  pgm->paged_write    = NULL;
-  pgm->paged_load     = NULL;
-  pgm->page_erase     = NULL;
-  pgm->write_setup    = NULL;
+  // Optional functions - these are checked to make sure they are assigned before they are called
+  pgm->unlock = NULL;
+  pgm->cmd = NULL;
+  pgm->cmd_tpi = NULL;
+  pgm->spi = NULL;
+  pgm->paged_write = NULL;
+  pgm->paged_load = NULL;
+  pgm->page_erase = NULL;
+  pgm->write_setup = NULL;
   pgm->read_sig_bytes = NULL;
-  pgm->read_sib       = NULL;
-  pgm->read_chip_rev  = NULL;
-  pgm->term_keep_alive= NULL;
-  pgm->end_programming= NULL;
-  pgm->print_parms    = NULL;
-  pgm->set_vtarget    = NULL;
-  pgm->get_vtarget    = NULL;
-  pgm->set_varef      = NULL;
-  pgm->get_varef      = NULL;
-  pgm->set_fosc       = NULL;
-  pgm->get_fosc       = NULL;
+  pgm->read_sib = NULL;
+  pgm->read_chip_rev = NULL;
+  pgm->term_keep_alive = NULL;
+  pgm->end_programming = NULL;
+  pgm->print_parms = NULL;
+  pgm->set_vtarget = NULL;
+  pgm->get_vtarget = NULL;
+  pgm->set_varef = NULL;
+  pgm->get_varef = NULL;
+  pgm->set_fosc = NULL;
+  pgm->get_fosc = NULL;
   pgm->set_sck_period = NULL;
   pgm->get_sck_period = NULL;
-  pgm->setpin         = NULL;
-  pgm->getpin         = NULL;
-  pgm->highpulsepin   = NULL;
+  pgm->setpin = NULL;
+  pgm->getpin = NULL;
+  pgm->highpulsepin = NULL;
   pgm->parseexitspecs = NULL;
   pgm->perform_osccal = NULL;
   pgm->parseextparams = NULL;
-  pgm->readonly       = NULL;
+  pgm->readonly = NULL;
   pgm->flash_readhook = NULL;
 }
-
 
 PROGRAMMER *pgm_new(void) {
   PROGRAMMER *pgm = (PROGRAMMER *) mmt_malloc(sizeof(*pgm));
@@ -162,7 +149,7 @@ PROGRAMMER *pgm_new(void) {
   pgm->baudrate = 0;
 
   // Clear pin array
-  for(int i=0; i<N_PINS; i++) {
+  for(int i = 0; i < N_PINS; i++) {
     pgm->pinno[i] = NO_PIN;
     pin_clear_all(&(pgm->pin[i]));
   }
@@ -172,7 +159,7 @@ PROGRAMMER *pgm_new(void) {
   pgm_init_functions(pgm);
 
   // For allocating static programmer memory
-  pgm->cookie          = NULL;
+  pgm->cookie = NULL;
 
   return pgm;
 }
@@ -191,7 +178,8 @@ void pgm_free(PROGRAMMER *p) {
       ldestroy_cb(p->hvupdi_support, mmt_f_free);
       p->hvupdi_support = NULL;
     }
-    mmt_free(p->leds); p->leds = NULL;
+    mmt_free(p->leds);
+    p->leds = NULL;
     // Never free const char *, eg, p->desc, which are set by cache_string()
     // p->cookie was freed by pgm_teardown
     // Never free cp_flash, cp_eeprom, cp_bootrow or cp_usersig cache structures
@@ -217,6 +205,7 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
       mmt_free(pgm->cp_usersig);
 
     Leds *ls = pgm->leds;
+
     memcpy(pgm, src, sizeof(*pgm));
     if(ls && src->leds)
       memcpy(ls, src->leds, sizeof *ls);
@@ -230,12 +219,14 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
     if(src->hvupdi_support)
       for(LNODEID ln = lfirst(src->hvupdi_support); ln; ln = lnext(ln)) {
         int *ip = mmt_malloc(sizeof(int));
+
         *ip = *(int *) ldata(ln);
         ladd(pgm->hvupdi_support, ip);
       }
     if(src->usbpid)
       for(LNODEID ln = lfirst(src->usbpid); ln; ln = lnext(ln)) {
         int *ip = mmt_malloc(sizeof(int));
+
         *ip = *(int *) ldata(ln);
         ladd(pgm->usbpid, ip);
       }
@@ -244,55 +235,52 @@ PROGRAMMER *pgm_dup(const PROGRAMMER *src) {
   return pgm;
 }
 
-
 static void pgm_default(void) {
   pmsg_error("programmer operation not supported\n");
 }
 
-
-static int  pgm_default_2 (const PROGRAMMER *pgm, const AVRPART *p) {
+static int pgm_default_2(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm_default();
   return -1;
 }
 
-static int  pgm_default_3 (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-			   unsigned long addr, unsigned char * value) {
+static int pgm_default_3(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char *value) {
+
   pgm_default();
   return -1;
 }
 
-static void pgm_default_4 (const PROGRAMMER *pgm) {
+static void pgm_default_4(const PROGRAMMER *pgm) {
   pgm_default();
 }
 
-static int  pgm_default_5 (const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-			   unsigned long addr, unsigned char data) {
+static int pgm_default_5(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned long addr, unsigned char data) {
+
   pgm_default();
   return -1;
 }
 
-static void pgm_default_6 (const PROGRAMMER *pgm, const char *p) {
+static void pgm_default_6(const PROGRAMMER *pgm, const char *p) {
   pgm_default();
 }
 
 static void pgm_default_setup_teardown(PROGRAMMER *pgm) {
-  // ignore
-  (void)pgm;
 }
 
-
-void programmer_display(PROGRAMMER *pgm, const char * p) {
+void programmer_display(PROGRAMMER *pgm, const char *p) {
   msg_info("%sProgrammer type       : %s\n", p, pgm->type);
   msg_info("%sDescription           : %s\n", p, pgm->desc);
 
   pgm->display(pgm, p);
 }
 
-
 void pgm_display_generic_mask(const PROGRAMMER *pgm, const char *p, unsigned int show) {
   for(int pbit = 1; pbit < N_PINS; pbit++)
-    if(show & (1<<pbit)) {
+    if(show & (1 << pbit)) {
       const char *pinstr = pins_to_str(pgm->pin + pbit);
+
       msg_info("%s  %-6s = %s\n", p, avr_pin_name(pbit), *pinstr? pinstr: "(not used)");
     }
 }
@@ -302,7 +290,9 @@ void pgm_display_generic(const PROGRAMMER *pgm, const char *p) {
 }
 
 // Locate a real programmer entry by partial initial id and set the matching id
-PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *pgid, const char **setid, AVRPART *prt) {
+PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *pgid,
+  const char **setid, AVRPART *prt) {
+
   PROGRAMMER *pgm, *matchp;
   int matches, p1, pmode = prt? prt->prog_modes: -1;
   const char *matchid;
@@ -314,13 +304,15 @@ PROGRAMMER *locate_programmer_starts_set(const LISTID programmers, const char *p
   l = strlen(pgid);
   matches = 0;
   matchp = NULL;
-  for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     pgm = ldata(ln1);
     if(is_programmer(pgm) && (pgm->prog_modes & pmode)) {
       int thispgmmatch = 0;
-      for(LNODEID ln2=lfirst(pgm->id); ln2; ln2=lnext(ln2)) {
+
+      for(LNODEID ln2 = lfirst(pgm->id); ln2; ln2 = lnext(ln2)) {
         const char *id = (const char *) ldata(ln2);
-        if(p1 == tolower((unsigned char) *id) && !strncasecmp(id, pgid, l)) { // Partial initial match
+
+        if(p1 == tolower((unsigned char) *id) && !strncasecmp(id, pgid, l)) {   // Partial initial match
           if(!thispgmmatch) {   // Only count match once for a programmer
             thispgmmatch++;
             matchp = pgm;
@@ -348,10 +340,12 @@ done:
 
 // Locate a programmer (or serial adapter) by full name and set the matching id
 PROGRAMMER *locate_programmer_set(const LISTID programmers, const char *configid, const char **setid) {
-  for(LNODEID ln1=lfirst(programmers); ln1; ln1=lnext(ln1)) {
+  for(LNODEID ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     PROGRAMMER *p = ldata(ln1);
-    for(LNODEID ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+
+    for(LNODEID ln2 = lfirst(p->id); ln2; ln2 = lnext(ln2)) {
       const char *id = (const char *) ldata(ln2);
+
       if(str_caseeq(configid, id)) {
         if(setid)
           *setid = id;
@@ -377,23 +371,20 @@ PROGRAMMER *locate_programmer(const LISTID programmers, const char *configid) {
  * . the line number of the config file this programmer has been defined at
  * . the "cookie" passed into walk_programmers() (opaque client data)
  */
-void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie)
-{
+void walk_programmers(LISTID programmers, walk_programmers_cb cb, void *cookie) {
   LNODEID ln1;
   LNODEID ln2;
-  PROGRAMMER * p;
+  PROGRAMMER *p;
 
-  for (ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
+  for(ln1 = lfirst(programmers); ln1; ln1 = lnext(ln1)) {
     p = ldata(ln1);
-    for (ln2=lfirst(p->id); ln2; ln2=lnext(ln2)) {
+    for(ln2 = lfirst(p->id); ln2; ln2 = lnext(ln2)) {
       cb(ldata(ln2), p->desc, p->config_file, p->lineno, cookie);
     }
   }
 }
 
-/*
- * Compare function to sort the list of programmers
- */
+// Compare function to sort the list of programmers
 static int sort_programmer_compare(const PROGRAMMER *p1, const PROGRAMMER *p2) {
   if(p1 == NULL || p1->id == NULL || p2 == NULL || p2->id == NULL)
     return 0;
@@ -401,18 +392,14 @@ static int sort_programmer_compare(const PROGRAMMER *p1, const PROGRAMMER *p2) {
   return strcasecmp(ldata(lfirst(p1->id)), ldata(lfirst(p2->id)));
 }
 
-/*
- * Sort the list of programmers given as "programmers"
- */
-void sort_programmers(LISTID programmers)
-{
-  lsort(programmers,(int (*)(void*, void*)) sort_programmer_compare);
+// Sort the list of programmers given as "programmers"
+void sort_programmers(LISTID programmers) {
+  lsort(programmers, (int (*)(void *, void *)) sort_programmer_compare);
 }
-
 
 // Soft assignment: some PROGRAMMER entries can be both programmers and serial adapters
 int is_programmer(const PROGRAMMER *p) {
- return p && p->id && lsize(p->id) && p->prog_modes && p->initpgm;
+  return p && p->id && lsize(p->id) && p->prog_modes && p->initpgm;
 }
 
 int is_serialadapter(const SERIALADAPTER *p) {
