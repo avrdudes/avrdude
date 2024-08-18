@@ -19,9 +19,7 @@
 #ifndef ppi_h
 #define ppi_h
 
-/*
- * PPI registers
- */
+// PPI registers
 enum {
   PPIDATA,
   PPICTRL,
@@ -32,26 +30,23 @@ enum {
 extern "C" {
 #endif
 
-int ppi_get       (const union filedescriptor *fdp, int reg, int bit);
+  int ppi_get(const union filedescriptor *fdp, int reg, int bit);
 
-int ppi_set       (const union filedescriptor *fdp, int reg, int bit);
+  int ppi_set(const union filedescriptor *fdp, int reg, int bit);
 
-int ppi_clr       (const union filedescriptor *fdp, int reg, int bit);
+  int ppi_clr(const union filedescriptor *fdp, int reg, int bit);
 
-int ppi_getall    (const union filedescriptor *fdp, int reg);
+  int ppi_getall(const union filedescriptor *fdp, int reg);
 
-int ppi_setall    (const union filedescriptor *fdp, int reg, int val);
+  int ppi_setall(const union filedescriptor *fdp, int reg, int val);
 
-int ppi_toggle    (const union filedescriptor *fdp, int reg, int bit);
+  int ppi_toggle(const union filedescriptor *fdp, int reg, int bit);
 
-void ppi_open     (const char *port, union filedescriptor *fdp);
+  void ppi_open(const char *port, union filedescriptor *fdp);
 
-void ppi_close    (const union filedescriptor *fdp);
+  void ppi_close(const union filedescriptor *fdp);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
-
