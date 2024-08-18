@@ -25,11 +25,11 @@
 extern "C" {
 #endif
 
-extern const char teensy_desc[];
-void teensy_initpgm(PROGRAMMER *pgm);
+  extern const char teensy_desc[];
+  void teensy_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* teensy_h */
+#endif
