@@ -33,7 +33,6 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-
 // Is s a multi-memory string (comma-separates list, all, ALL, etc or list subtraction)?
 static int is_multimem(const char *s) {
   return str_eq(s, "ALL") || str_eq(s, "all") || str_eq(s, "etc") || strpbrk(s, "-,\\");
@@ -42,21 +41,23 @@ static int is_multimem(const char *s) {
 /*
  * Parsing of [<memory>:<op>:<file>[:<fmt>] | <file>[:<fmt>]]
  *
- * As memory names don't contain colons and the r/w/v operation <op> is
- * a single character, check whether the first two colons sandwich one
- * character. If not, treat the argument as a filename (defaulting to
- * flash write). This allows colons in filenames other than those for
- * enclosing <op> and separating <fmt>, eg, C:/some/file.hex
+ * As memory names don't contain colons and the r/w/v operation <op> is a
+ * single character, check whether the first two colons sandwich one character.
+ * If not, treat the argument as a filename (defaulting to flash write). This
+ * allows colons in filenames other than those for enclosing <op> and
+ * separating <fmt>, eg, C:/some/file.hex
  */
 UPDATE *parse_op(const char *s) {
   // Assume -U <file>[:<fmt>] first
   UPDATE *upd = (UPDATE *) mmt_malloc(sizeof *upd);
+
   upd->memstr = NULL;           // Defaults to flash or application
   upd->op = DEVICE_WRITE;
   const char *fn = s;
 
   // Check for <memory>:c: start in which case override defaults
   const char *fc = strchr(s, ':');
+
   if(fc && fc[1] && fc[2] == ':') {
     if(!strchr("rwv", fc[1])) {
       pmsg_error("invalid I/O mode :%c: in -U %s\n", fc[1], s);
@@ -66,21 +67,18 @@ UPDATE *parse_op(const char *s) {
       return NULL;
     }
 
-    upd->memstr = memcpy(mmt_malloc(fc-s+1), s, fc-s);
-    upd->op =
-      fc[1]=='r'? DEVICE_READ:
-      fc[1]=='w'? DEVICE_WRITE: DEVICE_VERIFY;
-    fn = fc+3;
+    upd->memstr = memcpy(mmt_malloc(fc - s + 1), s, fc - s);
+    upd->op = fc[1] == 'r'? DEVICE_READ: fc[1] == 'w'? DEVICE_WRITE: DEVICE_VERIFY;
+    fn = fc + 3;
   }
-
-   // Autodetect for file reads, and hex (multi-mem)/raw (single mem) for file writes
-  upd->format = upd->op != DEVICE_READ? FMT_AUTO:
-    is_multimem(upd->memstr)? FMT_IHXC: FMT_RBIN;
+  // Autodetect for file reads, and hex (multi-mem)/raw (single mem) for file writes
+  upd->format = upd->op != DEVICE_READ? FMT_AUTO: is_multimem(upd->memstr)? FMT_IHXC: FMT_RBIN;
 
   // Filename: last char is format if the penultimate char is a colon
   size_t len = strlen(fn);
-  if(len > 2 && fn[len-2] == ':') { // Assume format specified
-    upd->format = fileio_format_with_errmsg(fn[len-1], "");
+
+  if(len > 2 && fn[len - 2] == ':') {   // Assume format specified
+    upd->format = fileio_format_with_errmsg(fn[len - 1], "");
     if(upd->format == FMT_ERROR) {
       mmt_free(upd->memstr);
       mmt_free(upd);
@@ -89,15 +87,15 @@ UPDATE *parse_op(const char *s) {
     len -= 2;
   }
 
-  upd->filename = memcpy(mmt_malloc(len+1), fn, len);
+  upd->filename = memcpy(mmt_malloc(len + 1), fn, len);
 
   return upd;
 }
 
-
 UPDATE *dup_update(const UPDATE *upd) {
   UPDATE *u = (UPDATE *) mmt_malloc(sizeof *u);
-  memcpy(u, upd, sizeof*u);
+
+  memcpy(u, upd, sizeof *u);
   u->memstr = upd->memstr? mmt_strdup(upd->memstr): NULL;
   u->filename = mmt_strdup(upd->filename);
 
@@ -106,6 +104,7 @@ UPDATE *dup_update(const UPDATE *upd) {
 
 UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
   UPDATE *u = (UPDATE *) mmt_malloc(sizeof *u);
+
   u->memstr = mmt_strdup(memstr);
   u->filename = mmt_strdup(fname);
   u->op = op;
@@ -116,6 +115,7 @@ UPDATE *new_update(int op, const char *memstr, int filefmt, const char *fname) {
 
 UPDATE *cmd_update(const char *cmd) {
   UPDATE *u = (UPDATE *) mmt_malloc(sizeof *u);
+
   u->cmdline = cmd;
 
   return u;
@@ -132,13 +132,10 @@ void free_update(UPDATE *u) {
 
 char *update_str(const UPDATE *upd) {
   if(upd->cmdline)
-    return mmt_sprintf("-%c %s",
-      str_eq("interactive terminal", upd->cmdline)? 't': 'T', upd->cmdline);
-  return mmt_sprintf("-U %s:%c:%s:%c",
-    upd->memstr,
+    return mmt_sprintf("-%c %s", str_eq("interactive terminal", upd->cmdline)? 't': 'T', upd->cmdline);
+  return mmt_sprintf("-U %s:%c:%s:%c", upd->memstr,
     upd->op == DEVICE_READ? 'r': upd->op == DEVICE_WRITE? 'w': 'v',
-    upd->filename,
-    fileio_fmtchr(upd->format));
+    upd->filename, fileio_fmtchr(upd->format));
 }
 
 // Memory statistics considering holes after a file read returned size bytes
@@ -162,6 +159,7 @@ int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp) 
   }
 
   int pgsize = mem->page_size;
+
   if(pgsize < 1)
     pgsize = 1;
 
@@ -172,9 +170,11 @@ int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp) 
 
   ret.lastaddr = -1;
   int firstset = 0, insection = 0;
+
   // Scan all memory
-  for(int addr = 0; addr < mem->size; ) {
+  for(int addr = 0; addr < mem->size;) {
     int pageset = 0;
+
     // Go page by page
     for(int pgi = 0; pgi < pgsize; pgi++, addr++) {
       if(mem->tags[addr] & TAG_ALLOCATED) {
@@ -183,7 +183,7 @@ int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp) 
           ret.firstaddr = addr;
         }
         ret.lastaddr = addr;
-        // size can be smaller than tags suggest owing to flash trailing-0xff
+        // Size can be smaller than tags suggest owing to flash trailing-0xff
         if(addr < size) {
           ret.nbytes++;
           if(!pageset) {
@@ -214,7 +214,6 @@ int memstats_mem(const AVRPART *p, const AVRMEM *mem, int size, Filestats *fsp) 
   return LIBAVRDUDE_SUCCESS;
 }
 
-
 // Helper functions for dry run to determine file access
 
 int update_is_okfile(const char *fn) {
@@ -238,6 +237,7 @@ int update_is_writeable(const char *fn) {
 
   // File does not exist: try to create it
   FILE *test = fopen(fn, "w");
+
   if(test) {
     unlink(fn);
     fclose(test);
@@ -256,7 +256,6 @@ int update_is_readable(const char *fn) {
   // File exists, is readable by the process and an OK file type?
   return access(fn, R_OK) == 0 && update_is_okfile(fn);
 }
-
 
 static void ioerror(const char *iotype, const UPDATE *upd) {
   int errnocp = errno;
@@ -278,8 +277,7 @@ static int is_interesting_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 static int is_backup_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem) {
   return mem_is_in_flash(mem)? mem_is_flash(mem):
     mem_is_in_sigrow(mem)? mem_is_sigrow(mem):
-    mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p):
-    is_interesting_mem(pgm, p, mem);
+    mem_is_in_fuses(mem)? mem_is_fuses(mem) || !avr_locate_fuses(p): is_interesting_mem(pgm, p, mem);
 }
 
 // Add (not == 0) or subtract (not == 1) a memory from list
@@ -304,11 +302,10 @@ static int memadd(AVRMEM **mlist, int nm, int not, AVRMEM *m) {
  * to *np and *rwvsoftfail indicating unknown memories for this part. If dry is
  * set then -1 will be written to *dry when a generally unknown memory is used.
  */
-AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p,
-  int *np, int *rwvsoftp, int *dry) {
+AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p, int *np, int *rwvsoftp, int *dry) {
 
-  int not, nm = (lsize(p->mem) + 1) * ((int) str_numc(mstr, ',') + 1); // Upper limit
-  AVRMEM *m, **umemlist = mmt_malloc(nm*sizeof*umemlist);
+  int not, nm = (lsize(p->mem) + 1)*((int) str_numc(mstr, ',') + 1);  // Upper limit
+  AVRMEM *m, **umemlist = mmt_malloc(nm*sizeof *umemlist);
   char *dstr = mmt_strdup(mstr), *s = dstr, *e;
 
   nm = 0;                       // Now count how many there really are mentioned
@@ -317,16 +314,16 @@ AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p,
     if(e)
       *e = 0;
     s = str_trim(s);
-    if((not = *s == '\\' || *s =='-'))  // \mem or -mem removes the memory
+    if((not = *s == '\\' || *s == '-')) // \mem or -mem removes the memory
       s++;
     if(str_eq(s, "ALL")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_interesting_mem(pgm, p, (m = ldata(lm))))
-          nm = memadd(umemlist, nm, not,  m);
+          nm = memadd(umemlist, nm, not, m);
     } else if(str_eq(s, "all") || str_eq(s, "etc")) {
       for(LNODEID lm = lfirst(p->mem); lm; lm = lnext(lm))
         if(is_backup_mem(pgm, p, (m = ldata(lm))))
-          nm = memadd(umemlist, nm, not,  m);
+          nm = memadd(umemlist, nm, not, m);
     } else if(!*s) {            // Ignore empty list elements
     } else {
       if(dry) {
@@ -340,7 +337,7 @@ AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p,
           *dry = LIBAVRDUDE_SOFTFAIL;
       }
       if((m = avr_locate_mem(p, s)))
-        nm = memadd(umemlist, nm, not,  m);
+        nm = memadd(umemlist, nm, not, m);
       else if(rwvsoftp) {
         pmsg_warning("skipping unknown memory %s in list -U %s:...\n", s, mstr);
         *rwvsoftp = 1;
@@ -348,11 +345,12 @@ AVRMEM **memory_list(const char *mstr, const PROGRAMMER *pgm, const AVRPART *p,
     }
     if(!e)
       break;
-    s = e+1;
+    s = e + 1;
   }
   mmt_free(dstr);
 
   int nj = 0;
+
   for(int i = 0; i < nm; i++)   // Remove NULL entries
     if((umemlist[nj] = umemlist[i]))
       nj++;
@@ -365,17 +363,17 @@ done:
   return umemlist;
 }
 
-
 // Returns whether or not the memory list contains a flash memory
 int memlist_contains_flash(const char *mstr, const AVRPART *p) {
   int ret = 0, nm = 0;
   AVRMEM **mlist = memory_list(mstr, NULL, p, &nm, NULL, NULL);
-  for(int i=0; i<nm; i++)
+
+  for(int i = 0; i < nm; i++)
     if(mem_is_in_flash(mlist[i]))
       ret = 1;
 
-   mmt_free(mlist);
-   return ret;
+  mmt_free(mlist);
+  return ret;
 }
 
 // Basic checks to reveal serious failure before programming (and on autodetect set format)
@@ -383,7 +381,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
   int known, format_detect, ret = LIBAVRDUDE_SUCCESS;
 
   if(upd->cmdline) {            // Todo: parse terminal command line?
-    cx->upd_termcmds = mmt_realloc(cx->upd_termcmds, sizeof(*cx->upd_termcmds) * (cx->upd_nterms+1));
+    cx->upd_termcmds = mmt_realloc(cx->upd_termcmds, sizeof(*cx->upd_termcmds)*(cx->upd_nterms + 1));
     cx->upd_termcmds[cx->upd_nterms++] = upd->cmdline;
     return 0;
   }
@@ -410,7 +408,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       errno = 0;
       if(!known && !update_is_readable(upd->filename)) {
         ioerror("readable", upd);
-        ret = LIBAVRDUDE_SOFTFAIL; // Even so it might still be there later on
+        ret = LIBAVRDUDE_SOFTFAIL;      // Even so it might still be there later on
         known = 1;              // Pretend we know it, so no auto detect needed
       }
     }
@@ -428,12 +426,11 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       upd->format = format_detect;
       if(quell_progress < 2)
         pmsg_notice2("%s file %s auto detected as %s\n",
-          upd->op == DEVICE_READ? "output": "input", upd->filename,
-          fileio_fmtstr(upd->format));
+          upd->op == DEVICE_READ? "output": "input", upd->filename, fileio_fmtstr(upd->format));
     }
   }
 
-  switch(upd->op) {
+  switch (upd->op) {
   case DEVICE_READ:
     if(upd->format == FMT_IMM) {
       pmsg_error("invalid file format 'immediate' for output\n");
@@ -443,15 +440,15 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
       if(!update_is_writeable(upd->filename)) {
         ioerror("writeable", upd);
         ret = LIBAVRDUDE_SOFTFAIL;
-      } else if(upd->filename) { // Record filename (other than stdout) is available for future reads
+      } else if(upd->filename) {        // Record filename (other than stdout) is available for future reads
         if(!str_eq(upd->filename, "-") &&
-          (cx->upd_wrote = mmt_realloc(cx->upd_wrote, sizeof(*cx->upd_wrote) * (cx->upd_nfwritten+1))))
+          (cx->upd_wrote = mmt_realloc(cx->upd_wrote, sizeof(*cx->upd_wrote)*(cx->upd_nfwritten + 1))))
           cx->upd_wrote[cx->upd_nfwritten++] = upd->filename;
       }
     }
     break;
 
-  case DEVICE_VERIFY:           // Already checked that file is readable
+  case DEVICE_VERIFY:          // Already checked that file is readable
   case DEVICE_WRITE:
     break;
 
@@ -462,7 +459,6 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
 
   return ret;
 }
-
 
 static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   const UPDATE *upd, enum updateflags flags, int size, int multiple) {
@@ -497,30 +493,26 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     if(memstats_mem(p, mem, size, &fs_patched) < 0)
       return -1;
     if(memcmp(&fs_patched, &fs, sizeof fs)) {
-      pmsg_notice("preparing flash input for device%s\n",
-        pgm->prog_modes & PM_SPM? " bootloader": "");
-        imsg_notice("%d byte%s in %d section%s %s%s",
-          fs_patched.nbytes, str_plural(fs_patched.nbytes),
-          fs_patched.nsections, str_plural(fs_patched.nsections),
-          fs_patched.nsections == 1? "": "of ",
-          str_ccinterval(fs_patched.firstaddr, fs_patched.lastaddr));
-        if(mem->page_size > 1) {
-          msg_notice(": %d page%s and %d pad byte%s",
-            fs_patched.npages, str_plural(fs_patched.npages),
-            fs_patched.nfill, str_plural(fs_patched.nfill));
-          if(fs_patched.ntrailing)
-            imsg_notice("note %d trailing 0xff byte%s",
-              fs_patched.ntrailing, str_plural(fs_patched.ntrailing));
-        }
-        msg_notice("\n");
+      pmsg_notice("preparing flash input for device%s\n", pgm->prog_modes & PM_SPM? " bootloader": "");
+      imsg_notice("%d byte%s in %d section%s %s%s",
+        fs_patched.nbytes, str_plural(fs_patched.nbytes),
+        fs_patched.nsections, str_plural(fs_patched.nsections),
+        fs_patched.nsections == 1? "": "of ", str_ccinterval(fs_patched.firstaddr, fs_patched.lastaddr));
+      if(mem->page_size > 1) {
+        msg_notice(": %d page%s and %d pad byte%s",
+          fs_patched.npages, str_plural(fs_patched.npages), fs_patched.nfill, str_plural(fs_patched.nfill));
+        if(fs_patched.ntrailing)
+          imsg_notice("note %d trailing 0xff byte%s", fs_patched.ntrailing, str_plural(fs_patched.ntrailing));
+      }
+      msg_notice("\n");
       memcpy(&fs, &fs_patched, sizeof fs);
     }
   }
-
   // Write the buffer contents to the selected memory
   int spellout = size > 0 && size <= 4 && fs.nbytes == size;
+
   pmsg_info("writing %d byte%s %sto %s", fs.nbytes, str_plural(fs.nbytes),
-    spellout? str_ccprintf("(0x%s) ", str_cchex(mem->buf, size, 1)+1): "", m_name);
+    spellout? str_ccprintf("(0x%s) ", str_cchex(mem->buf, size, 1) + 1): "", m_name);
 
   if(flags & UF_NOWRITE) {
     // Test mode: write to stdout in intel hex rather than to the chip
@@ -556,9 +548,10 @@ static int update_avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   led_set(pgm, LED_VFY);
   if(pbar)
-    report_progress (0, 1, caption);
+    report_progress(0, 1, caption);
   int rc = avr_read_mem(pgm, p, mem, v);
-  report_progress (1, 1, NULL);
+
+  report_progress(1, 1, NULL);
   if(rc < 0) {
     pmsg_error("unable to read all of %s (rc = %d)\n", m_name, rc);
     led_set(pgm, LED_ERR);
@@ -571,9 +564,9 @@ static int update_avr_verify(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     led_set(pgm, LED_ERR);
     goto error;
   }
-
   // @@@ has there has been output in the meantime to make the ", x bytes verified" look out of place?
   int verified = fs.nbytes + fs.ntrailing;
+
   if(pbar || upd->op == DEVICE_VERIFY)
     pmsg_info("%d byte%s of %s verified\n", verified, str_plural(verified), m_name);
   else
@@ -587,26 +580,27 @@ error:
   return retval;
 }
 
-static int update_mem_from_all(const UPDATE *upd, const AVRPART *p, const AVRMEM *m,
-  const AVRMEM *all, int allsize) {
+static int update_mem_from_all(const UPDATE *upd, const AVRPART *p, const AVRMEM *m, const AVRMEM *all, int allsize) {
 
   const char *m_name = avr_mem_name(p, m);
   int off = fileio_mem_offset(p, m);
+
   if(off < 0) {
     pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
     return LIBAVRDUDE_GENERAL_FAILURE;
   }
   // Copy input file contents into memory
   int size = m->size;
-  if(allsize-off < size)  // Clip to available data in input
-    size = allsize > off? allsize-off: 0;
-  if(is_memset(all->tags+off, 0, size)) // Nothing set? This memory was not present
+
+  if(allsize - off < size)      // Clip to available data in input
+    size = allsize > off? allsize - off: 0;
+  if(is_memset(all->tags + off, 0, size))       // Nothing set? This memory was not present
     size = 0;
   if(size == 0)
     pmsg_warning("%s has no data for %s, skipping ...\n", str_infilename(upd->filename), m_name);
 
-  memcpy(m->buf, all->buf+off, size);
-  memcpy(m->tags, all->tags+off, size);
+  memcpy(m->buf, all->buf + off, size);
+  memcpy(m->tags, all->tags + off, size);
 
   return size;
 }
@@ -616,6 +610,7 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
   // On writing to the device trailing 0xff might be cut off
   int op = upd->op == DEVICE_WRITE? FIO_READ: FIO_READ_FOR_VERIFY;
   int allsize = fileio_mem(op, upd->filename, upd->format, p, all, -1);
+
   if(allsize < 0) {
     pmsg_error("reading from file %s failed\n", str_infilename(upd->filename));
     return -1;
@@ -626,7 +621,7 @@ static int update_all_from_file(const UPDATE *upd, const PROGRAMMER *pgm, const 
     "reading %d byte%s for %s from input file %s\n":
     "verifying %d byte%s of %s against input file %s\n",
     fsp->nbytes, str_plural(fsp->nbytes), mem_desc, str_infilename(upd->filename)
-  );
+    );
 
   return allsize;
 }
@@ -639,7 +634,8 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   const char *umstr = upd->memstr;
 
   if(!(flags & UF_NOHEADING)) {
-    char *heading  = update_str(upd);
+    char *heading = update_str(upd);
+
     lmsg_info("\n");            // Ensure an empty line for visual separation of operations
     pmsg_info("processing %s\n", heading);
     mmt_free(heading);
@@ -663,13 +659,12 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       mmt_free(umemlist);
       return LIBAVRDUDE_SOFTFAIL;
     }
-
     // Maximum length of memory names for to-be-processed memories
-    for(int i=0; i<ns; i++)
+    for(int i = 0; i < ns; i++)
       if((len = strlen(avr_mem_name(p, umemlist[i]))) > maxrlen)
         maxrlen = len;
 
-    seglist = mmt_malloc(ns*sizeof*seglist);
+    seglist = mmt_malloc(ns*sizeof *seglist);
   }
 
   mem = umemlist? fileio_any_memory("any"): avr_locate_mem(p, umstr);
@@ -679,10 +674,10 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   }
 
   const char *rcap = str_ccprintf("%*sReading", (int) strlen(progbuf), "");
-  const char *mem_desc = !umemlist? avr_mem_name(p, mem):
-    ns==1? avr_mem_name(p, umemlist[0]): "multiple memories";
+  const char *mem_desc = !umemlist? avr_mem_name(p, mem): ns == 1? avr_mem_name(p, umemlist[0]): "multiple memories";
   int rc = 0;
-  switch(upd->op) {
+
+  switch (upd->op) {
   case DEVICE_READ:
     // Read out the specified device memory and write it to a file
     if(upd->format == FMT_IMM) {
@@ -704,6 +699,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
        * paged memories to be erased first, so the code goes the full hog.
        */
       int dffo = cx->avr_disableffopt;
+
       cx->avr_disableffopt = 1;
       if(upd->format != FMT_IHEX && upd->format != FMT_IHXC && upd->format != FMT_SREC && upd->format != FMT_ELF) {
         pmsg_warning("generating %s file format with multiple memories that cannot\n", fileio_fmtstr(upd->format));
@@ -711,12 +707,15 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       }
       pmsg_info("reading %s ...\n", mem_desc);
       int nn = 0, nbytes = 0;
+
       for(int ii = 0; ii < ns; ii++) {
         m = umemlist[ii];
         const char *m_name = avr_mem_name(p, m);
         const char *cap = str_ccprintf("%*s - %-*s", (int) strlen(progbuf), "", maxrlen, m_name);
+
         report_progress(0, 1, cap);
         int ret = avr_read_mem(pgm, p, m, NULL);
+
         report_progress(1, 1, NULL);
         if(ret < 0) {
           pmsg_warning("unable to read %s (ret = %d), skipping...\n", m_name, ret);
@@ -724,6 +723,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
           continue;
         }
         unsigned off = fileio_mem_offset(p, m);
+
         if(off == ~0U) {
           pmsg_warning("cannot map %s to flat address space, skipping ...\n", m_name);
           rwvproblem = 1;
@@ -731,7 +731,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
         }
         if(ret > 0) {
           // Copy individual memory into multi memory
-          memcpy(mem->buf+off, m->buf, ret);
+          memcpy(mem->buf + off, m->buf, ret);
           seglist[nn].addr = off;
           seglist[nn].len = ret;
           nbytes += ret;
@@ -739,8 +739,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
         }
       }
 
-      pmsg_info("writing %d byte%s to output file %s\n",
-        nbytes, str_plural(nbytes), str_outfilename(upd->filename));
+      pmsg_info("writing %d byte%s to output file %s\n", nbytes, str_plural(nbytes), str_outfilename(upd->filename));
       if(nn)
         rc = fileio_segments(FIO_WRITE, upd->filename, upd->format, p, mem, nn, seglist);
       else
@@ -758,8 +757,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       }
       if(rc == 0)
         pmsg_notice("empty memory, resulting file has no contents\n");
-      pmsg_info("writing %d byte%s to output file %s\n",
-        rc, str_plural(rc), str_outfilename(upd->filename));
+      pmsg_info("writing %d byte%s to output file %s\n", rc, str_plural(rc), str_outfilename(upd->filename));
       rc = fileio_mem(FIO_WRITE, upd->filename, upd->format, p, mem, rc);
     }
 
@@ -774,18 +772,21 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     if((allsize = update_all_from_file(upd, pgm, p, mem, mem_desc, &fs)) < 0)
       goto error;
     if(umemlist) {
-      for(int i=0; i<ns; i++) {
+      for(int i = 0; i < ns; i++) {
         m = umemlist[i];
         // Silently skip readonly memories and fuses/lock in bootloaders
         if(mem_is_readonly(m) || ((pgm->prog_modes & PM_SPM) && (mem_is_in_fuses(m) || mem_is_lock(m))))
           continue;
 
         int ret, size = update_mem_from_all(upd, p, m, mem, allsize);
-        switch(size) {
+
+        switch (size) {
         case LIBAVRDUDE_GENERAL_FAILURE:
-          rwvproblem = 1; break;
+          rwvproblem = 1;
+          break;
         case 0:
-          rwvsoftfail = 1; break;
+          rwvsoftfail = 1;
+          break;
         default:
           if((ret = update_avr_write(pgm, p, m, upd, flags, size, 1)) < 0) {
             pmsg_warning("unable to write %s (ret = %d), skipping...\n", avr_mem_name(p, m), ret);
@@ -804,7 +805,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
         pmsg_error("unable to write %s (rc = %d)\n", mem_desc, rc);
         goto error;
       }
-      if((flags & UF_VERIFY) && update_avr_verify(pgm, p, mem, upd, fs.lastaddr+1, rcap) < 0)
+      if((flags & UF_VERIFY) && update_avr_verify(pgm, p, mem, upd, fs.lastaddr + 1, rcap) < 0)
         goto error;
     }
     break;
@@ -814,15 +815,18 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     if((allsize = update_all_from_file(upd, pgm, p, mem, mem_desc, &fs)) < 0)
       goto error;
     if(umemlist) {
-      for(int i=0; i<ns; i++) {
+      for(int i = 0; i < ns; i++) {
         m = umemlist[i];
 
         int size = update_mem_from_all(upd, p, m, mem, allsize);
-        switch(size) {
+
+        switch (size) {
         case LIBAVRDUDE_GENERAL_FAILURE:
-          rwvproblem = 1; break;
+          rwvproblem = 1;
+          break;
         case 0:
-          rwvsoftfail = 1; break;
+          rwvsoftfail = 1;
+          break;
         default:
           if(update_avr_verify(pgm, p, m, upd, size, rcap) < 0) {
             rwvproblem = 1;
@@ -841,9 +845,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
     goto error;
   }
 
-  retval =
-    rwvproblem? LIBAVRDUDE_GENERAL_FAILURE:
-    rwvsoftfail? LIBAVRDUDE_SOFTFAIL: LIBAVRDUDE_SUCCESS;
+  retval = rwvproblem? LIBAVRDUDE_GENERAL_FAILURE: rwvsoftfail? LIBAVRDUDE_SOFTFAIL: LIBAVRDUDE_SUCCESS;
 
 error:
   if(umemlist) {
