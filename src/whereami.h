@@ -11,13 +11,14 @@ extern "C" {
 #endif
 
 #ifndef WAI_FUNCSPEC
-  #define WAI_FUNCSPEC
+#define WAI_FUNCSPEC
 #endif
+
 #ifndef WAI_PREFIX
 #define WAI_PREFIX(function) wai_##function
 #endif
 
-/**
+/*
  * Returns the path to the current executable.
  *
  * Usage:
@@ -36,10 +37,9 @@ extern "C" {
  * @return the length of the executable path on success (without a terminal NUL
  * character), otherwise `-1`
  */
-WAI_FUNCSPEC
-int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length);
+  WAI_FUNCSPEC int WAI_PREFIX(getExecutablePath) (char *out, int capacity, int *dirname_length);
 
-/**
+/*
  * Returns the path to the current module
  *
  * Usage:
@@ -57,11 +57,9 @@ int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length);
  * @return the length of the module path on success (without a terminal NUL
  * character), otherwise `-1`
  */
-WAI_FUNCSPEC
-int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length);
+   WAI_FUNCSPEC int WAI_PREFIX(getModulePath) (char *out, int capacity, int *dirname_length);
 
 #ifdef __cplusplus
 }
 #endif
-
-#endif // #ifndef WHEREAMI_H
+#endif                          // #ifndef WHEREAMI_H
