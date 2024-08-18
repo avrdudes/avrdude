@@ -22,6 +22,7 @@
 #include <stdio.h>
 
 #define SYSTEM_CONF_FILE "avrdude.conf"
+
 #if defined(WIN32)
 #define USER_CONF_FILE "avrdude.rc"
 #else
@@ -29,13 +30,13 @@
 #define XDG_USER_CONF_FILE "avrdude/avrdude.rc"
 #endif
 
-extern char *progname;       // Name of program, for messages
-#define progbuf           "" // Used to be for indenting continuation below "avrdude: msg"
-extern int ovsigck;          // Override signature check (-F)
-extern int verbose;          // Verbosity level (-v, -vv, ...)
-extern int quell_progress;   // Quell progress report -q, reduce effective verbosity level (-qq, -qqq)
-extern const char *partdesc; // Part -p string
-extern const char *pgmid;    // Programmer -c string
+#define progbuf ""              // Used to be for indenting continuation below "avrdude: msg"
+extern char *progname;          // Name of program, for messages
+extern int ovsigck;             // Override signature check (-F)
+extern int verbose;             // Verbosity level (-v, -vv, ...)
+extern int quell_progress;      // Quell progress report -q, reduce effective verbosity level (-qq, -qqq)
+extern const char *partdesc;    // Part -p string
+extern const char *pgmid;       // Programmer -c string
 
 // Magic memory tree: these functions succeed or exit()
 #define mmt_strdup(s) cfg_strdup(__func__, s)
@@ -46,9 +47,9 @@ extern const char *pgmid;    // Programmer -c string
 
 int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int msgmode, int msglvl, const char *format, ...)
 #if defined(__GNUC__)           // Ask gcc to check whether format and parameters match
-   __attribute__ ((format (printf, 7, 8)))
+  __attribute__((format(printf, 7, 8)))
 #endif
-;
+  ;
 
 // Shortcuts
 #define msg_ext_error(...)  avrdude_message2(stderr, __LINE__, __FILE__, __func__, 0, MSG_EXT_ERROR, __VA_ARGS__)
@@ -95,5 +96,4 @@ int avrdude_message2(FILE *fp, int lno, const char *file, const char *func, int 
 #define lterm_out(...)      avrdude_message2(stdout, __LINE__, __FILE__, __func__, MSG2_FLUSH|MSG2_LEFT_MARGIN, MSG_INFO, __VA_ARGS__)
 
 #define fmsg_out(fp, ...)   avrdude_message2(fp, __LINE__, __FILE__, __func__, MSG2_FLUSH, MSG_INFO, __VA_ARGS__)
-
 #endif
