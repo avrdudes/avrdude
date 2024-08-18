@@ -293,7 +293,7 @@ static int micronucleus_erase_device(struct pdata *pdata) {
     MICRONUCLEUS_DEFAULT_TIMEOUT);
 
   if(result < 0) {
-    switch (result) {
+    switch(result) {
     case -EIO:
     case -EPIPE:
       pmsg_notice("ignoring last error of erase command: %s\n", usb_strerror());

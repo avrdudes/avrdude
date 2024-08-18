@@ -829,7 +829,7 @@ static const char *flip2_status_str(const struct dfu_status *status) {
   selector = (unsigned short) status->bStatus << 8;
   selector |= status->bState;
 
-  switch (selector) {
+  switch(selector) {
   case FLIP2_STATUS_OK:
     return "OK";
   case FLIP2_STATUS_STALL:
@@ -850,7 +850,7 @@ static const char *flip2_status_str(const struct dfu_status *status) {
 }
 
 static const char *flip2_mem_unit_str(enum flip2_mem_unit mem_unit) {
-  switch (mem_unit) {
+  switch(mem_unit) {
   case FLIP2_MEM_UNIT_FLASH:
     return "Flash";
   case FLIP2_MEM_UNIT_EEPROM:

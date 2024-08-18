@@ -66,9 +66,9 @@ typedef struct {
 // Use private programmer data as if they were a global structure dry
 #define dry (*(Dryrun_data *)(pgm->cookie))
 
-#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
+#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while(0)
 #define Retwarning(...) do { pmsg_warning(__VA_ARGS__); \
-  msg_warning("; not initialising %s memories\n", p->desc); return -1; } while (0)
+  msg_warning("; not initialising %s memories\n", p->desc); return -1; } while(0)
 
 static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned int addr);
 
@@ -441,7 +441,7 @@ static void putflash(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
   unsigned char *top = flm->buf + addr + n - 4;
 
   if(dry.random) {
-    switch (bi) {
+    switch(bi) {
     case U384:
     case U512:
     case BDATA:                // Bootloader stuff, reduce code length a little

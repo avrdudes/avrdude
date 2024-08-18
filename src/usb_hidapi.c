@@ -222,7 +222,7 @@ static int usbhid_open(const char *port, union pinfo pinfo, union filedescriptor
     fd->usb.max_xfer = 64;      // First guess
 
     memset(usbbuf, 0, sizeof usbbuf);
-    int res = hid_read_timeout(dev, usbbuf, 10 /* bytes */ , 50 /* milliseconds */ );
+    int res = hid_read_timeout(dev, usbbuf, 10 /* bytes */ , 50 /* milliseconds */);
 
     if(res == 0) {
       // No timely response, assume 512 byte size

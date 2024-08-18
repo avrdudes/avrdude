@@ -264,7 +264,7 @@ static void par_close(PROGRAMMER *pgm) {
   par_setmany(pgm, PPI_AVR_BUFF, 1);
 
   // Handle exit specs
-  switch (pgm->exit_reset) {
+  switch(pgm->exit_reset) {
   case EXIT_RESET_ENABLED:
     par_setpin(pgm, PIN_AVR_RESET, 0);
     break;
@@ -278,7 +278,7 @@ static void par_close(PROGRAMMER *pgm) {
     break;
   }
 
-  switch (pgm->exit_datahigh) {
+  switch(pgm->exit_datahigh) {
   case EXIT_DATAHIGH_ENABLED:
     ppi_setall(&pgm->fd, PPIDATA, 0xff);
     break;
@@ -292,7 +292,7 @@ static void par_close(PROGRAMMER *pgm) {
     break;
   }
 
-  switch (pgm->exit_vcc) {
+  switch(pgm->exit_vcc) {
   case EXIT_VCC_ENABLED:
     par_setmany(pgm, PPI_AVR_VCC, 1);
     break;

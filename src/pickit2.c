@@ -853,7 +853,7 @@ static HANDLE open_hid(unsigned short vid, unsigned short pid) {
 
       // Free the memory used by the detailData structure (no longer needed)
       mmt_free(detailData);
-    } else                      // if (Result != 0)
+    } else                      // if(Result != 0)
       // SetupDiEnumDeviceInterfaces returned 0, so there are no more devices to check.
       LastDevice = TRUE;
 

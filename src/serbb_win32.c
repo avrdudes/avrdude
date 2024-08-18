@@ -79,7 +79,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   if(pin < 1 || pin > DB9PINS)
     return -1;
 
-  switch (pin) {
+  switch(pin) {
   case 3:                      // txd
     dwFunc = value? SETBREAK: CLRBREAK;
     name = value? "SETBREAK": "CLRBREAK";
@@ -152,7 +152,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
       return -1;
     }
     pmsg_trace2("%s(): GetCommState() => 0x%lx\n", __func__, modemstate);
-    switch (pin) {
+    switch(pin) {
     case 1:
       modemstate &= MS_RLSD_ON;
       break;
@@ -170,7 +170,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
     return rv;
   }
 
-  switch (pin) {
+  switch(pin) {
   case 3:                      // txd
     rv = my.txd;
     name = "TXD";

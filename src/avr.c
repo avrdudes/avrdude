@@ -423,7 +423,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
       // Check whether this page must be read
       for(i = pageaddr; i < pageaddr + mem->page_size; i++) {
         // No verify: read everything; verify: only read needed pages in input file
-        if(vmem == NULL || (mem->tags[i] & TAG_ALLOCATED) != 0 ) {
+        if(vmem == NULL || (mem->tags[i] & TAG_ALLOCATED) != 0) {
           npages++;
           break;
         }

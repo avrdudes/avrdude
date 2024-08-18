@@ -42,7 +42,7 @@
 #include "updi_state.h"
 
 int updi_nvm_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_chip_erase_V0(pgm, p);
   case UPDI_NVM_MODE_V2:
@@ -60,7 +60,7 @@ int updi_nvm_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 int updi_nvm_erase_flash_page(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_erase_flash_page_V0(pgm, p, address);
   case UPDI_NVM_MODE_V2:
@@ -78,7 +78,7 @@ int updi_nvm_erase_flash_page(const PROGRAMMER *pgm, const AVRPART *p, uint32_t 
 }
 
 int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_erase_eeprom_V0(pgm, p);
   case UPDI_NVM_MODE_V2:
@@ -96,7 +96,7 @@ int updi_nvm_erase_eeprom(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_erase_user_row_V0(pgm, p, address, size);
   case UPDI_NVM_MODE_V2:
@@ -116,7 +116,7 @@ int updi_nvm_erase_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
 int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
   unsigned char *buffer, uint16_t size) {
 
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_write_flash_V0(pgm, p, address, buffer, size);
   case UPDI_NVM_MODE_V2:
@@ -136,7 +136,7 @@ int updi_nvm_write_flash(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addre
 int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
   unsigned char *buffer, uint16_t size) {
 
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_write_user_row_V0(pgm, p, address, buffer, size);
   case UPDI_NVM_MODE_V2:
@@ -156,7 +156,7 @@ int updi_nvm_write_user_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
 int updi_nvm_write_boot_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
   unsigned char *buffer, uint16_t size) {
 
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_write_boot_row_V0(pgm, p, address, buffer, size);
   case UPDI_NVM_MODE_V2:
@@ -176,7 +176,7 @@ int updi_nvm_write_boot_row(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
 int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
   unsigned char *buffer, uint16_t size) {
 
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_write_eeprom_V0(pgm, p, address, buffer, size);
   case UPDI_NVM_MODE_V2:
@@ -194,7 +194,7 @@ int updi_nvm_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addr
 }
 
 int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_write_fuse_V0(pgm, p, address, value);
   case UPDI_NVM_MODE_V2:
@@ -212,7 +212,7 @@ int updi_nvm_write_fuse(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
 }
 
 int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_wait_ready_V0(pgm, p);
   case UPDI_NVM_MODE_V2:
@@ -230,7 +230,7 @@ int updi_nvm_wait_ready(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 int updi_nvm_command(const PROGRAMMER *pgm, const AVRPART *p, uint8_t command) {
-  switch (updi_get_nvm_mode(pgm)) {
+  switch(updi_get_nvm_mode(pgm)) {
   case UPDI_NVM_MODE_V0:
     return updi_nvm_command_V0(pgm, p, command);
   case UPDI_NVM_MODE_V2:

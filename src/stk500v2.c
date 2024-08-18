@@ -536,7 +536,7 @@ static int stk500v2_jtagmkII_recv(const PROGRAMMER *pgm, unsigned char *msg, siz
     pmsg_warning("got %u bytes, have only room for %u bytes\n", (unsigned) rv - 1, (unsigned) maxsize);
     rv = maxsize;
   }
-  switch (jtagmsg[0]) {
+  switch(jtagmsg[0]) {
   case RSP_SPI_DATA:
     break;
   case RSP_FAILED:
@@ -618,7 +618,7 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
     DEBUG("0x%02x ", c);
     checksum ^= c;
 
-    switch (state) {
+    switch(state) {
     case sSTART:
       DEBUGRECV("hoping for start token ...");
       if(c == MESSAGE_START) {
@@ -823,7 +823,7 @@ retry:
       i = buf[0] == CMD_XPROG_SETMODE? 1: 2;
 
       if(buf[i] != XPRG_ERR_OK) {
-        switch (buf[i]) {
+        switch(buf[i]) {
         case XPRG_ERR_FAILED:
           msg = "Failed";
           break;
@@ -847,7 +847,7 @@ retry:
         const char *msg;
         char msgbuf[30];
 
-        switch (buf[1]) {
+        switch(buf[1]) {
         case STATUS_CMD_TOUT:
           msg = "Command timed out";
           break;
@@ -1051,7 +1051,7 @@ retry:
   rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
 
   if(rv < 0) {
-    switch (PDATA(pgm)->pgmtype) {
+    switch(PDATA(pgm)->pgmtype) {
     case PGMTYPE_STK600:
     case PGMTYPE_AVRISP_MKII:
       if(stk500v2_getparm(pgm, PARAM_STATUS_TGT_CONN, &buf[0]) != 0) {
@@ -1527,7 +1527,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
         int prescale = 1;
 
         f_get = PDATA(pgm)->xtal/2;
-        switch (osc_pscale) {
+        switch(osc_pscale) {
         case 2:
           prescale = 8;
           break;
@@ -3242,7 +3242,7 @@ static int stk500v2_set_sck_period_mk2(const PROGRAMMER *pgm, double v) {
 
 // Return the "mode" value for the parallel and HVSP modes that corresponds to* the pagesize
 static unsigned int stk500v2_mode_for_pagesize(unsigned int pagesize) {
-  switch (pagesize) {
+  switch(pagesize) {
   case 256:
     return 0u << 1;
   case 2:
@@ -3377,7 +3377,7 @@ static int stk600_set_varef(const PROGRAMMER *pgm, unsigned int chan, double v) 
     return -1;
   }
 
-  switch (chan) {
+  switch(chan) {
   case 0:
     return stk500v2_setparm2(pgm, PARAM2_AREF0, uaref);
 
@@ -3575,7 +3575,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
 
   if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
     stk500v2_getparm(pgm, PARAM_TOPCARD_DETECT, &topcard);
-    switch (topcard) {
+    switch(topcard) {
     case 0xAA:
       topcard_name = "STK501";
       break;
@@ -3649,7 +3649,7 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
   unsigned char sck_duration = 0;
   unsigned int sck_stk600 = 0;
 
-  switch (PDATA(pgm)->pgmtype) {
+  switch(PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
     return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0? 0: stk500v2_sck_to_us(pgm, sck_duration);
 
@@ -3710,7 +3710,7 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
   int prescale;
   double fosc = 0.0;
 
-  switch (PDATA(pgm)->pgmtype) {
+  switch(PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
     if(stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale) < 0)
       return 0.0;
@@ -3722,7 +3722,7 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
     prescale = 1;
     fosc = PDATA(pgm)->xtal/2;
 
-    switch (osc_pscale) {
+    switch(osc_pscale) {
     case 2:
       prescale = 8;
       break;
@@ -3773,7 +3773,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     fmsg_out(fp, "%sVtarget               : %.1f V\n", p, stk500v2_vtarget_value(pgm));
   }
 
-  switch (PDATA(pgm)->pgmtype) {
+  switch(PDATA(pgm)->pgmtype) {
   case PGMTYPE_STK500:
     if(pgm->extra_features & HAS_VAREF_ADJ) {
       fmsg_out(fp, "%sVaref                 : %.1f V\n", p, stk500v2_varef_value(pgm));

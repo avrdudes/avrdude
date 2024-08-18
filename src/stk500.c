@@ -569,7 +569,7 @@ retry:
       int prescale = 1;
 
       f_get = PDATA(pgm)->xtal/2;
-      switch (osc_pscale) {
+      switch(osc_pscale) {
       case 2:
         prescale = 8;
         break;
@@ -1438,7 +1438,7 @@ static void stk500_display(const PROGRAMMER *pgm, const char *p) {
   if(topcard < 3) {
     const char *n = "Unknown";
 
-    switch (topcard) {
+    switch(topcard) {
     case 1:
       n = "STK502";
       break;
@@ -1479,7 +1479,7 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
       int prescale = 1;
       double f = PDATA(pgm)->xtal/2.0;
 
-      switch (osc_pscale) {
+      switch(osc_pscale) {
       case 2:
         prescale = 8;
         break;

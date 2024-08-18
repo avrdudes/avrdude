@@ -850,7 +850,7 @@ static int prog_modes_in_flags(int prog_modes, const char *flags) {
   int pm = 0, quirky = 0;
 
   for(const char *p = flags; *p; p++)
-    switch (*p) {
+    switch(*p) {
     case 'B':
       pm |= PM_SPM;
       break;
@@ -1275,7 +1275,7 @@ static void dev_pgm_raw(const PROGRAMMER *pgm) {
 }
 
 static const char *connstr(Conntype conntype) {
-  switch (conntype) {
+  switch(conntype) {
   case CONNTYPE_LINUXGPIO:
     return "linuxgpio";
   case CONNTYPE_PARALLEL:

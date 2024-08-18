@@ -94,7 +94,7 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
   dcb.fBinary = 1;
   dcb.fDtrControl = DTR_CONTROL_DISABLE;
   dcb.fRtsControl = RTS_CONTROL_DISABLE;
-  switch ((cflags & (SERIAL_CS5 | SERIAL_CS6 | SERIAL_CS7 | SERIAL_CS8))) {
+  switch((cflags & (SERIAL_CS5 | SERIAL_CS6 | SERIAL_CS7 | SERIAL_CS8))) {
   case SERIAL_CS5:
     dcb.ByteSize = 5;
     break;
@@ -108,7 +108,7 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
     dcb.ByteSize = 8;
     break;
   }
-  switch ((cflags & (SERIAL_NO_PARITY | SERIAL_PARENB | SERIAL_PARODD))) {
+  switch((cflags & (SERIAL_NO_PARITY | SERIAL_PARENB | SERIAL_PARODD))) {
   case SERIAL_NO_PARITY:
     dcb.Parity = NOPARITY;
     break;
@@ -119,7 +119,7 @@ static int ser_setparams(const union filedescriptor *fd, long baud, unsigned lon
     dcb.Parity = ODDPARITY;
     break;
   }
-  switch ((cflags & (SERIAL_NO_CSTOPB | SERIAL_CSTOPB))) {
+  switch((cflags & (SERIAL_NO_CSTOPB | SERIAL_CSTOPB))) {
   case SERIAL_NO_CSTOPB:
     dcb.StopBits = ONESTOPBIT;
     break;

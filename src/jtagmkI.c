@@ -121,7 +121,7 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
       msg_trace("\n");
   }
 
-  switch (data[0]) {
+  switch(data[0]) {
   case RESP_OK:
     msg_info("OK\n");
     break;
@@ -1117,7 +1117,7 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
   if(jtagmkI_getparm(pgm, PARM_CLOCK, &jtag_clock) < 0)
     return;
 
-  switch ((unsigned) jtag_clock) {
+  switch((unsigned) jtag_clock) {
   case JTAG_BITRATE_1_MHz:
     clkstr = "1 MHz";
     clk = 1e6;

@@ -82,7 +82,7 @@ static int serialupdi_reset(const PROGRAMMER *pgm, reset_mode mode) {
             self.logger.info("Release reset")
             self.readwrite.write_cs(constants.UPDI_ASI_RESET_REQ, 0x00)
 */
-  switch (mode) {
+  switch(mode) {
   case APPLY_RESET:
     pmsg_debug("sending reset request\n");
     return updi_write_cs(pgm, UPDI_ASI_RESET_REQ, UPDI_RESET_REQ_VALUE);
@@ -143,7 +143,7 @@ static int serialupdi_decode_sib(const PROGRAMMER *pgm, updi_sib_info *sib_info)
   pmsg_debug("Debug interface: %s\n", sib_info->debug_string);
   pmsg_debug("PDI oscillator: %s\n", sib_info->pdi_string);
   pmsg_debug("Extra information: %s\n", sib_info->extra_string);
-  switch (sib_info->nvm_version) {
+  switch(sib_info->nvm_version) {
   case '0':
     pmsg_notice("NVM type 0: 16-bit, page oriented write\n");
     updi_set_nvm_mode(pgm, UPDI_NVM_MODE_V0);
@@ -710,7 +710,7 @@ static int serialupdi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   return -1;
 }
 
-#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while (0)
+#define Return(...) do { pmsg_error(__VA_ARGS__); msg_error("\n"); return -1; } while(0)
 
 static int serialupdi_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char *value) {

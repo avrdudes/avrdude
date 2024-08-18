@@ -57,7 +57,7 @@ struct ihexsrec {
 };
 
 char *fileio_fmtstr(FILEFMT format) {
-  switch (format) {
+  switch(format) {
   case FMT_AUTO:
     return "auto-detect";
   case FMT_SREC:
@@ -88,7 +88,7 @@ char *fileio_fmtstr(FILEFMT format) {
 }
 
 int fileio_fmtchr(FILEFMT format) {
-  switch (format) {
+  switch(format) {
   case FMT_AUTO:
     return 'a';
   case FMT_SREC:
@@ -119,7 +119,7 @@ int fileio_fmtchr(FILEFMT format) {
 }
 
 FILEFMT fileio_format(char c) {
-  switch (c) {
+  switch(c) {
   case 'a':
     return FMT_AUTO;
   case 's':
@@ -527,7 +527,7 @@ static int ihex2b(const char *infile, FILE *inf, const AVRPART *p, const AVRMEM 
 
     unsigned below = 0, anysize = any->size;
 
-    switch (ihex.rectyp) {
+    switch(ihex.rectyp) {
     case 0:                    // Data record
       if(ihex.loadofs + baseaddr < fileoffset) {
         if(!ovsigck) {
@@ -838,7 +838,7 @@ static int srec2b(const char *infile, FILE *inf, const AVRPART *p,
 
     datarec = 0;
     hexdigs = 4;
-    switch (srec.rectyp) {
+    switch(srec.rectyp) {
     case '0':                  // S0: header record, ignore
       break;
 
@@ -1128,7 +1128,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
     pmsg_error("ELF file %s is not for machine %s\n", infile, mname);
     goto done;
   }
-  if(eh->e_phnum == 0xffff /* PN_XNUM */ ) {
+  if(eh->e_phnum == 0xffff /* PN_XNUM */) {
     pmsg_error("ELF file %s uses extended program header numbers which are not expected\n", infile);
     goto done;
   }
@@ -1251,7 +1251,7 @@ static int fileio_rbin(struct fioparms *fio, const char *filename, FILE *f, cons
 
   int rc;
 
-  switch (fio->op) {
+  switch(fio->op) {
   case FIO_READ:
     rc = fread(mem->buf + segp->addr, 1, segp->len, f);
     if(rc > 0)
@@ -1283,7 +1283,7 @@ static int fileio_imm(struct fioparms *fio, const char *fname, FILE *f_unused,
 
   p = line = mmt_strdup(fname);
 
-  switch (fio->op) {
+  switch(fio->op) {
   case FIO_READ:
     while(*(tok = str_nexttok(p, ", \t\n\r\v\f", &p)) && n < end) {
       int set = str_membuf(tok, STR_ANY, mem->buf + n, end - n, &errstr);
@@ -1318,7 +1318,7 @@ static int fileio_ihex(struct fioparms *fio, const char *filename, FILE *f,
 
   int rc;
 
-  switch (fio->op) {
+  switch(fio->op) {
   case FIO_WRITE:
     rc = b2ihex(p, mem, segp, where, 32, fio->fileoffset, filename, f, ffmt);
     break;
@@ -1340,7 +1340,7 @@ static int fileio_srec(struct fioparms *fio, const char *filename, FILE *f,
 
   int rc;
 
-  switch (fio->op) {
+  switch(fio->op) {
   case FIO_WRITE:
     rc = b2srec(mem, segp, where, 32, fio->fileoffset, filename, f);
     break;
@@ -1363,7 +1363,7 @@ static int fileio_elf(struct fioparms *fio, const char *filename, FILE *f,
 
   int rc;
 
-  switch (fio->op) {
+  switch(fio->op) {
   case FIO_WRITE:
     pmsg_error("write operation not supported for ELF\n");
     return -1;
@@ -1385,7 +1385,7 @@ static int b2num(const char *filename, FILE *f, const AVRMEM *mem, const Segment
   const char *prefix;
   int base;
 
-  switch (fmt) {
+  switch(fmt) {
   case FMT_HEX:
     prefix = "0x";
     base = 16;
@@ -1484,7 +1484,7 @@ static int num2b(const char *filename, FILE *f, const AVRMEM *mem, const Segment
 static int fileio_num(struct fioparms *fio, const char *filename, FILE *f,
   const AVRMEM *mem, const Segment *segp, FILEFMT fmt) {
 
-  switch (fio->op) {
+  switch(fio->op) {
   case FIO_WRITE:
     return b2num(filename, f, mem, segp, fmt);
 
@@ -1500,7 +1500,7 @@ static int fileio_num(struct fioparms *fio, const char *filename, FILE *f,
 static int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const AVRMEM *m) {
   fp->op = op;
 
-  switch (op) {
+  switch(op) {
   case FIO_READ:
     fp->mode = "r";
     fp->iodesc = "input";
@@ -1778,7 +1778,7 @@ static int fileio_segments_normalise(int oprwv, const char *filename, FILEFMT fo
 
     int thisrc = 0;
 
-    switch (format) {
+    switch(format) {
     case FMT_IHEX:
     case FMT_IHXC:
       thisrc = fileio_ihex(&fio, fname, f, p, mem, seglist + i, format, where);

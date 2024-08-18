@@ -61,7 +61,7 @@
 // Keep track of LED status and set LED 0 .. LED_N-1 physically on or off
 static void led_direct(const PROGRAMMER *pgm, Leds *ls, int led, int what) {
   if(what ^ !!(ls->phy & (1 << led))) {
-    switch (led) {
+    switch(led) {
     case LED_RDY:
       pgm->rdy_led(pgm, what);
       break;
@@ -129,7 +129,7 @@ int led_set(const PROGRAMMER *pgm, int led) {
   Leds sanity = { 0, 0, 0, 0, 0, {0,} }, *ls = pgm->leds? pgm->leds: &sanity;
   int what = led >= 0 && led < LED_N && !(ls->now & (1 << led))? TON: CHECK;
 
-  switch (led) {
+  switch(led) {
   case LED_BEG:
     memset(ls, 0, sizeof *ls);
     led_physical(pgm, ls, LED_RDY, OFF);

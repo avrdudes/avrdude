@@ -86,7 +86,7 @@ static void delay_ms(uint32_t duration) {
 }
 
 static int teensy_get_bootloader_info(struct pdata *pdata, const AVRPART *p) {
-  switch (pdata->hid_usage) {
+  switch(pdata->hid_usage) {
   case 0x19:
     pdata->board = "Teensy 1.0 (AT90USB162)";
     pdata->flash_size = 0x4000 - 0x200;

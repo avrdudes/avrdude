@@ -31,7 +31,7 @@
 #include <stdlib.h>
 
 #define ppi_claim(fd)                               \
-  if (ioctl(fd, PPCLAIM)) {                         \
+  if(ioctl(fd, PPCLAIM)) {                          \
     pmsg_ext_error("cannot claim port %s: %s\n\n",  \
       port, strerror(errno));                       \
     close(fd);                                      \
@@ -39,7 +39,7 @@
   }
 
 #define ppi_release(fd)                             \
-  if (ioctl(fd, PPRELEASE)) {                       \
+  if(ioctl(fd, PPRELEASE)) {                        \
     pmsg_ext_error("cannot release device: %s\n\n", \
       strerror(errno));                             \
   }

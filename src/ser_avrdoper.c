@@ -86,7 +86,7 @@ static int usbSetReport(const union filedescriptor *fdp, int reportType, char *b
   hid_device *udev = (hid_device *) fdp->usb.handle;
   int bytesSent = -1;
 
-  switch (reportType) {
+  switch(reportType) {
   case USB_HID_REPORT_TYPE_INPUT:
     break;
   case USB_HID_REPORT_TYPE_OUTPUT:
@@ -111,7 +111,7 @@ static int usbGetReport(const union filedescriptor *fdp, int reportType, int rep
   hid_device *udev = (hid_device *) fdp->usb.handle;
   int bytesReceived = -1;
 
-  switch (reportType) {
+  switch(reportType) {
   case USB_HID_REPORT_TYPE_INPUT:
     bytesReceived = hid_read_timeout(udev, (unsigned char *) buffer, *len, 300);
     break;
@@ -166,7 +166,7 @@ static void dumpBlock(const char *prefix, const unsigned char *buf, int len) {
 }
 
 static const char *usbErrorText(int usbErrno) {
-  switch (usbErrno) {
+  switch(usbErrno) {
   case USB_ERROR_NONE:
     return "success";
   case USB_ERROR_ACCESS:

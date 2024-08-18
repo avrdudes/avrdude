@@ -335,7 +335,7 @@ const char *pins_to_str(const struct pindef *const pindef) {
  * @returns a string with the pinname, or <unknown> if pinname is invalid.
  */
 const char *avr_pin_name(int pinname) {
-  switch (pinname) {
+  switch(pinname) {
   case PPI_AVR_VCC:
     return "VCC";
   case PPI_AVR_BUFF:
@@ -376,7 +376,7 @@ const char *avr_pin_name(int pinname) {
  * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
  */
 const char *avr_pin_lcname(int pinname) {
-  switch (pinname) {
+  switch(pinname) {
   case PPI_AVR_VCC:
     return "vcc";
   case PPI_AVR_BUFF:

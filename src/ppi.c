@@ -49,7 +49,7 @@ enum {
 static int ppi_shadow_access(const union filedescriptor *fdp, int reg, unsigned char *v, unsigned char action) {
   int shadow_num;
 
-  switch (reg) {
+  switch(reg) {
   case PPIDATA:
     shadow_num = 0;
     break;
@@ -65,7 +65,7 @@ static int ppi_shadow_access(const union filedescriptor *fdp, int reg, unsigned 
     break;
   }
 
-  switch (action) {
+  switch(action) {
   case PPI_SHADOWREAD:
     *v = cx->ppi_shadow[shadow_num];
     break;

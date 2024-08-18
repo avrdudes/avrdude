@@ -276,7 +276,7 @@ static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, si
       msg_trace("\n");
   }
 
-  switch (data[0]) {
+  switch(data[0]) {
   case RSP_OK:
     msg_info("OK\n");
     break;
@@ -296,7 +296,7 @@ static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, si
   case RSP_ILLEGAL_EMULATOR_MODE:
     msg_info("Illegal emulator mode");
     if(len > 1)
-      switch (data[1]) {
+      switch(data[1]) {
       case EMULATOR_MODE_DEBUGWIRE:
         msg_info(": DebugWire");
         break;
@@ -323,7 +323,7 @@ static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, si
   case RSP_ILLEGAL_MCU_STATE:
     msg_info("Illegal MCU state");
     if(len > 1)
-      switch (data[1]) {
+      switch(data[1]) {
       case STOPPED:
         msg_info(": Stopped");
         break;
@@ -387,7 +387,7 @@ static void jtagmkII_prmsg(const PROGRAMMER *pgm_unused, unsigned char *data, si
     msg_info("BREAK event");
     if(len >= 6) {
       msg_info(", PC = 0x%lx, reason ", b4_to_u32(data + 1));
-      switch (data[5]) {
+      switch(data[5]) {
       case 0x00:
         msg_info("unspecified");
         break;
@@ -504,7 +504,7 @@ static int jtagmkII_recv_frame(const PROGRAMMER *pgm, unsigned char **msg, unsig
     if(state < sDATA)
       header[headeridx++] = c;
 
-    switch (state) {
+    switch(state) {
     case sSTART:
       if(c == MESSAGE_START) {
         state = sSEQNUM1;
@@ -2130,7 +2130,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
        */
       unsigned char parm[4];
 
-      switch (addr) {
+      switch(addr) {
       case 0:
         *value = 0x1E;          // Atmel vendor ID
         break;
@@ -2445,7 +2445,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm, unsigned 
 
   pmsg_notice2("jtagmkII_setparm()\n");
 
-  switch (parm) {
+  switch(parm) {
   case PAR_HW_VERSION:
     size = 2;
     parstr = "hw_version";

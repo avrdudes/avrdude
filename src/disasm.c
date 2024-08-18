@@ -62,7 +62,7 @@ static void zap_symbols() {
 }
 
 static int type_order(int type) {
-  switch (type) {
+  switch(type) {
   case 'I':
     return '1';
   case 'M':
@@ -202,7 +202,7 @@ static int tagfile_tokenize(char *s, int *argcp, const char ***argvp) {
 #define Return(fmt, ...) do { \
   pmsg_error("tagfile line %d " fmt, lineno, __VA_ARGS__); msg_error("\n"); \
   return -1; \
-} while (0)
+} while(0)
 
 static int tagfile_readline(char *line, int lineno, const char *const *isrnames, int ni) {
   int type, subtype, vn, address, count, argc = 0;
@@ -236,7 +236,7 @@ static int tagfile_readline(char *line, int lineno, const char *const *isrnames,
   if(argc < 5 || strlen(argv[2]) != 1 || !strchr("BWAS", *argv[2]))
     Return("needs to be <address> %c [%s] <count> <name>", type, type == 'M'? "BW": "BWAS");
 
-  switch (*argv[2]) {
+  switch(*argv[2]) {
   default:
     subtype = TYPE_BYTE;
     break;
@@ -628,7 +628,7 @@ static int process_data(const char *buf, int buflen, int pos, int offset) {
   }
 
   for(int i = 0; i < s->count && pos + ret < buflen; i++) {
-    switch (s->subtype) {
+    switch(s->subtype) {
     case TYPE_BYTE:
     case TYPE_WORD:
       ret += process_num(buf, buflen, s->subtype == TYPE_WORD? 2: 1, pos + ret, offset);
@@ -922,7 +922,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
   // Apply register formula
   int regword = 0;
 
-  switch (oc->type & OTY_REG_MASK) {
+  switch(oc->type & OTY_REG_MASK) {
   case OTY_REVN:                // Even registers r0, r2, ..., r30
     Rd *= 2, Rr *= 2;
     regword = 1;                // movw
@@ -952,7 +952,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
     asym = resolve_address('M', Ra);
   }
 
-  switch (Nk) {
+  switch(Nk) {
   case 0:
     break;
   case 7:                      // Branches
@@ -990,7 +990,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
 #define add_operand(lc, ...) snprintf((lc), LINE_N - ((lc) - line->code),  __VA_ARGS__)
 
   // Check for opcodes with undefined results
-  switch (oc->type & OTY_WARN_MASK) {
+  switch(oc->type & OTY_WARN_MASK) {
   case OTY_XWRN:
     if(Rd == 26 || Rd == 27 || Rr == 26 || Rr == 27)
       add_comment(line, "Warning: the result of this operation is undefined");
@@ -1006,7 +1006,7 @@ static void disassemble(const char *buf, int addr, int opcode, AVR_mnemo mnemo, 
   }
 
   for(const char *o = oc->operands; *o && lc - line->code < LINE_N - 1; o++) {
-    switch (*o) {
+    switch(*o) {
     case 'R':
       *lc++ = 'r', *lc = 0;
       break;

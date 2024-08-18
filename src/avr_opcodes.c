@@ -670,7 +670,7 @@ int avr_get_archlevel(const AVRPART *p) {
     p->prog_modes & PM_UPDI? PART_AVR_XT: p->prog_modes & PM_PDI? PART_AVR_XM: p->prog_modes & PM_TPI? PART_AVR_RC: 0;
 
   if(!ret) {                    // Non-TPI classic part
-    switch (p->archnum) {
+    switch(p->archnum) {
     case 1:
       ret = PART_AVR1;
       break;
@@ -759,7 +759,7 @@ int op16_target(int here, int op16) {
   AVR_mnemo mnemo = opcode_mnemo(op16, PART_ALL | OP_AVR_ILL);
 
   if(mnemo >= 0 && mnemo < MNEMO_N) {
-    switch (avr_opcodes[mnemo].type & OTY_TYPE_MASK) {
+    switch(avr_opcodes[mnemo].type & OTY_TYPE_MASK) {
     case OTY_RJMX:             // Relative call rcall, range [.-4096, .+4094] bytes
     case OTY_RJMI:             // Relative jump rjmp, range [.-4096, .+4094] bytes
       return here + 2 + ((int16_t) (op16 << 4) >> 3);

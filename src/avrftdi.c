@@ -711,7 +711,7 @@ static int avrftdi_open(PROGRAMMER *pgm, const char *port) {
   }
 
   // Set pin limit depending on chip type
-  switch (pdata->ftdic->type) {
+  switch(pdata->ftdic->type) {
   case TYPE_AM:
   case TYPE_BM:
   case TYPE_R:

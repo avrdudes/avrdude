@@ -253,7 +253,7 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
       msg_trace("\n");
   }
 
-  switch (data[0]) {
+  switch(data[0]) {
   case SCOPE_INFO:
     msg_debug("[info] ");
     break;
@@ -276,7 +276,7 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
     break;
   }
 
-  switch (data[1]) {
+  switch(data[1]) {
   case RSP3_OK:
     msg_debug("OK\n");
     break;
@@ -287,7 +287,7 @@ static void jtag3_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
       char reason[50];
 
       sprintf(reason, "0x%02x", data[3]);
-      switch (data[3]) {
+      switch(data[3]) {
       case RSP3_FAIL_NO_ANSWER:
         strcpy(reason, "target does not answer");
         break;
@@ -383,7 +383,7 @@ static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len
 
   msg_debug("Event serial 0x%04x, ", (data[3] << 8) | data[2]);
 
-  switch (data[4]) {
+  switch(data[4]) {
   case SCOPE_INFO:
     msg_debug("[info] ");
     break;
@@ -401,12 +401,12 @@ static void jtag3_prevent(const PROGRAMMER *pgm, unsigned char *data, size_t len
     break;
   }
 
-  switch (data[5]) {
+  switch(data[5]) {
   case EVT3_BREAK:
     msg_debug("BREAK");
     if(len >= 11) {
       msg_debug(", PC = 0x%lx, reason ", b4_to_u32(data + 6));
-      switch (data[10]) {
+      switch(data[10]) {
       case 0x00:
         msg_debug("unspecified");
         break;

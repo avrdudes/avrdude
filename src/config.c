@@ -261,7 +261,7 @@ TOKEN *new_token(int primary) {
 
 void free_token(TOKEN *tkn) {
   if(tkn) {
-    switch (tkn->value.type) {
+    switch(tkn->value.type) {
     case V_STR:
       if(tkn->value.string)
         mmt_free(tkn->value.string);
@@ -386,7 +386,7 @@ void print_token(TOKEN *tkn) {
     return;
 
   msg_info("token = %d = ", tkn->primary);
-  switch (tkn->value.type) {
+  switch(tkn->value.type) {
   case V_NUM:
     msg_info("NUMBER, value=%d", tkn->value.number);
     break;
@@ -645,9 +645,9 @@ unsigned char *cfg_unescapeu(unsigned char *d, const unsigned char *s) {
   int n, k;
 
   while(*s) {
-    switch (*s) {
+    switch(*s) {
     case '\\':
-      switch (*++s) {
+      switch(*++s) {
       case '\n':               // String continuation over new line
 
 #if '\n' != '\r'
@@ -806,7 +806,7 @@ static wint_t nextutf8char(const char *str, int n, int *lenp) {
   utf8 = 0;                     // Possible UTF-8 character, convert to wint_t
   len = utf8headlen((int) c);
   if(len > 1 && len <= n) {
-    switch (len) {
+    switch(len) {
     case 2:
       wc = c & 0x1f;
       break;
@@ -849,7 +849,7 @@ char *cfg_escape(const char *s) {
 
   *d++ = '"';
   for(; *s && d - buf < (long) sizeof buf - 10; s++) {
-    switch (*s) {
+    switch(*s) {
     case '\n':
       *d++ = '\\';
       *d++ = 'n';
@@ -930,7 +930,7 @@ Component *cfg_comp_search(const char *name, int strct) {
 }
 
 const char *cfg_strct_name(int strct) {
-  switch (strct) {
+  switch(strct) {
   case COMP_CONFIG_MAIN:
     return "avrdude.conf main";
   case COMP_AVRPART:
@@ -944,7 +944,7 @@ const char *cfg_strct_name(int strct) {
 }
 
 const char *cfg_v_type(int type) {
-  switch (type) {
+  switch(type) {
   case V_NONE:
     return "void";
   case V_NUM:
@@ -960,7 +960,7 @@ const char *cfg_v_type(int type) {
 }
 
 const char *cfg_comp_type(int type) {
-  switch (type) {
+  switch(type) {
   case COMP_INT:
     return "number";
   case COMP_SHORT:
@@ -992,7 +992,7 @@ void cfg_assign(char *sp, int strct, Component *cp, VALUE *v) {
   const char *str;
   int num;
 
-  switch (cp->type) {
+  switch(cp->type) {
   case COMP_BOOL:
   case COMP_CHAR:
   case COMP_SHORT:

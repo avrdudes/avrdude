@@ -220,7 +220,7 @@ static unsigned short port_get(const union filedescriptor *fdp, int reg) {
 static unsigned char reg2offset(int reg) {
   unsigned char offset = 0;
 
-  switch (reg) {
+  switch(reg) {
   case PPIDATA:
     {
       offset = 0;

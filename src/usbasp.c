@@ -96,7 +96,7 @@ static const char *errstr(const PROGRAMMER *pgm, int result) {
   size_t msgsiz = sizeof(PDATA(pgm)->msg);
   int n = 0;
 
-  switch (result) {
+  switch(result) {
   case LIBUSB_SUCCESS:
     return "No error";
   case LIBUSB_ERROR_IO:
@@ -311,7 +311,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 }
 
 static const char *usbasp_get_funcname(unsigned char functionid) {
-  switch (functionid) {
+  switch(functionid) {
   case USBASP_FUNC_CONNECT:
     return "USBASP_FUNC_CONNECT";
     break;
@@ -1126,7 +1126,7 @@ static int usbasp_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int pr_1;
   int nvm_cmd;
 
-  switch (PDATA(pgm)->section_e) {
+  switch(PDATA(pgm)->section_e) {
     // Config bits section erase
   case 1:
     pr_0 = 0x41;

@@ -47,7 +47,7 @@
 
 #ifdef USE_LIBUSB_1_0
 static int libusb_to_errno(int result) {
-  switch (result) {
+  switch(result) {
   case LIBUSB_SUCCESS:
     return 0;
   case LIBUSB_ERROR_IO:

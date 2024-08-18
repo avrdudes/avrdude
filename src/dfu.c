@@ -400,7 +400,7 @@ char *get_usb_string(usb_dev_handle *dev_handle, int index) {
  */
 
 const char *dfu_status_str(int bStatus) {
-  switch (bStatus) {
+  switch(bStatus) {
   case DFU_STATUS_OK:
     return "OK";
   case DFU_STATUS_ERR_TARGET:
@@ -439,7 +439,7 @@ const char *dfu_status_str(int bStatus) {
 }
 
 const char *dfu_state_str(int bState) {
-  switch (bState) {
+  switch(bState) {
   case DFU_STATE_APP_IDLE:
     return "APP_IDLE";
   case DFU_STATE_APP_DETACH:

@@ -56,7 +56,7 @@
 char *progname = "avrdude";
 
 static const char *avrdude_message_type(int msglvl) {
-  switch (msglvl) {
+  switch(msglvl) {
   case MSG_EXT_ERROR:
     return "OS error";
   case MSG_ERROR:
@@ -780,7 +780,7 @@ int main(int argc, char *argv[]) {
   // Process command line arguments
   while((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:")) != -1) {
 
-    switch (ch) {
+    switch(ch) {
     case 'b':                  // Override default programmer baud rate
       baudrate = str_int(optarg, STR_INT32, &errstr);
       if(errstr) {
@@ -1260,7 +1260,7 @@ int main(int argc, char *argv[]) {
   }
 
   if(port == NULL) {
-    switch (pgm->conntype) {
+    switch(pgm->conntype) {
     case CONNTYPE_PARALLEL:
       port = mmt_strdup(default_parallel);
       break;

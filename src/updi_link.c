@@ -563,7 +563,7 @@ int updi_link_st_ptr_inc16_RSD(const PROGRAMMER *pgm, unsigned char *buffer, uin
                             *[constants.UPDI_PHY_SYNC, constants.UPDI_ST | constants.UPDI_PTR_INC | constants.UPDI_DATA_16],
                             *data[:blocksize - 8]]
             num = blocksize - 8
-        self.updi_phy.send( firstpacket )
+        self.updi_phy.send(firstpacket)
 
         # if finite block size, this is used.
         while num < len(data):

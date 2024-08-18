@@ -208,7 +208,7 @@ static int hexdump_buf(const FILE *f, const AVRMEM *m, int startaddr, const unsi
 }
 
 static int disasm_ison(char c) {
-  switch (c) {
+  switch(c) {
   case 'g':
     return !!cx->dis_opts.gcc_source;
   case 'a':
@@ -530,7 +530,7 @@ static int cmd_disasm(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
-        switch ((chr = *q & 0x7f)) {
+        switch((chr = *q & 0x7f)) {
         case '?':
         case 'h':
           help++;
@@ -885,7 +885,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
       pmsg_warning("(write) programmer write protects %s address 0x%04x\n", mem->desc, addr + i);
     } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05x (rc = %d)\n", buf[i], addr + i, (int) rc);
-      // if (rc == -1)
+      // if(rc == -1)
       //  imsg_error("write operation not supported on memory %s\n", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr + i, &b) < 0) {
       pmsg_error("(write) readback from %s failed\n", mem->desc);
@@ -1677,7 +1677,7 @@ static int cmd_config(const PROGRAMMER *pgm, const AVRPART *p, int argc, const c
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
-        switch (*q) {
+        switch(*q) {
         case '?':
         case 'h':
           help++;
@@ -2103,7 +2103,7 @@ static int cmd_regfile(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
-        switch (*q) {
+        switch(*q) {
         case '?':
         case 'h':
           help++;
@@ -2284,7 +2284,7 @@ static int cmd_part(const PROGRAMMER *pgm, const AVRPART *p, int argc, const cha
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
-        switch (*q) {
+        switch(*q) {
         case '?':
         case 'h':
           help++;
@@ -2992,7 +2992,7 @@ static int cmd_include(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
       argv[itemac++] = argv[ai];
     else {
       while(*++q) {
-        switch (*q) {
+        switch(*q) {
         case '?':
         case 'h':
           help++;

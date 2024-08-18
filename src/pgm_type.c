@@ -127,7 +127,7 @@ const PROGRAMMER_TYPE *locate_programmer_type(const char *id) {
 
 // Return type id given the init function or "" if not found
 const char *locate_programmer_type_id(void (*initpgm)(PROGRAMMER *pgm)) {
-  for (size_t i = 0; i < sizeof programmers_types/sizeof *programmers_types; i++)
+  for(size_t i = 0; i < sizeof programmers_types/sizeof *programmers_types; i++)
     if(programmers_types[i].initpgm == initpgm)
       return programmers_types[i].id;
 

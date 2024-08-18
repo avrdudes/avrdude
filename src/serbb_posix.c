@@ -95,7 +95,7 @@ static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   msg_notice("%s to %d\n", serpins[pin], value);
 #endif
 
-  switch (pin) {
+  switch(pin) {
   case 3:                      // txd
     r = ioctl(pgm->fd.ifd, value? TIOCSBRK: TIOCCBRK, 0);
     if(r < 0) {
@@ -151,7 +151,7 @@ static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
   if(pin < 1 || pin > DB9PINS)
     return (-1);
 
-  switch (pin) {
+  switch(pin) {
   case 2:                      // rxd, currently not implemented, FIXME
     return (-1);
 

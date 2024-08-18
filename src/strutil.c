@@ -101,7 +101,7 @@ static int str_match_core(const char *pattern, const char *string, int (*fold)(i
     return 0;
 
   while((c = fold(*p++))) {
-    switch (c) {
+    switch(c) {
     case '?':
       if(*n == 0)
         return 0;
@@ -222,7 +222,7 @@ int str_casematched_by(const char *string, const char *pattern) {
 // Does the string contain wildcard pattern matching elements?
 int str_is_pattern(const char *str) {
   for(;;)
-    switch (*str++) {
+    switch(*str++) {
     case 0:
       return 0;
     case '*':
@@ -235,7 +235,7 @@ int str_is_pattern(const char *str) {
 
 // Is the string s in the list l of strings as matched by f(s, l[i])?
 int str_is_in_list(const char *s, const char **l, size_t nl, int (*f)(const char *, const char *)) {
-  for (size_t i = 0; i < nl; i++)
+  for(size_t i = 0; i < nl; i++)
     if(f(s, l[i]))
       return 1;
   return 0;
@@ -421,7 +421,7 @@ char *str_ucfirst(char *s) {
 // Convert to ASCII name leaving only letters, numbers, underscore, period and dash
 char *str_asciiname(char *s) {
   for(char *t = s; *t; t++)
-    switch (*t) {
+    switch(*t) {
     case '?':
       *t = 'Q';
       break;
@@ -778,13 +778,13 @@ int looks_like_number(const char *str) {
   sd->type = 0; \
   mmt_free(str); \
   return sd; \
-} while (0)
+} while(0)
 
 #define Warning(...) do { \
   if(sd->warnstr) \
     mmt_free(sd->warnstr); \
    sd->warnstr = mmt_sprintf(__VA_ARGS__); \
-} while (0)
+} while(0)
 
 #define sizeforsigned(ll) ( \
   (ll) < INT32_MIN || (ll) > INT32_MAX? 8: \
@@ -827,7 +827,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
       // Parse suffixes: ULL, LL, UL, L ... UHH, HH
       for(char *p = end_ptr; *p; p++) {
-        switch (toupper(*p)) {
+        switch(toupper(*p)) {
         case 'U':
           nu++;
           break;

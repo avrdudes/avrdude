@@ -100,8 +100,8 @@ typedef struct LIST {
 #define DEFAULT_POOLSIZE 512
 
 #if CHECK_MAGIC
-#define CKMAGIC(p) { if (p->magic1 != MAGIC) breakpoint(); \
-                     if (p->magic2 != MAGIC) breakpoint(); }
+#define CKMAGIC(p) { if(p->magic1 != MAGIC) breakpoint(); \
+                     if(p->magic2 != MAGIC) breakpoint(); }
 
 #define CKNPMAGIC(p) cknpmagic(p)
 
@@ -1255,21 +1255,17 @@ int lprint(FILE *f, LISTID lid) {
     while(ln != NULL) {
       count++;
       fprintf(f, "    %4d %10p %10x %10p %10p %10p %10x\n", count, ln,
-
 #if CHECK_MAGIC
         ln->magic1,
 #else
         0,
 #endif
-
         ln->next, ln->prev, ln->data,
-
 #if CHECK_MAGIC
         ln->magic2
 #else
         0
 #endif
-
         );
       ln = lnext(ln);
     }

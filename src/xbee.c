@@ -367,7 +367,7 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
 #define fpput(x)                                             \
   do {                                                       \
     const unsigned char v = (x);                             \
-    if (v == 0x7d || v == 0x7e || v == 0x11 || v == 0x13) {  \
+    if(v == 0x7d || v == 0x7e || v == 0x11 || v == 0x13) {   \
       *fp++ = 0x7d;                                          \
       *fp++ = v ^ 0x20;                                      \
     } else {                                                 \
@@ -375,7 +375,7 @@ static int sendAPIRequest(struct XBeeBootSession *xbs,
     }                                                        \
     checksum -= v;                                           \
     length++;                                                \
-  } while (0)
+  } while(0)
 
   fpput(apiType);               // ZigBee Receive Packet or ZigBee Transmit Request
 

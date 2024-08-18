@@ -137,7 +137,7 @@ int avr_set_addr_mem(const AVRMEM *mem, int opnum, unsigned char *cmd, unsigned 
   pagesize = mem->page_size >> isflash;
 
   // Compute range lo..hi of needed address bits
-  switch (opnum) {
+  switch(opnum) {
   case AVR_OP_READ:
   case AVR_OP_WRITE:
   case AVR_OP_READ_LO:
@@ -591,7 +591,7 @@ const Register_file *avr_locate_register_file(const AVRPART *p, int *nrp) {
 const Register_file *avr_locate_register(const Register_file *rgf, int nr, const char *reg,
   int (*match)(const char *, const char *)) {
 
-  if (!rgf || nr < 1 || !reg || !match)
+  if(!rgf || nr < 1 || !reg || !match)
     return NULL;
 
   const Register_file *ret = NULL;
@@ -672,7 +672,7 @@ const Register_file **avr_locate_registerlist(const Register_file *rgf, int nr, 
 const Configitem *avr_locate_config(const Configitem *cfg, int nc, const char *name,
   int (*match)(const char *, const char *)) {
 
-  if (!cfg || nc < 1 || !name || !match)
+  if(!cfg || nc < 1 || !name || !match)
     return NULL;
 
   const Configitem *ret = NULL;
@@ -1155,7 +1155,7 @@ void avr_display(FILE *f, const PROGRAMMER *pgm, const AVRPART *p, const char *p
 }
 
 char cmdbitchar(CMDBIT cb) {
-  switch (cb.type) {
+  switch(cb.type) {
   case AVR_CMDBIT_IGNORE:
     return 'x';
   case AVR_CMDBIT_VALUE:
@@ -1184,7 +1184,7 @@ char *cmdbitstr(CMDBIT cb) {
 }
 
 const char *opcodename(int opnum) {
-  switch (opnum) {
+  switch(opnum) {
   case AVR_OP_READ:
     return "read";
   case AVR_OP_WRITE:
@@ -1224,7 +1224,7 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed) {
 
   // Can the opcode be printed in a compact way? Only if i, o and a bits are systematic.
   for(int i = 31; i >= 0; i--)
-    switch (op->bit[i].type) {
+    switch(op->bit[i].type) {
     case AVR_CMDBIT_ADDRESS:
       if(i < 8 || i > 23 || op->bit[i].bitno != (opnum == AVR_OP_LOAD_EXT_ADDR? i + 8: i - 8))
         compact = 0;
@@ -1270,7 +1270,7 @@ char *opcode2str(const OPCODE *op, int opnum, int detailed) {
 // Returns 1 if the part pointed to by p matches the string or pattern s under the function cmp(s, ...)
 int part_eq(AVRPART *p, const char *s, int (*cmp)(const char *, const char *)) {
   // Matching id or desc? OK
-  if (cmp(s, p->id) || cmp(s, p->desc))
+  if(cmp(s, p->id) || cmp(s, p->desc))
     return 1;
 
   // Check against all variants, either up to colon or up to dash

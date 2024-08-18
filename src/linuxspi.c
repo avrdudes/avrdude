@@ -269,7 +269,7 @@ close_spidev:
 }
 
 static void linuxspi_close(PROGRAMMER *pgm) {
-  switch (pgm->exit_reset) {
+  switch(pgm->exit_reset) {
   case EXIT_RESET_ENABLED:
     linuxspi_reset_mcu(pgm, true);
     break;

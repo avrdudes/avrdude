@@ -72,10 +72,10 @@
 #define TPI_OP_SST      0x60
 #define TPI_OP_SST_INC  0x64
 #define TPI_OP_SSTPR(a) (0x68 | (a))
-#define TPI_OP_SIN(a)   (0x10 | (((a)<<1)&0x60) | ((a)&0x0F) )
-#define TPI_OP_SOUT(a)  (0x90 | (((a)<<1)&0x60) | ((a)&0x0F) )
-#define TPI_OP_SLDCS(a) (0x80 | ((a)&0x0F) )
-#define TPI_OP_SSTCS(a) (0xC0 | ((a)&0x0F) )
+#define TPI_OP_SIN(a)   (0x10 | (((a)<<1)&0x60) | ((a)&0x0F))
+#define TPI_OP_SOUT(a)  (0x90 | (((a)<<1)&0x60) | ((a)&0x0F))
+#define TPI_OP_SLDCS(a) (0x80 | ((a)&0x0F))
+#define TPI_OP_SSTCS(a) (0xC0 | ((a)&0x0F))
 #define TPI_OP_SKEY     0xE0
 
 // TPI control/status registers

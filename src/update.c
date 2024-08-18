@@ -430,7 +430,7 @@ int update_dryrun(const AVRPART *p, UPDATE *upd) {
     }
   }
 
-  switch (upd->op) {
+  switch(upd->op) {
   case DEVICE_READ:
     if(upd->format == FMT_IMM) {
       pmsg_error("invalid file format 'immediate' for output\n");
@@ -677,7 +677,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
   const char *mem_desc = !umemlist? avr_mem_name(p, mem): ns == 1? avr_mem_name(p, umemlist[0]): "multiple memories";
   int rc = 0;
 
-  switch (upd->op) {
+  switch(upd->op) {
   case DEVICE_READ:
     // Read out the specified device memory and write it to a file
     if(upd->format == FMT_IMM) {
@@ -780,7 +780,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
         int ret, size = update_mem_from_all(upd, p, m, mem, allsize);
 
-        switch (size) {
+        switch(size) {
         case LIBAVRDUDE_GENERAL_FAILURE:
           rwvproblem = 1;
           break;
@@ -820,7 +820,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
 
         int size = update_mem_from_all(upd, p, m, mem, allsize);
 
-        switch (size) {
+        switch(size) {
         case LIBAVRDUDE_GENERAL_FAILURE:
           rwvproblem = 1;
           break;

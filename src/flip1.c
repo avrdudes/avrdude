@@ -738,7 +738,7 @@ static const char *flip1_status_str(const struct dfu_status *status) {
 }
 
 static const char *flip1_mem_unit_str(enum flip1_mem_unit mem_unit) {
-  switch (mem_unit) {
+  switch(mem_unit) {
   case FLIP1_MEM_UNIT_FLASH:
     return "Flash";
   case FLIP1_MEM_UNIT_EEPROM:
