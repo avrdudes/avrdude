@@ -21,7 +21,4 @@
 
 extern const char arduino_desc[];
 void arduino_initpgm(PROGRAMMER *pgm);
-
 #endif
-
-
