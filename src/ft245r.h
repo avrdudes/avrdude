@@ -4,5 +4,4 @@
 extern const char ft245r_desc[];
 void ft245r_initpgm(PROGRAMMER *pgm);
 
-
-#endif /* ft245r_h */
+#endif
