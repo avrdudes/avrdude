@@ -18,19 +18,17 @@
  */
 
 /*
-This is the parallel port interface for Windows built using Cygwin.
-
-In the ppi_* functions that access the parallel port registers,
-fd = parallel port address
-reg = register as defined in an enum in ppi.h. This must be converted
-   to a proper offset of the base address.
-*/
-
+ * This is the parallel port interface for Windows built using Cygwin.
+ *
+ * In the ppi_* functions that access the parallel port registers,
+ * fd = parallel port address
+ * reg = register as defined in an enum in ppi.h. This must be converted
+ *   to a proper offset of the base address.
+ */
 
 #include <ac_cfg.h>
 
 #if defined(HAVE_PARPORT) && defined(WIN32)
-
 #define WIN32_LEAN_AND_MEAN
 #include <errno.h>
 #include <fcntl.h>
@@ -51,273 +49,212 @@ reg = register as defined in an enum in ppi.h. This must be converted
 #define DEVICE_LPT2 "lpt2"
 #define DEVICE_LPT3 "lpt3"
 
-#define DEVICE_MAX	3
+#define DEVICE_MAX      3
 
-typedef struct
-{
-    const char *name;
-    int base_address;
+typedef struct {
+  const char *name;
+  int base_address;
 } winpp;
 
-static const winpp winports[DEVICE_MAX] = 
-{
-    {DEVICE_LPT1, 0x378},
-    {DEVICE_LPT2, 0x278},
-    {DEVICE_LPT3, 0x3BC},
+static const winpp winports[DEVICE_MAX] = {
+  {DEVICE_LPT1, 0x378},
+  {DEVICE_LPT2, 0x278},
+  {DEVICE_LPT3, 0x3BC},
 };
 
-
-
-
-
-/* FUNCTION PROTOTYPES */
 static int winnt_pp_open(void);
 static unsigned short port_get(union filedescriptor *fdp, int reg);
 static unsigned char reg2offset(int reg);
 static unsigned char inb(unsigned short port);
 static void outb(unsigned char value, unsigned short port);
 
-
-
-/* FUNCTION DEFINITIONS */
-
 void ppi_open(const char *port, union filedescriptor *fdp) {
-    unsigned char i;
-    int fd;
-	
-    fd = winnt_pp_open();
+  unsigned char i;
+  int fd;
 
-    if(fd < 0)
-    {
-        pmsg_ext_error("cannot open device \"giveio\"\n\n"); // giveio?!? FIXME!
-        fdp->ifd = -1;
-        return;
-    }
+  fd = winnt_pp_open();
 
-    /* Search the windows port names for a match */
-    fd = -1;
-    for(i = 0; i < DEVICE_MAX; i++)
-    {
-        if(str_eq(winports[i].name, port))
-        {
-            /* Set the file descriptor with the Windows parallel port base address. */
-            fd = winports[i].base_address;
-            break;
-        }
-    }
-    if(fd == -1)
-    {
-	/*
-	 * Supplied port name did not match any of the pre-defined
-	 * names.  Try interpreting it as a numeric
-	 * (hexadecimal/decimal/octal) address.
-	 */
-	char *cp;
+  if(fd < 0) {
+    pmsg_ext_error("cannot winnt_pp_open()\n");
+    fdp->ifd = -1;
+    return;
+  }
 
-	fd = strtol(port, &cp, 0);
-	if(*port == '\0' || *cp != '\0')
-	{
-	    pmsg_error("port %s is neither lpt1/2/3 nor valid number\n", port);
-	    fd = -1;
-	}
+  // Search the windows port names for a match
+  fd = -1;
+  for(i = 0; i < DEVICE_MAX; i++) {
+    if(str_eq(winports[i].name, port)) {
+      // Set the file descriptor with the Windows parallel port base address
+      fd = winports[i].base_address;
+      break;
     }
-    if(fd < 0)
-    {
-        pmsg_ext_error("cannot open port %s\n\n", port);
-        fdp->ifd = -1;
-        return;
-    }
+  }
+  if(fd == -1) {
+    /*
+     * Supplied port name did not match any of the pre-defined names.  Try
+     * interpreting it as a numeric (hexadecimal/decimal/octal) address.
+     */
+    char *cp;
 
-    fdp->ifd = fd;
+    fd = strtol(port, &cp, 0);
+    if(*port == '\0' || *cp != '\0') {
+      pmsg_error("port %s is neither lpt1/2/3 nor valid number\n", port);
+      fd = -1;
+    }
+  }
+  if(fd < 0) {
+    pmsg_ext_error("cannot open port %s\n\n", port);
+    fdp->ifd = -1;
+    return;
+  }
+
+  fdp->ifd = fd;
 }
-
 
 #define DRIVERNAME      "\\\\.\\giveio"
 static int winnt_pp_open(void) {
-    // Only try to use giveio under Windows NT/2000/XP.
-    OSVERSIONINFO ver_info;
+  // Only try to use giveio under Windows NT/2000/XP.
+  OSVERSIONINFO ver_info;
 
-    memset(&ver_info, 0, sizeof(ver_info));
+  memset(&ver_info, 0, sizeof(ver_info));
 
-    ver_info.dwOSVersionInfoSize = sizeof(ver_info);
+  ver_info.dwOSVersionInfoSize = sizeof(ver_info);
 
-    if(!GetVersionEx(&ver_info))
-    {
-        return(-1);
+  if(!GetVersionEx(&ver_info)) {
+    return (-1);
+  } else if(ver_info.dwPlatformId == VER_PLATFORM_WIN32_NT) {
+    HANDLE h = CreateFile(DRIVERNAME,
+      GENERIC_READ,
+      0,
+      NULL,
+      OPEN_EXISTING,
+      FILE_ATTRIBUTE_NORMAL,
+      NULL);
+
+    if(h == INVALID_HANDLE_VALUE) {
+      return (-1);
     }
-    else if(ver_info.dwPlatformId == VER_PLATFORM_WIN32_NT) 
-    {
-        HANDLE h = CreateFile(DRIVERNAME,
-            GENERIC_READ,
-            0,
-            NULL,
-            OPEN_EXISTING,
-            FILE_ATTRIBUTE_NORMAL,
-            NULL);
 
-        if(h == INVALID_HANDLE_VALUE)
-        {
-            return(-1);
-        }
-
-        /* Close immediately. The process now has the rights it needs. */
-        if(h != NULL)
-        {
-            CloseHandle(h);
-        }
+    // Close immediately; the process now has the rights it needs
+    if(h != NULL) {
+      CloseHandle(h);
     }
-    return(0);
+  }
+  return (0);
 }
-
-
-
 
 void ppi_close(const union filedescriptor *fdp) {
-    return;
+  return;
 }
 
-
-
-/*
- * set the indicated bit of the specified register.
- */
+// Set the indicated bit of the specified register
 int ppi_set(const union filedescriptor *fdp, int reg, int bit) {
-    unsigned char v;
-    unsigned short port;
+  unsigned char v;
+  unsigned short port;
 
-    port = port_get(fdp, reg);
-    v = inb(port);
-    v |= bit;
-    outb(v, port);
-    return 0;
+  port = port_get(fdp, reg);
+  v = inb(port);
+  v |= bit;
+  outb(v, port);
+  return 0;
 }
 
-
-/*
- * clear the indicated bit of the specified register.
- */
+// Clear the indicated bit of the specified register
 int ppi_clr(const union filedescriptor *fdp, int reg, int bit) {
-    unsigned char v;
-    unsigned short port;
+  unsigned char v;
+  unsigned short port;
 
-    port = port_get(fdp, reg);
-    v = inb(port);
-    v &= ~bit;
-    outb(v, port);
+  port = port_get(fdp, reg);
+  v = inb(port);
+  v &= ~bit;
+  outb(v, port);
 
-    return 0;
+  return 0;
 }
 
-
-/*
- * get the indicated bit of the specified register.
- */
+// Get the indicated bit of the specified register
 int ppi_get(const union filedescriptor *fdp, int reg, int bit) {
-    unsigned char v;
+  unsigned char v;
 
-    v = inb(port_get(fdp, reg));
-    v &= bit;
+  v = inb(port_get(fdp, reg));
+  v &= bit;
 
-    return(v);
+  return (v);
 }
 
-
-
-
-/*
- * toggle the indicated bit of the specified register.
- */
+// Toggle the indicated bit of the specified register
 int ppi_toggle(const union filedescriptor *fdp, int reg, int bit) {
-    unsigned char v;
-    unsigned short port;
+  unsigned char v;
+  unsigned short port;
 
-    port = port_get(fdp, reg);
+  port = port_get(fdp, reg);
 
-    v = inb(port);
-    v ^= bit;
-    outb(v, port);
+  v = inb(port);
+  v ^= bit;
+  outb(v, port);
 
-    return 0;
+  return 0;
 }
 
-
-/*
- * get all bits of the specified register.
- */
+// Get all bits of the specified register
 int ppi_getall(const union filedescriptor *fdp, int reg) {
-    unsigned char v;
+  unsigned char v;
 
-    v = inb(port_get(fdp, reg));
+  v = inb(port_get(fdp, reg));
 
-    return((int)v);
+  return ((int) v);
 }
 
-
-
-
-/*
- * set all bits of the specified register to val.
- */
+// Set all bits of the specified register to val
 int ppi_setall(const union filedescriptor *fdp, int reg, int val) {
-    outb((unsigned char)val, port_get(fdp, reg));
-    return 0;
+  outb((unsigned char) val, port_get(fdp, reg));
+  return 0;
 }
 
-
-
-
-/* Calculate port address to access. */
+// Calculate port address to access
 static unsigned short port_get(const union filedescriptor *fdp, int reg) {
-    return((unsigned short)(fdp->ifd + reg2offset(reg)));
+  return ((unsigned short) (fdp->ifd + reg2offset(reg)));
 }
 
-
-/* Convert register enum to offset of base address. */
+// Convert register enum to offset of base address
 static unsigned char reg2offset(int reg) {
-    unsigned char offset = 0;
+  unsigned char offset = 0;
 
-    switch(reg)
+  switch (reg) {
+  case PPIDATA:
     {
-        case PPIDATA:
-        {
-            offset = 0;
-            break;
-        }
-        case PPISTATUS:
-        {
-            offset = 1;
-            break;
-        }
-        case PPICTRL:
-        {
-            offset = 2;
-            break;
-        }
+      offset = 0;
+      break;
     }
+  case PPISTATUS:
+    {
+      offset = 1;
+      break;
+    }
+  case PPICTRL:
+    {
+      offset = 2;
+      break;
+    }
+  }
 
-    return(offset);
+  return (offset);
 }
 
-
-/* Read in value from port. */
+// Read in value from port
 static unsigned char inb(unsigned short port) {
-    unsigned char t;
-    
-	asm volatile ("in %1, %0"
-        : "=a" (t)
-        : "d" (port));
-    
-	return t;
+  unsigned char t;
+
+  asm volatile ("in %1, %0":"=a" (t)
+    :"d"(port));
+
+  return t;
 }
 
-
-/* Write value to port. */
+// Write value to port
 static void outb(unsigned char value, unsigned short port) {
-    asm volatile ("out %1, %0"
-        :
-        : "d" (port), "a" (value) );
+  asm volatile ("out %1, %0"::"d" (port), "a"(value));
 
-    return;
+  return;
 }
-
 #endif
