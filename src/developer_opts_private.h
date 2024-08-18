@@ -31,9 +31,7 @@
 #define DEV_SPI_HFUSE       512
 #define DEV_SPI_EFUSE      1024
 
-
 static int dev_message(int msglvl, const char *fmt, ...);
-
 
 #ifndef DEV_INFO
 #define DEV_INFO    MSG_INFO
@@ -64,7 +62,8 @@ static int dev_message(int msglvl, const char *fmt, ...);
 
 #define _if_pgmout_bool(component) do { \
   if(!base || !!base->component != !!pgm->component) \
-    dev_part_strct_entry(tsv, ".prog", id, NULL, #component, dev_sprintf("%s", pgm->component? "true": "false"), pgm->comments); \
+    dev_part_strct_entry(tsv, ".prog", id, NULL, #component, \
+      dev_sprintf("%s", pgm->component? "true": "false"), pgm->comments); \
 } while(0)
 
 // Result must be an mmt_malloc'd string
@@ -72,7 +71,6 @@ static int dev_message(int msglvl, const char *fmt, ...);
   if(!base || cmp(base->component, pgm->component)) \
     dev_part_strct_entry(tsv, ".prog", id, NULL, #component, result, pgm->comments); \
 } while(0)
-
 
 #define _partout(fmt, component) \
   dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf(fmt, p->component), p->comments)
@@ -84,7 +82,8 @@ static int dev_message(int msglvl, const char *fmt, ...);
 
 #define _if_partout_bool(component) do { \
   if(!base || !!base->component != !!p->component) \
-    dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, dev_sprintf("%s", p->component? "true": "false"), p->comments); \
+    dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, \
+      dev_sprintf("%s", p->component? "true": "false"), p->comments); \
 } while(0)
 
 #define _if_n_partout(cmp, n, fmt, component) do { \
@@ -107,7 +106,6 @@ static int dev_message(int msglvl, const char *fmt, ...);
   if(!base || cmp(base->component, p->component, n)) \
     dev_part_strct_entry(tsv, ".pt", p->desc, NULL, #component, result, p->comments); \
 } while(0)
-
 
 #define _memout(fmt, component) \
   dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, dev_sprintf(fmt, m->component), m->comments)
@@ -132,12 +130,14 @@ static int dev_message(int msglvl, const char *fmt, ...);
 
 #define _if_memout_bool(component) do { \
   if(!bm || !!bm->component != !!m->component) \
-    dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, dev_sprintf("%s", m->component? "true": "false"), m->comments); \
+    dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, \
+      dev_sprintf("%s", m->component? "true": "false"), m->comments); \
 } while(0)
 
 #define _if_memout_yn(component) do { \
   if(!bm || bm->component != m->component) \
-    dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, mmt_strdup(m->component? "yes": "no"), m->comments); \
+    dev_part_strct_entry(tsv, ".ptmm", p->desc, m->desc, #component, \
+      mmt_strdup(m->component? "yes": "no"), m->comments); \
 } while(0)
 
 #define _flagout(mask, name) \
@@ -151,5 +151,4 @@ static int dev_message(int msglvl, const char *fmt, ...);
 // Result must be an mmt_malloc'd string
 #define _cmderr(result, component) \
   dev_part_strct_entry(tsv, ".cmderr", p->desc, m->desc, #component, result, NULL)
-
 #endif
