@@ -21,7 +21,4 @@
 
 extern const char stk500generic_desc[];
 void stk500generic_initpgm(PROGRAMMER *pgm);
-
 #endif
-
-
