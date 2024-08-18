@@ -74,8 +74,7 @@
 
 #define USE_DEFAULT_COMMAND 0xFF
 
-typedef enum 
-{
+typedef enum {
   DONT_USE_WORD_ACCESS,
   USE_WORD_ACCESS
 } access_mode;
@@ -107,34 +106,35 @@ int updi_nvm_chip_erase_V5(const PROGRAMMER *pgm, const AVRPART *p) {
             raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready after chip erase")
 */
   int status;
+
   pmsg_debug("chip erase using NVM CTRL\n");
-  if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
+  if(updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_CHIP_ERASE) < 0) {
     pmsg_error("chip erase command failed\n");
     return -1;
   }
   status = updi_nvm_wait_ready_V5(pgm, p);
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
     pmsg_error("sending empty command failed\n");
     return -1;
   }
-  if (status < 0) {
+  if(status < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_EEPROM_PAGE_BUFFER_CLEAR) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_EEPROM_PAGE_BUFFER_CLEAR) < 0) {
     pmsg_error("sending eeprom page buffer clear command failed\n");
     return -1;
   }
   status = updi_nvm_wait_ready_V5(pgm, p);
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
     pmsg_error("sending empty command failed\n");
     return -1;
   }
-  if (status < 0) {
+  if(status < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
@@ -170,29 +170,30 @@ int updi_nvm_erase_flash_page_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32
 
         if not status:
             raise PymcuprogSerialUpdiNvmTimeout("Timeout waiting for NVM controller to be ready after flash page erase")
-*/  
+*/
   int status;
   unsigned char data[1];
+
   pmsg_debug("erase flash page at address 0x%06X\n", address);
-  if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
+  if(updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
   data[0] = 0xFF;
-  if (updi_write_data(pgm, address, data, 1) < 0) {
+  if(updi_write_data(pgm, address, data, 1) < 0) {
     pmsg_error("dummy write operation failed\n");
     return -1;
   }
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_ERASE) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_ERASE) < 0) {
     pmsg_error("flash page erase command failed\n");
     return -1;
   }
   status = updi_nvm_wait_ready_V5(pgm, p);
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
     pmsg_error("sending empty command failed\n");
     return -1;
   }
-  if (status < 0) {
+  if(status < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
@@ -224,21 +225,22 @@ int updi_nvm_erase_eeprom_V5(const PROGRAMMER *pgm, const AVRPART *p) {
             raise IOError("Timeout waiting for NVM controller to be ready after EEPROM erase")
 */
   int status;
+
   pmsg_debug("erase EEPROM\n");
-  if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
+  if(updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_EEPROM_ERASE) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_EEPROM_ERASE) < 0) {
     pmsg_error("EEPROM erase command failed\n");
     return -1;
   }
   status = updi_nvm_wait_ready_V5(pgm, p);
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
     pmsg_error("sending empty command failed\n");
     return -1;
   }
-  if (status < 0) {
+  if(status < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
@@ -260,14 +262,15 @@ int updi_nvm_erase_user_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
         return self.erase_flash_page(self, address)
 */
   pmsg_debug("erase user row at address 0x%06X\n", address);
-  
+
   return updi_nvm_erase_flash_page_V5(pgm, p, address);
 }
 
 static int nvm_write_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
-                        uint16_t size, access_mode mode, uint8_t nvm_command);
+  uint16_t size, access_mode mode, uint8_t nvm_command);
 
-int updi_nvm_write_flash_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+int updi_nvm_write_flash_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+  unsigned char *buffer, uint16_t size) {
 /*
     def write_flash(self, address, data):
         """
@@ -281,7 +284,8 @@ int updi_nvm_write_flash_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t ad
   return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
-int updi_nvm_write_user_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+int updi_nvm_write_user_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+  unsigned char *buffer, uint16_t size) {
 /*
     def write_user_row(self, address, data):
         """
@@ -296,14 +300,15 @@ int updi_nvm_write_user_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t
   return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
-int updi_nvm_write_boot_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
-/*
-  Perform the operation as the regular flash write
-*/
+int updi_nvm_write_boot_row_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+  unsigned char *buffer, uint16_t size) {
+
+  // Perform the operation as the regular flash write
   return nvm_write_V5(pgm, p, address, buffer, size, USE_WORD_ACCESS, USE_DEFAULT_COMMAND);
 }
 
-int updi_nvm_write_eeprom_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size) {
+int updi_nvm_write_eeprom_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+  unsigned char *buffer, uint16_t size) {
 /*
     def write_eeprom(self, address, data):
         """
@@ -315,7 +320,8 @@ int updi_nvm_write_eeprom_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t a
         return self.write_nvm(address, data, use_word_access=False,
                               nvmcommand=constants.UPDI_V5_NVMCTRL_CTRLA_EEPROM_PAGE_ERASE_WRITE)
 */
-  return nvm_write_V5(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS, UPDI_V5_NVMCTRL_CTRLA_EEPROM_PAGE_ERASE_WRITE);
+  return nvm_write_V5(pgm, p, address, buffer, size, DONT_USE_WORD_ACCESS,
+    UPDI_V5_NVMCTRL_CTRLA_EEPROM_PAGE_ERASE_WRITE);
 }
 
 int updi_nvm_write_fuse_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value) {
@@ -330,13 +336,13 @@ int updi_nvm_write_fuse_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t add
         return self.write_eeprom(address, data)
 */
   unsigned char buffer[1];
+
   buffer[0] = value;
   return updi_nvm_write_eeprom_V5(pgm, p, address, buffer, 1);
 }
 
 static int nvm_write_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer,
-                        uint16_t size, access_mode mode, uint8_t nvm_command)
-{
+  uint16_t size, access_mode mode, uint8_t nvm_command) {
 /*
     def write_nvm(self, address, data, use_word_access, nvmcommand=constants.UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_WRITE):
         """
@@ -381,49 +387,48 @@ static int nvm_write_V5(const PROGRAMMER *pgm, const AVRPART *p, uint32_t addres
         # Remove command
         self.execute_nvm_command(constants.UPDI_V5_NVMCTRL_CTRLA_NOCMD)
 */
-  if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
+  if(updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
   pmsg_debug("clear page buffer\n");
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_BUFFER_CLEAR) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_BUFFER_CLEAR) < 0) {
     pmsg_error("clear page operation failed\n");
     return -1;
   }
-  if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
+  if(updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
-  if (mode == USE_WORD_ACCESS) {
-    if (updi_write_data_words(pgm, address, buffer, size) < 0) {
+  if(mode == USE_WORD_ACCESS) {
+    if(updi_write_data_words(pgm, address, buffer, size) < 0) {
       pmsg_error("write data words operation failed\n");
       return -1;
     }
   } else {
-    if (updi_write_data(pgm, address, buffer, size) < 0) {
+    if(updi_write_data(pgm, address, buffer, size) < 0) {
       pmsg_error("write data operation failed\n");
       return -1;
     }
   }
   pmsg_debug("committing data\n");
-  if (nvm_command == USE_DEFAULT_COMMAND) {
+  if(nvm_command == USE_DEFAULT_COMMAND) {
     nvm_command = UPDI_V5_NVMCTRL_CTRLA_FLASH_PAGE_WRITE;
   }
-  if (updi_nvm_command_V5(pgm, p, nvm_command) < 0) {
-      pmsg_error("commit data command failed\n");
-      return -1;
+  if(updi_nvm_command_V5(pgm, p, nvm_command) < 0) {
+    pmsg_error("commit data command failed\n");
+    return -1;
   }
-  if (updi_nvm_wait_ready_V5(pgm, p) < 0) {
+  if(updi_nvm_wait_ready_V5(pgm, p) < 0) {
     pmsg_error("updi_nvm_wait_ready_V5() failed\n");
     return -1;
   }
-  if (updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
+  if(updi_nvm_command_V5(pgm, p, UPDI_V5_NVMCTRL_CTRLA_NOCMD) < 0) {
     pmsg_error("sending empty command failed\n");
     return -1;
   }
   return 0;
 }
-
 
 int updi_nvm_wait_ready_V5(const PROGRAMMER *pgm, const AVRPART *p) {
 /*
@@ -455,20 +460,20 @@ int updi_nvm_wait_ready_V5(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned long start_time;
   unsigned long current_time;
   uint8_t status;
+
   start_time = avr_ustimestamp();
   do {
-    if (updi_read_byte(pgm, p->nvm_base + UPDI_V5_NVMCTRL_STATUS, &status) >= 0) {
-      if (status & UPDI_V5_NVM_STATUS_WRITE_ERROR_MASK) {
+    if(updi_read_byte(pgm, p->nvm_base + UPDI_V5_NVMCTRL_STATUS, &status) >= 0) {
+      if(status & UPDI_V5_NVM_STATUS_WRITE_ERROR_MASK) {
         pmsg_error("unable to write NVM status, error code %d\n", status >> UPDI_V5_NVM_STATUS_WRITE_ERROR_BIT);
         return -1;
       }
-      if (!(status & ((1 << UPDI_V5_NVM_STATUS_EEPROM_BUSY_BIT) | 
-                      (1 << UPDI_V5_NVM_STATUS_FLASH_BUSY_BIT)))) {
+      if(!(status & ((1 << UPDI_V5_NVM_STATUS_EEPROM_BUSY_BIT) | (1 << UPDI_V5_NVM_STATUS_FLASH_BUSY_BIT)))) {
         return 0;
       }
     }
     current_time = avr_ustimestamp();
-  } while ((current_time - start_time) < 10000000);
+  } while((current_time - start_time) < 10000000);
 
   pmsg_error("wait NVM ready timed out\n");
   return -1;
