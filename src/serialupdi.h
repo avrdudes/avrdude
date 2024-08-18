@@ -31,11 +31,11 @@
 extern "C" {
 #endif
 
-extern const char serialupdi_desc[];
-void serialupdi_initpgm(PROGRAMMER *pgm);
+  extern const char serialupdi_desc[];
+  void serialupdi_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* serialupdi_h */
+#endif
