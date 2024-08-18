@@ -26,5 +26,4 @@ extern const char buspirate_desc[];
 extern const char buspirate_bb_desc[];
 void buspirate_initpgm(PROGRAMMER *pgm);
 void buspirate_bb_initpgm(PROGRAMMER *pgm);
-
 #endif
