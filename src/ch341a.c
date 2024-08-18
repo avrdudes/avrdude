@@ -18,10 +18,8 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * Interface to the CH341A programmer
- *
- */
+// Interface to the CH341A programmer
+
 #include <ac_cfg.h>
 
 #include <stdio.h>
@@ -37,7 +35,6 @@
 #include "usbdevs.h"
 
 #if defined(HAVE_LIBUSB_1_0)
-
 #define USE_LIBUSB_1_0
 
 #if defined(HAVE_LIBUSB_1_0_LIBUSB_H)
@@ -117,7 +114,6 @@ static void ch341a_disable(const PROGRAMMER *pgm);
 static void ch341a_enable(PROGRAMMER *pgm, const AVRPART *p);
 static void ch341a_display(const PROGRAMMER *pgm, const char *p);
 
-
 // ch341 requires LSB first: invert the bit order before sending and after receiving
 static unsigned char swap_byte(unsigned char byte) {
   byte = ((byte >> 1) & 0x55) | ((byte << 1) & 0xaa);
@@ -136,7 +132,7 @@ static int CH341USBTransferPart(const PROGRAMMER *pgm, enum libusb_endpoint_dire
     return 0;
 
   if((ret = libusb_bulk_transfer(PDATA(pgm)->usbhandle, CH341A_USB_BULK_ENDPOINT | dir,
-    buff, size, &bytestransferred, CH341A_USB_TIMEOUT))) {
+        buff, size, &bytestransferred, CH341A_USB_TIMEOUT))) {
 
     pmsg_error("libusb_bulk_transfer for IN_EP failed, return value %d (%s)\n", ret, libusb_error_name(ret));
     return -1;
@@ -162,9 +158,9 @@ static bool CH341USBTransfer(const PROGRAMMER *pgm, enum libusb_endpoint_directi
 }
 
 /*
- * Below the assumed map between UIO command bits, pins on CH341A chip and
- * pins on SPI chip. The UIO stream commands only have 6 bits of output,
- * D6/D7 are SPI inputs.
+ * Below the assumed map between UIO command bits, pins on CH341A chip and pins
+ * on SPI chip. The UIO stream commands only have 6 bits of output, D6/D7 are
+ * SPI inputs.
  *
  * UIO  CH341A pin/name  AVR target
  * -------------------------------------------
@@ -198,7 +194,6 @@ bool CH341ChipSelect(const PROGRAMMER *pgm, unsigned int cs, bool enable) {
 
   return CH341USBTransferPart(pgm, LIBUSB_ENDPOINT_OUT, cmd, 4) > 0;
 }
-
 
 static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   LNODEID usbpid = lfirst(pgm->usbpid);
@@ -275,7 +270,6 @@ static void ch341a_close(PROGRAMMER *pgm) {
   libusb_exit(PDATA(pgm)->ctx);
 }
 
-
 static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_trace("ch341a_initialize()\n");
 
@@ -288,7 +282,7 @@ static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("CH341ChipSelect(..., false) failed\n");
     return -1;
   }
-  usleep(20 * 1000);
+  usleep(20*1000);
   if(!CH341ChipSelect(pgm, cs, true)) {
     pmsg_error("CH341ChipSelect(..., true) failed\n");
     return -1;
@@ -296,7 +290,6 @@ static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   return pgm->program_enable(pgm, p);
 }
-
 
 static int ch341a_spi(const PROGRAMMER *pgm, const unsigned char *in, unsigned char *out, int size) {
   unsigned char pkt[CH341A_PACKET_LENGTH];
@@ -310,7 +303,7 @@ static int ch341a_spi(const PROGRAMMER *pgm, const unsigned char *in, unsigned c
   pkt[0] = CH341A_CMD_SPI_STREAM;
 
   for(int i = 0; i < size; i++)
-    pkt[i+1] = swap_byte(in[i]);
+    pkt[i + 1] = swap_byte(in[i]);
 
   if(!CH341USBTransfer(pgm, LIBUSB_ENDPOINT_OUT, pkt, size + 1)) {
     pmsg_error("failed to transfer data to CH341\n");
@@ -332,7 +325,6 @@ static int ch341a_spi_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsig
   return pgm->spi(pgm, cmd, res, 4);
 }
 
-
 static int ch341a_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
@@ -348,7 +340,6 @@ static int ch341a_spi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->initialize(pgm, p);
   return 0;
 }
-
 
 // Fall back on bytewise write (followed by write page if flash)
 static int ch341a_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
@@ -388,7 +379,7 @@ static int ch341a_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
       memset(cmd, 0, sizeof cmd);
       avr_set_bits(m->op[AVR_OP_LOAD_EXT_ADDR], cmd);
-      avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], cmd, addr / 2);
+      avr_set_addr(m->op[AVR_OP_LOAD_EXT_ADDR], cmd, addr/2);
       if(pgm->cmd(pgm, cmd, res) < 0)
         return -1;
     }
@@ -400,7 +391,6 @@ static int ch341a_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
 
   return n_bytes;
 }
-
 
 static int ch341a_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
@@ -425,7 +415,6 @@ static int ch341a_spi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
     return -2;
   return 0;
 }
-
 
 // Interface management
 static void ch341a_setup(PROGRAMMER *pgm) {
@@ -475,7 +464,7 @@ void ch341a_initpgm(PROGRAMMER *pgm) {
 }
 
 // ----------------------------------------------------------------------
-#else // !defined(HAVE_LIBUSB_1_0)
+#else                           // !defined(HAVE_LIBUSB_1_0)
 
 static int ch341a_nousb_open(PROGRAMMER *pgm, const char *name) {
   pmsg_error("no usb support, please compile again with libusb installed\n");
@@ -486,6 +475,6 @@ void ch341a_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "ch341a");
   pgm->open = ch341a_nousb_open;
 }
-#endif // !defined(HAVE_LIBUSB_1_0)
+#endif                          // !defined(HAVE_LIBUSB_1_0)
 
 const char ch341a_desc[] = "Programmer chip CH341A (AVR must have minimum F_CPU of 6.8 MHz)";
