@@ -1178,22 +1178,21 @@ static int assign_pin_list(int invert) {
 
 static int which_opcode(TOKEN *opcode) {
   switch(opcode->primary) {
-  case K_READ:         return AVR_OP_READ; break;
-  case K_WRITE:        return AVR_OP_WRITE; break;
-  case K_READ_LO:      return AVR_OP_READ_LO; break;
-  case K_READ_HI:      return AVR_OP_READ_HI; break;
-  case K_WRITE_LO:     return AVR_OP_WRITE_LO; break;
-  case K_WRITE_HI:     return AVR_OP_WRITE_HI; break;
-  case K_LOADPAGE_LO:  return AVR_OP_LOADPAGE_LO; break;
-  case K_LOADPAGE_HI:  return AVR_OP_LOADPAGE_HI; break;
-  case K_LOAD_EXT_ADDR:  return AVR_OP_LOAD_EXT_ADDR; break;
-  case K_WRITEPAGE:    return AVR_OP_WRITEPAGE; break;
-  case K_CHIP_ERASE:   return AVR_OP_CHIP_ERASE; break;
-  case K_PGM_ENABLE:   return AVR_OP_PGM_ENABLE; break;
+  case K_READ:          return AVR_OP_READ;
+  case K_WRITE:         return AVR_OP_WRITE;
+  case K_READ_LO:       return AVR_OP_READ_LO;
+  case K_READ_HI:       return AVR_OP_READ_HI;
+  case K_WRITE_LO:      return AVR_OP_WRITE_LO;
+  case K_WRITE_HI:      return AVR_OP_WRITE_HI;
+  case K_LOADPAGE_LO:   return AVR_OP_LOADPAGE_LO;
+  case K_LOADPAGE_HI:   return AVR_OP_LOADPAGE_HI;
+  case K_LOAD_EXT_ADDR: return AVR_OP_LOAD_EXT_ADDR;
+  case K_WRITEPAGE:     return AVR_OP_WRITEPAGE;
+  case K_CHIP_ERASE:    return AVR_OP_CHIP_ERASE;
+  case K_PGM_ENABLE:    return AVR_OP_PGM_ENABLE;
   default: 
     yyerror("invalid opcode");
     return -1;
-    break;
   }
 }
 
