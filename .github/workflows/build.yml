@@ -72,7 +72,7 @@ jobs:
       - name: Install
         run: sudo make -C _ambuild install
       - name: Dryrun_test
-        run: printf "\n\n" | ./tools/test-avrdude -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
+        run: printf "\n\n" | ./tools/test-avrdude -e _ambuild/avrdude -c '-C _ambuild/avrdude.conf' -d0 -p"-cdryrun -pm2560" -p"-cdryrun -pavr64du28"
       - name: distcheck
         run: make -C _ambuild -j$(nproc) distcheck
 

@@ -148,9 +148,12 @@ if [[ ${#pgm_and_target[@]} -eq 0 ]]; then
 fi
 
 arraylength=${#pgm_and_target[@]}
-type "$avrdude_bin" >/dev/null 2>&1 || { echo "$progname: cannot execute $avrdude_bin"; exit 1; }
-echo -n "Testing $avrdude_bin"
-$avrdude_bin -v 2>&1 | grep Version | cut -f2- -d: | sed s/Version/version/
+
+if ! type "$avrdude_bin" >/dev/null 2>&1; then
+    echo "$progname: cannot execute $avrdude_bin"
+    type "$avrdude_bin"
+    exit 1
+fi
 
 [[ -d $tmp && -w $tmp ]] || tmp=/tmp # Fall back to /tmp if tmp directory unusable
 status=$(mktemp "$tmp/$progname.status.XXXXXX")
@@ -159,6 +162,16 @@ outfile=$(mktemp "$tmp/$progname.out.XXXXXX")
 tmpfile=$(mktemp "$tmp/$progname.tmp.XXXXXX")
 resfile=$(mktemp "$tmp/$progname.res.XXXXXX")
 trap "rm -f $status $logfile $outfile $tmpfile $resfile" EXIT
+
+echo -n "Testing $(type -p "$avrdude_bin")"
+$avrdude_bin -v 2>&1 | grep '[vV]ersion' | sed 's/^.* [Vv]ersion//' | head -n1 > "$outfile"
+if test -s "$outfile"; then
+    cat "$outfile"
+else
+    echo ": error obtaining version from '$avrdude_bin -v'"
+    $avrdude_bin -v
+    exit 1
+fi
 
 devnull=$tmpfile                # Cannot use /dev/null as file in Windows avrdude
 
@@ -255,9 +268,9 @@ for (( p=0; p<$arraylength; p++ )); do
     avrdude=($avrdude_bin -l $logfile $avrdude_conf -qq ${pgm_and_target[$p]})
 
     # Get flash and EEPROM size in bytes and make sure the numbers are in dec form
-    flash_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep flash | awk '{print $2}')
+    flash_size=$($avrdude_bin $avrdude_conf -c dryrun -p $part -T 'part -m' 2>/dev/null | grep flash | awk '{print $2}')
     bench_flwr_size=$((flash_size/6)) # Approximate(!) size of file holes_rjmp_loops_${flash_size}B.hex
-    ee_size=$(${avrdude[@]} -cdryrun -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
+    ee_size=$($avrdude_bin $avrdude_conf -c dryrun -p $part -T 'part -m' 2>/dev/null | grep eeprom | awk '{print $2}')
     bench_eewr_size=$((ee_size/6)) # Approximate(!) size of file holes_pack_my_box_${ee_size}B.hex
 
     if [[ -z "$flash_size" ]]; then
@@ -302,9 +315,19 @@ for (( p=0; p<$arraylength; p++ )); do
       result [ $? == 0 ]
 
       # Test binary, octal, decimal, hexadecimal and R number lists for I/O
-      declare -A numsys=([b]=binary [o]=octal [d]=decimal [h]=hexadecimal [R]=R)
+      numsys() {
+	  # this function replaces constant associative array, as
+	  # macos bash does not support associative arrays.
+	  case "$1" in
+	      b) echo "binary" ;;
+	      o) echo "octal" ;;
+	      d) echo "decimal" ;;
+	      h) echo "hexadecimal" ;;
+	      R) echo "R" ;;
+	  esac
+      }
       for fmt in b o d h R; do
-        specify="flash writing ${numsys[$fmt]} numbers"
+        specify="flash writing $(numsys "$fmt") numbers"
         command=(${avrdude[@]}
           -U $tfiles/urboot_m2560_1s_x16m0_115k2_uart0_rxe0_txe1_led+b7_pr_ee_ce.hex
           -T '"write flash 0x3fd00 0xc0cac01a 0xcafe \"secret Coca Cola recipe\""'
@@ -313,7 +336,7 @@ for (( p=0; p<$arraylength; p++ )); do
         execute "${command[@]}"
         result [ $? == 0 ]
 
-        specify="flash reading and verifying ${numsys[$fmt]} numbers"
+        specify="flash reading and verifying $(numsys "$fmt") numbers"
         command=(${avrdude[@]}
           -U flash:w:$tmpfile:$fmt
           -U flash:r:$resfile:r)
