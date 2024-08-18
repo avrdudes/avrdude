@@ -299,7 +299,7 @@ static void linuxspi_display(const PROGRAMMER *pgm, const char *p) {
 static int linuxspi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   int tries, ret;
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     // We do not support TPI; this is a dedicated SPI thing
     pmsg_error("programmer " LINUXSPI " does not support TPI\n");
     return -1;

@@ -493,7 +493,7 @@ static int update_avr_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     if(memstats_mem(p, mem, size, &fs_patched) < 0)
       return -1;
     if(memcmp(&fs_patched, &fs, sizeof fs)) {
-      pmsg_notice("preparing flash input for device%s\n", pgm->prog_modes & PM_SPM? " bootloader": "");
+      pmsg_notice("preparing flash input for device%s\n", is_spm(pgm)? " bootloader": "");
       imsg_notice("%d byte%s in %d section%s %s%s",
         fs_patched.nbytes, str_plural(fs_patched.nbytes),
         fs_patched.nsections, str_plural(fs_patched.nsections),
@@ -594,7 +594,7 @@ static int update_mem_from_all(const UPDATE *upd, const AVRPART *p, const AVRMEM
 
   if(allsize - off < size)      // Clip to available data in input
     size = allsize > off? allsize - off: 0;
-  if(is_memset(all->tags + off, 0, size))       // Nothing set? This memory was not present
+  if(is_memset(all->tags + off, 0, size)) // Nothing set? This memory was not present
     size = 0;
   if(size == 0)
     pmsg_warning("%s has no data for %s, skipping ...\n", str_infilename(upd->filename), m_name);
@@ -775,7 +775,7 @@ int do_op(const PROGRAMMER *pgm, const AVRPART *p, const UPDATE *upd, enum updat
       for(int i = 0; i < ns; i++) {
         m = umemlist[i];
         // Silently skip readonly memories and fuses/lock in bootloaders
-        if(mem_is_readonly(m) || ((pgm->prog_modes & PM_SPM) && (mem_is_in_fuses(m) || mem_is_lock(m))))
+        if(mem_is_readonly(m) || (is_spm(pgm) && (mem_is_in_fuses(m) || mem_is_lock(m))))
           continue;
 
         int ret, size = update_mem_from_all(upd, p, m, mem, allsize);

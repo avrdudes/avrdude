@@ -219,13 +219,13 @@ unsigned fileio_mem_offset(const AVRPART *p, const AVRMEM *mem) {
     mem_is_eeprom(mem)? MBASE(EEPROM):
     mem_is_in_fuses(mem)? MBASE(FUSES) + mem_fuse_offset(mem): mem_is_lock(mem)? MBASE(LOCK):
     // Classic parts intersperse signature and calibration bytes, this code places them together
-    (p->prog_modes & PM_Classic) && mem_is_signature(mem)? MBASE(SIGROW):
-    (p->prog_modes & PM_Classic) && mem_is_calibration(mem)? MBASE(SIGROW) + 3:
-    (p->prog_modes & PM_Classic) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + 0x10 + mem->offset - boffset(p, sigrow):
+    is_classic(p) && mem_is_signature(mem)? MBASE(SIGROW):
+    is_classic(p) && mem_is_calibration(mem)? MBASE(SIGROW) + 3:
+    is_classic(p) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + 0x10 + mem->offset - boffset(p, sigrow):
     // XMEGA parts have signature separate from prodsig, place prodsig at +0x10 as above
-    (p->prog_modes & PM_PDI) && mem_is_signature(mem)? MBASE(SIGROW):
-    (p->prog_modes & PM_PDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + 0x10 + mem->offset - boffset(p, sigrow):
-    (p->prog_modes & PM_UPDI) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + mem->offset - boffset(p, sigrow):
+    is_pdi(p) && mem_is_signature(mem)? MBASE(SIGROW):
+    is_pdi(p) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + 0x10 + mem->offset - boffset(p, sigrow):
+    is_updi(p) && mem_is_in_sigrow(mem)? MBASE(SIGROW) + mem->offset - boffset(p, sigrow):
      mem_is_sib(mem)? MBASE(SIGROW) + 0x1000: // Arbitrary 0x1000 offset in signature section for sib
     mem_is_userrow(mem)? MBASE(USERROW): mem_is_bootrow(mem)? MBASE(BOOTROW): ~0U;
 
@@ -986,7 +986,7 @@ static int elf_mem_limits(const AVRMEM *mem, const AVRPART *p,
   unsigned int *lowbound, unsigned int *highbound, unsigned int *fileoff) {
   int rv = 0;
 
-  if(p->prog_modes & PM_aWire) {        // AVR32
+  if(is_awire(p)) {             // AVR32
     if(mem_is_flash(mem)) {
       *lowbound = 0x80000000;
       *highbound = 0xffffffff;
@@ -1054,7 +1054,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
    * allows to select only the appropriate sections out of an ELF file that
    * contains section data for more than one sub-segment.
    */
-  if((p->prog_modes & PM_PDI) && mem_is_in_flash(mem) && !mem_is_flash(mem)) {
+  if(is_pdi(p) && mem_is_in_flash(mem) && !mem_is_flash(mem)) {
     AVRMEM *flashmem = avr_locate_flash(p);
 
     if(flashmem == NULL) {
@@ -1090,7 +1090,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
   const char *endianname;
   unsigned char endianness;
 
-  if(p->prog_modes & PM_aWire) {        // AVR32
+  if(is_awire(p)) {             // AVR32
     endianness = ELFDATA2MSB;
     endianname = "little";
   } else {
@@ -1117,7 +1117,7 @@ static int elf2b(const char *infile, FILE *inf, const AVRMEM *mem,
   const char *mname;
   uint16_t machine;
 
-  if(p->prog_modes & PM_aWire) {
+  if(is_awire(p)) {
     machine = EM_AVR32;
     mname = "AVR32";
   } else {
@@ -1525,7 +1525,7 @@ static int fileio_setparms(int op, struct fioparms *fp, const AVRPART *p, const 
    * AVR32 devices maintain their load offset within the file itself, but
    * AVRDUDE maintains all memory images 0-based.
    */
-  fp->fileoffset = p->prog_modes & PM_aWire? m->offset: 0;
+  fp->fileoffset = is_awire(p)? m->offset: 0;
 
   return 0;
 }

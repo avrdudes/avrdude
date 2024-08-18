@@ -1063,7 +1063,7 @@ retry:
       break;
 
     case PGMTYPE_JTAGICE3:
-      if(buf[1] == STATUS_CMD_FAILED && (p->prog_modes & PM_debugWIRE)) {
+      if(buf[1] == STATUS_CMD_FAILED && is_debugwire(p)) {
         unsigned char cmd[4], *resp;
 
         // Try debugWIRE, and MONCON_DISABLE
@@ -1161,7 +1161,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       my.pgmtype == PGMTYPE_AVRISP_MKII ||
       my.pgmtype == PGMTYPE_JTAGICE_MKII) != 0 && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
     // This is an ATxmega device, must use XPROG protocol for the remaining actions
-    if(p->prog_modes & PM_PDI) {
+    if(is_pdi(p)) {
       // Find the border between application and boot area
       AVRMEM *bootmem = avr_locate_boot(p);
       AVRMEM *flashmem = avr_locate_flash(p);
@@ -1304,7 +1304,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   pgmcp->cookie = my.chained_pdata;
 
-  if(p->prog_modes & PM_debugWIRE)
+  if(is_debugwire(p))
     parm[0] = PARM3_ARCH_TINY;
   else
     parm[0] = PARM3_ARCH_MEGA;
@@ -2808,7 +2808,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     // Do not send request to write empty flash pages except for bootloaders (fixes Issue #425)
     unsigned char *p = m->buf + addr;
 
-    result = (pgm->prog_modes & PM_SPM) || !addrshift || *p != 0xff || memcmp(p, p + 1, block_size - 1)?
+    result = is_spm(pgm) || !addrshift || *p != 0xff || memcmp(p, p + 1, block_size - 1)?
       stk500v2_command(pgm, buf, block_size + 10, sizeof buf): 0;
 
     if(result < 0) {
@@ -4175,7 +4175,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
   AVRMEM *mem = NULL;
   int use_tpi;
 
-  use_tpi = (p->prog_modes & PM_TPI) != 0;
+  use_tpi = is_tpi(p) != 0;
 
   if(!use_tpi) {
     if(p->nvm_base == 0) {
@@ -4257,7 +4257,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
   }
 
   // Read XMEGA chip silicon revision
-  if(p->prog_modes & PM_PDI) {
+  if(is_pdi(p)) {
     AVRMEM *m = avr_locate_io(p);
     unsigned char chip_rev[AVR_CHIP_REVLEN];
 
@@ -4310,7 +4310,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
     memcode = XPRG_MEM_TYPE_LOCKBITS;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     memcode = XPRG_MEM_TYPE_FUSE;
-    if(p->prog_modes & PM_TPI)
+    if(is_tpi(p))
       need_erase = 1;
   } else if(mem_is_userrow(mem)) {
     memcode = XPRG_MEM_TYPE_USERSIG;
@@ -4341,7 +4341,7 @@ static int stk600_xprog_write_byte(const PROGRAMMER *pgm, const AVRPART *p, cons
     }
   }
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     /*
      * Some TPI memories (configuration aka. fuse) require a larger write block
      * size.  We record that as a blocksize in avrdude.conf.
@@ -4659,7 +4659,7 @@ static int stk600_xprog_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
   unsigned int addr = 0;
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     if((mem = avr_locate_flash(p)) == NULL) {
       pmsg_error("no FLASH definition found for TPI device\n");
       return -1;

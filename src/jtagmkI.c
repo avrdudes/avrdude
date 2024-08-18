@@ -435,7 +435,7 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     pmsg_error("part %s has no JTAG interface\n", p->desc);
     return -1;
   }
-  if(!(p->prog_modes & PM_JTAGmkI))
+  if(!is_jtagmki(p))
     pmsg_warning("part %s has JTAG interface, but may be too new\n", p->desc);
 
   jtagmkI_drain(pgm, 0);

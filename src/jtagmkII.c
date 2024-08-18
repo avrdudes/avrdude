@@ -827,7 +827,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  if(p->prog_modes & PM_Classic)
+  if(is_classic(p))
     pgm->initialize(pgm, p);
 
   my.recently_written = 1;
@@ -876,7 +876,7 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
       u32_to_b4(sendbuf.dd.ulFlashSize, m->size);
       u16_to_b2(sendbuf.dd.uiFlashPageSize, m->page_size);
       u16_to_b2(sendbuf.dd.uiFlashpages, m->size/m->page_size);
-      if(p->prog_modes & PM_debugWIRE) {
+      if(is_debugwire(p)) {
         memcpy(sendbuf.dd.ucFlashInst, p->flash_instr, FLASH_INSTR_SIZE);
         memcpy(sendbuf.dd.ucEepromInst, p->eeprom_instr, EEPROM_INSTR_SIZE);
       }
@@ -1162,8 +1162,8 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // Abort and print error if programmer does not support the target microcontroller
-  if((str_starts(pgm->type, "JTAGMKII_UPDI") && !(p->prog_modes & PM_UPDI)) ||
-    (str_starts(pgmid, "jtagmkII") && (p->prog_modes & PM_UPDI))) {
+  if((str_starts(pgm->type, "JTAGMKII_UPDI") && !is_updi(p)) ||
+    (str_starts(pgmid, "jtagmkII") && is_updi(p))) {
     msg_error("programmer %s does not support target %s\n\n", pgmid, p->desc);
     return -1;
   }
@@ -1171,7 +1171,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   ok = 0;
   if(pgm->flag & PGM_FL_IS_DW) {
     ifname = "debugWire";
-    if(p->prog_modes & PM_debugWIRE)
+    if(is_debugwire(p))
       ok = 1;
   } else if(pgm->flag & PGM_FL_IS_PDI) {
     ifname = "PDI";
@@ -1268,7 +1268,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
-  if((pgm->flag & PGM_FL_IS_JTAG) && (p->prog_modes & PM_Classic)) {
+  if((pgm->flag & PGM_FL_IS_JTAG) && is_classic(p)) {
     int ocden = 0;
 
     if(avr_get_config_value(pgm, p, "ocden", &ocden) == 0 && ocden) // ocden == 1 means disabled
@@ -1300,7 +1300,7 @@ static void jtagmkII_disable(const PROGRAMMER *pgm) {
 
 static void jtagmkII_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(p->prog_modes & PM_Classic)
+  if(is_classic(p))
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 
@@ -1757,7 +1757,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
+  if(is_classic(p) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -2046,7 +2046,7 @@ static int jtagmkII_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsig
       return -1;
     }
     int status = pgm->read_byte(pgm, p, m,
-      p->prog_modes & PM_PDI? p->mcu_base + 3: p->syscfg_base + 1, chip_rev);
+      is_pdi(p)? p->mcu_base + 3: p->syscfg_base + 1, chip_rev);
 
     if(status < 0)
       return status;
@@ -2095,7 +2095,7 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     }
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
+    if(is_classic(p) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if(pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2268,7 +2268,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
-    if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
+    if(is_classic(p) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if(pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;

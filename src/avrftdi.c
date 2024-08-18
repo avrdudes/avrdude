@@ -232,7 +232,7 @@ static void avrftdi_enable(PROGRAMMER *pgm, const AVRPART *p) {
   set_pin(pgm, PPI_AVR_BUFF, ON);
 
   // Switch to TPI initialisation in avrftdi_tpi.c
-  if(p->prog_modes & PM_TPI)
+  if(is_tpi(p))
     avrftdi_tpi_initpgm(pgm);
 }
 
@@ -784,7 +784,7 @@ static void avrftdi_close(PROGRAMMER *pgm) {
 static int avrftdi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   avrftdi_powerup(pgm);
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     // See avrftdi_tpi.c
     avrftdi_tpi_initialize(pgm, p);
   } else {

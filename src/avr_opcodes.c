@@ -667,7 +667,7 @@ int op16_is_benign(int op16, int avrlevel) {    // Benign means no I/O or SRAM i
 // Opcodes in avr_opcodes[] that a part ought to be able to run
 int avr_get_archlevel(const AVRPART *p) {
   int ret =
-    p->prog_modes & PM_UPDI? PART_AVR_XT: p->prog_modes & PM_PDI? PART_AVR_XM: p->prog_modes & PM_TPI? PART_AVR_RC: 0;
+    is_updi(p)? PART_AVR_XT: is_pdi(p)? PART_AVR_XM: is_tpi(p)? PART_AVR_RC: 0;
 
   if(!ret) {                    // Non-TPI classic part
     switch(p->archnum) {
@@ -717,7 +717,7 @@ int avr_get_archlevel(const AVRPART *p) {
 
 // Index in the avr_opcodes[].clock[] array for timings of an opcode
 AVR_cycle_index avr_get_cycle_index(const AVRPART *p) {
-  return p->prog_modes & PM_UPDI? OP_AVRxt: p->prog_modes & PM_PDI? OP_AVRxm: p->prog_modes & PM_TPI? OP_AVRrc: OP_AVRe;
+  return is_updi(p)? OP_AVRxt: is_pdi(p)? OP_AVRxm: is_tpi(p)? OP_AVRrc: OP_AVRe;
 }
 
 // Return the mnemonic string of an opcode

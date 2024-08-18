@@ -218,7 +218,7 @@ static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   } else {
     pid = part->usbpid;
   }
-  if(!ovsigck && (part->prog_modes & PM_PDI)) {
+  if(!ovsigck && is_pdi(part)) {
     pmsg_error("flip1 (FLIP protocol version 1) is for AT90USB* and ATmega*U* devices\n");
     imsg_error("for Xmega devices, use flip2 or use -F to bypass this check\n");
     return -1;

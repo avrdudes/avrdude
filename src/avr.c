@@ -52,7 +52,7 @@ int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int err;
   AVRMEM *mem;
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     led_clr(pgm, LED_ERR);
     led_set(pgm, LED_PGM);
 
@@ -107,7 +107,7 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
   unsigned char cmd[2];
   unsigned char response;
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     // Set guard time
     cmd[0] = (TPI_CMD_SSTCS | TPI_REG_TPIPCR);
     cmd[1] = guard_time;
@@ -230,7 +230,7 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     if(pgm->cmd_tpi == NULL) {
       pmsg_error("%s programmer does not support TPI\n", pgm->type);
       goto error;
@@ -377,7 +377,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   memset(mem->buf, 0xff, mem->size);
 
   // Supports paged load thru post-increment
-  if((p->prog_modes & PM_TPI) && mem->page_size > 1 && mem->size%mem->page_size == 0 && pgm->cmd_tpi != NULL) {
+  if(is_tpi(p) && mem->page_size > 1 && mem->size%mem->page_size == 0 && pgm->cmd_tpi != NULL) {
 
     while(avr_tpi_poll_nvmbsy(pgm))
       continue;
@@ -412,7 +412,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   }
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if((pgm->paged_load && mem->page_size > 1 && mem->size%mem->page_size == 0) ||
-    ((pgm->prog_modes & PM_SPM) && avr_has_paged_access(pgm, p, mem))) {
+    (is_spm(pgm) && avr_has_paged_access(pgm, p, mem))) {
     // The programmer supports a paged mode read
     int need_read, failure;
     unsigned int pageaddr;
@@ -664,7 +664,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   data = avr_bitmask_data(pgm, p, mem, addr, data);
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     if(pgm->cmd_tpi == NULL) {
       pmsg_error("%s programmer does not support TPI\n", pgm->type);
       goto error;
@@ -939,7 +939,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     return wsize;
   }
 
-  if((p->prog_modes & PM_TPI) && m->page_size > 1 && pgm->cmd_tpi) {
+  if(is_tpi(p) && m->page_size > 1 && pgm->cmd_tpi) {
     unsigned int chunk;         // Number of words for each write command
     unsigned int j, writeable_chunk;
 
@@ -1013,7 +1013,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
   }
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if((pgm->paged_load && m->page_size > 1 && m->size%m->page_size == 0) ||
-    ((pgm->prog_modes & PM_SPM) && avr_has_paged_access(pgm, p, m))) {
+    (is_spm(pgm) && avr_has_paged_access(pgm, p, m))) {
 
     // The programmer supports a paged mode write
     int need_write, failure, nset;
@@ -1039,7 +1039,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
     AVRMEM *cm = avr_dup_mem(m);
 
     // Establish and sanity check effective page size
-    int pgsize = (pgm->prog_modes & PM_SPM) && p->n_page_erase > 0? p->n_page_erase*cm->page_size: cm->page_size;
+    int pgsize = is_spm(pgm) && p->n_page_erase > 0? p->n_page_erase*cm->page_size: cm->page_size;
 
     if((pgsize & (pgsize - 1)) || pgsize < 1) {
       pmsg_error("effective page size %d implausible\n", pgsize);
@@ -1216,7 +1216,7 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
 
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
-  if(mem_is_fuses(mem) && addr >= 0 && addr < 16) {     // Get right fuse in fuses memory
+  if(mem_is_fuses(mem) && addr >= 0 && addr < 16) { // Get right fuse in fuses memory
     AVRMEM *dfuse = avr_locate_fuse_by_offset(p, addr);
 
     if(dfuse) {
@@ -1306,7 +1306,7 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
 
   for(i = 0; i < size; i++) {
     if((b->tags[i] & TAG_ALLOCATED) != 0 && buf1[i] != buf2[i]) {
-      uint8_t bitmask = p->prog_modes & PM_ISP? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
+      uint8_t bitmask = is_isp(p)? get_fuse_bitmask(a): avr_mem_bitmask(p, a, i);
 
       if(ro || (pgm->readonly && pgm->readonly(pgm, p, a, i))) {
         if(quell_progress < 2) {
@@ -1555,7 +1555,7 @@ Memtable avr_mem_order[100] = {
 
 // Whether a memory is an exception that shouldn't be there for this particular i/face
 int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m) {
-  return is_type(pgm, dryrun)? 0:     // Never exclude dryrun memories
+  return is_type(pgm, dryrun)? 0: // Never exclude dryrun memories
     // debugWIRE only allows eeprom/flash/signature
     (both_debugwire(pgm, p) && !(mem_is_in_flash(m) || mem_is_eeprom(m) || mem_is_signature(m))) ||
     // urclock type only allows eeprom/flash/signature

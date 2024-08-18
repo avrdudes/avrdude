@@ -76,7 +76,7 @@
  * avr_chip_erase_cached() erases the chip and discards pending writes() to
  * flash or EEPROM. It presets the flash cache to all 0xff alleviating the
  * need to read from the device flash. However, if the programmer serves
- * bootloaders (pgm->prog_modes & PM_SPM) then the flash cache is reset
+ * bootloaders is_spm(pgm) then the flash cache is reset
  * instead, necessitating flash memory be fetched from the device on first
  * read; the reason for this is that bootloaders emulate chip erase and they
  * won't overwrite themselves (some bootloaders, eg, optiboot ignore chip
@@ -269,7 +269,7 @@ static int initCache(AVR_Cache *cp, const PROGRAMMER *pgm, const AVRPART *p) {
   cp->copy = mmt_malloc(cp->size);
   cp->iscached = mmt_malloc(cp->size/cp->page_size);
 
-  if((pgm->prog_modes & PM_SPM) && mem_is_in_flash(basemem)) {  // Could be vector bootloader
+  if(is_spm(pgm) && mem_is_in_flash(basemem)) {  // Could be vector bootloader
     // Caching the vector page hands over to the progammer that then can patch the reset vector
     if(loadCachePage(cp, pgm, p, basemem, 0, 0, 0) < 0)
       return LIBAVRDUDE_GENERAL_FAILURE;
@@ -329,7 +329,7 @@ static int guessBootStart(const PROGRAMMER *pgm, const AVRPART *p) {
   int bootstart = 0;
   const AVR_Cache *cp = pgm->cp_flash;
 
-  if(p->prog_modes & PM_UPDI)   // Modern AVRs put the bootloader at 0
+  if(is_updi(p))   // Modern AVRs put the bootloader at 0
     return 0;
 
   if(p->n_boot_sections > 0 && p->boot_section_size > 0)
@@ -512,8 +512,8 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
         continue;
 
       if(mems[i].isflash) {
-        memset(cp->copy, 0xff, cp->size);       // Record device memory as erased
-        if(pgm->prog_modes & PM_SPM) {  // Bootloaders will not overwrite themselves
+        memset(cp->copy, 0xff, cp->size); // Record device memory as erased
+        if(is_spm(pgm)) {       // Bootloaders will not overwrite themselves
           // Read back generously estimated bootloader section to avoid verification errors
           int bootstart = guessBootStart(pgm, p);
           int nbo = (cp->size - bootstart)/cp->page_size;
@@ -532,7 +532,7 @@ int avr_flush_cache(const PROGRAMMER *pgm, const AVRPART *p) {
       } else if(mems[i].iseeprom) {
         // Don't know whether chip erase has zapped EEPROM
         for(int n = 0; n < cp->size; n += cp->page_size) {
-          if(!is_memset(cp->copy + n, 0xff, cp->page_size)) {   // First page that had EEPROM data
+          if(!is_memset(cp->copy + n, 0xff, cp->page_size)) { // First page that had EEPROM data
             if(avr_read_page_default(pgm, p, mem, n, cp->copy + n) < 0) {
               report_progress(1, -1, NULL);
               if(quell_progress)
@@ -714,7 +714,7 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
         return LIBAVRDUDE_GENERAL_FAILURE;
 
     if(mems[i].isflash) {
-      if(pgm->prog_modes & PM_SPM) {    // Reset cache to unknown
+      if(is_spm(pgm)) {         // Reset cache to unknown
         memset(cp->iscached, 0, cp->size/cp->page_size);
       } else {                  // Preset all pages as erased
         memset(cp->copy, 0xff, cp->size);
@@ -726,7 +726,7 @@ int avr_chip_erase_cached(const PROGRAMMER *pgm, const AVRPART *p) {
 
       for(int pgno = 0, n = 0; n < cp->size; pgno++, n += cp->page_size) {
         if(cp->iscached[pgno]) {
-          if(!is_memset(cp->copy + n, 0xff, cp->page_size)) {   // Page has data?
+          if(!is_memset(cp->copy + n, 0xff, cp->page_size)) { // Page has data?
             if(avr_read_page_default(pgm, p, mem, n, cp->copy + n) < 0)
               return LIBAVRDUDE_GENERAL_FAILURE;
             erased = is_memset(cp->copy + n, 0xff, cp->page_size);

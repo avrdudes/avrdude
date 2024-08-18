@@ -719,7 +719,7 @@ static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pdata->capabilities = usbasp_transmit(pgm, 1, USBASP_FUNC_GETCAPABILITIES, temp, res, sizeof(res)) == 4?
     res[0] | ((unsigned int) res[1] << 8) | ((unsigned int) res[2] << 16) | ((unsigned int) res[3] << 24): 0;
 
-  pdata->use_tpi = (pdata->capabilities & USBASP_CAP_TPI) && (p->prog_modes & PM_TPI);
+  pdata->use_tpi = (pdata->capabilities & USBASP_CAP_TPI) && is_tpi(p);
   // Query support for 3 MHz SCK in UsbAsp-flash firmware https://github.com/nofeletru/UsbAsp-flash
   pdata->sck_3mhz = ((pdata->capabilities & USBASP_CAP_3MHZ) != 0)? 1: 0;
 

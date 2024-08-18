@@ -1025,9 +1025,9 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
     ur.uP.name = p->desc;
     ur.uP.mcuid = p->mcuid;
     ur.uP.avrarch =
-      p->prog_modes & PM_UPDI? F_AVR8X:
-      p->prog_modes & PM_PDI? F_XMEGA:
-      p->prog_modes & PM_TPI? F_AVR8L:
+      is_updi(p)? F_AVR8X:
+      is_pdi(p)? F_XMEGA:
+      is_tpi(p)? F_AVR8L:
       p->prog_modes & (PM_ISP | PM_HVPP | PM_HVSP)? F_AVR8: 0;
     memcpy(ur.uP.sigs, p->signature, sizeof ur.uP.sigs);
     if((mem = avr_locate_flash(p))) {
@@ -1289,11 +1289,11 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   ur.bleepromrw = 0;
 
   // No urboot bootloaders on AVR32 parts, neither on really small devices
-  if((p->prog_modes & PM_aWire) || flm->size < 512)
+  if(is_awire(p) || flm->size < 512)
     goto alldone;
 
   // UPDI parts have bootloader in low flash
-  ur.boothigh = !(p->prog_modes & PM_UPDI);
+  ur.boothigh = !is_updi(p);
 
   // Manual provision of above bootloader parameters
   if(ur.xbootsize) {

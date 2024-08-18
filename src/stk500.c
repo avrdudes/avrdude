@@ -832,7 +832,7 @@ retry:
 static void stk500_enable(PROGRAMMER *pgm, const AVRPART *p) {
   AVRMEM *mem;
 
-  if(pgm->prog_modes & PM_SPM)  // For bootloaders (eg, arduino)
+  if(is_spm(pgm))               // For bootloaders (eg, arduino)
     if((mem = avr_locate_eeprom(p)))
       if(mem->page_size == 1)   // Change EEPROM page size from 1 to 16 to force paged r/w
         mem->page_size = 16;
@@ -890,7 +890,7 @@ retry:
 
   // Support large flash by sending the correct extended address byte when needed
 
-  if(pgm->prog_modes & PM_SPM) { // Bootloaders, eg, optiboot, optiboot_dx, optiboot_x
+  if(is_spm(pgm)) {             // Bootloaders, eg, optiboot, optiboot_dx, optiboot_x
     if(mem->size/a_div > 64*1024) { // Extended addressing needed
       ext_byte = (addr >> 16) & 0xff;
       if(ext_byte != my.ext_addr_byte) { // First addr load or a different 64k section
@@ -967,7 +967,7 @@ retry:
 static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int *memchrp, int *a_divp) {
   if(mem_is_in_flash(m)) {
     *memchrp = 'F';
-    if(!(pgm->prog_modes & PM_SPM))     // Programmer *not* for bootloaders: original stk500v1 protocol
+    if(!is_spm(pgm))            // Programmer *not* for bootloaders: original stk500v1 protocol
       *a_divp = m->op[AVR_OP_LOADPAGE_LO] || m->op[AVR_OP_READ_LO]? 2: 1;
     else if(!(p->prog_modes & (PM_UPDI | PM_PDI | PM_aWire)))
       *a_divp = 2;              // Bootloader where part is a "classic" part (eg, optiboot)
@@ -979,8 +979,8 @@ static int set_memchr_a_div(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   if(mem_is_eeprom(m)) {
     *memchrp = 'E';
     // Word addr for bootloaders or Arduino as ISP if part is a classic part; byte addr otherwise
-    *a_divp = ((pgm->prog_modes & PM_SPM) || str_caseeq(pgmid, "arduino_as_isp"))
-      && (p->prog_modes & PM_Classic)? 2: 1;
+    *a_divp = (is_spm(pgm) || str_caseeq(pgmid, "arduino_as_isp"))
+      && is_classic(p)? 2: 1;
     return 0;
   }
 

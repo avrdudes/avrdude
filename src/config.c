@@ -1033,7 +1033,7 @@ void cfg_update_mcuid(AVRPART *part) {
     return;
 
   // Don't assign an mcuid for 32-bit AVR parts
-  if(part->prog_modes & PM_aWire)
+  if(is_awire(part))
     return;
 
   // Find an entry that shares the same name, overwrite mcuid with known, existing mcuid

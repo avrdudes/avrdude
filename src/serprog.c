@@ -281,7 +281,7 @@ static int serprog_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 }
 
 static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
-  if(part->prog_modes & PM_TPI) {
+  if(is_tpi(part)) {
     // We do not support TPI; this is a dedicated SPI thing
     pmsg_error("the %s programmer does not support TPI\n", pgmid);
     return -1;

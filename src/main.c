@@ -1483,7 +1483,7 @@ int main(int argc, char *argv[]) {
   for(ln = lfirst(updates); ln; ln = lnext(ln)) {
     upd = ldata(ln);
     if(upd->memstr == NULL && upd->cmdline == NULL) {
-      const char *mtype = p->prog_modes & PM_PDI? "application": "flash";
+      const char *mtype = is_pdi(p)? "application": "flash";
 
       pmsg_notice2("defaulting memstr in -U %c:%s option to \"%s\"\n",
         (upd->op == DEVICE_READ)? 'r': (upd->op == DEVICE_WRITE)? 'w': 'v', upd->filename, mtype);
@@ -1570,7 +1570,7 @@ int main(int argc, char *argv[]) {
    * the other end that is responding correctly.  A check against
    * 0xffffff/0x000000 should ensure that the signature bytes are valid.
    */
-  if(!(p->prog_modes & PM_aWire)) {     // Not AVR32
+  if(!is_awire(p)) {            // Not AVR32
     int attempt = 0;
     int waittime = 10000;       // 10 ms
 
@@ -1583,7 +1583,7 @@ int main(int argc, char *argv[]) {
         goto main_exit;
       }
       if(rc != LIBAVRDUDE_SUCCESS) {
-        if(rc == LIBAVRDUDE_SOFTFAIL && (p->prog_modes & PM_UPDI) && attempt < 1) {
+        if(rc == LIBAVRDUDE_SOFTFAIL && is_updi(p) && attempt < 1) {
           attempt++;
           if(pgm->read_sib) {
             // Read SIB and compare FamilyID
@@ -1631,7 +1631,7 @@ int main(int argc, char *argv[]) {
       const char *mculist = str_ccmcunames_signature(sig->buf, pgm->prog_modes);
 
       if(!*mculist) {           // No matching signatures?
-        if(p->prog_modes & PM_UPDI) {   // UPDI parts have different(!) offsets for signature
+        if(is_updi(p)) {        // UPDI parts have different(!) offsets for signature
           int k, n = 0;         // Gather list of known different signature offsets
           unsigned myoff = sig->offset, offlist[10];
 

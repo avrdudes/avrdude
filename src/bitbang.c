@@ -372,7 +372,7 @@ int bitbang_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
   AVRMEM *mem;
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
 
     while(avr_tpi_poll_nvmbsy(pgm));
 
@@ -421,7 +421,7 @@ int bitbang_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char res[4];
   int i;
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     // Enable NVM programming
     bitbang_tpi_tx(pgm, TPI_CMD_SKEY);
     for(i = sizeof(tpi_skey) - 1; i >= 0; i--)
@@ -460,7 +460,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   usleep(20000);
 
   // TPIDATA is a single line, so SDI & SDO should be connected
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     // Make sure cmd_tpi() is defined
     if(pgm->cmd_tpi == NULL) {
       pmsg_error("%s programmer does not support TPI\n", pgm->type);
@@ -494,7 +494,7 @@ int bitbang_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pgm->setpin(pgm, PIN_AVR_RESET, 0);
   usleep(20000);
 
-  if(p->prog_modes & PM_TPI) {
+  if(is_tpi(p)) {
     // Keep TPIDATA high for 16 clock cycles
     pgm->setpin(pgm, PIN_AVR_SDO, 1);
     for(i = 0; i < 16; i++)

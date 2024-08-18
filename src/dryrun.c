@@ -107,7 +107,7 @@ static int dryrun_chip_erase(const PROGRAMMER *pgm, const AVRPART *punused) {
 
   verbose = -123;
   if((mem = avr_locate_eeprom(dry.dp))) // Check whether EEPROM needs erasing
-    if(avr_get_config_value(pgm, dry.dp, "eesave", &eesave) == 0 && eesave == !(dry.dp->prog_modes & PM_UPDI))
+    if(avr_get_config_value(pgm, dry.dp, "eesave", &eesave) == 0 && eesave == !is_updi(dry.dp))
       if(mem->size > 0)
         memset(mem->buf, 0xff, mem->size);
   verbose = bakverb;
@@ -174,7 +174,7 @@ static int dryrun_program_enable(const PROGRAMMER *pgm, const AVRPART *p_unused)
 static void randflashconfig(const PROGRAMMER *pgm, const AVRPART *p, const Avrintel *up,
   const Configitem *cp, int nc) {
 
-  if(up && p->prog_modes & PM_UPDI) {
+  if(up && is_updi(p)) {
     int sectorsize = up->bootsize > 0? up->bootsize: 256;
     int nsectors = up->flashsize/sectorsize;
     int bootsize = random()%(nsectors > 4? nsectors/4: nsectors);
@@ -197,7 +197,7 @@ static int flashlayout(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *fl
 
   AVRMEM *m;
 
-  if(p->prog_modes & PM_UPDI) {
+  if(is_updi(p)) {
     int nbootsec = 0, ncodesec = 0;
 
     int size = !!avr_locate_config(cp, nc, "bootsize", str_eq);
@@ -221,10 +221,10 @@ static int flashlayout(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *fl
 
       avr_get_config_value(pgm, p, "bootrst", &bootrst);
       if(bootrst == 0) {        // Jump to bootloader on reset
-        if((p->prog_modes & PM_PDI) && (m = avr_locate_boot(p)) && m->size > 0) {
+        if(is_pdi(p) && (m = avr_locate_boot(p)) && m->size > 0) {
           dry.bootstart = m->offset - flm->offset;
           dry.bootsize = m->size;
-        } else if(p->prog_modes & PM_Classic) {
+        } else if(is_classic(p)) {
           if(up->nboots == 4) {
             int bootsz = 0;
 
@@ -237,7 +237,7 @@ static int flashlayout(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *fl
       }
     }
     dry.datastart = 0, dry.datasize = 0;
-    if((p->prog_modes & PM_PDI) && (m = avr_locate_apptable(p)) && m->size > 0) {
+    if(is_pdi(p) && (m = avr_locate_apptable(p)) && m->size > 0) {
       dry.datastart = m->offset - flm->offset;
       dry.datasize = up->flashsize - dry.datastart - dry.bootsize;
     }
@@ -270,7 +270,7 @@ static int flashlayout(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *fl
   if(!dry.appsize)
     Retwarning("no application section");
 
-  if(p->prog_modes & PM_UPDI) {
+  if(is_updi(p)) {
     if(dry.bootsize && dry.appstart != dry.bootsize)
       Retwarning("application section %s does not touch boot section %s",
         str_ccinterval(dry.appstart, dry.appstart + dry.appsize - 1),
@@ -561,9 +561,9 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
       prodsigm = m;
       memset(m->buf, 0xff, m->size);
       // Classic parts: signature at even addresses
-      int n = q->prog_modes & PM_TPI? 1: 2;   // ... unless it's the TPI parts t102/t104
+      int n = is_tpi(q)? 1: 2;  // ... unless it's the TPI parts t102/t104
 
-      if(q->prog_modes & PM_Classic)
+      if(is_classic(q))
         for(int i = 0; i < 3; i++)
           m->buf[n*i] = q->signature[i];
     } else if(mem_is_io(m)) {   // Initialise reset values (if known)
@@ -593,16 +593,16 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
           memcpy(prodsigm->buf + off, m->buf, cpy);
       }
     }
-    if((q->prog_modes & PM_Classic) && (calm = avr_locate_calibration(q))) {
+    if(is_classic(q) && (calm = avr_locate_calibration(q))) {
       // Calibration bytes of classic parts are interspersed with signature
-      int n, tpi = !!(q->prog_modes & PM_TPI);  // ... unless it's the TPI parts t102/t104
+      int n, tpi = is_tpi(q);   // ... unless it's the TPI parts t102/t104
 
       for(int i = 0; i < calm->size; i++) {
         if((n = tpi? 3 + i: 2*i + 1) < prodsigm->size)
           prodsigm->buf[n] = 'U';
       }
     }
-    if((q->prog_modes & PM_Classic) && (m = avr_locate_sernum(q))) { // m324pb/m328pb, t102/t104
+    if(is_classic(q) && (m = avr_locate_sernum(q))) { // m324pb/m328pb, t102/t104
       int off = m->offset - prodsigm->offset;
       int cpy = m->size;
 
@@ -617,11 +617,11 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // Is the programmer a bootloader?
-  if((m = avr_locate_flash(q)) && m->size >= 1024 && (pgm->prog_modes & PM_SPM))
-    dry.bl = (q->prog_modes & PM_UPDI)? DRY_BOTTOM: DRY_TOP;
+  if((m = avr_locate_flash(q)) && m->size >= 1024 && is_spm(pgm))
+    dry.bl = is_updi(q)? DRY_BOTTOM: DRY_TOP;
 
   // So that dryrun can emulate AVRDUDE page erase
-  if(!(pgm->prog_modes & PM_SPM) && (q->prog_modes & (PM_PDI | PM_UPDI)))
+  if(!is_spm(pgm) && (q->prog_modes & (PM_PDI | PM_UPDI)))
     pgm->page_erase = dryrun_page_erase;
 
   if(!dry.random && !dry.init)  // OK, no further initialisation needed
@@ -656,7 +656,7 @@ static void dryrun_enable(PROGRAMMER *pgm, const AVRPART *p) {
   int vtb = putvectortable(q, flm, dry.appstart, dry.init), urbtsz = 0;
 
   int urboot = random()%3 && dry.bootsize <= 512 && flm->size >= 1024 &&
-    flm->size >= 4*dry.bootsize && (q->prog_modes & PM_Classic) && (q->prog_modes & PM_SPM);
+    flm->size >= 4*dry.bootsize && is_classic(q) && is_spm(q);
   if(urboot) {                  // Give some classic parts a small bootloader
     int ps = flm->page_size;
 
@@ -905,7 +905,7 @@ int dryrun_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
     Return("cannot read byte %s %s as address 0x%04lx outside range [0, 0x%04x]",
       dry.dp->desc, dmem->desc, addr, dmem->size - 1);
 
-  if(!dry.bl && (mem_is_io(dmem) || mem_is_sram(dmem)) && (p->prog_modes & PM_Classic))
+  if(!dry.bl && (mem_is_io(dmem) || mem_is_sram(dmem)) && is_classic(p))
     Return("classic part io/sram memories cannot be read externally");
 
   *value = dmem->buf[addr];
@@ -956,7 +956,7 @@ static int dryrun_readonly(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
   if(!dry.bl) {                 // io and sram may not be accessible by external programming
     if(mem_is_io(mem) || mem_is_sram(mem))
-      return !(p->prog_modes & PM_UPDI);        // Can not even read these externally in classic parts
+      return !is_updi(p);       // Can not even read these externally in classic parts
     return 0;
   }
 

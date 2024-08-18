@@ -1201,7 +1201,7 @@ void dev_output_part_defs(char *partdesc) {
     }
     // Print wait delays for AVR family parts
     if(waits) {
-      if(p->prog_modes & PM_ISP)
+      if(is_isp(p))
         dev_info(".wd_chip_erase %.3f ms %s\n", p->chip_erase_delay/1000.0, p->desc);
       if(p->mem) {
         for(LNODEID lnm = lfirst(p->mem); lnm; lnm = lnext(lnm)) {
@@ -1209,7 +1209,7 @@ void dev_output_part_defs(char *partdesc) {
 
           // Write delays not needed for read-only calibration and signature memories
           if(!mem_is_readonly(m)) {
-            if(p->prog_modes & PM_ISP) {
+            if(is_isp(p)) {
               if(m->min_write_delay == m->max_write_delay)
                 dev_info(".wd_%s %.3f ms %s\n", m->desc, m->min_write_delay/1000.0, p->desc);
               else {

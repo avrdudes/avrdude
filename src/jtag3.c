@@ -1019,15 +1019,15 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(pgm->flag & PGM_FL_IS_DW) {
     ifname = "debugWire";
-    if(p->prog_modes & PM_debugWIRE)
+    if(is_debugwire(p))
       conn = PARM3_CONN_DW;
   } else if(pgm->flag & PGM_FL_IS_PDI) {
     ifname = "PDI";
-    if(p->prog_modes & PM_PDI)
+    if(is_pdi(p))
       conn = PARM3_CONN_PDI;
   } else if(pgm->flag & PGM_FL_IS_UPDI) {
     ifname = "UPDI";
-    if(p->prog_modes & PM_UPDI)
+    if(is_updi(p))
       conn = PARM3_CONN_UPDI;
   } else {
     ifname = "JTAG";
@@ -1040,11 +1040,11 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   }
 
-  if(p->prog_modes & PM_PDI)
+  if(is_pdi(p))
     parm[0] = PARM3_ARCH_XMEGA;
-  else if(p->prog_modes & PM_UPDI)
+  else if(is_updi(p))
     parm[0] = PARM3_ARCH_UPDI;
-  else if(p->prog_modes & PM_debugWIRE)
+  else if(is_debugwire(p))
     parm[0] = PARM3_ARCH_TINY;
   else
     parm[0] = PARM3_ARCH_MEGA;
@@ -1062,7 +1062,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   if(conn == PARM3_CONN_PDI || conn == PARM3_CONN_UPDI)
     my.set_sck = jtag3_set_sck_xmega_pdi;
   else if(conn == PARM3_CONN_JTAG) {
-    if(p->prog_modes & PM_PDI)
+    if(is_pdi(p))
       my.set_sck = jtag3_set_sck_xmega_jtag;
     else
       my.set_sck = jtag3_set_sck_mega_jtag;
@@ -1154,7 +1154,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // Set device descriptor data
-  if((p->prog_modes & PM_PDI)) {
+  if(is_pdi(p)) {
     struct xmega_device_desc xd;
     LNODEID ln;
     AVRMEM *m;
@@ -1196,7 +1196,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if(jtag3_setparm(pgm, SCOPE_AVR, 2, PARM3_DEVICEDESC, (unsigned char *) &xd, sizeof xd) < 0)
       return -1;
-  } else if((p->prog_modes & PM_UPDI)) {
+  } else if(is_updi(p)) {
     struct updi_device_desc xd;
     LNODEID ln;
     AVRMEM *m;
@@ -1324,7 +1324,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       int ocdrev;
 
       // Lacking a proper definition, guess the OCD revision
-      if(p->prog_modes & PM_debugWIRE)
+      if(is_debugwire(p))
         ocdrev = 1;             // Exception: ATtiny13, 2313, 4313
       else if(flashsize > 128*1024)
         ocdrev = 4;
@@ -1383,7 +1383,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
    * is just RSP_OK.
    */
   if(resp[1] == RSP3_DATA && status >= 7) {
-    if(p->prog_modes & PM_UPDI) {
+    if(is_updi(p)) {
       // Partial Family_ID has been returned
       pmsg_notice("partial Family_ID returned: \"%c%c%c%c\"\n", resp[3], resp[4], resp[5], resp[6]);
     } else
@@ -1407,7 +1407,7 @@ static int jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   my.boot_start = ULONG_MAX;
-  if(p->prog_modes & PM_PDI) {
+  if(is_pdi(p)) {
     // Find the border between application and boot area
     AVRMEM *bootmem = avr_locate_boot(p);
     AVRMEM *flashmem = avr_locate_flash(p);
@@ -1443,7 +1443,7 @@ static void jtag3_disable(const PROGRAMMER *pgm) {
 
 static void jtag3_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Page erase only useful for classic parts with usersig mem or AVR8X/XMEGAs
-  if(p->prog_modes & PM_Classic)
+  if(is_classic(p))
     if(!avr_locate_usersig(p))
       pgm->page_erase = NULL;
 }
@@ -1869,7 +1869,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
-  if((p->prog_modes & PM_Classic) && !mem_is_userrow(m)) {
+  if(is_classic(p) && !mem_is_userrow(m)) {
     pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
     return -1;
   }
@@ -1935,7 +1935,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   if(mem_is_flash(m)) {
     my.flash_pageaddr = ~0UL;
     cmd[3] = jtag3_mtype(pgm, p, m, addr);
-    if(p->prog_modes & PM_PDI)
+    if(is_pdi(p))
       // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
@@ -2032,7 +2032,7 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
 
   if(mem_is_flash(m)) {
     cmd[3] = jtag3_mtype(pgm, p, m, addr);
-    if(p->prog_modes & PM_PDI)
+    if(is_pdi(p))
       // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
@@ -2045,9 +2045,9 @@ static int jtag3_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     cmd[3] = MTYPE_USERSIG;
   } else if(mem_is_boot(m)) {
     cmd[3] = MTYPE_BOOT_FLASH;
-  } else if(p->prog_modes & PM_PDI) {
+  } else if(is_pdi(p)) {
     cmd[3] = MTYPE_FLASH;
-  } else if(p->prog_modes & PM_UPDI) {
+  } else if(is_updi(p)) {
     cmd[3] = MTYPE_SRAM;
   } else {
     cmd[3] = MTYPE_SPM;
@@ -2142,7 +2142,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     cache_ptr = my.eeprom_pagecache;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if(!(p->prog_modes & PM_UPDI) && mem_is_a_fuse(mem))
+    if(!is_updi(p) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if(pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2161,7 +2161,7 @@ static int jtag3_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       if(pgm->flag & PGM_FL_IS_DW)
         unsupp = 1;
     }
-  } else if((p->prog_modes & PM_Classic) && mem_is_calibration(mem)) {  // Classic part calibration
+  } else if(is_classic(p) && mem_is_calibration(mem)) { // Classic part calibration
     cmd[3] = MTYPE_OSCCAL_BYTE;
     if(pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2315,7 +2315,7 @@ static int jtag3_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
     my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[3] = MTYPE_FUSE_BITS;
-    if(!(p->prog_modes & PM_UPDI) && mem_is_a_fuse(mem))
+    if(!is_updi(p) && mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
     if(pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
@@ -2544,7 +2544,7 @@ int jtag3_read_chip_rev(const PROGRAMMER *pgm, const AVRPART *p, unsigned char *
       return -1;
     }
     int status = pgm->read_byte(pgm, p, m,
-      p->prog_modes & PM_PDI? p->mcu_base + 3: p->syscfg_base + 1, chip_rev);
+      is_pdi(p)? p->mcu_base + 3: p->syscfg_base + 1, chip_rev);
 
     if(status < 0)
       return status;

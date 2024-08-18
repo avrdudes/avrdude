@@ -1262,7 +1262,7 @@ static int cmd_erase(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
   }
 
   term_out("%s chip erase; discarded pending writes to flash%s\n",
-    (pgm->prog_modes & PM_SPM)? "asking bootloader to perform": "performing",
+    is_spm(pgm)? "asking bootloader to perform": "performing",
     avr_locate_bootrow(p)? ", EEPROM and bootrow": avr_locate_eeprom(p)? " and EEPROM": "");
 
   // Erase chip and clear cache
@@ -2029,7 +2029,7 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
     return -1;
   }
 
-  if(pgm->prog_modes & PM_SPM) {        // Bootloader
+  if(is_spm(pgm)) {             // Bootloader
     pmsg_warning("-c %s is for bootloaders, which cannot set fuses;\n", pgmid);
     imsg_warning("only erasing flash and other writable memories as far as possible\n");
     if((m = avr_locate_flash(p))) {     // First erase flash
