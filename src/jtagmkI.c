@@ -50,7 +50,7 @@ struct pdata {
   int prog_enabled;             // Cached value of PROGRAMMING status
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 /*
  * Table of baud rates supported by the mkI ICE, accompanied by their internal
@@ -322,10 +322,10 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   for(ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if(mem_is_flash(m)) {
-      PDATA(pgm)->flash_pagesize = m->page_size;
-      u16_to_b2(sendbuf.dd.uiFlashPageSize, PDATA(pgm)->flash_pagesize);
+      my.flash_pagesize = m->page_size;
+      u16_to_b2(sendbuf.dd.uiFlashPageSize, my.flash_pagesize);
     } else if(mem_is_eeprom(m)) {
-      sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
+      sendbuf.dd.ucEepromPageSize = my.eeprom_pagesize = m->page_size;
     }
   }
 
@@ -370,7 +370,7 @@ static int jtagmkI_program_enable_dummy(const PROGRAMMER *pgm, const AVRPART *p)
 static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
-  if(PDATA(pgm)->prog_enabled)
+  if(my.prog_enabled)
     return 0;
 
   buf[0] = CMD_ENTER_PROGMODE;
@@ -387,7 +387,7 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
     msg_notice2("OK\n");
   }
 
-  PDATA(pgm)->prog_enabled = 1;
+  my.prog_enabled = 1;
 
   return 0;
 }
@@ -395,7 +395,7 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
 static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
-  if(!PDATA(pgm)->prog_enabled)
+  if(!my.prog_enabled)
     return 0;
 
   if(pgm->fd.ifd != -1) {
@@ -413,7 +413,7 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
       msg_notice2("OK\n");
     }
   }
-  PDATA(pgm)->prog_enabled = 0;
+  my.prog_enabled = 0;
 
   return 0;
 }
@@ -440,13 +440,13 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   jtagmkI_drain(pgm, 0);
 
-  if((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
+  if((serdev->flags & SERDEV_FL_CANSETSPEED) && my.initial_baudrate != pgm->baudrate) {
     if((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
       pmsg_error("unsupported baudrate %d\n", pgm->baudrate);
     } else {
       pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, pgm->baudrate);
       if(jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
-        PDATA(pgm)->initial_baudrate = pgm->baudrate;   // Don't adjust again later
+        my.initial_baudrate = pgm->baudrate; // Don't adjust again later
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
     }
@@ -472,15 +472,15 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // Must set the device descriptor before entering programming mode
   jtagmkI_set_devdescr(pgm, p);
 
-  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_LOW, PDATA(pgm)->flash_pagesize & 0xff);
-  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, PDATA(pgm)->flash_pagesize >> 8);
-  jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, PDATA(pgm)->eeprom_pagesize & 0xff);
+  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_LOW, my.flash_pagesize & 0xff);
+  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, my.flash_pagesize >> 8);
+  jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, my.eeprom_pagesize & 0xff);
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
   if(jtagmkI_reset(pgm) < 0)
     return -1;
@@ -494,10 +494,10 @@ static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtagmkI_disable(const PROGRAMMER *pgm) {
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  PDATA(pgm)->flash_pagecache = NULL;
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->eeprom_pagecache = NULL;
+  mmt_free(my.flash_pagecache);
+  my.flash_pagecache = NULL;
+  mmt_free(my.eeprom_pagecache);
+  my.eeprom_pagecache = NULL;
 
   (void) jtagmkI_program_disable(pgm);
 }
@@ -512,7 +512,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtagmkI_open()\n");
 
   pgm->port = port;
-  PDATA(pgm)->initial_baudrate = -1L;
+  my.initial_baudrate = -1L;
 
   for(i = 0; i < sizeof(baudtab)/sizeof(baudtab[0]); i++) {
     union pinfo pinfo;
@@ -528,7 +528,7 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
     jtagmkI_drain(pgm, 0);
 
     if(jtagmkI_getsync(pgm) == 0) {
-      PDATA(pgm)->initial_baudrate = baudtab[i].baud;
+      my.initial_baudrate = baudtab[i].baud;
       pmsg_notice2("%s(): succeeded\n", __func__);
       return 0;
     }
@@ -551,11 +551,11 @@ static void jtagmkI_close(PROGRAMMER *pgm) {
    * Revert baud rate to what it used to be when we started.  This appears to
    * make AVR Studio happier when it is about to access the ICE later on.
    */
-  if((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
-    if((b = jtagmkI_get_baud(PDATA(pgm)->initial_baudrate)) == 0) {
-      pmsg_error("unsupported baudrate %d\n", PDATA(pgm)->initial_baudrate);
+  if((serdev->flags & SERDEV_FL_CANSETSPEED) && my.initial_baudrate != pgm->baudrate) {
+    if((b = jtagmkI_get_baud(my.initial_baudrate)) == 0) {
+      pmsg_error("unsupported baudrate %d\n", my.initial_baudrate);
     } else {
-      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, PDATA(pgm)->initial_baudrate);
+      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, my.initial_baudrate);
       if(jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
@@ -597,13 +597,13 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
   cmd[0] = CMD_WRITE_MEM;
   if(mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
-    PDATA(pgm)->flash_pageaddr = ~0UL;
-    page_size = PDATA(pgm)->flash_pagesize;
+    my.flash_pageaddr = ~0UL;
+    page_size = my.flash_pagesize;
     is_flash = 1;
   } else if(mem_is_eeprom(m)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
-    page_size = PDATA(pgm)->eeprom_pagesize;
+    my.eeprom_pageaddr = ~0UL;
+    page_size = my.eeprom_pagesize;
   }
   datacmd[0] = CMD_DATA;
 
@@ -790,15 +790,15 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     cmd[1] = MTYPE_FLASH_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-    cache_ptr = PDATA(pgm)->flash_pagecache;
+    paddr_ptr = &my.flash_pageaddr;
+    cache_ptr = my.flash_pagecache;
     is_flash = 1;
   } else if(mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-    cache_ptr = PDATA(pgm)->eeprom_pagecache;
+    paddr_ptr = &my.eeprom_pageaddr;
+    cache_ptr = my.eeprom_pagecache;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     if(mem_is_a_fuse(mem))
@@ -894,12 +894,12 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if(mem_is_flash(mem)) {
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
-    PDATA(pgm)->flash_pageaddr = ~0UL;
+    my.flash_pageaddr = ~0UL;
   } else if(mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
     need_dummy_read = 1;
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
+    my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;

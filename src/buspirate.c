@@ -80,19 +80,19 @@ struct pdata {
   char buf_local[100];          // Local buffer for buspirate_readline_noexit()
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // ====== Feature checks ======
 static inline int buspirate_uses_ascii(const PROGRAMMER *pgm) {
-  return (PDATA(pgm)->flag & BP_FLAG_XPARM_FORCE_ASCII);
+  return (my.flag & BP_FLAG_XPARM_FORCE_ASCII);
 }
 
 static inline int buspirate_uses_pullups(const PROGRAMMER *pgm) {
-  return (PDATA(pgm)->flag & BP_FLAG_PULLUPS);
+  return (my.flag & BP_FLAG_PULLUPS);
 }
 
 static inline int buspirate_uses_hiz(const PROGRAMMER *pgm) {
-  return (PDATA(pgm)->flag & BP_FLAG_HIZ);
+  return (my.flag & BP_FLAG_HIZ);
 }
 
 // ====== Serial talker functions - binmode ======
@@ -141,7 +141,7 @@ static int buspirate_expect_bin(const PROGRAMMER *pgm,
   unsigned char *send_data, size_t send_len, unsigned char *expect_data, size_t expect_len) {
   unsigned char *recv_buf = alloca(expect_len);
 
-  if((PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) == 0) {
+  if((my.flag & BP_FLAG_IN_BINMODE) == 0) {
     pmsg_error("called from ascii mode\n");
     return -1;
   }
@@ -163,7 +163,7 @@ static int buspirate_getc(const PROGRAMMER *pgm) {
   int rc;
   unsigned char ch = 0;
 
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     pmsg_error("called from binmode\n");
     return EOF;
   }
@@ -180,8 +180,8 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
   long orig_serial_recv_timeout = serial_recv_timeout;
 
   if(buf == NULL) {
-    buf = PDATA(pgm)->buf_local;
-    len = sizeof(PDATA(pgm)->buf_local);
+    buf = my.buf_local;
+    len = sizeof(my.buf_local);
   }
   buf_p = buf;
   memset(buf, 0, len);
@@ -196,7 +196,7 @@ static char *buspirate_readline_noexit(const PROGRAMMER *pgm, char *buf, size_t 
       break;
     }
     buf_p++;
-    serial_recv_timeout = PDATA(pgm)->serial_recv_timeout;
+    serial_recv_timeout = my.serial_recv_timeout;
   }
   serial_recv_timeout = orig_serial_recv_timeout;
   pmsg_debug("%s(): %s%s", __func__, buf, *buf && buf[strlen(buf) - 1] == '\n'? "": "\n");
@@ -223,7 +223,7 @@ static int buspirate_send(const PROGRAMMER *pgm, const char *str) {
 
   pmsg_debug("%s(): %s", __func__, str);
 
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     pmsg_error("called from binmode\n");
     return -1;
   }
@@ -294,17 +294,17 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     const char *extended_param = ldata(ln);
 
     if(str_eq(extended_param, "ascii")) {
-      PDATA(pgm)->flag |= BP_FLAG_XPARM_FORCE_ASCII;
+      my.flag |= BP_FLAG_XPARM_FORCE_ASCII;
       continue;
     }
 
     if(str_eq(extended_param, "pullups")) {
-      PDATA(pgm)->flag |= BP_FLAG_PULLUPS;
+      my.flag |= BP_FLAG_PULLUPS;
       continue;
     }
 
     if(str_eq(extended_param, "hiz")) {
-      PDATA(pgm)->flag |= BP_FLAG_HIZ;
+      my.flag |= BP_FLAG_HIZ;
       continue;
     }
 
@@ -314,13 +314,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         rv = -1;
         break;
       }
-      if(PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ) {
+      if(my.flag & BP_FLAG_XPARM_RAWFREQ) {
         pmsg_error("set either spifreq or rawfreq\n");
         rv = -1;
         break;
       }
-      PDATA(pgm)->flag |= BP_FLAG_XPARM_SPIFREQ;
-      PDATA(pgm)->spifreq = spifreq;
+      my.flag |= BP_FLAG_XPARM_SPIFREQ;
+      my.spifreq = spifreq;
       continue;
     }
 
@@ -330,13 +330,13 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         rv = -1;
         break;
       }
-      if(PDATA(pgm)->flag & BP_FLAG_XPARM_SPIFREQ) {
+      if(my.flag & BP_FLAG_XPARM_SPIFREQ) {
         pmsg_error("set either spifreq or rawfreq\n");
         rv = -1;
         break;
       }
-      PDATA(pgm)->flag |= BP_FLAG_XPARM_RAWFREQ;
-      PDATA(pgm)->spifreq = rawfreq;
+      my.flag |= BP_FLAG_XPARM_RAWFREQ;
+      my.spifreq = rawfreq;
       continue;
     }
 
@@ -347,8 +347,8 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         rv = -1;
         break;
       }
-      PDATA(pgm)->cpufreq = cpufreq;
-      PDATA(pgm)->flag |= BP_FLAG_XPARM_CPUFREQ;
+      my.cpufreq = cpufreq;
+      my.flag |= BP_FLAG_XPARM_CPUFREQ;
       continue;
     }
 
@@ -358,28 +358,28 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
       while((resetpin = strtok(preset, ","))) {
         preset = NULL;          // For subsequent strtok() calls
         if(str_caseeq(resetpin, "cs"))
-          PDATA(pgm)->reset |= BP_RESET_CS;
+          my.reset |= BP_RESET_CS;
         else if(str_caseeq(resetpin, "aux") || str_caseeq(reset, "aux1"))
-          PDATA(pgm)->reset |= BP_RESET_AUX;
+          my.reset |= BP_RESET_AUX;
         else if(str_caseeq(resetpin, "aux2"))
-          PDATA(pgm)->reset |= BP_RESET_AUX2;
+          my.reset |= BP_RESET_AUX2;
         else {
           pmsg_error("-x reset= value must be either CS, AUX or AUX2\n");
           rv = -1;
           break;
         }
       }
-      PDATA(pgm)->flag |= BP_FLAG_XPARM_RESET;
+      my.flag |= BP_FLAG_XPARM_RESET;
       continue;
     }
 
     if(str_eq(extended_param, "nopagedwrite")) {
-      PDATA(pgm)->flag |= BP_FLAG_NOPAGEDWRITE;
+      my.flag |= BP_FLAG_NOPAGEDWRITE;
       continue;
     }
 
     if(str_eq(extended_param, "nopagedread")) {
-      PDATA(pgm)->flag |= BP_FLAG_NOPAGEDREAD;
+      my.flag |= BP_FLAG_NOPAGEDREAD;
       continue;
     }
 
@@ -389,7 +389,7 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
         rv = -1;
         break;
       }
-      PDATA(pgm)->serial_recv_timeout = serial_recv_timeout;
+      my.serial_recv_timeout = serial_recv_timeout;
       continue;
     }
 
@@ -422,15 +422,15 @@ static int buspirate_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
 
 static int buspirate_verifyconfig(const PROGRAMMER *pgm) {
   // Default reset pin is CS
-  if(PDATA(pgm)->reset == 0x00)
-    PDATA(pgm)->reset |= BP_RESET_CS;
+  if(my.reset == 0x00)
+    my.reset |= BP_RESET_CS;
 
-  if((PDATA(pgm)->reset != BP_RESET_CS) && buspirate_uses_ascii(pgm)) {
+  if((my.reset != BP_RESET_CS) && buspirate_uses_ascii(pgm)) {
     pmsg_error("RESET pin other than CS is not supported in ASCII mode\n");
     return -1;
   }
 
-  if(((PDATA(pgm)->flag & BP_FLAG_XPARM_SPIFREQ) || (PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ))
+  if(((my.flag & BP_FLAG_XPARM_SPIFREQ) || (my.flag & BP_FLAG_XPARM_RAWFREQ))
     && buspirate_uses_ascii(pgm)) {
     pmsg_error("SPI speed selection is not supported in ASCII mode\n");
     return -1;
@@ -472,7 +472,7 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
   buspirate_send_bin(pgm, buf, 1);
   buspirate_recv_bin(pgm, buf, 5);
 
-  if(PDATA(pgm)->flag & BP_FLAG_XPARM_CPUFREQ) {
+  if(my.flag & BP_FLAG_XPARM_CPUFREQ) {
     // Disable PWM
     if(buspirate_expect_bin_byte(pgm, 0x13, 0x01) != 1) {
       pmsg_error("did not get a response to stop PWM command\n");
@@ -495,7 +495,7 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
     rc = buspirate_recv_bin(pgm, buf, sizeof(buf) - 1);
 
     if(buspirate_is_prompt((const char *) buf)) {
-      PDATA(pgm)->flag &= ~BP_FLAG_IN_BINMODE;
+      my.flag &= ~BP_FLAG_IN_BINMODE;
       break;
     }
     if(rc == EOF)
@@ -503,7 +503,7 @@ static void buspirate_reset_from_binmode(const PROGRAMMER *pgm) {
     memset(buf, '\0', sizeof(buf));
   }
 
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     pmsg_error("reset failed; you may need to powercycle it\n");
     return;
   }
@@ -519,13 +519,13 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
     char config;                // Command to setup submode parameters
   } submode;
 
-  if(PDATA(pgm)->flag & BP_FLAG_XPARM_RAWFREQ) {
+  if(my.flag & BP_FLAG_XPARM_RAWFREQ) {
     submode.name = "Raw-wire";
     submode.enter = 0x05;
     submode.entered_format = "RAW%1d";
     submode.config = 0x8C;
-    PDATA(pgm)->flag |= BP_FLAG_NOPAGEDWRITE;
-    PDATA(pgm)->flag |= BP_FLAG_NOPAGEDREAD;
+    my.flag |= BP_FLAG_NOPAGEDWRITE;
+    my.flag |= BP_FLAG_NOPAGEDREAD;
   } else {
     submode.name = "SPI";
     submode.enter = 0x01;
@@ -551,20 +551,20 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
   // Expecting 'BBIOx' reply
   memset(buf, 0, sizeof(buf));
   buspirate_recv_bin(pgm, buf, 5);
-  if(sscanf((const char *) buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
+  if(sscanf((const char *) buf, "BBIO%1d", &my.binmode_version) != 1) {
     pmsg_error("binary mode not confirmed: %s\n", buf);
     buspirate_reset_from_binmode(pgm);
     return -1;
   }
-  msg_notice2("BusPirate binmode version: %d\n", PDATA(pgm)->binmode_version);
+  msg_notice2("BusPirate binmode version: %d\n", my.binmode_version);
 
-  PDATA(pgm)->flag |= BP_FLAG_IN_BINMODE;
+  my.flag |= BP_FLAG_IN_BINMODE;
 
-  if(PDATA(pgm)->flag & BP_FLAG_XPARM_CPUFREQ) {
+  if(my.flag & BP_FLAG_XPARM_CPUFREQ) {
     unsigned short pwm_duty;
     unsigned short pwm_period;
 
-    pwm_period = 16000/(PDATA(pgm)->cpufreq) - 1; // Oscillator runs at 32MHz, we don't use a prescaler
+    pwm_period = 16000/(my.cpufreq) - 1; // Oscillator runs at 32MHz, we don't use a prescaler
     pwm_duty = pwm_period/2;  // 50% duty cycle
 
     msg_notice2("setting up PWM for cpufreq\n");
@@ -588,13 +588,13 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
   buspirate_send_bin(pgm, buf, 1);
   memset(buf, 0, sizeof(buf));
   buspirate_recv_bin(pgm, buf, 4);
-  if(sscanf((const char *) buf, submode.entered_format, &PDATA(pgm)->submode_version) != 1) {
+  if(sscanf((const char *) buf, submode.entered_format, &my.submode_version) != 1) {
     pmsg_error("%s mode not confirmed: %s\n", submode.name, buf);
     buspirate_reset_from_binmode(pgm);
     return -1;
   }
-  msg_notice2("BusPirate %s version: %d\n", submode.name, PDATA(pgm)->submode_version);
-  if(PDATA(pgm)->flag & BP_FLAG_NOPAGEDWRITE) {
+  msg_notice2("BusPirate %s version: %d\n", submode.name, my.submode_version);
+  if(my.flag & BP_FLAG_NOPAGEDWRITE) {
     pmsg_notice2("paged flash write disabled\n");
     pgm->paged_write = NULL;
   } else {
@@ -604,7 +604,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
     buspirate_recv_bin(pgm, buf, 1);
     if(buf[0] != 0x01) {
       // Disable paged write
-      PDATA(pgm)->flag |= BP_FLAG_NOPAGEDWRITE;
+      my.flag |= BP_FLAG_NOPAGEDWRITE;
       pgm->paged_write = NULL;
 
       // Return to SPI mode (0x00s have landed us back in binary bitbang mode)
@@ -624,18 +624,18 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
    * 0b0100wxyz - Configure peripherals w=power, x=pull-ups/aux2, y=AUX, z=CS
    * we want power (0x48) and all reset pins high
    */
-  PDATA(pgm)->current_peripherals_config = 0x48 | PDATA(pgm)->reset;
+  my.current_peripherals_config = 0x48 | my.reset;
   if(buspirate_uses_pullups(pgm)) {
-    PDATA(pgm)->current_peripherals_config |= 1 << 2;
+    my.current_peripherals_config |= 1 << 2;
     submode.config &= ~(1 << 3);
     pmsg_info("enabling pull-ups (open-collector)\n");
   }
-  if(buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01) < 0)
+  if(buspirate_expect_bin_byte(pgm, my.current_peripherals_config, 0x01) < 0)
     return -1;
   usleep(50000);                // Sleep for 50 ms after power up
 
   // 01100xxx - Set speed
-  if(buspirate_expect_bin_byte(pgm, 0x60 | PDATA(pgm)->spifreq, 0x01) < 0)
+  if(buspirate_expect_bin_byte(pgm, 0x60 | my.spifreq, 0x01) < 0)
     return -1;
 
   // Submode config
@@ -643,7 +643,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
     return -1;
 
   // AVR Extended Commands - test for existence
-  if(PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
+  if(my.flag & BP_FLAG_NOPAGEDREAD) {
     pmsg_notice2("paged flash read disabled\n");
     pgm->paged_load = NULL;
   } else {
@@ -660,7 +660,7 @@ static int buspirate_start_mode_bin(PROGRAMMER *pgm) {
       msg_notice2("AVR Extended Commands version %d\n", ver);
     } else {
       msg_notice2("AVR Extended Commands not found\n");
-      PDATA(pgm)->flag |= BP_FLAG_NOPAGEDREAD;
+      my.flag |= BP_FLAG_NOPAGEDREAD;
       pgm->paged_load = NULL;
     }
   }
@@ -783,7 +783,7 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
       msg_debug("**  %s", rcvd);
   }
 
-  if(!(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE)) {
+  if(!(my.flag & BP_FLAG_IN_BINMODE)) {
     msg_info("using ASCII mode\n");
     if(buspirate_start_spi_mode_ascii(pgm) < 0) {
       pmsg_error("unable to start ascii SPI mode\n");
@@ -793,7 +793,7 @@ static void buspirate_enable(PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void buspirate_disable(const PROGRAMMER *pgm) {
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     serial_recv_timeout = 100;
     buspirate_reset_from_binmode(pgm);
   } else {
@@ -808,16 +808,16 @@ static int buspirate_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void buspirate_powerup(const PROGRAMMER *pgm) {
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     // Powerup in BinMode is handled in binary mode init
     return;
   } else {
     if(buspirate_expect(pgm, "W\n", "POWER SUPPLIES ON", 1)) {
-      if(PDATA(pgm)->flag & BP_FLAG_XPARM_CPUFREQ) {
+      if(my.flag & BP_FLAG_XPARM_CPUFREQ) {
         char buf[25];
         int ok = 0;
 
-        snprintf(buf, sizeof(buf), "%d\n", PDATA(pgm)->cpufreq);
+        snprintf(buf, sizeof(buf), "%d\n", my.cpufreq);
         if(buspirate_expect(pgm, "g\n", "Frequency in kHz", 1)) {
           if(buspirate_expect(pgm, buf, "Duty cycle in %", 1)) {
             if(buspirate_expect(pgm, "50\n", "PWM active", 1)) {
@@ -837,11 +837,11 @@ static void buspirate_powerup(const PROGRAMMER *pgm) {
 }
 
 static void buspirate_powerdown(const PROGRAMMER *pgm) {
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     // Powerdown in BinMode is handled in binary mode init
     return;
   } else {
-    if(PDATA(pgm)->flag & BP_FLAG_XPARM_CPUFREQ) {
+    if(my.flag & BP_FLAG_XPARM_CPUFREQ) {
       if(!buspirate_expect(pgm, "g\n", "PWM disabled", 1)) {
         pmsg_error("did not get a response to stop PWM command\n");
       }
@@ -903,7 +903,7 @@ static int buspirate_cmd_ascii(const PROGRAMMER *pgm, const unsigned char *cmd, 
 }
 
 static int buspirate_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE)
+  if(my.flag & BP_FLAG_IN_BINMODE)
     return buspirate_cmd_bin(pgm, cmd, res);
   else
     return buspirate_cmd_ascii(pgm, cmd, res);
@@ -920,7 +920,7 @@ static int buspirate_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const A
   msg_debug("buspirate_paged_load(..,%s,%d,%d,%d)\n", m->desc, m->page_size, address, n_bytes);
 
   // This should never happen, but still ...
-  if(PDATA(pgm)->flag & BP_FLAG_NOPAGEDREAD) {
+  if(my.flag & BP_FLAG_NOPAGEDREAD) {
     pmsg_error("called while in nopagedread mode\n");
     return -1;
   }
@@ -971,12 +971,12 @@ static int buspirate_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   unsigned char cmd_buf[4096] = { '\0' };
   unsigned char send_byte, recv_byte;
 
-  if(!(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE)) {
+  if(!(my.flag & BP_FLAG_IN_BINMODE)) {
     // Return if we are not in binary mode
     return -1;
   }
 
-  if(PDATA(pgm)->flag & BP_FLAG_NOPAGEDWRITE) {
+  if(my.flag & BP_FLAG_NOPAGEDWRITE) {
     // Return if we've nominated not to use paged writes
     return -1;
   }
@@ -1066,10 +1066,10 @@ static int buspirate_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[4];
   unsigned char res[4];
 
-  if(PDATA(pgm)->flag & BP_FLAG_IN_BINMODE) {
+  if(my.flag & BP_FLAG_IN_BINMODE) {
     // Clear configured reset pin(s): CS and/or AUX and/or AUX2
-    PDATA(pgm)->current_peripherals_config &= ~PDATA(pgm)->reset;
-    if(buspirate_expect_bin_byte(pgm, PDATA(pgm)->current_peripherals_config, 0x01) < 0)
+    my.current_peripherals_config &= ~my.reset;
+    if(buspirate_expect_bin_byte(pgm, my.current_peripherals_config, 0x01) < 0)
       return -1;
   } else
     buspirate_expect(pgm, "{\n", "CS ENABLED", 1);
@@ -1111,7 +1111,7 @@ static int buspirate_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 // Interface - management
 static void buspirate_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->serial_recv_timeout = 100;
+  my.serial_recv_timeout = 100;
 }
 
 static void buspirate_teardown(PROGRAMMER *pgm) {
@@ -1174,23 +1174,23 @@ static void buspirate_bb_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Expecting 'BBIOx' reply
   memset(buf, 0, sizeof(buf));
   buspirate_recv_bin(pgm, buf, 5);
-  if(sscanf((char *) buf, "BBIO%1d", &PDATA(pgm)->binmode_version) != 1) {
+  if(sscanf((char *) buf, "BBIO%1d", &my.binmode_version) != 1) {
     pmsg_error("binary mode not confirmed: %s\n", buf);
     buspirate_reset_from_binmode(pgm);
     return;
   }
-  msg_info("BusPirate binmode version: %d\n", PDATA(pgm)->binmode_version);
+  msg_info("BusPirate binmode version: %d\n", my.binmode_version);
 
-  PDATA(pgm)->flag |= BP_FLAG_IN_BINMODE;
+  my.flag |= BP_FLAG_IN_BINMODE;
 
   // Set pin directions and an initial pin status (all high)
-  PDATA(pgm)->pin_dir = 0x12;   // AUX, SDI input; everything else output
-  buf[0] = PDATA(pgm)->pin_dir | 0x40;
+  my.pin_dir = 0x12;            // AUX, SDI input; everything else output
+  buf[0] = my.pin_dir | 0x40;
   buspirate_send_bin(pgm, buf, 1);
   buspirate_recv_bin(pgm, buf, 1);
 
-  PDATA(pgm)->pin_val = 0x3f;   // PULLUP, AUX, SDO, CLK, SDI, CS high
-  buf[0] = PDATA(pgm)->pin_val | 0x80;
+  my.pin_val = 0x3f;            // PULLUP, AUX, SDO, CLK, SDI, CS high
+  buf[0] = my.pin_val | 0x80;
   buspirate_send_bin(pgm, buf, 1);
   buspirate_recv_bin(pgm, buf, 1);
 
@@ -1229,14 +1229,14 @@ static int buspirate_bb_getpin(const PROGRAMMER *pgm, int pinfunc) {
   if(pin < 1 || pin > 5)
     return -1;
 
-  buf[0] = PDATA(pgm)->pin_dir | 0x40;
+  buf[0] = my.pin_dir | 0x40;
   if(buspirate_send_bin(pgm, buf, 1) < 0)
     return -1;
   // Read all of the previously-expected-but-unread bytes
-  while(PDATA(pgm)->unread_bytes > 0) {
+  while(my.unread_bytes > 0) {
     if(buspirate_recv_bin(pgm, buf, 1) < 0)
       return -1;
-    PDATA(pgm)->unread_bytes--;
+    my.unread_bytes--;
   }
 
   // Now read the actual response
@@ -1265,11 +1265,11 @@ static int buspirate_bb_setpin_internal(const PROGRAMMER *pgm, int pin, int valu
   msg_debug("set pin %d = %d\n", pin, value);
 
   if(value)
-    PDATA(pgm)->pin_val |= (1 << (pin - 1));
+    my.pin_val |= (1 << (pin - 1));
   else
-    PDATA(pgm)->pin_val &= ~(1 << (pin - 1));
+    my.pin_val &= ~(1 << (pin - 1));
 
-  buf[0] = PDATA(pgm)->pin_val | 0x80;
+  buf[0] = my.pin_val | 0x80;
   if(buspirate_send_bin(pgm, buf, 1) < 0)
     return -1;
   /*
@@ -1277,7 +1277,7 @@ static int buspirate_bb_setpin_internal(const PROGRAMMER *pgm, int pin, int valu
    * quick optimization that saves some USB round trips, improving read times
    * by a factor of 3.
    */
-  PDATA(pgm)->unread_bytes++;
+  my.unread_bytes++;
 
   return 0;
 }

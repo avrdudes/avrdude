@@ -59,7 +59,7 @@
 
 #define TEENSY_CONNECT_WAIT 100
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // -----------------------------------------------------------------------------
 
@@ -229,7 +229,7 @@ static void teensy_teardown(PROGRAMMER *pgm) {
 static int teensy_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("teensy_initialize()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   int result = teensy_get_bootloader_info(pdata, p);
 
@@ -252,7 +252,7 @@ static void teensy_powerup(const PROGRAMMER *pgm) {
 static void teensy_powerdown(const PROGRAMMER *pgm) {
   pmsg_debug("teensy_powerdown()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   if(pdata->erase_flash) {
     teensy_erase_flash(pdata);
@@ -286,7 +286,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
     return -1;
   }
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   memcpy(mem->buf, pdata->sig_bytes, sizeof(pdata->sig_bytes));
 
@@ -296,7 +296,7 @@ static int teensy_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
 static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("teensy_chip_erase()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   // Schedule a chip erase, either at first write or on powerdown.
   pdata->erase_flash = true;
@@ -307,7 +307,7 @@ static int teensy_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int teensy_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("teensy_open(\"%s\")\n", port);
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
   const char *bus_name = NULL;
   char *dev_name = NULL;
 
@@ -400,7 +400,7 @@ static int teensy_open(PROGRAMMER *pgm, const char *port) {
 static void teensy_close(PROGRAMMER *pgm) {
   pmsg_debug("teensy_close()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   if(pdata->hid_handle != NULL) {
     hid_close(pdata->hid_handle);
@@ -438,7 +438,7 @@ static int teensy_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   pmsg_debug("teensy_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
 
   if(mem_is_flash(mem)) {
-    struct pdata *pdata = PDATA(pgm);
+    struct pdata *pdata = &my;
 
     if(n_bytes > page_size) {
       pmsg_error("buffer size %u exceeds page size %u\n", n_bytes, page_size);
@@ -485,7 +485,7 @@ static int teensy_parseextparams(const PROGRAMMER *pgm, const LISTID xparams) {
 
   pmsg_debug("teensy_parseextparams()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   for(LNODEID node = lfirst(xparams); node; node = lnext(node)) {
     const char *extended_param = ldata(node);

@@ -88,12 +88,12 @@ struct pdata {
   int USB_init;                 // Used in both usbOpenDevice() variants
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 #ifdef USE_LIBUSB_1_0
 static const char *errstr(const PROGRAMMER *pgm, int result) {
-  char *msg = PDATA(pgm)->msg;
-  size_t msgsiz = sizeof(PDATA(pgm)->msg);
+  char *msg = my.msg;
+  size_t msgsiz = sizeof(my.msg);
   int n = 0;
 
   switch(result) {
@@ -212,21 +212,21 @@ static int usbasp_tpi_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const 
 // Dispatching wrappers
 
 static int usbasp_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
-  return PDATA(pgm)->use_tpi? usbasp_tpi_cmd(pgm, cmd, res): usbasp_spi_cmd(pgm, cmd, res);
+  return my.use_tpi? usbasp_tpi_cmd(pgm, cmd, res): usbasp_spi_cmd(pgm, cmd, res);
 }
 
 static int usbasp_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-  return PDATA(pgm)->use_tpi? usbasp_tpi_program_enable(pgm, p): usbasp_spi_program_enable(pgm, p);
+  return my.use_tpi? usbasp_tpi_program_enable(pgm, p): usbasp_spi_program_enable(pgm, p);
 }
 
 static int usbasp_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-  return PDATA(pgm)->use_tpi? usbasp_tpi_chip_erase(pgm, p): usbasp_spi_chip_erase(pgm, p);
+  return my.use_tpi? usbasp_tpi_chip_erase(pgm, p): usbasp_spi_chip_erase(pgm, p);
 }
 
 static int usbasp_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-  return PDATA(pgm)->use_tpi?
+  return my.use_tpi?
     usbasp_tpi_paged_load(pgm, p, m, page_size, addr, n_bytes):
     usbasp_spi_paged_load(pgm, p, m, page_size, addr, n_bytes);
 }
@@ -234,19 +234,19 @@ static int usbasp_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 static int usbasp_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-  return PDATA(pgm)->use_tpi?
+  return my.use_tpi?
     usbasp_tpi_paged_write(pgm, p, m, page_size, addr, n_bytes):
     usbasp_spi_paged_write(pgm, p, m, page_size, addr, n_bytes);
 }
 
 static int usbasp_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
-  return PDATA(pgm)->use_tpi? usbasp_tpi_set_sck_period(pgm, sckperiod): usbasp_spi_set_sck_period(pgm, sckperiod);
+  return my.use_tpi? usbasp_tpi_set_sck_period(pgm, sckperiod): usbasp_spi_set_sck_period(pgm, sckperiod);
 }
 
 static int usbasp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned long addr, unsigned char *value) {
 
-  return PDATA(pgm)->use_tpi?
+  return my.use_tpi?
     usbasp_tpi_read_byte(pgm, p, m, addr, value):
     avr_read_byte_default(pgm, p, m, addr, value);
 }
@@ -264,7 +264,7 @@ static int usbasp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     return -1;
   }
 
-  return PDATA(pgm)->use_tpi?
+  return my.use_tpi?
     usbasp_tpi_write_byte(pgm, p, m, addr, data):
     avr_write_byte_default(pgm, p, m, addr, data);
 }
@@ -288,7 +288,7 @@ static int usbasp_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
 
     if(str_eq(extended_param, "section_config")) {
       pmsg_notice2("%s(): set section_e to 1 (config section)\n", __func__);
-      PDATA(pgm)->section_e = 1;
+      my.section_e = 1;
       continue;
     }
 
@@ -388,7 +388,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
   }
 
 #ifdef USE_LIBUSB_1_0
-  nbytes = libusb_control_transfer(PDATA(pgm)->usbhandle,
+  nbytes = libusb_control_transfer(my.usbhandle,
     (LIBUSB_REQUEST_TYPE_VENDOR | LIBUSB_RECIPIENT_DEVICE | (receive << 7)) & 0xff,
     functionid & 0xff,
     ((send[1] << 8) | send[0]) & 0xffff, ((send[3] << 8) | send[2]) & 0xffff, buffer, buffersize & 0xffff, 5000);
@@ -397,7 +397,7 @@ static int usbasp_transmit(const PROGRAMMER *pgm,
     return -1;
   }
 #else
-  nbytes = usb_control_msg(PDATA(pgm)->usbhandle,
+  nbytes = usb_control_msg(my.usbhandle,
     USB_TYPE_VENDOR | USB_RECIP_DEVICE | (receive << 7),
     functionid, (send[1] << 8) | send[0], (send[3] << 8) | send[2], (char *) buffer, buffersize, 5000);
   if(nbytes < 0) {
@@ -456,13 +456,13 @@ static int usbOpenDevice(const PROGRAMMER *pgm, libusb_device_handle ** device, 
   int j;
   int r;
 
-  if(!PDATA(pgm)->USB_init) {
-    PDATA(pgm)->USB_init = 1;
-    libusb_init(&PDATA(pgm)->ctx);
+  if(!my.USB_init) {
+    my.USB_init = 1;
+    libusb_init(&my.ctx);
   }
 
   libusb_device **dev_list;
-  int dev_list_len = libusb_get_device_list(PDATA(pgm)->ctx, &dev_list);
+  int dev_list_len = libusb_get_device_list(my.ctx, &dev_list);
 
   for(j = 0; j < dev_list_len; ++j) {
     libusb_device *dev = dev_list[j];
@@ -546,8 +546,8 @@ static int usbOpenDevice(const PROGRAMMER *pgm, usb_dev_handle ** device, int ve
   usb_dev_handle *handle = NULL;
   int errorCode = USB_ERROR_NOTFOUND;
 
-  if(!PDATA(pgm)->USB_init) {
-    PDATA(pgm)->USB_init = 1;
+  if(!my.USB_init) {
+    my.USB_init = 1;
     usb_init();
   }
   usb_find_busses();
@@ -634,10 +634,10 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
     pid = USBASP_SHARED_PID;
   }
   vid = pgm->usbvid? pgm->usbvid: USBASP_SHARED_VID;
-  if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
+  if(usbOpenDevice(pgm, &my.usbhandle, vid, pgm->usbvendor, pid, pgm->usbproduct, port) != 0) {
     if(str_eq(pgmid, "usbasp")) {
       // Check if device with old VID/PID is available
-      if(usbOpenDevice(pgm, &PDATA(pgm)->usbhandle, USBASP_OLD_VID, "www.fischl.de",
+      if(usbOpenDevice(pgm, &my.usbhandle, USBASP_OLD_VID, "www.fischl.de",
         USBASP_OLD_PID, "USBasp", port) == 0) {
 
         cx->usb_access_error = 0;
@@ -669,26 +669,26 @@ static int usbasp_open(PROGRAMMER *pgm, const char *port) {
 static void usbasp_close(PROGRAMMER *pgm) {
   pmsg_debug("usbasp_close()\n");
 
-  if(PDATA(pgm)->usbhandle != NULL) {
+  if(my.usbhandle != NULL) {
     unsigned char temp[4];
 
     memset(temp, 0, sizeof(temp));
 
-    if(PDATA(pgm)->use_tpi) {
+    if(my.use_tpi) {
       usbasp_transmit(pgm, 1, USBASP_FUNC_TPI_DISCONNECT, temp, temp, sizeof(temp));
     } else {
       usbasp_transmit(pgm, 1, USBASP_FUNC_DISCONNECT, temp, temp, sizeof(temp));
     }
 
 #ifdef USE_LIBUSB_1_0
-    libusb_close(PDATA(pgm)->usbhandle);
+    libusb_close(my.usbhandle);
 #else
-    usb_close(PDATA(pgm)->usbhandle);
+    usb_close(my.usbhandle);
 #endif
   }
 
 #ifdef USE_LIBUSB_1_0
-  libusb_exit(PDATA(pgm)->ctx);
+  libusb_exit(my.ctx);
 #else
   // Nothing for usb 0.1?
 #endif
@@ -710,7 +710,7 @@ static void usbasp_display(const PROGRAMMER *pgm, const char *p) {
 static int usbasp_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char temp[4];
   unsigned char res[4];
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   pmsg_debug("usbasp_initialize()\n");
 
@@ -832,7 +832,7 @@ static int usbasp_spi_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const 
   }
 
   // Set blocksize depending on sck frequency
-  if((PDATA(pgm)->sckfreq_hz > 0) && (PDATA(pgm)->sckfreq_hz < 10000)) {
+  if((my.sckfreq_hz > 0) && (my.sckfreq_hz < 10000)) {
     blocksize = USBASP_READBLOCKSIZE/10;
   } else {
     blocksize = USBASP_READBLOCKSIZE;
@@ -898,7 +898,7 @@ static int usbasp_spi_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const
   }
 
   // Set blocksize depending on sck frequency
-  if((PDATA(pgm)->sckfreq_hz > 0) && (PDATA(pgm)->sckfreq_hz < 10000)) {
+  if((my.sckfreq_hz > 0) && (my.sckfreq_hz < 10000)) {
     blocksize = USBASP_WRITEBLOCKSIZE/10;
   } else {
     blocksize = USBASP_WRITEBLOCKSIZE;
@@ -977,7 +977,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
   memset(res, 0, sizeof(res));
 
   // Reset global sck frequency to auto
-  PDATA(pgm)->sckfreq_hz = 0;
+  my.sckfreq_hz = 0;
 
   if(sckperiod == 0) {
     // Auto sck set
@@ -993,7 +993,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
     // Check if programmer is capable of 3 MHz SCK, if not then ommit 3 MHz setting
     size_t i;
 
-    if(PDATA(pgm)->sck_3mhz) {
+    if(my.sck_3mhz) {
       pmsg_notice2("connected USBasp is capable of 3 MHz SCK\n");
       i = 0;
     } else {
@@ -1017,7 +1017,7 @@ static int usbasp_spi_set_sck_period(const PROGRAMMER *pgm, double sckperiod) {
     }
 
     // Save used sck frequency
-    PDATA(pgm)->sckfreq_hz = usefreq;
+    my.sckfreq_hz = usefreq;
 
     pmsg_info("set SCK frequency to %i Hz\n", usefreq);
   }
@@ -1126,7 +1126,7 @@ static int usbasp_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int pr_1;
   int nvm_cmd;
 
-  switch(PDATA(pgm)->section_e) {
+  switch(my.section_e) {
     // Config bits section erase
   case 1:
     pr_0 = 0x41;

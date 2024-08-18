@@ -1424,7 +1424,7 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
   // Wireless is lossier than normal serial
   serial_recv_timeout = 1000;
 
-  serdev = &PDATA(pgm)->xbee_serdev;
+  serdev = &my.xbee_serdev;
   serdev->open = xbeedev_open;
   serdev->close = xbeedev_close;
   serdev->rawclose = xbeedev_close;
@@ -1438,7 +1438,7 @@ static int xbee_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  xbeedev_setresetpin(&pgm->fd, PDATA(pgm)->xbeeResetPin);
+  xbeedev_setresetpin(&pgm->fd, my.xbeeResetPin);
 
   // Clear DTR and RTS
   serial_set_dtr_rts(&pgm->fd, 0);
@@ -1514,7 +1514,7 @@ static int xbee_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
 
-      PDATA(pgm)->xbeeResetPin = resetpin;
+      my.xbeeResetPin = resetpin;
       continue;
     }
 
@@ -1542,7 +1542,7 @@ void xbee_initpgm(PROGRAMMER *pgm) {
   /*
    * This behaves like an Arduino, but with packet encapsulation of the serial
    * streams, XBee device management, and XBee GPIO for the Auto-Reset feature.
-   * stk500.c sets PDATA(pgm)->xbeeResetPin
+   * stk500.c sets my.xbeeResetPin
    */
   stk500_initpgm(pgm);
 

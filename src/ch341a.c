@@ -96,7 +96,7 @@ struct pdata {
   int USB_init;                 // Used in ch341a_open()
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // ----------------------------------------------------------------------
 
@@ -128,10 +128,10 @@ static int CH341USBTransferPart(const PROGRAMMER *pgm, enum libusb_endpoint_dire
 
   int ret, bytestransferred;
 
-  if(!PDATA(pgm)->usbhandle)
+  if(!my.usbhandle)
     return 0;
 
-  if((ret = libusb_bulk_transfer(PDATA(pgm)->usbhandle, CH341A_USB_BULK_ENDPOINT | dir,
+  if((ret = libusb_bulk_transfer(my.usbhandle, CH341A_USB_BULK_ENDPOINT | dir,
         buff, size, &bytestransferred, CH341A_USB_TIMEOUT))) {
 
     pmsg_error("libusb_bulk_transfer for IN_EP failed, return value %d (%s)\n", ret, libusb_error_name(ret));
@@ -203,9 +203,9 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
 
   pmsg_trace("ch341a_open(\"%s\")\n", port);
 
-  if(!PDATA(pgm)->USB_init) {
-    PDATA(pgm)->USB_init = 1;
-    libusb_init(&PDATA(pgm)->ctx);
+  if(!my.USB_init) {
+    my.USB_init = 1;
+    libusb_init(&my.ctx);
   }
 
   if(usbpid) {
@@ -218,7 +218,7 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   vid = pgm->usbvid? pgm->usbvid: CH341A_VID;
 
   libusb_device **dev_list;
-  int dev_list_len = libusb_get_device_list(PDATA(pgm)->ctx, &dev_list);
+  int dev_list_len = libusb_get_device_list(my.ctx, &dev_list);
 
   for(j = 0; j < dev_list_len; ++j) {
     libusb_device *dev = dev_list[j];
@@ -237,17 +237,17 @@ static int ch341a_open(PROGRAMMER *pgm, const char *port) {
   libusb_free_device_list(dev_list, 1);
   if(handle != NULL) {
     errorCode = 0;
-    PDATA(pgm)->usbhandle = handle;
+    my.usbhandle = handle;
   }
 
   if(errorCode != 0) {
     pmsg_error("could not find USB device with vid=0x%x pid=0x%x\n", vid, pid);
     return -1;
   }
-  if((r = libusb_claim_interface(PDATA(pgm)->usbhandle, 0))) {
+  if((r = libusb_claim_interface(my.usbhandle, 0))) {
     pmsg_error("libusb_claim_interface failed, return value %d (%s)\n", r, libusb_error_name(r));
-    libusb_close(PDATA(pgm)->usbhandle);
-    libusb_exit(PDATA(pgm)->ctx);
+    libusb_close(my.usbhandle);
+    libusb_exit(my.ctx);
     return -1;
   }
   return 0;
@@ -263,11 +263,11 @@ static void ch341a_close(PROGRAMMER *pgm) {
 
   CH341ChipSelect(pgm, cs, false);
 
-  if(PDATA(pgm)->usbhandle != NULL) {
-    libusb_release_interface(PDATA(pgm)->usbhandle, 0);
-    libusb_close(PDATA(pgm)->usbhandle);
+  if(my.usbhandle != NULL) {
+    libusb_release_interface(my.usbhandle, 0);
+    libusb_close(my.usbhandle);
   }
-  libusb_exit(PDATA(pgm)->ctx);
+  libusb_exit(my.ctx);
 }
 
 static int ch341a_initialize(const PROGRAMMER *pgm, const AVRPART *p) {

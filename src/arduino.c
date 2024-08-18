@@ -44,13 +44,13 @@ static int arduino_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     const char *extended_param = ldata(ln);
 
     if(sscanf(extended_param, "attempts=%i", &attempts) == 1) {
-      PDATA(pgm)->retry_attempts = attempts;
+      my.retry_attempts = attempts;
       pmsg_info("setting number of retry attempts to %d\n", attempts);
       continue;
     }
 
     if(str_eq(extended_param, "noautoreset")) {
-      PDATA(pgm)->autoreset = false;
+      my.autoreset = false;
       continue;
     }
 
@@ -121,7 +121,7 @@ static int arduino_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if(PDATA(pgm)->autoreset) {
+  if(my.autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
     serial_set_dtr_rts(&pgm->fd, 0);

@@ -83,7 +83,7 @@ enum hvmode {
   PPMODE, HVSPMODE
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // Data structure for displaying STK600 routing and socket cards
 struct carddata {
@@ -92,7 +92,7 @@ struct carddata {
 };
 
 static const char *pgmname(const PROGRAMMER *pgm) {
-  unsigned int i = PDATA(pgm)->pgmtype;
+  unsigned int i = my.pgmtype;
 
   const char *name[] = {        // Parallel to PGMTYPE_ definitions in stk500v2_private.h
     "unknown",
@@ -104,7 +104,7 @@ static const char *pgmname(const PROGRAMMER *pgm) {
     "JTAGICE3",
   };
 
-  return i == PGMTYPE_STK500 && PDATA(pgm)->is_scratchmonkey? "SCRATCHMONKEY" :        // STK500 with LEDs
+  return i == PGMTYPE_STK500 && my.is_scratchmonkey? "SCRATCHMONKEY" : // STK500 with LEDs
     i < sizeof name/sizeof *name? name[i]: "None";
 }
 
@@ -282,16 +282,16 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
 
 void stk500v2_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->command_sequence = 1;
-  PDATA(pgm)->boot_start = ULONG_MAX;
-  PDATA(pgm)->xtal = str_starts(pgmid, "scratchmonkey")? SCRATCHMONKEY_XTAL: STK500V2_XTAL;
+  my.command_sequence = 1;
+  my.boot_start = ULONG_MAX;
+  my.xtal = str_starts(pgmid, "scratchmonkey")? SCRATCHMONKEY_XTAL: STK500V2_XTAL;
 }
 
 static void stk500v2_jtagmkII_setup(PROGRAMMER *pgm) {
   void *mycookie, *theircookie;
 
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->command_sequence = 1;
+  my.command_sequence = 1;
 
   /*
    * Now, have the JTAG ICE mkII backend allocate its own private data.  Store
@@ -301,14 +301,14 @@ static void stk500v2_jtagmkII_setup(PROGRAMMER *pgm) {
   jtagmkII_setup(pgm);
   theircookie = pgm->cookie;
   pgm->cookie = mycookie;
-  PDATA(pgm)->chained_pdata = theircookie;
+  my.chained_pdata = theircookie;
 }
 
 static void stk500v2_jtag3_setup(PROGRAMMER *pgm) {
   void *mycookie, *theircookie;
 
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->command_sequence = 1;
+  my.command_sequence = 1;
 
   /*
    * Now, have the JTAGICE3 backend allocate its own private data.  Store our
@@ -318,7 +318,7 @@ static void stk500v2_jtag3_setup(PROGRAMMER *pgm) {
   jtag3_setup(pgm);
   theircookie = pgm->cookie;
   pgm->cookie = mycookie;
-  PDATA(pgm)->chained_pdata = theircookie;
+  my.chained_pdata = theircookie;
 }
 
 void stk500v2_teardown(PROGRAMMER *pgm) {
@@ -328,12 +328,12 @@ void stk500v2_teardown(PROGRAMMER *pgm) {
 
 static void stk500v2_jtagmkII_teardown(PROGRAMMER *pgm) {
   if(pgm->cookie) {
-    mmt_free(PDATA(pgm)->flash_pagecache);
-    mmt_free(PDATA(pgm)->eeprom_pagecache);
+    mmt_free(my.flash_pagecache);
+    mmt_free(my.eeprom_pagecache);
 
     void *mycookie = pgm->cookie;
 
-    pgm->cookie = PDATA(pgm)->chained_pdata;
+    pgm->cookie = my.chained_pdata;
     jtagmkII_teardown(pgm);
     pgm->cookie = mycookie;
   }
@@ -346,7 +346,7 @@ static void stk500v2_jtag3_teardown(PROGRAMMER *pgm) {
   if(pgm->cookie) {
     void *mycookie = pgm->cookie;
 
-    pgm->cookie = PDATA(pgm)->chained_pdata;
+    pgm->cookie = my.chained_pdata;
     jtag3_teardown(pgm);
     pgm->cookie = mycookie;
   }
@@ -438,7 +438,7 @@ static int stk500v2_jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, si
   cmdbuf = mmt_malloc(len + 3);
   PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-  pgmcp->cookie = PDATA(pgm)->chained_pdata;
+  pgmcp->cookie = my.chained_pdata;
   cmdbuf[0] = CMND_ISP_PACKET;
   cmdbuf[1] = sz & 0xff;
   cmdbuf[2] = (sz >> 8) & 0xff;
@@ -458,7 +458,7 @@ static int stk500v2_jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_
   cmdbuf = mmt_malloc(len + 1);
   PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-  pgmcp->cookie = PDATA(pgm)->chained_pdata;
+  pgmcp->cookie = my.chained_pdata;
   cmdbuf[0] = SCOPE_AVR_ISP;
   memcpy(cmdbuf + 1, data, len);
   rv = jtag3_send(pgmcp, cmdbuf, len + 1);
@@ -471,15 +471,15 @@ static int stk500v2_jtag3_send(const PROGRAMMER *pgm, unsigned char *data, size_
 static int stk500v2_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char buf[275 + 6];   // Max MESSAGE_BODY of 275 bytes, 6 bytes overhead
 
-  if(PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII || PDATA(pgm)->pgmtype == PGMTYPE_STK600)
+  if(my.pgmtype == PGMTYPE_AVRISP_MKII || my.pgmtype == PGMTYPE_STK600)
     return stk500v2_send_mk2(pgm, data, len);
-  if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII)
+  if(my.pgmtype == PGMTYPE_JTAGICE_MKII)
     return stk500v2_jtagmkII_send(pgm, data, len);
-  if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3)
+  if(my.pgmtype == PGMTYPE_JTAGICE3)
     return stk500v2_jtag3_send(pgm, data, len);
 
   buf[0] = MESSAGE_START;
-  buf[1] = PDATA(pgm)->command_sequence;
+  buf[1] = my.command_sequence;
   buf[2] = len/256;
   buf[3] = len%256;
   buf[4] = TOKEN;
@@ -525,7 +525,7 @@ static int stk500v2_jtagmkII_recv(const PROGRAMMER *pgm, unsigned char *msg, siz
 
   PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-  pgmcp->cookie = PDATA(pgm)->chained_pdata;
+  pgmcp->cookie = my.chained_pdata;
   rv = jtagmkII_recv(pgmcp, &jtagmsg);
   pgm_free(pgmcp);
   if(rv <= 0) {
@@ -560,7 +560,7 @@ static int stk500v2_jtag3_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t
 
   PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-  pgmcp->cookie = PDATA(pgm)->chained_pdata;
+  pgmcp->cookie = my.chained_pdata;
   rv = jtag3_recv(pgmcp, &jtagmsg);
   pgm_free(pgmcp);
 
@@ -601,11 +601,11 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
   long timeoutval = SERIAL_TIMEOUT;     // Seconds
   double tstart, tnow;
 
-  if(PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII || PDATA(pgm)->pgmtype == PGMTYPE_STK600)
+  if(my.pgmtype == PGMTYPE_AVRISP_MKII || my.pgmtype == PGMTYPE_STK600)
     return stk500v2_recv_mk2(pgm, msg, maxsize);
-  else if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII)
+  else if(my.pgmtype == PGMTYPE_JTAGICE_MKII)
     return stk500v2_jtagmkII_recv(pgm, msg, maxsize);
-  else if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3)
+  else if(my.pgmtype == PGMTYPE_JTAGICE3)
     return stk500v2_jtag3_recv(pgm, msg, maxsize);
 
   DEBUG("STK500V2: stk500v2_recv(): ");
@@ -630,10 +630,10 @@ static int stk500v2_recv(const PROGRAMMER *pgm, unsigned char *msg, size_t maxsi
       break;
     case sSEQNUM:
       DEBUGRECV("hoping for sequence ...\n");
-      if(c == PDATA(pgm)->command_sequence) {
+      if(c == my.command_sequence) {
         DEBUGRECV("got it, incrementing\n");
         state = sSIZE1;
-        PDATA(pgm)->command_sequence++;
+        my.command_sequence++;
       } else {
         DEBUGRECV("sorry\n");
         state = sSTART;
@@ -706,7 +706,7 @@ int stk500v2_getsync(const PROGRAMMER *pgm) {
 
   DEBUG("STK500V2: stk500v2_getsync()\n");
 
-  if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII || PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3)
+  if(my.pgmtype == PGMTYPE_JTAGICE_MKII || my.pgmtype == PGMTYPE_JTAGICE3)
     return 0;
 
   long bak_serial_recv_timeout = serial_recv_timeout;
@@ -731,22 +731,22 @@ retry:
       char *name = (char *) resp + 3;
 
       if(str_starts(name, "STK500_2")) {
-        PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+        my.pgmtype = PGMTYPE_STK500;
       } else if(str_starts(name, "SCRATCHMONKEY")) {
-        PDATA(pgm)->is_scratchmonkey = 1;
-        PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+        my.is_scratchmonkey = 1;
+        my.pgmtype = PGMTYPE_STK500;
       } else if(str_starts(name, "AVRISP_2")) {
-        PDATA(pgm)->pgmtype = PGMTYPE_AVRISP;
+        my.pgmtype = PGMTYPE_AVRISP;
       } else if(str_starts(name, "AVRISP_MK2")) {
-        PDATA(pgm)->pgmtype = PGMTYPE_AVRISP_MKII;
+        my.pgmtype = PGMTYPE_AVRISP_MKII;
       } else if(str_starts(name, "STK600")) {
-        PDATA(pgm)->pgmtype = PGMTYPE_STK600;
+        my.pgmtype = PGMTYPE_STK600;
       } else {
         unsigned int len = resp[2];
 
         resp[len + 3 >= sizeof resp? sizeof resp - 1: len + 3] = 0;
         pmsg_notice("%s(): unknown programmer %s, assuming STK500\n", __func__, name);
-        PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+        my.pgmtype = PGMTYPE_STK500;
       }
       pmsg_debug("%s(): found %s programmer\n", __func__, pgmname(pgm));
       serial_recv_timeout = bak_serial_recv_timeout;
@@ -951,7 +951,7 @@ static int stk500v2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   avr_set_bits(p->op[AVR_OP_CHIP_ERASE], buf + 3);
   result = stk500v2_command(pgm, buf, 7, sizeof(buf));
   usleep(p->chip_erase_delay);  // Should not be needed
-  if(PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE_MKII) { // Skip for JTAGICE mkII (FW v7.39)
+  if(my.pgmtype != PGMTYPE_JTAGICE_MKII) { // Skip for JTAGICE mkII (FW v7.39)
     pgm->initialize(pgm, p);    // Should not be needed
   }
 
@@ -1024,14 +1024,14 @@ static int stk500v2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   char msg[100];                // See remarks above about size needed
   int rv, tries;
 
-  PDATA(pgm)->lastpart = p;
+  my.lastpart = p;
 
   if(p->op[AVR_OP_PGM_ENABLE] == NULL) {
     pmsg_error("program enable instruction not defined for part %s\n", p->desc);
     return -1;
   }
 
-  if(PDATA(pgm)->pgmtype == PGMTYPE_STK500 || PDATA(pgm)->pgmtype == PGMTYPE_STK600)
+  if(my.pgmtype == PGMTYPE_STK500 || my.pgmtype == PGMTYPE_STK600)
     // Activate AVR-style (low active) RESET
     stk500v2_setparm_real(pgm, PARAM_RESET_POLARITY, 0x01);
 
@@ -1051,7 +1051,7 @@ retry:
   rv = stk500v2_command(pgm, buf, 12, sizeof(buf));
 
   if(rv < 0) {
-    switch(PDATA(pgm)->pgmtype) {
+    switch(my.pgmtype) {
     case PGMTYPE_STK600:
     case PGMTYPE_AVRISP_MKII:
       if(stk500v2_getparm(pgm, PARAM_STATUS_TGT_CONN, &buf[0]) != 0) {
@@ -1071,7 +1071,7 @@ retry:
 
         PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-        pgmcp->cookie = PDATA(pgm)->chained_pdata;
+        pgmcp->cookie = my.chained_pdata;
 
         cmd[0] = PARM3_CONN_DW;
         if(jtag3_setparm(pgmcp, SCOPE_AVR, 1, PARM3_CONNECTION, cmd, 1) < 0) {
@@ -1119,7 +1119,7 @@ retry:
 static int stk500pp_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[16];
 
-  PDATA(pgm)->lastpart = p;
+  my.lastpart = p;
 
   buf[0] = CMD_ENTER_PROGMODE_PP;
   buf[1] = p->hventerstabdelay;
@@ -1137,9 +1137,9 @@ static int stk500pp_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 static int stk500hvsp_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[16];
 
-  PDATA(pgm)->lastpart = p;
+  my.lastpart = p;
 
-  buf[0] = PDATA(pgm)->pgmtype == PGMTYPE_STK600? CMD_ENTER_PROGMODE_HVSP_STK600: CMD_ENTER_PROGMODE_HVSP;
+  buf[0] = my.pgmtype == PGMTYPE_STK600? CMD_ENTER_PROGMODE_HVSP_STK600: CMD_ENTER_PROGMODE_HVSP;
   buf[1] = p->hventerstabdelay;
   buf[2] = p->hvspcmdexedelay;
   buf[3] = p->synchcycles;
@@ -1157,9 +1157,9 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   LNODEID ln;
   AVRMEM *m;
 
-  if((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
-      PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
-      PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0 && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
+  if((my.pgmtype == PGMTYPE_STK600 ||
+      my.pgmtype == PGMTYPE_AVRISP_MKII ||
+      my.pgmtype == PGMTYPE_JTAGICE_MKII) != 0 && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
     // This is an ATxmega device, must use XPROG protocol for the remaining actions
     if(p->prog_modes & PM_PDI) {
       // Find the border between application and boot area
@@ -1169,7 +1169,7 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(bootmem == NULL || flashmem == NULL) {
         pmsg_error("cannot locate flash or boot memories\n");
       } else {
-        PDATA(pgm)->boot_start = bootmem->offset - flashmem->offset;
+        my.boot_start = bootmem->offset - flashmem->offset;
       }
     }
     // stk600_setup_xprog(pgm); [moved to pgm->enable()]
@@ -1178,75 +1178,75 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // Read or write target voltage
-  if(PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+  if(my.vtarg_get || my.vtarg_set) {
     // Read current target voltage set value
     unsigned char vtarg_read = 0;
 
     if(stk500v2_getparm(pgm, PARAM_VTARGET, &vtarg_read) < 0)
       return -1;
-    if(PDATA(pgm)->vtarg_get)
+    if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
     else {
-      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), PDATA(pgm)->vtarg_data);
-      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
+      if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
     }
   }
 
   // Read or write analog reference voltage
-  if(PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
-    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+  if(my.varef_get || my.varef_set) {
+    if(my.pgmtype == PGMTYPE_STK500) {
       // STK500: Read current analog reference voltage
       unsigned char varef_read = 0;
 
       if(stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read) < 0)
         return -1;
-      if(PDATA(pgm)->varef_get)
+      if(my.varef_get)
         msg_info("Analog reference voltage value read as %.2f V\n", (varef_read/10.0));
       // STK500: Write analog reference voltage
       else {
         msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
-          varef_read/10.0, PDATA(pgm)->varef_data);
-        if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+          varef_read/10.0, my.varef_data);
+        if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
           return -1;
       }
-    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+    } else if(my.pgmtype == PGMTYPE_STK600) {
       // STK600: Read current target voltage set value
       unsigned int varef_read = 0;
 
-      if(stk500v2_getparm2(pgm, PDATA(pgm)->varef_channel == 0? PARAM2_AREF0: PARAM2_AREF1, &varef_read) < 0)
+      if(stk500v2_getparm2(pgm, my.varef_channel == 0? PARAM2_AREF0: PARAM2_AREF1, &varef_read) < 0)
         return -1;
-      if(PDATA(pgm)->varef_get)
+      if(my.varef_get)
         msg_info("Analog reference channel %d voltage read as %.2f V\n",
-          PDATA(pgm)->varef_channel, (varef_read/100.0));
+          my.varef_channel, (varef_read/100.0));
       // STK600: Write target voltage value for channel n
       else {
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
-          PDATA(pgm)->varef_channel, (varef_read/100.0), PDATA(pgm)->varef_data);
-        if(pgm->set_varef(pgm, PDATA(pgm)->varef_channel, PDATA(pgm)->varef_data) < 0)
+          my.varef_channel, (varef_read/100.0), my.varef_data);
+        if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
           return -1;
       }
     }
   }
 
   // Read or write clock generator frequency
-  if(PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
-    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500 || PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+  if(my.fosc_get || my.fosc_set) {
+    if(my.pgmtype == PGMTYPE_STK500 || my.pgmtype == PGMTYPE_STK600) {
       const char *unit_get = { "Hz" };
       double f_get = stk500v2_fosc_value(pgm);
 
       if(f_get)
         f_get = f_to_kHz_MHz(f_get, &unit_get);
-      if(PDATA(pgm)->fosc_get)
+      if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
       // Write new osc freq
       else {
         const char *unit_set;
-        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
         msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
-        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+        if(pgm->set_fosc(pgm, my.fosc_data) < 0)
           return -1;
       }
     }
@@ -1257,27 +1257,27 @@ static int stk500v2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
    * For devices/memory that are not page oriented, treat them as page size 1
    * for EEPROM, and 2 for flash.
    */
-  PDATA(pgm)->flash_pagesize = 2;
-  PDATA(pgm)->eeprom_pagesize = 1;
+  my.flash_pagesize = 2;
+  my.eeprom_pagesize = 1;
   for(ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if(mem_is_flash(m)) {
       if(m->page_size > 1) {
         if(m->page_size > 256)
-          PDATA(pgm)->flash_pagesize = 256;
+          my.flash_pagesize = 256;
         else
-          PDATA(pgm)->flash_pagesize = m->page_size;
+          my.flash_pagesize = m->page_size;
       }
     } else if(mem_is_eeprom(m)) {
       if(m->page_size > 1)
-        PDATA(pgm)->eeprom_pagesize = m->page_size;
+        my.eeprom_pagesize = m->page_size;
     }
   }
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
   if(p->flags & AVRPART_IS_AT90S1200) {
     // AT90S1200 needs a positive reset pulse after a chip erase
@@ -1302,7 +1302,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
   PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-  pgmcp->cookie = PDATA(pgm)->chained_pdata;
+  pgmcp->cookie = my.chained_pdata;
 
   if(p->prog_modes & PM_debugWIRE)
     parm[0] = PARM3_ARCH_TINY;
@@ -1333,48 +1333,48 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     mmt_free(resp);
 
   // Read or write SUFFER register
-  if(PDATA(pgm)->suffer_get || PDATA(pgm)->suffer_set) {
+  if(my.suffer_get || my.suffer_set) {
     // Read existing SUFFER value
     if(jtag3_getparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
-      MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data, 1) < 0) {
+      MEDBG_REG_SUFFER_OFFSET, my.suffer_data, 1) < 0) {
 
       return -1;
     }
-    if(!PDATA(pgm)->suffer_set)
-      imsg_info("SUFFER register value read as 0x%02x\n", PDATA(pgm)->suffer_data[0]);
+    if(!my.suffer_set)
+      imsg_info("SUFFER register value read as 0x%02x\n", my.suffer_data[0]);
     // Write new SUFFER value
     else {
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, MEDBG_REG_SUFFER_BANK + 0x10,
-        MEDBG_REG_SUFFER_OFFSET, PDATA(pgm)->suffer_data + 1, 1) < 0) {
+        MEDBG_REG_SUFFER_OFFSET, my.suffer_data + 1, 1) < 0) {
 
         return -1;
       }
       imsg_info("SUFFER register value changed from 0x%02x to 0x%02x\n",
-        PDATA(pgm)->suffer_data[0], PDATA(pgm)->suffer_data[1]);
+        my.suffer_data[0], my.suffer_data[1]);
     }
   }
 
   // Read or write Vtarg switch
-  if(PDATA(pgm)->vtarg_switch_get || PDATA(pgm)->vtarg_switch_set) {
+  if(my.vtarg_switch_get || my.vtarg_switch_set) {
     // Read existing Vtarg switch value
     if(jtag3_getparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL,
-      EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data, 1) < 0) {
+      EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data, 1) < 0) {
 
       return -1;
     }
-    if(!PDATA(pgm)->vtarg_switch_set) {
+    if(!my.vtarg_switch_set) {
       pmsg_info("Vtarg switch setting read as %u: target power is switched %s\n",
-        PDATA(pgm)->vtarg_switch_data[0], PDATA(pgm)->vtarg_switch_data[0]? "on": "off");
+        my.vtarg_switch_data[0], my.vtarg_switch_data[0]? "on": "off");
     } else {                    // Write Vtarg switch value
       if(jtag3_setparm(pgmcp, SCOPE_EDBG, EDBG_CTXT_CONTROL,
-        EDBG_CONTROL_TARGET_POWER, PDATA(pgm)->vtarg_switch_data + 1, 1) < 0) {
+        EDBG_CONTROL_TARGET_POWER, my.vtarg_switch_data + 1, 1) < 0) {
 
         return -1;
       }
-      pmsg_info("Vtarg switch setting changed from %u to %u\n", PDATA(pgm)->vtarg_switch_data[0],
-        PDATA(pgm)->vtarg_switch_data[1]);
+      pmsg_info("Vtarg switch setting changed from %u to %u\n", my.vtarg_switch_data[0],
+        my.vtarg_switch_data[1]);
       // Exit early if the target power switch is off and print sensible info message
-      if(PDATA(pgm)->vtarg_switch_data[1] == 0) {
+      if(my.vtarg_switch_data[1] == 0) {
         pmsg_info("turn on the Vtarg switch to establish connection with the target\n\n");
         return -1;
       }
@@ -1382,7 +1382,7 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   // Read or write target voltage
-  if(PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+  if(my.vtarg_get || my.vtarg_set) {
     // Read current target voltage set value
     unsigned char buf[2];
 
@@ -1390,14 +1390,14 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
     double vtarg_read = b2_to_u16(buf)/1000.0;
 
-    if(PDATA(pgm)->vtarg_get)
+    if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", vtarg_read);
     // Write target voltage value
     else {
-      u16_to_b2(buf, (unsigned) (PDATA(pgm)->vtarg_data*1000));
-      msg_info("Changing target voltage from %.2f V to %.2f V\n", vtarg_read, PDATA(pgm)->vtarg_data);
+      u16_to_b2(buf, (unsigned) (my.vtarg_data*1000));
+      msg_info("Changing target voltage from %.2f V to %.2f V\n", vtarg_read, my.vtarg_data);
       if(jtag3_setparm(pgmcp, SCOPE_GENERAL, 1, PARM3_VADJUST, buf, sizeof(buf)) < 0) {
-        msg_warning("Cannot set target voltage %.2f V\n", PDATA(pgm)->vtarg_data);
+        msg_warning("Cannot set target voltage %.2f V\n", my.vtarg_data);
         return -1;
       }
     }
@@ -1410,27 +1410,27 @@ static int stk500v2_jtag3_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
    * For devices/memory that are not page oriented, treat them as page size 1
    * for EEPROM, and 2 for flash.
    */
-  PDATA(pgm)->flash_pagesize = 2;
-  PDATA(pgm)->eeprom_pagesize = 1;
+  my.flash_pagesize = 2;
+  my.eeprom_pagesize = 1;
   for(ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if(mem_is_flash(m)) {
       if(m->page_size > 1) {
         if(m->page_size > 256)
-          PDATA(pgm)->flash_pagesize = 256;
+          my.flash_pagesize = 256;
         else
-          PDATA(pgm)->flash_pagesize = m->page_size;
+          my.flash_pagesize = m->page_size;
       }
     } else if(mem_is_eeprom(m)) {
       if(m->page_size > 1)
-        PDATA(pgm)->eeprom_pagesize = m->page_size;
+        my.eeprom_pagesize = m->page_size;
     }
   }
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
   return pgm->program_enable(pgm, p);
 }
@@ -1459,59 +1459,59 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
   }
 
   // Read or write target voltage
-  if(PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+  if(my.vtarg_get || my.vtarg_set) {
     // Read current target voltage set value
     unsigned char vtarg_read = 0;
 
     if(stk500v2_getparm(pgm, PARAM_VTARGET, &vtarg_read) < 0)
       return -1;
-    if(PDATA(pgm)->vtarg_get)
+    if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
     else {
-      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), PDATA(pgm)->vtarg_data);
-      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
+      if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
     }
   }
 
   // Read or write analog reference voltage
-  if(PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
-    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+  if(my.varef_get || my.varef_set) {
+    if(my.pgmtype == PGMTYPE_STK500) {
       // STK500: Read current analog reference voltage
       unsigned char varef_read = 0;
 
       if(stk500v2_getparm(pgm, PARAM_VADJUST, &varef_read) < 0)
         return -1;
-      if(PDATA(pgm)->varef_get) {
+      if(my.varef_get) {
         msg_info("Analog reference voltage value read as %.2f V\n", varef_read/10.0);
       } else {                  // STK500: Write analog reference voltage
         msg_info("Changing analog reference voltage from %.2f V to %.2f V\n",
-          varef_read/10.0, PDATA(pgm)->varef_data);
-        if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+          varef_read/10.0, my.varef_data);
+        if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
           return -1;
       }
-    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+    } else if(my.pgmtype == PGMTYPE_STK600) {
       // STK600: Read current target voltage set value
       unsigned int varef_read = 0;
 
-      if(stk500v2_getparm2(pgm, PDATA(pgm)->varef_channel == 0? PARAM2_AREF0: PARAM2_AREF1, &varef_read) < 0)
+      if(stk500v2_getparm2(pgm, my.varef_channel == 0? PARAM2_AREF0: PARAM2_AREF1, &varef_read) < 0)
         return -1;
-      if(PDATA(pgm)->varef_get) {
+      if(my.varef_get) {
         msg_info("Analog reference channel %d voltage read as %.2f V\n",
-          PDATA(pgm)->varef_channel, (varef_read/100.0));
+          my.varef_channel, (varef_read/100.0));
       } else {                  // STK600: Write target voltage value for channel n
         msg_info("Changing analog reference channel %d voltage from %.2f V to %.2f V\n",
-          PDATA(pgm)->varef_channel, (varef_read/100.0), PDATA(pgm)->varef_data);
-        if(pgm->set_varef(pgm, PDATA(pgm)->varef_channel, PDATA(pgm)->varef_data) < 0)
+          my.varef_channel, (varef_read/100.0), my.varef_data);
+        if(pgm->set_varef(pgm, my.varef_channel, my.varef_data) < 0)
           return -1;
       }
     }
   }
 
   // Read or write clock generator frequency
-  if(PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
-    if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+  if(my.fosc_get || my.fosc_set) {
+    if(my.pgmtype == PGMTYPE_STK500) {
       // Read current target voltage set value
       unsigned char osc_pscale = 0;
       unsigned char osc_cmatch = 0;
@@ -1526,7 +1526,7 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       if(osc_pscale) {
         int prescale = 1;
 
-        f_get = PDATA(pgm)->xtal/2;
+        f_get = my.xtal/2;
         switch(osc_pscale) {
         case 2:
           prescale = 8;
@@ -1551,18 +1551,18 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
         f_get /= (osc_cmatch + 1);
         f_get = f_to_kHz_MHz(f_get, &unit_get);
       }
-      if(PDATA(pgm)->fosc_get)
+      if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
       // Write target voltage value
       else {
         const char *unit_set;
-        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
         msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
-        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+        if(pgm->set_fosc(pgm, my.fosc_data) < 0)
           return -1;
       }
-    } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+    } else if(my.pgmtype == PGMTYPE_STK600) {
       // Read current target voltage set value
       unsigned int clock_conf = 0;
 
@@ -1573,15 +1573,15 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
       double f_get = pow(2, (double) oct)*2078.0/(2 - (double) dac/1024.0);
       const char *unit_get = { "Hz" };
       f_get = f_to_kHz_MHz(f_get, &unit_get);
-      if(PDATA(pgm)->fosc_get)
+      if(my.fosc_get)
         msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
       // Write target voltage value
       else {
         const char *unit_set;
-        double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+        double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
         msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
-        if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+        if(pgm->set_fosc(pgm, my.fosc_data) < 0)
           return -1;
       }
     }
@@ -1592,27 +1592,27 @@ static int stk500hv_initialize(const PROGRAMMER *pgm, const AVRPART *p, enum hvm
    * For devices/memory that are not page oriented, treat them as page size 1
    * for EEPROM, and 2 for flash.
    */
-  PDATA(pgm)->flash_pagesize = 2;
-  PDATA(pgm)->eeprom_pagesize = 1;
+  my.flash_pagesize = 2;
+  my.eeprom_pagesize = 1;
   for(ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
     if(mem_is_flash(m)) {
       if(m->page_size > 1) {
         if(m->page_size > 256)
-          PDATA(pgm)->flash_pagesize = 256;
+          my.flash_pagesize = 256;
         else
-          PDATA(pgm)->flash_pagesize = m->page_size;
+          my.flash_pagesize = m->page_size;
       }
     } else if(mem_is_eeprom(m)) {
       if(m->page_size > 1)
-        PDATA(pgm)->eeprom_pagesize = m->page_size;
+        my.eeprom_pagesize = m->page_size;
     }
   }
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
   return pgm->program_enable(pgm, p);
 }
@@ -1631,10 +1631,10 @@ static void stk500v2_jtag3_disable(const PROGRAMMER *pgm) {
   unsigned char buf[16];
   int result;
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  PDATA(pgm)->flash_pagecache = NULL;
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->eeprom_pagecache = NULL;
+  mmt_free(my.flash_pagecache);
+  my.flash_pagecache = NULL;
+  mmt_free(my.eeprom_pagecache);
+  my.eeprom_pagecache = NULL;
 
   buf[0] = CMD_LEAVE_PROGMODE_ISP;
   buf[1] = 1;                   // preDelay;
@@ -1671,13 +1671,13 @@ static void stk500hv_disable(const PROGRAMMER *pgm, enum hvmode mode) {
   unsigned char buf[16];
   int result;
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  PDATA(pgm)->flash_pagecache = NULL;
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->eeprom_pagecache = NULL;
+  mmt_free(my.flash_pagecache);
+  my.flash_pagecache = NULL;
+  mmt_free(my.eeprom_pagecache);
+  my.eeprom_pagecache = NULL;
 
   buf[0] = mode == PPMODE? CMD_LEAVE_PROGMODE_PP:
-    (PDATA(pgm)->pgmtype == PGMTYPE_STK600? CMD_LEAVE_PROGMODE_HVSP_STK600: CMD_LEAVE_PROGMODE_HVSP);
+    (my.pgmtype == PGMTYPE_STK600? CMD_LEAVE_PROGMODE_HVSP_STK600: CMD_LEAVE_PROGMODE_HVSP);
   buf[1] = 15;                  // p->hvleavestabdelay;
   buf[2] = 15;                  // p->resetdelay;
 
@@ -1703,9 +1703,9 @@ static void stk500hvsp_disable(const PROGRAMMER *pgm) {
 static void stk500v2_enable(PROGRAMMER *pgm, const AVRPART *p) {
   // Previously stk500v2_initialize() set up pgm
   if(pgm->initialize == stk500v2_initialize) {
-    if((PDATA(pgm)->pgmtype == PGMTYPE_STK600 ||
-        PDATA(pgm)->pgmtype == PGMTYPE_AVRISP_MKII ||
-        PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) != 0 && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
+    if((my.pgmtype == PGMTYPE_STK600 ||
+        my.pgmtype == PGMTYPE_AVRISP_MKII ||
+        my.pgmtype == PGMTYPE_JTAGICE_MKII) != 0 && (p->prog_modes & (PM_PDI | PM_TPI)) != 0) {
       stk600_setup_xprog(pgm);
     } else {
       stk600_setup_isp(pgm);
@@ -1734,18 +1734,18 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           double vtarg_set_val = -1;    // Default = invalid value
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          PDATA(pgm)->vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
-          PDATA(pgm)->vtarg_set = true;
+          my.vtarg_set = true;
           continue;
         }
         // Get target voltage
         else if(str_eq(extended_param, "vtarg")) {
-          PDATA(pgm)->vtarg_get = true;
+          my.vtarg_get = true;
           continue;
         }
       }
@@ -1759,39 +1759,39 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         // Get new analog reference voltage for channel 0
         if(str_starts(extended_param, "varef=")) {
           sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
-          PDATA(pgm)->varef_channel = 0;
-          PDATA(pgm)->varef_set = true;
+          my.varef_channel = 0;
+          my.varef_set = true;
         }
         // Get new analog reference voltage for channel 0
         else if(str_starts(extended_param, "varef0=")) {
           sscanf_success = sscanf(extended_param, "varef0=%lf", &varef_set_val);
-          PDATA(pgm)->varef_channel = 0;
-          PDATA(pgm)->varef_set = true;
+          my.varef_channel = 0;
+          my.varef_set = true;
         }
         // Get new analog reference voltage for channel 1
         else if(str_starts(extended_param, "varef1=") && str_contains(pgm->type, "STK600")) {
           sscanf_success = sscanf(extended_param, "varef1=%lf", &varef_set_val);
-          PDATA(pgm)->varef_channel = 1;
-          PDATA(pgm)->varef_set = true;
+          my.varef_channel = 1;
+          my.varef_set = true;
         }
         // Get current analog reference voltage for channel 0
         else if(str_eq(extended_param, "varef") || str_eq(extended_param, "varef0")) {
-          PDATA(pgm)->varef_get = true;
-          PDATA(pgm)->varef_channel = 0;
+          my.varef_get = true;
+          my.varef_channel = 0;
           continue;
         }
         // Get current analog reference voltage for channel 1
         else if(str_eq(extended_param, "varef1") && str_contains(pgm->type, "STK600")) {
-          PDATA(pgm)->varef_get = true;
-          PDATA(pgm)->varef_channel = 1;
+          my.varef_get = true;
+          my.varef_channel = 1;
           continue;
         }
         // Set analog reference voltage
-        if(PDATA(pgm)->varef_set) {
-          PDATA(pgm)->varef_data = (double) ((int) (varef_set_val*100 + .5))/100;
+        if(my.varef_set) {
+          my.varef_data = (double) ((int) (varef_set_val*100 + .5))/100;
           if(sscanf_success < 1 || varef_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
-            PDATA(pgm)->varef_set = false;
+            my.varef_set = false;
             rv = -1;
             break;
           }
@@ -1819,7 +1819,7 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
             while(*endp == ' ') // Remove leading spaces
               ++endp;
             if(str_starts(endp, "off"))
-              PDATA(pgm)->fosc_data = 0.0;
+              my.fosc_data = 0.0;
             else {
               pmsg_error("invalid fosc value %s\n", endp);
               rv = -1;
@@ -1829,17 +1829,17 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
           while(*endp == ' ')   // Remove leading spaces before unit
             ++endp;
           if(*endp == 'm' || *endp == 'M')
-            PDATA(pgm)->fosc_data = v*1e6;
+            my.fosc_data = v*1e6;
           else if(*endp == 'k' || *endp == 'K')
-            PDATA(pgm)->fosc_data = v*1e3;
+            my.fosc_data = v*1e3;
           else if(*endp == 0 || *endp == 'h' || *endp == 'H' || *endp == 0)
-            PDATA(pgm)->fosc_data = v;
-          PDATA(pgm)->fosc_set = true;
+            my.fosc_data = v;
+          my.fosc_set = true;
           continue;
         }
         // Get clock generator frequency
         else if(str_eq(extended_param, "fosc")) {
-          PDATA(pgm)->fosc_get = true;
+          my.fosc_get = true;
           continue;
         }
       }
@@ -1867,11 +1867,11 @@ static int stk500v2_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         while(*endp == ' ')     // Remove leading spaces before unit
           ++endp;
         if(*endp == 'm' || *endp == 'M') // Fits also e.g. "nnnnMHz"
-          PDATA(pgm)->xtal = v*1e6;
+          my.xtal = v*1e6;
         else if(*endp == 'k' || *endp == 'K')
-          PDATA(pgm)->xtal = v*1e3;
+          my.xtal = v*1e3;
         else if(*endp == 0 || *endp == 'h' || *endp == 'H')     // "nnnn" or "nnnnHz"
-          PDATA(pgm)->xtal = (unsigned) v;
+          my.xtal = (unsigned) v;
         continue;
       }
     }
@@ -1932,21 +1932,21 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       if(pgm->extra_features & HAS_SUFFER) {
         // Set SUFFER value
         if(str_starts(extended_param, "suffer=")) {
-          if(sscanf(extended_param, "suffer=%hhi", PDATA(pgm)->suffer_data + 1) < 1) {
+          if(sscanf(extended_param, "suffer=%hhi", my.suffer_data + 1) < 1) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
-          if((PDATA(pgm)->suffer_data[1] & 0x78) != 0x78) {
-            PDATA(pgm)->suffer_data[1] |= 0x78;
-            pmsg_info("setting -x suffer=0x%02x so that reserved bits 3..6 are set\n", PDATA(pgm)->suffer_data[1]);
+          if((my.suffer_data[1] & 0x78) != 0x78) {
+            my.suffer_data[1] |= 0x78;
+            pmsg_info("setting -x suffer=0x%02x so that reserved bits 3..6 are set\n", my.suffer_data[1]);
           }
-          PDATA(pgm)->suffer_set = true;
+          my.suffer_set = true;
           continue;
         }
         // Get SUFFER value
         if(str_eq(extended_param, "suffer")) {
-          PDATA(pgm)->suffer_get = true;
+          my.suffer_get = true;
           continue;
         }
         pmsg_error("invalid setting in -x %s; use -x suffer or -x suffer=<n>\n", extended_param);
@@ -1959,19 +1959,19 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
       if(pgm->extra_features & HAS_VTARG_SWITCH) {
         // Set Vtarget switch value
         if(str_starts(extended_param, "vtarg_switch=")) {
-          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", PDATA(pgm)->vtarg_switch_data + 1);
+          int sscanf_success = sscanf(extended_param, "vtarg_switch=%hhi", my.vtarg_switch_data + 1);
 
-          if(sscanf_success < 1 || PDATA(pgm)->vtarg_switch_data[1] > 1) {
+          if(sscanf_success < 1 || my.vtarg_switch_data[1] > 1) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
-          PDATA(pgm)->vtarg_switch_set = true;
+          my.vtarg_switch_set = true;
           continue;
         }
         // Get Vtarget switch value
         if(str_eq(extended_param, "vtarg_switch")) {
-          PDATA(pgm)->vtarg_switch_get = true;
+          my.vtarg_switch_get = true;
           continue;
         }
         pmsg_error("invalid setting in -x %s; use -x vtarg_switch or -x vtarg_switch=<0..1>\n", extended_param);
@@ -1987,18 +1987,18 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
           double vtarg_set_val = 0;
           int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-          PDATA(pgm)->vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
+          my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
           if(sscanf_success < 1 || vtarg_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
             rv = -1;
             break;
           }
-          PDATA(pgm)->vtarg_set = true;
+          my.vtarg_set = true;
           continue;
         }
         // Get target voltage
         else if(str_eq(extended_param, "vtarg")) {
-          PDATA(pgm)->vtarg_get = true;
+          my.vtarg_get = true;
           continue;
         }
         pmsg_error("invalid setting in -x %s; use -x vtarg or -x vtarg=<dbl>\n", extended_param);
@@ -2010,12 +2010,12 @@ static int stk500v2_jtag3_parseextparms(const PROGRAMMER *pgm, const LISTID extp
     if(str_starts(extended_param, "mode") && (str_starts(pgmid, "pickit4") || str_starts(pgmid, "snap"))) {
       // Flag a switch to AVR mode
       if(str_caseeq(extended_param, "mode=avr")) {
-        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_AVR;
+        my.pk4_snap_mode = PK4_SNAP_MODE_AVR;
         continue;
       }
       // Flag a switch to PIC mode
       if(str_caseeq(extended_param, "mode=pic")) {
-        PDATA(pgm)->pk4_snap_mode = PK4_SNAP_MODE_PIC;
+        my.pk4_snap_mode = PK4_SNAP_MODE_PIC;
         continue;
       }
       pmsg_error("invalid setting in -x %s; use -x mode=avr or -x mode=pic\n", extended_param);
@@ -2064,11 +2064,11 @@ enum {
 
 static void scratchmonkey_led_state(const PROGRAMMER *pgm, int flag, int value) {
   if(value)
-    PDATA(pgm)->scratchmonkey_leds |= flag;
+    my.scratchmonkey_leds |= flag;
   else
-    PDATA(pgm)->scratchmonkey_leds &= ~flag;
+    my.scratchmonkey_leds &= ~flag;
 
-  stk500v2_setparm_real(pgm, PARAM_SCRATCHMONKEY_STATUS_LEDS, PDATA(pgm)->scratchmonkey_leds);
+  stk500v2_setparm_real(pgm, PARAM_SCRATCHMONKEY_STATUS_LEDS, my.scratchmonkey_leds);
 }
 
 static int scratchmonkey_rdy_led(const PROGRAMMER *pgm, int value) {
@@ -2099,13 +2099,13 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->baudrate)
     pinfo.serialinfo.baud = pgm->baudrate;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
+  my.pgmtype = PGMTYPE_UNKNOWN;
 
   if(str_caseeq(port, "avrdoper")) {
 
 #if defined(HAVE_LIBHIDAPI)
     serdev = &avrdoper_serdev;
-    PDATA(pgm)->pgmtype = PGMTYPE_STK500;
+    my.pgmtype = PGMTYPE_STK500;
 #else
     pmsg_error("avrdoper requires avrdude with libhidapi support\n");
     return -1;
@@ -2124,7 +2124,7 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
     pinfo.usbinfo.flags = 0;
     pinfo.usbinfo.pid = USB_DEVICE_AVRISPMKII;
-    PDATA(pgm)->pgmtype = PGMTYPE_AVRISP_MKII;
+    my.pgmtype = PGMTYPE_AVRISP_MKII;
     pgm->set_sck_period = stk500v2_set_sck_period_mk2;
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_MKII;
@@ -2158,7 +2158,7 @@ static int stk500v2_open(PROGRAMMER *pgm, const char *port) {
       return -1;
   }
 
-  if(PDATA(pgm)->is_scratchmonkey) {
+  if(my.is_scratchmonkey) {
     pgm->rdy_led = scratchmonkey_rdy_led;
     pgm->err_led = scratchmonkey_err_led;
     pgm->pgm_led = scratchmonkey_pgm_led;
@@ -2176,7 +2176,7 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
   if(pgm->baudrate)
     pinfo.serialinfo.baud = pgm->baudrate;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_UNKNOWN;
+  my.pgmtype = PGMTYPE_UNKNOWN;
 
   /*
    * If the port name starts with "usb", divert the serial routines to the USB
@@ -2190,7 +2190,7 @@ static int stk600_open(PROGRAMMER *pgm, const char *port) {
     pinfo.usbinfo.vid = USB_VENDOR_ATMEL;
     pinfo.usbinfo.flags = 0;
     pinfo.usbinfo.pid = USB_DEVICE_STK600;
-    PDATA(pgm)->pgmtype = PGMTYPE_STK600;
+    my.pgmtype = PGMTYPE_STK600;
     pgm->set_sck_period = stk600_set_sck_period;
     pgm->fd.usb.max_xfer = USBDEV_MAX_XFER_MKII;
     pgm->fd.usb.rep = USBDEV_BULK_EP_READ_STK600;
@@ -2262,10 +2262,10 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   if(mem_is_flash(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_FLASH_PP: CMD_READ_FLASH_HVSP;
     cmdlen = 3;
-    pagesize = PDATA(pgm)->flash_pagesize;
+    pagesize = my.flash_pagesize;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-    cache_ptr = PDATA(pgm)->flash_pagecache;
+    paddr_ptr = &my.flash_pageaddr;
+    cache_ptr = my.flash_pagecache;
     addrshift = 1;
     /*
      * If bit 31 is set, this indicates that the following read/write operation
@@ -2282,8 +2282,8 @@ static int stk500hv_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if(pagesize == 0)
       pagesize = 1;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-    cache_ptr = PDATA(pgm)->eeprom_pagecache;
+    paddr_ptr = &my.eeprom_pageaddr;
+    cache_ptr = my.eeprom_pagecache;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = mode == PPMODE? CMD_READ_FUSE_PP: CMD_READ_FUSE_HVSP;
     if(mem_is_a_fuse(mem))
@@ -2381,17 +2381,17 @@ static int stk500isp_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   if(mem_is_flash(mem) || mem_is_eeprom(mem)) {
     // Use paged access, and cache result
     if(mem_is_flash(mem)) {
-      pagesize = PDATA(pgm)->flash_pagesize;
+      pagesize = my.flash_pagesize;
       paddr = addr & ~(pagesize - 1);
-      paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-      cache_ptr = PDATA(pgm)->flash_pagecache;
+      paddr_ptr = &my.flash_pageaddr;
+      cache_ptr = my.flash_pagecache;
     } else {
       pagesize = mem->page_size;
       if(pagesize == 0)
         pagesize = 1;
       paddr = addr & ~(pagesize - 1);
-      paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-      cache_ptr = PDATA(pgm)->eeprom_pagecache;
+      paddr_ptr = &my.eeprom_pageaddr;
+      cache_ptr = my.eeprom_pagecache;
     }
 
     if(paddr == *paddr_ptr) {
@@ -2467,10 +2467,10 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   if(mem_is_flash(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
-    pagesize = PDATA(pgm)->flash_pagesize;
+    pagesize = my.flash_pagesize;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-    cache_ptr = PDATA(pgm)->flash_pagecache;
+    paddr_ptr = &my.flash_pageaddr;
+    cache_ptr = my.flash_pagecache;
     addrshift = 1;
     /*
      * If bit 31 is set, this indicates that the following read/write operation
@@ -2486,8 +2486,8 @@ static int stk500hv_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     if(pagesize == 0)
       pagesize = 1;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-    cache_ptr = PDATA(pgm)->eeprom_pagecache;
+    paddr_ptr = &my.eeprom_pageaddr;
+    cache_ptr = my.eeprom_pagecache;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     buf[0] = mode == PPMODE? CMD_PROGRAM_FUSE_PP: CMD_PROGRAM_FUSE_HVSP;
     pulsewidth = p->programfusepulsewidth;
@@ -2607,10 +2607,10 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
 
   if(mem_is_flash(mem) || mem_is_eeprom(mem)) {
     if(mem_is_flash(mem)) {
-      pagesize = PDATA(pgm)->flash_pagesize;
+      pagesize = my.flash_pagesize;
       paddr = addr & ~(pagesize - 1);
-      paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-      cache_ptr = PDATA(pgm)->flash_pagecache;
+      paddr_ptr = &my.flash_pageaddr;
+      cache_ptr = my.flash_pagecache;
       if((mem->mode & 1) == 0)
         // Old, unpaged device, really write single bytes
         pagesize = 1;
@@ -2619,8 +2619,8 @@ static int stk500isp_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
       if(pagesize == 0)
         pagesize = 1;
       paddr = addr & ~(pagesize - 1);
-      paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-      cache_ptr = PDATA(pgm)->eeprom_pagecache;
+      paddr_ptr = &my.eeprom_pageaddr;
+      cache_ptr = my.eeprom_pagecache;
     }
 
     /*
@@ -2711,7 +2711,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   // Determine which command is to be used
   if(mem_is_flash(m)) {
     addrshift = 1;
-    PDATA(pgm)->flash_pageaddr = ~0UL;  // Invalidate cache
+    my.flash_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_FLASH_ISP;
     /*
      * If bit 31 is set, this indicates that the following read/write operation
@@ -2722,7 +2722,7 @@ static int stk500v2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       use_ext_addr = (1U << 31);
     }
   } else if(mem_is_eeprom(m)) {
-    PDATA(pgm)->eeprom_pageaddr = ~0UL; // Invalidate cache
+    my.eeprom_pageaddr = ~0UL; // Invalidate cache
     commandbuf[0] = CMD_PROGRAM_EEPROM_ISP;
   }
   commandbuf[4] = m->delay;
@@ -2836,7 +2836,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   // Determine which command is to be used
   if(mem_is_flash(m)) {
     addrshift = 1;
-    PDATA(pgm)->flash_pageaddr = ~0UL;
+    my.flash_pageaddr = ~0UL;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_FLASH_PP: CMD_PROGRAM_FLASH_HVSP;
     /*
      * If bit 31 is set, this indicates that the following read/write operation
@@ -2847,7 +2847,7 @@ static int stk500hv_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       use_ext_addr = (1U << 31);
     }
   } else if(mem_is_eeprom(m)) {
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
+    my.eeprom_pageaddr = ~0UL;
     commandbuf[0] = mode == PPMODE? CMD_PROGRAM_EEPROM_PP: CMD_PROGRAM_EEPROM_HVSP;
   }
   /*
@@ -3127,9 +3127,9 @@ static int stk500v2_set_varef(const PROGRAMMER *pgm, unsigned int chan, double v
 }
 
 static int stk500v2_get_varef(const PROGRAMMER *pgm, unsigned int chan, double *v) {
-  if(PDATA(pgm)->pgmtype == PGMTYPE_STK500)
+  if(my.pgmtype == PGMTYPE_STK500)
     *v = stk500v2_varef_value(pgm);
-  else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+  else if(my.pgmtype == PGMTYPE_STK600) {
     if(chan == 0)
       *v = stk600_varef_0_value(pgm);
     else if(chan == 1)
@@ -3154,7 +3154,7 @@ static int stk500v2_set_fosc(const PROGRAMMER *pgm, double v) {
 
   prescale = cmatch = 0;
   if(v > 0.0) {
-    if(v > PDATA(pgm)->xtal/2) {
+    if(v > my.xtal/2) {
       const char *unit;
 
       if(v >= 1e6) {
@@ -3165,21 +3165,21 @@ static int stk500v2_set_fosc(const PROGRAMMER *pgm, double v) {
         unit = "kHz";
       } else
         unit = "Hz";
-      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, PDATA(pgm)->xtal/2e6);
-      fosc = PDATA(pgm)->xtal/2;
+      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, my.xtal/2e6);
+      fosc = my.xtal/2;
     } else
       fosc = (unsigned) v;
 
     for(idx = 0; idx < sizeof(ps)/sizeof(ps[0]); idx++) {
-      if((unsigned) fosc >= PDATA(pgm)->xtal/(256*ps[idx] * 2)) {
+      if((unsigned) fosc >= my.xtal/(256*ps[idx] * 2)) {
         // This prescaler value can handle our frequency
         prescale = idx + 1;
-        cmatch = (unsigned) (PDATA(pgm)->xtal/(2*fosc*ps[idx])) - 1;
+        cmatch = (unsigned) (my.xtal/(2*fosc*ps[idx])) - 1;
         break;
       }
     }
     if(idx == sizeof(ps)/sizeof(ps[0])) {
-      pmsg_warning("f = %u Hz too low, %u Hz min\n", fosc, PDATA(pgm)->xtal/(256*1024*2));
+      pmsg_warning("f = %u Hz too low, %u Hz min\n", fosc, my.xtal/(256*1024*2));
       return -1;
     }
   }
@@ -3282,16 +3282,16 @@ static int stk500v2_set_sck_period(const PROGRAMMER *pgm, double v) {
   unsigned char dur;
   double f = 1/v;
 
-  if(f >= PDATA(pgm)->xtal/4.0)       // 1.8432E6
+  if(f >= my.xtal/4.0)          // 1.8432E6
     d = 0;
-  else if(f > PDATA(pgm)->xtal/16.0)  // 460.8E3
+  else if(f > my.xtal/16.0)     // 460.8E3
     d = 1;
-  else if(f > PDATA(pgm)->xtal/64.0)  // 115.2E3
+  else if(f > my.xtal/64.0)     // 115.2E3
     d = 2;
-  else if(f > PDATA(pgm)->xtal/128.0) // 57.6E3
+  else if(f > my.xtal/128.0)    // 57.6E3
     d = 3;
   else
-    d = (unsigned int) ceil(1/(24*f/(double) PDATA(pgm)->xtal) - 10.0/12.0);
+    d = (unsigned int) ceil(1/(24*f/(double) my.xtal) - 10.0/12.0);
   if(d >= 255)
     d = 254;
   dur = d;
@@ -3308,18 +3308,18 @@ static double stk500v2_sck_to_us(const PROGRAMMER *pgm, unsigned char dur) {
   double x;
 
   if(dur == 0)
-    return 4.E6/PDATA(pgm)->xtal;     // 0.5425;
+    return 4.E6/my.xtal;        // 0.5425;
   if(dur == 1)
-    return 16.E6/PDATA(pgm)->xtal;    // 2.17;
+    return 16.E6/my.xtal;       // 2.17;
   if(dur == 2)
-    return 64.E6/PDATA(pgm)->xtal;    // 8.68;
+    return 64.E6/my.xtal;       // 8.68;
   if(dur == 3)
-    return 128.E6/PDATA(pgm)->xtal;   // 17.36;
+    return 128.E6/my.xtal;      // 17.36;
 
   x = (double) dur + 10.0/12.0;
   x = 1.0/x;
   x /= 24.0;
-  x *= (double) PDATA(pgm)->xtal;
+  x *= (double) my.xtal;
   return 1e6/x;
 }
 
@@ -3354,11 +3354,11 @@ static int stk600_set_vtarget(const PROGRAMMER *pgm, double v) {
   }
 
   // Vtarget on the STK600 can only be adjusted while not being in programming mode
-  if(PDATA(pgm)->lastpart)
+  if(my.lastpart)
     pgm->disable(pgm);
   rv = stk500v2_setparm(pgm, PARAM_VTARGET, utarg);
-  if(PDATA(pgm)->lastpart)
-    pgm->program_enable(pgm, PDATA(pgm)->lastpart);
+  if(my.lastpart)
+    pgm->program_enable(pgm, my.lastpart);
 
   return rv;
 }
@@ -3554,7 +3554,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
   unsigned int rev = 0;
   const char *topcard_name;
 
-  if(PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE_MKII && PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
+  if(my.pgmtype != PGMTYPE_JTAGICE_MKII && my.pgmtype != PGMTYPE_JTAGICE3) {
     msg_info("%sProgrammer model      : %s\n", p, pgmname(pgm));
     stk500v2_getparm(pgm, PARAM_HW_VER, &hdw);
     stk500v2_getparm(pgm, PARAM_SW_MAJOR, &maj);
@@ -3563,7 +3563,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     if(pgm->usbsn && *pgm->usbsn)
       msg_info("%sSerial number         : %s\n", p, pgm->usbsn);
     msg_info("%sFW Version Controller : %d.%02d\n", p, maj, min);
-    if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+    if(my.pgmtype == PGMTYPE_STK600) {
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY1, &maj_s1);
       stk500v2_getparm(pgm, PARAM_SW_MINOR_PERIPHERY1, &min_s1);
       stk500v2_getparm(pgm, PARAM_SW_MAJOR_PERIPHERY2, &maj_s2);
@@ -3573,7 +3573,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     }
   }
 
-  if(PDATA(pgm)->pgmtype == PGMTYPE_STK500) {
+  if(my.pgmtype == PGMTYPE_STK500) {
     stk500v2_getparm(pgm, PARAM_TOPCARD_DETECT, &topcard);
     switch(topcard) {
     case 0xAA:
@@ -3599,7 +3599,7 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
       break;
     }
     msg_info("%sTopcard               : %s\n", p, topcard_name);
-  } else if(PDATA(pgm)->pgmtype == PGMTYPE_STK600) {
+  } else if(my.pgmtype == PGMTYPE_STK600) {
     stk500v2_getparm(pgm, PARAM_ROUTINGCARD_ID, &topcard);
     msg_info("%sRouting card          : %s\n", p,
       stk600_get_cardname(routing_cards, sizeof routing_cards/sizeof routing_cards[0], topcard));
@@ -3610,10 +3610,10 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
     msg_info("%sRC_ID table rev       : %d\n", p, rev);
     stk500v2_getparm2(pgm, PARAM2_EC_ID_TABLE_REV, &rev);
     msg_info("%sEC_ID table rev       : %d\n", p, rev);
-  } else if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE3) {
+  } else if(my.pgmtype == PGMTYPE_JTAGICE3) {
     PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-    pgmcp->cookie = PDATA(pgm)->chained_pdata;
+    pgmcp->cookie = my.chained_pdata;
     jtag3_display(pgmcp, p);
     pgm_free(pgmcp);
   }
@@ -3623,19 +3623,19 @@ static void stk500v2_display(const PROGRAMMER *pgm, const char *p) {
 }
 
 static double stk500v2_vtarget_value(const PROGRAMMER *pgm) {
-  if(PDATA(pgm)->pgmtype == PGMTYPE_JTAGICE_MKII) {
+  if(my.pgmtype == PGMTYPE_JTAGICE_MKII) {
     unsigned char vtarget_jtag[4];
 
     memset(vtarget_jtag, 0, sizeof vtarget_jtag);
     PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-    pgmcp->cookie = PDATA(pgm)->chained_pdata;
+    pgmcp->cookie = my.chained_pdata;
     jtagmkII_getparm(pgmcp, PAR_OCD_VTARGET, vtarget_jtag);
     pgm_free(pgmcp);
     return b2_to_u16(vtarget_jtag)/1000.0;
   }
 
-  if(PDATA(pgm)->pgmtype != PGMTYPE_JTAGICE3) {
+  if(my.pgmtype != PGMTYPE_JTAGICE3) {
     unsigned char vtarget = 0;
 
     stk500v2_getparm(pgm, PARAM_VTARGET, &vtarget);
@@ -3649,7 +3649,7 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
   unsigned char sck_duration = 0;
   unsigned int sck_stk600 = 0;
 
-  switch(PDATA(pgm)->pgmtype) {
+  switch(my.pgmtype) {
   case PGMTYPE_STK500:
     return stk500v2_getparm(pgm, PARAM_SCK_DURATION, &sck_duration) < 0? 0: stk500v2_sck_to_us(pgm, sck_duration);
 
@@ -3675,7 +3675,7 @@ static double stk500v2_sck_duration_value(const PROGRAMMER *pgm) {
     return stk500v2_getparm2(pgm, PARAM2_SCK_DURATION, &sck_stk600) < 0? 0: (sck_stk600 + 1)/8.0;
 
   default:
-    return sck_duration*8.0e6/PDATA(pgm)->xtal + 0.05;
+    return sck_duration*8.0e6/my.xtal + 0.05;
   }
   return 0;
 }
@@ -3710,7 +3710,7 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
   int prescale;
   double fosc = 0.0;
 
-  switch(PDATA(pgm)->pgmtype) {
+  switch(my.pgmtype) {
   case PGMTYPE_STK500:
     if(stk500v2_getparm(pgm, PARAM_OSC_PSCALE, &osc_pscale) < 0)
       return 0.0;
@@ -3720,7 +3720,7 @@ static double stk500v2_fosc_value(const PROGRAMMER *pgm) {
       return 0.0;
 
     prescale = 1;
-    fosc = PDATA(pgm)->xtal/2;
+    fosc = my.xtal/2;
 
     switch(osc_pscale) {
     case 2:
@@ -3773,7 +3773,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     fmsg_out(fp, "%sVtarget               : %.1f V\n", p, stk500v2_vtarget_value(pgm));
   }
 
-  switch(PDATA(pgm)->pgmtype) {
+  switch(my.pgmtype) {
   case PGMTYPE_STK500:
     if(pgm->extra_features & HAS_VAREF_ADJ) {
       fmsg_out(fp, "%sVaref                 : %.1f V\n", p, stk500v2_varef_value(pgm));
@@ -3792,7 +3792,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
     // SCK duration is always available
     fmsg_out(fp, "%sSCK period            : %.1f us\n", p, stk500v2_sck_duration_value(pgm));
     // XTAL frequency is always available
-    double f = PDATA(pgm)->xtal;
+    double f = my.xtal;
 
     decimals = get_decimals(f);
     f = f_to_kHz_MHz(f, &unit);
@@ -3816,7 +3816,7 @@ static void stk500v2_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp
       }
       PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-      pgmcp->cookie = PDATA(pgm)->chained_pdata;
+      pgmcp->cookie = my.chained_pdata;
       pgmcp->id = lcreat(NULL, 0);
       // Copy pgm->id contents over to pgmcp->id
       for(LNODEID ln = lfirst(pgm->id); ln; ln = lnext(ln))
@@ -3920,7 +3920,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   stk500v2_drain(pgm, 0);
 
   mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
+  pgm->cookie = my.chained_pdata;
   if((rv = jtagmkII_getsync(pgm, EMULATOR_MODE_SPI)) != 0) {
     if(rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
       pmsg_error("unable to sync with the JTAG ICE mkII in ISP mode\n");
@@ -3929,7 +3929,7 @@ static int stk500v2_jtagmkII_open(PROGRAMMER *pgm, const char *port) {
   }
   pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
+  my.pgmtype = PGMTYPE_JTAGICE_MKII;
 
   if(pgm->bitclock != 0.0) {
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
@@ -3946,7 +3946,7 @@ static void stk500v2_jtagmkII_close(PROGRAMMER *pgm) {
   pmsg_notice2("stk500v2_jtagmkII_close()\n");
 
   mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
+  pgm->cookie = my.chained_pdata;
   jtagmkII_close(pgm);
   pgm->cookie = mycookie;
 }
@@ -3958,7 +3958,7 @@ static void stk500v2_jtag3_close(PROGRAMMER *pgm) {
   pmsg_notice2("stk500v2_jtag3_close()\n");
 
   mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
+  pgm->cookie = my.chained_pdata;
   jtag3_close(pgm);
   pgm->cookie = mycookie;
 }
@@ -4016,7 +4016,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
   stk500v2_drain(pgm, 0);
 
   mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
+  pgm->cookie = my.chained_pdata;
   if(jtagmkII_getsync(pgm, EMULATOR_MODE_SPI) != 0) {
     pmsg_error("unable to sync with the AVR Dragon in ISP mode\n");
     pgm->cookie = mycookie;
@@ -4024,7 +4024,7 @@ static int stk500v2_dragon_isp_open(PROGRAMMER *pgm, const char *port) {
   }
   pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
+  my.pgmtype = PGMTYPE_JTAGICE_MKII;
 
   if(pgm->bitclock != 0.0) {
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
@@ -4088,14 +4088,14 @@ static int stk500v2_dragon_hv_open(PROGRAMMER *pgm, const char *port) {
 
   PROGRAMMER *pgmcp = pgm_dup(pgm);
 
-  pgmcp->cookie = PDATA(pgm)->chained_pdata;
+  pgmcp->cookie = my.chained_pdata;
   if(jtagmkII_getsync(pgmcp, EMULATOR_MODE_HV) != 0) {
     pmsg_error("unable to sync with the AVR Dragon in HV mode\n");
     pgm_free(pgmcp);
     return -1;
   }
   pgm_free(pgmcp);
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE_MKII;
+  my.pgmtype = PGMTYPE_JTAGICE_MKII;
 
   if(pgm->bitclock != 0.0) {
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
@@ -4118,12 +4118,12 @@ static int stk500v2_jtag3_open(PROGRAMMER *pgm, const char *port) {
 
   pmsg_notice2("%s()\n", __func__);
 
-  rv = jtag3_open_common(pgm, port, PDATA(pgm)->pk4_snap_mode);
+  rv = jtag3_open_common(pgm, port, my.pk4_snap_mode);
   if(rv < 0)
     return rv;
 
   mycookie = pgm->cookie;
-  pgm->cookie = PDATA(pgm)->chained_pdata;
+  pgm->cookie = my.chained_pdata;
   if((rv = jtag3_getsync(pgm, 42)) != 0) {
     if(rv != JTAGII_GETSYNC_FAIL_GRACEFUL)
       pmsg_error("unable to sync with the JTAGICE3 in ISP mode\n");
@@ -4132,7 +4132,7 @@ static int stk500v2_jtag3_open(PROGRAMMER *pgm, const char *port) {
   }
   pgm->cookie = mycookie;
 
-  PDATA(pgm)->pgmtype = PGMTYPE_JTAGICE3;
+  my.pgmtype = PGMTYPE_JTAGICE3;
 
   if(pgm->bitclock != 0.0) {
     if(pgm->set_sck_period(pgm, pgm->bitclock) != 0)
@@ -4271,7 +4271,7 @@ static int stk600_xprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) 
 }
 
 static unsigned char stk600_xprog_mtype(const PROGRAMMER *pgm, unsigned long addr) {
-  if(addr >= PDATA(pgm)->boot_start)
+  if(addr >= my.boot_start)
     return XPRG_MEM_TYPE_BOOT;
   else
     return XPRG_MEM_TYPE_APPL;

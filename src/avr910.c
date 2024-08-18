@@ -50,7 +50,7 @@ struct pdata {
   unsigned long caddr;
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // Print error and return when command failed
 #define EI(x) do {                 \
@@ -71,7 +71,7 @@ struct pdata {
 
 static void avr910_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->test_blockmode = 1;
+  my.test_blockmode = 1;
 }
 
 static void avr910_teardown(PROGRAMMER *pgm) {
@@ -165,30 +165,30 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // See if programmer supports autoincrement of address
 
   EI(avr910_send(pgm, "a", 1));
-  EI(avr910_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1));
-  if(PDATA(pgm)->has_auto_incr_addr == 'Y')
+  EI(avr910_recv(pgm, &my.has_auto_incr_addr, 1));
+  if(my.has_auto_incr_addr == 'Y')
     msg_notice("programmer supports auto addr increment\n");
 
   // Check support for buffered memory access, ignore if not available
 
-  if(PDATA(pgm)->test_blockmode == 1) {
+  if(my.test_blockmode == 1) {
     EI(avr910_send(pgm, "b", 1));
     EI(avr910_recv(pgm, &c, 1));
     if(c == 'Y') {
       EI(avr910_recv(pgm, &c, 1));
-      PDATA(pgm)->buffersize = (unsigned int) (unsigned char) c << 8;
+      my.buffersize = (unsigned int) (unsigned char) c << 8;
       EI(avr910_recv(pgm, &c, 1));
-      PDATA(pgm)->buffersize += (unsigned int) (unsigned char) c;
-      msg_notice("programmer supports buffered memory access with " "buffersize = %u bytes\n", PDATA(pgm)->buffersize);
-      PDATA(pgm)->use_blockmode = 1;
+      my.buffersize += (unsigned int) (unsigned char) c;
+      msg_notice("programmer supports buffered memory access with " "buffersize = %u bytes\n", my.buffersize);
+      my.use_blockmode = 1;
     } else {
-      PDATA(pgm)->use_blockmode = 0;
+      my.use_blockmode = 0;
     }
   } else {
-    PDATA(pgm)->use_blockmode = 0;
+    my.use_blockmode = 0;
   }
 
-  if(PDATA(pgm)->devcode == 0) {
+  if(my.devcode == 0) {
     char devtype_1st;
     int dev_supported = 0;
 
@@ -226,7 +226,7 @@ static int avr910_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     buf[1] = ovsigck? devtype_1st: p->avr910_devcode;
   } else {
     // Devcode overridden by -x devcode= option
-    buf[1] = (char) (PDATA(pgm)->devcode);
+    buf[1] = (char) (my.devcode);
   }
 
   // Tell the programmer which part we selected
@@ -291,13 +291,13 @@ static int avr910_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       pmsg_notice2("%s(): devcode overwritten as 0x%02x\n", __func__, devcode);
-      PDATA(pgm)->devcode = devcode;
+      my.devcode = devcode;
 
       continue;
     }
     if(str_eq(extended_param, "no_blockmode")) {
       pmsg_notice2("avr910_parseextparms(-x): no testing for Blockmode\n");
-      PDATA(pgm)->test_blockmode = 0;
+      my.test_blockmode = 0;
 
       continue;
     }
@@ -370,7 +370,7 @@ static int avr910_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     }
 
     addr >>= 1;
-    PDATA(pgm)->ctype = 0;      // Invalidate read cache
+    my.ctype = 0;               // Invalidate read cache
   } else if(mem_is_eeprom(m)) {
     cmd[0] = 'D';
   } else {
@@ -389,8 +389,8 @@ static int avr910_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const
   unsigned long addr, unsigned char *value) {
   char buf[2];
 
-  if(PDATA(pgm)->ctype == 'F' && PDATA(pgm)->caddr == addr) {
-    *value = PDATA(pgm)->cvalue;
+  if(my.ctype == 'F' && my.caddr == addr) {
+    *value = my.cvalue;
     return 0;
   }
 
@@ -400,9 +400,9 @@ static int avr910_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, const
   EI(avr910_recv(pgm, buf, sizeof(buf)));
 
   *value = buf[(addr & 1) ^ 1]; // MSB in buffer first
-  PDATA(pgm)->ctype = 'F';
-  PDATA(pgm)->cvalue = buf[addr & 1];
-  PDATA(pgm)->caddr = addr ^ 1;
+  my.ctype = 'F';
+  my.cvalue = buf[addr & 1];
+  my.caddr = addr ^ 1;
 
   return 0;
 }
@@ -439,7 +439,7 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
   int page_bytes = page_size;
   int page_wr_cmd_pending = 0;
 
-  PDATA(pgm)->ctype = 0;        // Invalidate read cache
+  my.ctype = 0;                 // Invalidate read cache
 
   page_addr = addr;
   avr910_set_addr(pgm, addr >> 1);
@@ -471,7 +471,7 @@ static int avr910_paged_write_flash(const PROGRAMMER *pgm, const AVRPART *p, con
 
       page_addr = addr;
       page_bytes = page_size;
-    } else if((PDATA(pgm)->has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
+    } else if((my.has_auto_incr_addr != 'Y') && ((addr & 0x01) == 0)) {
       avr910_set_addr(pgm, addr >> 1);
     }
   }
@@ -506,7 +506,7 @@ static int avr910_paged_write_eeprom(const PROGRAMMER *pgm, const AVRPART *p,
 
     addr++;
 
-    if(PDATA(pgm)->has_auto_incr_addr != 'Y')
+    if(my.has_auto_incr_addr != 'Y')
       avr910_set_addr(pgm, addr);
   }
 
@@ -517,7 +517,7 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   int isee = mem_is_eeprom(m);
 
-  if(PDATA(pgm)->use_blockmode == 0) {
+  if(my.use_blockmode == 0) {
     if(mem_is_flash(m))
       return avr910_paged_write_flash(pgm, p, m, page_size, addr, n_bytes);
     if(isee)
@@ -525,10 +525,10 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     return -2;
   }
 
-  if(PDATA(pgm)->use_blockmode == 1) {
+  if(my.use_blockmode == 1) {
     unsigned int max_addr = addr + n_bytes;
     char *cmd;
-    unsigned int blocksize = PDATA(pgm)->buffersize;
+    unsigned int blocksize = my.buffersize;
 
     if(!mem_is_flash(m) && !isee)
       return -2;
@@ -536,7 +536,7 @@ static int avr910_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     if(isee)
       blocksize = 1;            // Write single bytes only to EEPROM
     else
-      PDATA(pgm)->ctype = 0;    // Invalidate read cache
+      my.ctype = 0;             // Invalidate read cache
 
     avr910_set_addr(pgm, isee? addr: addr >> 1);
 
@@ -584,9 +584,9 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   avr910_set_addr(pgm, isee? addr: addr >> 1);
 
-  if(PDATA(pgm)->use_blockmode) {
+  if(my.use_blockmode) {
     // Use buffered mode
-    int blocksize = PDATA(pgm)->buffersize;
+    int blocksize = my.buffersize;
 
     cmd[0] = 'g';
     cmd[3] = isee? 'E': 'F';
@@ -616,7 +616,7 @@ static int avr910_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
       addr += isee? 1: 2;
 
-      if(PDATA(pgm)->has_auto_incr_addr != 'Y')
+      if(my.has_auto_incr_addr != 'Y')
         avr910_set_addr(pgm, isee? addr: addr >> 1);
     }
   }

@@ -70,7 +70,7 @@ struct pdata {
   int retries;
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // ----------------------------------------------------------------------
 
@@ -89,7 +89,7 @@ static int usb_control(const PROGRAMMER *pgm, unsigned int requestid,
 
   int nbytes;
 
-  nbytes = usb_control_msg(PDATA(pgm)->usb_handle,
+  nbytes = usb_control_msg(my.usb_handle,
     USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE, requestid,
     val, index,                 // 2 bytes each of data
     NULL, 0,                    // No data buffer in control message
@@ -120,12 +120,12 @@ static int usb_in(const PROGRAMMER *pgm,
   timeout = USB_TIMEOUT + (buflen*bitclk)/1000;
 
   for(i = 0; i < 10; i++) {
-    nbytes = usb_control_msg(PDATA(pgm)->usb_handle,
+    nbytes = usb_control_msg(my.usb_handle,
       USB_ENDPOINT_IN | USB_TYPE_VENDOR | USB_RECIP_DEVICE, requestid, val, index, (char *) buffer, buflen, timeout);
     if(nbytes == buflen) {
       return nbytes;
     }
-    PDATA(pgm)->retries++;
+    my.retries++;
   }
   msg_error("\n");
   pmsg_error("%s (expected %d, got %d)\n", usb_strerror(), buflen, nbytes);
@@ -134,9 +134,9 @@ static int usb_in(const PROGRAMMER *pgm,
 
 // Report the number of retries, and reset the counter.
 static void check_retries(const PROGRAMMER *pgm, const char *operation) {
-  if(PDATA(pgm)->retries > 0)
-    pmsg_info("%d retries during %s\n", PDATA(pgm)->retries, operation);
-  PDATA(pgm)->retries = 0;
+  if(my.retries > 0)
+    pmsg_info("%d retries during %s\n", my.retries, operation);
+  my.retries = 0;
 }
 
 // Wrapper for simple usb_control_msg messages to send data to programmer
@@ -151,7 +151,7 @@ static int usb_out(const PROGRAMMER *pgm,
    */
   timeout = USB_TIMEOUT + (buflen*bitclk)/1000;
 
-  nbytes = usb_control_msg(PDATA(pgm)->usb_handle,
+  nbytes = usb_control_msg(my.usb_handle,
     USB_ENDPOINT_OUT | USB_TYPE_VENDOR | USB_RECIP_DEVICE, requestid, val, index, (char *) buffer, buflen, timeout);
   if(nbytes != buflen) {
     msg_error("\n");
@@ -202,7 +202,7 @@ static unsigned short tpi_frame(unsigned char b) {
 static int usbtiny_tpi_tx(const PROGRAMMER *pgm, unsigned char b0) {
   unsigned char res[4];
 
-  if(usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff, res, sizeof(res), 8*sizeof(res)*PDATA(pgm)->sck_period) < 0)
+  if(usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff, res, sizeof(res), 8*sizeof(res)*my.sck_period) < 0)
     return -1;
   msg_debug("CMD_TPI_TX: [0x%02x]\n", b0);
   return 1;
@@ -213,7 +213,7 @@ static int usbtiny_tpi_txtx(const PROGRAMMER *pgm, unsigned char b0, unsigned ch
   unsigned char res[4];
 
   if(usb_in(pgm, USBTINY_SPI, tpi_frame(b0), tpi_frame(b1), res, sizeof(res),
-    8*sizeof(res)*PDATA(pgm)->sck_period) < 0) {
+    8*sizeof(res)*my.sck_period) < 0) {
 
     return -1;
   }
@@ -231,7 +231,7 @@ static int usbtiny_tpi_txrx(const PROGRAMMER *pgm, unsigned char b0) {
   unsigned char res[4], r;
   short w;
 
-  if(usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff, res, sizeof(res), 8*sizeof(res)*PDATA(pgm)->sck_period) < 0)
+  if(usb_in(pgm, USBTINY_SPI, tpi_frame(b0), 0xffff, res, sizeof(res), 8*sizeof(res)*my.sck_period) < 0)
     return -1;
 
   w = (res[2] << 8) | res[3];
@@ -305,7 +305,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
   usb_find_busses();            // Have libusb scan all the usb buses available
   usb_find_devices();           // Have libusb scan all the usb devices available
 
-  PDATA(pgm)->usb_handle = NULL;
+  my.usb_handle = NULL;
 
   if(pgm->usbvid)
     vid = pgm->usbvid;
@@ -330,10 +330,10 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
         // If -P was given, match device by device name and bus name
         if(name != NULL && (NULL == dev_name || !str_eq(bus->dirname, bus_name) || !str_eq(dev->filename, dev_name)))
           continue;
-        PDATA(pgm)->usb_handle = usb_open(dev); // Attempt to connect to device
+        my.usb_handle = usb_open(dev); // Attempt to connect to device
 
         // Wrong permissions or something?
-        if(!PDATA(pgm)->usb_handle) {
+        if(!my.usb_handle) {
           pmsg_warning("cannot open USB device: %s\n", usb_strerror());
           continue;
         }
@@ -345,7 +345,7 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
     pmsg_error("invalid -P %s; use -P usb:bus:device\n", name);
     return -1;
   }
-  if(!PDATA(pgm)->usb_handle) {
+  if(!my.usb_handle) {
     pmsg_error("cannot find USBtiny device (0x%x/0x%x)\n", vid, pid);
     return -1;
   }
@@ -355,19 +355,19 @@ static int usbtiny_open(PROGRAMMER *pgm, const char *name) {
 
 // Clean up the handle for the usbtiny
 static void usbtiny_close(PROGRAMMER *pgm) {
-  if(!PDATA(pgm)->usb_handle)   // Not a valid handle, bail!
+  if(!my.usb_handle)            // Not a valid handle, bail!
     return;
-  usb_close(PDATA(pgm)->usb_handle);    // Ask libusb to clean up
-  PDATA(pgm)->usb_handle = NULL;
+  usb_close(my.usb_handle);     // Ask libusb to clean up
+  my.usb_handle = NULL;
 }
 
 /* A simple calculator function determines the maximum size of data we can
    shove through a USB connection without getting errors */
 static void usbtiny_set_chunk_size(const PROGRAMMER *pgm, int period) {
-  PDATA(pgm)->chunk_size = CHUNK_SIZE; // Start with the maximum (default)
-  while(PDATA(pgm)->chunk_size > 8 && period > 16) {
+  my.chunk_size = CHUNK_SIZE;   // Start with the maximum (default)
+  while(my.chunk_size > 8 && period > 16) {
     // Reduce the chunk size for a slow SCK to reduce the maximum time of a single USB transfer
-    PDATA(pgm)->chunk_size >>= 1;
+    my.chunk_size >>= 1;
     period >>= 1;
   }
 }
@@ -375,24 +375,24 @@ static void usbtiny_set_chunk_size(const PROGRAMMER *pgm, int period) {
 /* Given a SCK bit-clock speed (in useconds) we verify its an OK speed and tell the
    USBtiny to update itself to the new frequency */
 static int usbtiny_set_sck_period(const PROGRAMMER *pgm, double v) {
-  PDATA(pgm)->sck_period = (int) (v*1e6 + 0.5);       // Convert from us to int, the 0.5 is for rounding up
+  my.sck_period = (int) (v*1e6 + 0.5); // Convert from us to int, the 0.5 is for rounding up
 
   // Make sure its not 0, as that will confuse the usbtiny
-  if(PDATA(pgm)->sck_period < SCK_MIN)
-    PDATA(pgm)->sck_period = SCK_MIN;
+  if(my.sck_period < SCK_MIN)
+    my.sck_period = SCK_MIN;
 
   // We can't go slower, due to the byte-size of the clock variable
-  if(PDATA(pgm)->sck_period > SCK_MAX)
-    PDATA(pgm)->sck_period = SCK_MAX;
+  if(my.sck_period > SCK_MAX)
+    my.sck_period = SCK_MAX;
 
-  pmsg_notice("setting SCK period to %d usec\n", PDATA(pgm)->sck_period);
+  pmsg_notice("setting SCK period to %d usec\n", my.sck_period);
 
   // Send the command to the usbtiny device; MEME: for at90's fix resetstate?
-  if(usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW, 0) < 0)
+  if(usb_control(pgm, USBTINY_POWERUP, my.sck_period, RESET_LOW, 0) < 0)
     return -1;
 
   // With the new speed, we'll have to update how much data we send per usb transfer
-  usbtiny_set_chunk_size(pgm, PDATA(pgm)->sck_period);
+  usbtiny_set_chunk_size(pgm, my.sck_period);
   return 0;
 }
 
@@ -406,11 +406,11 @@ static int usbtiny_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     usbtiny_set_sck_period(pgm, pgm->bitclock);
   } else {
     // -B option not specified: use default
-    PDATA(pgm)->sck_period = SCK_DEFAULT;
-    pmsg_notice("using SCK period of %d usec\n", PDATA(pgm)->sck_period);
-    if(usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW, 0) < 0)
+    my.sck_period = SCK_DEFAULT;
+    pmsg_notice("using SCK period of %d usec\n", my.sck_period);
+    if(usb_control(pgm, USBTINY_POWERUP, my.sck_period, RESET_LOW, 0) < 0)
       return -1;
-    usbtiny_set_chunk_size(pgm, PDATA(pgm)->sck_period);
+    usbtiny_set_chunk_size(pgm, my.sck_period);
   }
 
   // Let the device wake up.
@@ -426,7 +426,7 @@ static int usbtiny_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 
     memset(res, 0xaa, sizeof(res));
     if(usb_in(pgm, USBTINY_SPI, LITTLE_TO_BIG_16(0x1234), LITTLE_TO_BIG_16(0x5678),
-      res, 4, 32*PDATA(pgm)->sck_period) < 0) {
+      res, 4, 32*my.sck_period) < 0) {
 
       pmsg_error("usb_in() failed\n");
       return -1;
@@ -439,7 +439,7 @@ static int usbtiny_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     }
 
     // Keep TPIDATA high for >= 16 clock cycles:
-    if(usb_in(pgm, USBTINY_SPI, 0xffff, 0xffff, res, 4, 32*PDATA(pgm)->sck_period) < 0) {
+    if(usb_in(pgm, USBTINY_SPI, 0xffff, 0xffff, res, 4, 32*my.sck_period) < 0) {
       pmsg_error("unable to switch chip into TPI mode\n");
       return -1;
     }
@@ -449,8 +449,8 @@ static int usbtiny_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     if(pgm->program_enable(pgm, p) >= 0)
       break;
     // No response, RESET and try again
-    if(usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_HIGH, 0) < 0 ||
-      usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, RESET_LOW, 0) < 0)
+    if(usb_control(pgm, USBTINY_POWERUP, my.sck_period, RESET_HIGH, 0) < 0 ||
+      usb_control(pgm, USBTINY_POWERUP, my.sck_period, RESET_LOW, 0) < 0)
       return -1;
     usleep(50000);
   }
@@ -462,7 +462,7 @@ static int usbtiny_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 static int usbtiny_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   // USBtiny is not a bit bang device, but it can set RESET
   if(pinfunc == PIN_AVR_RESET) {
-    if(usb_control(pgm, USBTINY_POWERUP, PDATA(pgm)->sck_period, value? RESET_HIGH: RESET_LOW, 0) < 0)
+    if(usb_control(pgm, USBTINY_POWERUP, my.sck_period, value? RESET_HIGH: RESET_LOW, 0) < 0)
       return -1;
     usleep(50000);
     return 0;
@@ -472,7 +472,7 @@ static int usbtiny_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
 
 // Tell the USBtiny to release the output pins, etc
 static void usbtiny_powerdown(const PROGRAMMER *pgm) {
-  if(!PDATA(pgm)->usb_handle)
+  if(!my.usb_handle)
     return;                     // Wasn't connected in the first place
   usb_control(pgm, USBTINY_POWERDOWN, 0, 0, 1);
 }
@@ -487,7 +487,7 @@ static int usbtiny_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 
   nbytes = usb_in(pgm, USBTINY_SPI, (cmd[1] << 8) | cmd[0], // Convert to 16-bit words
     (cmd[3] << 8) | cmd[2],     //  "
-    res, 4, 8*PDATA(pgm)->sck_period);
+    res, 4, 8*my.sck_period);
   if(nbytes < 0)
     return -1;
   check_retries(pgm, "SPI command");
@@ -635,7 +635,7 @@ static int usbtiny_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   }
 
   for(; addr < maxaddr; addr += chunk) {
-    chunk = PDATA(pgm)->chunk_size; // Start with the maximum chunk size possible
+    chunk = my.chunk_size;      // Start with the maximum chunk size possible
     if(addr + chunk > maxaddr)
       chunk = maxaddr - addr;
 
@@ -645,7 +645,7 @@ static int usbtiny_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
         addr,                   // Address in memory
         m->buf + addr,          // Pointer to where we store data
         chunk,                  // Number of bytes
-        32*PDATA(pgm)->sck_period) < 0) { // Each byte gets turned into a 4-byte SPI cmd
+        32*my.sck_period) < 0) { // Each byte gets turned into a 4-byte SPI cmd
       // usb_in() multiplies this per byte
       return -1;
     }
@@ -688,7 +688,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
   for(; addr < maxaddr; addr += chunk) {
     // Start with the max chunk size
-    chunk = PDATA(pgm)->chunk_size;
+    chunk = my.chunk_size;
     if(addr + chunk > maxaddr) {
       chunk = maxaddr - addr;
     }
@@ -703,7 +703,7 @@ static int usbtiny_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
         m->buf + addr,          // Pointer to data
         chunk,                  // Number of bytes to write
         // Each byte gets turned into a 4-byte SPI cmd; usb_out() multiplies this per byte; then add the cmd-delay
-        32*PDATA(pgm)->sck_period + delay) < 0) {
+        32*my.sck_period + delay) < 0) {
       return -1;
     }
 

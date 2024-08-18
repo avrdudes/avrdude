@@ -100,14 +100,14 @@ int stk500_getsync(const PROGRAMMER *pgm) {
   stk500_send(pgm, buf, 2);
   stk500_drain(pgm, 0);
 
-  if(PDATA(pgm)->retry_attempts)
-    max_sync_attempts = PDATA(pgm)->retry_attempts;
+  if(my.retry_attempts)
+    max_sync_attempts = my.retry_attempts;
   else
     max_sync_attempts = MAX_SYNC_ATTEMPTS;
 
   for(attempt = 0; attempt < max_sync_attempts; attempt++) {
     // Restart Arduino bootloader for every sync attempt
-    if(str_eq(pgm->type, "Arduino") && PDATA(pgm)->autoreset && attempt > 0) {
+    if(str_eq(pgm->type, "Arduino") && my.autoreset && attempt > 0) {
       // This code assumes a negative-logic USB to TTL serial adapter
       // Pull the RTS/DTR line low to reset AVR: it is still high from open()/last attempt
       serial_set_dtr_rts(&pgm->fd, 1);
@@ -517,7 +517,7 @@ retry:
     }
   }
   // Read or write target voltage
-  if(PDATA(pgm)->vtarg_get || PDATA(pgm)->vtarg_set) {
+  if(my.vtarg_get || my.vtarg_set) {
     // Read current target voltage set value
     unsigned int vtarg_read = 0;
 
@@ -525,17 +525,17 @@ retry:
       pmsg_error("cannot obtain V[target]\n");
       return rc;
     }
-    if(PDATA(pgm)->vtarg_get)
+    if(my.vtarg_get)
       msg_info("Target voltage value read as %.2f V\n", (vtarg_read/10.0));
     // Write target voltage value
     else {
-      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), PDATA(pgm)->vtarg_data);
-      if(pgm->set_vtarget(pgm, PDATA(pgm)->vtarg_data) < 0)
+      msg_info("Changing target voltage from %.2f V to %.2f V\n", (vtarg_read/10.0), my.vtarg_data);
+      if(pgm->set_vtarget(pgm, my.vtarg_data) < 0)
         return -1;
     }
   }
   // Read or write analog reference voltage
-  if(PDATA(pgm)->varef_get || PDATA(pgm)->varef_set) {
+  if(my.varef_get || my.varef_set) {
     // Read current analog reference voltage
     unsigned int varef_read = 0;
 
@@ -543,17 +543,17 @@ retry:
       pmsg_error("cannot obtain V[aref]\n");
       return rc;
     }
-    if(PDATA(pgm)->varef_get)
+    if(my.varef_get)
       msg_info("Analog reference voltage value read as %.2f V\n", (varef_read/10.0));
     // Write analog reference voltage
     else {
-      msg_info("Changing analog reference voltage from %.2f V to %.2f V\n", (varef_read/10.0), PDATA(pgm)->varef_data);
-      if(pgm->set_varef(pgm, 0, PDATA(pgm)->varef_data) < 0)
+      msg_info("Changing analog reference voltage from %.2f V to %.2f V\n", (varef_read/10.0), my.varef_data);
+      if(pgm->set_varef(pgm, 0, my.varef_data) < 0)
         return -1;
     }
   }
   // Read or write clock generator frequency
-  if(PDATA(pgm)->fosc_get || PDATA(pgm)->fosc_set) {
+  if(my.fosc_get || my.fosc_set) {
     // Read current target voltage set value
     unsigned int osc_pscale = 0;
     unsigned int osc_cmatch = 0;
@@ -568,7 +568,7 @@ retry:
     if(osc_pscale) {
       int prescale = 1;
 
-      f_get = PDATA(pgm)->xtal/2;
+      f_get = my.xtal/2;
       switch(osc_pscale) {
       case 2:
         prescale = 8;
@@ -593,15 +593,15 @@ retry:
       f_get /= (osc_cmatch + 1);
       f_get = f_to_kHz_MHz(f_get, &unit_get);
     }
-    if(PDATA(pgm)->fosc_get)
+    if(my.fosc_get)
       msg_info("Oscillator currently set to %.3f %s\n", f_get, unit_get);
     // Write target voltage value
     else {
       const char *unit_set;
-      double f_set = f_to_kHz_MHz(PDATA(pgm)->fosc_data, &unit_set);
+      double f_set = f_to_kHz_MHz(my.fosc_data, &unit_set);
 
       msg_info("Changing oscillator frequency from %.3f %s to %.3f %s\n", f_get, unit_get, f_set, unit_set);
-      if(pgm->set_fosc(pgm, PDATA(pgm)->fosc_data) < 0)
+      if(pgm->set_fosc(pgm, my.fosc_data) < 0)
         return -1;
     }
   }
@@ -618,7 +618,7 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
     const char *extended_param = ldata(ln);
 
     if(sscanf(extended_param, "attempts=%i", &attempts) == 1) {
-      PDATA(pgm)->retry_attempts = attempts;
+      my.retry_attempts = attempts;
       pmsg_info("setting number of retry attempts to %d\n", attempts);
       continue;
     }
@@ -629,17 +629,17 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         double vtarg_set_val = -1;      // Default = invlid value
         int sscanf_success = sscanf(extended_param, "vtarg=%lf", &vtarg_set_val);
 
-        PDATA(pgm)->vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
+        my.vtarg_data = (double) ((int) (vtarg_set_val*100 + .5))/100;
         if(sscanf_success < 1 || vtarg_set_val < 0) {
           pmsg_error("invalid target voltage in -x %s\n", extended_param);
           rv = -1;
           break;
         }
-        PDATA(pgm)->vtarg_set = true;
+        my.vtarg_set = true;
         continue;
       } else if((pgm->extra_features & HAS_VTARG_READ) && str_eq(extended_param, "vtarg")) {
         // Get target voltage
-        PDATA(pgm)->vtarg_get = true;
+        my.vtarg_get = true;
         continue;
       }
     }
@@ -652,24 +652,24 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         // Get new analog reference voltage for channel 0
         if(str_starts(extended_param, "varef=")) {
           sscanf_success = sscanf(extended_param, "varef=%lf", &varef_set_val);
-          PDATA(pgm)->varef_set = true;
+          my.varef_set = true;
         }
         // Get new analog reference voltage for channel 0
         else if(str_starts(extended_param, "varef0=")) {
           sscanf_success = sscanf(extended_param, "varef0=%lf", &varef_set_val);
-          PDATA(pgm)->varef_set = true;
+          my.varef_set = true;
         }
         // Get current analog reference voltage for channel 0
         else if(str_eq(extended_param, "varef") || str_eq(extended_param, "varef0")) {
-          PDATA(pgm)->varef_get = true;
+          my.varef_get = true;
           continue;
         }
         // Set analog reference voltage
-        if(PDATA(pgm)->varef_set) {
-          PDATA(pgm)->varef_data = (double) ((int) (varef_set_val*100 + .5))/100;
+        if(my.varef_set) {
+          my.varef_data = (double) ((int) (varef_set_val*100 + .5))/100;
           if(sscanf_success < 1 || varef_set_val < 0) {
             pmsg_error("invalid value in -x %s\n", extended_param);
-            PDATA(pgm)->varef_set = false;
+            my.varef_set = false;
             rv = -1;
             break;
           }
@@ -702,22 +702,22 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
               rv = -1;
               break;
             }
-            PDATA(pgm)->fosc_data = 0.0;
+            my.fosc_data = 0.0;
           }
           while(*endp == ' ')   // Remove leading spaces before unit
             ++endp;
           if(*endp == 'm' || *endp == 'M')
-            PDATA(pgm)->fosc_data = v*1e6;
+            my.fosc_data = v*1e6;
           else if(*endp == 'k' || *endp == 'K')
-            PDATA(pgm)->fosc_data = v*1e3;
+            my.fosc_data = v*1e3;
           else if(*endp == 0 || *endp == 'h' || *endp == 'H')
-            PDATA(pgm)->fosc_data = v;
-          PDATA(pgm)->fosc_set = true;
+            my.fosc_data = v;
+          my.fosc_set = true;
           continue;
         }
         // Get clock generator frequency
         else if(str_eq(extended_param, "fosc")) {
-          PDATA(pgm)->fosc_get = true;
+          my.fosc_get = true;
           continue;
         }
       }
@@ -745,11 +745,11 @@ static int stk500_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         while(*endp == ' ')     // Remove leading spaces before unit
           ++endp;
         if(*endp == 'm' || *endp == 'M') // Fits also e.g. "nnnnMHz"
-          PDATA(pgm)->xtal = v*1e6;
+          my.xtal = v*1e6;
         else if(*endp == 'k' || *endp == 'K')
-          PDATA(pgm)->xtal = v*1e3;
+          my.xtal = v*1e3;
         else if(*endp == 0 || *endp == 'h' || *endp == 'H')     // "nnnn" or "nnnnHz"
-          PDATA(pgm)->xtal = v;
+          my.xtal = v;
         continue;
       }
     }
@@ -890,16 +890,16 @@ retry:
 
   // Support large flash by sending the correct extended address byte when needed
 
-  if(pgm->prog_modes & PM_SPM) {        // Bootloaders, eg, optiboot, optiboot_dx, optiboot_x
+  if(pgm->prog_modes & PM_SPM) { // Bootloaders, eg, optiboot, optiboot_dx, optiboot_x
     if(mem->size/a_div > 64*1024) { // Extended addressing needed
       ext_byte = (addr >> 16) & 0xff;
-      if(ext_byte != PDATA(pgm)->ext_addr_byte) {       // First addr load or a different 64k section
+      if(ext_byte != my.ext_addr_byte) { // First addr load or a different 64k section
         buf[0] = 0x4d;          // Protocol bytes that bootloaders expect
         buf[1] = 0x00;
         buf[2] = ext_byte;
         buf[3] = 0x00;
         if(stk500_cmd(pgm, buf, buf) == 0)
-          PDATA(pgm)->ext_addr_byte = ext_byte;
+          my.ext_addr_byte = ext_byte;
       }
       /*
        * Ensure next paged r/w will load ext addr again if page sits just below
@@ -915,19 +915,19 @@ retry:
        * exposes the discrepancy.
        */
       if((addr & 0xffff0000) != ((addr + mem->page_size/a_div) & 0xffff0000))
-        PDATA(pgm)->ext_addr_byte = 0xff;
+        my.ext_addr_byte = 0xff;
     }
   } else {                      // Programmer *not* for bootloaders? Original stk500v1 protocol!
     OPCODE *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
 
     if(lext) {
       ext_byte = (addr >> 16) & 0xff;
-      if(ext_byte != PDATA(pgm)->ext_addr_byte) {       // First addr load or a different 64k section
+      if(ext_byte != my.ext_addr_byte) { // First addr load or a different 64k section
         memset(buf, 0, 4);      // Part's load_ext_addr command is typically 4d 00 ext_addr 00
         avr_set_bits(lext, buf);
         avr_set_addr(lext, buf, addr);
         if(stk500_cmd(pgm, buf, buf) == 0)
-          PDATA(pgm)->ext_addr_byte = ext_byte;
+          my.ext_addr_byte = ext_byte;
       }
     }
   }
@@ -1215,7 +1215,7 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
 
   prescale = cmatch = 0;
   if(v > 0.0) {
-    if(v > PDATA(pgm)->xtal/2.0) {
+    if(v > my.xtal/2.0) {
       const char *unit;
 
       if(v >= 1e6) {
@@ -1226,21 +1226,21 @@ static int stk500_set_fosc(const PROGRAMMER *pgm, double v) {
         unit = "kHz";
       } else
         unit = "Hz";
-      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, PDATA(pgm)->xtal/2e6);
-      fosc = PDATA(pgm)->xtal/2.0;
+      pmsg_warning("f = %.3f %s too high, using %.3f MHz\n", v, unit, my.xtal/2e6);
+      fosc = my.xtal/2.0;
     } else
       fosc = (unsigned) v;
 
     for(idx = 0; idx < sizeof(ps)/sizeof(ps[0]); idx++) {
-      if(fosc >= PDATA(pgm)->xtal/(256*ps[idx] * 2)) {
+      if(fosc >= my.xtal/(256*ps[idx] * 2)) {
         // This prescaler value can handle our frequency
         prescale = idx + 1;
-        cmatch = (unsigned) (PDATA(pgm)->xtal/(2*fosc*ps[idx])) - 1;
+        cmatch = (unsigned) (my.xtal/(2*fosc*ps[idx])) - 1;
         break;
       }
     }
     if(idx == sizeof(ps)/sizeof(ps[0])) {
-      pmsg_warning("f = %u Hz too low, using %u Hz\n", fosc, PDATA(pgm)->xtal/(256*1024*2));
+      pmsg_warning("f = %u Hz too low, using %u Hz\n", fosc, my.xtal/(256*1024*2));
       prescale = idx;
       cmatch = 255;
     }
@@ -1277,7 +1277,7 @@ static int stk500_get_fosc(const PROGRAMMER *pgm, double *v) {
     return rc;
   }
 
-  *v = !prescale? 0: PDATA(pgm)->xtal/((cmatch + 1)*2*ps[prescale - 1]);
+  *v = !prescale? 0: my.xtal/((cmatch + 1)*2*ps[prescale - 1]);
 
   return 0;
 }
@@ -1295,7 +1295,7 @@ static int stk500_set_sck_period(const PROGRAMMER *pgm, double v) {
   double min, max;
   int rv = 0;
 
-  min = 8.0/PDATA(pgm)->xtal;
+  min = 8.0/my.xtal;
   max = 255*min;
   dur = v/min + 0.5;
 
@@ -1322,7 +1322,7 @@ static int stk500_get_sck_period(const PROGRAMMER *pgm, double *v) {
     pmsg_error("cannot obtain Parm_STK_SCK_DURATION\n");
     return rv;
   }
-  *v = dur*8.0/PDATA(pgm)->xtal;
+  *v = dur*8.0/my.xtal;
   return 0;
 }
 
@@ -1477,7 +1477,7 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
       fmsg_out(fp, "Off\n");
     else {
       int prescale = 1;
-      double f = PDATA(pgm)->xtal/2.0;
+      double f = my.xtal/2.0;
 
       switch(osc_pscale) {
       case 2:
@@ -1508,9 +1508,9 @@ static void stk500_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) 
   }
 
   stk500_getparm(pgm, Parm_STK_SCK_DURATION, &sck_duration);
-  fmsg_out(fp, "%sSCK period            : %.1f us\n", p, sck_duration*8.0e6/PDATA(pgm)->xtal + 0.0499);
+  fmsg_out(fp, "%sSCK period            : %.1f us\n", p, sck_duration*8.0e6/my.xtal + 0.0499);
 
-  double f = PDATA(pgm)->xtal;
+  double f = my.xtal;
 
   decimals = get_decimals(f);
   f = f_to_kHz_MHz(f, &unit);
@@ -1525,16 +1525,16 @@ static void stk500_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 
 static void stk500_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->ext_addr_byte = 0xff;
-  PDATA(pgm)->xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
+  my.ext_addr_byte = 0xff;
+  my.xbeeResetPin = XBEE_DEFAULT_RESET_PIN;
   // nanoSTK (Arduino Nano HW) uses 16 MHz
   if(str_starts(pgmid, "nanoSTK"))
-    PDATA(pgm)->xtal = 16000000U;
+    my.xtal = 16000000U;
   else
-    PDATA(pgm)->xtal = STK500_XTAL;
+    my.xtal = STK500_XTAL;
   // The -c arduino programmer has auto-reset enabled be default
   if(str_eq(pgm->type, "Arduino"))
-    PDATA(pgm)->autoreset = true;
+    my.autoreset = true;
 }
 
 static void stk500_teardown(PROGRAMMER *pgm) {

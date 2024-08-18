@@ -77,7 +77,7 @@
 #define MICRONUCLEUS_DEFAULT_TIMEOUT 500
 #define MICRONUCLEUS_MAX_MAJOR_VERSION 2
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // -----------------------------------------------------------------------------
 
@@ -497,7 +497,7 @@ static void micronucleus_teardown(PROGRAMMER *pgm) {
 static int micronucleus_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("micronucleus_initialize()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   int result = micronucleus_get_bootloader_info(pdata);
 
@@ -520,7 +520,7 @@ static void micronucleus_powerup(const PROGRAMMER *pgm) {
 static void micronucleus_powerdown(const PROGRAMMER *pgm) {
   pmsg_debug("micronucleus_powerdown()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   if(pdata->write_last_page) {
     pdata->write_last_page = false;
@@ -560,7 +560,7 @@ static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, 
     return -1;
   }
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   mem->buf[0] = 0x1E;
   mem->buf[1] = pdata->signature1;
@@ -571,7 +571,7 @@ static int micronucleus_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, 
 static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   pmsg_debug("micronucleus_chip_erase()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   return micronucleus_erase_device(pdata);
 }
@@ -579,7 +579,7 @@ static int micronucleus_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
   pmsg_debug("micronucleus_open(\"%s\")\n", port);
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
   const char *bus_name = NULL;
   char *dev_name = NULL;
 
@@ -705,7 +705,7 @@ static int micronucleus_open(PROGRAMMER *pgm, const char *port) {
 static void micronucleus_close(PROGRAMMER *pgm) {
   pmsg_debug("micronucleus_close()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   if(pdata->usb_handle != NULL) {
     usb_close(pdata->usb_handle);
@@ -743,7 +743,7 @@ static int micronucleus_paged_write(const PROGRAMMER *pgm, const AVRPART *p, con
   pmsg_debug("micronucleus_paged_write(page_size=0x%X, addr=0x%X, n_bytes=0x%X)\n", page_size, addr, n_bytes);
 
   if(mem_is_flash(mem)) {
-    struct pdata *pdata = PDATA(pgm);
+    struct pdata *pdata = &my;
 
     if(n_bytes > page_size) {
       pmsg_error("buffer size %u exceeds page size %u\n", n_bytes, page_size);
@@ -789,7 +789,7 @@ static int micronucleus_parseextparams(const PROGRAMMER *pgm, const LISTID xpara
 
   pmsg_debug("micronucleus_parseextparams()\n");
 
-  struct pdata *pdata = PDATA(pgm);
+  struct pdata *pdata = &my;
 
   for(LNODEID node = lfirst(xparams); node; node = lnext(node)) {
     const char *extended_param = ldata(node);

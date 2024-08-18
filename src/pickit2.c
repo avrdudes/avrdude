@@ -122,7 +122,7 @@ struct pdata {
   int transaction_timeout;      // USB trans timeout in ms
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 #define CMD_NOP             0x5A
 #define CMD_GET_VERSION     0x76
@@ -159,8 +159,8 @@ struct pdata {
 
 static void pickit2_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->transaction_timeout = 1500;       // Can be changed with -x timeout=ms
-  PDATA(pgm)->clock_period = 10;        // Can be changed with -x clockrate=us or -B or -i
+  my.transaction_timeout = 1500;  // Can be changed with -x timeout=ms
+  my.clock_period = 10;         // Can be changed with -x clockrate=us or -B or -i
 }
 
 static void pickit2_teardown(PROGRAMMER *pgm) {
@@ -171,9 +171,9 @@ static void pickit2_teardown(PROGRAMMER *pgm) {
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
 
 #ifdef WIN32
-  PDATA(pgm)->usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
+  my.usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
 
-  if(PDATA(pgm)->usb_handle == INVALID_HANDLE_VALUE) {
+  if(my.usb_handle == INVALID_HANDLE_VALUE) {
     // No PICkit2 found
     pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
     return -1;
@@ -182,7 +182,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     short wbuf[80 - 1];
     char *cbuf = mmt_malloc(sizeof wbuf/sizeof *wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
 
-    HidD_GetProductString(PDATA(pgm)->usb_handle, wbuf, sizeof wbuf/sizeof *wbuf);
+    HidD_GetProductString(my.usb_handle, wbuf, sizeof wbuf/sizeof *wbuf);
 
     if(pgm->desc && *pgm->desc)
       strcpy(cbuf, pgm->desc);
@@ -194,7 +194,7 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
     mmt_free(cbuf);
   }
 #else
-  if(usb_open_device(pgm, &(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
+  if(usb_open_device(pgm, &(my.usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
     // No PICkit2 found
     pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
     return -1;
@@ -202,9 +202,9 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
 #endif
 
   if(pgm->ispdelay > 0) {
-    PDATA(pgm)->clock_period = MIN(pgm->ispdelay, 255);
+    my.clock_period = MIN(pgm->ispdelay, 255);
   } else if(pgm->bitclock > 0.0) {
-    PDATA(pgm)->clock_period = MIN(pgm->bitclock*1e6, 255);
+    my.clock_period = MIN(pgm->bitclock*1e6, 255);
   }
 
   return 0;
@@ -213,11 +213,11 @@ static int pickit2_open(PROGRAMMER *pgm, const char *port) {
 static void pickit2_close(PROGRAMMER *pgm) {
 
 #ifdef WIN32
-  CloseHandle(PDATA(pgm)->usb_handle);
-  CloseHandle(PDATA(pgm)->read_event);
-  CloseHandle(PDATA(pgm)->write_event);
+  CloseHandle(my.usb_handle);
+  CloseHandle(my.read_event);
+  CloseHandle(my.write_event);
 #else
-  usb_close(PDATA(pgm)->usb_handle);
+  usb_close(my.usb_handle);
 #endif                          // WIN32
 }
 
@@ -246,7 +246,7 @@ static int pickit2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         CMD_SET_VPP_4(5),
         CMD_EXEC_SCRIPT_2(24),
         SCR_SPI_SETUP_PINS_4,   // SDO, SDI, SCK
-        SCR_SET_ICSP_DELAY_2(PDATA(pgm)->clock_period), // Slow down the SPI
+        SCR_SET_ICSP_DELAY_2(my.clock_period), // Slow down the SPI
         SCR_VDD_ON,
         SCR_MCLR_GND_OFF,       // Let reset float high
         SCR_VPP_PWM_ON,
@@ -879,20 +879,20 @@ static int usb_read_interrupt(const PROGRAMMER *pgm, void *buff, int size, int t
   OVERLAPPED ovr;
   DWORD bytesRead = 0;
 
-  if(PDATA(pgm)->read_event == NULL) {
-    PDATA(pgm)->read_event = CreateEvent(0, 0, 0, 0);
+  if(my.read_event == NULL) {
+    my.read_event = CreateEvent(0, 0, 0, 0);
   }
 
   memset(&ovr, 0, sizeof(ovr));
-  ovr.hEvent = PDATA(pgm)->read_event;
+  ovr.hEvent = my.read_event;
 
-  ReadFile(PDATA(pgm)->usb_handle, buff, size, &bytesRead, &ovr);
-  if(WaitForSingleObject(PDATA(pgm)->read_event, timeout) == WAIT_TIMEOUT) {
-    CancelIo(PDATA(pgm)->usb_handle);
+  ReadFile(my.usb_handle, buff, size, &bytesRead, &ovr);
+  if(WaitForSingleObject(my.read_event, timeout) == WAIT_TIMEOUT) {
+    CancelIo(my.usb_handle);
     return -1;
   }
 
-  GetOverlappedResult(PDATA(pgm)->usb_handle, &ovr, &bytesRead, 0);
+  GetOverlappedResult(my.usb_handle, &ovr, &bytesRead, 0);
 
   return bytesRead > 0? (int) bytesRead: -1;
 }
@@ -902,30 +902,30 @@ static int usb_write_interrupt(const PROGRAMMER *pgm, const void *buff, int size
   OVERLAPPED ovr;
   DWORD bytesWritten = 0;
 
-  if(PDATA(pgm)->write_event == NULL) {
-    PDATA(pgm)->write_event = CreateEvent(0, 0, 0, 0);
+  if(my.write_event == NULL) {
+    my.write_event = CreateEvent(0, 0, 0, 0);
   }
 
   memset(&ovr, 0, sizeof(ovr));
-  ovr.hEvent = PDATA(pgm)->write_event;
+  ovr.hEvent = my.write_event;
 
-  WriteFile(PDATA(pgm)->usb_handle, buff, size, &bytesWritten, &ovr);
-  if(WaitForSingleObject(PDATA(pgm)->write_event, timeout) == WAIT_TIMEOUT) {
-    CancelIo(PDATA(pgm)->usb_handle);
+  WriteFile(my.usb_handle, buff, size, &bytesWritten, &ovr);
+  if(WaitForSingleObject(my.write_event, timeout) == WAIT_TIMEOUT) {
+    CancelIo(my.usb_handle);
     return -1;
   }
 
-  GetOverlappedResult(PDATA(pgm)->usb_handle, &ovr, &bytesWritten, 0);
+  GetOverlappedResult(my.usb_handle, &ovr, &bytesWritten, 0);
 
   return bytesWritten > 0? (int) bytesWritten: -1;
 }
 
 static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
-  return usb_write_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout); // XXX
+  return usb_write_interrupt(pgm, report, 65, my.transaction_timeout); // XXX
 }
 
 static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
-  return usb_read_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout);
+  return usb_read_interrupt(pgm, report, 65, my.transaction_timeout);
 }
 
 #else                           // WIN32
@@ -937,8 +937,8 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int 
   usb_dev_handle *handle = NULL;
   int errorCode = USB_ERROR_NOTFOUND;
 
-  if(!PDATA(pgm)->USB_init) {
-    PDATA(pgm)->USB_init = 1;
+  if(!my.USB_init) {
+    my.USB_init = 1;
     usb_init();
   }
   usb_find_busses();
@@ -980,14 +980,14 @@ static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int 
 
 static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
   // Endpoint 1 OUT??
-  return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, (char *) (report + 1), 64,
-    PDATA(pgm)->transaction_timeout);
+  return usb_interrupt_write(my.usb_handle, USB_ENDPOINT_OUT | 1, (char *) (report + 1), 64,
+    my.transaction_timeout);
 }
 
 static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
   // Endpoint 1 IN??
-  return usb_interrupt_read(PDATA(pgm)->usb_handle, USB_ENDPOINT_IN | 1, (char *) (report + 1), 64,
-    PDATA(pgm)->transaction_timeout);
+  return usb_interrupt_read(my.usb_handle, USB_ENDPOINT_IN | 1, (char *) (report + 1), 64,
+    my.transaction_timeout);
 }
 #endif                          // WIN32
 
@@ -1012,7 +1012,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
       clock_rate = (int) (1000000/(clock_period + 5e-7));     // Assume highest speed is 2MHz
 
       pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
-      PDATA(pgm)->clock_period = clock_period;
+      my.clock_period = clock_period;
       continue;
     }
 
@@ -1026,7 +1026,7 @@ static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) 
       }
 
       pmsg_notice2("%s(): usb timeout set to 0x%02x\n", __func__, timeout);
-      PDATA(pgm)->transaction_timeout = timeout;
+      my.transaction_timeout = timeout;
       continue;
     }
 

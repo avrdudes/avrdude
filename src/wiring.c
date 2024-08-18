@@ -58,7 +58,7 @@ struct wiringpdata {
 
 // pdata is stk500v2's private data (inherited)
 
-#define WIRINGPDATA(pgm) ((struct wiringpdata *)(((struct pdata *)(pgm->cookie)) -> chained_pdata))
+#define mywiring (*(struct wiringpdata *) (((struct pdata *) (pgm->cookie)) -> chained_pdata))
 
 static void wiring_setup(PROGRAMMER *pgm) {
   // First, have STK500v2 backend allocate its own private data
@@ -92,7 +92,7 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       pmsg_notice2("%s(): snooze time set to %d ms\n", __func__, val);
-      WIRINGPDATA(pgm)->snoozetime = val;
+      mywiring.snoozetime = val;
       continue;
     }
 
@@ -105,12 +105,12 @@ static int wiring_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) {
         break;
       }
       pmsg_notice2("%s(): delay set to %d ms\n", __func__, val);
-      WIRINGPDATA(pgm)->delay = val;
+      mywiring.delay = val;
       continue;
     }
 
     if(str_eq(extended_param, "noautoreset")) {
-      WIRINGPDATA(pgm)->noautoreset = true;
+      mywiring.noautoreset = true;
       continue;
     }
 
@@ -144,14 +144,14 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
   serial_open(port, pinfo, &pgm->fd);
 
   // If we have a snoozetime, then we wait and do NOT toggle DTR/RTS
-  if(WIRINGPDATA(pgm)->snoozetime > 0) {
-    timetosnooze = WIRINGPDATA(pgm)->snoozetime;
+  if(mywiring.snoozetime > 0) {
+    timetosnooze = mywiring.snoozetime;
 
     pmsg_notice2("%s(): snoozing for %d ms\n", __func__, timetosnooze);
     while(timetosnooze--)
       usleep(1000);
     pmsg_notice2("%s(): done snoozing\n", __func__);
-  } else if(WIRINGPDATA(pgm)->noautoreset == false) {
+  } else if(mywiring.noautoreset == false) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
     pmsg_notice2("%s(): releasing DTR/RTS\n", __func__);
@@ -167,7 +167,7 @@ static int wiring_open(PROGRAMMER *pgm, const char *port) {
     // Set the RTS/DTR line back to high, so direct connection to reset works
     serial_set_dtr_rts(&pgm->fd, 0);
 
-    int delay = WIRINGPDATA(pgm)->delay;
+    int delay = mywiring.delay;
 
     if((100 + delay) > 0)
       usleep((100 + delay)*1000);     // Wait until board comes out of reset

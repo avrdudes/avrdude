@@ -56,7 +56,7 @@ struct pdata {
   bool autoreset;
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 // Print error and return when command failed
 #define EI(x) do {                 \
@@ -251,8 +251,8 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   // See if programmer supports autoincrement of address
 
   EI(butterfly_send(pgm, "a", 1));
-  EI(butterfly_recv(pgm, &PDATA(pgm)->has_auto_incr_addr, 1));
-  if(PDATA(pgm)->has_auto_incr_addr == 'Y')
+  EI(butterfly_recv(pgm, &my.has_auto_incr_addr, 1));
+  if(my.has_auto_incr_addr == 'Y')
     msg_notice("programmer supports auto addr increment\n");
 
   // Check support for buffered memory access, abort if not available
@@ -264,10 +264,10 @@ static int butterfly_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
     return -1;
   };
   EI(butterfly_recv(pgm, &c, 1));
-  PDATA(pgm)->buffersize = (unsigned int) (unsigned char) c << 8;
+  my.buffersize = (unsigned int) (unsigned char) c << 8;
   EI(butterfly_recv(pgm, &c, 1));
-  PDATA(pgm)->buffersize += (unsigned int) (unsigned char) c;
-  msg_notice("programmer supports buffered memory access with buffersize=%i bytes\n", PDATA(pgm)->buffersize);
+  my.buffersize += (unsigned int) (unsigned char) c;
+  msg_notice("programmer supports buffered memory access with buffersize=%i bytes\n", my.buffersize);
 
   // Get list of devices that the programmer supports
 
@@ -335,7 +335,7 @@ static int butterfly_open(PROGRAMMER *pgm, const char *port) {
     return -1;
   }
 
-  if(PDATA(pgm)->autoreset) {
+  if(my.autoreset) {
     // This code assumes a negative-logic USB to TTL serial adapter
     // Set RTS/DTR high to discharge the series-capacitor, if present
     pmsg_notice2("toggling the DTR/RTS lines to trigger a hardware reset\n");
@@ -411,7 +411,7 @@ static int butterfly_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const A
   if(mem_is_flash(m)) {
     int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
 
-    PDATA(pgm)->ctype = 0;      // Invalidate read cache
+    my.ctype = 0;               // Invalidate read cache
     cmd[0] = 'B';
     cmd[1] = 0;
     cmd[2] = 2;
@@ -464,8 +464,8 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
     return -1;
   }
 
-  if(PDATA(pgm)->ctype == mtype && PDATA(pgm)->caddr == addr) {
-    *value = PDATA(pgm)->cvalue;
+  if(my.ctype == mtype && my.caddr == addr) {
+    *value = my.cvalue;
     return 0;
   }
 
@@ -476,10 +476,10 @@ static int butterfly_read_byte_flash(const PROGRAMMER *pgm, const AVRPART *p, co
   EI(butterfly_send(pgm, msg, 4));
   EI(butterfly_recv(pgm, buf, sizeof(buf)));
 
-  PDATA(pgm)->ctype = mtype;
+  my.ctype = mtype;
   *value = buf[addr & 1];
-  PDATA(pgm)->cvalue = buf[1 - (addr & 1)];
-  PDATA(pgm)->caddr = addr ^ 1;
+  my.cvalue = buf[1 - (addr & 1)];
+  my.caddr = addr ^ 1;
 
   return 0;
 }
@@ -525,7 +525,7 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   unsigned int max_addr = addr + n_bytes;
   char *cmd;
-  unsigned int blocksize = PDATA(pgm)->buffersize;
+  unsigned int blocksize = my.buffersize;
   int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
   int isee = mem_is_eeprom(m);
 
@@ -535,7 +535,7 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
   if(isee)                      // Write single bytes to EEPROM
     blocksize = 1;
   else
-    PDATA(pgm)->ctype = 0;      // Invalidate flash byte read cache
+    my.ctype = 0;               // Invalidate flash byte read cache
 
   (ext_addr? butterfly_set_extaddr: butterfly_set_addr) (pgm, isee? addr: addr >> 1);
 
@@ -575,7 +575,7 @@ static int butterfly_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const 
 static int butterfly_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   unsigned int max_addr = addr + n_bytes;
-  int blocksize = PDATA(pgm)->buffersize;
+  int blocksize = my.buffersize;
   int ext_addr = m->op[AVR_OP_LOAD_EXT_ADDR] != NULL;
   int isee = mem_is_eeprom(m);
 
@@ -637,7 +637,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
     extended_param = ldata(ln);
 
     if(str_eq(extended_param, "autoreset")) {
-      PDATA(pgm)->autoreset = true;
+      my.autoreset = true;
       continue;
     }
 

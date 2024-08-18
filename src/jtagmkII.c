@@ -101,7 +101,7 @@ struct pdata {
   char msg[64];                 // Used in jtagmkII_get_rc()
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 #define RC(x) { x, #x },
 static const struct {
@@ -175,7 +175,7 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p, const 
 
 void jtagmkII_setup(PROGRAMMER *pgm) {
   pgm->cookie = mmt_malloc(sizeof(struct pdata));
-  PDATA(pgm)->rts_mode = RTS_MODE_DEFAULT;
+  my.rts_mode = RTS_MODE_DEFAULT;
 }
 
 void jtagmkII_teardown(PROGRAMMER *pgm) {
@@ -238,8 +238,8 @@ static const char *jtagmkII_get_rc(const PROGRAMMER *pgm, unsigned int rc) {
     if(jtagresults[i].code == rc)
       return jtagresults[i].descr;
 
-  sprintf(PDATA(pgm)->msg, "Unknown JTAG ICE mkII result code 0x%02x", rc);
-  return PDATA(pgm)->msg;
+  sprintf(my.msg, "Unknown JTAG ICE mkII result code 0x%02x", rc);
+  return my.msg;
 }
 
 static void jtagmkII_print_memory(unsigned char *b, size_t s) {
@@ -422,7 +422,7 @@ int jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
 
   buf = mmt_malloc(len + 10);
   buf[0] = MESSAGE_START;
-  u16_to_b2(buf + 1, PDATA(pgm)->command_sequence);
+  u16_to_b2(buf + 1, my.command_sequence);
   u32_to_b4(buf + 3, len);
   buf[7] = TOKEN;
   memcpy(buf + 8, data, len);
@@ -594,10 +594,10 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
     if((rv = jtagmkII_recv_frame(pgm, msg, &r_seqno)) <= 0)
       return rv;
     pmsg_debug("%s(): got message seqno %d (command_sequence == %d)\n",
-      __func__, r_seqno, PDATA(pgm)->command_sequence);
-    if(r_seqno == PDATA(pgm)->command_sequence) {
-      if(++(PDATA(pgm)->command_sequence) == 0xffff)
-        PDATA(pgm)->command_sequence = 0;
+      __func__, r_seqno, my.command_sequence);
+    if(r_seqno == my.command_sequence) {
+      if(++(my.command_sequence) == 0xffff)
+        my.command_sequence = 0;
       /*
        * We move the payload to the beginning of the buffer, to make the job
        * easier for the caller.  We have to return the original pointer though,
@@ -613,7 +613,7 @@ int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg) {
     if(r_seqno == 0xffff) {
       pmsg_debug("%s(): got asynchronous event\n", __func__);
     } else {
-      pmsg_notice2("%s(): got wrong sequence number, %u != %u\n", __func__, r_seqno, PDATA(pgm)->command_sequence);
+      pmsg_notice2("%s(): got wrong sequence number, %u != %u\n", __func__, r_seqno, my.command_sequence);
     }
     mmt_free(*msg);
   }
@@ -657,9 +657,9 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
     if(status > 0) {
       if((c = resp[0]) == RSP_SIGN_ON) {
         fwver = ((unsigned) resp[8] << 8) | (unsigned) resp[7];
-        PDATA(pgm)->fwver = fwver;
+        my.fwver = fwver;
         hwver = (unsigned) resp[9];
-        memcpy(PDATA(pgm)->serno, resp + 10, 6);
+        memcpy(my.serno, resp + 10, 6);
         if(status > 17) {
           imsg_notice2("JTAG ICE mkII sign-on message:\n");
           imsg_notice2("Communications protocol version: %u\n", (unsigned) resp[1]);
@@ -672,8 +672,8 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
           imsg_notice2("  firmware version:              %u.%02u\n", (unsigned) resp[8], (unsigned) resp[7]);
           imsg_notice2("  hardware version:              %u\n", (unsigned) resp[9]);
           imsg_notice2("Serial number:                   %02x:%02x:%02x:%02x:%02x:%02x\n",
-            PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2],
-            PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
+            my.serno[0], my.serno[1], my.serno[2],
+            my.serno[3], my.serno[4], my.serno[5]);
           resp[status - 1] = '\0';
           imsg_notice2("Device ID:                       %s\n", resp + 16);
         }
@@ -691,7 +691,7 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
     return -1;
   }
 
-  PDATA(pgm)->device_descriptor_length = sizeof(struct device_descriptor);
+  my.device_descriptor_length = sizeof(struct device_descriptor);
   /*
    * There's no official documentation from Atmel about what firmware revision
    * matches what device descriptor length.  The algorithm below has been found
@@ -699,16 +699,16 @@ int jtagmkII_getsync(const PROGRAMMER *pgm, int mode) {
    */
 #define FWVER(maj, min) ((maj << 8) | (min))
   if(!is_dragon && fwver < FWVER(3, 16)) {
-    PDATA(pgm)->device_descriptor_length -= 2;
+    my.device_descriptor_length -= 2;
     pmsg_warning("S_MCU firmware version might be too old to work correctly\n");
   } else if(!is_dragon && fwver < FWVER(4, 0)) {
-    PDATA(pgm)->device_descriptor_length -= 2;
+    my.device_descriptor_length -= 2;
   }
   if(mode != EMULATOR_MODE_SPI)
     pmsg_notice2("%s(): using a %u-byte device descriptor\n",
-      __func__, (unsigned) PDATA(pgm)->device_descriptor_length);
+      __func__, (unsigned) my.device_descriptor_length);
   if(mode == EMULATOR_MODE_SPI) {
-    PDATA(pgm)->device_descriptor_length = 0;
+    my.device_descriptor_length = 0;
     if(!is_dragon && fwver < FWVER(4, 14)) {
       pmsg_error("ISP functionality requires firmware version >= 4.14\n");
       return -1;
@@ -830,7 +830,7 @@ static int jtagmkII_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   if(p->prog_modes & PM_Classic)
     pgm->initialize(pgm, p);
 
-  PDATA(pgm)->recently_written = 1;
+  my.recently_written = 1;
   return 0;
 }
 
@@ -870,9 +870,9 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
 
     if(mem_is_flash(m)) {
       if(m->page_size > 256)
-        PDATA(pgm)->flash_pagesize = 256;
+        my.flash_pagesize = 256;
       else
-        PDATA(pgm)->flash_pagesize = m->page_size;
+        my.flash_pagesize = m->page_size;
       u32_to_b4(sendbuf.dd.ulFlashSize, m->size);
       u16_to_b2(sendbuf.dd.uiFlashPageSize, m->page_size);
       u16_to_b2(sendbuf.dd.uiFlashpages, m->size/m->page_size);
@@ -881,13 +881,13 @@ static void jtagmkII_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
         memcpy(sendbuf.dd.ucEepromInst, p->eeprom_instr, EEPROM_INSTR_SIZE);
       }
     } else if(mem_is_eeprom(m)) {
-      sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
+      sendbuf.dd.ucEepromPageSize = my.eeprom_pagesize = m->page_size;
     }
   }
   sendbuf.dd.ucCacheType = p->prog_modes & (PM_PDI | PM_UPDI)? 0x02: 0x00;
 
   pmsg_notice2("%s(): sending set device descriptor command: ", __func__);
-  jtagmkII_send(pgm, (unsigned char *) &sendbuf, PDATA(pgm)->device_descriptor_length + sizeof(unsigned char));
+  jtagmkII_send(pgm, (unsigned char *) &sendbuf, my.device_descriptor_length + sizeof(unsigned char));
 
   status = jtagmkII_recv(pgm, &resp);
   if(status <= 0) {
@@ -928,9 +928,9 @@ static void jtagmkII_set_xmega_params(const PROGRAMMER *pgm, const AVRPART *p) {
     m = ldata(ln);
     if(mem_is_flash(m)) {
       if(m->page_size > 256)
-        PDATA(pgm)->flash_pagesize = 256;
+        my.flash_pagesize = 256;
       else
-        PDATA(pgm)->flash_pagesize = m->page_size;
+        my.flash_pagesize = m->page_size;
       u16_to_b2(sendbuf.dd.flash_page_size, m->page_size);
     } else if(mem_is_eeprom(m)) {
       sendbuf.dd.eeprom_page_size = m->page_size;
@@ -1027,7 +1027,7 @@ static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
   unsigned char buf[1], *resp, c;
   int use_ext_reset;
 
-  if(PDATA(pgm)->prog_enabled)
+  if(my.prog_enabled)
     return 0;
 
   for(use_ext_reset = 0; use_ext_reset <= 1; use_ext_reset++) {
@@ -1065,7 +1065,7 @@ static int jtagmkII_program_enable(const PROGRAMMER *pgm) {
     }
   }
 
-  PDATA(pgm)->prog_enabled = 1;
+  my.prog_enabled = 1;
   return 0;
 }
 
@@ -1073,7 +1073,7 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
   int status;
   unsigned char buf[1], *resp, c;
 
-  if(!PDATA(pgm)->prog_enabled)
+  if(!my.prog_enabled)
     return 0;
 
   buf[0] = CMND_LEAVE_PROGMODE;
@@ -1098,8 +1098,8 @@ static int jtagmkII_program_disable(const PROGRAMMER *pgm) {
     return -1;
   }
 
-  PDATA(pgm)->recently_written = 0;
-  PDATA(pgm)->prog_enabled = 0;
+  my.recently_written = 0;
+  my.prog_enabled = 0;
   (void) jtagmkII_reset(pgm, 0x01);
 
   return 0;
@@ -1157,8 +1157,8 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   int ok;
   const char *ifname;
 
-  if(PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
-    pmsg_notice("forcing serial DTR/RTS handshake lines %s\n", PDATA(pgm)->rts_mode == RTS_MODE_LOW? "LOW": "HIGH");
+  if(my.rts_mode != RTS_MODE_DEFAULT) {
+    pmsg_notice("forcing serial DTR/RTS handshake lines %s\n", my.rts_mode == RTS_MODE_LOW? "LOW": "HIGH");
   }
 
   // Abort and print error if programmer does not support the target microcontroller
@@ -1203,7 +1203,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
 
-  if((pgm->flag & PGM_FL_IS_JTAG) && jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
+  if((pgm->flag & PGM_FL_IS_JTAG) && jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, my.jtagchain) < 0) {
     pmsg_error("unable to setup JTAG chain\n");
     return -1;
   }
@@ -1217,12 +1217,12 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       return -1;
   }
   // Must set the device descriptor before entering programming mode
-  if(PDATA(pgm)->fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI)) != 0)
+  if(my.fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI)) != 0)
     jtagmkII_set_xmega_params(pgm, p);
   else
     jtagmkII_set_devdescr(pgm, p);
 
-  PDATA(pgm)->boot_start = ULONG_MAX;
+  my.boot_start = ULONG_MAX;
   if((p->prog_modes & (PM_PDI | PM_UPDI))) {
     // Find the border between application and boot area
     AVRMEM *bootmem = avr_locate_boot(p);
@@ -1232,7 +1232,7 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
       if(str_starts(pgmid, "jtagmkII"))
         pmsg_error("cannot locate flash or boot memories in description\n");
     } else {
-      if(PDATA(pgm)->fwver < 0x700) {
+      if(my.fwver < 0x700) {
         // V7+ firmware does not need this anymore
         unsigned char par[4];
 
@@ -1242,17 +1242,17 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
         (void) jtagmkII_setparm(pgm, PAR_PDI_OFFSET_END, par);
       }
 
-      PDATA(pgm)->boot_start = bootmem->offset - flashmem->offset;
+      my.boot_start = bootmem->offset - flashmem->offset;
     }
   }
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
-  if(PDATA(pgm)->fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
+  if(my.fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
     /*
      * Work around for
      * https://savannah.nongnu.org/bugs/index.php?37942
@@ -1286,10 +1286,10 @@ static int jtagmkII_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 static void jtagmkII_disable(const PROGRAMMER *pgm) {
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  PDATA(pgm)->flash_pagecache = NULL;
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->eeprom_pagecache = NULL;
+  mmt_free(my.flash_pagecache);
+  my.flash_pagecache = NULL;
+  mmt_free(my.eeprom_pagecache);
+  my.eeprom_pagecache = NULL;
 
   /*
    * jtagmkII_program_disable() doesn't do anything if the device is currently
@@ -1328,10 +1328,10 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
         }
         pmsg_notice2("%s(): JTAG chain parsed as:\n", __func__);
         imsg_notice2("%u units before, %u units after, %u bits before, %u bits after\n", ub, ua, bb, ba);
-        PDATA(pgm)->jtagchain[0] = ub;
-        PDATA(pgm)->jtagchain[1] = ua;
-        PDATA(pgm)->jtagchain[2] = bb;
-        PDATA(pgm)->jtagchain[3] = ba;
+        my.jtagchain[0] = ub;
+        my.jtagchain[1] = ua;
+        my.jtagchain[2] = bb;
+        my.jtagchain[3] = ba;
         continue;
       }
     }
@@ -1341,9 +1341,9 @@ static int jtagmkII_parseextparms(const PROGRAMMER *pgm, const LISTID extparms) 
 
       if(sscanf(extended_param, "rtsdtr=%4s", rts_mode) == 1) {
         if(str_caseeq(rts_mode, "low")) {
-          PDATA(pgm)->rts_mode = RTS_MODE_LOW;
+          my.rts_mode = RTS_MODE_LOW;
         } else if(str_caseeq(rts_mode, "high")) {
-          PDATA(pgm)->rts_mode = RTS_MODE_HIGH;
+          my.rts_mode = RTS_MODE_HIGH;
         } else {
           pmsg_error("RTS/DTR mode must be LOW or HIGH\n");
           rv = -1;
@@ -1519,9 +1519,9 @@ static int jtagmkII_open_pdi(PROGRAMMER *pgm, const char *port) {
   jtagmkII_drain(pgm, 0);
 
   // Set RTS/DTR high or low based on the user specified rts_mode
-  if(PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
+  if(my.rts_mode != RTS_MODE_DEFAULT) {
     serial_set_dtr_rts(&pgm->fd, 0);
-    serial_set_dtr_rts(&pgm->fd, PDATA(pgm)->rts_mode == RTS_MODE_LOW? 1: 0);
+    serial_set_dtr_rts(&pgm->fd, my.rts_mode == RTS_MODE_LOW? 1: 0);
   }
 
   if(jtagmkII_getsync(pgm, EMULATOR_MODE_PDI) < 0)
@@ -1731,7 +1731,7 @@ void jtagmkII_close(PROGRAMMER *pgm) {
     pmsg_error("bad response to sign-off command: %s\n", jtagmkII_get_rc(pgm, c));
   }
 
-  if(PDATA(pgm)->rts_mode != RTS_MODE_DEFAULT) {
+  if(my.rts_mode != RTS_MODE_DEFAULT) {
     pmsg_notice("releasing DTR/RTS handshake lines\n");
     serial_set_dtr_rts(&pgm->fd, 0);
   }
@@ -1852,7 +1852,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   cmd = mmt_malloc(page_size + 10);
   cmd[0] = CMND_WRITE_MEMORY;
   if(mem_is_flash(m)) {
-    PDATA(pgm)->flash_pageaddr = ~0UL;
+    my.flash_pageaddr = ~0UL;
     cmd[1] = jtagmkII_mtype(pgm, p, addr);
     if(p->prog_modes & (PM_PDI | PM_UPDI))      // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
@@ -1873,7 +1873,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
       return n_bytes;
     }
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
+    my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
   } else if(mem_is_boot(m)) {
@@ -1944,7 +1944,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
   mmt_free(cmd);
   serial_recv_timeout = otimeout;
 
-  PDATA(pgm)->recently_written = 1;
+  my.recently_written = 1;
   return n_bytes;
 }
 
@@ -2032,7 +2032,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   }
   serial_recv_timeout = otimeout;
 
-  PDATA(pgm)->recently_written = 0;
+  my.recently_written = 0;
   return n_bytes;
 }
 
@@ -2078,10 +2078,10 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   addr += mem->offset;
   cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_FLASH_PAGE;
   if(mem_is_in_flash(mem)) {
-    pagesize = PDATA(pgm)->flash_pagesize;
+    pagesize = my.flash_pagesize;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-    cache_ptr = PDATA(pgm)->flash_pagecache;
+    paddr_ptr = &my.flash_pageaddr;
+    cache_ptr = my.flash_pagecache;
   } else if(mem_is_eeprom(mem)) {
     if((pgm->flag & PGM_FL_IS_DW) || (p->prog_modes & (PM_PDI | PM_UPDI))) {
       // debugWire cannot use page access for EEPROM
@@ -2090,8 +2090,8 @@ static int jtagmkII_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
       cmd[1] = MTYPE_EEPROM_PAGE;
       pagesize = mem->page_size;
       paddr = addr & ~(pagesize - 1);
-      paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-      cache_ptr = PDATA(pgm)->eeprom_pagecache;
+      paddr_ptr = &my.eeprom_pageaddr;
+      cache_ptr = my.eeprom_pagecache;
     }
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
@@ -2227,7 +2227,7 @@ retry:
     *value = resp[1];
 
   mmt_free(resp);
-  PDATA(pgm)->recently_written = 0;
+  my.recently_written = 0;
   return 0;
 
 fail:
@@ -2258,14 +2258,14 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
     writesize = 2;
     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR"))      // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
-    PDATA(pgm)->flash_pageaddr = ~0UL;
+    my.flash_pageaddr = ~0UL;
     if(pgm->flag & PGM_FL_IS_DW)
       unsupp = 1;
   } else if(mem_is_eeprom(mem)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM_XMEGA: MTYPE_EEPROM;
     if(str_eq(p->family_id, "megaAVR") || str_eq(p->family_id, "tinyAVR"))      // AVRs with UPDI except AVR-Dx/Ex
       need_progmode = 0;
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
+    my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     if((p->prog_modes & PM_Classic) && mem_is_a_fuse(mem))
@@ -2337,7 +2337,7 @@ retry:
   }
 
   mmt_free(resp);
-  PDATA(pgm)->recently_written = 1;
+  my.recently_written = 1;
   return 0;
 
 fail:
@@ -2533,8 +2533,8 @@ static void jtagmkII_display(const PROGRAMMER *pgm, const char *p) {
   msg_info("%sSec. MCU HW version   : %d\n", p, hw[1]);
   msg_info("%sSec. MCU FW version   : %d.%02d\n", p, fw[3], fw[2]);
   msg_info("%sSerial number         : %02x:%02x:%02x:%02x:%02x:%02x\n", p,
-    PDATA(pgm)->serno[0], PDATA(pgm)->serno[1], PDATA(pgm)->serno[2],
-    PDATA(pgm)->serno[3], PDATA(pgm)->serno[4], PDATA(pgm)->serno[5]);
+    my.serno[0], my.serno[1], my.serno[2],
+    my.serno[3], my.serno[4], my.serno[5]);
 
   jtagmkII_print_parms1(pgm, p, stderr);
 
@@ -2581,7 +2581,7 @@ static void jtagmkII_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 
 static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
   if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-    if(addr >= PDATA(pgm)->boot_start)
+    if(addr >= my.boot_start)
       return MTYPE_BOOT_FLASH;
     else
       return MTYPE_FLASH;
@@ -2595,13 +2595,13 @@ static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, co
    * Xmega devices handled by V7+ firmware don't want to be told their
    * m->offset within the write memory command.
    */
-  if(PDATA(pgm)->fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
-    if(addr >= PDATA(pgm)->boot_start)
+  if(my.fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
+    if(addr >= my.boot_start)
       /*
        * All memories but "flash" are smaller than boot_start anyway, so no
        * need for an extra check we are operating on "flash"
        */
-      return addr - PDATA(pgm)->boot_start;
+      return addr - my.boot_start;
     else
       // Normal flash, or anything else
       return addr;
@@ -3021,16 +3021,16 @@ static int jtagmkII_initialize32(const PROGRAMMER *pgm, const AVRPART *p) {
   int status, j;
   unsigned char buf[6], *resp;
 
-  if(jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, PDATA(pgm)->jtagchain) < 0) {
+  if(jtagmkII_setparm(pgm, PAR_DAISY_CHAIN_INFO, my.jtagchain) < 0) {
     pmsg_error("unable to setup JTAG chain\n");
     return -1;
   }
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
   for(j = 0; j < 2; ++j) {
     buf[0] = CMND_GET_IR;
@@ -3356,18 +3356,18 @@ static int jtagmkII_paged_load32(const PROGRAMMER *pgm, const AVRPART *p_unused,
 
   serial_recv_timeout = 256;
 
-  if(!(PDATA(pgm)->flags32 & FLAGS32_WRITE)) {
+  if(!(my.flags32 & FLAGS32_WRITE)) {
     status = jtagmkII_reset32(pgm, AVR32_RESET_READ);
     if(status != 0)
       gotoerr;
   }
 
   // Init SMC and set clocks
-  if(!(PDATA(pgm)->flags32 & FLAGS32_INIT_SMC)) {
+  if(!(my.flags32 & FLAGS32_INIT_SMC)) {
     status = jtagmkII_smc_init32(pgm);
     if(status != 0)
       gotoerr;                  // PLL 0
-    PDATA(pgm)->flags32 |= FLAGS32_INIT_SMC;
+    my.flags32 |= FLAGS32_INIT_SMC;
   }
 
   // msg_error("\n pageSize=%d bytes=%d pages=%d m->offset=0x%x pgm->page_size %d\n",
@@ -3438,7 +3438,7 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
   status = jtagmkII_reset32(pgm, AVR32_RESET_WRITE);
   if(status != 0)
     gotoerr;
-  PDATA(pgm)->flags32 |= FLAGS32_WRITE;
+  my.flags32 |= FLAGS32_WRITE;
 
   pages = (n_bytes - addr - 1)/page_size + 1;
   sPageNum = addr/page_size;
@@ -3448,11 +3448,11 @@ static int jtagmkII_paged_write32(const PROGRAMMER *pgm, const AVRPART *p_unused
   // Before any errors can happen
   cmd = mmt_malloc(pgm->page_size + 10);
   // Init SMC and set clocks
-  if(!(PDATA(pgm)->flags32 & FLAGS32_INIT_SMC)) {
+  if(!(my.flags32 & FLAGS32_INIT_SMC)) {
     status = jtagmkII_smc_init32(pgm);
     if(status != 0)
       gotoerr;                  // PLL 0
-    PDATA(pgm)->flags32 |= FLAGS32_INIT_SMC;
+    my.flags32 |= FLAGS32_INIT_SMC;
   }
 
   // First unlock the pages
@@ -3698,7 +3698,7 @@ static int jtagmkII_updi_term_keep_alive(const PROGRAMMER *pgm, const AVRPART *p
 
 // Read the signature if most recent operation was an erase or a write to ensure it finished
 static int jtagmkII_updi_end_programming(const PROGRAMMER *pgm, const AVRPART *p) {
-  return PDATA(pgm)->recently_written? avr_read(pgm, p, "signature", NULL): 0;
+  return my.recently_written? avr_read(pgm, p, "signature", NULL): 0;
 }
 
 #ifdef __OBJC__

@@ -62,5 +62,5 @@ struct pdata {
   bool autoreset;
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 #endif
