@@ -153,6 +153,7 @@ Changes since version 7.3:
     - Fix addresses for jtag3_pdi boot and apptable #1887
     - Adapt documentation to new Look and Feel #1892
     - Adapt tools/test-avrdude script for versatile CI use #1891
+    - Reformat sources #1893
 
   * Internals:
 
