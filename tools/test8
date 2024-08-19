@@ -15,8 +15,8 @@ Syntax: $progname [<opts>] <programmer> <part>
 Function: test AVRDUDE for v 8.0 release with -c programmer -p part;
   also leaves a file bak-<programmer>-<part.hex for inspection
 Options:
-  -i <n>     use avrdude -c dryrun -xinit=<n> to initialiase part and exit
-  -r <n>     use avrdude -c dryrun -xrandom=<n> to initialiase part and exit
+  -i <n>     use avrdude -c dryrun -xinit=<n> to initialise part and exit
+  -r <n>     use avrdude -c dryrun -xrandom=<n> to initialise part and exit
   -a <opt>   pass avrdude option <opt> through to avrdude test commands
   -m <mlist> use memory list <mlist> instead of ALL
 
@@ -72,8 +72,8 @@ f="bak-$1-$2.hex:I"
 if [[ $init -gt -1 || $rand -gt -1 ]]; then
   how="init=$init"; [ $rand -gt -1 ] && how="random=$rand"
   avrdude -qqc dryrun -p $2 -U $mem:r:$f -x $how
-  avrdude   -c $1     -p $2 -U $mem:w:$f
-  echo $progname: $2 initialsed
+  avrdude "${adopts[@]}" -c $1 -p $2 -U $mem:w:$f
+  echo $progname: $2 initialised
   exit 0
 fi
 
