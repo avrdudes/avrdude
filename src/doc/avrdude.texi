@@ -525,7 +525,7 @@ following programmer ids are understood and supported:
 
 @cindex Programmer support
 
-@multitable @columnfractions .3 .68
+@multitable @columnfractions .22 .73
 @include programmers.texi
 @end multitable
 
@@ -3644,7 +3644,7 @@ the polarity of all pins in a list use @code{~(<num1> [, <num2> ... ])}
 @noindent
 The following programmer types are currently implemented:
 
-@multitable @columnfractions .25 .6
+@multitable @columnfractions .21 .75
 @include programmer_types.texi
 @end multitable
 

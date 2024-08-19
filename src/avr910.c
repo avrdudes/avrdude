@@ -644,7 +644,7 @@ static int avr910_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *p, const 
   return 3;
 }
 
-const char avr910_desc[] = "Serial programmers using protocol described in application note AVR910";
+const char avr910_desc[] = "Serial programmer using protocol from appnote AVR910";
 
 void avr910_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "avr910");

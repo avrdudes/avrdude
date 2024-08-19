@@ -1238,4 +1238,4 @@ void ft245r_initpgm(PROGRAMMER *pgm) {
 }
 #endif
 
-const char ft245r_desc[] = "FT245R/FT232R synchronous bit-bang programmer of type ftdi_syncbb";
+const char ft245r_desc[] = "FT245R/FT232R synchronous bit-bang programmer";

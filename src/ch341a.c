@@ -477,4 +477,4 @@ void ch341a_initpgm(PROGRAMMER *pgm) {
 }
 #endif                          // !defined(HAVE_LIBUSB_1_0)
 
-const char ch341a_desc[] = "Programmer chip CH341A (AVR must have minimum F_CPU of 6.8 MHz)";
+const char ch341a_desc[] = "Chip CH341A: AVR must have min F_CPU of 6.8 MHz";

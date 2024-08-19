@@ -1739,5 +1739,5 @@ void avrftdi_jtag_initpgm(PROGRAMMER *pgm) {
 }
 #endif // DO_NOT_BUILD_AVRFTDI
 
-const char avrftdi_desc[] = "Interface to the MPSSE Engine of FTDI Chips using libftdi.";
+const char avrftdi_desc[] = "Interface to the MPSSE Engine of FTDI chips using libftdi";
 const char avrftdi_jtag_desc[] = "libftdi JTAG interface";

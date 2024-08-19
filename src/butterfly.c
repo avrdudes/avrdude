@@ -659,7 +659,7 @@ static int butterfly_parseextparms(const PROGRAMMER *pgm, const LISTID extparms)
   return rv;
 }
 
-const char butterfly_desc[] = "Atmel Butterfly evaluation board; Atmel AppNotes AVR109, AVR911";
+const char butterfly_desc[] = "Atmel Butterfly evaluation board (AVR109, AVR911)";
 
 void butterfly_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "butterfly");

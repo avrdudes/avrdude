@@ -1119,7 +1119,7 @@ static void buspirate_teardown(PROGRAMMER *pgm) {
   pgm->cookie = NULL;
 }
 
-const char buspirate_desc[] = "Using the Bus Pirate's SPI interface for programming";
+const char buspirate_desc[] = "Bus Pirate's SPI interface";
 
 void buspirate_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "BusPirate");
@@ -1306,7 +1306,7 @@ static void buspirate_bb_powerdown(const PROGRAMMER *pgm) {
   buspirate_bb_setpin_internal(pgm, 7, 0);
 }
 
-const char buspirate_bb_desc[] = "Using the Bus Pirate's bitbang interface for programming";
+const char buspirate_bb_desc[] = "Bus Pirate's bitbang interface";
 
 void buspirate_bb_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "BusPirate_BB");
