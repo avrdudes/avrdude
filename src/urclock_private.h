@@ -117,11 +117,11 @@ typedef struct {
   (uint8_t) (_vh >= 072 && _vh != 0xff? _vh: 0); })
 
 #define vercapis(capver, mask)  ({ uint16_t _vi = capver; !!(capabilities_cv(_vi) & (mask)); })
-#define isautobaud_cv(capver)        vercapis(capver, UR_AUTOBAUD)     // from v7.7
+#define isautobaud_cv(capver)        vercapis(capver, UR_AUTOBAUD)     // From v7.7
 #define iseeprom_cv(capver)          vercapis(capver, UR_EEPROM)
 #define isdual_cv(capver)            vercapis(capver, UR_DUAL)
-#define isprotectreset_cv(capver)    vercapis(capver, UR_PROTECTRESET) // from 7.7
-#define ishas_ce_cv(capver)          vercapis(capver, UR_HAS_CE)       // from v7.7
+#define isprotectreset_cv(capver)    vercapis(capver, UR_PROTECTRESET) // From 7.7
+#define ishas_ce_cv(capver)          vercapis(capver, UR_HAS_CE)       // From v7.7
 
 // Up to v7.7
 #define isurprotocol077_cv(capver)   vercapis(capver, UR_URPROTOCOL)
@@ -134,11 +134,11 @@ typedef struct {
 
 
 // Capability bits incl position
-#define autobaud_bit_cap(cap)        ((cap) & UR_AUTOBAUD)     // from v7.7
+#define autobaud_bit_cap(cap)        ((cap) & UR_AUTOBAUD)     // From v7.7
 #define eeprom_bit_cap(cap)          ((cap) & UR_EEPROM)
 #define dual_bit_cap(cap)            ((cap) & UR_DUAL)
-#define protectreset_bit_cap(cap)    ((cap) & UR_PROTECTRESET) // from v7.7
-#define has_ce_bit_cap(cap)          ((cap) & UR_HAS_CE)       // from v7.7
+#define protectreset_bit_cap(cap)    ((cap) & UR_PROTECTRESET) // From v7.7
+#define has_ce_bit_cap(cap)          ((cap) & UR_HAS_CE)       // From v7.7
 
 // Up to v7.7
 #define urprotocol077_bit_cap(cap)   ((cap) & UR_URPROTOCOL)
@@ -151,11 +151,11 @@ typedef struct {
 
 
 // Boolean capabilities
-#define isautobaud_cap(cap)        (!!((cap) & UR_AUTOBAUD))     // from v7.7
+#define isautobaud_cap(cap)        (!!((cap) & UR_AUTOBAUD))     // From v7.7
 #define iseeprom_cap(cap)          (!!((cap) & UR_EEPROM))
 #define isdual_cap(cap)            (!!((cap) & UR_DUAL))
-#define isprotectreset_cap(cap)    (!!((cap) & UR_PROTECTRESET)) // from v7.7
-#define ishas_ce_cap(cap)          (!!((cap) & UR_HAS_CE))       // from v7.7
+#define isprotectreset_cap(cap)    (!!((cap) & UR_PROTECTRESET)) // From v7.7
+#define ishas_ce_cap(cap)          (!!((cap) & UR_HAS_CE))       // From v7.7
 
 // Up to v7.7
 #define isurprotocol077_cap(cap)   (!!((cap) & UR_URPROTOCOL))

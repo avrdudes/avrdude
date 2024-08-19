@@ -23,11 +23,11 @@
 extern "C" {
 #endif
 
-extern const char avr910_desc[];
-void avr910_initpgm(PROGRAMMER *pgm);
+  extern const char avr910_desc[];
+  void avr910_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* avr910_h */
+#endif

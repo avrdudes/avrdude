@@ -24,12 +24,11 @@
 extern "C" {
 #endif
 
-extern const char linuxspi_desc[];
-void linuxspi_initpgm(PROGRAMMER *pgm);
+  extern const char linuxspi_desc[];
+  void linuxspi_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //linuxspi_h
-
+#endif

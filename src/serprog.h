@@ -1,4 +1,3 @@
-
 /*
  * avrdude - A Downloader/Uploader for AVR device programmers
  *
@@ -26,10 +25,11 @@
 extern "C" {
 #endif
 
-extern const char serprog_desc[];
-void serprog_initpgm(PROGRAMMER *pgm);
+  extern const char serprog_desc[];
+  void serprog_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
-#endif // serprog_h
+
+#endif

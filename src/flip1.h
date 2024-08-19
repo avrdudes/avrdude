@@ -23,11 +23,11 @@
 extern "C" {
 #endif
 
-extern const char flip1_desc[];
-extern void flip1_initpgm(PROGRAMMER *pgm);
+  extern const char flip1_desc[];
+  extern void flip1_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* flip1_h */
+#endif

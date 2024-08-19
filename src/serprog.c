@@ -56,31 +56,31 @@ struct pdata {
 // According to Serial Flasher Protocol Specification - version 1
 #define S_ACK 0x06
 #define S_NAK 0x15
-#define S_CMD_NOP           0x00 // No operation
-#define S_CMD_Q_IFACE       0x01 // Query interface version
-#define S_CMD_Q_CMDMAP      0x02 // Query supported commands bitmap
-#define S_CMD_Q_PGMNAME     0x03 // Query programmer name
-#define S_CMD_Q_SERBUF      0x04 // Query Serial Buffer Size
-#define S_CMD_Q_BUSTYPE     0x05 // Query supported bustypes
-#define S_CMD_Q_CHIPSIZE    0x06 // Query supported chipsize (2^n format)
-#define S_CMD_Q_OPBUF       0x07 // Query operation buffer size
-#define S_CMD_Q_WRNMAXLEN   0x08 // Query Write to opbuf: Write-N maximum length
-#define S_CMD_R_BYTE        0x09 // Read a single byte
-#define S_CMD_R_NBYTES      0x0A // Read n bytes
-#define S_CMD_O_INIT        0x0B // Initialize operation buffer
-#define S_CMD_O_WRITEB      0x0C // Write opbuf: Write byte with address
-#define S_CMD_O_WRITEN      0x0D // Write to opbuf: Write-N
-#define S_CMD_O_DELAY       0x0E // Write opbuf: udelay
-#define S_CMD_O_EXEC        0x0F // Execute operation buffer
-#define S_CMD_SYNCNOP       0x10 // Special no-operation that returns NAK+ACK
-#define S_CMD_Q_RDNMAXLEN   0x11 // Query read-n maximum length
-#define S_CMD_S_BUSTYPE     0x12 // Set used bustype(s).
-#define S_CMD_O_SPIOP       0x13 // Perform SPI operation.
-#define S_CMD_S_SPI_FREQ    0x14 // Set SPI clock frequency
-#define S_CMD_S_PIN_STATE   0x15 // Enable/disable output drivers
-#define S_CMD_S_SPI_CS      0x16 // Set SPI chip select to use
-#define S_CMD_S_SPI_MODE    0x17 // Sets the SPI mode used by S_CMD_O_SPIOP
-#define S_CMD_S_CS_MODE     0x18 // Sets the way the CS is controlled
+#define S_CMD_NOP           0x00        // No operation
+#define S_CMD_Q_IFACE       0x01        // Query interface version
+#define S_CMD_Q_CMDMAP      0x02        // Query supported commands bitmap
+#define S_CMD_Q_PGMNAME     0x03        // Query programmer name
+#define S_CMD_Q_SERBUF      0x04        // Query Serial Buffer Size
+#define S_CMD_Q_BUSTYPE     0x05        // Query supported bustypes
+#define S_CMD_Q_CHIPSIZE    0x06        // Query supported chipsize (2^n format)
+#define S_CMD_Q_OPBUF       0x07        // Query operation buffer size
+#define S_CMD_Q_WRNMAXLEN   0x08        // Query Write to opbuf: Write-N maximum length
+#define S_CMD_R_BYTE        0x09        // Read a single byte
+#define S_CMD_R_NBYTES      0x0A        // Read n bytes
+#define S_CMD_O_INIT        0x0B        // Initialize operation buffer
+#define S_CMD_O_WRITEB      0x0C        // Write opbuf: Write byte with address
+#define S_CMD_O_WRITEN      0x0D        // Write to opbuf: Write-N
+#define S_CMD_O_DELAY       0x0E        // Write opbuf: udelay
+#define S_CMD_O_EXEC        0x0F        // Execute operation buffer
+#define S_CMD_SYNCNOP       0x10        // Special no-operation that returns NAK+ACK
+#define S_CMD_Q_RDNMAXLEN   0x11        // Query read-n maximum length
+#define S_CMD_S_BUSTYPE     0x12        // Set used bustype(s).
+#define S_CMD_O_SPIOP       0x13        // Perform SPI operation.
+#define S_CMD_S_SPI_FREQ    0x14        // Set SPI clock frequency
+#define S_CMD_S_PIN_STATE   0x15        // Enable/disable output drivers
+#define S_CMD_S_SPI_CS      0x16        // Set SPI chip select to use
+#define S_CMD_S_SPI_MODE    0x17        // Sets the SPI mode used by S_CMD_O_SPIOP
+#define S_CMD_S_CS_MODE     0x18        // Sets the way the CS is controlled
 
 enum spi_mode {
   SPI_MODE_HALF_DUPLEX = 0,
@@ -146,7 +146,7 @@ static int perform_serprog_cmd(const PROGRAMMER *pgm, uint8_t cmd,
   return perform_serprog_cmd_full(pgm, cmd, params, params_len, NULL, 0, recv_buf, recv_len);
 }
 
-/**
+/*
  * @brief Sends/receives a message to the AVR in full duplex mode
  * @return -1 on failure, otherwise number of bytes sent/received
  */
@@ -162,7 +162,7 @@ static int serprog_spi_duplex(const PROGRAMMER *pgm, const unsigned char *tx, un
 }
 
 static bool is_serprog_cmd_supported(const unsigned char *cmd_bitmap, unsigned char cmd) {
-  return (cmd_bitmap[cmd / 8] >> (cmd % 8)) & 1;
+  return (cmd_bitmap[cmd/8] >> (cmd%8)) & 1;
 }
 
 // Programmer lifecycle handlers
@@ -281,7 +281,7 @@ static int serprog_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned
 }
 
 static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
-  if(part->prog_modes & PM_TPI) {
+  if(is_tpi(part)) {
     // We do not support TPI; this is a dedicated SPI thing
     pmsg_error("the %s programmer does not support TPI\n", pgmid);
     return -1;
@@ -292,10 +292,8 @@ static int serprog_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
   // Set SPI clock frequency
   if(is_serprog_cmd_supported(my.cmd_bitmap, S_CMD_S_SPI_FREQ)) {
     memset(buf, 0, sizeof buf);
-    uint32_t frequency =
-      pgm->bitclock > 0? 1/pgm->bitclock:
-      part->factory_fcpu > 0? part->factory_fcpu/4:
-      250000;
+    uint32_t frequency = pgm->bitclock > 0? 1/pgm->bitclock: part->factory_fcpu > 0? part->factory_fcpu/4: 250000;
+
     write_le32(buf, frequency);
     if(perform_serprog_cmd(pgm, S_CMD_S_SPI_FREQ, buf, 4, buf, 4) != 0) {
       pmsg_error("cannot set SPI frequency %u Hz\n", (unsigned) frequency);
@@ -374,24 +372,25 @@ static int serprog_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
 
   if(res[2] != cmd[1]) {
 
-    /** From ATtiny441 datasheet:
+    /*
+     * From ATtiny441 datasheet:
      *
      * In some systems, the programmer cannot guarantee that SCK is held low
-     * during power-up. In this case, RESET must be given a positive pulse after
-     * SCK has been set to '0'. The duration of the pulse must be at least t RST
-     * plus two CPU clock cycles. See Table 25-5 on page 240 for definition of
-     * minimum pulse width on RESET pin, t RST
-     * 2. Wait for at least 20 ms and then enable serial programming by sending
-     * the Programming Enable serial instruction to the SDO pin
-     * 3. The serial programming instructions will not work if the communication
-     * is out of synchronization. When in sync, the second byte (0x53) will echo
-     * back when issuing the third byte of the Programming Enable instruction
-     * ...
-     * If the 0x53 did not echo back, give RESET a positive pulse and issue a
-     * new Programming Enable command
+     * during power-up. In this case, RESET must be given a positive pulse
+     * after SCK has been set to '0'. The duration of the pulse must be at
+     * least t RST plus two CPU clock cycles. See Table 25-5 on page 240 for
+     * definition of minimum pulse width on RESET pin, t RST 2. Wait for at
+     * least 20 ms and then enable serial programming by sending the
+     * Programming Enable serial instruction to the SDO pin 3. The serial
+     * programming instructions will not work if the communication is out of
+     * synchronization. When in sync, the second byte (0x53) will echo back
+     * when issuing the third byte of the Programming Enable instruction ... If
+     * the 0x53 did not echo back, give RESET a positive pulse and issue a new
+     * Programming Enable command
      */
 
     unsigned char cs_mode = CS_MODE_DESELECTED;
+
     if(perform_serprog_cmd(pgm, S_CMD_S_CS_MODE, &cs_mode, 1, NULL, 0) != 0)
       return -1;
 

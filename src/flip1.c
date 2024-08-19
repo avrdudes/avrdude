@@ -34,9 +34,10 @@
 
 #include "flip1.h"
 #include "dfu.h"
-#include "usbdevs.h" /* for USB_VENDOR_ATMEL */
+#include "usbdevs.h"            // For USB_VENDOR_ATMEL
 
-/* There are three versions of the FLIP protocol:
+/*
+ * There are three versions of the FLIP protocol:
  *
  * Version 0: C51 parts
  * Version 1: megaAVR parts ("USB DFU Bootloader Datasheet" [doc7618])
@@ -60,35 +61,26 @@
  * Quite cumbersome to the user.
  */
 
-/* EXPORTED CONSTANT STRINGS */
-
 const char flip1_desc[] = "FLIP USB DFU protocol version 1 (doc7618)";
 
-/* PRIVATE DATA STRUCTURES */
-
-struct flip1
-{
+struct flip1 {
   struct dfu_dev *dfu;
   unsigned char part_sig[3];
   unsigned char part_rev;
   unsigned char boot_ver;
-  unsigned char security_mode_flag; /* indicates the user has already
-                                     * been hinted about security
-                                     * mode */
+  unsigned char security_mode_flag; // Indicates security mode was mentioned earlier
 };
 
 #define FLIP1(pgm) ((struct flip1 *)(pgm->cookie))
 
-/* FLIP1 data structures and constants. */
+// FLIP1 data structures and constants
 
-struct flip1_cmd
-{
+struct flip1_cmd {
   unsigned char cmd;
   unsigned char args[5];
 };
 
-struct flip1_cmd_header         /* for memory read/write */
-{
+struct flip1_cmd_header {       // For memory read/write
   unsigned char cmd;
   unsigned char memchr;
   unsigned char start_addr[2];
@@ -96,15 +88,14 @@ struct flip1_cmd_header         /* for memory read/write */
   unsigned char padding[26];
 };
 
-struct flip1_prog_footer
-{
-  unsigned char crc[4];         /* not really used */
-  unsigned char ftr_length;     /* 0x10 */
-  unsigned char signature[3];   /* "DFU" */
-  unsigned char bcdversion[2];  /* 0x01, 0x10 */
-  unsigned char vendor[2];      /* or 0xff, 0xff */
-  unsigned char product[2];     /* or 0xff, 0xff */
-  unsigned char device[2];      /* or 0xff, 0xff */
+struct flip1_prog_footer {
+  unsigned char crc[4];         // Not really used
+  unsigned char ftr_length;     // 0x10
+  unsigned char signature[3];   // DFU
+  unsigned char bcdversion[2];  // 0x01, 0x10
+  unsigned char vendor[2];      // Or 0xff, 0xff
+  unsigned char product[2];     // Or 0xff, 0xff
+  unsigned char device[2];      // Or 0xff, 0xff
 };
 
 #define FLIP1_CMD_PROG_START 0x01
@@ -113,7 +104,7 @@ struct flip1_prog_footer
 #define FLIP1_CMD_READ_COMMAND 0x05
 #define FLIP1_CMD_CHANGE_BASE_ADDRESS 0x06
 
-/* args[1:0] for FLIP1_CMD_READ_COMMAND */
+// Args[1:0] for FLIP1_CMD_READ_COMMAND
 #define FLIP1_READ_BOOTLOADER_VERSION { 0x00, 0x00 }
 #define FLIP1_READ_DEVICE_BOOT_ID1    { 0x00, 0x01 }
 #define FLIP1_READ_DEVICE_BOOT_ID2    { 0x00, 0x02 }
@@ -128,15 +119,13 @@ enum flip1_mem_unit {
   FLIP1_MEM_UNIT_UNKNOWN = -1
 };
 
-#define STATE_dfuERROR 10       /* bState; requires a DFU_CLRSTATUS */
+#define STATE_dfuERROR 10       // bState; requires a DFU_CLRSTATUS
 
-#define LONG_DFU_TIMEOUT  10000 /* 10 s for program and erase */
-
-/* EXPORTED PROGRAMMER FUNCTION PROTOTYPES */
+#define LONG_DFU_TIMEOUT  10000 // 10 s for program and erase
 
 static int flip1_open(PROGRAMMER *pgm, const char *port_spec);
 static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part);
-static void flip1_close(PROGRAMMER* pgm);
+static void flip1_close(PROGRAMMER *pgm);
 static void flip1_enable(PROGRAMMER *pgm, const AVRPART *p);
 static void flip1_disable(const PROGRAMMER *pgm);
 static void flip1_display(const PROGRAMMER *pgm, const char *prefix);
@@ -154,53 +143,45 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
 static void flip1_setup(PROGRAMMER *pgm);
 static void flip1_teardown(PROGRAMMER *pgm);
 
-/* INTERNAL PROGRAMMER FUNCTION PROTOTYPES */
 #ifdef HAVE_LIBUSB
 // The internal ones are made conditional, as they're not defined further down #ifndef HAVE_LIBUSB
-
 static void flip1_show_info(struct flip1 *flip1);
-
-static int flip1_read_memory(const PROGRAMMER *pgm,
-  enum flip1_mem_unit mem_unit, uint32_t addr, void *ptr, int size);
-static int flip1_write_memory(struct dfu_dev *dfu,
-  enum flip1_mem_unit mem_unit, uint32_t addr, const void *ptr, int size);
-
-static const char * flip1_status_str(const struct dfu_status *status);
-static const char * flip1_mem_unit_str(enum flip1_mem_unit mem_unit);
+static int flip1_read_memory(const PROGRAMMER *pgm, enum flip1_mem_unit mem_unit,
+  uint32_t addr, void *ptr, int size);
+static int flip1_write_memory(struct dfu_dev *dfu, enum flip1_mem_unit mem_unit,
+  uint32_t addr, const void *ptr, int size);
+static const char *flip1_status_str(const struct dfu_status *status);
+static const char *flip1_mem_unit_str(enum flip1_mem_unit mem_unit);
 static int flip1_set_mem_page(struct dfu_dev *dfu, unsigned short page_addr);
 static enum flip1_mem_unit flip1_mem_unit(const char *name);
-
-#endif /* HAVE_LIBUSB */
-
-/* THE INITPGM FUNCTION DEFINITIONS */
+#endif                          // HAVE_LIBUSB
 
 void flip1_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "flip1");
 
-  /* Mandatory Functions */
-  pgm->initialize       = flip1_initialize;
-  pgm->enable           = flip1_enable;
-  pgm->disable          = flip1_disable;
-  pgm->display          = flip1_display;
-  pgm->program_enable   = flip1_program_enable;
-  pgm->chip_erase       = flip1_chip_erase;
-  pgm->open             = flip1_open;
-  pgm->close            = flip1_close;
-  pgm->paged_load       = flip1_paged_load;
-  pgm->paged_write      = flip1_paged_write;
-  pgm->read_byte        = flip1_read_byte;
-  pgm->write_byte       = flip1_write_byte;
-  pgm->read_sig_bytes   = flip1_read_sig_bytes;
-  pgm->setup            = flip1_setup;
-  pgm->teardown         = flip1_teardown;
+  // Mandatory functions
+  pgm->initialize = flip1_initialize;
+  pgm->enable = flip1_enable;
+  pgm->disable = flip1_disable;
+  pgm->display = flip1_display;
+  pgm->program_enable = flip1_program_enable;
+  pgm->chip_erase = flip1_chip_erase;
+  pgm->open = flip1_open;
+  pgm->close = flip1_close;
+  pgm->paged_load = flip1_paged_load;
+  pgm->paged_write = flip1_paged_write;
+  pgm->read_byte = flip1_read_byte;
+  pgm->write_byte = flip1_write_byte;
+  pgm->read_sig_bytes = flip1_read_sig_bytes;
+  pgm->setup = flip1_setup;
+  pgm->teardown = flip1_teardown;
 }
 
 #ifdef HAVE_LIBUSB
-/* EXPORTED PROGRAMMER FUNCTION DEFINITIONS */
 
 static int flip1_open(PROGRAMMER *pgm, const char *port_spec) {
   FLIP1(pgm)->dfu = dfu_open(port_spec);
-  return (FLIP1(pgm)->dfu != NULL) ? 0 : -1;
+  return (FLIP1(pgm)->dfu != NULL)? 0: -1;
 }
 
 static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
@@ -227,16 +208,17 @@ static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
    * the PID when matching a target device.
    */
 
-  vid = (pgm->usbvid != 0) ? pgm->usbvid : USB_VENDOR_ATMEL;
+  vid = (pgm->usbvid != 0)? pgm->usbvid: USB_VENDOR_ATMEL;
   LNODEID usbpid = lfirst(pgm->usbpid);
-  if (usbpid) {
-    pid = *(int *)(ldata(usbpid));
-    if (lnext(usbpid))
+
+  if(usbpid) {
+    pid = *(int *) (ldata(usbpid));
+    if(lnext(usbpid))
       pmsg_warning("using PID 0x%04x, ignoring remaining PIDs in list\n", pid);
   } else {
     pid = part->usbpid;
   }
-  if (!ovsigck && (part->prog_modes & PM_PDI)) {
+  if(!ovsigck && is_pdi(part)) {
     pmsg_error("flip1 (FLIP protocol version 1) is for AT90USB* and ATmega*U* devices\n");
     imsg_error("for Xmega devices, use flip2 or use -F to bypass this check\n");
     return -1;
@@ -244,53 +226,52 @@ static int flip1_initialize(const PROGRAMMER *pgm, const AVRPART *part) {
 
   result = dfu_init(FLIP1(pgm)->dfu, vid, pid);
 
-  if (result != 0)
+  if(result != 0)
     goto flip1_initialize_fail;
 
-  /* Check if descriptor values are what we expect. */
+  // Check if descriptor values are what we expect
 
-  if (dfu->dev_desc.idVendor != vid)
+  if(dfu->dev_desc.idVendor != vid)
     pmsg_warning("USB idVendor = 0x%04X (expected 0x%04X)\n", dfu->dev_desc.idVendor, vid);
 
-  if (pid != 0 && dfu->dev_desc.idProduct != pid)
+  if(pid != 0 && dfu->dev_desc.idProduct != pid)
     pmsg_warning("USB idProduct = 0x%04X (expected 0x%04X)\n", dfu->dev_desc.idProduct, pid);
 
-  if (dfu->dev_desc.bNumConfigurations != 1)
+  if(dfu->dev_desc.bNumConfigurations != 1)
     pmsg_warning("USB bNumConfigurations = %d (expected 1)\n", (int) dfu->dev_desc.bNumConfigurations);
 
-  if (dfu->conf_desc.bNumInterfaces != 1)
+  if(dfu->conf_desc.bNumInterfaces != 1)
     pmsg_warning("USB bNumInterfaces = %d (expected 1)\n", (int) dfu->conf_desc.bNumInterfaces);
 
-  if (dfu->dev_desc.bDeviceClass != 254)
+  if(dfu->dev_desc.bDeviceClass != 254)
     pmsg_warning("USB bDeviceClass = %d (expected 254)\n", (int) dfu->dev_desc.bDeviceClass);
 
-  if (dfu->dev_desc.bDeviceSubClass != 1)
+  if(dfu->dev_desc.bDeviceSubClass != 1)
     pmsg_warning("USB bDeviceSubClass = %d (expected 1)\n", (int) dfu->dev_desc.bDeviceSubClass);
 
-  if (dfu->dev_desc.bDeviceProtocol != 0)
+  if(dfu->dev_desc.bDeviceProtocol != 0)
     pmsg_warning("USB bDeviceProtocol = %d (expected 0)\n", (int) dfu->dev_desc.bDeviceProtocol);
 
   /*
-   * doc7618 claims an interface class of FEh and a subclas 01h.
-   * However, as of today (2014-01-16), all values in the interface
-   * descriptor (except of bLength and bDescriptorType) are actually
-   * 0.  So rather don't check these.
+   * Doc7618 claims an interface class of FEh and a subclas 01h. However, as of
+   * today (2014-01-16), all values in the interface descriptor (except of
+   * bLength and bDescriptorType) are actually 0.  So rather don't check these.
    */
-  if (0) {
-  if (dfu->intf_desc.bInterfaceClass != 254)
-    pmsg_warning("USB bInterfaceClass = %d (expected 254)\n", (int) dfu->intf_desc.bInterfaceClass);
+  if(0) {
+    if(dfu->intf_desc.bInterfaceClass != 254)
+      pmsg_warning("USB bInterfaceClass = %d (expected 254)\n", (int) dfu->intf_desc.bInterfaceClass);
 
-  if (dfu->intf_desc.bInterfaceSubClass != 1)
-    pmsg_warning("USB bInterfaceSubClass = %d (expected 1)\n", (int) dfu->intf_desc.bInterfaceSubClass);
+    if(dfu->intf_desc.bInterfaceSubClass != 1)
+      pmsg_warning("USB bInterfaceSubClass = %d (expected 1)\n", (int) dfu->intf_desc.bInterfaceSubClass);
 
-  if (dfu->intf_desc.bInterfaceProtocol != 0)
-    pmsg_warning("USB bInterfaceSubClass = %d (expected 0)\n", (int) dfu->intf_desc.bInterfaceProtocol);
+    if(dfu->intf_desc.bInterfaceProtocol != 0)
+      pmsg_warning("USB bInterfaceSubClass = %d (expected 0)\n", (int) dfu->intf_desc.bInterfaceProtocol);
   }
 
-  if (dfu->dev_desc.bMaxPacketSize0 != 32)
+  if(dfu->dev_desc.bMaxPacketSize0 != 32)
     pmsg_warning("bMaxPacketSize0 (%d) != 32, things might go wrong\n", dfu->dev_desc.bMaxPacketSize0);
 
-  if (verbose > 0)
+  if(verbose > 0)
     flip1_show_info(FLIP1(pgm));
 
   dfu_abort(dfu);
@@ -304,7 +285,7 @@ flip1_initialize_fail:
 }
 
 static void flip1_close(PROGRAMMER *pgm) {
-  if (FLIP1(pgm)->dfu != NULL) {
+  if(FLIP1(pgm)->dfu != NULL) {
     dfu_close(FLIP1(pgm)->dfu);
     FLIP1(pgm)->dfu = NULL;
   }
@@ -324,8 +305,7 @@ static int flip1_program_enable(const PROGRAMMER *pgm, const AVRPART *part) {
    * as "mandatory" in pgm.c. In case anyone does use it, we'll report an
    * error if we failed to initialize.
    */
-
-  return (FLIP1(pgm)->dfu != NULL) ? 0 : -1;
+  return (FLIP1(pgm)->dfu != NULL)? 0: -1;
 }
 
 static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
@@ -337,7 +317,7 @@ static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   pmsg_debug("flip_chip_erase()\n");
 
   struct flip1_cmd cmd = {
-    FLIP1_CMD_WRITE_COMMAND, { 0, 0xff }
+    FLIP1_CMD_WRITE_COMMAND, {0, 0xff}
   };
 
   FLIP1(pgm)->dfu->timeout = LONG_DFU_TIMEOUT;
@@ -345,12 +325,12 @@ static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
   aux_result = dfu_getstatus(FLIP1(pgm)->dfu, &status);
   FLIP1(pgm)->dfu->timeout = default_timeout;
 
-  if (cmd_result < 0 || aux_result < 0)
+  if(cmd_result < 0 || aux_result < 0)
     return -1;
 
-  if (status.bStatus != DFU_STATUS_OK) {
+  if(status.bStatus != DFU_STATUS_OK) {
     pmsg_error("unable to send chip erase command: %s\n", flip1_status_str(&status));
-    if (status.bState == STATE_dfuERROR)
+    if(status.bState == STATE_dfuERROR)
       dfu_clrstatus(FLIP1(pgm)->dfu);
     return -1;
   }
@@ -359,18 +339,17 @@ static int flip1_chip_erase(const PROGRAMMER *pgm, const AVRPART *part) {
 }
 
 static int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char *value)
-{
+  unsigned long addr, unsigned char *value) {
   enum flip1_mem_unit mem_unit;
 
-  if (FLIP1(pgm)->dfu == NULL)
+  if(FLIP1(pgm)->dfu == NULL)
     return -1;
 
-  if (mem_is_signature(mem)) {
-    if (flip1_read_sig_bytes(pgm, part, mem) < 0)
+  if(mem_is_signature(mem)) {
+    if(flip1_read_sig_bytes(pgm, part, mem) < 0)
       return -1;
-    if (addr >= (unsigned long) mem->size) {
-      pmsg_error("signature address %lu out of range [0, %d]\n", addr, mem->size-1);
+    if(addr >= (unsigned long) mem->size) {
+      pmsg_error("signature address %lu out of range [0, %d]\n", addr, mem->size - 1);
       return -1;
     }
     *value = mem->buf[addr];
@@ -379,25 +358,25 @@ static int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVR
 
   mem_unit = flip1_mem_unit(mem->desc);
 
-  if (mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
+  if(mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP\n", mem->desc);
     return -1;
   }
 
-  if (mem_unit == FLIP1_MEM_UNIT_EEPROM)
-    /* 0x01 is used for blank check when reading, 0x02 is EEPROM */
+  if(mem_unit == FLIP1_MEM_UNIT_EEPROM)
+    // 0x01 is used for blank check when reading, 0x02 is EEPROM
     mem_unit = 2;
 
   return flip1_read_memory(pgm, mem_unit, addr, value, 1);
 }
 
 static int flip1_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char value)
-{
+  unsigned long addr, unsigned char value) {
   enum flip1_mem_unit mem_unit;
 
   if(mem_is_readonly(mem)) {
     unsigned char is;
+
     if(pgm->read_byte(pgm, part, mem, addr, &is) >= 0 && is == value)
       return 0;
 
@@ -405,12 +384,12 @@ static int flip1_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AV
     return -1;
   }
 
-  if (FLIP1(pgm)->dfu == NULL)
+  if(FLIP1(pgm)->dfu == NULL)
     return -1;
 
   mem_unit = flip1_mem_unit(mem->desc);
 
-  if (mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
+  if(mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP\n", mem->desc);
     return -1;
   }
@@ -419,51 +398,48 @@ static int flip1_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AV
 }
 
 static int flip1_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   enum flip1_mem_unit mem_unit;
 
-  if (FLIP1(pgm)->dfu == NULL)
+  if(FLIP1(pgm)->dfu == NULL)
     return -1;
 
   mem_unit = flip1_mem_unit(mem->desc);
 
-  if (mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
+  if(mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP\n", mem->desc);
     return -1;
   }
 
-  if (mem_unit == FLIP1_MEM_UNIT_EEPROM)
-    /* 0x01 is used for blank check when reading, 0x02 is EEPROM */
+  if(mem_unit == FLIP1_MEM_UNIT_EEPROM)
+    // 0x01 is used for blank check when reading, 0x02 is EEPROM
     mem_unit = 2;
 
   return flip1_read_memory(pgm, mem_unit, addr, mem->buf + addr, n_bytes);
 }
 
 static int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   enum flip1_mem_unit mem_unit;
   int result;
 
-  if (FLIP1(pgm)->dfu == NULL)
+  if(FLIP1(pgm)->dfu == NULL)
     return -1;
 
   mem_unit = flip1_mem_unit(mem->desc);
 
-  if (mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
+  if(mem_unit == FLIP1_MEM_UNIT_UNKNOWN) {
     pmsg_error("%s memory not accessible using FLIP\n", mem->desc);
     return -1;
   }
 
-  if (n_bytes > INT_MAX) {
-    /* This should never happen, unless the int type is only 16 bits. */
+  if(n_bytes > INT_MAX) {
+    // This should never happen, unless the int type is only 16 bits
     pmsg_error("attempting to read more than %d bytes\n", INT_MAX);
     return -1;
   }
 
-  result = flip1_write_memory(FLIP1(pgm)->dfu, mem_unit, addr,
-    mem->buf + addr, n_bytes);
+  result = flip1_write_memory(FLIP1(pgm)->dfu, mem_unit, addr, mem->buf + addr, n_bytes);
 
   return result == 0? (int) n_bytes: -1;
 }
@@ -471,46 +447,42 @@ static int flip1_paged_write(const PROGRAMMER *pgm, const AVRPART *part, const A
 static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem) {
   pmsg_debug("%s(): ", __func__);
 
-  if (FLIP1(pgm)->dfu == NULL)
+  if(FLIP1(pgm)->dfu == NULL)
     return -1;
 
-  if (mem->size < (int) sizeof(FLIP1(pgm)->part_sig)) {
+  if(mem->size < (int) sizeof(FLIP1(pgm)->part_sig)) {
     pmsg_error("signature read must be at least %u bytes\n", (unsigned int) sizeof(FLIP1(pgm)->part_sig));
     return -1;
   }
 
-  if (FLIP1(pgm)->part_sig[0] == 0 &&
-      FLIP1(pgm)->part_sig[1] == 0 &&
-      FLIP1(pgm)->part_sig[2] == 0)
-  {
-    /* signature not yet cached */
+  if(FLIP1(pgm)->part_sig[0] == 0 && FLIP1(pgm)->part_sig[1] == 0 && FLIP1(pgm)->part_sig[2] == 0) {
+    // Signature not yet cached
     struct dfu_status status;
     int cmd_result = 0;
     int aux_result;
     int i;
+
     struct flip1_cmd cmd = {
       FLIP1_CMD_READ_COMMAND, FLIP1_READ_FAMILY_CODE
     };
 
     msg_debug("from device\n");
 
-    for (i = 0; i < 3; i++)
-    {
-      if (i == 1)
-        cmd.args[1] = 0x60;     /* product name */
-      else if (i == 2)
-        cmd.args[1] = 0x61;     /* product revision */
+    for(i = 0; i < 3; i++) {
+      if(i == 1)
+        cmd.args[1] = 0x60;     // Product name
+      else if(i == 2)
+        cmd.args[1] = 0x61;     // Product revision
 
       cmd_result = dfu_dnload(FLIP1(pgm)->dfu, &cmd, 3);
       aux_result = dfu_getstatus(FLIP1(pgm)->dfu, &status);
 
-      if (cmd_result < 0 || aux_result < 0)
+      if(cmd_result < 0 || aux_result < 0)
         return -1;
 
-      if (status.bStatus != DFU_STATUS_OK)
-      {
+      if(status.bStatus != DFU_STATUS_OK) {
         pmsg_error("unable to send cmd for signature byte %d: %s\n", i, flip1_status_str(&status));
-        if (status.bState == STATE_dfuERROR)
+        if(status.bState == STATE_dfuERROR)
           dfu_clrstatus(FLIP1(pgm)->dfu);
         return -1;
       }
@@ -518,20 +490,17 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
       cmd_result = dfu_upload(FLIP1(pgm)->dfu, &(FLIP1(pgm)->part_sig[i]), 1);
       aux_result = dfu_getstatus(FLIP1(pgm)->dfu, &status);
 
-      if (cmd_result < 0 || aux_result < 0)
+      if(cmd_result < 0 || aux_result < 0)
         return -1;
 
-      if (status.bStatus != DFU_STATUS_OK)
-      {
+      if(status.bStatus != DFU_STATUS_OK) {
         pmsg_error("unable to read signature byte %d: %s\n", i, flip1_status_str(&status));
-        if (status.bState == STATE_dfuERROR)
+        if(status.bState == STATE_dfuERROR)
           dfu_clrstatus(FLIP1(pgm)->dfu);
         return -1;
       }
     }
-  }
-  else
-  {
+  } else {
     msg_debug("cached\n");
   }
 
@@ -557,32 +526,30 @@ static void flip1_show_info(struct flip1 *flip1) {
   msg_info("    USB max packet size : %hu\n", (unsigned short) flip1->dfu->dev_desc.bMaxPacketSize0);
 }
 
-static int flip1_read_memory(const PROGRAMMER *pgm,
-  enum flip1_mem_unit mem_unit, uint32_t addr, void *ptr, int size)
-{
+static int flip1_read_memory(const PROGRAMMER *pgm, enum flip1_mem_unit mem_unit, uint32_t addr, void *ptr, int size) {
   struct dfu_dev *dfu = FLIP1(pgm)->dfu;
   unsigned short page_addr;
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
+
   struct flip1_cmd cmd = {
-    FLIP1_CMD_DISPLAY_DATA, { mem_unit }
+    FLIP1_CMD_DISPLAY_DATA, {mem_unit}
   };
   unsigned int default_timeout = dfu->timeout;
-
 
   pmsg_debug("flip_read_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
 
   /*
-   * As this function is called once per page, no need to handle 64
-   * KiB border crossing below.
+   * As this function is called once per page, no need to handle 64 KiB border
+   * crossing below.
    *
-   * Also, on AVRs, no page size is larger than 1 KiB, so no need to
-   * split the request into multiple 1 KiB chunks.
+   * Also, on AVRs, no page size is larger than 1 KiB, so no need to split the
+   * request into multiple 1 KiB chunks.
    */
-  if (mem_unit == FLIP1_MEM_UNIT_FLASH) {
+  if(mem_unit == FLIP1_MEM_UNIT_FLASH) {
     page_addr = addr >> 16;
-    if (flip1_set_mem_page(dfu, page_addr) < 0)
+    if(flip1_set_mem_page(dfu, page_addr) < 0)
       return -1;
   }
 
@@ -596,36 +563,33 @@ static int flip1_read_memory(const PROGRAMMER *pgm,
   dfu->timeout = default_timeout;
   aux_result = dfu_getstatus(dfu, &status);
 
-  if (cmd_result < 0 || aux_result < 0)
+  if(cmd_result < 0 || aux_result < 0)
     return -1;
 
-  if (status.bStatus != DFU_STATUS_OK)
-  {
+  if(status.bStatus != DFU_STATUS_OK) {
     pmsg_error("unable to read %u bytes of %s memory @%u: %s\n", size,
       flip1_mem_unit_str(mem_unit), addr, flip1_status_str(&status));
-    if (status.bState == STATE_dfuERROR)
+    if(status.bState == STATE_dfuERROR)
       dfu_clrstatus(dfu);
     return -1;
   }
 
-  cmd_result = dfu_upload(dfu, (char*) ptr, size);
+  cmd_result = dfu_upload(dfu, (char *) ptr, size);
   aux_result = dfu_getstatus(dfu, &status);
 
-  if (cmd_result < 0 && aux_result == 0 &&
-      status.bStatus == DFU_STATUS_ERR_WRITE) {
-    if (FLIP1(pgm)->security_mode_flag == 0)
+  if(cmd_result < 0 && aux_result == 0 && status.bStatus == DFU_STATUS_ERR_WRITE) {
+    if(FLIP1(pgm)->security_mode_flag == 0)
       pmsg_error("maybe the device is in security mode and needs a chip erase first?\n");
     FLIP1(pgm)->security_mode_flag = 1;
   }
 
-  if (cmd_result < 0 || aux_result < 0)
+  if(cmd_result < 0 || aux_result < 0)
     return -1;
 
-  if (status.bStatus != DFU_STATUS_OK)
-  {
+  if(status.bStatus != DFU_STATUS_OK) {
     pmsg_error("unable to read %u bytes of %s memory @%u: %s\n", size,
       flip1_mem_unit_str(mem_unit), addr, flip1_status_str(&status));
-    if (status.bState == STATE_dfuERROR)
+    if(status.bState == STATE_dfuERROR)
       dfu_clrstatus(dfu);
     return -1;
   }
@@ -633,37 +597,36 @@ static int flip1_read_memory(const PROGRAMMER *pgm,
   return 0;
 }
 
-static int flip1_write_memory(struct dfu_dev *dfu,
-  enum flip1_mem_unit mem_unit, uint32_t addr, const void *ptr, int size)
-{
+static int flip1_write_memory(struct dfu_dev *dfu, enum flip1_mem_unit mem_unit,
+  uint32_t addr, const void *ptr, int size) {
+
   unsigned short page_addr;
   int write_size;
   struct dfu_status status;
   int cmd_result = 0;
   int aux_result;
+
   struct flip1_cmd_header cmd_header = {
     FLIP1_CMD_PROG_START, mem_unit, {0}, {0}, {0},
   };
   struct flip1_prog_footer cmd_footer = {
-    { 0, 0, 0, 0 },             /* CRC */
-    0x10,                       /* footer length */
-    { 'D', 'F', 'U' },          /* signature */
-    { 0x01, 0x10 },             /* BCD version */
-    { 0xff, 0xff },             /* vendor */
-    { 0xff, 0xff },             /* product */
-    { 0xff, 0xff }              /* device */
+    {0, 0, 0, 0},               // CRC
+    0x10,                       // Footer length
+    {'D', 'F', 'U'},            // Signature
+    {0x01, 0x10},               // BCD version
+    {0xff, 0xff},               // Vendor
+    {0xff, 0xff},               // Product
+    {0xff, 0xff}                // Device
   };
   unsigned int default_timeout = dfu->timeout;
   unsigned char *buf;
 
-  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n",
-    flip1_mem_unit_str(mem_unit), addr, size);
+  pmsg_debug("flip_write_memory(%s, 0x%04x, %d)\n", flip1_mem_unit_str(mem_unit), addr, size);
 
-  if (size < 32) {
-    /* presumably single-byte updates; must be padded to USB endpoint size */
-    if ((addr + size - 1) / 32 != addr / 32) {
-      pmsg_error("begin 0x%x and end 0x%x not within same 32-byte block\n",
-        addr, addr + size - 1);
+  if(size < 32) {
+    // Presumably single-byte updates; must be padded to USB endpoint size
+    if((addr + size - 1)/32 != addr/32) {
+      pmsg_error("begin 0x%x and end 0x%x not within same 32-byte block\n", addr, addr + size - 1);
       return -1;
     }
     write_size = 32;
@@ -674,15 +637,15 @@ static int flip1_write_memory(struct dfu_dev *dfu,
   buf = mmt_malloc(sizeof(struct flip1_cmd_header) + write_size + sizeof(struct flip1_prog_footer));
 
   /*
-   * As this function is called once per page, no need to handle 64
-   * KiB border crossing below.
+   * As this function is called once per page, no need to handle 64 KiB border
+   * crossing below.
    *
-   * Also, on AVRs, no page size is larger than 1 KiB, so no need to
-   * split the request into multiple 1 KiB chunks.
+   * Also, on AVRs, no page size is larger than 1 KiB, so no need to split the
+   * request into multiple 1 KiB chunks.
    */
-  if (mem_unit == FLIP1_MEM_UNIT_FLASH) {
+  if(mem_unit == FLIP1_MEM_UNIT_FLASH) {
     page_addr = addr >> 16;
-    if (flip1_set_mem_page(dfu, page_addr) < 0) {
+    if(flip1_set_mem_page(dfu, page_addr) < 0) {
       mmt_free(buf);
       return -1;
     }
@@ -694,33 +657,28 @@ static int flip1_write_memory(struct dfu_dev *dfu,
   cmd_header.end_addr[1] = (addr + size - 1) & 0xFF;
 
   memcpy(buf, &cmd_header, sizeof(struct flip1_cmd_header));
-  if (size < 32) {
+  if(size < 32) {
     memset(buf + sizeof(struct flip1_cmd_header), 0xff, 32);
-    memcpy(buf + sizeof(struct flip1_cmd_header) + (addr % 32), ptr, size);
+    memcpy(buf + sizeof(struct flip1_cmd_header) + (addr%32), ptr, size);
   } else {
     memcpy(buf + sizeof(struct flip1_cmd_header), ptr, size);
   }
-  memcpy(buf + sizeof(struct flip1_cmd_header) + write_size,
-         &cmd_footer, sizeof(struct flip1_prog_footer));
+  memcpy(buf + sizeof(struct flip1_cmd_header) + write_size, &cmd_footer, sizeof(struct flip1_prog_footer));
 
   dfu->timeout = LONG_DFU_TIMEOUT;
-  cmd_result = dfu_dnload(dfu, buf,
-                          sizeof(struct flip1_cmd_header) +
-                          write_size +
-                          sizeof(struct flip1_prog_footer));
+  cmd_result = dfu_dnload(dfu, buf, sizeof(struct flip1_cmd_header) + write_size + sizeof(struct flip1_prog_footer));
   aux_result = dfu_getstatus(dfu, &status);
   dfu->timeout = default_timeout;
 
   mmt_free(buf);
 
-  if (aux_result < 0 || cmd_result < 0)
+  if(aux_result < 0 || cmd_result < 0)
     return -1;
 
-  if (status.bStatus != DFU_STATUS_OK)
-  {
+  if(status.bStatus != DFU_STATUS_OK) {
     pmsg_error("unable to write %u bytes of %s memory @%u: %s\n", size,
       flip1_mem_unit_str(mem_unit), addr, flip1_status_str(&status));
-    if (status.bState == STATE_dfuERROR)
+    if(status.bState == STATE_dfuERROR)
       dfu_clrstatus(dfu);
     return -1;
   }
@@ -734,20 +692,19 @@ static int flip1_set_mem_page(struct dfu_dev *dfu, unsigned short page_addr) {
   int aux_result;
 
   struct flip1_cmd cmd = {
-    FLIP1_CMD_CHANGE_BASE_ADDRESS, { 0, page_addr }
+    FLIP1_CMD_CHANGE_BASE_ADDRESS, {0, page_addr}
   };
 
   cmd_result = dfu_dnload(dfu, &cmd, 3);
 
   aux_result = dfu_getstatus(dfu, &status);
 
-  if (cmd_result < 0 || aux_result < 0)
+  if(cmd_result < 0 || aux_result < 0)
     return -1;
 
-  if (status.bStatus != DFU_STATUS_OK)
-  {
+  if(status.bStatus != DFU_STATUS_OK) {
     pmsg_error("unable to set memory page: %s\n", flip1_status_str(&status));
-    if (status.bState == STATE_dfuERROR)
+    if(status.bState == STATE_dfuERROR)
       dfu_clrstatus(dfu);
     return -1;
   }
@@ -756,7 +713,7 @@ static int flip1_set_mem_page(struct dfu_dev *dfu, unsigned short page_addr) {
 }
 
 static const char *flip1_status_str(const struct dfu_status *status) {
-  static const char * const msg[] = {
+  static const char *const msg[] = {
     "No error condition is present",
     "File is not targeted for use by this device",
     "File is for this device but fails some vendor-specific verification test",
@@ -774,28 +731,31 @@ static const char *flip1_status_str(const struct dfu_status *status) {
     "Something went wrong, but the device does not know what it was",
     "Device stalled an unexpected request",
   };
-  if (status->bStatus < sizeof msg / sizeof msg[0])
+  if(status->bStatus < sizeof msg/sizeof msg[0])
     return msg[status->bStatus];
 
   return "Unknown status code";
 }
 
 static const char *flip1_mem_unit_str(enum flip1_mem_unit mem_unit) {
-  switch (mem_unit) {
-  case FLIP1_MEM_UNIT_FLASH: return "Flash";
-  case FLIP1_MEM_UNIT_EEPROM: return "EEPROM";
-  default: return "unknown";
+  switch(mem_unit) {
+  case FLIP1_MEM_UNIT_FLASH:
+    return "Flash";
+  case FLIP1_MEM_UNIT_EEPROM:
+    return "EEPROM";
+  default:
+    return "unknown";
   }
 }
 
 static enum flip1_mem_unit flip1_mem_unit(const char *name) {
-  if (str_eq(name, "flash"))
+  if(str_eq(name, "flash"))
     return FLIP1_MEM_UNIT_FLASH;
-  if (str_eq(name, "eeprom"))
+  if(str_eq(name, "eeprom"))
     return FLIP1_MEM_UNIT_EEPROM;
   return FLIP1_MEM_UNIT_UNKNOWN;
 }
-#else /* HAVE_LIBUSB */
+#else                           // HAVE_LIBUSB
 
 // Dummy functions
 static int flip1_open(PROGRAMMER *pgm, const char *port_spec) {
@@ -833,14 +793,12 @@ static int flip1_read_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVR
 }
 
 static int flip1_write_byte(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned long addr, unsigned char value)
-{
+  unsigned long addr, unsigned char value) {
   return -1;
 }
 
 static int flip1_paged_load(const PROGRAMMER *pgm, const AVRPART *part, const AVRMEM *mem,
-  unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   return -1;
 }
 
@@ -853,10 +811,9 @@ static int flip1_read_sig_bytes(const PROGRAMMER *pgm, const AVRPART *part, cons
   return -1;
 }
 
-static void flip1_setup(PROGRAMMER * pgm) {
+static void flip1_setup(PROGRAMMER *pgm) {
 }
 
 static void flip1_teardown(PROGRAMMER *pgm) {
 }
-
-#endif /* HAVE_LIBUSB */
+#endif                          // HAVE_LIBUSB

@@ -23,11 +23,10 @@
 extern "C" {
 #endif
 
-extern const char par_desc[];
-void par_initpgm(PROGRAMMER *pgm);
+  extern const char par_desc[];
+  void par_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif

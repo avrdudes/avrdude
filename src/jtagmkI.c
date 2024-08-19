@@ -16,9 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * avrdude interface for Atmel JTAG ICE (mkI) programmer
- */
+// Avrdude interface for Atmel JTAG ICE (mkI) programmer
 
 #include <ac_cfg.h>
 
@@ -37,17 +35,10 @@
 #include "jtagmkI.h"
 #include "jtagmkI_private.h"
 
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
+struct pdata {
   int initial_baudrate;
 
-  /*
-   * See jtagmkI_read_byte() for an explanation of the flash and
-   * EEPROM page caches.
-   */
+  // See jtagmkI_read_byte() for an explanation of the flash and EEPROM page caches
   unsigned char *flash_pagecache;
   unsigned long flash_pageaddr;
   unsigned int flash_pagesize;
@@ -56,41 +47,39 @@ struct pdata
   unsigned long eeprom_pageaddr;
   unsigned int eeprom_pagesize;
 
-  int prog_enabled;	/* Cached value of PROGRAMMING status. */
+  int prog_enabled;             // Cached value of PROGRAMMING status
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 /*
- * Table of baud rates supported by the mkI ICE, accompanied by their
- * internal parameter value.
+ * Table of baud rates supported by the mkI ICE, accompanied by their internal
+ * parameter value.
  *
- * 19200 is the initial value of the ICE after powerup, and virtually
- * all connections then switch to 115200.  As the table is also used
- * to try connecting at startup, we keep these two entries on top to
- * speedup the program start.
+ * 19200 is the initial value of the ICE after powerup, and virtually all
+ * connections then switch to 115200.  As the table is also used to try
+ * connecting at startup, we keep these two entries on top to speedup the
+ * program start.
  */
 static const struct {
   long baud;
   unsigned char val;
 } baudtab[] = {
-  {  19200L, 0xfa },
-  { 115200L, 0xff },
-  {   9600L, 0xf4 },
-  {  38400L, 0xfd },
-  {  57600L, 0xfe },
-/*  {  14400L, 0xf8 }, */ /* not supported by serial driver */
+  {19200L, 0xfa},
+  {115200L, 0xff},
+  {9600L, 0xf4},
+  {38400L, 0xfd},
+  {57600L, 0xfe},
+  // {  14400L, 0xf8 },  // Not supported by serial driver
 };
 
 static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-			      unsigned long addr, unsigned char * value);
+  unsigned long addr, unsigned char *value);
 static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-			       unsigned long addr, unsigned char data);
+  unsigned long addr, unsigned char data);
 static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v);
-static int jtagmkI_getparm(const PROGRAMMER *pgm, unsigned char parm,
-			    unsigned char * value);
-static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
-			    unsigned char value);
+static int jtagmkI_getparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char *value);
+static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char value);
 static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 
 static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon);
@@ -104,7 +93,6 @@ static void jtagmkI_teardown(PROGRAMMER *pgm) {
   pgm->cookie = NULL;
 }
 
-
 static void u32_to_b3(unsigned char *b, unsigned long l) {
   b[2] = l & 0xff;
   b[1] = (l >> 8) & 0xff;
@@ -117,22 +105,23 @@ static void u16_to_b2(unsigned char *b, unsigned short l) {
 }
 
 static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
-  if (verbose >= MSG_TRACE) {
+  if(verbose >= MSG_TRACE) {
     msg_trace("Raw message:\n");
 
     size_t i;
-    for (i = 0; i < len; i++) {
+
+    for(i = 0; i < len; i++) {
       msg_trace("0x%02x ", data[i]);
-      if (i % 16 == 15)
-	msg_trace("\n");
+      if(i%16 == 15)
+        msg_trace("\n");
       else
-	msg_trace(" ");
+        msg_trace(" ");
     }
-    if (i % 16 != 0)
+    if(i%16 != 0)
       msg_trace("\n");
   }
 
-  switch (data[0]) {
+  switch(data[0]) {
   case RESP_OK:
     msg_info("OK\n");
     break;
@@ -168,7 +157,6 @@ static void jtagmkI_prmsg(const PROGRAMMER *pgm, unsigned char *data, size_t len
   msg_info("\n");
 }
 
-
 static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) {
   unsigned char *buf;
 
@@ -177,10 +165,10 @@ static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
 
   buf = mmt_malloc(len + 2);
   memcpy(buf, data, len);
-  buf[len] = ' ';		/* "CRC" */
-  buf[len + 1] = ' ';		/* EOP */
+  buf[len] = ' ';               // CRC
+  buf[len + 1] = ' ';           // EOP
 
-  if (serial_send(&pgm->fd, buf, len + 2) != 0) {
+  if(serial_send(&pgm->fd, buf, len + 2) != 0) {
     pmsg_error("unable to send command to serial port\n");
     mmt_free(buf);
     return -1;
@@ -192,23 +180,21 @@ static int jtagmkI_send(const PROGRAMMER *pgm, unsigned char *data, size_t len) 
 }
 
 static int jtagmkI_recv(const PROGRAMMER *pgm, unsigned char *buf, size_t len) {
-  if (serial_recv(&pgm->fd, buf, len) != 0) {
+  if(serial_recv(&pgm->fd, buf, len) != 0) {
     msg_error("\n");
     pmsg_error("unable to send command to serial port\n");
     return -1;
   }
-  if (verbose >= MSG_DEBUG) {
+  if(verbose >= MSG_DEBUG) {
     msg_debug("\n");
     jtagmkI_prmsg(pgm, buf, len);
   }
   return 0;
 }
 
-
 static int jtagmkI_drain(const PROGRAMMER *pgm, int display) {
   return serial_drain(&pgm->fd, display);
 }
-
 
 static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
   int tries;
@@ -221,33 +207,31 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
 
   jtagmkI_drain(pgm, 0);
 
-  for (tries = 0; tries < maxtries; tries++) {
+  for(tries = 0; tries < maxtries; tries++) {
 
-    /* Get the sign-on information. */
+    // Get the sign-on information
     buf[0] = CMD_GET_SYNC;
     pmsg_notice2("%s(): sending sync command: ", __func__);
 
-    if (serial_send(&pgm->fd, buf, 1) != 0) {
+    if(serial_send(&pgm->fd, buf, 1) != 0) {
       msg_error("\n");
       pmsg_error("unable to send command to serial port\n");
       serial_recv_timeout = otimeout;
       return -1;
     }
-    if (serial_recv(&pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
+    if(serial_recv(&pgm->fd, resp, 1) == 0 && resp[0] == RESP_OK) {
       msg_notice2("got RESP_OK\n");
       break;
     }
 
-    if (signon) {
+    if(signon) {
       /*
-       * The following is black magic, the idea has been taken from
-       * AVaRICE.
+       * The following is black magic, the idea has been taken from AVaRICE.
        *
-       * Apparently, the ICE behaves differently right after a
-       * power-up vs. when reconnecting to an ICE that has already
-       * been worked with.  The undocumented 'E' command (or
-       * subcommand) occasionally helps in getting the connection into
-       * sync.
+       * Apparently, the ICE behaves differently right after a power-up vs.
+       * when reconnecting to an ICE that has already been worked with.  The
+       * undocumented 'E' command (or subcommand) occasionally helps in getting
+       * the connection into sync.
        */
       buf[0] = CMD_GET_SIGNON;
       buf[1] = 'E';
@@ -255,19 +239,19 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
       buf[3] = ' ';
       pmsg_notice2("%s(): sending sign-on command: ", __func__);
 
-      if (serial_send(&pgm->fd, buf, 4) != 0) {
-	msg_error("\n");
-	pmsg_error("unable to send command to serial port\n");
-	serial_recv_timeout = otimeout;
-	return -1;
+      if(serial_send(&pgm->fd, buf, 4) != 0) {
+        msg_error("\n");
+        pmsg_error("unable to send command to serial port\n");
+        serial_recv_timeout = otimeout;
+        return -1;
       }
-      if (serial_recv(&pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
+      if(serial_recv(&pgm->fd, resp, 9) == 0 && resp[0] == RESP_OK) {
         msg_notice2("got RESP_OK\n");
-	break;
+        break;
       }
     }
   }
-  if (tries >= maxtries) {
+  if(tries >= maxtries) {
     pmsg_notice2("%s(): timeout/error communicating with programmer\n", __func__);
     serial_recv_timeout = otimeout;
     return -1;
@@ -280,7 +264,7 @@ static int jtagmkI_resync(const PROGRAMMER *pgm, int maxtries, int signon) {
 static int jtagmkI_getsync(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[9];
 
-  if (jtagmkI_resync(pgm, 5, 1) < 0) {
+  if(jtagmkI_resync(pgm, 5, 1) < 0) {
     jtagmkI_drain(pgm, 0);
     return -1;
   }
@@ -291,7 +275,7 @@ static int jtagmkI_getsync(const PROGRAMMER *pgm) {
 
   buf[0] = CMD_GET_SIGNON;
   jtagmkI_send(pgm, buf, 1);
-  if (jtagmkI_recv(pgm, resp, 9) < 0)
+  if(jtagmkI_recv(pgm, resp, 9) < 0)
     return -1;
   resp[8] = '\0';
   msg_notice2("got %s\n", resp + 1);
@@ -299,18 +283,16 @@ static int jtagmkI_getsync(const PROGRAMMER *pgm) {
   return 0;
 }
 
-/*
- * issue the 'chip erase' command to the AVR device
- */
+// Issue the chip erase command to the AVR device
 static int jtagmkI_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char buf[1], resp[2];
 
   buf[0] = CMD_CHIP_ERASE;
   pmsg_notice2("%s(): sending chip erase command: ", __func__);
   jtagmkI_send(pgm, buf, 1);
-  if (jtagmkI_recv(pgm, resp, 2) < 0)
+  if(jtagmkI_recv(pgm, resp, 2) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
@@ -326,7 +308,7 @@ static int jtagmkI_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char resp[2];
   LNODEID ln;
-  AVRMEM * m;
+  AVRMEM *m;
   struct {
     unsigned char cmd;
     struct device_descriptor dd;
@@ -337,22 +319,22 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   sendbuf.dd.ucSPMCRAddress = p->spmcr;
   sendbuf.dd.ucRAMPZAddress = p->rampz;
   sendbuf.dd.ucIDRAddress = p->idr;
-  for (ln = lfirst(p->mem); ln; ln = lnext(ln)) {
+  for(ln = lfirst(p->mem); ln; ln = lnext(ln)) {
     m = ldata(ln);
-    if (mem_is_flash(m)) {
-      PDATA(pgm)->flash_pagesize = m->page_size;
-      u16_to_b2(sendbuf.dd.uiFlashPageSize, PDATA(pgm)->flash_pagesize);
-    } else if (mem_is_eeprom(m)) {
-      sendbuf.dd.ucEepromPageSize = PDATA(pgm)->eeprom_pagesize = m->page_size;
+    if(mem_is_flash(m)) {
+      my.flash_pagesize = m->page_size;
+      u16_to_b2(sendbuf.dd.uiFlashPageSize, my.flash_pagesize);
+    } else if(mem_is_eeprom(m)) {
+      sendbuf.dd.ucEepromPageSize = my.eeprom_pagesize = m->page_size;
     }
   }
 
   pmsg_notice2("%s(): sending set device descriptor command: ", __func__);
-  jtagmkI_send(pgm, (unsigned char *)&sendbuf, sizeof(sendbuf));
+  jtagmkI_send(pgm, (unsigned char *) &sendbuf, sizeof(sendbuf));
 
-  if (jtagmkI_recv(pgm, resp, 2) < 0)
+  if(jtagmkI_recv(pgm, resp, 2) < 0)
     return;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
   } else {
@@ -360,9 +342,7 @@ static void jtagmkI_set_devdescr(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 }
 
-/*
- * Reset the target.
- */
+// Reset the target
 static int jtagmkI_reset(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
@@ -370,14 +350,14 @@ static int jtagmkI_reset(const PROGRAMMER *pgm) {
   pmsg_notice2("%s(): sending reset command: ", __func__);
   jtagmkI_send(pgm, buf, 1);
 
-  if (jtagmkI_recv(pgm, resp, 2) < 0)
+  if(jtagmkI_recv(pgm, resp, 2) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
   } else {
-     msg_notice2("OK\n");
+    msg_notice2("OK\n");
   }
 
   return 0;
@@ -390,16 +370,16 @@ static int jtagmkI_program_enable_dummy(const PROGRAMMER *pgm, const AVRPART *p)
 static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
-  if (PDATA(pgm)->prog_enabled)
+  if(my.prog_enabled)
     return 0;
 
   buf[0] = CMD_ENTER_PROGMODE;
   pmsg_notice2("%s(): sending enter progmode command: ", __func__);
   jtagmkI_send(pgm, buf, 1);
 
-  if (jtagmkI_recv(pgm, resp, 2) < 0)
+  if(jtagmkI_recv(pgm, resp, 2) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
@@ -407,7 +387,7 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
     msg_notice2("OK\n");
   }
 
-  PDATA(pgm)->prog_enabled = 1;
+  my.prog_enabled = 1;
 
   return 0;
 }
@@ -415,17 +395,17 @@ static int jtagmkI_program_enable(const PROGRAMMER *pgm) {
 static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
   unsigned char buf[1], resp[2];
 
-  if (!PDATA(pgm)->prog_enabled)
+  if(!my.prog_enabled)
     return 0;
 
-  if (pgm->fd.ifd != -1) {
+  if(pgm->fd.ifd != -1) {
     buf[0] = CMD_LEAVE_PROGMODE;
     pmsg_notice2("%s(): sending leave progmode command: ", __func__);
     jtagmkI_send(pgm, buf, 1);
 
-    if (jtagmkI_recv(pgm, resp, 2) < 0)
+    if(jtagmkI_recv(pgm, resp, 2) < 0)
       return -1;
-    if (resp[0] != RESP_OK) {
+    if(resp[0] != RESP_OK) {
       msg_notice2("\n");
       pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
       return -1;
@@ -433,103 +413,98 @@ static int jtagmkI_program_disable(const PROGRAMMER *pgm) {
       msg_notice2("OK\n");
     }
   }
-  PDATA(pgm)->prog_enabled = 0;
+  my.prog_enabled = 0;
 
   return 0;
 }
 
 static unsigned char jtagmkI_get_baud(long baud) {
-  for (size_t i = 0; i < sizeof baudtab / sizeof baudtab[0]; i++)
-    if (baud == baudtab[i].baud)
+  for(size_t i = 0; i < sizeof baudtab/sizeof baudtab[0]; i++)
+    if(baud == baudtab[i].baud)
       return baudtab[i].val;
 
   return 0;
 }
 
-/*
- * initialize the AVR device and prepare it to accept commands
- */
+// Initialize the AVR device and prepare it to accept commands
 static int jtagmkI_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
   unsigned char cmd[1], resp[5];
   unsigned char b;
 
-  if (!(p->prog_modes & (PM_JTAGmkI | PM_JTAG))) {
+  if(!(p->prog_modes & (PM_JTAGmkI | PM_JTAG))) {
     pmsg_error("part %s has no JTAG interface\n", p->desc);
     return -1;
   }
-  if (!(p->prog_modes & PM_JTAGmkI))
+  if(!is_jtagmki(p))
     pmsg_warning("part %s has JTAG interface, but may be too new\n", p->desc);
 
   jtagmkI_drain(pgm, 0);
 
-  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
-    if ((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
+  if((serdev->flags & SERDEV_FL_CANSETSPEED) && my.initial_baudrate != pgm->baudrate) {
+    if((b = jtagmkI_get_baud(pgm->baudrate)) == 0) {
       pmsg_error("unsupported baudrate %d\n", pgm->baudrate);
     } else {
       pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, pgm->baudrate);
-      if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
-        PDATA(pgm)->initial_baudrate = pgm->baudrate; /* don't adjust again later */
+      if(jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
+        my.initial_baudrate = pgm->baudrate; // Don't adjust again later
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
     }
   }
 
-  if (pgm->bitclock != 0.0) {
+  if(pgm->bitclock != 0.0) {
     pmsg_notice2("%s(): trying to set JTAG clock period to %.1f us\n", __func__, pgm->bitclock);
-    if (jtagmkI_set_sck_period(pgm, pgm->bitclock) != 0)
+    if(jtagmkI_set_sck_period(pgm, pgm->bitclock) != 0)
       return -1;
   }
 
   cmd[0] = CMD_STOP;
   jtagmkI_send(pgm, cmd, 1);
-  if (jtagmkI_recv(pgm, resp, 5) < 0)
+  if(jtagmkI_recv(pgm, resp, 5) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_warning("timeout/error communicating with programmer (resp %c)\n", resp[0]);
   } else {
     msg_notice2("OK\n");
   }
 
-  /*
-   * Must set the device descriptor before entering programming mode.
-   */
+  // Must set the device descriptor before entering programming mode
   jtagmkI_set_devdescr(pgm, p);
 
-  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_LOW, PDATA(pgm)->flash_pagesize & 0xff);
-  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, PDATA(pgm)->flash_pagesize >> 8);
-  jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, PDATA(pgm)->eeprom_pagesize & 0xff);
+  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_LOW, my.flash_pagesize & 0xff);
+  jtagmkI_setparm(pgm, PARM_FLASH_PAGESIZE_HIGH, my.flash_pagesize >> 8);
+  jtagmkI_setparm(pgm, PARM_EEPROM_PAGESIZE, my.eeprom_pagesize & 0xff);
 
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->flash_pagecache = mmt_malloc(PDATA(pgm)->flash_pagesize);
-  PDATA(pgm)->eeprom_pagecache = mmt_malloc(PDATA(pgm)->eeprom_pagesize);
-  PDATA(pgm)->flash_pageaddr = PDATA(pgm)->eeprom_pageaddr = ~0UL;
+  mmt_free(my.flash_pagecache);
+  mmt_free(my.eeprom_pagecache);
+  my.flash_pagecache = mmt_malloc(my.flash_pagesize);
+  my.eeprom_pagecache = mmt_malloc(my.eeprom_pagesize);
+  my.flash_pageaddr = my.eeprom_pageaddr = ~0UL;
 
-  if (jtagmkI_reset(pgm) < 0)
+  if(jtagmkI_reset(pgm) < 0)
     return -1;
 
   int ocden = 0;
+
   if(avr_get_config_value(pgm, p, "ocden", &ocden) == 0 && ocden) // ocden == 1 means disabled
     pmsg_warning("OCDEN fuse not programmed, single-byte EEPROM updates not possible\n");
 
   return 0;
 }
 
-
 static void jtagmkI_disable(const PROGRAMMER *pgm) {
-  mmt_free(PDATA(pgm)->flash_pagecache);
-  PDATA(pgm)->flash_pagecache = NULL;
-  mmt_free(PDATA(pgm)->eeprom_pagecache);
-  PDATA(pgm)->eeprom_pagecache = NULL;
+  mmt_free(my.flash_pagecache);
+  my.flash_pagecache = NULL;
+  mmt_free(my.eeprom_pagecache);
+  my.eeprom_pagecache = NULL;
 
-  (void)jtagmkI_program_disable(pgm);
+  (void) jtagmkI_program_disable(pgm);
 }
 
 static void jtagmkI_enable(PROGRAMMER *pgm, const AVRPART *p) {
   return;
 }
-
 
 static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
   size_t i;
@@ -537,24 +512,23 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
   pmsg_notice2("jtagmkI_open()\n");
 
   pgm->port = port;
-  PDATA(pgm)->initial_baudrate = -1L;
+  my.initial_baudrate = -1L;
 
-  for (i = 0; i < sizeof(baudtab) / sizeof(baudtab[0]); i++) {
+  for(i = 0; i < sizeof(baudtab)/sizeof(baudtab[0]); i++) {
     union pinfo pinfo;
+
     pinfo.serialinfo.baud = baudtab[i].baud;
     pinfo.serialinfo.cflags = SERIAL_8N1;
     pmsg_notice2("%s(): trying to sync at baud rate %ld:\n", __func__, pinfo.serialinfo.baud);
-    if (serial_open(port, pinfo, &pgm->fd)==-1) {
+    if(serial_open(port, pinfo, &pgm->fd) == -1) {
       return -1;
     }
 
-    /*
-     * drain any extraneous input
-     */
+    // Drain any extraneous input
     jtagmkI_drain(pgm, 0);
 
-    if (jtagmkI_getsync(pgm) == 0) {
-      PDATA(pgm)->initial_baudrate = baudtab[i].baud;
+    if(jtagmkI_getsync(pgm) == 0) {
+      my.initial_baudrate = baudtab[i].baud;
       pmsg_notice2("%s(): succeeded\n", __func__);
       return 0;
     }
@@ -568,97 +542,93 @@ static int jtagmkI_open(PROGRAMMER *pgm, const char *port) {
   return -1;
 }
 
-
 static void jtagmkI_close(PROGRAMMER *pgm) {
   unsigned char b;
 
   pmsg_notice2("jtagmkI_close()\n");
 
   /*
-   * Revert baud rate to what it used to be when we started.  This
-   * appears to make AVR Studio happier when it is about to access the
-   * ICE later on.
+   * Revert baud rate to what it used to be when we started.  This appears to
+   * make AVR Studio happier when it is about to access the ICE later on.
    */
-  if ((serdev->flags & SERDEV_FL_CANSETSPEED) && PDATA(pgm)->initial_baudrate != pgm->baudrate) {
-    if ((b = jtagmkI_get_baud(PDATA(pgm)->initial_baudrate)) == 0) {
-      pmsg_error("unsupported baudrate %d\n", PDATA(pgm)->initial_baudrate);
+  if((serdev->flags & SERDEV_FL_CANSETSPEED) && my.initial_baudrate != pgm->baudrate) {
+    if((b = jtagmkI_get_baud(my.initial_baudrate)) == 0) {
+      pmsg_error("unsupported baudrate %d\n", my.initial_baudrate);
     } else {
-      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, PDATA(pgm)->initial_baudrate);
-      if (jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
+      pmsg_notice2("%s(): trying to set baudrate to %d\n", __func__, my.initial_baudrate);
+      if(jtagmkI_setparm(pgm, PARM_BITRATE, b) == 0) {
         serial_setparams(&pgm->fd, pgm->baudrate, SERIAL_8N1);
       }
     }
   }
 
-  if (pgm->fd.ifd != -1) {
+  if(pgm->fd.ifd != -1) {
     serial_close(&pgm->fd);
   }
 
   pgm->fd.ifd = -1;
 }
 
-
 static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-                               unsigned int page_size,
-                               unsigned int addr, unsigned int n_bytes)
-{
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   int block_size, send_size, tries;
   unsigned int maxaddr = addr + n_bytes;
   unsigned char cmd[6], *datacmd = NULL;
   unsigned char resp[2];
   int is_flash = 0;
   long otimeout = serial_recv_timeout;
+
 #define MAXTRIES 3
 
   pmsg_notice2("jtagmkI_paged_write(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
 
-  if (jtagmkI_program_enable(pgm) < 0)
+  if(jtagmkI_program_enable(pgm) < 0)
     return -1;
 
-  if (page_size == 0)
+  if(page_size == 0)
     page_size = 256;
 
-  if (page_size > 256) {
+  if(page_size > 256) {
     pmsg_error("page size %d too large\n", page_size);
     return -1;
   }
 
   datacmd = mmt_malloc(page_size + 1);
   cmd[0] = CMD_WRITE_MEM;
-  if (mem_is_flash(m)) {
+  if(mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
-    PDATA(pgm)->flash_pageaddr = ~0UL;
-    page_size = PDATA(pgm)->flash_pagesize;
+    my.flash_pageaddr = ~0UL;
+    page_size = my.flash_pagesize;
     is_flash = 1;
-  } else if (mem_is_eeprom(m)) {
+  } else if(mem_is_eeprom(m)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
-    page_size = PDATA(pgm)->eeprom_pagesize;
+    my.eeprom_pageaddr = ~0UL;
+    page_size = my.eeprom_pagesize;
   }
   datacmd[0] = CMD_DATA;
 
   serial_recv_timeout = 1000;
-  for (; addr < maxaddr; addr += page_size) {
+  for(; addr < maxaddr; addr += page_size) {
     tries = 0;
-    again:
+  again:
 
-    if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
+    if(tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
       pmsg_error("sync loss, retries exhausted\n");
       mmt_free(datacmd);
       return -1;
     }
 
-    if (n_bytes < page_size)
+    if(n_bytes < page_size)
       block_size = n_bytes;
     else
       block_size = page_size;
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
-    /* We always write full pages. */
+    // We always write full pages
     send_size = page_size;
-    if (is_flash) {
-      cmd[2] = send_size / 2 - 1;
-      u32_to_b3(cmd + 3, addr / 2);
+    if(is_flash) {
+      cmd[2] = send_size/2 - 1;
+      u32_to_b3(cmd + 3, addr/2);
     } else {
       cmd[2] = send_size - 1;
       u32_to_b3(cmd + 3, addr);
@@ -666,17 +636,17 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 
     pmsg_notice2("%s(): sending write memory command: ", __func__);
 
-    /* First part, send the write command. */
+    // First part, send the write command
     jtagmkI_send(pgm, cmd, 6);
-    if (jtagmkI_recv(pgm, resp, 1) < 0) {
+    if(jtagmkI_recv(pgm, resp, 1) < 0) {
       mmt_free(datacmd);
       return -1;
     }
-    if (resp[0] != RESP_OK) {
+    if(resp[0] != RESP_OK) {
       msg_notice2("\n");
       pmsg_warning("timeout/error communicating with programmer (resp %c)\n", resp[0]);
-      if (tries++ < MAXTRIES)
-	goto again;
+      if(tries++ < MAXTRIES)
+        goto again;
       serial_recv_timeout = otimeout;
       mmt_free(datacmd);
       return -1;
@@ -685,26 +655,26 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
     }
 
     /*
-     * The JTAG ICE will refuse to write anything but a full page, at
-     * least for the flash ROM.  If a partial page has been requested,
-     * set the remainder to 0xff.  (Maybe we should rather read back
-     * the existing contents instead before?  Doesn't matter much, as
-     * bits cannot be written to 1 anyway.)
+     * The JTAG ICE will refuse to write anything but a full page, at least for
+     * the flash ROM.  If a partial page has been requested, set the remainder
+     * to 0xff.  (Maybe we should rather read back the existing contents
+     * instead before?  Doesn't matter much, as bits cannot be written to 1
+     * anyway.)
      */
     memset(datacmd + 1, 0xff, page_size);
     memcpy(datacmd + 1, m->buf + addr, block_size);
 
-    /* Second, send the data command. */
+    // Second, send the data command
     jtagmkI_send(pgm, datacmd, send_size + 1);
-    if (jtagmkI_recv(pgm, resp, 2) < 0) {
+    if(jtagmkI_recv(pgm, resp, 2) < 0) {
       mmt_free(datacmd);
       return -1;
     }
-    if (resp[1] != RESP_OK) {
+    if(resp[1] != RESP_OK) {
       msg_notice2("\n");
       pmsg_warning("timeout/error communicating with programmer (resp %c)\n", resp[0]);
-      if (tries++ < MAXTRIES)
-	goto again;
+      if(tries++ < MAXTRIES)
+        goto again;
       serial_recv_timeout = otimeout;
       mmt_free(datacmd);
       return -1;
@@ -721,54 +691,53 @@ static int jtagmkI_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AV
 }
 
 static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-			      unsigned int page_size,
-                              unsigned int addr, unsigned int n_bytes)
-{
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
   int block_size, read_size, is_flash = 0, tries;
   unsigned int maxaddr = addr + n_bytes;
-  unsigned char cmd[6], resp[256 * 2 + 3];
+  unsigned char cmd[6], resp[256*2 + 3];
   long otimeout = serial_recv_timeout;
+
 #define MAXTRIES 3
 
   pmsg_notice2("jtagmkI_paged_load(.., %s, %d, %d)\n", m->desc, page_size, n_bytes);
 
-  if (jtagmkI_program_enable(pgm) < 0)
+  if(jtagmkI_program_enable(pgm) < 0)
     return -1;
 
   page_size = m->readsize;
 
   cmd[0] = CMD_READ_MEM;
-  if (mem_is_flash(m)) {
+  if(mem_is_flash(m)) {
     cmd[1] = MTYPE_FLASH_PAGE;
     is_flash = 1;
-  } else if (mem_is_eeprom(m)) {
+  } else if(mem_is_eeprom(m)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
   }
 
-  if (page_size > (is_flash? 512: 256)) {
+  if(page_size > (is_flash? 512: 256)) {
     pmsg_error("page size %d too large\n", page_size);
     return -1;
   }
 
   serial_recv_timeout = 1000;
-  for (; addr < maxaddr; addr += page_size) {
+  for(; addr < maxaddr; addr += page_size) {
     tries = 0;
-    again:
-    if (tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
+  again:
+    if(tries != 0 && jtagmkI_resync(pgm, 2000, 0) < 0) {
       pmsg_error("sync loss, retries exhausted\n");
       return -1;
     }
 
-    if (n_bytes < page_size)
+    if(n_bytes < page_size)
       block_size = n_bytes;
     else
       block_size = page_size;
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
-    if (is_flash) {
-      read_size = 2 * ((block_size + 1) / 2); /* round up */
-      cmd[2] = read_size / 2 - 1;
-      u32_to_b3(cmd + 3, addr / 2);
+    if(is_flash) {
+      read_size = 2*((block_size + 1)/2);   // Round up
+      cmd[2] = read_size/2 - 1;
+      u32_to_b3(cmd + 3, addr/2);
     } else {
       read_size = page_size;
       cmd[2] = page_size - 1;
@@ -778,14 +747,14 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     pmsg_notice2("%s(): sending read memory command: ", __func__);
 
     jtagmkI_send(pgm, cmd, 6);
-    if (jtagmkI_recv(pgm, resp, read_size + 3) < 0)
+    if(jtagmkI_recv(pgm, resp, read_size + 3) < 0)
       return -1;
 
-    if (resp[read_size + 3 - 1] != RESP_OK) {
+    if(resp[read_size + 3 - 1] != RESP_OK) {
       msg_notice2("\n");
       pmsg_warning("timeout/error communicating with programmer (resp %c)\n", resp[read_size + 3 - 1]);
-      if (tries++ < MAXTRIES)
-	goto again;
+      if(tries++ < MAXTRIES)
+        goto again;
 
       serial_recv_timeout = otimeout;
       return -1;
@@ -802,10 +771,9 @@ static int jtagmkI_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 }
 
 static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-			      unsigned long addr, unsigned char * value)
-{
+  unsigned long addr, unsigned char *value) {
   unsigned char cmd[6];
-  unsigned char resp[256 * 2 + 3], *cache_ptr = NULL;
+  unsigned char resp[256*2 + 3], *cache_ptr = NULL;
   unsigned long paddr = 0UL, *paddr_ptr = NULL;
   unsigned int pagesize = 0;
   int respsize = 3 + 1;
@@ -813,37 +781,37 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 
   pmsg_notice2("jtagmkI_read_byte(.., %s, 0x%lx, ...)\n", mem->desc, addr);
 
-  if (jtagmkI_program_enable(pgm) < 0)
+  if(jtagmkI_program_enable(pgm) < 0)
     return -1;
 
   cmd[0] = CMD_READ_MEM;
 
-  if (mem_is_flash(mem)) {
+  if(mem_is_flash(mem)) {
     cmd[1] = MTYPE_FLASH_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->flash_pageaddr;
-    cache_ptr = PDATA(pgm)->flash_pagecache;
+    paddr_ptr = &my.flash_pageaddr;
+    cache_ptr = my.flash_pagecache;
     is_flash = 1;
-  } else if (mem_is_eeprom(mem)) {
+  } else if(mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM_PAGE;
     pagesize = mem->page_size;
     paddr = addr & ~(pagesize - 1);
-    paddr_ptr = &PDATA(pgm)->eeprom_pageaddr;
-    cache_ptr = PDATA(pgm)->eeprom_pagecache;
-  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
+    paddr_ptr = &my.eeprom_pageaddr;
+    cache_ptr = my.eeprom_pagecache;
+  } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     if(mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
-  } else if (mem_is_lock(mem)) {
+  } else if(mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
-  } else if (mem_is_calibration(mem)) {
+  } else if(mem_is_calibration(mem)) {
     cmd[1] = MTYPE_OSCCAL_BYTE;
-  } else if (mem_is_signature(mem)) {
+  } else if(mem_is_signature(mem)) {
     cmd[1] = MTYPE_SIGN_JTAG;
-  } else if (mem_is_in_sigrow(mem)) {
+  } else if(mem_is_in_sigrow(mem)) {
     addr += avr_sigrow_offset(p, mem, addr);
-    cmd[1] = addr&1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
+    cmd[1] = addr & 1? MTYPE_OSCCAL_BYTE: MTYPE_SIGN_JTAG;
     addr /= 2;
   } else {
     pmsg_error("unknown memory %s\n", mem->desc);
@@ -851,34 +819,33 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   }
 
   /*
-   * To improve the read speed, we used paged reads for flash and
-   * EEPROM, and cache the results in a page cache.
+   * To improve the read speed, we used paged reads for flash and EEPROM, and
+   * cache the results in a page cache.
    *
-   * Page cache validation is based on "{flash,eeprom}_pageaddr"
-   * (holding the base address of the most recent cache fill
-   * operation).  This variable is set to ~0UL when the
-   * cache needs to be invalidated.
+   * Page cache validation is based on "{flash,eeprom}_pageaddr" (holding the
+   * base address of the most recent cache fill operation).  This variable is
+   * set to ~0UL when the cache needs to be invalidated.
    */
-  if (pagesize && paddr == *paddr_ptr) {
+  if(pagesize && paddr == *paddr_ptr) {
     *value = cache_ptr[addr & (pagesize - 1)];
     return 0;
   }
 
-  if (pagesize) {
-    if (is_flash) {
-      cmd[2] = pagesize / 2 - 1;
-      u32_to_b3(cmd + 3, paddr / 2);
+  if(pagesize) {
+    if(is_flash) {
+      cmd[2] = pagesize/2 - 1;
+      u32_to_b3(cmd + 3, paddr/2);
     } else {
       cmd[2] = pagesize - 1;
       u32_to_b3(cmd + 3, paddr);
     }
     respsize = 3 + pagesize;
   } else {
-    if (cmd[1] == MTYPE_FUSE_BITS) {
+    if(cmd[1] == MTYPE_FUSE_BITS) {
       /*
-       * The mkI ICE has a bug where it doesn't read efuse correctly
-       * when reading it as a single byte @offset 2, while reading all
-       * fuses at once does work.
+       * The mkI ICE has a bug where it doesn't read efuse correctly when
+       * reading it as a single byte @offset 2, while reading all fuses at once
+       * does work.
        */
       cmd[2] = 3 - 1;
       u32_to_b3(cmd + 3, 0);
@@ -890,10 +857,10 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   }
 
   jtagmkI_send(pgm, cmd, 6);
-  if (jtagmkI_recv(pgm, resp, respsize) < 0)
+  if(jtagmkI_recv(pgm, resp, respsize) < 0)
     return -1;
 
-  if (resp[respsize - 1] != RESP_OK) {
+  if(resp[respsize - 1] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[respsize - 1]);
     return -1;
@@ -901,12 +868,12 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
     msg_notice2("OK\n");
   }
 
-  if (pagesize) {
+  if(pagesize) {
     *paddr_ptr = paddr;
     memcpy(cache_ptr, resp + 1, pagesize);
     *value = cache_ptr[addr & (pagesize - 1)];
-  } else if (cmd[1] == MTYPE_FUSE_BITS) {
-    /* extract the desired fuse */
+  } else if(cmd[1] == MTYPE_FUSE_BITS) {
+    // Extract the desired fuse
     *value = resp[1 + addr];
   } else
     *value = resp[1];
@@ -915,9 +882,8 @@ static int jtagmkI_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
 }
 
 static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-			       unsigned long addr, unsigned char data)
-{
-  unsigned char cmd[6], datacmd[1 * 2 + 1];
+  unsigned long addr, unsigned char data) {
+  unsigned char cmd[6], datacmd[1*2 + 1];
   unsigned char resp[1], writedata;
   int len, need_progmode = 1, need_dummy_read = 0;
 
@@ -925,25 +891,26 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
 
   writedata = data;
   cmd[0] = CMD_WRITE_MEM;
-  if (mem_is_flash(mem)) {
+  if(mem_is_flash(mem)) {
     cmd[1] = MTYPE_SPM;
     need_progmode = 0;
-    PDATA(pgm)->flash_pageaddr = ~0UL;
-  } else if (mem_is_eeprom(mem)) {
+    my.flash_pageaddr = ~0UL;
+  } else if(mem_is_eeprom(mem)) {
     cmd[1] = MTYPE_EEPROM;
     need_progmode = 0;
     need_dummy_read = 1;
-    PDATA(pgm)->eeprom_pageaddr = ~0UL;
-  } else if (mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
+    my.eeprom_pageaddr = ~0UL;
+  } else if(mem_is_a_fuse(mem) || mem_is_fuses(mem)) {
     cmd[1] = MTYPE_FUSE_BITS;
     need_dummy_read = 1;
     if(mem_is_a_fuse(mem))
       addr = mem_fuse_offset(mem);
-  } else if (mem_is_lock(mem)) {
+  } else if(mem_is_lock(mem)) {
     cmd[1] = MTYPE_LOCK_BITS;
     need_dummy_read = 1;
   } else if(mem_is_readonly(mem)) {
     unsigned char is;
+
     if(pgm->read_byte(pgm, p, mem, addr, &is) >= 0 && is == data)
       return 0;
 
@@ -954,29 +921,29 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     return -1;
   }
 
-  if (need_progmode) {
-    if (jtagmkI_program_enable(pgm) < 0)
+  if(need_progmode) {
+    if(jtagmkI_program_enable(pgm) < 0)
       return -1;
   } else {
-    if (jtagmkI_program_disable(pgm) < 0)
+    if(jtagmkI_program_disable(pgm) < 0)
       return -1;
   }
 
   cmd[2] = 1 - 1;
-  if (cmd[1] == MTYPE_SPM) {
+  if(cmd[1] == MTYPE_SPM) {
     /*
-     * Flash is word-addressed, but we cannot handle flash anyway
-     * here, as it needs to be written one page at a time ...
+     * Flash is word-addressed, but we cannot handle flash anyway here, as it
+     * needs to be written one page at a time ...
      */
-    u32_to_b3(cmd + 3, addr / 2);
+    u32_to_b3(cmd + 3, addr/2);
   } else {
     u32_to_b3(cmd + 3, addr);
   }
-  /* First part, send the write command. */
+  // First part, send the write command
   jtagmkI_send(pgm, cmd, 6);
-  if (jtagmkI_recv(pgm, resp, 1) < 0)
+  if(jtagmkI_recv(pgm, resp, 1) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
@@ -984,11 +951,11 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     msg_notice2("OK\n");
   }
 
-  /* Now, send the data buffer. */
+  // Now, send the data buffer
   datacmd[0] = CMD_DATA;
-  if (cmd[1] == MTYPE_SPM) {
+  if(cmd[1] == MTYPE_SPM) {
     len = 3;
-    if ((addr & 1) != 0) {
+    if((addr & 1) != 0) {
       datacmd[1] = 0;
       datacmd[2] = writedata;
     } else {
@@ -1000,9 +967,9 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
     datacmd[1] = writedata;
   }
   jtagmkI_send(pgm, datacmd, len);
-  if (jtagmkI_recv(pgm, resp, 1) < 0)
+  if(jtagmkI_recv(pgm, resp, 1) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
@@ -1015,25 +982,24 @@ static int jtagmkI_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVR
   return 0;
 }
 
-
 /*
- * Set the JTAG clock.  The actual frequency is quite a bit of
- * guesswork, based on the values claimed by AVR Studio.  Inside the
- * JTAG ICE, the value is the delay count of a delay loop between the
- * JTAG clock edges.  A count of 0 bypasses the delay loop.
+ * Set the JTAG clock.  The actual frequency is quite a bit of guesswork, based
+ * on the values claimed by AVR Studio.  Inside the JTAG ICE, the value is the
+ * delay count of a delay loop between the JTAG clock edges.  A count of 0
+ * bypasses the delay loop.
  *
- * As the STK500 expresses it as a period length (and we actualy do
- * program a period length as well), we rather call it by that name.
+ * As the STK500 expresses it as a period length (and we actualy do program a
+ * period length as well), we rather call it by that name.
  */
 static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v) {
   unsigned char dur;
 
-  v = 1 / v;			/* convert to frequency */
-  if (v >= 1e6)
+  v = 1/v;                    // Convert to frequency
+  if(v >= 1e6)
     dur = JTAG_BITRATE_1_MHz;
-  else if (v >= 499e3)
+  else if(v >= 499e3)
     dur = JTAG_BITRATE_500_kHz;
-  else if (v >= 249e3)
+  else if(v >= 249e3)
     dur = JTAG_BITRATE_250_kHz;
   else
     dur = JTAG_BITRATE_125_kHz;
@@ -1041,46 +1007,42 @@ static int jtagmkI_set_sck_period(const PROGRAMMER *pgm, double v) {
   return jtagmkI_setparm(pgm, PARM_CLOCK, dur);
 }
 
-
 static int jtagmkI_get_sck_period(const PROGRAMMER *pgm, double *v) {
   unsigned char dur = 0;
-  if (jtagmkI_getparm(pgm, PARM_CLOCK, &dur) < 0)
+
+  if(jtagmkI_getparm(pgm, PARM_CLOCK, &dur) < 0)
     return -1;
-  if (dur == JTAG_BITRATE_1_MHz)
+  if(dur == JTAG_BITRATE_1_MHz)
     *v = 1e6;
-  else if (dur == JTAG_BITRATE_500_kHz)
+  else if(dur == JTAG_BITRATE_500_kHz)
     *v = 500e3;
-  else if (dur == JTAG_BITRATE_250_kHz)
+  else if(dur == JTAG_BITRATE_250_kHz)
     *v = 250e3;
-  else if (dur == JTAG_BITRATE_125_kHz)
+  else if(dur == JTAG_BITRATE_125_kHz)
     *v = 125e3;
-  else { // something went wrong
+  else {                        // Something went wrong
     pmsg_error("wrong JTAG_BITRATE ID %02X\n", dur);
     return -1;
   }
   return 0;
 }
 
-
 static int jtagmkI_get_vtarget(const PROGRAMMER *pgm, double *v) {
   unsigned char vtarget = 0;
-  if (jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0) {
+
+  if(jtagmkI_getparm(pgm, PARM_OCD_VTARGET, &vtarget) < 0) {
     pmsg_error("jtagmkI_getparm PARM_OCD_VTARGET failed\n");
     return -1;
   }
-  *v = 6.25 * (unsigned)vtarget / 255.0;
+  *v = 6.25*(unsigned) vtarget/255.0;
   return 0;
 }
 
-
 /*
- * Read an emulator parameter.  The result is exactly one byte,
- * multi-byte parameters get two different parameter names for
- * their components.
+ * Read an emulator parameter.  The result is exactly one byte, multi-byte
+ * parameters get two different parameter names for their components.
  */
-static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
-			    unsigned char * value)
-{
+static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm, unsigned char *value) {
   unsigned char buf[2], resp[3];
 
   pmsg_notice2("jtagmkI_getparm()\n");
@@ -1090,13 +1052,13 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
   pmsg_notice2("%s(): sending get parameter command (parm 0x%02x): ", __func__, parm);
   jtagmkI_send(pgm, buf, 2);
 
-  if (jtagmkI_recv(pgm, resp, 3) < 0)
+  if(jtagmkI_recv(pgm, resp, 3) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
-  } else if (resp[2] != RESP_OK) {
+  } else if(resp[2] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("unknown parameter 0x%02x\n", parm);
     return -1;
@@ -1109,12 +1071,8 @@ static int jtagmkI_getparm(const PROGRAMMER *pgm, const unsigned char parm,
   return 0;
 }
 
-/*
- * Write an emulator parameter.
- */
-static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
-			    unsigned char value)
-{
+// Write an emulator parameter
+static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char value) {
   unsigned char buf[3], resp[2];
 
   pmsg_notice2("jtagmkI_setparm()\n");
@@ -1124,9 +1082,9 @@ static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
   buf[2] = value;
   pmsg_notice2("%s(): sending set parameter command (parm 0x%02x): ", __func__, parm);
   jtagmkI_send(pgm, buf, 3);
-  if (jtagmkI_recv(pgm, resp, 2) < 0)
+  if(jtagmkI_recv(pgm, resp, 2) < 0)
     return -1;
-  if (resp[0] != RESP_OK) {
+  if(resp[0] != RESP_OK) {
     msg_notice2("\n");
     pmsg_error("timeout/error communicating with programmer (resp %c)\n", resp[0]);
     return -1;
@@ -1137,12 +1095,10 @@ static int jtagmkI_setparm(const PROGRAMMER *pgm, unsigned char parm,
   return 0;
 }
 
-
 static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
   unsigned char hw, fw;
 
-  if (jtagmkI_getparm(pgm, PARM_HW_VERSION, &hw) < 0 ||
-      jtagmkI_getparm(pgm, PARM_SW_VERSION, &fw) < 0)
+  if(jtagmkI_getparm(pgm, PARM_HW_VERSION, &hw) < 0 || jtagmkI_getparm(pgm, PARM_SW_VERSION, &fw) < 0)
     return;
   msg_info("%sICE HW version        : 0x%02x\n", p, hw);
   msg_info("%sICE FW version        : 0x%02x\n", p, fw);
@@ -1152,17 +1108,16 @@ static void jtagmkI_display(const PROGRAMMER *pgm, const char *p) {
   return;
 }
 
-
 static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp) {
   unsigned char jtag_clock = 0;
   double vtarget = 0;
   const char *clkstr;
   double clk;
 
-  if (jtagmkI_getparm(pgm, PARM_CLOCK, &jtag_clock) < 0)
+  if(jtagmkI_getparm(pgm, PARM_CLOCK, &jtag_clock) < 0)
     return;
 
-  switch ((unsigned)jtag_clock) {
+  switch((unsigned) jtag_clock) {
   case JTAG_BITRATE_1_MHz:
     clkstr = "1 MHz";
     clk = 1e6;
@@ -1188,16 +1143,15 @@ static void jtagmkI_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp)
     clk = 1e6;
   }
 
-  if (pgm->extra_features & HAS_VTARG_READ) {
-    if (jtagmkI_get_vtarget(pgm, &vtarget) < 0)
+  if(pgm->extra_features & HAS_VTARG_READ) {
+    if(jtagmkI_get_vtarget(pgm, &vtarget) < 0)
       return;
     fmsg_out(fp, "%sVtarget               : %.1f V\n", p, vtarget);
   }
-  fmsg_out(fp, "%sJTAG clock            : %s (%.1f us)\n", p, clkstr, 1.0e6 / clk);
+  fmsg_out(fp, "%sJTAG clock            : %s (%.1f us)\n", p, clkstr, 1.0e6/clk);
 
   return;
 }
-
 
 static void jtagmkI_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   jtagmkI_print_parms1(pgm, "", fp);
@@ -1208,32 +1162,28 @@ const char jtagmkI_desc[] = "Atmel JTAG ICE mkI";
 void jtagmkI_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "JTAGMKI");
 
-  /*
-   * mandatory functions
-   */
-  pgm->initialize     = jtagmkI_initialize;
-  pgm->display        = jtagmkI_display;
-  pgm->enable         = jtagmkI_enable;
-  pgm->disable        = jtagmkI_disable;
+  // Mandatory functions
+  pgm->initialize = jtagmkI_initialize;
+  pgm->display = jtagmkI_display;
+  pgm->enable = jtagmkI_enable;
+  pgm->disable = jtagmkI_disable;
   pgm->program_enable = jtagmkI_program_enable_dummy;
-  pgm->chip_erase     = jtagmkI_chip_erase;
-  pgm->open           = jtagmkI_open;
-  pgm->close          = jtagmkI_close;
-  pgm->read_byte      = jtagmkI_read_byte;
-  pgm->write_byte     = jtagmkI_write_byte;
+  pgm->chip_erase = jtagmkI_chip_erase;
+  pgm->open = jtagmkI_open;
+  pgm->close = jtagmkI_close;
+  pgm->read_byte = jtagmkI_read_byte;
+  pgm->write_byte = jtagmkI_write_byte;
 
-  /*
-   * optional functions
-   */
-  pgm->paged_write    = jtagmkI_paged_write;
-  pgm->paged_load     = jtagmkI_paged_load;
-  pgm->print_parms    = jtagmkI_print_parms;
+  // Optional functions
+  pgm->paged_write = jtagmkI_paged_write;
+  pgm->paged_load = jtagmkI_paged_load;
+  pgm->print_parms = jtagmkI_print_parms;
   pgm->set_sck_period = jtagmkI_set_sck_period;
   pgm->get_sck_period = jtagmkI_get_sck_period;
-  pgm->setup          = jtagmkI_setup;
-  pgm->teardown       = jtagmkI_teardown;
-  pgm->page_size      = 256;
-  if (pgm->extra_features & HAS_VTARG_READ) {
-    pgm->get_vtarget  = jtagmkI_get_vtarget;
+  pgm->setup = jtagmkI_setup;
+  pgm->teardown = jtagmkI_teardown;
+  pgm->page_size = 256;
+  if(pgm->extra_features & HAS_VTARG_READ) {
+    pgm->get_vtarget = jtagmkI_get_vtarget;
   }
 }

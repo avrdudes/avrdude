@@ -25,11 +25,11 @@
 extern "C" {
 #endif
 
-extern const char micronucleus_desc[];
-void micronucleus_initpgm(PROGRAMMER *pgm);
+  extern const char micronucleus_desc[];
+  void micronucleus_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* micronucleus_h */
+#endif

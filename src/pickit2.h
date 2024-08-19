@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pickit2.h 2010-05-03 dbrown $ */
-
 #ifndef pickit2_h
 #define pickit2_h
 
@@ -25,11 +23,11 @@
 extern "C" {
 #endif
 
-extern const char pickit2_desc[];
-void pickit2_initpgm(PROGRAMMER *pgm);
+  extern const char pickit2_desc[];
+  void pickit2_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif // pickit2_h
+#endif

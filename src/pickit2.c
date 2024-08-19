@@ -19,9 +19,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pickit2.c 2010-05-03 dbrown$ */
-/* Based on Id: stk500v2.c 836 2009-07-10 22:39:37Z joerg_wunsch */
-
 /*
  * avrdude interface for PicKit2 programmer
  *
@@ -62,12 +59,13 @@
 #include <hidsdi.h>
 #include <setupapi.h>
 #else
+
 #if defined(HAVE_USB_H)
-#  include <usb.h>
+#include <usb.h>
 #elif defined(HAVE_LUSB0_USB_H)
-#  include <lusb0_usb.h>
+#include <lusb0_usb.h>
 #else
-#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#error "libusb needs either <usb.h> or <lusb0_usb.h>"
 #endif
 #endif
 
@@ -86,47 +84,45 @@
 #define PICKIT2_VID 0x04d8
 #define PICKIT2_PID 0x0033
 
-#define SPI_MAX_CHUNK (64 - 10)    // max packet size less the command overhead
+#define SPI_MAX_CHUNK (64 - 10) // Max packet size less the command overhead
 
 #ifdef WIN32
 static HANDLE open_hid(unsigned short vid, unsigned short pid);
-static const char *usb_strerror()
-{
-    return "";
+static const char *usb_strerror() {
+  return "";
 }
 #else
 static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **dev, int vid, int pid);
-//#define INVALID_HANDLE_VALUE NULL
+
+// #define INVALID_HANDLE_VALUE NULL
 #define USB_ERROR_NONE      0
 #define USB_ERROR_ACCESS    1
 #define USB_ERROR_NOTFOUND  2
 #define USB_ERROR_BUSY      16
 #define USB_ERROR_IO        5
-#endif  // WIN32
+#endif                          // WIN32
 
 static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]);
 static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]);
 
 #ifndef MIN
-#define MIN(X,Y) ((X) < (Y) ? (X) : (Y))
+#define MIN(X, Y) ((X) < (Y)? (X): (Y))
 #endif
 
-/*
- * Private data for this programmer.
- */
-struct pdata
-{
+struct pdata {
+
 #ifdef WIN32
-    HANDLE usb_handle, write_event, read_event;
+  HANDLE usb_handle, write_event, read_event;
 #else
-    struct usb_dev_handle *usb_handle; // LIBUSB STUFF
-    int USB_init;                      // Used in usb_open_device()
+  struct usb_dev_handle *usb_handle;    // LIBUSB STUFF
+  int USB_init;                 // Used in usb_open_device()
 #endif
-    uint8_t clock_period;  // SPI clock period in us
-    int transaction_timeout;    // usb trans timeout in ms
+
+  uint8_t clock_period;         // SPI clock period in us
+  int transaction_timeout;      // USB trans timeout in ms
 };
 
-#define PDATA(pgm) ((struct pdata *)(pgm->cookie))
+#define my (*(struct pdata *) (pgm->cookie))
 
 #define CMD_NOP             0x5A
 #define CMD_GET_VERSION     0x76
@@ -162,611 +158,532 @@ struct pdata
 #define SCR_SPI_LIT_2(v)    0xC7,(v)
 
 static void pickit2_setup(PROGRAMMER *pgm) {
-    pgm->cookie = mmt_malloc(sizeof(struct pdata));
-    PDATA(pgm)->transaction_timeout = 1500; // Can be changed with -x timeout=ms
-    PDATA(pgm)->clock_period = 10;          // Can be changed with -x clockrate=us or -B or -i
+  pgm->cookie = mmt_malloc(sizeof(struct pdata));
+  my.transaction_timeout = 1500;  // Can be changed with -x timeout=ms
+  my.clock_period = 10;         // Can be changed with -x clockrate=us or -B or -i
 }
 
 static void pickit2_teardown(PROGRAMMER *pgm) {
-    mmt_free(pgm->cookie);
-    pgm->cookie = NULL;
+  mmt_free(pgm->cookie);
+  pgm->cookie = NULL;
 }
 
 static int pickit2_open(PROGRAMMER *pgm, const char *port) {
+
 #ifdef WIN32
-    PDATA(pgm)->usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
+  my.usb_handle = open_hid(PICKIT2_VID, PICKIT2_PID);
 
-    if (PDATA(pgm)->usb_handle == INVALID_HANDLE_VALUE)
-    {
-        /* no PICkit2 found */
-        pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
-        return -1;
-    }
-    else
-    {
-        // Get the device description while we're at it and overlay it on pgm->desc
-        short wbuf[80-1];
-        char *cbuf = mmt_malloc(sizeof wbuf/sizeof*wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
-        HidD_GetProductString(PDATA(pgm)->usb_handle, wbuf, sizeof wbuf/sizeof*wbuf);
+  if(my.usb_handle == INVALID_HANDLE_VALUE) {
+    // No PICkit2 found
+    pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
+    return -1;
+  } else {
+    // Get the device description while we're at it and overlay it on pgm->desc
+    short wbuf[80 - 1];
+    char *cbuf = mmt_malloc(sizeof wbuf/sizeof *wbuf + (pgm->desc? strlen(pgm->desc): 0) + 2);
 
-        if(pgm->desc && *pgm->desc)
-          strcpy(cbuf, pgm->desc);
+    HidD_GetProductString(my.usb_handle, wbuf, sizeof wbuf/sizeof *wbuf);
 
-        // Convert from wide chars and overlay over initial part of desc
-        for(size_t i = 0; i < sizeof wbuf/sizeof*wbuf && wbuf[i]; i++)
-          cbuf[i] = (char) wbuf[i]; // TODO what about little/big endian???
-        pgm->desc = cache_string(cbuf);
-        mmt_free(cbuf);
-    }
+    if(pgm->desc && *pgm->desc)
+      strcpy(cbuf, pgm->desc);
+
+    // Convert from wide chars and overlay over initial part of desc
+    for(size_t i = 0; i < sizeof wbuf/sizeof *wbuf && wbuf[i]; i++)
+      cbuf[i] = (char) wbuf[i]; // TODO what about little/big endian???
+    pgm->desc = cache_string(cbuf);
+    mmt_free(cbuf);
+  }
 #else
-    if(usb_open_device(pgm, &(PDATA(pgm)->usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
-        /* no PICkit2 found */
-        pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
-        return -1;
-    }
+  if(usb_open_device(pgm, &(my.usb_handle), PICKIT2_VID, PICKIT2_PID) < 0) {
+    // No PICkit2 found
+    pmsg_error("cannot find PICkit2 with vid=0x%x pid=0x%x\n", PICKIT2_VID, PICKIT2_PID);
+    return -1;
+  }
 #endif
 
-    if (pgm->ispdelay > 0)
-    {
-        PDATA(pgm)->clock_period = MIN(pgm->ispdelay, 255);
-    }
-    else if (pgm->bitclock > 0.0)
-    {
-        PDATA(pgm)->clock_period = MIN(pgm->bitclock * 1e6, 255);
-    }
+  if(pgm->ispdelay > 0) {
+    my.clock_period = MIN(pgm->ispdelay, 255);
+  } else if(pgm->bitclock > 0.0) {
+    my.clock_period = MIN(pgm->bitclock*1e6, 255);
+  }
 
-    return 0;
+  return 0;
 }
 
+static void pickit2_close(PROGRAMMER *pgm) {
 
-static void pickit2_close(PROGRAMMER * pgm)
-{
 #ifdef WIN32
-    CloseHandle(PDATA(pgm)->usb_handle);
-    CloseHandle(PDATA(pgm)->read_event);
-    CloseHandle(PDATA(pgm)->write_event);
+  CloseHandle(my.usb_handle);
+  CloseHandle(my.read_event);
+  CloseHandle(my.write_event);
 #else
-    usb_close(PDATA(pgm)->usb_handle);
-#endif  // WIN32
+  usb_close(my.usb_handle);
+#endif                          // WIN32
 }
-
 
 static int pickit2_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-    unsigned char temp[4];
-    memset(temp, 0, sizeof(temp));
+  unsigned char temp[4];
 
-    int errorCode = 0;
+  memset(temp, 0, sizeof(temp));
 
-    /* set sck period */
-    if (pgm->set_sck_period)
-        pgm->set_sck_period(pgm, pgm->bitclock);
+  int errorCode = 0;
 
-    /* connect to target device -- we'll just ask for the firmware version */
-    static const unsigned char report[65] = {0, CMD_GET_VERSION, CMD_END_OF_BUFFER};
-    if ((errorCode = pickit2_write_report(pgm, report)) > 0)
-    {
-        unsigned char report[65] = {0};
-        //memset(report, 0, sizeof(report));
-        if ((errorCode = pickit2_read_report(pgm, report)) >= 4)
-        {
-            pmsg_notice2("%s firmware version %d.%d.%d\n", pgm->desc, report[1], report[2], report[3]);
+  // Set sck period
+  if(pgm->set_sck_period)
+    pgm->set_sck_period(pgm, pgm->bitclock);
 
-            // set the pins, apply reset,
-            // TO DO: apply vtarget (if requested though -x option)
-            unsigned char report[65] =
-            {
-                0, CMD_SET_VDD_4(5),
-                CMD_SET_VPP_4(5),
-                CMD_EXEC_SCRIPT_2(24),
-                SCR_SPI_SETUP_PINS_4,   // SDO, SDI, SCK
-                SCR_SET_ICSP_DELAY_2(PDATA(pgm)->clock_period),    // slow down the SPI
-                SCR_VDD_ON,
-                SCR_MCLR_GND_OFF,       // let reset float high
-                SCR_VPP_PWM_ON,
-                SCR_DELAY_2(.1),
-                SCR_VPP_ON,
-                SCR_DELAY_2(.1),
-                SCR_VPP_OFF,
-                SCR_DELAY_2(.01),
+  // Connect to target device -- we'll just ask for the firmware version
+  static const unsigned char report[65] = { 0, CMD_GET_VERSION, CMD_END_OF_BUFFER };
+  if((errorCode = pickit2_write_report(pgm, report)) > 0) {
+    unsigned char report[65] = { 0 };
+    // memset(report, 0, sizeof(report));
+    if((errorCode = pickit2_read_report(pgm, report)) >= 4) {
+      pmsg_notice2("%s firmware version %d.%d.%d\n", pgm->desc, report[1], report[2], report[3]);
 
-                SCR_MCLR_GND_ON,        // reset low - programming mode
-                SCR_DELAY_2(.1),
+      // Set the pins, apply reset. TODO: apply vtarget (if requested though -x option)
+      unsigned char report[65] = {
+        0, CMD_SET_VDD_4(5),
+        CMD_SET_VPP_4(5),
+        CMD_EXEC_SCRIPT_2(24),
+        SCR_SPI_SETUP_PINS_4,   // SDO, SDI, SCK
+        SCR_SET_ICSP_DELAY_2(my.clock_period), // Slow down the SPI
+        SCR_VDD_ON,
+        SCR_MCLR_GND_OFF,       // Let reset float high
+        SCR_VPP_PWM_ON,
+        SCR_DELAY_2(.1),
+        SCR_VPP_ON,
+        SCR_DELAY_2(.1),
+        SCR_VPP_OFF,
+        SCR_DELAY_2(.01),
 
-                SCR_BUSY_LED_ON,
-                SCR_DELAY_2(.3),
-                SCR_BUSY_LED_OFF,
+        SCR_MCLR_GND_ON,        // Reset low - programming mode
+        SCR_DELAY_2(.1),
 
-                CMD_CLR_DLOAD_BUFF,
-                CMD_CLR_ULOAD_BUFF,
+        SCR_BUSY_LED_ON,
+        SCR_DELAY_2(.3),
+        SCR_BUSY_LED_OFF,
 
-                CMD_END_OF_BUFFER
-            };
+        CMD_CLR_DLOAD_BUFF,
+        CMD_CLR_ULOAD_BUFF,
 
-            if (pickit2_write_report(pgm, report) < 0)
-            {
-                pmsg_error("pickit2_read_report failed (ec %d). %s\n", errorCode, usb_strerror());
-                return -1;
-            }
-        }
-        else
-        {
-            pmsg_error("pickit2_read_report failed (ec %d). %s\n", errorCode, usb_strerror());
-            return -1;
-        }
-    }
-    else
-    {
-        pmsg_error("pickit2_write_report failed (ec %d). %s\n", errorCode, usb_strerror());
+        CMD_END_OF_BUFFER
+      };
+
+      if(pickit2_write_report(pgm, report) < 0) {
+        pmsg_error("pickit2_read_report failed (ec %d). %s\n", errorCode, usb_strerror());
         return -1;
+      }
+    } else {
+      pmsg_error("pickit2_read_report failed (ec %d). %s\n", errorCode, usb_strerror());
+      return -1;
     }
+  } else {
+    pmsg_error("pickit2_write_report failed (ec %d). %s\n", errorCode, usb_strerror());
+    return -1;
+  }
 
-    if (pgm->program_enable)
-        return pgm->program_enable(pgm, p);
-    else
-        return -1;
+  if(pgm->program_enable)
+    return pgm->program_enable(pgm, p);
+  else
+    return -1;
 }
 
 static void pickit2_disable(const PROGRAMMER *pgm) {
-    /* make sure all pins are floating & all voltages are off */
-    static const unsigned char report[65] =
-    {
-        0, CMD_EXEC_SCRIPT_2(8),
-        SCR_SET_PINS_2(1,1,0,0),
-        SCR_SET_AUX_2(1,0),
-        SCR_MCLR_GND_OFF,
-        SCR_VPP_OFF,
-        SCR_VDD_OFF,
-        SCR_VPP_PWM_OFF,
-        SCR_DELAY_2(.01),
-        SCR_BUSY_LED_OFF,
-        CMD_END_OF_BUFFER
-    };
+  // Make sure all pins are floating & all voltages are off
+  static const unsigned char report[65] = {
+    0, CMD_EXEC_SCRIPT_2(8),
+    SCR_SET_PINS_2(1, 1, 0, 0),
+    SCR_SET_AUX_2(1, 0),
+    SCR_MCLR_GND_OFF,
+    SCR_VPP_OFF,
+    SCR_VDD_OFF,
+    SCR_VPP_PWM_OFF,
+    SCR_DELAY_2(.01),
+    SCR_BUSY_LED_OFF,
+    CMD_END_OF_BUFFER
+  };
 
-    pickit2_write_report(pgm, report);
+  pickit2_write_report(pgm, report);
 
-    return;
+  return;
 }
 
 static void pickit2_enable(PROGRAMMER *pgm, const AVRPART *p) {
-    return;
+  return;
 }
 
 static void pickit2_display(const PROGRAMMER *pgm, const char *p) {
-    DEBUG("%s: found %s version %d.%d.%d\n", progname, p, 1, 1, 1);
-    return;
+  DEBUG("%s: found %s version %d.%d.%d\n", progname, p, 1, 1, 1);
+  return;
 }
 
 #define sendReport(x)
 #define readReport(x) 0
 
 #if 0
-static int  pickit2_rdy_led(const PROGRAMMER *pgm, int value) {
-    // no rdy led
-    return 0;
+static int pickit2_rdy_led(const PROGRAMMER *pgm, int value) {
+  // No rdy led
+  return 0;
 }
 
-static int  pickit2_err_led(const PROGRAMMER *pgm, int value) {
-    // there is no error led, so just flash the busy led a few times
-    uint8_t report[65] =
-    {
-        0, CMD_EXEC_SCRIPT_2(9),
-        SCR_BUSY_LED_ON,
-        SCR_DELAY_2(.2),
-        SCR_BUSY_LED_OFF,
-        SCR_DELAY_2(.2),
-        SCR_LOOP_3(6, 9),
-        CMD_END_OF_BUFFER
-    };
+static int pickit2_err_led(const PROGRAMMER *pgm, int value) {
+  // There is no error led, so just flash the busy led a few times
+  uint8_t report[65] = {
+    0, CMD_EXEC_SCRIPT_2(9),
+    SCR_BUSY_LED_ON,
+    SCR_DELAY_2(.2),
+    SCR_BUSY_LED_OFF,
+    SCR_DELAY_2(.2),
+    SCR_LOOP_3(6, 9),
+    CMD_END_OF_BUFFER
+  };
 
-    // busy stops flashing by itself, so just return
-    if (!value)
-    {
-        return 0;
-    }
+  // Busy stops flashing by itself, so just return
+  if(!value) {
+    return 0;
+  }
 
-    return pickit2_write_report(pgm, report) != -1;
+  return pickit2_write_report(pgm, report) != -1;
 }
 #endif
 
-static int  pickit2_pgm_led(const PROGRAMMER *pgm, int value) {
-    // script to set busy led appropriately
-    uint8_t report[65] = {0, CMD_EXEC_SCRIPT_2(1),
-                        value ? SCR_BUSY_LED_ON : SCR_BUSY_LED_OFF,
-                        CMD_END_OF_BUFFER
-                       };
+static int pickit2_pgm_led(const PROGRAMMER *pgm, int value) {
+  // Script to set busy led appropriately
+  uint8_t report[65] = {
+     0, CMD_EXEC_SCRIPT_2(1),
+    value? SCR_BUSY_LED_ON: SCR_BUSY_LED_OFF,
+    CMD_END_OF_BUFFER
+  };
 
-    return pickit2_write_report(pgm, report) != -1;
+  return pickit2_write_report(pgm, report) != -1;
 }
 
-static int  pickit2_vfy_led(const PROGRAMMER *pgm, int value) {
-    // no such thing
-    return 0;
+static int pickit2_vfy_led(const PROGRAMMER *pgm, int value) {
+  return 0;
 }
 
 static void pickit2_powerup(const PROGRAMMER *pgm) {
-    // turn vdd on?
 }
 
 static void pickit2_powerdown(const PROGRAMMER *pgm) {
-    // do what?
-    pgm->disable(pgm);
+  pgm->disable(pgm);
 }
 
-static int  pickit2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-    unsigned char cmd[4];
-    unsigned char res[4];
+static int pickit2_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
+  unsigned char cmd[4];
+  unsigned char res[4];
 
-    if (p->op[AVR_OP_PGM_ENABLE] == NULL)
-    {
-        pmsg_error("program enable instruction not defined for part %s\n", p->desc);
-        return -1;
+  if(p->op[AVR_OP_PGM_ENABLE] == NULL) {
+    pmsg_error("program enable instruction not defined for part %s\n", p->desc);
+    return -1;
+  }
+
+  memset(cmd, 0, sizeof(cmd));
+  avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
+  pgm->cmd(pgm, cmd, res);
+
+  {
+    int i;
+
+    msg_debug("%s(): sending command. Resp = ", __func__);
+
+    for(i = 0; i < 4; i++) {
+      msg_debug("%x ", (int) res[i]);
     }
+    msg_debug("\n");
+  }
 
-    memset(cmd, 0, sizeof(cmd));
-    avr_set_bits(p->op[AVR_OP_PGM_ENABLE], cmd);
-    pgm->cmd(pgm, cmd, res);
+  // Check for sync character
+  if(res[2] != cmd[1])
+    return -2;
 
-    {
-        int i;
-        msg_debug("%s(): sending command. Resp = ", __func__);
-
-        for (i = 0; i < 4; i++)
-        {
-            msg_debug("%x ", (int)res[i]);
-        }
-        msg_debug("\n");
-    }
-
-    // check for sync character
-    if (res[2] != cmd[1])
-        return -2;
-
-    return 0;
+  return 0;
 }
 
-static int  pickit2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
-    unsigned char cmd[4];
-    unsigned char res[4];
+static int pickit2_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
+  unsigned char cmd[4];
+  unsigned char res[4];
 
-    if (p->op[AVR_OP_CHIP_ERASE] == NULL)
-    {
-        pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
-        return -1;
-    }
+  if(p->op[AVR_OP_CHIP_ERASE] == NULL) {
+    pmsg_error("chip erase instruction not defined for part %s\n", p->desc);
+    return -1;
+  }
 
-    memset(cmd, 0, sizeof(cmd));
+  memset(cmd, 0, sizeof(cmd));
 
-    avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
-    pgm->cmd(pgm, cmd, res);
-    usleep(p->chip_erase_delay);
-    pgm->initialize(pgm, p);
+  avr_set_bits(p->op[AVR_OP_CHIP_ERASE], cmd);
+  pgm->cmd(pgm, cmd, res);
+  usleep(p->chip_erase_delay);
+  pgm->initialize(pgm, p);
 
-    return 0;
+  return 0;
 }
 
 static int pickit2_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
 
-    // only supporting flash & eeprom page reads
-    if ((!mem->paged || page_size <= 1) || (!mem_is_flash(mem) && !mem_is_eeprom(mem)))
-    {
-        return -1;
-    }
+  // Only supporting flash & eeprom page reads
+  if((!mem->paged || page_size <= 1) || (!mem_is_flash(mem) && !mem_is_eeprom(mem))) {
+    return -1;
+  }
 
-    DEBUG( "paged read ps %d, mem %s\n", page_size, mem->desc);
+  DEBUG("paged read ps %d, mem %s\n", page_size, mem->desc);
 
-    OPCODE *readop = 0, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-    uint8_t data = 0, cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
-    unsigned int addr_base;
-    unsigned int max_addr = addr + n_bytes;
+  OPCODE *readop = 0, *lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  uint8_t data = 0, cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
+  unsigned int addr_base;
+  unsigned int max_addr = addr + n_bytes;
 
-    if (lext) {
-       memset(cmd, 0, sizeof(cmd));
-       avr_set_bits(lext, cmd);
-       avr_set_addr(lext, cmd, addr/2);
-       pgm->cmd(pgm, cmd, res);
-    }
-
-    for (addr_base = addr; addr_base < max_addr; )
-    {
-        // bytes to send in the next packet -- not necessary as pickit2_spi() handles breaking up
-        // the data into packets -- but we need to keep transfers frequent so that we can update the
-        // status indicator bar
-        uint32_t blockSize = MIN(65536 - (addr_base % 65536), MIN(max_addr - addr_base, SPI_MAX_CHUNK / 4));
-
-        memset(cmd, 0, sizeof(cmd));
-        memset(res, 0, sizeof(res));
-
-        uint8_t addr_off;
-        for (addr_off = 0; addr_off < blockSize; addr_off++)
-        {
-            int addr = addr_base + addr_off, caddr = addr;
-
-            if (mem->op[AVR_OP_READ_LO] != NULL && mem->op[AVR_OP_READ_HI] != NULL)
-            {
-                if (addr & 0x00000001)
-                    readop = mem->op[AVR_OP_READ_HI];
-                else
-                    readop = mem->op[AVR_OP_READ_LO];
-
-                caddr /= 2;
-            }
-            else if (mem->op[AVR_OP_READ] != NULL)
-            {
-                readop = mem->op[AVR_OP_READ];
-            }
-            else
-            {
-                pmsg_error("no read command specified\n");
-                return -1;
-            }
-
-            avr_set_bits(readop, &cmd[addr_off*4]);
-            avr_set_addr(readop, &cmd[addr_off*4], caddr);
-        }
-
-        int bytes_read = pgm->spi(pgm, cmd, res, blockSize*4);
-
-        if (bytes_read < 0)
-        {
-            pmsg_error("failed @ pgm->spi()\n");
-            return -1;
-        }
-
-        DEBUG( "\npaged_load @ %X, wrote: %d, read: %d bytes\n", addr_base, blockSize*4, bytes_read);
-
-        for (addr_off = 0; addr_off < bytes_read / 4; addr_off++)
-        {
-            data = 0;
-            avr_get_output(readop, &res[addr_off*4], &data);
-            mem->buf[addr_base + addr_off] = data;
-
-            DEBUG( "%2X(%c)", (int)data, data<0x20?'.':data);
-        }
-        DEBUG( "\n");
-
-        addr_base += blockSize;
-    }
-
-    return n_bytes;
-}
-
-
-static int pickit2_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-                        unsigned long addr)
-{
-    OPCODE * wp, * lext;
-
-    wp = mem->op[AVR_OP_WRITEPAGE];
-    if (wp == NULL)
-    {
-        pmsg_error("memory %s not configured for page writes\n", mem->desc);
-        return -1;
-    }
-
-    // adjust the address if this memory is word-addressable
-    if ((mem->op[AVR_OP_LOADPAGE_LO]) || (mem->op[AVR_OP_READ_LO]))
-        addr /= 2;
-
-    unsigned char cmd[8];
+  if(lext) {
     memset(cmd, 0, sizeof(cmd));
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr/2);
+    pgm->cmd(pgm, cmd, res);
+  }
 
-    // use the "load extended address" command, if available
-    lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
-    if (lext != NULL)
-    {
-        avr_set_bits(lext, cmd);
-        avr_set_addr(lext, cmd, addr);
-    }
+  for(addr_base = addr; addr_base < max_addr;) {
+    /*
+     * Bytes to send in the next packet -- not necessary as pickit2_spi()
+     * handles breaking up the data into packets -- but we need to keep
+     * transfers frequent so that we can update the status indicator bar.
+     */
+    uint32_t blockSize = MIN(65536 - (addr_base%65536), MIN(max_addr - addr_base, SPI_MAX_CHUNK/4));
 
-    // make up the write page command in the 2nd cmd position
-    avr_set_bits(wp, &cmd[4]);
-    avr_set_addr(wp, &cmd[4], addr);
+    memset(cmd, 0, sizeof(cmd));
+    memset(res, 0, sizeof(res));
 
-    if (lext != NULL)
-    {
-        // write the load extended address cmd && the write_page cmd
-        pgm->spi(pgm, cmd, NULL, 8);
-    }
-    else
-    {
-        // write just the write_page cmd
-        pgm->spi(pgm, &cmd[4], NULL, 4);
-    }
+    uint8_t addr_off;
 
-    // just delay the max (we could do the delay in the PICkit2 if we wanted)
-    usleep(mem->max_write_delay);
+    for(addr_off = 0; addr_off < blockSize; addr_off++) {
+      int addr = addr_base + addr_off, caddr = addr;
 
-    return 0;
-}
+      if(mem->op[AVR_OP_READ_LO] != NULL && mem->op[AVR_OP_READ_HI] != NULL) {
+        if(addr & 0x00000001)
+          readop = mem->op[AVR_OP_READ_HI];
+        else
+          readop = mem->op[AVR_OP_READ_LO];
 
-// not actually a paged write, but a bulk/batch write
-static int  pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
-                         unsigned int page_size, unsigned int addr, unsigned int n_bytes)
-{
-    // only paged write for flash implemented
-    if (!mem_is_flash(mem) && !mem_is_eeprom(mem))
-    {
-        pmsg_error("part does not support %d paged write of %s\n", page_size, mem->desc);
+        caddr /= 2;
+      } else if(mem->op[AVR_OP_READ] != NULL) {
+        readop = mem->op[AVR_OP_READ];
+      } else {
+        pmsg_error("no read command specified\n");
         return -1;
+      }
+
+      avr_set_bits(readop, &cmd[addr_off*4]);
+      avr_set_addr(readop, &cmd[addr_off*4], caddr);
     }
 
-    DEBUG( "page size %d mem %s supported: %d\n", page_size, mem->desc, mem->paged);
-    DEBUG( "loadpagehi %x, loadpagelow %x, writepage %x\n", (int)mem->op[AVR_OP_LOADPAGE_HI], (int)mem->op[AVR_OP_LOADPAGE_LO], (int)mem->op[AVR_OP_WRITEPAGE]);
+    int bytes_read = pgm->spi(pgm, cmd, res, blockSize*4);
 
-    OPCODE *writeop;
-    uint8_t cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
-    unsigned int addr_base;
-    unsigned int max_addr = addr + n_bytes;
-
-    for (addr_base = addr; addr_base < max_addr; )
-    {
-        uint32_t blockSize;
-
-        if (mem->paged)
-        {
-            blockSize = MIN(page_size - (addr_base % page_size), MIN(max_addr - addr_base, SPI_MAX_CHUNK/4) );     // bytes remaining in page
-        }
-        else
-        {
-            blockSize = 1;
-        }
-
-        memset(cmd, 0, sizeof(cmd));
-        memset(res, 0, sizeof(res));
-
-        uint8_t addr_off;
-        for (addr_off = 0; addr_off < blockSize; addr_off++)
-        {
-            int addr = addr_base + addr_off;
-            int caddr = 0;
-
-            /*
-             * determine which memory opcode to use
-             */
-            if (mem->paged && mem->op[AVR_OP_LOADPAGE_HI] && mem->op[AVR_OP_LOADPAGE_LO])
-            {
-                if (addr & 0x01)
-                    writeop = mem->op[AVR_OP_LOADPAGE_HI];
-                else
-                    writeop = mem->op[AVR_OP_LOADPAGE_LO];
-                caddr = addr / 2;
-            }
-            else if (mem->paged && mem->op[AVR_OP_LOADPAGE_LO])
-            {
-                writeop = mem->op[AVR_OP_LOADPAGE_LO];
-                caddr = addr;
-            }
-            else if (mem->op[AVR_OP_WRITE_LO])
-            {
-                writeop = mem->op[AVR_OP_WRITE_LO];
-                caddr = addr;       // maybe this should divide by 2 & use the write_high opcode also
-
-                pmsg_error("%s AVR_OP_WRITE_LO defined only (where is the HIGH command?)\n", mem->desc);
-                return -1;
-            }
-            else
-            {
-                writeop = mem->op[AVR_OP_WRITE];
-                caddr = addr;
-            }
-
-            if (writeop == NULL)
-            {
-                // not supported!
-                return -1;
-            }
-
-            avr_set_bits(writeop, &cmd[addr_off*4]);
-            avr_set_addr(writeop, &cmd[addr_off*4], caddr);
-            avr_set_input(writeop, &cmd[addr_off*4], mem->buf[addr]);
-        }
-
-        int bytes_read = pgm->spi(pgm, cmd, res, blockSize*4);
-
-        if (bytes_read < 0)
-        {
-            pmsg_error("failed @ pgm->spi()\n");
-            return -1;
-        }
-
-        addr_base += blockSize;
-
-        // write the page - this function looks after extended address also
-        if (mem->paged && (((addr_base % page_size) == 0) || (addr_base == max_addr)))
-        {
-            DEBUG( "Calling pickit2_commit_page()\n");
-            pickit2_commit_page(pgm, p, mem, addr_base-1);
-        }
-        else if (!mem->paged)
-        {
-            usleep(mem->max_write_delay);
-        }
+    if(bytes_read < 0) {
+      pmsg_error("failed @ pgm->spi()\n");
+      return -1;
     }
 
-    return n_bytes;
+    DEBUG("\npaged_load @ %X, wrote: %d, read: %d bytes\n", addr_base, blockSize*4, bytes_read);
+
+    for(addr_off = 0; addr_off < bytes_read/4; addr_off++) {
+      data = 0;
+      avr_get_output(readop, &res[addr_off*4], &data);
+      mem->buf[addr_base + addr_off] = data;
+
+      DEBUG("%2X(%c)", (int) data, data < 0x20? '.': data);
+    }
+    DEBUG("\n");
+
+    addr_base += blockSize;
+  }
+
+  return n_bytes;
 }
 
+static int pickit2_commit_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr) {
+  OPCODE *wp, *lext;
 
-static int pickit2_cmd(const PROGRAMMER *pgm, const unsigned char *cmd,
-                unsigned char *res)
-{
-    return pgm->spi(pgm, cmd, res, 4);
+  wp = mem->op[AVR_OP_WRITEPAGE];
+  if(wp == NULL) {
+    pmsg_error("memory %s not configured for page writes\n", mem->desc);
+    return -1;
+  }
+
+  // Adjust the address if this memory is word-addressable
+  if((mem->op[AVR_OP_LOADPAGE_LO]) || (mem->op[AVR_OP_READ_LO]))
+    addr /= 2;
+
+  unsigned char cmd[8];
+
+  memset(cmd, 0, sizeof(cmd));
+
+  // Use the "load extended address" command, if available
+  lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
+  if(lext != NULL) {
+    avr_set_bits(lext, cmd);
+    avr_set_addr(lext, cmd, addr);
+  }
+
+  // Make up the write page command in the 2nd cmd position
+  avr_set_bits(wp, &cmd[4]);
+  avr_set_addr(wp, &cmd[4], addr);
+
+  if(lext != NULL) {
+    // Write the load extended address cmd && the write_page cmd
+    pgm->spi(pgm, cmd, NULL, 8);
+  } else {
+    // Write just the write_page cmd
+    pgm->spi(pgm, &cmd[4], NULL, 4);
+  }
+
+  // Just delay the max (we could do the delay in the PICkit2 if we wanted)
+  usleep(mem->max_write_delay);
+
+  return 0;
 }
 
-// breaks up the cmd[] data into  packets & sends to the pickit2. Data shifted in is stored in res[].
-static int pickit2_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
-                unsigned char *res, int n_bytes)
-{
-    int retval = 0, temp1 = 0, temp2 = 0, count = n_bytes;
+// Not actually a paged write, but a bulk/batch write
+static int pickit2_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
+  unsigned int page_size, unsigned int addr, unsigned int n_bytes) {
+  // Only paged write for flash implemented
+  if(!mem_is_flash(mem) && !mem_is_eeprom(mem)) {
+    pmsg_error("part does not support %d paged write of %s\n", page_size, mem->desc);
+    return -1;
+  }
 
-    while (count > 0)
-    {
-        uint8_t i, blockSize = MIN(count, SPI_MAX_CHUNK);
-        uint8_t report[65] = {0, CMD_DOWNLOAD_DATA_2(blockSize)};
-        uint8_t *repptr = report + 3;
+  DEBUG("page size %d mem %s supported: %d\n", page_size, mem->desc, mem->paged);
+  DEBUG("loadpagehi %x, loadpagelow %x, writepage %x\n",
+    (int) mem->op[AVR_OP_LOADPAGE_HI], (int) mem->op[AVR_OP_LOADPAGE_LO], (int) mem->op[AVR_OP_WRITEPAGE]);
 
-        memset(report + 3, CMD_END_OF_BUFFER, sizeof(report) - 3);
+  OPCODE *writeop;
+  uint8_t cmd[SPI_MAX_CHUNK], res[SPI_MAX_CHUNK];
+  unsigned int addr_base;
+  unsigned int max_addr = addr + n_bytes;
 
-        // append some data to write to SPI
-        for (i = 0; i < blockSize; i++)
-        {
-            *repptr++ = *cmd++;
-            count--;    // 1 less byte to pack
-        }
+  for(addr_base = addr; addr_base < max_addr;) {
+    uint32_t blockSize;
 
-        if (blockSize == 1)
-        {
-            *repptr++ = 0xa6;       //CMD_EXECUTE_SCRIPT;
-            *repptr++ = 1;
-            *repptr++ = SCR_SPI;
-        }
-        else
-        {
-            *repptr++ = 0xa6;       //CMD_EXECUTE_SCRIPT_2;
-            *repptr++ = 4;
-            *repptr++ = SCR_SPI;
-            *repptr++ = 0xe9;       //SCR_LOOP_3;
-            *repptr++ = 1;
-            *repptr++ = blockSize - 1;
-        }
-
-        // request the data read to be sent to us
-        *repptr++ = CMD_UPLOAD_DATA;
-
-        // check return values
-        if ((temp1=pickit2_write_report(pgm, report)) < 0 ||
-                (temp2=pickit2_read_report(pgm, report)) < 0)
-        {
-            return -1;
-        }/*
-        else
-        {
-            int i;
-            DEBUG( "in spi. wrote %d, read %d\n", temp1, temp2);
-
-            for (i = 0; i < temp2; i++)
-            {
-                  DEBUG( "%2.2x ", report[i]);
-            }
-
-            DEBUG( "\n");
-        }*/
-
-        retval = report[1]; // upload-length field
-        repptr = &report[2];    // actual data starts here
-
-        if (res)                // copy data if user has specified a storage location
-        {
-            memcpy(res, repptr, retval);
-            res += retval;
-        }
+    if(mem->paged) {
+      blockSize = MIN(page_size - (addr_base%page_size),
+        MIN(max_addr - addr_base, SPI_MAX_CHUNK/4)); // Bytes remaining in page
+    } else {
+      blockSize = 1;
     }
 
-    return n_bytes;
+    memset(cmd, 0, sizeof(cmd));
+    memset(res, 0, sizeof(res));
+
+    uint8_t addr_off;
+
+    for(addr_off = 0; addr_off < blockSize; addr_off++) {
+      int addr = addr_base + addr_off;
+      int caddr = 0;
+
+      // Determine which memory opcode to use
+      if(mem->paged && mem->op[AVR_OP_LOADPAGE_HI] && mem->op[AVR_OP_LOADPAGE_LO]) {
+        if(addr & 0x01)
+          writeop = mem->op[AVR_OP_LOADPAGE_HI];
+        else
+          writeop = mem->op[AVR_OP_LOADPAGE_LO];
+        caddr = addr/2;
+      } else if(mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) {
+        writeop = mem->op[AVR_OP_LOADPAGE_LO];
+        caddr = addr;
+      } else if(mem->op[AVR_OP_WRITE_LO]) {
+        writeop = mem->op[AVR_OP_WRITE_LO];
+        caddr = addr;           // Maybe this should divide by 2 & use the write_high opcode also
+
+        pmsg_error("%s AVR_OP_WRITE_LO defined only (where is the HIGH command?)\n", mem->desc);
+        return -1;
+      } else {
+        writeop = mem->op[AVR_OP_WRITE];
+        caddr = addr;
+      }
+
+      if(writeop == NULL)       // Not supported!
+        return -1;
+
+      avr_set_bits(writeop, &cmd[addr_off*4]);
+      avr_set_addr(writeop, &cmd[addr_off*4], caddr);
+      avr_set_input(writeop, &cmd[addr_off*4], mem->buf[addr]);
+    }
+
+    int bytes_read = pgm->spi(pgm, cmd, res, blockSize*4);
+
+    if(bytes_read < 0) {
+      pmsg_error("failed @ pgm->spi()\n");
+      return -1;
+    }
+
+    addr_base += blockSize;
+
+    // Write the page - this function looks after extended address also
+    if(mem->paged && (((addr_base%page_size) == 0) || (addr_base == max_addr))) {
+      DEBUG("Calling pickit2_commit_page()\n");
+      pickit2_commit_page(pgm, p, mem, addr_base - 1);
+    } else if(!mem->paged) {
+      usleep(mem->max_write_delay);
+    }
+  }
+
+  return n_bytes;
+}
+
+static int pickit2_cmd(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res) {
+  return pgm->spi(pgm, cmd, res, 4);
+}
+
+// Breaks up the cmd[] data into packets & sends to the pickit2; data shifted in is stored in res[]
+static int pickit2_spi(const PROGRAMMER *pgm, const unsigned char *cmd, unsigned char *res, int n_bytes) {
+  int retval = 0, temp1 = 0, temp2 = 0, count = n_bytes;
+
+  while(count > 0) {
+    uint8_t i, blockSize = MIN(count, SPI_MAX_CHUNK);
+    uint8_t report[65] = { 0, CMD_DOWNLOAD_DATA_2(blockSize) };
+    uint8_t *repptr = report + 3;
+
+    memset(report + 3, CMD_END_OF_BUFFER, sizeof(report) - 3);
+
+    // Append some data to write to SPI
+    for(i = 0; i < blockSize; i++) {
+      *repptr++ = *cmd++;
+      count--;                  // 1 less byte to pack
+    }
+
+    if(blockSize == 1) {
+      *repptr++ = 0xa6;         // CMD_EXECUTE_SCRIPT;
+      *repptr++ = 1;
+      *repptr++ = SCR_SPI;
+    } else {
+      *repptr++ = 0xa6;         // CMD_EXECUTE_SCRIPT_2;
+      *repptr++ = 4;
+      *repptr++ = SCR_SPI;
+      *repptr++ = 0xe9;         // SCR_LOOP_3;
+      *repptr++ = 1;
+      *repptr++ = blockSize - 1;
+    }
+
+    // Request the data read to be sent to us
+    *repptr++ = CMD_UPLOAD_DATA;
+
+    // Check return values
+    if((temp1 = pickit2_write_report(pgm, report)) < 0 || (temp2 = pickit2_read_report(pgm, report)) < 0) {
+      return -1;
+    }
+
+    retval = report[1];         // Upload-length field
+    repptr = &report[2];        // Actual data starts here
+
+    if(res) {                   // Copy data if user has specified a storage location
+      memcpy(res, repptr, retval);
+      res += retval;
+    }
+  }
+
+  return n_bytes;
 }
 
 #ifdef WIN32
+
 /*
     Func: open_hid()
     Desc: finds & opens device having specified VID & PID.
@@ -779,511 +696,420 @@ static int pickit2_spi(const PROGRAMMER *pgm, const unsigned char *cmd,
         Date: 7/18/05
         by Jan Axelson (jan@Lvr.com)
 */
-static HANDLE open_hid(unsigned short vid, unsigned short pid)
-{
-    //Use a series of API calls to find a HID with a specified Vendor IF and Product ID.
-    HANDLE                              returnHandle = INVALID_HANDLE_VALUE;
-    HIDD_ATTRIBUTES                     Attributes;
+static HANDLE open_hid(unsigned short vid, unsigned short pid) {
+  // Use a series of API calls to find a HID with a specified Vendor IF and Product ID
+  HANDLE returnHandle = INVALID_HANDLE_VALUE;
+  HIDD_ATTRIBUTES Attributes;
+
 //    DWORD                               DeviceUsage;
-    SP_DEVICE_INTERFACE_DATA            devInfoData;
-    BOOL                                LastDevice = FALSE;
-    int                                 MemberIndex = 0;
-    LONG                                Result;
+  SP_DEVICE_INTERFACE_DATA devInfoData;
+  BOOL LastDevice = FALSE;
+  int MemberIndex = 0;
+  LONG Result;
 
-    // were global, now just local scrap
-    DWORD                               Length = 0;
-    PSP_DEVICE_INTERFACE_DETAIL_DATA    detailData = NULL;
-    HANDLE                              DeviceHandle=NULL;
-    GUID                                HidGuid;
-    HANDLE                              hDevInfo;
-    ULONG                               Required;
-    BOOL                                MyDeviceDetected = 0;
+  // Were global, now just local scrap
+  DWORD Length = 0;
+  PSP_DEVICE_INTERFACE_DETAIL_DATA detailData = NULL;
+  HANDLE DeviceHandle = NULL;
+  GUID HidGuid;
+  HANDLE hDevInfo;
+  ULONG Required;
+  BOOL MyDeviceDetected = 0;
 
+  /*
+     API function: HidD_GetHidGuid
+     Get the GUID for all system HIDs.
+     Returns: the GUID in HidGuid.
+   */
+
+  HidD_GetHidGuid(&HidGuid);
+  DEBUG("\nHidD_GetHidGuid returned.\n");
+
+  /*
+     API function: SetupDiGetClassDevs
+     Returns: a handle to a device information set for all installed devices.
+     Requires: the GUID returned by GetHidGuid.
+   */
+
+  hDevInfo = SetupDiGetClassDevs(&HidGuid, NULL, NULL, DIGCF_PRESENT | DIGCF_INTERFACEDEVICE);
+
+  DEBUG("\nSetupDiGetClassDevs returned 0x%x\n", hDevInfo);
+  devInfoData.cbSize = sizeof(devInfoData);
+
+  /*
+   * Step through the available devices looking for the one we want. Quit on
+   * detecting the desired device or checking all available devices without
+   * success.
+   */
+
+  MemberIndex = 0;
+  LastDevice = FALSE;
+
+  do {
     /*
-    API function: HidD_GetHidGuid
-    Get the GUID for all system HIDs.
-    Returns: the GUID in HidGuid.
-    */
+       API function: SetupDiEnumDeviceInterfaces
+       On return, MyDeviceInterfaceData contains the handle to a
+       SP_DEVICE_INTERFACE_DATA structure for a detected device.
+       Requires:
+       The DeviceInfoSet returned in SetupDiGetClassDevs.
+       The HidGuid returned in GetHidGuid.
+       An index to specify a device.
+     */
 
-    HidD_GetHidGuid(&HidGuid);
-    DEBUG("\nHidD_GetHidGuid returned.\n");
+    Result = SetupDiEnumDeviceInterfaces(hDevInfo, 0, &HidGuid, MemberIndex, &devInfoData);
 
-    /*
-    API function: SetupDiGetClassDevs
-    Returns: a handle to a device information set for all installed devices.
-    Requires: the GUID returned by GetHidGuid.
-    */
+    DEBUG("\nSetupDiEnumDeviceInterfaces returned 0x%x\n", Result);
 
-    hDevInfo=SetupDiGetClassDevs
-             (&HidGuid,
-              NULL,
-              NULL,
-              DIGCF_PRESENT|DIGCF_INTERFACEDEVICE);
+    if(Result != 0) {
+      //A device has been detected, so get more information about it.
 
-    DEBUG("\nSetupDiGetClassDevs returned 0x%x\n", hDevInfo);
-    devInfoData.cbSize = sizeof(devInfoData);
+      /*
+         API function: SetupDiGetDeviceInterfaceDetail
+         Returns: an SP_DEVICE_INTERFACE_DETAIL_DATA structure
+         containing information about a device.
+         To retrieve the information, call this function twice.
+         The first time returns the size of the structure in Length.
+         The second time returns a pointer to the data in DeviceInfoSet.
+         Requires:
+         A DeviceInfoSet returned by SetupDiGetClassDevs
+         The SP_DEVICE_INTERFACE_DATA structure returned by SetupDiEnumDeviceInterfaces.
 
-    //Step through the available devices looking for the one we want.
-    //Quit on detecting the desired device or checking all available devices without success.
+         The final parameter is an optional pointer to an SP_DEV_INFO_DATA structure.
+         This application doesn't retrieve or use the structure.
+         If retrieving the structure, set
+         MyDeviceInfoData.cbSize = length of MyDeviceInfoData.
+         and pass the structure's address.
+       */
 
-    MemberIndex = 0;
-    LastDevice = FALSE;
+      // Get the Length value; the call will return with a "buffer too small" error which can be ignored
+      Result = SetupDiGetDeviceInterfaceDetail(hDevInfo, &devInfoData, NULL, 0, &Length, NULL);
 
-    do
-    {
-        /*
-        API function: SetupDiEnumDeviceInterfaces
-        On return, MyDeviceInterfaceData contains the handle to a
-        SP_DEVICE_INTERFACE_DATA structure for a detected device.
-        Requires:
-        The DeviceInfoSet returned in SetupDiGetClassDevs.
-        The HidGuid returned in GetHidGuid.
-        An index to specify a device.
-        */
+      DEBUG("\nSetupDiGetDeviceInterfaceDetail returned 0x%x\n", Result);
 
+      // Allocate memory for the hDevInfo structure, using the returned Length
+      detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA) mmt_malloc(Length);
 
-        Result=SetupDiEnumDeviceInterfaces
-               (hDevInfo,
-                0,
-                &HidGuid,
-                MemberIndex,
-                &devInfoData);
+      // Set cbSize in the detailData structure
+      detailData->cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
 
-        DEBUG("\nSetupDiEnumDeviceInterfaces returned 0x%x\n", Result);
+      // Call the function again, this time passing it the returned buffer size
+      Result = SetupDiGetDeviceInterfaceDetail(hDevInfo, &devInfoData, detailData, Length, &Required, NULL);
 
-        if (Result != 0)
-        {
-            //A device has been detected, so get more information about it.
+      /*
+       * Open a handle to the device.
+       * To enable retrieving information about a system mouse or keyboard,
+       * don't request Read or Write access for this handle.
+       */
 
-            /*
-            API function: SetupDiGetDeviceInterfaceDetail
-            Returns: an SP_DEVICE_INTERFACE_DETAIL_DATA structure
-            containing information about a device.
-            To retrieve the information, call this function twice.
-            The first time returns the size of the structure in Length.
-            The second time returns a pointer to the data in DeviceInfoSet.
-            Requires:
-            A DeviceInfoSet returned by SetupDiGetClassDevs
-            The SP_DEVICE_INTERFACE_DATA structure returned by SetupDiEnumDeviceInterfaces.
+      /*
+         API function: CreateFile
+         Returns: a handle that enables reading and writing to the device.
+         Requires:
+         The DevicePath in the detailData structure
+         returned by SetupDiGetDeviceInterfaceDetail.
+       */
 
-            The final parameter is an optional pointer to an SP_DEV_INFO_DATA structure.
-            This application doesn't retrieve or use the structure.
-            If retrieving the structure, set
-            MyDeviceInfoData.cbSize = length of MyDeviceInfoData.
-            and pass the structure's address.
-            */
+      DeviceHandle = CreateFile(detailData->DevicePath, 0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE, (LPSECURITY_ATTRIBUTES) NULL, OPEN_EXISTING, 0, NULL);
 
-            //Get the Length value.
-            //The call will return with a "buffer too small" error which can be ignored.
-            Result = SetupDiGetDeviceInterfaceDetail
-                     (hDevInfo,
-                      &devInfoData,
-                      NULL,
-                      0,
-                      &Length,
-                      NULL);
+      DEBUG("CreateFile(): %s\n", detailData->DevicePath);
+      /*
+         API function: HidD_GetAttributes
+         Requests information from the device.
+         Requires: the handle returned by CreateFile.
+         Returns: a HIDD_ATTRIBUTES structure containing
+         the Vendor ID, Product ID, and Product Version Number.
+         Use this information to decide if the detected device is
+         the one we're looking for.
+       */
 
-            DEBUG("\nSetupDiGetDeviceInterfaceDetail returned 0x%x\n", Result);
+      //Set the Size to the number of bytes in the structure.
 
-            //Allocate memory for the hDevInfo structure, using the returned Length.
+      Attributes.Size = sizeof(Attributes);
 
-            detailData = (PSP_DEVICE_INTERFACE_DETAIL_DATA) mmt_malloc(Length);
+      Result = HidD_GetAttributes(DeviceHandle, &Attributes);
 
-            //Set cbSize in the detailData structure.
+      DEBUG("HidD_GetAttributes returned 0x%x\n", Result);
+      DEBUG("VID: %.4X PID: %.4X\n", Attributes.VendorID, Attributes.ProductID);
 
-            detailData -> cbSize = sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA);
+      //Is it the desired device?
+      MyDeviceDetected = FALSE;
+      if(Attributes.VendorID == vid) {
+        if(Attributes.ProductID == pid) {
+          //Both the Vendor ID and Product ID match.
 
-            //Call the function again, this time passing it the returned buffer size.
+          MyDeviceDetected = TRUE;
 
-            Result = SetupDiGetDeviceInterfaceDetail
-                     (hDevInfo,
-                      &devInfoData,
-                      detailData,
-                      Length,
-                      &Required,
-                      NULL);
+          // Get a handle for us to use.
 
-            // Open a handle to the device.
-            // To enable retrieving information about a system mouse or keyboard,
-            // don't request Read or Write access for this handle.
+          returnHandle = CreateFile(detailData->DevicePath,
+            GENERIC_WRITE | GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE,
+            (LPSECURITY_ATTRIBUTES) NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, NULL);
 
-            /*
-            API function: CreateFile
-            Returns: a handle that enables reading and writing to the device.
-            Requires:
-            The DevicePath in the detailData structure
-            returned by SetupDiGetDeviceInterfaceDetail.
-            */
+        } else                  // The Product ID doesn't match
+          CloseHandle(DeviceHandle);
+      } else                    // The Vendor ID doesn't match
+        CloseHandle(DeviceHandle);
 
-            DeviceHandle=CreateFile
-                         (detailData->DevicePath,
-                          0,
-                          FILE_SHARE_READ|FILE_SHARE_WRITE,
-                          (LPSECURITY_ATTRIBUTES)NULL,
-                          OPEN_EXISTING,
-                          0,
-                          NULL);
+      // Free the memory used by the detailData structure (no longer needed)
+      mmt_free(detailData);
+    } else                      // if(Result != 0)
+      // SetupDiEnumDeviceInterfaces returned 0, so there are no more devices to check.
+      LastDevice = TRUE;
 
-            DEBUG("CreateFile(): %s\n", detailData->DevicePath);
-            /*
-            API function: HidD_GetAttributes
-            Requests information from the device.
-            Requires: the handle returned by CreateFile.
-            Returns: a HIDD_ATTRIBUTES structure containing
-            the Vendor ID, Product ID, and Product Version Number.
-            Use this information to decide if the detected device is
-            the one we're looking for.
-            */
+    // If we haven't found the device yet, and haven't tried every available device, try the next one
+    MemberIndex = MemberIndex + 1;
+  } while((LastDevice == FALSE) && (MyDeviceDetected == FALSE));
 
-            //Set the Size to the number of bytes in the structure.
+  if(MyDeviceDetected == FALSE)
+    DEBUG("Device not detected\n");
+  else
+    DEBUG("Device detected\n");
 
-            Attributes.Size = sizeof(Attributes);
+  // Free the memory reserved for hDevInfo by SetupDiClassDevs
 
-            Result = HidD_GetAttributes
-                     (DeviceHandle,
-                      &Attributes);
+  DEBUG("Calling SetupDiDestroyDeviceInfoList\n");
+  SetupDiDestroyDeviceInfoList(hDevInfo);
 
-            DEBUG("HidD_GetAttributes returned 0x%x\n", Result);
-            DEBUG("VID: %.4X PID: %.4X\n", Attributes.VendorID, Attributes.ProductID);
-
-            //Is it the desired device?
-            MyDeviceDetected = FALSE;
-            if (Attributes.VendorID == vid)
-            {
-                if (Attributes.ProductID == pid)
-                {
-                    //Both the Vendor ID and Product ID match.
-
-                    MyDeviceDetected = TRUE;
-
-                    // Get a handle for us to use.
-
-                    returnHandle = CreateFile
-                                   (detailData->DevicePath,
-                                    GENERIC_WRITE | GENERIC_READ,
-                                    FILE_SHARE_READ|FILE_SHARE_WRITE,
-                                    (LPSECURITY_ATTRIBUTES)NULL,
-                                    OPEN_EXISTING,
-                                    FILE_FLAG_OVERLAPPED,
-                                    NULL);
-
-                } //if (Attributes.ProductID == ProductID)
-
-                else
-                    //The Product ID doesn't match.
-
-                    CloseHandle(DeviceHandle);
-
-            } //if (Attributes.VendorID == VendorID)
-
-            else
-                //The Vendor ID doesn't match.
-
-                CloseHandle(DeviceHandle);
-
-            //Free the memory used by the detailData structure (no longer needed).
-
-            mmt_free(detailData);
-
-        }  //if (Result != 0)
-
-        else
-            //SetupDiEnumDeviceInterfaces returned 0, so there are no more devices to check.
-
-            LastDevice=TRUE;
-
-        //If we haven't found the device yet, and haven't tried every available device,
-        //try the next one.
-
-        MemberIndex = MemberIndex + 1;
-
-    } //do
-
-    while ((LastDevice == FALSE) && (MyDeviceDetected == FALSE));
-
-    if (MyDeviceDetected == FALSE)
-        DEBUG("Device not detected\n");
-    else
-        DEBUG("Device detected\n");
-
-    //Free the memory reserved for hDevInfo by SetupDiClassDevs.
-
-    DEBUG("Calling SetupDiDestroyDeviceInfoList\n");
-    SetupDiDestroyDeviceInfoList(hDevInfo);
-
-    return returnHandle;
+  return returnHandle;
 }
 
-// simple read with timeout
+// Simple read with timeout
 static int usb_read_interrupt(const PROGRAMMER *pgm, void *buff, int size, int timeout) {
-    OVERLAPPED ovr;
-    DWORD bytesRead = 0;
+  OVERLAPPED ovr;
+  DWORD bytesRead = 0;
 
-    if (PDATA(pgm)->read_event == NULL)
-    {
-        PDATA(pgm)->read_event = CreateEvent(0, 0, 0, 0);
-    }
+  if(my.read_event == NULL) {
+    my.read_event = CreateEvent(0, 0, 0, 0);
+  }
 
-    memset(&ovr, 0, sizeof(ovr));
-    ovr.hEvent = PDATA(pgm)->read_event;
+  memset(&ovr, 0, sizeof(ovr));
+  ovr.hEvent = my.read_event;
 
-    ReadFile(PDATA(pgm)->usb_handle, buff, size, &bytesRead, &ovr);
-    if (WaitForSingleObject(PDATA(pgm)->read_event, timeout) == WAIT_TIMEOUT)
-    {
-        CancelIo(PDATA(pgm)->usb_handle);
-        return -1;
-    }
-
-    GetOverlappedResult(PDATA(pgm)->usb_handle, &ovr, &bytesRead, 0);
-
-    return bytesRead > 0? (int) bytesRead: -1;
-}
-
-// simple write with timeout
-static int usb_write_interrupt(const PROGRAMMER *pgm, const void *buff, int size, int timeout) {
-    OVERLAPPED ovr;
-    DWORD bytesWritten = 0;
-
-    if (PDATA(pgm)->write_event == NULL)
-    {
-        PDATA(pgm)->write_event = CreateEvent(0, 0, 0, 0);
-    }
-
-    memset(&ovr, 0, sizeof(ovr));
-    ovr.hEvent = PDATA(pgm)->write_event;
-
-    WriteFile(PDATA(pgm)->usb_handle, buff, size, &bytesWritten, &ovr);
-    if (WaitForSingleObject(PDATA(pgm)->write_event, timeout) == WAIT_TIMEOUT)
-    {
-        CancelIo(PDATA(pgm)->usb_handle);
-        return -1;
-    }
-
-    GetOverlappedResult(PDATA(pgm)->usb_handle, &ovr, &bytesWritten, 0);
-
-    return bytesWritten > 0? (int) bytesWritten: -1;
-}
-
-static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
-    return usb_write_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout); // XXX
-}
-
-static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
-    return usb_read_interrupt(pgm, report, 65, PDATA(pgm)->transaction_timeout);
-}
-
-#else   // WIN32
-/* taken (modified) from avrdude usbasp.c */
-static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int vendor, int product) {
-    struct usb_bus      *bus;
-    struct usb_device   *dev;
-    usb_dev_handle      *handle = NULL;
-    int                 errorCode = USB_ERROR_NOTFOUND;
-
-    if(!PDATA(pgm)->USB_init) {
-        PDATA(pgm)->USB_init = 1;
-        usb_init();
-    }
-    usb_find_busses();
-    usb_find_devices();
-    for (bus=usb_get_busses(); bus; bus=bus->next)
-    {
-        for (dev=bus->devices; dev; dev=dev->next)
-        {
-            DEBUG( "Enumerating device list.. VID: 0x%4.4x, PID: 0x%4.4x\n", dev->descriptor.idVendor, dev->descriptor.idProduct);
-            if (dev->descriptor.idVendor == vendor && dev->descriptor.idProduct == product)
-            {
-                /* we need to open the device in order to query strings */
-                handle = usb_open(dev);
-                if (handle == NULL)
-                {
-                    errorCode = USB_ERROR_ACCESS;
-                    pmsg_warning("cannot open USB device: %s\n", usb_strerror());
-                    continue;
-                }
-
-                // return with opened device handle
-                else
-                {
-                    msg_notice2("device %p seemed to open OK\n", handle);
-
-                    if ((errorCode = usb_set_configuration(handle, 1)) < 0)
-                    {
-                        cx->usb_access_error = 1;
-                        pmsg_ext_error("cannot set configuration, error code %d, %s\n",
-                          errorCode, usb_strerror());
-                    }
-
-                    if ((errorCode = usb_claim_interface(handle, 0)) < 0)
-                    {
-                        cx->usb_access_error = 1;
-                        pmsg_ext_error("cannot claim interface, error code %d, %s\n",
-                           errorCode, usb_strerror());
-                    }
-
-                    errorCode = 0;
-                    *device = handle;
-                    return 0;
-                }
-            }
-        }
-    }
-
+  ReadFile(my.usb_handle, buff, size, &bytesRead, &ovr);
+  if(WaitForSingleObject(my.read_event, timeout) == WAIT_TIMEOUT) {
+    CancelIo(my.usb_handle);
     return -1;
+  }
+
+  GetOverlappedResult(my.usb_handle, &ovr, &bytesRead, 0);
+
+  return bytesRead > 0? (int) bytesRead: -1;
+}
+
+// Simple write with timeout
+static int usb_write_interrupt(const PROGRAMMER *pgm, const void *buff, int size, int timeout) {
+  OVERLAPPED ovr;
+  DWORD bytesWritten = 0;
+
+  if(my.write_event == NULL) {
+    my.write_event = CreateEvent(0, 0, 0, 0);
+  }
+
+  memset(&ovr, 0, sizeof(ovr));
+  ovr.hEvent = my.write_event;
+
+  WriteFile(my.usb_handle, buff, size, &bytesWritten, &ovr);
+  if(WaitForSingleObject(my.write_event, timeout) == WAIT_TIMEOUT) {
+    CancelIo(my.usb_handle);
+    return -1;
+  }
+
+  GetOverlappedResult(my.usb_handle, &ovr, &bytesWritten, 0);
+
+  return bytesWritten > 0? (int) bytesWritten: -1;
 }
 
 static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
-    // endpoint 1 OUT??
-    return usb_interrupt_write(PDATA(pgm)->usb_handle, USB_ENDPOINT_OUT | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
+  return usb_write_interrupt(pgm, report, 65, my.transaction_timeout); // XXX
 }
 
 static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
-    // endpoint 1 IN??
-    return usb_interrupt_read(PDATA(pgm)->usb_handle, USB_ENDPOINT_IN | 1, (char*)(report+1), 64, PDATA(pgm)->transaction_timeout);
+  return usb_read_interrupt(pgm, report, 65, my.transaction_timeout);
 }
-#endif  // WIN32
 
-static int  pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
-    int rv = 0;
-    bool help = false;
+#else                           // WIN32
 
-    for (LNODEID ln = lfirst(extparms); ln; ln = lnext(ln))
-    {
-        const char *extended_param = ldata(ln);
+// Taken (modified) from avrdude usbasp.c
+static int usb_open_device(PROGRAMMER *pgm, struct usb_dev_handle **device, int vendor, int product) {
+  struct usb_bus *bus;
+  struct usb_device *dev;
+  usb_dev_handle *handle = NULL;
+  int errorCode = USB_ERROR_NOTFOUND;
 
-        if (str_starts(extended_param, "clockrate="))
-        {
-            int clock_rate;
-            if (sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0)
-            {
-                pmsg_error("invalid clock rate in -x %s\n", extended_param);
-                rv = -1;
-                break;
-            }
+  if(!my.USB_init) {
+    my.USB_init = 1;
+    usb_init();
+  }
+  usb_find_busses();
+  usb_find_devices();
+  for(bus = usb_get_busses(); bus; bus = bus->next) {
+    for(dev = bus->devices; dev; dev = dev->next) {
+      DEBUG("Enumerating device list.. VID: 0x%4.4x, PID: 0x%4.4x\n",
+        dev->descriptor.idVendor, dev->descriptor.idProduct);
+      if(dev->descriptor.idVendor == vendor && dev->descriptor.idProduct == product) {
+        // We need to open the device in order to query strings
+        handle = usb_open(dev);
+        if(handle == NULL) {
+          errorCode = USB_ERROR_ACCESS;
+          pmsg_warning("cannot open USB device: %s\n", usb_strerror());
+          continue;
+        } else {                // Return with opened device handle
+          msg_notice2("device %p seemed to open OK\n", handle);
+          if((errorCode = usb_set_configuration(handle, 1)) < 0) {
+            cx->usb_access_error = 1;
+            pmsg_ext_error("cannot set configuration, error code %d, %s\n",
+              errorCode, usb_strerror());
+          }
+          if((errorCode = usb_claim_interface(handle, 0)) < 0) {
+            cx->usb_access_error = 1;
+            pmsg_ext_error("cannot claim interface, error code %d, %s\n",
+              errorCode, usb_strerror());
+          }
 
-            int clock_period = MIN(1000000 / clock_rate, 255);    // max period is 255
-            clock_rate = (int)(1000000 / (clock_period + 5e-7));    // assume highest speed is 2MHz - should probably check this
-
-            pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
-            PDATA(pgm)->clock_period = clock_period;
-            continue;
+          errorCode = 0;
+          *device = handle;
+          return 0;
         }
+      }
+    }
+  }
 
-        if (str_starts(extended_param, "timeout="))
-        {
-            int timeout;
-            if (sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0)
-            {
-                pmsg_error("invalid timeout in -x %s\n", extended_param);
-                rv = -1;
-                break;
-            }
+  return -1;
+}
 
-            pmsg_notice2("%s(): usb timeout set to 0x%02x\n", __func__, timeout);
-            PDATA(pgm)->transaction_timeout = timeout;
-            continue;
-        }
+static int pickit2_write_report(const PROGRAMMER *pgm, const unsigned char report[65]) {
+  // Endpoint 1 OUT??
+  return usb_interrupt_write(my.usb_handle, USB_ENDPOINT_OUT | 1, (char *) (report + 1), 64,
+    my.transaction_timeout);
+}
 
-        if (str_eq(extended_param, "help"))
-        {
-            help = true;
-            rv = LIBAVRDUDE_EXIT;
-        }
+static int pickit2_read_report(const PROGRAMMER *pgm, unsigned char report[65]) {
+  // Endpoint 1 IN??
+  return usb_interrupt_read(my.usb_handle, USB_ENDPOINT_IN | 1, (char *) (report + 1), 64,
+    my.transaction_timeout);
+}
+#endif                          // WIN32
 
-        if (!help)
-        {
-            pmsg_error("invalid extended parameter -x %s\n", extended_param);
-            rv = -1;
-        }
-        msg_error("%s -c %s extended options:\n", progname, pgmid);
-        msg_error("  -x clockrate=<n> Set the SPI clock rate to <n> Hz\n");
-        msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms\n");
-        msg_error("  -x help          Show this help menu and exit\n");
-        return rv;
+static int pickit2_parseextparams(const PROGRAMMER *pgm, const LISTID extparms) {
+  int rv = 0;
+  bool help = false;
+
+  for(LNODEID ln = lfirst(extparms); ln; ln = lnext(ln)) {
+    const char *extended_param = ldata(ln);
+
+    if(str_starts(extended_param, "clockrate=")) {
+      int clock_rate;
+
+      if(sscanf(extended_param, "clockrate=%i", &clock_rate) != 1 || clock_rate <= 0) {
+        pmsg_error("invalid clock rate in -x %s\n", extended_param);
+        rv = -1;
+        break;
+      }
+
+      int clock_period = MIN(1000000/clock_rate, 255);        // Max period is 255
+
+      clock_rate = (int) (1000000/(clock_period + 5e-7));     // Assume highest speed is 2MHz
+
+      pmsg_notice2("%s(): effective clock rate set to 0x%02x\n", __func__, clock_rate);
+      my.clock_period = clock_period;
+      continue;
     }
 
-    return rv;
-}
+    if(str_starts(extended_param, "timeout=")) {
+      int timeout;
 
+      if(sscanf(extended_param, "timeout=%i", &timeout) != 1 || timeout <= 0) {
+        pmsg_error("invalid timeout in -x %s\n", extended_param);
+        rv = -1;
+        break;
+      }
+
+      pmsg_notice2("%s(): usb timeout set to 0x%02x\n", __func__, timeout);
+      my.transaction_timeout = timeout;
+      continue;
+    }
+
+    if(str_eq(extended_param, "help")) {
+      help = true;
+      rv = LIBAVRDUDE_EXIT;
+    }
+
+    if(!help) {
+      pmsg_error("invalid extended parameter -x %s\n", extended_param);
+      rv = -1;
+    }
+    msg_error("%s -c %s extended options:\n", progname, pgmid);
+    msg_error("  -x clockrate=<n> Set the SPI clock rate to <n> Hz\n");
+    msg_error("  -x timeout=<n>   Set the timeout for USB read/write to <n> ms\n");
+    msg_error("  -x help          Show this help menu and exit\n");
+    return rv;
+  }
+
+  return rv;
+}
 
 void pickit2_initpgm(PROGRAMMER *pgm) {
-    /*
-     * mandatory functions - these are called without checking to see
-     * whether they are assigned or not
-     */
+  // Mandatory functions - these are called without checking whether they are assigned
+  pgm->initialize = pickit2_initialize;
+  pgm->display = pickit2_display;
+  pgm->enable = pickit2_enable;
+  pgm->disable = pickit2_disable;
+  pgm->powerup = pickit2_powerup;
+  pgm->powerdown = pickit2_powerdown;
+  pgm->program_enable = pickit2_program_enable;
+  pgm->chip_erase = pickit2_chip_erase;
+  pgm->open = pickit2_open;
+  pgm->close = pickit2_close;
 
-    pgm->initialize     = pickit2_initialize;
-    pgm->display        = pickit2_display;
-    pgm->enable         = pickit2_enable;
-    pgm->disable        = pickit2_disable;
-    pgm->powerup        = pickit2_powerup;
-    pgm->powerdown      = pickit2_powerdown;
-    pgm->program_enable = pickit2_program_enable;
-    pgm->chip_erase     = pickit2_chip_erase;
-    pgm->open           = pickit2_open;
-    pgm->close          = pickit2_close;
+  pgm->read_byte = avr_read_byte_default;
+  pgm->write_byte = avr_write_byte_default;
 
-    pgm->read_byte      = avr_read_byte_default;
-    pgm->write_byte     = avr_write_byte_default;
+  // Predefined functions - these functions have a valid default implementation
+  pgm->pgm_led = pickit2_pgm_led;
+  pgm->vfy_led = pickit2_vfy_led;
+  // pgm->rdy_led = pickit2_rdy_led;
+  // pgm->err_led = pickit2_err_led;
 
-    /*
-     * predefined functions - these functions have a valid default
-     * implementation. Hence, they don't need to be defined in
-     * the programmer.
-     */
-    //pgm->rdy_led        = pickit2_rdy_led;
-    //pgm->err_led        = pickit2_err_led;
-    pgm->pgm_led        = pickit2_pgm_led;
-    pgm->vfy_led        = pickit2_vfy_led;
+  // Optional functions - these are checked to make sure they are assigned before they are called
+  pgm->cmd = pickit2_cmd;
+  pgm->spi = pickit2_spi;
+  pgm->paged_write = pickit2_paged_write;
+  pgm->paged_load = pickit2_paged_load;
+  // pgm->write_setup    = NULL;
+  // pgm->read_sig_bytes = NULL;
+  // pgm->set_vtarget    = NULL; // pickit2_vtarget;
+  // pgm->set_varef      = NULL;
+  // pgm->set_fosc       = NULL;
+  // pgm->perform_osccal = NULL;
 
-    /*
-     * optional functions - these are checked to make sure they are
-     * assigned before they are called
-     */
+  pgm->parseextparams = pickit2_parseextparams;
 
-    pgm->cmd            = pickit2_cmd;
-    pgm->spi            = pickit2_spi;
-    pgm->paged_write    = pickit2_paged_write;
-    pgm->paged_load     = pickit2_paged_load;
-    //pgm->write_setup    = NULL;
-    //pgm->read_sig_bytes = NULL;
-    //pgm->set_vtarget    = NULL;//pickit2_vtarget;
-    //pgm->set_varef      = NULL;
-    //pgm->set_fosc       = NULL;
-    //pgm->perform_osccal = NULL;
+  pgm->setup = pickit2_setup;
+  pgm->teardown = pickit2_teardown;
+  // pgm->page_size = 256;      // Not sure what this does ... maybe the max page size that paged read/write can handle
 
-    pgm->parseextparams = pickit2_parseextparams;
-
-    pgm->setup          = pickit2_setup;
-    pgm->teardown       = pickit2_teardown;
-    // pgm->page_size      = 256;        // not sure what this does ... maybe the max page size that the page read/write function can handle
-
-    strncpy(pgm->type, "pickit2", sizeof(pgm->type));
+  strncpy(pgm->type, "pickit2", sizeof(pgm->type));
 }
 #else
 static int pickit2_nousb_open(PROGRAMMER *pgm, const char *name) {
-    pmsg_error(
+  pmsg_error(
 #ifdef WIN32
-            "no usb or hid support; please compile again with libusb or HID support from Win32 DDK installed\n"
+    "no usb or hid support; please compile again with libusb or HID support from Win32 DDK installed\n"
 #else
-            "no usb support; please compile again with libusb installed\n"
+    "no usb support; please compile again with libusb installed\n"
 #endif
-     );
+    );
 
-    return -1;
+  return -1;
 }
 
 void pickit2_initpgm(PROGRAMMER *pgm) {
-    /*
-     * mandatory functions - these are called without checking to see
-     * whether they are assigned or not
-     */
+  // Mandatory function
+  pgm->open = pickit2_nousb_open;
 
-    pgm->open           = pickit2_nousb_open;
-
-    strncpy(pgm->type, "pickit2", sizeof(pgm->type));
+  strncpy(pgm->type, "pickit2", sizeof(pgm->type));
 }
-
-#endif /* defined(HAVE_LIBUSB) || defined(WIN32) */
+#endif                          // defined(HAVE_LIBUSB) || defined(WIN32)
 
 const char pickit2_desc[] = "Microchip's PICkit2 Programmer";

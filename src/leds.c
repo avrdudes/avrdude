@@ -1,5 +1,5 @@
 /*
- * AVRDUDE - A Downloader/Uploader for AVR device programmers
+ * avrdude - A Downloader/Uploader for AVR device programmers
  * Copyright (C) 2023 Stefan Rueger <stefan.rueger@urclocks.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -54,13 +54,13 @@
  *
  */
 
-#define TOFF                 2 // Toggle LED into off state
-#define TON                  3 // Toggle LED into on state
-#define CHECK               15 // Check LED needs changing
+#define TOFF                 2  // Toggle LED into off state
+#define TON                  3  // Toggle LED into on state
+#define CHECK               15  // Check LED needs changing
 
 // Keep track of LED status and set LED 0 .. LED_N-1 physically on or off
 static void led_direct(const PROGRAMMER *pgm, Leds *ls, int led, int what) {
-  if(what ^ !!(ls->phy & (1<<led))) {
+  if(what ^ !!(ls->phy & (1 << led))) {
     switch(led) {
     case LED_RDY:
       pgm->rdy_led(pgm, what);
@@ -77,56 +77,57 @@ static void led_direct(const PROGRAMMER *pgm, Leds *ls, int led, int what) {
     default:
       pmsg_error("unknown LED %d in %s()\n", led, __func__);
     }
-    ls->phy ^= 1<<led;
+    ls->phy ^= 1 << led;
   }
 }
 
 // Physical level of LED setting, deal with max blinking frequency LED_FMAX
 static void led_physical(const PROGRAMMER *pgm, Leds *ls, int led, int what) {
-  if(led < 0 || led >= LED_N) // Sanity
+  if(led < 0 || led >= LED_N)   // Sanity
     return;
 
   unsigned long now = avr_mstimestamp();
 
   if(what == ON || what == OFF) {
     if(what)                    // Force on or off
-      ls->phy &= ~(1<<led);
+      ls->phy &= ~(1 << led);
     else
-      ls->phy |= 1<<led;
+      ls->phy |= 1 << led;
     led_direct(pgm, ls, led, what);
-    ls->chg &= ~(1<<led);
+    ls->chg &= ~(1 << led);
     ls->ms[led] = now;
     return;
   }
 
-  if(what == TON && !(ls->set & (1<<led))) {
+  if(what == TON && !(ls->set & (1 << led))) {
     // Never before set? Set immediately
     led_direct(pgm, ls, led, ON);
-    ls->set |= 1<<led;
-    ls->chg &= ~(1<<led);
+    ls->set |= 1 << led;
+    ls->chg &= ~(1 << led);
     ls->ms[led] = now;
   } else if(what == TON || what == TOFF) {
     // Toggle led into on or off state once enough time has gone by
-    ls->chg |= 1<<led;
+    ls->chg |= 1 << led;
   }
 
   // Check all LEDs whether they need toggling or setting
   for(int l = 0; l < LED_N; l++) {
     unsigned long diff = now - ls->ms[l];
+
     if(diff && diff >= (unsigned long) (1000.0/LED_FMAX/2)) {
-      ls->ms[l] = now; // Toggle a fast signal or set to current value
-      what = ls->chg & (1<<l)? !(ls->phy & (1<<l)): !!(ls->now & (1<<l));
+      ls->ms[l] = now;          // Toggle a fast signal or set to current value
+      what = ls->chg & (1 << l)? !(ls->phy & (1 << l)): !!(ls->now & (1 << l));
       led_direct(pgm, ls, l, what);
-      ls->chg &= ~(1<<l);
+      ls->chg &= ~(1 << l);
     }
   }
 }
 
 // Logical level of setting LEDs, passes on to physical level
 int led_set(const PROGRAMMER *pgm, int led) {
-  // leds should always be allocated, but if not use dummy
-  Leds sanity = { 0, 0, 0, 0, 0, {0, } }, *ls = pgm->leds? pgm->leds: &sanity;
-  int what = led >= 0 && led < LED_N && !(ls->now & (1<<led))? TON: CHECK;
+  // Leds should always be allocated, but if not use dummy
+  Leds sanity = { 0, 0, 0, 0, 0, {0,} }, *ls = pgm->leds? pgm->leds: &sanity;
+  int what = led >= 0 && led < LED_N && !(ls->now & (1 << led))? TON: CHECK;
 
   switch(led) {
   case LED_BEG:
@@ -138,24 +139,24 @@ int led_set(const PROGRAMMER *pgm, int led) {
     break;
   case LED_END:
     led_physical(pgm, ls, LED_RDY, OFF);
-    led_physical(pgm, ls, LED_ERR, ls->end & (1<<LED_ERR)? ON: OFF);
-    led_physical(pgm, ls, LED_PGM, ls->end & (1<<LED_PGM)? ON: OFF);
-    led_physical(pgm, ls, LED_VFY, ls->end & (1<<LED_VFY)? ON: OFF);
+    led_physical(pgm, ls, LED_ERR, ls->end & (1 << LED_ERR)? ON: OFF);
+    led_physical(pgm, ls, LED_PGM, ls->end & (1 << LED_PGM)? ON: OFF);
+    led_physical(pgm, ls, LED_VFY, ls->end & (1 << LED_VFY)? ON: OFF);
     break;
   case LED_NOP:
-    led_physical(pgm, ls, LED_RDY, CHECK); // All others will be checked, too
+    led_physical(pgm, ls, LED_RDY, CHECK);      // All others will be checked, too
     break;
-  case LED_ERR:                 // Record that error happened and in which mode
-    ls->end |= 1<<LED_ERR;
-    if(ls->now & (1<<LED_PGM))
-      ls->end |= 1<<LED_PGM;
-    if(ls->now & (1<<LED_VFY))
-      ls->end |= 1<<LED_VFY;
-  // Fall through
+  case LED_ERR:                // Record that error happened and in which mode
+    ls->end |= 1 << LED_ERR;
+    if(ls->now & (1 << LED_PGM))
+      ls->end |= 1 << LED_PGM;
+    if(ls->now & (1 << LED_VFY))
+      ls->end |= 1 << LED_VFY;
+    // Fall through
   case LED_RDY:
   case LED_PGM:
   case LED_VFY:
-    ls->now |= 1<<led;
+    ls->now |= 1 << led;
     led_physical(pgm, ls, led, what);
     break;
   default:
@@ -174,12 +175,14 @@ int led_clr(const PROGRAMMER *pgm, int led) {
   }
 
   // pgm->leds should always be allocated, but if not use dummy
-  Leds sanity = { 0, 0, 0, 0, 0, {0, } }, *ls = pgm->leds? pgm->leds: &sanity;
-  int what = ls->now & (1<<led)? TOFF: CHECK;
+  Leds sanity = {
+    0, 0, 0, 0, 0, {0,}
+  }, *ls = pgm->leds? pgm->leds: &sanity;
+  int what = ls->now & (1 << led)? TOFF: CHECK;
 
   // Record logical level
   if(led >= 0 && led < LED_N)
-    ls->now &= ~(1<<led);
+    ls->now &= ~(1 << led);
 
   led_physical(pgm, ls, led, what);
 
@@ -194,8 +197,7 @@ int led_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
 }
 
 // Programmer specific write byte function with ERR/PGM LED info
-int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-  unsigned long addr, unsigned char value) {
+int led_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr, unsigned char value) {
 
   if(mem_is_readonly(m))
     return pgm->write_byte(pgm, p, m, addr, value);
@@ -221,7 +223,7 @@ int led_read_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   int rc = pgm->read_byte(pgm, p, m, addr, valuep);
 
-  if(rc<0)
+  if(rc < 0)
     led_set(pgm, LED_ERR);
   led_clr(pgm, LED_PGM);
 
@@ -236,7 +238,7 @@ int led_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   int rc = pgm->paged_write? led_set(pgm, LED_PGM), pgm->paged_write(pgm, p, m, page_size, baseaddr, n_bytes): -1;
 
-  if(rc<0)
+  if(rc < 0)
     led_set(pgm, LED_ERR);
   led_clr(pgm, LED_PGM);
 
@@ -251,7 +253,7 @@ int led_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 
   int rc = pgm->paged_load? led_set(pgm, LED_PGM), pgm->paged_load(pgm, p, m, page_size, baseaddr, n_bytes): -1;
 
-  if(rc<0)
+  if(rc < 0)
     led_set(pgm, LED_ERR);
   led_clr(pgm, LED_PGM);
 
@@ -259,14 +261,13 @@ int led_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
 }
 
 // Programmer-specific page erase function with ERR/PGM LED info
-int led_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
-  unsigned int baseaddr) {
+int led_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int baseaddr) {
 
   led_clr(pgm, LED_ERR);
 
   int rc = pgm->page_erase? led_set(pgm, LED_PGM), pgm->page_erase(pgm, p, m, baseaddr): -1;
 
-  if(rc<0)
+  if(rc < 0)
     led_set(pgm, LED_ERR);
   led_clr(pgm, LED_PGM);
 

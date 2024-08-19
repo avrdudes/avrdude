@@ -25,16 +25,12 @@
 extern "C" {
 #endif
 
-
-extern const char avrftdi_desc[];
-extern const char avrftdi_jtag_desc[];
-void avrftdi_initpgm(PROGRAMMER *pgm);
-void avrftdi_jtag_initpgm(PROGRAMMER *pgm);
+  extern const char avrftdi_desc[];
+  extern const char avrftdi_jtag_desc[];
+  void avrftdi_initpgm(PROGRAMMER *pgm);
+  void avrftdi_jtag_initpgm(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-
-

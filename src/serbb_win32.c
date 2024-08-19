@@ -18,15 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * Win32 serial bitbanging interface for avrdude.
- */
+// Win32 serial bitbanging interface for avrdude
 
 #include "avrdude.h"
 
 #if defined(WIN32)
-
-
 #include <ac_cfg.h>
 
 #define WIN32_LEAN_AND_MEAN
@@ -49,279 +45,245 @@ struct pdata {
 #define W32SERBUFSIZE 1024
 
 /*
-  serial port/pin mapping
-
-  1	cd	<-
-  2	(rxd)	<-
-  3	txd	->
-  4	dtr	->
-  5	GND
-  6	dsr	<-
-  7	rts	->
-  8	cts	<-
-  9	ri	<-
-*/
+ * Serial port/pin mapping
+ *
+ * 1  cd    <-
+ * 2  (rxd) <-
+ * 3  txd   ->
+ * 4  dtr   ->
+ * 5  GND
+ * 6  dsr   <-
+ * 7  rts   ->
+ * 8  cts   <-
+ * 9  ri    <-
+ *
+ */
 
 #define DB9PINS 9
 
 static int serbb_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
-	if(pinfunc < 0 || pinfunc >= N_PINS)
-		return -1;
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
 
-	int pin = pgm->pinno[pinfunc];
-	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
-        LPVOID lpMsgBuf;
-        DWORD dwFunc;
-        const char *name;
+  int pin = pgm->pinno[pinfunc];
+  HANDLE hComPort = (HANDLE) pgm->fd.pfd;
+  LPVOID lpMsgBuf;
+  DWORD dwFunc;
+  const char *name;
 
-        if (pin & PIN_INVERSE)
-        {
-                value = !value;
-                pin &= PIN_MASK;
-        }
+  if(pin & PIN_INVERSE) {
+    value = !value;
+    pin &= PIN_MASK;
+  }
 
-        if (pin < 1 || pin > DB9PINS)
-                return -1;
+  if(pin < 1 || pin > DB9PINS)
+    return -1;
 
-        switch (pin)
-        {
-        case 3:  /* txd */
-                dwFunc = value? SETBREAK: CLRBREAK;
-                name = value? "SETBREAK": "CLRBREAK";
-                my.txd = value;
-                break;
+  switch(pin) {
+  case 3:                      // txd
+    dwFunc = value? SETBREAK: CLRBREAK;
+    name = value? "SETBREAK": "CLRBREAK";
+    my.txd = value;
+    break;
 
-        case 4:  /* dtr */
-                dwFunc = value? SETDTR: CLRDTR;
-                name = value? "SETDTR": "CLRDTR";
-                my.dtr = value;
-                break;
+  case 4:                      // dtr
+    dwFunc = value? SETDTR: CLRDTR;
+    name = value? "SETDTR": "CLRDTR";
+    my.dtr = value;
+    break;
 
-        case 7:  /* rts */
-                dwFunc = value? SETRTS: CLRRTS;
-                name = value? "SETRTS": "CLRRTS";
-                my.rts = value;
-                break;
+  case 7:                      // rts
+    dwFunc = value? SETRTS: CLRRTS;
+    name = value? "SETRTS": "CLRRTS";
+    my.rts = value;
+    break;
 
-        default:
-                pmsg_warning("%s(): unknown pin %d\n", __func__, pin + 1);
-                return -1;
-        }
-        pmsg_trace2("%s(): EscapeCommFunction(%s)\n", __func__, name);
-        if (!EscapeCommFunction(hComPort, dwFunc))
-        {
-                FormatMessage(
-                        FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                        FORMAT_MESSAGE_FROM_SYSTEM |
-                        FORMAT_MESSAGE_IGNORE_INSERTS,
-                        NULL,
-                        GetLastError(),
-                        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                        (LPTSTR) &lpMsgBuf,
-                        0,
-                        NULL);
-                pmsg_error("SetCommState() failed: %s\n", (char *) lpMsgBuf);
-                CloseHandle(hComPort);
-                LocalFree(lpMsgBuf);
-                return -1;
-        }
+  default:
+    pmsg_warning("%s(): unknown pin %d\n", __func__, pin + 1);
+    return -1;
+  }
+  pmsg_trace2("%s(): EscapeCommFunction(%s)\n", __func__, name);
+  if(!EscapeCommFunction(hComPort, dwFunc)) {
+    FormatMessage(
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+      (LPTSTR) & lpMsgBuf, 0, NULL);
+    pmsg_error("SetCommState() failed: %s\n", (char *) lpMsgBuf);
+    CloseHandle(hComPort);
+    LocalFree(lpMsgBuf);
+    return -1;
+  }
 
-	if (pgm->ispdelay > 1)
-	  bitbang_delay(pgm->ispdelay);
+  if(pgm->ispdelay > 1)
+    bitbang_delay(pgm->ispdelay);
 
-        return 0;
+  return 0;
 }
 
 static int serbb_getpin(const PROGRAMMER *pgm, int pinfunc) {
-	if(pinfunc < 0 || pinfunc >= N_PINS)
-		return -1;
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
 
-	int pin = pgm->pinno[pinfunc];
-	HANDLE hComPort = (HANDLE)pgm->fd.pfd;
-        LPVOID lpMsgBuf;
-        int invert, rv;
-        const char *name;
-        DWORD modemstate;
+  int pin = pgm->pinno[pinfunc];
+  HANDLE hComPort = (HANDLE) pgm->fd.pfd;
+  LPVOID lpMsgBuf;
+  int invert, rv;
+  const char *name;
+  DWORD modemstate;
 
-        if (pin & PIN_INVERSE)
-        {
-                invert = 1;
-                pin &= PIN_MASK;
-        } else
-                invert = 0;
+  if(pin & PIN_INVERSE) {
+    invert = 1;
+    pin &= PIN_MASK;
+  } else
+    invert = 0;
 
-        if (pin < 1 || pin > DB9PINS)
-                return -1;
+  if(pin < 1 || pin > DB9PINS)
+    return -1;
 
-        if (pin == 1 /* cd */ || pin == 6 /* dsr */ || pin == 8 /* cts */)
-        {
-                if (!GetCommModemStatus(hComPort, &modemstate))
-                {
-                        FormatMessage(
-                                FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                                FORMAT_MESSAGE_FROM_SYSTEM |
-                                FORMAT_MESSAGE_IGNORE_INSERTS,
-                                NULL,
-                                GetLastError(),
-                                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-                                (LPTSTR) &lpMsgBuf,
-                                0,
-                                NULL);
-                        pmsg_error("GetCommModemStatus() failed: %s\n", (char *) lpMsgBuf);
-                        CloseHandle(hComPort);
-                        LocalFree(lpMsgBuf);
-                        return -1;
-                }
-                pmsg_trace2("%s(): GetCommState() => 0x%lx\n", __func__, modemstate);
-                switch (pin)
-                {
-                case 1:
-                        modemstate &= MS_RLSD_ON;
-                        break;
-                case 6:
-                        modemstate &= MS_DSR_ON;
-                        break;
-                case 8:
-                        modemstate &= MS_CTS_ON;
-                        break;
-                }
-                rv = modemstate != 0;
-                if (invert)
-                        rv = !rv;
+  if(pin == 1 /* cd */  || pin == 6 /* dsr */  || pin == 8 /* cts */ ) {
+    if(!GetCommModemStatus(hComPort, &modemstate)) {
+      FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // Default language
+        (LPTSTR) & lpMsgBuf, 0, NULL);
+      pmsg_error("GetCommModemStatus() failed: %s\n", (char *) lpMsgBuf);
+      CloseHandle(hComPort);
+      LocalFree(lpMsgBuf);
+      return -1;
+    }
+    pmsg_trace2("%s(): GetCommState() => 0x%lx\n", __func__, modemstate);
+    switch(pin) {
+    case 1:
+      modemstate &= MS_RLSD_ON;
+      break;
+    case 6:
+      modemstate &= MS_DSR_ON;
+      break;
+    case 8:
+      modemstate &= MS_CTS_ON;
+      break;
+    }
+    rv = modemstate != 0;
+    if(invert)
+      rv = !rv;
 
-                return rv;
-        }
+    return rv;
+  }
 
-        switch (pin)
-        {
-        case 3: /* txd */
-                rv = my.txd;
-                name = "TXD";
-                break;
-        case 4: /* dtr */
-                rv = my.dtr;
-                name = "DTR";
-                break;
-        case 7: /* rts */
-                rv = my.rts;
-                name = "RTS";
-                break;
-        default:
-                pmsg_warning("%s(): unknown pin %d\n", __func__, pin + 1);
-                return -1;
-        }
-        pmsg_trace2("%s(): return cached state for %s\n", __func__, name);
-        if (invert)
-                rv = !rv;
+  switch(pin) {
+  case 3:                      // txd
+    rv = my.txd;
+    name = "TXD";
+    break;
+  case 4:                      // dtr
+    rv = my.dtr;
+    name = "DTR";
+    break;
+  case 7:                      // rts
+    rv = my.rts;
+    name = "RTS";
+    break;
+  default:
+    pmsg_warning("%s(): unknown pin %d\n", __func__, pin + 1);
+    return -1;
+  }
+  pmsg_trace2("%s(): return cached state for %s\n", __func__, name);
+  if(invert)
+    rv = !rv;
 
-        return rv;
+  return rv;
 }
 
 static int serbb_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
-	if(pinfunc < 0 || pinfunc >= N_PINS)
-		return -1;
+  if(pinfunc < 0 || pinfunc >= N_PINS)
+    return -1;
 
-        int pin = pgm->pinno[pinfunc];
-        if ( (pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS )
-          return -1;
+  int pin = pgm->pinno[pinfunc];
 
-        serbb_setpin(pgm, pinfunc, 1);
-        serbb_setpin(pgm, pinfunc, 0);
+  if((pin & PIN_MASK) < 1 || (pin & PIN_MASK) > DB9PINS)
+    return -1;
 
-        return 0;
+  serbb_setpin(pgm, pinfunc, 1);
+  serbb_setpin(pgm, pinfunc, 0);
+
+  return 0;
 }
 
-
 static void serbb_display(const PROGRAMMER *pgm, const char *p) {
-  /* MAYBE */
 }
 
 static void serbb_enable(PROGRAMMER *pgm, const AVRPART *p) {
-  /* nothing */
 }
 
 static void serbb_disable(const PROGRAMMER *pgm) {
-  /* nothing */
 }
 
 static void serbb_powerup(const PROGRAMMER *pgm) {
-  /* nothing */
 }
 
 static void serbb_powerdown(const PROGRAMMER *pgm) {
-  /* nothing */
 }
 
 static int serbb_open(PROGRAMMER *pgm, const char *port) {
-        DCB dcb;
-	LPVOID lpMsgBuf;
-	HANDLE hComPort = INVALID_HANDLE_VALUE;
+  DCB dcb;
+  LPVOID lpMsgBuf;
+  HANDLE hComPort = INVALID_HANDLE_VALUE;
 
-	if (bitbang_check_prerequisites(pgm) < 0)
-	    return -1;
+  if(bitbang_check_prerequisites(pgm) < 0)
+    return -1;
 
-	hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL,
-                              OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+  hComPort = CreateFile(port, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
-	if (hComPort == INVALID_HANDLE_VALUE) {
-		FormatMessage(
-			FORMAT_MESSAGE_ALLOCATE_BUFFER |
-			FORMAT_MESSAGE_FROM_SYSTEM |
-			FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			GetLastError(),
-			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
-			(LPTSTR) &lpMsgBuf,
-			0,
-			NULL);
-		pmsg_error("cannot open port %s: %s\n", port, (char*) lpMsgBuf);
-		LocalFree(lpMsgBuf);
-                return -1;
-	}
+  if(hComPort == INVALID_HANDLE_VALUE) {
+    FormatMessage(
+      FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+      NULL, GetLastError(), MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // Default language
+      (LPTSTR) & lpMsgBuf, 0, NULL);
+    pmsg_error("cannot open port %s: %s\n", port, (char *) lpMsgBuf);
+    LocalFree(lpMsgBuf);
+    return -1;
+  }
 
-	if (!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE))
-	{
-		CloseHandle(hComPort);
-		pmsg_error("cannot set buffers for %s\n", port);
-                return -1;
-	}
+  if(!SetupComm(hComPort, W32SERBUFSIZE, W32SERBUFSIZE)) {
+    CloseHandle(hComPort);
+    pmsg_error("cannot set buffers for %s\n", port);
+    return -1;
+  }
 
+  ZeroMemory(&dcb, sizeof(DCB));
+  dcb.DCBlength = sizeof(DCB);
+  dcb.BaudRate = CBR_9600;
+  dcb.fBinary = 1;
+  dcb.fDtrControl = DTR_CONTROL_DISABLE;
+  dcb.fRtsControl = RTS_CONTROL_DISABLE;
+  dcb.ByteSize = 8;
+  dcb.Parity = NOPARITY;
+  dcb.StopBits = ONESTOPBIT;
 
-	ZeroMemory(&dcb, sizeof(DCB));
-	dcb.DCBlength = sizeof(DCB);
-	dcb.BaudRate = CBR_9600;
-	dcb.fBinary = 1;
-	dcb.fDtrControl = DTR_CONTROL_DISABLE;
-	dcb.fRtsControl = RTS_CONTROL_DISABLE;
-	dcb.ByteSize = 8;
-	dcb.Parity = NOPARITY;
-	dcb.StopBits = ONESTOPBIT;
+  if(!SetCommState(hComPort, &dcb)) {
+    CloseHandle(hComPort);
+    pmsg_error("cannot set com-state for %s\n", port);
+    return -1;
+  }
+  pmsg_debug("%s(): opened comm port %s, handle 0x%lx\n", __func__, port, (long) (INT_PTR) hComPort);
 
-	if (!SetCommState(hComPort, &dcb))
-	{
-		CloseHandle(hComPort);
-		pmsg_error("cannot set com-state for %s\n", port);
-                return -1;
-	}
-        pmsg_debug("%s(): opened comm port %s, handle 0x%lx\n", __func__, port, (long) (INT_PTR) hComPort);
+  pgm->fd.pfd = (void *) hComPort;
 
-        pgm->fd.pfd = (void *)hComPort;
+  my.dtr = my.rts = my.txd = 0;
 
-        my.dtr = my.rts = my.txd = 0;
-
-        return 0;
+  return 0;
 }
 
 static void serbb_close(PROGRAMMER *pgm) {
-	HANDLE hComPort=(HANDLE)pgm->fd.pfd;
-	if (hComPort != INVALID_HANDLE_VALUE)
-	{
-		pgm->setpin(pgm, PIN_AVR_RESET, 1);
-		CloseHandle (hComPort);
-	}
-        pmsg_debug("%s(): closed comm port handle 0x%lx\n", __func__, (long) (INT_PTR) hComPort);
+  HANDLE hComPort = (HANDLE) pgm->fd.pfd;
 
-	hComPort = INVALID_HANDLE_VALUE;
+  if(hComPort != INVALID_HANDLE_VALUE) {
+    pgm->setpin(pgm, PIN_AVR_RESET, 1);
+    CloseHandle(hComPort);
+  }
+  pmsg_debug("%s(): closed comm port handle 0x%lx\n", __func__, (long) (INT_PTR) hComPort);
+
+  hComPort = INVALID_HANDLE_VALUE;
 }
 
 static void serbb_setup(PROGRAMMER *pgm) {
@@ -338,31 +300,30 @@ const char serbb_desc[] = "Serial port bitbanging";
 void serbb_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "SERBB");
 
-  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+  pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 
-  pgm->setup          = serbb_setup;
-  pgm->teardown       = serbb_teardown;
-  pgm->rdy_led        = bitbang_rdy_led;
-  pgm->err_led        = bitbang_err_led;
-  pgm->pgm_led        = bitbang_pgm_led;
-  pgm->vfy_led        = bitbang_vfy_led;
-  pgm->initialize     = bitbang_initialize;
-  pgm->display        = serbb_display;
-  pgm->enable         = serbb_enable;
-  pgm->disable        = serbb_disable;
-  pgm->powerup        = serbb_powerup;
-  pgm->powerdown      = serbb_powerdown;
+  pgm->setup = serbb_setup;
+  pgm->teardown = serbb_teardown;
+  pgm->rdy_led = bitbang_rdy_led;
+  pgm->err_led = bitbang_err_led;
+  pgm->pgm_led = bitbang_pgm_led;
+  pgm->vfy_led = bitbang_vfy_led;
+  pgm->initialize = bitbang_initialize;
+  pgm->display = serbb_display;
+  pgm->enable = serbb_enable;
+  pgm->disable = serbb_disable;
+  pgm->powerup = serbb_powerup;
+  pgm->powerdown = serbb_powerdown;
   pgm->program_enable = bitbang_program_enable;
-  pgm->chip_erase     = bitbang_chip_erase;
-  pgm->cmd            = bitbang_cmd;
-  pgm->cmd_tpi        = bitbang_cmd_tpi;
-  pgm->open           = serbb_open;
-  pgm->close          = serbb_close;
-  pgm->setpin         = serbb_setpin;
-  pgm->getpin         = serbb_getpin;
-  pgm->highpulsepin   = serbb_highpulsepin;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->chip_erase = bitbang_chip_erase;
+  pgm->cmd = bitbang_cmd;
+  pgm->cmd_tpi = bitbang_cmd_tpi;
+  pgm->open = serbb_open;
+  pgm->close = serbb_close;
+  pgm->setpin = serbb_setpin;
+  pgm->getpin = serbb_getpin;
+  pgm->highpulsepin = serbb_highpulsepin;
+  pgm->read_byte = avr_read_byte_default;
+  pgm->write_byte = avr_write_byte_default;
 }
-
-#endif  /* WIN32 */
+#endif                          // WIN32

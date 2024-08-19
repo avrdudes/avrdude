@@ -14,244 +14,226 @@
 #include "avrftdi_private.h"
 
 #ifndef DO_NOT_BUILD_AVRFTDI
-
 static void avrftdi_tpi_disable(const PROGRAMMER *);
 static int avrftdi_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p);
 
 #ifdef notyet
 static void avrftdi_debug_frame(uint16_t frame) {
-	static const char bit_name[] = "IDLES01234567PSS";
-	//static char bit_name[] = "SSP76543210SELDI";
-	char line0[34], line1[34], line2[34];
-	int bit, pos;
+  static const char bit_name[] = "IDLES01234567PSS";
 
-	for(bit = 0; bit < 16; bit++)
-	{
-		pos = 16 - bit - 1;
-		if(frame & (1 << pos))
-		{
-			line0[2*pos]  = '_';
-			line0[2*pos+1] = ' ';
-			
-			line2[2*pos]  = ' ';
-			line2[2*pos+1] = ' ';
-		}
-		else
-		{
-			line0[2*pos]  = ' ';
-			line0[2*pos+1] = ' ';
-			
-			line2[2*pos]  = '-';
-			line2[2*pos+1] = ' ';
-		}
-			
-		line1[2*pos]  = bit_name[pos];
-		line1[2*pos+1] = ' ';
-			
-	}
+  char line0[34], line1[34], line2[34];
+  int bit, pos;
 
-	line0[32] = 0;
-	line1[32] = 0;
-	line2[32] = 0;
+  for(bit = 0; bit < 16; bit++) {
+    pos = 16 - bit - 1;
+    if(frame & (1 << pos)) {
+      line0[2*pos] = '_';
+      line0[2*pos + 1] = ' ';
 
-	msg_debug("%s\n", line0);
-	msg_debug("%s\n", line1);
-	// msg_debug("%s\n", line2);
+      line2[2*pos] = ' ';
+      line2[2*pos + 1] = ' ';
+    } else {
+      line0[2*pos] = ' ';
+      line0[2*pos + 1] = ' ';
+
+      line2[2*pos] = '-';
+      line2[2*pos + 1] = ' ';
+    }
+
+    line1[2*pos] = bit_name[pos];
+    line1[2*pos + 1] = ' ';
+
+  }
+
+  line0[32] = 0;
+  line1[32] = 0;
+  line2[32] = 0;
+
+  msg_debug("%s\n", line0);
+  msg_debug("%s\n", line1);
+  // msg_debug("%s\n", line2);
 }
-#endif /* notyet */
+#endif                          // Notyet
 
-int
-avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
-	int ret;
+int avrftdi_tpi_initialize(const PROGRAMMER *pgm, const AVRPART *p) {
+  int ret;
 
-	Avrftdi_data *pdata = to_pdata(pgm);
-	unsigned char buf[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 0x01, 0x00, 0xff, 0xff };
+  Avrftdi_data *pdata = to_pdata(pgm);
+  unsigned char buf[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 0x01, 0x00, 0xff, 0xff };
 
-	pmsg_info("setting /Reset pin low\n");
-	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
-	pgm->setpin(pgm, PIN_AVR_SCK, OFF);
-	pgm->setpin(pgm, PIN_AVR_SDO, ON);
-	usleep(20 * 1000);
+  pmsg_info("setting /Reset pin low\n");
+  pgm->setpin(pgm, PIN_AVR_RESET, OFF);
+  pgm->setpin(pgm, PIN_AVR_SCK, OFF);
+  pgm->setpin(pgm, PIN_AVR_SDO, ON);
+  usleep(20*1000);
 
-	pgm->setpin(pgm, PIN_AVR_RESET, ON);
-	/* worst case 128ms */
-	usleep(2 * 128 * 1000);
+  pgm->setpin(pgm, PIN_AVR_RESET, ON);
+  // Worst case 128ms
+  usleep(2*128*1000);
 
-	/*setting rst back to 0 */
-	pgm->setpin(pgm, PIN_AVR_RESET, OFF);
-	/*wait at least 20ms bevor issuing spi commands to avr */
-	usleep(20 * 1000);
-	
-	pmsg_info("sending 16 init clock cycles ...\n");
-	ret = ftdi_write_data(pdata->ftdic, buf, sizeof(buf));
+  // Setting rst back to 0
+  pgm->setpin(pgm, PIN_AVR_RESET, OFF);
+  // Wait at least 20ms bevor issuing spi commands to avr
+  usleep(20*1000);
 
-	return ret;
+  pmsg_info("sending 16 init clock cycles ...\n");
+  ret = ftdi_write_data(pdata->ftdic, buf, sizeof(buf));
+
+  return ret;
 }
-
 
 void avrftdi_tpi_initpgm(PROGRAMMER *pgm) {
-	  pmsg_info("using TPI interface\n");
+  pmsg_info("using TPI interface\n");
 
-	  pgm->program_enable = avrftdi_tpi_program_enable;
-	  pgm->cmd_tpi = avrftdi_cmd_tpi;
-	  pgm->chip_erase = avr_tpi_chip_erase;
-	  pgm->disable = avrftdi_tpi_disable;
+  pgm->program_enable = avrftdi_tpi_program_enable;
+  pgm->cmd_tpi = avrftdi_cmd_tpi;
+  pgm->chip_erase = avr_tpi_chip_erase;
+  pgm->disable = avrftdi_tpi_disable;
 
-	  pgm->paged_load = NULL;
-	  pgm->paged_write = NULL;
+  pgm->paged_load = NULL;
+  pgm->paged_write = NULL;
 }
-
 
 #define TPI_PARITY_MASK 0x2000
 
 static inline int count1s(unsigned int x) {
+
 #if defined(__GNUC__)
-	return __builtin_popcount(x);
+  return __builtin_popcount(x);
 #else
-	int count = 0;
+  int count = 0;
 
-	while (x)
-	{
-		count += x & 1;
-		x >>= 1;
-	}
+  while(x) {
+    count += x & 1;
+    x >>= 1;
+  }
 
-	return count;
+  return count;
 #endif
 }
 
 static uint16_t tpi_byte2frame(uint8_t byte) {
-	uint16_t frame = 0xc00f;
-	int parity = count1s(byte) & 1;
+  uint16_t frame = 0xc00f;
+  int parity = count1s(byte) & 1;
 
-	frame |= ((byte << 5) & 0x1fe0);
+  frame |= ((byte << 5) & 0x1fe0);
 
-	if(parity)
-		frame |= TPI_PARITY_MASK;
-	
-	return frame;
+  if(parity)
+    frame |= TPI_PARITY_MASK;
+
+  return frame;
 }
 
 static int tpi_frame2byte(uint16_t frame, uint8_t *byte) {
-	/* drop idle and start bit(s) */
-	*byte = (frame >> 5) & 0xff;
+  // Drop idle and start bit(s)
+  *byte = (frame >> 5) & 0xff;
 
-	int parity = count1s(*byte) & 1;
-	int parity_rcvd = (frame & TPI_PARITY_MASK) ? 1 : 0;
+  int parity = count1s(*byte) & 1;
+  int parity_rcvd = (frame & TPI_PARITY_MASK)? 1: 0;
 
-	return parity != parity_rcvd;
+  return parity != parity_rcvd;
 }
 
 #ifdef notyet
 static int avrftdi_tpi_break(const PROGRAMMER *pgm) {
-	unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0, 0 };
-	E(ftdi_write_data(to_pdata(pgm)->ftdic, buffer, sizeof(buffer)) != sizeof(buffer), to_pdata(pgm)->ftdic);
+  unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0, 0 };
+  E(ftdi_write_data(to_pdata(pgm)->ftdic, buffer, sizeof(buffer)) != sizeof(buffer), to_pdata(pgm)->ftdic);
 
-	return 0;
+  return 0;
 }
-#endif /* notyet */
+#endif                          // Notyet
 
 static int avrftdi_tpi_write_byte(const PROGRAMMER *pgm, unsigned char byte) {
-	uint16_t frame;
+  uint16_t frame;
 
-	struct ftdi_context* ftdic = to_pdata(pgm)->ftdic;
+  struct ftdi_context *ftdic = to_pdata(pgm)->ftdic;
 
-	unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0, 0 };
+  unsigned char buffer[] = { MPSSE_DO_WRITE | MPSSE_WRITE_NEG | MPSSE_LSB, 1, 0, 0, 0 };
 
-	frame = tpi_byte2frame(byte);
-	
-	buffer[3] = frame & 0xff;
-	buffer[4] = frame >> 8;
-	
-	msg_trace("Byte %02x, frame: %04x, MPSSE: 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x\n",
-			byte, frame, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+  frame = tpi_byte2frame(byte);
 
-	//avrftdi_debug_frame(frame);
-	
-	E(ftdi_write_data(ftdic, buffer, sizeof(buffer)) != sizeof(buffer), ftdic);
+  buffer[3] = frame & 0xff;
+  buffer[4] = frame >> 8;
 
-	return 0;
+  msg_trace("Byte %02x, frame: %04x, MPSSE: 0x%02x 0x%02x 0x%02x  0x%02x 0x%02x\n",
+    byte, frame, buffer[0], buffer[1], buffer[2], buffer[3], buffer[4]);
+
+  // avrftdi_debug_frame(frame);
+
+  E(ftdi_write_data(ftdic, buffer, sizeof(buffer)) != sizeof(buffer), ftdic);
+
+  return 0;
 }
 
 #define TPI_FRAME_SIZE 12
 #define TPI_IDLE_BITS   2
 
 static int avrftdi_tpi_read_byte(const PROGRAMMER *pgm, unsigned char *byte) {
-	uint16_t frame;
-	
-	/* use 2 guard bits, 2 default idle bits + 12 frame bits = 16 bits total */
-	const int bytes = 3;
-	int err, i = 0;
-	
-	unsigned char buffer[4];
+  uint16_t frame;
 
-	buffer[0] = MPSSE_DO_READ | MPSSE_LSB;
-	buffer[1] = (bytes-1) & 0xff;
-	buffer[2] = ((bytes-1) >> 8) & 0xff;
-	buffer[3] = SEND_IMMEDIATE;
+  // Use 2 guard bits, 2 default idle bits + 12 frame bits = 16 bits total
+  const int bytes = 3;
+  int err, i = 0;
 
-	msg_trace("MPSSE: 0x%02x 0x%02x 0x%02x 0x%02x (Read frame)\n",
-			buffer[0], buffer[1], buffer[2], buffer[3]);
+  unsigned char buffer[4];
 
-	ftdi_write_data(to_pdata(pgm)->ftdic, buffer, 4);
+  buffer[0] = MPSSE_DO_READ | MPSSE_LSB;
+  buffer[1] = (bytes - 1) & 0xff;
+  buffer[2] = ((bytes - 1) >> 8) & 0xff;
+  buffer[3] = SEND_IMMEDIATE;
 
-	memset(buffer, 0, sizeof(buffer));
+  msg_trace("MPSSE: 0x%02x 0x%02x 0x%02x 0x%02x (Read frame)\n", buffer[0], buffer[1], buffer[2], buffer[3]);
 
-	i = 0;
-	do {
-		int err = ftdi_read_data(to_pdata(pgm)->ftdic, &buffer[i], bytes - i);
-		E(err < 0, to_pdata(pgm)->ftdic);
-		i += err;
-	} while(i < bytes);
+  ftdi_write_data(to_pdata(pgm)->ftdic, buffer, 4);
 
+  memset(buffer, 0, sizeof(buffer));
 
-	msg_trace("MPSSE: 0x%02x 0x%02x 0x%02x 0x%02x (Read frame)\n",
-			buffer[0], buffer[1], buffer[2], buffer[3]);
+  i = 0;
+  do {
+    int err = ftdi_read_data(to_pdata(pgm)->ftdic, &buffer[i], bytes - i);
 
+    E(err < 0, to_pdata(pgm)->ftdic);
+    i += err;
+  } while(i < bytes);
 
-	frame = buffer[0] | (buffer[1] << 8);
-	
-	err = tpi_frame2byte(frame, byte);
-	pmsg_trace("frame: 0x%04x, byte: 0x%02x\n", frame, *byte);
-	
-	//avrftdi_debug_frame(frame);
+  msg_trace("MPSSE: 0x%02x 0x%02x 0x%02x 0x%02x (Read frame)\n", buffer[0], buffer[1], buffer[2], buffer[3]);
 
-	return err;
+  frame = buffer[0] | (buffer[1] << 8);
+
+  err = tpi_frame2byte(frame, byte);
+  pmsg_trace("frame: 0x%04x, byte: 0x%02x\n", frame, *byte);
+
+  // avrftdi_debug_frame(frame);
+
+  return err;
 }
 
 static int avrftdi_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p) {
-	return avr_tpi_program_enable(pgm, p, TPIPCR_GT_2b);
+  return avr_tpi_program_enable(pgm, p, TPIPCR_GT_2b);
 }
 
-int
-avrftdi_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd, int cmd_len,
-		unsigned char *res, int res_len)
-{
-	int i, err = 0;
+int avrftdi_cmd_tpi(const PROGRAMMER *pgm, const unsigned char *cmd, int cmd_len, unsigned char *res, int res_len) {
+  int i, err = 0;
 
-	for(i = 0; i < cmd_len; i++)
-	{
-		err = avrftdi_tpi_write_byte(pgm, cmd[i]);
-		if(err)
-			return err;
-	}
+  for(i = 0; i < cmd_len; i++) {
+    err = avrftdi_tpi_write_byte(pgm, cmd[i]);
+    if(err)
+      return err;
+  }
 
-	for(i = 0; i < res_len; i++)
-	{
-		err = avrftdi_tpi_read_byte(pgm, &res[i]);
-		if(err)
-			return err;
-	}
+  for(i = 0; i < res_len; i++) {
+    err = avrftdi_tpi_read_byte(pgm, &res[i]);
+    if(err)
+      return err;
+  }
 
-	return 0;
+  return 0;
 }
 
 static void avrftdi_tpi_disable(const PROGRAMMER *pgm) {
-	unsigned char cmd[] = {TPI_OP_SSTCS(TPIPCR), 0};
-	pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
+  unsigned char cmd[] = { TPI_OP_SSTCS(TPIPCR), 0 };
+  pgm->cmd_tpi(pgm, cmd, sizeof(cmd), NULL, 0);
 
-	pmsg_info("leaving Programming mode\n");
+  pmsg_info("leaving Programming mode\n");
 }
-
-#endif /* DO_NOT_BUILD_AVRFTDI */
-
+#endif                          // Do_not_build_avrftdi

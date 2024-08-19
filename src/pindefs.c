@@ -16,8 +16,6 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* $Id: pindefs.h 1132 2013-01-09 19:23:30Z rliebscher $ */
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,50 +25,51 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-/**
+/*
  * Adds a pin in the pin definition as normal or inverse pin.
  *
  * @param[out] pindef pin definition to update
  * @param[in] pin number of pin [0..PIN_MAX]
  * @param[in] inverse inverse (true) or normal (false) pin
  */
-void pin_set_value(struct pindef * const pindef, const int pin, const bool inverse) {
+void pin_set_value(struct pindef *const pindef, const int pin, const bool inverse) {
 
-  pindef->mask[pin / PIN_FIELD_ELEMENT_SIZE] |= 1 << (pin % PIN_FIELD_ELEMENT_SIZE);
+  pindef->mask[pin/PIN_FIELD_ELEMENT_SIZE] |= 1 << (pin%PIN_FIELD_ELEMENT_SIZE);
   if(inverse) {
-    pindef->inverse[pin / PIN_FIELD_ELEMENT_SIZE] |= (1 << (pin % PIN_FIELD_ELEMENT_SIZE));
+    pindef->inverse[pin/PIN_FIELD_ELEMENT_SIZE] |= (1 << (pin%PIN_FIELD_ELEMENT_SIZE));
   } else {
-    pindef->inverse[pin / PIN_FIELD_ELEMENT_SIZE] &= ~(1 << (pin % PIN_FIELD_ELEMENT_SIZE));
+    pindef->inverse[pin/PIN_FIELD_ELEMENT_SIZE] &= ~(1 << (pin%PIN_FIELD_ELEMENT_SIZE));
   }
 }
 
-/**
+/*
  * Clear all defined pins in pindef.
  *
  * @param[out] pindef pin definition to clear
  */
-void pin_clear_all(struct pindef * const pindef) {
+void pin_clear_all(struct pindef *const pindef) {
   memset(pindef, 0, sizeof(struct pindef));
 }
 
-/**
+/*
  * Convert new pin definition to old pin number
  *
  * @param[in] pindef new pin definition structure
  * @param[out] pinno old pin definition integer
  */
-static int pin_fill_old_pinno(const struct pindef * const pindef, unsigned int * const pinno) {
+static int pin_fill_old_pinno(const struct pindef *const pindef, unsigned int *const pinno) {
   bool found = false;
   int i;
+
   for(i = 0; i <= PIN_MAX; i++) {
-    if(pindef->mask[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
+    if(pindef->mask[i/PIN_FIELD_ELEMENT_SIZE] & (1 << (i%PIN_FIELD_ELEMENT_SIZE))) {
       if(found) {
-        pmsg_error("multiple pins found\n"); // TODO
+        pmsg_error("multiple pins found\n");    // TODO
         return -1;
       }
       found = true;
       *pinno = i;
-      if(pindef->inverse[i / PIN_FIELD_ELEMENT_SIZE] & (1 << (i % PIN_FIELD_ELEMENT_SIZE))) {
+      if(pindef->inverse[i/PIN_FIELD_ELEMENT_SIZE] & (1 << (i%PIN_FIELD_ELEMENT_SIZE))) {
         *pinno |= PIN_INVERSE;
       }
     }
@@ -78,26 +77,26 @@ static int pin_fill_old_pinno(const struct pindef * const pindef, unsigned int *
   return 0;
 }
 
-/**
+/*
  * Convert new pin definition to old pinlist, does not support mixed inverted/non-inverted pin
  *
  * @param[in] pindef new pin definition structure
  * @param[out] pinno old pin definition integer
  */
-static int pin_fill_old_pinlist(const struct pindef * const pindef, unsigned int * const pinno) {
+static int pin_fill_old_pinlist(const struct pindef *const pindef, unsigned int *const pinno) {
   for(size_t i = 0; i < PIN_FIELD_SIZE; i++) {
     if(i == 0) {
       if((pindef->mask[i] & ~PIN_MASK) != 0) {
         pmsg_error("pins of higher index than max field size for old pinno found\n");
         return -1;
       }
-      if (pindef->mask[i] == 0) {
-        /* this pin function is not using any pins */
+      if(pindef->mask[i] == 0) {
+        // This pin function is not using any pins
         *pinno = NO_PIN;
-      } else if(pindef->mask[i] == pindef->inverse[i]) {  /* all set bits in mask are set in inverse */
+      } else if(pindef->mask[i] == pindef->inverse[i]) {        // All set bits in mask are set in inverse
         *pinno = pindef->mask[i];
         *pinno |= PIN_INVERSE;
-      } else if(pindef->mask[i] == ((~pindef->inverse[i]) & pindef->mask[i])) {  /* all set bits in mask are cleared in inverse */
+      } else if(pindef->mask[i] == ((~pindef->inverse[i]) & pindef->mask[i])) { // All set bits in mask are cleared in inverse
         *pinno = pindef->mask[i];
       } else {
         pmsg_error("pins have different polarity set\n");
@@ -111,55 +110,54 @@ static int pin_fill_old_pinlist(const struct pindef * const pindef, unsigned int
   return 0;
 }
 
-
-/**
+/*
  * Convert for given programmer new pin definitions to old pin definitions.
  *
  * @param[inout] pgm programmer whose pins shall be converted.
  */
-int pgm_fill_old_pins(PROGRAMMER * const pgm) {
+int pgm_fill_old_pins(PROGRAMMER *const pgm) {
 
-  if (pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_VCC]),  &(pgm->pinno[PPI_AVR_VCC])) < 0)
+  if(pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_VCC]), &(pgm->pinno[PPI_AVR_VCC])) < 0)
     return -1;
-  if (pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_BUFF]), &(pgm->pinno[PPI_AVR_BUFF])) < 0)
+  if(pin_fill_old_pinlist(&(pgm->pin[PPI_AVR_BUFF]), &(pgm->pinno[PPI_AVR_BUFF])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_RESET]), &(pgm->pinno[PIN_AVR_RESET])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_AVR_RESET]), &(pgm->pinno[PIN_AVR_RESET])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SCK]),  &(pgm->pinno[PIN_AVR_SCK])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SCK]), &(pgm->pinno[PIN_AVR_SCK])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDO]), &(pgm->pinno[PIN_AVR_SDO])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDO]), &(pgm->pinno[PIN_AVR_SDO])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDI]), &(pgm->pinno[PIN_AVR_SDI])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_AVR_SDI]), &(pgm->pinno[PIN_AVR_SDI])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TCK]), &(pgm->pinno[PIN_JTAG_TCK])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TCK]), &(pgm->pinno[PIN_JTAG_TCK])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TDI]), &(pgm->pinno[PIN_JTAG_TDI])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TDI]), &(pgm->pinno[PIN_JTAG_TDI])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TDO]), &(pgm->pinno[PIN_JTAG_TDO])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TDO]), &(pgm->pinno[PIN_JTAG_TDO])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TMS]), &(pgm->pinno[PIN_JTAG_TMS])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_JTAG_TMS]), &(pgm->pinno[PIN_JTAG_TMS])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_ERR]),  &(pgm->pinno[PIN_LED_ERR])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_LED_ERR]), &(pgm->pinno[PIN_LED_ERR])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_RDY]),  &(pgm->pinno[PIN_LED_RDY])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_LED_RDY]), &(pgm->pinno[PIN_LED_RDY])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_PGM]),  &(pgm->pinno[PIN_LED_PGM])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_LED_PGM]), &(pgm->pinno[PIN_LED_PGM])) < 0)
     return -1;
-  if (pin_fill_old_pinno(&(pgm->pin[PIN_LED_VFY]),  &(pgm->pinno[PIN_LED_VFY])) < 0)
+  if(pin_fill_old_pinno(&(pgm->pin[PIN_LED_VFY]), &(pgm->pinno[PIN_LED_VFY])) < 0)
     return -1;
 
   return 0;
 }
 
-/**
+/*
  * This function returns a string representation of pins in the mask eg. 1, 3, 5-7, 9, 12
  * Consecutive pin numbers are represented as start-end.
  *
  * @param[in] pinmask the pin mask for which we want the string representation
  * @returns a temporary string that lives in closed-circuit space
  */
-const char *pinmask_to_str(const Pinmask * const pinmask) {
-  char buf[6 * (PIN_MAX + 1)];
+const char *pinmask_to_str(const Pinmask *const pinmask) {
+  char buf[6*(PIN_MAX + 1)];
   char *p = buf;
   int n;
   int pin;
@@ -168,10 +166,12 @@ const char *pinmask_to_str(const Pinmask * const pinmask) {
 
   buf[0] = 0;
   for(pin = PIN_MIN; pin <= PIN_MAX; pin++) {
-    int index = pin / PIN_FIELD_ELEMENT_SIZE;
-    int bit = pin % PIN_FIELD_ELEMENT_SIZE;
+    int index = pin/PIN_FIELD_ELEMENT_SIZE;
+    int bit = pin%PIN_FIELD_ELEMENT_SIZE;
+
     if(pinmask[index] & (1 << bit)) {
       bool output = false;
+
       if(start == -1) {
         output = true;
         start = pin;
@@ -199,10 +199,9 @@ const char *pinmask_to_str(const Pinmask * const pinmask) {
   return str_ccstrdup(*buf? buf: "(no pins)");
 }
 
-
-/**
+/*
  * This function checks all pin of pgm against the constraints given in the checklist.
- * It checks if 
+ * It checks if
  * @li any invalid pins are used
  * @li valid pins are used inverted when not allowed
  * @li any pins are used by more than one function
@@ -218,24 +217,24 @@ const char *pinmask_to_str(const Pinmask * const pinmask) {
  * @returns 0 if all pin definitions are valid, -1 otherwise
  */
 int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist, const int size, const bool output) {
-  static const struct pindef no_valid_pins = {{0}, {0}}; // default value if check list does not contain anything else
-  int rv = 0; // return value
-  int pinname; // loop counter through pinnames
-  Pinmask already_used_all[PIN_FIELD_SIZE] = {0}; // collect pin definitions of all pin names for check of double use
-  // loop over all possible pinnames
+  static const struct pindef no_valid_pins = { {0}, {0} };      // Default value if check list does not contain anything else
+  int rv = 0;
+  int pinname;
+  Pinmask already_used_all[PIN_FIELD_SIZE] = { 0 };     // Collect pin definitions of all pin names for check of double use
   for(pinname = 0; pinname < N_PINS; pinname++) {
     bool used = false;
     bool invalid = false;
     bool inverse = false;
     int index;
     bool mandatory_used = false;
-    Pinmask invalid_used[PIN_FIELD_SIZE] = {0};
-    Pinmask inverse_used[PIN_FIELD_SIZE] = {0};
-    Pinmask already_used[PIN_FIELD_SIZE] = {0};
-    const struct pindef * valid_pins = &no_valid_pins;
+    Pinmask invalid_used[PIN_FIELD_SIZE] = { 0 };
+    Pinmask inverse_used[PIN_FIELD_SIZE] = { 0 };
+    Pinmask already_used[PIN_FIELD_SIZE] = { 0 };
+    const struct pindef *valid_pins = &no_valid_pins;
     bool is_mandatory = false;
     bool is_ok = true;
-    //find corresponding check pattern
+
+    // Find corresponding check pattern
     for(index = 0; index < size; index++) {
       if(checklist[index].pinname == pinname) {
         valid_pins = checklist[index].valid_pins;
@@ -245,34 +244,33 @@ int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist
     }
 
     for(size_t segment = 0; segment < PIN_FIELD_SIZE; segment++) {
-      // check if for mandatory any pin is defined
+      // Check if for mandatory any pin is defined
       invalid_used[segment] = pgm->pin[pinname].mask[segment] & ~valid_pins->mask[segment];
       if(is_mandatory && (0 != (pgm->pin[pinname].mask[segment] & valid_pins->mask[segment]))) {
         mandatory_used = true;
       }
-      // check if it does not use any non valid pins
+      // Check if it does not use any non valid pins
       invalid_used[segment] = pgm->pin[pinname].mask[segment] & ~valid_pins->mask[segment];
       if(invalid_used[segment]) {
         invalid = true;
       }
-      // check if it does not use any valid pins as inverse if not allowed
-      inverse_used[segment] = pgm->pin[pinname].inverse[segment] & valid_pins->mask[segment] & ~valid_pins->inverse[segment];
-      if(inverse_used[segment]) {
+      // Check if it does not use any valid pins as inverse if not allowed
+      inverse_used[segment] = pgm->pin[pinname].inverse[segment] &
+        valid_pins->mask[segment] & ~valid_pins->inverse[segment];
+      if(inverse_used[segment])
         inverse = true;
-      }
-      // check if it does not use same pins as other function
+      // Check if it does not use same pins as other function
       already_used[segment] = pgm->pin[pinname].mask[segment] & already_used_all[segment];
-      if(already_used[segment]) {
+      if(already_used[segment])
         used = true;
-      }
       already_used_all[segment] |= pgm->pin[pinname].mask[segment];
     }
     if(invalid) {
       if(output) {
         pmsg_error("%s: these pins are not valid pins for this function: %s\n",
           avr_pin_name(pinname), pinmask_to_str(invalid_used));
-        imsg_error("%s: valid pins for this function are: %s\n",
-          avr_pin_name(pinname), pinmask_to_str(valid_pins->mask));
+        imsg_error("%s: valid pins for this function are: %s\n", avr_pin_name(pinname),
+          pinmask_to_str(valid_pins->mask));
       }
       is_ok = false;
     }
@@ -307,22 +305,22 @@ int pins_check(const PROGRAMMER *const pgm, const Pin_checklist *const checklist
   return rv;
 }
 
-
-/**
+/*
  * This function returns a string of defined pins, eg, ~1, 2, ~4, ~5, 7 or ""
  *
  * @param[in] pindef the pin definition for which we want the string representation
  * @returns a temporary string that lives in closed-circuit space
  */
-const char *pins_to_str(const struct pindef * const pindef) {
-  char buf[6*(PIN_MAX+1)], *p = buf;
+const char *pins_to_str(const struct pindef *const pindef) {
+  char buf[6*(PIN_MAX + 1)], *p = buf;
 
   *buf = 0;
   for(int pin = PIN_MIN; pin <= PIN_MAX; pin++) {
-    int index = pin / PIN_FIELD_ELEMENT_SIZE, bit = pin % PIN_FIELD_ELEMENT_SIZE;
+    int index = pin/PIN_FIELD_ELEMENT_SIZE, bit = pin%PIN_FIELD_ELEMENT_SIZE;
+
     if(pindef->mask[index] & (1 << bit)) {
       if(*buf)
-         *p++ = ',', *p++=' ';
+        *p++ = ',', *p++ = ' ';
       p += sprintf(p, pindef->inverse[index] & (1 << bit)? "~%d": "%d", pin);
     }
   }
@@ -330,55 +328,84 @@ const char *pins_to_str(const struct pindef * const pindef) {
   return str_ccstrdup(buf);
 }
 
-/**
+/*
  * Returns the name of the pin as string.
  *
  * @param pinname the pinname which we want as string.
  * @returns a string with the pinname, or <unknown> if pinname is invalid.
  */
-const char * avr_pin_name(int pinname) {
+const char *avr_pin_name(int pinname) {
   switch(pinname) {
-  case PPI_AVR_VCC   : return "VCC";
-  case PPI_AVR_BUFF  : return "BUFF";
-  case PIN_AVR_RESET : return "RESET";
-  case PIN_AVR_SCK   : return "SCK";
-  case PIN_AVR_SDO   : return "SDO";
-  case PIN_AVR_SDI   : return "SDI";
-  case PIN_JTAG_TCK  : return "TCK";
-  case PIN_JTAG_TDI  : return "TDI";
-  case PIN_JTAG_TDO  : return "TDO";
-  case PIN_JTAG_TMS  : return "TMS";
-  case PIN_LED_ERR   : return "ERRLED";
-  case PIN_LED_RDY   : return "RDYLED";
-  case PIN_LED_PGM   : return "PGMLED";
-  case PIN_LED_VFY   : return "VFYLED";
-  default : return "<unknown>";
+  case PPI_AVR_VCC:
+    return "VCC";
+  case PPI_AVR_BUFF:
+    return "BUFF";
+  case PIN_AVR_RESET:
+    return "RESET";
+  case PIN_AVR_SCK:
+    return "SCK";
+  case PIN_AVR_SDO:
+    return "SDO";
+  case PIN_AVR_SDI:
+    return "SDI";
+  case PIN_JTAG_TCK:
+    return "TCK";
+  case PIN_JTAG_TDI:
+    return "TDI";
+  case PIN_JTAG_TDO:
+    return "TDO";
+  case PIN_JTAG_TMS:
+    return "TMS";
+  case PIN_LED_ERR:
+    return "ERRLED";
+  case PIN_LED_RDY:
+    return "RDYLED";
+  case PIN_LED_PGM:
+    return "PGMLED";
+  case PIN_LED_VFY:
+    return "VFYLED";
+  default:
+    return "<unknown>";
   }
 }
 
-
-/**
+/*
  * Returns the name of the pin as string.
  *
  * @param pinname the pinname which we want as string.
  * @returns a lowercase string with the pinname, or <unknown> if pinname is invalid.
  */
-const char * avr_pin_lcname(int pinname) {
+const char *avr_pin_lcname(int pinname) {
   switch(pinname) {
-  case PPI_AVR_VCC   : return "vcc";
-  case PPI_AVR_BUFF  : return "buff";
-  case PIN_AVR_RESET : return "reset";
-  case PIN_AVR_SCK   : return "sck";
-  case PIN_AVR_SDO   : return "sdo";
-  case PIN_AVR_SDI   : return "sdi";
-  case PIN_JTAG_TCK  : return "tck";
-  case PIN_JTAG_TDI  : return "tdi";
-  case PIN_JTAG_TDO  : return "tdo";
-  case PIN_JTAG_TMS  : return "tms";
-  case PIN_LED_ERR   : return "errled";
-  case PIN_LED_RDY   : return "rdyled";
-  case PIN_LED_PGM   : return "pgmled";
-  case PIN_LED_VFY   : return "vfyled";
-  default : return "<unknown>";
+  case PPI_AVR_VCC:
+    return "vcc";
+  case PPI_AVR_BUFF:
+    return "buff";
+  case PIN_AVR_RESET:
+    return "reset";
+  case PIN_AVR_SCK:
+    return "sck";
+  case PIN_AVR_SDO:
+    return "sdo";
+  case PIN_AVR_SDI:
+    return "sdi";
+  case PIN_JTAG_TCK:
+    return "tck";
+  case PIN_JTAG_TDI:
+    return "tdi";
+  case PIN_JTAG_TDO:
+    return "tdo";
+  case PIN_JTAG_TMS:
+    return "tms";
+  case PIN_LED_ERR:
+    return "errled";
+  case PIN_LED_RDY:
+    return "rdyled";
+  case PIN_LED_PGM:
+    return "pgmled";
+  case PIN_LED_VFY:
+    return "vfyled";
+  default:
+    return "<unknown>";
   }
 }

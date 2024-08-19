@@ -31,20 +31,26 @@
 extern "C" {
 #endif
 
-int updi_nvm_chip_erase_V2(const PROGRAMMER *pgm, const AVRPART *p);
-int updi_nvm_erase_flash_page_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address);
-int updi_nvm_erase_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p);
-int updi_nvm_erase_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint16_t size);
-int updi_nvm_write_flash_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
-int updi_nvm_write_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
-int updi_nvm_write_boot_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
-int updi_nvm_write_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, unsigned char *buffer, uint16_t size);
-int updi_nvm_write_fuse_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address, uint8_t value);
-int updi_nvm_wait_ready_V2(const PROGRAMMER *pgm, const AVRPART *p);
-int updi_nvm_command_V2(const PROGRAMMER *pgm, const AVRPART *p, uint8_t command);
+  int updi_nvm_chip_erase_V2(const PROGRAMMER *pgm, const AVRPART *p);
+  int updi_nvm_erase_flash_page_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address);
+  int updi_nvm_erase_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p);
+  int updi_nvm_erase_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+    uint16_t size);
+  int updi_nvm_write_flash_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+    unsigned char *buffer, uint16_t size);
+  int updi_nvm_write_user_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+    unsigned char *buffer, uint16_t size);
+  int updi_nvm_write_boot_row_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+    unsigned char *buffer, uint16_t size);
+  int updi_nvm_write_eeprom_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+    unsigned char *buffer, uint16_t size);
+  int updi_nvm_write_fuse_V2(const PROGRAMMER *pgm, const AVRPART *p, uint32_t address,
+    uint8_t value);
+  int updi_nvm_wait_ready_V2(const PROGRAMMER *pgm, const AVRPART *p);
+  int updi_nvm_command_V2(const PROGRAMMER *pgm, const AVRPART *p, uint8_t command);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* updi_nvm_v2_h */
+#endif

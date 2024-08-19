@@ -26,11 +26,11 @@
 #include <errno.h>
 
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
-# include "freebsd_ppi.h"
+#include "freebsd_ppi.h"
 #elif defined(__linux__)
-# include "linux_ppdev.h"
-#elif defined(__sun__) || defined(__sun) /* Solaris */
-# include "solaris_ecpp.h"
+#include "linux_ppdev.h"
+#elif defined(__sun__) || defined(__sun)        // Solaris
+#include "solaris_ecpp.h"
 #endif
 
 #include "avrdude.h"
@@ -41,7 +41,6 @@
 #include "par.h"
 
 #if HAVE_PARPORT
-
 struct ppipins {
   int pin;
   int reg;
@@ -50,23 +49,23 @@ struct ppipins {
 };
 
 static const struct ppipins ppipins[] = {
-  {  1, PPICTRL,   0x01, 1 },
-  {  2, PPIDATA,   0x01, 0 },
-  {  3, PPIDATA,   0x02, 0 },
-  {  4, PPIDATA,   0x04, 0 },
-  {  5, PPIDATA,   0x08, 0 },
-  {  6, PPIDATA,   0x10, 0 },
-  {  7, PPIDATA,   0x20, 0 },
-  {  8, PPIDATA,   0x40, 0 },
-  {  9, PPIDATA,   0x80, 0 },
-  { 10, PPISTATUS, 0x40, 0 },
-  { 11, PPISTATUS, 0x80, 1 },
-  { 12, PPISTATUS, 0x20, 0 },
-  { 13, PPISTATUS, 0x10, 0 },
-  { 14, PPICTRL,   0x02, 1 }, 
-  { 15, PPISTATUS, 0x08, 0 },
-  { 16, PPICTRL,   0x04, 0 }, 
-  { 17, PPICTRL,   0x08, 1 }
+  {1, PPICTRL, 0x01, 1},
+  {2, PPIDATA, 0x01, 0},
+  {3, PPIDATA, 0x02, 0},
+  {4, PPIDATA, 0x04, 0},
+  {5, PPIDATA, 0x08, 0},
+  {6, PPIDATA, 0x10, 0},
+  {7, PPIDATA, 0x20, 0},
+  {8, PPIDATA, 0x40, 0},
+  {9, PPIDATA, 0x80, 0},
+  {10, PPISTATUS, 0x40, 0},
+  {11, PPISTATUS, 0x80, 1},
+  {12, PPISTATUS, 0x20, 0},
+  {13, PPISTATUS, 0x10, 0},
+  {14, PPICTRL, 0x02, 1},
+  {15, PPISTATUS, 0x08, 0},
+  {16, PPICTRL, 0x04, 0},
+  {17, PPICTRL, 0x08, 1}
 };
 
 #define NPINS (sizeof(ppipins)/sizeof(struct ppipins))
@@ -77,29 +76,29 @@ static int par_setpin_internal(const PROGRAMMER *pgm, int pin, int value) {
   inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
-  if (pin < 1 || pin > 17)
+  if(pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
-  if (ppipins[pin].inverted)
+  if(ppipins[pin].inverted)
     inverted = !inverted;
 
-  if (inverted)
+  if(inverted)
     value = !value;
 
-  if (value)
+  if(value)
     ppi_set(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
   else
     ppi_clr(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
-  if (pgm->ispdelay > 1)
+  if(pgm->ispdelay > 1)
     bitbang_delay(pgm->ispdelay);
 
   return 0;
 }
 
-static int par_setpin(const PROGRAMMER * pgm, int pinfunc, int value) {
+static int par_setpin(const PROGRAMMER *pgm, int pinfunc, int value) {
   if(pinfunc < 0 || pinfunc >= N_PINS)
     return -1;
 
@@ -114,16 +113,16 @@ static void par_setmany(const PROGRAMMER *pgm, int pinfunc, int value) {
 
   pinset = pgm->pinno[pinfunc];
 
-  /* mask is anything non-pin - needs to be applied to each par_setpin to preserve inversion */
+  // Mask is anything non-pin - needs to be applied to each par_setpin to preserve inversion
   mask = pinset & (~PIN_MASK);
 
-  for (pin = 1; pin <= 17; pin++) {
-    if (pinset & (1 << pin))
+  for(pin = 1; pin <= 17; pin++) {
+    if(pinset & (1 << pin))
       par_setpin_internal(pgm, pin | mask, value);
   }
 }
 
-static int par_getpin(const PROGRAMMER * pgm, int pinfunc) {
+static int par_getpin(const PROGRAMMER *pgm, int pinfunc) {
   int value, inverted, pin;
 
   if(pinfunc < 0 || pinfunc >= N_PINS)
@@ -134,25 +133,24 @@ static int par_getpin(const PROGRAMMER * pgm, int pinfunc) {
   inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
-  if (pin < 1 || pin > 17)
+  if(pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
   value = ppi_get(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
 
-  if (value)
+  if(value)
     value = 1;
-    
-  if (ppipins[pin].inverted)
+
+  if(ppipins[pin].inverted)
     inverted = !inverted;
 
-  if (inverted)
+  if(inverted)
     value = !value;
 
   return value;
 }
-
 
 static int par_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
   int inverted, pin;
@@ -165,100 +163,90 @@ static int par_highpulsepin(const PROGRAMMER *pgm, int pinfunc) {
   inverted = pin & PIN_INVERSE;
   pin &= PIN_MASK;
 
-  if (pin < 1 || pin > 17)
+  if(pin < 1 || pin > 17)
     return -1;
 
   pin--;
 
-  if (ppipins[pin].inverted)
+  if(ppipins[pin].inverted)
     inverted = !inverted;
 
-  if (inverted) {
+  if(inverted) {
     ppi_clr(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-    if (pgm->ispdelay > 1)
+    if(pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
 
     ppi_set(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-    if (pgm->ispdelay > 1)
+    if(pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
   } else {
     ppi_set(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-    if (pgm->ispdelay > 1)
+    if(pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
 
     ppi_clr(&pgm->fd, ppipins[pin].reg, ppipins[pin].bit);
-    if (pgm->ispdelay > 1)
+    if(pgm->ispdelay > 1)
       bitbang_delay(pgm->ispdelay);
   }
 
   return 0;
 }
 
-/*
- * apply power to the AVR processor
- */
+// Apply power to the AVR processor
 static void par_powerup(const PROGRAMMER *pgm) {
-  par_setmany(pgm, PPI_AVR_VCC, 1);	/* power up */
+  par_setmany(pgm, PPI_AVR_VCC, 1);     // Power up
   usleep(100000);
 }
 
-
-/*
- * remove power from the AVR processor
- */
+// Remove power from the AVR processor
 static void par_powerdown(const PROGRAMMER *pgm) {
-  par_setmany(pgm, PPI_AVR_VCC, 0);	/* power down */
+  par_setmany(pgm, PPI_AVR_VCC, 0);     // Power down
 }
 
 static void par_disable(const PROGRAMMER *pgm) {
-  par_setmany(pgm, PPI_AVR_BUFF, 1); /* turn off */
+  par_setmany(pgm, PPI_AVR_BUFF, 1);    // Turn off
 }
 
 static void par_enable(PROGRAMMER *pgm, const AVRPART *p) {
   /*
-   * Prepare to start talking to the connected device - pull reset low
-   * first, delay a few milliseconds, then enable the buffer.  This
-   * sequence allows the AVR to be reset before the buffer is enabled
-   * to avoid a short period of time where the AVR may be driving the
-   * programming lines at the same time the programmer tries to.  Of
-   * course, if a buffer is being used, then the /RESET line from the
-   * programmer needs to be directly connected to the AVR /RESET line
-   * and not via the buffer chip.
+   * Prepare to start talking to the connected device - pull reset low first,
+   * delay a few milliseconds, then enable the buffer.  This sequence allows
+   * the AVR to be reset before the buffer is enabled to avoid a short period
+   * of time where the AVR may be driving the programming lines at the same
+   * time the programmer tries to.  Of course, if a buffer is being used, then
+   * the /RESET line from the programmer needs to be directly connected to the
+   * AVR /RESET line and not via the buffer chip.
    */
 
   par_setpin(pgm, PIN_AVR_RESET, 0);
   usleep(1);
 
-  /*
-   * enable the 74367 buffer, if connected; this signal is active low
-   */
+  // Enable the 74367 buffer, if connected; this signal is active low
   par_setmany(pgm, PPI_AVR_BUFF, 0);
 }
 
 static int par_open(PROGRAMMER *pgm, const char *port) {
   int rc;
 
-  if (bitbang_check_prerequisites(pgm) < 0)
+  if(bitbang_check_prerequisites(pgm) < 0)
     return -1;
 
   ppi_open(port, &pgm->fd);
-  if (pgm->fd.ifd < 0) {
+  if(pgm->fd.ifd < 0) {
     pmsg_error("unable to open parallel port %s\n\n", port);
     return -1;
   }
 
-  /*
-   * save pin values, so they can be restored when device is closed
-   */
+  // Save pin values, so they can be restored when device is closed
   rc = ppi_getall(&pgm->fd, PPIDATA);
-  if (rc < 0) {
+  if(rc < 0) {
     pmsg_error("unable to read status of ppi data port\n");
     return -1;
   }
   pgm->ppidata = rc;
 
   rc = ppi_getall(&pgm->fd, PPICTRL);
-  if (rc < 0) {
+  if(rc < 0) {
     pmsg_error("unable to read status of ppi ctrl port\n");
     return -1;
   }
@@ -267,22 +255,16 @@ static int par_open(PROGRAMMER *pgm, const char *port) {
   return 0;
 }
 
-
 static void par_close(PROGRAMMER *pgm) {
 
-  /*
-   * Restore pin values before closing,
-   * but ensure that buffers are turned off.
-   */
+  // Restore pin values before closing, but ensure that buffers are turned off
   ppi_setall(&pgm->fd, PPIDATA, pgm->ppidata);
   ppi_setall(&pgm->fd, PPICTRL, pgm->ppictrl);
 
   par_setmany(pgm, PPI_AVR_BUFF, 1);
 
-  /*
-   * Handle exit specs.
-   */
-  switch (pgm->exit_reset) {
+  // Handle exit specs
+  switch(pgm->exit_reset) {
   case EXIT_RESET_ENABLED:
     par_setpin(pgm, PIN_AVR_RESET, 0);
     break;
@@ -292,11 +274,11 @@ static void par_close(PROGRAMMER *pgm) {
     break;
 
   case EXIT_RESET_UNSPEC:
-    /* Leave it alone. */
+    // Leave it alone
     break;
   }
 
-  switch (pgm->exit_datahigh) {
+  switch(pgm->exit_datahigh) {
   case EXIT_DATAHIGH_ENABLED:
     ppi_setall(&pgm->fd, PPIDATA, 0xff);
     break;
@@ -306,11 +288,11 @@ static void par_close(PROGRAMMER *pgm) {
     break;
 
   case EXIT_DATAHIGH_UNSPEC:
-    /* Leave it alone. */
+    // Leave it alone
     break;
   }
 
-  switch (pgm->exit_vcc) {
+  switch(pgm->exit_vcc) {
   case EXIT_VCC_ENABLED:
     par_setmany(pgm, PPI_AVR_VCC, 1);
     break;
@@ -320,7 +302,7 @@ static void par_close(PROGRAMMER *pgm) {
     break;
 
   case EXIT_VCC_UNSPEC:
-    /* Leave it alone. */
+    // Leave it alone
     break;
   }
 
@@ -328,9 +310,7 @@ static void par_close(PROGRAMMER *pgm) {
   pgm->fd.ifd = -1;
 }
 
-/*
- * parse the -E string
- */
+// Parse the -E string
 static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
   char *cp, *s, *str = mmt_strdup(sp);
   int rv = 0;
@@ -363,12 +343,12 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
       pgm->exit_datahigh = EXIT_DATAHIGH_DISABLED;
       continue;
     }
-    if (str_eq(cp, "help")) {
+    if(str_eq(cp, "help")) {
       help = true;
       rv = LIBAVRDUDE_EXIT;
     }
 
-    if (!help) {
+    if(!help) {
       pmsg_error("invalid exitspec parameter -E %s\n", cp);
       rv = -1;
     }
@@ -391,43 +371,42 @@ static int par_parseexitspecs(PROGRAMMER *pgm, const char *sp) {
 void par_initpgm(PROGRAMMER *pgm) {
   strcpy(pgm->type, "PPI");
 
-  pgm_fill_old_pins(pgm); // TODO to be removed if old pin data no longer needed
+  pgm_fill_old_pins(pgm);       // TODO to be removed if old pin data no longer needed
 
   pgm->exit_vcc = EXIT_VCC_UNSPEC;
   pgm->exit_reset = EXIT_RESET_UNSPEC;
   pgm->exit_datahigh = EXIT_DATAHIGH_UNSPEC;
 
-  pgm->rdy_led        = bitbang_rdy_led;
-  pgm->err_led        = bitbang_err_led;
-  pgm->pgm_led        = bitbang_pgm_led;
-  pgm->vfy_led        = bitbang_vfy_led;
-  pgm->initialize     = bitbang_initialize;
-  pgm->display        = pgm_display_generic;
-  pgm->enable         = par_enable;
-  pgm->disable        = par_disable;
-  pgm->powerup        = par_powerup;
-  pgm->powerdown      = par_powerdown;
+  pgm->rdy_led = bitbang_rdy_led;
+  pgm->err_led = bitbang_err_led;
+  pgm->pgm_led = bitbang_pgm_led;
+  pgm->vfy_led = bitbang_vfy_led;
+  pgm->initialize = bitbang_initialize;
+  pgm->display = pgm_display_generic;
+  pgm->enable = par_enable;
+  pgm->disable = par_disable;
+  pgm->powerup = par_powerup;
+  pgm->powerdown = par_powerdown;
   pgm->program_enable = bitbang_program_enable;
-  pgm->chip_erase     = bitbang_chip_erase;
-  pgm->cmd            = bitbang_cmd;
-  pgm->cmd_tpi        = bitbang_cmd_tpi;
-  pgm->spi            = bitbang_spi;
-  pgm->open           = par_open;
-  pgm->close          = par_close;
-  pgm->setpin         = par_setpin;
-  pgm->getpin         = par_getpin;
-  pgm->highpulsepin   = par_highpulsepin;
+  pgm->chip_erase = bitbang_chip_erase;
+  pgm->cmd = bitbang_cmd;
+  pgm->cmd_tpi = bitbang_cmd_tpi;
+  pgm->spi = bitbang_spi;
+  pgm->open = par_open;
+  pgm->close = par_close;
+  pgm->setpin = par_setpin;
+  pgm->getpin = par_getpin;
+  pgm->highpulsepin = par_highpulsepin;
   pgm->parseexitspecs = par_parseexitspecs;
-  pgm->read_byte      = avr_read_byte_default;
-  pgm->write_byte     = avr_write_byte_default;
+  pgm->read_byte = avr_read_byte_default;
+  pgm->write_byte = avr_write_byte_default;
 }
 
-#else  /* !HAVE_PARPORT */
+#else                           // ! HAVE_PARPORT
 
 void par_initpgm(PROGRAMMER *pgm) {
   pmsg_error("parallel port access not available in this configuration\n");
 }
-
-#endif /* HAVE_PARPORT */
+#endif                          // HAVE_PARPORT
 
 const char par_desc[] = "Parallel port bitbanging";

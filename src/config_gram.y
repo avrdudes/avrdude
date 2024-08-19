@@ -33,22 +33,21 @@
 #include "developer_opts.h"
 
 #if defined(WIN32)
-#define strtok_r( _s, _sep, _lasts ) \
-    ( *(_lasts) = strtok( (_s), (_sep) ) )
+#define strtok_r( _s, _sep, _lasts ) ( *(_lasts) = strtok( (_s), (_sep) ) )
 #endif
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
 int yylex(void);
-int yyerror(char * errmsg, ...);
-int yywarning(char * errmsg, ...);
+int yyerror(char *errmsg, ...);
+int yywarning(char *errmsg, ...);
 
 static int clear_pin(int pinfunc);
 static int assign_pin(int pinfunc, TOKEN *v, int invert);
 static int assign_pin_list(int invert);
-static int which_opcode(TOKEN * opcode);
-static int parse_cmdbits(OPCODE * op, int opnum);
+static int which_opcode(TOKEN *opcode);
+static int parse_cmdbits(OPCODE *op, int opnum);
 
 #define pin_name (cx->cfgy_pin_name)
 %}
@@ -128,17 +127,17 @@ static int parse_cmdbits(OPCODE * op, int opnum);
 %token K_HVSP_CONTROLSTACK
 
 /* JTAG ICE mkII specific parameters */
-%token K_ALLOWFULLPAGEBITSTREAM	/*
-				 * Internal parameter for the JTAG
-				 * ICE; describes the internal JTAG
-				 * streaming behaviour inside the MCU.
-				 * 1 for all older chips, 0 for newer
-				 * MCUs.
-				 */
-%token K_ENABLEPAGEPROGRAMMING	/* ? yes for mega256*, mega406 */
-%token K_IS_AT90S1200		/* chip is an AT90S1200 (needs special treatment) */
-%token K_FLASH_INSTR		/* flash instructions */
-%token K_EEPROM_INSTR		/* EEPROM instructions */
+
+ /*
+  * Internal parameter for the JTAG ICE; describes the internal JTAG streaming
+  * behaviour inside the MCU. 1 for all older chips, 0 for newer MCUs.
+  */
+%token K_ALLOWFULLPAGEBITSTREAM
+
+%token K_ENABLEPAGEPROGRAMMING  /* True for mega256*, mega406 */
+%token K_IS_AT90S1200           /* Chip is an AT90S1200 (needs special treatment) */
+%token K_FLASH_INSTR            /* Flash instructions */
+%token K_EEPROM_INSTR           /* EEPROM instructions */
 
 %token TKN_COMMA
 %token TKN_EQUAL
@@ -150,7 +149,7 @@ static int parse_cmdbits(OPCODE * op, int opnum);
 %token TKN_STRING
 %token TKN_COMPONENT
 
-%left  OP_OR                    /* calculator operations */
+%left  OP_OR                    /* Calculator operations */
 %left  OP_XOR
 %left  OP_AND
 %left  OP_PLUS OP_MINUS
@@ -258,12 +257,12 @@ def :
 prog_def :
   prog_decl prog_parms
     {
-      PROGRAMMER * existing_prog;
-      if (lsize(current_prog->id) == 0) {
+      PROGRAMMER *existing_prog;
+      if(lsize(current_prog->id) == 0) {
         yyerror("required parameter id not specified");
         YYABORT;
       }
-      if (current_prog->initpgm == NULL && current_prog->prog_modes) {
+      if(current_prog->initpgm == NULL && current_prog->prog_modes) {
         yyerror("programmer type not specified");
         YYABORT;
       }
@@ -301,8 +300,8 @@ prog_decl :
     |
   K_PROGRAMMER K_PARENT TKN_STRING
     {
-      PROGRAMMER * pgm = locate_programmer(programmers, $3->value.string);
-      if (pgm == NULL) {
+      PROGRAMMER *pgm = locate_programmer(programmers, $3->value.string);
+      if(pgm == NULL) {
         yyerror("parent programmer %s not found", $3->value.string);
         free_token($3);
         YYABORT;
@@ -321,10 +320,10 @@ part_def :
   part_decl part_parms 
     { 
       LNODEID ln;
-      AVRMEM * m;
-      AVRPART * existing_part;
+      AVRMEM *m;
+      AVRPART *existing_part;
 
-      if (current_part->id[0] == 0) {
+      if(current_part->id[0] == 0) {
         yyerror("required parameter id not specified");
         YYABORT;
       }
@@ -336,29 +335,29 @@ part_def :
         (!avr_locate_sigrow(current_part)? MEM_IN_SIGROW: 0));
 
       // Sanity checks for memory sizes and compute/override num_pages entry
-      for (ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
+      for(ln=lfirst(current_part->mem); ln; ln=lnext(ln)) {
         m = ldata(ln);
-        if (m->paged) {
-          if (m->size <= 0) {
+        if(m->paged) {
+          if(m->size <= 0) {
             yyerror("must specify a positive size for paged memory %s", m->desc);
             YYABORT;
           }
-          if (m->page_size <= 0) {
+          if(m->page_size <= 0) {
             yyerror("must specify a positive page size for paged memory %s", m->desc);
             YYABORT;
           }
           // Code base relies on page_size being a power of 2 in some places
-          if (m->page_size & (m->page_size - 1)) {
+          if(m->page_size & (m->page_size - 1)) {
             yyerror("page size must be a power of 2 for paged memory %s", m->desc);
             YYABORT;
           }
           // Code base relies on size being a multiple of page_size
-          if (m->size % m->page_size) {
+          if(m->size % m->page_size) {
             yyerror("size must be a multiple of page size for paged memory %s", m->desc);
             YYABORT;
           }
           // Warn if num_pages was specified but is inconsistent with size and page size
-          if (m->num_pages && m->num_pages != m->size / m->page_size)
+          if(m->num_pages && m->num_pages != m->size / m->page_size)
             yywarning("overriding num_page to be %d for memory %s", m->size/m->page_size, m->desc);
 
           m->num_pages = m->size / m->page_size;
@@ -380,7 +379,7 @@ part_def :
       }
 
       existing_part = locate_part(part_list, current_part->id);
-      if (existing_part) {
+      if(existing_part) {
         { /* temporarily set lineno to lineno of part start */
           int temp = cfg_lineno; cfg_lineno = current_part->lineno;
           yywarning("part %s overwrites previous definition %s:%d.",
@@ -408,8 +407,8 @@ part_decl :
     } |
   K_PART K_PARENT TKN_STRING 
     {
-      AVRPART * parent_part = locate_part(part_list, $3->value.string);
-      if (parent_part == NULL) {
+      AVRPART *parent_part = locate_part(part_list, $3->value.string);
+      if(parent_part == NULL) {
         yyerror("can't find parent part");
         free_token($3);
         YYABORT;
@@ -448,7 +447,7 @@ prog_parm :
   } |
   K_ID TKN_EQUAL string_list {
     {
-      while (lsize(string_list)) {
+      while(lsize(string_list)) {
         TOKEN *t = lrmv_n(string_list, 1);
         ladd(current_prog->id, mmt_strdup(t->value.string));
         free_token(t);
@@ -473,7 +472,7 @@ prog_parm_type:
 prog_parm_type_id:
   TKN_STRING        {
   const PROGRAMMER_TYPE *pgm_type = locate_programmer_type($1->value.string);
-    if (pgm_type == NULL) {
+    if(pgm_type == NULL) {
         yyerror("programmer type %s not found", $1->value.string);
         free_token($1); 
         YYABORT;
@@ -658,7 +657,7 @@ part_parm :
 
   K_VARIANTS TKN_EQUAL string_list {
     {
-      while (lsize(string_list)) {
+      while(lsize(string_list)) {
         TOKEN *t = lrmv_n(string_list, 1);
         int found = 0;
         for(LNODEID ln = lfirst(current_part->variants); ln; ln = lnext(ln)) {
@@ -694,7 +693,7 @@ part_parm :
 
   K_PP_CONTROLSTACK TKN_EQUAL num_list {
     {
-      TOKEN * t;
+      TOKEN *t;
       unsigned nbytes;
       int ok;
 
@@ -703,23 +702,18 @@ part_parm :
       ok = 1;
 
       memset(current_part->controlstack, 0, CTL_STACK_SIZE);
-      while (lsize(number_list)) {
+      while(lsize(number_list)) {
         t = lrmv_n(number_list, 1);
-	if (nbytes < CTL_STACK_SIZE)
-	  {
-	    current_part->controlstack[nbytes] = t->value.number;
-	    nbytes++;
-	  }
-	else
-	  {
-	    ok = 0;
-	  }
+        if(nbytes < CTL_STACK_SIZE) {
+          current_part->controlstack[nbytes] = t->value.number;
+          nbytes++;
+        } else {
+          ok = 0;
+        }
         free_token(t);
       }
-      if (!ok)
-	{
-	  yywarning("too many bytes in control stack");
-        }
+      if(!ok)
+        yywarning("too many bytes in control stack");
     }
   } |
 
@@ -732,7 +726,7 @@ part_parm :
 
   K_HVSP_CONTROLSTACK TKN_EQUAL num_list {
     {
-      TOKEN * t;
+      TOKEN *t;
       unsigned nbytes;
       int ok;
 
@@ -741,23 +735,18 @@ part_parm :
       ok = 1;
 
       memset(current_part->controlstack, 0, CTL_STACK_SIZE);
-      while (lsize(number_list)) {
+      while(lsize(number_list)) {
         t = lrmv_n(number_list, 1);
-	if (nbytes < CTL_STACK_SIZE)
-	  {
-	    current_part->controlstack[nbytes] = t->value.number;
-	    nbytes++;
-	  }
-	else
-	  {
-	    ok = 0;
-	  }
+        if(nbytes < CTL_STACK_SIZE) {
+          current_part->controlstack[nbytes] = t->value.number;
+          nbytes++;
+        } else {
+          ok = 0;
+        }
         free_token(t);
       }
-      if (!ok)
-	{
-	  yywarning("too many bytes in control stack");
-        }
+      if(!ok)
+        yywarning("too many bytes in control stack");
     }
   } |
 
@@ -770,7 +759,7 @@ part_parm :
 
   K_FLASH_INSTR TKN_EQUAL num_list {
     {
-      TOKEN * t;
+      TOKEN *t;
       unsigned nbytes;
       int ok;
 
@@ -778,23 +767,18 @@ part_parm :
       ok = 1;
 
       memset(current_part->flash_instr, 0, FLASH_INSTR_SIZE);
-      while (lsize(number_list)) {
+      while(lsize(number_list)) {
         t = lrmv_n(number_list, 1);
-	if (nbytes < FLASH_INSTR_SIZE)
-	  {
-	    current_part->flash_instr[nbytes] = t->value.number;
-	    nbytes++;
-	  }
-	else
-	  {
-	    ok = 0;
-	  }
+        if(nbytes < FLASH_INSTR_SIZE) {
+          current_part->flash_instr[nbytes] = t->value.number;
+          nbytes++;
+        } else {
+          ok = 0;
+        }
         free_token(t);
       }
-      if (!ok)
-	{
-	  yywarning("too many bytes in flash instructions");
-        }
+      if(!ok)
+        yywarning("too many bytes in flash instructions");
     }
   } |
 
@@ -806,7 +790,7 @@ part_parm :
 
   K_EEPROM_INSTR TKN_EQUAL num_list {
     {
-      TOKEN * t;
+      TOKEN *t;
       unsigned nbytes;
       int ok;
 
@@ -814,23 +798,18 @@ part_parm :
       ok = 1;
 
       memset(current_part->eeprom_instr, 0, EEPROM_INSTR_SIZE);
-      while (lsize(number_list)) {
+      while(lsize(number_list)) {
         t = lrmv_n(number_list, 1);
-	if (nbytes < EEPROM_INSTR_SIZE)
-	  {
-	    current_part->eeprom_instr[nbytes] = t->value.number;
-	    nbytes++;
-	  }
-	else
-	  {
-	    ok = 0;
-	  }
+        if(nbytes < EEPROM_INSTR_SIZE) {
+          current_part->eeprom_instr[nbytes] = t->value.number;
+          nbytes++;
+        } else {
+          ok = 0;
+        }
         free_token(t);
       }
-      if (!ok)
-	{
-	  yywarning("too many bytes in EEPROM instructions");
-        }
+      if(!ok)
+        yywarning("too many bytes in EEPROM instructions");
     }
   } |
 
@@ -842,9 +821,9 @@ part_parm :
 
   K_RESET TKN_EQUAL reset_disposition
     {
-      if ($3->primary == K_DEDICATED)
+      if($3->primary == K_DEDICATED)
         current_part->reset_disposition = RESET_DEDICATED;
-      else if ($3->primary == K_IO)
+      else if($3->primary == K_IO)
         current_part->reset_disposition = RESET_IO;
 
       free_tokens(2, $1, $3);
@@ -852,9 +831,9 @@ part_parm :
 
   K_IS_AT90S1200 TKN_EQUAL numexpr
     {
-      if ($3->value.number == 1)
+      if($3->value.number == 1)
         current_part->flags |= AVRPART_IS_AT90S1200;
-      else if ($3->value.number == 0)
+      else if($3->value.number == 0)
         current_part->flags &= ~AVRPART_IS_AT90S1200;
       else {
         yyerror("is_at90s1200 not a Boolean value");
@@ -867,9 +846,9 @@ part_parm :
 
   K_ALLOWFULLPAGEBITSTREAM TKN_EQUAL numexpr
     {
-      if ($3->value.number == 1)
+      if($3->value.number == 1)
         current_part->flags |= AVRPART_ALLOWFULLPAGEBITSTREAM;
-      else if ($3->value.number == 0)
+      else if($3->value.number == 0)
         current_part->flags &= ~AVRPART_ALLOWFULLPAGEBITSTREAM;
       else {
         yyerror("allowfullpagebitstream not a Boolean value");
@@ -882,9 +861,9 @@ part_parm :
 
   K_ENABLEPAGEPROGRAMMING TKN_EQUAL numexpr
     {
-      if ($3->value.number == 1)
+      if($3->value.number == 1)
         current_part->flags |= AVRPART_ENABLEPAGEPROGRAMMING;
-      else if ($3->value.number == 0)
+      else if($3->value.number == 0)
         current_part->flags &= ~AVRPART_ENABLEPAGEPROGRAMMING;
       else {
         yyerror("enablepageprogramming not a Boolean value");
@@ -897,9 +876,9 @@ part_parm :
 
   K_SERIAL TKN_EQUAL numexpr
     {
-      if ($3->value.number == 1)
+      if($3->value.number == 1)
         current_part->flags |= AVRPART_SERIALOK;
-      else if ($3->value.number == 0)
+      else if($3->value.number == 0)
         current_part->flags &= ~AVRPART_SERIALOK;
       else {
         yyerror("serial not a Boolean value");
@@ -912,15 +891,15 @@ part_parm :
 
   K_PARALLEL TKN_EQUAL numexpr
     {
-      if ($3->value.number == 1) {
+      if($3->value.number == 1) {
         current_part->flags |= AVRPART_PARALLELOK;
         current_part->flags &= ~AVRPART_PSEUDOPARALLEL;
       }
-      else if ($3->value.number == 0) {
+      else if($3->value.number == 0) {
         current_part->flags &= ~AVRPART_PARALLELOK;
         current_part->flags &= ~AVRPART_PSEUDOPARALLEL;
       }
-      else if ($3->value.number == 2) {
+      else if($3->value.number == 2) {
         current_part->flags |= AVRPART_PARALLELOK;
         current_part->flags |= AVRPART_PSEUDOPARALLEL;
       }
@@ -936,13 +915,13 @@ part_parm :
 
   K_RETRY_PULSE TKN_EQUAL retry_lines
     {
-      switch ($3->primary) {
-        case K_RESET :
-          current_part->retry_pulse = PIN_AVR_RESET;
-          break;
-        case K_SCK :
-          current_part->retry_pulse = PIN_AVR_SCK;
-          break;
+      switch($3->primary) {
+      case K_RESET :
+        current_part->retry_pulse = PIN_AVR_RESET;
+        break;
+      case K_SCK :
+        current_part->retry_pulse = PIN_AVR_SCK;
+        break;
       }
 
       free_token($1);
@@ -963,7 +942,7 @@ part_parm :
     }
     mem_specs 
     {
-      if (is_alias) {           // alias mem has been already entered
+      if(is_alias) {            // alias mem has been already entered
         lrmv_d(current_part->mem, current_mem);
         avr_free_mem(current_mem);
         is_alias = false;
@@ -986,7 +965,7 @@ part_parm :
   K_MEMORY TKN_STRING TKN_EQUAL K_NULL
    {
       AVRMEM *existing_mem = avr_locate_mem_noalias(current_part, $2->value.string);
-      if (existing_mem != NULL) {
+      if(existing_mem != NULL) {
         lrmv_d(current_part->mem, existing_mem);
         avr_free_mem(existing_mem);
       }
@@ -998,14 +977,15 @@ part_parm :
   opcode TKN_EQUAL string_list {
     { 
       int opnum;
-      OPCODE * op;
+      OPCODE *op;
 
       opnum = which_opcode($1);
-      if (opnum < 0) YYABORT;
+      if(opnum < 0)
+        YYABORT;
       op = avr_new_opcode();
       if(0 != parse_cmdbits(op, opnum))
         YYABORT;
-      if (current_part->op[opnum] != NULL) {
+      if(current_part->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_part->op[opnum]);
       }
@@ -1043,17 +1023,17 @@ mem_spec :
     free_token($1);
   } |
 
-  K_PAGE_SIZE       TKN_EQUAL numexpr
+  K_PAGE_SIZE TKN_EQUAL numexpr
     {
       int ps = $3->value.number;
-      if (ps <= 0)
+      if(ps <= 0)
         pmsg_warning("invalid page size %d, ignored [%s:%d]\n", ps, cfg_infile, cfg_lineno);
       else
         current_mem->page_size = ps;
       free_token($3);
     } |
 
-  K_READBACK        TKN_EQUAL TKN_NUMBER TKN_NUMBER
+  K_READBACK TKN_EQUAL TKN_NUMBER TKN_NUMBER
     {
       current_mem->readback[0] = $3->value.number;
       current_mem->readback[1] = $4->value.number;
@@ -1064,14 +1044,14 @@ mem_spec :
   opcode TKN_EQUAL string_list {
     { 
       int opnum;
-      OPCODE * op;
+      OPCODE *op;
 
       opnum = which_opcode($1);
-      if (opnum < 0) YYABORT;
+      if(opnum < 0) YYABORT;
       op = avr_new_opcode();
       if(0 != parse_cmdbits(op, opnum))
         YYABORT;
-      if (current_mem->op[opnum] != NULL) {
+      if(current_mem->op[opnum] != NULL) {
         /*yywarning("operation redefined");*/
         avr_free_opcode(current_mem->op[opnum]);
       }
@@ -1098,19 +1078,18 @@ mem_spec :
 mem_alias :
   K_ALIAS TKN_STRING
   {
-      AVRMEM * existing_mem;
+      AVRMEM *existing_mem;
 
       existing_mem = avr_locate_mem(current_part, $2->value.string);
-      if (existing_mem == NULL) {
-        yyerror("%s alias to non-existent memory %s",
-                current_mem->desc, $2->value.string);
+      if(existing_mem == NULL) {
+        yyerror("%s alias to non-existent memory %s", current_mem->desc, $2->value.string);
         free_token($2);
         YYABORT;
       }
 
       // if this alias does already exist, drop the old one
-      AVRMEM_ALIAS * alias = avr_locate_memalias(current_part, current_mem->desc);
-      if (alias) {
+      AVRMEM_ALIAS *alias = avr_locate_memalias(current_part, current_mem->desc);
+      if(alias) {
         lrmv_d(current_part->mem_alias, alias);
         avr_free_memalias(alias);
       }
@@ -1128,14 +1107,13 @@ mem_alias :
 %%
 
 #if 0
-static char * vtypestr(int type)
-{
-  switch (type) {
-    case V_NUM : return "INTEGER";
-    case V_NUM_REAL: return "REAL";
-    case V_STR : return "STRING";
-    default:
-      return "<UNKNOWN>";
+static char *vtypestr(int type) {
+  switch(type) {
+  case V_NUM : return "INTEGER";
+  case V_NUM_REAL: return "REAL";
+  case V_STR : return "STRING";
+  default:
+    return "<UNKNOWN>";
   }
 }
 #endif
@@ -1161,7 +1139,7 @@ static int assign_pin(int pinfunc, TOKEN *v, int invert) {
   int value = v->value.number;
   free_token(v);
 
-  if ((value < PIN_MIN) || (value > PIN_MAX)) {
+  if((value < PIN_MIN) || (value > PIN_MAX)) {
     yyerror("pin must be in the range " TOSTRING(PIN_MIN) "-"  TOSTRING(PIN_MAX));
     return -1;
   }
@@ -1171,9 +1149,8 @@ static int assign_pin(int pinfunc, TOKEN *v, int invert) {
   return 0;
 }
 
-static int assign_pin_list(int invert)
-{
-  TOKEN * t;
+static int assign_pin_list(int invert) {
+  TOKEN *t;
   int pin;
   int rv = 0;
 
@@ -1183,14 +1160,14 @@ static int assign_pin_list(int invert)
   }
 
   current_prog->pinno[pin_name] = NO_PIN;
-  while (lsize(number_list)) {
+  while(lsize(number_list)) {
     t = lrmv_n(number_list, 1);
     if (rv == 0) {
       pin = t->value.number;
       if ((pin < PIN_MIN) || (pin > PIN_MAX)) {
         yyerror("pin must be in the range " TOSTRING(PIN_MIN) "-"  TOSTRING(PIN_MAX));
         rv = -1;
-      /* loop clears list and frees tokens */
+        /* loop clears list and frees tokens */
       }
       pin_set_value(&(current_prog->pin[pin_name]), pin, invert);
     }
@@ -1199,31 +1176,28 @@ static int assign_pin_list(int invert)
   return rv;
 }
 
-static int which_opcode(TOKEN * opcode)
-{
-  switch (opcode->primary) {
-    case K_READ        : return AVR_OP_READ; break;
-    case K_WRITE       : return AVR_OP_WRITE; break;
-    case K_READ_LO     : return AVR_OP_READ_LO; break;
-    case K_READ_HI     : return AVR_OP_READ_HI; break;
-    case K_WRITE_LO    : return AVR_OP_WRITE_LO; break;
-    case K_WRITE_HI    : return AVR_OP_WRITE_HI; break;
-    case K_LOADPAGE_LO : return AVR_OP_LOADPAGE_LO; break;
-    case K_LOADPAGE_HI : return AVR_OP_LOADPAGE_HI; break;
-    case K_LOAD_EXT_ADDR : return AVR_OP_LOAD_EXT_ADDR; break;
-    case K_WRITEPAGE   : return AVR_OP_WRITEPAGE; break;
-    case K_CHIP_ERASE  : return AVR_OP_CHIP_ERASE; break;
-    case K_PGM_ENABLE  : return AVR_OP_PGM_ENABLE; break;
-    default :
-      yyerror("invalid opcode");
-      return -1;
-      break;
+static int which_opcode(TOKEN *opcode) {
+  switch(opcode->primary) {
+  case K_READ:          return AVR_OP_READ;
+  case K_WRITE:         return AVR_OP_WRITE;
+  case K_READ_LO:       return AVR_OP_READ_LO;
+  case K_READ_HI:       return AVR_OP_READ_HI;
+  case K_WRITE_LO:      return AVR_OP_WRITE_LO;
+  case K_WRITE_HI:      return AVR_OP_WRITE_HI;
+  case K_LOADPAGE_LO:   return AVR_OP_LOADPAGE_LO;
+  case K_LOADPAGE_HI:   return AVR_OP_LOADPAGE_HI;
+  case K_LOAD_EXT_ADDR: return AVR_OP_LOAD_EXT_ADDR;
+  case K_WRITEPAGE:     return AVR_OP_WRITEPAGE;
+  case K_CHIP_ERASE:    return AVR_OP_CHIP_ERASE;
+  case K_PGM_ENABLE:    return AVR_OP_PGM_ENABLE;
+  default: 
+    yyerror("invalid opcode");
+    return -1;
   }
 }
 
 
-static int parse_cmdbits(OPCODE * op, int opnum)
-{
+static int parse_cmdbits(OPCODE *op, int opnum) {
   TOKEN *t;
   int bitno;
   int len;
@@ -1231,7 +1205,7 @@ static int parse_cmdbits(OPCODE * op, int opnum)
   int rv = 0;
 
   bitno = 32;
-  while (lsize(string_list)) {
+  while(lsize(string_list)) {
 
     t = lrmv_n(string_list, 1);
 
@@ -1242,12 +1216,12 @@ static int parse_cmdbits(OPCODE * op, int opnum)
 
     bit[0] = *cc++;
     s = !compact? strtok_r(str, " ", &brkt): *bit? bit: NULL;
-    while (rv == 0 && s != NULL) {
+    while(rv == 0 && s != NULL) {
 
       // Ignore visual grouping characters in compact mode
       if(*s != '.' && *s != '-' && *s != '_' && *s !='/')
         bitno--;
-      if (bitno < 0) {
+      if(bitno < 0) {
         yyerror("too many opcode bits for instruction");
         rv = -1;
         break;
@@ -1255,56 +1229,56 @@ static int parse_cmdbits(OPCODE * op, int opnum)
 
       len = strlen(s);
 
-      if (len == 0) {
+      if(len == 0) {
         yyerror("invalid bit specifier \"\"");
         rv = -1;
         break;
       }
 
-      if (len == 1) {
-        switch (*s) {
-          case '1':
-            op->bit[bitno].type  = AVR_CMDBIT_VALUE;
-            op->bit[bitno].value = 1;
-            op->bit[bitno].bitno = bitno % 8;
-            break;
-          case '0':
-            op->bit[bitno].type  = AVR_CMDBIT_VALUE;
-            op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = bitno % 8;
-            break;
-          case 'x':
-            op->bit[bitno].type  = AVR_CMDBIT_IGNORE;
-            op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = bitno % 8;
-            break;
-          case 'a':
-            op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
-            op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = bitno < 8 || bitno > 23? 0:
-              opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; /* correct bit number for lone 'a' */
-            if(bitno < 8 || bitno > 23)
-              yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
-            break;
-          case 'i':
-            op->bit[bitno].type  = AVR_CMDBIT_INPUT;
-            op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = bitno % 8;
-            break;
-          case 'o':
-            op->bit[bitno].type  = AVR_CMDBIT_OUTPUT;
-            op->bit[bitno].value = 0;
-            op->bit[bitno].bitno = bitno % 8;
-            break;
-          case '.':
-          case '-':
-          case '_':
-          case '/':
-            break;
-          default :
-            yyerror("invalid bit specifier '%c'", *s);
-            rv = -1;
-            break;
+      if(len == 1) {
+        switch(*s) {
+        case '1':
+          op->bit[bitno].type  = AVR_CMDBIT_VALUE;
+          op->bit[bitno].value = 1;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case '0':
+          op->bit[bitno].type  = AVR_CMDBIT_VALUE;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case 'x':
+          op->bit[bitno].type  = AVR_CMDBIT_IGNORE;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case 'a':
+          op->bit[bitno].type  = AVR_CMDBIT_ADDRESS;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno < 8 || bitno > 23? 0:
+            opnum == AVR_OP_LOAD_EXT_ADDR? bitno+8: bitno-8; /* correct bit number for lone 'a' */
+          if(bitno < 8 || bitno > 23)
+            yywarning("address bits don't normally appear in Bytes 0 or 3 of SPI commands");
+          break;
+        case 'i':
+          op->bit[bitno].type  = AVR_CMDBIT_INPUT;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case 'o':
+          op->bit[bitno].type  = AVR_CMDBIT_OUTPUT;
+          op->bit[bitno].value = 0;
+          op->bit[bitno].bitno = bitno % 8;
+          break;
+        case '.':
+        case '-':
+        case '_':
+        case '/':
+          break;
+        default :
+          yyerror("invalid bit specifier '%c'", *s);
+          rv = -1;
+          break;
         }
       } else {
         const char *errstr;

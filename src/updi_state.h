@@ -27,14 +27,12 @@
 
 #include "libavrdude.h"
 
-typedef enum
-{
+typedef enum {
   UPDI_LINK_MODE_16BIT,
   UPDI_LINK_MODE_24BIT
 } updi_datalink_mode;
 
-typedef enum
-{
+typedef enum {
   UPDI_NVM_MODE_V0,
   UPDI_NVM_MODE_V2,
   UPDI_NVM_MODE_V3,
@@ -49,27 +47,24 @@ typedef enum
 #define SIB_INFO_PDI_LENGTH    4
 #define SIB_INFO_EXTRA_LENGTH  20
 
-typedef struct 
-{
-  unsigned char sib_string[SIB_INFO_STRING_LENGTH+1];
-  char family_string[SIB_INFO_FAMILY_LENGTH+1];
-  char nvm_string[SIB_INFO_NVM_LENGTH+1];
-  char debug_string[SIB_INFO_DEBUG_LENGTH+1];
-  char pdi_string[SIB_INFO_PDI_LENGTH+1];
-  char extra_string[SIB_INFO_EXTRA_LENGTH+1];
+typedef struct {
+  unsigned char sib_string[SIB_INFO_STRING_LENGTH + 1];
+  char family_string[SIB_INFO_FAMILY_LENGTH + 1];
+  char nvm_string[SIB_INFO_NVM_LENGTH + 1];
+  char debug_string[SIB_INFO_DEBUG_LENGTH + 1];
+  char pdi_string[SIB_INFO_PDI_LENGTH + 1];
+  char extra_string[SIB_INFO_EXTRA_LENGTH + 1];
   char nvm_version;
   char debug_version;
 } updi_sib_info;
 
-typedef enum
-{
+typedef enum {
   RTS_MODE_DEFAULT,
   RTS_MODE_LOW,
   RTS_MODE_HIGH
 } updi_rts_mode;
 
-typedef struct
-{
+typedef struct {
   updi_sib_info sib_info;
   updi_datalink_mode datalink_mode;
   updi_nvm_mode nvm_mode;
@@ -80,16 +75,16 @@ typedef struct
 extern "C" {
 #endif
 
-updi_sib_info* updi_get_sib_info(const PROGRAMMER *pgm);
-updi_datalink_mode updi_get_datalink_mode(const PROGRAMMER *pgm);
-void updi_set_datalink_mode(const PROGRAMMER *pgm, updi_datalink_mode mode);
-updi_nvm_mode updi_get_nvm_mode(const PROGRAMMER *pgm);
-void updi_set_nvm_mode(const PROGRAMMER *pgm, updi_nvm_mode mode);
-updi_rts_mode updi_get_rts_mode(const PROGRAMMER *pgm);
-void updi_set_rts_mode(const PROGRAMMER *pgm, updi_rts_mode mode);
+  updi_sib_info *updi_get_sib_info(const PROGRAMMER *pgm);
+  updi_datalink_mode updi_get_datalink_mode(const PROGRAMMER *pgm);
+  void updi_set_datalink_mode(const PROGRAMMER *pgm, updi_datalink_mode mode);
+  updi_nvm_mode updi_get_nvm_mode(const PROGRAMMER *pgm);
+  void updi_set_nvm_mode(const PROGRAMMER *pgm, updi_nvm_mode mode);
+  updi_rts_mode updi_get_rts_mode(const PROGRAMMER *pgm);
+  void updi_set_rts_mode(const PROGRAMMER *pgm, updi_rts_mode mode);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* updi_state_h */
+#endif

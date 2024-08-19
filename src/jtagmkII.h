@@ -23,41 +23,37 @@
 extern "C" {
 #endif
 
-int  jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, size_t len);
-int  jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg);
-void jtagmkII_close(PROGRAMMER * pgm);
-int  jtagmkII_getsync(const PROGRAMMER *pgm, int mode);
-int  jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm,
-		      unsigned char * value);
+  int jtagmkII_send(const PROGRAMMER *pgm, unsigned char *data, size_t len);
+  int jtagmkII_recv(const PROGRAMMER *pgm, unsigned char **msg);
+  void jtagmkII_close(PROGRAMMER *pgm);
+  int jtagmkII_getsync(const PROGRAMMER *pgm, int mode);
+  int jtagmkII_getparm(const PROGRAMMER *pgm, unsigned char parm, unsigned char *value);
 
-extern const char jtagmkII_desc[];
-extern const char jtagmkII_avr32_desc[];
-extern const char jtagmkII_dw_desc[];
-extern const char jtagmkII_pdi_desc[];
-extern const char jtagmkII_updi_desc[];
-extern const char jtagmkII_dragon_desc[];
-extern const char jtagmkII_dragon_dw_desc[];
-extern const char jtagmkII_dragon_pdi_desc[];
-void jtagmkII_initpgm(PROGRAMMER *pgm);
-void jtagmkII_avr32_initpgm(PROGRAMMER *pgm);
-void jtagmkII_dw_initpgm(PROGRAMMER *pgm);
-void jtagmkII_pdi_initpgm(PROGRAMMER *pgm);
-void jtagmkII_updi_initpgm(PROGRAMMER *pgm);
-void jtagmkII_dragon_initpgm(PROGRAMMER *pgm);
-void jtagmkII_dragon_dw_initpgm(PROGRAMMER *pgm);
-void jtagmkII_dragon_pdi_initpgm(PROGRAMMER *pgm);
+  extern const char jtagmkII_desc[];
+  extern const char jtagmkII_avr32_desc[];
+  extern const char jtagmkII_dw_desc[];
+  extern const char jtagmkII_pdi_desc[];
+  extern const char jtagmkII_updi_desc[];
+  extern const char jtagmkII_dragon_desc[];
+  extern const char jtagmkII_dragon_dw_desc[];
+  extern const char jtagmkII_dragon_pdi_desc[];
+  void jtagmkII_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_avr32_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_dw_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_pdi_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_updi_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_dragon_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_dragon_dw_initpgm(PROGRAMMER *pgm);
+  void jtagmkII_dragon_pdi_initpgm(PROGRAMMER *pgm);
 
-/*
- * These functions are referenced from stk500v2.c for JTAG ICE mkII
- * and AVR Dragon programmers running in one of the STK500v2
- * modi.
- */
-void jtagmkII_setup(PROGRAMMER * pgm);
-void jtagmkII_teardown(PROGRAMMER * pgm);
+  /*
+   * These functions are referenced from stk500v2.c for JTAG ICE mkII and AVR
+   * Dragon programmers running in one of the STK500v2 modi.
+   */
+  void jtagmkII_setup(PROGRAMMER *pgm);
+  void jtagmkII_teardown(PROGRAMMER *pgm);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif
-

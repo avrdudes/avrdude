@@ -21,7 +21,4 @@
 
 extern const char wiring_desc[];
 void wiring_initpgm(PROGRAMMER *pgm);
-
 #endif
-
-

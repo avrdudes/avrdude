@@ -65,9 +65,9 @@
 #define UPDI_PHY_SYNC    0x55
 #define UPDI_PHY_ACK     0x40
 
-#define UPDI_MAX_REPEAT_SIZE (0xFF+1) // Repeat counter of 1-byte, with off-by-one counting
+#define UPDI_MAX_REPEAT_SIZE (0xFF+1)   // Repeat counter of 1-byte, with off-by-one counting
 
-//# CS and ASI Register Address map
+// # CS and ASI Register Address map
 #define UPDI_CS_STATUSA     0x00
 #define UPDI_CS_STATUSB     0x01
 #define UPDI_CS_CTRLA       0x02
@@ -104,4 +104,4 @@
 
 #define UPDI_RESET_REQ_VALUE  0x59
 
-#endif /* updi_constants_h */
+#endif

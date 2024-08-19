@@ -22,12 +22,13 @@
 #include <ac_cfg.h>
 
 #ifdef HAVE_LIBUSB
+
 #if defined(HAVE_USB_H)
-#  include <usb.h>
+#include <usb.h>
 #elif defined(HAVE_LUSB0_USB_H)
-#  include <lusb0_usb.h>
+#include <lusb0_usb.h>
 #else
-#  error "libusb needs either <usb.h> or <lusb0_usb.h>"
+#error "libusb needs either <usb.h> or <lusb0_usb.h>"
 #endif
 #endif
 
@@ -37,45 +38,41 @@
 extern "C" {
 #endif
 
-/* If we have LIBUSB, define the dfu_dev struct normally. Otherwise, declare
- * it as an empty struct so that code compiles, but we generate an error at
- * run time.
+/*
+ * If we have LIBUSB, define the dfu_dev struct normally. Otherwise, declare it
+ * as an empty struct so that code compiles and we generate an error at run
+ * time.
  */
 
 #ifdef HAVE_LIBUSB
-
-struct dfu_dev
-{
-  char *bus_name, *dev_name;
-  usb_dev_handle *dev_handle;
-  struct usb_device_descriptor dev_desc;
-  struct usb_config_descriptor conf_desc;
-  struct usb_interface_descriptor intf_desc;
-  struct usb_endpoint_descriptor endp_desc;
-  char *manf_str, *prod_str, *serno_str;
-  unsigned int timeout;
-};
+  struct dfu_dev {
+    char *bus_name, *dev_name;
+    usb_dev_handle *dev_handle;
+    struct usb_device_descriptor dev_desc;
+    struct usb_config_descriptor conf_desc;
+    struct usb_interface_descriptor intf_desc;
+    struct usb_endpoint_descriptor endp_desc;
+    char *manf_str, *prod_str, *serno_str;
+    unsigned int timeout;
+  };
 
 #else
 
-struct dfu_dev {
-  int dummy;
-};
-
+  struct dfu_dev {
+    int dummy;
+  };
 #endif
-
-/* We assume unsigned char is 1 byte. */
 
 #if UCHAR_MAX != 255
 #error UCHAR_MAX != 255
 #endif
 
-struct dfu_status {
-  unsigned char bStatus;
-  unsigned char bwPollTimeout[3];
-  unsigned char bState;
-  unsigned char iString;
-};
+  struct dfu_status {
+    unsigned char bStatus;
+    unsigned char bwPollTimeout[3];
+    unsigned char bState;
+    unsigned char iString;
+  };
 
 // Values of bStatus field.
 
@@ -112,24 +109,23 @@ struct dfu_status {
 
 // FUNCTIONS
 
-extern struct dfu_dev *dfu_open(const char *port_spec);
-extern int dfu_init(struct dfu_dev *dfu,
-  unsigned short vid, unsigned short pid);
-extern void dfu_close(struct dfu_dev *dfu);
+  extern struct dfu_dev *dfu_open(const char *port_spec);
+  extern int dfu_init(struct dfu_dev *dfu, unsigned short vid, unsigned short pid);
+  extern void dfu_close(struct dfu_dev *dfu);
 
-extern int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status);
-extern int dfu_clrstatus(struct dfu_dev *dfu);
-extern int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size);
-extern int dfu_upload(struct dfu_dev *dfu, void *ptr, int size);
-extern int dfu_abort(struct dfu_dev *dfu);
+  extern int dfu_getstatus(struct dfu_dev *dfu, struct dfu_status *status);
+  extern int dfu_clrstatus(struct dfu_dev *dfu);
+  extern int dfu_dnload(struct dfu_dev *dfu, void *ptr, int size);
+  extern int dfu_upload(struct dfu_dev *dfu, void *ptr, int size);
+  extern int dfu_abort(struct dfu_dev *dfu);
 
-extern void dfu_show_info(struct dfu_dev *dfu);
+  extern void dfu_show_info(struct dfu_dev *dfu);
 
-extern const char * dfu_status_str(int bStatus);
-extern const char * dfu_state_str(int bState);
+  extern const char *dfu_status_str(int bStatus);
+  extern const char *dfu_state_str(int bState);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* dfu_h */
+#endif

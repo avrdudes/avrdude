@@ -16,9 +16,7 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * defines for the USB interface
- */
+// Defines for the USB interface
 
 #ifndef usbdevs_h
 #define usbdevs_h
@@ -39,62 +37,61 @@
 #define USB_DEVICE_PKOBN                0x2175
 #define USB_DEVICE_PICKIT4_AVR_MODE     0x2177
 #define USB_DEVICE_PICKIT4_PIC_MODE     0x9012
-#define USB_DEVICE_PICKIT4_PIC_MODE_BL  0x9017 // PICkit4 in bootloader mode
+#define USB_DEVICE_PICKIT4_PIC_MODE_BL  0x9017  // PICkit4 in bootloader mode
 #define USB_DEVICE_PICKIT5              0x9036
 #define USB_DEVICE_SNAP_AVR_MODE        0x2180
 #define USB_DEVICE_SNAP_PIC_MODE        0x9018
-#define USB_DEVICE_SNAP_PIC_MODE_BL     0x9019 // SNAP in bootloader mode
+#define USB_DEVICE_SNAP_PIC_MODE_BL     0x9019  // SNAP in bootloader mode
 
 #define USB_VENDOR_FTDI     0x0403
 #define USB_DEVICE_FT2232   0x6010
 #define USB_DEVICE_FT245    0x6001
 
-#define	USBASP_SHARED_VID   0x16C0  /* VOTI */
-#define	USBASP_SHARED_PID   0x05DC  /* Obdev's free shared PID */
+#define USBASP_SHARED_VID   0x16C0      // VOTI
+#define USBASP_SHARED_PID   0x05DC      // Obdev's free shared PID
 
-#define	USBASP_OLD_VID      0x03EB  /* ATMEL */
-#define	USBASP_OLD_PID	    0xC7B4  /* (unoffical) USBasp */
+#define USBASP_OLD_VID      0x03EB      // ATMEL
+#define USBASP_OLD_PID      0xC7B4      // (unoffical) USBasp
 
-#define	USBASP_NIBOBEE_VID  0x16C0  /* VOTI */
-#define	USBASP_NIBOBEE_PID  0x092F  /* NIBObee PID */
+#define USBASP_NIBOBEE_VID  0x16C0      // VOTI
+#define USBASP_NIBOBEE_PID  0x092F      // NIBObee PID
 
-// these are specifically assigned to USBtiny,
-// if you need your own VID and PIDs you can get them for cheap from
-// www.mecanique.co.uk so please don't reuse these. Thanks!
+/*
+ * These are specifically assigned to USBtiny, if you need your own VID and
+ * PIDs you can get them for cheap from www.mecanique.co.uk so please don't
+ * reuse these. Thanks!
+ */
 #define USBTINY_VENDOR_DEFAULT  0x1781
 #define USBTINY_PRODUCT_DEFAULT 0x0C9F
 
-
-
-/* JTAGICEmkII, AVRISPmkII */
+// JTAGICEmkII, AVRISPmkII
 #define USBDEV_BULK_EP_WRITE_MKII 0x02
 #define USBDEV_BULK_EP_READ_MKII  0x82
 #define USBDEV_MAX_XFER_MKII 64
 
-/* STK600 */
+// STK600
 #define USBDEV_BULK_EP_WRITE_STK600 0x02
 #define USBDEV_BULK_EP_READ_STK600 0x83
 
-/* JTAGICE3 */
+// JTAGICE3
 #define USBDEV_BULK_EP_WRITE_3    0x01
 #define USBDEV_BULK_EP_READ_3     0x82
 #define USBDEV_EVT_EP_READ_3      0x83
-/* 
- * The mk3 tools (type jtagice3) have a maxPayloadSize of 912. When
- * accessing paged memory the access should be limited to pageSize.
- * When accessing memory without pageSize the payload should be
- * limited to 256.
+
+/*
+ * The mk3 tools (type jtagice3) have a maxPayloadSize of 912. When accessing
+ * paged memory the access should be limited to pageSize. When accessing memory
+ * without pageSize the payload should be limited to 256.
  */
 #define USBDEV_MAX_XFER_3         912
 #define USBDEV_MAX_XFER_3_UNPAGED 256
 
 /*
- * When operating on the JTAGICE3, usbdev_recv_frame() returns an
- * indication in the upper bits of the return value whether the
- * message has been received from the event endpoint rather than the
- * normal conversation endpoint.
+ * When operating on the JTAGICE3, usbdev_recv_frame() returns an indication in
+ * the upper bits of the return value whether the message has been received
+ * from the event endpoint rather than the normal conversation endpoint.
  */
-#define USB_RECV_LENGTH_MASK   0x0fff /* up to 4 KiB */
+#define USB_RECV_LENGTH_MASK   0x0fff   // Up to 4 KiB
 #define USB_RECV_FLAG_EVENT    0x1000
 
-#endif  /* usbdevs_h */
+#endif

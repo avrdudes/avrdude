@@ -18,14 +18,11 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-/*
- * Serial Interface emulation for USB programmer "AVR-Doper" in HID mode.
- */
+// Serial Interface emulation for USB programmer "AVR-Doper" in HID mode
 
 #include <ac_cfg.h>
 
 #if defined(HAVE_LIBHIDAPI)
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -34,9 +31,9 @@
 #include "avrdude.h"
 #include "libavrdude.h"
 
-/* ------------------------------------------------------------------------ */
+// - -----------------------------------------------------------------------
 
-/* Numeric constants for 'reportType' parameters */
+// Numeric constants for 'reportType' parameters
 #define USB_HID_REPORT_TYPE_INPUT   1
 #define USB_HID_REPORT_TYPE_OUTPUT  2
 #define USB_HID_REPORT_TYPE_FEATURE 3
@@ -53,296 +50,279 @@
 #define USB_VENDOR_ID   0x16c0
 #define USB_PRODUCT_ID  0x05df
 
-static const int reportDataSizes[4] = {13, 29, 61, 125};
+static const int reportDataSizes[4] = { 13, 29, 61, 125 };
 
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
+// ------------------------------------------------------------------------
 
 static int usbOpenDevice(union filedescriptor *fdp, int vendor, const char *vendorName,
-			 int product, const char *productName, int doReportIDs)
-{
-    hid_device *dev;
+  int product, const char *productName, int doReportIDs) {
+  hid_device *dev;
 
-    dev = hid_open(vendor, product, NULL);
-    if (dev == NULL)
-    {
-      pmsg_ext_error("no device found\n");
-      return USB_ERROR_NOTFOUND;
-    }
-    fdp->usb.handle = dev;
-    return USB_ERROR_NONE;
+  dev = hid_open(vendor, product, NULL);
+  if(dev == NULL) {
+    pmsg_ext_error("no device found\n");
+    return USB_ERROR_NOTFOUND;
+  }
+  fdp->usb.handle = dev;
+  return USB_ERROR_NONE;
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-static void usbCloseDevice(union filedescriptor *fdp)
-{
-  hid_device *udev = (hid_device *)fdp->usb.handle;
+static void usbCloseDevice(union filedescriptor *fdp) {
+  hid_device *udev = (hid_device *) fdp->usb.handle;
+
   fdp->usb.handle = NULL;
 
-  if (udev == NULL)
+  if(udev == NULL)
     return;
 
   hid_close(udev);
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
 static int usbSetReport(const union filedescriptor *fdp, int reportType, char *buffer, int len) {
-  hid_device *udev = (hid_device *)fdp->usb.handle;
+  hid_device *udev = (hid_device *) fdp->usb.handle;
   int bytesSent = -1;
 
-  switch(reportType){
+  switch(reportType) {
   case USB_HID_REPORT_TYPE_INPUT:
-      break;
+    break;
   case USB_HID_REPORT_TYPE_OUTPUT:
-      bytesSent = hid_write(udev, (unsigned char*) buffer, len);
-      break;
+    bytesSent = hid_write(udev, (unsigned char *) buffer, len);
+    break;
   case USB_HID_REPORT_TYPE_FEATURE:
-      bytesSent = hid_send_feature_report(udev, (unsigned char*) buffer, len);
-      break;
+    bytesSent = hid_send_feature_report(udev, (unsigned char *) buffer, len);
+    break;
   }
 
-  if(bytesSent != len){
-      if(bytesSent < 0)
-          pmsg_error("unable to send message: %ls\n", hid_error(udev));
-      return USB_ERROR_IO;
+  if(bytesSent != len) {
+    if(bytesSent < 0)
+      pmsg_error("unable to send message: %ls\n", hid_error(udev));
+    return USB_ERROR_IO;
   }
   return USB_ERROR_NONE;
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-static int usbGetReport(const union filedescriptor *fdp, int reportType, int reportNumber,
-			char *buffer, int *len)
-{
-  hid_device *udev = (hid_device *)fdp->usb.handle;
+static int usbGetReport(const union filedescriptor *fdp, int reportType, int reportNumber, char *buffer, int *len) {
+  hid_device *udev = (hid_device *) fdp->usb.handle;
   int bytesReceived = -1;
 
-  switch(reportType){
+  switch(reportType) {
   case USB_HID_REPORT_TYPE_INPUT:
-      bytesReceived = hid_read_timeout(udev, (unsigned char*) buffer, *len, 300);
-      break;
+    bytesReceived = hid_read_timeout(udev, (unsigned char *) buffer, *len, 300);
+    break;
   case USB_HID_REPORT_TYPE_OUTPUT:
-      break;
+    break;
   case USB_HID_REPORT_TYPE_FEATURE:
-      bytesReceived = hid_get_feature_report(udev, (unsigned char*) buffer, *len);
-      break;
+    bytesReceived = hid_get_feature_report(udev, (unsigned char *) buffer, *len);
+    break;
   }
-  if(bytesReceived < 0){
-      pmsg_error("unable to send message: %ls\n", hid_error(udev));
-      return USB_ERROR_IO;
+  if(bytesReceived < 0) {
+    pmsg_error("unable to send message: %ls\n", hid_error(udev));
+    return USB_ERROR_IO;
   }
   *len = bytesReceived;
   return USB_ERROR_NONE;
 }
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
 
+// ------------------------------------------------------------------------
 
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
-/* ------------------------------------------------------------------------ */
+static void dumpBlock(const char *prefix, const unsigned char *buf, int len) {
+  int i;
 
-/* ------------------------------------------------------------------------- */
-
-static void dumpBlock(const char *prefix, const unsigned char *buf, int len)
-{
-    int i;
-
-    if(len <= 8){   /* more compact format for short blocks */
-        msg_info("%s: %d bytes: ", prefix, len);
-        for(i = 0; i < len; i++){
-            msg_info("%02x ", buf[i]);
-        }
-        msg_info(" \"");
-        for(i = 0; i < len; i++)
-            msg_info("%c", buf[i] >= 0x20 && buf[i] < 0x7f? buf[i]: '.');
-        msg_info("\"\n");
-    }else{
-        msg_info("%s: %d bytes:\n", prefix, len);
-        while(len > 0){
-            for(i = 0; i < 16; i++){
-                if(i < len){
-                    msg_info("%02x ", buf[i]);
-                }else{
-                    msg_info("   ");
-                }
-                if(i == 7)
-                    msg_info(" ");
-            }
-            msg_info("  \"");
-            for(i = 0; i < 16 && i < len; i++)
-                msg_info("%c", buf[i] >= 0x20 && buf[i] < 0x7f? buf[i]: '.');
-            msg_info("\"\n");
-            buf += 16;
-            len -= 16;
-        }
+  if(len <= 8) {                // More compact format for short blocks
+    msg_info("%s: %d bytes: ", prefix, len);
+    for(i = 0; i < len; i++) {
+      msg_info("%02x ", buf[i]);
     }
+    msg_info(" \"");
+    for(i = 0; i < len; i++)
+      msg_info("%c", buf[i] >= 0x20 && buf[i] < 0x7f? buf[i]: '.');
+    msg_info("\"\n");
+  } else {
+    msg_info("%s: %d bytes:\n", prefix, len);
+    while(len > 0) {
+      for(i = 0; i < 16; i++) {
+        if(i < len) {
+          msg_info("%02x ", buf[i]);
+        } else {
+          msg_info("   ");
+        }
+        if(i == 7)
+          msg_info(" ");
+      }
+      msg_info("  \"");
+      for(i = 0; i < 16 && i < len; i++)
+        msg_info("%c", buf[i] >= 0x20 && buf[i] < 0x7f? buf[i]: '.');
+      msg_info("\"\n");
+      buf += 16;
+      len -= 16;
+    }
+  }
 }
 
 static const char *usbErrorText(int usbErrno) {
-    switch(usbErrno){
-        case USB_ERROR_NONE:    return "success";
-        case USB_ERROR_ACCESS:  return "access denied";
-        case USB_ERROR_NOTFOUND:return "device not found";
-        case USB_ERROR_BUSY:    return "device is busy";
-        case USB_ERROR_IO:      return "I/O Error";
-        default: {
-            char *buffer = avr_cc_buffer(32);
-            sprintf(buffer, "unknown error %d", usbErrno);
-            return buffer;
-        }
+  switch(usbErrno) {
+  case USB_ERROR_NONE:
+    return "success";
+  case USB_ERROR_ACCESS:
+    return "access denied";
+  case USB_ERROR_NOTFOUND:
+    return "device not found";
+  case USB_ERROR_BUSY:
+    return "device is busy";
+  case USB_ERROR_IO:
+    return "I/O Error";
+  default:{
+      char *buffer = avr_cc_buffer(32);
+
+      sprintf(buffer, "unknown error %d", usbErrno);
+      return buffer;
     }
+  }
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-static int avrdoper_open(const char *port, union pinfo pinfo, union filedescriptor *fdp)
-{
-    int rval;
-    char *vname = "obdev.at";
-    char *devname = "AVR-Doper";
+static int avrdoper_open(const char *port, union pinfo pinfo, union filedescriptor *fdp) {
+  int rval;
+  char *vname = "obdev.at";
+  char *devname = "AVR-Doper";
 
-    rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
-    if(rval != 0){
-        pmsg_ext_error("USB %s\n", usbErrorText(rval));
-        return -1;
-    }
-    return 0;
+  rval = usbOpenDevice(fdp, USB_VENDOR_ID, vname, USB_PRODUCT_ID, devname, 1);
+  if(rval != 0) {
+    pmsg_ext_error("USB %s\n", usbErrorText(rval));
+    return -1;
+  }
+  return 0;
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-static void avrdoper_close(union filedescriptor *fdp)
-{
-    usbCloseDevice(fdp);
+static void avrdoper_close(union filedescriptor *fdp) {
+  usbCloseDevice(fdp);
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-static int  chooseDataSize(int len)
-{
-    size_t i;
+static int chooseDataSize(int len) {
+  size_t i;
 
-    for(i = 0; i < sizeof(reportDataSizes)/sizeof(reportDataSizes[0]); i++){
-        if(reportDataSizes[i] >= len)
-            return i;
-    }
-    return i - 1;
+  for(i = 0; i < sizeof(reportDataSizes)/sizeof(reportDataSizes[0]); i++) {
+    if(reportDataSizes[i] >= len)
+      return i;
+  }
+  return i - 1;
 }
 
-static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *buf, size_t buflen)
-{
-    if(buflen > INT_MAX) {
-        pmsg_error("%s() called with too large buflen = %lu\n", __func__, (unsigned long) buflen);
-        return -1;
+static int avrdoper_send(const union filedescriptor *fdp, const unsigned char *buf, size_t buflen) {
+  if(buflen > INT_MAX) {
+    pmsg_error("%s() called with too large buflen = %lu\n", __func__, (unsigned long) buflen);
+    return -1;
+  }
+  if(verbose >= MSG_TRACE)
+    dumpBlock("Send", buf, buflen);
+  while(buflen > 0) {
+    unsigned char buffer[256];
+    int rval, lenIndex = chooseDataSize(buflen);
+    int thisLen = (int) buflen > reportDataSizes[lenIndex]? reportDataSizes[lenIndex]: (int) buflen;
+
+    buffer[0] = lenIndex + 1;   // Report ID
+    buffer[1] = thisLen;
+    memcpy(buffer + 2, buf, thisLen);
+    msg_trace("Sending %d bytes data chunk\n", thisLen);
+    rval = usbSetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, (char *) buffer, reportDataSizes[lenIndex] + 2);
+    if(rval != 0) {
+      pmsg_error("USB %s\n", usbErrorText(rval));
+      return -1;
     }
-    if(verbose >= MSG_TRACE)
-        dumpBlock("Send", buf, buflen);
-    while(buflen > 0){
-        unsigned char buffer[256];
-        int rval, lenIndex = chooseDataSize(buflen);
-        int thisLen = (int) buflen > reportDataSizes[lenIndex]?
-            reportDataSizes[lenIndex]: (int) buflen;
-        buffer[0] = lenIndex + 1;   /* report ID */
-        buffer[1] = thisLen;
-        memcpy(buffer + 2, buf, thisLen);
-        msg_trace("Sending %d bytes data chunk\n", thisLen);
-        rval = usbSetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, (char *)buffer,
-			    reportDataSizes[lenIndex] + 2);
-        if(rval != 0){
-            pmsg_error("USB %s\n", usbErrorText(rval));
-            return -1;
-        }
-        buflen -= thisLen;
-        buf += thisLen;
-    }
-    return 0;
+    buflen -= thisLen;
+    buf += thisLen;
+  }
+  return 0;
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
 static int avrdoperFillBuffer(const union filedescriptor *fdp) {
-    int bytesPending = reportDataSizes[1];  /* guess how much data is buffered in device */
+  int bytesPending = reportDataSizes[1];        // Guess how much data is buffered in device
 
-    cx->sad_avrdoperRxPosition = cx->sad_avrdoperRxLength = 0;
-    while(bytesPending > 0){
-        int len, usbErr, lenIndex = chooseDataSize(bytesPending);
-        unsigned char buffer[128];
-        len = sizeof(cx->sad_avrdoperRxBuffer) - cx->sad_avrdoperRxLength;  /* bytes remaining */
-        if(reportDataSizes[lenIndex] + 2 > len) /* requested data would not fit into buffer */
-            break;
-        len = reportDataSizes[lenIndex] + 2;
-        usbErr = usbGetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, lenIndex + 1,
-			      (char *)buffer, &len);
-        if(usbErr != 0){
-            pmsg_error("USB %s\n", usbErrorText(usbErr));
-            return -1;
-        }
-        msg_trace("Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
-        len -= 2;   /* compensate for report ID and length byte */
-        bytesPending = buffer[1] - len; /* amount still buffered */
-        if(len > buffer[1])             /* cut away padding */
-            len = buffer[1];
-        if(cx->sad_avrdoperRxLength + len > (int) sizeof(cx->sad_avrdoperRxBuffer)){
-            pmsg_error("buffer overflow\n");
-            return -1;
-        }
-        memcpy(cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxLength, buffer + 2, len);
-        cx->sad_avrdoperRxLength += len;
+  cx->sad_avrdoperRxPosition = cx->sad_avrdoperRxLength = 0;
+  while(bytesPending > 0) {
+    int len, usbErr, lenIndex = chooseDataSize(bytesPending);
+    unsigned char buffer[128];
+
+    len = sizeof(cx->sad_avrdoperRxBuffer) - cx->sad_avrdoperRxLength;  // Bytes remaining
+    if(reportDataSizes[lenIndex] + 2 > len)     // Requested data would not fit into buffer
+      break;
+    len = reportDataSizes[lenIndex] + 2;
+    usbErr = usbGetReport(fdp, USB_HID_REPORT_TYPE_FEATURE, lenIndex + 1, (char *) buffer, &len);
+    if(usbErr != 0) {
+      pmsg_error("USB %s\n", usbErrorText(usbErr));
+      return -1;
     }
-    return 0;
-}
-
-static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, size_t buflen)
-{
-    unsigned char   *p = buf;
-    int             remaining = buflen;
-
-    while(remaining > 0){
-        int len, available = cx->sad_avrdoperRxLength - cx->sad_avrdoperRxPosition;
-        if(available <= 0){ /* buffer is empty */
-            if (avrdoperFillBuffer(fdp) < 0)
-                return -1;
-            continue;
-        }
-        len = remaining < available ? remaining : available;
-        memcpy(p, cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxPosition, len);
-        p += len;
-        remaining -= len;
-        cx->sad_avrdoperRxPosition += len;
+    msg_trace("Received %d bytes data chunk of total %d\n", len - 2, buffer[1]);
+    len -= 2;                   // Compensate for report ID and length byte
+    bytesPending = buffer[1] - len;     // Amount still buffered
+    if(len > buffer[1])         // Cut away padding
+      len = buffer[1];
+    if(cx->sad_avrdoperRxLength + len > (int) sizeof(cx->sad_avrdoperRxBuffer)) {
+      pmsg_error("buffer overflow\n");
+      return -1;
     }
-    if(verbose >= MSG_TRACE)
-        dumpBlock("Receive", buf, buflen);
-    return 0;
+    memcpy(cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxLength, buffer + 2, len);
+    cx->sad_avrdoperRxLength += len;
+  }
+  return 0;
 }
 
-/* ------------------------------------------------------------------------- */
+static int avrdoper_recv(const union filedescriptor *fdp, unsigned char *buf, size_t buflen) {
+  unsigned char *p = buf;
+  int remaining = buflen;
 
-static int avrdoper_drain(const union filedescriptor *fdp, int display)
-{
-    do{
-        if (avrdoperFillBuffer(fdp) < 0)
-            return -1;
-    }while(cx->sad_avrdoperRxLength > 0);
-    return 0;
+  while(remaining > 0) {
+    int len, available = cx->sad_avrdoperRxLength - cx->sad_avrdoperRxPosition;
+
+    if(available <= 0) {        // Buffer is empty
+      if(avrdoperFillBuffer(fdp) < 0)
+        return -1;
+      continue;
+    }
+    len = remaining < available? remaining: available;
+    memcpy(p, cx->sad_avrdoperRxBuffer + cx->sad_avrdoperRxPosition, len);
+    p += len;
+    remaining -= len;
+    cx->sad_avrdoperRxPosition += len;
+  }
+  if(verbose >= MSG_TRACE)
+    dumpBlock("Receive", buf, buflen);
+  return 0;
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-static int avrdoper_set_dtr_rts(const union filedescriptor *fdp, int is_on)
-{
-    pmsg_error("AVR-Doper does not support DTR/RTS setting\n");
-    return -1;
+static int avrdoper_drain(const union filedescriptor *fdp, int display) {
+  do {
+    if(avrdoperFillBuffer(fdp) < 0)
+      return -1;
+  } while(cx->sad_avrdoperRxLength > 0);
+  return 0;
 }
 
-/* ------------------------------------------------------------------------- */
+// -------------------------------------------------------------------------
 
-struct serial_device avrdoper_serdev =
-{
+static int avrdoper_set_dtr_rts(const union filedescriptor *fdp, int is_on) {
+  pmsg_error("AVR-Doper does not support DTR/RTS setting\n");
+  return -1;
+}
+
+// -------------------------------------------------------------------------
+
+struct serial_device avrdoper_serdev = {
   .open = avrdoper_open,
   .close = avrdoper_close,
   .rawclose = avrdoper_close,
@@ -352,5 +332,4 @@ struct serial_device avrdoper_serdev =
   .set_dtr_rts = avrdoper_set_dtr_rts,
   .flags = SERDEV_FL_NONE,
 };
-
-#endif /* defined(HAVE_LIBHIDAPI) */
+#endif                          // defined(HAVE_LIBHIDAPI)

@@ -390,7 +390,7 @@ static uint16_t rjmp_opcode(int dist, int flashsize) {
 
 
 // rjmp opcode from reset to bootloader start; same as above if bl start is in top half of flash
-static uint16_t rjmp_bwd_blstart(int blstart, int flashsize) { // flashsize must be power of 2
+static uint16_t rjmp_bwd_blstart(int blstart, int flashsize) { // Flashsize must be power of 2
   return 0xc000 | (((uint16_t)((blstart-flashsize-2)/2)) & 0xfff); // Urboot uses this formula
 }
 
@@ -530,7 +530,7 @@ static int set_reset(const PROGRAMMER *pgm, unsigned char *jmptoboot, int vecsz)
 
 // Called after the input file has been read for writing or verifying flash
 static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *flm,
-  const char *fname, int size) { // size is max memory address + 1
+  const char *fname, int size) { // Size is max memory address + 1
 
   int nmdata, maxsize, firstbeg, firstlen;
   const int vecsz = ur.uP.flashsize <= 8192? 2: 4; // Small parts use rjmp, large a 4-byte jmp
@@ -990,7 +990,7 @@ static int urclock_res_check(const PROGRAMMER *pgm, const char *funcname, int ig
 }
 
 
-// set ur.uP from mcuid, potentially overwritten by p
+// Set ur.uP from mcuid, potentially overwritten by p
 static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid_wins) {
   int idx_m = -1, idx_p = -1;
 
@@ -1025,9 +1025,9 @@ static void set_uP(const PROGRAMMER *pgm, const AVRPART *p, int mcuid, int mcuid
     ur.uP.name = p->desc;
     ur.uP.mcuid = p->mcuid;
     ur.uP.avrarch =
-      p->prog_modes & PM_UPDI? F_AVR8X:
-      p->prog_modes & PM_PDI? F_XMEGA:
-      p->prog_modes & PM_TPI? F_AVR8L:
+      is_updi(p)? F_AVR8X:
+      is_pdi(p)? F_XMEGA:
+      is_tpi(p)? F_AVR8L:
       p->prog_modes & (PM_ISP | PM_HVPP | PM_HVSP)? F_AVR8: 0;
     memcpy(ur.uP.sigs, p->signature, sizeof ur.uP.sigs);
     if((mem = avr_locate_flash(p))) {
@@ -1150,7 +1150,7 @@ static void guessblstart(const PROGRAMMER *pgm, const AVRPART *p) {
       while(bi < sz) {
        if(ur_readEF(pgm, p, b128, ur.uP.flashsize-bi-128, 128, 'F') < 0)
          return;
-       for(int ti=127; ti >= 0; ti--) // read in backwards
+       for(int ti=127; ti >= 0; ti--) // Read in backwards
          buf[bi++] = b128[ti];
       }
 
@@ -1289,11 +1289,11 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   ur.bleepromrw = 0;
 
   // No urboot bootloaders on AVR32 parts, neither on really small devices
-  if((p->prog_modes & PM_aWire) || flm->size < 512)
+  if(is_awire(p) || flm->size < 512)
     goto alldone;
 
   // UPDI parts have bootloader in low flash
-  ur.boothigh = !(p->prog_modes & PM_UPDI);
+  ur.boothigh = !is_updi(p);
 
   // Manual provision of above bootloader parameters
   if(ur.xbootsize) {
@@ -1315,7 +1315,7 @@ static int ur_initstruct(const PROGRAMMER *pgm, const AVRPART *p) {
   }
 
   if(ur.boothigh) {
-    if((int8_t) ur.uP.ninterrupts >= 0) // valid range is 0..127
+    if((int8_t) ur.uP.ninterrupts >= 0) // Valid range is 0..127
       if(ur.xvectornum < -1 || ur.xvectornum > ur.uP.ninterrupts)
         Return("unknown interrupt vector #%d for vector bootloader -- should be in [-1, %d]",
           ur.xvectornum, ur.uP.ninterrupts);
