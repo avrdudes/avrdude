@@ -321,8 +321,8 @@ jobs:
             !**/*.obj
       - name: Move executables
         run: |
-          mv build/src/RelWithDebInfo/avrdude.exe build/src
-          mv build/src/RelWithDebInfo/avrdude.pdb build/src
+          mv build/src/${{env.BUILD_TYPE}}/avrdude.exe build/src
+          mv build/src/${{env.BUILD_TYPE}}/avrdude.pdb build/src
       - name: Archive executables
         uses: actions/upload-artifact@v3
         with:
