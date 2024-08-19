@@ -2911,6 +2911,8 @@ Display the device signature bytes.
 
 @item part @var{[opts]}
 @cindex @code{part} @var{[opts]}
+@cindex programming mode
+@cindex variants of parts
 Display the current part information, including supported programming modes,
 memory and variants tables. Use @var{-m} to only print the memory table,
 and @var{-v} to only print the variants table.
@@ -3029,6 +3031,7 @@ Display programmer specific parameters.
 @noindent
 @strong{Enter terminal, display part parameters, modify EEPROM, perform a chip erase and quit:}
 
+@cindex @code{part}
 @smallexample
 @cartouche
 $ avrdude -qq -c usbasp -p atmega328p -t
@@ -3558,56 +3561,76 @@ programmer. These values can be changed by new setting them for the new programm
 @enumerate
 
 @item Known programming modes are
+@cindex Programming modes
 
 @itemize @bullet
-@item @code{PM_SPM}: Bootloaders, self-programming with SPM opcodes or NVM Controllers
 @cindex @code{PM_SPM}
-@item @code{PM_TPI}: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
+@cindex SPM
+@item @code{PM_SPM}: Bootloaders, self-programming with SPM opcodes or NVM Controllers
 @cindex @code{PM_TPI}
-@item @code{PM_ISP}: SPI programming for In-System Programming (almost all classic parts)
+@cindex TPI
+@item @code{PM_TPI}: Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
 @cindex @code{PM_ISP}
-@item @code{PM_PDI}: Program and Debug Interface (xmega parts)
+@cindex ISP
+@item @code{PM_ISP}: SPI programming for In-System Programming (almost all classic parts)
 @cindex @code{PM_PDI}
-@item @code{PM_UPDI}: Unified Program and Debug Interface
+@cindex PDI
+@item @code{PM_PDI}: Program and Debug Interface (xmega parts)
 @cindex @code{PM_UPDI}
-@item @code{PM_HVSP}: High Voltage Serial Programming (some classic parts)
+@cindex UPDI
+@item @code{PM_UPDI}: Unified Program and Debug Interface
 @cindex @code{PM_HVSP}
-@item @code{PM_HVPP}: High Voltage Parallel Programming (most non-HVSP classic parts)
+@cindex HVSP
+@item @code{PM_HVSP}: High Voltage Serial Programming (some classic parts)
 @cindex @code{PM_HVPP}
-@item @code{PM_debugWIRE}: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
+@cindex HVPP
+@item @code{PM_HVPP}: High Voltage Parallel Programming (most non-HVSP classic parts)
 @cindex @code{PM_debugWIRE}
-@item @code{PM_JTAG}: Joint Test Action Group standard (some classic parts)
+@cindex debugWIRE
+@item @code{PM_debugWIRE}: Simpler alternative to JTAG (a subset of HVPP/HVSP parts)
 @cindex @code{PM_JTAG}
-@item @code{PM_JTAGmkI}: Subset of @code{PM_JTAG}, older parts, Atmel ICE mkI
+@cindex JTAG
+@item @code{PM_JTAG}: Joint Test Action Group standard (some classic parts)
 @cindex @code{PM_JTAGmkI}
-@item @code{PM_XMEGAJTAG}: JTAG, some XMEGA parts
+@cindex JTAGmkI
+@item @code{PM_JTAGmkI}: Subset of @code{PM_JTAG}, older parts, Atmel ICE mkI
 @cindex @code{PM_XMEGAJTAG}
-@item @code{PM_AVR32JTAG}: JTAG for 32-bit AVRs
+@cindex XMEGAJTAG
+@item @code{PM_XMEGAJTAG}: JTAG, some XMEGA parts
 @cindex @code{PM_AVR32JTAG}
-@item @code{PM_aWire}: AVR32 parts
+@cindex AVR32JTAG
+@item @code{PM_AVR32JTAG}: JTAG for 32-bit AVRs
 @cindex @code{PM_aWire}
+@cindex aWire
+@item @code{PM_aWire}: AVR32 parts
 @end itemize
 
 @item The following extra programmer features are known
 
 @itemize @bullet
-@item @code{HAS_SUFFER}: Only present on Xplained Mini/Nano programmers;
 @cindex @code{HAS_SUFFER}
+@cindex SUFFER
+@item @code{HAS_SUFFER}: Only present on Xplained Mini/Nano programmers;
   the Super User Fantastic Feature Enable Register allows the user to modify
   the behavior of the mEDBG programmer/debugger chip, see the Xplained Mini/Nano
   documentation for more information
-@item @code{HAS_VTARG_SWITCH}: Programer has a programmable target power switch
 @cindex @code{HAS_VTARG_SWITCH}
-@item @code{HAS_VTARG_READ}: Programmer can read the target voltage
+@cindex VTARG_SWITCH
+@item @code{HAS_VTARG_SWITCH}: Programer has a programmable target power switch
 @cindex @code{HAS_VTARG_READ}
-@item @code{HAS_VTARG_ADJ}: Programmer has an adjustable target power source that can
+@cindex VTARG_READ
+@item @code{HAS_VTARG_READ}: Programmer can read the target voltage
 @cindex @code{HAS_VTARG_ADJ}
+@cindex VTARG_ADJ
+@item @code{HAS_VTARG_ADJ}: Programmer has an adjustable target power source that can
   be controlled with Avrdude
-@item @code{HAS_FOSC_ADJ}: Programmer has a programable frequency generator that
 @cindex @code{HAS_FOSC_ADJ}
+@cindex FOSC_ADJ
+@item @code{HAS_FOSC_ADJ}: Programmer has a programable frequency generator that
   can clock an AVR directly through its XTAL1 pin
-@item @code{HAS_VAREF_ADJ}: Programmer has an adjustable analog reference voltage that
 @cindex @code{HAS_VAREF_ADJ}
+@cindex VAREF_ADJ
+@item @code{HAS_VAREF_ADJ}: Programmer has an adjustable analog reference voltage that
   can be controlled with Avrdude
 @end itemize
 
