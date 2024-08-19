@@ -495,7 +495,7 @@ programmer # bsd
 
 programmer # stk200
     id                     = "stk200";
-    desc                   = "STK200";
+    desc                   = "STK200 starter kit";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     buff                   = 4, 5;
@@ -612,7 +612,7 @@ programmer # sp12
 
 programmer # picoweb
     id                     = "picoweb";
-    desc                   = "Picoweb Programming Cable, http://www.picoweb.net/";
+    desc                   = "Picoweb Programming Cable";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 2;
@@ -821,7 +821,7 @@ programmer # 89isp
 #
 # programmer
 #     id                   = "linuxgpio";
-#     desc                 = "Use the Linux sysfs interface to bitbang GPIO lines";
+#     desc                 = "Linux sysfs/libgpiod to bitbang GPIO lines";
 #     type                 = "linuxgpio";
 #     prog_modes           = PM_ISP;
 #     connection_type      = linuxgpio;
@@ -837,7 +837,7 @@ programmer # 89isp
 
 programmer # raspberry_pi_gpio
     id                     = "raspberry_pi_gpio";
-    desc                   = "Bitbang Raspberry Pi GPIO via linuxgpio (sysfs or libgpiod)";
+    desc                   = "Raspberry Pi GPIO via sysfs/libgpiod";
     type                   = "linuxgpio";
     prog_modes             = PM_ISP;
     connection_type        = linuxgpio;
@@ -928,7 +928,7 @@ programmer # dryboot
 
 programmer # wiring
     id                     = "wiring";
-    desc                   = "Wiring for bootloader using STK500 v2 protocol";
+    desc                   = "Wiring bootloader using STK500 v2 protocol";
     type                   = "wiring";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -947,7 +947,7 @@ programmer # wiring
 
 programmer # arduino
     id                     = "arduino";
-    desc                   = "Arduino for bootloader using STK500 v1 protocol";
+    desc                   = "Arduino bootloader using STK500 v1 protocol";
     type                   = "arduino";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -976,7 +976,7 @@ programmer # arduino
 
 programmer # urclock
     id                     = "urclock";
-    desc                   = "Urclock programmer for urboot bootloaders using urprotocol";
+    desc                   = "Urboot bootloaders using urprotocol";
     type                   = "urclock";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -994,7 +994,7 @@ programmer # urclock
 
 programmer # xbee
     id                     = "xbee";
-    desc                   = "XBee for Series 2 Over-The-Air (XBeeBoot) bootloader using STK500 v1 protocol";
+    desc                   = "XBeeBoot Over-The-Air bootloader (STK500 v1)";
     type                   = "xbee";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -1158,7 +1158,7 @@ programmer parent "2232h" # 4232h
 
 programmer # jtagkey
     id                     = "jtagkey";
-    desc                   = "Amontec JTAGKey, JTAGKey-Tiny and JTAGKey2";
+    desc                   = "Amontec JTAGKey/JTAGKey-Tiny/JTAGKey2";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1384,7 +1384,7 @@ programmer parent "ft2232h_jtag" # tumpa_jtag
 
 programmer # ktlink
     id                     = "ktlink";
-    desc                   = "KT-LINK FT2232H interface with IO switching and voltage buffers";
+    desc                   = "KT-LINK FT2232H: IO switching, voltage buffers";
     type                   = "avrftdi";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -1495,7 +1495,7 @@ programmer # serprog
 
 programmer # avrisp
     id                     = "avrisp";
-    desc                   = "Atmel AVR ISP";
+    desc                   = "Serial Atmel AVR ISP using STK500";
     type                   = "stk500";
     prog_modes             = PM_ISP;
     connection_type        = serial;
@@ -1507,7 +1507,7 @@ programmer # avrisp
 
 programmer # avrispv2
     id                     = "avrispv2";
-    desc                   = "Atmel AVR ISP v2";
+    desc                   = "Serial Atmel AVR ISP using STK500v2";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -1523,7 +1523,7 @@ programmer # avrispv2
 
 programmer # avrispmkII
     id                     = "avrispmkII", "avrisp2";
-    desc                   = "Atmel AVR ISP mkII";
+    desc                   = "USB Atmel AVR ISP mkII";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP | PM_PDI;
     extra_features         = HAS_VTARG_READ;
@@ -1554,7 +1554,7 @@ programmer # avrispmkII
 
 programmer # buspirate
     id                     = "buspirate";
-    desc                   = "The Bus Pirate";
+    desc                   = "The Bus Pirate (AVR programming mode)";
     type                   = "buspirate";
     prog_modes             = PM_ISP;
     connection_type        = serial;
@@ -1568,7 +1568,7 @@ programmer # buspirate
 
 programmer # buspirate_bb
     id                     = "buspirate_bb";
-    desc                   = "The Bus Pirate (bitbang interface, supports TPI)";
+    desc                   = "The Bus Pirate (bitbang mode, supports TPI)";
     type                   = "buspirate_bb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -1592,7 +1592,7 @@ programmer # buspirate_bb
 
 programmer # stk500
     id                     = "stk500";
-    desc                   = "Atmel STK500 (probes STK500v2 first then STK500v1)";
+    desc                   = "Atmel STK500 (probes v2 first then v1)";
     type                   = "stk500generic";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
@@ -1627,7 +1627,7 @@ programmer # stk500v1
 
 programmer # arduino_as_isp
     id                     = "arduino_as_isp";
-    desc                   = "Arduino board as programmer using arduino as ISP firmware";
+    desc                   = "AVR as programmer with Arduino-as-ISP FW";
     type                   = "stk500";
     prog_modes             = PM_ISP;
     connection_type        = serial;
@@ -1685,7 +1685,7 @@ programmer # stk500pp
 
 programmer # stk500hvsp
     id                     = "stk500hvsp", "scratchmonkey_hvsp";
-    desc                   = "Atmel STK500 v2 in high-voltage serial programming mode";
+    desc                   = "Atmel STK500 v2 in HV serial programming mode";
     type                   = "stk500hvsp";
     prog_modes             = PM_HVSP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
@@ -1732,7 +1732,7 @@ programmer # stk600pp
 
 programmer # stk600hvsp
     id                     = "stk600hvsp";
-    desc                   = "Atmel STK600 in high-voltage serial programming mode";
+    desc                   = "Atmel STK600 in HV serial programming mode";
     type                   = "stk600hvsp";
     prog_modes             = PM_HVSP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
@@ -2047,7 +2047,7 @@ programmer # arduino_gemma
 
 programmer # adafruit_gemma
     id                     = "adafruit_gemma";
-    desc                   = "Adafruit Trinket Gemma bootloader disguised as USBtiny";
+    desc                   = "Trinket Gemma bootloader disguised as USBtiny";
     type                   = "usbtiny";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -2064,7 +2064,7 @@ programmer # adafruit_gemma
 
 programmer # arduinoisp
     id                     = "arduinoisp";
-    desc                   = "Arduino ISP Programmer";
+    desc                   = "Arduino-branded USBtiny ISP Programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -2081,7 +2081,7 @@ programmer # arduinoisp
 
 programmer # arduinoisporg
     id                     = "arduinoisporg";
-    desc                   = "Arduino ISP Programmer";
+    desc                   = "Arduino-branded USBtiny ISP Programmer";
     type                   = "usbtiny";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = usb;
@@ -2137,7 +2137,7 @@ programmer # iseavrprog
 
 programmer # micronucleus
     id                     = "micronucleus";
-    desc                   = "Micronucleus for bootloader";
+    desc                   = "Micronucleus bootloader";
     type                   = "micronucleus";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -2155,7 +2155,7 @@ programmer # micronucleus
 
 programmer # teensy
     id                     = "teensy";
-    desc                   = "Teensy for bootloader";
+    desc                   = "Teensy bootloader";
     type                   = "teensy";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -2184,7 +2184,7 @@ programmer # teensy
 
 programmer # ch341a
     id                     = "ch341a";
-    desc                   = "ch341a programmer (AVR must have minimum F_CPU of 6.8 MHz)";
+    desc                   = "CH341A programmer: note AVR F_CPU > 6.8 MHz";
     type                   = "ch341a";
     prog_modes             = PM_ISP;
     is_serialadapter       = yes;
@@ -2207,7 +2207,7 @@ programmer # ch341a
 
 programmer # butterfly
     id                     = "butterfly";
-    desc                   = "Atmel for bootloader (Butterfly Development Board)";
+    desc                   = "Atmel bootloader (Butterfly Development Board)";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -2222,7 +2222,7 @@ programmer # butterfly
 
 programmer # avr109
     id                     = "avr109", "avr911";
-    desc                   = "Atmel for bootloader using AppNote AVR109/911";
+    desc                   = "Atmel bootloader (AVR109, AVR911)";
     type                   = "butterfly";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -2236,7 +2236,7 @@ programmer # avr109
 
 programmer # butterfly_mk
     id                     = "butterfly_mk", "mkbutterfly";
-    desc                   = "Mikrokopter.de Butterfly for bootloader";
+    desc                   = "Mikrokopter.de Butterfly bootloader";
     type                   = "butterfly_mk";
     prog_modes             = PM_SPM;
     connection_type        = serial;
@@ -2749,7 +2749,7 @@ programmer # xplainedmini_tpi
 
 programmer # atmelice
     id                     = "atmelice", "atmelice_jtag";
-    desc                   = "Atmel-ICE (ARM/AVR) in JTAG mode";
+    desc                   = "Atmel-ICE in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_READ;
@@ -2764,7 +2764,7 @@ programmer # atmelice
 
 programmer # atmelice_pdi
     id                     = "atmelice_pdi";
-    desc                   = "Atmel-ICE (ARM/AVR) in PDI mode";
+    desc                   = "Atmel-ICE in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
@@ -2779,7 +2779,7 @@ programmer # atmelice_pdi
 
 programmer # atmelice_updi
     id                     = "atmelice_updi";
-    desc                   = "Atmel-ICE (ARM/AVR) in UPDI mode";
+    desc                   = "Atmel-ICE in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
@@ -2795,7 +2795,7 @@ programmer # atmelice_updi
 
 programmer # atmelice_dw
     id                     = "atmelice_dw";
-    desc                   = "Atmel-ICE (ARM/AVR) in debugWIRE mode";
+    desc                   = "Atmel-ICE in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_READ;
@@ -2810,7 +2810,7 @@ programmer # atmelice_dw
 
 programmer # atmelice_isp
     id                     = "atmelice_isp";
-    desc                   = "Atmel-ICE (ARM/AVR) in ISP mode";
+    desc                   = "Atmel-ICE in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_READ;
@@ -2825,7 +2825,7 @@ programmer # atmelice_isp
 
 programmer # atmelice_tpi
     id                     = "atmelice_tpi";
-    desc                   = "Atmel-ICE (ARM/AVR) in TPI mode";
+    desc                   = "Atmel-ICE in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_READ;
@@ -2859,7 +2859,7 @@ programmer # atmelice_tpi
 
 programmer # powerdebugger
     id                     = "powerdebugger", "powerdebugger_jtag";
-    desc                   = "Atmel PowerDebugger (ARM/AVR) in JTAG mode";
+    desc                   = "Atmel PowerDebugger in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -2874,7 +2874,7 @@ programmer # powerdebugger
 
 programmer # powerdebugger_pdi
     id                     = "powerdebugger_pdi";
-    desc                   = "Atmel PowerDebugger (ARM/AVR) in PDI mode";
+    desc                   = "Atmel PowerDebugger in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -2889,7 +2889,7 @@ programmer # powerdebugger_pdi
 
 programmer # powerdebugger_updi
     id                     = "powerdebugger_updi";
-    desc                   = "Atmel PowerDebugger (ARM/AVR) in UPDI mode";
+    desc                   = "Atmel PowerDebugger in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -2905,7 +2905,7 @@ programmer # powerdebugger_updi
 
 programmer # powerdebugger_dw
     id                     = "powerdebugger_dw";
-    desc                   = "Atmel PowerDebugger (ARM/AVR) in debugWire mode";
+    desc                   = "Atmel PowerDebugger in debugWire mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -2920,7 +2920,7 @@ programmer # powerdebugger_dw
 
 programmer # powerdebugger_isp
     id                     = "powerdebugger_isp";
-    desc                   = "Atmel PowerDebugger (ARM/AVR) in ISP mode";
+    desc                   = "Atmel PowerDebugger in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -2935,7 +2935,7 @@ programmer # powerdebugger_isp
 
 programmer # powerdebugger_tpi
     id                     = "powerdebugger_tpi";
-    desc                   = "Atmel PowerDebugger (ARM/AVR) in TPI mode";
+    desc                   = "Atmel PowerDebugger in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ;
@@ -3081,7 +3081,7 @@ programmer # pickit4_tpi
 
 programmer # pickit5_updi
     id                     = "pickit5_updi";
-    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC mode)";
+    desc                   = "MPLAB(R) PICkit 5, PICkit 4 and SNAP (PIC)";
     type                   = "pickit5_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
@@ -3283,7 +3283,7 @@ programmer # pickit2
 
 programmer # flip1
     id                     = "flip1";
-    desc                   = "FLIP for bootloader using USB DFU protocol version 1 (doc7618)";
+    desc                   = "FLIP bootloader using USB DFU v1 (doc7618)";
     type                   = "flip1";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -3300,7 +3300,7 @@ programmer # flip1
 
 programmer # flip2
     id                     = "flip2";
-    desc                   = "FLIP for bootloader using USB DFU protocol version 2 (AVR4023)";
+    desc                   = "FLIP bootloader using USB DFU v2 (AVR4023)";
     type                   = "flip2";
     prog_modes             = PM_SPM;
     connection_type        = usb;
@@ -3333,7 +3333,7 @@ programmer # flip2
 
 programmer # ponyser
     id                     = "ponyser";
-    desc                   = "design ponyprog serial, reset=!txd sck=rts sdo=dtr sdi=cts";
+    desc                   = "ponyprog serial: reset=!txd sck=rts sdo=dtr sdi=cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -3364,7 +3364,7 @@ programmer parent "ponyser" # siprog
 
 programmer # dasa
     id                     = "dasa";
-    desc                   = "serial port banging, reset=rts sck=dtr sdo=txd sdi=cts";
+    desc                   = "serial port: reset=rts sck=dtr sdo=txd sdi=cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -3383,7 +3383,7 @@ programmer # dasa
 
 programmer # dasa3
     id                     = "dasa3";
-    desc                   = "serial port banging, reset=!dtr sck=rts sdo=txd sdi=cts";
+    desc                   = "serial port: reset=!dtr sck=rts sdo=txd sdi=cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -3402,7 +3402,7 @@ programmer # dasa3
 
 programmer # c2n232i
     id                     = "c2n232i";
-    desc                   = "serial port banging, reset=dtr sck=!rts sdo=!txd sdi=!cts";
+    desc                   = "serial port: reset=dtr sck=!rts sdo=!txd sdi=!cts";
     type                   = "serbb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;

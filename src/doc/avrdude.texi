@@ -525,7 +525,7 @@ following programmer ids are understood and supported:
 
 @cindex Programmer support
 
-@multitable @columnfractions .22 .73
+@multitable @columnfractions .24 .60
 @include programmers.texi
 @end multitable
 

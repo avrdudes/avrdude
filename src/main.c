@@ -284,6 +284,7 @@ static void pmshorten(char *desc, const char *modes) {
     {" in parallel programming mode", "HVPP"},
     {" in PP mode", "HVPP"},
     {" in high-voltage serial programming mode", "HVSP"},
+    {" in HV serial programming mode", "HVSP"},
     {" in HVSP mode", "HVSP"},
     {" in ISP mode", "ISP"},
     {" in debugWire mode", "debugWIRE"},
