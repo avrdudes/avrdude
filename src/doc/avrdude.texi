@@ -712,12 +712,6 @@ described above, e.g., @code{usb:0x2341:0x0043} or
 ports use @code{-P ?s}. In order to see a list of all possible serial adapters
 known to avrdude use @code{-P ?sa}.
 
-On Win32 operating systems, the parallel ports are referred to as lpt1
-through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
-respectively.  If the parallel port can be accessed through a different
-address, this address can be specified directly, using the common C
-language notation (i. e., hexadecimal values are prefixed by @var{0x}).
-
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
 @var{port} may alternatively be specified as
 @code{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
