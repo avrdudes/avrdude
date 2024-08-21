@@ -54,9 +54,9 @@ add_custom_command(
     )
 
 add_custom_command(
-    OUTPUT parts.txt
-    DEPENDS avrdude_binaries
-    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p ? 2>&1 | more > parts.txt
+    OUTPUT parts.texi
+    DEPENDS avrdude_binaries ${CMAKE_CURRENT_SOURCE_DIR}/parts.sed
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p ? 2>&1 | grep = | sed -f ${CMAKE_CURRENT_SOURCE_DIR}/parts.sed > parts.texi
     VERBATIM
     )
 
@@ -77,17 +77,6 @@ add_custom_command(
         -D TXT_FILE=programmer_types.txt
         -D TEXI_FILE=programmer_types.texi
         -P "${CMAKE_CURRENT_SOURCE_DIR}/programmer_types.cmake"
-    VERBATIM
-    )
-
-add_custom_command(
-    OUTPUT parts.texi
-    DEPENDS parts.txt
-    COMMAND ${CMAKE_COMMAND}
-        -D TXT_FILE=parts.txt
-        -D TEXI_FILE=parts.texi
-        -D COMMENTS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/parts_comments.txt
-        -P "${CMAKE_CURRENT_SOURCE_DIR}/parts.cmake"
     VERBATIM
     )
 

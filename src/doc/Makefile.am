@@ -29,7 +29,7 @@ CLEANFILES = \
 info_TEXINFOS = avrdude.texi
 
 EXTRA_DIST = \
-	parts_comments.txt
+	parts.sed
 
 all-local: info html pdf
 
@@ -65,10 +65,9 @@ $(builddir)/programmer_types.texi: ../avrdude$(EXEEXT) ../avrdude.conf Makefile
 	| sed "s#<\?\(http://[^ \t,>]*\)>\?#@url{\1}#g" \
 	>programmer_types.texi
 
-$(builddir)/parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf parts_comments.txt Makefile
+$(builddir)/parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf parts.sed Makefile
 	../avrdude$(EXEEXT) -C ../avrdude.conf -p \? 2>&1 \
-	| $(AWK) '$$2 ~ /^=$$/ {printf("@item @code{%s} @tab %s\n",$$1,$$3)}' \
-	| sed -e "`sed 's:\([^ \t]*\)[ \t]*\(.*\):s/\1$$/\1 \2/g:g' <parts_comments.txt`" \
+	| grep = | sed -f parts.sed \
 	>parts.texi
 
 clean-local:

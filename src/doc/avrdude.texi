@@ -110,6 +110,8 @@ Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org
 * Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
+* List of Parts::
+* List of Programmers::
 * Index::
 @end menu
 
@@ -424,46 +426,26 @@ following options are recognized:
 @table @code
 @item -p @var{partno}
 @cindex Option @code{-p} @var{partno}
+
 This option tells AVRDUDE what part (MCU) is connected to the programmer.
 The @var{partno} parameter is the part's id listed in the configuration
 file. To see a list of currently supported MCUs use @code{?} as partno,
-which will print the part ids and official part names. In connection with
-@code{-v}, this will also print a list of variant part names followed by
-an optional colon, the package code and some absolute maximum ratings. The
-part id, their official part name, any of the full variant part names or
-their initial part up to a dash can be used to specify a part with the
-@code{-p} option. If a part is unknown to AVRDUDE, it means that there is
-no config file entry for that part, but it can be added to the
+which will, for each part, print its id; its official part name; 
+alternative names, if any; and the list of available programming
+interfaces. In connection with @code{-v}, this will also print a table of
+variant part names with the package code and some absolute maximum
+ratings. The part id, their official part name, the listed alternative
+names or any of the full variant part names can be used to specify a part
+with the @code{-p} option. If a part is unknown to AVRDUDE, it means that
+there is no config file entry for that part, but it can be added to the
 configuration file if you have the Atmel datasheet so that you can enter
 the programming specifications. If @code{-p ?} is specified with a
 specific programmer, see @code{-c} below, then only those parts are output
 that the programmer expects to be able to handle, together with the
 programming interface(s) that can be used in that combination. In reality
 there can be deviations from this list, particularly if programming is
-directly via a bootloader. Currently, the following MCU types are
-understood:
-
-@cindex Device support
-
-@multitable @columnfractions .15 .45
-@include parts.texi
-@end multitable
-
-(*)   The AT90S2323 and ATtiny22 use the same algorithm.
-
-(**)  Flash addressing above 128 KB is not supported by all
-programming hardware.  Known to work are jtag2, stk500v2,
-and bit-bang programmers.
-
-(***)
-The ATtiny11 can only be
-programmed in high-voltage serial mode.
-
-(****)
-The ISP programming protocol of the AT90S1200 differs in subtle ways
-from that of other AVRs.  Thus, not all programmers support this
-device.  Known to work are all direct bitbang programmers, and all
-programmers talking the STK500v2 protocol.
+directly via a bootloader. See @ref{List of Parts} for a full and detailed
+listing of supported parts.
 
 @item -p @var{wildcard/flags}
 @cindex Option @code{-p} @var{wildcard/flags}
@@ -507,29 +489,21 @@ until the programmer is disconnected from the computer.
 
 @item -c @var{programmer-id}
 @cindex Option @code{-c} @var{programmer-id}
+
 Specify the programmer to be used.  AVRDUDE knows about several common
-programmers.  Use this option to specify which one to use.  The
-@var{programmer-id} parameter is the programmer's id listed in the
-configuration file.  Specify @code{-c ?} to list all programmers in the
-configuration file.  If you have a programmer that is unknown to AVRDUDE,
-and the programmer is controlled via the PC parallel port, there's a good
-chance that it can be easily added to the configuration file without any
-code changes to AVRDUDE.  Simply copy an existing entry and change the pin
-definitions to match that of the unknown programmer. If @code{-c ?} is
-specified with a specific part, see @code{-p} above, then only those
-programmers are output that expect to be able to handle this part,
-together with the programming interface(s) that can be used in that
-combination. In reality there can be deviations from this list,
-particularly if programming is directly via a bootloader. Currently, the
-following programmer ids are understood and supported:
-
-@cindex Programmer support
-
-@multitable @columnfractions .24 .60
-@include programmers.texi
-@end multitable
-
-
+programmers. The @var{programmer-id} parameter is the programmer's id
+listed in the configuration file.  Specify @code{-c ?} to list all
+programmers in the configuration file.  If you have a programmer that is
+unknown to AVRDUDE but related to a known programmer there is some chance
+that it can be added to the configuration file without any code changes to
+AVRDUDE: copy a similar entry and change those features that differ to
+match that of the unknown programmer. If @code{-c ?} is specified with a
+specific part, see @code{-p} above, then only those programmers are output
+that expect to be able to handle this part, together with the programming
+interface(s) that can be used in that combination. In reality there can be
+deviations from this list, particularly if programming is directly via a
+bootloader. See @ref{List of Programmers} for a full and detailed listing
+of known programmers.
 
 @item -c @var{wildcard/flags}
 @cindex Option @code{-c} @var{wildcard/flags}
@@ -4719,7 +4693,7 @@ such as @option{--prefix} and @option{--datadir}.
 @c
 @c Node
 @c
-@node Troubleshooting,Index ,Platform Dependent Information ,Top
+@node Troubleshooting, List of Parts, Platform Dependent Information, Top
 @appendix Troubleshooting
 
 @noindent
@@ -5031,6 +5005,59 @@ Option @code{-D} might be used there, to prevent another unneeded
 erase cycle.
 
 @end itemize
+
+@c
+@c Node
+@c
+@node List of Parts, List of Programmers, Troubleshooting, Top
+@appendix List of Parts
+
+AVRDUDE supports the parts below: the left column lists the part's id,
+whilst the right column contains its official part name;  alternative
+names, if any; and the list of available programming interfaces in
+brackets; see @ref{Programmer Definitions}).  There is more detail about
+each part in the AVRDUDE configuration file.
+
+@multitable @columnfractions .15 .80
+@include parts.texi
+@end multitable
+
+@noindent
+@strong{Notes}
+
+@noindent
+1. Support of 32-bit AVR (via aWire or AVT32JTAG) is experimental at best.
+
+@noindent
+2. Flash addressing above 128 KB is not supported by all programming
+hardware, though most will support it.
+
+@noindent
+3. The ISP programming protocol of the AT90S1200 differs in subtle ways from
+that of other AVRs.  Thus, not all ISP programmers support this device. 
+Known to work are all direct bitbang programmers, and all programmers
+talking the STK500v2 protocol.
+
+@noindent
+4. Not all programmers can serve all memories that a part has.
+Bootloader can never write to fuses, for example.
+
+@c
+@c Node
+@c
+@node List of Programmers, Index, List of Parts, Top
+@appendix List of Programmers
+
+@cindex Programmer support
+
+AVRDUDE supports the programmers below: the left column lists the
+programmer's id as used for @code{-c} and its programming interface(s) in
+brackets, whilst the right column contains a small desctiption. There is
+more detail about each programmer in the AVRDUDE configuration file.
+
+@multitable @columnfractions .38 .60
+@include programmers.texi
+@end multitable
 
 @node Index, , Troubleshooting, Top
 
