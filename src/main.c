@@ -715,10 +715,6 @@ int main(int argc, char *argv[]) {
 
   atexit(cleanup_main);
 
-  msg_debug("$ ");              // Record command line when debugging
-  for(int i = 0; i < argc; i++)
-    msg_debug("%s%c", argv[i], i == argc - 1? '\n': ' ');
-
   updates = lcreat(NULL, 0);
   if(updates == NULL) {
     pmsg_error("cannot initialize updater list\n");
@@ -779,7 +775,6 @@ int main(int argc, char *argv[]) {
 
   // Process command line arguments
   while((ch = getopt(argc, argv, "?Ab:B:c:C:DeE:Fi:l:nNp:OP:qrtT:U:vVx:")) != -1) {
-
     switch(ch) {
     case 'b':                  // Override default programmer baud rate
       baudrate = str_int(optarg, STR_INT32, &errstr);
@@ -931,8 +926,11 @@ int main(int argc, char *argv[]) {
       exit(1);
       break;
     }
-
   }
+
+  msg_debug("$ ");              // Record command line when debugging
+  for(int i = 0; i < argc; i++)
+    msg_debug("%s%c", str_ccsharg(argv[i]), i == argc - 1? '\n': ' ');
 
   if(logfile != NULL) {
     FILE *newstderr = freopen(logfile, "w", stderr);
