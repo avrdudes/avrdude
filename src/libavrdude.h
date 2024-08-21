@@ -1690,6 +1690,8 @@ extern "C" {
   const char *str_ccmcunames_signature(const unsigned char *sigs, int pm);
   const char *str_ccpgmids(LISTID pgm_id);
   const char *str_ccaddress(int addr, int size);
+  char *str_quote_bash(const char *s);
+  const char *str_ccsharg(const char *str);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
