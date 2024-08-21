@@ -4604,10 +4604,6 @@ The Windows system directory. On Windows NT, the name of this directory
 is @code{SYSTEM32}.
 
 @item
-Windows NT: The 16-bit Windows system directory. The name of this
-directory is @code{SYSTEM}.
-
-@item
 The Windows directory.
 
 @item
