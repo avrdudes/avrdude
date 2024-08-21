@@ -378,6 +378,40 @@ static void list_programmer_types(FILE *f, const char *prefix) {
   walk_programmer_types(list_programmer_types_callback, &c);
 }
 
+// Return a list of long names for part followed by prog modes in brackets
+static const char *part_ccdesc(const AVRPART *p) {
+  char *name[5];               // Max 5 alternative names
+  int nn = 0, i;
+  char *pmodes = mmt_strdup(str_prog_modes(p->prog_modes));
+  char ret[6*(64+2) + 256 + 20], *r = ret;
+
+  // Create list name[] of alternative names to p->desc
+  for(LNODEID ln = lfirst(p->variants); ln; ln = lnext(ln)) {
+    const char *alt = ldata(ln), *end, *q;
+    if((end = strchr(alt, ':')) && end > alt && *alt != '-') {
+      if((q = strchr(alt, '-')) && q < end)
+        end = q;
+      if(strncasecmp(p->desc, alt, end-alt) || p->desc[end-alt]) { // Variant's base is not p->desc
+// printf("X %.*s", (int) (end-alt), alt);
+        for(i = 0; i < nn; i++)
+          if(!strncasecmp(name[i], alt, end-alt) && !name[i][end-alt])
+            break;
+        if(i == nn && nn < 5)
+          name[nn++] = str_sprintf("%.*s", (int) (end-alt), alt);
+      }
+    }
+  }
+  sprintf(r, "%.64s", p->desc), r += strlen(r);
+  for(i = 0; i < nn; i++) {
+    sprintf(r, ", %.64s", name[i]), r += strlen(r);
+    mmt_free(name[i]);
+  }
+  sprintf(r, " (%.256s)", pmodes);
+  mmt_free(pmodes);
+
+  return str_ccprintf("%s", ret);
+}
+
 static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
   LNODEID ln1;
   AVRPART *p;
@@ -404,9 +438,10 @@ static void list_parts(FILE *f, const char *prefix, LISTID avrparts, int pm) {
       if(verbose < MSG_NOTICE2 && p->id[0] == '.')      // Hide ids starting with '.'
         continue;
       if(verbose > 0)
-        fprintf(f, "%s%-*s = %-18s [%s:%d]", prefix, maxlen, p->id, p->desc, p->config_file, p->lineno);
+        fprintf(f, "%s%-*s = %-18s [%s:%d]", prefix, maxlen, p->id, part_ccdesc(p),
+          p->config_file, p->lineno);
       else
-        fprintf(f, "%s%-*s = %s", prefix, maxlen, p->id, p->desc);
+        fprintf(f, "%s%-*s = %s", prefix, maxlen, p->id, part_ccdesc(p));
       if(pm != ~0)
         fprintf(f, " via %s", avr_prog_modes(pm & p->prog_modes));
       fprintf(f, "\n");
