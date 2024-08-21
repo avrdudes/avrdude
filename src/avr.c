@@ -35,12 +35,12 @@
 
 FP_UpdateProgress update_progress;
 
-#define DEBUG 0
-
 // TPI: returns nonzero if NVM controller busy, 0 if free
 int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm) {
   unsigned char cmd;
   unsigned char res;
+
+  pmsg_trace2("%s(%s)\n", __func__, pgmid);
 
   cmd = TPI_CMD_SIN | TPI_SIO_ADDR(TPI_IOREG_NVMCSR);
   (void) pgm->cmd_tpi(pgm, &cmd, 1, &res, 1);
@@ -51,6 +51,8 @@ int avr_tpi_poll_nvmbsy(const PROGRAMMER *pgm) {
 int avr_tpi_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
   int err;
   AVRMEM *mem;
+
+  pmsg_debug("%s(%s, %s)\n", __func__, pgmid, p->id);
 
   if(is_tpi(p)) {
     led_clr(pgm, LED_ERR);
@@ -107,6 +109,8 @@ int avr_tpi_program_enable(const PROGRAMMER *pgm, const AVRPART *p, unsigned cha
   unsigned char cmd[2];
   unsigned char response;
 
+  pmsg_trace("%s(%s, %s, %d)\n", __func__, pgmid, p->id, guard_time);
+
   if(is_tpi(p)) {
     // Set guard time
     cmd[0] = (TPI_CMD_SSTCS | TPI_REG_TPIPCR);
@@ -154,6 +158,9 @@ static int avr_tpi_setup_rw(const PROGRAMMER *pgm, const AVRMEM *mem, unsigned l
   unsigned char cmd[4];
   int rc;
 
+  pmsg_trace2("%s(%s, %s, %s, 0x%02x)\n", __func__, pgmid, mem->desc,
+    str_ccaddress(addr, mem->size), nvmcmd);
+
   // Set NVMCMD register
   cmd[0] = TPI_CMD_SOUT | TPI_SIO_ADDR(TPI_IOREG_NVMCMD);
   cmd[1] = nvmcmd;
@@ -192,6 +199,9 @@ int avr_sigrow_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
     }
   }
 
+  pmsg_trace("%s(%s, %s, %s) returns %s\n", __func__, p->id, mem->desc,
+    str_ccaddress(addr, mem->size), str_ccaddress(offset, 65536));
+
   return offset;
 }
 
@@ -210,6 +220,9 @@ int avr_flash_offset(const AVRPART *p, const AVRMEM *mem, int addr) {
     }
   }
 
+  pmsg_trace("%s(%s, %s, %s) returns %s\n", __func__, p->id, mem->desc,
+    str_ccaddress(addr, mem->size), str_ccaddress(offset, 65536));
+
   return offset;
 }
 
@@ -221,6 +234,9 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   unsigned char data;
   int rc;
   OPCODE *readop, *lext;
+
+  pmsg_debug("%s(%s, %s, %s, %s)\n", __func__, pgmid, p->id, mem->desc,
+    str_ccaddress(addr, mem->size));
 
   if(pgm->cmd == NULL) {
     pmsg_error("%s programmer uses %s() without providing a cmd() method\n", pgm->type, __func__);
@@ -252,26 +268,19 @@ int avr_read_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM 
   }
 
   // Figure out what opcode to use
-  if(mem->op[AVR_OP_READ_LO]) {
-    if(addr & 0x00000001)
-      readop = mem->op[AVR_OP_READ_HI];
-    else
-      readop = mem->op[AVR_OP_READ_LO];
+  if(mem->op[AVR_OP_READ_LO]) { // Implies flash
+    readop = mem->op[addr & 1? AVR_OP_READ_HI: AVR_OP_READ_LO];
     addr = addr/2;
   } else {
     readop = mem->op[AVR_OP_READ];
   }
 
   if(readop == NULL) {
-
-#if DEBUG
-    pmsg_error("operation not supported on memory %s\n", mem->desc);
-#endif
-
+    pmsg_debug("operation not supported on memory %s\n", mem->desc);
     goto error;
   }
 
-  // If this device has a "load extended address" command, issue it
+  // If this memory has a load extended address command issue it
   lext = mem->op[AVR_OP_LOAD_EXT_ADDR];
   if(lext != NULL) {
     memset(cmd, 0, sizeof(cmd));
@@ -309,35 +318,31 @@ rcerror:
 }
 
 /*
- * Return the number of "interesting" bytes in a memory buffer, "interesting"
+ * Return the number of interesting bytes in a flash memory buffer, interesting
  * being defined as up to the last non-0xff data value. This is useful for
- * determining where to stop when dealing with "flash" memory, since writing
- * 0xff to flash is typically a no-op. Always return an even number since flash
- * is word addressed. Only apply this optimisation on flash-type memory.
+ * determining where to stop when dealing with flash memory, since writing 0xff
+ * to flash is typically, but not always, a no-op. For flash memory return an
+ * even number since flash is word addressed. For non-flash memory or when this
+ * optimisation is switched off return the memory size.
  */
 int avr_mem_hiaddr(const AVRMEM *mem) {
-  int i, n;
+  int ret = 0;
 
-  if(cx->avr_disableffopt)
+  // Do not remove trailing 0xff if switched off or memory is not a flash-type memory
+  if(cx->avr_disableffopt || !mem_is_in_flash(mem))
     return mem->size;
 
-  // If the memory is not a flash-type memory do not remove trailing 0xff
-  if(!mem_is_in_flash(mem))
-    return mem->size;
-
-  /* return the highest non-0xff address regardless of how much
-     memory was read */
-  for(i = mem->size - 1; i >= 0; i--) {
+  // Return smallest even memory size outsize beyond which only 0xff reside
+  for(int i = mem->size - 1; i >= 0; i--) {
     if(mem->buf[i] != 0xff) {
-      n = i + 1;
-      if(n & 0x01)
-        return n + 1;
-      else
-        return n;
+      ret = i + 1 + !(i & 1);   // Ensure even return
+      goto ok;
     }
   }
 
-  return 0;
+ok:
+  pmsg_trace("%s(%s) returns %s\n", __func__, mem->desc, str_ccaddress(ret, mem->size));
+  return ret;
 }
 
 /*
@@ -363,6 +368,8 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   unsigned char cmd[4];
   AVRMEM *vmem = NULL;
   int rc;
+
+  pmsg_debug("%s(%s, %s, %s, %s)\n", __func__, pgmid, p->id, mem->desc, v? v->desc: "NULL");
 
   if(v != NULL)
     vmem = avr_locate_mem(v, mem->desc);
@@ -497,11 +504,14 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
 }
 
 // Write a page data at the specified address
-int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p_unused, const AVRMEM *mem, unsigned long addr) {
+int avr_write_page(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, unsigned long addr) {
 
   unsigned char cmd[4];
   unsigned char res[4];
   OPCODE *wp, *lext;
+
+  pmsg_debug("%s(%s, %s, %s, %s)\n", __func__, pgmid, p->id, mem->desc,
+    str_ccaddress(addr, mem->size));
 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
@@ -552,6 +562,7 @@ error:
   led_clr(pgm, LED_PGM);
   return -1;
 }
+
 
 // Return us since first call
 uint64_t avr_ustimestamp() {
@@ -630,6 +641,9 @@ int avr_bitmask_data(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
 
 int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
+
+  pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
+    str_ccaddress(addr, mem->size), data);
 
   unsigned char cmd[4];
   unsigned char res[4];
@@ -759,11 +773,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   }
 
   if(writeop == NULL) {
-
-#if DEBUG
-    pmsg_error("write not supported for memory %s\n", mem->desc);
-#endif
-
+    pmsg_debug("write not supported for memory %s\n", mem->desc);
     goto error;
   }
 
@@ -879,6 +889,9 @@ rcerror:
 int avr_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem,
   unsigned long addr, unsigned char data) {
 
+  pmsg_debug("%s(%s, %s, %s, %s, 0x%02x)\n", __func__, pgmid, p->id, mem->desc,
+    str_ccaddress(addr, mem->size), data);
+
   if(mem_is_readonly(mem)) {
     unsigned char is;
 
@@ -920,6 +933,9 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
   unsigned int i, lastaddr;
   unsigned char data;
   unsigned char cmd[4];
+
+  pmsg_debug("%s(%s, %s, %s, %s, auto_erase = %d)\n", __func__, pgmid, p->id,
+    m->desc, str_ccaddress(size, m->size), auto_erase);
 
   led_clr(pgm, LED_ERR);
   led_set(pgm, LED_PGM);
@@ -1199,6 +1215,8 @@ error:
 int avr_signature(const PROGRAMMER *pgm, const AVRPART *p) {
   int rc;
 
+  pmsg_debug("%s(%s, %s)\n", __func__, pgmid, p->id);
+
   if(verbose > 1)
     report_progress(0, 1, "Reading");
   rc = avr_read(pgm, p, "signature", 0);
@@ -1230,30 +1248,36 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
     bitmask >>= (8*addr);
   }
 
-  return bitmask & 0xff;
+  bitmask &= 0xff;
+
+  if(bitmask != 0xff)
+    pmsg_trace2("%s(%s, %s, %s) = 0x%02x\n", __func__, p->id, mem->desc,
+      str_ccaddress(addr, mem->size), bitmask);
+
+  return bitmask;
 }
 
 // Bitmask for ISP programming (classic parts only)
 static uint8_t get_fuse_bitmask(const AVRMEM *m) {
-  uint8_t bitmask_r = 0;
-  uint8_t bitmask_w = 0;
-  int i;
+  int ret = 0xFF;
 
-  if(!m || m->size > 1)         // Not a fuse, compare bytes directly
-    return 0xFF;
-
-  // No memory operations provided by configuration, compare directly
-  if(m->op[AVR_OP_WRITE] == NULL || m->op[AVR_OP_READ] == NULL)
-    return 0xFF;
-
-  // For fuses, only compare bytes that are actually written *and* read
-  for(i = 0; i < 32; i++) {
-    if(m->op[AVR_OP_WRITE]->bit[i].type == AVR_CMDBIT_INPUT)
-      bitmask_w |= (1 << m->op[AVR_OP_WRITE]->bit[i].bitno);
-    if(m->op[AVR_OP_READ]->bit[i].type == AVR_CMDBIT_OUTPUT)
-      bitmask_r |= (1 << m->op[AVR_OP_READ]->bit[i].bitno);
+  // Only return bitmask for single-byte memories with ISP r/w commands
+  if(m && m->size == 1 && m->op[AVR_OP_WRITE] && m->op[AVR_OP_READ]) {
+    // For fuses, only compare bits that are actually written *and* read
+    uint8_t bitmask_r = 0, bitmask_w = 0;
+    for(int i = 0; i < 32; i++) {
+      if(m->op[AVR_OP_WRITE]->bit[i].type == AVR_CMDBIT_INPUT)
+        bitmask_w |= (1 << m->op[AVR_OP_WRITE]->bit[i].bitno);
+      if(m->op[AVR_OP_READ]->bit[i].type == AVR_CMDBIT_OUTPUT)
+        bitmask_r |= (1 << m->op[AVR_OP_READ]->bit[i].bitno);
+    }
+    ret = bitmask_r & bitmask_w;
   }
-  return bitmask_r & bitmask_w;
+
+  if(ret != 0xff)
+    pmsg_trace2("%s(%s) = 0x%02x\n", __func__, m->desc, ret);
+
+  return ret;
 }
 
 // Unused in AVRDUDE, beware this is only valid for ISP parts
@@ -1284,6 +1308,9 @@ int avr_verify_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRPART *v, co
   unsigned char *buf1, *buf2;
   int vsize;
   AVRMEM *b;
+
+  pmsg_debug("%s(%s, %s, %s, %s, %s)\n", __func__, pgmid, p->id,
+    v? v->id: "NULL", a->desc, str_ccaddress(size, a->size));
 
   if(!(b = avr_locate_mem(v, a->desc))) {
     pmsg_error("memory %s not defined for part %s\n", a->desc, v->desc);
@@ -1483,15 +1510,18 @@ static char *prog_modes_string(int pm, int variant) {
   return type + (type[1] == 0? 0: skip);
 }
 
-char *avr_prog_modes(int pm) {  // PM_SPM prints bootloader
+// Return list of programming modes as string: PM_SPM prints bootloader
+char *avr_prog_modes(int pm) {
   return prog_modes_string(pm, 0);
 }
 
-char *str_prog_modes(int pm) {  // PM_SPM prints SPM
+// Return list of programming modes as string: PM_SPM prints SPM
+char *str_prog_modes(int pm) {
   return prog_modes_string(pm, 1);
 }
 
-char *dev_prog_modes(int pm) {  // Symbolic C code of prog_modes
+// Return symbolic C code of programming modes
+char *dev_prog_modes(int pm) {
   return prog_modes_string(pm, 2);
 }
 
@@ -1582,6 +1612,8 @@ int avr_get_mem_type(const char *str) {
   exit(1);
 }
 
+#ifndef TO_BE_DEPRECATED_IN_2026
+
 int avr_mem_is_flash_type(const AVRMEM *mem) {
   return mem_is_in_flash(mem);
 }
@@ -1593,6 +1625,8 @@ int avr_mem_is_eeprom_type(const AVRMEM *mem) {
 int avr_mem_is_usersig_type(const AVRMEM *mem) {
   return mem_is_user_type(mem);
 }
+
+#endif
 
 static int mem_group(AVRMEM *mem) {
   return
@@ -1645,6 +1679,8 @@ int avr_mem_might_be_known(const char *str) {
 }
 
 int avr_chip_erase(const PROGRAMMER *pgm, const AVRPART *p) {
+  pmsg_debug("%s(%s, %s)\n", __func__, pgmid, p->id);
+
   return led_chip_erase(pgm, p);
 }
 

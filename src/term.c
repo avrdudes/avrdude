@@ -886,7 +886,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05x (rc = %d)\n", buf[i], addr + i, (int) rc);
       // if(rc == -1)
-      //  imsg_error("write operation not supported on memory %s\n", mem->desc);
+      //   imsg_error("write operation not supported on memory %s\n", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr + i, &b) < 0) {
       pmsg_error("(write) readback from %s failed\n", mem->desc);
     } else {                    // Read back byte b is now set
@@ -1997,6 +1997,7 @@ static int fusel_factory(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
     pmsg_warning("cannot update %s owing to unusual memory size %d\n", mem->desc, mem->size);
     return -1;
   }
+
   // Read in memory as little endian
   for(int i = 0; i < mem->size; i++) {
     value[i] = mem->initval >> (8*i);
@@ -2052,6 +2053,7 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
     return ret;
   }
+
   // Reset fuses to factory values
   for(LNODEID ln = lfirst(p->mem); ln; ln = lnext(ln))
     if(!avr_mem_exclude(pgm, p, (m = ldata(ln))))

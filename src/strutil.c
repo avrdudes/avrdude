@@ -1526,3 +1526,44 @@ const char *str_ccpgmids(LISTID pgm_id) {
   }
   return str_ccprintf("%s", ids);
 }
+
+// Return a string in closed-circuit space of the address in a memory of size size
+const char *str_ccaddress(int addr, int size) {
+   return size <= 16?
+     str_ccprintf("%d", addr):
+     str_ccprintf("0x%0*x", intlog2(size-1)/4 + 1, addr);
+}
+
+// Return a malloc'd string quoted for a shell argument
+char *str_quote_bash(const char *s) {
+  size_t n = strlen(s);
+  char *ret = mmt_malloc(4*n + 3), *r = ret;
+
+  // Put string in single quotes and replace each ' with '\''
+  *r++ = '\'';
+  while(*s) {
+    *r++ = *s++;
+    if(r[-1] == '\'')
+      *r++ = '\\', *r++ = '\'', *r++ = '\'';
+  }
+  *r++ = '\'';
+
+  return ret;
+}
+
+// Return the string in closed-circuit space so it can be used as shell argument
+const char *str_ccsharg(const char *str) {
+  const char *special="\"'` $\\#[]<>|;{}()*?~&!", *s;
+
+  for(s = str; *s; s++)
+    if(strchr(special, *s))
+      break;
+
+  if(*s) {                      // str contains special bash char: must quote string
+    char *r = str_quote_bash(str);
+    str = str_ccprintf("%s", r);
+    mmt_free(r);
+  }
+
+  return str;
+}

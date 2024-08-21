@@ -1170,9 +1170,11 @@ extern "C" {
 
   int avr_mem_exclude(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem);
   int avr_get_mem_type(const char *str);
+#ifndef TO_BE_DEPRECATED_IN_2026
   int avr_mem_is_flash_type(const AVRMEM *mem);
   int avr_mem_is_eeprom_type(const AVRMEM *mem);
   int avr_mem_is_usersig_type(const AVRMEM *mem);
+#endif
   int avr_mem_cmp(void *mem1, void *mem2);
   int avr_mem_is_known(const char *str);
   int avr_mem_might_be_known(const char *str);
@@ -1687,6 +1689,9 @@ extern "C" {
   int str_mcunames_signature(const unsigned char *sigs, int pm, char *p, size_t n);
   const char *str_ccmcunames_signature(const unsigned char *sigs, int pm);
   const char *str_ccpgmids(LISTID pgm_id);
+  const char *str_ccaddress(int addr, int size);
+  char *str_quote_bash(const char *s);
+  const char *str_ccsharg(const char *str);
 
   int led_set(const PROGRAMMER *pgm, int led);
   int led_clr(const PROGRAMMER *pgm, int led);
