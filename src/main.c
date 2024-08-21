@@ -928,10 +928,6 @@ int main(int argc, char *argv[]) {
     }
   }
 
-  msg_debug("$ ");              // Record command line when debugging
-  for(int i = 0; i < argc; i++)
-    msg_debug("%s%c", str_ccsharg(argv[i]), i == argc - 1? '\n': ' ');
-
   if(logfile != NULL) {
     FILE *newstderr = freopen(logfile, "w", stderr);
 
@@ -941,6 +937,10 @@ int main(int argc, char *argv[]) {
       return 1;
     }
   }
+
+  msg_debug("$ ");              // Record command line
+  for(int i = 0; i < argc; i++)
+    msg_debug("%s%c", str_ccsharg(argv[i]), i == argc - 1? '\n': ' ');
 
   size_t ztest;
 
