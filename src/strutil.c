@@ -1553,7 +1553,7 @@ char *str_quote_bash(const char *s) {
 
 // Return the string in closed-circuit space so it can be used as shell argument
 const char *str_ccsharg(const char *str) {
-  const char *special="\"' $\\#[]<>|;{}()*?~&", *s;
+  const char *special="\"'` $\\#[]<>|;{}()*?~&!", *s;
 
   for(s = str; *s; s++)
     if(strchr(special, *s))

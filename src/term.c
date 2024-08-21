@@ -1997,6 +1997,7 @@ static int fusel_factory(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *
     pmsg_warning("cannot update %s owing to unusual memory size %d\n", mem->desc, mem->size);
     return -1;
   }
+
   // Read in memory as little endian
   for(int i = 0; i < mem->size; i++) {
     value[i] = mem->initval >> (8*i);
@@ -2052,6 +2053,7 @@ static int cmd_factory(const PROGRAMMER *pgm, const AVRPART *p, int argc, const 
 
     return ret;
   }
+
   // Reset fuses to factory values
   for(LNODEID ln = lfirst(p->mem); ln; ln = lnext(ln))
     if(!avr_mem_exclude(pgm, p, (m = ldata(ln))))
