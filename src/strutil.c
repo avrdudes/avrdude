@@ -1526,3 +1526,10 @@ const char *str_ccpgmids(LISTID pgm_id) {
   }
   return str_ccprintf("%s", ids);
 }
+
+// Return a string in closed-circuit space of the address in a memory of size size
+const char *str_ccaddress(int addr, int size) {
+   return size <= 16?
+     str_ccprintf("%d", addr):
+     str_ccprintf("0x%0*x", intlog2(size-1)/4 + 1, addr);
+}

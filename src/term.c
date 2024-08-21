@@ -886,7 +886,7 @@ static int cmd_write(const PROGRAMMER *pgm, const AVRPART *p, int argc, const ch
     } else if(rc) {
       pmsg_error("(write) error writing 0x%02x at 0x%05x (rc = %d)\n", buf[i], addr + i, (int) rc);
       // if(rc == -1)
-      //  imsg_error("write operation not supported on memory %s\n", mem->desc);
+      //   imsg_error("write operation not supported on memory %s\n", mem->desc);
     } else if(pgm->read_byte_cached(pgm, p, mem, addr + i, &b) < 0) {
       pmsg_error("(write) readback from %s failed\n", mem->desc);
     } else {                    // Read back byte b is now set
