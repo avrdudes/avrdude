@@ -1209,7 +1209,6 @@ see the extended options of the chosen programmer.
 @node Programmers Accepting Exitspec Parameter, Programmers Accepting Extended Parameters, Option Descriptions, Command Line Options
 @section Programmers Accepting Exitspec Parameters
 @cindex Programmers accepting exitspec parameters
-@table @code
 
 @cindex FLIP bootloader
 @cindex Option @code{-x} flip2
@@ -1218,17 +1217,21 @@ see the extended options of the chosen programmer.
 @cindex @code{-x} linuxspi
 @cindex Option @code{-x} parallel port programmers
 @cindex @code{-x} parallel port programmers
+
+Currently, only the @code{flip2}, @code{linuxspi} and old school parallel
+port programmers such as @code{stk200} and @code{dapa} support @code{-E}
+exitspec parameter options. These let the user decide in which state the
+programmer pins after ended programming session. AVRDUDE only allows one
+@code{-E} option. However, multiple exitspec parameters can be specified
+as one comma-separated list.
+
+@table @code
 @item flip2
 @itemx linuxspi
 @itemx Parallel port programmers
 
-Currently, only the @code{flip2}, @code{linuxspi} and old school parallel port programmers
-such as @code{stk200} and @code{dapa} support exitspec parameter options. These lets the user
-decide in which state the programmer pins after ended programming session.
-Multiple exitspec options can be separated with commas.
-
 @table @code
-@item @samp{help}
+@item help
 Show help menu and exit.
 
 @cindex Option @code{-E} reset
@@ -1294,6 +1297,14 @@ This option will leave the 8 data pins on the parallel port inactive
 @node Programmers Accepting Extended Parameters, Example Command Line Invocations, Programmers Accepting Exitspec Parameter, Command Line Options
 @section Programmers Accepting Extended Parameters
 @cindex Programmers accepting extended parameters
+
+Extended parameters are programmer-specific options; they all start with
+@code{-x}. Generally, each programmer will allow @code{-x help}, which
+will show a help menu of known extended parameters for this programmer, if
+any, and exit. The extended parameters below are all shown without the
+necessary @code{-x} option lead-in. AVRDUDE allows any number of @code{-x}
+extended parameters to be specified on the command line.
+
 @table @code
 
 @cindex Emulating a bootloader (dryboot)
@@ -1335,8 +1346,6 @@ Seed random number generator with @var{n}; the default is
 make the random choices reproducible, ie, they will stay the same between
 different avrdude runs.
 
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} JTAG ICE mkII/3
@@ -1398,8 +1407,6 @@ initialization for supported targets.
 The voltage generator can be enabled by setting a target voltage.
 The current set-voltage can be read by @samp{-x vtarg} alone.
 
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} PICkit 4
@@ -1420,8 +1427,6 @@ Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB(R) SNAP
 programmer can only be utilised by Avrdude when in AVR mode.
 Use @samp{-x mode=avr} for switching to AVR mode, or @samp{-x mode=pic}
 for switching to PIC mode.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} PICkit 5
@@ -1446,8 +1451,6 @@ High-voltage UPDI programming is used to enable a UPDI pin that has previously
 been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets. Depending on the target, the HV pulse will
 be applied either on the RST pin, or the UPDI pin.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Xplained Mini
@@ -1484,8 +1487,6 @@ a 0. The current state can be read by @samp{-x vtarg_switch} alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
 
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Curiosity Nano
@@ -1498,8 +1499,6 @@ The Curiosity Nano board accepts the following extended parameter:
 @item @samp{vtarg=VALUE, vtarg}
 The generated on-board target voltage can be changed by specifying a new voltage.
 The current set-voltage can be read by @samp{-x vtarg} alone.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} STK500
@@ -1540,8 +1539,6 @@ Defaults to 10 if not specified.
 @item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
 Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
 original STK500. Used by avrdude for the correct calculation of fosc and sck.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Atmel bootloader (AVR109, AVR911)
@@ -1554,8 +1551,6 @@ The AVR109 programmer type accepts the following extended parameter:
 @table @code
 @item @samp{autoreset}
 Toggle RTS/DTR lines on port open to issue a hardware reset.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} AVR910
@@ -1580,8 +1575,6 @@ Disables the default checking for block transfer capability.
 Use
 @samp{no_blockmode} only if your @samp{AVR910}
 programmer creates errors during initial sequence.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Arduino
@@ -1596,8 +1589,6 @@ Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
 @item @samp{noautoreset}
 Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Urboot bootloader
@@ -1727,8 +1718,6 @@ shortened accordingly.
 Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
 with this, and they need the @code{-x strict} option.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} BusPirate
@@ -1834,9 +1823,6 @@ Especially in ascii mode this happens very often, so setting a smaller value
 can speed up programming a lot.
 The default value is 100 ms. Using 10 ms might work in most cases.
 
-@item @samp{help}
-Show help menu and exit.
-
 @end table
 
 @cindex Option @code{-x} Micronucleus bootloader
@@ -1851,8 +1837,6 @@ If the device is not connected, wait for the device to be plugged in.
 The optional @var{timeout} specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Teensy bootloader
@@ -1867,8 +1851,6 @@ If the device is not connected, wait for the device to be plugged in.
 The optional @var{timeout} specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
 device is plugged in.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Wiring
@@ -1887,8 +1869,6 @@ Add a <n> milliseconds delay after reset. This can be useful if a board
 takes a particularly long time to exit from external reset. <n> can be
 negative, in which case the default 100 ms delay after issuing reset will
 be shortened accordingly.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} PICkit2
@@ -1914,8 +1894,6 @@ The PICkit2 programmer type accepts the following extended parameters:
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
 @item @samp{timeout=@var{usb-transaction-timeout}}
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} USBasp
@@ -1930,8 +1908,6 @@ Programmer will erase
 configuration section with option '-e' (chip erase),
 rather than entire chip.
 Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} xbee
@@ -1953,8 +1929,6 @@ The remaining two necessary XBee-to-MCU connections are not selectable
 RXD line, and the XBee @code{DIN} pin (pin 3) must be connected to
 the MCU's TXD line.
 
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} jtag2updi
@@ -1976,8 +1950,6 @@ specific.
 
 When not provided, driver/OS default value will be used.
 
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} linuxspi
@@ -1991,8 +1963,6 @@ The linuxspi programmer type accepts the following extended parameter:
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
 driver. This parameter is useful for kernels that do not support
 the CS line being managed outside the application.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @cindex Flashcom serprog protocol
@@ -2006,8 +1976,6 @@ The serprog programmer type accepts the following extended parameter:
 Sets the chip select (CS) to use on supported programmers.
 Programmers supporting the 0x16 serprog command can have more than the default CS (0).
 This option allows to choose these additional CSes (1, 2, ...) for programming the AVR.
-@item @samp{help}
-Show help menu and exit.
 @end table
 
 @end table
