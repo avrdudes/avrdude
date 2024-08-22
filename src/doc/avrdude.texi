@@ -144,7 +144,7 @@ eeprom, programming fuse/lock bits, etc.
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
 Atmel's STK600,
-Atmel's JTAG ICE (the original one, mkII, and 3, the latter two also in ISP mode), appnote
+Atmel's JTAG ICE (the original one, mkII, and 3), appnote
 avr910, appnote avr109 (including the AVR Butterfly),
 serial bit-bang adapters,
 and the PPI (parallel port interface). PPI represents a class
@@ -221,7 +221,31 @@ A typical programming cable would then look like:
 The @code{-P @var{portname}} option defaults to
 @code{/dev/spidev0.0:/dev/gpiochip0} for this programmer.
 
+@cindex Atmel STK500
+@cindex Atmel JTAG ICE mkI
+@cindex STK500
+@cindex JTAG ICE mkI
+@cindex @code{butterfly}
 The STK500, JTAG ICE, avr910, and avr109/butterfly use the serial port to communicate with the PC.
+@cindex Atmel STK600
+@cindex Atmel JTAG ICE mkII
+@cindex Atmel AVR JTAGICE3
+@cindex STK600
+@cindex JTAG ICE mkII
+@cindex AVR JTAGICE3
+@cindex JTAGICE3
+@cindex USBasp ISP and TPI programmer
+@cindex FT2232H/D programmer
+@cindex FT2232H JTAG programmer
+@cindex FT2232H with buffer and LEDs
+@cindex FT232H JTAG programmer
+@cindex FT232H programmer
+@cindex FT232R programmer
+@cindex FT232R Synchronous BitBang
+@cindex FT245R programmer
+@cindex FT4232H programmer
+@cindex FTDI TTL232R-5V
+@cindex USBtiny simple USB programmer
 The STK600, JTAG ICE mkII/3, AVRISP mkII, USBasp, avrftdi (and derivatives), and USBtinyISP
 programmers communicate through the USB, using @code{libusb} as a
 platform abstraction layer.
@@ -232,6 +256,7 @@ are only supported on interface A, but the H parts can be either A or B (specifi
 usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
 device.
+@cindex Atmel bootloader (AVR109, AVR911)
 The avr109 bootloader implements a protocol similar to avr910, but is
 actually implemented in the boot area of the target's flash, as
 opposed to being an external device.
@@ -248,23 +273,40 @@ protocol is more sophisticated.
 (The JTAG ICE mkII protocol can also be run on top of USB.)
 Only the memory programming functionality of the JTAG ICE is supported
 by AVRDUDE.
-For the JTAG ICE mkII/3, JTAG, debugWire and ISP mode are supported, provided
+@cindex debugWIRE
+@cindex ISP
+@cindex PDI
+@cindex JTAG
+@cindex Atmel JTAG ICE mkII
+@cindex Atmel AVR JTAGICE3
+@cindex JTAG ICE mkII
+@cindex AVR JTAGICE3
+@cindex JTAGICE3
+For the JTAG ICE mkII/3, JTAG, debugWIRE and ISP mode are supported, provided
 it has a firmware revision of at least 4.14 (decimal).
-See below for the limitations of debugWire.
-For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode, provided it
-has a revision 1 hardware and firmware version of at least 5.37 (decimal).
+See below for the limitations of debugWIRE.
+For ATxmega devices, the JTAG ICE mkII/3 is supported in PDI mode (Xmega
+parts), provided it has a revision 1 hardware and firmware version of at
+least 5.37 (decimal).
 
-The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI for Xmega, debugWIRE, ISP,
-UPDI).
+@cindex Atmel-ICE
+The Atmel-ICE (ARM/AVR) is supported (JTAG, PDI, debugWIRE, ISP, UPDI).
 
+@cindex Atmel XplainedPro
+@cindex XplainedPro
 Atmel's XplainedPro boards, using EDBG protocol (CMSIS-DAP compliant), are
 supported by the ``jtag3'' programmer type.
 
+@cindex Atmel XplainedMini
+@cindex XplainedMini
 Atmel's XplainedMini boards, using mEDBG protocol, are also
 supported by the ``jtag3'' programmer type.
 
-The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWire).
-When used in JTAG and debugWire mode, the AVR Dragon behaves similar to a
+@cindex Atmel AVR Dragon
+@cindex AVR Dragon
+@cindex Dragon
+The AVR Dragon is supported in all modes (ISP, JTAG, PDI, HVSP, PP, debugWIRE).
+When used in JTAG and debugWIRE mode, the AVR Dragon behaves similar to a
 JTAG ICE mkII, so all device-specific comments for that device
 will apply as well.
 When used in ISP and PDI mode, the AVR Dragon behaves similar to an
@@ -276,6 +318,7 @@ option might be required to achieve a stable ISP communication.
 For ATxmega devices, the AVR Dragon is supported in PDI mode, provided it
 has a firmware version of at least 6.11 (decimal).
 
+@cindex Wiring bootloader
 Wiring boards (e.g. Arduino Mega 2560 Rev3) are supported, utilizing
 STK500 V2.x protocol, but a simple DTR/RTS toggle to set the boards
 into programming mode.  The programmer type is ``wiring''. Note that
@@ -283,6 +326,7 @@ the @code{-D} option will likely be required in this case, because the
 bootloader will rewrite the program memory, but no true chip erase can
 be performed.
 
+@cindex Arduino bootloader
 Serial bootloaders that run a skeleton of the STK500 1.x protocol are supported via
 their own programmer type specification ``arduino''.  This programmer works for
 the Arduino Uno Rev3 or any AVR that runs the Optiboot bootloader.
@@ -291,6 +335,9 @@ extended parameter. See the section on
 @emph{extended parameters}
 below for details.
 
+@cindex Urboot bootloader
+@cindex Urclock programmer
+@cindex Urprotocol
 Urprotocol is a leaner version of the STK500 1.x protocol that is designed
 to be backwards compatible with STK500 v1.x; it allows bootloaders to be
 much smaller, e.g., as implemented in the urboot project
@@ -304,12 +351,14 @@ enable it to protect the bootloader from being overwritten. If an unknown
 bootloader has EEPROM read/write capability then the option @code{-x eepromrw}
 informs @code{avrdude -c urclock} of that capability.
 
+@cindex The Bus Pirate
 The BusPirate is a versatile tool that can also be used as an AVR programmer.
 A single BusPirate can be connected to up to 3 independent AVRs. See
 the section on
 @emph{extended parameters}
 below for details.
 
+@cindex CH341A programmer
 The USBasp ISP, USBtinyISP and CH341A adapters are also supported, provided
 AVRDUDE has been compiled with libusb support.
 They former two feature simple firmware-only USB implementations, running on
@@ -320,20 +369,29 @@ AVR target must have a CPU frequency of 6.8@w{ }MHz or more: factory-set
 AVR parts, which typically run on an internal oscillator between 1 MHz and
 1.6 MHz, cannot be programmed using @code{-c ch341a}.
 
+@cindex FLIP bootloader
 The Atmel DFU bootloader is supported in both, FLIP protocol version 1
 (AT90USB* and ATmega*U* devices), as well as version 2 (Xmega devices).
 See below for some hints about FLIP version 1 protocol behaviour.
 
+@cindex MPLAB(R) PICkit 4
+@cindex MPLAB(R) PICkit 5
+@cindex MPLAB(R) SNAP
+@cindex PICkit 4
+@cindex PICkit 5
+@cindex SNAP
 The MPLAB(R) PICkit 4 and MPLAB(R) SNAP are supported in JTAG, TPI, ISP, PDI and UPDI mode.
+@cindex Curiosity nano
 The Curiosity Nano board is supported in UPDI mode. It is dubbed ``PICkit on
 Board'', thus the name @code{pkobn_updi}.
 The MPLAB(R) PICkit 5 is currently only supported in UPDI mode.
 
+@cindex SerialUPDI
 SerialUPDI programmer implementation is based on Microchip's
 @emph{pymcuprog} (@url{https://github.com/microchip-pic-avr-tools/pymcuprog})
 utility, but it also contains some performance improvements included in
 Spence Konde's @emph{DxCore} Arduino core (@url{https://github.com/SpenceKonde/DxCore}).
-In a nutshell, this programmer consists of simple USB->UART adapter, diode
+In a nutshell, this programmer consists of simple USB-to-UART adapter, diode
 and couple of resistors. It uses serial connection to provide UPDI interface.
 @xref{SerialUPDI Programmer} for more details and known issues.
 
@@ -343,17 +401,21 @@ Jtag2updi is just a firmware that can be uploaded to an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
+@cindex Micronucleus bootloader
 The Micronucleus bootloader is supported for both protocol version V1 and
 V2. As the bootloader does not support reading from flash memory, use the
 @code{-V} option to prevent AVRDUDE from verifying the flash memory. See
 the section on @emph{extended parameters} below for Micronucleus specific
 options.
 
+@cindex Teensy bootloader
 The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
 use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
 See the section on @emph{extended parameters}
 below for Teensy specific options.
+
+@ref{List of Programmers} holds a full listing of known programmers.
 
 @menu
 * History::
@@ -426,6 +488,7 @@ following options are recognized:
 @table @code
 @item -p @var{partno}
 @cindex Option @code{-p} @var{partno}
+@cindex @code{-p} @var{partno}
 
 This option tells AVRDUDE what part (MCU) is connected to the programmer.
 The @var{partno} parameter is the part's id listed in the configuration
@@ -449,6 +512,7 @@ listing of supported parts.
 
 @item -p @var{wildcard/flags}
 @cindex Option @code{-p} @var{wildcard/flags}
+@cindex @code{-p} @var{wildcard/flags}
 Run developer options for MCUs that are matched by @var{wildcard}. Whilst
 their main use is for developers some @var{flags} can be of utility for
 users, e.g.,  @code{avrdude -p m328p/S} outputs AVRDUDE's understanding of
@@ -456,6 +520,7 @@ ATmega328P MCU properties; for more information run @code{avrdude -p x/h}.
 
 @item -b @var{baudrate}
 @cindex Option @code{-b} @var{baudrate}
+@cindex @code{-b} @var{baudrate}
 Override the RS-232 connection baud rate specified in the respective
 programmer's @code{baudrate} entry of the configuration file
 or defined by the @code{default_baudrate} entry in your
@@ -464,10 +529,11 @@ file if no @code{baudrate} entry was provided for this programmer.
 
 @item -B @var{bitclock}
 @cindex Option @code{-B} @var{bitclock}
+@cindex @code{-B} @var{bitclock}
 Specify the bit clock period for the JTAG, PDI, TPI, UPDI, or ISP
 interface. The value is a floating-point number in microseconds.
-Alternatively, the value might be suffixed with "Hz", "kHz" or
-"MHz" in order to specify the bit clock frequency rather than a
+Alternatively, the value might be suffixed with Hz, kHz or
+MHz in order to specify the bit clock frequency rather than a
 period. Some programmers default their bit clock value to a 1
 microsecond bit clock period, suitable for target MCUs running at 4
 MHz clock and above. Slower MCUs need a correspondingly higher bit
@@ -480,15 +546,17 @@ can use the 'default_bitclock' keyword in your
 configuration file to assign a default value to keep from having to
 specify this option on every invocation.
 
-Note that some official Microchip programmers store the bitclock setting and
-will continue to use it until a different value is provided. This applies to
-"2nd gen" programmers (AVRISPmkII, AVR Dragon, JTAG ICE mkII, STK600) and
-"3rd gen"programmers (JTAGICE3, Atmel ICE, Power Debugger). "4th gen"
-programmers (PICkit 4, MPLAB SNAP) will store the last user-specified bitclock
-until the programmer is disconnected from the computer.
+Note that some official Microchip programmers store the bitclock setting
+and will continue to use it until a different value is provided. This
+applies to 2nd generation programmers (AVRISPmkII, AVR Dragon, JTAG ICE
+mkII, STK600) and 3rd generation programmers (JTAGICE3, Atmel ICE, Power
+Debugger). 4th generation programmers (PICkit 4, MPLAB(R) SNAP) will store
+the last user-specified bitclock until the programmer is disconnected from
+the computer.
 
 @item -c @var{programmer-id}
 @cindex Option @code{-c} @var{programmer-id}
+@cindex @code{-c} @var{programmer-id}
 
 Specify the programmer to be used.  AVRDUDE knows about quite a few
 programmers. The @var{programmer-id} parameter is the programmer's id
@@ -507,6 +575,7 @@ of known programmers.
 
 @item -c @var{wildcard/flags}
 @cindex Option @code{-c} @var{wildcard/flags}
+@cindex @code{-c} @var{wildcard/flags}
 Run developer options for programmers that are matched by @var{wildcard}.
 Whilst their main use is for developers some @var{flags} can be of utility
 for users, e.g., @code{avrdude -c usbtiny/S} shows AVRDUDE's understanding of
@@ -514,6 +583,7 @@ usbtiny's properties; for more information run @code{avrdude -c x/h}.
 
 @item -C @var{config-file}
 @cindex Option @code{-C} @var{config-file}
+@cindex @code{-C} @var{config-file}
 @cindex Configuration files
 Use the specified config file for configuration data.  This file
 contains all programmer and part definitions that AVRDUDE knows about.
@@ -543,12 +613,14 @@ line.
 
 @item -N
 @cindex Option @code{-N}
+@cindex @code{-N}
 Do not load the personal configuration file that is usually located at
 @code{~/.config/avrdude/avrdude.rc}, @code{~/.avrduderc} or in the same
 directory as the avrdude executable.
 
 @item -A
 @cindex Option @code{-A}
+@cindex @code{-A}
 Disable the automatic removal of trailing-0xFF sequences in file input
 that is to be programmed to flash and in AVR reads from flash memory.
 Normally, trailing 0xFFs can be discarded, as flash programming requires
@@ -560,6 +632,7 @@ The popular Arduino bootloader exhibits this behaviour; for this reason
 
 @item -D
 @cindex Option @code{-D}
+@cindex @code{-D}
 Disable auto-erase for flash. When the @code{-U} option for writing to any
 flash memory is specified, avrdude will perform a chip erase before
 starting any of the programming operations, since it generally is a
@@ -572,6 +645,7 @@ contents. Setting @code{-D} implies @code{-A}.
 
 @item -e
 @cindex Option @code{-e}
+@cindex @code{-e}
 Causes a chip erase to be executed. This will reset the contents of the
 flash ROM and EEPROM to the value @code{0xff}, and clear all lock bits.
 Except for ATxmega and UPDI (AVR8X family) devices, all of which can use
@@ -585,7 +659,7 @@ sequence of @code{-U}, @code{-T} or @code{-t} options it is recommended to
 use @code{-T} erase instead which is processed in the given command line
 order.
 
-@cindex auto-erase
+@cindex Auto-erase
 In absence of an explicit @code{-e} or @code{-D} option avrdude tries to
 augur from the command line whether or not the chip should be auto-erased
 at the  beginning. If avrdude detects a @code{-U} command that writes to
@@ -600,6 +674,7 @@ programming the cell.
 
 @item -E @var{exitspec}[,@dots{}]
 @cindex Option @code{-E} @var{exitspec}[,@dots{}]
+@cindex @code{-E} @var{exitspec}[,@dots{}]
 Pass @var{exitspec} to the programmer. The interpretation of the exitspec
 parameter depends on the programmer itself. See below for a list of
 programmers accepting exitspec parameter options or issue
@@ -609,6 +684,7 @@ Multiple @var{exitspec} options can be separated with commas.
 
 @item -F
 @cindex Option @code{-F}
+@cindex @code{-F}
 Normally, AVRDUDE tries to verify that the device signature read from
 the part is reasonable before continuing.  Since it can happen from time
 to time that a device has a broken (erased or overwritten) device
@@ -623,6 +699,7 @@ of connection between a programmer and a target.
 
 @item -i @var{delay}
 @cindex Option @code{-i} @var{delay}
+@cindex @code{-i} @var{delay}
 For bitbang-type programmers, delay for approximately
 @var{delay}
 microseconds between each bit state change.
@@ -641,18 +718,21 @@ slow machines.
 
 @item -l @var{logfile}
 @cindex Option @code{-l} @var{logfile}
+@cindex @code{-l} @var{logfile}
 Use @var{logfile} rather than @var{stderr} for diagnostics output.
 Note that initial diagnostic messages (during option parsing) are still
 written to @var{stderr} anyway.
 
 @item -n
 @cindex Option @code{-n}
+@cindex @code{-n}
 No-write: disables writing data to the MCU whilst processing @code{-U}
 (useful for debugging AVRDUDE). The terminal mode continues to write to
 the device.
 
 @item -O
 @cindex Option @code{-O}
+@cindex @code{-O}
 Perform a RC oscillator run-time calibration according to Atmel
 application note AVR053.
 This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
@@ -661,6 +741,7 @@ Note that the result will be stored in the EEPROM cell at address 0.
 
 @item -P @var{port}
 @cindex Option @code{-P} @var{port}
+@cindex @code{-P} @var{port}
 
 Use @var{port} to identify the connection through which the programmer is
 attached. This can be a parallel, serial, spi or linuxgpio connection. The
@@ -747,6 +828,7 @@ Posix systems (by now).
 
 @item -r
 @cindex Option @code{-r}
+@cindex @code{-r}
 Opens the serial port at 1200 baud and immediately closes it, waits 400 ms
 for each @code{-r} on the command line and then establishes communication
 with the programmer. This is commonly known as a "1200bps touch", and is
@@ -757,16 +839,19 @@ powerful hosts.
 
 @item -q
 @cindex Option @code{-q}
+@cindex @code{-q}
 Disable (or quell) output of the progress bar while reading or writing
 to the device.  Specify it a second time for even quieter operation.
 
 @item -s, -u
 @cindex Option @code{-s}, @code{-u}
+@cindex @code{-s}, @code{-u}
 These options used to control the obsolete "safemode" feature which
 is no longer present. They are silently ignored for backwards compatibility.
 
 @item -T @var{cmd}
 @cindex Option @code{-T} @var{cmd}
+@cindex @code{-T} @var{cmd}
 Run terminal line @var{cmd} when it is its turn in relation to other
 @code{-t} interactive terminals, @code{-T} terminal commands and
 @code{-U} memory operations. Except for the simplest of terminal commands
@@ -776,12 +861,14 @@ terminal commands.
 
 @item -t
 @cindex Option @code{-t}
+@cindex @code{-t}
 Tells AVRDUDE to run an interactive terminal when it is its turn in
 relation to other @code{-t} interactive terminals, @code{-T}
 terminal commands and @code{-U} memory operations.
 
 @item -U @var{memory}:@var{op}:@var{filename}[:@var{format}]
 @cindex Option @code{-U} @var{memory}:@var{op}:@var{filename}[:@var{format}]
+@cindex @code{-U} @var{memory}:@var{op}:@var{filename}[:@var{format}]
 
 Perform a memory operation when it is its turn in relation to other
 @code{-t} interactive terminals, @code{-T} terminal commands and @code{-U}
@@ -1084,15 +1171,18 @@ interpreted as memory, and the single character as memory operation.
 
 @item -v
 @cindex Option @code{-v}
+@cindex @code{-v}
 Enable verbose output.
 More @code{-v} options increase verbosity level.
 
 @item -V
 @cindex Option @code{-V}
+@cindex @code{-V}
 Disable automatic verify check when uploading data with @code{-U}.
 
 @item -x @var{extended_param}
 @cindex Option @code{-x} @var{extended_param}
+@cindex @code{-x} @var{extended_param}
 Pass @var{extended_param} to the chosen programmer implementation as
 an extended parameter.  The interpretation of the extended parameter
 depends on the programmer itself.  See below for a list of programmers
@@ -1110,9 +1200,13 @@ see the extended options of the chosen programmer.
 @cindex Programmers accepting exitspec parameters
 @table @code
 
+@cindex FLIP bootloader
 @cindex Option @code{-x} flip2
+@cindex @code{-x} flip2
 @cindex Option @code{-x} linuxspi
+@cindex @code{-x} linuxspi
 @cindex Option @code{-x} parallel port programmers
+@cindex @code{-x} parallel port programmers
 @item flip2
 @itemx linuxspi
 @itemx Parallel port programmers
@@ -1126,6 +1220,8 @@ Multiple exitspec options can be separated with commas.
 @item @samp{help}
 Show help menu and exit.
 
+@cindex Option @code{-E} reset
+@cindex @code{-E} reset
 @item @samp{reset}
 The `/RESET' signal will be left activated at program exit, that is it
 will be held low, in order to keep the MCU in reset state afterwards.
@@ -1136,6 +1232,8 @@ a previous invocation of AVRDUDE with this option specified is one of
 the possible ways to guarantee this condition. @code{flip2} will not
 exit bootloader mode at program exit if @samp{reset} is used.
 
+@cindex Option @code{-E} noreset
+@cindex @code{-E} noreset
 @item @samp{noreset}
 The `/RESET' line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
@@ -1145,26 +1243,35 @@ behaviour for this bootloader.
 @end table
 
 @cindex Option @code{-x} parallel port programmers
+@cindex @code{-x} parallel port programmers
 @item Parallel port programmers
 
 Parallel port based programmers have a few more options.
 
 @table @code
+@cindex Option @code{-E} vcc
+@cindex @code{-E} vcc
 @item @samp{vcc}
 This option will leave those parallel port pins active (i. e. high) that
 can be used to supply `Vcc' power to the MCU.
 
+@cindex Option @code{-E} novcc
+@cindex @code{-E} novcc
 @item @samp{novcc}
 This option will pull the `Vcc' pins of the parallel port down at
 program exit.
 
+@cindex Option @code{-E} d_high
+@cindex @code{-E} d_high
 @item @samp{d_high}
 This option will leave the 8 data pins on the parallel port active
-(i. e. high).
+(i.e. high).
 
+@cindex Option @code{-E} d_low
+@cindex @code{-E} d_low
 @item @samp{d_low}
 This option will leave the 8 data pins on the parallel port inactive
-(i. e. low).
+(i.e. low).
 @end table
 
 @end table
@@ -1178,8 +1285,12 @@ This option will leave the 8 data pins on the parallel port inactive
 @cindex Programmers accepting extended parameters
 @table @code
 
+@cindex Emulating a bootloader (dryboot)
+@cindex Emulating a HW programmer (dryrun)
 @cindex Option @code{-x} dryboot
+@cindex @code{-x} dryboot
 @cindex Option @code{-x} dryrun
+@cindex @code{-x} dryrun
 @item dryrun
 @itemx dryboot
 
@@ -1218,19 +1329,41 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} JTAG ICE mkII/3
+@cindex @code{-x} JTAG ICE mkII/3
 @cindex Option @code{-x} Atmel-ICE
+@cindex @code{-x} Atmel-ICE
 @cindex Option @code{-x} PICkit 4
-@cindex Option @code{-x} MPLAB SNAP
+@cindex @code{-x} PICkit 4
+@cindex Option @code{-x} MPLAB(R) SNAP
+@cindex @code{-x} MPLAB(R) SNAP
 @cindex Option @code{-x} Power Debugger
+@cindex @code{-x} Power Debugger
 @cindex Option @code{-x} AVR Dragon
+@cindex @code{-x} AVR Dragon
+@cindex Atmel JTAG ICE mkII
+@cindex JTAG ICE mkII
+@cindex Atmel AVR JTAGICE3
+@cindex AVR JTAGICE3
+@cindex JTAGICE3
+@cindex MPLAB(R) PICkit 4
+@cindex PICkit 4
+@cindex MPLAB(R) PICkit 5
+@cindex PICkit 5
+@cindex MPLAB(R) SNAP
+@cindex SNAP
+@cindex Atmel PowerDebugger
+@cindex PowerDebugger
+@cindex Atmel AVR Dragon
+@cindex AVR Dragon
+@cindex Dragon
 @item JTAG ICE mkII/3
 @itemx Atmel-ICE
 @itemx PICkit 4
-@itemx MPLAB SNAP
+@itemx MPLAB(R) SNAP
 @itemx Power Debugger
 @itemx AVR Dragon
 
-When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB SNAP,
+When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB(R) SNAP,
 Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
 is accepted:
 @table @code
@@ -1259,14 +1392,20 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} PICkit 4
-@cindex Option @code{-x} MPLAB SNAP
+@cindex @code{-x} PICkit 4
+@cindex Option @code{-x} MPLAB(R) SNAP
+@cindex @code{-x} MPLAB(R) SNAP
+@cindex MPLAB(R) PICkit 4
+@cindex MPLAB(R) SNAP
+@cindex SNAP
+@cindex PICkit 4
 @item PICkit 4
-@item MPLAB SNAP
+@item MPLAB(R) SNAP
 
-The PICkit 4 and MPLAB SNAP programmers accept the following extended parameters:
+The PICkit 4 and MPLAB(R) SNAP programmers accept the following extended parameters:
 @table @code
 @item @samp{mode=avr,pic}
-Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB SNAP
+Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB(R) SNAP
 programmer can only be utilised by Avrdude when in AVR mode.
 Use @samp{-x mode=avr} for switching to AVR mode, or @samp{-x mode=pic}
 for switching to PIC mode.
@@ -1275,6 +1414,11 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} PICkit 5
+@cindex @code{-x} PICkit 5
+@cindex MPLAB(R) PICkit 4
+@cindex PICkit 4
+@cindex MPLAB(R) PICkit 5
+@cindex PICkit 5
 @item PICkit 5
 @item PICkit 4 (PIC Mode)
 
@@ -1296,6 +1440,9 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Xplained Mini
+@cindex @code{-x} Xplained Mini
+@cindex Atmel XplainedMini
+@cindex XplainedMini
 @item Xplained Mini
 
 The Xplained Mini/Nano programmer (ISP or UPDI, not TPI) type accepts the
@@ -1331,6 +1478,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Curiosity Nano
+@cindex @code{-x} Curiosity Nano
+@cindex Curiosity nano
 @item Curiosity Nano
 
 The Curiosity Nano board accepts the following extended parameter:
@@ -1343,7 +1492,13 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} STK500
+@cindex @code{-x} STK500
 @cindex Option @code{-x} STK600
+@cindex @code{-x} STK600
+@cindex Atmel STK500
+@cindex STK500
+@cindex Atmel STK600
+@cindex STK600
 @item STK500
 @item STK600
 
@@ -1378,7 +1533,10 @@ original STK500. Used by avrdude for the correct calculation of fosc and sck.
 Show help menu and exit.
 @end table
 
+@cindex Atmel bootloader (AVR109, AVR911)
+@cindex Bootloader (AVR109, AVR911)
 @cindex Option @code{-x} AVR109
+@cindex @code{-x} AVR109
 @item AVR109
 
 The AVR109 programmer type accepts the following extended parameter:
@@ -1390,9 +1548,12 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} AVR910
+@cindex @code{-x} AVR910
+@cindex Atmel low-cost programmer AVR910
+@cindex Low-cost programmer AVR910
 @item AVR910
 
-The AVR910 programmer type accepts the following extended parameter:
+The Atmel low-cost AVR910 programmer type accepts the following extended parameter:
 @table @code
 @item @samp{devcode=VALUE}
 Override the device code selection by using @var{VALUE}
@@ -1413,6 +1574,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Arduino
+@cindex @code{-x} Arduino
+@cindex Arduino bootloader
 @item Arduino
 
 The Arduino programmer type accepts the following extended parameter:
@@ -1426,7 +1589,11 @@ Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 Show help menu and exit.
 @end table
 
+@cindex Urboot bootloader
+@cindex Urclock programmer
+@cindex Urprotocol
 @cindex Option @code{-x} Urclock
+@cindex @code{-x} Urclock
 @item Urclock
 
 The urclock programmer type accepts the following extended parameters:
@@ -1553,7 +1720,10 @@ with this, and they need the @code{-x strict} option.
 Show help menu and exit.
 @end table
 
-@cindex Option @code{-x} Buspirate
+@cindex Option @code{-x} BusPirate
+@cindex @code{-x} BusPirate
+@cindex The Bus Pirate
+@cindex BusPirate
 @item BusPirate
 
 The BusPirate programmer type accepts the following extended parameters:
@@ -1659,6 +1829,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Micronucleus bootloader
+@cindex @code{-x} Micronucleus bootloader
+@cindex Micronucleus bootloader
 @item Micronucleus bootloader
 
 The Micronucleus programmer type accepts the following extended parameter:
@@ -1673,6 +1845,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Teensy bootloader
+@cindex @code{-x} Teensy bootloader
+@cindex Teensy bootloader
 @item Teensy bootloader
 
 The Teensy programmer type accepts the following extended parameter:
@@ -1687,6 +1861,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} Wiring
+@cindex @code{-x} Wiring
+@cindex Wiring bootloader
 @item Wiring
 
 The Wiring programmer type accepts the following extended parameters:
@@ -1705,7 +1881,11 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} PICkit2
+@cindex @code{-x} PICkit2
+@cindex Microchip PICkit 2 programmer
+@cindex PICkit 2 programmer
 @item PICkit2
+
 Connection to the PICkit2 programmer:
 @multitable @columnfractions .05 .3
 @item @code{(AVR)} @tab      @code{(PICkit2)}
@@ -1728,6 +1908,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} USBasp
+@cindex @code{-x} USBasp
+@cindex USBasp ISP and TPI programmer
 @item USBasp
 
 The USBasp programmer type accepts the following extended parameter:
@@ -1742,6 +1924,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} xbee
+@cindex @code{-x} xbee
+@cindex XBeeBoot OTA bootloader
 @item xbee
 
 The xbee programmer type accepts the following extended parameter:
@@ -1763,7 +1947,11 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} jtag2updi
+@cindex @code{-x} jtag2updi
 @cindex Option @code{-x} serialupdi
+@cindex @code{-x} serialupdi
+@cindex JTAGv2 to UPDI bridge
+@cindex SerialUPDI
 @item jtag2updi
 @item serialupdi
 
@@ -1782,6 +1970,8 @@ Show help menu and exit.
 @end table
 
 @cindex Option @code{-x} linuxspi
+@cindex @code{-x} linuxspi
+@cindex Linux /dev/spidev* programmer
 @item linuxspi
 
 The linuxspi programmer type accepts the following extended parameter:
@@ -1794,7 +1984,9 @@ the CS line being managed outside the application.
 Show help menu and exit.
 @end table
 
+@cindex Flashcom serprog protocol
 @cindex Option @code{-x} serprog
+@cindex @code{-x} serprog
 @item serprog
 
 The serprog programmer type accepts the following extended parameter:
@@ -2508,7 +2700,7 @@ default) decode only opcodes that are valid for the part
 Zap the list of jumps and calls before disassembly
 
 @item -t=@var{file}
-@cindex tagfile
+@cindex Tagfile
 Delete symbols from a previously read tagfile, if any, and read the
 tagfile @var{file} for assigning addresses to symbol names.
 @end table
@@ -2879,8 +3071,8 @@ Display the device signature bytes.
 
 @item part @var{[opts]}
 @cindex @code{part} @var{[opts]}
-@cindex programming mode
-@cindex variants of parts
+@cindex Programming mode
+@cindex Variants of parts
 Display the current part information, including supported programming modes,
 memory and variants tables. Use @var{-m} to only print the memory table,
 and @var{-v} to only print the variants table.
@@ -4669,12 +4861,14 @@ such as @option{--prefix} and @option{--datadir}.
 Please report any bugs encountered via
 @url{https://github.com/avrdudes/avrdude/issues}.
 
-AVRDUDE's Wiki @url{https://github.com/avrdudes/avrdude/wiki} is a great
+AVRDUDE's wiki @url{https://github.com/avrdudes/avrdude/wiki} is a great
 place to learn about installing AVRDUDE on various platforms and,
 generally, to learn a few tricks of the trade. In paticular, the
 @url{https://github.com/avrdudes/avrdude/wiki/FAQ, FAQ} and the
 @url{https://github.com/avrdudes/avrdude/wiki/Known-limitations-of-avrdude,
 known limitations} of avrdude are worth reading.
+
+Here a few examples for things that can go wrong and what to do:
 
 @itemize @bullet
 
@@ -4729,11 +4923,11 @@ This also applies to the STK500 and STK600 in high-voltage programming mode.
 @item
 Problem: How do I turn off the @var{DWEN} fuse?
 
-Solution: If the @var{DWEN} (debugWire enable) fuse is activated,
+Solution: If the @var{DWEN} (debugWIRE enable) fuse is activated,
 the @var{/RESET} pin is not functional anymore, so normal ISP
 communication cannot be established.
 There are two options to deactivate that fuse again: high-voltage
-programming, or getting the JTAG ICE mkII talk debugWire, and
+programming, or getting the JTAG ICE mkII talk debugWIRE, and
 prepare the target AVR to accept normal ISP communication again.
 
 The first option requires a programmer that is capable of high-voltage
@@ -4745,13 +4939,13 @@ reprogrammed, and the @var{DWEN} fuse can be cleared.  Typically, this
 operation cannot be performed while the AVR is located in the target
 circuit though.
 
-The second option requires a JTAG ICE mkII that can talk the debugWire
+The second option requires a JTAG ICE mkII that can talk the debugWIRE
 protocol.  The ICE needs to be connected to the target using the
-JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWire
+JTAG-to-ISP adapter, so the JTAG ICE mkII can be used as a debugWIRE
 initiator as well as an ISP programmer.  AVRDUDE will then be activated
 using the @var{jtag2isp} programmer type.  The initial ISP
 communication attempt will fail, but AVRDUDE then tries to initiate a
-debugWire reset.  When successful, this will leave the target AVR in a
+debugWIRE reset.  When successful, this will leave the target AVR in a
 state where it can accept standard ISP communication.  The ICE is then
 signed off (which will make it signing off from the USB as well), so
 AVRDUDE has to be called again afterwards.  This time, standard ISP
@@ -4803,14 +4997,14 @@ avrdude -c USBasp -p atmega8 -P usb:1234
 
 
 @item
-Problem: I cannot do @dots{} when the target is in debugWire mode.
+Problem: I cannot do @dots{} when the target is in debugWIRE mode.
 
-Solution: debugWire mode imposes several limitations.
+Solution: debugWIRE mode imposes several limitations.
 
-The debugWire protocol is Atmel's proprietary one-wire (plus ground)
+The debugWIRE protocol is Atmel's proprietary one-wire (plus ground)
 protocol to allow an in-circuit emulation of the smaller AVR devices,
 using the @var{/RESET} line.
-DebugWire mode is initiated by activating the @var{DWEN}
+DebugWIRE mode is initiated by activating the @var{DWEN}
 fuse, and then power-cycling the target.
 While this mode is mainly intended for debugging/emulation, it
 also offers limited programming capabilities.
@@ -4820,12 +5014,12 @@ It is also possible to read out the signature.
 All other memory areas cannot be accessed.
 There is no
 @emph{chip erase}
-functionality in debugWire mode; instead, while reprogramming the
+functionality in debugWIRE mode; instead, while reprogramming the
 flash, each flash page is erased right before updating it.
 This is done transparently by the JTAG ICE mkII (or AVR Dragon).
-The only way back from debugWire mode is to initiate a special
+The only way back from debugWIRE mode is to initiate a special
 sequence of commands to the JTAG ICE mkII (or AVR Dragon), so the
-debugWire mode will be temporarily disabled, and the target can
+debugWIRE mode will be temporarily disabled, and the target can
 be accessed using normal ISP programming.
 This sequence is automatically initiated by using the JTAG ICE mkII
 or AVR Dragon in ISP mode, when they detect that ISP mode cannot be
