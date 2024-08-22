@@ -686,12 +686,6 @@ described above, e.g., @code{usb:0x2341:0x0043} or
 ports use @code{-P ?s}. In order to see a list of all possible serial adapters
 known to avrdude use @code{-P ?sa}.
 
-On Win32 operating systems, the parallel ports are referred to as lpt1
-through lpt3, referring to the addresses 0x378, 0x278, and 0x3BC,
-respectively.  If the parallel port can be accessed through a different
-address, this address can be specified directly, using the common C
-language notation (i. e., hexadecimal values are prefixed by @var{0x}).
-
 For the JTAG ICE mkII, if AVRDUDE has been built with libusb support,
 @var{port} may alternatively be specified as
 @code{usb}[:@var{serialno}].  In that case, the JTAG ICE mkII will be
@@ -4601,10 +4595,6 @@ The Windows system directory. On Windows NT, the name of this directory
 is @code{SYSTEM32}.
 
 @item
-Windows NT: The 16-bit Windows system directory. The name of this
-directory is @code{SYSTEM}.
-
-@item
 The Windows directory.
 
 @item
@@ -4644,31 +4634,10 @@ Windows serial port device names such as: com1, com2, etc.
 @cindex Windows parallel ports
 
 @noindent
-AVRDUDE will accept 3 Windows parallel port names: lpt1, lpt2, or
-lpt3.  Each of these names corresponds to a fixed parallel port base
-address:
+AVRDUDE does not support parallel ports on Windows.
 
-@table @code
-@item lpt1
-0x378
-
-@item lpt2
-0x278
-
-@item lpt3
-0x3BC
-
-@end table
-
-On your desktop PC, lpt1 will be the most common choice. If you are
-using a laptop, you might have to use lpt3 instead of lpt1. Select the
-name of the port the corresponds to the base address of the parallel
-port that you want.
-
-If the parallel port can be accessed through a different
-address, this address can be specified directly, using the common C
-language notation (i. e., hexadecimal values are prefixed by @code{0x}).
-
+If you need to run AVRDUDE using programmer on a parallel port,
+you will need to try one of the BSDs or Linux.
 
 @ignore
 @c
