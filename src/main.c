@@ -287,6 +287,8 @@ static void pmshorten(char *desc, const char *modes) {
     {" in HV serial programming mode", "HVSP"},
     {" in HVSP mode", "HVSP"},
     {" in ISP mode", "ISP"},
+    {" in ISP mode", "TPI, ISP"},
+    {" in TPI mode", "TPI"},
     {" in debugWire mode", "debugWIRE"},
     {" in AVR32 mode", "aWire"},
     {" in PDI mode", "PDI"},
@@ -295,6 +297,8 @@ static void pmshorten(char *desc, const char *modes) {
     {" in JTAG mode", "JTAGmkI"},
     {" in JTAG mode", "XMEGAJTAG"},
     {" in JTAG mode", "AVR32JTAG"},
+    {" in JTAG mode", "JTAG, XMEGAJTAG, AVR32JTAG"},
+    {" in JTAG mode", "JTAG, XMEGAJTAG"},
     {" for bootloader", "bootloader"},
   };
   size_t len = strlen(desc);
@@ -314,6 +318,7 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
   LNODEID ln2;
   PROGRAMMER *pgm;
   int maxlen = 0, len;
+  PROGRAMMER *dry = locate_programmer(programmers, "dryrun");
 
   sort_programmers(programmers);
 
@@ -341,20 +346,19 @@ static void list_programmers(FILE *f, const char *prefix, LISTID programmers, in
       // List programmer if pm or prog_modes uninitialised or if they are compatible otherwise
       if(!pm || !pgm->prog_modes || (pm & pgm->prog_modes)) {
         const char *id = ldata(ln2);
-        char *desc = mmt_strdup(pgm->desc);
-        const char *modes = avr_prog_modes(pm & pgm->prog_modes);
-
-        if(pm != ~0)
-          pmshorten(desc, modes);
-
         if(*id == 0 || *id == '.')
           continue;
+
+        char *desc = mmt_strdup(pgm->desc);
+        const char *strmodes = str_prog_modes(pgm->prog_modes);
+        pmshorten(desc, avr_prog_modes(pm & pgm->prog_modes));
         if(verbose > 0)
-          fprintf(f, "%s%-*s = %-30s [%s:%d]", prefix, maxlen, id, desc, pgm->config_file, pgm->lineno);
+          fprintf(f, "%s%-*s = %s (%s) [%s:%d]", prefix, maxlen, id, desc,
+            strmodes, pgm->config_file, pgm->lineno);
         else
-          fprintf(f, "%s%-*s = %-s", prefix, maxlen, id, desc);
-        if(pm != ~0)
-          fprintf(f, " via %s", modes);
+          fprintf(f, "%s%-*s = %s (%s)", prefix, maxlen, id, desc, strmodes);
+        if(pm != ~0 && strchr(strmodes, ' ') && !(dry && pgm->initpgm == dry->initpgm))
+          fprintf(f, " via %s", str_prog_modes(pm & pgm->prog_modes));
         fprintf(f, "\n");
 
         mmt_free(desc);
