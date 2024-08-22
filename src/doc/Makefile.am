@@ -54,9 +54,9 @@ $(builddir)/avrdude.pdf: $(GENERATED_TEXINFOS)
 ../avrdude$(EXEEXT):
 	$(MAKE) -C .. avrdude$(EXEEXT)
 
-$(builddir)/programmers.texi: ../avrdude$(EXEEXT) ../avrdude.conf programmers.sed Makefile
+$(builddir)/programmers.texi: ../avrdude$(EXEEXT) ../avrdude.conf $(srcdir)/programmers.sed Makefile
 	../avrdude$(EXEEXT) -C ../avrdude.conf -c \? 2>&1 \
-	|  grep = | sed -f programmers.sed \
+	|  grep = | sed -f $(srcdir)/programmers.sed \
 	>programmers.texi
 
 $(builddir)/programmer_types.texi: ../avrdude$(EXEEXT) ../avrdude.conf Makefile
@@ -65,9 +65,9 @@ $(builddir)/programmer_types.texi: ../avrdude$(EXEEXT) ../avrdude.conf Makefile
 	| sed "s#<\?\(http://[^ \t,>]*\)>\?#@url{\1}#g" \
 	>programmer_types.texi
 
-$(builddir)/parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf parts.sed Makefile
+$(builddir)/parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf $(srcdir)/parts.sed Makefile
 	../avrdude$(EXEEXT) -C ../avrdude.conf -p \? 2>&1 \
-	| grep = | sed -f parts.sed \
+	| grep = | sed -f $(srcdir)/parts.sed \
 	>parts.texi
 
 clean-local:
