@@ -1554,7 +1554,7 @@ programmer # avrispmkII
 
 programmer # buspirate
     id                     = "buspirate";
-    desc                   = "The Bus Pirate (AVR programming mode)";
+    desc                   = "The Bus Pirate in AVR programming mode";
     type                   = "buspirate";
     prog_modes             = PM_ISP;
     connection_type        = serial;
@@ -1568,7 +1568,7 @@ programmer # buspirate
 
 programmer # buspirate_bb
     id                     = "buspirate_bb";
-    desc                   = "The Bus Pirate (bitbang mode, supports TPI)";
+    desc                   = "The Bus Pirate in bitbang mode";
     type                   = "buspirate_bb";
     prog_modes             = PM_TPI | PM_ISP;
     connection_type        = serial;
@@ -1609,7 +1609,7 @@ programmer # stk500
 
 programmer # stk500v1
     id                     = "stk500v1";
-    desc                   = "Atmel STK500 version 1.x firmware";
+    desc                   = "Atmel STK500 v1.x";
     type                   = "stk500";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
@@ -1659,7 +1659,7 @@ programmer # mib510
 
 programmer # stk500v2
     id                     = "stk500v2", "scratchmonkey";
-    desc                   = "Atmel STK500 version 2.x firmware";
+    desc                   = "Atmel STK500 v2.x";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
@@ -2603,7 +2603,7 @@ programmer # jtag3isp
 
 programmer # xplainedpro
     id                     = "xplainedpro", "xplainedpro_jtag";
-    desc                   = "Atmel AVR XplainedPro in JTAG mode";
+    desc                   = "Atmel XplainedPro in JTAG mode";
     type                   = "jtagice3";
     prog_modes             = PM_JTAG | PM_XMEGAJTAG | PM_AVR32JTAG;
     extra_features         = HAS_VTARG_READ;
@@ -2618,7 +2618,7 @@ programmer # xplainedpro
 
 programmer # xplainedpro_pdi
     id                     = "xplainedpro_pdi";
-    desc                   = "Atmel AVR XplainedPro in PDI mode";
+    desc                   = "Atmel XplainedPro in PDI mode";
     type                   = "jtagice3_pdi";
     prog_modes             = PM_PDI;
     extra_features         = HAS_VTARG_READ;
@@ -2634,7 +2634,7 @@ programmer # xplainedpro_pdi
 
 programmer # xplainedpro_updi
     id                     = "xplainedpro_updi";
-    desc                   = "Atmel AVR XplainedPro in UPDI mode";
+    desc                   = "Atmel XplainedPro in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_VTARG_READ;
@@ -2667,7 +2667,7 @@ programmer # xplainedpro_updi
 
 programmer # xplainedmini
     id                     = "xplainedmini", "xplainedmini_isp";
-    desc                   = "Atmel AVR XplainedMini in ISP mode";
+    desc                   = "Atmel XplainedMini in ISP mode";
     type                   = "jtagice3_isp";
     prog_modes             = PM_ISP;
     extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
@@ -2687,7 +2687,7 @@ programmer # xplainedmini
 
 programmer # xplainedmini_dw
     id                     = "xplainedmini_dw";
-    desc                   = "Atmel AVR XplainedMini in debugWIRE mode";
+    desc                   = "Atmel XplainedMini in debugWIRE mode";
     type                   = "jtagice3_dw";
     prog_modes             = PM_debugWIRE;
     extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
@@ -2705,7 +2705,7 @@ programmer # xplainedmini_dw
 
 programmer # xplainedmini_updi
     id                     = "xplainedmini_updi";
-    desc                   = "Atmel AVR XplainedMini in UPDI mode";
+    desc                   = "Atmel XplainedMini in UPDI mode";
     type                   = "jtagice3_updi";
     prog_modes             = PM_UPDI;
     extra_features         = HAS_SUFFER | HAS_VTARG_SWITCH;
@@ -2721,7 +2721,7 @@ programmer # xplainedmini_updi
 
 programmer # xplainedmini_tpi
     id                     = "xplainedmini_tpi";
-    desc                   = "Atmel AVR XplainedMini in TPI mode";
+    desc                   = "Atmel XplainedMini in TPI mode";
     type                   = "jtagice3_tpi";
     prog_modes             = PM_TPI;
     connection_type        = usb;
