@@ -1350,7 +1350,7 @@ programmer parent "tumpa" # tumpa-b
 
 programmer parent "ft2232h_jtag" # tumpa_jtag
     id                     = "tumpa_jtag";
-    desc                   = "TIAO USB Multi-Protocol Adapter (JTAG)";
+    desc                   = "TIAO USB Multi-Protocol Adapter in JTAG mode";
     usbpid                 = 0x8a98;
     usbvendor              = "TIAO";
     buff                   = ~11;
@@ -2255,7 +2255,7 @@ programmer # butterfly_mk
 
 programmer # jtagmkI
     id                     = "jtagmkI", "jtag1";
-    desc                   = "Atmel JTAG ICE (mkI)";
+    desc                   = "Atmel JTAG ICE mkI";
     type                   = "jtagmki";
     prog_modes             = PM_JTAGmkI;
     extra_features         = HAS_VTARG_READ;
