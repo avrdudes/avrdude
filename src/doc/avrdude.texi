@@ -373,7 +373,7 @@ Windows programming software.
 For many years, the AVRDUDE source resided in public repositories on
 savannah.nongnu.org,
 where it continued to be enhanced and ported to other systems.  In
-addition to FreeBSD, AVRDUDE now runs on Linux, MacOS and Windows.  The
+addition to FreeBSD, AVRDUDE now runs on Linux, macOS and Windows.  The
 developers behind the porting effort primarily were Ted Roth, Eric
 Weddington, and J@"org Wunsch.
 
@@ -4332,7 +4332,7 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 
 @noindent
 The parallel and serial port device file names are system specific.
-MacOS has no default serial or parallel port names, but available
+macOS has no default serial or parallel port names, but available
 ports can be found under @code{/dev/cu.*}.
 The following table lists the default names for a given system.
 
