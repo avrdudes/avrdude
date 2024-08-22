@@ -4332,8 +4332,10 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 
 @noindent
 The parallel and serial port device file names are system specific.
-macOS has no default serial or parallel port names, but available
-ports can be found under @code{/dev/cu.*}.
+macOS has no default serial port names, but available ports can be 
+found under @code{/dev/cu.*}. Please take note avrdude does not 
+support Parallel Port under macOS.
+
 The following table lists the default names for a given system.
 
 @multitable @columnfractions .30 .30 .30
