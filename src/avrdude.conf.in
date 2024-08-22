@@ -651,7 +651,7 @@ programmer # abcmini
 
 programmer # futurlec
     id                     = "futurlec";
-    desc                   = "Futurlec.com programming cable.";
+    desc                   = "Futurlec.com programming cable";
     type                   = "par";
     prog_modes             = PM_TPI | PM_ISP;
     reset                  = 3;

@@ -490,10 +490,10 @@ until the programmer is disconnected from the computer.
 @item -c @var{programmer-id}
 @cindex Option @code{-c} @var{programmer-id}
 
-Specify the programmer to be used.  AVRDUDE knows about several common
+Specify the programmer to be used.  AVRDUDE knows about quite a few
 programmers. The @var{programmer-id} parameter is the programmer's id
 listed in the configuration file.  Specify @code{-c ?} to list all
-programmers in the configuration file.  If you have a programmer that is
+programmers in the configuration file. If you have a programmer that is
 unknown to AVRDUDE but related to a known programmer there is some chance
 that it can be added to the configuration file without any code changes to
 AVRDUDE: copy a similar entry and change those features that differ to
@@ -3000,7 +3000,7 @@ Display programmer specific parameters.
 @c
 @node Terminal Mode Examples,  , Terminal Mode Commands, Terminal Mode Operation
 @section Terminal Mode Examples
-@cindex Terminal Mode Examples
+@cindex Terminal mode examples
 
 @noindent
 @strong{Enter terminal, display part parameters, modify EEPROM, perform a chip erase and quit:}
@@ -5051,11 +5051,12 @@ Bootloader can never write to fuses, for example.
 @cindex Programmer support
 
 AVRDUDE supports the programmers below: the left column lists the
-programmer's id as used for @code{-c} and its programming interface(s) in
-brackets, whilst the right column contains a small desctiption. There is
-more detail about each programmer in the AVRDUDE configuration file.
+programmer's id as used for @code{-c}, whilst the right column contains a
+short description and the list of available programming interface(s) in
+brackets; see @ref{Programmer Definitions}). There is more detail about
+each programmer in the AVRDUDE configuration file.
 
-@multitable @columnfractions .38 .60
+@multitable @columnfractions .24 .74
 @include programmers.texi
 @end multitable
 

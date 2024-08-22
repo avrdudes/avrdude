@@ -40,9 +40,9 @@ find_program(TEXI2HTML_EXECUTABLE NAMES texi2html)
 add_custom_target(avrdude_binaries DEPENDS avrdude conf)
 
 add_custom_command(
-    OUTPUT programmers.txt
-    DEPENDS avrdude_binaries
-    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c ? 2>&1 | more > programmers.txt
+    OUTPUT programmers.texi
+    DEPENDS avrdude_binaries ${CMAKE_CURRENT_SOURCE_DIR}/programmers.sed
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c ? 2>&1 | grep = | sed -f ${CMAKE_CURRENT_SOURCE_DIR}/programmers.sed > programmers.texi
     VERBATIM
     )
 
@@ -57,16 +57,6 @@ add_custom_command(
     OUTPUT parts.texi
     DEPENDS avrdude_binaries ${CMAKE_CURRENT_SOURCE_DIR}/parts.sed
     COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p ? 2>&1 | grep = | sed -f ${CMAKE_CURRENT_SOURCE_DIR}/parts.sed > parts.texi
-    VERBATIM
-    )
-
-add_custom_command(
-    OUTPUT programmers.texi
-    DEPENDS programmers.txt
-    COMMAND ${CMAKE_COMMAND}
-        -D TXT_FILE=programmers.txt
-        -D TEXI_FILE=programmers.texi
-        -P "${CMAKE_CURRENT_SOURCE_DIR}/programmers.cmake"
     VERBATIM
     )
 
