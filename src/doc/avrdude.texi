@@ -125,11 +125,9 @@ Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org
 
 AVRDUDE - AVR Downloader Uploader - is a program for downloading and
 uploading the on-chip memories of Atmel's AVR microcontrollers. It can
-program the Flash and EEPROM, and where supported by the serial
-programming protocol, it can program fuse and lock bits. AVRDUDE also
-supplies a direct instruction mode allowing one to issue any programming
-instruction to the AVR chip regardless of whether AVRDUDE implements
-that specific feature of a particular chip.
+program the Flash, EEPROM, and where supported by the  programmer,  lock
+bits, fuses that hold the microcontroller's configuration and other
+memories that the part might have.
 
 AVRDUDE can be used via the command line to read or write chip memories
 (eeprom, flash, fuses, lock bits) and read memories such as signature or
@@ -140,6 +138,19 @@ is useful for exploring memory contents, modifying individual bytes of
 eeprom, programming fuse/lock bits, etc.
 
 @cindex Programmers supported
+@cindex Emulating a HW programmer (dryrun)
+@cindex Emulating a bootloader (dryboot)
+
+Programming a microcontroller either requires a physical programmer that
+sits between the target chip and the PC running AVRDUDE, or a  bootloader
+program on the target chip that is then directly connected to the PC to be
+served by AVRDUDE. Currently, AVRDUDE knows about @value{NUMPARTS} parts
+and @value{NUMPROGRAMMERS} programmers, though not every programmer can
+deal with every part. One noteworthy programmer is @code{dryrun}, which
+allows one to explore the AVRDUDE command-line and terminal without
+needing to have, or connect, a real physical programmer. Similarly,
+@code{dryboot} allows exploring how to communicate with a bootloader
+without connecting an AVR part.
 
 AVRDUDE supports the following basic programmer types: Atmel's STK500,
 Atmel's AVRISP and AVRISP mkII devices,
@@ -5224,7 +5235,7 @@ short description and the list of available programming interface(s) in
 brackets; see @ref{Programmer Definitions}). There is more detail about
 each programmer in the AVRDUDE configuration file.
 
-@multitable @columnfractions .24 .74
+@multitable @columnfractions .24 .75
 @include programmers.texi
 @end multitable
 

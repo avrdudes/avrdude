@@ -1609,7 +1609,7 @@ programmer # stk500
 
 programmer # stk500v1
     id                     = "stk500v1";
-    desc                   = "Atmel STK500 v1.x";
+    desc                   = "Atmel STK500 v1";
     type                   = "stk500";
     prog_modes             = PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
@@ -1659,7 +1659,7 @@ programmer # mib510
 
 programmer # stk500v2
     id                     = "stk500v2", "scratchmonkey";
-    desc                   = "Atmel STK500 v2.x";
+    desc                   = "Atmel STK500 v2";
     type                   = "stk500v2";
     prog_modes             = PM_TPI | PM_ISP;
     extra_features         = HAS_VTARG_ADJ | HAS_VTARG_READ | HAS_FOSC_ADJ | HAS_VAREF_ADJ;
