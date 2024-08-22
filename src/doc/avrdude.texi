@@ -1236,7 +1236,7 @@ Show help menu and exit.
 
 @cindex Option @code{-E} reset
 @cindex @code{-E} reset
-@item @samp{reset}
+@item reset
 The `/RESET' signal will be left activated at program exit, that is it
 will be held low, in order to keep the MCU in reset state afterwards.
 Note in particular that the programming algorithm for the AT90S1200
@@ -1244,15 +1244,15 @@ device mandates that the `/RESET' signal is active before powering up
 the MCU, so in case an external power supply is used for this MCU type,
 a previous invocation of AVRDUDE with this option specified is one of
 the possible ways to guarantee this condition. @code{flip2} will not
-exit bootloader mode at program exit if @samp{reset} is used.
+exit bootloader mode at program exit if @code{reset} is used.
 
 @cindex Option @code{-E} noreset
 @cindex @code{-E} noreset
-@item @samp{noreset}
+@item noreset
 The `/RESET' line will be deactivated at program exit, thus allowing the
 MCU target program to run while the programming hardware remains
 connected. @code{flip2} will exit bootloader mode at program exit and
-start the application if @samp{noreset} is used, and this is the default
+start the application if @code{noreset} is used, and this is the default
 behaviour for this bootloader.
 @end table
 
@@ -1260,30 +1260,28 @@ behaviour for this bootloader.
 @cindex @code{-x} parallel port programmers
 @item Parallel port programmers
 
-Parallel port based programmers have a few more options.
-
 @table @code
 @cindex Option @code{-E} vcc
 @cindex @code{-E} vcc
-@item @samp{vcc}
+@item vcc
 This option will leave those parallel port pins active (i. e. high) that
 can be used to supply `Vcc' power to the MCU.
 
 @cindex Option @code{-E} novcc
 @cindex @code{-E} novcc
-@item @samp{novcc}
+@item novcc
 This option will pull the `Vcc' pins of the parallel port down at
 program exit.
 
 @cindex Option @code{-E} d_high
 @cindex @code{-E} d_high
-@item @samp{d_high}
+@item d_high
 This option will leave the 8 data pins on the parallel port active
 (i.e. high).
 
 @cindex Option @code{-E} d_low
 @cindex @code{-E} d_low
-@item @samp{d_low}
+@item d_low
 This option will leave the 8 data pins on the parallel port inactive
 (i.e. low).
 @end table
@@ -1319,7 +1317,7 @@ extended parameters to be specified on the command line.
 Both dryrun and dryboot programmers emulate programming and accept the following parameters:
 
 @table @code
-@item @samp{init}
+@item init
 Initialise memories with human-readable patterns. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
 Patterns can best be seen with fixed-width font and the @code{:I} format
@@ -1328,19 +1326,19 @@ flash:r:-:I}. Patterns in flash memory are executable and represent benign
 AVR code, ie, no I/O memory access. Choose a fixed seed for reproducible
 results.
 
-@item @samp{init=<n>}
+@item init=<n>
 Shortcut for @code{-x init -x seed=<n>} (see below)
 
-@item @samp{random}
+@item random
 Initialise memories with random code and values. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
 Random code in flash will be benign, that is, not accessing I/O memories,
 SRAM or flash. Choose a fixed seed for reproducible results.
 
-@item @samp{random=<n>}
+@item random=<n>
 Shortcut for @code{-x random -x seed=<n>}
 
-@item @samp{seed=<n>}
+@item seed=<n>
 Seed random number generator with @var{n}; the default is
 @code{time(NULL)}. Setting this option with a fixed positive @var{n} will
 make the random choices reproducible, ie, they will stay the same between
@@ -1387,25 +1385,25 @@ When using the JTAG ICE mkII, JTAGICE3, Atmel-ICE, PICkit 4, MPLAB(R) SNAP,
 Power Debugger or AVR Dragon in JTAG mode, the following extended parameter
 is accepted:
 @table @code
-@item @samp{jtagchain=UB,UA,BB,BA}
+@item jtagchain=UB,UA,BB,BA
 Setup the JTAG scan chain for @var{UB} units before, @var{UA} units
 after, @var{BB} bits before, and @var{BA} bits after the target AVR,
 respectively.
 Each AVR unit within the chain shifts by 4 bits.
 Other JTAG units might require a different bit shift count.
 
-@item @samp{hvupdi}
+@item hvupdi
 @var{Power Debugger and Pickit 4 only}
 @*
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
-been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
+been set to RESET or GPIO mode. Use @code{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets.
 
-@item @samp{vtarg=VALUE, vtarg}
+@item vtarg=VALUE, vtarg
 @var{Power Debugger only}
 @*
 The voltage generator can be enabled by setting a target voltage.
-The current set-voltage can be read by @samp{-x vtarg} alone.
+The current set-voltage can be read by @code{-x vtarg} alone.
 
 @end table
 
@@ -1422,10 +1420,10 @@ The current set-voltage can be read by @samp{-x vtarg} alone.
 
 The PICkit 4 and MPLAB(R) SNAP programmers accept the following extended parameters:
 @table @code
-@item @samp{mode=avr,pic}
+@item mode=avr,pic
 Switch programmer to AVR or PIC mode, then exit: the PICkit 4 and MPLAB(R) SNAP
 programmer can only be utilised by Avrdude when in AVR mode.
-Use @samp{-x mode=avr} for switching to AVR mode, or @samp{-x mode=pic}
+Use @code{-x mode=avr} for switching to AVR mode, or @code{-x mode=pic}
 for switching to PIC mode.
 @end table
 
@@ -1440,15 +1438,15 @@ for switching to PIC mode.
 
 The PICkit 5 and PICkit 4 (PIC Mode) programmer can accept following extended parameters
 @table @code
-@item @samp{vtarg=VALUE}
+@item vtarg=VALUE
 Specify a voltage between 1.8 and 5.5@w{ }V that the programmer should supply
 to the target. If there is already a valid voltage applied to the VTG Pin,
 this setting will be ignored. When AVRDUDE detects an external voltage outside
 of this range, it will terminate the operation. You can disable this by
 setting the voltage to 0@w{ }V.
-@item @samp{hvupdi}
+@item hvupdi
 High-voltage UPDI programming is used to enable a UPDI pin that has previously
-been set to RESET or GPIO mode. Use @samp{-x hvupdi} to enable high-voltage UPDI
+been set to RESET or GPIO mode. Use @code{-x hvupdi} to enable high-voltage UPDI
 initialization for supported targets. Depending on the target, the HV pulse will
 be applied either on the RST pin, or the UPDI pin.
 @end table
@@ -1463,9 +1461,9 @@ The Xplained Mini/Nano programmer (ISP or UPDI, not TPI) type accepts the
 following extended parameters:
 
 @table @code
-@item @samp{suffer=VALUE}, @samp{suffer}
+@item suffer=VALUE, @code{suffer}
 The SUFFER register allows the user to modify the behavior of the on-board mEDBG.
-The current state can be read by @samp{-x suffer} alone.
+The current state can be read by @code{-x suffer} alone.
 @table @code
 @item Bit 7 ARDUINO:
 Adds control of extra LEDs when set to 0
@@ -1481,9 +1479,9 @@ Fuses are safe-masked when bit sent to 1. Fuses are unprotected when set to 0
 @end table
 
 @table @code
-@item @samp{vtarg_switch=VALUE}, @samp{vtarg_switch}
+@item vtarg_switch=VALUE, @code{vtarg_switch}
 The on-board target voltage switch can be turned on or off by writing a 1 or
-a 0. The current state can be read by @samp{-x vtarg_switch} alone.
+a 0. The current state can be read by @code{-x vtarg_switch} alone.
 Note that the target power switch will always be on after a power cycle.
 Also note that the smaller Xplained Nano boards does not have a target power switch.
 
@@ -1496,9 +1494,9 @@ Also note that the smaller Xplained Nano boards does not have a target power swi
 
 The Curiosity Nano board accepts the following extended parameter:
 @table @code
-@item @samp{vtarg=VALUE, vtarg}
+@item vtarg=VALUE, vtarg
 The generated on-board target voltage can be changed by specifying a new voltage.
-The current set-voltage can be read by @samp{-x vtarg} alone.
+The current set-voltage can be read by @code{-x vtarg} alone.
 @end table
 
 @cindex Option @code{-x} STK500
@@ -1514,29 +1512,29 @@ The current set-voltage can be read by @samp{-x vtarg} alone.
 
 The STK500 and STK600 boards accept the following extended parameters:
 @table @code
-@item @samp{vtarg=VALUE, vtarg}
+@item vtarg=VALUE, vtarg
 The generated on-board target voltage can be changed by specifying a new voltage.
-The current set-voltage can be read by @samp{-x vtarg} alone.
-@item @samp{fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc}
+The current set-voltage can be read by @code{-x vtarg} alone.
+@item fosc=VALUE[MHz|M|kHz|k|Hz|H], fosc
 Set the programmable oscillator frequency in MHz, kHz or Hz.
-The current frequency can be read by @samp{-x fosc} alone.
-@item @samp{varef=VALUE, varef}
+The current frequency can be read by @code{-x fosc} alone.
+@item varef=VALUE, varef
 The generated on-board analog reference voltage can be changed by specifying
 a new reference voltage. The current reference voltage can be read by
-@samp{-x varef} alone.
-@item @samp{varef[0,1]=VALUE, varef[0,1]}
+@code{-x varef} alone.
+@item varef[0,1]=VALUE, varef[0,1]
 @var{STK600 only}
 @*
 The generated on-board analog reference voltage for channel 0 or channel 1 can
 be changed by specifying a new reference voltage.
-The current reference voltage can be read by @samp{-x varef0} or
-@samp{-x varef1} alone.
-@item @samp{attempts[=<1..99>]}
+The current reference voltage can be read by @code{-x varef0} or
+@code{-x varef1} alone.
+@item attempts[=<1..99>]
 @var{STK500V1 only}
 @*
 Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
-@item @samp{xtal=VALUE[MHz|M|kHz|k|Hz|H]}
+@item xtal=VALUE[MHz|M|kHz|k|Hz|H]
 Defines the XTAL frequency of the programmer if it differs from 7.3728 MHz of the
 original STK500. Used by avrdude for the correct calculation of fosc and sck.
 @end table
@@ -1549,7 +1547,7 @@ original STK500. Used by avrdude for the correct calculation of fosc and sck.
 
 The AVR109 programmer type accepts the following extended parameter:
 @table @code
-@item @samp{autoreset}
+@item autoreset
 Toggle RTS/DTR lines on port open to issue a hardware reset.
 @end table
 
@@ -1561,7 +1559,7 @@ Toggle RTS/DTR lines on port open to issue a hardware reset.
 
 The Atmel low-cost AVR910 programmer type accepts the following extended parameter:
 @table @code
-@item @samp{devcode=VALUE}
+@item devcode=VALUE
 Override the device code selection by using @var{VALUE}
 as the device code.
 The programmer is not queried for the list of supported
@@ -1570,10 +1568,10 @@ is not verified but used directly within the
 @code{T} command sent to the programmer.
 @var{VALUE} can be specified using the conventional number notation of the
 C programming language.
-@item @samp{no_blockmode}
+@item no_blockmode
 Disables the default checking for block transfer capability.
 Use
-@samp{no_blockmode} only if your @samp{AVR910}
+@code{no_blockmode} only if your @code{AVR910}
 programmer creates errors during initial sequence.
 @end table
 
@@ -1584,10 +1582,10 @@ programmer creates errors during initial sequence.
 
 The Arduino programmer type accepts the following extended parameter:
 @table @code
-@item @samp{attempts[=<1..99>]}
+@item attempts[=<1..99>]
 Specify how many connection retry attempts to perform before exiting.
 Defaults to 10 if not specified.
-@item @samp{noautoreset}
+@item noautoreset
 Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 @end table
 
@@ -1600,58 +1598,58 @@ Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
 
 The urclock programmer type accepts the following extended parameters:
 @table @code
-@item @samp{showall}
+@item showall
 Show all info for the connected part, then exit. The @code{-x show...} options
 below can be used to assemble a bespoke response consisting of a subset
 (or only one item) of all available relevant information about the
 connected part and bootloader.
-@item @samp{showid}
+@item showid
 Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
-@item @samp{id=<E|F>.<addr>.<len>}
+@item id=<E|F>.<addr>.<len>
 Historically, the Urclock ID was a six-byte unique little-endian number
 stored in Urclock boards at EEPROM address 257. The location of this
 number can be set by the @code{-x id=<E|F>.<addr>.<len>} extended parameter. @code{E}
 stands for EEPROM and @code{F} stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
-@item @samp{showdate}
+@item showdate
 Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
 programming. Date and filename are part of the metadata that the urclock
 programmer stores by default in high flash just under the bootloader; see also
 @code{-x nometadata}.
-@item @samp{showfilename}
+@item showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
-@item @samp{title=<string>}
+@item title=<string>
 When set, <string> will be used in lieu of the input filename. The maximum
 string length for the title/filename field is 254 bytes including
 terminating nul.
-@item @samp{showapp}
+@item showapp
 Show the size of the programmed application, then exit.
-@item @samp{showstore}
+@item showstore
 Show the size of the unused flash between the application and metadata, then exit.
-@item @samp{showmeta}
+@item showmeta
 Show the size of the metadata just below the bootloader, then exit.
-@item @samp{showboot}
+@item showboot
 Show the size of the bootloader, then exit.
-@item @samp{showversion}
+@item showversion
 Show bootloader version and capabilities, then exit.
-@item @samp{showvector}
+@item showvector
 Show the vector number and name of the interrupt table vector used by the
 bootloader for starting the application, then exit. For hardware-supported
 bootloaders this will be vector 0 (Reset), and for vector bootloaders this
 will be any other vector number of the interrupt vector table or the slot
 just behind the vector table with the name @code{VBL_ADDITIONAL_VECTOR}.
-@item @samp{showpart}
+@item showpart
 Show the part for which the bootloader was compiled, then exit.
-@item @samp{bootsize=<size>}
+@item bootsize=<size>
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
 i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
-@item @samp{vectornum=<n>}
+@item vectornum=<n>
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
 this option is normally not needed for urboot bootloaders. However, it is
@@ -1659,11 +1657,11 @@ useful in backward-compatibility mode (or when the urboot bootloader does
 not offer flash read). Specifying a vector number in these circumstances
 implies a vector bootloader whilst the default assumption would be a
 hardware-supported bootloader.
-@item @samp{eepromrw}
+@item eepromrw
 Manual override for asserting EEPROM read/write capability. Not normally
 needed for urboot bootloaders, but useful for in backward-compatibility
 mode if the bootloader offers EEPROM read/write.
-@item @samp{emulate_ce}
+@item emulate_ce
 If an urboot bootloader does not offer a chip erase command it will tell
 the urclock programmer so during handshake. In this case the urclock
 programmer emulates a chip erase, if warranted by user command line
@@ -1671,7 +1669,7 @@ options, by filling the remainder of unused flash below the bootloader
 with 0xff. If this option is specified, the urclock programmer will assume
 that the bootloader cannot erase the chip itself. The option is useful
 for backwards-compatible bootloaders that do not implement chip erase.
-@item @samp{restore}
+@item restore
 Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
@@ -1681,19 +1679,19 @@ input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
 not be reached after reset.
-@item @samp{initstore}
+@item initstore
 On writing to flash fill the store space between the flash application and
 the metadata section with 0xff.
-@item @samp{nofilename}
+@item nofilename
 On writing to flash do not store the application input filename (nor a title).
-@item @samp{nodate}
+@item nodate
 On writing to flash do not store the application input filename (nor a
 title) and no date either.
-@item @samp{nostore}
+@item nostore
 On writing to flash do not store metadata except the metadata code byte
 @code{0xff} saying there are no metadata.  In particular, no data store
 frame is programmed.
-@item @samp{nometadata}
+@item nometadata
 Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
 available space then a metadata code byte @code{0xff} is stored
@@ -1707,14 +1705,14 @@ available, so that a such prepared flash can always be queried with
 @code{avrdude -x showall}. In contrast to this, it cannot be guaranteed
 that a @code{-x showall} query on flash prepared with @code{-x nometadata}
 yields useful results.
-@item @samp{noautoreset}
+@item noautoreset
 Do not toggle RTS/DTR lines on port open to prevent a hardware reset.
-@item @samp{delay=<n>}
+@item delay=<n>
 Add a <n> ms delay after reset. This can be useful if a board takes a
 particularly long time to exit from external reset. <n> can be negative,
 in which case the default 120 ms delay after issuing reset will be
 shortened accordingly.
-@item @samp{strict}
+@item strict
 Urclock has a faster, but slightly different strategy than -c arduino to
 synchronise with the bootloader; some stk500v1 bootloaders cannot cope
 with this, and they need the @code{-x strict} option.
@@ -1728,7 +1726,7 @@ with this, and they need the @code{-x strict} option.
 
 The BusPirate programmer type accepts the following extended parameters:
 @table @code
-@item @samp{reset=cs,aux,aux2}
+@item reset=cs,aux,aux2
 The default setup assumes the BusPirate's CS output pin connected to
 the RESET pin on AVR side. It is however possible to have multiple AVRs
 connected to the same BP with SDI, SDO and SCK lines common for all of them.
@@ -1747,7 +1745,7 @@ good candidates with the latches driven by the appropriate reset pin (cs,
 aux or aux2). Otherwise the SPI traffic in one active circuit may interfere
 with programming the AVR in the other design.
 
-@item @samp{spifreq=@var{0..7}}
+@item spifreq=@var{0..7}
 @multitable @columnfractions .05 .3
 @item @code{0} @tab  30 kHz (default)
 @item @code{1} @tab 125 kHz
@@ -1759,7 +1757,7 @@ with programming the AVR in the other design.
 @item @code{7} @tab   8 MHz
 @end multitable
 
-@item @samp{rawfreq=0..3}
+@item rawfreq=0..3
 Sets the SPI speed and uses the Bus Pirate's binary ``raw-wire'' mode instead
 of the default binary SPI mode:
 
@@ -1773,50 +1771,50 @@ of the default binary SPI mode:
 The only advantage of the ``raw-wire'' mode is that different SPI frequencies
 are available. Paged writing is not implemented in this mode.
 
-@item @samp{pullups}
+@item pullups
 Enable the Bus Pirate's built-in pull-up resistors. These resistors are
 useful when working with different voltage levels. VPU pin of the Bus Pirate
 must be connected to an external voltage.
 For example: connect VPU pin to the +5V pin or an external power supply.
 
-@item @samp{hiz}
+@item hiz
 Enable the Bus Pirate's HiZ mode on SPI, allowing it to work as an
 open-collector and interface with external pull-up circuits.
 If the external target circuit does not have pull-ups, the Bus Pirate
 will not be able to send data.
 
-@item @samp{ascii}
+@item ascii
 Attempt to use ASCII mode even when the firmware supports BinMode (binary
 mode).
 BinMode is supported in firmware 2.7 and newer, older FW's either don't
 have BinMode or their BinMode is buggy. ASCII mode is slower and makes
 the above
-@samp{reset=}, @samp{spifreq=}
+@code{reset=}, @code{spifreq=}
 and
-@samp{rawfreq=}
+@code{rawfreq=}
 parameters unavailable. Be aware that ASCII mode is not guaranteed to work
 with newer firmware versions, and is retained only to maintain compatibility
 with older firmware versions.
 
-@item @samp{nopagedwrite}
+@item nopagedwrite
 Firmware versions 5.10 and newer support a binary mode SPI command that enables
 whole pages to be written to AVR flash memory at once, resulting in a
 significant write speed increase. If use of this mode is not desirable for some
 reason, this option disables it.
 
-@item @samp{nopagedread}
+@item nopagedread
 Newer firmware versions support in binary mode SPI command some AVR Extended
 Commands. Using the ``Bulk Memory Read from Flash'' results in a
 significant read speed increase. If use of this mode is not desirable for some
 reason, this option disables it.
 
-@item @samp{cpufreq=@var{125..4000}}
+@item cpufreq=@var{125..4000}
 This sets the @emph{AUX}  pin to output a frequency of @var{n} kHz. Connecting
 the @emph{AUX} pin to the XTAL1 pin of your MCU, you can provide it a clock,
 for example when it needs an external clock because of wrong fuses settings.
 Make sure the CPU frequency is at least four times the SPI frequency.
 
-@item @samp{serial_recv_timeout=@var{1...}}
+@item serial_recv_timeout=@var{1...}
 This sets the serial receive timeout to the given value.
 The timeout happens every time avrdude waits for the BusPirate prompt.
 Especially in ascii mode this happens very often, so setting a smaller value
@@ -1832,7 +1830,7 @@ The default value is 100 ms. Using 10 ms might work in most cases.
 
 The Micronucleus programmer type accepts the following extended parameter:
 @table @code
-@item @samp{wait=@var{timeout}}
+@item wait=@var{timeout}
 If the device is not connected, wait for the device to be plugged in.
 The optional @var{timeout} specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
@@ -1846,7 +1844,7 @@ device is plugged in.
 
 The Teensy programmer type accepts the following extended parameter:
 @table @code
-@item @samp{wait=@var{timeout}}
+@item wait=@var{timeout}
 If the device is not connected, wait for the device to be plugged in.
 The optional @var{timeout} specifies the connection time-out in seconds.
 If no time-out is specified, AVRDUDE will wait indefinitely until the
@@ -1860,11 +1858,11 @@ device is plugged in.
 
 The Wiring programmer type accepts the following extended parameters:
 @table @code
-@item @samp{snooze=<n>}
+@item snooze=<n>
 After performing the port open phase, AVRDUDE will wait/snooze for
 @var{snooze} milliseconds before continuing to the protocol sync phase.
 No toggling of DTR/RTS is performed if @var{snooze} > 0.
-@item @samp{delay=<n>}
+@item delay=<n>
 Add a <n> milliseconds delay after reset. This can be useful if a board
 takes a particularly long time to exit from external reset. <n> can be
 negative, in which case the default 100 ms delay after issuing reset will
@@ -1890,9 +1888,9 @@ Connection to the PICkit2 programmer:
 
 The PICkit2 programmer type accepts the following extended parameters:
 @table @code
-@item @samp{clockrate=@var{rate}}
+@item clockrate=@var{rate}
 Sets the SPI clocking rate in Hz (default is 100kHz). Alternately the -B or -i options can be used to set the period.
-@item @samp{timeout=@var{usb-transaction-timeout}}
+@item timeout=@var{usb-transaction-timeout}
 Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 @end table
 
@@ -1903,7 +1901,7 @@ Sets the timeout for USB reads and writes in milliseconds (default is 1500 ms).
 
 The USBasp programmer type accepts the following extended parameter:
 @table @code
-@item @samp{section_config}
+@item section_config
 Programmer will erase
 configuration section with option '-e' (chip erase),
 rather than entire chip.
@@ -1917,7 +1915,7 @@ Only applicable to TPI devices (ATtiny 4/5/9/10/20/40).
 
 The xbee programmer type accepts the following extended parameter:
 @table @code
-@item @samp{xbeeresetpin=@var{1..7}}
+@item xbeeresetpin=@var{1..7}
 Select the XBee pin @code{DIO<1..7>} that is connected to the MCU's
 @code{/RESET} line.  The programmer needs to know which DIO pin to use to
 reset into the bootloader.  The default (3) is the @code{DIO3} pin
@@ -1942,7 +1940,7 @@ the MCU's TXD line.
 
 The jtag2updi and serialupdi programmer types accept the following extended parameters:
 @table @code
-@item @samp{rtsdtr=low,high}
+@item rtsdtr=low,high
 Forces RTS/DTR lines to assume low or high state during the whole
 programming session. Some programmers might use this signal to
 indicate UPDI programming state, but this is strictly hardware
@@ -1959,7 +1957,7 @@ When not provided, driver/OS default value will be used.
 
 The linuxspi programmer type accepts the following extended parameter:
 @table @code
-@item @samp{disable_no_cs}
+@item disable_no_cs
 Ensures the programmer does not use the SPI_NO_CS bit for the SPI
 driver. This parameter is useful for kernels that do not support
 the CS line being managed outside the application.
@@ -1972,7 +1970,7 @@ the CS line being managed outside the application.
 
 The serprog programmer type accepts the following extended parameter:
 @table @code
-@item @samp{cs}
+@item cs
 Sets the chip select (CS) to use on supported programmers.
 Programmers supporting the 0x16 serprog command can have more than the default CS (0).
 This option allows to choose these additional CSes (1, 2, ...) for programming the AVR.
