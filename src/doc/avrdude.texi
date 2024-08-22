@@ -4666,10 +4666,15 @@ such as @option{--prefix} and @option{--datadir}.
 @appendix Troubleshooting
 
 @noindent
-In general, please report any bugs encountered via
-@*
+Please report any bugs encountered via
 @url{https://github.com/avrdudes/avrdude/issues}.
 
+AVRDUDE's Wiki @url{https://github.com/avrdudes/avrdude/wiki} is a great
+place to learn about installing AVRDUDE on various platforms and,
+generally, to learn a few tricks of the trade. In paticular, the
+@url{https://github.com/avrdudes/avrdude/wiki/FAQ, FAQ} and the
+@url{https://github.com/avrdudes/avrdude/wiki/Known-limitations-of-avrdude,
+known limitations} of avrdude are worth reading.
 
 @itemize @bullet
 
