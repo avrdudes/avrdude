@@ -173,7 +173,7 @@ PyObject *get_config_table(const char *name) {
   if (idx == -1)
     return Py_None;
 
-  const uPcore_t *up = uP_table + idx;
+  const Avrintel *up = uP_table + idx;
   int nitems = up->nconfigs;
 
   // found: construct a list object
@@ -184,7 +184,7 @@ PyObject *get_config_table(const char *name) {
   }
 
   // now, add list elements
-  const Configitem_t *cfg = up->cfgtable;
+  const Configitem *cfg = up->cfgtable;
 
   for (int i = 0; i < nitems; i++) {
     PyObject* dict = PyDict_New();
@@ -319,11 +319,11 @@ typedef struct avrpart {
 } AVRPART;
 %mutable;
 
-typedef unsigned int memtype_t;
+typedef unsigned int Memtype;
 typedef struct avrmem {
   %immutable;
   const char *desc;             /* memory description ("flash", "eeprom", etc) */
-  memtype_t type;               /* internally used type, cannot be set in conf files */
+  Memtype type;                 /* internally used type, cannot be set in conf files */
   bool paged;                   /* 16-bit page addressed, e.g., ATmega flash but not EEPROM */
   int size;                     /* total memory size in bytes */
   int page_size;                /* size of memory page (if page addressed) */
@@ -402,7 +402,7 @@ typedef enum {
   CONNTYPE_USB,
   CONNTYPE_SPI,
   CONNTYPE_LINUXGPIO
-} conntype_t;
+} Conntype;
 
 // https://stackoverflow.com/questions/11023940/how-do-i-get-swig-to-automatically-wrap-an-emulated-this-pointer-to-a-c-struct/11029809#11029809
 // Make sure the wrapped function doesn't expect an input for this:
@@ -535,7 +535,7 @@ typedef struct programmer {
   LISTID id;
   const char *desc;
   int prog_modes;               // Programming interfaces, see #define PM_...
-  conntype_t conntype;
+  Conntype conntype;
   int baudrate;
   int usbvid;
   LISTID usbpid;
@@ -631,7 +631,7 @@ AVRPART * locate_part(const LISTID parts, const char *partdesc);
 AVRMEM_ALIAS * avr_locate_memalias(const AVRPART *p, const char *desc);
 AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 
-// Programming modes for parts and programmers: reflect changes in lexer.l, developer_opts.c and config.c
+// Programming modes for parts and programmers: ensure it's copied from libavrdude.h
 #define PM_SPM                1 // Bootloaders, self-programming with SPM opcodes or NVM Controllers
 #define PM_TPI                2 // Tiny Programming Interface (t4, t5, t9, t10, t20, t40, t102, t104)
 #define PM_ISP                4 // SPI programming for In-System Programming (almost all classic parts)
@@ -645,6 +645,7 @@ AVRMEM_ALIAS * avr_find_memalias(const AVRPART *p, const AVRMEM *m_orig);
 #define PM_XMEGAJTAG       1024 // JTAG, some XMEGA parts
 #define PM_AVR32JTAG       2048 // JTAG for 32-bit AVRs
 #define PM_aWire           4096 // For 32-bit AVRs
+#define PM_Classic (PM_TPI | PM_ISP | PM_HVSP | PM_HVPP | PM_debugWIRE | PM_JTAG | PM_JTAGmkI)
 #define PM_ALL           0x1fff // All programming interfaces
 
 // map Python bytes() to sig+sigsize
