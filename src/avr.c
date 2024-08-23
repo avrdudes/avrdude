@@ -374,7 +374,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
   if(v != NULL)
     vmem = avr_locate_mem(v, mem->desc);
 
-  if(mem->size < 0)             // Sanity check
+  if(mem->size <= 0)            // Sanity check
     return -1;
 
   led_clr(pgm, LED_ERR);
@@ -417,6 +417,7 @@ int avr_read_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *mem, con
     led_clr(pgm, LED_PGM);
     return avr_mem_hiaddr(mem);
   }
+
   // HW programmers need a page size > 1, bootloader typ only offer paged r/w
   if((pgm->paged_load && mem->page_size > 1 && mem->size%mem->page_size == 0) ||
     (is_spm(pgm) && avr_has_paged_access(pgm, p, mem))) {
@@ -650,8 +651,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   unsigned char r;
   int ready;
   int tries;
-  unsigned long start_time;
-  unsigned long prog_time;
+  unsigned long start, now;
   unsigned char b;
   unsigned short caddr;
   OPCODE *writeop;
@@ -729,6 +729,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
     goto success;
   }
 
+  int bm = avr_mem_bitmask(p, mem, addr);
+
   if(!mem->paged && (p->flags & AVRPART_IS_AT90S1200) == 0) {
     /*
      * Check to see if the write is necessary by reading the existing value and
@@ -749,23 +751,17 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       // Read operation is not support on this memory
     } else {
       readok = 1;
-      if(b == data)
+      if((b & bm) == (data & bm))
         goto success;
     }
   }
 
   // Determine which memory opcode to use
   if(mem->op[AVR_OP_WRITE_LO]) {
-    if(addr & 0x01)
-      writeop = mem->op[AVR_OP_WRITE_HI];
-    else
-      writeop = mem->op[AVR_OP_WRITE_LO];
+    writeop = mem->op[addr & 1? AVR_OP_WRITE_HI: AVR_OP_WRITE_LO];
     caddr = addr/2;
   } else if(mem->paged && mem->op[AVR_OP_LOADPAGE_LO]) {
-    if(addr & 0x01)
-      writeop = mem->op[AVR_OP_LOADPAGE_HI];
-    else
-      writeop = mem->op[AVR_OP_LOADPAGE_LO];
+    writeop = mem->op[addr & 1? AVR_OP_LOADPAGE_HI: AVR_OP_LOADPAGE_LO];
     caddr = addr/2;
   } else {
     writeop = mem->op[AVR_OP_WRITE];
@@ -802,8 +798,8 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   tries = 0;
   ready = 0;
   while(!ready) {
-
-    if((data == mem->readback[0]) || (data == mem->readback[1])) {
+    if(!(mem_is_eeprom(mem) || mem_is_in_flash(mem)) || // Only poll for flash or eeprom
+      data == mem->readback[0] || data == mem->readback[1]) { // ... unless data is readback
       /*
        * Use an extra long delay when we happen to be writing values used for
        * polled data read-back.  In this case, polling doesn't work, and we
@@ -816,7 +812,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
         goto rcerror;
       }
     } else {
-      start_time = avr_ustimestamp();
+      start = avr_ustimestamp();
       do {
         // Do polling, but timeout after max_write_delay
         rc = pgm->read_byte(pgm, p, mem, addr, &r);
@@ -824,13 +820,13 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
           rc = -4;
           goto rcerror;
         }
-        prog_time = avr_ustimestamp();
-      } while(r != data && mem->max_write_delay >= 0 && prog_time - start_time < (unsigned long) mem->max_write_delay);
+        now = avr_ustimestamp();
+      } while(r != data && mem->max_write_delay >= 0 && (int) (now-start) < mem->max_write_delay);
     }
 
     // At this point we either have a valid readback or the max_write_delay is expired
 
-    if(r == data) {
+    if((r & bm) == (data & bm)) {
       ready = 1;
     } else if(mem->pwroff_after_write) {
       /*
@@ -1234,7 +1230,7 @@ int avr_mem_bitmask(const AVRPART *p, const AVRMEM *mem, int addr) {
   int bitmask = mem->bitmask;
 
   // Collective memory fuses will have a different bitmask for each address (ie, fuse)
-  if(mem_is_fuses(mem) && addr >= 0 && addr < 16) { // Get right fuse in fuses memory
+  if(mem_is_fuses(mem) && addr >= 0 && addr < mem->size) { // Get right fuse in fuses memory
     AVRMEM *dfuse = avr_locate_fuse_by_offset(p, addr);
 
     if(dfuse) {
