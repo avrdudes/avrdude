@@ -122,7 +122,7 @@ avrdude_conf_version = "@AVRDUDE_FULL_VERSION@";
 #       # STK500 parameters (parallel programming IO lines)
 #       pagel            = <num> ;                # page load pin name in hex, eg, 0xD7
 #       bs2              = <num> ;                # byte select 2 pin name in hex, eg, 0xA0
-#       serial           = <yes/no> ;             # can use serial downloading
+#       serial           = <yes/no> ;             # can use serial programming
 #       parallel         = <yes/no/pseudo> ;      # can use parallel programming
 #       # STK500v2 parameters, to be taken from Atmel's ATDF files
 #       timeout          = <num> ;
@@ -961,7 +961,7 @@ programmer # arduino
 #  - Reads/writes flash/EEPROM via the MCU bootloader and a serial connection
 #  - Automatically resets an attached board via RTS/DTR into bootloader mode
 #  - Implements urprotocol, a skeleton version of STK500v1
-#  - Supports vector bootloaders by patching interrupt vectors during upload:
+#  - Supports vector bootloaders by patching interrupt vectors on flash writes
 #     + Vector bootloaders run on all parts, no need for a HW boot section
 #     + Can be much smaller than the smallest HW boot section of a part, eg,
 #       256 bytes for ATmega2560 (smallest HW boot section is 1024 bytes)
@@ -970,7 +970,7 @@ programmer # arduino
 #  - Provides a 4-byte metadata interface in top flash for
 #     + Allowing applications to utilise unused flash similar to EEPROM
 #     + Storing in top flash the file name and its last-modified date
-#     + Displaying file name and date of the last uploaded application
+#     + Displaying file name and date of the last programmed application
 #
 # See https://github.com/stefanrueger/urboot
 
@@ -3443,7 +3443,7 @@ programmer # jtag2updi
 # can be used for a -P <serialadapter>[:<serial number>] port
 # specification instead of the created serial port. Per-user serialadapter
 # definitions in ~/.avrduderc or avrdude.rc files can add a serial number
-# to assign a particular board a specific id and default upload baud rate:
+# to assign a particular board a specific id and default baud rate:
 #
 # serialadapter parent "ft232r"
 #     id                     = "bike-shed-door";
@@ -3451,12 +3451,12 @@ programmer # jtag2updi
 #     baudrate               = 250000;
 # ;
 #
-# This is particularly useful for uploading to a bootloader as it allows
-# specifying the port as -P bike-shed-door rather than having to figure
-# out which serial port name the operating system has assigned to the
-# plugged in bike-shed-door board at runtime. Note that each programmer
-# that defines usbpid and sets is_serialadapter = yes can also be utilised
-# as a serialadapter.
+# This is particularly useful for programming via a bootloader as it allows
+# specifying the port as -P bike-shed-door rather than having to figure out
+# which serial port name the operating system has assigned to the plugged in
+# bike-shed-door board at runtime. Note that each programmer that defines
+# usbpid and sets is_serialadapter = yes can also be utilised as a
+# serialadapter.
 
 #------------------------------------------------------------
 # ch340

@@ -908,8 +908,8 @@ retry:
        * Some bootloaders increment their copy of ext_addr_byte in that
        * situation, eg, when they use elpm rx, Z+ to read a byte from flash or
        * spm Z+ to write to flash whilst they keep ext_addr_byte in RAMPZ,
-       * which in turn gets incremented by Z+ at 64k page boundaries. So, if an
-       * upload with automated verify finishes just below 64k, AVRDUDE still
+       * which in turn gets incremented by Z+ at 64k page boundaries. So, if
+       * writing with automated verify finishes just below 64k, AVRDUDE still
        * holds ext_addr_byte at the current 64k segment whilst its copy in the
        * bootloader has been auto-incremented. Verifying the code from start
        * exposes the discrepancy.

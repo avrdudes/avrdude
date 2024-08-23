@@ -14,6 +14,9 @@
 @c @set EDITION 3.2.0
 @c @set VERSION 3.2.0
 
+@include avrstats.texi
+@c Contains various statistics used as @value{NUM...} below
+
 @c This is a dir.info fragment to support semi-automated addition of
 @c manuals to an info tree.
 @dircategory AVR Programming & development tools.
@@ -414,7 +417,7 @@ and couple of resistors. It uses serial connection to provide UPDI interface.
 
 The jtag2updi programmer is supported,
 and can program AVRs with a UPDI interface.
-Jtag2updi is just a firmware that can be uploaded to an AVR,
+Jtag2updi is just a firmware that can be loaded onto an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
@@ -978,7 +981,7 @@ the file to read or write.  Possible values are:
 Intel Hex
 
 @item I
-Intel Hex with comments on download and tolerance of checksum errors on upload
+Intel Hex with comments on reading from, and tolerance of checksum errors, writing to the AVR
 
 @cindex Motorola S-Record
 @item s
@@ -1080,7 +1083,7 @@ More @code{-v} options increase verbosity level.
 @item -V
 @cindex Option @code{-V}
 @cindex @code{-V}
-Disable automatic verify check when uploading data with @code{-U}.
+Disable automatic verify check when writing data to the AVR with @code{-U}.
 
 @item -x @var{extended_param}
 @cindex Option @code{-x} @var{extended_param}
@@ -1573,15 +1576,14 @@ that the bootloader cannot erase the chip itself. The option is useful
 for backwards-compatible bootloaders that do not implement chip erase.
 @cindex @code{flash}
 @item restore
-Upload unchanged flash input files and trim below the bootloader if
+Write unchanged flash input files to the AVR and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
 However, for vector bootloaders, even under the option @code{-x restore} an
-input file will not be uploaded for which the reset vector does not point
-to the vector bootloader. This is to avoid writing an input file to the
-device that would render the vector bootloader not functional as it would
-not be reached after reset.
+input file will not be written to the AVR for which the reset vector does not point
+to the vector bootloader. This is to avoid loading an input file onto the
+device that would render the vector bootloader becoming unreachable after reset.
 @cindex @code{flash}
 @item initstore
 On writing to flash fill the store space between the flash application and
@@ -1607,7 +1609,7 @@ available space then a metadata code byte @code{0xff} is stored
 nevertheless to indicate there are no further metadata available. In
 absence of @code{-x nometadata}, the default for the urclock programmer is
 to write as much metadata (filename, data and store information) as the
-size of the uploaded application and the other extended options allow. The
+size of the application and the other extended options allow. The
 subtle difference between @code{-x nometadata} and @code{-x nostore} is that
 the latter always explicitly stores in flash that no further metadata are
 available, so that a such prepared flash can always be queried with
@@ -1905,7 +1907,7 @@ shown for clarity that are not printed by AVRDUDE or the shell.
 
 @cindex @code{flash}
 @noindent
-@strong{Download the file @code{diag.hex} to the ATmega128 chip} using the
+@strong{Write the file @code{diag.hex} to the ATmega128 chip} using the
 STK500 programmer connected to the default serial port:
 
 @smallexample
@@ -1978,9 +1980,9 @@ $ avrdude -cusbasp -patmega128 -qq -Ulfuse:r:-:h -Uhfuse:r:-:b -Uefuse:r:-:o
 @noindent
 @cindex @code{flash}
 @cindex @code{eeprom}
-Using the default programmer, download the file @code{diag.hex} to
-flash, @code{eeprom.hex} to EEPROM, and @strong{set the extended, high, and low
-fuse bytes} to 0xff, 0x89, and 0x2e respectively:
+Using the default programmer, write the file @code{diag.hex} to flash, the
+file @code{eeprom.hex} to EEPROM, and @strong{set the extended, high, and
+low fuse bytes} to 0xff, 0x89, and 0x2e respectively:
 
 @smallexample
 @cartouche
@@ -3744,7 +3746,7 @@ that has only USB parameters defined. It can be used for a @code{-P
 <serialadapter>[:<serial number>]} port specification instead of the
 created serial port. Per-user serialadapter definitions in
 @code{~/.avrduderc} or @code{avrdude.rc} files can add a serial number to
-assign a particular board a specific id and default upload baud rate:
+assign a particular board a specific id and default communication baud rate:
 
 @smallexample
 serialadapter parent "ft232r"
@@ -3755,12 +3757,12 @@ serialadapter parent "ft232r"
 @end smallexample
 
 @noindent
-This is particularly useful for uploading to a bootloader as it allows
-specifying the port as @code{-P bike-shed-door} rather than having to
-figure out which serial port name the operating system has assigned to the
-plugged in bike-shed-door board at runtime. Note that each programmer that
-defines @code{usbpid} and sets @code{is_serialadapter = yes} can also be
-utilised as a serialadapter.
+This is particularly useful for programming through a bootloader as it
+allows specifying the port as @code{-P bike-shed-door} rather than having
+to figure out which serial port name the operating system has assigned to
+the plugged in bike-shed-door board at runtime. Note that each programmer
+that defines @code{usbpid} and sets @code{is_serialadapter = yes} can also
+be utilised as a serialadapter.
 
 @c
 @c Node
@@ -3795,7 +3797,7 @@ part
     # STK500 parameters (parallel programming IO lines)
     pagel            = <num>;                 # page load pin name in hex, e.g., 0xD7
     bs2              = <num>;                 # byte select 2 pin name in hex, e.g., 0xA0
-    serial           = <yes/no>;              # can use serial downloading
+    serial           = <yes/no>;              # can use serial programming
     parallel         = <yes/no/pseudo>;       # can use parallel programming
     # STK500v2 parameters, to be taken from Atmel's ATDF files
     timeout          = <num>;
@@ -4323,7 +4325,7 @@ subroutines in the code for the respective @code{-c} programmer.
 The RDY LED is set once the programmer is initialised and switched off
 when AVRDUDE exits. During reading, writing or erasing the target the PGM
 LED flashes with around 2.5 Hz, whilst the VFY LED comes on during -U
-verification of the uploaded contents. Errors are indicated with the ERR
+verification of the written contents. Errors are indicated with the ERR
 LED.
 
 Assuming AVRDUDE got to the point where LEDs are accessible and the RDY
@@ -4742,9 +4744,8 @@ Windows serial port device names such as: com1, com2, etc.
 
 @noindent
 AVRDUDE does not support parallel port programming in Windows.
-
 If you need to run AVRDUDE using programmer on a parallel port,
-you will need to try one of the BSDs or Linux.
+you might want to try one of the BSDs or Linux.
 
 @ignore
 @c
@@ -5204,7 +5205,7 @@ different to flash in the sense that it can neither be accessed with ISP
 serial programming nor written to by bootloaders. AVRDUDE offers JTAG
 programming of classic-part usersig memories. As with all flash-type
 memories the @code{-U} option can only write 0-bits but not 1-bits.
-Hence, usersig needs to be erased before a file can be uploaded to this
+Hence, usersig needs to be erased before a file can be written to this
 memory region, e.g., using @code{-T "erase usersig" -U
 usersig:w:parameters.hex:i}
 @item io
