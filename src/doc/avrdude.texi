@@ -4747,9 +4747,8 @@ Windows serial port device names such as: com1, com2, etc.
 
 @noindent
 AVRDUDE does not support parallel port programming in Windows.
-
 If you need to run AVRDUDE using programmer on a parallel port,
-you will need to try one of the BSDs or Linux.
+you might want to try one of the BSDs or Linux.
 
 @ignore
 @c
