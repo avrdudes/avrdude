@@ -20,6 +20,7 @@ GENERATED_TEXINFOS = \
 	$(builddir)/programmers.texi \
 	$(builddir)/parts.texi \
 	$(builddir)/programmer_types.texi \
+	$(builddir)/avrstats.texi \
 	$(builddir)/version.texi
 
 CLEANFILES = \
@@ -69,6 +70,12 @@ $(builddir)/parts.texi: ../avrdude$(EXEEXT) ../avrdude.conf $(srcdir)/parts.sed 
 	../avrdude$(EXEEXT) -C ../avrdude.conf -p \? 2>&1 \
 	| grep = | sed -f $(srcdir)/parts.sed \
 	>parts.texi
+
+$(builddir)/avrstats.texi: ../avrdude$(EXEEXT) ../avrdude.conf Makefile
+	echo -n "@set NUMPARTS " >> avrstats.texi
+	../avrdude$(EXEEXT) -C ../avrdude.conf -p \? 2>&1 | grep = | wc -l >> avrstats.texi
+	echo -n "@set NUMPROGRAMMERS " >> avrstats.texi
+	../avrdude$(EXEEXT) -C ../avrdude.conf -c \? 2>&1 | grep = | wc -l >> avrstats.texi
 
 clean-local:
 	rm -rf avrdude-html *.info

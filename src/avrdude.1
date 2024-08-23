@@ -54,7 +54,7 @@
 .Op Fl V
 .Sh DESCRIPTION
 .Nm Avrdude
-is a program for downloading code and data to Atmel AVR
+is a program for downloading and uploading on-chip memories of Atmel AVR
 microcontrollers.
 .Nm Avrdude
 supports Atmel's STK500 programmer,
@@ -186,15 +186,15 @@ AVR910, and the bootloader described in Atmel's application note
 AVR109 (which is also used by the AVR Butterfly evaluation board), are
 supported on a serial port.
 .Pp
-Atmel's JTAG ICE (mkI, mkII, and 3) is supported as well to up- or download memory
-areas from/to an AVR target (no support for on-chip debugging).
-For the JTAG ICE mkII, JTAG, debugWIRE and ISP mode are supported, provided
-it has a firmware revision of at least 4.14 (decimal).
-JTAGICE3 also supports all of JTAG, debugWIRE, and ISP mode.
-See below for the limitations of debugWIRE.
-For ATxmega devices, the JTAG ICE mkII is supported in PDI mode, provided it
-has a revision 1 hardware and firmware version of at least 5.37 (decimal).
-For ATxmega devices, the JTAGICE3 is supported in PDI mode.
+Atmel's JTAG ICE (mkI, mkII, and 3) is supported as well to uploading and
+download memory areas of an AVR target (no support for on-chip debugging).
+For the JTAG ICE mkII, JTAG, debugWIRE and ISP mode are supported,
+provided it has a firmware revision of at least 4.14 (decimal). JTAGICE3
+also supports all of JTAG, debugWIRE, and ISP mode. See below for the
+limitations of debugWIRE. For ATxmega devices, the JTAG ICE mkII is
+supported in PDI mode, provided it has a revision 1 hardware and firmware
+version of at least 5.37 (decimal). For ATxmega devices, the JTAGICE3 is
+supported in PDI mode.
 .Pp
 Atmel-ICE (ARM/AVR) is supported in all modes (JTAG, PDI for Xmega, debugWIRE,
 ISP, UPDI).
@@ -258,9 +258,8 @@ In a nutshell, this programmer consists of simple USB->UART adapter, diode
 and couple of resistors. It uses serial connection to provide UPDI interface.
 See the texinfo documentation for more details and known issues.
 .Pp
-The jtag2updi programmer is supported,
-and can program AVRs with a UPDI interface.
-Jtag2updi is just a firmware that can be uploaded to an AVR,
+The jtag2updi programmer is supported, and can program AVRs with a UPDI
+interface. Jtag2updi is just a firmware that can be loaded onto an AVR,
 which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link.
 .Li https://github.com/ElTangas/jtag2updi
@@ -285,7 +284,7 @@ for Teensy specific options.
 .Pp
 Input files can be provided, and output files can be written in
 different file formats, such as raw binary files containing the data
-to download to the chip, Intel Hex format, or Motorola S-Record
+to write to the chip, Intel Hex format, or Motorola S-Record
 format.  There are a number of tools available to produce those files,
 like
 .Xr asl 1
@@ -844,7 +843,7 @@ serial programming nor written to by bootloaders;
 .Nm
 offers JTAG programming of classic-part usersig memories. As with all
 flash-type memories the -U option can only write 0-bits but not 1-bits.
-Hence, usersig needs to be erased before a file can be uploaded to this
+Hence, usersig needs to be erased before a file can be written to this
 memory region, e.g., using -T "erase usersig" -U
 usersig:w:parameters.hex:i
 .It io
@@ -993,7 +992,7 @@ can be one of:
 .It Ar i
 Intel Hex
 .It Ar I
-Intel Hex with comments on download and tolerance of checksum errors on upload
+Intel Hex with comments on reading from, and tolerance of checksum errors, writing to the AVR
 .It Ar s
 Motorola S-Record
 .It Ar r
@@ -1088,7 +1087,7 @@ More
 .Fl v
 options increase verbosity level.
 .It Fl V
-Disable automatic verify check when uploading data with -U.
+Disable automatic verify check when writing data to the AVR with -U.
 .It Fl x Ar extended_param
 Pass
 .Ar extended_param
@@ -1972,12 +1971,12 @@ with 0xff. If this option is specified, the urclock programmer will assume
 that the bootloader cannot erase the chip itself. The option is useful
 for backwards-compatible bootloaders that do not implement chip erase.
 .It Ar restore
-Upload unchanged flash input files and trim below the bootloader if
+Write unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
 wants to play that back onto the device. No metadata are written in this
 case and no vector patching happens either if it is a vector bootloader.
 However, for vector bootloaders, even under the option -x restore an
-input file will not be uploaded for which the reset vector does not point
+input file will not be written to the AVR for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
 not be reached after reset.
@@ -2002,7 +2001,7 @@ available space then a metadata code byte 0xff is stored nevertheless to
 indicate there are no further metadata available. In absence of
 -x nometadata, the default for the urclock programmer is to write as much
 metadata (filename, data and store information) as the size of the
-uploaded application and the other extended options allow. The subtle
+application and the other extended options allow. The subtle
 difference between -x nometadata and -x nostore is that the latter always
 explicitly stores in flash that no further metadata are available, so that
 a such prepared flash can always be queried with
