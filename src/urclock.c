@@ -23,7 +23,7 @@
  *  - Automatically resets an attached board via RTS/DTR into bootloader mode
  *  - Works best in tandem with the urboot bootloader, but can deal with optiboot and similar
  *  - Implements urprotocol, a communication protocol designed for small bootloader sizes
- *  - Supports vector bootloaders by patching relevant interrupt vectors during upload:
+ *  - Supports vector bootloaders by patching relevant interrupt vectors on flash writes:
  *     + Vector bootloaders run on all devices, not only those with a dedicated boot section
  *     + Can be considerably smaller than the smallest dedicated boot section of a part, eg,
  *       only 256 bytes for ATmega2560 with an otherwise smallest boot section of 1024 bytes
@@ -31,8 +31,8 @@
  *  - Keeps the bootloader alive during interactive terminal sessions
  *  - Provides a 4-byte metadata interface in top flash for
  *     + Allowing applications to utilise unused flash in a similar fashion to EEPROM
- *     + Storing in top flash the file name and last-modified-date of the uploaded application
- *     + Displaying file name and date of the application that was last uploaded
+ *     + Storing in top flash the file name and last-modified-date
+ *     + Displaying file name and date of the last programmed application
  *
  * As an example, the urboot bootloader including EEPROM r/w for the popular ATmega328p is only 384
  * bytes, which frees up 128 bytes. On an ATmega1284p the urboot bootloader without EEPROM r/w is
@@ -278,8 +278,8 @@ typedef struct {
   int32_t storesize;            // Store size
 
   // Metadata for free flash memory to be used for store support
-  char filename[254];           // Filename of uploaded application, must be max 254 bytes incl nul
-  int16_t  yyyy;                // Date stamp of uploaded application file: 4 digit year,
+  char filename[254];           // Filename of application, must be max 254 bytes incl nul
+  int16_t  yyyy;                // Date stamp of application file: 4 digit year,
   int8_t mm, dd, hr, mn;        // Month (1..12), day (1..31), hour (0..23) and minute (0..59)
   uint8_t freeflash[3];         // 24-bit little endian number (storesize)
   uint8_t mcode;                // 255 = no metadata, 0 = only freeflash, 1 = freeflash + date,
@@ -297,7 +297,7 @@ typedef struct {
   // Extended parameters for Urclock
   int showall,                  // Show all pieces of info for connected part and exit
       showid,                   //   ... Urclock ID
-      showdate,                 //   ... last-modified date of last uploaded application
+      showdate,                 //   ... last-modified date of last application file
       showfilename,             //   ... filename of last uploaded application
       showapp,                  //   ... application size
       showstore,                //   ... store size
@@ -555,7 +555,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
   pmsg_notice2("%s %04d.%02d.%02d %02d.%02d meta %d boot %d\n", ur.filename,
     ur.yyyy, ur.mm, ur.dd, ur.hr, ur.mn, nmdata, ur.blend > ur.blstart? ur.blend-ur.blstart+1: 0);
 
-  // Force upload of exactly this file, no patching, no metadata update, just trim if too big
+  // Force writing of exactly this file, no patching, no metadata update, just trim if too big
   if(ur.restore) {
     if(size > maxsize)
       size = maxsize;
@@ -633,7 +633,7 @@ static int urclock_flash_readhook(const PROGRAMMER *pgm, const AVRPART *p, const
       int reset32, appstart, appvecloc;
 
       appvecloc = ur.vblvectornum*vecsz; // Location of jump-to-application in vector table
-      reset16 = buf2uint16(flm->buf);    // First reset word of to-be-uploaded application
+      reset16 = buf2uint16(flm->buf);    // First reset word of to-be-written application
       reset32 = vecsz == 2? reset16: buf2uint32(flm->buf);
 
       /*
@@ -750,7 +750,7 @@ nopatch_nometa:
     }
   }
 
-  // Emulate chip erase if bootloader unable to: mark all bytes for upload on first -U flash:w:...
+  // Emulate chip erase if bootloader unable to: mark all bytes for programming on first -U flash:w:...
   if(ur.emulate_ce) {
     for(int ai = 0; ai < maxsize; ai++)
       flm->tags[ai] = TAG_ALLOCATED;
@@ -2441,7 +2441,7 @@ static int urclock_parseextparms(const PROGRAMMER *pgm, LISTID extparms) {
     {"showall", &ur.showall, NA,          "Show all info for connected part and exit"},
     {"showid", &ur.showid, NA,            "Show Urclock ID and exit"},
     {"showdate", &ur.showdate, NA,        "Show last-modified date of flash application and exit"},
-    {"showfilename", &ur.showfilename, NA,"Show filename of last uploaded application and exit"},
+    {"showfilename", &ur.showfilename, NA,"Show filename of last written application and exit"},
     {"showapp", &ur.showapp, NA,          "Show application size and exit"},
     {"showstore", &ur.showstore, NA,      "Show store size and exit"},
     {"showmeta", &ur.showmeta, NA,        "Show metadata size and exit"},
