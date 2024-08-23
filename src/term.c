@@ -258,7 +258,7 @@ static unsigned char *readbuf(const PROGRAMMER *pgm, const AVRPART *p, int argc,
   if(mi < 0 || mi >= Nmems)
     mi = 0;
 
-  const char *cmd = tolower(**argv) == 'r'? "read": str_casestarts(*argv, "di")? "disasm": "dump";
+  const char *cmd = tolower(**argv & 0xff) == 'r'? "read": str_casestarts(*argv, "di")? "disasm": "dump";
   int is_disasm = cmd[1] == 'i';
   int default_len = is_disasm? 32: 256;
 
@@ -1603,7 +1603,7 @@ static void printproperty(Cnfg *cc, int ii, Cfg_opts o) {
     if(o.verb > 1)
       term_out("# Mask 0x%02x of %s: %.*s\n", cc->t[ii].mask, cc[ii].memstr, cclen, ccom);
     else if(*cc[ii].t->ccomment)
-      term_out("# %c%.*s\n", toupper(*cc[ii].t->ccomment), cclen - 1, cc[ii].t->ccomment + 1);
+      term_out("# %c%.*s\n", toupper(*cc[ii].t->ccomment & 0xff), cclen - 1, cc[ii].t->ccomment + 1);
     else
       term_out("# %s\n", cc[ii].t->name);
   }
