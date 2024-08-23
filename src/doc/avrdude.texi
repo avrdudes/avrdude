@@ -512,7 +512,7 @@ following options are recognized:
 This option tells AVRDUDE what part (MCU) is connected to the programmer.
 The @var{partno} parameter is the part's id listed in the configuration
 file. To see a list of currently supported MCUs use @code{?} as partno,
-which will, for each part, print its id; its official part name; 
+which will, for each part, print its id; its official part name;
 alternative names, if any; and the list of available programming
 interfaces. In connection with @code{-v}, this will also print a table of
 variant part names with the package code and some absolute maximum
@@ -4434,9 +4434,9 @@ configuration file will be always be @code{/etc/avrdude.conf}.
 
 @noindent
 The parallel and serial port device file names are system specific.
-macOS has no default serial port names, but available ports can be 
-found under @code{/dev/cu.*}. Please take note avrdude does not 
-support Parallel Port under macOS.
+macOS has no default serial port names, but available ports can be
+found under @code{/dev/cu.*}. Please take note AVRDUDE does not
+support parallel port programming under macOS.
 
 The following table lists the default names for a given system.
 
@@ -4741,7 +4741,7 @@ Windows serial port device names such as: com1, com2, etc.
 @cindex Windows parallel ports
 
 @noindent
-AVRDUDE does not support parallel ports on Windows.
+AVRDUDE does not support parallel port programming in Windows.
 
 If you need to run AVRDUDE using programmer on a parallel port,
 you will need to try one of the BSDs or Linux.
@@ -5142,7 +5142,7 @@ hardware, though most will support it.
 
 @noindent
 3. The ISP programming protocol of the AT90S1200 differs in subtle ways from
-that of other AVRs.  Thus, not all ISP programmers support this device. 
+that of other AVRs.  Thus, not all ISP programmers support this device.
 Known to work are all direct bitbang programmers, and all programmers
 talking the STK500v2 protocol.
 

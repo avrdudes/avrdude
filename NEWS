@@ -60,6 +60,7 @@ Changes since version 7.3:
     - Writing BOOTROW for Curiosity Nano #1868
     - Should AVRDUDE be run as root? #1860
     - Auto-build avrdude.pdf from texinfo sources #1847
+    - Poor coverage of (concept) index in documentation #1582
 
   * Pull requests:
 
@@ -154,6 +155,11 @@ Changes since version 7.3:
     - Adapt documentation to new Look and Feel #1892
     - Adapt tools/test-avrdude script for versatile CI use #1891
     - Reformat sources #1893
+    - Add to parts, programmers and index in avrdude.pdf #1895 #1902
+    - Fix deprecated types in libavrdude.i #1896
+    - Update build.yml to re-enable Windows on ARM64 MSVC build #1901
+    - Add -e exe option to test8 #1903
+    - Refrain from polling memories other than flash/eeprom #1897
 
   * Internals:
 
