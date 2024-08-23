@@ -248,7 +248,7 @@ char *str_sprintf(const char *fmt, ...) {
 
   // Compute size
   va_start(ap, fmt);
-  size = vsnprintf(NULL, size, fmt, ap);
+  size = vsnprintf(NULL, 0, fmt, ap);
   va_end(ap);
 
   if(size < 0)
@@ -274,7 +274,7 @@ const char *str_ccprintf(const char *fmt, ...) {
 
   // Compute size
   va_start(ap, fmt);
-  size = vsnprintf(NULL, size, fmt, ap);
+  size = vsnprintf(NULL, 0, fmt, ap);
   va_end(ap);
 
   if(size < 0)
@@ -827,7 +827,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
       // Parse suffixes: ULL, LL, UL, L ... UHH, HH
       for(char *p = end_ptr; *p; p++) {
-        switch(toupper(*p)) {
+        switch(toupper(*p & 0xff)) {
         case 'U':
           nu++;
           break;
@@ -847,7 +847,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
       if(nx == 0 && nu < 2 && nl < 3 && nh < 3 && ns < 2) {     // Could be valid integer suffix
         // If U, then must be at start or end
-        if(nu == 0 || toupper(*end_ptr) == 'U' || toupper(str[arglen - 1]) == 'U') {
+        if(nu == 0 || toupper(*end_ptr & 0xff) == 'U' || toupper(str[arglen - 1] & 0xff) == 'U') {
           bool is_hex, is_bin;
           int ndigits;
 
@@ -940,7 +940,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
 
   if(type & STR_DOUBLE) {       // Try double next, must have D suffix
     sd->d = strtod(str, &end_ptr);
-    if(end_ptr != str && toupper(*end_ptr) == 'D' && end_ptr[1] == 0) {
+    if(end_ptr != str && toupper(*end_ptr & 0xff) == 'D' && end_ptr[1] == 0) {
       sd->size = 8;
       sd->type = STR_DOUBLE;
       mmt_free(str);
@@ -951,7 +951,7 @@ Str2data *str_todata(const char *s, int type, const AVRPART *part, const char *m
   if(type & STR_FLOAT) {        // Try float next
     sd->size = 0;
     sd->f = strtof(str, &end_ptr);
-    if(end_ptr != str && toupper(*end_ptr) == 'F' && end_ptr[1] == 0)
+    if(end_ptr != str && toupper(*end_ptr & 0xff) == 'F' && end_ptr[1] == 0)
       sd->size = 4;
     // Do not accept valid mantissa-only floats that are integer rejects (eg, 078 or ULL overflows)
     if(end_ptr != str && *end_ptr == 0 && !is_mantissa_only(str))

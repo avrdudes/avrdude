@@ -454,7 +454,7 @@ static int is_jumpable(int address) {
 
 // Format output for a label list r referenced by mnemonic m
 static void output_references(const char *m, char *r) {
-  disasm_out("; %c%s from ", toupper(*m), m + 1);
+  disasm_out("; %c%s from ", toupper(*m & 0xff), m + 1);
   for(char *s = r;;) {
     char *c = strchr(s + 1, ',');
 
@@ -513,7 +513,7 @@ static void lineout(const char *code, const char *comment,
         const char *mnestr = avr_opcodes[mne].opcode;
 
         disasm_out("%-*s ; %s\n", commentcol(), str_ccprintf("%s:", name),
-          str_ccprintf("%c%s from %s", toupper(*mnestr), mnestr + 1, reflist));
+          str_ccprintf("%c%s from %s", toupper(*mnestr & 0xff), mnestr + 1, reflist));
       } else {
         output_references(avr_opcodes[mne].opcode, reflist);
         if(comment)
