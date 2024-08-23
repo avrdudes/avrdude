@@ -1623,27 +1623,16 @@ int main(int argc, char *argv[]) {
       if(rc != LIBAVRDUDE_SUCCESS) {
         if(rc == LIBAVRDUDE_SOFTFAIL && is_updi(p) && attempt < 1) {
           attempt++;
-          if(pgm->read_sib) {
-            // Read SIB and compare FamilyID
-            char sib[AVR_SIBLEN + 1];
-
-            pgm->read_sib(pgm, p, sib);
-            pmsg_notice("System Information Block: %s\n", sib);
-            if(strncmp(p->family_id, sib, AVR_FAMILYIDLEN)) {
-              pmsg_warning("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
-              imsg_warning("expected FamilyID: \"%s\"\n", p->family_id);
-            } else
-              pmsg_notice("received FamilyID: \"%.*s\"\n", AVR_FAMILYIDLEN, sib);
-          }
           if(erase) {
             erase = 0;
             if(uflags & UF_NOWRITE) {
               pmsg_warning("conflicting -e and -n options specified, NOT erasing chip\n");
             } else {
-              pmsg_notice("trying to unlock the chip\n");
+              pmsg_info("unlocking the chip");
               exitrc = avr_unlock(pgm, p);
               if(exitrc)
                 goto main_exit;
+              msg_info(" and trying again\n");
               goto sig_again;
             }
           }
