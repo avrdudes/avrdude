@@ -730,7 +730,6 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
   }
 
   int bm = avr_mem_bitmask(p, mem, addr);
-#define bmequ(a, b) (((a) & bm) == ((b) & bm))
 
   if(!mem->paged && (p->flags & AVRPART_IS_AT90S1200) == 0) {
     /*
@@ -752,7 +751,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
       // Read operation is not support on this memory
     } else {
       readok = 1;
-      if(bmequ(b, data))
+      if((b & bm) == (data & bm))
         goto success;
     }
   }
@@ -827,7 +826,7 @@ int avr_write_byte_default(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM
 
     // At this point we either have a valid readback or the max_write_delay is expired
 
-    if(bmequ(r, data)) {
+    if((r & bm) == (data & bm)) {
       ready = 1;
     } else if(mem->pwroff_after_write) {
       /*
