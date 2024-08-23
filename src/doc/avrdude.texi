@@ -110,8 +110,9 @@ Copyright @copyright{} Hans Eirik Bull, Brian S. Dean, Stefan R@"uger and J@"org
 * Programmer Specific Information::
 * Platform Dependent Information::
 * Troubleshooting::
-* List of Parts::
 * List of Programmers::
+* List of Parts::
+* List of Memories::
 * Index::
 @end menu
 
@@ -129,6 +130,10 @@ program the Flash, EEPROM, and where supported by the  programmer,  lock
 bits, fuses that hold the microcontroller's configuration and other
 memories that the part might have.
 
+@cindex @code{calibration}
+@cindex @code{signature}
+@cindex @code{flash}
+@cindex @code{eeprom}
 AVRDUDE can be used via the command line to read or write chip memories
 (eeprom, flash, fuses, lock bits) and read memories such as signature or
 calibration bytes; the same can be achieved via an interactive terminal
@@ -268,6 +273,7 @@ usbdev config parameter).
 The STK500, STK600, JTAG ICE, and avr910 contain on-board logic to control the programming of the target
 device.
 @cindex Atmel bootloader (AVR109, AVR911)
+@cindex @code{flash}
 The avr109 bootloader implements a protocol similar to avr910, but is
 actually implemented in the boot area of the target's flash, as
 opposed to being an external device.
@@ -413,6 +419,7 @@ which enables it to interface with avrdude using the jtagice mkii protocol
 via a serial link (@url{https://github.com/ElTangas/jtag2updi}).
 
 @cindex Micronucleus bootloader
+@cindex @code{flash}
 The Micronucleus bootloader is supported for both protocol version V1 and
 V2. As the bootloader does not support reading from flash memory, use the
 @code{-V} option to prevent AVRDUDE from verifying the flash memory. See
@@ -420,6 +427,7 @@ the section on @emph{extended parameters} below for Micronucleus specific
 options.
 
 @cindex Teensy bootloader
+@cindex @code{flash}
 The Teensy bootloader is supported for all AVR boards.
 As the bootloader does not support reading from flash memory,
 use the @code{-V} option to prevent AVRDUDE from verifying the flash memory.
@@ -632,6 +640,7 @@ directory as the avrdude executable.
 @item -A
 @cindex Option @code{-A}
 @cindex @code{-A}
+@cindex @code{flash}
 Disable the automatic removal of trailing-0xFF sequences in file input
 that is to be programmed to flash and in AVR reads from flash memory.
 Normally, trailing 0xFFs can be discarded, as flash programming requires
@@ -644,6 +653,7 @@ The popular Arduino bootloader exhibits this behaviour; for this reason
 @item -D
 @cindex Option @code{-D}
 @cindex @code{-D}
+@cindex @code{flash}
 Disable auto-erase for flash. When the @code{-U} option for writing to any
 flash memory is specified, avrdude will perform a chip erase before
 starting any of the programming operations, since it generally is a
@@ -657,6 +667,8 @@ contents. Setting @code{-D} implies @code{-A}.
 @item -e
 @cindex Option @code{-e}
 @cindex @code{-e}
+@cindex @code{flash}
+@cindex @code{eeprom}
 Causes a chip erase to be executed. This will reset the contents of the
 flash ROM and EEPROM to the value @code{0xff}, and clear all lock bits.
 Except for ATxmega and UPDI (AVR8X family) devices, all of which can use
@@ -671,6 +683,7 @@ use @code{-T} erase instead which is processed in the given command line
 order.
 
 @cindex Auto-erase
+@cindex @code{flash}
 In absence of an explicit @code{-e} or @code{-D} option avrdude tries to
 augur from the command line whether or not the chip should be auto-erased
 at the  beginning. If avrdude detects a @code{-U} command that writes to
@@ -679,6 +692,7 @@ unless a @code{-T} erase commad has been detected beforehand and unless
 flash is read before writing to it. For the purpose of this analysis any
 terminal command is considered to possibly read flash.
 
+@cindex @code{eeprom}
 Note that for reprogramming EEPROM cells, no explicit prior chip erase is
 required since the MCU provides an auto-erase cycle in that case before
 programming the cell.
@@ -696,6 +710,7 @@ Multiple @var{exitspec} options can be separated with commas.
 @item -F
 @cindex Option @code{-F}
 @cindex @code{-F}
+@cindex @code{signature}
 Normally, AVRDUDE tries to verify that the device signature read from
 the part is reasonable before continuing.  Since it can happen from time
 to time that a device has a broken (erased or overwritten) device
@@ -744,10 +759,12 @@ the device.
 @item -O
 @cindex Option @code{-O}
 @cindex @code{-O}
+@cindex @code{calibration}
 Perform a RC oscillator run-time calibration according to Atmel
 application note AVR053.
 This is only supported on the STK500v2, AVRISP mkII, and JTAG ICE mkII
 hardware.
+@cindex @code{eeprom}
 Note that the result will be stored in the EEPROM cell at address 0.
 
 @item -P @var{port}
@@ -898,6 +915,10 @@ from the list so far by preceding a minus or backslash, eg,
 line or the @code{part} command in the interactive terminal to display all
 the memories supported by a particular device.
 
+@cindex @code{calibration}
+@cindex @code{signature}
+@cindex @code{flash}
+@cindex @code{eeprom}
 Typically, a device's memory configuration at least contains the memory
 types @code{flash}, @code{eeprom}, @code{signature} and @code{lock}, which
 is sometimes known as @code{lockbits}. The signature memory contains the
@@ -910,6 +931,8 @@ typically have fuse bytes, which are read/write memories for configuration
 of the device and calibration memories that typically contain read-only
 factory calibration values.
 
+@cindex @code{flash}
+@cindex @code{eeprom}
 The flash memory, being physically implemented as NOR-memory, is special
 in the sense that it is normally only possible to program bits to change
 from 1 to 0. Before reprogramming takes place normally flash memory has to
@@ -925,154 +948,8 @@ be noted that in absence of the @code{-e} chip erase option any ATxmega or
 UPDI flash pages not affected by the programming will retain their
 previous content.
 
-Classic devices may have the following memories in addition to
-@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
-@table @code
-@item calibration
-One or more bytes of RC oscillator calibration data
-@item efuse
-Extended fuse byte
-@item fuse
-Fuse byte in devices that have only a single fuse byte
-@item hfuse
-High fuse byte
-@item lfuse
-Low fuse byte
-@item prodsig
-Signature, calibration byte and serial number in a small read-only memory,
-which is only documented to be available for ATmega324PB, ATmega328PB,
-ATtiny102 and ATtiny104; AVRDUDE generally tries to make this memory
-available, also for parts where it is not documented, but not all
-programmers may be able to read this memory
-@item sigrow
-Memory alias for prodsig
-@item sernum
-The serial number part of prodsig; owing to scarce documentation this may not
-actually turn out to be a serial number or be readable by some programmers
-@item usersig
-Three extra flash pages for firmware settings; this memory is not erased
-during a chip erase. Only some classic parts,
-ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
-different to flash in the sense that it can neither be accessed with ISP
-serial programming nor written to by bootloaders. AVRDUDE offers JTAG
-programming of classic-part usersig memories. As with all flash-type
-memories the @code{-U} option can only write 0-bits but not 1-bits.
-Hence, usersig needs to be erased before a file can be uploaded to this
-memory region, e.g., using @code{-T "erase usersig" -U
-usersig:w:parameters.hex:i}
-@item io
-Volatile register memory; it cannot be accessed by external programming
-methods only by bootloaders, which has limited use unless the bootloader
-jumps to the application directly, i.e., without a WDT reset
-@item sram
-Volatile RAM memory; like @code{io} it cannot be accessed by external
-programming
-@end table
-
-ATxmega devices have the following memories in addition to
-@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
-@table @code
-@item application
-Application flash area
-@item apptable
-Application table flash area
-@item boot
-Boot flash area
-@item calibration
-An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
-oscillator calibration values; this is a sub-memory of @code{prodsig}
-@item fuses
-A logical memory of 7 bytes containing all @code{fuse}X of a part, which
-can be used to program all fuses at the same time; note that some of the
-fuse bytes will be reserved, though
-@item fuse0
-A.k.a. jtaguid: JTAG user ID for some devices
-@item fuse1
-Watchdog configuration
-@item fuse6
-Fault detection action configuration TC4/5 for ATxmega E series parts
-@item fuse@emph{N}
-Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system configuration
-@item prodsig
-The production signature row is a read-only memory section for factory
-programmed data such as calibration values for oscillators or analogue
-modules; it also contains a serial number that consists of the production
-lot number, wafer number and wafer coordinates for the part
-@item sernum
-Serial number with a unique ID for the part consisting of 10 bytes; these
-are part of the @code{prodsig} memory above
-@item sigrow
-Memory alias for prodsig
-@item tempsense
-A two-byte memory, which is located within @code{prodsig}; it contains a 12-bit
-temperature sensor calibration value
-@item usersig
-Additional flash memory page that can be used for firmware settings; this
-memory is not erased during a chip erase
-@item io
-Volatile register memory; AVRDUDE can read this memory but not write to it
-using external programming
-@item sram
-Volatile RAM memory; cannot be usefully accessed by external programming
-@end table
-
-Modern 8-bit AVR devices have the following memories in addition to
-@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
-@table @code
-@item fuse0
-A.k.a. wdtcfg: watchdog configuration
-@item fuse1
-A.k.a. bodcfg: brownout detection configuration
-@item fuse2
-A.k.a. osccfg: oscillator configuration
-@item fuse4
-A.k.a. tcd0cfg (not all devices): timer counter type D configuration
-@item fuse5
-A.k.a. syscfg0: system configuration 0
-@item fuse6
-A.k.a. syscfg1: system configuration 1
-@item fuse7
-A.k.a. append or codesize: either the end of the application code section or the code size in blocks of 256/512 bytes
-@item fuse8
-A.k.a. bootend or bootsize: end of the boot section or the boot size in blocks of 256/512 bytes
-@item fusea
-A.k.a. pdicfg: configures/locks updi access; it is the only fuse that consists of two bytes
-@item fuses
-A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
-@item osc16err
-Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
-@item osc20err
-Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
-@item osccal16
-Two oscillator calibration bytes for 16 MHz
-@item osccal20
-Two oscillator calibration bytes for 20 MHz
-@item prodsig
-Read-only memory section for factory programmed data such as the
-signature, calibration values and serial number
-@item sigrow
-Memory alias for prodsig
-@item sernum
-Serial number with a unique ID for the part (10 or 16 bytes)
-@item tempsense
-Temperature sensor calibration values
-@item bootrow
-Extra page of memory that is only accessible by the MCU in bootloader
-code; UDPI can read and write this memory only when the device is
-unlocked
-@item userrow
-Extra page of EEPROM memory that can be used for firmware settings; this
-memory is not erased during a chip erase
-@item sib
-Special system information block memory with information about AVR family, chip revision etc.
-@item io
-Volatile register memory; AVRDUDE can program this memory but this is of
-limited utility because anything written to the io memory will be undefined or
-lost after reset; writing to individual registers in the terminal can
-still be used, e.g., to test I/O ports
-@item sram
-Volatile RAM memory; can be read and written but contents will be lost after reset
-@end table
+See @ref{List of Memories} for a complete list of memories that AVR
+devices can have.
 
 The @var{op} field specifies what operation to perform:
 
@@ -1096,45 +973,56 @@ write.  The @var{format} field is optional and contains the format of
 the file to read or write.  Possible values are:
 
 @table @code
+@cindex Intel Hex
 @item i
 Intel Hex
 
 @item I
 Intel Hex with comments on download and tolerance of checksum errors on upload
 
+@cindex Motorola S-Record
 @item s
 Motorola S-Record
 
+@cindex @code{flash}
+@cindex Raw binary
 @item r
 raw binary; little-endian byte order, in the case of the flash data
 
+@cindex ELF (Executable and Linkable Format)
 @item e
 ELF (Executable and Linkable Format), the final output file from the
 linker; currently only accepted as an input file
 
+@cindex Immediate file mode
 @item m
 immediate mode; actual byte values are specified on the command line,
 separated by commas or spaces in place of the @var{filename} field of the
 @option{-U} option.  This is useful for programming fuse bytes without
 having to create a single-byte file or enter terminal mode.
 
+@cindex Auto-detect mode
 @item a
 auto detect; valid for input only, and only if the input is not provided
 at stdin.
 
+@cindex Decimal file mode
 @item d
 decimal; this and the following formats generate one line of output for
 the respective memory section, forming a comma-separated list of the
 values. This can be particularly useful for subsequent processing, like
 for fuse bit settings.
 
+@cindex Hexadecimal file mode
 @item h
 hexadecimal; each value will get the string @emph{0x} prepended.
 
+@cindex Octal file mode
 @item o
 octal; each value will get a @emph{0}
 prepended unless it is less than 8 in which case it gets no prefix.
 
+@cindex Binary file mode
 @item b
 binary; each value will get the string @emph{0b} prepended.
 @end table
@@ -1167,15 +1055,18 @@ writing memories. Note also that if a @var{filename} contains a colon as
 penultimate character the @var{format} field is no longer optional since
 the last character would otherwise be misinterpreted as @var{format}.
 
+@cindex @code{flash}
 When reading any kind of flash memory area (including the various sub-areas
 in Xmega devices), the resulting output file will be truncated to not contain
 trailing 0xFF bytes which indicate unprogrammed (erased) memory. Thus, if the
 entire memory is unprogrammed, this will result in an output file that has no
 contents at all. This behaviour can be overridden with the @code{-A} option.
 
+@cindex @code{flash}
 As an abbreviation, the form @code{-U} @var{filename}
 is equivalent to specifying
-@code{-U} @emph{flash:w:}@var{filename}@emph{:a}.
+@code{-U} @emph{flash:w:}@var{filename}@emph{:a} or
+@code{-U} @emph{application:w:}@var{filename}@emph{:a} for ATxmegas.
 This will only work if @var{filename} does not have a pair of colons in it
 that sandwich a single character as otherwise the first part might be
 interpreted as memory, and the single character as memory operation.
@@ -1317,6 +1208,7 @@ extended parameters to be specified on the command line.
 Both dryrun and dryboot programmers emulate programming and accept the following parameters:
 
 @table @code
+@cindex @code{flash}
 @item init
 Initialise memories with human-readable patterns. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
@@ -1329,6 +1221,7 @@ results.
 @item init=<n>
 Shortcut for @code{-x init -x seed=<n>} (see below)
 
+@cindex @code{flash}
 @item random
 Initialise memories with random code and values. Flash memory will be
 randomly configured with respect to bootloader, data and code length.
@@ -1603,6 +1496,8 @@ Show all info for the connected part, then exit. The @code{-x show...} options
 below can be used to assemble a bespoke response consisting of a subset
 (or only one item) of all available relevant information about the
 connected part and bootloader.
+@cindex @code{flash}
+@cindex @code{eeprom}
 @item showid
 Show a unique Urclock ID stored in either flash or EEPROM of the MCU, then exit.
 @item id=<E|F>.<addr>.<len>
@@ -1612,11 +1507,13 @@ number can be set by the @code{-x id=<E|F>.<addr>.<len>} extended parameter. @co
 stands for EEPROM and @code{F} stands for flash. A negative address addr counts
 from the end of EEPROM and flash, respectively. The length len of the
 Urclock ID can be between 1 and 8 bytes.
+@cindex @code{flash}
 @item showdate
 Show the last-modified date of the input file for the flash application,
 then exit. If the input file was stdin, the date will be that of the
 programming. Date and filename are part of the metadata that the urclock
 programmer stores by default in high flash just under the bootloader; see also
+@cindex @code{flash}
 @code{-x nometadata}.
 @item showfilename
 Show the input filename (or title) of the last flash writing session, then exit.
@@ -1626,6 +1523,7 @@ string length for the title/filename field is 254 bytes including
 terminating nul.
 @item showapp
 Show the size of the programmed application, then exit.
+@cindex @code{flash}
 @item showstore
 Show the size of the unused flash between the application and metadata, then exit.
 @item showmeta
@@ -1642,6 +1540,7 @@ will be any other vector number of the interrupt vector table or the slot
 just behind the vector table with the name @code{VBL_ADDITIONAL_VECTOR}.
 @item showpart
 Show the part for which the bootloader was compiled, then exit.
+@cindex @code{flash}
 @item bootsize=<size>
 Manual override for bootloader size. Urboot bootloaders put the number of
 used bootloader pages into a table at the top of the bootloader section,
@@ -1649,6 +1548,7 @@ i.e., typically top of flash, so the urclock programmer can look up the
 bootloader size itself. In backward-compatibility mode, when programming
 via other bootloaders, this option can be used to tell the programmer the
 size, and therefore the location, of the bootloader.
+@cindex @code{flash}
 @item vectornum=<n>
 Manual override for vector number. Urboot bootloaders put the vector
 number used by a vector bootloader into a table at the top of flash, so
@@ -1657,10 +1557,12 @@ useful in backward-compatibility mode (or when the urboot bootloader does
 not offer flash read). Specifying a vector number in these circumstances
 implies a vector bootloader whilst the default assumption would be a
 hardware-supported bootloader.
+@cindex @code{eeprom}
 @item eepromrw
 Manual override for asserting EEPROM read/write capability. Not normally
 needed for urboot bootloaders, but useful for in backward-compatibility
 mode if the bootloader offers EEPROM read/write.
+@cindex @code{flash}
 @item emulate_ce
 If an urboot bootloader does not offer a chip erase command it will tell
 the urclock programmer so during handshake. In this case the urclock
@@ -1669,6 +1571,7 @@ options, by filling the remainder of unused flash below the bootloader
 with 0xff. If this option is specified, the urclock programmer will assume
 that the bootloader cannot erase the chip itself. The option is useful
 for backwards-compatible bootloaders that do not implement chip erase.
+@cindex @code{flash}
 @item restore
 Upload unchanged flash input files and trim below the bootloader if
 needed. This is most useful when one has a backup of the full flash and
@@ -1679,18 +1582,24 @@ input file will not be uploaded for which the reset vector does not point
 to the vector bootloader. This is to avoid writing an input file to the
 device that would render the vector bootloader not functional as it would
 not be reached after reset.
+@cindex @code{flash}
 @item initstore
 On writing to flash fill the store space between the flash application and
 the metadata section with 0xff.
+@cindex @code{flash}
 @item nofilename
 On writing to flash do not store the application input filename (nor a title).
+@cindex @code{flash}
 @item nodate
 On writing to flash do not store the application input filename (nor a
 title) and no date either.
+@cindex @code{flash}
 @item nostore
 On writing to flash do not store metadata except the metadata code byte
 @code{0xff} saying there are no metadata.  In particular, no data store
 frame is programmed.
+@cindex @code{flash}
+@cindex Metadata
 @item nometadata
 Do not support any metadata. The full flash besides the bootloader is
 available for the application. If the application is smaller than the
@@ -1796,6 +1705,7 @@ parameters unavailable. Be aware that ASCII mode is not guaranteed to work
 with newer firmware versions, and is retained only to maintain compatibility
 with older firmware versions.
 
+@cindex @code{flash}
 @item nopagedwrite
 Firmware versions 5.10 and newer support a binary mode SPI command that enables
 whole pages to be written to AVR flash memory at once, resulting in a
@@ -1993,6 +1903,7 @@ output of commands or that of the @code{-U} command with an output file
 named @code{-} are written to stdout. In some examples empty lines are
 shown for clarity that are not printed by AVRDUDE or the shell.
 
+@cindex @code{flash}
 @noindent
 @strong{Download the file @code{diag.hex} to the ATmega128 chip} using the
 STK500 programmer connected to the default serial port:
@@ -2014,6 +1925,7 @@ Avrdude done.  Thank you.
 @noindent
 Same but in @strong{quell-progress-reporting (silent) mode @code{-qq}:}
 
+@cindex @code{flash}
 @smallexample
 @cartouche
 $ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex
@@ -2023,6 +1935,7 @@ $ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex
 @noindent
 @strong{Using @code{&&} to confirm that the silent AVRDUDE command went OK:}
 
+@cindex @code{flash}
 @smallexample
 @cartouche
 $ avrdude -qq -p m128 -c stk500 -e -U flash:w:diag.hex && echo OK
@@ -2030,9 +1943,11 @@ OK
 @end cartouche
 @end smallexample
 
+@cindex @code{flash}
 @noindent
 @strong{Save flash memory in raw binary format to the file named @code{c:/diag flash.bin}:}
 
+@cindex @code{flash}
 @smallexample
 @cartouche
 $ avrdude -p m128 -c stk500 -U flash:r:"c:/diag flash.bin":r
@@ -2061,6 +1976,8 @@ $ avrdude -cusbasp -patmega128 -qq -Ulfuse:r:-:h -Uhfuse:r:-:b -Uefuse:r:-:o
 @page
 
 @noindent
+@cindex @code{flash}
+@cindex @code{eeprom}
 Using the default programmer, download the file @code{diag.hex} to
 flash, @code{eeprom.hex} to EEPROM, and @strong{set the extended, high, and low
 fuse bytes} to 0xff, 0x89, and 0x2e respectively:
@@ -2153,6 +2070,7 @@ $ avrdude -cusbasp -pattiny13 -Ueeprom:r:-:i 2>/dev/null
 @end cartouche
 @end smallexample
 
+@cindex @code{flash}
 @noindent
 @strong{Using the Avrdude output to print strings present in flash memory:}
 
@@ -2721,6 +2639,7 @@ for disassembly of that area. As with @code{L} labels, @code{P} and
 the symbol that may be output in the disassembly column as and when the
 corresponding variables are used.
 
+@cindex @code{flash}
 Tagfiles are useful for disassembly to make the output of disasm more
 readable. They can be built manually and incrementally as one's under‐
 standing of the code grows. Alternatively, the bash shell script
@@ -2912,8 +2831,11 @@ Compare one or more memories with the specified file. Memlist can be a
 comma separated list of memories just as in the @code{-U} command line
 argument. @code{verify} flushes the cache before verifying memories.
 
-@item erase
 @cindex @code{erase}
+@cindex @code{flash}
+@cindex @code{bootrow}
+@cindex @code{eeprom}
+@item erase
 Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
 Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
 a corresponding value at the last reset prior to the operation.
@@ -2928,6 +2850,9 @@ Erase a section of the specified memory.
 
 @item flush
 @cindex @code{flush}
+@cindex @code{usersig}
+@cindex @code{bootrow}
+@cindex @code{eeprom}
 Synchronise with the device all pending writes to flash, EEPROM, bootrow and
 usersig. With some programmer and part combinations, flash (and sometimes
 EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
@@ -2941,8 +2866,12 @@ are written back to the device. Hence, it can take minutes to ensure that
 a single previously cleared bit is set and, therefore, this routine should
 be called sparingly.
 
-@item abort
+@cindex @code{flush}
+@cindex @code{usersig}
+@cindex @code{bootrow}
+@cindex @code{eeprom}
 @cindex @code{abort}
+@item abort
 Normally, caches are only ever actually written to the device when using
 @code{flush}, at the end of the terminal session after typing @code{quit},
 or after EOF on input is encountered. The @code{abort} command resets the
@@ -2989,8 +2918,9 @@ It is quite possible, as is with direct writing to the underlying fuses
 and lock bits, to brick a part, i.e., make it unresponsive to further
 programming with the chosen programmer: here be dragons.
 
-@item factory reset
+@cindex @code{eeprom}
 @cindex @code{factory reset}
+@item factory reset
 Resets the connected part to factory state as far as possible
 (bootloaders, for example, cannot write fuses and may not have a means to
 erase EEPROM). This command may change the clock frequency F_CPU of the
@@ -3447,6 +3377,7 @@ Avrdude done.  Thank you.
 
 @cindex @code{disasm} example
 
+@cindex @code{flash}
 @noindent @strong{Disassembe the flash contents of an ATtiny13A,} write
 the output to file @code{blink.S}, compile to `blink.elf` and verify that
 the flash contents of the ATtiny13A is the same as the one given by the
@@ -4126,6 +4057,7 @@ the boot lock bits can result in a ``shoot-into-your-foot'' scenario as
 the only way to unprogram these bits is a chip erase, which will also
 erase the boot loader code.
 
+@cindex @code{flash}
 The boot loader implements the ``chip erase'' function by erasing the
 flash pages of the application section.
 
@@ -4258,6 +4190,7 @@ specific behaviour.
 These bootloaders have no option to access memory areas other than
 Flash and EEPROM.
 
+@cindex @code{flash}
 When the bootloader is started, it enters a @emph{security mode} where
 the only acceptable access is to query the device configuration
 parameters (which are used for the signature on AVR devices).  The
@@ -4271,6 +4204,7 @@ all queries.  As these queries are used to obtain the equivalent of a
 signature, AVRDUDE can only continue in that situation by forcing the
 signature check to be overridden with the @option{-F} option.
 
+@cindex @code{eeprom}
 A @emph{chip erase} might leave the EEPROM unerased, at least on some
 versions of the bootloader.
 
@@ -4312,6 +4246,7 @@ has been tested only on a single device, so issues with other devices are
 expected. Full NVM v4 mode support will be provided once the hardware is
 widely available.
 
+@cindex @code{signature}
 One of the core AVRDUDE features is verification of the connection by
 reading device signature prior to any operation, but this operation
 is not possible on UPDI locked devices. Therefore, to be able to
@@ -4321,6 +4256,7 @@ this check.
 Please note: using @option{-F} during write operation to locked device
 will force chip erase. Use carefully.
 
+@cindex @code{eeprom}
 Another issue you might notice is slow performance of EEPROM writing
 using SerialUPDI for AVR Dx devices. This can be addressed by changing
 @emph{avrdude.conf} section for this device - changing EEPROM page
@@ -4346,7 +4282,7 @@ part parent    ".avrdx"
     memory "eeprom"
         size      = 0x200;
         offset    = 0x1400;
-        page_size = 0x1;
+        page_size = 0x20;
         readsize  = 0x100;
     ;
 ;
@@ -4831,7 +4767,7 @@ such as @option{--prefix} and @option{--datadir}.
 @c
 @c Node
 @c
-@node Troubleshooting, List of Parts, Platform Dependent Information, Top
+@node Troubleshooting, List of Programmers, Platform Dependent Information, Top
 @appendix Troubleshooting
 
 @noindent
@@ -4885,6 +4821,7 @@ Problem: I'm not using Linux and my AVR910 programmer is really slow.
 Solutions: The reasons for this are the same as above.
 If you know how to work around this on your OS, please let us know.
 
+@cindex @code{eeprom}
 @item
 Problem: Page-mode programming the EEPROM (using the -U option) does
 not erase EEPROM cells before writing, and thus cannot necessarily overwrite
@@ -4896,6 +4833,12 @@ datasheets.
 In order to successfully program the EEPROM that way, a prior chip
 erase (with the EESAVE fuse unprogrammed) is required.
 This also applies to the STK500 and STK600 in high-voltage programming mode.
+
+Programming the EEPROM in the terminal, however, will recognise that the
+programmer struggles to write to EEPROM and read the flash, EEPROM and, if
+present, bootrow contents, perform a chip erase and then write the
+memories back. This happens when flushing the cache or leaving the
+terminal and, out of necessity, take some time.
 
 @item
 Problem: How do I turn off the @var{DWEN} fuse?
@@ -5154,7 +5097,25 @@ erase cycle.
 @c
 @c Node
 @c
-@node List of Parts, List of Programmers, Troubleshooting, Top
+@node List of Programmers, List of Parts, Troubleshooting, Top
+@appendix List of Programmers
+
+@cindex Programmers supported
+
+AVRDUDE supports the programmers below: the left column lists the
+programmer's id as used for @code{-c}, whilst the right column contains a
+short description and the list of available programming interface(s) in
+brackets; see @ref{Programmer Definitions}). There is more detail about
+each programmer in the AVRDUDE configuration file.
+
+@multitable @columnfractions .24 .75
+@include programmers.texi
+@end multitable
+
+@c
+@c Node
+@c
+@node List of Parts, List of Memories, List of Programmers, Top
 @appendix List of Parts
 
 AVRDUDE supports the parts below: the left column lists the part's id,
@@ -5190,23 +5151,243 @@ Bootloader can never write to fuses, for example.
 @c
 @c Node
 @c
-@node List of Programmers, Index, List of Parts, Top
-@appendix List of Programmers
+@node List of Memories, List of Parts, Index, Top
+@appendix List of Memories
 
-@cindex Programmer support
+@menu
+* Classic Parts::
+* ATxmegas::
+* Modern AVR Parts::
+@end menu
 
-AVRDUDE supports the programmers below: the left column lists the
-programmer's id as used for @code{-c}, whilst the right column contains a
-short description and the list of available programming interface(s) in
-brackets; see @ref{Programmer Definitions}). There is more detail about
-each programmer in the AVRDUDE configuration file.
+@node Classic Parts, ATxmegas, List of Memories, List of Memories
+@section Classic parts
+@cindex Memories of classic parts
 
-@multitable @columnfractions .24 .75
-@include programmers.texi
-@end multitable
+@noindent
+@cindex @code{signature}
+@cindex @code{flash}
+@cindex @code{eeprom}
+Classic devices may have the following memories in addition to
+@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
+@table @code
+@cindex @code{calibration}
+@item calibration
+One or more bytes of RC oscillator calibration data
+@item efuse
+Extended fuse byte
+@item fuse
+Fuse byte in devices that have only a single fuse byte
+@item hfuse
+High fuse byte
+@item lfuse
+Low fuse byte
+@item prodsig
+Signature, calibration byte and serial number in a small read-only memory,
+which is only documented to be available for ATmega324PB, ATmega328PB,
+ATtiny102 and ATtiny104; AVRDUDE generally tries to make this memory
+available, also for parts where it is not documented, but not all
+programmers may be able to read this memory
+@item sigrow
+Memory alias for prodsig
+@item sernum
+The serial number part of prodsig; owing to scarce documentation this may not
+actually turn out to be a serial number or be readable by some programmers
+@item usersig
+@cindex @code{flash}
+Three extra flash pages for firmware settings; this memory is not erased
+during a chip erase. Only some classic parts,
+ATmega(64|128|256|644|1284|2564)RFR2, have a usersig memory. Usersig is
+different to flash in the sense that it can neither be accessed with ISP
+serial programming nor written to by bootloaders. AVRDUDE offers JTAG
+programming of classic-part usersig memories. As with all flash-type
+memories the @code{-U} option can only write 0-bits but not 1-bits.
+Hence, usersig needs to be erased before a file can be uploaded to this
+memory region, e.g., using @code{-T "erase usersig" -U
+usersig:w:parameters.hex:i}
+@item io
+Volatile register memory; it cannot be accessed by external programming
+methods only by bootloaders, which has limited use unless the bootloader
+jumps to the application directly, i.e., without a WDT reset
+@item sram
+Volatile RAM memory; like @code{io} it cannot be accessed by external
+programming
+@end table
 
-@node Index, , Troubleshooting, Top
+@node ATxmegas, Modern AVR Parts, Classic Parts, List of Memories
+@section ATxmegas
+@cindex Memories of ATxmegas
 
+@cindex @code{signature}
+@cindex @code{flash}
+@cindex @code{eeprom}
+ATxmega devices have the following memories in addition to
+@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
+@table @code
+@cindex @code{flash}
+@cindex @code{application}
+@item application
+Application flash area
+@cindex @code{flash}
+@cindex @code{apptable}
+@item apptable
+Application table flash area
+@cindex @code{flash}
+@cindex @code{boot}
+@item boot
+Boot flash area
+@cindex @code{calibration}
+@cindex @code{calibration}
+@item calibration
+An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
+oscillator calibration values; this is a sub-memory of @code{prodsig}
+@cindex @code{fuses}
+@item fuses
+A logical memory of 7 bytes containing all @code{fuse}X of a part, which
+can be used to program all fuses at the same time; note that some of the
+fuse bytes will be reserved, though
+@cindex @code{fuse0}
+@item fuse0
+A.k.a. @code{jtaguid}: JTAG user ID for some devices
+@cindex @code{fuse1}
+@item fuse1
+Watchdog configuration
+@cindex @code{fuse6}
+@item fuse6
+Fault detection action configuration TC4/5 for ATxmega E series parts
+@item fuse@emph{N}
+Other fuse bytes of ATxmega devices, where @emph{N} is 2, 4 or 5, for system configuration
+@cindex @code{prodsig}
+@item prodsig
+The production signature row is a read-only memory section for factory
+programmed data such as calibration values for oscillators or analogue
+modules; it also contains a serial number that consists of the production
+lot number, wafer number and wafer coordinates for the part
+@cindex @code{sernum}
+@item sernum
+Serial number with a unique ID for the part consisting of 10 bytes; these
+are part of the @code{prodsig} memory above
+@cindex @code{sigrow}
+@item sigrow
+Memory alias for prodsig
+@cindex @code{tempsense}
+@item tempsense
+A two-byte memory, which is located within @code{prodsig}; it contains a 12-bit
+temperature sensor calibration value
+@cindex @code{flash}
+@cindex @code{usersig}
+@item usersig
+Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
+@cindex @code{io}
+@item io
+Volatile register memory; AVRDUDE can read this memory but not write to it
+using external programming
+@cindex @code{sram}
+@item sram
+Volatile RAM memory; cannot be usefully accessed by external programming
+@end table
+
+@node Modern AVR Parts, , ATxmegas, List of Memories
+@section Modern AVR Parts
+@cindex Memories of modern AVR parts
+
+@cindex @code{signature}
+@cindex @code{flash}
+@cindex @code{eeprom}
+Modern 8-bit AVR devices have the following memories in addition to
+@code{eeprom}, @code{flash}, @code{signature} and @code{lock}:
+@table @code
+@cindex @code{wdtcfg}
+@item fuse0
+A.k.a. @code{wdtcfg}: watchdog configuration
+@cindex @code{bodcfg}
+@item fuse1
+A.k.a. @code{bodcfg}: brownout detection configuration
+@cindex @code{osccfg}
+@item fuse2
+A.k.a. @code{osccfg}: oscillator configuration
+@cindex @code{tcd0cfg}
+@item fuse4
+A.k.a. @code{tcd0cfg} (not all devices): timer counter type D configuration
+@cindex @code{syscfg0}
+@item fuse5
+A.k.a. @code{syscfg0}: system configuration 0
+@cindex @code{syscfg1}
+@item fuse6
+A.k.a. @code{syscfg1}: system configuration 1
+@cindex @code{append}
+@cindex @code{codesize}
+@item fuse7
+A.k.a. @code{append} or @code{codesize}: either the end of the application code section or the code size in blocks of 256/512 bytes
+@cindex @code{bootend}
+@cindex @code{bootsize}
+@item fuse8
+A.k.a. @code{bootend} or @code{bootsize}: end of the boot section or the boot size in blocks of 256/512 bytes
+@cindex @code{pdicfg}
+@item fusea
+A.k.a. @code{pdicfg}: configures/locks updi access; it is the only fuse that consists of two bytes
+@cindex @code{fuses}
+@item fuses
+A logical memory of up to 16 bytes containing all fuseX of a part, which can be used to program all fuses at the same time
+@cindex @code{osc16err}
+@item osc16err
+Two bytes typically describing the 16 MHz oscillator frequency error at 3 V and 5 V, respectively
+@cindex @code{osc20err}
+@item osc20err
+Two bytes typically describing the 20 MHz oscillator frequency error at 3 V and 5 V, respectively
+@cindex @code{osccal16}
+@item osccal16
+@cindex @code{calibration}
+Two oscillator calibration bytes for 16 MHz
+@cindex @code{osccal20}
+@item osccal20
+@cindex @code{calibration}
+Two oscillator calibration bytes for 20 MHz
+@cindex @code{prodsig}
+@item prodsig
+@cindex @code{signature}
+Read-only memory section for factory programmed data such as the
+signature, calibration values and serial number
+@cindex @code{sigrow}
+@item sigrow
+Memory alias for prodsig
+@cindex @code{sernum}
+@item sernum
+Serial number with a unique ID for the part (10 or 16 bytes)
+@cindex @code{tempsense}
+@item tempsense
+@cindex @code{calibration}
+Temperature sensor calibration values
+@cindex @code{bootrow}
+@item bootrow
+Extra page of memory that is only accessible by the MCU in bootloader
+code; UDPI can read and write this memory only when the device is
+unlocked
+@cindex @code{eeprom}
+@cindex @code{userrow}
+@item userrow
+Extra page of EEPROM memory that can be used for firmware settings; this
+memory is not erased during a chip erase
+@cindex @code{sib}
+@item sib
+Special system information block memory with information about AVR family, chip revision etc.
+@cindex @code{io}
+@item io
+Volatile register memory; AVRDUDE can program this memory but this is of
+limited utility because anything written to the io memory will be undefined or
+lost after reset; writing to individual registers in the terminal can
+still be used, e.g., to test I/O ports
+@cindex @code{sram}
+@item sram
+Volatile RAM memory; can be read and written but contents will be lost after reset
+@end table
+
+
+@c
+@c Node
+@c
+@node Index, , List of Memories, Top
 @unnumbered Concept Index
 
 @printindex cp
