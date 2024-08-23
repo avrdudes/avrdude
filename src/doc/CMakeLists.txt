@@ -23,6 +23,7 @@ set(GENERATED_TEXINFOS
     programmers.texi
     programmer_types.texi
     parts.texi
+    avrstats.texi
     version.texi
     )
 
@@ -76,10 +77,16 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E echo "@set EDITION ${DOCS_VERSION}" > version.texi
     COMMAND ${CMAKE_COMMAND} -E echo "@set VERSION ${DOCS_VERSION}" >> version.texi
     COMMAND ${CMAKE_COMMAND} -E echo "@set UPDATED ${DOCS_UPDATED}" >> version.texi
-    COMMAND echo -n "@set NUMPARTS " >> version.texi
-    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p \? 2>&1 | grep = | wc -l >> version.texi
-    COMMAND echo -n "@set NUMPROGRAMMERS " >> version.texi
-    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c \? 2>&1 | grep = | wc -l >> version.texi
+    VERBATIM
+    )
+
+add_custom_command(
+    OUTPUT avrstats.texi
+    DEPENDS avrdude_binaries
+    COMMAND echo -n "@set NUMPARTS " >> avrstats.texi
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p \? 2>&1 | grep = | wc -l >> avrstats.texi
+    COMMAND echo -n "@set NUMPROGRAMMERS " >> avrstats.texi
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c \? 2>&1 | grep = | wc -l >> avrstats.texi
     VERBATIM
     )
 

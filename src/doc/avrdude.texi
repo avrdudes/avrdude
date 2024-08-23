@@ -14,6 +14,9 @@
 @c @set EDITION 3.2.0
 @c @set VERSION 3.2.0
 
+@include avrstats.texi
+@c These contain various statistics used as @value{....} below
+
 @c This is a dir.info fragment to support semi-automated addition of
 @c manuals to an info tree.
 @dircategory AVR Programming & development tools.
