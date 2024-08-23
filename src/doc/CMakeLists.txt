@@ -40,9 +40,9 @@ find_program(TEXI2HTML_EXECUTABLE NAMES texi2html)
 add_custom_target(avrdude_binaries DEPENDS avrdude conf)
 
 add_custom_command(
-    OUTPUT programmers.txt
-    DEPENDS avrdude_binaries
-    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c ? 2>&1 | more > programmers.txt
+    OUTPUT programmers.texi
+    DEPENDS avrdude_binaries ${CMAKE_CURRENT_SOURCE_DIR}/programmers.sed
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c ? 2>&1 | grep = | sed -f ${CMAKE_CURRENT_SOURCE_DIR}/programmers.sed > programmers.texi
     VERBATIM
     )
 
@@ -54,19 +54,9 @@ add_custom_command(
     )
 
 add_custom_command(
-    OUTPUT parts.txt
-    DEPENDS avrdude_binaries
-    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p ? 2>&1 | more > parts.txt
-    VERBATIM
-    )
-
-add_custom_command(
-    OUTPUT programmers.texi
-    DEPENDS programmers.txt
-    COMMAND ${CMAKE_COMMAND}
-        -D TXT_FILE=programmers.txt
-        -D TEXI_FILE=programmers.texi
-        -P "${CMAKE_CURRENT_SOURCE_DIR}/programmers.cmake"
+    OUTPUT parts.texi
+    DEPENDS avrdude_binaries ${CMAKE_CURRENT_SOURCE_DIR}/parts.sed
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p ? 2>&1 | grep = | sed -f ${CMAKE_CURRENT_SOURCE_DIR}/parts.sed > parts.texi
     VERBATIM
     )
 
@@ -81,21 +71,15 @@ add_custom_command(
     )
 
 add_custom_command(
-    OUTPUT parts.texi
-    DEPENDS parts.txt
-    COMMAND ${CMAKE_COMMAND}
-        -D TXT_FILE=parts.txt
-        -D TEXI_FILE=parts.texi
-        -D COMMENTS_FILE=${CMAKE_CURRENT_SOURCE_DIR}/parts_comments.txt
-        -P "${CMAKE_CURRENT_SOURCE_DIR}/parts.cmake"
-    VERBATIM
-    )
-
-add_custom_command(
     OUTPUT version.texi
+    DEPENDS avrdude_binaries
     COMMAND ${CMAKE_COMMAND} -E echo "@set EDITION ${DOCS_VERSION}" > version.texi
     COMMAND ${CMAKE_COMMAND} -E echo "@set VERSION ${DOCS_VERSION}" >> version.texi
     COMMAND ${CMAKE_COMMAND} -E echo "@set UPDATED ${DOCS_UPDATED}" >> version.texi
+    COMMAND echo -n "@set NUMPARTS " >> version.texi
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -p \? 2>&1 | grep = | wc -l >> version.texi
+    COMMAND echo -n "@set NUMPROGRAMMERS " >> version.texi
+    COMMAND $<TARGET_FILE:avrdude> -C ${AVRDUDE_CONF} -c \? 2>&1 | grep = | wc -l >> version.texi
     VERBATIM
     )
 

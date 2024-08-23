@@ -771,4 +771,4 @@ void usbtiny_initpgm(PROGRAMMER *pgm) {
 }
 #endif                          // HAVE_LIBUSB
 
-const char usbtiny_desc[] = "Usbtiny-type programmers incl arduinoisp, arduino_gemma and adafruit_gemma";
+const char usbtiny_desc[] = "Usbtiny programmer (also as bootloading protocol)";

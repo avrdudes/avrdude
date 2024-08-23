@@ -188,7 +188,7 @@ static void wiring_close(PROGRAMMER *pgm) {
   pgm->fd.ifd = -1;
 }
 
-const char wiring_desc[] = "Bootloader using STK500v2 protocol, see http://wiring.org.co";
+const char wiring_desc[] = "Bootloader using the STK500v2 protocol (AVR068)";
 
 void wiring_initpgm(PROGRAMMER *pgm) {
   // The Wiring bootloader uses a near-complete STK500v2 protocol

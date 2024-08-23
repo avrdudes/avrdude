@@ -155,7 +155,7 @@ static void arduino_close(PROGRAMMER *pgm) {
   pgm->fd.ifd = -1;
 }
 
-const char arduino_desc[] = "Arduino programmer";
+const char arduino_desc[] = "Arduino programmer for bootloading";
 
 void arduino_initpgm(PROGRAMMER *pgm) {
   /* This is mostly a STK500; just the signature is read
