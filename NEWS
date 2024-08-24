@@ -61,6 +61,10 @@ Changes since version 7.3:
     - Should AVRDUDE be run as root? #1860
     - Auto-build avrdude.pdf from texinfo sources #1847
     - Poor coverage of (concept) index in documentation #1582
+    - Warnings when build under NetBSD 10 and OpenBSD 7.5 #1904
+    - Add -e for the location of avrdude executable for test8 #1900
+    - Weird AVR family warning on locked AVR-Dx #1894
+    - How is version.texi created with autotools? #1905
 
   * Pull requests:
 
@@ -160,6 +164,10 @@ Changes since version 7.3:
     - Update build.yml to re-enable Windows on ARM64 MSVC build #1901
     - Add -e exe option to test8 #1903
     - Refrain from polling memories other than flash/eeprom #1897
+    - Remove known limitations comment from serprog.c #1906
+    - Improve messaging around locked UPDI parts #1907
+    - Improve Documentation #1908
+    - Silence compiler warnings #1909
 
   * Internals:
 
