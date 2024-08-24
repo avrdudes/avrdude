@@ -18,17 +18,17 @@ The latest version of AVRDUDE is always available here:\
 
 ## Documentation
 
-Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/).
+Documentation for current and previous releases is [on Github Pages](https://avrdudes.github.io/avrdude/). Git main is documented only with the most recent [avrdude.pdf](https://github.com/avrdudes/avrdude/blob/main/avrdude.pdf).
 
 ## Getting AVRDUDE for Windows
 
-To get AVRDUDE for Windows, install the latest version from the [Releases](http://download.savannah.gnu.org/releases/avrdude/) page.
+To get AVRDUDE for Windows, install the latest version from the [Releases](https://github.com/avrdudes/avrdude/releases) page.
 
 Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
 
 ## Getting AVRDUDE for Linux
 
-To install AVRDUDE for Linux, install the package `avrdude` by running the following commands:
+To install AVRDUDE for Linux, install the package `avrdude` using the software package manager. For example, under Debian/Ubuntu, you can use the following commands:
 
 ```console
 sudo apt-get install avrdude
@@ -36,9 +36,9 @@ sudo apt-get install avrdude
 
 Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
 
-## Getting AVRDUDE for MacOS
+## Getting AVRDUDE for macOS
 
-On MacOS, AVRDUDE can be installed through Mac Ports.
+On macOS, AVRDUDE can be installed through MacPorts or Homebrew.
 
 Alternatively, you may [build AVRDUDE](https://github.com/avrdudes/avrdude/wiki) yourself from source.
 
@@ -61,4 +61,13 @@ avrdude -c arduino -P COM1 -b 115200 -p atmega328p -D -U flash:w:objs/blink.hex:
 
 There are many different programmers and options that may be required for the programming to succeed.
 
-For more information, refer to the [AVRDUDE documentation](http://download.savannah.gnu.org/releases/avrdude/avrdude-doc-6.4.pdf).
+For more information, refer to the [AVRDUDE documentation](https://avrdudes.github.io/avrdude/).
+
+## Using the AVRDUDE GUI demonstrator
+
+Starting with version 8, a GUI implementation has been added, to demonstrate the functionality of `libavrdude` is suitable to implement a native GUI (as opposed to CLI wrapper).
+
+The GUI is based on the Qt toolkit and its Python bindings, called _PySide_.
+Either Qt5 with PySide2, or Qt6 with PySide6 are supported.
+
+A script named `avrdude-gui` is installed into the same location as the AVRDUDE CLI program. It can be used to start the GUI. There is a builtin help describing the usage.
