@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on August 24, 2024 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: E.2 ATxmegas</title>
+
+<meta name="description" content="AVRDUDE: E.2 ATxmegas">
+<meta name="keywords" content="AVRDUDE: E.2 ATxmegas">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="ATxmegas"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_47.html#Classic-Parts" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_49.html#Modern-AVR-Parts" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_46.html#List-of-Memories" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_46.html#List-of-Memories" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="ATxmegas-1"></a>
+<h2 class="section">E.2 ATxmegas</h2>
+<a name="index-Memories-of-ATxmegas"></a>
+
+<a name="index-signature-6"></a>
+<a name="index-flash-43"></a>
+<a name="index-eeprom-17"></a>
+<p>ATxmega devices have the following memories in addition to
+<code>eeprom</code>, <code>flash</code>, <code>signature</code> and <code>lock</code>:
+</p><dl compact="compact">
+<dd><a name="index-flash-44"></a>
+<a name="index-application"></a>
+</dd>
+<dt> <code>application</code></dt>
+<dd><p>Application flash area
+<a name="index-flash-45"></a>
+<a name="index-apptable"></a>
+</p></dd>
+<dt> <code>apptable</code></dt>
+<dd><p>Application table flash area
+<a name="index-flash-46"></a>
+<a name="index-boot"></a>
+</p></dd>
+<dt> <code>boot</code></dt>
+<dd><p>Boot flash area
+<a name="index-calibration-4"></a>
+<a name="index-calibration-5"></a>
+</p></dd>
+<dt> <code>calibration</code></dt>
+<dd><p>An area of 4 (ATxmega-A series) or 5 bytes (ATxmega-B/C/D/E) with
+oscillator calibration values; this is a sub-memory of <code>prodsig</code>
+<a name="index-fuses"></a>
+</p></dd>
+<dt> <code>fuses</code></dt>
+<dd><p>A logical memory of 7 bytes containing all <code>fuse</code>X of a part, which
+can be used to program all fuses at the same time; note that some of the
+fuse bytes will be reserved, though
+<a name="index-fuse0"></a>
+</p></dd>
+<dt> <code>fuse0</code></dt>
+<dd><p>A.k.a. <code>jtaguid</code>: JTAG user ID for some devices
+<a name="index-fuse1"></a>
+</p></dd>
+<dt> <code>fuse1</code></dt>
+<dd><p>Watchdog configuration
+<a name="index-fuse6"></a>
+</p></dd>
+<dt> <code>fuse6</code></dt>
+<dd><p>Fault detection action configuration TC4/5 for ATxmega E series parts
+</p></dd>
+<dt> <code>fuse<em>N</em></code></dt>
+<dd><p>Other fuse bytes of ATxmega devices, where <em>N</em> is 2, 4 or 5, for system configuration
+<a name="index-prodsig"></a>
+</p></dd>
+<dt> <code>prodsig</code></dt>
+<dd><p>The production signature row is a read-only memory section for factory
+programmed data such as calibration values for oscillators or analogue
+modules; it also contains a serial number that consists of the production
+lot number, wafer number and wafer coordinates for the part
+<a name="index-sernum"></a>
+</p></dd>
+<dt> <code>sernum</code></dt>
+<dd><p>Serial number with a unique ID for the part consisting of 10 bytes; these
+are part of the <code>prodsig</code> memory above
+<a name="index-sigrow"></a>
+</p></dd>
+<dt> <code>sigrow</code></dt>
+<dd><p>Memory alias for prodsig
+<a name="index-tempsense"></a>
+</p></dd>
+<dt> <code>tempsense</code></dt>
+<dd><p>A two-byte memory, which is located within <code>prodsig</code>; it contains a 12-bit
+temperature sensor calibration value
+<a name="index-flash-47"></a>
+<a name="index-usersig-2"></a>
+</p></dd>
+<dt> <code>usersig</code></dt>
+<dd><p>Additional flash memory page that can be used for firmware settings; this
+memory is not erased during a chip erase
+<a name="index-io"></a>
+</p></dd>
+<dt> <code>io</code></dt>
+<dd><p>Volatile register memory; AVRDUDE can read this memory but not write to it
+using external programming
+<a name="index-sram"></a>
+</p></dd>
+<dt> <code>sram</code></dt>
+<dd><p>Volatile RAM memory; cannot be usefully accessed by external programming
+</p></dd>
+</dl>
+
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_47.html#Classic-Parts" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_49.html#Modern-AVR-Parts" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_46.html#List-of-Memories" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_46.html#List-of-Memories" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated by <em>Stefan Rueger</em> on <em>August 24, 2024</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

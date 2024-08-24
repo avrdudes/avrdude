@@ -1,0 +1,758 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on August 24, 2024 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 3.1 Terminal Mode Commands</title>
+
+<meta name="description" content="AVRDUDE: 3.1 Terminal Mode Commands">
+<meta name="keywords" content="AVRDUDE: 3.1 Terminal Mode Commands">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Terminal-Mode-Commands"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_10.html#Terminal-Mode-Examples" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_11.html#Configuration-Files" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="Terminal-Mode-Commands-1"></a>
+<h2 class="section">3.1 Terminal Mode Commands</h2>
+<a name="index-Terminal-mode-commands"></a>
+
+<p>In this mode, AVRDUDE only initializes communication with the MCU, and then
+awaits user commands on standard input.  Commands and parameters may be
+abbreviated to the shortest unambiguous form.  Terminal mode provides a
+command history using readline(3), so previously entered command lines can be
+recalled and edited.
+</p>
+<p>The <var>addr</var> and <var>len</var> parameters of the dump, read, disasm, write,
+save and erase commands can be negative with the same syntax as substring
+computations in perl or python. The table below details their meaning with
+respect to an example memory of size <code>sz=0x800</code> (2048 bytes).
+</p>
+<table>
+<thead><tr><th><code>addr</code></th><th><code>len</code></th><th>Memory interval</th><th>Comment</th></tr></thead>
+<tr><td>0/positive</td><td>positive</td><td><code>[addr, addr+len-1]</code></td><td>Note: <code>len = end-start + 1</code></td></tr>
+<tr><td>0/positive</td><td>negative</td><td><code>[addr, sz+len]</code></td><td>End is <code>|len|</code> bytes below memory size <code>sz</code></td></tr>
+<tr><td>negative</td><td>positive</td><td><code>[sz+addr, &hellip;]</code></td><td>Start is <code>|addr|</code> bytes below memory size</td></tr>
+<tr><td>negative</td><td>negative</td><td><code>[sz+addr, sz+len]</code></td><td>Combining above two cases</td></tr>
+<tr><td>any</td><td>zero</td><td>empty set</td><td>No action</td></tr>
+<tr><td><tt>0x700</tt></td><td><tt>   12</tt></td><td><code>[0x700, 0x70b]</code></td><td>Conventional use</td></tr>
+<tr><td><tt> 1024</tt></td><td><tt> -257</tt></td><td><code>[0x400, 0x6ff]</code></td><td>Size of memory is <code>2048</code> or <code>0x800</code></td></tr>
+<tr><td><tt> -512</tt></td><td><tt>  512</tt></td><td><code>[0x600, 0x7ff]</code></td><td>Last 512 bytes</td></tr>
+<tr><td><tt> -256</tt></td><td><tt>   -1</tt></td><td><code>[0x700, 0x7ff]</code></td><td>Last 256 bytes</td></tr>
+<tr><td><tt>    0</tt></td><td><tt>   49</tt></td><td><code>[0, 48]</code></td><td>First 49 bytes</td></tr>
+<tr><td><tt>    0</tt></td><td><tt>  -49</tt></td><td><code>[0, 1999]</code></td><td>All but the last <code>48 = |len+1|</code> bytes</td></tr>
+<tr><td><tt>    0</tt></td><td><tt>   -1</tt></td><td><code>[0, 0x7ff]</code></td><td>All memory without knowing its size</td></tr>
+</table>
+
+<p>The following commands are implemented for all programmers:
+</p>
+<dl compact="compact">
+<dt> <code>dump <var>memory</var> <var>addr</var> <var>len</var></code></dt>
+<dd><a name="index-dump-_005bmemory-_005baddr-_005blen_005d_005d_005d"></a>
+<p>Read from the specified memory interval (see above), and display in the
+usual hexadecimal and ASCII form.
+</p>
+</dd>
+<dt> <code>dump <var>memory</var> <var>addr</var></code></dt>
+<dd><a name="index-dump-_005bmemory-_005baddr-_005blen_005d_005d_005d-1"></a>
+<p>Read from memory addr as many bytes as the most recent dump memory addr
+len command with this very memory had specified (default 256 bytes), and
+display them.
+</p>
+</dd>
+<dt> <code>dump <var>memory</var></code></dt>
+<dd><a name="index-dump-_005bmemory-_005baddr-_005blen_005d_005d_005d-2"></a>
+<p>Continue dumping from the memory and location where the most recent dump
+command left off; if no previous dump command has addressed a memory an
+error message will be shown.
+</p>
+</dd>
+<dt> <code>dump</code></dt>
+<dd><a name="index-dump-_005bmemory-_005baddr-_005blen_005d_005d_005d-3"></a>
+<p>Continue dumping from the memory and location where the most recent dump
+command left off; if no previous dump command has addressed a memory an
+error message will be shown.
+</p>
+</dd>
+<dt> <code>dump <var>memory</var> <var>addr</var> &hellip;</code></dt>
+<dd><a name="index-dump-memory-_005baddr_005d-_2026------"></a>
+<p>Start reading from <var>addr</var>, all the way to the last memory address
+(deprecated: use <code>dump <var>memory</var> <var>addr</var> -1</code>).
+</p>
+</dd>
+<dt> <code>dump <var>memory</var> &hellip;</code></dt>
+<dd><a name="index-dump-memory-_005baddr_005d-_2026-------1"></a>
+<p>Read all bytes from the specified memory, and display them (deprecated:
+use <code>dump <var>memory</var> 0 -1</code>).
+</p>
+</dd>
+<dt> <code>read</code></dt>
+<dd><a name="index-read-_005bmemory-_005baddr-_005blen_005d_005d_005d"></a>
+<a name="index-read-memory-_005baddr_005d-_2026------"></a>
+<p>Can be used as an alias for dump.
+</p>
+</dd>
+<dt> <code>disasm <var>[options]</var> <var>dump-arguments</var></code></dt>
+<dd><a name="index-disasm-_005bmemory-_005baddr-_005blen_005d_005d_005d"></a>
+<p>Like dump, the disasm command displays a part of the specified memory,
+albeit by interpreting the memory contents as AVR opcodes and showing it
+as assembler source code. Unlike dump, the disasm command has options;
+these control how disasm displays its result (see below). Other than that,
+the syntax of specifying the memory and its to be processed interval is
+virtually the same as that of dump: the default disasm length is 32 bytes,
+though, and sometimes the length can be slightly shorter or longer than
+requested, so that the memory section for disasm aligns with opcodes.
+Disasm options, once set, stay in force until switched off, typically by
+changing the case of the option. This way, a simple disasm without further
+options can be used to step through memory keeping the appearance. Disasm
+knows the following options:
+</p><dl compact="compact">
+<dt> <code>-g</code></dt>
+<dd><p>Generate avr-gcc source: this sets <code>-sOFQ</code> and outputs a .text preamble and
+a main symbol unless the disassembly emits one itself; <code>-G</code> (default)
+switches off <code>-g</code> and stops outputting a preamble
+</p>
+</dd>
+<dt> <code>-A</code></dt>
+<dd><p>Do not show addresses; <code>-a</code> (the default) shows addresses
+</p>
+</dd>
+<dt> <code>-O</code></dt>
+<dd><p>Do not show opcode bytes; <code>-o</code> (the default) show opcode bytes
+</p>
+</dd>
+<dt> <code>-C</code></dt>
+<dd><p>Do not show comments; <code>-c</code> (the default) show comments
+</p>
+</dd>
+<dt> <code>-f</code></dt>
+<dd><p>Show affected flags in SREG, eg, <code>---SVNZC</code> for the <code>sbiw</code>
+opcode; <code>-F</code> (the default) do not show SREG flags
+</p>
+</dd>
+<dt> <code>-q</code></dt>
+<dd><p>Show the number of machine cycles that an opcode takes; <code>-Q</code>
+(the default) do not show the cycles
+</p>
+</dd>
+<dt> <code>-n</code></dt>
+<dd><p>Put the opcode full name into comment (eg, subtract immediate from word);
+<code>-N</code> (the default) do not show the full opcode names
+</p>
+</dd>
+<dt> <code>-e</code></dt>
+<dd><p>Put a technical explanation of the opcode into the comment, eg,
+<code>Rd+1:Rd &lt;-- Rd+1:Rd - K</code> for the <code>sbiw</code> opcode; -E (the
+default) do not show technical explanations
+</p>
+</dd>
+<dt> <code>-S</code></dt>
+<dd><p>Use AVR instruction set style: this means that register pairs are shown
+as, eg, in r31:30 instead of r30; <code>-s</code> (the default) use avr-gcc code
+style
+</p>
+</dd>
+<dt> <code>-L</code></dt>
+<dd><p>Do not preprocess labels; <code>-l</code> (the default) preprocess jump/call
+labels
+</p>
+</dd>
+<dt> <code>-d</code></dt>
+<dd><p>Decode all opcodes including those that are undocumented; <code>-D</code> (the
+default) decode only opcodes that are valid for the part
+</p>
+</dd>
+<dt> <code>-z</code></dt>
+<dd><p>Zap the list of jumps and calls before disassembly
+</p>
+</dd>
+<dt> <code>-t=<var>file</var></code></dt>
+<dd><a name="index-Tagfile"></a>
+<p>Delete symbols from a previously read tagfile, if any, and read the
+tagfile <var>file</var> for assigning addresses to symbol names.
+</p></dd>
+</dl>
+
+<p>The tagfile is an ASCII file where each line describes a symbol for code
+label addresses (<code>L</code>), variable addresses in flash (<code>P</code>) and
+variables addresses in memory or I/O space (<code>M</code>). Hashmarks start a
+tagfile comment that extends to the end of the line and is ignored by
+disasm. Here is a defining example of how a tagfile looks like
+</p>
+<table><tr><td>&nbsp;</td><td><table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">0x7f54 L        putch     Outputs a char # L are code labels
+0x7ffe P W 1    version16 A word integer # P are PGM data
+0x7f80 P A 4    headings  Column headers # Auto-aligned strings
+0x0100 M B 2048 sram      2 kB SRAM      # Memory address
+</pre></td></tr></table>
+</td></tr></table>
+
+<p>Code labels <code>L</code> can be, eg, function names in program space or goto
+labels.  They use up to four columns separated by white space: the
+address, the letter <code>L</code>, the symbolic name of the label and an
+optional comment column for the symbol, which is copied by disasm into the
+disassembly comment column, should this label be referenced or used by the
+code. Variable symbols have a <code>P</code> or <code>M</code> in the second column;
+they can be bytes or words as determined by the letter <code>B</code> or
+<code>W</code> in the third column and either single variables or arrays as
+specified by the multiplicity count in the forth column. <code>P</code> symbols,
+but not <code>M</code> symbols, can also be the base location of nul-terminated
+strings as encoded by <code>A</code> or <code>S</code> in the third column. Out of
+necessity, the space occupied by <code>A</code>/<code>S</code> strings varies. The
+difference between <code>A</code> and <code>S</code> symbols is that the array of
+<code>A</code> strings might have an additional nul character to auto-align the
+space occupied by them to an even address. The fifth column is the
+symbolic name for the <code>P</code> or <code>M</code> address that can be used by
+disasm to output relevant addresses symbolically. <code>P</code> areas described
+in the tagfile also tell disasm that the corresponding area is not code
+and should not be disassembled as such; instead the directives are used
+for disassembly of that area. As with <code>L</code> labels, <code>P</code> and
+<code>M</code> variables may have an optional final comment column pertaining to
+the symbol that may be output in the disassembly column as and when the
+corresponding variables are used.
+</p>
+<a name="index-flash-36"></a>
+<p>Tagfiles are useful for disassembly to make the output of disasm more
+readable. They can be built manually and incrementally as one&rsquo;s under‐
+standing of the code grows. Alternatively, the bash shell script
+<code>elf2tag</code> can automatically generate a tag file from the .elf file
+that produced the flash contents:
+</p>
+<table><tr><td>&nbsp;</td><td><table class="cartouche" border="1"><tr><td>
+<pre class="smallexample">$ elf2tag application.elf &gt;application.tag
+</pre></td></tr></table>
+</td></tr></table>
+
+<p><code>elf2tag</code> uses the <code>avr-objdump -d</code> disassembly to create
+<code>L</code> labels and <code>avr-nm</code> to generate <code>M</code> symbols.
+</p>
+</dd>
+<dt> <code>write <var>memory</var> <var>addr</var> <var>data[,]</var> <var>{data[,]}</var></code></dt>
+<dd><a name="index-write-memory-addr-data_005b_002c_005d-_007bdata_005b_002c_005d_007d"></a>
+<p>Manually program the respective memory cells, starting at address
+<var>addr</var>, using the data items provided. The terminal implements reading
+from and writing to flash, EEPROM, bootrow and usersig type memories normally
+through a cache and paged access functions. All other memories are
+directly written to without use of a cache. Some older parts without paged
+access, depending on the programmer, might also have flash and EEPROM
+directly accessed without cache.
+</p>
+<p>Items <var>data</var> can have the following formats:
+</p>
+<table>
+<tr><td width="25%"><strong>Type</strong></td><td width="40%"><strong>Example</strong></td><td width="25%"><strong>Size (bytes)</strong></td></tr>
+<tr><td width="25%">String</td><td width="40%"><code>&quot;Hello, world\n&quot;</code></td><td width="25%">varying</td></tr>
+<tr><td width="25%">File</td><td width="40%"><code>C:/My\ projects/blink.hex</code></td><td width="25%">varying</td></tr>
+<tr><td width="25%">File with format</td><td width="40%"><code>blink.hex:i</code></td><td width="25%">varying</td></tr>
+<tr><td width="25%">Character</td><td width="40%"><code>'A'</code></td><td width="25%">1</td></tr>
+<tr><td width="25%">Binary integer</td><td width="40%">0b101010</td><td width="25%">1, 2, 4, or 8</td></tr>
+<tr><td width="25%">Octal integer</td><td width="40%">012345</td><td width="25%">1, 2, 4, or 8</td></tr>
+<tr><td width="25%">Decimal integer</td><td width="40%">12345</td><td width="25%">1, 2, 4, or 8</td></tr>
+<tr><td width="25%">Hexadecimal integer</td><td width="40%">0x12345</td><td width="25%">1, 2, 4, or 8</td></tr>
+<tr><td width="25%">Decimal float</td><td width="40%">3.1415926</td><td width="25%">4</td></tr>
+<tr><td width="25%">Hexadecimal float</td><td width="40%">0xA.8p2</td><td width="25%">4</td></tr>
+<tr><td width="25%">Decimal double</td><td width="40%">3.141592653589793D</td><td width="25%">8</td></tr>
+<tr><td width="25%">Hexadecimal double</td><td width="40%">0xA.8p2D</td><td width="25%">8</td></tr>
+</table>
+
+<p><var>data</var>
+can be binary, octal, decimal or hexadecimal integers, floating point
+numbers or C-style strings and characters. If nothing matches, <code>data</code>
+will be interpreted as a name of a file containing data, which will be
+read and inserted at this point. In order to force the interpretation of a
+data item as file, e.g., when the file name would be understood as a number
+otherwise, the file name can be given a <code>:</code><em>f</em> format specifier.
+In absence of a format suffix, the terminal will try to auto-detect
+the file format.
+</p>
+<p>For integers, an optional case-insensitive suffix specifies the data size
+as in the table below:
+</p><dl compact="compact">
+<dt> <code>LL</code></dt>
+<dd><p>8 bytes / 64 bits
+</p></dd>
+<dt> <code>L</code></dt>
+<dd><p>4 bytes / 32 bits
+</p></dd>
+<dt> <code>H or S</code></dt>
+<dd><p>2 bytes / 16 bits
+</p></dd>
+<dt> <code>HH</code></dt>
+<dd><p>1 byte / 8 bits
+</p></dd>
+</dl>
+
+<p>Suffix <code>D</code> indicates a 64-bit double, <code>F</code> a 32-bit float, whilst a
+floating point number without suffix defaults to 32-bit float. Hexadecimal
+floating point notation is supported. An ambiguous trailing suffix, e.g.,
+<code>0x1.8D</code>, is read as no-suffix float where <code>D</code> is part of the
+mantissa; use a zero exponent <code>0x1.8p0D</code> to clarify.
+</p>
+<p>An optional U suffix makes integers unsigned. Ordinary <code>0x</code>
+hexadecimal and <code>0b</code> binary integers are always treated as unsigned.
+<code>+0x</code>, <code>-0x</code>, <code>+0b</code> and <code>-0b</code> numbers with an explicit
+sign are treated as signed unless they have a <code>U</code> suffix. Unsigned
+integers cannot be larger than 2^64-1. If <var>n</var> is an unsigned integer
+then <var>-n</var> is also a valid unsigned integer as in C. Signed integers
+must fall into the [-2^63, 2^63-1] range or a correspondingly smaller
+range when a suffix specifies a smaller type.
+</p>
+<p>Ordinary <code>0x</code> hexadecimal and <code>0b</code> binary integers with <var>n</var>
+hex digits (counting leading zeros) use the smallest size of one, two,
+four and eight bytes that can accommodate any n-digit hexadecimal/binary
+integer. If an integer suffix specifies a size explicitly the
+corresponding number of least significant bytes are written, and a warning
+shown if the number does not fit into the desired representation.
+Otherwise, unsigned integers occupy the smallest of one, two, four or
+eight bytes needed. Signed numbers are allowed to fit into the smallest
+signed or smallest unsigned representation: For example, <code>255</code> is
+stored as one byte as <code>255U</code> would fit in one byte, though as a
+signed number it would not fit into a one-byte interval [-128, 127]. The
+number <code>-1</code> is stored in one byte whilst <code>-1U</code> needs eight bytes
+as it is the same as <code>0xFFFFffffFFFFffffU</code>.
+</p>
+<p>One trailing comma at the end of data items is ignored to facilitate copy
+and paste of lists.
+</p>
+</dd>
+<dt> <code>write <var>memory</var> <var>addr</var> <var>data</var></code></dt>
+<dd><a name="index-write-memory-addr-data"></a>
+<p>The start address <code>addr</code> may be omitted if the size of the memory
+being written to is one byte.
+</p>
+</dd>
+<dt> <code>write <var>memory</var> <var>addr</var> <var>len</var> <var>data[,]</var> <var>{data[,]}</var> &hellip;</code></dt>
+<dd><a name="index-write-memory-addr-len-data_005b_002c_005d-_007bdata_005b_002c_005d_007d-_2026--"></a>
+<p>The ellipsis &hellip; form writes the data to the entire memory intervall
+addressed by <var>addr len</var> and, if necessary, pads the remaining space by
+repeating the last data item. The fill write command does not write beyond
+the specified memory area even if more data than needed were given.
+</p>
+</dd>
+<dt> <code>save <var>memory</var> <var>{addr len}</var> <var>file[:format]</var></code></dt>
+<dd><a name="index-save-memory-_007baddr-len_007d-file_005b_003aformat_005d"></a>
+<p>Save one or more memory segments to a file in a format specified by the
+<code>:</code>format letter. The default is <code>:r</code> for raw binary. Each
+memory segment is described by an address and length pair. In absence of
+any memory segments the entire memory is saved to the file. Only Motorola
+S-Record (<code>:s</code>) and Intel Hex (<code>:i</code> or <code>:I</code>) formats store
+address information with the saved data.  Avrdude cannot currently save
+ELF file formats. All the other file formats lose the address information
+and concatenate the chosen memory segments into the output file. If the
+file name is - then avrdude writes to stdout.
+</p>
+</dd>
+<dt> <code>backup <var>memlist</var> <var>file[:format]</var></code></dt>
+<dd><a name="index-backup-memlist-file_005b_003aformat_005d"></a>
+<p>Backup one or more memories to the specified file using the selected
+format. The default format for a single-memory backup is <code>:r</code> (raw
+binary); for multi-memory backups it is <code>:I</code> (Intel Hex with
+comments). <var>Memlist</var> can be a comma separated list of memories just as
+in the <code>-U</code> command line argument. <code>backup</code> flushes the cache
+before reading memories.
+</p>
+</dd>
+<dt> <code>restore <var>memlist</var> <var>file[:format]</var></code></dt>
+<dd><a name="index-restore-memlist-file_005b_003aformat_005d"></a>
+<p>Restore one or more memories from the specified file. It is the user&rsquo;s
+responsibility to erase memories as needed beforehand: some paged memories
+look like NOR-memory when using certain programmers, meaning programming
+cannot set bits to 1 (eg, flash under most programmers). These memories
+need to be erased beforehand using the erase command (see below). The
+format only needs to be specified if it cannot be automatically detected,
+eg, when the file is <code>-</code> for standard input. <var>Memlist</var> can be a
+comma separated list of memories just as in the <code>-U</code> command line
+argument. <code>restore</code> flushes the cache before writing memories and
+resets the cache after writing memories. Note that restoring read-only
+memories verifies file contents with the corresponding microprocessor&rsquo;s
+memories.
+</p>
+</dd>
+<dt> <code>verify <var>memlist</var> <var>file[:format]</var></code></dt>
+<dd><a name="index-verify-memlist-file_005b_003aformat_005d"></a>
+<p>Compare one or more memories with the specified file. Memlist can be a
+comma separated list of memories just as in the <code>-U</code> command line
+argument. <code>verify</code> flushes the cache before verifying memories.
+</p>
+<a name="index-erase"></a>
+<a name="index-flash-37"></a>
+<a name="index-bootrow"></a>
+<a name="index-eeprom-9"></a>
+</dd>
+<dt> <code>erase</code></dt>
+<dd><p>Perform a chip erase and discard all pending writes to flash, EEPROM and bootrow.
+Note that EEPROM will be preserved if the EESAVE fuse bit is active, ie, had
+a corresponding value at the last reset prior to the operation.
+</p>
+</dd>
+<dt> <code>erase <var>memory</var></code></dt>
+<dd><a name="index-erase-memory-_005baddr-len_005d"></a>
+<p>Erase the entire specified memory.
+</p>
+</dd>
+<dt> <code>erase <var>memory</var> <var>addr</var> <var>len</var></code></dt>
+<dd><a name="index-erase-memory-_005baddr-len_005d-1"></a>
+<p>Erase a section of the specified memory.
+</p>
+</dd>
+<dt> <code>flush</code></dt>
+<dd><a name="index-flush"></a>
+<a name="index-usersig"></a>
+<a name="index-bootrow-1"></a>
+<a name="index-eeprom-10"></a>
+<p>Synchronise with the device all pending writes to flash, EEPROM, bootrow and
+usersig. With some programmer and part combinations, flash (and sometimes
+EEPROM, too) looks like a NOR memory, i.e., a write can only clear bits,
+never set them. For NOR memories a page erase or, if not available, a chip
+erase needs to be issued before writing arbitrary data. Usersig is
+unaffected by a chip erase. When a memory looks like a NOR
+memory, either page erase is deployed (e.g., with parts that have PDI/UPDI
+interfaces), or if that is not available, both EEPROM and flash caches are
+fully read in, a chip erase command is issued and both EEPROM and flash
+are written back to the device. Hence, it can take minutes to ensure that
+a single previously cleared bit is set and, therefore, this routine should
+be called sparingly.
+</p>
+<a name="index-flush-1"></a>
+<a name="index-usersig-1"></a>
+<a name="index-bootrow-2"></a>
+<a name="index-eeprom-11"></a>
+<a name="index-abort"></a>
+</dd>
+<dt> <code>abort</code></dt>
+<dd><p>Normally, caches are only ever actually written to the device when using
+<code>flush</code>, at the end of the terminal session after typing <code>quit</code>,
+or after EOF on input is encountered. The <code>abort</code> command resets the
+cache discarding all previous writes to the flash, EEPROM, bootrow and
+usersig cache.
+</p>
+</dd>
+<dt> <code>config <var>[opts]</var></code></dt>
+<dd><a name="index-config-_005bopts_005d"></a>
+<p>Show all configuration properties of the part; these are usually bitfields
+in fuses or lock bits bytes that can take on values, which typically have
+a mnemonic name. Each part has their own set of configurable items.  The
+option <code>-f</code> groups the configuration properties by the fuses and lock
+bits byte they are housed in, and shows the current value of these
+memories as well. Config <code>-a</code> outputs an initialisation script with
+all properties and all possible respective assignments. The currently
+assigned mnemonic values are the ones that are not commented out. The
+option <code>-v</code> increases the verbosity of the output of the config
+command.
+</p>
+</dd>
+<dt> <code>config <var>[opts]</var> <var>property</var> <var>[opts]</var></code></dt>
+<dd><a name="index-config-_005bopts_005d-property-_005bopts_005d"></a>
+<p>Show the current value of the named configuration property. Wildcards or
+initial strings are permitted (but not both), in which case the current
+values of all matching properties are displayed.
+</p>
+</dd>
+<dt> <code>config <var>[opts]</var> <var>property=</var> <var>[opts]</var></code></dt>
+<dd><a name="index-config-_005bopts_005d-property_003d-_005bopts_005d"></a>
+<p>Show all possible values of the named configuration property (notice the
+trailing <code>=</code>). The one that is currently set is the only one not
+commented out. As before, wildcards or initial strings are permitted.
+</p>
+</dd>
+<dt> <code>config <var>[opts]</var> <var>property=value</var> <var>[opts]</var></code></dt>
+<dd><a name="index-config-_005bopts_005d-property_003dvalue-_005bopts_005d"></a>
+<p>Modify the named configuration property to the given value. The
+corresponding fuse or lock bits will be changed immediately but the change
+will normally only take effect the next time the part is reset, at which
+point the fuses and lock bits are utilised. Value can either be a valid
+integer or one of the symbolic mnemonics, if known. Wildcards or initial
+strings are permitted for either the property or the assigned mnemonic
+value, but an assignment only happens if both the property and the name
+can be uniquely resolved.
+</p>
+<p>It is quite possible, as is with direct writing to the underlying fuses
+and lock bits, to brick a part, i.e., make it unresponsive to further
+programming with the chosen programmer: here be dragons.
+</p>
+<a name="index-eeprom-12"></a>
+<a name="index-factory-reset"></a>
+</dd>
+<dt> <code>factory reset</code></dt>
+<dd><p>Resets the connected part to factory state as far as possible
+(bootloaders, for example, cannot write fuses and may not have a means to
+erase EEPROM). This command may change the clock frequency F_CPU of the
+part after the next MCU reset when the changed fuse values come into
+effect. As such, this may require that future avrdude calls use a
+different bit clock rate up to F_CPU/4 for the programmer next time. Note
+that the command <code>factory</code> can be abbreviated but the required
+argument <code>reset</code> needs to be spelled out in full.
+</p>
+</dd>
+<dt> <code>regfile <var>[opts]</var></code></dt>
+<dd><a name="index-regfile-_005bopts_005d"></a>
+<p><code>regfile</code> with no further argument displays the register file of a
+part, i.e., all register names and their contents in  <code>io</code> memory, if
+possible: note that external programming cannot read the registers of
+classic parts (ISP or TPI interfaces).
+</p>
+<p>Option <code>-a</code> displays the register I/O addresses in addition;
+<code>-m</code> displays the register memory addresses used for
+<code>lds</code>/<code>sts</code> opcodes instead of the I/O addresses. Option
+<code>-s</code> also shows the size of the register in bytes whilst <code>-v</code>
+shows a slightly expanded register explanation alongside each register.
+</p>
+</dd>
+<dt> <code>regfile <var>[opts]</var> <var>reg</var> <var>[opts]</var></code></dt>
+<dd><a name="index-regfile-_005bopts_005d-reg-_005bopts_005d"></a>
+<p><code>regfile</code> together with a register name <var>reg</var> shows all those
+registers that are matched by <var>reg</var>. Wildcards or partial strings are
+permitted but not both. Register names have the form <var>module.name</var> or
+<var>module.instance.name</var>. If the provided <var>reg</var> is a full, existing
+register name, e.g., <code>porta.out</code> then that is the only register that
+is displayed even though that might be a partial name of another register,
+eg, <code>porta.outdir</code>. If the provided <var>reg</var> is the same as
+<var>instance.name</var> or <var>name</var> then partial matching is no longer
+utilised and all module registers with that exact <var>instance.name</var> or
+<var>name</var> are shown. Partial matching can be forced through use of
+wildcards, e.g., using <code>porta.out*</code>
+</p>
+</dd>
+<dt> <code>regfile <var>[opts]</var> <var>reg</var>=<var>value</var> <var>[opts]</var></code></dt>
+<dd><a name="index-regfile-_005bopts_005d-reg_003dvalue-_005bopts_005d"></a>
+<p>This sets a single register addressed by <var>reg</var> to the given
+<var>value</var>. Only external programming of modern parts (those with UPDI
+interface) can read from and write to register io memory, but as that
+memory is volatile, the contents will be lost after reset.
+</p>
+</dd>
+<dt> <code>include <var>[opts]</var> <var>file</var></code></dt>
+<dd><a name="index-include-_005bopts_005d-file"></a>
+<p>Include contents of the named file <var>file</var> as if it was typed. This is
+useful for batch scripts, e.g., recurring initialisation code for fuses. The
+include option <code>-e</code> prints the lines of the file as comments before
+processing them; on a non-zero verbosity level the line numbers are
+printed, too.
+</p>
+</dd>
+<dt> <code>signature</code></dt>
+<dd><a name="index-signature-3"></a>
+<p>Display the device signature bytes.
+</p>
+</dd>
+<dt> <code>part <var>[opts]</var></code></dt>
+<dd><a name="index-part-_005bopts_005d"></a>
+<a name="index-Programming-mode"></a>
+<a name="index-Variants-of-parts"></a>
+<p>Display the current part information, including supported programming modes,
+memory and variants tables. Use <var>-m</var> to only print the memory table,
+and <var>-v</var> to only print the variants table.
+</p>
+</dd>
+<dt> <code>verbose <var>]level]</var></code></dt>
+<dd><a name="index-verbose-_005dlevel_005d"></a>
+<p>Change (when <var>level</var> is provided), or display the verbosity
+level.
+The initial verbosity level is controlled by the number of <code>-v</code> options
+given on the command line.
+</p>
+</dd>
+<dt> <code>quell <var>[level]</var></code></dt>
+<dd><a name="index-quell-_005blevel_005d"></a>
+<p>Change (when <var>level</var> is provided), or display the quell
+level. 1 is used to suppress progress reports. 2 or higher yields
+progressively quieter operations. The initial quell level is controlled
+by the number of <code>-q</code> options given on the command line.
+</p>
+</dd>
+<dt> <code>?</code></dt>
+<dt> <code>help</code></dt>
+<dd><p>Give a short on-line summary of the available commands.
+</p>
+</dd>
+<dt> <code>quit</code></dt>
+<dd><a name="index-quit"></a>
+<p>Leave terminal mode and thus AVRDUDE.
+</p>
+</dd>
+<dt> <code>q</code></dt>
+<dd><p>Can be used as an alias for <code>quit</code>.
+</p>
+</dd>
+<dt> <code>!<var>line</var></code></dt>
+<dd><a name="index-_0021-_0028subshell_0029"></a>
+<p>Run the shell <var>line</var> in a subshell, e.g., <code>!ls *.hex</code>. Subshell
+commands take the rest of the line as their command. For security reasons,
+they must  be enabled explictly by putting <code>allow_subshells = yes;</code>
+into your <code>${HOME}/.config/avrdude/avrdude.rc</code> or
+<code>${HOME}/.avrduderc</code> file.
+</p>
+</dd>
+<dt> <code># <var>comment</var></code></dt>
+<dd><p>Place comments onto the terminal line (useful for scripts).
+</p>
+</dd>
+</dl>
+
+<p>In addition, the following commands are supported on some programmers:
+</p>
+<dl compact="compact">
+<dt> <code>pgerase <var>memory</var> <var>addr</var></code></dt>
+<dd><a name="index-pgerase-memory-addr"></a>
+<p>Erase one page of the memory specified.
+</p>
+</dd>
+<dt> <code>send <var>b1</var> <var>b2</var> <var>b3</var> <var>b4</var></code></dt>
+<dd><a name="index-send-b1-b2-b3-b4"></a>
+<p>Send raw instruction codes to the AVR device. If you need access to a
+feature of an AVR part that is not directly supported by AVRDUDE, this
+command allows you to use it, even though AVRDUDE does not implement the
+command. When using direct SPI mode, up to 3 bytes
+can be omitted.
+</p>
+</dd>
+<dt> <code>spi</code></dt>
+<dd><a name="index-spi"></a>
+<p>Enter direct SPI mode.  The <em>pgmled</em> pin acts as chip select.
+<em>Only supported on parallel bitbang programmers, and partially by USBtiny.</em>
+Chip Select must be externally held low for direct SPI when
+using USBtinyISP, and send must be a multiple of four bytes.
+</p>
+</dd>
+<dt> <code>pgm</code></dt>
+<dd><a name="index-pgm"></a>
+<p>Return to programming mode (from direct SPI mode).
+</p>
+</dd>
+<dt> <code>vtarg <var>voltage</var></code></dt>
+<dd><a name="index-vtarg-voltage"></a>
+<p>Set the target&rsquo;s supply voltage to <var>voltage</var> Volts.
+</p>
+</dd>
+<dt> <code>varef <var>[channel]</var> <var>voltage</var></code></dt>
+<dd><a name="index-varef-_005bchannel_005d-voltage"></a>
+<p>Set the adjustable voltage source to <var>voltage</var> Volts.
+This voltage is normally used to drive the target&rsquo;s
+<em>Aref</em> input on the STK500 and STK600.
+The STK600 offers two reference voltages, which can be
+selected by the optional parameter <var>channel</var> (either
+0 or 1).
+</p>
+</dd>
+<dt> <code>fosc <var>freq</var>[<code>M</code>|<code>k</code>]</code></dt>
+<dd><a name="index-fosc-freq_005bM_007ck_005d"></a>
+<p>Set the programming oscillator to <var>freq</var> Hz.
+An optional trailing letter <code>M</code>
+multiplies by 1E6, a trailing letter <code>k</code> by 1E3.
+</p>
+</dd>
+<dt> <code>fosc off</code></dt>
+<dd><a name="index-fosc-off"></a>
+<p>Turn the programming oscillator off.
+</p>
+</dd>
+<dt> <code>sck <var>period</var></code></dt>
+<dd><a name="index-sck-period"></a>
+<p>Set the SCK clock period to <var>period</var> microseconds.
+Note that some official Microchip programmers store the bitclock setting and
+will continue to use it until a diferent value is provided. See
+<code>-B bitclock</code> for more information.
+</p>
+</dd>
+<dt> <code>parms</code></dt>
+<dd><a name="index-parms"></a>
+<p>Display programmer specific parameters.
+</p>
+</dd>
+</dl>
+
+
+
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_10.html#Terminal-Mode-Examples" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_11.html#Configuration-Files" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated by <em>Stefan Rueger</em> on <em>August 24, 2024</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>

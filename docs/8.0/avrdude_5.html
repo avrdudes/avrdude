@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html401/loose.dtd">
+<html>
+<!-- Created on August 24, 2024 by texi2html 1.82
+texi2html was written by: 
+            Lionel Cons <Lionel.Cons@cern.ch> (original author)
+            Karl Berry  <karl@freefriends.org>
+            Olaf Bachmann <obachman@mathematik.uni-kl.de>
+            and many others.
+Maintained by: Many creative people.
+Send bugs and suggestions to <texi2html-bug@nongnu.org>
+-->
+<head>
+<title>AVRDUDE: 2.2 Programmers Accepting Exitspec Parameters</title>
+
+<meta name="description" content="AVRDUDE: 2.2 Programmers Accepting Exitspec Parameters">
+<meta name="keywords" content="AVRDUDE: 2.2 Programmers Accepting Exitspec Parameters">
+<meta name="resource-type" content="document">
+<meta name="distribution" content="global">
+<meta name="Generator" content="texi2html 1.82">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+<!--
+a.summary-letter {text-decoration: none}
+blockquote.smallquotation {font-size: smaller}
+pre.display {font-family: serif}
+pre.format {font-family: serif}
+pre.menu-comment {font-family: serif}
+pre.menu-preformatted {font-family: serif}
+pre.smalldisplay {font-family: serif; font-size: smaller}
+pre.smallexample {font-size: smaller}
+pre.smallformat {font-family: serif; font-size: smaller}
+pre.smalllisp {font-size: smaller}
+span.roman {font-family:serif; font-weight:normal;}
+span.sansserif {font-family:sans-serif; font-weight:normal;}
+ul.toc {list-style: none}
+body { background-color: #ffd; }
+h1 { text-shadow: .05em .05em #ccc; }
+table {
+  border: 3px solid #ccf;
+  background-color: white;
+}
+div.smallexample {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+div.example {
+  background-color: #dfd;
+  border: 3px solid #cfc;
+}
+samp {
+  color: blue;
+}
+code {
+  color: green;
+}
+
+-->
+</style>
+
+
+</head>
+
+<body lang="en" bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#800080" alink="#FF0000">
+
+<a name="Programmers-Accepting-Exitspec-Parameter"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_4.html#Option-Descriptions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Programmers-Accepting-Extended-Parameters" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<hr size="1">
+<a name="Programmers-Accepting-Exitspec-Parameters"></a>
+<h2 class="section">2.2 Programmers Accepting Exitspec Parameters</h2>
+<a name="index-Programmers-accepting-exitspec-parameters"></a>
+
+<a name="index-FLIP-bootloader-1"></a>
+<a name="index-Option-_002dx-flip2"></a>
+<a name="index-_002dx-flip2"></a>
+<a name="index-Option-_002dx-linuxspi"></a>
+<a name="index-_002dx-linuxspi"></a>
+<a name="index-Option-_002dx-parallel-port-programmers"></a>
+<a name="index-_002dx-parallel-port-programmers"></a>
+
+<p>Currently, only the <code>flip2</code>, <code>linuxspi</code> and old school parallel
+port programmers such as <code>stk200</code> and <code>dapa</code> support <code>-E</code>
+exitspec parameter options. These let the user decide in which state the
+programmer pins after ended programming session. AVRDUDE only allows one
+<code>-E</code> option. However, multiple exitspec parameters can be specified
+as one comma-separated list.
+</p>
+<dl compact="compact">
+<dt> <code>flip2</code></dt>
+<dt> <code>linuxspi</code></dt>
+<dt> <code>Parallel port programmers</code></dt>
+<dd>
+<dl compact="compact">
+<dt> <code>help</code></dt>
+<dd><p>Show help menu and exit.
+</p>
+<a name="index-Option-_002dE-reset"></a>
+<a name="index-_002dE-reset"></a>
+</dd>
+<dt> <code>reset</code></dt>
+<dd><p>The &lsquo;/RESET&rsquo; signal will be left activated at program exit, that is it
+will be held low, in order to keep the MCU in reset state afterwards.
+Note in particular that the programming algorithm for the AT90S1200
+device mandates that the &lsquo;/RESET&rsquo; signal is active before powering up
+the MCU, so in case an external power supply is used for this MCU type,
+a previous invocation of AVRDUDE with this option specified is one of
+the possible ways to guarantee this condition. <code>flip2</code> will not
+exit bootloader mode at program exit if <code>reset</code> is used.
+</p>
+<a name="index-Option-_002dE-noreset"></a>
+<a name="index-_002dE-noreset"></a>
+</dd>
+<dt> <code>noreset</code></dt>
+<dd><p>The &lsquo;/RESET&rsquo; line will be deactivated at program exit, thus allowing the
+MCU target program to run while the programming hardware remains
+connected. <code>flip2</code> will exit bootloader mode at program exit and
+start the application if <code>noreset</code> is used, and this is the default
+behaviour for this bootloader.
+</p></dd>
+</dl>
+
+<a name="index-Option-_002dx-parallel-port-programmers-1"></a>
+<a name="index-_002dx-parallel-port-programmers-1"></a>
+</dd>
+<dt> <code>Parallel port programmers</code></dt>
+<dd>
+<dl compact="compact">
+<dd><a name="index-Option-_002dE-vcc"></a>
+<a name="index-_002dE-vcc"></a>
+</dd>
+<dt> <code>vcc</code></dt>
+<dd><p>This option will leave those parallel port pins active (i. e. high) that
+can be used to supply &lsquo;Vcc&rsquo; power to the MCU.
+</p>
+<a name="index-Option-_002dE-novcc"></a>
+<a name="index-_002dE-novcc"></a>
+</dd>
+<dt> <code>novcc</code></dt>
+<dd><p>This option will pull the &lsquo;Vcc&rsquo; pins of the parallel port down at
+program exit.
+</p>
+<a name="index-Option-_002dE-d_005fhigh"></a>
+<a name="index-_002dE-d_005fhigh"></a>
+</dd>
+<dt> <code>d_high</code></dt>
+<dd><p>This option will leave the 8 data pins on the parallel port active
+(i.e. high).
+</p>
+<a name="index-Option-_002dE-d_005flow"></a>
+<a name="index-_002dE-d_005flow"></a>
+</dd>
+<dt> <code>d_low</code></dt>
+<dd><p>This option will leave the 8 data pins on the parallel port inactive
+(i.e. low).
+</p></dd>
+</dl>
+
+</dd>
+</dl>
+
+
+<hr size="1">
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="avrdude_4.html#Option-Descriptions" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_6.html#Programmers-Accepting-Extended-Parameters" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_3.html#Command-Line-Options" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_8.html#Terminal-Mode-Operation" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="avrdude.html#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_toc.html#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_50.html#Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="avrdude_abt.html#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<p>
+ <font size="-1">
+  This document was generated by <em>Stefan Rueger</em> on <em>August 24, 2024</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+ </font>
+ <br>
+
+</p>
+</body>
+</html>
