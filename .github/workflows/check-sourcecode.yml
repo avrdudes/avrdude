@@ -1,0 +1,24 @@
+name: "Check Sourcecode"
+
+on:
+  push:
+    branches-ignore:
+      - 'onlinedocs'
+  pull_request:
+    branches-ignore:
+      - 'onlinedocs'
+
+jobs:
+
+  check-sourcecode:
+    name: "Check Sourcecode"
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      # - name: Install prerequisites
+
+      - name: "Check the sourcecode"
+        run: ./tools/check-sourcecode
