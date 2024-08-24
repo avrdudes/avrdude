@@ -1864,7 +1864,6 @@ void jtag3_close(PROGRAMMER *pgm) {
 }
 
 static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned int addr) {
-
   unsigned char cmd[8], *resp;
 
   pmsg_notice2("jtag3_page_erase(.., %s, 0x%x)\n", m->desc, addr);
@@ -1882,7 +1881,7 @@ static int jtag3_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AVRME
   cmd[2] = 0;
 
   if(mem_is_in_flash(m)) {
-    cmd[3] = is_updi(p) || jtag3_mtype(pgm, p, m, addr) == MTYPE_FLASH? XMEGA_ERASE_APP_PAGE: XMEGA_ERASE_BOOT_PAGE;
+    cmd[3] = !is_pdi(p) || jtag3_mtype(pgm, p, m, addr) == MTYPE_FLASH? XMEGA_ERASE_APP_PAGE: XMEGA_ERASE_BOOT_PAGE;
     my.flash_pageaddr = ~0UL;
   } else if(mem_is_eeprom(m)) {
     cmd[3] = XMEGA_ERASE_EEPROM_PAGE;
@@ -1935,8 +1934,7 @@ static int jtag3_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRM
   if(mem_is_flash(m)) {
     my.flash_pageaddr = ~0UL;
     cmd[3] = jtag3_mtype(pgm, p, m, addr);
-    if(is_pdi(p))
-      // Dynamically decide between flash/boot mtype
+    if(is_pdi(p))               // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
     if(pgm->flag & PGM_FL_IS_DW) {
@@ -2765,11 +2763,11 @@ static void jtag3_print_parms(const PROGRAMMER *pgm, FILE *fp) {
 }
 
 static unsigned char jtag3_mtype(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
-
   return
     !is_pdi(p)? MTYPE_FLASH_PAGE:
     mem_is_boot(m)? MTYPE_BOOT_FLASH:
-    mem_is_flash(m) && is_pdi(p) && addr >= my.boot_start? MTYPE_BOOT_FLASH: MTYPE_FLASH;
+    mem_is_flash(m) && addr >= my.boot_start? MTYPE_BOOT_FLASH:
+    MTYPE_FLASH;
 }
 
 static unsigned int jtag3_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {

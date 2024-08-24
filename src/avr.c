@@ -1120,7 +1120,7 @@ int avr_write_mem(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, int 
       if(need_write) {
         int rc = 0;
 
-        if(auto_erase && pgm->page_erase)
+        if(auto_erase && pgm->page_erase && !mem_is_eeprom(cm))
           rc = pgm->page_erase(pgm, p, cm, pageaddr);
         if(rc >= 0)
           rc = pgm->paged_write(pgm, p, cm, cm->page_size, pageaddr, cm->page_size);

@@ -146,7 +146,7 @@ static int jtagmkII_setparm(const PROGRAMMER *pgm, unsigned char parm, unsigned 
 static void jtagmkII_print_parms1(const PROGRAMMER *pgm, const char *p, FILE *fp);
 static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m,
   unsigned int page_size, unsigned int addr, unsigned int n_bytes);
-static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr);
+static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr);
 
 // AVR32
@@ -1758,7 +1758,7 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
   pmsg_notice2("jtagmkII_page_erase(.., %s, 0x%x)\n", m->desc, addr);
 
   if(is_classic(p) && !mem_is_userrow(m)) {
-    pmsg_error("page erase only available for AVR8X/XMEGAs or classic-part usersig mem\n");
+    pmsg_error("page erase only available for UPDI/XMEGAs or for classic usersig mem\n");
     return -1;
   }
   if((pgm->flag & PGM_FL_IS_DW)) {
@@ -1766,21 +1766,31 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
     return -1;
   }
 
+  // EEPROM/usersig page erase not implemented in jtagmkII UPDI programmers: write a page of 0xFF
+  if(is_updi(p) && (mem_is_eeprom(m) || mem_is_usersig(m)) &&
+    m->page_size > 0 && !(m->page_size & (m->page_size-1)) && m->size > 0) {
+
+    unsigned char *page = mmt_malloc(m->page_size);
+    memset(page, 0xff, m->page_size);
+    int rc = avr_write_page_default(pgm, p, m, addr, page);
+    mmt_free(page);
+    my.eeprom_pageaddr = ~0UL;
+
+    return rc;
+  }
+
   if(jtagmkII_program_enable(pgm) < 0)
     return -1;
 
   cmd[0] = CMND_XMEGA_ERASE;
-  if(mem_is_flash(m)) {
-    if(jtagmkII_mtype(pgm, p, addr) == MTYPE_FLASH)
-      cmd[1] = XMEGA_ERASE_APP_PAGE;
-    else
-      cmd[1] = XMEGA_ERASE_BOOT_PAGE;
+  if(mem_is_in_flash(m)) {
+    cmd[1] = jtagmkII_mtype(pgm, p, m, addr) == MTYPE_BOOT_FLASH? XMEGA_ERASE_BOOT_PAGE: XMEGA_ERASE_APP_PAGE;
+    my.flash_pageaddr = ~0UL;
   } else if(mem_is_eeprom(m)) {
     cmd[1] = XMEGA_ERASE_EEPROM_PAGE;
+    my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = XMEGA_ERASE_USERSIG;
-  } else if(mem_is_boot(m)) {
-    cmd[1] = XMEGA_ERASE_BOOT_PAGE;
   } else {
     cmd[1] = XMEGA_ERASE_APP_PAGE;
   }
@@ -1792,6 +1802,12 @@ static int jtagmkII_page_erase(const PROGRAMMER *pgm, const AVRPART *p, const AV
    * commands make an exception, and do require the NVM offsets as part of the
    * (page) address.
    */
+  if(is_pdi(p) && mem_is_in_flash(m)) {
+    if(addr >= my.boot_start)   // Boot is special and gets its own region
+      addr -= my.boot_start;
+    if(!mem_is_boot(m))         // Apptable, application and flash
+      addr += avr_flash_offset(p, m, addr);
+  }
   u32_to_b4(cmd + 2, addr + m->offset);
 
   tries = 0;
@@ -1851,20 +1867,16 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
 
   cmd = mmt_malloc(page_size + 10);
   cmd[0] = CMND_WRITE_MEMORY;
-  if(mem_is_flash(m)) {
+  if(mem_is_in_flash(m)) {
     my.flash_pageaddr = ~0UL;
-    cmd[1] = jtagmkII_mtype(pgm, p, addr);
-    if(p->prog_modes & (PM_PDI | PM_UPDI))      // Dynamically decide between flash/boot mtype
+    cmd[1] = jtagmkII_mtype(pgm, p, m, addr);
+    if(is_pdi(p))               // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
     if(pgm->flag & PGM_FL_IS_DW) {
-      /*
-       * jtagmkII_paged_write() to EEPROM attempted while in DW mode.  Use
-       * jtagmkII_write_byte() instead.
-       */
+       // Cannot use paged write to EEPROM in DW mode;  use jtagmkII_write_byte() instead
       for(; addr < maxaddr; addr++) {
-        status = jtagmkII_write_byte(pgm, p, m, addr, m->buf[addr]);
-        if(status < 0) {
+        if(jtagmkII_write_byte(pgm, p, m, addr, m->buf[addr]) < 0) {
           mmt_free(cmd);
           return -1;
         }
@@ -1876,8 +1888,6 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     my.eeprom_pageaddr = ~0UL;
   } else if(mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
-  } else if(mem_is_boot(m)) {
-    cmd[1] = MTYPE_BOOT_FLASH;
   } else if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
   } else {
@@ -1892,7 +1902,7 @@ static int jtagmkII_paged_write(const PROGRAMMER *pgm, const AVRPART *p, const A
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if(dynamic_mtype)
-      cmd[1] = jtagmkII_mtype(pgm, p, addr);
+      cmd[1] = jtagmkII_mtype(pgm, p, m, addr);
 
     u32_to_b4(cmd + 2, page_size);
     u32_to_b4(cmd + 6, jtagmkII_memaddr(pgm, p, m, addr));
@@ -1965,9 +1975,9 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
   page_size = m->readsize;
 
   cmd[0] = CMND_READ_MEMORY;
-  if(mem_is_flash(m)) {
-    cmd[1] = jtagmkII_mtype(pgm, p, addr);
-    if(p->prog_modes & (PM_PDI | PM_UPDI))      // Dynamically decide between flash/boot mtype
+  if(mem_is_in_flash(m)) {
+    cmd[1] = jtagmkII_mtype(pgm, p, m, addr);
+    if(is_pdi(p))               // Dynamically decide between flash/boot mtype
       dynamic_mtype = 1;
   } else if(mem_is_eeprom(m)) {
     cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_EEPROM: MTYPE_EEPROM_PAGE;
@@ -1977,8 +1987,6 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     cmd[1] = MTYPE_PRODSIG;
   } else if(mem_is_userrow(m) || mem_is_bootrow(m)) {
     cmd[1] = MTYPE_USERSIG;
-  } else if(mem_is_boot(m)) {
-    cmd[1] = MTYPE_BOOT_FLASH;
   } else if(p->prog_modes & (PM_PDI | PM_UPDI)) {
     cmd[1] = MTYPE_FLASH;
   } else {
@@ -1993,7 +2001,7 @@ static int jtagmkII_paged_load(const PROGRAMMER *pgm, const AVRPART *p, const AV
     pmsg_debug("%s(): block_size at addr %d is %d\n", __func__, addr, block_size);
 
     if(dynamic_mtype)
-      cmd[1] = jtagmkII_mtype(pgm, p, addr);
+      cmd[1] = jtagmkII_mtype(pgm, p, m, addr);
 
     u32_to_b4(cmd + 2, block_size);
     u32_to_b4(cmd + 6, jtagmkII_memaddr(pgm, p, m, addr));
@@ -2249,8 +2257,7 @@ static int jtagmkII_write_byte(const PROGRAMMER *pgm, const AVRPART *p, const AV
   cmd[0] = CMND_WRITE_MEMORY;
   cmd[1] = p->prog_modes & (PM_PDI | PM_UPDI)? MTYPE_FLASH: MTYPE_SPM;
   if(mem_is_flash(mem)) {
-    if((addr & 1) == 1) {
-      // Odd address = high byte
+    if(addr & 1) {              // Odd address = high byte
       writedata = 0xFF;         // Don't modify the low byte
       writedata2 = data;
       addr &= ~1L;
@@ -2579,37 +2586,26 @@ static void jtagmkII_print_parms(const PROGRAMMER *pgm, FILE *fp) {
   jtagmkII_print_parms1(pgm, "", fp);
 }
 
-static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, unsigned long addr) {
-  if(p->prog_modes & (PM_PDI | PM_UPDI)) {
-    if(addr >= my.boot_start)
-      return MTYPE_BOOT_FLASH;
-    else
-      return MTYPE_FLASH;
-  } else {
-    return MTYPE_FLASH_PAGE;
-  }
+static unsigned char jtagmkII_mtype(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
+  return
+    !is_pdi(p) && !is_updi(p)? MTYPE_FLASH_PAGE:
+    mem_is_boot(m)? MTYPE_BOOT_FLASH:
+    mem_is_flash(m) && is_pdi(p) && addr >= my.boot_start? MTYPE_BOOT_FLASH:
+    MTYPE_FLASH;
 }
 
+// Return adjusted memory for communicating address of paged read/writes to programmer
 static unsigned int jtagmkII_memaddr(const PROGRAMMER *pgm, const AVRPART *p, const AVRMEM *m, unsigned long addr) {
-  /*
-   * Xmega devices handled by V7+ firmware don't want to be told their
-   * m->offset within the write memory command.
-   */
+  // Xmega flash memories need adjusting as boot has its own region for the programmers
+  if(is_pdi(p) && mem_is_flash(m) && addr >= my.boot_start)
+    addr -= my.boot_start;
+  // Xmega devices handled by V7+ firmware don't want to be told their m->offset
   if(my.fwver >= 0x700 && (p->prog_modes & (PM_PDI | PM_UPDI))) {
-    if(addr >= my.boot_start)
-      /*
-       * All memories but "flash" are smaller than boot_start anyway, so no
-       * need for an extra check we are operating on "flash"
-       */
-      return addr - my.boot_start;
-    else
-      // Normal flash, or anything else
-      return addr;
+    if(is_pdi(p) && mem_is_in_flash(m) && !mem_is_boot(m)) // Apptable, application and flash
+      addr += avr_flash_offset(p, m, addr);
+    return addr;
   }
-  /*
-   * Old firmware, or non-Xmega device.  Non-Xmega (and non-AVR32) devices
-   * always have an m->offset of 0, so we don't have to distinguish them here.
-   */
+  // Old firmware, or non-Xmega/non-UPDI device (which have offset 0)
   return addr + m->offset;
 }
 
