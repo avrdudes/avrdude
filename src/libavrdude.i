@@ -35,7 +35,7 @@ The following global variables are available in `ad.cvar`:
 %module (docstring=DOCSTRING) swig_avrdude
 %feature("autodoc", "1");
 %{
-#include "ac_cfg.h"
+#include <ac_cfg.h>
 #include "libavrdude.h"
 
 // global variables referenced by library
