@@ -168,6 +168,10 @@ Changes since version 7.3:
     - Improve messaging around locked UPDI parts #1907
     - Improve Documentation #1908
     - Silence compiler warnings #1909
+    - Parport build test #1874
+    - CI: test running the built avrdude executable #1888
+    - Add checks for zombie sourcecode problems #1910
+    - Iron out some problems in jtagmkII #1911
 
   * Internals:
 
